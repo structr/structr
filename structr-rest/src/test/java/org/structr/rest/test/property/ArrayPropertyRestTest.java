@@ -125,4 +125,231 @@ public class ArrayPropertyRestTest extends StructrRestTest {
 
 
 	}
+
+
+	public void testSearchStringArray() {
+
+		// create test objects
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.body("["
+				+ "{ 'name': 'test1', 'stringArrayProperty' : ['one'] },"
+				+ "{ 'name': 'test2', 'stringArrayProperty' : ['one', 'two'] },"
+				+ "{ 'name': 'test3', 'stringArrayProperty' : ['one', 'two', 'three'] },"
+				+ "{ 'name': 'test4', 'stringArrayProperty' : ['one', 'two', 'three', 'four'] },"
+				+ "{ 'name': 'test5', 'stringArrayProperty' : ['one', 'two', 'three', 'four', 'five'] }"
+				+ "]")
+		.expect()
+			.statusCode(201)
+		.when()
+			.post("/test_threes?sort=name")
+			.getHeader("Location");
+		
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(5))
+
+			.body("result[0].stringArrayProperty[0]", equalTo("one"))
+		
+			.body("result[1].stringArrayProperty[0]", equalTo("one"))
+			.body("result[1].stringArrayProperty[1]", equalTo("two"))
+		
+			.body("result[2].stringArrayProperty[0]", equalTo("one"))
+			.body("result[2].stringArrayProperty[1]", equalTo("two"))
+			.body("result[2].stringArrayProperty[2]", equalTo("three"))
+		
+			.body("result[3].stringArrayProperty[0]", equalTo("one"))
+			.body("result[3].stringArrayProperty[1]", equalTo("two"))
+			.body("result[3].stringArrayProperty[2]", equalTo("three"))
+			.body("result[3].stringArrayProperty[3]", equalTo("four"))
+		
+			.body("result[4].stringArrayProperty[0]", equalTo("one"))
+			.body("result[4].stringArrayProperty[1]", equalTo("two"))
+			.body("result[4].stringArrayProperty[2]", equalTo("three"))
+			.body("result[4].stringArrayProperty[3]", equalTo("four"))
+			.body("result[4].stringArrayProperty[4]", equalTo("five"))
+
+		.when()
+			.get("/test_threes?sort=name&stringArrayProperty=one");
+
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(4))
+
+			.body("result[0].stringArrayProperty[0]", equalTo("one"))
+			.body("result[0].stringArrayProperty[1]", equalTo("two"))
+		
+			.body("result[1].stringArrayProperty[0]", equalTo("one"))
+			.body("result[1].stringArrayProperty[1]", equalTo("two"))
+			.body("result[1].stringArrayProperty[2]", equalTo("three"))
+		
+			.body("result[2].stringArrayProperty[0]", equalTo("one"))
+			.body("result[2].stringArrayProperty[1]", equalTo("two"))
+			.body("result[2].stringArrayProperty[2]", equalTo("three"))
+			.body("result[2].stringArrayProperty[3]", equalTo("four"))
+		
+			.body("result[3].stringArrayProperty[0]", equalTo("one"))
+			.body("result[3].stringArrayProperty[1]", equalTo("two"))
+			.body("result[3].stringArrayProperty[2]", equalTo("three"))
+			.body("result[3].stringArrayProperty[3]", equalTo("four"))
+			.body("result[3].stringArrayProperty[4]", equalTo("five"))
+		.when()
+			.get("/test_threes?sort=name&stringArrayProperty=two");
+
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(3))
+
+			.body("result[0].stringArrayProperty[0]", equalTo("one"))
+			.body("result[0].stringArrayProperty[1]", equalTo("two"))
+			.body("result[0].stringArrayProperty[2]", equalTo("three"))
+		
+			.body("result[1].stringArrayProperty[0]", equalTo("one"))
+			.body("result[1].stringArrayProperty[1]", equalTo("two"))
+			.body("result[1].stringArrayProperty[2]", equalTo("three"))
+			.body("result[1].stringArrayProperty[3]", equalTo("four"))
+		
+			.body("result[2].stringArrayProperty[0]", equalTo("one"))
+			.body("result[2].stringArrayProperty[1]", equalTo("two"))
+			.body("result[2].stringArrayProperty[2]", equalTo("three"))
+			.body("result[2].stringArrayProperty[3]", equalTo("four"))
+			.body("result[2].stringArrayProperty[4]", equalTo("five"))
+		.when()
+			.get("/test_threes?sort=name&stringArrayProperty=three");
+
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(2))
+			
+			.body("result[0].stringArrayProperty[0]", equalTo("one"))
+			.body("result[0].stringArrayProperty[1]", equalTo("two"))
+			.body("result[0].stringArrayProperty[2]", equalTo("three"))
+			.body("result[0].stringArrayProperty[3]", equalTo("four"))
+		
+			.body("result[1].stringArrayProperty[0]", equalTo("one"))
+			.body("result[1].stringArrayProperty[1]", equalTo("two"))
+			.body("result[1].stringArrayProperty[2]", equalTo("three"))
+			.body("result[1].stringArrayProperty[3]", equalTo("four"))
+			.body("result[1].stringArrayProperty[4]", equalTo("five"))
+		.when()
+			.get("/test_threes?sort=name&stringArrayProperty=four");
+
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(1))
+			
+			.body("result[0].stringArrayProperty[0]", equalTo("one"))
+			.body("result[0].stringArrayProperty[1]", equalTo("two"))
+			.body("result[0].stringArrayProperty[2]", equalTo("three"))
+			.body("result[0].stringArrayProperty[3]", equalTo("four"))
+			.body("result[0].stringArrayProperty[4]", equalTo("five"))
+		.when()
+			.get("/test_threes?sort=name&stringArrayProperty=five");
+	}
+
+
+	public void testSearchStringArrayOR() {
+
+		// create test objects
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.body("["
+				+ "{ 'name': 'test1', 'stringArrayProperty' : ['one'] },"
+				+ "{ 'name': 'test2', 'stringArrayProperty' : ['two'] },"
+				+ "{ 'name': 'test3', 'stringArrayProperty' : ['three'] }"
+				+ "]")
+		.expect()
+			.statusCode(201)
+		.when()
+			.post("/test_threes?sort=name")
+			.getHeader("Location");
+		
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(2))
+
+			.body("result[0].stringArrayProperty[0]", equalTo("one"))
+		
+			.body("result[1].stringArrayProperty[0]", equalTo("two"))
+
+		.when()
+			.get("/test_threes?sort=name&stringArrayProperty=one;two");
+
+	}
+
+
+	public void testSearchStringArrayAND() {
+
+		// create test objects
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.body("["
+				+ "{ 'name': 'test1', 'stringArrayProperty' : ['one'] },"
+				+ "{ 'name': 'test2', 'stringArrayProperty' : ['one', 'two'] },"
+				+ "{ 'name': 'test3', 'stringArrayProperty' : ['one', 'two', 'three'] }"
+				+ "]")
+		.expect()
+			.statusCode(201)
+		.when()
+			.post("/test_threes?sort=name")
+			.getHeader("Location");
+		
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(2))
+
+			.body("result[0].stringArrayProperty[0]", equalTo("one"))
+			.body("result[0].stringArrayProperty[1]", equalTo("two"))
+		
+			.body("result[1].stringArrayProperty[0]", equalTo("one"))
+			.body("result[1].stringArrayProperty[1]", equalTo("two"))
+			.body("result[1].stringArrayProperty[2]", equalTo("three"))
+
+		.when()
+			.get("/test_threes?sort=name&stringArrayProperty=one,two");
+
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(1))
+
+			.body("result[0].stringArrayProperty[0]", equalTo("one"))
+			.body("result[0].stringArrayProperty[1]", equalTo("two"))
+			.body("result[0].stringArrayProperty[2]", equalTo("three"))
+
+		.when()
+			.get("/test_threes?sort=name&stringArrayProperty=one,two,three");
+	}
+
 }

@@ -21,6 +21,7 @@ package org.structr.core.property;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.common.SecurityContext;
@@ -116,7 +117,16 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 				return (T[])source;
 			}
 
-			return null;
+			if (source instanceof String) {
+				
+				final String s = (String) source;
+				
+				if (s.contains(",")) {
+					return (T[]) s.split(",");
+				}
+			}
+			
+			return (T[]) new Object[] { source };
 		}
 
 	}
