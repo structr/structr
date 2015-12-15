@@ -29,10 +29,6 @@ import org.structr.schema.action.ActionContext;
 
 public class IfExpression extends Expression {
 
-	private Expression condition       = null;
-	private Expression falseExpression = null;
-	private Expression trueExpression  = null;
-
 	public IfExpression() {
 		super("if");
 	}
@@ -55,40 +51,28 @@ public class IfExpression extends Expression {
 	@Override
 	public void add(final Expression expression) throws FrameworkException {
 
-		// first expression is the if condition
-		if (this.condition == null) {
-
-			this.condition = expression;
-
-		} else if (this.trueExpression == null) {
-
-			this.trueExpression = expression;
-
-		} else if (this.falseExpression == null) {
-
-			this.falseExpression = expression;
-
-		} else {
-
+		if (expressions.size() == 3) {
 			throw new FrameworkException(422, "Invalid if() expression in builtin function: too many parameters.");
 		}
-
-		expression.parent = this;
-		expression.level  = this.level + 1;
+		
+		super.add(expression);
+		
 	}
 
 	@Override
 	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
 
-
-		if (condition == null) {
+		if (expressions.isEmpty()) {
 			return Functions.ERROR_MESSAGE_IF;
 		}
 
+		final Expression condition = expressions.get(0);
+		
 		if (isTrue(condition.evaluate(ctx, entity))) {
-
-			if (trueExpression != null) {
-
+			
+			if (expressions.size() > 1) {
+				
+				final Expression trueExpression = expressions.get(1);
 				return trueExpression.evaluate(ctx, entity);
 
 			} else {
@@ -97,9 +81,10 @@ public class IfExpression extends Expression {
 			}
 
 		} else {
+			
+			if (expressions.size() > 2) {
 
-			if (falseExpression != null) {
-
+				final Expression falseExpression = expressions.get(2);
 				return falseExpression.evaluate(ctx, entity);
 
 			} else {

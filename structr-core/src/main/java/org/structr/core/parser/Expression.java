@@ -55,6 +55,14 @@ public abstract class Expression {
 		this.expressions.add(expression);
 	}
 
+	public void replacePrevious(final Expression newExpression) throws FrameworkException {
+		
+		if (hasPrevious()) {
+			expressions.remove(expressions.size() - 1);
+			this.add(newExpression);
+		}
+	}
+
 	public Expression getParent() {
 		return parent;
 	}

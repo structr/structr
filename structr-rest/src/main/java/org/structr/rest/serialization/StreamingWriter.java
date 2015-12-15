@@ -452,7 +452,7 @@ public abstract class StreamingWriter {
 								range.resetCount();
 							}
 
-							// special handling for the _structr_graph view: replace name with
+							// special handling for the internal _graph view: replace name with
 							// the name property from the ui view, in case it was overwritten
 							PropertyKey localKey = key;
 

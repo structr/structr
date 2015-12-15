@@ -325,7 +325,16 @@ public class Functions {
 						throw new FrameworkException(422, "Invalid expression: mismatched opening bracket before " + tokenizer.sval);
 					}
 					next = checkReservedWords(tokenizer.sval);
-					current.add(next);
+					Expression previousExpression = current.getPrevious();
+					if (tokenizer.sval.startsWith(".") && previousExpression != null && previousExpression instanceof FunctionExpression && next instanceof ValueExpression) {
+						
+						final FunctionExpression previousFunctionExpression = (FunctionExpression) previousExpression;
+						final ValueExpression    valueExpression            = (ValueExpression) next;
+						
+						current.replacePrevious(new FunctionValueExpression(previousFunctionExpression, valueExpression));
+					} else {
+						current.add(next);
+					}
 					lastToken = tokenizer.sval;
 					break;
 
