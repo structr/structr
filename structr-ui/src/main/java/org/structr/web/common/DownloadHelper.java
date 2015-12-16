@@ -76,7 +76,7 @@ public class DownloadHelper {
 
 		final GraphObjectMap contextObject = new GraphObjectMap();
 		final Set<String> contextValues = new LinkedHashSet<>();
-		final String[] searchParts = searchTerm.split("[\\s]+");
+		final String[] searchParts = searchTerm.split("[\\s,;]+");
 		final GenericProperty contextKey = new GenericProperty("context");
 
 		for (final String searchString : searchParts) {

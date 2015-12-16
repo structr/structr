@@ -35,11 +35,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
@@ -65,12 +67,11 @@ public class DataFeed extends AbstractNode {
 		id, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate,
                 url, items, feedType, description
 	);
-        
-	
-	@Override
-	public void afterCreation(final SecurityContext securityContext) {
 
+	@Override
+	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		updateFeed();
+		return super.onCreation(securityContext, errorBuffer);
 	}
 	
 	@Export
@@ -108,7 +109,7 @@ public class DataFeed extends AbstractNode {
 
 						final FeedItem item = app.create(FeedItem.class, props);
 						item.setProperty(FeedItem.pubDate, entry.getPublishedDate());
-
+						
 						final List<FeedItemContent> itemContents = new LinkedList<>();
 
 						final List<SyndContent> contents = entry.getContents();

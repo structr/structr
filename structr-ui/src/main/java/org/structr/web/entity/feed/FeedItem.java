@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
@@ -40,6 +41,8 @@ import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
+import org.structr.core.validator.SimpleNonEmptyValueValidator;
+import org.structr.core.validator.TypeUniquenessValidator;
 import org.structr.files.text.FulltextIndexingTask;
 import org.structr.web.common.DownloadHelper;
 import org.structr.web.entity.relation.FeedItemContents;
@@ -53,7 +56,7 @@ public class FeedItem extends AbstractNode implements Indexable {
 
 	private static final Logger logger = Logger.getLogger(FeedItem.class.getName());
 
-	public static final Property<String> url                     = new StringProperty("url").indexed();
+	public static final Property<String> url                     = new StringProperty("url").unique().indexed();
 	public static final Property<String> author                  = new StringProperty("author");
 	public static final Property<String> comments                = new StringProperty("comments");
 	public static final Property<List<FeedItemContent>> contents = new EndNodes<>("contents", FeedItemContents.class);
@@ -71,17 +74,24 @@ public class FeedItem extends AbstractNode implements Indexable {
 		url, feed, author, comments, contents, pubDate);
 
 	
+	static {
+
+		FeedItem.url.addValidator(new SimpleNonEmptyValueValidator(FeedItem.class));
+		FeedItem.url.addValidator(new TypeUniquenessValidator(FeedItem.class));
+	}
+
+	@Override
+	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+		StructrApp.getInstance(securityContext).processTasks(new FulltextIndexingTask(this));
+		return super.onCreation(securityContext, errorBuffer);
+	}
+	
+	
+		
+	
 	@Override
 	public void afterCreation(SecurityContext securityContext) {
-
-		try {
-
-			StructrApp.getInstance(securityContext).processTasks(new FulltextIndexingTask(this));
-			
-		} catch (Throwable t) {
-
-		}
-
+		StructrApp.getInstance(securityContext).processTasks(new FulltextIndexingTask(this));
 	}
 
 	@Export
