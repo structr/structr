@@ -40,8 +40,11 @@ public abstract class AbstractStructrActions extends CMISExtensionsData implemen
 
     protected final Set<Action> actions = new LinkedHashSet<>();
     protected boolean isAnonymous = false;
+    protected final boolean isImmutable;
 
-    public AbstractStructrActions(List <Ace> aces, String username, boolean isAdmin, boolean IsOwner) {
+    public AbstractStructrActions(List <Ace> aces, String username, boolean isAdmin, boolean IsOwner, boolean isImmutable) {
+
+	this.isImmutable = isImmutable;
 
 	if(username.equals(org.structr.core.entity.Principal.ANONYMOUS)) {
 

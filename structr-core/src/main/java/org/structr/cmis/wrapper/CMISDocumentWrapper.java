@@ -53,9 +53,9 @@ public class CMISDocumentWrapper extends CMISObjectWrapper<CMISDocumentInfo> {
 
 		// added for specification compliance
 		properties.add(factory.createPropertyIdData(PropertyIds.SECONDARY_OBJECT_TYPE_IDS, (String)null));
-		properties.add(factory.createPropertyBooleanData(PropertyIds.IS_LATEST_VERSION, true));
-		properties.add(factory.createPropertyBooleanData(PropertyIds.IS_MAJOR_VERSION, true));
-		properties.add(factory.createPropertyBooleanData(PropertyIds.IS_LATEST_MAJOR_VERSION, true));
+		properties.add(factory.createPropertyBooleanData(PropertyIds.IS_LATEST_VERSION, false));
+		properties.add(factory.createPropertyBooleanData(PropertyIds.IS_MAJOR_VERSION, false));
+		properties.add(factory.createPropertyBooleanData(PropertyIds.IS_LATEST_MAJOR_VERSION, false));
 		properties.add(factory.createPropertyBooleanData(PropertyIds.IS_PRIVATE_WORKING_COPY, false));
 		properties.add(factory.createPropertyStringData(PropertyIds.VERSION_LABEL, ""));
 		properties.add(factory.createPropertyIdData(PropertyIds.VERSION_SERIES_ID, ""));

@@ -203,7 +203,7 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 	@Override
 	public AllowableActions getAllowableActions() {
 
-		return getAllowableActionsHelper();
+		return getAllowableActionsHelper(false);
 	}
 
 	@Override

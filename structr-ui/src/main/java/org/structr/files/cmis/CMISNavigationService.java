@@ -30,7 +30,6 @@ import org.apache.chemistry.opencmis.commons.data.ObjectInFolderList;
 import org.apache.chemistry.opencmis.commons.data.ObjectList;
 import org.apache.chemistry.opencmis.commons.data.ObjectParentData;
 import org.apache.chemistry.opencmis.commons.enums.IncludeRelationships;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisNotSupportedException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectInFolderContainerImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectParentDataImpl;
@@ -47,7 +46,9 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
 import org.structr.files.cmis.repository.CMISRootFolder;
 import org.structr.files.cmis.wrapper.CMISObjectInFolderWrapper;
+import org.structr.files.cmis.wrapper.CMISObjectListWrapper;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 
@@ -58,9 +59,12 @@ import org.structr.web.entity.Image;
 public class CMISNavigationService extends AbstractStructrCmisService implements NavigationService {
 
 	private static final Logger logger = Logger.getLogger(CMISNavigationService.class.getName());
+	private final StructrCMISService parentService;
+
 
 	public CMISNavigationService(final StructrCMISService parentService, final SecurityContext securityContext) {
 		super(parentService, securityContext);
+		this.parentService = parentService;
 	}
 
 	@Override
@@ -277,10 +281,139 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 
 	@Override
 	public ObjectList getCheckedOutDocs(String repositoryId, String folderId, String filter, String orderBy, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {
-		throw new CmisNotSupportedException();
+
+		final App app = StructrApp.getInstance(securityContext);
+		CMISObjectListWrapper list = new CMISObjectListWrapper();
+		List<FileBase> children = null;
+
+		boolean hasMaxItems = false;
+		if(maxItems != null && maxItems.intValue() >= 0) {
+
+			hasMaxItems = true;
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			//collect documents from specific folder
+			if(folderId != null) {
+
+				if (CMISInfo.ROOT_FOLDER_ID.equals(folderId)) {
+
+					children = app.nodeQuery(FileBase.class)
+							.sort(AbstractFile.name)
+							.and(AbstractFile.hasParent, false)
+							.not().and(Image.isThumbnail, true)
+							.getAsList();
+
+				} else {
+
+					final Folder folder = app.get(Folder.class, folderId);
+
+					if (folder != null) {
+
+						children = app.nodeQuery(FileBase.class)
+								.and(AbstractFile.parent, folder)
+								.sort(AbstractFile.name)
+								.getAsList();
+					}
+				}
+
+
+				for (final FileBase file : children) {
+
+					String objectId = file.getProperty(FileBase.id);
+					list.add(parentService.getObject(repositoryId, objectId, filter, includeAllowableActions, includeRelationships, renditionFilter, null, null, extension));
+
+					if(hasMaxItems) {
+
+						if(list.getSize() >= maxItems.intValue()) {
+
+							//accessed limit, exit function
+							return list;
+						}
+					}
+				}
+
+			} else {
+
+				//collect ALL docs beginning from root
+
+				final List<FileBase> documentChildren = app.nodeQuery(FileBase.class)
+								.sort(AbstractFile.name)
+								.and(AbstractFile.hasParent, false)
+								.not().and(Image.isThumbnail, true)
+								.getAsList();
+
+				for (final FileBase file : documentChildren) {
+
+					String objectId = file.getProperty(FileBase.id);
+					list.add(parentService.getObject(repositoryId, objectId, filter, includeAllowableActions, includeRelationships, renditionFilter, null, null, extension));
+
+					if(hasMaxItems) {
+
+						if(list.getSize() >= maxItems.intValue()) {
+
+							//accessed limit, exit function
+							return list;
+						}
+					}
+				}
+
+				final List<Folder> folderChildren = app.nodeQuery(Folder.class)
+								.sort(AbstractFile.name)
+								.and(AbstractFile.hasParent, false)
+								.not().and(Image.isThumbnail, true)
+								.getAsList();
+
+				for (final Folder child : folderChildren) {
+
+					recursivelyCollectDocuments(list, hasMaxItems, child, repositoryId, filter, includeAllowableActions, includeRelationships, renditionFilter, maxItems, skipCount, extension);
+				}
+			}
+
+			tx.success();
+
+			return list;
+
+		} catch (final FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		return null;
 	}
 
+
 	// ----- private methods -----
+	private void recursivelyCollectDocuments(CMISObjectListWrapper list, final boolean hasMaxItems, final Folder child, String repositoryId, String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) throws FrameworkException {
+
+		if(hasMaxItems) {
+			if(list.getSize() >= maxItems.intValue()) {
+
+				return;
+			}
+		}
+
+		final List<AbstractFile> documents = child.getProperty(FileBase.children);
+
+		for(AbstractFile abstractFile : documents) {
+
+			if(abstractFile instanceof FileBase) {
+
+				FileBase file = (FileBase) abstractFile;
+				list.add(parentService.getObject(repositoryId, file.getProperty(FileBase.id), filter, includeAllowableActions, includeRelationships, renditionFilter, null, null, extension));
+			}
+		}
+
+		// fetch and sort children
+		final List<Folder> children = child.getProperty(Folder.folders);
+		Collections.sort(children, new GraphObjectComparator(AbstractNode.name, false));
+
+		// descend into children
+		for (final Folder folderChild: children) {
+			recursivelyCollectDocuments(list, hasMaxItems, folderChild, repositoryId, filter, includeAllowableActions, includeRelationships, renditionFilter, maxItems, skipCount, extension);
+		}
+	}
+
 	private void recursivelyCollectFolderTree(final List<ObjectInFolderContainer> list, final Folder child, final int maxDepth, final int depth, final Boolean includeAllowableActions) throws FrameworkException {
 
 		if (depth > maxDepth) {

@@ -18,11 +18,14 @@
  */
 package org.structr.files.cmis;
 
+import com.google.common.io.Files;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -53,6 +56,7 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.FailedToDeleteDataImpl;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.apache.chemistry.opencmis.commons.spi.ObjectService;
+import org.apache.sis.internal.jdk7.StandardOpenOption;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.wrapper.CMISObjectWrapper;
 import org.structr.common.Permission;
@@ -344,7 +348,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 	@Override
 	public ObjectData getObjectByPath(final String repositoryId, final String path, final String propertyFilter, final Boolean includeAllowableActions, final IncludeRelationships includeRelationships, final String renditionFilter, final Boolean includePolicyIds, final Boolean includeAcl, final ExtensionsData extension) {
 
-		final App app     = StructrApp.getInstance();
+		final App app     = StructrApp.getInstance(securityContext);
 		ObjectData result = null;
 
 		try (final Tx tx = app.tx()) {
@@ -371,7 +375,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 	@Override
 	public ContentStream getContentStream(final String repositoryId, final String objectId, final String streamId, final BigInteger offset, final BigInteger length, final ExtensionsData extension) {
 
-		final App app            = StructrApp.getInstance();
+		final App app            = StructrApp.getInstance(securityContext);
 		ContentStreamImpl result = null;
 
 		try (final Tx tx = app.tx()) {
@@ -398,7 +402,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 	@Override
 	public void updateProperties(final String repositoryId, final Holder<String> objectId, final Holder<String> changeToken, final Properties properties, final ExtensionsData extension) {
 
-		final App app   = StructrApp.getInstance();
+		final App app   = StructrApp.getInstance(securityContext);
 		final String id = objectId.getValue();
 
 		try (final Tx tx = app.tx()) {
@@ -665,7 +669,47 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 
 	@Override
 	public void appendContentStream(String repositoryId, Holder<String> objectId, Holder<String> changeToken, ContentStream contentStream, boolean isLastChunk, ExtensionsData extension) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		final App app = StructrApp.getInstance(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			final FileBase file = get(app, FileBase.class, objectId.getValue());
+
+			if (contentStream != null) {
+
+				final InputStream inputAppendContent = contentStream.getStream();
+				final InputStream inputOldContent = file.getInputStream();
+
+				if (inputAppendContent != null) {
+
+					try (final OutputStream outputStream = file.getOutputStream(false)) {
+
+
+						//NOT FINISHED YET!
+						String oldContent	= IOUtils.readAllLines(inputOldContent);
+						String appendContent	= IOUtils.readAllLines(inputAppendContent);
+						String newContent	=  oldContent + appendContent;
+
+						//utf8 right choice here?
+						InputStream newInput	= new ByteArrayInputStream(newContent.getBytes(StandardCharsets.UTF_8));
+
+						IOUtils.copy(newInput, outputStream);
+
+						inputOldContent.close();
+						inputAppendContent.close();
+						newInput.close();
+					}
+				}
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			throw new CmisConstraintException(fex.getMessage(), fex);
+		} catch (IOException ex) {
+			Logger.getLogger(CMISObjectService.class.getName()).log(Level.SEVERE, null, ex);
+		}
 	}
 
 	// ----- private methods -----

@@ -71,8 +71,15 @@ public class CreateCommand extends AbstractCommand {
 			if (newNode instanceof FileBase) {
 
 				Long size		= (Long) webSocketData.getNodeData().get("size");
-				String contentType	= (String) webSocketData.getNodeData().get("contentType");
 				String name		= (String) webSocketData.getNodeData().get("name");
+				String contentType	= (String) webSocketData.getNodeData().get("contentType");
+
+				if(contentType == null || contentType.equals("")) {
+
+					//default content type, when creating a new file or
+					//inserting a file without explicit file extension
+					contentType ="application/octet-stream";
+				}
 
 				FileBase fileNode = (FileBase) newNode;
 

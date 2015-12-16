@@ -24,9 +24,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
@@ -49,20 +47,17 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
-import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.files.text.FulltextIndexingTask;
-import org.structr.files.text.FulltextTokenizer;
 import org.structr.schema.action.JavaScriptSource;
 import org.structr.web.common.DownloadHelper;
 import org.structr.web.common.FileHelper;
@@ -549,7 +544,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	@Override
 	public AllowableActions getAllowableActions() {
 
-		return getAllowableActionsHelper();
+		return getAllowableActionsHelper(isImmutable());
 	}
 
 	@Override

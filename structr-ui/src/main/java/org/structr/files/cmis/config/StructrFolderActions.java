@@ -32,7 +32,7 @@ public class StructrFolderActions extends AbstractStructrActions {
 
 	public StructrFolderActions(List<Ace> aces, String username, boolean isAdmin, boolean isOwner) {
 
-	    super(aces, username, isAdmin, isOwner);
+	    super(aces, username, isAdmin, isOwner, false);
 	}
 
 	@Override

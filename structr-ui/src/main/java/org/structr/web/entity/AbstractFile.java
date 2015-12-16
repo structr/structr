@@ -79,11 +79,12 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 	/**
 	 * Gets called here to prevent redundant code in FileBase.java and
 	 * Folder.java (and probably later in other subclasses for cmis::item)
+	 * @param isImmutable: important for documents
 	 * @return -
 	*/
-	protected AllowableActions getAllowableActionsHelper() {
+	protected AllowableActions getAllowableActionsHelper(final boolean isImmutable) {
 
-		String username = null;
+		String username;
 		boolean isAdmin = false;
 		boolean isOwner = false;
 		Principal user = getSecurityContext().getUser(false);
@@ -111,9 +112,11 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 		if(this instanceof Folder) {
 
 			return new StructrFolderActions(getAccessControlEntries(), username, isAdmin, isOwner);
+
 		} else if(this instanceof FileBase) {
 
-			return new StructrFileActions(getAccessControlEntries(), username, isAdmin, isOwner);
+			return new StructrFileActions(getAccessControlEntries(), username, isAdmin, isOwner, isImmutable);
+
 		} else {
 
 			return null;

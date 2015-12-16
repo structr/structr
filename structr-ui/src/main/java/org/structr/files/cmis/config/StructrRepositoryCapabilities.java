@@ -45,7 +45,7 @@ public class StructrRepositoryCapabilities extends CMISExtensionsData implements
 	// ----- interface RepositoryCapabilities -----
 	@Override
 	public CapabilityContentStreamUpdates getContentStreamUpdatesCapability() {
-		return CapabilityContentStreamUpdates.NONE;
+		return CapabilityContentStreamUpdates.ANYTIME;
 	}
 
 	@Override
@@ -185,12 +185,12 @@ public class StructrRepositoryCapabilities extends CMISExtensionsData implements
 
 	@Override
 	public Boolean canSetFileable() {
-		return true;
+		return false;
 	}
 
 	@Override
 	public Boolean canSetQueryable() {
-		return true;
+		return false;
 	}
 
 	@Override
@@ -200,12 +200,12 @@ public class StructrRepositoryCapabilities extends CMISExtensionsData implements
 
 	@Override
 	public Boolean canSetIncludedInSupertypeQuery() {
-		return true;
+		return false;
 	}
 
 	@Override
 	public Boolean canSetControllablePolicy() {
-		return true;
+		return false;
 	}
 
 	@Override

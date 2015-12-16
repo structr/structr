@@ -94,4 +94,9 @@ public class CMISPagingListWrapper<T> extends CMISExtensionsData {
 
 		return list.subList(from, to);
 	}
+
+	public int getSize() {
+
+		return list.size();
+	}
 }
