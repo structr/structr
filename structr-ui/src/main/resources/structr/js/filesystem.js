@@ -340,18 +340,20 @@ var _Filesystem = {
 
 	},
 	fulltextSearch: function(searchString) {
-
 		var content = $('#folder-contents');
 		content.children().hide();
 
-		var url = rootUrl + 'files/ui?loose=1';
-
-		searchString.split(' ').forEach(function(str, i) {
-			url = url + '&indexedContent=' + str;
-		});
+		var url;
+		if (searchString.contains(' ')) {
+			url = rootUrl + 'files/ui?loose=1';
+			searchString.split(' ').forEach(function(str, i) {
+				url = url + '&indexedWords=' + str;
+			});
+		} else {
+			url = rootUrl + 'files/ui?indexedWords=' + searchString;
+		}
 
 		_Filesystem.displaySearchResultsForURL(url);
-
 	},
 	clearSearch: function() {
 		$('.search', main).val('');
@@ -793,7 +795,6 @@ var _Filesystem = {
 							$('tbody', container).append('<tr><td><i class="fa ' + icon + '"></i> ' + d.type + ' (' + d.contentType + ')</td><td><a href="#results' + d.id + '">' + d.name + '</a></td><td>' + d.size + '</td></tr>');
 						
 						});
-						
 					}
 
 					data.result.forEach(function(d) {
@@ -838,7 +839,7 @@ var _Filesystem = {
 
 									$.each(data.result.context, function(i, contextString) {
 
-										searchString.split(' ').forEach(function(str) {
+										searchString.split(/[\s,;]/).forEach(function(str) {
 											contextString = contextString.replace(new RegExp('(' + str + ')', 'gi'), '<span class="highlight">$1</span>');
 										});
 

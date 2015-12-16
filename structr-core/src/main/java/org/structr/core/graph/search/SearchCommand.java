@@ -229,7 +229,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		// use filters to filter sources otherwise
 		if (distanceSearch == null && !sources.isEmpty()) {
 
-			intermediateResult = new Result(new ArrayList<AbstractNode>(), null, false, false);
+			intermediateResult = new Result(new ArrayList<>(), null, false, false);
 
 		} else {
 
