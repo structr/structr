@@ -960,9 +960,11 @@ var _Crud = {
 
 		$('.pageSize', pagerNode).on('keypress', function(e) {
 			if (e.keyCode === 13) {
+				// calculate which page we should be on after the pagesize changed
+				var oldFirstObject = ((_Crud.page[type] -1 ) * _Crud.pageSize[type]) + 1;
+				var newPage = Math.ceil(oldFirstObject / $(this).val());
 				_Crud.pageSize[type] = $(this).val();
-				// set page no to 1
-				_Crud.page[type] = 1;
+				_Crud.page[type] = newPage;
 				_Crud.refreshList(type);
 			}
 		});
