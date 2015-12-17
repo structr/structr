@@ -18,14 +18,12 @@
  */
 package org.structr.files.cmis;
 
-import com.google.common.io.Files;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -56,7 +54,6 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.FailedToDeleteDataImpl;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.apache.chemistry.opencmis.commons.spi.ObjectService;
-import org.apache.sis.internal.jdk7.StandardOpenOption;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.wrapper.CMISObjectWrapper;
 import org.structr.common.Permission;
@@ -656,8 +653,10 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 
                 final FileBase file = get(app, FileBase.class, objectId.getValue());
 
+		//content stream doesnt get actually deleted, only emptied like
+		//in structr itself
                 try (PrintWriter writer = new PrintWriter(file.getOutputStream())) {
-                //    writer.print("");
+
                     writer.close();
                 }
 
@@ -679,26 +678,38 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 			if (contentStream != null) {
 
 				final InputStream inputAppendContent = contentStream.getStream();
-				final InputStream inputOldContent = file.getInputStream();
+				final InputStream inputCurrentContent = file.getInputStream();
 
-				if (inputAppendContent != null) {
+				if(inputCurrentContent != null) {
 
-					try (final OutputStream outputStream = file.getOutputStream(false)) {
+					List<Integer> currentInputArray = new ArrayList();
+					int input;
+					while ((input = inputCurrentContent.read()) != -1) {
 
+						currentInputArray.add(input);
+					}
+					inputCurrentContent.close();
 
-						//NOT FINISHED YET!
-						String oldContent	= IOUtils.readAllLines(inputOldContent);
-						String appendContent	= IOUtils.readAllLines(inputAppendContent);
-						String newContent	=  oldContent + appendContent;
+					if (inputAppendContent != null) {
 
-						//utf8 right choice here?
-						InputStream newInput	= new ByteArrayInputStream(newContent.getBytes(StandardCharsets.UTF_8));
+						try (final OutputStream outputStream = file.getOutputStream(false)) {
 
-						IOUtils.copy(newInput, outputStream);
+							//write first the current input of the file
+							//into the output
+							for(int i : currentInputArray) {
 
-						inputOldContent.close();
-						inputAppendContent.close();
-						newInput.close();
+								outputStream.write(i);
+							}
+
+							//then write the input to append into the output
+							while ((input = inputAppendContent.read()) != -1) {
+
+								outputStream.write(input);
+							}
+
+							inputAppendContent.close();
+							outputStream.close();
+						}
 					}
 				}
 			}

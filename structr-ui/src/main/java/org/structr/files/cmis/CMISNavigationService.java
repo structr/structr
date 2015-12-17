@@ -19,6 +19,7 @@
 package org.structr.files.cmis;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -283,8 +284,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 	public ObjectList getCheckedOutDocs(String repositoryId, String folderId, String filter, String orderBy, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {
 
 		final App app = StructrApp.getInstance(securityContext);
-		CMISObjectListWrapper list = new CMISObjectListWrapper();
-		List<FileBase> children = null;
+		CMISObjectListWrapper checkedOutDocs = new CMISObjectListWrapper();
 
 		boolean hasMaxItems = false;
 		if(maxItems != null && maxItems.intValue() >= 0) {
@@ -293,6 +293,8 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 		}
 
 		try (final Tx tx = app.tx()) {
+
+			List<FileBase> children = null;
 
 			//collect documents from specific folder
 			if(folderId != null) {
@@ -322,14 +324,14 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 				for (final FileBase file : children) {
 
 					String objectId = file.getProperty(FileBase.id);
-					list.add(parentService.getObject(repositoryId, objectId, filter, includeAllowableActions, includeRelationships, renditionFilter, null, null, extension));
+					checkedOutDocs.add(parentService.getObject(repositoryId, objectId, filter, includeAllowableActions, includeRelationships, renditionFilter, null, null, extension));
 
 					if(hasMaxItems) {
 
-						if(list.getSize() >= maxItems.intValue()) {
+						if(checkedOutDocs.getSize() >= maxItems.intValue()) {
 
 							//accessed limit, exit function
-							return list;
+							return checkedOutDocs;
 						}
 					}
 				}
@@ -338,42 +340,44 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 
 				//collect ALL docs beginning from root
 
-				final List<FileBase> documentChildren = app.nodeQuery(FileBase.class)
-								.sort(AbstractFile.name)
-								.and(AbstractFile.hasParent, false)
-								.not().and(Image.isThumbnail, true)
-								.getAsList();
+				List<Folder> folderChildren = new ArrayList();
 
-				for (final FileBase file : documentChildren) {
+				for(AbstractFile child : getChildrenRootFolder(app)) {
 
-					String objectId = file.getProperty(FileBase.id);
-					list.add(parentService.getObject(repositoryId, objectId, filter, includeAllowableActions, includeRelationships, renditionFilter, null, null, extension));
+					if(child instanceof Folder) {
 
-					if(hasMaxItems) {
+						folderChildren.add((Folder)child);
 
-						if(list.getSize() >= maxItems.intValue()) {
+					} else if (child instanceof FileBase) {
 
-							//accessed limit, exit function
-							return list;
+						String objectId = child.getProperty(FileBase.id);
+						checkedOutDocs.add(parentService.getObject(repositoryId, objectId, filter, includeAllowableActions, includeRelationships, renditionFilter, null, null, extension));
+
+						if(hasMaxItems) {
+
+							if(checkedOutDocs.getSize() >= maxItems.intValue()) {
+								//accessed limit, exit function
+
+								//!
+								return checkedOutDocs;
+							}
 						}
 					}
 				}
 
-				final List<Folder> folderChildren = app.nodeQuery(Folder.class)
-								.sort(AbstractFile.name)
-								.and(AbstractFile.hasParent, false)
-								.not().and(Image.isThumbnail, true)
-								.getAsList();
+				Collections.sort(folderChildren, new GraphObjectComparator(AbstractNode.name, false));
 
 				for (final Folder child : folderChildren) {
 
-					recursivelyCollectDocuments(list, hasMaxItems, child, repositoryId, filter, includeAllowableActions, includeRelationships, renditionFilter, maxItems, skipCount, extension);
+					recursivelyCollectDocuments(checkedOutDocs, hasMaxItems, child, repositoryId, filter, includeAllowableActions, includeRelationships, renditionFilter, maxItems, skipCount, extension);
 				}
 			}
 
 			tx.success();
 
-			return list;
+			//!
+
+			return checkedOutDocs;
 
 		} catch (final FrameworkException fex) {
 			fex.printStackTrace();
@@ -384,33 +388,37 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 
 
 	// ----- private methods -----
-	private void recursivelyCollectDocuments(CMISObjectListWrapper list, final boolean hasMaxItems, final Folder child, String repositoryId, String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) throws FrameworkException {
+	private void recursivelyCollectDocuments(CMISObjectListWrapper listWrapper, final boolean hasMaxItems, final Folder child, String repositoryId, String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) throws FrameworkException {
 
 		if(hasMaxItems) {
-			if(list.getSize() >= maxItems.intValue()) {
+			if(listWrapper.getSize() >= maxItems.intValue()) {
 
 				return;
 			}
 		}
 
-		final List<AbstractFile> documents = child.getProperty(FileBase.children);
+		final List<AbstractFile> children = child.getProperty(FileBase.children);
+		List<Folder> childrenFolder = new ArrayList();
 
-		for(AbstractFile abstractFile : documents) {
+		for(AbstractFile abstractFile : children) {
 
 			if(abstractFile instanceof FileBase) {
 
 				FileBase file = (FileBase) abstractFile;
-				list.add(parentService.getObject(repositoryId, file.getProperty(FileBase.id), filter, includeAllowableActions, includeRelationships, renditionFilter, null, null, extension));
+				listWrapper.add(parentService.getObject(repositoryId, file.getProperty(FileBase.id), filter, includeAllowableActions, includeRelationships, renditionFilter, null, null, extension));
+
+			} else if(abstractFile instanceof Folder) {
+
+				childrenFolder.add((Folder)abstractFile);
 			}
 		}
 
-		// fetch and sort children
-		final List<Folder> children = child.getProperty(Folder.folders);
-		Collections.sort(children, new GraphObjectComparator(AbstractNode.name, false));
+		//sort children
+		Collections.sort(childrenFolder, new GraphObjectComparator(AbstractNode.name, false));
 
 		// descend into children
-		for (final Folder folderChild: children) {
-			recursivelyCollectDocuments(list, hasMaxItems, folderChild, repositoryId, filter, includeAllowableActions, includeRelationships, renditionFilter, maxItems, skipCount, extension);
+		for (final Folder folderChild: childrenFolder) {
+			recursivelyCollectDocuments(listWrapper, hasMaxItems, folderChild, repositoryId, filter, includeAllowableActions, includeRelationships, renditionFilter, maxItems, skipCount, extension);
 		}
 	}
 
