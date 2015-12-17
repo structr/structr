@@ -255,49 +255,48 @@ public class WebsocketController implements StructrTransactionListener {
 			final RelationshipInterface relationship = (RelationshipInterface) modificationEvent.getGraphObject();
 			final RelationshipType relType = modificationEvent.getRelationshipType();
 
-			// only interested in CONTAINS relationships
-			if (!("CONTAINS".equals(relType.name()))) {
-				return null;
-			}
+			// special treatment of CONTAINS relationships
+			if ("CONTAINS".equals(relType.name())) {
 
-			if (modificationEvent.isDeleted()) { // && "CONTAINS".equals(relType.name())) {
+				if (modificationEvent.isDeleted()) {
 
-				final WebSocketMessage message = createMessage("REMOVE_CHILD");
+					final WebSocketMessage message = createMessage("REMOVE_CHILD");
 
-				message.setNodeData("parentId", relationship.getSourceNodeId());
-				message.setId(relationship.getTargetNodeId());
+					message.setNodeData("parentId", relationship.getSourceNodeId());
+					message.setId(relationship.getTargetNodeId());
 
-				return message;
-			}
-
-			if (modificationEvent.isCreated()) {
-
-				final WebSocketMessage message = new WebSocketMessage();
-				final NodeInterface startNode = relationship.getSourceNode();
-				final NodeInterface endNode = relationship.getTargetNode();
-
-				message.setResult(Arrays.asList(new GraphObject[]{endNode}));
-				message.setId(endNode.getUuid());
-				message.setNodeData("parentId", startNode.getUuid());
-
-				message.setCommand("APPEND_CHILD");
-
-				if (endNode instanceof DOMNode) {
-
-					org.w3c.dom.Node refNode = ((DOMNode) endNode).getNextSibling();
-					if (refNode != null) {
-
-						message.setCommand("INSERT_BEFORE");
-						message.setNodeData("refId", ((AbstractNode) refNode).getUuid());
-					}
-
-				} else if (endNode instanceof User) {
-
-					message.setCommand("APPEND_USER");
-					message.setNodeData("refId", startNode.getUuid());
+					return message;
 				}
 
-				return message;
+				if (modificationEvent.isCreated()) {
+
+					final WebSocketMessage message = new WebSocketMessage();
+					final NodeInterface startNode = relationship.getSourceNode();
+					final NodeInterface endNode = relationship.getTargetNode();
+
+					message.setResult(Arrays.asList(new GraphObject[]{endNode}));
+					message.setId(endNode.getUuid());
+					message.setNodeData("parentId", startNode.getUuid());
+
+					message.setCommand("APPEND_CHILD");
+
+					if (endNode instanceof DOMNode) {
+
+						org.w3c.dom.Node refNode = ((DOMNode) endNode).getNextSibling();
+						if (refNode != null) {
+
+							message.setCommand("INSERT_BEFORE");
+							message.setNodeData("refId", ((AbstractNode) refNode).getUuid());
+						}
+
+					} else if (endNode instanceof User) {
+
+						message.setCommand("APPEND_USER");
+						message.setNodeData("refId", startNode.getUuid());
+					}
+
+					return message;
+				}
 			}
 
 			if (modificationEvent.isModified()) {
