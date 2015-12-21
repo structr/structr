@@ -28,8 +28,8 @@ import java.util.*;
 import org.neo4j.gis.spatial.indexprovider.SpatialRecordHits;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.IndexHits;
-import org.neo4j.helpers.collection.LruMap;
 import org.structr.common.AccessControllable;
+import org.structr.common.FixedSizeCache;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
@@ -48,7 +48,7 @@ import org.structr.core.entity.relationship.NodeHasLocation;
  */
 public class NodeFactory<T extends NodeInterface & AccessControllable> extends Factory<Node, T> {
 
-	private static final Map<Long, Class> idTypeMap = Collections.synchronizedMap(new LruMap<Long, Class>(Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_NODE_CACHE_SIZE), 10000)));
+	private static final FixedSizeCache<Long, Class> idTypeMap = new FixedSizeCache<>(Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_NODE_CACHE_SIZE), 10000));
 
 	public NodeFactory(final SecurityContext securityContext) {
 		super(securityContext);
