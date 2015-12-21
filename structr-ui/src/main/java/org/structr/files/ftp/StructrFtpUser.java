@@ -37,21 +37,23 @@ import org.structr.web.entity.Folder;
  *
  */
 public class StructrFtpUser implements User {
-	
+
 	private static final Logger logger = Logger.getLogger(StructrFtpUser.class.getName());
 
 	private final org.structr.web.entity.User structrUser;
-	
+
 	public StructrFtpUser(final org.structr.web.entity.User structrUser) {
 		this.structrUser = structrUser;
 	}
-	
+
 	@Override
 	public String getName() {
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			return structrUser.getProperty(org.structr.web.entity.User.name);
+			final String name = structrUser.getProperty(org.structr.web.entity.User.name);
+			tx.success();
+			return name;
 		} catch (Exception fex) { }
-		
+
 		return null;
 	}
 
@@ -77,7 +79,7 @@ public class StructrFtpUser implements User {
 
 	@Override
 	public AuthorizationRequest authorize(AuthorizationRequest request) {
-		
+
 		List<Authority> authorities = getAuthorities();
 
 		// check for no authorities at all
@@ -105,7 +107,7 @@ public class StructrFtpUser implements User {
 
 		}
 
-		
+
 		if (someoneCouldAuthorize) {
 			logger.log(Level.INFO, "Request {0} successfully authorized", new Object[]{request});
 			return request;
@@ -122,21 +124,25 @@ public class StructrFtpUser implements User {
 	@Override
 	public boolean getEnabled() {
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			return !structrUser.getProperty(org.structr.web.entity.User.blocked);
+			final boolean blocked = structrUser.getProperty(org.structr.web.entity.User.blocked);
+			tx.success();
+			return !blocked;
 		} catch (Exception fex) { }
-		
+
 		return false;
 	}
 
 	@Override
 	public String getHomeDirectory() {
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			return structrUser.getProperty(org.structr.web.entity.User.homeDirectory).getProperty(Folder.name);
+			final String homeDir = structrUser.getProperty(org.structr.web.entity.User.homeDirectory).getProperty(Folder.name);
+			tx.success();
+			return homeDir;
 		} catch (Exception fex) { }
-		
+
 		return null;
 	}
-	
+
 	public AbstractUser getStructrUser() {
 		return structrUser;
 	}

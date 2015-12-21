@@ -222,6 +222,10 @@ public class Functions {
 	public static final String ERROR_MESSAGE_SEND_PLAINTEXT_MAIL                 = "Usage: ${send_plaintext_mail(fromAddress, fromName, toAddress, toName, subject, content)}.";
 	public static final String ERROR_MESSAGE_SEND_HTML_MAIL                      = "Usage: ${send_html_mail(fromAddress, fromName, toAddress, toName, subject, content)}.";
 	public static final String ERROR_MESSAGE_GEOCODE                             = "Usage: ${geocode(street, city, country)}. Example: ${set(this, geocode(this.street, this.city, this.country))}";
+
+
+	// hier gehts weiter @knowledgebase
+
 	public static final String ERROR_MESSAGE_FIND                                = "Usage: ${find(type, key, value)}. Example: ${find(\"User\", \"email\", \"tester@test.com\"}";
 	public static final String ERROR_MESSAGE_SEARCH                              = "Usage: ${search(type, key, value)}. Example: ${search(\"User\", \"name\", \"abc\")}";
 	public static final String ERROR_MESSAGE_SEARCH_JS                           = "Usage: ${{Structr.search(type, key, value)}}. Example: ${{Structr.search(\"User\", \"name\", \"abc\")}}";

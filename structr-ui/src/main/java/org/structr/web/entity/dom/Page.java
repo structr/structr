@@ -149,19 +149,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		// do nothing
 	}
 
-//	@Override
-//	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
-//
-//		if (properties.containsKey(NodeInterface.name)) {
-//
-//			final String newName = properties.get(NodeInterface.name);
-//			if (newName != null) {
-//
-//				setProperty(NodeInterface.name, newName);
-//			}
-//		}
-//	}
-
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 
@@ -920,7 +907,9 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	@Override
 	public String getAbsolutePath() {
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			return getPath();
+			final String path = getPath();
+			tx.success();
+			return path;
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error in getPath() of abstract ftp file", fex);
 		}

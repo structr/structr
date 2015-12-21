@@ -92,6 +92,7 @@ public class StructrUserManager implements UserManager {
 
 			}
 
+			tx.success();
 			return (String[]) userNames.toArray(new String[userNames.size()]);
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Unable to get user by its name", fex);
@@ -113,6 +114,7 @@ public class StructrUserManager implements UserManager {
 	public boolean doesExist(String string) throws FtpException {
 		try (Tx tx = StructrApp.getInstance().tx()) {
 			boolean exists = (getStructrUser(string) != null);
+			tx.success();
 			return exists;
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Unable to determine if user " + string + " exists", fex);
@@ -130,7 +132,7 @@ public class StructrUserManager implements UserManager {
 		if (auth instanceof UsernamePasswordAuthentication) {
 
 			org.structr.web.entity.User user = null;
-			
+
 			try (Tx tx = StructrApp.getInstance().tx()) {
 
 				UsernamePasswordAuthentication authentication = (UsernamePasswordAuthentication) auth;
@@ -139,6 +141,9 @@ public class StructrUserManager implements UserManager {
 				password = authentication.getPassword();
 
 				user = (org.structr.web.entity.User) AuthHelper.getPrincipalForPassword(AbstractUser.name, userName, password);
+
+				tx.success();
+
 			} catch (FrameworkException ex) {
 				logger.log(Level.WARNING, "FTP authentication attempt failed with username {0} and password {1}", new Object[]{userName, password});
 			}
@@ -169,7 +174,7 @@ public class StructrUserManager implements UserManager {
 		try (Tx tx = StructrApp.getInstance().tx()) {
 
 			final org.structr.web.entity.User user = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(AbstractUser.name, userName);
-
+			tx.success();
 			return user;
 
 		} catch (FrameworkException fex) {
@@ -177,7 +182,5 @@ public class StructrUserManager implements UserManager {
 		}
 
 		return null;
-
 	}
-
 }

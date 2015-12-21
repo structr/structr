@@ -53,6 +53,7 @@ public class StructrFileSystemView implements FileSystemView {
 		try (Tx tx = StructrApp.getInstance().tx()) {
 			org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(AbstractUser.name, user.getName());
 			this.user = new StructrFtpUser(structrUser);
+			tx.success();
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error while initializing file system view", fex);
 		}
@@ -62,7 +63,9 @@ public class StructrFileSystemView implements FileSystemView {
 	public FtpFile getHomeDirectory() throws FtpException {
 		try (Tx tx = StructrApp.getInstance().tx()) {
 			org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(AbstractUser.name, user.getName());
-			return new StructrFtpFolder(structrUser.getProperty(org.structr.web.entity.User.homeDirectory));
+			final Folder homeDir = structrUser.getProperty(org.structr.web.entity.User.homeDirectory);
+			tx.success();
+			return new StructrFtpFolder(homeDir);
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error while getting home directory", fex);
 		}
@@ -75,6 +78,8 @@ public class StructrFileSystemView implements FileSystemView {
 		try (Tx tx = StructrApp.getInstance().tx()) {
 
 			AbstractFile structrWorkingDir = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), workingDir);
+			tx.success();
+
 			if (structrWorkingDir == null || structrWorkingDir instanceof File) {
 				return new StructrFtpFolder(null);
 			}
@@ -94,7 +99,7 @@ public class StructrFileSystemView implements FileSystemView {
 			final StructrFtpFolder newWorkingDirectory = (StructrFtpFolder) getFile(requestedPath);
 
 			workingDir = newWorkingDirectory.getAbsolutePath();
-
+			tx.success();
 			return true;
 
 		} catch (FrameworkException fex) {
@@ -145,11 +150,14 @@ public class StructrFileSystemView implements FileSystemView {
 
 			AbstractFile file = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), requestedPath);
 
+
 			if (file != null) {
 
 				if (file instanceof Folder) {
+					tx.success();
 					return new StructrFtpFolder((Folder) file);
 				} else {
+					tx.success();
 					return new StructrFtpFile((File) file);
 				}
 			}
@@ -157,11 +165,13 @@ public class StructrFileSystemView implements FileSystemView {
 			// Look up a page by its name
 			Page page = StructrApp.getInstance().nodeQuery(Page.class).andName(PathHelper.getName(requestedPath)).getFirst();
 			if (page != null) {
+				tx.success();
 				return page;
 			}
 
 			logger.log(Level.WARNING, "No existing file found: {0}", requestedPath);
 
+			tx.success();
 			return new FileOrFolder(requestedPath, user);
 
 		} catch (FrameworkException fex) {
