@@ -81,7 +81,7 @@ var _Crud = {
 			contentType: 'application/json; charset=utf-8',
 			statusCode: {
 				200: function(data) {
-					
+
 					// no schema entry found?
 					if (!data || !data.result || data.result_count === 0) {
 
@@ -127,7 +127,7 @@ var _Crud = {
 			}
 
 		});
-		
+
 	},
 	type: null,
 	pageCount: null,
@@ -322,13 +322,13 @@ var _Crud = {
 
 		$('#resourceTabs').tabs({
 			activate: function(event, ui) {
-				
+
 				var newType = ui.newPanel[0].id;
 				_Crud.getProperties(newType, function(type, properties) {
-					
+
 					fastRemoveAllChildren($('#' + type)[0]);
 					//console.log('deactivated', _Crud.type, 'activated', newType);
-					
+
 					_Crud.determinePagerData(type);
 
 					var typeNode = $('#' + type);
@@ -337,13 +337,13 @@ var _Crud = {
 					var table = $('table', typeNode);
 					$('thead', table).append('<tr></tr>');
 					var tableHeaderRow = $('tr:first-child', table);
-					
+
 					_Crud.filterKeys(type, Object.keys(properties)).forEach(function(key) {
 						var prop = properties[key];
 						tableHeaderRow.append('<th class="___' + prop.jsonName + '">' + _Crud.formatKey(prop.jsonName) + '</th>');
 					});
 					tableHeaderRow.append('<th class="___action_header">Actions</th>');
-					
+
 					typeNode.append('<div class="infoFooter">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
 					typeNode.append('<button id="create' + type + '"><img src="icon/add.png"> Create new ' + type + '</button>');
 					typeNode.append('<button id="export' + type + '"><img src="icon/database_table.png"> Export as CSV</button>');
@@ -367,12 +367,12 @@ var _Crud = {
 					_Crud.activatePagerElements(type, pagerNode);
 					_Crud.updateUrl(type);
 				});
-				
+
 			}
 		});
 	},
 	filterTabs: function() {
-		
+
 		Command.getSchemaInfo(function(nodes) {
 
 			nodes.sort(function(a, b) {
@@ -405,7 +405,7 @@ var _Crud = {
 			});
 
 		});
-		
+
 	},
 	updateUrl: function(type) {
 		//console.log('updateUrl', type, _Crud.pageSize[type], _Crud.page[type]);
@@ -429,7 +429,7 @@ var _Crud = {
 	 * after the schema is loaded.
 	 */
 	loadSchema: function(callback) {
-		
+
 		$.ajax({
 			url: rootUrl + '_schema',
 			dataType: 'json',
@@ -439,7 +439,7 @@ var _Crud = {
 					data.result.forEach(function(typeObj) {
 						_Crud.types[typeObj.type] = typeObj;
 					});
-					
+
 					if (callback) {
 						callback();
 					}
@@ -692,15 +692,15 @@ var _Crud = {
 			dataType: 'json',
 			statusCode: {
 				200: function(data) {
-					
+
 					//var resultCount = data.result_count;
 					var pageCount   = data.page_count;
-					
+
 					//console.log('page count', pageCount, 'page', page, 'pageSize', pageSize);
-					
+
 					$('.cell-pager .collection-page', el).val(page);
 					$('.cell-pager .page-count', el).val(pageCount);
-					
+
 					if (page > 1) {
 						$('.cell-pager .prev', el).removeClass('disabled').prop('disabled', '');
 					} else {
@@ -711,39 +711,39 @@ var _Crud = {
 					} else {
 						$('.cell-pager .next', el).addClass('disabled').prop('disabled', 'disabled');
 					}
-					
+
 					el.children('.node').remove();
-					
+
 					data.result.forEach(function(obj) {
 						_Crud.getAndAppendNode(type, id, key, obj, el);
 					});
 
 				}
 			}
-					
+
 		});
 	},
 	appendCellPager: function(el, id, type, key) {
-		
+
 		//console.log('appendCellPager', id, el, type, key);
-		
+
 		var pageSize = _Crud.getCollectionPageSize(type, key);
-		
+
 		$.ajax({
 			url: rootUrl + type + '/' + id + '/' + key + '?pageSize=' + pageSize,
 			contentType: 'application/json; charset=UTF-8',
 			dataType: 'json',
 			statusCode: {
 				200: function(data) {
-					
+
 					var resultCount = data.result_count;
 					var pageCount   = data.page_count;
-					
+
 					//console.log('result count', resultCount, 'page count', pageCount, 'page', page, 'pageSize', pageSize);
 
 					//var oldPage = parseInt(_Crud.getCollectionPage(type, key) || 1);
 					var page = 1;
-					
+
 					if (!resultCount || !pageCount || pageCount === 1) return;
 
 					//el.append('<div class="collection-cell"></div>');
@@ -782,15 +782,15 @@ var _Crud = {
 						var newPage = parseInt(page) + 1;
 						_Crud.updateCellPager(el, id, type, key, newPage, pageSize);
 					});
-					
+
 					$('.cell-pager', el).append(' of <input type="text" size="1" readonly class="readonly page-count" value="' + pageCount + '">');
-					
+
 				}
-				
+
 			}
-					
+
 		});
-		
+
 	},
 	sortAndPagingParameters: function(t, s, o, ps, p) {
 		//var typeParam = (t ? 'type=' + t : '');
@@ -890,7 +890,7 @@ var _Crud = {
 			exportArea.focus();
 			exportArea.select();
 		});
-		
+
 		$('.closeButton', $('#dialogBox')).on('click', function() {
 			$('#copyToClipboard', dialogBtn).remove();
 		});
@@ -960,9 +960,11 @@ var _Crud = {
 
 		$('.pageSize', pagerNode).on('keypress', function(e) {
 			if (e.keyCode === 13) {
+				// calculate which page we should be on after the pagesize changed
+				var oldFirstObject = ((_Crud.page[type] -1 ) * _Crud.pageSize[type]) + 1;
+				var newPage = Math.ceil(oldFirstObject / $(this).val());
 				_Crud.pageSize[type] = $(this).val();
-				// set page no to 1
-				_Crud.page[type] = 1;
+				_Crud.page[type] = newPage;
 				_Crud.refreshList(type);
 			}
 		});
@@ -1676,7 +1678,7 @@ var _Crud = {
 		} else if (isCollection) {
 
 			simpleType = lastPart(relatedType, '.');
- 
+
 			if (value && value.length) {
 				value.forEach(function(relatedId) {
 					_Crud.getAndAppendNode(type, id, key, relatedId, cell);
@@ -1690,7 +1692,7 @@ var _Crud = {
 				});
 				_Crud.displaySearch(type, id, key, simpleType, dialogText);
 			});
-			
+
 			_Crud.appendCellPager(cell, id, type, key);
 
 		} else {
@@ -1781,9 +1783,9 @@ var _Crud = {
 
 				cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.isImage? 'image ' : '') + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80));
 				var nodeEl = $('#_' + node.id, cell);
-				
+
 				//console.log('Schema types', _Crud.types);
-				
+
 				var isSourceOrTarget = _Crud.types[parentType].isRel && (key === 'sourceId' || key === 'targetId');
 				if (!isSourceOrTarget) {
 					nodeEl.append('<img class="remove" src="icon/cross_small_grey.png"></div>');
@@ -2387,11 +2389,11 @@ var _Crud = {
 				if (_Crud.keys[type]) {
 					keys = Object.keys(_Crud.keys[type]);
 				}
-				
+
 //				if (!keys) {
 //					keys = Object.keys(typeDef.views[_Crud.view[type]]);
 //				}
-				
+
 				if (!keys) {
 					keys = Object.keys(node);
 				}
@@ -2473,12 +2475,14 @@ var _Crud = {
 		if (!(dialogSaveButton.length)) {
 			dialogBox.append('<button class="save" id="saveProperties">Save</button>');
 			dialogSaveButton = $('.save', $('#dialogBox'));
-			dialogSaveButton.on('click', function() {
-				var form = $('#entityForm');
-				var json = JSON.stringify(_Crud.serializeObject(form));
-				_Crud.crudCreate(type, typeDef.url.substring(1), json);
-			});
 		}
+
+		dialogSaveButton.off('click');
+		dialogSaveButton.on('click', function() {
+			var form = $('#entityForm');
+			var json = JSON.stringify(_Crud.serializeObject(form));
+			_Crud.crudCreate(type, typeDef.url.substring(1), json);
+		});
 
 		if (node && node.isImage) {
 			dialogText.prepend('<div class="img"><div class="wrap"><img class="thumbnailZoom" src="/' + node.id + '"></div></div>');

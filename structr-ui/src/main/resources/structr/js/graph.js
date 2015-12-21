@@ -1331,7 +1331,6 @@ var _Graph = {
 		hasDoubleClicked = false;
 		hasDragged = false;
 		engine.refresh();
-		doLayout(20);
 	},
 	distance: function(n1, n2) {
 		var x1 = parseInt(n1['renderer1:x']);

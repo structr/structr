@@ -30,7 +30,7 @@ import org.structr.core.GraphObject;
  */
 public class View {
 
-	public static final String INTERNAL_GRAPH_VIEW = "_structr_graph";
+	public static final String INTERNAL_GRAPH_VIEW = "_graph";
 
 	private Property[] properties = null;
 	private String name = null;

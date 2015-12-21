@@ -354,7 +354,7 @@ var _Pages = {
 				var authVisible = $('#_authVisible:checked', dialog).val() === 'on';
 
 				log('start');
-				return Command.importPage(code, address, name, timeout, publicVisible, authVisible);
+				return Command.importPage(code, address, name, publicVisible, authVisible);
 			});
 
 		});
