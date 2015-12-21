@@ -21,6 +21,8 @@ package org.structr.core.property;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanClause.Occur;
@@ -56,6 +58,36 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
+		
+		// We can only try to fix a String and convert it into a String[]
+		if (value != null && value instanceof String) {
+			
+			String[] fixedValue = null;
+			
+			final String stringValue = (String) value;
+			
+			if (stringValue.contains(",")) {
+				fixedValue = stringValue.split(",");
+			}
+			
+			if (stringValue.contains(" ")) {
+				fixedValue = stringValue.split(" ");
+			}
+		
+			if (securityContext != null && entity != null) {
+			
+				try {
+					setProperty(securityContext, entity, (T[]) fixedValue);
+				} catch (FrameworkException ex) {
+					ex.printStackTrace();
+				}
+				
+			}
+			
+			return fixedValue;
+			
+		}
+		
 		return value;
 	}
 
@@ -81,6 +113,8 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 	@Override
 	public PropertyConverter<T[], ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+		this.securityContext = securityContext;
+		this.entity = entity;
 		return null;
 	}
 

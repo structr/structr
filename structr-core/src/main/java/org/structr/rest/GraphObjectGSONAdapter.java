@@ -212,14 +212,24 @@ public class GraphObjectGSONAdapter {
 
 				if (converter != null) {
 
-					return serializeRoot(converter.revert(value), localPropertyView, depth);
+					try {
+						return serializeRoot(converter.revert(value), localPropertyView, depth);
+						
+					} catch (ClassCastException cce) {
+						
+						// try to fix the database property
+						value = key.fixDatabaseProperty(value);
+						
+						return serializeRoot(converter.revert(value), localPropertyView, depth);
+						
+					}
 
 				} else {
 
 					return serializeRoot(value, localPropertyView, depth);
 				}
 
-			} catch(Throwable t) {
+			} catch (Throwable t) {
 
 				// CHM: remove debug code later
 				t.printStackTrace();
