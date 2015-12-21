@@ -155,6 +155,11 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public Object fixDatabaseProperty(Object value) {
+		return propertyKey.fixDatabaseProperty(value);
+	}
+
+	@Override
 	public Class<? extends GraphObject> relatedType() {
 		return propertyKey.relatedType();
 	}

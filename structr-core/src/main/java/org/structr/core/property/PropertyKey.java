@@ -207,7 +207,8 @@ public interface PropertyKey<T> {
 	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext);
 	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity);
 	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext);
-
+	public Object fixDatabaseProperty(final Object value);
+	
 	public void addValidator(final PropertyValidator<T> validator);
 	public List<PropertyValidator<T>> getValidators();
 	public boolean requiresSynchronization();

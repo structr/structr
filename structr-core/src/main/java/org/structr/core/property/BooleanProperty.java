@@ -100,16 +100,18 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 				fixedValue = TRUE_VALUES.contains(value.toString().toLowerCase());
 				
 				if (entity != null) {
+					
 					try {
 						setProperty(securityContext, entity, fixedValue);
+						
 					} catch (FrameworkException fex) {
 						logger.log(Level.SEVERE, "Cound not set fixed property {0} on graph object {1}", new Object[]{fixedValue, entity});
 					}
 				}
+
+				return fixedValue;
 			}
 		}
-
-		
 		
 		return false;
 	}
