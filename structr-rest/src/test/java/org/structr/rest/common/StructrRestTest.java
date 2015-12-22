@@ -53,7 +53,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.module.JarConfigurationProvider;
 import org.structr.rest.DefaultResourceProvider;
-import static org.structr.rest.common.StructrRestTest.restUrl;
 import org.structr.rest.entity.TestOne;
 import org.structr.rest.service.HttpService;
 import org.structr.rest.servlet.JsonRestServlet;
