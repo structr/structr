@@ -828,52 +828,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	}
 
-	// ----- public static methods -----
-//	public static Set<Class> getAllSubtypes(final Class type) {
-//		return getAllSubtypes(type, false);
-//	}
-//
-//	public static Set<Class> getAllSubtypes(final Class type, final boolean directOnly) {
-//
-//		final ConfigurationProvider configuration                             = StructrApp.getConfiguration();
-//		final Map<String, Class<? extends NodeInterface>> nodeEntities        = configuration.getNodeEntities();
-//		final Map<String, Class<? extends RelationshipInterface>> relEntities = configuration.getRelationshipEntities();
-//		final Set<Class> allSubtypes                                          = new LinkedHashSet<>();
-//
-//		// add type first (this is neccesary because two class objects of the same dynamic type node are not equal
-//		// to each other and not assignable, if the schema node was modified in the meantime)
-//		allSubtypes.add(type);
-//
-//		// scan all node entities for subtypes
-//		for (Map.Entry<String, Class<? extends NodeInterface>> entity : nodeEntities.entrySet()) {
-//
-//			Class<? extends NodeInterface> entityClass = entity.getValue();
-//
-//			if (type.isAssignableFrom(entityClass)) {
-//
-//				allSubtypes.add(entityClass);
-//			}
-//		}
-//
-//		// scan all relationship entities for subtypes
-//		for (Map.Entry<String, Class<? extends RelationshipInterface>> entity : relEntities.entrySet()) {
-//
-//			Class<? extends RelationshipInterface> entityClass = entity.getValue();
-//
-//			if (type.isAssignableFrom(entityClass)) {
-//
-//				allSubtypes.add(entityClass);
-//			}
-//		}
-//
-//		return allSubtypes;
-//	}
-
-	public static void clearInheritanceMap() {
+	public static synchronized void clearInheritanceMap() {
 		subtypeMapForType.clear();
 	}
 
-	public static Set<String> getAllSubtypesAsStringSet(final String type) {
+	public static synchronized Set<String> getAllSubtypesAsStringSet(final String type) {
 
 		Set<String> allSubtypes = subtypeMapForType.get(type);
 		if (allSubtypes == null) {
