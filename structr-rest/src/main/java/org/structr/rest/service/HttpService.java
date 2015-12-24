@@ -375,6 +375,7 @@ public class HttpService implements RunnableService {
 			}
 
 			final RequestLogImpl requestLog = new RequestLogImpl();
+			requestLog.setName("REQUESTLOG");
 			requestLogHandler.setRequestLog(requestLog);
 
 			final HandlerCollection handlers = new HandlerCollection();
