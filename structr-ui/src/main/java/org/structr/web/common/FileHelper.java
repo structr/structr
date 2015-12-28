@@ -22,6 +22,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -703,5 +705,7 @@ public class FileHelper {
 
 	}
 
-
+	public static String getDateString() {
+		return new SimpleDateFormat("yyyy-MM-dd-HHmmss").format(new Date());
+	}
 }

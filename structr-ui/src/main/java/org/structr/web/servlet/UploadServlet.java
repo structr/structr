@@ -203,6 +203,10 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 						final org.structr.dynamic.File newFile = FileHelper.createFile(securityContext, IOUtils.toByteArray(item.getInputStream()), contentType, cls);
 						newFile.setProperty(AbstractNode.name, PathHelper.getName(name));
 
+						if (!newFile.validatePath(securityContext, null)) {
+							newFile.setProperty(AbstractNode.name, name.concat("_").concat(FileHelper.getDateString()));
+						}
+
 						PropertyMap additionalProperties = PropertyMap.inputTypeToJavaType(securityContext, cls, params);
 
 						for (PropertyKey key : additionalProperties.keySet()) {

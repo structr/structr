@@ -34,7 +34,7 @@ import org.structr.core.property.EndNodes;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
-import org.structr.core.validator.TypeUniquenessValidator;
+import org.structr.core.validator.PathUniquenessValidator;
 import org.structr.web.entity.relation.FileChildren;
 import org.structr.web.entity.relation.FileSiblings;
 import org.structr.web.entity.relation.FolderChildren;
@@ -53,7 +53,7 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 	public static final Property<AbstractFile> nextSibling     = new EndNode<>("nextSibling", FileSiblings.class);
 	public static final Property<List<String>> childrenIds     = new CollectionIdProperty("childrenIds", children);
 	public static final Property<String> nextSiblingId         = new EntityIdProperty("nextSiblingId", nextSibling);
-	public static final Property<String> path                  = new PathProperty("path", new TypeUniquenessValidator(AbstractFile.class)).unique().indexed().readOnly();
+	public static final Property<String> path                  = new PathProperty("path", new PathUniquenessValidator(AbstractFile.class)).unique().indexed().readOnly();
 	public static final Property<String> parentId              = new EntityIdProperty("parentId", parent);
 	public static final Property<Boolean> hasParent            = new BooleanProperty("hasParent").indexed();
 
@@ -61,18 +61,34 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 	public static final View uiView      = new View(AbstractFile.class, PropertyView.Ui, path);
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+		boolean valid = super.onCreation(securityContext, errorBuffer);
 
+		if (valid) {
+			return valid && validatePath(securityContext, errorBuffer);
+		}
+
+		return valid;
+	}
+
+	@Override
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		boolean valid = super.onModification(securityContext, errorBuffer);
 
 		if (valid) {
+			return validatePath(securityContext, errorBuffer);
+		}
 
-			final List<PropertyValidator<String>> validators = path.getValidators();
+		return valid;
+	}
 
-			for (final PropertyValidator validator : validators) {
-				valid = valid && validator.isValid(securityContext, this, path, getProperty(path), errorBuffer);
-			}
+	public boolean validatePath(SecurityContext securityContext, ErrorBuffer errorBuffer) {
+		boolean valid = true;
 
+		final List<PropertyValidator<String>> validators = path.getValidators();
+
+		for (final PropertyValidator validator : validators) {
+			valid = valid && validator.isValid(securityContext, this, path, getProperty(path), errorBuffer);
 		}
 
 		return valid;
