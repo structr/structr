@@ -21,7 +21,6 @@ package org.structr.web.entity;
 
 import java.util.List;
 import org.structr.common.PropertyView;
-import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.entity.LinkedTreeNode;
@@ -59,7 +58,7 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
-		return (super.isValid(errorBuffer) && !ValidationHelper.checkStringNotBlank(this, name, errorBuffer));
+		return (super.isValid(errorBuffer) && nonEmpty(AbstractFile.name, errorBuffer));
 	}
 
 	@Override
