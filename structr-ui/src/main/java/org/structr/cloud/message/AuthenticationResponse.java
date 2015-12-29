@@ -72,11 +72,7 @@ public class AuthenticationResponse extends Message {
 
 	public String getEncryptionKey(final String password) {
 
-		if (salt != null) {
-			return HashHelper.getHash(password, salt);
-		}
-
-		return HashHelper.getSimpleHash(password);
+		return HashHelper.getHash(password, salt);
 	}
 
 	public int getKeyLength() {

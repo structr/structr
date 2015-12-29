@@ -136,17 +136,7 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 		final String encryptedPasswordFromDatabase = getEncryptedPassword();
 		if (encryptedPasswordFromDatabase != null) {
 
-			final String salt = getSalt();
-			String encryptedPasswordToCheck = null;
-
-			if (salt != null) {
-
-				encryptedPasswordToCheck = HashHelper.getHash(password, salt);
-
-			} else {
-
-				encryptedPasswordToCheck = HashHelper.getSimpleHash(password);
-			}
+			final String encryptedPasswordToCheck = HashHelper.getHash(password, getSalt());
 
 			if (encryptedPasswordFromDatabase.equals(encryptedPasswordToCheck)) {
 				return true;
