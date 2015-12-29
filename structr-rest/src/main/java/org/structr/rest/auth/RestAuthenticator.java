@@ -31,7 +31,6 @@ import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
-import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.auth.exception.UnauthorizedException;
@@ -107,7 +106,7 @@ public class RestAuthenticator implements Authenticator {
 
 		SecurityContext securityContext;
 
-		Principal user = AuthHelper.checkSessionAuthentication(request);
+		Principal user = SessionHelper.checkSessionAuthentication(request);
 
 		if (user == null) {
 
@@ -130,6 +129,8 @@ public class RestAuthenticator implements Authenticator {
 			} else {
 
 				securityContext = SecurityContext.getInstance(user, request, AccessMode.Backend);
+
+				SessionHelper.clearOldSessions(user);
 
 			}
 
