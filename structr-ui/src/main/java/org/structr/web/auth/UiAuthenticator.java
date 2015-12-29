@@ -517,8 +517,8 @@ public class UiAuthenticator implements Authenticator {
 
 						sessionValid = false;
 
-						// remove invalid session ID from user
-						invalidateSessionId(requestedSessionId);
+						// remove invalid session ID
+						AuthHelper.clearSession(requestedSessionId);
 
 					} else {
 
@@ -531,8 +531,8 @@ public class UiAuthenticator implements Authenticator {
 				// No existing session, create new
 				session = AuthHelper.newSession(request);
 
-				// remove invalid session ID from user
-				invalidateSessionId(requestedSessionId);
+				// remove invalid session ID
+				AuthHelper.clearSession(requestedSessionId);
 
 			}
 
@@ -654,16 +654,5 @@ public class UiAuthenticator implements Authenticator {
 
 		return user;
 
-	}
-
-	// ----- private methods -----
-	private void invalidateSessionId(final String sessionId) {
-
-		// find user with given session ID and remove ID from list of valid sessions
-		final Principal userWithInvalidSession = AuthHelper.getPrincipalForSessionId(sessionId);
-		if (userWithInvalidSession != null) {
-
-			userWithInvalidSession.removeSessionId(sessionId);
-		}
 	}
 }
