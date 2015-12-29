@@ -236,7 +236,6 @@ public class AuthHelper {
 		if (session != null) {
 
 			AuthHelper.clearSession(session.getId());
-			user.removeSessionId(session.getId());
 
 			Actions.call(Actions.NOTIFICATION_LOGOUT, user);
 

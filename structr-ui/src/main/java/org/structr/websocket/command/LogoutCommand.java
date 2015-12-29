@@ -49,7 +49,6 @@ public class LogoutCommand extends AbstractCommand {
 			if (sessionId != null) {
 
 				AuthHelper.clearSession(sessionId);
-				user.removeSessionId(sessionId);
 
 			}
 
