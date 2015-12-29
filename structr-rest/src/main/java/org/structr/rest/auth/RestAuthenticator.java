@@ -107,7 +107,7 @@ public class RestAuthenticator implements Authenticator {
 
 		SecurityContext securityContext;
 
-		Principal user = checkSessionAuthentication(request);
+		Principal user = AuthHelper.checkSessionAuthentication(request);
 
 		if (user == null) {
 
@@ -353,69 +353,6 @@ public class RestAuthenticator implements Authenticator {
 
 			logger.log(Level.WARNING, "Error while logging out user", ex);
 		}
-	}
-
-	protected Principal checkSessionAuthentication(final HttpServletRequest request) throws FrameworkException {
-
-		String requestedSessionId = request.getRequestedSessionId();
-		HttpSession session       = request.getSession(false);
-		boolean sessionValid      = false;
-
-		if (requestedSessionId == null) {
-
-			// No session id requested => create new session
-			AuthHelper.newSession(request);
-
-			// we just created a totally new session, there can't
-			// be a user with this session ID, so don't search.
-			return null;
-
-		} else {
-
-			// Existing session id, check if we have an existing session
-			if (session != null) {
-
-				if (session.getId().equals(requestedSessionId)) {
-
-					sessionValid = !AuthHelper.isSessionTimedOut(session);
-
-				}
-
-			} else {
-
-				// No existing session, create new
-				session = AuthHelper.newSession(request);
-
-			}
-
-		}
-
-		if (sessionValid) {
-
-			final Principal user = AuthHelper.getPrincipalForSessionId(session.getId());
-			logger.log(Level.FINE, "Valid session found: {0}, last accessed {1}, authenticated with user {2}", new Object[] { session, session.getLastAccessedTime(), user });
-
-			return user;
-
-
-		} else {
-
-			final Principal user = AuthHelper.getPrincipalForSessionId(requestedSessionId);
-
-			logger.log(Level.FINE, "Invalid session: {0}, last accessed {1}, authenticated with user {2}", new Object[] { session, (session != null ? session.getLastAccessedTime() : ""), user });
-
-			if (user != null) {
-
-				AuthHelper.doLogout(request, user);
-			}
-
-			try { request.logout(); request.changeSessionId(); } catch (Throwable t) {}
-
-		}
-
-
-		return null;
-
 	}
 
 	public static void writeUnauthorized(final HttpServletResponse response) throws IOException {
