@@ -650,7 +650,7 @@ var _Entities = {
 						nullIcon.on('click', function() {
 							var key = $(this).prop('id').substring(null_prefix.length);
 							var input = $('.' + key + '_').find('input');
-							_Entities.setProperty(id, key, isArray ? '[]' : null, false, function(newVal) {
+							_Entities.setProperty(id, key, null, false, function(newVal) {
 								if (!newVal) {
 									blinkGreen(cell);
 									dialogMsg.html('<div class="infoBox success">Property "' + key + '" was set to null.</div>');
