@@ -26,8 +26,9 @@ import javax.crypto.Cipher;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudService;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.auth.AuthHelper;
+import org.structr.core.auth.HashHelper;
 import org.structr.core.graph.SyncCommand;
+import org.structr.rest.auth.AuthHelper;
 
 /**
  *
@@ -72,10 +73,10 @@ public class AuthenticationResponse extends Message {
 	public String getEncryptionKey(final String password) {
 
 		if (salt != null) {
-			return AuthHelper.getHash(password, salt);
+			return HashHelper.getHash(password, salt);
 		}
 
-		return AuthHelper.getSimpleHash(password);
+		return HashHelper.getSimpleHash(password);
 	}
 
 	public int getKeyLength() {

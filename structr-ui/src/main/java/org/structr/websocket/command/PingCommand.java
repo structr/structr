@@ -20,9 +20,9 @@ package org.structr.websocket.command;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
+import org.structr.rest.auth.AuthHelper;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;

@@ -27,13 +27,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.server.session.HashSessionManager;
 import org.structr.common.AccessMode;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
-import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.auth.exception.UnauthorizedException;
@@ -43,6 +43,9 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.property.PropertyKey;
+import org.structr.rest.auth.AuthHelper;
+import org.structr.rest.auth.SessionHelper;
+import org.structr.rest.service.HttpService;
 import org.structr.web.entity.User;
 import org.structr.web.resource.RegistrationResource;
 import org.structr.web.servlet.HtmlServlet;
@@ -116,7 +119,7 @@ public class UiAuthenticator implements Authenticator {
 
 		SecurityContext securityContext;
 
-		Principal user = AuthHelper.checkSessionAuthentication(request);
+		Principal user = SessionHelper.checkSessionAuthentication(request);
 
 		if (user == null) {
 
@@ -143,6 +146,8 @@ public class UiAuthenticator implements Authenticator {
 				securityContext = SecurityContext.getSuperUserInstance(request);
 
 			} else {
+
+				SessionHelper.clearOldSessions(user);
 
 				securityContext = SecurityContext.getInstance(user, request, AccessMode.Backend);
 

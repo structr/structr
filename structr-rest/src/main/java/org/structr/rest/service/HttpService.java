@@ -112,6 +112,7 @@ public class HttpService implements RunnableService {
 	private int httpPort           = 8082;
 	private int maxIdleTime        = 30000;
 	private int requestHeaderSize  = 8192;
+	private HashSessionManager hashSessionManager = null;
 
 	private HttpConfiguration httpConfig;
 	private HttpConfiguration httpsConfig;
@@ -287,14 +288,14 @@ public class HttpService implements RunnableService {
 			t.printStackTrace();
 		}
 
-		final HashSessionManager sessionManager = new HashSessionManager();
+		hashSessionManager = new HashSessionManager();
 		try {
-			sessionManager.setStoreDirectory(new File(baseDir + "/sessions"));
+			hashSessionManager.setStoreDirectory(new File(baseDir + "/sessions"));
 		} catch (IOException ex) {
 			logger.log(Level.WARNING, "Could not set custom session manager with session store directory {0}/sessions", baseDir);
 		}
 
-		servletContext.getSessionHandler().setSessionManager(sessionManager);
+		servletContext.getSessionHandler().setSessionManager(hashSessionManager);
 
 		if (enableRewriteFilter) {
 
@@ -513,6 +514,10 @@ public class HttpService implements RunnableService {
 
 	public Set<ResourceProvider> getResourceProviders() {
 		return resourceProviders;
+	}
+
+	public HashSessionManager getHashSessionManager() {
+		return hashSessionManager;
 	}
 
 	// ----- private methods -----
