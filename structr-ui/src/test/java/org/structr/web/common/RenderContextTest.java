@@ -515,12 +515,15 @@ public class RenderContextTest extends StructrUiTest {
 			grant("Folder", 64, true);
 			grant("_login", 64, false);
 
-			assertEquals("Invalid POST result", "201",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:Test}').status}"));
-			assertEquals("Invalid POST result", "1.0",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:Test}').body.result_count}"));
-			assertEquals("Invalid POST result", "application/json; charset=utf-8;", Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:Test}').headers.Content-Type}"));
+			assertEquals("Invalid POST result", "201",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:status}').status}"));
+			assertEquals("Invalid POST result", "1.0",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:result_count}').body.result_count}"));
+			assertEquals("Invalid POST result", "application/json; charset=utf-8;", Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:content-type}').headers.Content-Type}"));
 
 			// test POST with invalid name containing curly braces to provoke 422
-			assertEquals("Invalid POST result", "422",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:\"Test{{{}}{}{}{}\"}').status}"));
+			assertEquals("Invalid POST result", "422",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:\"ShouldFail{{{}}{}{}{}\"}').status}"));
+
+			// test that duplicate folder names are not allowed
+			assertEquals("Invalid POST result", "422",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:status}').status}"));
 
 			// test login and sessions
 			final String sessionIdCookie = Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/login', '{name:admin,password:admin}').headers.Set-Cookie}");
