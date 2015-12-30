@@ -147,8 +147,6 @@ public class UiAuthenticator implements Authenticator {
 
 			} else {
 
-				SessionHelper.clearOldSessions(user);
-
 				securityContext = SecurityContext.getInstance(user, request, AccessMode.Backend);
 
 			}

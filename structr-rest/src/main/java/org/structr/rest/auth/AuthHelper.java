@@ -177,6 +177,8 @@ public class AuthHelper {
 			session = SessionHelper.newSession(request);
 		}
 
+		SessionHelper.clearInvalidSessions(user);
+
 		// We need a session to login a user
 		if (session != null) {
 

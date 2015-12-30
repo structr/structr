@@ -130,7 +130,7 @@ public class RestAuthenticator implements Authenticator {
 
 				securityContext = SecurityContext.getInstance(user, request, AccessMode.Backend);
 
-				SessionHelper.clearOldSessions(user);
+				SessionHelper.clearInvalidSessions(user);
 
 			}
 
@@ -330,6 +330,8 @@ public class RestAuthenticator implements Authenticator {
 	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException, FrameworkException {
 
 		final Principal user = AuthHelper.getPrincipalForPassword(Person.eMail, emailOrUsername, password);
+
+		SessionHelper.clearInvalidSessions(user);
 
 		return user;
 	}

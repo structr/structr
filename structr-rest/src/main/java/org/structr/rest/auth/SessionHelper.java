@@ -127,7 +127,9 @@ public class SessionHelper {
 	 *
 	 * @param user
 	 */
-	public static void clearOldSessions(final Principal user) {
+	public static void clearInvalidSessions(final Principal user) {
+
+		logger.log(Level.INFO, "Clearing invalid sessions for user {0}", user);
 
 		final HashSessionManager sessionManager = Services.getInstance().getService(HttpService.class).getHashSessionManager();
 
