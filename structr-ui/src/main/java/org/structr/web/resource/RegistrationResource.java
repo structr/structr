@@ -40,7 +40,6 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
-import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.MailTemplate;
@@ -50,6 +49,7 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.service.HttpService;
@@ -420,7 +420,7 @@ public class RegistrationResource extends Resource {
 			} else if (autoCreate) {
 
 				final App app = StructrApp.getInstance(securityContext);
-				
+
 				// Clear properties set by us from the user-defined props
 				propertySet.remove(credentialKey.jsonName());
 				propertySet.remove(User.confirmationKey.jsonName());
@@ -431,21 +431,21 @@ public class RegistrationResource extends Resource {
 				// eMail is mandatory and necessary
 				final String customAttributesString = User.eMail.jsonName() + "," + Services.getInstance().getConfigurationValue(CUSTOM_ATTRIBUTES);
 				final List<String> customAttributes = Arrays.asList(customAttributesString.split("[ ,]+"));
-				
+
 				final Set<PropertyKey> propsToRemove = new HashSet<>();
 				for (final PropertyKey key : props.keySet()) {
 					if (!customAttributes.contains(key.jsonName())) {
 						propsToRemove.add(key);
 					}
 				}
-				
+
 				for (final PropertyKey propToRemove : propsToRemove) {
 					props.remove(propToRemove);
 				}
 
 				props.put(credentialKey, credentialValue);
 				props.put(User.confirmationKey, confKey);
-				
+
 //				// Remove security-relevant properties
 //				props.remove(Principal.isAdmin);
 //				props.remove(Principal.ownedNodes);

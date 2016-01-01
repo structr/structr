@@ -211,7 +211,7 @@ public class PropertyViewTest extends StructrUiTest {
 
 	}
 
-	public void testPropertyViewsAndResultSetLayout() {
+	public void testPropertyViewsAndResultSetLayoutWeb() {
 
 		final String username = "tester";
 		final String password = "test";

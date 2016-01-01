@@ -22,6 +22,7 @@ import org.apache.lucene.search.SortField;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.property.AbstractReadOnlyProperty;
+import org.structr.core.validator.PathUniquenessValidator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Linkable;
@@ -37,6 +38,12 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 
 	public PathProperty(String name) {
 		super(name);
+	}
+
+	public PathProperty(String name, PathUniquenessValidator validator) {
+		super(name);
+
+		addValidator(validator);
 	}
 
 	@Override

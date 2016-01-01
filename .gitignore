@@ -18,3 +18,4 @@ structr-ui/structr-ui*.pid
 **nohup.out
 docs/html
 docs/screenshots
+*.DS_Store

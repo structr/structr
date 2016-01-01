@@ -27,8 +27,7 @@ import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import static org.structr.core.auth.AuthHelper.getHash;
-import static org.structr.core.auth.AuthHelper.getSimpleHash;
+import org.structr.core.auth.HashHelper;
 import static org.structr.core.entity.Principal.password;
 import org.structr.core.entity.relationship.Groups;
 import org.structr.core.property.PropertyKey;
@@ -137,17 +136,7 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 		final String encryptedPasswordFromDatabase = getEncryptedPassword();
 		if (encryptedPasswordFromDatabase != null) {
 
-			final String salt = getSalt();
-			String encryptedPasswordToCheck = null;
-
-			if (salt != null) {
-
-				encryptedPasswordToCheck = getHash(password, salt);
-
-			} else {
-
-				encryptedPasswordToCheck = getSimpleHash(password);
-			}
+			final String encryptedPasswordToCheck = HashHelper.getHash(password, getSalt());
 
 			if (encryptedPasswordFromDatabase.equals(encryptedPasswordToCheck)) {
 				return true;
@@ -206,7 +195,7 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 
 	/**
 	 * Intentionally return a special value indicating that the real value is not being disclosed.
-	 * 
+	 *
 	 * @param key
 	 * @param predicate
 	 * @return null for password

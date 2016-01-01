@@ -36,8 +36,6 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
-import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNodes;
@@ -87,9 +85,8 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 
 		boolean valid = true;
 
-		valid &= nonEmpty(AbstractNode.name, errorBuffer);
-		valid &= ValidationHelper.checkStringMatchesRegex(this, name, "[:_a-zA-Z0-9\\s\\-\\.öäüÖÄÜß]+", errorBuffer);
 		valid &= super.isValid(errorBuffer);
+		valid &= ValidationHelper.checkStringMatchesRegex(this, name, "[:_a-zA-Z0-9\\s\\-\\.öäüÖÄÜß]+", errorBuffer);
 
 		return valid;
 	}

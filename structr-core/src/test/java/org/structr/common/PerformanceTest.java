@@ -30,8 +30,10 @@ import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.entity.GenericNode;
+import org.structr.core.entity.TestOne;
 import org.structr.core.entity.relationship.NodeHasLocation;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -119,6 +121,63 @@ public class PerformanceTest extends StructrTest {
 
 			logger.log(Level.INFO, "Created {0} relationships in {1} seconds ({2} per s)", new Object[] { number, decimalFormat.format(time), decimalFormat.format(rate) });
 			assertTrue(rate > 50);
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+
+	/**
+	 * Tests basic throughput of reading node properties.
+	 * 
+	 * Note that this is just a very rought test as performance is heavily
+	 * depending on hardware and setup (cache parameters etc.)
+	 * 
+	 * The assumed rate is low so if this test fails, there may be issues
+	 * with the test setup.
+	 * 
+	 * If the test passes, one can expect structr to read nodes with typical performance.
+	 */
+	public void test03ReadPerformance() {
+
+		try {
+
+			int number = 1000;
+			int loop   = 1000;
+			createTestNodes(TestOne.class, number);
+
+			long t0                   = System.nanoTime();
+			
+			for (int i=0; i<loop; i++) {
+			
+				try (final Tx tx = app.tx()) {
+
+					final List<TestOne> res = app.nodeQuery(TestOne.class).getAsList();
+
+					for (final TestOne t : res) {
+
+						for (final PropertyKey key : t.getPropertyKeys(PropertyView.Ui)) {
+							t.getProperty(key);
+						}
+					}
+
+					tx.success();
+				}
+			}
+			
+			long t1                   = System.nanoTime();
+
+
+			DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+			Double time                 = (t1 - t0) / 1000000000.0;
+			Double rate                 = number * loop / ((t1 - t0) / 1000000000.0);
+
+			logger.log(Level.INFO, "Read {0} nodes in {1} seconds ({2} per s)", new Object[] { number, decimalFormat.format(time), decimalFormat.format(rate) });
+			assertTrue(rate > 10000);
 
 		} catch (FrameworkException ex) {
 
