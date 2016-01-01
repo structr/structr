@@ -203,7 +203,7 @@ public class SuperUser implements Principal, AccessControllable {
 
 	@Override
 	public String getUuid() {
-		return "00000000000000000000000000000000";
+		return Principal.SUPERUSER_ID;
 
 	}
 

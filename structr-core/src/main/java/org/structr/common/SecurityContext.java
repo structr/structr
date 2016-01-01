@@ -748,7 +748,7 @@ public class SecurityContext {
 
 		@Override
 		public String getCachedUserId() {
-			return "00000000000000000000000000000000";
+			return Principal.SUPERUSER_ID;
 		}
 
 		@Override

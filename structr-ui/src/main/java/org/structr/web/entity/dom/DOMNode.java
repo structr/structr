@@ -190,6 +190,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	public static final String ERROR_MESSAGE_INCLUDE_JS = "Usage: ${{Structr.include(name)}}. Example: ${{Structr.include(\"Main Template\")}}";
 	public static final String ERROR_MESSAGE_STRIP_HTML = "Usage: ${strip_html(html)}. Example: ${strip_html(\"<p>foo</p>\")}";
 	public static final String ERROR_MESSAGE_STRIP_HTML_JS = "Usage: ${{Structr.strip_html(html)}}. Example: ${{Structr.strip_html(\"<p>foo</p>\")}}";
+
 	public static final String ERROR_MESSAGE_POST = "Usage: ${POST(URL, body [, contentType, charset])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:Test}', 'application/json', 'utf-8')}";
 	public static final String ERROR_MESSAGE_POST_JS = "Usage: ${{Structr.POST(URL, body [, contentType, charset])}}. Example: ${{Structr.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'utf-8')}}";
 	public static final String ERROR_MESSAGE_GET = "Usage: ${GET(URL[, contentType[, selector]])}. Example: ${GET('http://structr.org', 'text/html')}";
@@ -202,12 +203,16 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	public static final String ERROR_MESSAGE_TO_JSON_JS = "Usage: ${{Structr.to_json(obj [, view])}}. Example: ${{Structr.to_json(Structr.get('this'))}}";
 	public static final String ERROR_MESSAGE_FROM_JSON = "Usage: ${from_json(src)}. Example: ${from_json('{name:test}')}";
 	public static final String ERROR_MESSAGE_FROM_JSON_JS = "Usage: ${{Structr.from_json(src)}}. Example: ${{Structr.from_json('{name:test}')}}";
+
 	public static final String ERROR_MESSAGE_ADD_HEADER = "Usage: ${add_header(field, value)}. Example: ${add_header('X-User', 'johndoe')}";
 	public static final String ERROR_MESSAGE_ADD_HEADER_JS = "Usage: ${{Structr.add_header(field, value)}}. Example: ${{Structr.add_header('X-User', 'johndoe')}}";
-	public static final String ERROR_MESSAGE_GET_REQUEST_HEADER = "Usage: ${get_request_header(field, value)}. Example: ${get_request_header('X-User', 'johndoe')}";
-	public static final String ERROR_MESSAGE_GET_REQUEST_HEADER_JS = "Usage: ${{Structr.setResponseHeader(field, value)}}. Example: ${{Structr.setResponseHeader('X-User', 'johndoe')}}";
+
+	public static final String ERROR_MESSAGE_GET_REQUEST_HEADER = "Usage: ${get_request_header(name)}. Example: ${get_request_header('User-Agent')}";
+	public static final String ERROR_MESSAGE_GET_REQUEST_HEADER_JS = "Usage: ${{Structr.getRequestHeader(name)}}. Example: ${{Structr.getRequestHeader('User-Agent')}}";
+
 	public static final String ERROR_MESSAGE_SET_RESPONSE_HEADER = "Usage: ${set_response_header(field, value)}. Example: ${set_response_header('X-User', 'johndoe')}";
 	public static final String ERROR_MESSAGE_SET_RESPONSE_HEADER_JS = "Usage: ${{Structr.setResponseHeader(field, value)}}. Example: ${{Structr.setResponseHeader('X-User', 'johndoe')}}";
+
 	public static final String ERROR_MESSAGE_LOG_EVENT = "Usage: ${log_event(action, message)}. Example: ${log_event('read', 'Book has been read')}";
 	public static final String ERROR_MESSAGE_LOG_EVENT_JS = "Usage: ${{Structr.logEvent(action, message)}}. Example: ${{Structr.logEvent('read', 'Book has been read')}}";
 	public static final String ERROR_MESSAGE_IS_LOCALE = "Usage: ${is_locale(locales...)}";
@@ -987,7 +992,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 					final SecurityContext securityContext = ctx.getSecurityContext();
 					final String name = sources[0].toString();
-					
+
 					if (securityContext != null) {
 
 						final HttpServletRequest request = securityContext.getRequest();
@@ -1040,7 +1045,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 						case 4:
 							final String object = sources[3].toString();
 							logEvent.setProperty(LogEvent.objectProperty, object);
-						// no break, next case should be included
+							// no break, next case should be included
 
 						case 3:
 							final String subject = sources[2].toString();

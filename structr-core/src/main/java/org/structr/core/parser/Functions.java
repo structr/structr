@@ -233,19 +233,16 @@ public class Functions {
 	public static final String ERROR_MESSAGE_GRANT_JS                            = "Usage: ${{Structr.grant(principal, node, permissions)}}. Example: ${{Structr.grant(Structr.get('me'), Structr.this, 'read, write, delete'))}}";
 	public static final String ERROR_MESSAGE_REVOKE                              = "Usage: ${revoke(principal, node, permissions)}. Example: ${revoke(me, this, 'write, delete'))}";
 	public static final String ERROR_MESSAGE_REVOKE_JS                           = "Usage: ${{Structr.revoke(principal, node, permissions)}}. Example: ${{Structr.revoke(Structr.('me'), Structr.this, 'write, delete'))}}";
-
 	public static final String ERROR_MESSAGE_IS_ALLOWED                          = "Usage: ${is_allowed(principal, node, permissions)}. Example: ${is_allowed(me, this, 'write, delete'))}";
 	public static final String ERROR_MESSAGE_IS_ALLOWED_JS                       = "Usage: ${{Structr.is_allowed(principal, node, permissions)}}. Example: ${{Structr.is_allowed(Structr.('me'), Structr.this, 'write, delete'))}}";
-
-
 	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE     = "Usage: ${unlock_readonly_properties_once(node)}. Example ${unlock_readonly_properties_once, this}";
 	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS  = "Usage: ${{Structr.unlock_readonly_properties_once(node)}}. Example ${{Structr.unlock_readonly_properties_once, Structr.get('this')}}";
 	public static final String ERROR_MESSAGE_CALL                                = "Usage: ${call(key [, payloads...]}. Example ${call('myEvent')}";
 	public static final String ERROR_MESSAGE_CALL_JS                             = "Usage: ${{Structr.call(key [, payloads...]}}. Example ${{Structr.call('myEvent')}}";
 	public static final String ERROR_MESSAGE_IS_LOCALE                           = "Usage: ${is_locale(locales...)}";
-	public static final String ERROR_MESSAGE_EXEC                                = "Usage: ${exec(fileName [, parameters...]}. Example ${exec('/usr/local/bin/my_script.sh')}";
-	public static final String ERROR_MESSAGE_EXEC_JS                             = "Usage: ${{Structr.exec(fileName [, parameters...]}}. Example ${{Structr.exec('/usr/local/bin/my_script.sh')}}";
 	public static final String ERROR_MESSAGE_IS_LOCALE_JS                        = "Usage: ${{Structr.isLocale(locales...}}. Example ${{Structr.isLocale('de_DE', 'de_AT', 'de_CH')}}";
+	public static final String ERROR_MESSAGE_EXEC                                = "Usage: ${exec(fileName [, parameters...]}. Example ${exec('my-script')}";
+	public static final String ERROR_MESSAGE_EXEC_JS                             = "Usage: ${{Structr.exec(fileName [, parameters...]}}. Example ${{Structr.exec('my-script')}}";
 	public static final String ERROR_MESSAGE_CYPHER                              = "Usage: ${cypher('MATCH (n) RETURN n')}";
 	public static final String ERROR_MESSAGE_CYPHER_JS                           = "Usage: ${{Structr.cypher(query)}}. Example ${{Structr.cypher('MATCH (n) RETURN n')}}";
 	public static final String ERROR_MESSAGE_LOCALIZE                            = "Usage: ${localize(key[, domain])}. Example ${localize('HELLO_WORLD', 'myDomain')}";
