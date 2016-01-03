@@ -854,8 +854,13 @@ public class Importer {
 
 						processCssFileNode(fileNode, downloadUrl);
 					}
-				}
 
+					if (!fileNode.validatePath(securityContext, null)) {
+						fileNode.setProperty(AbstractNode.name, fileName.concat("_").concat(FileHelper.getDateString()));
+					}
+				
+				}
+				
 				return fileNode;
 
 			} else {
