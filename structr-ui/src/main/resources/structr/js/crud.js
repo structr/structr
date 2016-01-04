@@ -1488,7 +1488,7 @@ var _Crud = {
 	},
 	activateTextInputField: function(el, id, key, propertyType) {
 		var oldValue = el.text();
-		el.off('mouseup');
+		el.off('click');
 		var w = el.width(), h = el.height();
 		var input;
 		if (propertyType === 'String') {
@@ -1501,7 +1501,7 @@ var _Crud = {
 			input = $('input', el);
 		}
 		input.val(oldValue);
-		input.off('mouseup');
+		input.off('click');
 		input.focus();
 		input.on('blur', function() {
 			var newValue = input.val();
@@ -1533,12 +1533,12 @@ var _Crud = {
 			row.append('<td class="actions"><a title="Edit" class="edit"><img alt="Edit Icon" src="icon/pencil.png"></a><a title="Delete" class="delete"><img alt="Delete Icon" src="icon/cross.png"></a><a title="Access Control" class="security"><img alt="Access Control Icon" src="icon/key.png"></a></td>');
 			_Crud.resize();
 
-			$('.actions .edit', row).on('mouseup', function(event) {
+			$('.actions .edit', row).on('click', function(event) {
 				event.preventDefault();
 				_Crud.crudEdit(id);
 				return false;
 			});
-			$('.actions .delete', row).on('mouseup', function(event) {
+			$('.actions .delete', row).on('click', function(event) {
 				event.preventDefault();
 				var c = confirm('Are you sure to delete ' + type + ' ' + id + ' ?');
 				if (c === true) {
@@ -1582,7 +1582,7 @@ var _Crud = {
 				cell.html(nvl(formatValue(value), '<img alt="Show calendar" title="Show calendar" src="icon/calendar.png">'));
 				if (!readOnly) {
 					var dateTimePickerFormat = getDateTimePickerFormat(_Crud.getFormat(key, type));
-					cell.on('mouseup', function(event) {
+					cell.on('click', function(event) {
 						event.preventDefault();
 						var self = $(this);
 						var oldValue = self.text();
@@ -1621,14 +1621,14 @@ var _Crud = {
 							});
 							input.datepicker('show');
 						}
-						self.off('mouseup');
+						self.off('click');
 					});
 				}
 			} else if (isEnum) {
 				var format = _Crud.getFormat(key, type);
 				cell.text(nvl(formatValue(value), ''));
 				if (!readOnly) {
-					cell.on('mouseup', function(event) {
+					cell.on('click', function(event) {
 						event.preventDefault();
 						_Crud.appendEnumSelect(cell, id, key, format);
 					});
@@ -1664,7 +1664,7 @@ var _Crud = {
 			} else {
 				cell.text(nvl(formatValue(value), ''));
 				if (!readOnly) {
-					cell.on('mouseup', function(event) {
+					cell.on('click', function(event) {
 						event.preventDefault();
 						var self = $(this);
 						_Crud.activateTextInputField(self, id, key, propertyType);
@@ -1718,7 +1718,7 @@ var _Crud = {
 
 		if (!isSourceOrTarget && !readOnly && !relatedType && propertyType !== 'Boolean' && propertyType !== 'String[]') {
 			cell.append('<img class="crud-clear-value" alt="Clear value" title="Clear value" src="icon/cross_small_grey.png">');
-			$('.crud-clear-value', cell).on('mouseup', function(e) {
+			$('.crud-clear-value', cell).on('click', function(e) {
 				e.preventDefault();
 				_Crud.crudRemoveProperty(id, key);
 				return false;
@@ -1729,7 +1729,7 @@ var _Crud = {
 		//searchField.focus();
 	},
 	appendEnumSelect: function(cell, id, key, format) {
-		cell.off('mouseup');
+		cell.off('click');
 		var input;
 		var oldValue = cell.text();
 		cell.empty().append('<select name="' + key + '">');
