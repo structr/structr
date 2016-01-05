@@ -350,8 +350,8 @@ var _Pages = {
 				var code = $('#_code', dialog).val();
 				var address = $('#_address', dialog).val();
 				var name = $('#_name', dialog).val();
-				var publicVisible = $('#_publicVisible:checked', dialog).val() === 'on';
-				var authVisible = $('#_authVisible:checked', dialog).val() === 'on';
+				var publicVisible = $('#_publicVisible', dialog).prop('checked');
+				var authVisible = $('#_authVisible', dialog).prop('checked');
 
 				log('start');
 				return Command.importPage(code, address, name, publicVisible, authVisible);

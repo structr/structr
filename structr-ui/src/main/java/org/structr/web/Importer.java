@@ -41,6 +41,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.FileUtils;
@@ -134,16 +135,16 @@ public class Importer {
 
 	/**
 	 * Construct an instance of the importer to either read the given code, or download code from the given address.
-	 * 
+	 *
 	 * The importer will create a page with the given name. Visibility can be controlled by publicVisible and authVisible.
-	 * 
+	 *
 	 * @param securityContext
 	 * @param code
 	 * @param address
 	 * @param name
 	 * @param timeout
 	 * @param publicVisible
-	 * @param authVisible 
+	 * @param authVisible
 	 */
 	public Importer(final SecurityContext securityContext, final String code, final String address, final String name, final boolean publicVisible, final boolean authVisible) {
 
@@ -166,9 +167,9 @@ public class Importer {
 
 	/**
 	 * Parse the code previously read by {@link Importer#readPage()} and treat it as complete page.
-	 * 
+	 *
 	 * @return
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	public boolean parse() throws FrameworkException {
 		return parse(false);
@@ -176,10 +177,10 @@ public class Importer {
 
 	/**
 	 * Parse the code previously read by {@link Importer#readPage()} and treat it as page fragment.
-	 * 
+	 *
 	 * @param fragment
 	 * @return
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	public boolean parse(final boolean fragment) throws FrameworkException {
 
@@ -621,7 +622,7 @@ public class Importer {
 					if (!key.equals("text")) { // Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
 
 						final String value = nodeAttr.getValue();
-						
+
 						if (key.startsWith("data-")) {
 
 							if (key.startsWith(DATA_META_PREFIX)) { // convert data-structr-meta-* attributes to local camel case properties on the node,
@@ -641,9 +642,9 @@ public class Importer {
 									}
 								}
 
-							} else 
+							} else
 							if (key.startsWith(DATA_STRUCTR_PREFIX)) { // don't convert data-structr-* attributes as they are internal
-								
+
 								PropertyKey propertyKey = config.getPropertyKeyForJSONName(newNode.getClass(), key);
 
 								if (propertyKey != null) {
@@ -658,7 +659,7 @@ public class Importer {
 									}
 								}
 							}
-							
+
 
 						} else {
 
@@ -858,9 +859,9 @@ public class Importer {
 					if (!fileNode.validatePath(securityContext, null)) {
 						fileNode.setProperty(AbstractNode.name, fileName.concat("_").concat(FileHelper.getDateString()));
 					}
-				
+
 				}
-				
+
 				return fileNode;
 
 			} else {
@@ -945,12 +946,12 @@ public class Importer {
 	private void copyURLToFile(final String uri, final java.io.File fileOnDisk) throws IOException {
 
 		final HttpClient client = getHttpClient();
-		final HttpMethod get = new GetMethod(uri);
+		final HttpMethod get = new GetMethod();
+		get.setURI(new URI(uri, false));
 
 		get.addRequestHeader("User-Agent", "curl/7.35.0");
 
 		logger.log(Level.INFO, "Downloading from {0}", uri);
-		get.setFollowRedirects(true);
 
 		final int statusCode = client.executeMethod(get);
 
