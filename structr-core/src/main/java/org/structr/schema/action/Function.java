@@ -18,8 +18,29 @@
  */
 package org.structr.schema.action;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.Collection;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
+import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
+import org.structr.core.parser.Functions;
+import org.structr.core.property.DateProperty;
+import org.structr.core.property.StringProperty;
+import org.structr.schema.parser.DatePropertyParser;
 
 /**
  *
@@ -27,6 +48,554 @@ import org.structr.core.GraphObject;
  */
 public abstract class Function<S, T> extends Hint {
 
+	private static final Logger logger = Logger.getLogger(Functions.class.getName());
+
 	public abstract T apply(ActionContext ctx, GraphObject entity, S[] sources) throws FrameworkException;
 	public abstract String usage(boolean inJavaScriptContext);
+
+	/**
+	 * Test if the given object array has a minimum length and all its elements are not null.
+	 *
+	 * @param array
+	 * @param minLength If null, don't do length check
+	 * @return true if array has min length and all elements are not null
+	 */
+	protected boolean arrayHasMinLengthAndAllElementsNotNull(final Object[] array, final Integer minLength) {
+
+		if (array != null && minLength != null && array.length >= minLength) {
+
+			for (final Object element : array) {
+
+				if (element == null) {
+					return false;
+				}
+
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Test if the given object array has a minimum length and all its elements are not null.
+	 *
+	 * @param array
+	 * @param minLength
+	 * @param maxLength
+	 * @return true if array has min length and all elements are not null
+	 */
+	protected boolean arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(final Object[] array, final int minLength, final int maxLength) {
+
+		if (array != null && array.length >= minLength && array.length <= maxLength) {
+
+			for (final Object element : array) {
+
+				if (element == null) {
+					return false;
+				}
+
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Test if the given object array has exact the given length and all its elements are not null.
+	 *
+	 * @param array
+	 * @param length
+	 * @return true if array has exact length and all elements are not null
+	 */
+	protected boolean arrayHasLengthAndAllElementsNotNull(final Object[] array, final int length) {
+
+		if (array != null && array.length == length) {
+
+			for (final Object element : array) {
+
+				if (element == null) {
+					return false;
+				}
+
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
+	protected Double getDoubleOrNull(final Object obj) {
+
+		try {
+
+			if (obj instanceof Date) {
+
+				return (double)((Date)obj).getTime();
+
+			} else if (obj instanceof Number) {
+
+				return ((Number)obj).doubleValue();
+
+			} else {
+
+				Date date = DatePropertyParser.parseISO8601DateString(obj.toString());
+
+				if (date != null) {
+
+					return (double)(date).getTime();
+				}
+
+				return Double.parseDouble(obj.toString());
+
+			}
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+		}
+
+		return null;
+	}
+
+	protected Integer parseInt(final Object source) {
+
+		if (source instanceof Integer) {
+
+			return ((Integer)source);
+		}
+
+		if (source instanceof Number) {
+
+			return ((Number)source).intValue();
+		}
+
+		if (source instanceof String) {
+
+			return Integer.parseInt((String)source);
+		}
+
+		return null;
+	}
+
+	protected String encodeURL(final String source) {
+
+		try {
+			return URLEncoder.encode(source, "UTF-8");
+
+		} catch (UnsupportedEncodingException ex) {
+		}
+
+		// fallback, unencoded
+		return source;
+	}
+
+	protected boolean valueEquals(final Object obj1, final Object obj2) {
+
+		if (obj1 instanceof Enum || obj2 instanceof Enum) {
+
+			return obj1.toString().equals(obj2.toString());
+
+		}
+
+		return eq(obj1, obj2);
+	}
+
+	protected double getDoubleForComparison(final Object obj) {
+
+		if (obj instanceof Number) {
+
+			return ((Number)obj).doubleValue();
+
+		} else {
+
+			try {
+				return Double.valueOf(obj.toString());
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+			}
+		}
+
+		return 0.0;
+	}
+
+	protected boolean gt(final Object o1, final Object o2) {
+
+		if (o1 != null && o2 == null) {
+			return true;
+		}
+
+		if ((o1 == null && o2 != null) || (o1 == null && o2 == null)) {
+			return false;
+		}
+
+		if (o1 instanceof Number && o2 instanceof Number) {
+
+			return compareNumberNumber(o1, o2) > 0;
+
+		} else if (o1 instanceof String && o2 instanceof String) {
+
+			return compareStringString(o1, o2) > 0;
+
+		} else if (o1 instanceof Date && o2 instanceof Date) {
+
+			return compareDateDate(o1, o2) > 0;
+
+		} else if (o1 instanceof Date && o2 instanceof String) {
+
+			return compareDateString(o1, o2) > 0;
+
+		} else if (o1 instanceof String && o2 instanceof Date) {
+
+			return compareStringDate(o1, o2) > 0;
+
+		} else if (o1 instanceof Boolean && o2 instanceof String) {
+
+			return compareBooleanString((Boolean)o1, (String)o2) > 0;
+
+		} else if (o1 instanceof String && o2 instanceof Boolean) {
+
+			return compareStringBoolean((String)o1, (Boolean)o2) > 0;
+
+		} else if (o1 instanceof Number && o2 instanceof String) {
+
+			return compareNumberString((Number)o1, (String)o2) > 0;
+
+		} else if (o1 instanceof String && o2 instanceof Number) {
+
+			return compareStringNumber((String)o1, (Number)o2) > 0;
+
+		} else {
+
+			return compareStringString(o1.toString(), o2.toString()) > 0;
+
+		}
+	}
+
+	protected boolean lt(final Object o1, final Object o2) {
+
+		if (o1 == null && o2 != null) {
+			return true;
+		}
+
+		if ((o1 != null && o2 == null) || (o1 == null && o2 == null)) {
+			return false;
+		}
+
+		if (o1 instanceof Number && o2 instanceof Number) {
+
+			return compareNumberNumber(o1, o2) < 0;
+
+		} else if (o1 instanceof String && o2 instanceof String) {
+
+			return compareStringString(o1, o2) < 0;
+
+		} else if (o1 instanceof Date && o2 instanceof Date) {
+
+			return compareDateDate(o1, o2) < 0;
+
+		} else if (o1 instanceof Date && o2 instanceof String) {
+
+			return compareDateString(o1, o2) < 0;
+
+		} else if (o1 instanceof String && o2 instanceof Date) {
+
+			return compareStringDate(o1, o2) < 0;
+
+		} else if (o1 instanceof Boolean && o2 instanceof String) {
+
+			return compareBooleanString((Boolean)o1, (String)o2) < 0;
+
+		} else if (o1 instanceof String && o2 instanceof Boolean) {
+
+			return compareStringBoolean((String)o1, (Boolean)o2) < 0;
+
+		} else if (o1 instanceof Number && o2 instanceof String) {
+
+			return compareNumberString((Number)o1, (String)o2) < 0;
+
+		} else if (o1 instanceof String && o2 instanceof Number) {
+
+			return compareStringNumber((String)o1, (Number)o2) < 0;
+
+		} else {
+
+			return compareStringString(o1.toString(), o2.toString()) < 0;
+
+		}
+	}
+
+	protected boolean gte(final Object o1, final Object o2) {
+		return eq(o1, o2) || gt(o1, o2);
+	}
+
+	protected boolean lte(final Object o1, final Object o2) {
+		return eq(o1, o2) || lt(o1, o2);
+	}
+
+	protected String getSandboxFileName(final String source) throws IOException {
+
+		final File sandboxFile = new File(source);
+		final String fileName = sandboxFile.getName();
+		final String basePath = StructrApp.getConfigurationValue(Services.BASE_PATH);
+
+		if (!basePath.isEmpty()) {
+
+			final String defaultExchangePath = basePath.endsWith("/") ? basePath.concat("exchange") : basePath.concat("/exchange");
+			String exchangeDir = StructrApp.getConfigurationValue(Services.DATA_EXCHANGE_PATH, defaultExchangePath);
+
+			if (!exchangeDir.endsWith("/")) {
+				exchangeDir = exchangeDir.concat("/");
+			}
+
+			// create exchange directory
+			final File dir = new File(exchangeDir);
+			if (!dir.exists()) {
+
+				dir.mkdirs();
+			}
+
+			// return sandboxed file name
+			return exchangeDir.concat(fileName);
+
+		} else {
+
+			logger.log(Level.WARNING, "Unable to determine base.path from structr.conf, no data input/output possible.");
+		}
+
+		return null;
+	}
+
+	protected static String serialize(final Gson gson, final Map<String, Object> map) {
+		return gson.toJson(map, new TypeToken<Map<String, String>>() {
+		}.getType());
+	}
+
+	protected static Map<String, Object> deserialize(final Gson gson, final String source) {
+		return gson.fromJson(source, new TypeToken<Map<String, Object>>() {
+		}.getType());
+	}
+
+	protected void recursivelyConvertMapToGraphObjectMap(final GraphObjectMap destination, final Map<String, Object> source, final int depth) {
+
+		if (depth > 20) {
+			return;
+		}
+
+		for (final Map.Entry<String, Object> entry : source.entrySet()) {
+
+			final String key = entry.getKey();
+			final Object value = entry.getValue();
+
+			if (value instanceof Map) {
+
+				final Map<String, Object> map = (Map<String, Object>)value;
+				final GraphObjectMap obj = new GraphObjectMap();
+
+				destination.put(new StringProperty(key), obj);
+
+				recursivelyConvertMapToGraphObjectMap(obj, map, depth + 1);
+
+			} else if (value instanceof Collection) {
+
+				final List list = new LinkedList();
+				final Collection collection = (Collection)value;
+
+				for (final Object obj : collection) {
+
+					if (obj instanceof Map) {
+
+						final GraphObjectMap container = new GraphObjectMap();
+						list.add(container);
+
+						recursivelyConvertMapToGraphObjectMap(container, (Map<String, Object>)obj, depth + 1);
+
+					} else {
+
+						list.add(obj);
+					}
+				}
+
+				destination.put(new StringProperty(key), list);
+
+			} else {
+
+				destination.put(new StringProperty(key), value);
+			}
+		}
+	}
+
+	public static Object numberOrString(final String value) {
+
+		if (value != null) {
+
+			if ("true".equals(value.toLowerCase())) {
+				return true;
+			}
+
+			if ("false".equals(value.toLowerCase())) {
+				return false;
+			}
+
+			if (NumberUtils.isNumber(value)) {
+				return NumberUtils.createNumber(value);
+			}
+		}
+
+		return value;
+	}
+
+	// ----- private methods -----
+	private boolean eq(final Object o1, final Object o2) {
+
+		if (o1 == null && o2 == null) {
+			return true;
+		}
+
+		if ((o1 == null && o2 != null) || (o1 != null && o2 == null)) {
+			return false;
+		}
+
+		try {
+
+			if (o1 instanceof Number && o2 instanceof Number) {
+
+				return compareNumberNumber(o1, o2) == 0;
+
+			} else if (o1 instanceof String && o2 instanceof String) {
+
+				return compareStringString(o1, o2) == 0;
+
+			} else if (o1 instanceof Date && o2 instanceof Date) {
+
+				return compareDateDate(o1, o2) == 0;
+
+			} else if (o1 instanceof Date && o2 instanceof String) {
+
+				return compareDateString(o1, o2) == 0;
+
+			} else if (o1 instanceof String && o2 instanceof Date) {
+
+				return compareStringDate(o1, o2) == 0;
+
+			} else if (o1 instanceof Boolean && o2 instanceof String) {
+
+				return compareBooleanString((Boolean)o1, (String)o2) == 0;
+
+			} else if (o1 instanceof String && o2 instanceof Boolean) {
+
+				return compareStringBoolean((String)o1, (Boolean)o2) == 0;
+
+			} else if (o1 instanceof Number && o2 instanceof String) {
+
+				return compareNumberString((Number)o1, (String)o2) == 0;
+
+			} else if (o1 instanceof String && o2 instanceof Number) {
+
+				return compareStringNumber((String)o1, (Number)o2) == 0;
+
+			} else {
+
+				return compareStringString(o1.toString(), o2.toString()) == 0;
+
+			}
+
+		} catch (NumberFormatException nfe) {
+
+			return false;
+
+		}
+	}
+
+	private int compareBooleanBoolean(final Object o1, final Object o2) {
+
+		final Boolean value1 = (Boolean)o1;
+		final Boolean value2 = (Boolean)o2;
+
+		return value1.compareTo(value2);
+	}
+
+	private int compareNumberNumber(final Object o1, final Object o2) {
+
+		final Double value1 = getDoubleForComparison(o1);
+		final Double value2 = getDoubleForComparison(o2);
+
+		return value1.compareTo(value2);
+	}
+
+	private int compareStringString(final Object o1, final Object o2) {
+
+		final String value1 = (String)o1;
+		final String value2 = (String)o2;
+
+		return value1.compareTo(value2);
+	}
+
+	private int compareDateDate(final Object o1, final Object o2) {
+
+		final Date value1 = (Date)o1;
+		final Date value2 = (Date)o2;
+
+		return value1.compareTo(value2);
+	}
+
+	private int compareDateString(final Object o1, final Object o2) {
+
+		final String value1 = DatePropertyParser.format((Date)o1, DateProperty.DEFAULT_FORMAT);
+		final String value2 = (String)o2;
+
+		return value1.compareTo(value2);
+	}
+
+	private int compareStringDate(final Object o1, final Object o2) {
+
+		final String value1 = (String)o1;
+		final String value2 = DatePropertyParser.format((Date)o2, DateProperty.DEFAULT_FORMAT);
+
+		return value1.compareTo(value2);
+	}
+
+	private int compareBooleanString(final Boolean o1, final String o2) {
+		return o1.compareTo(Boolean.valueOf(o2));
+	}
+
+	private int compareStringBoolean(final String o1, final Boolean o2) {
+		return Boolean.valueOf(o1).compareTo(o2);
+	}
+
+	private int compareNumberString(final Number o1, final String o2) {
+
+
+		final Double value1 = getDoubleForComparison(o1);
+		Double value2;
+		try {
+			value2 = Double.parseDouble(o2);
+
+		} catch (NumberFormatException nfe) {
+			value2 = Double.NEGATIVE_INFINITY;
+		}
+
+		return value1.compareTo(value2);
+
+
+	}
+
+	private int compareStringNumber(final String o1, final Number o2) {
+
+		Double value1;
+		try {
+			value1 = Double.parseDouble(o1);
+		} catch (NumberFormatException nfe) {
+			value1 = Double.NEGATIVE_INFINITY;
+		}
+		final Double value2 = getDoubleForComparison(o2);
+
+		return value1.compareTo(value2);
+	}
 }

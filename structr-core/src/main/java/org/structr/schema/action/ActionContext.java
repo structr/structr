@@ -38,7 +38,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-import org.structr.core.parser.Functions;
 import org.structr.core.property.DateProperty;
 import org.structr.schema.parser.DatePropertyParser;
 
@@ -294,7 +293,7 @@ public class ActionContext {
 		}
 
 		if (value == null && defaultValue != null) {
-			return Functions.numberOrString(defaultValue);
+			return Function.numberOrString(defaultValue);
 		}
 
 		return value;

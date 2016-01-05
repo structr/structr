@@ -29,6 +29,8 @@ import org.structr.schema.action.ActionContext;
 
 public class IfExpression extends Expression {
 
+	public static final String ERROR_MESSAGE_IF = "Usage: ${if(condition, trueValue, falseValue)}. Example: ${if(empty(this.name), this.nickName, this.name)}";
+
 	public IfExpression() {
 		super("if");
 	}
@@ -54,24 +56,24 @@ public class IfExpression extends Expression {
 		if (expressions.size() == 3) {
 			throw new FrameworkException(422, "Invalid if() expression in builtin function: too many parameters.");
 		}
-		
+
 		super.add(expression);
-		
+
 	}
 
 	@Override
 	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
 
 		if (expressions.isEmpty()) {
-			return Functions.ERROR_MESSAGE_IF;
+			return ERROR_MESSAGE_IF;
 		}
 
 		final Expression condition = expressions.get(0);
-		
+
 		if (isTrue(condition.evaluate(ctx, entity))) {
-			
+
 			if (expressions.size() > 1) {
-				
+
 				final Expression trueExpression = expressions.get(1);
 				return trueExpression.evaluate(ctx, entity);
 
@@ -81,7 +83,7 @@ public class IfExpression extends Expression {
 			}
 
 		} else {
-			
+
 			if (expressions.size() > 2) {
 
 				final Expression falseExpression = expressions.get(2);
