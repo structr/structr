@@ -106,13 +106,13 @@ public class NodeInfo {
 			labelStrings.add(label.name());
 		}
 		//Collections.sort(labelStrings);
-		types.add(StringUtils.join(labelStrings, ""));
+		addType(StringUtils.join(labelStrings, ""));
 
 		// second try: type attribute
 		if (node.hasProperty("type")) {
 
 			final String type = node.getProperty("type").toString();
-			types.add(type.replaceAll("[\\W]+", ""));
+			addType(type.replaceAll("[\\W]+", ""));
 		}
 
 		// deactivate relationship type nodes for now..
@@ -155,5 +155,13 @@ public class NodeInfo {
 
 			types.add(buf.toString());
 		}
+	}
+
+	private void addType (final String type) {
+
+		if (type != null && !type.equals("")) {
+			types.add(type);
+		}
+
 	}
 }
