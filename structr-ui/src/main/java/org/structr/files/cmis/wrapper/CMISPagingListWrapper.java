@@ -30,7 +30,7 @@ import org.structr.cmis.common.CMISExtensionsData;
  */
 public class CMISPagingListWrapper<T> extends CMISExtensionsData {
 
-	private List<T> list  = null;
+	protected List<T> list  = null;
 	private int maxItems  = Integer.MAX_VALUE;
 	private int skipCount = 0;
 

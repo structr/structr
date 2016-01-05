@@ -19,7 +19,10 @@
 package org.structr.files.cmis.wrapper;
 
 import java.math.BigInteger;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.ObjectInFolderData;
 import org.apache.chemistry.opencmis.commons.data.ObjectInFolderList;
@@ -72,5 +75,43 @@ public class CMISObjectInFolderWrapper extends CMISPagingListWrapper<ObjectInFol
 	@Override
 	public List<ObjectInFolderData> getObjects() {
 		return getPagedList();
+	}
+
+	/**
+	 * redundant code, thinking about better solution
+	 * @param orderBy
+	 */
+	public void sort(String orderBy) {
+
+		if(orderBy != null) {
+
+			if(orderBy.equals(PropertyIds.NAME)) {
+
+				sortByName();
+			}
+
+			//add here other potencial orderby in the future
+		}
+	}
+
+	private void sortByName() {
+
+		if(list.size() > 0) {
+
+			Collections.sort(list, new Comparator<ObjectInFolderData>() {
+
+				@Override
+				public int compare(ObjectInFolderData o1, ObjectInFolderData o2) {
+
+					Object obj1 = o1.getObject().getProperties().getProperties().get(PropertyIds.NAME).getFirstValue();
+					Object obj2 = o2.getObject().getProperties().getProperties().get(PropertyIds.NAME).getFirstValue();
+
+					String name1 = (String)obj1;
+					String name2 = (String)obj2;
+
+					return name1.compareTo(name2);
+				}
+			});
+		}
 	}
 }

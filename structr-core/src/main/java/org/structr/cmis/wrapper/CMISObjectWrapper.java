@@ -63,7 +63,6 @@ import org.structr.core.property.PropertyMap;
 public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISExtensionsData implements ObjectData, Acl {
 
 	protected AllowableActions allowableActions      = null;
-	protected Acl acl				 = null;
 	protected List<Ace> aces                         = null;
 	protected PropertyMap dynamicPropertyMap         = null;
 	protected GregorianCalendar lastModificationDate = null;
@@ -248,10 +247,14 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 		return null;
 	}
 
-        //!
 	@Override
 	public Acl getAcl() {
-		return this;
+
+		if(includeAcl) {
+			return this;
+		} else {
+			return null;
+		}
 	}
 
 	@Override

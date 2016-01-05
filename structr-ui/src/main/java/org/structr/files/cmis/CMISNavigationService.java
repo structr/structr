@@ -83,6 +83,8 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 
 				tx.success();
 
+				wrapper.sort(orderBy);
+
 				return wrapper;
 
 			} catch (Throwable t) {
@@ -108,6 +110,8 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 				}
 
 				tx.success();
+
+				wrapper.sort(orderBy);
 
 				return wrapper;
 
@@ -233,7 +237,11 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 				final ObjectData element        = parent != null ? CMISObjectWrapper.wrap(parent, propertyFilter, includeAllowableActions, false) : new CMISRootFolder(propertyFilter, includeAllowableActions, false);
 				final ObjectParentDataImpl impl = new ObjectParentDataImpl(element);
 
-				impl.setRelativePathSegment(graphObject.getProperty(AbstractNode.name));
+				if(includeRelativePathSegment) {
+
+					impl.setRelativePathSegment(graphObject.getProperty(AbstractNode.name));
+				}
+
 				data.add(impl);
 			}
 
@@ -356,9 +364,9 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 						if(hasMaxItems) {
 
 							if(checkedOutDocs.getSize() >= maxItems.intValue()) {
-								//accessed limit, exit function
 
-								//!
+								//accessed limit, exit function
+								checkedOutDocs.sort(orderBy);
 								return checkedOutDocs;
 							}
 						}
@@ -375,7 +383,8 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 
 			tx.success();
 
-			//!
+			//sort list before returning
+			checkedOutDocs.sort(orderBy);
 
 			return checkedOutDocs;
 
