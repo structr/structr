@@ -952,7 +952,6 @@ public class Importer {
 		get.addRequestHeader("User-Agent", "curl/7.35.0");
 
 		logger.log(Level.INFO, "Downloading from {0}", uri);
-		get.setFollowRedirects(true);
 
 		final int statusCode = client.executeMethod(get);
 
