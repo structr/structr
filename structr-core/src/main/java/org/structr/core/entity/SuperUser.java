@@ -203,7 +203,7 @@ public class SuperUser implements Principal, AccessControllable {
 
 	@Override
 	public String getUuid() {
-		return "00000000000000000000000000000000";
+		return Principal.SUPERUSER_ID;
 
 	}
 
@@ -435,7 +435,7 @@ public class SuperUser implements Principal, AccessControllable {
 
 	@Override
 	public String getPropertyWithVariableReplacement(ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
-		return null;
+		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override

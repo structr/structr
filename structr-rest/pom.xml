@@ -168,8 +168,8 @@
         <dependency>
             <groupId>com.jayway.restassured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>2.3.1</version>
-            <scope>compile</scope>
+            <version>2.7.0</version>
+            <scope>test</scope>
             <optional>false</optional>
         </dependency>
         <dependency>
@@ -197,11 +197,6 @@
             <groupId>org.tuckey</groupId>
             <artifactId>urlrewritefilter</artifactId>
             <version>4.0.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.chemistry.opencmis</groupId>
-            <artifactId>chemistry-opencmis-server-bindings</artifactId>
-            <version>0.13.0</version>
         </dependency>
     </dependencies>
     <licenses>

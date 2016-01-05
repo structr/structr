@@ -43,9 +43,6 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 		super(file);
 	}
 
-//	public StructrFtpFile(final String newPath, final StructrFtpUser user) {
-//		super(newPath, user);
-//	}
 	@Override
 	public boolean isDirectory() {
 		return false;
@@ -60,6 +57,7 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 	public long getSize() {
 		try (Tx tx = StructrApp.getInstance().tx()) {
 			Long size = ((File) structrFile).getSize();
+			tx.success();
 			return size == null ? 0L : size;
 		} catch (FrameworkException fex) {}
 		return 0L;
@@ -74,7 +72,9 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 	@Override
 	public OutputStream createOutputStream(final long l) throws IOException {
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			return ((File) structrFile).getOutputStream();
+			final OutputStream outputStream = ((File) structrFile).getOutputStream();
+			tx.success();
+			return outputStream;
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, null, fex);
 		}
@@ -84,7 +84,9 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 	@Override
 	public InputStream createInputStream(final long l) throws IOException {
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			return ((File) structrFile).getInputStream();
+			final InputStream inputStream = ((File) structrFile).getInputStream();
+			tx.success();
+			return inputStream;
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, null, fex);
 		}

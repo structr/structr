@@ -23,7 +23,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.TooShortToken;
 import org.structr.core.GraphObject;
-import org.structr.core.auth.AuthHelper;
+import org.structr.core.auth.HashHelper;
 import org.structr.core.converter.ValidationInfo;
 import org.structr.core.entity.Principal;
 
@@ -81,7 +81,7 @@ public class PasswordProperty extends StringProperty {
 			String salt = RandomStringUtils.randomAlphanumeric(16);
 
 			obj.setProperty(Principal.salt, salt);
-			return super.setProperty(securityContext, obj, AuthHelper.getHash(clearTextPassword, salt));
+			return super.setProperty(securityContext, obj, HashHelper.getHash(clearTextPassword, salt));
 
 		} else {
 

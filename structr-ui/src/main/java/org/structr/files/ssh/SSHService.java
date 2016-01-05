@@ -43,10 +43,10 @@ import org.structr.core.Command;
 import org.structr.core.Services;
 import org.structr.core.SingletonService;
 import org.structr.core.app.StructrApp;
-import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
+import org.structr.rest.auth.AuthHelper;
 
 /**
  *

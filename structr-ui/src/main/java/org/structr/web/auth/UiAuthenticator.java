@@ -27,13 +27,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.server.session.HashSessionManager;
 import org.structr.common.AccessMode;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
-import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.auth.exception.UnauthorizedException;
@@ -43,6 +43,9 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.property.PropertyKey;
+import org.structr.rest.auth.AuthHelper;
+import org.structr.rest.auth.SessionHelper;
+import org.structr.rest.service.HttpService;
 import org.structr.web.entity.User;
 import org.structr.web.resource.RegistrationResource;
 import org.structr.web.servlet.HtmlServlet;
@@ -116,7 +119,7 @@ public class UiAuthenticator implements Authenticator {
 
 		SecurityContext securityContext;
 
-		Principal user = checkSessionAuthentication(request);
+		Principal user = SessionHelper.checkSessionAuthentication(request);
 
 		if (user == null) {
 
@@ -491,81 +494,6 @@ public class UiAuthenticator implements Authenticator {
 
 	}
 
-	protected Principal checkSessionAuthentication(final HttpServletRequest request) throws FrameworkException {
-
-		String requestedSessionId = request.getRequestedSessionId();
-		HttpSession session       = request.getSession(false);
-		boolean sessionValid      = false;
-
-		if (requestedSessionId == null) {
-
-			// No session id requested => create new session
-			AuthHelper.newSession(request);
-
-			// we just created a totally new session, there can't
-			// be a user with this session ID, so don't search.
-			return null;
-
-		} else {
-
-			// Existing session id, check if we have an existing session
-			if (session != null) {
-
-				if (session.getId().equals(requestedSessionId)) {
-
-					if (AuthHelper.isSessionTimedOut(session)) {
-
-						sessionValid = false;
-
-						// remove invalid session ID from user
-						invalidateSessionId(requestedSessionId);
-
-					} else {
-
-						sessionValid = true;
-					}
-				}
-
-			} else {
-
-				// No existing session, create new
-				session = AuthHelper.newSession(request);
-
-				// remove invalid session ID from user
-				invalidateSessionId(requestedSessionId);
-
-			}
-
-		}
-
-		if (sessionValid) {
-
-			final Principal user = AuthHelper.getPrincipalForSessionId(session.getId());
-			logger.log(Level.FINE, "Valid session found: {0}, last accessed {1}, authenticated with user {2}", new Object[] { session, session.getLastAccessedTime(), user });
-
-			return user;
-
-
-		} else {
-
-			final Principal user = AuthHelper.getPrincipalForSessionId(requestedSessionId);
-
-			logger.log(Level.FINE, "Invalid session: {0}, last accessed {1}, authenticated with user {2}", new Object[] { session, (session != null ? session.getLastAccessedTime() : ""), user });
-
-			if (user != null) {
-
-				AuthHelper.doLogout(request, user);
-			}
-
-			try { request.logout(); request.changeSessionId(); } catch (Throwable t) {}
-
-		}
-
-
-		return null;
-
-	}
-
 	public static void writeUnauthorized(final HttpServletResponse response) throws IOException {
 
 		response.setHeader("WWW-Authenticate", "BASIC realm=\"Restricted Access\"");
@@ -654,16 +582,5 @@ public class UiAuthenticator implements Authenticator {
 
 		return user;
 
-	}
-
-	// ----- private methods -----
-	private void invalidateSessionId(final String sessionId) {
-
-		// find user with given session ID and remove ID from list of valid sessions
-		final Principal userWithInvalidSession = AuthHelper.getPrincipalForSessionId(sessionId);
-		if (userWithInvalidSession != null) {
-
-			userWithInvalidSession.removeSessionId(sessionId);
-		}
 	}
 }

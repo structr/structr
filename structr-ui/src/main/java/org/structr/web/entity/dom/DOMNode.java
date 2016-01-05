@@ -22,6 +22,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
@@ -59,6 +60,10 @@ import java.util.logging.Logger;
 import javax.security.auth.x500.X500Principal;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
@@ -190,6 +195,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	public static final String ERROR_MESSAGE_INCLUDE_JS = "Usage: ${{Structr.include(name)}}. Example: ${{Structr.include(\"Main Template\")}}";
 	public static final String ERROR_MESSAGE_STRIP_HTML = "Usage: ${strip_html(html)}. Example: ${strip_html(\"<p>foo</p>\")}";
 	public static final String ERROR_MESSAGE_STRIP_HTML_JS = "Usage: ${{Structr.strip_html(html)}}. Example: ${{Structr.strip_html(\"<p>foo</p>\")}}";
+
 	public static final String ERROR_MESSAGE_POST = "Usage: ${POST(URL, body [, contentType, charset])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:Test}', 'application/json', 'utf-8')}";
 	public static final String ERROR_MESSAGE_POST_JS = "Usage: ${{Structr.POST(URL, body [, contentType, charset])}}. Example: ${{Structr.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'utf-8')}}";
 	public static final String ERROR_MESSAGE_GET = "Usage: ${GET(URL[, contentType[, selector]])}. Example: ${GET('http://structr.org', 'text/html')}";
@@ -202,12 +208,18 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	public static final String ERROR_MESSAGE_TO_JSON_JS = "Usage: ${{Structr.to_json(obj [, view])}}. Example: ${{Structr.to_json(Structr.get('this'))}}";
 	public static final String ERROR_MESSAGE_FROM_JSON = "Usage: ${from_json(src)}. Example: ${from_json('{name:test}')}";
 	public static final String ERROR_MESSAGE_FROM_JSON_JS = "Usage: ${{Structr.from_json(src)}}. Example: ${{Structr.from_json('{name:test}')}}";
+	public static final String ERROR_MESSAGE_FROM_CSV = "Usage: ${from_csv(source [, delimiter, quoteChar, recordSeparator])}. Example: ${from_csv('one;two;three')}";
+	public static final String ERROR_MESSAGE_FROM_CSV_JS = "Usage: ${{Structr.from_csv(src [, delimiter, quoteChar, recordSeparator])}}. Example: ${{Structr.from_csv('one;two;three')}}";
+
 	public static final String ERROR_MESSAGE_ADD_HEADER = "Usage: ${add_header(field, value)}. Example: ${add_header('X-User', 'johndoe')}";
 	public static final String ERROR_MESSAGE_ADD_HEADER_JS = "Usage: ${{Structr.add_header(field, value)}}. Example: ${{Structr.add_header('X-User', 'johndoe')}}";
-	public static final String ERROR_MESSAGE_GET_REQUEST_HEADER = "Usage: ${get_request_header(field, value)}. Example: ${get_request_header('X-User', 'johndoe')}";
-	public static final String ERROR_MESSAGE_GET_REQUEST_HEADER_JS = "Usage: ${{Structr.setResponseHeader(field, value)}}. Example: ${{Structr.setResponseHeader('X-User', 'johndoe')}}";
+
+	public static final String ERROR_MESSAGE_GET_REQUEST_HEADER = "Usage: ${get_request_header(name)}. Example: ${get_request_header('User-Agent')}";
+	public static final String ERROR_MESSAGE_GET_REQUEST_HEADER_JS = "Usage: ${{Structr.getRequestHeader(name)}}. Example: ${{Structr.getRequestHeader('User-Agent')}}";
+
 	public static final String ERROR_MESSAGE_SET_RESPONSE_HEADER = "Usage: ${set_response_header(field, value)}. Example: ${set_response_header('X-User', 'johndoe')}";
 	public static final String ERROR_MESSAGE_SET_RESPONSE_HEADER_JS = "Usage: ${{Structr.setResponseHeader(field, value)}}. Example: ${{Structr.setResponseHeader('X-User', 'johndoe')}}";
+
 	public static final String ERROR_MESSAGE_LOG_EVENT = "Usage: ${log_event(action, message)}. Example: ${log_event('read', 'Book has been read')}";
 	public static final String ERROR_MESSAGE_LOG_EVENT_JS = "Usage: ${{Structr.logEvent(action, message)}}. Example: ${{Structr.logEvent('read', 'Book has been read')}}";
 	public static final String ERROR_MESSAGE_IS_LOCALE = "Usage: ${is_locale(locales...)}";
@@ -897,6 +909,74 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 		});
 
+		Functions.functions.put("from_csv", new Function<Object, Object>() {
+
+			@Override
+			public String getName() {
+				return "from_csv()";
+			}
+
+			@Override
+			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
+
+				if (sources != null && sources.length > 0) {
+
+					if (sources[0] != null) {
+
+						try {
+
+							final List<Map<String, String>> objects = new LinkedList<>();
+							final String source                     = sources[0].toString();
+							String delimiter                        = ";";
+							String quoteChar                        = "\"";
+							String recordSeparator                  = "\n";
+
+							switch (sources.length) {
+
+								case 4: recordSeparator = (String)sources[3];
+								case 3: quoteChar = (String)sources[2];
+								case 2: delimiter = (String)sources[1];
+									break;
+							}
+
+							CSVFormat format = CSVFormat.newFormat(delimiter.charAt(0)).withHeader();
+							format = format.withQuote(quoteChar.charAt(0));
+							format = format.withRecordSeparator(recordSeparator);
+							format = format.withIgnoreEmptyLines(true);
+							format = format.withIgnoreSurroundingSpaces(true);
+							format = format.withSkipHeaderRecord(true);
+							format = format.withQuoteMode(QuoteMode.ALL);
+
+							CSVParser parser = new CSVParser(new StringReader(source), format);
+							for (final CSVRecord record : parser.getRecords()) {
+
+								objects.add(record.toMap());
+							}
+
+							return objects;
+
+						} catch (Throwable t) {
+							t.printStackTrace();
+						}
+					}
+
+					return "";
+				}
+
+				return usage(ctx.isJavaScriptContext());
+			}
+
+			@Override
+			public String usage(boolean inJavaScriptContext) {
+				return (inJavaScriptContext ? ERROR_MESSAGE_FROM_CSV_JS : ERROR_MESSAGE_FROM_CSV);
+			}
+
+			@Override
+			public String shortDescription() {
+				return "Parses the given CSV string and returns a list objects";
+			}
+		});
+
 		Functions.functions.put("add_header", new Function<Object, Object>() {
 
 			@Override
@@ -987,7 +1067,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 					final SecurityContext securityContext = ctx.getSecurityContext();
 					final String name = sources[0].toString();
-					
+
 					if (securityContext != null) {
 
 						final HttpServletRequest request = securityContext.getRequest();
@@ -1040,7 +1120,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 						case 4:
 							final String object = sources[3].toString();
 							logEvent.setProperty(LogEvent.objectProperty, object);
-						// no break, next case should be included
+							// no break, next case should be included
 
 						case 3:
 							final String subject = sources[2].toString();

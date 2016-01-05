@@ -19,8 +19,8 @@
 package org.structr.websocket.command;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.Principal;
+import org.structr.rest.auth.SessionHelper;
 import org.structr.schema.action.Actions;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -48,8 +48,7 @@ public class LogoutCommand extends AbstractCommand {
 			final String sessionId = webSocketData.getSessionId();
 			if (sessionId != null) {
 
-				AuthHelper.clearSession(sessionId);
-				user.removeSessionId(sessionId);
+				SessionHelper.clearSession(sessionId);
 
 			}
 

@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -49,9 +50,6 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 		super(folder);
 	}
 
-//	public StructrFtpFolder(final String newPath, final StructrFtpUser user) {
-//		super(newPath, user);
-//	}
 	@Override
 	public boolean doesExist() {
 		boolean exists = "/".equals(newPath) || super.doesExist();
@@ -76,7 +74,9 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 	@Override
 	public long getLastModified() {
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			return structrFile.getProperty(Folder.lastModifiedDate).getTime();
+			final Date date = structrFile.getProperty(Folder.lastModifiedDate);
+			tx.success();
+			return date.getTime();
 		} catch (Exception ex) {
 		}
 		return 0L;
@@ -84,21 +84,17 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 	@Override
 	public long getSize() {
-		try (Tx tx = StructrApp.getInstance().tx()) {
-			return listFiles().size();
-		} catch (Exception ex) {
-		}
-		return 0L;
+		return listFiles().size();
 	}
 
 	@Override
 	public List<FtpFile> listFiles() {
 
-		List<FtpFile> ftpFiles = new ArrayList();
+		final List<FtpFile> ftpFiles = new ArrayList();
 
 		final App app = StructrApp.getInstance();
 
-		try (Tx tx = app.tx()) {
+		try (final Tx tx = app.tx()) {
 
 			String requestedPath = getAbsolutePath();
 			logger.log(Level.INFO, "Children of {0} requested", requestedPath);
@@ -178,7 +174,10 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 				ftpFiles.add(ftpFile);
 			}
 
+			tx.success();
+
 			return ftpFiles;
+
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error in listFiles()", fex);
 		}
