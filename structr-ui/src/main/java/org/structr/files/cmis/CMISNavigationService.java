@@ -42,6 +42,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
@@ -49,6 +50,7 @@ import org.structr.files.cmis.repository.CMISRootFolder;
 import org.structr.files.cmis.wrapper.CMISObjectInFolderWrapper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.Image;
 
 /**
  *
@@ -66,50 +68,19 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 	public ObjectInFolderList getChildren(final String repositoryId, final String folderId, final String propertyFilter, final String orderBy, final Boolean includeAllowableActions, final IncludeRelationships includeRelationships, final String renditionFilter, final Boolean includePathSegment, final BigInteger maxItems, final BigInteger skipCount, final ExtensionsData extension) {
 
 		final App app = StructrApp.getInstance();
+		final CMISObjectInFolderWrapper wrapper = new CMISObjectInFolderWrapper(propertyFilter, includeAllowableActions, maxItems, skipCount);
 
-		if (folderId != null && folderId.equals(CMISInfo.ROOT_FOLDER_ID)) {
+		try (final Tx tx = app.tx()) {
 
-			try (final Tx tx = app.tx()) {
+			wrapper.wrap(getChildrenQuery(app, folderId).getAsList());
 
-				final CMISObjectInFolderWrapper wrapper = new CMISObjectInFolderWrapper(propertyFilter, includeAllowableActions, maxItems, skipCount);
-				wrapper.wrap(app.nodeQuery(AbstractFile.class).and(Folder.parent, null).sort(AbstractNode.name).getAsList());
+			tx.success();
 
-				tx.success();
-
-				return wrapper;
-
-			} catch (Throwable t) {
-				t.printStackTrace();
-			}
-
-		} else {
-
-			try (final Tx tx = app.tx()) {
-
-				final Folder parent = app.get(Folder.class, folderId);
-				CMISObjectInFolderWrapper wrapper = null;
-
-				if (parent != null) {
-
-					final List<AbstractFile> children = parent.getProperty(AbstractFile.children);
-
-					wrapper = new CMISObjectInFolderWrapper(propertyFilter, includeAllowableActions, maxItems, skipCount);
-
-					Collections.sort(children, new GraphObjectComparator(AbstractNode.name, false));
-
-					wrapper.wrap(children);
-				}
-
-				tx.success();
-
-				return wrapper;
-
-			} catch (Throwable t) {
-				t.printStackTrace();
-			}
+		} catch (final FrameworkException fex) {
+			fex.printStackTrace();
 		}
 
-		throw new CmisObjectNotFoundException("Folder with ID " + folderId + " does not exist");
+		return wrapper;
 	}
 
 	@Override
@@ -126,31 +97,11 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 				maxDepth = depth.intValue();
 			}
 
-			if (CMISInfo.ROOT_FOLDER_ID.equals(folderId)) {
+			for (final AbstractFile child : getChildrenQuery(app, folderId).getAsList()) {
 
-				for (final AbstractFile file : app.nodeQuery(AbstractFile.class).and(AbstractFile.parent, null).sort(AbstractNode.name).getAsList()) {
-
-					recursivelyCollectDescendants(result, file, maxDepth, 1, includeAllowableActions);
-				}
-
-			} else {
-
-				final Folder folder = app.get(Folder.class, folderId);
-				if (folder != null) {
-
-					final List<AbstractFile> children = folder.getProperty(AbstractFile.children);
-					Collections.sort(children, new GraphObjectComparator(AbstractNode.name, false));
-
-					for (final AbstractFile child : children) {
-
-						recursivelyCollectDescendants(result, child, maxDepth, 1, includeAllowableActions);
-					}
-
-				} else {
-
-					throw new CmisObjectNotFoundException("Folder with ID " + folderId + " does not exist");
-				}
+				recursivelyCollectDescendants(result, child, maxDepth, 1, includeAllowableActions);
 			}
+
 
 			tx.success();
 
@@ -324,13 +275,43 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 		// add wrapped object to current list
 		list.add(impl);
 
-		// fetch and sort children
-		final List<AbstractFile> children = child.getProperty(AbstractFile.children);
-		Collections.sort(children, new GraphObjectComparator(AbstractNode.name, false));
+		if (child.getProperty(AbstractNode.type).equals("Folder")) {
 
-		// descend into children
-		for (final AbstractFile folderChild : children) {
-			recursivelyCollectDescendants(childContainerList, folderChild, maxDepth, depth+1, includeAllowableActions);
+			final App app     = StructrApp.getInstance();
+
+			// descend into children
+			for (final AbstractFile folderChild : app.nodeQuery(AbstractFile.class).sort(AbstractNode.name).and(AbstractFile.parent, (Folder)child).and(Image.isThumbnail, false).getAsList()) {
+				recursivelyCollectDescendants(childContainerList, folderChild, maxDepth, depth+1, includeAllowableActions);
+			}
+
 		}
+	}
+
+	public Query<AbstractFile> getChildrenQuery (final App app, final String folderId) throws FrameworkException {
+
+		final Query<AbstractFile> query = app.nodeQuery(AbstractFile.class).sort(AbstractNode.name);
+
+		if (CMISInfo.ROOT_FOLDER_ID.equals(folderId)) {
+
+			query.and(AbstractFile.hasParent, false).not().and(Image.isThumbnail, true);
+
+		} else {
+
+			final Folder folder = app.get(Folder.class, folderId);
+
+			if (folder != null) {
+
+				query.and(AbstractFile.parent, folder).and(Image.isThumbnail, false);
+
+			} else {
+
+				throw new CmisObjectNotFoundException("Folder with ID " + folderId + " does not exist");
+
+			}
+
+		}
+
+		return query;
+
 	}
 }

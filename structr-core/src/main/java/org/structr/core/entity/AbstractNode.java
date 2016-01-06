@@ -88,11 +88,11 @@ import org.structr.core.graph.NodeRelationshipStatisticsCommand;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.parser.Functions;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -1516,7 +1516,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 					return value;
 				}
 
-				return Functions.numberOrString(defaultValue);
+				return Function.numberOrString(defaultValue);
 		}
 	}
 

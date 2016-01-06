@@ -32,6 +32,8 @@ import org.structr.schema.action.ActionContext;
 
 public class CacheExpression extends Expression {
 
+	public static final String ERROR_MESSAGE_CACHE = "Usage: ${cache(key, timeout, valueExpression)}. Example: ${cache('value', 60, GET('http://rate-limited-URL.com'))}";
+
 	private Expression keyExpression     = null;
 	private Expression timeoutExpression = null;
 	private Expression valueExpression   = null;

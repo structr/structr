@@ -1,0 +1,46 @@
+package org.structr.core.parser.function;
+
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
+
+/**
+ *
+ */
+public class FloorFunction extends Function<Object, Object> {
+
+	public static final String ERROR_MESSAGE_FLOOR = "Usage: ${floor(value)}. Example: ${floor(32.4)}";
+
+	@Override
+	public String getName() {
+		return "floor()";
+	}
+
+	@Override
+	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+
+			return (int)Math.floor(Double.parseDouble(sources[0].toString()));
+
+		} else {
+
+			return usage(ctx.isJavaScriptContext());
+
+		}
+
+	}
+
+
+	@Override
+	public String usage(boolean inJavaScriptContext) {
+		return ERROR_MESSAGE_FLOOR;
+	}
+
+	@Override
+	public String shortDescription() {
+		return "Returns the largest integer that is less than or equal to the argument";
+	}
+
+}

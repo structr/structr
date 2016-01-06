@@ -32,7 +32,7 @@ import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.parser.Functions;
+import org.structr.core.parser.function.GetFunction;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
@@ -478,7 +478,7 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals("Invalid replacement result", a.getUuid(), Scripting.replaceVariables(ctx, a, "${get(find('A'), 'id')}"));
 
 			// this test finds multiple <p> elements => error
-			assertEquals("Invalid replacement result", Functions.ERROR_MESSAGE_GET_ENTITY, Scripting.replaceVariables(ctx, a, "${get(find('P'), 'id')}"));
+			assertEquals("Invalid replacement result", GetFunction.ERROR_MESSAGE_GET_ENTITY, Scripting.replaceVariables(ctx, a, "${get(find('P'), 'id')}"));
 
 			// more complex replacement
 			//assertEquals("Invalid replacement result", "", a.replaceVariables(ctx, securityContext, "${get(find('P'), 'id')}"));

@@ -60,7 +60,6 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.parser.Functions;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -72,6 +71,7 @@ import org.structr.core.property.TargetId;
 import org.structr.core.property.TargetNodeProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
 
 
 /**
@@ -725,7 +725,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 				final Object value = getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, key));
 				if (value == null) {
 
-					return Functions.numberOrString(defaultValue);
+					return Function.numberOrString(defaultValue);
 				}
 				return value;
 		}
