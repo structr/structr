@@ -474,30 +474,25 @@ jQuery.isBlank = function (obj) {
 /**
  * thin wrapper for localStorage with a success-check and error display
  */
+
+var localStorageObject = {};
+
 var LSWrapper = {
 
 	setItem: function(key, value) {
-		try {
-			localStorage.setItem(key, value);
-			return true;
-		} catch (e) {
-			// show error
-			new MessageBuilder().error("<div>The browser localStorage is full - this hinders structr-ui from working as intended.<br><a href='http://www.html5rocks.com/en/tutorials/offline/quota-research/'>You may want to read more about this topic.</a><br><br></div>").specialInteractionButton("Delete localStorage (server- and client-side)", function () { _Dashboard.clearLocalStorageOnServer(); LSWrapper.clear(); }, "I'll handle it myself").show();
-			throw(e);
-			return false;
-		}
+		localStorageObject[key] = value;
 	},
 	
 	getItem: function (key) {
-		return localStorage.getItem(key);
+		return localStorageObject[key] || null;
 	},
 	
 	removeItem: function (key) {
-		return localStorage.removeItem(key);
+		delete localStorageObject[key];
 	},
 	
 	clear: function () {
-		localStorage.clear();
+		localStorageObject = {};
 	}
 
 };

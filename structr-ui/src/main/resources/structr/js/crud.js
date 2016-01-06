@@ -290,7 +290,7 @@ var _Crud = {
 			_Crud.resize();
 		});
 		hiddenTabs = JSON.parse(LSWrapper.getItem(crudHiddenTabsKey)) || hiddenTabs;
-		//console.log('########## Hidden tabs ##############', hiddenTabs);
+		log('########## Hidden tabs ##############', hiddenTabs);
 
 	},
 	initTabs: function() {

@@ -505,9 +505,9 @@ var Command = {
 		var obj = {};
 		obj.command = 'SAVE_LOCAL_STORAGE';
 		var data = {};
-		data.localStorageString = JSON.stringify(localStorage);
+		data.localStorageString = JSON.stringify(localStorageObject);
 		obj.data = data;
-		//log('saveLocalStorage()', obj);
+		//log('saveLocalStorage()', data.localStorageString);
 		return sendObj(obj, callback);
 	},
 	/**
