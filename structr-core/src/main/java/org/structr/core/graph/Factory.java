@@ -317,15 +317,15 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 		if (page < 0) {
 
-			List<S> rawNodes = read(input);
-			int size         = rawNodes.size();
+			final List<S> rawNodes = read(input);
+			final int size         = rawNodes.size();
 
 			fromIndex = Math.max(0, size + (page * pageSize));
 
 			final List<T> nodes = new LinkedList<>();
 			int toIndex         = Math.min(size, fromIndex + pageSize);
 
-			for (S n : rawNodes.subList(fromIndex, toIndex)) {
+			for (final S n : rawNodes.subList(fromIndex, toIndex)) {
 
 				nodes.add(instantiate(n));
 			}
@@ -337,14 +337,14 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		} else {
 
 			// FIXME: IndexHits#size() may be inaccurate!
-			int size = input.size();
+			final int size = input.size();
 
-			SecurityContext securityContext = factoryProfile.getSecurityContext();
+			final SecurityContext securityContext = factoryProfile.getSecurityContext();
 
 			// In case of superuser or in public context, don't check the overall result count
 			// (SearchCommand adds visibleToPublicUsers: true in case of an anonymous user)
-			boolean dontCheckCount  = securityContext.isSuperUser() || securityContext.getUser(false) == null;
-			if(dontCheckCount){
+			final boolean dontCheckCount  = securityContext.isSuperUser() || securityContext.getUser(false) == null;
+			if (dontCheckCount){
 
 				fromIndex = pageSize == Integer.MAX_VALUE ? 0 : (page - 1);//* pageSize;
 
@@ -364,7 +364,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		final AtomicInteger overallCount   = new AtomicInteger();
 		final AtomicInteger processedItems = new AtomicInteger();
 
-		if(dontCheckCount){
+		if (dontCheckCount){
 
 			overallCount.set(input.size());
 
@@ -384,7 +384,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 			Iterator<S> resultPage = neoResult.nextPage();
 
-			while ( resultPage.hasNext()) {
+			while (resultPage.hasNext()) {
 
 				final S s = resultPage.next();
 				final T t = (T) instantiate(s);
