@@ -42,6 +42,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
@@ -49,6 +50,7 @@ import org.structr.files.cmis.repository.CMISRootFolder;
 import org.structr.files.cmis.wrapper.CMISObjectInFolderWrapper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.Image;
 
 /**
  *
@@ -67,39 +69,27 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 
 		final App app = StructrApp.getInstance();
 
-		if (folderId != null && folderId.equals(CMISInfo.ROOT_FOLDER_ID)) {
+		if (folderId != null) {
+
+			final CMISObjectInFolderWrapper wrapper = new CMISObjectInFolderWrapper(propertyFilter, includeAllowableActions, maxItems, skipCount);
 
 			try (final Tx tx = app.tx()) {
 
-				final CMISObjectInFolderWrapper wrapper = new CMISObjectInFolderWrapper(propertyFilter, includeAllowableActions, maxItems, skipCount);
-				wrapper.wrap(app.nodeQuery(AbstractFile.class).and(Folder.parent, null).sort(AbstractNode.name).getAsList());
+				final Query query = app.nodeQuery(AbstractFile.class).sort(AbstractNode.name);
 
-				tx.success();
+				if (CMISInfo.ROOT_FOLDER_ID.equals(folderId)) {
 
-				return wrapper;
+					query.and(AbstractFile.hasParent, false).not().and(Image.isThumbnail, true);
 
-			} catch (Throwable t) {
-				t.printStackTrace();
-			}
+				} else {
 
-		} else {
+					final Folder parent = app.get(Folder.class, folderId);
+					query.and(AbstractFile.parent, parent).and(Image.isThumbnail, false);
 
-			try (final Tx tx = app.tx()) {
-
-				final Folder parent = app.get(Folder.class, folderId);
-				CMISObjectInFolderWrapper wrapper = null;
-
-				if (parent != null) {
-
-					final List<AbstractFile> children = parent.getProperty(AbstractFile.children);
-
-					wrapper = new CMISObjectInFolderWrapper(propertyFilter, includeAllowableActions, maxItems, skipCount);
-
-					Collections.sort(children, new GraphObjectComparator(AbstractNode.name, false));
-
-					wrapper.wrap(children);
 				}
 
+				wrapper.wrap(query.getAsList());
+
 				tx.success();
 
 				return wrapper;
@@ -107,6 +97,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 			} catch (Throwable t) {
 				t.printStackTrace();
 			}
+
 		}
 
 		throw new CmisObjectNotFoundException("Folder with ID " + folderId + " does not exist");
