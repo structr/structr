@@ -40,11 +40,11 @@ casper.test.begin(testName, numberOfTests, function(test) {
     sections.push('Click on the "Files" menu entry.');
 
     casper.then(function() {
-        s.moveMousePointerTo(casper, '#files_');
+        s.moveMousePointerTo(casper, '#filesystem_');
     });
 
     casper.then(function() {
-        this.click('#filesystem');
+        this.click('#filesystem_');
     });
 
     casper.wait(1000);
@@ -65,21 +65,21 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     casper.then(function() {
         test.assertEval(function() {
-            return $('#files .node.file').size() === 1;
+            return $('#files-table .node.file').size() === 1;
         });
     });
 
     casper.then(function() {
-        s.moveMousePointerTo(casper, '#files .file');
-        //this.mouseEvent('mouseover', '#files .file');
+        s.moveMousePointerTo(casper, '#files-table .file');
+        //this.mouseEvent('mouseover', '#files-table .file');
     });
 
     casper.then(function() {
-        s.moveMousePointerTo(casper, '#files .file .edit_file_icon');
+        s.moveMousePointerTo(casper, '#files-table .file .edit_file_icon');
     });
 
     casper.then(function() {
-        this.click('#files .file .edit_file_icon');
+        this.click('#files-table .file .edit_file_icon');
     });
 
     casper.wait(1000);
@@ -110,11 +110,11 @@ casper.test.begin(testName, numberOfTests, function(test) {
     casper.wait(1000);
 
     casper.then(function() {
-        s.moveMousePointerTo(casper, '#files .file .edit_file_icon');
+        s.moveMousePointerTo(casper, '#files-table .file .edit_file_icon');
     });
 
     casper.then(function() {
-        this.click('#files .file .edit_file_icon');
+        this.click('#files-table .file .edit_file_icon');
     });
 
     casper.wait(1000);
