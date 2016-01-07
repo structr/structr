@@ -407,7 +407,7 @@ exports.pad = function(num) {
  */
 exports.animateHtml = function(testName, heading, sections) {
 
-    var html = '<!DOCTYPE html><html><head><title>structr UI Test: ' + heading + '</title><link rel="stylesheet" type="text/css" media="screen" href="test.css"></head><body><div id="main"><h1>' + heading + '</h1>'
+    var html = '<!DOCTYPE html><html><head><title>Structr UI Test: ' + heading + '</title><link rel="stylesheet" type="text/css" media="screen" href="test.css"></head><body><div id="main"><h1>' + heading + '</h1>'
 
     sections.forEach(function(s) {
         html += '<section>' + s + '</section>';
@@ -441,7 +441,13 @@ exports.startRecording = function(window, casper, testName) {
     /**
      * Set casper options, see http://docs.casperjs.org/en/latest/modules/casper.html#index-1
      */
-    casper.options.viewportSize = {
+
+	/**
+	 * Set global timeout for all 'waitFor' functions
+	 */
+	casper.options.waitTimeout = 30000;
+	
+	casper.options.viewportSize = {
         width: w,
         height: h
     };

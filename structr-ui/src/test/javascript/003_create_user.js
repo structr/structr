@@ -32,10 +32,6 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     casper.start(s.url);
     
-    casper.thenEvaluate(function() {
-        window.localStorage.clear();
-    }, {});
-    
     sections.push('Click on the "Users and Groups" menu entry.');
 
     login.init(test, 'admin', 'admin');

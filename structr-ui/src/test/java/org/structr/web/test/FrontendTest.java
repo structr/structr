@@ -58,12 +58,7 @@ public abstract class FrontendTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			// Workaround to remove local storage, as phantomjs is pretty buggy here.
-			// Currently, phantomjs doesn't allow localStorage to be modified remotely,
-			// and the --local-storage-path parameter is ignored.
-			//String[] args = {"/bin/sh", "-c", "rm ~/.qws/share/data/Ofi\\ Labs/PhantomJS/* ; cd src/test/javascript ; PATH=./bin/`uname`/:$PATH casperjs/bin/casperjs --local-storage-path=" + basePath + " test " + testName + ".js"};
-			String[] args = {"/bin/sh", "-c", "cd src/test/javascript ; PATH=./bin/`uname`/:$PATH casperjs/bin/casperjs --httpPort=" + httpPort + " --local-storage-path=" + basePath + " test " + testName + ".js"};
-			//String[] args = {"/bin/sh", "-c", "cd src/test/javascript ; PATH=./bin/`uname`/:$PATH casperjs/bin/casperjs --debug test " + testName + ".js"};
+			String[] args = {"/bin/sh", "-c", "cd src/test/javascript ; PATH=./bin/`uname`/:$PATH casperjs/bin/casperjs --httpPort=" + httpPort + " test " + testName + ".js"};
 
 			Process proc = Runtime.getRuntime().exec(args);
 			logger.log(Level.INFO, IOUtils.toString(proc.getInputStream()));
@@ -73,10 +68,23 @@ public abstract class FrontendTest extends StructrUiTest {
 				logger.log(Level.WARNING, warnings);
 			}
 
+			final int maxRetries = 60;
+			
 			Integer exitValue = 1; // default is error
 			try {
-				exitValue = proc.exitValue();
+				
+				int r = 0;
+				
+				while (proc.isAlive() && r < maxRetries) {
+					Thread.sleep(1000);
+					r++;
+				}
 
+				exitValue = proc.exitValue();
+				makeVideo(testName);
+
+				return exitValue;
+				
 			} catch (IllegalThreadStateException ex) {
 				logger.log(Level.WARNING, "Subprocess has not properly exited", ex);
 				ex.printStackTrace();
@@ -86,9 +94,6 @@ public abstract class FrontendTest extends StructrUiTest {
 
 			tx.success();
 
-			makeVideo(testName);
-
-			return exitValue;
 
 		} catch (Exception ex) {
 			logger.log(Level.SEVERE, null, ex);
