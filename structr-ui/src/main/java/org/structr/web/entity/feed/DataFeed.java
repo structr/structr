@@ -27,6 +27,7 @@ import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -41,8 +42,9 @@ import org.structr.core.Export;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.Tx;
 import org.structr.core.property.EndNodes;
+import org.structr.core.property.ISO8601DateProperty;
+import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
@@ -57,9 +59,11 @@ import org.structr.web.entity.relation.FeedItems;
 public class DataFeed extends AbstractNode {
 
 	public static final Property<List<FeedItem>> items       = new EndNodes<>("items", FeedItems.class);
-	public static final Property<String>         url         = new StringProperty("url");
-	public static final Property<String>         feedType    = new StringProperty("feedType");
-	public static final Property<String>         description = new StringProperty("description");
+	public static final Property<String>         url         = new StringProperty("url").indexed();
+	public static final Property<String>         feedType    = new StringProperty("feedType").indexed();
+	public static final Property<String>         description = new StringProperty("description").indexed();
+	public static final Property<Long>        updateInterval = new LongProperty("updateInterval"); // update interval in milliseconds
+	public static final Property<Date>           lastUpdated = new ISO8601DateProperty("lastUpdated");
 	
 	public static final View defaultView = new View(DataFeed.class, PropertyView.Public, id, type, url, items, feedType, description);
 
@@ -72,6 +76,23 @@ public class DataFeed extends AbstractNode {
 	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		updateFeed();
 		return super.onCreation(securityContext, errorBuffer);
+	}
+
+	/**
+	 * Update the feed only if it was last updated before the update interval.
+	 */
+	@Export
+	public void updateIfDue() {
+		
+		final Date lastUpdate = getProperty(lastUpdated);
+		final Long interval   = getProperty(updateInterval);
+		
+		if (lastUpdate == null || new Date().after(new Date(lastUpdate.getTime() + interval))) {
+			
+			updateFeed();
+			
+		}
+		
 	}
 	
 	@Export
@@ -130,6 +151,8 @@ public class DataFeed extends AbstractNode {
 				}
 
 				setProperty(items, newItems);
+				
+				setProperty(lastUpdated, new Date());
 				
 			} catch (IllegalArgumentException | IOException | FetcherException | FeedException | FrameworkException ex) {
 				Logger.getLogger(DataFeed.class.getName()).log(Level.SEVERE, null, ex);

@@ -347,3 +347,31 @@ oauth.facebook.return_uri = /
 #geocoding.provider=
 #geocoding.language=
 #geocoding.apikey=
+
+
+#############################################################################
+# Configuration for scheduled tasks (cron jobs)
+#############################################################################
+#
+# The cron job configuration is a single line starting with "CronService tasks = ", followed by
+# a list of tasks defined by its full class name followed by a cron expression in the following format:
+#
+# <full-qualified class name>.cronExpression = <seconds> <minutes> <hours> <days> <months> <days of week>
+#
+# Supported unit values are:
+# x      at exact value of a unit (second, minute, hour etc.)
+# *      every second, minute, ...
+# */n    every nth value of a unit
+# x-y    range from x to y
+
+# Examples:
+#
+# Run every 30 seconds                                                      0   0,30  *   *    *    *
+# Run every day at 4:00                                                     0    0    4   *    *    *
+# Run each hour on Mondays during the first 10 days in April and October    0    0    *  1-10 4,10  1 
+
+#CronService.tasks = \
+#org.structr.examples.UpdateTask \
+#org.structr.examples.UpdateTask.cronExpression = 0 0 * * * * \
+#org.structr.examples.CleanupTask \
+#org.structr.examples.CleanupTask.cronExpression = 0 0 4 * * * \
