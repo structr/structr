@@ -37,11 +37,11 @@ public class UpdateFeedAgent<T extends DataFeed> extends Agent<T> {
 	@Override
 	public ReturnValue processTask(final Task task) throws Throwable {
 		
-		logger.log(Level.INFO, "Processing task {0}", task.getClass().getName());
+		logger.log(Level.FINE, "Processing task {0}", task.getClass().getName());
 
 		for (DataFeed feed : (List<T>) task.getNodes()) {
 			
-			logger.log(Level.INFO, "Updating data feed {0} if due", feed.getProperty(DataFeed.name));
+			logger.log(Level.FINE, "Updating data feed {0} if due", feed.getProperty(DataFeed.name));
 			
 			feed.updateIfDue();
 		}
