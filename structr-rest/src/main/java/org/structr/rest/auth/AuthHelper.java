@@ -198,6 +198,8 @@ public class AuthHelper {
 
 			SessionHelper.clearSession(session.getId());
 
+			SessionHelper.invalidateSession(session);
+
 			Actions.call(Actions.NOTIFICATION_LOGOUT, user);
 
 			try { request.logout(); request.changeSessionId(); } catch (Throwable t) {}

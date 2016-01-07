@@ -50,6 +50,8 @@ public class LogoutCommand extends AbstractCommand {
 
 				SessionHelper.clearSession(sessionId);
 
+				SessionHelper.invalidateSessionId(sessionId);
+
 			}
 
 			Actions.call(Actions.NOTIFICATION_LOGOUT, user);

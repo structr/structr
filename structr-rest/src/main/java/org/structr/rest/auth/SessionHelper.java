@@ -150,6 +150,47 @@ public class SessionHelper {
 
 	}
 
+	public static void invalidateSessionId(final String sessionId) {
+
+		final HashSessionManager sessionManager = Services.getInstance().getService(HttpService.class).getHashSessionManager();
+
+		HttpSession session = sessionManager.getSession(sessionId);
+
+		try {
+
+			if (session != null) {
+
+				session.invalidate();
+
+			}
+
+		} catch (IllegalArgumentException iae) {
+
+			logger.log(Level.WARNING, "Invalidating already invalidated session failed: {0}", sessionId);
+
+		}
+
+	}
+
+	public static void invalidateSession(final HttpSession session) {
+
+		if (session != null) {
+
+			try {
+
+				session.invalidate();
+
+			} catch (IllegalArgumentException iae) {
+
+				logger.log(Level.WARNING, "Invalidating already invalidated session failed: {0}", session.getId());
+
+			}
+
+		}
+
+	}
+
+
 	public static Principal checkSessionAuthentication(final HttpServletRequest request) throws FrameworkException {
 
 		String requestedSessionId = request.getRequestedSessionId();
