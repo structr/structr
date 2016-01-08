@@ -44,6 +44,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.ISO8601DateProperty;
+import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
@@ -58,26 +59,67 @@ import org.structr.web.entity.relation.FeedItems;
 
 public class DataFeed extends AbstractNode {
 
-	public static final Property<List<FeedItem>> items       = new EndNodes<>("items", FeedItems.class);
-	public static final Property<String>         url         = new StringProperty("url").indexed();
-	public static final Property<String>         feedType    = new StringProperty("feedType").indexed();
-	public static final Property<String>         description = new StringProperty("description").indexed();
-	public static final Property<Long>        updateInterval = new LongProperty("updateInterval"); // update interval in milliseconds
-	public static final Property<Date>           lastUpdated = new ISO8601DateProperty("lastUpdated");
+	private static final Logger logger = Logger.getLogger(DataFeed.class.getName());
+	
+	public static final Property<List<FeedItem>> items          = new EndNodes<>("items", FeedItems.class);
+	public static final Property<String>         url            = new StringProperty("url").indexed();
+	public static final Property<String>         feedType       = new StringProperty("feedType").indexed();
+	public static final Property<String>         description    = new StringProperty("description").indexed();
+	public static final Property<Long>           updateInterval = new LongProperty("updateInterval"); // update interval in milliseconds
+	public static final Property<Date>           lastUpdated    = new ISO8601DateProperty("lastUpdated");
+	public static final Property<Long>           maxAge         = new LongProperty("maxAge"); // maximum age of the oldest feed entry in milliseconds
+	public static final Property<Integer>        maxItems       = new IntProperty("maxItems"); // maximum number of feed entries to retain
 	
 	public static final View defaultView = new View(DataFeed.class, PropertyView.Public, id, type, url, items, feedType, description);
 
 	public static final View uiView = new View(DataFeed.class, PropertyView.Ui,
 		id, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate,
-                url, items, feedType, description
+                url, items, feedType, description, lastUpdated, maxAge, maxItems
 	);
 
 	@Override
 	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		updateFeed();
+		updateFeed(true);
 		return super.onCreation(securityContext, errorBuffer);
 	}
 
+	/**
+	 * Clean-up feed items which are either too old or too many.
+	 */
+	@Export
+	public void cleanUp() {
+		
+		final Integer maxItemsToRetain = getProperty(maxItems);
+		final Long    maxItemAge       = getProperty(maxAge);
+		
+		int i = 0;
+
+		// Don't do anything if maxItems and maxAge are not set
+		if (maxItemsToRetain != null || maxItemAge != null) {
+			
+			final List<FeedItem> feedItems = getProperty(items);
+
+			for (final FeedItem item : feedItems) {
+				
+				i++;
+
+				final Date itemDate = item.getProperty(FeedItem.pubDate);
+				
+				if ((maxItemsToRetain != null && i > maxItemsToRetain) || (maxItemAge != null && itemDate.before(new Date(new Date().getTime() - maxItemAge)))) {
+					
+					try {
+						StructrApp.getInstance().delete(item);
+						
+					} catch (FrameworkException ex) {
+						logger.log(Level.SEVERE, "Error while deleting old/surplus feed item " + item, ex);
+					}
+				}
+			}
+			
+		}
+		
+	}
+	
 	/**
 	 * Update the feed only if it was last updated before the update interval.
 	 */
@@ -89,14 +131,24 @@ public class DataFeed extends AbstractNode {
 		
 		if (lastUpdate == null || new Date().after(new Date(lastUpdate.getTime() + interval))) {
 			
-			updateFeed();
+			// Update feed and clean-up afterwards
+			updateFeed(true);
 			
 		}
 		
 	}
-	
 	@Export
 	public void updateFeed() {
+		updateFeed(true);
+	}
+	
+	/**
+	 * Update the feed from the given URL.
+	 * 
+	 * @param cleanUp	Clean-up old items after update
+	 */
+	@Export
+	public void updateFeed(final boolean cleanUp) {
 		
 		final String remoteUrl = getProperty(url);
 		if (StringUtils.isNotBlank(remoteUrl)) {
@@ -155,10 +207,14 @@ public class DataFeed extends AbstractNode {
 				setProperty(lastUpdated, new Date());
 				
 			} catch (IllegalArgumentException | IOException | FetcherException | FeedException | FrameworkException ex) {
-				Logger.getLogger(DataFeed.class.getName()).log(Level.SEVERE, null, ex);
+				logger.log(Level.SEVERE, "Error while updating feed", ex);
 			}
 			
-		}		
+		}
+		
+		if (cleanUp) {
+			cleanUp();
+		}
 	}
 	
 }
