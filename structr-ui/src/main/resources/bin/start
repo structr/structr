@@ -31,7 +31,7 @@ if [ ! -e "structr" ]; then
 
 	echo "        Unarchiving static resources..."
 
-        jar -xf structr-*[!sources].jar structr
+        jar -xf structr-*[!s].jar structr
 
 fi
 	
