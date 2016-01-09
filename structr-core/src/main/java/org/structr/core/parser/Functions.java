@@ -1,15 +1,20 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * Structr is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with Structr. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.parser;
 
@@ -22,113 +27,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.parser.function.AbbrFunction;
-import org.structr.core.parser.function.AddFunction;
-import org.structr.core.parser.function.AndFunction;
-import org.structr.core.parser.function.AppendFunction;
-import org.structr.core.parser.function.CallFunction;
-import org.structr.core.parser.function.CapitalizeFunction;
-import org.structr.core.parser.function.CeilFunction;
-import org.structr.core.parser.function.CleanFunction;
-import org.structr.core.parser.function.ComplementFunction;
-import org.structr.core.parser.function.ConcatFunction;
-import org.structr.core.parser.function.ConfigFunction;
-import org.structr.core.parser.function.ContainsFunction;
-import org.structr.core.parser.function.CreateFunction;
-import org.structr.core.parser.function.CreateRelationshipFunction;
-import org.structr.core.parser.function.CypherFunction;
-import org.structr.core.parser.function.DateFormatFunction;
-import org.structr.core.parser.function.DeleteFunction;
-import org.structr.core.parser.function.DisableNotificationsFunction;
-import org.structr.core.parser.function.DoubleSumFunction;
-import org.structr.core.parser.function.EmptyFunction;
-import org.structr.core.parser.function.EnableNotificationsFunction;
-import org.structr.core.parser.function.EqualFunction;
-import org.structr.core.parser.function.ErrorFunction;
-import org.structr.core.parser.function.EscapeJavascriptFunction;
-import org.structr.core.parser.function.EscapeJsonFunction;
-import org.structr.core.parser.function.ExecFunction;
-import org.structr.core.parser.function.ExtractFunction;
-import org.structr.core.parser.function.FindFunction;
-import org.structr.core.parser.function.FirstFunction;
-import org.structr.core.parser.function.FloorFunction;
-import org.structr.core.parser.function.GeocodeFunction;
-import org.structr.core.parser.function.GetCounterFunction;
-import org.structr.core.parser.function.GetFunction;
-import org.structr.core.parser.function.GetIncomingRelationshipsFunction;
-import org.structr.core.parser.function.GetOrNullFunction;
-import org.structr.core.parser.function.GetOutgoingRelationshipsFunction;
-import org.structr.core.parser.function.GetRelationshipsFunction;
-import org.structr.core.parser.function.GrantFunction;
-import org.structr.core.parser.function.GtFunction;
-import org.structr.core.parser.function.GteFunction;
-import org.structr.core.parser.function.HasIncomingRelationshipFunction;
-import org.structr.core.parser.function.HasOutgoingRelationshipFunction;
-import org.structr.core.parser.function.HasRelationshipFunction;
-import org.structr.core.parser.function.IncCounterFunction;
-import org.structr.core.parser.function.IncomingFunction;
-import org.structr.core.parser.function.IndexOfFunction;
-import org.structr.core.parser.function.InstantiateFunction;
-import org.structr.core.parser.function.IntFunction;
-import org.structr.core.parser.function.IntSumFunction;
-import org.structr.core.parser.function.IsAllowedFunction;
-import org.structr.core.parser.function.IsCollectionFunction;
-import org.structr.core.parser.function.IsEntityFunction;
-import org.structr.core.parser.function.JoinFunction;
-import org.structr.core.parser.function.KeysFunction;
-import org.structr.core.parser.function.LastFunction;
-import org.structr.core.parser.function.LengthFunction;
-import org.structr.core.parser.function.LocalizeFunction;
-import org.structr.core.parser.function.LogFunction;
-import org.structr.core.parser.function.LowerFunction;
-import org.structr.core.parser.function.LtFunction;
-import org.structr.core.parser.function.LteFunction;
-import org.structr.core.parser.function.MD5Function;
-import org.structr.core.parser.function.MaxFunction;
-import org.structr.core.parser.function.MergeFunction;
-import org.structr.core.parser.function.MergePropertiesFunction;
-import org.structr.core.parser.function.MergeUniqueFunction;
-import org.structr.core.parser.function.MinFunction;
-import org.structr.core.parser.function.ModFunction;
-import org.structr.core.parser.function.MultFunction;
-import org.structr.core.parser.function.NotFunction;
-import org.structr.core.parser.function.NthFunction;
-import org.structr.core.parser.function.NumFunction;
-import org.structr.core.parser.function.NumberFormatFunction;
-import org.structr.core.parser.function.OrFunction;
-import org.structr.core.parser.function.OutgoingFunction;
-import org.structr.core.parser.function.ParseDateFunction;
-import org.structr.core.parser.function.PrintFunction;
-import org.structr.core.parser.function.PropertyInfoFunction;
-import org.structr.core.parser.function.QuotFunction;
-import org.structr.core.parser.function.RandomFunction;
-import org.structr.core.parser.function.ReadFunction;
-import org.structr.core.parser.function.ReplaceFunction;
-import org.structr.core.parser.function.ResetCounterFunction;
-import org.structr.core.parser.function.RetrieveFunction;
-import org.structr.core.parser.function.RevokeFunction;
-import org.structr.core.parser.function.RintFunction;
-import org.structr.core.parser.function.RoundFunction;
-import org.structr.core.parser.function.SearchFunction;
-import org.structr.core.parser.function.SendHtmlMailFunction;
-import org.structr.core.parser.function.SendPlaintextMailFunction;
-import org.structr.core.parser.function.SetFunction;
-import org.structr.core.parser.function.SetPrivilegedFunction;
-import org.structr.core.parser.function.SizeFunction;
-import org.structr.core.parser.function.SortFunction;
-import org.structr.core.parser.function.SplitFunction;
-import org.structr.core.parser.function.StoreFunction;
-import org.structr.core.parser.function.SubstringFunction;
-import org.structr.core.parser.function.SubtFunction;
-import org.structr.core.parser.function.TemplateFunction;
-import org.structr.core.parser.function.TitleizeFunction;
-import org.structr.core.parser.function.UnlockReadonlyPropertiesFunction;
-import org.structr.core.parser.function.UnwindFunction;
-import org.structr.core.parser.function.UpperFunction;
-import org.structr.core.parser.function.UrlEncodeFunction;
-import org.structr.core.parser.function.WriteFunction;
-import org.structr.core.parser.function.XPathFunction;
-import org.structr.core.parser.function.XmlFunction;
+import org.structr.core.parser.function.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
