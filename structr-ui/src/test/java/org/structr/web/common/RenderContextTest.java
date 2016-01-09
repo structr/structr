@@ -540,7 +540,7 @@ public class RenderContextTest extends StructrUiTest {
 
 			// set new details object
 			final TestOne detailsDataObject2 = app.create(TestOne.class, "TestOne");
-			Scripting.replaceVariables(ctx, p1, "${set_details_object(find('TestOne', 'id', '" + detailsDataObject2.getUuid() + "'))}");
+			Scripting.replaceVariables(ctx, p1, "${set_details_object(first(find('TestOne', 'id', '" + detailsDataObject2.getUuid() + "')))}");
 			assertEquals("${current.id} should resolve to new details object", detailsDataObject2.getUuid(), Scripting.replaceVariables(ctx, p1, "${current.id}"));
 			
 			tx.success();
