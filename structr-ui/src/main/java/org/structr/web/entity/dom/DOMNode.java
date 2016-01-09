@@ -73,6 +73,7 @@ import org.structr.function.LogEventFunction;
 import org.structr.function.ParseFunction;
 import org.structr.function.PostFunction;
 import org.structr.function.RenderFunction;
+import org.structr.function.SetDetailsObjectFunction;
 import org.structr.function.SetResponseHeaderFunction;
 import org.structr.function.StripHtmlFunction;
 import org.structr.function.ToJsonFunction;
@@ -191,6 +192,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		Functions.functions.put("is_locale", new IsLocaleFunction());
 		Functions.functions.put("create_jar_file", new CreateJarFileFunction());
 		Functions.functions.put("jar_entry", new JarEntryFunction());
+		Functions.functions.put("set_details_object", new SetDetailsObjectFunction());
 	}
 
 	public abstract boolean isSynced();
