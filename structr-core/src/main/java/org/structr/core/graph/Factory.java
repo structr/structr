@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -314,15 +314,15 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 		if (page < 0) {
 
-			List<S> rawNodes = read(input);
-			int size         = rawNodes.size();
+			final List<S> rawNodes = read(input);
+			final int size         = rawNodes.size();
 
 			fromIndex = Math.max(0, size + (page * pageSize));
 
 			final List<T> nodes = new LinkedList<>();
 			int toIndex         = Math.min(size, fromIndex + pageSize);
 
-			for (S n : rawNodes.subList(fromIndex, toIndex)) {
+			for (final S n : rawNodes.subList(fromIndex, toIndex)) {
 
 				nodes.add(instantiate(n));
 			}

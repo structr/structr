@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -197,6 +197,8 @@ public class AuthHelper {
 		if (session != null) {
 
 			SessionHelper.clearSession(session.getId());
+
+			SessionHelper.invalidateSession(session);
 
 			Actions.call(Actions.NOTIFICATION_LOGOUT, user);
 

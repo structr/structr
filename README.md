@@ -71,11 +71,11 @@ For more information on how to contribute, please see [Contribute to Structr](ht
 
 ## Commercial Services
 
-https://structr.org/services
+https://structr.com/services
 
 ## Structr Hosting
 
-https://structr.com
+https://hosting.structr.com/
 
 ## Learn More
 

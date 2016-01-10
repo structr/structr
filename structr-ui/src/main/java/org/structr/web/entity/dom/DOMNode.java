@@ -1,15 +1,20 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * Structr is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
- * General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License along with Structr. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web.entity.dom;
 
@@ -70,6 +75,7 @@ import org.structr.function.LogEventFunction;
 import org.structr.function.ParseFunction;
 import org.structr.function.PostFunction;
 import org.structr.function.RenderFunction;
+import org.structr.function.SetDetailsObjectFunction;
 import org.structr.function.SetResponseHeaderFunction;
 import org.structr.function.StripHtmlFunction;
 import org.structr.function.ToJsonFunction;
@@ -188,6 +194,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		Functions.functions.put("is_locale", new IsLocaleFunction());
 		Functions.functions.put("create_jar_file", new CreateJarFileFunction());
 		Functions.functions.put("jar_entry", new JarEntryFunction());
+		Functions.functions.put("set_details_object", new SetDetailsObjectFunction());
 	}
 
 	public abstract boolean isSynced();

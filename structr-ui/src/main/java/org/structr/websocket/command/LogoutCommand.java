@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -49,6 +49,8 @@ public class LogoutCommand extends AbstractCommand {
 			if (sessionId != null) {
 
 				SessionHelper.clearSession(sessionId);
+
+				SessionHelper.invalidateSessionId(sessionId);
 
 			}
 

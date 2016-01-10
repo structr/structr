@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -99,6 +99,9 @@ public abstract class Property<T> implements PropertyKey<T> {
 		this.jsonName = jsonName;
 		this.dbName = dbName;
 	}
+
+	@Override
+	public abstract Object fixDatabaseProperty(final Object value);
 
 	/**
 	 * Use this method to mark a property as being unvalidated. This

@@ -30,10 +30,6 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     casper.start(s.url);
     
-    casper.thenEvaluate(function() {
-        window.localStorage.clear();
-    }, {});
-
     sections.push('If you enter a wrong combination of username and password, the system does not allow you to log in.');
 
     casper.waitForSelector('#usernameField').then(function() {

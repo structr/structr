@@ -32,10 +32,6 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     casper.start(s.url);
     
-    casper.thenEvaluate(function() {
-        window.localStorage.clear();
-    }, {});
-    
     sections.push('<a href="004_create_page_test.html">Login and create a page.</a>');
 
     login.init(test, 'admin', 'admin');

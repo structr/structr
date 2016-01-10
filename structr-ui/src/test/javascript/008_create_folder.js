@@ -30,13 +30,9 @@ s.startRecording(window, casper, testName);
 casper.test.begin(testName, numberOfTests, function(test) {
 
     casper.start(s.url);
-    
-    casper.thenEvaluate(function() {
-        window.localStorage.clear();
-    }, {});
 
     login.init(test, 'admin', 'admin');
-    
+
     casper.waitForSelector('#errorText', function() {
 
         test.assertEval(function() { return !($('#errorText').text() === 'Wrong username or password!'); });
@@ -46,19 +42,19 @@ casper.test.begin(testName, numberOfTests, function(test) {
     });
 
     sections.push('Click on the "Files" menu entry.');
-    
+
     casper.then(function() {
-        s.moveMousePointerTo(casper, '#files_');
+        s.moveMousePointerTo(casper, '#filesystem_');
     });
 
     casper.then(function() {
-        this.click('#files_');
+        this.click('#filesystem_');
     });
 
     casper.wait(1000);
 
     sections.push('Click the "Add Folder" icon.');
-    
+
     casper.then(function() {
         s.moveMousePointerTo(casper, '.add_folder_icon');
     });

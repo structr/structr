@@ -30,27 +30,23 @@ s.startRecording(window, casper, testName);
 casper.test.begin(testName, numberOfTests, function(test) {
 
     casper.start(s.url);
-    
-    casper.thenEvaluate(function() {
-        window.localStorage.clear();
-    }, {});
-    
+
     login.init(test, 'admin', 'admin');
 
     sections.push('Click on the "Files" menu entry.');
-    
+
     casper.then(function() {
-        s.moveMousePointerTo(casper, '#files_');
+        s.moveMousePointerTo(casper, '#filesystem_');
     });
 
     casper.then(function() {
-        this.click('#files_');
+        this.click('#filesystem_');
     });
 
     casper.wait(1000);
 
     sections.push('Click the "Add File" icon.');
-    
+
     casper.then(function() {
         s.moveMousePointerTo(casper, '.add_file_icon');
     });
@@ -65,21 +61,21 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     casper.then(function() {
         test.assertEval(function() {
-            return $('#files .node.file').size() === 1;
+            return $('#files-table .node.file').size() === 1;
         });
     });
 
     casper.then(function() {
-        s.moveMousePointerTo(casper, '#files .file');
-        //this.mouseEvent('mouseover', '#files .file');
+        s.moveMousePointerTo(casper, '#files-table .file');
+        //this.mouseEvent('mouseover', '#files-table .file');
     });
 
     casper.then(function() {
-        s.moveMousePointerTo(casper, '#files .file .edit_file_icon');
+        s.moveMousePointerTo(casper, '#files-table .file .edit_file_icon');
     });
-   
+
     casper.then(function() {
-        this.click('#files .file .edit_file_icon');
+        this.click('#files-table .file .edit_file_icon');
     });
 
     casper.wait(1000);
@@ -87,7 +83,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
     casper.then(function() {
         this.click('.CodeMirror-code div:first-child');
     });
-    
+
     casper.wait(1000);
 
     casper.then(function() {
@@ -102,7 +98,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
     });
 
     casper.wait(1000);
-    
+
     casper.then(function() {
         this.click('#saveAndClose');
     });
@@ -110,15 +106,15 @@ casper.test.begin(testName, numberOfTests, function(test) {
     casper.wait(1000);
 
     casper.then(function() {
-        s.moveMousePointerTo(casper, '#files .file .edit_file_icon');
+        s.moveMousePointerTo(casper, '#files-table .file .edit_file_icon');
     });
-   
+
     casper.then(function() {
-        this.click('#files .file .edit_file_icon');
+        this.click('#files-table .file .edit_file_icon');
     });
 
     casper.wait(1000);
-    
+
     casper.then(function() {
         test.assertEval(function() {
             return $('.CodeMirror-code span').text() === 'Random text';

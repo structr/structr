@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -538,6 +538,11 @@ public class RenderContextTest extends StructrUiTest {
 			final String localeString = ctx.getLocale().toString();
 			assertEquals("Invalid locale result", localeString, Scripting.replaceVariables(ctx, page, "${locale}"));
 
+			// set new details object
+			final TestOne detailsDataObject2 = app.create(TestOne.class, "TestOne");
+			Scripting.replaceVariables(ctx, p1, "${set_details_object(first(find('TestOne', 'id', '" + detailsDataObject2.getUuid() + "')))}");
+			assertEquals("${current.id} should resolve to new details object", detailsDataObject2.getUuid(), Scripting.replaceVariables(ctx, p1, "${current.id}"));
+			
 			tx.success();
 
 		} catch (FrameworkException fex) {

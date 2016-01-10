@@ -39,7 +39,6 @@ var scrollInfoKey = 'structrScrollInfoKey_' + port;
 var hideInactiveTabsKey = 'structrHideInactiveTabs_' + port;
 var autoHideInactiveTabsKey = 'structrAutoHideInactiveTabs_' + port;
 
-
 var altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
 
 $(function() {
@@ -1312,7 +1311,7 @@ var Structr = {
 		if (this.autoHideInactiveTabs) {
 			return this.autoHideInactiveTabs;
 		} else {
-			this.autoHideInactiveTabs = (LSWrapper.getItem(autoHideInactiveTabsKey) === "true");
+			this.autoHideInactiveTabs = (LSWrapper.getItem(autoHideInactiveTabsKey));
 			if (!this.autoHideInactiveTabs) {
 				this.setAutoHideInactiveTabs(false);
 			}
@@ -1322,7 +1321,6 @@ var Structr = {
 	setAutoHideInactiveTabs: function (val) {
 		this.autoHideInactiveTabs = val;
 		LSWrapper.setItem(autoHideInactiveTabsKey, val);
-
 		if (val) {
 			this.doHideInactiveTabs();
 			this.doHideSelectAllCheckbox();
@@ -1332,7 +1330,7 @@ var Structr = {
 		if (this.hideInactiveTabs) {
 			return this.hideInactiveTabs;
 		} else {
-			this.hideInactiveTabs = (LSWrapper.getItem(hideInactiveTabsKey) === "true");
+			this.hideInactiveTabs = (LSWrapper.getItem(hideInactiveTabsKey));
 			if (!this.hideInactiveTabs) {
 				this.setHideInactiveTabs(false);
 			}
