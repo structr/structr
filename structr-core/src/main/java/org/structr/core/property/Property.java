@@ -100,6 +100,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		this.dbName = dbName;
 	}
 
+	@Override
 	public abstract Object fixDatabaseProperty(final Object value);
 	public abstract Object getValueForEmptyFields();
 
