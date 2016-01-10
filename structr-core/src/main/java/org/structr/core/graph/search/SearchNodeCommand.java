@@ -19,13 +19,12 @@
 package org.structr.core.graph.search;
 
 
+import org.structr.api.index.Index;
+import org.structr.api.graph.Node;
 import org.structr.core.graph.NodeFactory;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import org.neo4j.gis.spatial.indexprovider.LayerNodeIndex;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.index.Index;
 import org.structr.common.SecurityContext;
 import org.structr.core.graph.Factory;
 import org.structr.core.graph.NodeInterface;
@@ -69,8 +68,8 @@ public class SearchNodeCommand<T extends NodeInterface> extends SearchCommand<No
 	}
 
 	@Override
-	public LayerNodeIndex getSpatialIndex() {
-		 return (LayerNodeIndex) arguments.get(NodeService.NodeIndex.layer.name());
+	public Index<Node> getSpatialIndex() {
+		 return (Index<Node>) arguments.get(NodeService.NodeIndex.layer.name());
 	}
 
 	@Override

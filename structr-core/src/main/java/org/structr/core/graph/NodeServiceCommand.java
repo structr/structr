@@ -25,10 +25,11 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.Predicate;
+import org.structr.common.Filter;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
-import org.structr.core.Predicate;
+import org.structr.api.service.Command;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 
@@ -42,9 +43,16 @@ public abstract class NodeServiceCommand extends Command {
 	private static final Logger logger                        = Logger.getLogger(NodeServiceCommand.class.getName());
 	private static final ArrayBlockingQueue<String> uuidQueue = new ArrayBlockingQueue<>(100000);
 
+	protected SecurityContext securityContext = null;
+
 	@Override
 	public Class getServiceClass()	{
 		return(NodeService.class);
+	}
+
+	@Override
+	public void initialized() {
+		this.securityContext = (SecurityContext)getArgument("securityContext");
 	}
 
 	/**
@@ -75,7 +83,7 @@ public abstract class NodeServiceCommand extends Command {
 	 */
 	public static <T> long bulkGraphOperation(final SecurityContext securityContext, final Iterator<T> iterator, final long commitCount, String description, final BulkGraphOperation<T> operation, boolean validation) {
 
-		final org.neo4j.helpers.Predicate<Long> condition = operation.getCondition();
+		final Predicate<Long> condition = operation.getCondition();
 		final App app                   = StructrApp.getInstance(securityContext);
 		long objectCount                = 0L;
 		boolean active                  = true;
@@ -137,13 +145,17 @@ public abstract class NodeServiceCommand extends Command {
 		final App app                = StructrApp.getInstance(securityContext);
 		final AtomicLong objectCount = new AtomicLong(0L);
 
-		while (!stopCondition.evaluate(securityContext, objectCount.get())) {
+		if (stopCondition instanceof Filter) {
+			((Filter)stopCondition).setSecurityContext(securityContext);
+		}
+
+		while (!stopCondition.accept(objectCount.get())) {
 
 			try (final Tx tx = app.tx()) {
 
 				long loopCount = 0;
 
-				while (loopCount++ < commitCount && !stopCondition.evaluate(securityContext, objectCount.get())) {
+				while (loopCount++ < commitCount && !stopCondition.accept(objectCount.get())) {
 
 					transaction.execute();
 					objectCount.incrementAndGet();

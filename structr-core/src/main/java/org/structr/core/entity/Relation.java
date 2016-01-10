@@ -18,8 +18,8 @@
  */
 package org.structr.core.entity;
 
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.RelationshipType;
+import org.structr.api.graph.Direction;
+import org.structr.api.graph.RelationshipType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;

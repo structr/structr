@@ -43,22 +43,21 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 import org.apache.commons.io.IOUtils;
-import org.neo4j.function.Function;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.DynamicLabel;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.helpers.collection.Iterables;
+import org.structr.api.DatabaseService;
+import org.structr.api.graph.Direction;
+import org.structr.api.util.Iterables;
+import org.structr.api.graph.Label;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.PropertyContainer;
+import org.structr.api.graph.Relationship;
+import org.structr.api.graph.RelationshipType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -113,13 +112,13 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
 
-		GraphDatabaseService graphDb = Services.getInstance().getService(NodeService.class).getGraphDb();
-		String mode                  = (String)attributes.get("mode");
-		String fileName              = (String)attributes.get("file");
-		String validate              = (String)attributes.get("validate");
-		String query                 = (String)attributes.get("query");
-		Long batchSize               = (Long)attributes.get("batchSize");
-		boolean doValidation         = true;
+		DatabaseService graphDb = Services.getInstance().getService(NodeService.class).getGraphDb();
+		String mode             = (String)attributes.get("mode");
+		String fileName         = (String)attributes.get("file");
+		String validate         = (String)attributes.get("validate");
+		String query            = (String)attributes.get("query");
+		Long batchSize          = (Long)attributes.get("batchSize");
+		boolean doValidation    = true;
 
 		// should we validate imported nodes?
 		if (validate != null) {
@@ -171,7 +170,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	 * @param includeFiles
 	 * @throws FrameworkException
 	 */
-	public static void exportToFile(final GraphDatabaseService graphDb, final String fileName, final String query, final boolean includeFiles) throws FrameworkException {
+	public static void exportToFile(final DatabaseService graphDb, final String fileName, final String query, final boolean includeFiles) throws FrameworkException {
 
 		final App app = StructrApp.getInstance();
 
@@ -302,11 +301,11 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		}
 	}
 
-	public static void importFromFile(final GraphDatabaseService graphDb, final SecurityContext securityContext, final String fileName, boolean doValidation) throws FrameworkException {
+	public static void importFromFile(final DatabaseService graphDb, final SecurityContext securityContext, final String fileName, boolean doValidation) throws FrameworkException {
 		importFromFile(graphDb, securityContext, fileName, doValidation, 200L);
 	}
 
-	public static void importFromFile(final GraphDatabaseService graphDb, final SecurityContext securityContext, final String fileName, boolean doValidation, final Long batchSize) throws FrameworkException {
+	public static void importFromFile(final DatabaseService graphDb, final SecurityContext securityContext, final String fileName, boolean doValidation, final Long batchSize) throws FrameworkException {
 
 		try {
 			importFromStream(graphDb, securityContext, new FileInputStream(fileName), doValidation, batchSize);
@@ -319,7 +318,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		}
 	}
 
-	public static void importFromStream(final GraphDatabaseService graphDb, final SecurityContext securityContext, final InputStream inputStream, boolean doValidation, final Long batchSize) throws FrameworkException {
+	public static void importFromStream(final DatabaseService graphDb, final SecurityContext securityContext, final InputStream inputStream, boolean doValidation, final Long batchSize) throws FrameworkException {
 
 		try {
 			ZipInputStream zis = new ZipInputStream(inputStream);
@@ -627,7 +626,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		}
 	}
 
-	private static void importDatabase(final GraphDatabaseService graphDb, final SecurityContext securityContext, final ZipInputStream zis, boolean doValidation, final Long batchSize) throws FrameworkException, IOException {
+	private static void importDatabase(final DatabaseService graphDb, final SecurityContext securityContext, final ZipInputStream zis, boolean doValidation, final Long batchSize) throws FrameworkException, IOException {
 
 		final App app                        = StructrApp.getInstance();
 		final DataInputStream dis            = new DataInputStream(new BufferedInputStream(zis));
@@ -706,7 +705,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 								} else {
 
-									RelationshipType relType = DynamicRelationshipType.withName(relTypeName);
+									RelationshipType relType = RelationshipType.forName(relTypeName);
 									currentObject = startNode.createRelationshipTo(endNode, relType);
 
 									// store for later use
@@ -748,7 +747,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 										// set type label
 										if (currentObject instanceof Node && NodeInterface.type.dbName().equals(currentKey)) {
-											((Node) currentObject).addLabel(DynamicLabel.label((String) obj));
+											((Node) currentObject).addLabel(graphDb.forName(Label.class, (String) obj));
 										}
 
 									} else {

@@ -20,7 +20,7 @@ package org.structr.schema;
 
 import java.util.List;
 import java.util.Set;
-import org.neo4j.graphdb.PropertyContainer;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaMethod;

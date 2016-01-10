@@ -19,22 +19,18 @@
 package org.structr.core.graph;
 
 import java.util.Iterator;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.tooling.GlobalGraphOperations;
-
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.helpers.collection.Iterables;
+import org.structr.api.DatabaseService;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrAndSpatialPredicate;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+
 
 //~--- classes ----------------------------------------------------------------
 
@@ -53,8 +49,8 @@ public class ClearDatabase extends NodeServiceCommand {
 
 	public void execute() throws FrameworkException {
 
-		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		final NodeFactory nodeFactory      = new NodeFactory(securityContext);
+		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
+		final NodeFactory nodeFactory = new NodeFactory(securityContext);
 
 		if (graphDb != null) {
 
@@ -63,7 +59,7 @@ public class ClearDatabase extends NodeServiceCommand {
 
 			try (final Tx tx = app.tx()) {
 
-				nodeIterator = Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllNodes())).iterator();
+				nodeIterator = Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getAllNodes())).iterator();
 				tx.success();
 
 			} catch (FrameworkException fex) {

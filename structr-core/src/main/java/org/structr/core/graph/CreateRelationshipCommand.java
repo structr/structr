@@ -18,8 +18,6 @@
  */
 package org.structr.core.graph;
 
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Transformation;
@@ -30,6 +28,8 @@ import org.structr.core.entity.AbstractRelationship;
 import java.util.Date;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;

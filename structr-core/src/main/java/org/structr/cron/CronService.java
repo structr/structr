@@ -19,14 +19,15 @@
 package org.structr.cron;
 
 import java.util.LinkedList;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.Command;
-import org.structr.core.RunnableService;
+import org.structr.api.service.Command;
+import org.structr.api.service.RunnableService;
 import org.structr.core.Services;
 import org.structr.agent.Task;
-import org.structr.common.StructrConf;
+import org.structr.api.service.StructrServices;
 import org.structr.core.app.StructrApp;
 
 /**
@@ -119,7 +120,7 @@ public class CronService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final Services services, final StructrConf config) {
+	public void initialize(final StructrServices services, final Properties config) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final String taskList = config.getProperty(TASKS, "");
 		if (taskList != null) {

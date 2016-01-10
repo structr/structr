@@ -36,11 +36,11 @@ import org.apache.tika.io.IOUtils;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.sax.BodyContentHandler;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.index.Index;
 import org.structr.agent.Agent;
 import org.structr.agent.ReturnValue;
 import org.structr.agent.Task;
+import org.structr.api.graph.Node;
+import org.structr.api.index.Index;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
@@ -182,7 +182,7 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 								if (!stopWords.contains(word)) {
 
 									indexedWords.add(word);
-									fulltextIndex.add(node, indexKeyName, word);
+									fulltextIndex.add(node, indexKeyName, word, String.class);
 
 //									if (indexedWords > 1000) {
 //										indexedWords = 0;

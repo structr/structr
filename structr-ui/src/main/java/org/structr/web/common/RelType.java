@@ -18,17 +18,17 @@
  */
 package org.structr.web.common;
 
-import org.neo4j.graphdb.RelationshipType;
+import org.structr.api.graph.RelationshipType;
 
 /**
  * Defines relationship types for structr's internal relationships.
- * 
+ *
  *
  */
 public enum RelType implements RelationshipType {
-	
+
 	// web
-	CONTAINS,	
+	CONTAINS,
 	CONTAINS_NEXT_SIBLING,
 	DEFINES_TYPE,
 	DEFINES_PROPERTY,
@@ -39,19 +39,19 @@ public enum RelType implements RelationshipType {
 	RENDER_TREE,
 	SYNC,
 	LINK,
-	
+
 	// picture
 	THUMBNAIL,
 	PICTURE_OF,
-	
+
 	// blog
 	AUTHOR,
 	COMMENT,
-	
+
 	TAG,
-	
+
 	// files
 	HOME_DIR,
 	WORKING_DIR
-	
+
 }

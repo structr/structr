@@ -20,8 +20,7 @@ package org.structr.core.graph.search;
 
 import java.util.Collection;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.Query;
+import org.structr.api.search.Occurrence;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 
@@ -32,7 +31,7 @@ import org.structr.core.property.PropertyKey;
 public class EmptySearchAttribute<T> extends PropertySearchAttribute<T> {
 
 	public EmptySearchAttribute(PropertyKey<T> key, T value) {
-		super(key, value, BooleanClause.Occur.MUST, true);
+		super(key, value, Occurrence.REQUIRED, true);
 	}
 
 	@Override
@@ -41,18 +40,18 @@ public class EmptySearchAttribute<T> extends PropertySearchAttribute<T> {
 	}
 
 	@Override
-	public Query getQuery() {
+	public Class getQueryType() {
 		return null;
 	}
 
 	@Override
 	public boolean includeInResult(GraphObject entity) {
 
-		BooleanClause.Occur occur   = getOccur();
-		T searchValue = getValue();
-		T nodeValue   = entity.getProperty(getKey());
+		Occurrence occur = getOccurrence();
+		T searchValue    = getValue();
+		T nodeValue      = entity.getProperty(getKey());
 
-		if (occur.equals(BooleanClause.Occur.MUST_NOT)) {
+		if (occur.equals(Occurrence.FORBIDDEN)) {
 
 			if ((nodeValue != null) && !equal(nodeValue, searchValue)) {
 

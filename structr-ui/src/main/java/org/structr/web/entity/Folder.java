@@ -21,7 +21,7 @@ package org.structr.web.entity;
 import java.util.List;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
-import org.neo4j.helpers.collection.Iterables;
+import org.structr.api.util.Iterables;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.info.CMISDocumentInfo;
 import org.structr.cmis.info.CMISFolderInfo;

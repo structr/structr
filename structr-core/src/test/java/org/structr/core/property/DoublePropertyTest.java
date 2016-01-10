@@ -256,4 +256,46 @@ public class DoublePropertyTest extends StructrTest {
 			fail("Unable to store array");
 		}
 	}
+
+	public void testRangeSearchOnNode() {
+
+		try {
+
+			final PropertyMap properties = new PropertyMap();
+			final Property<Double> key   = OneFourOneToOne.doubleProperty;
+
+			properties.put(key, 123456.2);
+
+			final TestFour testEntity = createTestNode(TestFour.class, properties);
+
+			assertNotNull(testEntity);
+
+			try (final Tx tx = app.tx()) {
+
+				// check value from database
+				assertEquals((Double)123456.2, testEntity.getProperty(key));
+
+				Result<TestFour> result = app.nodeQuery(TestFour.class).andRange(key, 123455.1, 123457.6).getResult();
+
+				assertEquals(1, result.size());
+				assertEquals(testEntity, result.get(0));
+
+				tx.success();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				Result<TestFour> result = app.nodeQuery(TestFour.class).andRange(key, 123456.3, 123456.7).getResult();
+
+				assertEquals(0, result.size());
+
+				tx.success();
+			}
+
+		} catch (FrameworkException fex) {
+
+			fail("Unable to store array");
+		}
+
+	}
 }

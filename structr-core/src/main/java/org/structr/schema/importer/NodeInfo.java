@@ -25,8 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
+import org.structr.api.graph.Label;
+import org.structr.api.graph.Node;
 
 /**
  *

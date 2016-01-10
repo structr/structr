@@ -23,10 +23,9 @@ import java.util.List;
 import java.util.LinkedList;
 import java.util.logging.Logger;
 import java.util.logging.Level;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.tooling.GlobalGraphOperations;
+import org.structr.api.DatabaseService;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -54,10 +53,10 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
 
 
-		final GraphDatabaseService graphDb = StructrApp.getInstance().getService(NodeService.class).getGraphDb();
+		final DatabaseService graphDb = StructrApp.getInstance().getService(NodeService.class).getGraphDb();
 		final List<Node> toDelete          = new LinkedList<>();
 
-		for (final Node node: GlobalGraphOperations.at(graphDb).getAllNodes()) {
+		for (final Node node: graphDb.getAllNodes()) {
 
 			try {
 				if (node.hasProperty("bbox") && node.hasProperty("gtype") && node.hasProperty("id") && node.hasProperty("latitude") && node.hasProperty("longitude")) {

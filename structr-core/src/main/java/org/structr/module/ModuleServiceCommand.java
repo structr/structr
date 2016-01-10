@@ -18,7 +18,7 @@
  */
 package org.structr.module;
 
-import org.structr.core.Command;
+import org.structr.api.service.Command;
 
 /**
  * Abstract base class for all module service commands.

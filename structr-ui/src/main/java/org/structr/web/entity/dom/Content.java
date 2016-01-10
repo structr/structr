@@ -20,7 +20,9 @@ package org.structr.web.entity.dom;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.java.textilej.parser.MarkupParser;
@@ -39,7 +41,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
-import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -301,7 +302,7 @@ public class Content extends DOMNode implements Text {
 			String value = getProperty(Content.content);
 			if (value != null) {
 
-				return SearchCommand.escapeForLucene(value);
+				return escape(value);
 			}
 
 		}
@@ -804,5 +805,49 @@ public class Content extends DOMNode implements Text {
 
 			return Factory.create();
 		}
+	}
+
+	private static final Set<Character> SPECIAL_CHARS = new LinkedHashSet<>();
+
+	static {
+
+		SPECIAL_CHARS.add('\\');
+		SPECIAL_CHARS.add('+');
+		SPECIAL_CHARS.add('-');
+		SPECIAL_CHARS.add('!');
+		SPECIAL_CHARS.add('(');
+		SPECIAL_CHARS.add(')');
+		SPECIAL_CHARS.add(':');
+		SPECIAL_CHARS.add('^');
+		SPECIAL_CHARS.add('[');
+		SPECIAL_CHARS.add(']');
+		SPECIAL_CHARS.add('"');
+		SPECIAL_CHARS.add('{');
+		SPECIAL_CHARS.add('}');
+		SPECIAL_CHARS.add('~');
+		SPECIAL_CHARS.add('*');
+		SPECIAL_CHARS.add('?');
+		SPECIAL_CHARS.add('|');
+		SPECIAL_CHARS.add('&');
+		SPECIAL_CHARS.add(';');
+	}
+
+	private String escape(String input) {
+
+		StringBuilder output = new StringBuilder();
+
+		for (int i = 0; i < input.length(); i++) {
+
+			char c = input.charAt(i);
+
+			if (SPECIAL_CHARS.contains(c) || Character.isWhitespace(c)) {
+
+				output.append('\\');
+			}
+
+			output.append(c);
+		}
+
+		return output.toString();
 	}
 }

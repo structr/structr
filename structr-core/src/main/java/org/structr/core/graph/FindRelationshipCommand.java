@@ -18,10 +18,8 @@
  */
 package org.structr.core.graph;
 
-import org.neo4j.graphdb.*;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.IdNotFoundToken;
 
 //import org.structr.common.xpath.JXPathFinder;
 
@@ -29,6 +27,8 @@ import org.structr.common.error.IdNotFoundToken;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.api.DatabaseService;
+import org.structr.api.graph.Relationship;
 import org.structr.core.entity.AbstractRelationship;
 
 //~--- classes ----------------------------------------------------------------
@@ -46,8 +46,8 @@ public class FindRelationshipCommand<T extends AbstractRelationship> extends Nod
 
 	public T execute(Relationship relationship) throws FrameworkException {
 
-		GraphDatabaseService graphDb               = (GraphDatabaseService) arguments.get("graphDb");
-		RelationshipFactory<T> relationshipFactory = new RelationshipFactory<T>(securityContext);
+		DatabaseService graphDb                    = (DatabaseService) arguments.get("graphDb");
+		RelationshipFactory<T> relationshipFactory = new RelationshipFactory<>(securityContext);
 
 		if (graphDb != null) {
 
@@ -59,21 +59,12 @@ public class FindRelationshipCommand<T extends AbstractRelationship> extends Nod
 
 	public T execute(Long id) throws FrameworkException {
 
-		GraphDatabaseService graphDb               = (GraphDatabaseService) arguments.get("graphDb");
-		RelationshipFactory<T> relationshipFactory = new RelationshipFactory<T>(securityContext);
+		DatabaseService graphDb                    = (DatabaseService) arguments.get("graphDb");
+		RelationshipFactory<T> relationshipFactory = new RelationshipFactory<>(securityContext);
 
 		if (graphDb != null) {
 
-			try {
-
-				return relationshipFactory.instantiate(graphDb.getRelationshipById(id));
-
-			} catch (NotFoundException nfe) {
-
-				logger.log(Level.WARNING, "Node with id {0} not found in database!", id);
-
-				throw new FrameworkException(404, new IdNotFoundToken("FindRelationshipCommand", id));
-			}
+			return relationshipFactory.instantiate(graphDb.getRelationshipById(id));
 		}
 
 		return null;
@@ -81,7 +72,7 @@ public class FindRelationshipCommand<T extends AbstractRelationship> extends Nod
 
 	public T execute(String idString) throws FrameworkException {
 
-		GraphDatabaseService graphDb               = (GraphDatabaseService) arguments.get("graphDb");
+		DatabaseService graphDb                    = (DatabaseService) arguments.get("graphDb");
 		RelationshipFactory<T> relationshipFactory = new RelationshipFactory<>(securityContext);
 
 		if (graphDb != null) {

@@ -18,8 +18,6 @@
  */
 package org.structr.core.graph;
 
-import java.util.Collections;
-import org.neo4j.graphdb.Relationship;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -31,7 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.helpers.collection.LruMap;
+import org.structr.api.graph.Relationship;
+import org.structr.api.util.FixedSizeCache;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
@@ -48,8 +47,8 @@ import org.structr.core.app.StructrApp;
  */
 public class RelationshipFactory<T extends RelationshipInterface> extends Factory<Relationship, T> {
 
-	private static final Map<Long, Class> idTypeMap = Collections.synchronizedMap(new LruMap<Long, Class>(Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_REL_CACHE_SIZE), 10000)));
-	private static final Logger logger              = Logger.getLogger(RelationshipFactory.class.getName());
+	private static final FixedSizeCache<Long, Class> idTypeMap = new FixedSizeCache<>(Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_REL_CACHE_SIZE), 10000));
+	private static final Logger logger                         = Logger.getLogger(RelationshipFactory.class.getName());
 
 	// private Map<String, Class> nodeTypeCache = new ConcurrentHashMap<String, Class>();
 	public RelationshipFactory(final SecurityContext securityContext) {
@@ -75,6 +74,10 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 
 	@Override
 	public T instantiate(final Relationship relationship, final Relationship pathSegment) {
+
+		if (relationship == null) {
+			return null;
+		}
 
 		if (TransactionCommand.isDeleted(relationship)) {
 			return (T) instantiateWithType(relationship, null, null, false);

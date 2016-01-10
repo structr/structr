@@ -24,9 +24,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.Relationship;
+import org.structr.api.DatabaseService;
+import org.structr.api.Predicate;
+import org.structr.api.graph.Direction;
+import org.structr.api.graph.Relationship;
+import org.structr.api.graph.RelationshipType;
+import org.structr.common.Filter;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -34,7 +37,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import static org.structr.core.GraphObject.id;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.Predicate;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -531,12 +533,14 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	}
 
 	protected void migrateSyncRels() {
+
 		try {
 
-			org.neo4j.graphdb.Node n = getNode();
+			final DatabaseService db     = StructrApp.getInstance().getDatabaseService();
+			org.structr.api.graph.Node n = getNode();
 
-			Iterable<Relationship> incomingSyncRels = n.getRelationships(DynamicRelationshipType.withName("SYNC"), Direction.INCOMING);
-			Iterable<Relationship> outgoingSyncRels = n.getRelationships(DynamicRelationshipType.withName("SYNC"), Direction.OUTGOING);
+			Iterable<Relationship> incomingSyncRels = n.getRelationships(Direction.INCOMING, db.forName(RelationshipType.class, "SYNC"));
+			Iterable<Relationship> outgoingSyncRels = n.getRelationships(Direction.OUTGOING, db.forName(RelationshipType.class, "SYNC"));
 
 			if (getOwnerDocument() instanceof ShadowDocument) {
 
@@ -851,7 +855,12 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	protected void collectNodesByPredicate(Node startNode, DOMNodeList results, Predicate<Node> predicate, int depth, boolean stopOnFirstHit) {
 
-		if (predicate.evaluate(securityContext, startNode)) {
+
+		if (predicate instanceof Filter) {
+			((Filter)predicate).setSecurityContext(securityContext);
+		}
+
+		if (predicate.accept(startNode)) {
 
 			results.add(startNode);
 
@@ -1496,13 +1505,13 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	// ----- nested classes -----
 	protected static class TextCollector implements Predicate<Node> {
 
-		private StringBuilder textBuffer = new StringBuilder(200);
+		private final StringBuilder textBuffer = new StringBuilder(200);
 
 		@Override
-		public boolean evaluate(SecurityContext securityContext, Node... obj) {
+		public boolean accept(final Node obj) {
 
-			if (obj[0] instanceof Text) {
-				textBuffer.append(((Text)obj[0]).getTextContent());
+			if (obj instanceof Text) {
+				textBuffer.append(((Text)obj).getTextContent());
 			}
 
 			return false;
@@ -1522,11 +1531,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 
 		@Override
-		public boolean evaluate(SecurityContext securityContext, Node... obj) {
+		public boolean accept(Node obj) {
 
-			if (obj[0] instanceof DOMElement) {
+			if (obj instanceof DOMElement) {
 
-				DOMElement elem = (DOMElement)obj[0];
+				DOMElement elem = (DOMElement)obj;
 
 				if (tagName.equals(elem.getProperty(DOMElement.tag))) {
 					return true;

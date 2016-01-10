@@ -19,6 +19,7 @@
 package org.structr.web.common;
 
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -32,12 +33,13 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
+import org.structr.api.config.Structr;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.StructrConf;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -70,10 +72,9 @@ public abstract class StructrUiTest extends TestCase {
 
 	private static final Logger logger = Logger.getLogger(StructrUiTest.class.getName());
 
-	//~--- fields ---------------------------------------------------------
-	protected StructrConf config = new StructrConf();
+	protected Properties config                   = new Properties();
 	protected GraphDatabaseCommand graphDbCommand = null;
-	protected SecurityContext securityContext = null;
+	protected SecurityContext securityContext     = null;
 
 	protected App app = null;
 
@@ -130,7 +131,7 @@ public abstract class StructrUiTest extends TestCase {
 		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService FtpService HttpService SchemaService");
 		config.setProperty(Services.TMP_PATH, "/tmp/");
 		config.setProperty(Services.BASE_PATH, basePath);
-		config.setProperty(Services.DATABASE_PATH, basePath + "/db");
+		config.setProperty(Structr.DATABASE_PATH, basePath + "/db");
 		config.setProperty(Services.FILES_PATH, basePath + "/files");
 		config.setProperty(Services.LOG_DATABASE_PATH, basePath + "/logDb.dat");
 		config.setProperty(Services.TCP_PORT, (System.getProperty("tcpPort") != null ? System.getProperty("tcpPort") : "13465"));
@@ -378,6 +379,7 @@ public abstract class StructrUiTest extends TestCase {
 					.contentType("application/json; charset=UTF-8")
 					.header("X-User", "superadmin")
 					.header("X-Password", "sehrgeheim")
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 
 				.expect()
 					.statusCode(200)
@@ -386,6 +388,18 @@ public abstract class StructrUiTest extends TestCase {
 					.delete("/resource_access");
 		}
 
+		// list existing grants
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.header("X-User", "superadmin")
+				.header("X-Password", "sehrgeheim")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+
+			.when()
+				.get("/resource_access");
+
 		// create new grant
 		RestAssured
 
@@ -393,6 +407,7 @@ public abstract class StructrUiTest extends TestCase {
 				.contentType("application/json; charset=UTF-8")
 				.header("X-User", "superadmin")
 				.header("X-Password", "sehrgeheim")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.body(" { 'signature' : '" + signature + "', 'flags': " + flags + ", 'visibleToPublicUsers': true } ")
 
 			.expect()

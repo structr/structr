@@ -18,7 +18,7 @@
  */
 package org.structr.core.graph;
 
-import org.neo4j.helpers.Predicate;
+import org.structr.api.Predicate;
 import org.structr.core.GraphObject;
 
 /**

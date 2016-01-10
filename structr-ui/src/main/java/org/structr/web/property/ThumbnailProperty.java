@@ -19,6 +19,8 @@
 package org.structr.web.property;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.Predicate;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.property.AbstractReadOnlyProperty;
@@ -53,7 +55,7 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 	}
 
 	@Override
-	public Image getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	public Image getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, Predicate<GraphObject> predicate) {
 
 		if (obj.getProperty(Image.isThumbnail)) {
 			return null;
@@ -78,7 +80,7 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 	}
 
 	@Override
-	public Integer getSortType() {
+	public SortType getSortType() {
 		return null;
 	}
 

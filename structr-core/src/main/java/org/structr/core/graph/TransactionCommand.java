@@ -23,13 +23,13 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.logging.Level;
-import org.neo4j.graphdb.GraphDatabaseService;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
+import org.structr.api.DatabaseService;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.StructrTransactionListener;
@@ -68,8 +68,8 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 	public TransactionCommand beginTx() {
 
-		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		TransactionReference tx            = transactions.get();
+		final DatabaseService graphDb = (DatabaseService)arguments.get("graphDb");
+		TransactionReference tx       = transactions.get();
 
 		if (tx == null) {
 

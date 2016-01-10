@@ -19,21 +19,16 @@
 package org.structr.core.graph;
 
 import java.util.Collections;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
-
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.api.graph.Direction;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
+import org.structr.api.graph.RelationshipType;
 import org.structr.common.error.FrameworkException;
 
-//~--- classes ----------------------------------------------------------------
 
 /**
  * Returns a List of relationships for the given node.
@@ -48,13 +43,13 @@ public class NodeRelationshipsCommand extends NodeServiceCommand {
 
 	/**
 	 * Fetch relationships for the given source node.
-	 * 
+	 *
 	 * @param sourceNode
 	 * @param relType can be null
 	 * @param dir
-	 * 
+	 *
 	 * @return a list of relationships
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	public List<RelationshipInterface> execute(NodeInterface sourceNode, RelationshipType relType, Direction dir) throws FrameworkException {
 
@@ -64,24 +59,24 @@ public class NodeRelationshipsCommand extends NodeServiceCommand {
 		Iterable<Relationship> rels;
 
 		if (node == null) {
-			
+
 			return Collections.EMPTY_LIST;
-			
+
 		}
-		
+
 		if (relType != null) {
-			
-			rels = node.getRelationships(relType, dir);
-			
+
+			rels = node.getRelationships(dir, relType);
+
 		} else {
-			
+
 			rels = node.getRelationships(dir);
 		}
 
 		try {
 
 			for (Relationship r : rels) {
-				
+
 				result.add(factory.instantiate(r));
 			}
 
@@ -90,7 +85,7 @@ public class NodeRelationshipsCommand extends NodeServiceCommand {
 			logger.log(Level.WARNING, "Exception occured: ", e.getMessage());
 
 			/**
-				* ********* FIXME 
+				* ********* FIXME
 				*
 				* Here an exception occurs:
 				*
@@ -105,7 +100,7 @@ public class NodeRelationshipsCommand extends NodeServiceCommand {
 				*
 				*/
 		}
-		
+
 		return result;
 	}
 }

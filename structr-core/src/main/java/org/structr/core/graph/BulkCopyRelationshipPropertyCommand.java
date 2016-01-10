@@ -19,22 +19,18 @@
 package org.structr.core.graph;
 
 import java.util.Iterator;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.tooling.GlobalGraphOperations;
-
-import org.structr.common.error.FrameworkException;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.helpers.collection.Iterables;
+import org.structr.api.DatabaseService;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
+
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -50,7 +46,7 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 	@Override
 	public void execute(final Map<String, Object> map) throws FrameworkException {
 
-		final GraphDatabaseService graphDb   = (GraphDatabaseService)arguments.get("graphDb");
+		final DatabaseService graphDb        = (DatabaseService)arguments.get("graphDb");
 		final RelationshipFactory relFactory = new RelationshipFactory(securityContext);
 
 		final String sourceKey = (String)map.get("sourceKey");
@@ -68,7 +64,7 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				relIterator = Iterables.map(relFactory, GlobalGraphOperations.at(graphDb).getAllRelationships()).iterator();
+				relIterator = Iterables.map(relFactory, graphDb.getAllRelationships()).iterator();
 				tx.success();
 			}
 

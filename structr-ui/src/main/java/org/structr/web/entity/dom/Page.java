@@ -32,6 +32,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.ftplet.FtpFile;
+import org.structr.api.Predicate;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
@@ -39,7 +40,6 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
-import org.structr.core.Predicate;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -660,11 +660,11 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		collectNodesByPredicate(this, results, new Predicate<Node>() {
 
 			@Override
-			public boolean evaluate(SecurityContext securityContext, Node... obj) {
+			public boolean accept(Node obj) {
 
-				if (obj[0] instanceof DOMElement) {
+				if (obj instanceof DOMElement) {
 
-					DOMElement elem = (DOMElement) obj[0];
+					DOMElement elem = (DOMElement) obj;
 
 					if (id.equals(elem.getProperty(DOMElement._id))) {
 						return true;
@@ -825,11 +825,11 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		collectNodesByPredicate(this, results, new Predicate<Node>() {
 
 			@Override
-			public boolean evaluate(SecurityContext securityContext, Node... obj) {
+			public boolean accept(Node obj) {
 
-				if (obj[0] instanceof DOMElement) {
+				if (obj instanceof DOMElement) {
 
-					DOMElement elem = (DOMElement) obj[0];
+					DOMElement elem = (DOMElement) obj;
 
 					if (tagName.equals(elem.getProperty(DOMElement.tag))) {
 						return true;

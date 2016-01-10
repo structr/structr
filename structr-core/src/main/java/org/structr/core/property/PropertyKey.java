@@ -21,8 +21,9 @@ package org.structr.core.property;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
-import org.apache.lucene.search.BooleanClause;
-import org.neo4j.helpers.Predicate;
+import org.structr.api.search.Occurrence;
+import org.structr.api.Predicate;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -81,14 +82,6 @@ public interface PropertyKey<T> {
 	 * @return the Property to satisfy the builder pattern
 	 */
 	public Property<T> indexed();
-
-	/**
-	 * Use this method to mark a property for case-insensitive indexing. This
-	 * method registers the property in the case-insensitive (all-lowercase) index.
-	 *
-	 * @return the Property to satisfy the builder pattern
-	 */
-	public Property<T> indexedCaseInsensitive();
 
 	/**
 	 * Use this method to mark a property for indexing
@@ -208,7 +201,7 @@ public interface PropertyKey<T> {
 	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity);
 	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext);
 	public Object fixDatabaseProperty(final Object value);
-	
+
 	public void addValidator(final PropertyValidator<T> validator);
 	public List<PropertyValidator<T>> getValidators();
 	public boolean requiresSynchronization();
@@ -322,11 +315,11 @@ public interface PropertyKey<T> {
 	 * Returns the lucene sort type of this property.
 	 * @return sortType
 	 */
-	public Integer getSortType();
+	public SortType getSortType();
 
 	public void index(GraphObject entity, Object value);
 
-	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final BooleanClause.Occur occur, final T searchValue, final boolean exactMatch, final Query query);
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final T searchValue, final boolean exactMatch, final Query query);
 	public void extractSearchableAttribute(final SecurityContext securityContext, final HttpServletRequest request, final Query query) throws FrameworkException;
 	public T convertSearchValue(final SecurityContext securityContext, final String requestParameter) throws FrameworkException;
 

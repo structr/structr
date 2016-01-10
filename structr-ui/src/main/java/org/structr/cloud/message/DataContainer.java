@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.neo4j.graphdb.PropertyContainer;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.core.graph.SyncCommand;
 
 /**

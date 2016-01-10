@@ -36,7 +36,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.Command;
+import org.structr.api.service.Command;
 import org.structr.agent.Task;
 import org.structr.core.graph.BulkChangeNodePropertyKeyCommand;
 import org.structr.core.graph.BulkCreateLabelsCommand;

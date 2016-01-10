@@ -91,11 +91,11 @@ public class SearchResultsTest extends StructrTest {
 			props.put(key, name);
 
 			final AbstractNode node = createTestNode(TestOne.class, props);
-			
+
 			Result result = null;
 
 			try (final Tx tx = app.tx()) {
-				
+
 				result = app.nodeQuery(TestOne.class).andName(name).includeDeletedAndHidden().getResult();
 
 				assertTrue(result.size() == 1);
@@ -106,13 +106,13 @@ public class SearchResultsTest extends StructrTest {
 			final String name2 = "klppptzoehi gösoiu tzüw0e9hg";
 
 			try (final Tx tx = app.tx()) {
-				
+
 				node.setProperty(key, name2);
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				result = app.nodeQuery(TestOne.class).andName(name2).includeDeletedAndHidden().getResult();
 
 				assertTrue(result.size() == 1);
@@ -122,7 +122,7 @@ public class SearchResultsTest extends StructrTest {
 		} catch (FrameworkException ex) {
 
 			ex.printStackTrace();
-			
+
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -144,7 +144,7 @@ public class SearchResultsTest extends StructrTest {
 			AbstractNode node = createTestNode(type, props);
 
 			try (final Tx tx = app.tx()) {
-				
+
 				Result result = app.nodeQuery(type).and(key, date).includeDeletedAndHidden().getResult();
 
 				assertEquals(1, result.size());
@@ -154,7 +154,7 @@ public class SearchResultsTest extends StructrTest {
 		} catch (FrameworkException ex) {
 
 			ex.printStackTrace();
-			
+
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -170,17 +170,17 @@ public class SearchResultsTest extends StructrTest {
 			final PropertyKey key1    = new StringProperty("jghsdkhgshdhgsdjkfgh").indexed();
 			final Class type          = NodeHasLocation.class;
 			final String val1         = "54354354546806849870";
-			
+
 			final Result<RelationshipInterface> result;
 
 			try (final Tx tx = app.tx()) {
-				
+
 				rel.setProperty(key1, val1);
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				assertTrue(rel.getProperty(key1).equals(val1));
 
 				result = app.relationshipQuery(type).and(key1, val1).getResult();
@@ -192,7 +192,7 @@ public class SearchResultsTest extends StructrTest {
 			final String val2 = "ölllldjöoa8w4rasf";
 
 			try (final Tx tx = app.tx()) {
-				
+
 				rel.setProperty(key1, val2);
 				tx.success();
 			}
@@ -203,7 +203,7 @@ public class SearchResultsTest extends StructrTest {
 		} catch (FrameworkException ex) {
 
 			ex.printStackTrace();
-			
+
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -227,7 +227,7 @@ public class SearchResultsTest extends StructrTest {
 			AbstractNode node = createTestNode(type, props);
 
 			try (final Tx tx = app.tx()) {
-				
+
 				Result result = app.nodeQuery(type).location("Hanauer Landstraße", "200", "60314", "Frankfurt", "Germany", 10.0).includeDeletedAndHidden().getResult();
 
 				assertEquals(1, result.size());
@@ -237,7 +237,7 @@ public class SearchResultsTest extends StructrTest {
 		} catch (FrameworkException ex) {
 
 			ex.printStackTrace();
-			
+
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -271,17 +271,17 @@ public class SearchResultsTest extends StructrTest {
 				// this will fail
 				TestSeven node2 = app.create(TestSeven.class, props);
 
-				// adding another 
+				// adding another
 				TestSeven node3 = app.create(TestSeven.class, props);
 
 				tx.success();
 			}
 
 			fail("Expected a FrameworkException (name must_not_be_empty)");
-			
+
 		} catch (FrameworkException nfe) {
 			nfe.printStackTrace();
-			
+
 		}
 
 	}
@@ -297,14 +297,14 @@ public class SearchResultsTest extends StructrTest {
 		} catch (FrameworkException ex) {
 
 			ex.printStackTrace();
-			
+
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
 		}
 
 	}
-	
+
 	public void test07SearchByStaticMethod01() {
 
 		try {
@@ -318,7 +318,7 @@ public class SearchResultsTest extends StructrTest {
 			final AbstractNode node = createTestNode(TestOne.class, props);
 
 			try (final Tx tx = app.tx()) {
-				
+
 				Result result = app.nodeQuery(TestOne.class).andName(name).includeDeletedAndHidden().getResult();
 
 				assertTrue(result.size() == 1);
@@ -329,7 +329,7 @@ public class SearchResultsTest extends StructrTest {
 		} catch (FrameworkException ex) {
 
 			ex.printStackTrace();
-			
+
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -359,7 +359,7 @@ public class SearchResultsTest extends StructrTest {
 		} catch (FrameworkException ex) {
 
 			ex.printStackTrace();
-			
+
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -388,7 +388,7 @@ public class SearchResultsTest extends StructrTest {
 		} catch (FrameworkException ex) {
 
 			ex.printStackTrace();
-			
+
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -404,7 +404,7 @@ public class SearchResultsTest extends StructrTest {
 			AbstractNode node = createTestNode(TestOne.class, props);
 
 			try (final Tx tx = app.tx()) {
-				
+
 				Result result = app.nodeQuery(TestOne.class).and(TestOne.aString, null).includeDeletedAndHidden().getResult();
 
 				assertTrue(result.size() == 1);
@@ -414,7 +414,7 @@ public class SearchResultsTest extends StructrTest {
 		} catch (FrameworkException ex) {
 
 			ex.printStackTrace();
-			
+
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -430,7 +430,7 @@ public class SearchResultsTest extends StructrTest {
 			AbstractNode node = createTestNode(TestOne.class, props);
 
 			try (final Tx tx = app.tx()) {
-				
+
 				Result result = app.nodeQuery(TestOne.class).and(TestOne.aDate, null).includeDeletedAndHidden().getResult();
 
 				assertTrue(result.size() == 1);
@@ -440,14 +440,14 @@ public class SearchResultsTest extends StructrTest {
 		} catch (FrameworkException ex) {
 
 			ex.printStackTrace();
-			
+
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
 		}
 
 	}
-	
+
 	public void test11SearchByEmptyIntField() {
 
 		try {
@@ -456,7 +456,7 @@ public class SearchResultsTest extends StructrTest {
 			AbstractNode node = createTestNode(TestOne.class, props);
 
 			try (final Tx tx = app.tx()) {
-				
+
 				Result result = app.nodeQuery(TestOne.class).and(TestOne.anInt, null).includeDeletedAndHidden().getResult();
 
 				assertTrue(result.size() == 1);
@@ -466,18 +466,18 @@ public class SearchResultsTest extends StructrTest {
 		} catch (Throwable ex) {
 
 			ex.printStackTrace();
-			
+
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
 		}
 
 	}
-	
+
 	public void test12SearchByEmptyLongField() {
 
 		try {
-			
+
 			PropertyMap props     = new PropertyMap();
 			AbstractNode node = createTestNode(TestOne.class, props);
 
@@ -492,36 +492,38 @@ public class SearchResultsTest extends StructrTest {
 		} catch (FrameworkException ex) {
 
 			ex.printStackTrace();
-			
+
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
 		}
 
-	}	
+	}
 
 	public void test13SearchByEmptyDoubleField() {
 
 		try {
-			
+
 			PropertyMap props = new PropertyMap();
 			AbstractNode node = createTestNode(TestOne.class, props);
 
 			try (final Tx tx = app.tx()) {
-				
+
 				Result result = app.nodeQuery(TestOne.class).and(TestOne.aDouble, null).includeDeletedAndHidden().getResult();
 				assertTrue(result.size() == 1);
 				assertTrue(result.get(0).equals(node));
+
+				tx.success();
 			}
 
 		} catch (FrameworkException ex) {
 
 			ex.printStackTrace();
-			
+
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
 		}
 
-	}	
+	}
 }

@@ -18,6 +18,7 @@
  */
 package org.structr.module;
 
+import org.structr.api.service.Service;
 import org.structr.agent.Agent;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;

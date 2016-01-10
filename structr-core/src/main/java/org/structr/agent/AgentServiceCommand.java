@@ -18,11 +18,11 @@
  */
 package org.structr.agent;
 
-import org.structr.core.Command;
+import org.structr.api.service.Command;
 
 /**
  * Abstract base class for agent service commands.
- * 
+ *
  *
  */
 public abstract class AgentServiceCommand extends Command

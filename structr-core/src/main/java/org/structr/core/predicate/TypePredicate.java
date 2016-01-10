@@ -20,9 +20,8 @@ package org.structr.core.predicate;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Node;
-import org.structr.common.SecurityContext;
-import org.structr.core.Predicate;
+import org.structr.api.graph.Node;
+import org.structr.api.Predicate;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -41,27 +40,21 @@ public class TypePredicate implements Predicate<Node> {
 	}
 
 	@Override
-	public boolean evaluate(SecurityContext securityContext, Node... nodes) {
-		
-		if(nodes.length > 0) {
+	public boolean accept(Node node) {
 
-			Node node = nodes[0];
-			
-			if(node.hasProperty(AbstractNode.type.dbName())) {
+		if(node.hasProperty(AbstractNode.type.dbName())) {
 
-				String value = (String)node.getProperty(AbstractNode.type.dbName());
+			String value = (String)node.getProperty(AbstractNode.type.dbName());
 
-				logger.log(Level.FINEST, "Type property: {0}, expected {1}", new Object[] { value, type } );
+			logger.log(Level.FINEST, "Type property: {0}, expected {1}", new Object[] { value, type } );
 
-				return type.equals(value);
+			return type.equals(value);
 
-			} else {
+		} else {
 
-				logger.log(Level.WARNING, "Node has no type property.");
-			}
+			logger.log(Level.WARNING, "Node has no type property.");
 		}
 
 		return false;
 	}
-
 }

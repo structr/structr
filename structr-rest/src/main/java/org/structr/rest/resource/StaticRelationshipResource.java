@@ -32,9 +32,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ScriptRuntime;
-import org.neo4j.graphdb.Node;
-import org.neo4j.helpers.Predicate;
-import org.neo4j.helpers.collection.Iterables;
+import org.structr.api.util.Iterables;
+import org.structr.api.graph.Node;
+import org.structr.api.Predicate;
 
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;

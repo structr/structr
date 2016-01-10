@@ -18,6 +18,8 @@
  */
 package org.structr.core.property;
 
+import org.structr.api.Predicate;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 
@@ -45,7 +47,7 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 	}
 
 	@Override
-	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		StringBuilder combinedPropertyValue = new StringBuilder();
 		int len = propertyKeys.length;
@@ -77,7 +79,7 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 	}
 
 	@Override
-	public Integer getSortType() {
-		return null;
+	public SortType getSortType() {
+		return SortType.Default;
 	}
 }

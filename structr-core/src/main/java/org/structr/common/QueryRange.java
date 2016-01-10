@@ -18,16 +18,12 @@
  */
 package org.structr.common;
 
-import java.util.logging.Logger;
-import org.neo4j.helpers.Predicate;
-
+import org.structr.api.Predicate;
 /**
  *
  *
  */
 public class QueryRange implements Predicate {
-
-	private static final Logger logger = Logger.getLogger(QueryRange.class.getName());
 
 	private int start = 0;
 	private int end   = 0;
@@ -49,7 +45,7 @@ public class QueryRange implements Predicate {
 
 		return result;
 	}
-	
+
 	public void resetCount() {
 		count = 0;
 	}

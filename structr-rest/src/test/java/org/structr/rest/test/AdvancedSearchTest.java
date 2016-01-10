@@ -544,8 +544,8 @@ public class AdvancedSearchTest extends StructrRestTest {
 			.when()
 				.get(concat("/test_nines"));
 
-		// test geocoding, expected result is a list of 3 objects
-		// test05, test06 and test07
+		// test geocoding, expected result is a list of 2 objects
+		// test01 and test02
 		RestAssured
 
 			.given()
@@ -790,6 +790,7 @@ public class AdvancedSearchTest extends StructrRestTest {
 			final List<TestUser> users       = createTestNodes(TestUser.class, 3);
 			final List<TestThree> testThrees = new LinkedList<>();
 			final Random random              = new Random();
+			String uuid                      = null;
 			int count                        = 0;
 
 			try (final Tx tx = app.tx()) {
@@ -807,6 +808,8 @@ public class AdvancedSearchTest extends StructrRestTest {
 					}
 				}
 
+				uuid = users.get(0).getUuid();
+				
 				tx.success();
 			}
 
@@ -834,7 +837,7 @@ public class AdvancedSearchTest extends StructrRestTest {
 					.statusCode(200)
 
 				.when()
-					.get(concat("/test_threes?sort=createdDate&owner=" + users.get(0).getUuid()  + "&enumProperty=" + TestEnum.Status1));
+					.get(concat("/test_threes?sort=createdDate&owner=" + uuid  + "&enumProperty=" + TestEnum.Status1));
 
 
 

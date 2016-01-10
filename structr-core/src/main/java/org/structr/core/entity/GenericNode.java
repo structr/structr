@@ -20,13 +20,12 @@ package org.structr.core.entity;
 
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import org.neo4j.function.Function;
-import org.neo4j.graphdb.Node;
-import org.neo4j.helpers.collection.Iterables;
-import org.neo4j.helpers.collection.LruMap;
+import java.util.function.Function;
+import org.structr.api.util.Iterables;
+import org.structr.api.graph.Node;
+import org.structr.api.util.FixedSizeCache;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -44,7 +43,7 @@ import org.structr.core.property.PropertyKey;
  */
 public class GenericNode extends AbstractNode {
 
-	private static final Map<Long, Set<PropertyKey>> propertyKeys = new LruMap<>(1000);
+	private static final FixedSizeCache<Long, Set<PropertyKey>> propertyKeys = new FixedSizeCache<>(1000);
 
 	@Override
 	public int hashCode() {

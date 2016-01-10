@@ -1,6 +1,6 @@
 package org.structr.core.parser.function;
 
-import org.neo4j.graphdb.Node;
+import org.structr.api.graph.Node;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeFactory;

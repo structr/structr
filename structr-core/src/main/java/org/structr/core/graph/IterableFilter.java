@@ -20,23 +20,23 @@ package org.structr.core.graph;
 
 import java.util.Iterator;
 import java.util.Set;
+import org.structr.common.Filter;
 import org.structr.common.SecurityContext;
-import org.structr.core.Predicate;
 
 /**
  * An Iterable implementation that evaluates a set of predicates evaluate for
  * each element in the collection, deciding whether to include the element or
  * not.
- * 
+ *
  *
  */
 public class IterableFilter<T> implements Iterable<T> {
 
 	private SecurityContext securityContext = null;
-	private Iterator<T> sourceIterator = null;
-	private Set<Predicate<T>> filters = null;
+	private Iterator<T> sourceIterator      = null;
+	private Set<Filter<T>> filters          = null;
 
-	public IterableFilter(SecurityContext securityContext, Iterable<T> source, Set<Predicate<T>> filters) {
+	public IterableFilter(SecurityContext securityContext, Iterable<T> source, Set<Filter<T>> filters) {
 
 		this.sourceIterator = source.iterator();
 		this.filters = filters;
@@ -101,9 +101,10 @@ public class IterableFilter<T> implements Iterable<T> {
 
 		boolean ret = true;
 
-		for(Predicate<T> predicate : filters) {
+		for(Filter<T> predicate : filters) {
 
-			ret &= predicate.evaluate(securityContext, element);
+			predicate.setSecurityContext(securityContext);
+			ret &= predicate.accept(element);
 		}
 
 		return(ret);

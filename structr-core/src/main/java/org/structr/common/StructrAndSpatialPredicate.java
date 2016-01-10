@@ -18,19 +18,11 @@
  */
 package org.structr.common;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import org.apache.commons.lang.StringUtils;
-import org.neo4j.function.Function;
-import org.neo4j.gis.spatial.SpatialRelationshipTypes;
-import org.neo4j.gis.spatial.rtree.RTreeRelationshipTypes;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.helpers.Predicate;
-import org.neo4j.helpers.collection.Iterables;
+import org.structr.api.graph.Node;
+import org.structr.api.Predicate;
+import org.structr.api.graph.PropertyContainer;
+import org.structr.api.graph.Relationship;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.schema.ConfigurationProvider;
@@ -42,16 +34,8 @@ import org.structr.schema.ConfigurationProvider;
 
 public class StructrAndSpatialPredicate<T extends PropertyContainer> implements Predicate<T> {
 
-	private static final Set<String> spatialRelationshipTypes = new LinkedHashSet<>();
-	private static final String typeName                      = GraphObject.type.dbName();
-	private static final String idName                        = GraphObject.id.dbName();
-
-	static {
-
-		// collect spatial relationship types
-		spatialRelationshipTypes.addAll(Iterables.toList(Iterables.map(new RelationshipName(), Arrays.asList(RTreeRelationshipTypes.values()))));
-		spatialRelationshipTypes.addAll(Iterables.toList(Iterables.map(new RelationshipName(), Arrays.asList(SpatialRelationshipTypes.values()))));
-	}
+	private static final String typeName = GraphObject.type.dbName();
+	private static final String idName   = GraphObject.id.dbName();
 
 	private ConfigurationProvider configuration = null;
 	private boolean includeStructr              = false;
@@ -73,7 +57,7 @@ public class StructrAndSpatialPredicate<T extends PropertyContainer> implements 
 
 		if (container instanceof Node) {
 
-			final boolean isSpatialEntity = ((Node)container).hasRelationship(RTreeRelationshipTypes.values());
+			final boolean isSpatialEntity = container.isSpatialEntity();
 
 			if (isStructrEntity) {
 				return includeStructr;
@@ -87,7 +71,7 @@ public class StructrAndSpatialPredicate<T extends PropertyContainer> implements 
 
 		} else if (container instanceof Relationship) {
 
-			final boolean isSpatialEntity = spatialRelationshipTypes.contains(((Relationship)container).getType().name());
+			final boolean isSpatialEntity = container.isSpatialEntity();
 
 			if (isStructrEntity) {
 				return includeStructr;
@@ -138,13 +122,5 @@ public class StructrAndSpatialPredicate<T extends PropertyContainer> implements 
 		}
 
 		return false;
-	}
-
-	private static class RelationshipName implements Function<RelationshipType, String> {
-
-		@Override
-		public String apply(RelationshipType from) {
-			return from.name();
-		}
 	}
 }

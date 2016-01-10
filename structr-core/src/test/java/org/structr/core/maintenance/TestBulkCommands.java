@@ -24,12 +24,11 @@ import java.util.Set;
 import java.util.UUID;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
-import org.neo4j.graphdb.DynamicLabel;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.helpers.collection.Iterables;
+import org.structr.api.DatabaseService;
+import org.structr.api.util.Iterables;
+import org.structr.api.graph.Label;
+import org.structr.api.graph.Node;
+import org.structr.api.Transaction;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Group;
@@ -50,17 +49,17 @@ public class TestBulkCommands extends StructrTest {
 
 		try {
 
-			final GraphDatabaseService graphDb = app.getGraphDatabaseService();
-			final Set<Label> expectedLabels    = new LinkedHashSet<>();
+			final DatabaseService graphDb   = app.getDatabaseService();
+			final Set<Label> expectedLabels = new LinkedHashSet<>();
 
-			expectedLabels.add(DynamicLabel.label("Principal"));
-			expectedLabels.add(DynamicLabel.label("Group"));
-			expectedLabels.add(DynamicLabel.label("AccessControllable"));
-			expectedLabels.add(DynamicLabel.label("AbstractUser"));
-			expectedLabels.add(DynamicLabel.label("AbstractNode"));
-			expectedLabels.add(DynamicLabel.label("NodeInterface"));
-			expectedLabels.add(DynamicLabel.label("CMISInfo"));
-			expectedLabels.add(DynamicLabel.label("CMISItemInfo"));
+			expectedLabels.add(graphDb.forName(Label.class, "Principal"));
+			expectedLabels.add(graphDb.forName(Label.class, "Group"));
+			expectedLabels.add(graphDb.forName(Label.class, "AccessControllable"));
+			expectedLabels.add(graphDb.forName(Label.class, "AbstractUser"));
+			expectedLabels.add(graphDb.forName(Label.class, "AbstractNode"));
+			expectedLabels.add(graphDb.forName(Label.class, "NodeInterface"));
+			expectedLabels.add(graphDb.forName(Label.class, "CMISInfo"));
+			expectedLabels.add(graphDb.forName(Label.class, "CMISItemInfo"));
 
 			// intentionally create raw Neo4j transaction and create nodes in there
 			try (Transaction tx = graphDb.beginTx()) {
@@ -86,8 +85,8 @@ public class TestBulkCommands extends StructrTest {
 			}
 
 			// test rebuild index and create labels
-			app.command(BulkRebuildIndexCommand.class).execute(new LinkedHashMap<String, Object>());
-			app.command(BulkCreateLabelsCommand.class).execute(new LinkedHashMap<String, Object>());
+			app.command(BulkRebuildIndexCommand.class).execute(new LinkedHashMap<>());
+			app.command(BulkCreateLabelsCommand.class).execute(new LinkedHashMap<>());
 
 			// nodes should now be visible to Structr
 			try (final Tx tx = app.tx()) {
@@ -100,11 +99,11 @@ public class TestBulkCommands extends StructrTest {
 
 					final Set<Label> labels = Iterables.toSet(group.getNode().getLabels());
 
-					assertEquals(8, labels.size());
-					assertTrue(labels.containsAll(expectedLabels));
+					assertEquals("Invalid number of labels", 8, labels.size());
+					assertTrue("Invalid labels found", labels.containsAll(expectedLabels));
 				}
 
-
+				tx.success();
 			}
 
 		} catch (FrameworkException fex) {
@@ -119,7 +118,7 @@ public class TestBulkCommands extends StructrTest {
 
 		try {
 
-			final GraphDatabaseService graphDb = app.getGraphDatabaseService();
+			final DatabaseService graphDb = app.getDatabaseService();
 
 			// intentionally create raw Neo4j transaction and create nodes in there
 			try (Transaction tx = graphDb.beginTx()) {
@@ -146,7 +145,7 @@ public class TestBulkCommands extends StructrTest {
 			}
 
 			// test rebuild index
-			app.command(BulkRebuildIndexCommand.class).execute(new LinkedHashMap<String, Object>());
+			app.command(BulkRebuildIndexCommand.class).execute(new LinkedHashMap<>());
 
 			// nodes should now be visible to Structr
 			try (final Tx tx = app.tx()) {

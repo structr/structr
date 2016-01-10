@@ -19,8 +19,6 @@
 package org.structr.core.graph;
 
 import java.util.Collection;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -33,8 +31,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Result;
+import org.structr.api.DatabaseService;
+import org.structr.api.NativeResult;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.GenericProperty;
 
@@ -68,11 +68,11 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 	public List<GraphObject> execute(String query, Map<String, Object> parameters, boolean includeHiddenAndDeleted, boolean publicOnly) throws FrameworkException {
 
-		GraphDatabaseService graphDb    = (GraphDatabaseService) arguments.get("graphDb");
+		DatabaseService graphDb         = (DatabaseService) arguments.get("graphDb");
 		RelationshipFactory relFactory  = new RelationshipFactory(securityContext);
 		NodeFactory nodeFactory         = new NodeFactory(securityContext);
 		List<GraphObject> resultList    = new LinkedList<>();
-		Result result                   = null;
+		NativeResult result             = null;
 
 		if (parameters != null) {
 

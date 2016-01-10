@@ -21,12 +21,12 @@ package org.structr.core.app;
 import java.io.Closeable;
 import java.util.List;
 import java.util.Map;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
+import org.structr.api.service.Command;
 import org.structr.core.GraphObject;
-import org.structr.core.Service;
+import org.structr.api.service.Service;
 import org.structr.agent.Task;
+import org.structr.api.DatabaseService;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeAttribute;
@@ -83,7 +83,7 @@ public interface App extends Closeable {
 	public List<GraphObject> cypher(final String cypherQuery, final Map<String, Object> parameters) throws FrameworkException;
 
 	public <T extends Service> T getService(final Class<T> serviceClass);
-	public GraphDatabaseService getGraphDatabaseService();
+	public DatabaseService getDatabaseService();
 
 	public <T> T getGlobalSetting(final String key, final T defaultValue) throws FrameworkException;
 	public void setGlobalSetting(final String key, final Object value) throws FrameworkException;

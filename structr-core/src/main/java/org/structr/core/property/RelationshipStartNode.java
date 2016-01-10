@@ -23,6 +23,8 @@
 
 package org.structr.core.property;
 
+import org.structr.api.Predicate;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
@@ -51,11 +53,6 @@ public class RelationshipStartNode<T extends AbstractNode> extends AbstractReadO
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
-		return null;
-	}
-
-	@Override
-	public Object getValueForEmptyFields() {
 		return null;
 	}
 
@@ -90,7 +87,7 @@ public class RelationshipStartNode<T extends AbstractNode> extends AbstractReadO
 	}
 
 	@Override
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 		return (T)((AbstractRelationship)obj).getSourceNode();
 	}
 
@@ -100,8 +97,7 @@ public class RelationshipStartNode<T extends AbstractNode> extends AbstractReadO
 	}
 
 	@Override
-	public Integer getSortType() {
-		return null;
+	public SortType getSortType() {
+		return SortType.Default;
 	}
-
 }

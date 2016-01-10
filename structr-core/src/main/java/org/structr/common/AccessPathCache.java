@@ -4,9 +4,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Relationship;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.PropertyContainer;
+import org.structr.api.graph.Relationship;
 import org.structr.core.graph.NodeInterface;
 
 /**

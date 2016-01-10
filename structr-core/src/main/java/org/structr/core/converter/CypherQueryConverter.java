@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.GraphDatabaseService;
+import org.structr.api.DatabaseService;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -42,8 +42,8 @@ public class CypherQueryConverter extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(CypherQueryConverter.class.getName());
 
-	private GraphDatabaseService graphDb    = null;
-	private CypherQueryHandler handler      = null;
+	private DatabaseService graphDb    = null;
+	private CypherQueryHandler handler = null;
 
 	public CypherQueryConverter(SecurityContext securityContext, GraphObject entity, CypherQueryHandler handler) {
 
@@ -52,7 +52,7 @@ public class CypherQueryConverter extends PropertyConverter {
 		this.handler = handler;
 
 		try {
-			graphDb = (GraphDatabaseService)StructrApp.getInstance().command(GraphDatabaseCommand.class).execute();
+			graphDb = (DatabaseService)StructrApp.getInstance().command(GraphDatabaseCommand.class).execute();
 
 		} catch(Throwable t) {
 

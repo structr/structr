@@ -29,6 +29,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
@@ -36,7 +37,8 @@ import org.junit.Rule;
 import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
-import org.neo4j.graphdb.GraphDatabaseService;
+import org.structr.api.DatabaseService;
+import org.structr.api.config.Structr;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -82,7 +84,7 @@ public class StructrTest extends TestCase {
 
 	public void test00DbAvailable() {
 
-		GraphDatabaseService graphDb = graphDbCommand.execute();
+		DatabaseService graphDb = graphDbCommand.execute();
 
 		assertTrue(graphDb != null);
 	}
@@ -371,7 +373,7 @@ public class StructrTest extends TestCase {
 		System.out.println("# Starting " + getClass().getSimpleName() + "#" + getName());
 		System.out.println("######################################################################################");
 
-		final StructrConf config = Services.getBaseConfiguration();
+		final Properties config = Services.getBaseConfiguration();
 		final Date now = new Date();
 		final long timestamp = now.getTime();
 
@@ -381,7 +383,7 @@ public class StructrTest extends TestCase {
 		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
 		config.setProperty(Services.TMP_PATH, "/tmp/");
 		config.setProperty(Services.BASE_PATH, basePath);
-		config.setProperty(Services.DATABASE_PATH, basePath + "/db");
+		config.setProperty(Structr.DATABASE_PATH, basePath + "/db");
 		config.setProperty(Services.FILES_PATH, basePath + "/files");
 		config.setProperty(Services.LOG_DATABASE_PATH, basePath + "/logDb.dat");
 		config.setProperty(Services.TCP_PORT, (System.getProperty("tcpPort") != null ? System.getProperty("tcpPort") : "13465"));

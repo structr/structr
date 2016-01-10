@@ -31,7 +31,7 @@ import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.eclipse.jetty.util.URIUtil;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketException;
-import org.neo4j.graphdb.RelationshipType;
+import org.structr.api.graph.RelationshipType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -317,7 +317,7 @@ public class WebsocketController implements StructrTransactionListener {
 
 					relProperties.put(new StringProperty("startNodeId"), startNode.getUuid());
 					relProperties.put(new StringProperty("endNodeId"), endNode.getUuid());
-		
+
 					final Map<String, Object> properties = PropertyMap.javaTypeToInputType(securityContext, relationship.getClass(), relProperties);
 
 					message.setRelData(properties);

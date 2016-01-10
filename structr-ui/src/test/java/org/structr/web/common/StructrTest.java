@@ -27,11 +27,12 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
-import org.neo4j.graphdb.GraphDatabaseService;
+import org.structr.api.DatabaseService;
+import org.structr.api.config.Structr;
 import org.structr.common.SecurityContext;
-import org.structr.common.StructrConf;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -60,7 +61,7 @@ public class StructrTest extends TestCase {
 
 	//~--- fields ---------------------------------------------------------
 
-	protected StructrConf config                 = new StructrConf();
+	protected Properties config                   = new Properties();
 	protected GraphDatabaseCommand graphDbCommand = null;
 	protected SecurityContext securityContext     = null;
 
@@ -70,7 +71,7 @@ public class StructrTest extends TestCase {
 
 	public void test00DbAvailable() {
 
-		GraphDatabaseService graphDb = graphDbCommand.execute();
+		DatabaseService graphDb = graphDbCommand.execute();
 
 		assertTrue(graphDb != null);
 	}
@@ -85,7 +86,7 @@ public class StructrTest extends TestCase {
 		config.setProperty(Services.CONFIGURED_SERVICES, "ModuleService NodeService");
 		config.setProperty(Services.TMP_PATH, "/tmp/");
 		config.setProperty(Services.BASE_PATH, "/tmp/structr-test-" + timestamp);
-		config.setProperty(Services.DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/db");
+		config.setProperty(Structr.DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/db");
 		config.setProperty(Services.FILES_PATH, "/tmp/structr-test-" + timestamp + "/files");
 		config.setProperty(Services.LOG_DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/logDb.dat");
 		config.setProperty(Services.TCP_PORT, (System.getProperty("tcpPort") != null ? System.getProperty("tcpPort") : "13465"));

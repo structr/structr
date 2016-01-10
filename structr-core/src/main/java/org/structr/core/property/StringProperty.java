@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 import javax.mail.internet.ContentType;
 import javax.mail.internet.ParseException;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -64,51 +65,6 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 			addValidator(validator);
 		}
 	}
-//
-//
-//
-//	public StringProperty(final String jsonName, final ContentType contentType, final String defaultValue) {
-//		this(jsonName, jsonName, contentType, defaultValue, null, new PropertyValidator[0]);
-//	}
-//
-//	public StringProperty(final String jsonName, final ContentType contentType, final String defaultValue, final String format) {
-//		this(jsonName, jsonName, contentType, defaultValue, format, new PropertyValidator[0]);
-//	}
-//
-//
-//
-//	public StringProperty(final String jsonName, final String dbName, final PropertyValidator<String>... validators) {
-//		this(jsonName, dbName, null, null, null, validators);
-//	}
-//
-//	public StringProperty(final String jsonName, final String dbName, final String defaultValue, final PropertyValidator<String>... validators) {
-//		this(jsonName, dbName, null, defaultValue, null, validators);
-//	}
-//
-//	public StringProperty(final String jsonName, final String dbName, final String defaultValue, final String format, final PropertyValidator<String>... validators) {
-//		this(jsonName, dbName, null, defaultValue, format, validators);
-//	}
-//
-//	public StringProperty(final String jsonName, final String dbName, final ContentType contentType, final String defaultValue) {
-//		this(jsonName, dbName, contentType, defaultValue, null, new PropertyValidator[0]);
-//	}
-//
-//	public StringProperty(final String jsonName, final String dbName, final ContentType contentType, final String defaultValue, final String format) {
-//		this(jsonName, dbName, contentType, defaultValue, format, new PropertyValidator[0]);
-//	}
-//
-//
-//
-//	public StringProperty(final String jsonName, final String dbName, final ContentType contentType, final String defaultValue, final String format, final PropertyValidator<String>... validators) {
-//
-//		super(jsonName, dbName, defaultValue);
-//		this.contentType = contentType;
-//		this.format = format;
-//
-//		for (PropertyValidator<String> validator : validators) {
-//			addValidator(validator);
-//		}
-//	}
 
 	@Override
 	public String typeName() {
@@ -136,8 +92,8 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 	}
 
 	@Override
-	public Integer getSortType() {
-		return null;
+	public SortType getSortType() {
+		return SortType.Default;
 	}
 
 	@Override

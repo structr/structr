@@ -18,8 +18,8 @@
  */
 package org.structr.agent;
 
-import org.structr.core.Command;
-import org.structr.core.RunnableService;
+import org.structr.api.service.Command;
+import org.structr.api.service.RunnableService;
 import org.structr.core.Services;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -31,13 +31,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.StructrConf;
+import org.structr.api.service.StructrServices;
 import org.structr.schema.ConfigurationProvider;
 
 //~--- classes ----------------------------------------------------------------
@@ -153,7 +154,8 @@ public class AgentService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final Services services, final StructrConf config) {}
+	public void initialize(final StructrServices services, final Properties config) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	}
 
 	@Override
 	public void initialized() {}

@@ -18,17 +18,17 @@
  */
 package org.structr.rest.common;
 
-import org.neo4j.graphdb.RelationshipType;
+import org.structr.api.graph.RelationshipType;
 
 /**
  *
  *
  */
 public enum TestRestRelType implements RelationshipType {
-	
+
 	MANY_TO_MANY,
 	ONE_TO_MANY,
 	ONE_TO_ONE,
-	
+
 	HAS
 }

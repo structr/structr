@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.GraphDatabaseService;
+import org.structr.api.DatabaseService;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
@@ -125,8 +125,8 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void doImport(final String fileName) throws FrameworkException {
 
-		final App app                      = StructrApp.getInstance();
-		final GraphDatabaseService graphDb = app.getGraphDatabaseService();
+		final App app                 = StructrApp.getInstance();
+		final DatabaseService graphDb = app.getDatabaseService();
 
 		SyncCommand.importFromFile(graphDb, securityContext, fileName, true);
 

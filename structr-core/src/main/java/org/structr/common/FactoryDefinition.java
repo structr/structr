@@ -18,8 +18,8 @@
  */
 package org.structr.common;
 
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeFactory;
@@ -32,43 +32,43 @@ import org.structr.core.graph.RelationshipFactory;
  *
  */
 public interface FactoryDefinition {
-	
+
 	/**
 	 * @return an uninitialized instance of a generic relationship
 	 */
 	public AbstractRelationship createGenericRelationship();
 	public Class getGenericRelationshipType();
-	
+
 	/**
 	 * @return an uninitialized instance of a generic node
 	 */
 	public AbstractNode createGenericNode();
 	public Class getGenericNodeType();
-	
+
 	/**
 	 * Indicates whether the given class is a generic type according to
 	 * this class.
-	 * 
+	 *
 	 * @param entityClass the type to check
 	 * @return whether the given type is a generic type
 	 */
 	public boolean isGeneric(Class<?> entityClass);
-	
+
 	/**
 	 * Returns an entity name for the given node. A node type can be defined
 	 * by the node's surroundings or by a given type property. Its up to the
 	 * user of structr to specify this.
-	 * 
+	 *
 	 * @param node
 	 * @return the entity name as returned by Class.getSimpleName()
 	 */
 	public Class determineNodeType(Node node);
-	
+
 	/**
 	 * Returns an entity name for the given relationship. A relationship type
 	 * can be defined by the relationship's surroundings or by a given type
 	 * property. Its up to the user of Structr to specify this.
-	 * 
+	 *
 	 * @param relationship
 	 * @return the entity name as returned by Class.getSimpleName()
 	 */

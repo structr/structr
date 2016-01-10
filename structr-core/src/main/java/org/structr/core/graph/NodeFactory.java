@@ -18,19 +18,16 @@
  */
 package org.structr.core.graph;
 
-import org.neo4j.graphdb.Node;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 
 
 import java.util.*;
-import org.neo4j.gis.spatial.indexprovider.SpatialRecordHits;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.index.IndexHits;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 import org.structr.common.AccessControllable;
-import org.structr.common.FixedSizeCache;
-import org.structr.core.Result;
+import org.structr.api.util.FixedSizeCache;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.GenericNode;
@@ -73,6 +70,10 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 
 	@Override
 	public T instantiate(final Node node, final Relationship pathSegment) {
+
+		if (node == null) {
+			return null;
+		}
 
 		if (TransactionCommand.isDeleted(node)) {
 			return (T)instantiateWithType(node, null, pathSegment, false);
@@ -136,16 +137,6 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 	}
 
 	@Override
-	public Result instantiate(final IndexHits<Node> input) throws FrameworkException {
-
-		if (input != null && input instanceof SpatialRecordHits) {
-			return resultFromSpatialRecords((SpatialRecordHits) input);
-		}
-
-		return super.instantiate(input);
-	}
-
-	@Override
 	public T instantiateDummy(final Node entity, final String entityType) throws FrameworkException {
 
 		Map<String, Class<? extends NodeInterface>> entities = StructrApp.getConfiguration().getNodeEntities();
@@ -169,67 +160,6 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 
 	public static void invalidateCache() {
 		idTypeMap.clear();
-	}
-
-	private Result resultFromSpatialRecords(final SpatialRecordHits spatialRecordHits) throws FrameworkException {
-
-		final int pageSize                    = factoryProfile.getPageSize();
-		final SecurityContext securityContext = factoryProfile.getSecurityContext();
-		final boolean includeDeletedAndHidden = factoryProfile.includeDeletedAndHidden();
-		final boolean publicOnly              = factoryProfile.publicOnly();
-		List<T> nodes                         = new LinkedList<>();
-		int size                              = spatialRecordHits.size();
-		int position                          = 0;
-		int count                             = 0;
-		int offset                            = 0;
-
-		try (final SpatialRecordHits closeable = spatialRecordHits) {
-
-			for (Node node : closeable) {
-
-				Node realNode = node;
-				if (realNode != null) {
-
-					// FIXME: type cast is not good here...
-					T n = instantiate(realNode);
-
-					nodes.add(n);
-
-					// Check is done in createNodeWithType already, so we don't have to do it again
-					if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
-
-						List<T> nodesAt = (List<T>)getNodesAt(n);
-
-						size += nodesAt.size();
-
-						for (T nodeAt : nodesAt) {
-
-							if (nodeAt != null && securityContext.isReadable(nodeAt, includeDeletedAndHidden, publicOnly)) {
-
-								if (++position > offset) {
-
-									// stop if we got enough nodes
-									if (++count > pageSize) {
-
-										return new Result(nodes, size, true, false);
-									}
-
-									nodes.add((T)nodeAt);
-								}
-
-							}
-
-						}
-
-					}
-
-				}
-
-			}
-		}
-
-		return new Result(nodes, size, true, false);
-
 	}
 
 	/**

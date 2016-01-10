@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -38,7 +39,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 
 	private static final Logger logger = Logger.getLogger(BooleanProperty.class.getName());
 	private static final Set<String> TRUE_VALUES = new LinkedHashSet<>(Arrays.asList(new String[] { "true", "1", "on" }));
-	
+
 	public BooleanProperty(final String name) {
 		super(name);
 	}
@@ -63,8 +64,8 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	}
 
 	@Override
-	public Integer getSortType() {
-		return null;
+	public SortType getSortType() {
+		return SortType.Default;
 	}
 
 	@Override
@@ -88,7 +89,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	public Object fixDatabaseProperty(final Object value) {
 
 		final Boolean fixedValue;
-		
+
 		if (value != null) {
 
 			if (value instanceof Boolean) {
@@ -98,12 +99,12 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 			if (value instanceof String) {
 
 				fixedValue = TRUE_VALUES.contains(value.toString().toLowerCase());
-				
+
 				if (entity != null) {
-					
+
 					try {
 						setProperty(securityContext, entity, fixedValue);
-						
+
 					} catch (FrameworkException fex) {
 						logger.log(Level.SEVERE, "Cound not set fixed property {0} on graph object {1}", new Object[]{fixedValue, entity});
 					}
@@ -112,7 +113,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 				return fixedValue;
 			}
 		}
-		
+
 		return false;
 	}
 

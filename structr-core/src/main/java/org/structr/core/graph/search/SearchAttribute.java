@@ -20,9 +20,10 @@ package org.structr.core.graph.search;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-import org.apache.lucene.search.BooleanClause.Occur;
-import org.apache.lucene.search.Query;
-import org.neo4j.helpers.Predicate;
+import org.structr.api.Predicate;
+import org.structr.api.search.Occurrence;
+import org.structr.api.search.QueryPredicate;
+import org.structr.api.search.SortType;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
@@ -33,40 +34,33 @@ import org.structr.core.property.PropertyKey;
  *
  * @param <T>
  */
-public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Predicate<GraphObject> {
+public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Predicate<GraphObject>, QueryPredicate {
 
 	public static final String WILDCARD = "*";
 
-	private Set<GraphObject> result = new LinkedHashSet<>();
-	private Occur occur             = null;
+ 	private Set<GraphObject> result    = new LinkedHashSet<>();
+	private Occurrence occur           = null;
+	private PropertyKey sortKey        = null;
+	private boolean sortDescending     = false;
 
-	public abstract Query getQuery();
-	public abstract boolean isExactMatch();
 	public abstract boolean includeInResult(GraphObject entity);
-	public abstract String getStringValue();
-	public abstract String getInexactValue();
-	public abstract String getValueForEmptyField();
 
 	public SearchAttribute() {
 		this(null, null);
 	}
-	
-	public SearchAttribute(Occur occur) {
+
+	public SearchAttribute(Occurrence occur) {
 		this(occur, null, null);
 	}
-	
+
 	public SearchAttribute(PropertyKey<T> key, T value) {
 		this(null, key, value);
 	}
-	
-	public SearchAttribute(Occur occur, PropertyKey<T> key, T value) {
-		
+
+	public SearchAttribute(Occurrence occur, PropertyKey<T> key, T value) {
+
 		super(key, value);
 		this.occur = occur;
-	}
-	
-	public Occur getOccur() {
-		return occur;
 	}
 
 	public void setResult(final Set<GraphObject> result) {
@@ -86,10 +80,66 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 	}
 
 	public void setExactMatch(final boolean exact) {};
-	
-	// ----- interface Predicate<Node> -----
+
+	public void setSortKey(final PropertyKey sortKey) {
+		this.sortKey = sortKey;
+	}
+
+	public void sortDescending(final boolean sortDescending) {
+		this.sortDescending = sortDescending;
+	}
+
+	// ----- interface Predicate<GraphObject> -----
 	@Override
 	public boolean accept(final GraphObject obj) {
 		return includeInResult(obj);
+	}
+
+	// ----- interface QueryPredicate -----
+	@Override
+	public Occurrence getOccurrence() {
+		return occur;
+	}
+
+	@Override
+	public String getName() {
+		return getKey().dbName();
+	}
+
+	@Override
+	public Class getType() {
+
+		final PropertyKey key = getKey();
+		if (key != null) {
+
+			return key.valueType();
+		}
+
+		return null;
+	}
+
+	@Override
+	public String getSortKey() {
+
+		if (sortKey != null) {
+			return sortKey.dbName();
+		}
+
+		return "name";
+	}
+
+	@Override
+	public SortType getSortType() {
+
+		if (sortKey != null) {
+			return sortKey.getSortType();
+		}
+
+		return SortType.Default;
+	}
+
+	@Override
+	public boolean sortDescending() {
+		return sortDescending;
 	}
 }

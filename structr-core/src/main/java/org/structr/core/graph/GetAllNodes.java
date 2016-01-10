@@ -20,25 +20,22 @@ package org.structr.core.graph;
 
 import java.util.Collections;
 import java.util.List;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.tooling.GlobalGraphOperations;
+import org.structr.api.DatabaseService;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 
 /**
  * Fetches all the nodes in the database.
- *
- *
  */
 public class GetAllNodes extends NodeServiceCommand {
 
 	public List<AbstractNode> execute() throws FrameworkException {
 
-		GraphDatabaseService graphDb = (GraphDatabaseService)arguments.get("graphDb");
+		DatabaseService graphDb = (DatabaseService)arguments.get("graphDb");
 		NodeFactory nodeFactory = new NodeFactory(securityContext);
 
 		if(graphDb != null) {
-			return nodeFactory.bulkInstantiate(GlobalGraphOperations.at(graphDb).getAllNodes());
+			return nodeFactory.bulkInstantiate(graphDb.getAllNodes());
 		}
 
 		return Collections.emptyList();

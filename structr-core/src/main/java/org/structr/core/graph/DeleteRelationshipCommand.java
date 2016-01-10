@@ -18,8 +18,6 @@
  */
 package org.structr.core.graph;
 
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Relationship;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractRelationship;
@@ -28,6 +26,8 @@ import org.structr.core.entity.AbstractRelationship;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.api.DatabaseService;
+import org.structr.api.graph.Relationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -58,7 +58,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 	public Object execute(final RelationshipInterface rel, final boolean passiveDeletion) {
 
-		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
+		DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
 
 		if (graphDb != null && rel != null) {
 

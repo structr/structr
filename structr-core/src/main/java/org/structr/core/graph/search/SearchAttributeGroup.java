@@ -21,12 +21,9 @@ package org.structr.core.graph.search;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import org.apache.lucene.search.BooleanClause.Occur;
-import static org.apache.lucene.search.BooleanClause.Occur.MUST;
-import static org.apache.lucene.search.BooleanClause.Occur.MUST_NOT;
-import static org.apache.lucene.search.BooleanClause.Occur.SHOULD;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.Query;
+import org.structr.api.search.GroupQuery;
+import org.structr.api.search.Occurrence;
+import org.structr.api.search.QueryPredicate;
 import org.structr.core.GraphObject;
 
 /**
@@ -34,16 +31,16 @@ import org.structr.core.GraphObject;
  *
  *
  */
-public class SearchAttributeGroup extends SearchAttribute {
+public class SearchAttributeGroup extends SearchAttribute implements GroupQuery {
 
 	private List<SearchAttribute> searchItems = new LinkedList<>();
 	private SearchAttributeGroup parent       = null;
 
-	public SearchAttributeGroup(final Occur occur) {
+	public SearchAttributeGroup(final Occurrence occur) {
 		this(null, occur);
 	}
 
-	public SearchAttributeGroup(final SearchAttributeGroup parent, final Occur occur) {
+	public SearchAttributeGroup(final SearchAttributeGroup parent, final Occurrence occur) {
 
 		super(occur);
 		this.parent = parent;
@@ -87,22 +84,6 @@ public class SearchAttributeGroup extends SearchAttribute {
 	}
 
 	@Override
-	public Query getQuery() {
-
-		BooleanQuery query = new BooleanQuery();
-
-		for (SearchAttribute attr : getSearchAttributes()) {
-
-			Query subQuery = attr.getQuery();
-			Occur occur    = attr.getOccur();
-
-			query.add(subQuery, occur);
-		}
-
-		return query;
-	}
-
-	@Override
 	public boolean isExactMatch() {
 
 		boolean exactMatch = true;
@@ -116,29 +97,19 @@ public class SearchAttributeGroup extends SearchAttribute {
 	}
 
 	@Override
-	public String getStringValue() {
-		return null;
-	}
-
-	@Override
-	public String getInexactValue() {
-		return null;
-	}
-
-	@Override
 	public boolean includeInResult(GraphObject entity) {
 
 		boolean includeInResult = true;
 
 		for (SearchAttribute attr : getSearchAttributes()) {
 
-			switch (attr.getOccur()) {
+			switch (attr.getOccurrence()) {
 
-				case MUST:
+				case REQUIRED:
 					includeInResult &= attr.includeInResult(entity);
 					break;
 
-				case SHOULD:
+				case OPTIONAL:
 					// special behaviour for OR'ed predicates
 					if (attr.includeInResult(entity)) {
 
@@ -155,7 +126,7 @@ public class SearchAttributeGroup extends SearchAttribute {
 					break;
 
 
-				case MUST_NOT:
+				case FORBIDDEN:
 					includeInResult &= !attr.includeInResult(entity);
 					break;
 			}
@@ -163,11 +134,6 @@ public class SearchAttributeGroup extends SearchAttribute {
 
 
 		return includeInResult;
-	}
-
-	@Override
-	public String getValueForEmptyField() {
-		return null;
 	}
 
 	@Override
@@ -180,4 +146,20 @@ public class SearchAttributeGroup extends SearchAttribute {
 
 	}
 
+	@Override
+	public Class getQueryType() {
+		return GroupQuery.class;
+	}
+
+	@Override
+	public List<QueryPredicate> getQueryPredicates() {
+
+		final List<QueryPredicate> predicates = new LinkedList<>();
+		for (final SearchAttribute attr : searchItems) {
+
+			predicates.add(attr);
+		}
+
+		return predicates;
+	}
 }

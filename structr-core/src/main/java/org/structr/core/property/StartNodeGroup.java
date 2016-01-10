@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractRelationship;
@@ -26,11 +27,11 @@ import org.structr.core.graph.RelationshipInterface;
 
 /**
  * A property group that returns grouped properties from the start node of a relationship.
- * 
+ *
  *
  */
 public class StartNodeGroup extends GroupProperty {
-	
+
 	public StartNodeGroup(String name, Class<? extends GraphObject> entityClass, PropertyKey... properties) {
 		super(name, entityClass, properties);
 	}
@@ -48,7 +49,7 @@ public class StartNodeGroup extends GroupProperty {
 
 		return null;
 	}
-	
+
 	@Override
 	public String typeName() {
 		return ""; // read-only
@@ -60,7 +61,7 @@ public class StartNodeGroup extends GroupProperty {
 	}
 
 	@Override
-	public Integer getSortType() {
-		return null;
+	public SortType getSortType() {
+		return SortType.Default;
 	}
 }

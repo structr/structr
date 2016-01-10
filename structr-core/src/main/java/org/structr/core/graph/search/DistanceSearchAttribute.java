@@ -18,8 +18,8 @@
  */
 package org.structr.core.graph.search;
 
-import org.apache.lucene.search.BooleanClause.Occur;
-import org.apache.lucene.search.Query;
+import org.structr.api.search.Occurrence;
+import org.structr.api.search.SpatialQuery;
 import org.structr.core.GraphObject;
 
 /**
@@ -29,17 +29,18 @@ import org.structr.core.GraphObject;
  *
  *
  */
-public class DistanceSearchAttribute extends SearchAttribute {
+public class DistanceSearchAttribute extends SearchAttribute implements SpatialQuery {
 
-	private Double distance = null;
-	private String street = null;
-	private String house = null;
+	private Double[] coords   = null;
+	private Double distance   = null;
+ 	private String street     = null;
+ 	private String house      = null;
 	private String postalCode = null;
-	private String city = null;
-	private String state = null;
-	private String country = null;
+	private String city       = null;
+	private String state      = null;
+	private String country    = null;
 
-	public DistanceSearchAttribute(final String street, final String house, final String postalCode, final String city, final String state, final String country, final Double distance, final Occur occur) {
+	public DistanceSearchAttribute(final String street, final String house, final String postalCode, final String city, final String state, final String country, final Double distance, final Occurrence occur) {
 
 		super(occur);
 
@@ -60,10 +61,6 @@ public class DistanceSearchAttribute extends SearchAttribute {
 
 	@Override
 	public Double getValue() {
-		return distance;
-	}
-
-	public Double getDistance() {
 		return distance;
 	}
 
@@ -120,23 +117,8 @@ public class DistanceSearchAttribute extends SearchAttribute {
 	}
 
 	@Override
-	public Query getQuery() {
-		return null;
-	}
-
-	@Override
 	public boolean isExactMatch() {
 		return true;	// ignored
-	}
-
-	@Override
-	public String getStringValue() {
-		return null;
-	}
-
-	@Override
-	public String getInexactValue() {
-		return null;
 	}
 
 	@Override
@@ -144,8 +126,22 @@ public class DistanceSearchAttribute extends SearchAttribute {
 		return true;
 	}
 
+	public void setCoords(final Double[] coords) {
+		this.coords = coords;
+	}
+
 	@Override
-	public String getValueForEmptyField() {
-		return null;
+	public Class getQueryType() {
+		return SpatialQuery.class;
+	}
+
+	@Override
+	public Double[] getCoords() {
+		return coords;
+	}
+
+	@Override
+	public Double getDistance() {
+		return distance;
 	}
 }

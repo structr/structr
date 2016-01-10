@@ -20,9 +20,9 @@ package org.structr.core.property;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-import org.neo4j.graphdb.DynamicLabel;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
+import org.structr.api.DatabaseService;
+import org.structr.api.graph.Label;
+import org.structr.api.graph.Node;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -58,6 +58,7 @@ public class TypeProperty extends StringProperty {
 		if (obj instanceof NodeInterface) {
 
 			final Class type              = StructrApp.getConfiguration().getNodeEntityClass(value);
+			final DatabaseService db      = StructrApp.getInstance().getDatabaseService();
 			final Set<Label> intersection = new LinkedHashSet<>();
 			final Set<Label> toRemove     = new LinkedHashSet<>();
 			final Set<Label> toAdd        = new LinkedHashSet<>();
@@ -74,7 +75,7 @@ public class TypeProperty extends StringProperty {
 				final String supertypeName = supertype.getName();
 
 				if (supertypeName.startsWith("org.structr.") || supertypeName.startsWith("com.structr.")) {
-					toAdd.add(DynamicLabel.label(supertype.getSimpleName()));
+					toAdd.add(db.forName(Label.class, supertype.getSimpleName()));
 				}
 			}
 

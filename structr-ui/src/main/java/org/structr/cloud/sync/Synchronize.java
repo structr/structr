@@ -23,10 +23,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.tooling.GlobalGraphOperations;
+import org.structr.api.DatabaseService;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.message.Finish;
 import org.structr.cloud.message.Message;
@@ -45,12 +44,11 @@ public class Synchronize extends Message {
 	@Override
 	public void onRequest(final CloudConnection serverConnection) throws IOException, FrameworkException {
 
-		final GraphDatabaseService graphDb   = StructrApp.getInstance().getGraphDatabaseService();
-		final GlobalGraphOperations ggo      = GlobalGraphOperations.at(graphDb);
+		final DatabaseService graphDb        = StructrApp.getInstance().getDatabaseService();
 		final String uuidPropertyName        = GraphObject.id.dbName();
 		final Set<Long> visitedObjectIDs     = new HashSet<>();
 
-		for (final Node node : ggo.getAllNodes()) {
+		for (final Node node : graphDb.getAllNodes()) {
 
 			if (!visitedObjectIDs.contains(node.getId())) {
 
@@ -67,7 +65,7 @@ public class Synchronize extends Message {
 		// clear set of visited objects because node and relationship IDs are offsets and can overlap.
 		visitedObjectIDs.clear();
 
-		for (final Relationship relationship : ggo.getAllRelationships()) {
+		for (final Relationship relationship : graphDb.getAllRelationships()) {
 
 			if (!visitedObjectIDs.contains(relationship.getId())) {
 

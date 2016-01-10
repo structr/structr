@@ -24,6 +24,8 @@
 package org.structr.core.property;
 
 import java.util.List;
+import org.structr.api.Predicate;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
@@ -53,11 +55,6 @@ public class NodeRelationshipProperty<T extends AbstractRelationship> extends Ab
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
-		return null;
-	}
-
-	@Override
-	public Object getValueForEmptyFields() {
 		return null;
 	}
 
@@ -92,7 +89,7 @@ public class NodeRelationshipProperty<T extends AbstractRelationship> extends Ab
 	}
 
 	@Override
-	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		// FIXME
 
@@ -108,7 +105,7 @@ public class NodeRelationshipProperty<T extends AbstractRelationship> extends Ab
 	}
 
 	@Override
-	public Integer getSortType() {
-		return null;
+	public SortType getSortType() {
+		return SortType.Default;
 	}
 }

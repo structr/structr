@@ -31,7 +31,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import javatools.parsers.PlingStemmer;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.graphdb.PropertyContainer;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.common.CaseHelper;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PermissionPropagation;
@@ -300,7 +300,7 @@ public class SchemaHelper {
 		try {
 
 			ResourceAccess grant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
-			
+
 			if (grant == null) {
 
 				// create new grant
@@ -321,7 +321,7 @@ public class SchemaHelper {
 
 			ResourceAccess uiViewGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature + "/_Ui").getFirst();
 			if (uiViewGrant == null) {
-			
+
 				// create additional grant for the Ui view
 				grants.add(app.create(DynamicResourceAccess.class,
 					new NodeAttribute(DynamicResourceAccess.signature, signature + "/_Ui"),
@@ -1005,7 +1005,7 @@ public class SchemaHelper {
 			Relation relation = ((RelationProperty) property).getRelation();
 			if (relation != null) {
 
-				map.put("relationshipType", relation.name());
+				map.put("relationshipType", relation);
 			}
 
 		}

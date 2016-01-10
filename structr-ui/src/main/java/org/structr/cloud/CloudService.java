@@ -23,16 +23,17 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.crypto.Cipher;
 import org.structr.cloud.message.AuthenticationRequest;
 import org.structr.cloud.message.Begin;
 import org.structr.common.SecurityContext;
-import org.structr.common.StructrConf;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
-import org.structr.core.RunnableService;
+import org.structr.api.service.Command;
+import org.structr.api.service.RunnableService;
+import org.structr.api.service.StructrServices;
 import org.structr.core.Services;
 
 /**
@@ -77,7 +78,7 @@ public class CloudService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final Services services, final StructrConf config) {
+	public void initialize(final StructrServices services, final Properties config) {
 
 		tcpPort       = Integer.parseInt(config.getProperty(Services.TCP_PORT, "54555"));
 		DEBUG         = Boolean.parseBoolean(config.getProperty("sync.debug", "false"));

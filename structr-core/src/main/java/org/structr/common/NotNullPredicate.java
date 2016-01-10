@@ -18,7 +18,8 @@
  */
 package org.structr.common;
 
-import org.neo4j.helpers.Predicate;
+import org.structr.api.Predicate;
+
 
 /**
  *

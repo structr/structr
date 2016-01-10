@@ -20,7 +20,7 @@ package org.structr.core.graph;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.helpers.Predicate;
+import org.structr.api.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 

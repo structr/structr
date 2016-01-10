@@ -18,7 +18,10 @@
  */
 package org.structr.core.entity;
 
-import org.neo4j.graphdb.Direction;
+import org.structr.api.graph.Direction;
+import static org.structr.api.graph.Direction.BOTH;
+import static org.structr.api.graph.Direction.INCOMING;
+import static org.structr.api.graph.Direction.OUTGOING;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DuplicateRelationshipToken;
 import org.structr.common.error.FrameworkException;

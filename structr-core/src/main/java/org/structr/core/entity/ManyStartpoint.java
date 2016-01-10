@@ -23,14 +23,14 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.function.Function;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.helpers.Predicate;
-import org.neo4j.helpers.collection.Iterables;
+import org.structr.api.graph.Direction;
+import org.structr.api.util.Iterables;
+import org.structr.api.graph.Node;
+import org.structr.api.Predicate;
+import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -103,7 +103,7 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 
 				if (sourceNode.equals(targetNode)) {
 
-					logger.log(Level.WARNING, "Preventing deletion of self relationship {0}-[{1}]->{2}. If you experience issue with this, please report to team@structr.com.", new Object[] { sourceNode, rel.getRelType().name(), targetNode } );
+					logger.log(Level.WARNING, "Preventing deletion of self relationship {0}-[{1}]->{2}. If you experience issue with this, please report to team@structr.com.", new Object[] { sourceNode, rel.getRelType(), targetNode } );
 
 					// skip self relationships
 					continue;

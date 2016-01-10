@@ -18,9 +18,11 @@
  */
 package org.structr.core.entity;
 
+import java.util.Date;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.DateProperty;
 import org.structr.core.property.DoubleProperty;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.IntProperty;
@@ -46,6 +48,7 @@ public class TestFour extends AbstractNode {
 	public static final Property<Double>        doubleProperty      = new DoubleProperty("doubleProperty").indexed();
 	public static final Property<Integer>       integerProperty     = new IntProperty("integerProperty").indexed();
 	public static final Property<Long>          longProperty        = new LongProperty("longProperty").indexed();
+	public static final Property<Date>          dateProperty        = new DateProperty("dateProperty").indexed();
 	public static final Property<String>        stringProperty      = new StringProperty("stringProperty").indexed();
 	public static final Property<TestEnum>      enumProperty        = new EnumProperty("enumProperty", TestEnum.class).indexed();
 

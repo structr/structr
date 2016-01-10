@@ -18,23 +18,17 @@
  */
 package org.structr.core.property;
 
-import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.SortField;
-import org.neo4j.index.lucene.ValueContext;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NumberToken;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
-import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeService.NodeIndex;
-import org.structr.core.graph.search.DoubleSearchAttribute;
-import org.structr.core.graph.search.SearchAttribute;
 
 /**
  * A property that stores and retrieves a simple Double value.
@@ -42,8 +36,6 @@ import org.structr.core.graph.search.SearchAttribute;
  *
  */
 public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements NumericalPropertyKey<Double> {
-
-	private static final Logger logger = Logger.getLogger(DoubleProperty.class.getName());
 
 	public DoubleProperty(final String name) {
 		this(name, name, null);
@@ -91,8 +83,8 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 	}
 
 	@Override
-	public Integer getSortType() {
-		return SortField.DOUBLE;
+	public SortType getSortType() {
+		return SortType.Double;
 	}
 
 	@Override
@@ -200,13 +192,8 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, Double searchValue, boolean exactMatch, final Query query) {
-		return new DoubleSearchAttribute(this, searchValue, occur, exactMatch);
-	}
-
-	@Override
 	public void index(GraphObject entity, Object value) {
-		super.index(entity, value != null ? ValueContext.numeric((Number) fixDatabaseProperty(value)) : value);
+		super.index(entity, fixDatabaseProperty(value));
 	}
 
 	// ----- CMIS support -----

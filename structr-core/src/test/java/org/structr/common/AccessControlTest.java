@@ -149,6 +149,7 @@ public class AccessControlTest extends StructrTest {
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
 
 			try (final Tx tx = app.tx()) {
+
 				Result result = StructrApp.getInstance(publicContext).nodeQuery(type).getResult();
 
 				assertEquals(1, result.size());

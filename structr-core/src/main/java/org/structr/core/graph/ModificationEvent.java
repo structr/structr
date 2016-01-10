@@ -19,7 +19,7 @@
 package org.structr.core.graph;
 
 import java.util.Map;
-import org.neo4j.graphdb.RelationshipType;
+import org.structr.api.graph.RelationshipType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;

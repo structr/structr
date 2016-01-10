@@ -18,8 +18,7 @@
  */
 package org.structr.core.graph.search;
 
-import org.apache.lucene.search.BooleanClause.Occur;
-import org.apache.lucene.search.Query;
+import org.structr.api.search.Occurrence;
 import org.structr.core.GraphObject;
 
 /**
@@ -28,7 +27,7 @@ import org.structr.core.GraphObject;
  */
 public class SourceSearchAttribute<T> extends SearchAttribute<T> {
 
-	public SourceSearchAttribute(Occur occur) {
+	public SourceSearchAttribute(Occurrence occur) {
 		super(occur);
 	}
 
@@ -38,23 +37,8 @@ public class SourceSearchAttribute<T> extends SearchAttribute<T> {
 	}
 
 	@Override
-	public Query getQuery() {
-		return null;
-	}
-
-	@Override
 	public boolean isExactMatch() {
 		return true;
-	}
-
-	@Override
-	public String getStringValue() {
-		return null;
-	}
-
-	@Override
-	public String getInexactValue() {
-		return null;
 	}
 
 	@Override
@@ -63,7 +47,7 @@ public class SourceSearchAttribute<T> extends SearchAttribute<T> {
 	}
 
 	@Override
-	public String getValueForEmptyField() {
+	public Class getQueryType() {
 		return null;
 	}
 }

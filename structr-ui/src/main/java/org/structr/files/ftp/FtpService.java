@@ -18,15 +18,16 @@
  */
 package org.structr.files.ftp;
 
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.listener.ListenerFactory;
-import org.structr.common.StructrConf;
-import org.structr.core.Command;
-import org.structr.core.RunnableService;
+import org.structr.api.service.Command;
+import org.structr.api.service.RunnableService;
+import org.structr.api.service.StructrServices;
 import org.structr.core.Services;
 
 /**
@@ -94,14 +95,14 @@ public class FtpService implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final Services services, final StructrConf config) {
+	public void initialize(final StructrServices services, final Properties config) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
-		final StructrConf finalConfig = new StructrConf();
+		final Properties finalConfig = new Properties();
 
 		// Default config
 		finalConfig.setProperty(APPLICATION_FTP_PORT, "8021");
 
-		Services.mergeConfiguration(finalConfig, config);
+		StructrServices.mergeConfiguration(finalConfig, config);
 
 		port = Services.parseInt(finalConfig.getProperty(APPLICATION_FTP_PORT), 8021);
 	}

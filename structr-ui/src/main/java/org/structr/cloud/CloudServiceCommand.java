@@ -18,7 +18,7 @@
  */
 package org.structr.cloud;
 
-import org.structr.core.Command;
+import org.structr.api.service.Command;
 
 /**
  *

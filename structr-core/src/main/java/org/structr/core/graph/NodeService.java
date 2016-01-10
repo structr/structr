@@ -18,43 +18,31 @@
  */
 package org.structr.core.graph;
 
-import org.apache.commons.collections.map.LRUMap;
-
-import org.neo4j.gis.spatial.indexprovider.LayerNodeIndex;
-import org.neo4j.gis.spatial.indexprovider.SpatialIndexProvider;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.factory.GraphDatabaseFactory;
-import org.neo4j.graphdb.index.Index;
-import org.neo4j.helpers.collection.MapUtil;
-import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
-
-import org.structr.core.Command;
-import org.structr.core.Services;
-import org.structr.core.SingletonService;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Location;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.io.File;
-
-import java.util.*;
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
-import org.neo4j.graphdb.factory.GraphDatabaseSettings;
-import org.neo4j.shell.ShellSettings;
-import org.neo4j.tooling.GlobalGraphOperations;
+import org.structr.api.DatabaseService;
+import org.structr.api.index.Index;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
+import org.structr.api.Transaction;
+import org.structr.api.config.Structr;
+import org.structr.api.util.FixedSizeCache;
 import org.structr.common.SecurityContext;
-import org.structr.common.StructrConf;
 import org.structr.common.error.FrameworkException;
+import org.structr.api.service.Command;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
+import org.structr.api.service.SingletonService;
+import org.structr.api.service.StructrServices;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 
-//~--- classes ----------------------------------------------------------------
 
 /**
  * The graph/node service main class.
@@ -64,23 +52,17 @@ import org.structr.core.app.StructrApp;
  */
 public class NodeService implements SingletonService {
 
-	private static final Logger logger                       = Logger.getLogger(NodeService.class.getName());
-	private static final Map<String, AbstractNode> nodeCache = (Map<String, AbstractNode>) Collections.synchronizedMap(new LRUMap(100000));
+	private static final Logger logger                                  = Logger.getLogger(NodeService.class.getName());
+	private static final FixedSizeCache<String, AbstractNode> nodeCache = new FixedSizeCache<>(10000);
 
 	//~--- fields ---------------------------------------------------------
 
-	private GraphDatabaseService graphDb            = null;
-
-	private Index<Node> caseInsensitiveIndex        = null;
+	private DatabaseService graphDb                 = null;
 	private Index<Node> fulltextIndex               = null;
 	private Index<Node> keywordIndex                = null;
 	private Index<Node> layerIndex                  = null;
-	private Index<Node> userIndex                   = null;
-	private Index<Node> uuidIndex                   = null;
-
 	private Index<Relationship> relFulltextIndex    = null;
 	private Index<Relationship> relKeywordIndex     = null;
-	private Index<Relationship> relUuidIndex        = null;
 
 	// indices
 	private final Map<RelationshipIndex, Index<Relationship>> relIndices = new EnumMap<>(RelationshipIndex.class);
@@ -95,16 +77,13 @@ public class NodeService implements SingletonService {
 	/**
 	 * The list of existing node indices.
 	 */
-	public static enum NodeIndex { uuid, user, caseInsensitive, keyword, fulltext, layer }
+	public static enum NodeIndex { keyword, fulltext, layer }
 
 	/**
 	 * The list of existing relationship indices.
 	 */
-	public static enum RelationshipIndex { rel_uuid, rel_keyword, rel_fulltext }
+	public static enum RelationshipIndex { rel_keyword, rel_fulltext }
 
-	//~--- methods --------------------------------------------------------
-
-	// <editor-fold defaultstate="collapsed" desc="interface SingletonService">
 	@Override
 	public void injectArguments(Command command) {
 
@@ -112,14 +91,10 @@ public class NodeService implements SingletonService {
 
 			command.setArgument("graphDb", graphDb);
 
-			command.setArgument(NodeIndex.uuid.name(), uuidIndex);
 			command.setArgument(NodeIndex.fulltext.name(), fulltextIndex);
-			command.setArgument(NodeIndex.user.name(), userIndex);
-			command.setArgument(NodeIndex.caseInsensitive.name(), caseInsensitiveIndex);
 			command.setArgument(NodeIndex.keyword.name(), keywordIndex);
 			command.setArgument(NodeIndex.layer.name(), layerIndex);
 
-			command.setArgument(RelationshipIndex.rel_uuid.name(), relUuidIndex);
 			command.setArgument(RelationshipIndex.rel_fulltext.name(), relFulltextIndex);
 			command.setArgument(RelationshipIndex.rel_keyword.name(), relKeywordIndex);
 
@@ -127,133 +102,60 @@ public class NodeService implements SingletonService {
 
 			command.setArgument("indices", NodeIndex.values());
 			command.setArgument("relationshipIndices", RelationshipIndex.values());
+
+
+
 		}
 	}
 
 	@Override
-	public void initialize(final Services services, final StructrConf config) {
+	public void initialize(final StructrServices services, final Properties config) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
-		final String dbPath                = config.getProperty(Services.DATABASE_PATH);
-		final GraphDatabaseBuilder builder = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath);
-
-		logger.log(Level.INFO, "Initializing database ({0}) ...", dbPath);
-
+		final String databaseDriver = config.getProperty(Structr.DATABASE_DRIVER, "org.structr.neo4j.Neo4jDatabaseService");
+		graphDb = (DatabaseService)Class.forName(databaseDriver).newInstance();
 		if (graphDb != null) {
 
-			logger.log(Level.INFO, "Database already running ({0}) ...", dbPath);
+			graphDb.initialize(config);
 
-			return;
+			filesPath = config.getProperty(Services.FILES_PATH);
+
+			// check existence of files path
+			File files = new File(filesPath);
+			if (!files.exists()) {
+
+				files.mkdir();
+			}
+
+			logger.log(Level.INFO, "Database ready.");
+
+			// index creation transaction
+			try ( final Transaction tx = graphDb.beginTx() ) {
+
+				fulltextIndex = graphDb.nodeIndexer().fulltext();
+				nodeIndices.put(NodeIndex.fulltext, fulltextIndex);
+
+				keywordIndex = graphDb.nodeIndexer().exact();
+				nodeIndices.put(NodeIndex.keyword, keywordIndex);
+
+				layerIndex = graphDb.nodeIndexer().spatial();
+				nodeIndices.put(NodeIndex.layer, layerIndex);
+
+				relFulltextIndex = graphDb.relationshipIndexer().fulltext();
+				relIndices.put(RelationshipIndex.rel_fulltext, relFulltextIndex);
+
+				relKeywordIndex = graphDb.relationshipIndexer().exact();
+				relIndices.put(RelationshipIndex.rel_keyword, relKeywordIndex);
+
+				tx.success();
+
+			} catch (Throwable t) {
+
+				logger.log(Level.WARNING, "Error while initializing indexes.", t);
+			}
+
+			isInitialized = true;
 
 		}
-
-		final File confFile = new File(dbPath + "/neo4j.conf");
-		if (confFile.exists()) {
-
-			builder.loadPropertiesFromFile(confFile.getAbsolutePath());
-		}
-
-		// neo4j remote shell configuration
-		builder.setConfig(ShellSettings.remote_shell_enabled, config.getProperty(Services.NEO4J_SHELL_ENABLED, "false"));
-		builder.setConfig(ShellSettings.remote_shell_port,    config.getProperty(Services.NEO4J_SHELL_PORT, "1337"));
-
-		// Neo4j page cache memory, default 64m
-		builder.setConfig(GraphDatabaseSettings.pagecache_memory, config.getProperty(Services.NEO4J_PAGE_CACHE_MEMORY, Long.toString(1024*1024*64L)));
-
-		// create graph database instance
-		graphDb = builder.newGraphDatabase();
-
-		// success?
-		if (graphDb == null) {
-
-			logger.log(Level.SEVERE, "Database could not be started ({0}) ...", dbPath);
-			return;
-		}
-
-		filesPath = config.getProperty(Services.FILES_PATH);
-
-		// check existence of files path
-		File files = new File(filesPath);
-		if (!files.exists()) {
-
-			files.mkdir();
-		}
-
-		logger.log(Level.INFO, "Database ready.");
-		logger.log(Level.FINE, "Initializing UUID index...");
-
-		// index creation transaction
-		try ( final Transaction tx = graphDb.beginTx() ) {
-
-//			uuidIndex = graphDb.index().forNodes("uuidAllNodes", LuceneIndexImplementation.EXACT_CONFIG);
-//			nodeIndices.put(NodeIndex.uuid, uuidIndex);
-//
-//			logger.log(Level.FINE, "UUID index ready.");
-//			logger.log(Level.FINE, "Initializing user index...");
-//
-//			userIndex = graphDb.index().forNodes("nameEmailAllUsers", LuceneIndexImplementation.EXACT_CONFIG);
-//			nodeIndices.put(NodeIndex.user, userIndex);
-//
-//			logger.log(Level.FINE, "Node Email index ready.");
-//			logger.log(Level.FINE, "Initializing exact email index...");
-
-			caseInsensitiveIndex = graphDb.index().forNodes("caseInsensitiveAllNodes", MapUtil.stringMap( "provider", "lucene", "type", "exact", "to_lower_case", "true" ));
-			nodeIndices.put(NodeIndex.caseInsensitive, caseInsensitiveIndex);
-
-			logger.log(Level.FINE, "Node case insensitive node index ready.");
-			logger.log(Level.FINE, "Initializing case insensitive fulltext node index...");
-
-			fulltextIndex = graphDb.index().forNodes("fulltextAllNodes", LuceneIndexImplementation.FULLTEXT_CONFIG);
-			nodeIndices.put(NodeIndex.fulltext, fulltextIndex);
-
-			logger.log(Level.FINE, "Fulltext node index ready.");
-			logger.log(Level.FINE, "Initializing keyword node index...");
-
-			keywordIndex = graphDb.index().forNodes("keywordAllNodes", LuceneIndexImplementation.EXACT_CONFIG);
-			nodeIndices.put(NodeIndex.keyword, keywordIndex);
-
-			logger.log(Level.FINE, "Keyword node index ready.");
-			logger.log(Level.FINE, "Initializing layer index...");
-
-			final Map<String, String> spatialConfig = new HashMap<>();
-
-			spatialConfig.put(LayerNodeIndex.LAT_PROPERTY_KEY, Location.latitude.dbName());
-			spatialConfig.put(LayerNodeIndex.LON_PROPERTY_KEY, Location.longitude.dbName());
-			spatialConfig.put(SpatialIndexProvider.GEOMETRY_TYPE, LayerNodeIndex.POINT_PARAMETER);
-
-			layerIndex = new LayerNodeIndex("layerIndex", graphDb, spatialConfig);
-			nodeIndices.put(NodeIndex.layer, layerIndex);
-
-			logger.log(Level.FINE, "Layer index ready.");
-			logger.log(Level.FINE, "Initializing node factory...");
-
-			relUuidIndex = graphDb.index().forRelationships("uuidAllRelationships", LuceneIndexImplementation.EXACT_CONFIG);
-			relIndices.put(RelationshipIndex.rel_uuid, relUuidIndex);
-
-			logger.log(Level.FINE, "Relationship UUID index ready.");
-			logger.log(Level.FINE, "Initializing relationship index...");
-
-			relFulltextIndex = graphDb.index().forRelationships("fulltextAllRelationships", LuceneIndexImplementation.FULLTEXT_CONFIG);
-			relIndices.put(RelationshipIndex.rel_fulltext, relFulltextIndex);
-
-			logger.log(Level.FINE, "Relationship fulltext index ready.");
-			logger.log(Level.FINE, "Initializing keyword relationship index...");
-
-			relKeywordIndex = graphDb.index().forRelationships("keywordAllRelationships", LuceneIndexImplementation.EXACT_CONFIG);
-			relIndices.put(RelationshipIndex.rel_keyword, relKeywordIndex);
-
-			tx.success();
-
-		} catch (Throwable t) {
-
-			logger.log(Level.WARNING, "Error while initializing indexes.", t);
-		}
-
-		logger.log(Level.FINE, "Relationship numeric index ready.");
-		logger.log(Level.FINE, "Initializing relationship factory...");
-		logger.log(Level.FINE, "Relationship factory ready.");
-		logger.log(Level.FINE, "Cypher execution engine ready.");
-
-		isInitialized = true;
 	}
 
 	@Override
@@ -290,7 +192,6 @@ public class NodeService implements SingletonService {
 
 	}
 
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getName() {
@@ -305,9 +206,7 @@ public class NodeService implements SingletonService {
 
 	}
 
-	// </editor-fold>
-
-	public GraphDatabaseService getGraphDb() {
+	public DatabaseService getGraphDb() {
 		return graphDb;
 	}
 
@@ -340,7 +239,7 @@ public class NodeService implements SingletonService {
 
 	private void importSeedFile(final String basePath) {
 
-		final File seedFile = new File(Services.trim(basePath) + "/" + Services.INITIAL_SEED_FILE);
+		final File seedFile = new File(StructrServices.trim(basePath) + "/" + Services.INITIAL_SEED_FILE);
 
 		if (seedFile.exists()) {
 
@@ -348,7 +247,7 @@ public class NodeService implements SingletonService {
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				final Iterator<Node> allNodes = GlobalGraphOperations.at(graphDb).getAllNodes().iterator();
+				final Iterator<Node> allNodes = graphDb.getAllNodes().iterator();
 				final String idName           = GraphObject.id.dbName();
 
 				while (allNodes.hasNext()) {

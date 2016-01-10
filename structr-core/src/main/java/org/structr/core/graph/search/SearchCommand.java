@@ -20,27 +20,18 @@ package org.structr.core.graph.search;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.Sort;
-import org.apache.lucene.search.SortField;
-import org.neo4j.gis.spatial.indexprovider.LayerNodeIndex;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.index.Index;
-import org.neo4j.graphdb.index.IndexHits;
-import org.neo4j.helpers.Predicate;
-import org.neo4j.index.lucene.QueryContext;
+import org.structr.api.index.Index;
+import org.structr.api.search.Occurrence;
+import org.structr.api.Predicate;
+import org.structr.api.graph.PropertyContainer;
+import org.structr.api.QueryResult;
+import org.structr.api.index.IndexType;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
@@ -53,7 +44,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.Factory;
-import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.RelationshipInterface;
@@ -67,14 +57,10 @@ import org.structr.schema.ConfigurationProvider;
  */
 public abstract class SearchCommand<S extends PropertyContainer, T extends GraphObject> extends NodeServiceCommand implements org.structr.core.app.Query<T> {
 
-	private static final Logger logger                        = Logger.getLogger(SearchCommand.class.getName());
-
 	protected static final boolean INCLUDE_DELETED_AND_HIDDEN = true;
 	protected static final boolean PUBLIC_ONLY		  = false;
 
 	private static final Map<String, Set<String>> subtypeMapForType = new LinkedHashMap<>();
-	private static final Set<Character> specialCharsExact           = new LinkedHashSet<>();
-	private static final Set<Character> specialChars                = new LinkedHashSet<>();
 	private static final Set<String> baseTypes                      = new LinkedHashSet<>();
 
 	public static final String LOCATION_SEARCH_KEYWORD    = "location";
@@ -88,36 +74,15 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	static {
 
-		specialChars.add('\\');
-		specialChars.add('+');
-		specialChars.add('-');
-		specialChars.add('!');
-		specialChars.add('(');
-		specialChars.add(')');
-		specialChars.add(':');
-		specialChars.add('^');
-		specialChars.add('[');
-		specialChars.add(']');
-		specialChars.add('"');
-		specialChars.add('{');
-		specialChars.add('}');
-		specialChars.add('~');
-		specialChars.add('*');
-		specialChars.add('?');
-		specialChars.add('|');
-		specialChars.add('&');
-		specialChars.add(';');
-		specialCharsExact.add('"');
-		specialCharsExact.add('\\');
-
 		baseTypes.add(RelationshipInterface.class.getSimpleName());
 		baseTypes.add(AbstractRelationship.class.getSimpleName());
 		baseTypes.add(NodeInterface.class.getSimpleName());
 		baseTypes.add(AbstractNode.class.getSimpleName());
 	}
 
-	private final SearchAttributeGroup rootGroup = new SearchAttributeGroup(BooleanClause.Occur.MUST);
+	private final SearchAttributeGroup rootGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
 	private SearchAttributeGroup currentGroup    = rootGroup;
+	private IndexType indexType                  = IndexType.Exact;
 	private PropertyKey sortKey                  = null;
 	private boolean publicOnly                   = false;
 	private boolean includeDeletedAndHidden      = false;
@@ -131,7 +96,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public abstract Factory<S, T> getFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page, final String offsetId);
 	public abstract Index<S> getFulltextIndex();
 	public abstract Index<S> getKeywordIndex();
-	public abstract LayerNodeIndex getSpatialIndex();
+	public abstract Index<S> getSpatialIndex();
 	public abstract boolean isRelationshipSearch();
 
 	private Result<T> doSearch() throws FrameworkException {
@@ -141,31 +106,28 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			return Result.EMPTY_RESULT;
 		}
 
-		Factory<S, T> factory        = getFactory(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page, offsetId);
-		boolean filterResults        = true;
+		final Factory<S, T> factory  = getFactory(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page, offsetId);
 		boolean hasGraphSources      = false;
 		boolean hasSpatialSource     = false;
 
 		if (securityContext.getUser(false) == null) {
 
-			rootGroup.add(new PropertySearchAttribute(GraphObject.visibleToPublicUsers, true, BooleanClause.Occur.MUST, true));
+			rootGroup.add(new PropertySearchAttribute(GraphObject.visibleToPublicUsers, true, Occurrence.REQUIRED, true));
 
 		}
 
 		// special handling of deleted and hidden flags
 		if (!includeDeletedAndHidden && !isRelationshipSearch()) {
 
-			rootGroup.add(new PropertySearchAttribute(NodeInterface.hidden,  true, BooleanClause.Occur.MUST_NOT, true));
-			rootGroup.add(new PropertySearchAttribute(NodeInterface.deleted, true, BooleanClause.Occur.MUST_NOT, true));
+			rootGroup.add(new PropertySearchAttribute(NodeInterface.hidden,  true, Occurrence.FORBIDDEN, true));
+			rootGroup.add(new PropertySearchAttribute(NodeInterface.deleted, true, Occurrence.FORBIDDEN, true));
 		}
 
 		// At this point, all search attributes are ready
 		List<SourceSearchAttribute> sources    = new ArrayList<>();
-		DistanceSearchAttribute distanceSearch = null;
 		boolean hasEmptySearchFields           = false;
+		boolean allExactMatch                  = true;
 		Result intermediateResult              = null;
-		GeoCodingResult coords                 = null;
-		Double dist                            = null;
 
 		// check for optional-only queries
 		// (some query types seem to allow no MUST occurs)
@@ -199,13 +161,18 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			// check for distance search and initialize
 			if (attr instanceof DistanceSearchAttribute) {
 
-				distanceSearch = (DistanceSearchAttribute) attr;
-				coords         = GeoHelper.geocode(distanceSearch);
-				dist           = distanceSearch.getValue();
+				final DistanceSearchAttribute distanceSearch = (DistanceSearchAttribute) attr;
+				final GeoCodingResult coords                 = GeoHelper.geocode(distanceSearch);
 
-				// remove attribute from filter list
-				it.remove();
+				if (coords != null) {
 
+					distanceSearch.setCoords(coords.toArray());
+				}
+
+				// don't remove attribute from filter list
+				//it.remove();
+
+				indexType = IndexType.Spatial;
 				hasSpatialSource = true;
 			}
 
@@ -214,8 +181,8 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 				sources.add((SourceSearchAttribute)attr);
 
-				// remove attribute from filter list
-				it.remove();
+				// don't remove attribute from filter list
+				//it.remove();
 
 				hasGraphSources = true;
 			}
@@ -223,98 +190,36 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			if (attr instanceof EmptySearchAttribute) {
 				hasEmptySearchFields = true;
 			}
+
+			// check for keyword query
+			allExactMatch &= attr.isExactMatch();
+		}
+
+		if (!allExactMatch) {
+			indexType = IndexType.Fulltext;
 		}
 
 		// only do "normal" query if no other sources are present
 		// use filters to filter sources otherwise
-		if (distanceSearch == null && !sources.isEmpty()) {
+		if (!hasSpatialSource && !sources.isEmpty()) {
 
 			intermediateResult = new Result(new ArrayList<>(), null, false, false);
 
 		} else {
 
-			BooleanQuery query    = new BooleanQuery();
-			boolean allExactMatch = true;
-
-			// build query
-			for (SearchAttribute attr : rootGroup.getSearchAttributes()) {
-
-				Query queryElement = attr.getQuery();
-				if (queryElement != null) {
-
-					query.add(queryElement, attr.getOccur());
-				}
-
-				allExactMatch &= attr.isExactMatch();
-			}
-
-			QueryContext queryContext = new QueryContext(query);
-
+			// apply sorting
 			if (sortKey != null && !doNotSort) {
 
-				Integer sortType = sortKey.getSortType();
-				if (sortType != null) {
-
-					queryContext.sort(new Sort(new SortField(sortKey.dbName(), sortType, sortDescending)));
-
-				} else {
-
-					queryContext.sort(new Sort(new SortField(sortKey.dbName(), Locale.getDefault(), sortDescending)));
-				}
-
+				rootGroup.setSortKey(sortKey);
+				rootGroup.sortDescending(sortDescending);
 			}
 
-			if (distanceSearch != null) {
-
-				if (coords != null) {
-
-					Map<String, Object> params = new HashMap<>();
-
-					params.put(LayerNodeIndex.POINT_PARAMETER, coords.toArray());
-					params.put(LayerNodeIndex.DISTANCE_IN_KM_PARAMETER, dist);
-
-					LayerNodeIndex spatialIndex = this.getSpatialIndex();
-					if (spatialIndex != null) {
-
-						try (final IndexHits hits = spatialIndex.query(LayerNodeIndex.WITHIN_DISTANCE_QUERY, params)) {
-
-							// instantiate spatial search results without paging,
-							// as the results must be filtered by type anyway
-							intermediateResult = new NodeFactory(securityContext).instantiate(hits);
-
-						}
-					}
-				}
-
-			} else if (allExactMatch) {
-
-//				try (final IndexHits hits = synchronizedLuceneQuery(getKeywordIndex(), queryContext)) {
-				try (final IndexHits hits = getKeywordIndex().query(queryContext)) {
-
-					filterResults      = hasEmptySearchFields;
-					intermediateResult = factory.instantiate(hits);
-
-				} catch (NumberFormatException nfe) {
-
-					logger.log(Level.SEVERE, "Could not sort results", nfe);
-				}
-
-			} else {
-
-				// Default: Mixed or fulltext-only search: Use fulltext index
-				try (final IndexHits hits = getFulltextIndex().query(queryContext)) {
-
-					filterResults      = hasEmptySearchFields;
-					intermediateResult = factory.instantiate(hits);
-
-				} catch (NumberFormatException nfe) {
-
-					logger.log(Level.SEVERE, "Could not sort results", nfe);
-				}
-			}
+			// do query
+			final QueryResult hits = getIndex().query(rootGroup);
+			intermediateResult     = factory.instantiate(hits);
 		}
 
-		if (intermediateResult != null && filterResults) {
+		if (intermediateResult != null && (hasEmptySearchFields || hasGraphSources || hasSpatialSource)) {
 
 			// sorted result set
 			Set<GraphObject> intermediateResultSet = new LinkedHashSet<>(intermediateResult.getResults());
@@ -389,19 +294,19 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 			} else {
 
-				switch (attr.getOccur()) {
+				switch (attr.getOccurrence()) {
 
-					case MUST:
+					case REQUIRED:
 
 						mergedResult.retainAll(attr.getResult());
 						break;
 
-					case SHOULD:
+					case OPTIONAL:
 
 						mergedResult.addAll(attr.getResult());
 						break;
 
-					case MUST_NOT:
+					case FORBIDDEN:
 						mergedResult.removeAll(attr.getResult());
 						break;
 				}
@@ -508,6 +413,12 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				attr.setExactMatch(false);
 
 			}
+
+			indexType = IndexType.Fulltext;
+
+		} else {
+
+			indexType = IndexType.Exact;
 		}
 
 		this.exactSearch = exact;
@@ -543,26 +454,26 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public org.structr.core.app.Query<T> andType(final Class type) {
 
-		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, BooleanClause.Occur.MUST, exactSearch));
+		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.REQUIRED, exactSearch));
 		return this;
 	}
 
 	@Override
 	public org.structr.core.app.Query<T> orType(final Class type) {
 
-		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, BooleanClause.Occur.SHOULD, exactSearch));
+		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.OPTIONAL, exactSearch));
 		return this;
 	}
 
 	public org.structr.core.app.Query<T> andType(final String type) {
 
-		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, BooleanClause.Occur.MUST, exactSearch));
+		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.REQUIRED, exactSearch));
 		return this;
 	}
 
 	public org.structr.core.app.Query<T> orType(final String type) {
 
-		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, BooleanClause.Occur.SHOULD, exactSearch));
+		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.OPTIONAL, exactSearch));
 		return this;
 	}
 
@@ -620,7 +531,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	@Override
 	public org.structr.core.app.Query<T> location(final String street, final String house, final String postalCode, final String city, final String state, final String country, final double distance) {
-		currentGroup.getSearchAttributes().add(new DistanceSearchAttribute(street, house, postalCode, city, state, country, distance, BooleanClause.Occur.MUST));
+		currentGroup.getSearchAttributes().add(new DistanceSearchAttribute(street, house, postalCode, city, state, country, distance, Occurrence.REQUIRED));
 		return this;
 	}
 
@@ -643,7 +554,12 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		}
 
 		exact(exact);
-		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, BooleanClause.Occur.MUST, value, exact, this));
+
+		// TODO: let database layer create search attribute
+
+
+
+		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, Occurrence.REQUIRED, value, exact, this));
 
 		return this;
 	}
@@ -672,7 +588,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public org.structr.core.app.Query<T> and() {
 
 		// create nested group that the user can add to
-		final SearchAttributeGroup group = new SearchAttributeGroup(currentGroup, BooleanClause.Occur.MUST);
+		final SearchAttributeGroup group = new SearchAttributeGroup(currentGroup, Occurrence.REQUIRED);
 
 		currentGroup.getSearchAttributes().add(group);
 		currentGroup = group;
@@ -689,7 +605,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public <P> org.structr.core.app.Query<T> or(final PropertyKey<P> key, P value, final boolean exact) {
 
 		exact(exact);
-		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, BooleanClause.Occur.SHOULD, value, exact, this));
+		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, Occurrence.OPTIONAL, value, exact, this));
 
 		return this;
 	}
@@ -726,14 +642,14 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public <P> org.structr.core.app.Query<T> andRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd) {
 
-		currentGroup.getSearchAttributes().add(new RangeSearchAttribute(key, rangeStart, rangeEnd, BooleanClause.Occur.MUST));
+		currentGroup.getSearchAttributes().add(new RangeSearchAttribute(key, rangeStart, rangeEnd, Occurrence.REQUIRED));
 		return this;
 	}
 
 	@Override
 	public <P> org.structr.core.app.Query<T> orRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd) {
 
-		currentGroup.getSearchAttributes().add(new RangeSearchAttribute(key, rangeStart, rangeEnd, BooleanClause.Occur.SHOULD));
+		currentGroup.getSearchAttributes().add(new RangeSearchAttribute(key, rangeStart, rangeEnd, Occurrence.OPTIONAL));
 		return this;
 	}
 
@@ -741,7 +657,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public org.structr.core.app.Query<T> or() {
 
 		// create nested group that the user can add to
-		final SearchAttributeGroup group = new SearchAttributeGroup(currentGroup, BooleanClause.Occur.SHOULD);
+		final SearchAttributeGroup group = new SearchAttributeGroup(currentGroup, Occurrence.OPTIONAL);
 		currentGroup.getSearchAttributes().add(group);
 		currentGroup = group;
 
@@ -752,7 +668,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public org.structr.core.app.Query<T> not() {
 
 		// create nested group that the user can add to
-		final SearchAttributeGroup group = new SearchAttributeGroup(currentGroup, BooleanClause.Occur.MUST_NOT);
+		final SearchAttributeGroup group = new SearchAttributeGroup(currentGroup, Occurrence.FORBIDDEN);
 		currentGroup.getSearchAttributes().add(group);
 		currentGroup = group;
 
@@ -807,27 +723,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	// ----- static methods -----
-	public static String escapeForLucene(String input) {
-
-		StringBuilder output = new StringBuilder();
-
-		for (int i = 0; i < input.length(); i++) {
-
-			char c = input.charAt(i);
-
-			if (specialChars.contains(c) || Character.isWhitespace(c)) {
-
-				output.append('\\');
-			}
-
-			output.append(c);
-
-		}
-
-		return output.toString();
-
-	}
-
 	public static synchronized void clearInheritanceMap() {
 		subtypeMapForType.clear();
 	}
@@ -907,6 +802,23 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		allSupertypes.removeAll(baseTypes);
 
 		return allSupertypes;
+	}
+
+	// ----- private methods -----
+	private Index<S> getIndex() {
+
+		switch (indexType) {
+
+			default:
+			case Exact:
+				return getKeywordIndex();
+
+			case Fulltext:
+				return getFulltextIndex();
+
+			case Spatial:
+				return getSpatialIndex();
+		}
 	}
 
 	// ----- nested classes -----

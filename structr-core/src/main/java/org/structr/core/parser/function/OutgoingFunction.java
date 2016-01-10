@@ -1,7 +1,7 @@
 package org.structr.core.parser.function;
 
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.DynamicRelationshipType;
+import org.structr.api.graph.Direction;
+import org.structr.api.graph.RelationshipType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
@@ -39,7 +39,7 @@ public class OutgoingFunction extends Function<Object, Object> {
 					if (relType != null && relType instanceof String) {
 
 						final String relTypeName = (String)relType;
-						return factory.instantiate(node.getNode().getRelationships(Direction.OUTGOING, DynamicRelationshipType.withName(relTypeName)));
+						return factory.instantiate(node.getNode().getRelationships(Direction.OUTGOING, RelationshipType.forName(relTypeName)));
 					}
 
 				} else {
