@@ -366,7 +366,7 @@ oauth.facebook.return_uri = /
 
 # Examples:
 #
-# Run every 30 seconds                                                      0   0,30  *   *    *    *
+# Run every 30 minutes                                                      0   0,30  *   *    *    *
 # Run every day at 4:00                                                     0    0    4   *    *    *
 # Run each hour on Mondays during the first 10 days in April and October    0    0    *  1-10 4,10  1 
 
