@@ -60,7 +60,7 @@ public class FeedItem extends AbstractNode implements Indexable {
 	public static final Property<String> author                  = new StringProperty("author");
 	public static final Property<String> comments                = new StringProperty("comments");
 	public static final Property<List<FeedItemContent>> contents = new EndNodes<>("contents", FeedItemContents.class);
-	public static final Property<Date> pubDate                   = new ISO8601DateProperty("pubDate").indexed().unvalidated();	
+	public static final Property<Date> pubDate                   = new ISO8601DateProperty("pubDate").indexed();
 	
 	public static final Property<Long> checksum                  = new LongProperty("checksum").indexed().unvalidated().readOnly();
 	public static final Property<Integer> cacheForSeconds        = new IntProperty("cacheForSeconds").cmis();

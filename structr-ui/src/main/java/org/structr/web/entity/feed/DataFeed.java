@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -98,6 +99,9 @@ public class DataFeed extends AbstractNode {
 		if (maxItemsToRetain != null || maxItemAge != null) {
 			
 			final List<FeedItem> feedItems = getProperty(items);
+			
+			// Sort by publication date, youngest items first
+			feedItems.sort(new GraphObjectComparator(FeedItem.pubDate, GraphObjectComparator.DESCENDING));
 
 			for (final FeedItem item : feedItems) {
 				
@@ -197,13 +201,13 @@ public class DataFeed extends AbstractNode {
 						item.setProperty(FeedItem.contents, itemContents);
 
 						newItems.add(item);
-					
+
+						logger.log(Level.FINE, "Created new item: {0} ({1}) ", new Object[]{item.getProperty(FeedItem.name), item.getProperty(FeedItem.pubDate)});
+
 					}
-                                        
 				}
 
 				setProperty(items, newItems);
-				
 				setProperty(lastUpdated, new Date());
 				
 			} catch (IllegalArgumentException | IOException | FetcherException | FeedException | FrameworkException ex) {
