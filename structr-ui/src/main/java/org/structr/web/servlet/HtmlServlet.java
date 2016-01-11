@@ -56,7 +56,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.structr.common.AccessMode;
-import org.structr.common.GraphObjectComparator;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
@@ -128,7 +127,11 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	private final Set<String> possiblePropertyNamesForEntityResolving   = new LinkedHashSet<>();
 
 	private boolean isAsync = false;
-
+	
+	private boolean    requestUriContainsUuids = false;
+	private List<Page> pages                   = null;
+	
+	
 
 	@Override
 	public StructrHttpServiceConfig getConfig() {
@@ -169,8 +172,11 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
 
-		final Authenticator auth        = config.getAuthenticator();
-		SecurityContext securityContext = null;
+		final Authenticator auth        = getConfig().getAuthenticator();
+		pages                           = null;
+		requestUriContainsUuids         = false;
+		
+		SecurityContext securityContext;
 		final App app;
 
 		try {
@@ -267,7 +273,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					// store remaining path parts in request
 					final Matcher matcher = threadLocalUUIDMatcher.get();
-					boolean requestUriContainsUuids = false;
 
 					for (int i = 0; i < uriParts.length; i++) {
 
@@ -540,8 +545,10 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doHead(final HttpServletRequest request, final HttpServletResponse response) {
 
-		final Authenticator auth = config.getAuthenticator();
+		final Authenticator auth = getConfig().getAuthenticator();
 		SecurityContext securityContext;
+		pages                           = null;
+		requestUriContainsUuids         = false;
 		final App app;
 
 		try {
@@ -959,6 +966,21 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	}
 
 	/**
+	 * Return cached pages, ordered by position, ascending
+	 * 
+	 * @param securityContext
+	 * @return 
+	 */
+	private List<Page> getPages(final SecurityContext securityContext) throws FrameworkException {
+		
+		if (pages == null) {
+			pages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).sort(Page.position).order(false).getAsList();
+		}
+		
+		return pages;
+	}
+	
+	/**
 	 * Find a page with matching path.
 	 *
 	 * To be compatible with older versions, fallback to name-only lookup.
@@ -972,24 +994,13 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 */
 	private Page findPage(final SecurityContext securityContext, final HttpServletRequest request, final String path, final EditMode edit) throws FrameworkException {
 
-		List<Linkable> entryPoints = findPossibleEntryPoints(securityContext, request, path);
+		for (final Page page : getPages(securityContext)) {
 
-		if (entryPoints.isEmpty()) {
-
-			entryPoints = findPossibleEntryPointsByName(securityContext, request, PathHelper.getName(path));
-
-		}
-
-		for (Linkable node : entryPoints) {
-
-			if (node instanceof Page) { // && path.equals(node.getPath())) {
-
-				final Page page = (Page) node;
-
-				if (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page)) {
-					return page;
-				}
-
+			final String pagePath = page.getPath();
+			final String name     = PathHelper.getName(path);
+			
+			if (((pagePath != null && pagePath.equals(path)) || name.equals(page.getName()) || name.equals(page.getUuid()) ) && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page))) {
+				return page;
 			}
 		}
 
@@ -1007,17 +1018,10 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 */
 	private Page findIndexPage(final SecurityContext securityContext, final EditMode edit) throws FrameworkException {
 
-		final Result<Page> result = StructrApp.getInstance(securityContext).nodeQuery(Page.class).sort(Page.position).order(false).getResult();
-		Collections.sort(result.getResults(), new GraphObjectComparator(Page.position, GraphObjectComparator.ASCENDING));
+		for (Page page : getPages(securityContext)) {
 
-		// Find first visible page
-		if (!result.isEmpty()) {
-
-			for (Page page : result.getResults()) {
-
-				if (securityContext.isVisible(page) && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page))) {
-					return page;
-				}
+			if (securityContext.isVisible(page) && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page))) {
+				return page;
 			}
 		}
 

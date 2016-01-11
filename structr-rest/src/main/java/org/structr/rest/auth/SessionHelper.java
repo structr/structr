@@ -42,6 +42,8 @@ public class SessionHelper {
 
 	public static final String STANDARD_ERROR_MSG = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
 	private static final Logger logger             = Logger.getLogger(SessionHelper.class.getName());
+	
+	public static final String SESSION_IS_NEW = "SESSION_IS_NEW";
 
 
 	public static boolean isSessionTimedOut(final HttpSession session) {
@@ -202,6 +204,9 @@ public class SessionHelper {
 			// No session id requested => create new session
 			SessionHelper.newSession(request);
 
+			// Store info in request that session is new => saves us a lookup later
+			request.setAttribute(SESSION_IS_NEW, true);
+			
 			// we just created a totally new session, there can't
 			// be a user with this session ID, so don't search.
 			return null;
