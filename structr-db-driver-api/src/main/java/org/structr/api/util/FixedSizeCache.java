@@ -18,6 +18,8 @@
  */
 package org.structr.api.util;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -70,5 +72,13 @@ public class FixedSizeCache<K, V> {
 	public void clear() {
 		cache.clear();
 		keyQueue.clear();
+	}
+
+	public int size() {
+		return cache.size();
+	}
+
+	public Map<K, V> getData() {
+		return Collections.unmodifiableMap(cache);
 	}
 }
