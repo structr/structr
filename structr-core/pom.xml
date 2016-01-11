@@ -36,7 +36,7 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>structr-api</artifactId>
+            <artifactId>structr-db-driver-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
