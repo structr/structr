@@ -65,6 +65,7 @@ import org.structr.function.AddHeaderFunction;
 import org.structr.function.CreateJarFileFunction;
 import org.structr.function.FromCsvFunction;
 import org.structr.function.FromJsonFunction;
+import org.structr.function.FromXmlFunction;
 import org.structr.function.GetFunction;
 import org.structr.function.GetRequestHeaderFunction;
 import org.structr.function.HeadFunction;
@@ -187,6 +188,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		Functions.functions.put("to_json", new ToJsonFunction());
 		Functions.functions.put("from_json", new FromJsonFunction());
 		Functions.functions.put("from_csv", new FromCsvFunction());
+		Functions.functions.put("from_xml", new FromXmlFunction());
 		Functions.functions.put("add_header", new AddHeaderFunction());
 		Functions.functions.put("set_response_header", new SetResponseHeaderFunction());
 		Functions.functions.put("get_request_header", new GetRequestHeaderFunction());

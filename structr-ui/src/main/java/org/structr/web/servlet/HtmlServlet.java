@@ -56,6 +56,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.structr.common.AccessMode;
+import org.structr.common.GraphObjectComparator;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
@@ -1005,6 +1006,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		if (pages == null) {
 			pages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).sort(Page.position).order(false).getAsList();
+			Collections.sort(pages, new GraphObjectComparator(Page.position, GraphObjectComparator.ASCENDING));
 		}
 
 		for (Page page : pages) {
