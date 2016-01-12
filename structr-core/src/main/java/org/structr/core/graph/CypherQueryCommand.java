@@ -109,9 +109,12 @@ public class CypherQueryCommand extends NodeServiceCommand {
 							logger.log(Level.WARNING, "Unable to handle Cypher query result object of type {0}, ignoring.", item.getClass().getName());
 						}
 					}
+
+				} else {
+
+					logger.log(Level.WARNING, "Unable to handle Cypher query result object of type {0}, ignoring.", obj.getClass().getName());
 				}
 			}
-
 		}
 
 		return resultList;

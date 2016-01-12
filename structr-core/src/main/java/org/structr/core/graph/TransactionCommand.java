@@ -28,6 +28,7 @@ import java.util.logging.Level;
 
 import java.util.logging.Logger;
 import org.structr.api.DatabaseService;
+import org.structr.api.NotInTransactionException;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.common.error.ErrorBuffer;
@@ -386,7 +387,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 	public static boolean isDeleted(final Node node) {
 
 		if (!inTransaction()) {
-			throw new IllegalStateException("Not in transaction.");
+			throw new NotInTransactionException("Not in transaction.");
 		}
 
 		final ModificationQueue queue = queues.get();
@@ -400,7 +401,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 	public static boolean isDeleted(final Relationship rel) {
 
 		if (!inTransaction()) {
-			throw new IllegalStateException("Not in transaction.");
+			throw new NotInTransactionException("Not in transaction.");
 		}
 
 		final ModificationQueue queue = queues.get();
