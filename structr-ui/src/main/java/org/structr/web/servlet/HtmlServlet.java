@@ -128,10 +128,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 	private boolean isAsync = false;
 	
-	private boolean    requestUriContainsUuids = false;
-	private List<Page> pages                   = null;
-	
-	
 
 	@Override
 	public StructrHttpServiceConfig getConfig() {
@@ -173,8 +169,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
 
 		final Authenticator auth        = getConfig().getAuthenticator();
-		pages                           = null;
-		requestUriContainsUuids         = false;
+		List<Page> pages                = null;
+		boolean requestUriContainsUuids = false;
 		
 		SecurityContext securityContext;
 		final App app;
@@ -244,7 +240,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				if ((uriParts == null) || (uriParts.length == 0)) {
 
 					// find a visible page
-					rootElement = findIndexPage(securityContext, edit);
+					rootElement = findIndexPage(securityContext, pages, edit);
 
 					logger.log(Level.FINE, "No path supplied, trying to find index page");
 
@@ -252,7 +248,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					if (rootElement == null) {
 
-						rootElement = findPage(securityContext, request, path, edit);
+						rootElement = findPage(securityContext, pages, path, edit);
 
 					} else {
 						dontCache = true;
@@ -303,7 +299,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						// clear possible entry points
 						request.removeAttribute(POSSIBLE_ENTRY_POINTS_KEY);
 
-						rootElement = findPage(securityContext, request, StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP), edit);
+						rootElement = findPage(securityContext, pages, StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP), edit);
 
 						renderContext.setDetailsDataObject(dataNode);
 
@@ -547,8 +543,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		final Authenticator auth = getConfig().getAuthenticator();
 		SecurityContext securityContext;
-		pages                           = null;
-		requestUriContainsUuids         = false;
+		List<Page> pages                = null;
+		boolean requestUriContainsUuids = false;
 		final App app;
 
 		try {
@@ -605,7 +601,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				if ((uriParts == null) || (uriParts.length == 0)) {
 
 					// find a visible page
-					rootElement = findIndexPage(securityContext, edit);
+					rootElement = findIndexPage(securityContext, pages, edit);
 
 					logger.log(Level.FINE, "No path supplied, trying to find index page");
 
@@ -613,7 +609,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					if (rootElement == null) {
 
-						rootElement = findPage(securityContext, request, path, edit);
+						rootElement = findPage(securityContext, pages, path, edit);
 
 					} else {
 						dontCache = true;
@@ -634,7 +630,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					// store remaining path parts in request
 					Matcher matcher = threadLocalUUIDMatcher.get();
-					boolean requestUriContainsUuids = false;
 
 					for (int i = 0; i < uriParts.length; i++) {
 
@@ -664,7 +659,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						// clear possible entry points
 						request.removeAttribute(POSSIBLE_ENTRY_POINTS_KEY);
 
-						rootElement = findPage(securityContext, request, StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP), edit);
+						rootElement = findPage(securityContext, pages, StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP), edit);
 
 						renderContext.setDetailsDataObject(dataNode);
 
@@ -966,35 +961,24 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	}
 
 	/**
-	 * Return cached pages, ordered by position, ascending
-	 * 
-	 * @param securityContext
-	 * @return 
-	 */
-	private List<Page> getPages(final SecurityContext securityContext) throws FrameworkException {
-		
-		if (pages == null) {
-			pages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).sort(Page.position).order(false).getAsList();
-		}
-		
-		return pages;
-	}
-	
-	/**
 	 * Find a page with matching path.
 	 *
 	 * To be compatible with older versions, fallback to name-only lookup.
 	 *
 	 * @param securityContext
-	 * @param request
+	 * @param pages
 	 * @param path
 	 * @param edit
 	 * @return page
 	 * @throws FrameworkException
 	 */
-	private Page findPage(final SecurityContext securityContext, final HttpServletRequest request, final String path, final EditMode edit) throws FrameworkException {
+	private Page findPage(final SecurityContext securityContext, List<Page> pages, final String path, final EditMode edit) throws FrameworkException {
 
-		for (final Page page : getPages(securityContext)) {
+		if (pages == null) {
+			pages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).sort(Page.position).order(false).getAsList();
+		}
+		
+		for (final Page page : pages) {
 
 			final String pagePath = page.getPath();
 			final String name     = PathHelper.getName(path);
@@ -1012,13 +996,18 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 * current security context and for the given site.
 	 *
 	 * @param securityContext
+	 * @param pages
 	 * @param edit
 	 * @return page
 	 * @throws FrameworkException
 	 */
-	private Page findIndexPage(final SecurityContext securityContext, final EditMode edit) throws FrameworkException {
+	private Page findIndexPage(final SecurityContext securityContext, List<Page> pages, final EditMode edit) throws FrameworkException {
 
-		for (Page page : getPages(securityContext)) {
+		if (pages == null) {
+			pages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).sort(Page.position).order(false).getAsList();
+		}
+
+		for (Page page : pages) {
 
 			if (securityContext.isVisible(page) && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page))) {
 				return page;
@@ -1061,6 +1050,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			try (final Tx tx = app.tx()) {
 
 				results = app.nodeQuery(Principal.class).and(User.confirmationKey, key).getResult();
+				
+				tx.success();
 			}
 
 			if (!results.isEmpty()) {
@@ -1130,6 +1121,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			try (final Tx tx = app.tx()) {
 
 				results = app.nodeQuery(Principal.class).and(User.confirmationKey, key).getResult();
+				
+				tx.success();
 			}
 
 			if (!results.isEmpty()) {
@@ -1205,35 +1198,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			final Query query = StructrApp.getInstance(securityContext).nodeQuery();
 
 			query.and(Page.path, path);
-			query.and().orType(Page.class).orTypes(File.class);
-
-			// Searching for pages needs super user context anyway
-			Result results = query.getResult();
-
-			logger.log(Level.FINE, "{0} results", results.size());
-			request.setAttribute(POSSIBLE_ENTRY_POINTS_KEY, results.getResults());
-
-			return (List<Linkable>) results.getResults();
-		}
-
-		return Collections.EMPTY_LIST;
-	}
-
-	private List<Linkable> findPossibleEntryPointsByName(final SecurityContext securityContext, final HttpServletRequest request, final String name) throws FrameworkException {
-
-		final List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS_KEY);
-
-		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
-			return possibleEntryPoints;
-		}
-
-		if (name.length() > 0) {
-
-			logger.log(Level.FINE, "Requested name: {0}", name);
-
-			final Query query = StructrApp.getInstance(securityContext).nodeQuery();
-
-			query.and(AbstractNode.name, name);
 			query.and().orType(Page.class).orTypes(File.class);
 
 			// Searching for pages needs super user context anyway

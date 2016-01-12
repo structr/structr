@@ -55,6 +55,12 @@ public class RemoteDocument extends AbstractNode implements Indexable {
 	@Override
 	public void afterCreation(SecurityContext securityContext) {
 
+		update();
+	}
+
+	@Export
+	public void update() {
+		
 		try {
 
 			StructrApp.getInstance(securityContext).processTasks(new FulltextIndexingTask(this));
@@ -62,9 +68,8 @@ public class RemoteDocument extends AbstractNode implements Indexable {
 		} catch (Throwable t) {
 
 		}
-
 	}
-
+	
 	@Export
 	@Override
 	public GraphObject getSearchContext(final String searchTerm, final int contextLength) {

@@ -133,7 +133,7 @@ public class DataFeed extends AbstractNode {
 		final Date lastUpdate = getProperty(lastUpdated);
 		final Long interval   = getProperty(updateInterval);
 		
-		if (lastUpdate == null || new Date().after(new Date(lastUpdate.getTime() + interval))) {
+		if ((lastUpdate == null || interval != null) && new Date().after(new Date(lastUpdate.getTime() + interval))) {
 			
 			// Update feed and clean-up afterwards
 			updateFeed(true);
