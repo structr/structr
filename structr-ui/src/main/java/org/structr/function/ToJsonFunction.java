@@ -106,7 +106,6 @@ public class ToJsonFunction extends UiFunction {
 				} catch (Throwable t) {
 					t.printStackTrace();
 				}
-
 			}
 
 			return "";
