@@ -27,6 +27,7 @@ import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.HeadMethod;
 import org.apache.commons.httpclient.params.HttpClientParams;
+import org.apache.tika.io.IOUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.IntProperty;
@@ -64,7 +65,7 @@ public abstract class UiFunction extends Function<Object, Object> {
 
 		client.executeMethod(getMethod);
 
-		return getMethod.getResponseBodyAsString();
+		return IOUtils.toString(getMethod.getResponseBodyAsStream());
 
 	}
 
