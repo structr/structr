@@ -249,45 +249,42 @@ var _Crud = {
 
 		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Data');
 
-		Structr.restoreLocalStorage(function() {
+		if (!_Crud.type) {
+			_Crud.restoreType();
+			//console.log(_Crud.type);
+		}
 
-			if (!_Crud.type) {
-				_Crud.restoreType();
-				//console.log(_Crud.type);
-			}
+		if (!_Crud.type) {
+			_Crud.type = urlParam('type');
+			//console.log(_Crud.type);
+		}
 
-			if (!_Crud.type) {
-				_Crud.type = urlParam('type');
-				//console.log(_Crud.type);
-			}
+		if (!_Crud.type) {
+			_Crud.type = defaultType;
+			//console.log(_Crud.type);
+		}
 
-			if (!_Crud.type) {
-				_Crud.type = defaultType;
-				//console.log(_Crud.type);
-			}
-			
-			// check for single edit mode
-			var id = urlParam('id');
-			if (id) {
-				//console.log('edit mode, editing ', id);
-				_Crud.loadSchema(function() {
-					_Crud.crudRead(null, id, function(node) {
-						//console.log(node, _Crud.view[node.type]);
-						_Crud.showDetails(node, node.type);
-					});
+		// check for single edit mode
+		var id = urlParam('id');
+		if (id) {
+			//console.log('edit mode, editing ', id);
+			_Crud.loadSchema(function() {
+				_Crud.crudRead(null, id, function(node) {
+					//console.log(node, _Crud.view[node.type]);
+					_Crud.showDetails(node, node.type);
 				});
-
-			} else {
-				_Crud.init();
-			}
-
-			$(window).off('resize');
-			$(window).on('resize', function() {
-				_Crud.resize();
 			});
-			hiddenTabs = JSON.parse(LSWrapper.getItem(crudHiddenTabsKey)) || hiddenTabs;
-			log('########## Hidden tabs ##############', hiddenTabs);
+
+		} else {
+			_Crud.init();
+		}
+
+		$(window).off('resize');
+		$(window).on('resize', function() {
+			_Crud.resize();
 		});
+		hiddenTabs = JSON.parse(LSWrapper.getItem(crudHiddenTabsKey)) || hiddenTabs;
+		log('########## Hidden tabs ##############', hiddenTabs);
 
 	},
 	initTabs: function() {

@@ -134,9 +134,7 @@ var _Filesystem = {
 		fileTree.on('select_node.jstree', function(evt, data) {
 
 			if (data.node.id === 'root') {
-				fileTree.jstree('deselect_node', 'root');
 				_Filesystem.deepOpen(currentWorkingDir, []);
-				//return;
 			}
 
 			_Filesystem.setWorkingDirectory(data.node.id);
@@ -160,7 +158,7 @@ var _Filesystem = {
 		if (d && d.id) {
 			dirs.unshift(d);
 			Command.get(d.id, function(dir) {
-				if (dir.parent) {
+				if (dir && dir.parent) {
 					_Filesystem.deepOpen(dir.parent, dirs);
 				} else {
 					_Filesystem.open(dirs);
@@ -423,10 +421,9 @@ var _Filesystem = {
 		
 		if (id === 'root') {
 			currentWorkingDir = null;
-			return;
+		} else {
+			currentWorkingDir = { 'id': id };
 		}
-		
-		currentWorkingDir = { 'id': id };
 		var data = JSON.stringify({'workingDirectory': currentWorkingDir});
 		
 		$.ajax({

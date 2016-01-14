@@ -77,12 +77,6 @@ public class ActionContextTest extends StructrTest {
 		TestFour testFour                 = null;
 		List<TestSix> testSixs            = null;
 		int index                         = 0;
-		final Object nullValue1           = null;
-		final Object nullValue2           = null;
-		final String nullString1          = null;
-		final String nullString2          = null;
-		final String emptyString1         = "";
-		final String emptyString2         = "";
 
 		try (final Tx tx = app.tx()) {
 
@@ -892,6 +886,7 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid replace() result", "not equal", Scripting.replaceVariables(ctx, testOne, "${if(equal(2, 3),\n    (\"equal\"),\n    (\"not equal\")\n)}"));
 
 			assertEquals("Invalid keys() / join() result", "id,name,owner,type,createdBy,deleted,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,visibilityStartDate,visibilityEndDate", Scripting.replaceVariables(ctx, testOne, "${join(keys(this, 'ui'), ',')}"));
+			assertEquals("Invalid values() / join() result", "A-nice-little-name-for-my-test-object,1,String", Scripting.replaceVariables(ctx, testOne, "${join(values(this, 'protected'), ',')}"));
 
 			// test default values
 			assertEquals("Invalid string default value", "blah", Scripting.replaceVariables(ctx, testOne, "${this.alwaysNull!blah}"));
