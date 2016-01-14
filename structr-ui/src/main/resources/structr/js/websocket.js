@@ -160,9 +160,7 @@ function wsConnect() {
 					loginBox.find('#usernameField').val('');
 					loginBox.find('#passwordField').val('');
 					loginBox.find('#errorText').empty();
-					Structr.restoreLocalStorage(function () {
-						Structr.refreshUi();
-					});
+					Structr.refreshUi();
 				}
 
 				StructrModel.callCallback(data.callback, data.data[data.data['key']]);

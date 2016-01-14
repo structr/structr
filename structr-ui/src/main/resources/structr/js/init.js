@@ -403,25 +403,30 @@ var Structr = {
 		return false;
 	},
 	loadInitialModule: function(isLogin) {
-		var browserUrl = window.location.href;
-		var anchor = getAnchorFromUrl(browserUrl);
-		lastMenuEntry = ((!isLogin && anchor && anchor !== 'logout') ? anchor : LSWrapper.getItem(lastMenuEntryKey));
-		if (!lastMenuEntry) {
-			lastMenuEntry = LSWrapper.getItem(lastMenuEntryKey) || 'dashboard';
-		} else {
-			log('Last menu entry found: ' + lastMenuEntry);
-		}
-		log('lastMenuEntry', lastMenuEntry);
-		Structr.activateMenuEntry(lastMenuEntry);
-		log(Structr.modules);
-		var module = Structr.modules[lastMenuEntry];
-		if (module) {
-			//module.init();
-			module.onload();
-			if (module.resize)
-				module.resize();
-		}
-		Structr.updateVersionInfo();
+		
+		Structr.restoreLocalStorage(function() {
+			
+			var browserUrl = window.location.href;
+			var anchor = getAnchorFromUrl(browserUrl);
+			lastMenuEntry = ((!isLogin && anchor && anchor !== 'logout') ? anchor : LSWrapper.getItem(lastMenuEntryKey));
+			if (!lastMenuEntry) {
+				lastMenuEntry = LSWrapper.getItem(lastMenuEntryKey) || 'dashboard';
+			} else {
+				log('Last menu entry found: ' + lastMenuEntry);
+			}
+			log('lastMenuEntry', lastMenuEntry);
+			Structr.activateMenuEntry(lastMenuEntry);
+			log(Structr.modules);
+			var module = Structr.modules[lastMenuEntry];
+			if (module) {
+				//module.init();
+				module.onload();
+				if (module.resize)
+					module.resize();
+			}
+			Structr.updateVersionInfo();
+		});
+		
 	},
 	clearMain: function() {
 		var newDroppables = new Array();
