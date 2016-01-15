@@ -1005,7 +1005,7 @@ public class SchemaHelper {
 			Relation relation = ((RelationProperty) property).getRelation();
 			if (relation != null) {
 
-				map.put("relationshipType", relation);
+				map.put("relationshipType", relation.name());
 			}
 
 		}
