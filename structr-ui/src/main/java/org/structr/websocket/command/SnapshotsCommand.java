@@ -108,7 +108,7 @@ public class SnapshotsCommand extends AbstractCommand {
 
 		} else {
 
-			getWebSocket().send(MessageBuilder.status().code(422).message("Mode must be one of list, export, restore.").build(), true);
+			getWebSocket().send(MessageBuilder.status().code(422).message("Mode must be one of list, export, add or restore.").build(), true);
 		}
 	}
 

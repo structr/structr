@@ -2424,10 +2424,28 @@ var _Schema = {
 				var snapshots = data.snapshots;
 
 				snapshots.forEach(function(snapshot, i) {
-					table.append('<tr><td>' + snapshot + '</td><td style="text-align:right;"><button id="delete-' + i + '">Delete</button><button id="restore-' + i + '">Restore</button></td></tr>');
+					table.append('<tr><td>' + snapshot + '</td><td style="text-align:right;"><button id="delete-' + i + '">Delete</button><button id="add-' + i + '">Add</button><button id="restore-' + i + '">Restore</button></td></tr>');
 					$('#restore-' + i).on('click', function() {
 
 						Command.snapshots("restore", snapshot, function(data) {
+
+							var status = data.status;
+
+							if (status === "success") {
+								window.location.reload();
+							} else {
+
+								if (dialogBox.is(':visible')) {
+
+									dialogMsg.html('<div class="infoBox error">' + status + '</div>');
+									$('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+								}
+							}
+						});
+					});
+					$('#add-' + i).on('click', function() {
+
+						Command.snapshots("add", snapshot, function(data) {  console.log(data)
 
 							var status = data.status;
 

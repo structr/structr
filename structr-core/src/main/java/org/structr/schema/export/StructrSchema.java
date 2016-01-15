@@ -140,4 +140,23 @@ public class StructrSchema {
 			tx.success();
 		}
 	}
+	
+	/**
+	 * Extend the current Structr schema by the elements contained in the given new schema.
+	 *
+	 * @param app
+	 * @param newSchema the new schema to add to the current Structr schema
+	 *
+	 * @throws FrameworkException
+	 * @throws URISyntaxException
+	 */
+	public static void extendDatabaseSchema(final App app, final JsonSchema newSchema) throws FrameworkException, URISyntaxException {
+
+		try (final Tx tx = app.tx()) {
+
+			newSchema.createDatabaseSchema(app);
+
+			tx.success();
+		}
+	}
 }

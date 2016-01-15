@@ -76,12 +76,16 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 					restoreSnapshot(name);
 					break;
 
+				case "add":
+					addSnapshot(name);
+					break;
+
 				case "delete":
 					deleteSnapshot(name);
 					break;
 
 				default:
-					throw new FrameworkException(422, "Invalid mode supplied, valid values are export and restore.");
+					throw new FrameworkException(422, "Invalid mode supplied, valid values are export, restore, add or delete.");
 			}
 
 		} else {
@@ -120,7 +124,6 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 
 	private void restoreSnapshot(final String fileName) throws FrameworkException {
 
-		// we want to create a sorted, human-readble, diffable representation of the schema
 		final App app = StructrApp.getInstance();
 
 		// isolate write output
@@ -133,6 +136,38 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 
 					final JsonSchema schema = StructrSchema.createFromSource(reader);
 					StructrSchema.replaceDatabaseSchema(app, schema);
+
+				} catch (InvalidSchemaException iex) {
+
+					throw new FrameworkException(422, iex.getMessage());
+				}
+
+			} else {
+
+				throw new FrameworkException(422, "Please supply schema name to import.");
+			}
+
+			tx.success();
+
+		} catch (IOException | URISyntaxException ioex) {
+			ioex.printStackTrace();
+		}
+	}
+
+	private void addSnapshot(final String fileName) throws FrameworkException {
+
+		final App app = StructrApp.getInstance();
+
+		// isolate write output
+		try (final Tx tx = app.tx()) {
+
+			if (fileName != null) {
+
+				final File snapshotFile = locateFile(fileName, false);
+				try (final Reader reader = new FileReader(snapshotFile)) {
+
+					final JsonSchema schema = StructrSchema.createFromSource(reader);
+					StructrSchema.extendDatabaseSchema(app, schema);
 
 				} catch (InvalidSchemaException iex) {
 
