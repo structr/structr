@@ -28,6 +28,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
+import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
@@ -65,6 +67,7 @@ public class RenderContext extends ActionContext {
 	private ResourceProvider resourceProvider          = null;
 	private Result result                              = null;
 	private boolean anyChildNodeCreatesNewLine         = false;
+	private boolean indentHtml                         = true;
 
 	public enum EditMode {
 
@@ -74,6 +77,8 @@ public class RenderContext extends ActionContext {
 
 	public RenderContext(final SecurityContext securityContext) {
 		super(securityContext);
+
+		readConfigParameters();
 	}
 
 	/**
@@ -101,6 +106,7 @@ public class RenderContext extends ActionContext {
 		this.result = other.result;
 		this.anyChildNodeCreatesNewLine = other.anyChildNodeCreatesNewLine;
 		this.locale = other.locale;
+		this.indentHtml = other.indentHtml;
 
 	}
 
@@ -112,6 +118,8 @@ public class RenderContext extends ActionContext {
 		this.response = response;
 
 		this.editMode = editMode;
+
+		readConfigParameters();
 
 	}
 
@@ -499,5 +507,18 @@ public class RenderContext extends ActionContext {
 		}
 
 		return value;
+	}
+
+	private void readConfigParameters () {
+
+		try {
+			indentHtml = Boolean.parseBoolean(StructrApp.getConfigurationValue(Services.HTML_INDENTATION, "true"));
+
+		} catch(Throwable t) {}
+
+	}
+
+	public boolean shouldIndentHtml() {
+		return indentHtml;
 	}
 }

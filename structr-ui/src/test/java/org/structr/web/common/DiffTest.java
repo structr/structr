@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.graph.Tx;
 import org.structr.web.Importer;
 import org.structr.web.diff.InvertibleModificationOperation;
@@ -35,7 +36,7 @@ import org.w3c.dom.NodeList;
  *
  */
 public class DiffTest extends StructrUiTest {
-	
+
 	public void testReplaceContent() {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body>Test</body></html>", (String from) -> from.replace("Test", "Wurst"));
@@ -43,10 +44,10 @@ public class DiffTest extends StructrUiTest {
 		assertEquals(
 			"<!DOCTYPE html>\n" +
 			"<html>\n" +
-			"  <head>\n" +
-			"    <title>Title</title>\n" +
-			"  </head>\n" +
-			"  <body>Wurst</body>\n" +
+			"	<head>\n" +
+			"		<title>Title</title>\n" +
+			"	</head>\n" +
+			"	<body>Wurst</body>\n" +
 			"</html>",
 			result1
 		);
@@ -59,12 +60,12 @@ public class DiffTest extends StructrUiTest {
 		assertEquals(
 			"<!DOCTYPE html>\n" +
 			"<html>\n" +
-			"  <head>\n" +
-			"    <title>Title</title>\n" +
-			"  </head>\n" +
-			"  <body>\n" +
-			"    <h1>Title text</h1>\n" +
-			"  </body>\n" +
+			"	<head>\n" +
+			"		<title>Title</title>\n" +
+			"	</head>\n" +
+			"	<body>\n" +
+			"		<h1>Title text</h1>\n" +
+			"	</body>\n" +
 			"</html>",
 			result1
 		);
@@ -77,14 +78,14 @@ public class DiffTest extends StructrUiTest {
 		assertEquals(
 			"<!DOCTYPE html>\n" +
 			"<html>\n" +
-			"  <head>\n" +
-			"    <title>Title</title>\n" +
-			"  </head>\n" +
-			"  <body>\n" +
-			"    <div>\n" +
-			"      <h1>Title text</h1>\n" +
-			"    </div>\n" +
-			"  </body>\n" +
+			"	<head>\n" +
+			"		<title>Title</title>\n" +
+			"	</head>\n" +
+			"	<body>\n" +
+			"		<div>\n" +
+			"			<h1>Title text</h1>\n" +
+			"		</div>\n" +
+			"	</body>\n" +
 			"</html>",
 			result1
 		);
@@ -97,17 +98,17 @@ public class DiffTest extends StructrUiTest {
 		assertEquals(
 			"<!DOCTYPE html>\n" +
 			"<html>\n" +
-			"  <head>\n" +
-			"    <title>Title</title>\n" +
-			"  </head>\n" +
-			"  <body>\n" +
-			"    <div>\n" +
-			"      <div>\n" +
-			"        <h1>Title text</h1>\n" +
-			"        <p>paragraph</p>\n" +
-			"      </div>\n" +
-			"    </div>\n" +
-			"  </body>\n" +
+			"	<head>\n" +
+			"		<title>Title</title>\n" +
+			"	</head>\n" +
+			"	<body>\n" +
+			"		<div>\n" +
+			"			<div>\n" +
+			"				<h1>Title text</h1>\n" +
+			"				<p>paragraph</p>\n" +
+			"			</div>\n" +
+			"		</div>\n" +
+			"	</body>\n" +
 			"</html>",
 			result1
 		);
@@ -120,10 +121,10 @@ public class DiffTest extends StructrUiTest {
 		assertEquals(
 			"<!DOCTYPE html>\n" +
 			"<html>\n" +
-			"  <head>\n" +
-			"    <title>Title</title>\n" +
-			"  </head>\n" +
-			"  <body>Test<b>bold</b>between<i>italic</i>Text</body>\n" +
+			"	<head>\n" +
+			"		<title>Title</title>\n" +
+			"	</head>\n" +
+			"	<body>Test<b>bold</b>between<i>italic</i>Text</body>\n" +
 			"</html>",
 			result1
 		);
@@ -133,22 +134,22 @@ public class DiffTest extends StructrUiTest {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body>Test<b>bold</b>between<i>italic</i>Text</body></html>", (String from) -> {
 			String mod = from;
-			
+
 			mod = mod.replace("bold", "BOLD");
 			mod = mod.replace("between", "BETWEEN");
 			mod = mod.replace("italic", "ITALIC");
 			mod = mod.replace("Text", "abcdef");
-			
+
 			return mod;
 		});
 
 		assertEquals(
 			"<!DOCTYPE html>\n" +
 			"<html>\n" +
-			"  <head>\n" +
-			"    <title>Title</title>\n" +
-			"  </head>\n" +
-			"  <body>Test<b>BOLD</b>BETWEEN<i>ITALIC</i>abcdef</body>\n" +
+			"	<head>\n" +
+			"		<title>Title</title>\n" +
+			"	</head>\n" +
+			"	<body>Test<b>BOLD</b>BETWEEN<i>ITALIC</i>abcdef</body>\n" +
 			"</html>",
 			result1
 		);
@@ -158,28 +159,28 @@ public class DiffTest extends StructrUiTest {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body><h1>Title text</h1></body></html>", (String from) -> {
 			final StringBuilder buf = new StringBuilder(from);
-			
+
 			int startPos = buf.indexOf("<h1");
 			int endPos   = buf.indexOf("</h1>") + 5;
-			
+
 			// insert from back to front, otherwise insert position changes
 			buf.insert(endPos, "</div>");
 			buf.insert(startPos, "<div>");
-			
+
 			return buf.toString();
 		});
 
 		assertEquals(
 			"<!DOCTYPE html>\n" +
 			"<html>\n" +
-			"  <head>\n" +
-			"    <title>Title</title>\n" +
-			"  </head>\n" +
-			"  <body>\n" +
-			"    <div>\n" +
-			"      <h1>Title text</h1>\n" +
-			"    </div>\n" +
-			"  </body>\n" +
+			"	<head>\n" +
+			"		<title>Title</title>\n" +
+			"	</head>\n" +
+			"	<body>\n" +
+			"		<div>\n" +
+			"			<h1>Title text</h1>\n" +
+			"		</div>\n" +
+			"	</body>\n" +
 			"</html>",
 			result1
 		);
@@ -189,30 +190,30 @@ public class DiffTest extends StructrUiTest {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body><h1>Title text</h1></body></html>", (String from) -> {
 			final StringBuilder buf = new StringBuilder(from);
-			
+
 			int startPos = buf.indexOf("<h1");
 			int endPos   = buf.indexOf("</h1>") + 5;
-			
+
 			// insert from back to front, otherwise insert position changes
 			buf.insert(endPos, "</div></div>");
 			buf.insert(startPos, "<div><div>");
-			
+
 			return buf.toString();
 		});
 
 		assertEquals(
 			"<!DOCTYPE html>\n" +
 			"<html>\n" +
-			"  <head>\n" +
-			"    <title>Title</title>\n" +
-			"  </head>\n" +
-			"  <body>\n" +
-			"    <div>\n" +
-			"      <div>\n" +
-			"        <h1>Title text</h1>\n" +
-			"      </div>\n" +
-			"    </div>\n" +
-			"  </body>\n" +
+			"	<head>\n" +
+			"		<title>Title</title>\n" +
+			"	</head>\n" +
+			"	<body>\n" +
+			"		<div>\n" +
+			"			<div>\n" +
+			"				<h1>Title text</h1>\n" +
+			"			</div>\n" +
+			"		</div>\n" +
+			"	</body>\n" +
 			"</html>",
 			result1
 		);
@@ -222,32 +223,32 @@ public class DiffTest extends StructrUiTest {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body><h1>Title text</h1></body></html>", (String from) -> {
 			final StringBuilder buf = new StringBuilder(from);
-			
+
 			int startPos = buf.indexOf("<h1");
 			int endPos   = buf.indexOf("</h1>") + 5;
-			
+
 			// insert from back to front, otherwise insert position changes
 			buf.insert(endPos, "</div></div></div>");
 			buf.insert(startPos, "<div><div><div>");
-			
+
 			return buf.toString();
 		});
 
 		assertEquals(
 			"<!DOCTYPE html>\n" +
 			"<html>\n" +
-			"  <head>\n" +
-			"    <title>Title</title>\n" +
-			"  </head>\n" +
-			"  <body>\n" +
-			"    <div>\n" +
-			"      <div>\n" +
-			"        <div>\n" +
-			"          <h1>Title text</h1>\n" +
-			"        </div>\n" +
-			"      </div>\n" +
-			"    </div>\n" +
-			"  </body>\n" +
+			"	<head>\n" +
+			"		<title>Title</title>\n" +
+			"	</head>\n" +
+			"	<body>\n" +
+			"		<div>\n" +
+			"			<div>\n" +
+			"				<div>\n" +
+			"					<h1>Title text</h1>\n" +
+			"				</div>\n" +
+			"			</div>\n" +
+			"		</div>\n" +
+			"	</body>\n" +
 			"</html>",
 			result1
 		);
@@ -257,20 +258,20 @@ public class DiffTest extends StructrUiTest {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body><h1>Title text</h1><div><h2>subtitle</h2></div></body></html>", (String from) -> {
 			final StringBuilder buf = new StringBuilder(from);
-			
+
 			int startPos = buf.indexOf("<h1");
 			int endPos   = buf.indexOf("</h1>") + 5;
-			
+
 			// cut out <h1> block
 			final String toMove = buf.substring(startPos, endPos);
 			buf.replace(startPos, endPos, "");
-			
+
 			// insert after <h2>
 			int insertPos = buf.indexOf("</h2>") + 5;
-			
+
 			// insert from back to front, otherwise insert position changes
 			buf.insert(insertPos, toMove);
-			
+
 			return buf.toString();
 		});
 
@@ -278,15 +279,15 @@ public class DiffTest extends StructrUiTest {
 		assertEquals(
 			"<!DOCTYPE html>\n" +
 			"<html>\n" +
-			"  <head>\n" +
-			"    <title>Title</title>\n" +
-			"  </head>\n" +
-			"  <body>\n" +
-			"    <div>\n" +
-			"      <h2>subtitle</h2>\n" +
-			"      <h1>Title text</h1>\n" +
-			"    </div>\n" +
-			"  </body>\n" +
+			"	<head>\n" +
+			"		<title>Title</title>\n" +
+			"	</head>\n" +
+			"	<body>\n" +
+			"		<div>\n" +
+			"			<h2>subtitle</h2>\n" +
+			"			<h1>Title text</h1>\n" +
+			"		</div>\n" +
+			"	</body>\n" +
 			"</html>",
 			result1
 		);
@@ -322,17 +323,17 @@ public class DiffTest extends StructrUiTest {
 //		assertEquals(
 //			"<!DOCTYPE html>\n" +
 //			"<html>\n" +
-//			"  <head>\n" +
-//			"    <title>Title</title>\n" +
-//			"  </head>\n" +
-//			"  <body>\n" +
-//			"    <div>\n" +
-//			"      <h2>three</h2>\n" +
-//			"    </div>\n" +
-//			"    <div>\n" +
-//			"      <h2>four</h2>\n" +
-//			"    </div>\n" +
-//			"  </body>\n" +
+//			"	<head>\n" +
+//			"		<title>Title</title>\n" +
+//			"	</head>\n" +
+//			"	<body>\n" +
+//			"		<div>\n" +
+//			"			<h2>three</h2>\n" +
+//			"		</div>\n" +
+//			"		<div>\n" +
+//			"			<h2>four</h2>\n" +
+//			"		</div>\n" +
+//			"	</body>\n" +
 //			"</html>",
 //			result1
 //		);
@@ -366,23 +367,23 @@ public class DiffTest extends StructrUiTest {
 //		assertEquals(
 //			"<!DOCTYPE html>\n" +
 //			"<html>\n" +
-//			"  <head>\n" +
-//			"    <title>Title</title>\n" +
-//			"  </head>\n" +
-//			"  <body>\n" +
-//			"    <div>\n" +
-//			"      <h2>one</h2>\n" +
-//			"    </div>\n" +
-//			"    <div>\n" +
-//			"      <h2>two</h2>\n" +
-//			"    </div>\n" +
-//			"    <div>\n" +
-//			"      <h2>three</h2>\n" +
-//			"    </div>\n" +
-//			"    <div>\n" +
-//			"      <h2>four</h2>\n" +
-//			"    </div>\n" +
-//			"  </body>\n" +
+//			"	<head>\n" +
+//			"		<title>Title</title>\n" +
+//			"	</head>\n" +
+//			"	<body>\n" +
+//			"		<div>\n" +
+//			"			<h2>one</h2>\n" +
+//			"		</div>\n" +
+//			"		<div>\n" +
+//			"			<h2>two</h2>\n" +
+//			"		</div>\n" +
+//			"		<div>\n" +
+//			"			<h2>three</h2>\n" +
+//			"		</div>\n" +
+//			"		<div>\n" +
+//			"			<h2>four</h2>\n" +
+//			"		</div>\n" +
+//			"	</body>\n" +
 //			"</html>",
 //			result2
 //		);
@@ -394,41 +395,41 @@ public class DiffTest extends StructrUiTest {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body><div><h2>one</h2></div><div><h2>two</h2></div><div><h2>three</h2></div><div><h2>four</h2></div></body></html>", (String from) -> {
 			final StringBuilder buf = new StringBuilder(from);
-			
+
 			// cut out <div> block
-			int cutStart = buf.indexOf("<h2") - (DOMNode.dataHashProperty.jsonName().length() + 49);
-			int cutEnd = buf.indexOf("</h2>") + 20;
-			
+			int cutStart = buf.indexOf("<h2") - (DOMNode.dataHashProperty.jsonName().length() + 46);
+			int cutEnd = buf.indexOf("</h2>") + 16;
+
 			clipboard.append(buf.substring(cutStart, cutEnd));
 			buf.replace(cutStart, cutEnd, "");
-			
-			int insert = buf.indexOf("</h2>") + 20;
-			
+
+			int insert = buf.indexOf("</h2>") + 16;
+
 			buf.insert(insert, clipboard.toString());
-			
+
 			return buf.toString();
 		});
 
 		assertEquals(
 			"<!DOCTYPE html>\n"
 			+ "<html>\n"
-			+ "  <head>\n"
-			+ "    <title>Title</title>\n"
-			+ "  </head>\n"
-			+ "  <body>\n"
-			+ "    <div>\n"
-			+ "      <h2>two</h2>\n"
-			+ "    </div>\n"
-			+ "    <div>\n"
-			+ "      <h2>one</h2>\n"
-			+ "    </div>\n"
-			+ "    <div>\n"
-			+ "      <h2>three</h2>\n"
-			+ "    </div>\n"
-			+ "    <div>\n"
-			+ "      <h2>four</h2>\n"
-			+ "    </div>\n"
-			+ "  </body>\n"
+			+ "	<head>\n"
+			+ "		<title>Title</title>\n"
+			+ "	</head>\n"
+			+ "	<body>\n"
+			+ "		<div>\n"
+			+ "			<h2>two</h2>\n"
+			+ "		</div>\n"
+			+ "		<div>\n"
+			+ "			<h2>one</h2>\n"
+			+ "		</div>\n"
+			+ "		<div>\n"
+			+ "			<h2>three</h2>\n"
+			+ "		</div>\n"
+			+ "		<div>\n"
+			+ "			<h2>four</h2>\n"
+			+ "		</div>\n"
+			+ "	</body>\n"
 			+ "</html>",
 			result1
 		);
@@ -438,34 +439,34 @@ public class DiffTest extends StructrUiTest {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body><div><h2>one</h2></div><div><h2>two</h2></div><div><h2>three</h2></div><div><h2>four</h2></div></body></html>", (String from) -> {
 			final StringBuilder buf = new StringBuilder(from);
-			
+
 			int insert = buf.indexOf("<div ") + 5;
-			
+
 			buf.insert(insert, " class='test' id='one' ");
-			
+
 			return buf.toString();
 		});
 
 		assertEquals(
 			"<!DOCTYPE html>\n"
 			+ "<html>\n"
-			+ "  <head>\n"
-			+ "    <title>Title</title>\n"
-			+ "  </head>\n"
-			+ "  <body>\n"
-			+ "    <div class=\"test\" id=\"one\">\n"
-			+ "      <h2>one</h2>\n"
-			+ "    </div>\n"
-			+ "    <div>\n"
-			+ "      <h2>two</h2>\n"
-			+ "    </div>\n"
-			+ "    <div>\n"
-			+ "      <h2>three</h2>\n"
-			+ "    </div>\n"
-			+ "    <div>\n"
-			+ "      <h2>four</h2>\n"
-			+ "    </div>\n"
-			+ "  </body>\n"
+			+ "	<head>\n"
+			+ "		<title>Title</title>\n"
+			+ "	</head>\n"
+			+ "	<body>\n"
+			+ "		<div class=\"test\" id=\"one\">\n"
+			+ "			<h2>one</h2>\n"
+			+ "		</div>\n"
+			+ "		<div>\n"
+			+ "			<h2>two</h2>\n"
+			+ "		</div>\n"
+			+ "		<div>\n"
+			+ "			<h2>three</h2>\n"
+			+ "		</div>\n"
+			+ "		<div>\n"
+			+ "			<h2>four</h2>\n"
+			+ "		</div>\n"
+			+ "	</body>\n"
 			+ "</html>",
 			result1
 		);
@@ -475,34 +476,34 @@ public class DiffTest extends StructrUiTest {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body><div><h2 class=\"test\" id=\"one\">one</h2></div><div><h2>two</h2></div><div><h2 id=\"three\">three</h2></div><div><h2>four</h2></div></body></html>", (String from) -> {
 			String modified = from;
-			
+
 			modified = modified.replace(" class=\"test\"", " class=\"foo\"");
 			modified = modified.replace(" id=\"one\"", " id=\"two\"");
 			modified = modified.replace(" id=\"three\"", " class=\"test\"");
-			
+
 			return modified;
 		});
 
 		assertEquals(
 			"<!DOCTYPE html>\n"
 			+ "<html>\n"
-			+ "  <head>\n"
-			+ "    <title>Title</title>\n"
-			+ "  </head>\n"
-			+ "  <body>\n"
-			+ "    <div>\n"
-			+ "      <h2 class=\"foo\" id=\"two\">one</h2>\n"
-			+ "    </div>\n"
-			+ "    <div>\n"
-			+ "      <h2>two</h2>\n"
-			+ "    </div>\n"
-			+ "    <div>\n"
-			+ "      <h2 class=\"test\">three</h2>\n"
-			+ "    </div>\n"
-			+ "    <div>\n"
-			+ "      <h2>four</h2>\n"
-			+ "    </div>\n"
-			+ "  </body>\n"
+			+ "	<head>\n"
+			+ "		<title>Title</title>\n"
+			+ "	</head>\n"
+			+ "	<body>\n"
+			+ "		<div>\n"
+			+ "			<h2 class=\"foo\" id=\"two\">one</h2>\n"
+			+ "		</div>\n"
+			+ "		<div>\n"
+			+ "			<h2>two</h2>\n"
+			+ "		</div>\n"
+			+ "		<div>\n"
+			+ "			<h2 class=\"test\">three</h2>\n"
+			+ "		</div>\n"
+			+ "		<div>\n"
+			+ "			<h2>four</h2>\n"
+			+ "		</div>\n"
+			+ "	</body>\n"
 			+ "</html>",
 			result1
 		);
@@ -513,17 +514,17 @@ public class DiffTest extends StructrUiTest {
 		final String result1 = testDiff("<html><head><title>Title</title></head><body><div>Text<h2>one</h2><p>two</p></div></body></html>", (String from) -> {
 			final StringBuilder clipboard = new StringBuilder();
 			final StringBuilder buf = new StringBuilder(from);
-			
+
 			int cutStart = buf.indexOf("<h2");
-			int cutEnd = buf.indexOf("</p>") + 9;
-			
+			int cutEnd = buf.indexOf("</p>") + 7;
+
 			// cut out <h1> block
 			clipboard.append(buf.substring(cutStart, cutEnd));
 			buf.replace(cutStart, cutEnd, "");
-			
+
 			int insert = buf.indexOf("<div");
 			buf.insert(insert, clipboard.toString());
-			
+
 			return buf.toString();
 		});
 
@@ -532,14 +533,14 @@ public class DiffTest extends StructrUiTest {
 		assertEquals(
 			"<!DOCTYPE html>\n"
 			+ "<html>\n"
-			+ "  <head>\n"
-			+ "    <title>Title</title>\n"
-			+ "  </head>\n"
-			+ "  <body>\n"
-			+ "    <h2>one</h2>\n"
-			+ "    <p>two</p>\n"
-			+ "    <div>Text </div>\n"
-			+ "  </body>\n"
+			+ "	<head>\n"
+			+ "		<title>Title</title>\n"
+			+ "	</head>\n"
+			+ "	<body>\n"
+			+ "		<h2>one</h2>\n"
+			+ "		<p>two</p>\n"
+			+ "		<div>Text </div>\n"
+			+ "	</body>\n"
 			+ "</html>",
 			result1
 		);
@@ -550,20 +551,20 @@ public class DiffTest extends StructrUiTest {
 		final String result1 = testDiff("<html><head><title>Title</title></head><body><div>Text<h2>one</h2><div><p>two</p></div></div></body></html>", (String from) -> {
 			final StringBuilder clipboard = new StringBuilder();
 			final StringBuilder buf = new StringBuilder(from);
-			
+
 			int cutStart = buf.indexOf("<h2");
 			int cutEnd = buf.indexOf("</h2>") + 5;
-			
+
 			// cut out <h1> block
 			clipboard.append(buf.substring(cutStart, cutEnd));
 			buf.replace(cutStart, cutEnd, "");
-			
+
 			int insert = buf.indexOf("<p ");
-			
+
 			buf.insert(insert, clipboard.toString());
-			
+
 			System.out.println(buf.toString());
-			
+
 			return buf.toString();
 		});
 
@@ -572,17 +573,17 @@ public class DiffTest extends StructrUiTest {
 		assertEquals(
 			"<!DOCTYPE html>\n"
 			+ "<html>\n"
-			+ "  <head>\n"
-			+ "    <title>Title</title>\n"
-			+ "  </head>\n"
-			+ "  <body>\n"
-			+ "    <div>Text \n"
-			+ "      <div>\n"
-			+ "        <h2>one</h2>\n"
-			+ "        <p>two</p>\n"
-			+ "      </div>\n"
-			+ "    </div>\n"
-			+ "  </body>\n"
+			+ "	<head>\n"
+			+ "		<title>Title</title>\n"
+			+ "	</head>\n"
+			+ "	<body>\n"
+			+ "		<div>Text \n"
+			+ "			<div>\n"
+			+ "				<h2>one</h2>\n"
+			+ "				<p>two</p>\n"
+			+ "			</div>\n"
+			+ "		</div>\n"
+			+ "	</body>\n"
 			+ "</html>",
 			result1
 		);
@@ -592,13 +593,13 @@ public class DiffTest extends StructrUiTest {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body><h1>title</h1><p>text</p></body></html>", (String from) -> {
 			final StringBuilder buf = new StringBuilder(from);
-			
+
 			int insertStart = buf.indexOf("<h1");
 			int insertEnd = buf.indexOf("</p>") + 4;
-			
+
 			buf.insert(insertEnd, "</div>");
 			buf.insert(insertStart, "<div>");
-			
+
 			return buf.toString();
 		});
 
@@ -607,15 +608,15 @@ public class DiffTest extends StructrUiTest {
 		assertEquals(
 			"<!DOCTYPE html>\n"
 			+ "<html>\n"
-			+ "  <head>\n"
-			+ "    <title>Title</title>\n"
-			+ "  </head>\n"
-			+ "  <body>\n"
-			+ "    <div>\n"
-			+ "      <h1>title</h1>\n"
-			+ "      <p>text</p>\n"
-			+ "    </div>\n"
-			+ "  </body>\n"
+			+ "	<head>\n"
+			+ "		<title>Title</title>\n"
+			+ "	</head>\n"
+			+ "	<body>\n"
+			+ "		<div>\n"
+			+ "			<h1>title</h1>\n"
+			+ "			<p>text</p>\n"
+			+ "		</div>\n"
+			+ "	</body>\n"
 			+ "</html>",
 			result1
 		);
@@ -625,13 +626,13 @@ public class DiffTest extends StructrUiTest {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body><h1>title</h1><p>text</p></body></html>", (String from) -> {
 			String modified = from;
-			
+
 			modified = modified.replace("<h1 ", "<h2 ");
 			modified = modified.replace("</h1>", "</h2>");
-			
+
 			modified = modified.replace("<p ", "<a ");
 			modified = modified.replace("</p>", "</a>");
-			
+
 			return modified;
 		});
 
@@ -640,13 +641,13 @@ public class DiffTest extends StructrUiTest {
 		assertEquals(
 			"<!DOCTYPE html>\n"
 			+ "<html>\n"
-			+ "  <head>\n"
-			+ "    <title>Title</title>\n"
-			+ "  </head>\n"
-			+ "  <body>\n"
-			+ "    <h2>title</h2>\n"
-			+ "    <a>text</a>\n"
-			+ "  </body>\n"
+			+ "	<head>\n"
+			+ "		<title>Title</title>\n"
+			+ "	</head>\n"
+			+ "	<body>\n"
+			+ "		<h2>title</h2>\n"
+			+ "		<a>text</a>\n"
+			+ "	</body>\n"
 			+ "</html>",
 			result1
 		);
@@ -658,9 +659,9 @@ public class DiffTest extends StructrUiTest {
 
 		testDiff("<html><head><title>Title</title></head><body><div>" + comment + "<div>" + comment + "<div>test</div>" + comment + "<div></div></div></body></html>", (String from) -> {
 			String modified = from;
-			
+
 			modified = modified.replace(comment, "");
-			
+
 			return modified;
 		});
 
@@ -715,6 +716,9 @@ public class DiffTest extends StructrUiTest {
 
 
 	private String testDiff(final String source, final Function<String, String> modifier) {
+
+		Services.getInstance().getCurrentConfig().setProperty(Services.JSON_INDENTATION,          "true");
+		Services.getInstance().getCurrentConfig().setProperty(Services.HTML_INDENTATION,          "true");
 
 		StringBuilder buf = new StringBuilder();
 		String sourceHtml = null;

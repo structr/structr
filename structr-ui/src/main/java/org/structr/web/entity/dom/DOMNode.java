@@ -734,13 +734,17 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		throw new DOMException(DOMException.INVALID_ACCESS_ERR, INVALID_ACCESS_ERR_MESSAGE);
 	}
 
-	protected String indent(final int depth) {
+	protected String indent(final int depth, final RenderContext renderContext) {
+
+		if (!renderContext.shouldIndentHtml()) {
+			return "";
+		}
 
 		StringBuilder indent = new StringBuilder("\n");
 
 		for (int d = 0; d < depth; d++) {
 
-			indent.append("  ");
+			indent.append("	");
 
 		}
 
