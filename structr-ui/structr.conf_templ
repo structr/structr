@@ -85,7 +85,8 @@ configured.services = NodeService AgentService CronService SchemaService LogServ
 superuser.username = superadmin
 superuser.password = 
 
-# Indent JSON
+# Indentation
+html.indentation = true
 json.indentation = true
 
 # Use lenient serialization, e.g. allow to serialize NaN, -Infinity, Infinity instead of just returning null
