@@ -159,9 +159,24 @@ var _Elements = {
 			'elements': ['iframe'],
 			'attrs': ['src', 'width', 'height'],
 			'focus' : 'src'
+		},
+		{
+			'elements': ['source'],
+			'attrs': ['src', 'type', 'media'],
+			'focus' : 'src'
+		},
+		{
+			'elements': ['video'],
+			'attrs': ['autoplay', 'controls', 'height', 'loop', 'muted', 'poster', 'preload', 'src', 'width'],
+			'focus' : 'controls'
+		},
+		{
+			'elements': ['audio'],
+			'attrs': ['autoplay', 'controls', 'loop', 'muted', 'preload', 'src'],
+			'focus' : 'controls'
 		}
 	],
-	voidAttrs: ['br', 'hr', 'img', 'input', 'link', 'meta', 'area', 'base', 'col', 'embed', 'keygen', 'menuitem', 'param', 'source', 'track', 'wbr'],    
+	voidAttrs: ['br', 'hr', 'img', 'input', 'link', 'meta', 'area', 'base', 'col', 'embed', 'keygen', 'menuitem', 'param', 'track', 'wbr'],
 	/**
 	 * Reload widgets
 	 */
@@ -477,7 +492,7 @@ var _Elements = {
 		});
 
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodes&&entity.syncedNodes.length)?entity.syncedNodes:[entity.sharedComponent]));
-		
+
 		if (!hasChildren) {
 			if (entity.sharedComponent) {
 				Command.get(entity.sharedComponent, function(obj) {
@@ -742,9 +757,9 @@ var _Elements = {
 		});
 
 		$.each(folder.files, function(i, f) {
-			
+
 			Command.get(f.id, function(file) {
-			
+
 				$('.' + folder.id + '_').append('<div class="clear"></div><div class="node file sub ' + file.id + '_"><img class="typeIcon" src="' + _Files.getIcon(file) + '">'
 						+ '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
 				var div = $('.' + file.id + '_');
@@ -774,7 +789,7 @@ var _Elements = {
 					$(this).removeClass('nodeHover');
 				});
 			});
-		
+
 		});
 	}
 };
