@@ -18,6 +18,7 @@
  */
 package org.structr.schema.export;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -45,6 +46,10 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		this.root = root;
 	}
 
+	public Set<StructrTypeDefinition> getTypes() {
+		return typeDefinitions;
+	}
+	
 	public JsonType getType(final String name) {
 
 		for (final JsonType type : typeDefinitions) {
@@ -64,6 +69,14 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		typeDefinitions.add(def);
 
 		return def;
+
+	}
+
+	public void removeType(final String name) {
+
+		final StructrNodeTypeDefinition def = new StructrNodeTypeDefinition(root, name);
+
+		typeDefinitions.remove(def);
 
 	}
 
@@ -110,6 +123,10 @@ public class StructrTypeDefinitions implements StructrDefinition {
 	}
 
 	void deserialize(final Map<String, Object> source) {
+		deserialize(source, null);
+	}
+	
+	void deserialize(final Map<String, Object> source, final List<String> nodeIds) {
 
 		for (final Entry<String, Object> entry : source.entrySet()) {
 
@@ -171,6 +188,10 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	void addType(final StructrTypeDefinition type) {
 		typeDefinitions.add(type);
+	}
+
+	void removeType(final StructrTypeDefinition type) {
+		typeDefinitions.remove(type);
 	}
 
 	Set<StructrRelationshipTypeDefinition> getRelationships() {

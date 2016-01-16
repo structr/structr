@@ -18,29 +18,32 @@
  */
 package org.structr.schema.importer;
 
-import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.api.DatabaseService;
-import org.structr.api.Transaction;
+import org.apache.chemistry.opencmis.commons.impl.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.MaintenanceCommand;
+import org.structr.core.graph.Tx;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.InvalidSchemaException;
+import org.structr.schema.json.JsonSchema;
 
 /**
- *
- *
+ * This class can handle Schema JSON documents 
  */
-public class GraphGistImporter extends SchemaImporter implements MaintenanceCommand {
+public class SchemaJsonImporter extends SchemaImporter implements MaintenanceCommand {
 
-	private static final Logger logger = Logger.getLogger(GraphGistImporter.class.getName());
+	private static final Logger logger = Logger.getLogger(SchemaJsonImporter.class.getName());
 
+	
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
 
@@ -68,15 +71,15 @@ public class GraphGistImporter extends SchemaImporter implements MaintenanceComm
 
 			if (fileName != null) {
 
-				GraphGistImporter.importCypher(extractSources(new FileInputStream(fileName)));
+				SchemaJsonImporter.importSchemaJson(IOUtils.readAllLines(new FileInputStream(fileName)));
 
 			} else if (url != null) {
 
-				GraphGistImporter.importCypher(extractSources(new URL(url).openStream()));
+				SchemaJsonImporter.importSchemaJson(IOUtils.readAllLines(new URL(url).openStream()));
 
 			} else if (source != null) {
 
-				GraphGistImporter.importCypher(extractSources(new ByteArrayInputStream(source.getBytes())));
+				SchemaJsonImporter.importSchemaJson(source);
 			}
 
 		} catch (IOException ioex) {
@@ -84,34 +87,42 @@ public class GraphGistImporter extends SchemaImporter implements MaintenanceComm
 			logger.log(Level.FINE, "Filename: " + fileName + ", URL: " + url + ", source: " + source, ioex);
 		}
 
-		analyzeSchema();
+		//analyzeSchema();
 	}
 
 
-	public static void importCypher(final List<String> sources) {
-
-		final App app                 = StructrApp.getInstance();
-		final DatabaseService graphDb = app.getDatabaseService();
+	public static void importSchemaJson(final String source) throws FrameworkException {
 
 		// nothing to do
-		if (sources.isEmpty()) {
+		if (StringUtils.isBlank(source)) {
 			return;
 		}
+		
+		final App app = StructrApp.getInstance();
 
-		// first step: execute cypher queries
-		for (final String source : sources) {
+		// isolate write output
+		try (final Tx tx = app.tx()) {
 
-			try (final Transaction tx = graphDb.beginTx()) {
+			final JsonSchema schema;
 
-				// be very tolerant here, just execute everything
-				graphDb.execute(source);
-				tx.success();
+			try {
+				schema = StructrSchema.createFromSource(source);
 
-			} catch (Throwable t) {
-				// ignore
-				t.printStackTrace();
+			} catch (InvalidSchemaException | URISyntaxException ex) {
+				throw new FrameworkException(422, ex.getMessage());
 			}
+
+			try {
+				StructrSchema.extendDatabaseSchema(app, schema);
+
+			} catch (URISyntaxException ex) {
+				throw new FrameworkException(422, ex.getMessage());
+			}
+
+
+			tx.success();
 		}
+		
 	}
 
 	@Override

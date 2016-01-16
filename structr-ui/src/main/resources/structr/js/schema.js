@@ -276,6 +276,7 @@ var _Schema = {
 			var offset = $el.offset();
 			selectedNodes.push({
 				nodeId: $el.attr('id'),
+				name: $el.children('b').text(),
 				pos: {
 					top: (offset.top  - canvas.offset().top),
 					left: offset.left
@@ -2419,9 +2420,9 @@ var _Schema = {
 
 			table.empty();
 
-			Command.snapshots("list", "", function(data) {
+			Command.snapshots("list", "", null, function(data) {
 
-				var snapshots = data.snapshots;
+				var snapshots = data.snapshots; console.log(data)
 
 				snapshots.forEach(function(snapshot, i) {
 					table.append('<tr><td>' + snapshot + '</td><td style="text-align:right;"><button id="delete-' + i + '">Delete</button><button id="add-' + i + '">Add</button><button id="restore-' + i + '">Restore</button></td></tr>');
@@ -2445,7 +2446,7 @@ var _Schema = {
 					});
 					$('#add-' + i).on('click', function() {
 
-						Command.snapshots("add", snapshot, function(data) {  console.log(data)
+						Command.snapshots("add", snapshot, null, function(data) {  console.log(data)
 
 							var status = data.status;
 
@@ -2462,7 +2463,7 @@ var _Schema = {
 						});
 					});
 					$('#delete-' + i).on('click', function() {
-						Command.snapshots("delete", snapshot, refresh);
+						Command.snapshots("delete", snapshot, null, refresh);
 					});
 				});
 			});
@@ -2471,7 +2472,15 @@ var _Schema = {
 		$('#create-snapshot').on('click', function() {
 
 			var title = $('#snapshot-title').val();
-			Command.snapshots("export", title, function(data) {
+			
+			var types = [];
+			if (selectedNodes && selectedNodes.length) {
+				selectedNodes.forEach(function(selectedNode) {
+					types.push(selectedNode.name);
+				});
+			}
+			
+			Command.snapshots("export", title, types, function(data) {
 
 				var status = data.status;
 				if (dialogBox.is(':visible')) {

@@ -40,7 +40,6 @@ import org.structr.api.DatabaseService;
 import org.structr.api.util.Iterables;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
-import org.structr.api.Transaction;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.common.error.FrameworkException;
@@ -131,31 +130,6 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		return sources;
 	}
 
-	public static void importCypher(final List<String> sources) {
-
-		final App app                 = StructrApp.getInstance();
-		final DatabaseService graphDb = app.getDatabaseService();
-
-		// nothing to do
-		if (sources.isEmpty()) {
-			return;
-		}
-
-		// first step: execute cypher queries
-		for (final String source : sources) {
-
-			try (final Transaction tx = graphDb.beginTx()) {
-
-				// be very tolerant here, just execute everything
-				graphDb.execute(source);
-				tx.success();
-
-			} catch (Throwable t) {
-				// ignore
-				t.printStackTrace();
-			}
-		}
-	}
 
 	public static void analyzeSchema() {
 

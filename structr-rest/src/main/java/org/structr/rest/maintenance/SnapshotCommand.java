@@ -51,10 +51,11 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
 
-		final String mode = (String)attributes.get("mode");
-		final String name = (String)attributes.get("name");
+		final String       mode  = (String) attributes.get("mode");
+		final String       name  = (String) attributes.get("name");
+		final List<String> types = (List<String>) attributes.get("types");
 
-		execute(mode, name);
+		execute(mode, name, types);
 	}
 
 	@Override
@@ -63,13 +64,17 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 	}
 
 	public void execute(final String mode, final String name) throws FrameworkException {
+		execute(mode, name, null);
+	}
+
+	public void execute(final String mode, final String name, final List<String> types) throws FrameworkException {
 
 		if (mode != null) {
 
 			switch (mode) {
 
 				case "export":
-					createSnapshot(name);
+					createSnapshot(name, types);
 					break;
 
 				case "restore":
@@ -96,7 +101,7 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 	}
 
 	// ----- private methods -----
-	private void createSnapshot(final String name) throws FrameworkException {
+	private void createSnapshot(final String name, final List<String> types) throws FrameworkException {
 
 		// we want to create a sorted, human-readble, diffable representation of the schema
 		final App app = StructrApp.getInstance();
@@ -107,7 +112,7 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 			final File snapshotFile = locateFile(name, true);
 			try (final Writer writer = new FileWriter(snapshotFile)) {
 
-				final JsonSchema schema = StructrSchema.createFromDatabase(app);
+				final JsonSchema schema = StructrSchema.createFromDatabase(app, types);
 
 				writer.append(schema.toString());
 				writer.append("\n");    // useful newline

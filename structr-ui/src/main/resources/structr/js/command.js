@@ -1108,17 +1108,17 @@ var Command = {
 		return sendObj(obj, callback);
 	},
 	/**
-	 * Send a LIST_SNAPSHOTS command to the server.
+	 * Send a SNAPSHOTS command to the server.
 	 *
-	 * The server will return a list of restorable
-	 * snapshots from the snapshot location configured
-	 * in the structr.conf.
+	 * The server will return a status object.
 	 */
-	snapshots: function(mode, name, callback) {
+	snapshots: function(mode, name, types, callback) {
 		var obj  = {};
 		obj.data = { mode: mode, name: name };
+		if (types && types.length) {
+			obj.data.types = types.join(',');
+		}
 		obj.command = 'SNAPSHOTS';
-		log('snapshots()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**

@@ -48,6 +48,7 @@ import org.structr.schema.SchemaHelper;
 import org.structr.rest.maintenance.SnapshotCommand;
 import org.structr.schema.importer.GraphGistImporter;
 import org.structr.schema.importer.RDFImporter;
+import org.structr.schema.importer.SchemaJsonImporter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -65,6 +66,7 @@ public class MaintenanceParameterResource extends Resource {
 
 		maintenanceCommandMap.put("importGist", GraphGistImporter.class);
 		maintenanceCommandMap.put("importRdf", RDFImporter.class);
+		maintenanceCommandMap.put("importSchemaJson", SchemaJsonImporter.class);
 		maintenanceCommandMap.put("rebuildIndex", BulkRebuildIndexCommand.class);
 		maintenanceCommandMap.put("rebuildIndexForType", BulkRebuildIndexCommand.class);
 		maintenanceCommandMap.put("createLabels", BulkCreateLabelsCommand.class);

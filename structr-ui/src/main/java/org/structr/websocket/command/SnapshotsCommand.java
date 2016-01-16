@@ -18,6 +18,7 @@
  */
 package org.structr.websocket.command;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,7 @@ import org.structr.websocket.message.MessageBuilder;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
@@ -63,7 +65,15 @@ public class SnapshotsCommand extends AbstractCommand {
 		final Map<String, Object> data        = webSocketData.getNodeData();
 		final String mode                     = (String)data.get("mode");
 		final String name                     = (String)data.get("name");
-
+		final String typesString              = (String) data.get("types");
+		
+		final List<String> types;
+		if (typesString != null) {
+			types = Arrays.asList(StringUtils.split(typesString, ","));
+		} else {
+			types = null;
+		}
+		
 		if (mode != null) {
 
 			final List<GraphObject> result = new LinkedList<>();
@@ -92,7 +102,7 @@ public class SnapshotsCommand extends AbstractCommand {
 
 					try {
 
-						app.command(SnapshotCommand.class).execute(mode, name);
+						app.command(SnapshotCommand.class).execute(mode, name, types);
 						msg.put(statusProperty, "success");
 
 					} catch (Throwable t) {

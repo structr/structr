@@ -76,6 +76,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.dynamic.File;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.importer.GraphGistImporter;
+import org.structr.schema.importer.SchemaJsonImporter;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.diff.CreateOperation;
@@ -102,22 +103,23 @@ import org.structr.web.entity.dom.Page;
  */
 public class Importer {
 
-	private static final String[] hrefElements = new String[]{"link"};
+	private static final String[] hrefElements       = new String[]{"link"};
 	private static final String[] ignoreElementNames = new String[]{"#declaration", "#doctype"};
-	private static final String[] srcElements = new String[]{"img", "script", "audio", "video", "input", "source", "track"};
-	private static final Logger logger = Logger.getLogger(Importer.class.getName());
+	private static final String[] srcElements        = new String[]{"img", "script", "audio", "video", "input", "source", "track"};
+
+	private static final Logger              logger                  = Logger.getLogger(Importer.class.getName());
 	private static final Map<String, String> contentTypeForExtension = new HashMap<>();
 
 	private static App app;
 	private static ConfigurationProvider config;
 
 	private final static String DATA_STRUCTR_PREFIX = "data-structr-";
-	private final static String DATA_META_PREFIX = "data-structr-meta-";
+	private final static String DATA_META_PREFIX    = "data-structr-meta-";
 
 	static {
 
 		contentTypeForExtension.put("css", "text/css");
-		contentTypeForExtension.put("js", "text/javascript");
+		contentTypeForExtension.put("js",  "text/javascript");
 		contentTypeForExtension.put("xml", "text/xml");
 		contentTypeForExtension.put("php", "application/x-php");
 
@@ -142,19 +144,18 @@ public class Importer {
 	 * @param code
 	 * @param address
 	 * @param name
-	 * @param timeout
 	 * @param publicVisible
 	 * @param authVisible
 	 */
 	public Importer(final SecurityContext securityContext, final String code, final String address, final String name, final boolean publicVisible, final boolean authVisible) {
 
-		this.code = code;
-		this.address = address;
-		this.name = name;
+		this.code            = code;
+		this.address         = address;
+		this.name            = name;
 		this.securityContext = securityContext;
-		this.publicVisible = publicVisible;
-		this.authVisible = authVisible;
-		this.config = StructrApp.getConfiguration();
+		this.publicVisible   = publicVisible;
+		this.authVisible     = authVisible;
+		this.config          = StructrApp.getConfiguration();
 
 		if (address != null && !address.endsWith("/") && !address.endsWith(".html")) {
 			this.address = this.address.concat("/");
@@ -337,12 +338,12 @@ public class Importer {
 		}
 
 		final List<InvertibleModificationOperation> changeSet = new LinkedList<>();
-		final Map<String, DOMNode> indexMappedExistingNodes = new LinkedHashMap<>();
-		final Map<String, DOMNode> hashMappedExistingNodes = new LinkedHashMap<>();
-		final Map<DOMNode, Integer> depthMappedExistingNodes = new LinkedHashMap<>();
-		final Map<String, DOMNode> indexMappedNewNodes = new LinkedHashMap<>();
-		final Map<String, DOMNode> hashMappedNewNodes = new LinkedHashMap<>();
-		final Map<DOMNode, Integer> depthMappedNewNodes = new LinkedHashMap<>();
+		final Map<String, DOMNode>                  indexMappedExistingNodes = new LinkedHashMap<>();
+		final Map<String, DOMNode>                  hashMappedExistingNodes  = new LinkedHashMap<>();
+		final Map<DOMNode, Integer>                 depthMappedExistingNodes = new LinkedHashMap<>();
+		final Map<String, DOMNode>                  indexMappedNewNodes      = new LinkedHashMap<>();
+		final Map<String, DOMNode>                  hashMappedNewNodes       = new LinkedHashMap<>();
+		final Map<DOMNode, Integer>                 depthMappedNewNodes      = new LinkedHashMap<>();
 
 		InvertibleModificationOperation.collectNodes(sourceNode, indexMappedExistingNodes, hashMappedExistingNodes, depthMappedExistingNodes);
 		InvertibleModificationOperation.collectNodes(modifiedNode, indexMappedNewNodes, hashMappedNewNodes, depthMappedNewNodes);
@@ -689,10 +690,28 @@ public class Importer {
 
 				final StringProperty typeKey = new StringProperty(PropertyView.Html.concat("type"));
 
-				if ("script".equals(tag) && newNode.getProperty(typeKey) == null) {
+				if ("script".equals(tag)) {
+					
+					final String contentType = newNode.getProperty(typeKey);
+					
+					if (contentType == null) {
 
-					// Set default type of script tag to "text/javascript" to ensure inline JS gets imported properly
-					newNode.setProperty(typeKey, "text/javascript");
+						// Set default type of script tag to "text/javascript" to ensure inline JS gets imported properly
+						newNode.setProperty(typeKey, "text/javascript");
+						
+					} else if (contentType.equals("application/schema+json")) {
+						
+						for (final Node scriptContentNode : node.childNodes()) {
+							
+							final String source = scriptContentNode.toString();
+		
+							// Import schema JSON
+							SchemaJsonImporter.importSchemaJson(source);
+							
+						}
+						
+						
+					}
 				}
 
 				parent.appendChild(newNode);

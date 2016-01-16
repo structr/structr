@@ -101,6 +101,7 @@ public interface JsonSchema {
 
 	public JsonObjectType addType(final String name) throws URISyntaxException;
 	public JsonType getType(final String name);
+	public void removeType(final String name) throws URISyntaxException;
 
 	public void createDatabaseSchema(final App app) throws FrameworkException;
 

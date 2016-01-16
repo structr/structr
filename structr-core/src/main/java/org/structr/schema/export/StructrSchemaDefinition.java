@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -57,6 +59,10 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 		return id;
 	}
 
+	public Set<StructrTypeDefinition> getTypes() {
+		return typeDefinitions.getTypes();
+	}
+	
 	@Override
 	public JsonType getType(final String name) {
 		return typeDefinitions.getType(name);
@@ -78,13 +84,18 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 	}
 
 	@Override
-	public void setDescription(String description) {
+	public void setDescription(final String description) {
 		this.description = description;
 	}
 
 	@Override
-	public JsonObjectType addType(String name) throws URISyntaxException {
+	public JsonObjectType addType(final String name) throws URISyntaxException {
 		return typeDefinitions.addType(name);
+	}
+
+	@Override
+	public void removeType(final String name) throws URISyntaxException {
+		typeDefinitions.removeType(name);
 	}
 
 	@Override
@@ -165,7 +176,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 
 	void deserialize(final Map<String, Object> source) {
 
-		final Map<String, Object> definitions = (Map<String, Object>)source.get(JsonSchema.KEY_DEFINITIONS);
+		final Map<String, Object> definitions = (Map<String, Object>) source.get(JsonSchema.KEY_DEFINITIONS);
 		if (definitions != null) {
 
 			typeDefinitions.deserialize(definitions);
@@ -286,6 +297,10 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 	}
 
 	static JsonSchema initializeFromDatabase(final App app) throws FrameworkException {
+		return initializeFromDatabase(app, null);
+	}
+
+	static JsonSchema initializeFromDatabase(final App app, final List<String> types) throws FrameworkException {
 
 		URI id = null;
 
@@ -298,9 +313,29 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 		}
 
 
+		final StructrSchemaDefinition sourceSchema = new StructrSchemaDefinition(id);
+		sourceSchema.deserialize(app);
+		
 		final StructrSchemaDefinition schema = new StructrSchemaDefinition(id);
 		schema.deserialize(app);
+		
+		if (types != null && !types.isEmpty()) {
+		
+			for (final StructrTypeDefinition t : sourceSchema.getTypes()) {
 
+				final String name = t.getName();
+
+				if (!types.contains(name)) {
+					try {
+						schema.removeType(name);
+					} catch (URISyntaxException ex) {
+						throw new FrameworkException(422, ex.getMessage());
+					}
+				}
+			}
+		}
+
+		
 		return schema;
 
 	}
