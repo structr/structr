@@ -28,6 +28,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import com.google.gson.JsonSyntaxException;
 
 
 //~--- JDK imports ------------------------------------------------------------
@@ -98,6 +99,12 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 				wrapper = deserialize(elem, context);
 				jsonInput.add(wrapper);
 			}
+
+		} else {
+
+			// when we arrive here, the input element was
+			// not one of the expected types => error
+			throw new JsonSyntaxException("Invalid JSON, expecting object or array");
 		}
 
 		return jsonInput;
@@ -170,6 +177,12 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 					wrapper.add(elem.toString(), deserialize(elem, context));
 				}
 			}
+
+		} else {
+
+			// when we arrive here, the input element was
+			// not one of the expected types => error
+			throw new JsonSyntaxException("Invalid JSON, expecting object or array");
 		}
 
 		return wrapper;

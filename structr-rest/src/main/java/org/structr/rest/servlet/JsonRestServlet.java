@@ -698,12 +698,17 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 	private IJsonInput cleanAndParseJsonString(final App app, final String input) throws FrameworkException {
 
-		IJsonInput jsonInput;
+		IJsonInput jsonInput = null;
 
 		// isolate input parsing (will include read and write operations)
 		try (final Tx tx = app.tx()) {
+
 			jsonInput   = gson.get().fromJson(input, IJsonInput.class);
 			tx.success();
+
+		} catch (JsonSyntaxException jsx) {
+			jsx.printStackTrace();
+			throw new FrameworkException(400, jsx.getMessage());
 		}
 
 		if (jsonInput == null) {
