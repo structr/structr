@@ -338,6 +338,7 @@ public class Functions {
 		functions.put("unlock_readonly_properties_once", new UnlockReadonlyPropertiesFunction());
 		functions.put("call", new CallFunction());
 		functions.put("exec", new ExecFunction());
+		functions.put("exec_binary", new ExecBinaryFunction());
 		functions.put("set_privileged", new SetPrivilegedFunction());
 		functions.put("cypher", new CypherFunction());
 		functions.put("localize", new LocalizeFunction());
