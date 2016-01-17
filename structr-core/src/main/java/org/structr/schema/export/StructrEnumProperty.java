@@ -65,6 +65,7 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 		final Map<String, Object> map = super.serialize();
 
 		map.put(JsonSchema.KEY_ENUM, enums);
+		map.remove(JsonSchema.KEY_FORMAT);
 
 		return map;
 	}

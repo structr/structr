@@ -24,6 +24,7 @@ import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.schema.SchemaHelper.Type;
+import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonStringProperty;
 
 /**
@@ -32,6 +33,8 @@ import org.structr.schema.json.JsonStringProperty;
  */
 public class StructrStringProperty extends StructrPropertyDefinition implements JsonStringProperty {
 
+	private String contentType;
+	
 	public StructrStringProperty(final StructrTypeDefinition parent, final String name) {
 		super(parent, name);
 	}
@@ -43,21 +46,65 @@ public class StructrStringProperty extends StructrPropertyDefinition implements 
 
 	@Override
 	void deserialize(final Map<String, Object> source) {
+
 		super.deserialize(source);
+
+		if (source.containsKey(JsonSchema.KEY_CONTENT_TYPE)) {
+			this.contentType = (String) source.get(JsonSchema.KEY_CONTENT_TYPE);
+		}
+
+		if (source.containsKey(JsonSchema.KEY_FORMAT)) {
+			this.format = (String) source.get(JsonSchema.KEY_FORMAT);
+		}
 	}
 
 	@Override
 	void deserialize(final SchemaProperty property) {
+		
 		super.deserialize(property);
+		
+		setFormat(property.getFormat());
+		setContentType(property.getContentType());
 	}
 
+	@Override
+	Map<String, Object> serialize() {
+
+		final Map<String, Object> map = super.serialize();
+
+		if (contentType != null) {
+			map.put(JsonSchema.KEY_CONTENT_TYPE, contentType);
+		}
+
+		if (format != null) {
+			map.put(JsonSchema.KEY_FORMAT, format);
+		}
+
+		return map;
+	}
+	
 	@Override
 	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
 
 		property.setProperty(SchemaProperty.propertyType, Type.String.name());
+		property.setProperty(SchemaProperty.format, getFormat());
+		property.setProperty(SchemaProperty.contentType, getContentType());
 
 		return property;
+	}
+
+	@Override
+	public JsonStringProperty setContentType(final String contentType) {
+
+		this.contentType = contentType;
+
+		return this;
+	}
+
+	@Override
+	public String getContentType() {
+		return contentType;
 	}
 }

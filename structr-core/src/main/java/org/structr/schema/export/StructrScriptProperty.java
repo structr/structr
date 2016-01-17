@@ -31,7 +31,7 @@ import org.structr.schema.json.JsonScriptProperty;
  *
  *
  */
-public class StructrScriptProperty extends StructrStringProperty implements JsonScriptProperty {
+public class StructrScriptProperty extends StructrPropertyDefinition implements JsonScriptProperty {
 
 	protected String contentType = null;
 	protected String source      = null;
