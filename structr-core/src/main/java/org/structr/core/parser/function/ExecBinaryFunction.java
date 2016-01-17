@@ -60,9 +60,9 @@ public class ExecBinaryFunction extends Function<Object, Object> {
 			if (StringUtils.isNotBlank(script)) {
 
 				final StringBuilder scriptBuilder = new StringBuilder(script);
-				if (sources.length > 1) {
+				if (sources.length > 2) {
 
-					for (int i = 1; i < sources.length; i++) {
+					for (int i = 2; i < sources.length; i++) {
 						if (sources[i] != null) {
 
 							scriptBuilder.append(" ").append(sources[i].toString());
