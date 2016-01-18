@@ -64,7 +64,7 @@ public class CreateRelationshipFunction extends Function<Object, Object> {
 
 			if (relClass != null) {
 
-				StructrApp.getInstance(sourceNode.getSecurityContext()).create(sourceNode, targetNode, relClass);
+				return StructrApp.getInstance(sourceNode.getSecurityContext()).create(sourceNode, targetNode, relClass);
 
 			} else {
 
