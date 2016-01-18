@@ -1,20 +1,20 @@
 /*
- *  Copyright (C) 2010-2015 Structr GmbH
+ *  Copyright (C) 2010-2016 Structr GmbH
  *
  *  This file is part of Structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
+ *  Structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as
  *  published by the Free Software Foundation, either version 3 of the
  *  License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
+ *  Structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 function lastPart(id, separator) {
@@ -474,30 +474,25 @@ jQuery.isBlank = function (obj) {
 /**
  * thin wrapper for localStorage with a success-check and error display
  */
+
+var localStorageObject = {};
+
 var LSWrapper = {
 
 	setItem: function(key, value) {
-		try {
-			localStorage.setItem(key, value);
-			return true;
-		} catch (e) {
-			// show error
-			new MessageBuilder().error("<div>The browser localStorage is full - this hinders structr-ui from working as intended.<br><a href='http://www.html5rocks.com/en/tutorials/offline/quota-research/'>You may want to read more about this topic.</a><br><br></div>").specialInteractionButton("Delete localStorage (server- and client-side)", function () { _Dashboard.clearLocalStorageOnServer(); LSWrapper.clear(); }, "I'll handle it myself").show();
-			throw(e);
-			return false;
-		}
+		localStorageObject[key] = value;
 	},
 	
 	getItem: function (key) {
-		return localStorage.getItem(key);
+		return localStorageObject[key] || null;
 	},
 	
 	removeItem: function (key) {
-		return localStorage.removeItem(key);
+		delete localStorageObject[key];
 	},
 	
 	clear: function () {
-		localStorage.clear();
+		localStorageObject = {};
 	}
 
 };

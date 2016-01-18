@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,7 +21,8 @@ package org.structr.core.property;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.neo4j.helpers.Predicate;
+import org.structr.api.Predicate;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -87,7 +88,7 @@ public class CypherQueryProperty extends AbstractReadOnlyProperty<List<GraphObje
 	}
 
 	@Override
-	public Integer getSortType() {
-		return null; // use string sorting
+	public SortType getSortType() {
+		return SortType.Default;
 	}
 }

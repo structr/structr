@@ -1,20 +1,20 @@
 /*
- *  Copyright (C) 2010-2015 Structr GmbH
+ *  Copyright (C) 2010-2016 Structr GmbH
  *
  *  This file is part of Structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
+ *  Structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as
  *  published by the Free Software Foundation, either version 3 of the
  *  License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
+ *  Structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 var elements, dropBlocked;
@@ -159,9 +159,24 @@ var _Elements = {
 			'elements': ['iframe'],
 			'attrs': ['src', 'width', 'height'],
 			'focus' : 'src'
+		},
+		{
+			'elements': ['source'],
+			'attrs': ['src', 'type', 'media'],
+			'focus' : 'src'
+		},
+		{
+			'elements': ['video'],
+			'attrs': ['autoplay', 'controls', 'height', 'loop', 'muted', 'poster', 'preload', 'src', 'width'],
+			'focus' : 'controls'
+		},
+		{
+			'elements': ['audio'],
+			'attrs': ['autoplay', 'controls', 'loop', 'muted', 'preload', 'src'],
+			'focus' : 'controls'
 		}
 	],
-	voidAttrs: ['br', 'hr', 'img', 'input', 'link', 'meta', 'area', 'base', 'col', 'embed', 'keygen', 'menuitem', 'param', 'source', 'track', 'wbr'],    
+	voidAttrs: ['br', 'hr', 'img', 'input', 'link', 'meta', 'area', 'base', 'col', 'embed', 'keygen', 'menuitem', 'param', 'track', 'wbr'],
 	/**
 	 * Reload widgets
 	 */
@@ -477,7 +492,7 @@ var _Elements = {
 		});
 
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodes&&entity.syncedNodes.length)?entity.syncedNodes:[entity.sharedComponent]));
-		
+
 		if (!hasChildren) {
 			if (entity.sharedComponent) {
 				Command.get(entity.sharedComponent, function(obj) {
@@ -742,9 +757,9 @@ var _Elements = {
 		});
 
 		$.each(folder.files, function(i, f) {
-			
+
 			Command.get(f.id, function(file) {
-			
+
 				$('.' + folder.id + '_').append('<div class="clear"></div><div class="node file sub ' + file.id + '_"><img class="typeIcon" src="' + _Files.getIcon(file) + '">'
 						+ '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
 				var div = $('.' + file.id + '_');
@@ -774,7 +789,7 @@ var _Elements = {
 					$(this).removeClass('nodeHover');
 				});
 			});
-		
+
 		});
 	}
 };

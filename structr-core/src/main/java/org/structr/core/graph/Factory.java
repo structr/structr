@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
@@ -31,13 +30,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.function.Function;
-import org.neo4j.graphdb.Relationship;
-
-import org.neo4j.graphdb.index.IndexHits;
-import org.neo4j.helpers.collection.PagingIterator;
+import org.structr.api.QueryResult;
+import org.structr.api.graph.Relationship;
 import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -120,12 +117,12 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	 * @return result
 	 * @throws org.structr.common.error.FrameworkException
 	 */
-	public Result instantiate(final IndexHits<S> input) throws FrameworkException {
+	public Result instantiate(final QueryResult<S> input) throws FrameworkException {
 
 
 		if (input != null) {
 
-			try (final IndexHits<S> closeable = input) {
+			try (final QueryResult<S> closeable = input) {
 
 				if (factoryProfile.getOffsetId() != null) {
 
@@ -185,20 +182,20 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	}
 
 	// <editor-fold defaultstate="collapsed" desc="private methods">
-	protected List<S> read(final Iterable<S> it) {
+	protected List<S> read(final Iterable<S> iterable) {
 
-		List<S> nodes = new LinkedList();
+		final List<S> nodes  = new LinkedList();
+		final Iterator<S> it = iterable.iterator();
 
-		while (it.iterator().hasNext()) {
-
-			nodes.add(it.iterator().next());
+		while (it.hasNext()) {
+			nodes.add(it.next());
 		}
 
 		return nodes;
 
 	}
 
-	protected Result resultWithOffsetId(final IndexHits<S> input) throws FrameworkException {
+	protected Result resultWithOffsetId(final QueryResult<S> input) throws FrameworkException {
 
 		int size                 = input.size();
 		final int pageSize       = Math.min(size, factoryProfile.getPageSize());
@@ -209,18 +206,18 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		int count                = 0;
 		int offset               = 0;
 
-		try (final IndexHits<S> closeable = input) {
+		try (final QueryResult<S> closeable = input) {
 
 			// We have an offsetId, so first we need to
 			// find the node with this uuid to get the offset
+			final Iterator<S> iterator = closeable.iterator();
 			List<T> nodesUpToOffset = new LinkedList();
 			int i                   = 0;
 			boolean gotOffset        = false;
 
-			for (S node : closeable) {
+			while (iterator.hasNext()) {
 
-				T n = instantiate(node);
-
+				T n = instantiate(iterator.next());
 				if (n == null) {
 
 					continue;
@@ -284,9 +281,9 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 			// If we get here, the result was not complete, so we need to iterate
 			// through the index result (input) to get more items.
-			for (S node : closeable) {
+			while (iterator.hasNext()) {
 
-				T n = instantiate(node);
+				T n = instantiate(iterator.next());
 				if (n != null) {
 
 					if (++position > offset) {
@@ -309,7 +306,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 	}
 
-	protected Result resultWithoutOffsetId(final IndexHits<S> input) throws FrameworkException {
+	protected Result resultWithoutOffsetId(final QueryResult<S> input) throws FrameworkException {
 
 		final int pageSize = factoryProfile.getPageSize();
 		final int page     = factoryProfile.getPage();
@@ -317,15 +314,15 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 		if (page < 0) {
 
-			List<S> rawNodes = read(input);
-			int size         = rawNodes.size();
+			final List<S> rawNodes = read(input);
+			final int size         = rawNodes.size();
 
 			fromIndex = Math.max(0, size + (page * pageSize));
 
 			final List<T> nodes = new LinkedList<>();
 			int toIndex         = Math.min(size, fromIndex + pageSize);
 
-			for (S n : rawNodes.subList(fromIndex, toIndex)) {
+			for (final S n : rawNodes.subList(fromIndex, toIndex)) {
 
 				nodes.add(instantiate(n));
 			}
@@ -336,153 +333,101 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 		} else {
 
-			// FIXME: IndexHits#size() may be inaccurate!
 			int size = input.size();
 
-			SecurityContext securityContext = factoryProfile.getSecurityContext();
-
-			// In case of superuser or in public context, don't check the overall result count
-			// (SearchCommand adds visibleToPublicUsers: true in case of an anonymous user)
-			boolean dontCheckCount  = securityContext.isSuperUser() || securityContext.getUser(false) == null;
-			if(dontCheckCount){
-
-				fromIndex = pageSize == Integer.MAX_VALUE ? 0 : (page - 1);//* pageSize;
-
-			} else {
-
-				fromIndex = pageSize == Integer.MAX_VALUE ? 0 : (page - 1) * pageSize;
-			}
+			fromIndex = pageSize == Integer.MAX_VALUE ? 0 : (page - 1) * pageSize;
 
 			// The overall count may be inaccurate
-			return page(input, size, fromIndex, pageSize, dontCheckCount);
+			return page(input, size, fromIndex, pageSize);
 		}
 	}
 
-	protected Result page(final IndexHits<S> input, final int overallResultCount, final int offset, final int pageSize, boolean dontCheckCount) throws FrameworkException {
+	protected Result page(final QueryResult<S> input, final int overallResultCount, final int offset, final int pageSize) throws FrameworkException {
 
 		final AtomicBoolean keepRunning    = new AtomicBoolean(true);
 		final AtomicInteger overallCount   = new AtomicInteger();
 		final AtomicInteger processedItems = new AtomicInteger();
 
-		if(dontCheckCount){
+		final List<Item<T>> nodes = new LinkedList<>();
 
-			overallCount.set(input.size());
+		try (final QueryResult<S> closeable = input) {
 
-			final PagingIterator<S> neoResult = new PagingIterator<>(input.iterator(), pageSize) ;
-			final List<T> nodes               = new LinkedList<>();
+			final SecurityContext securityContext      = factoryProfile.getSecurityContext();
+			final boolean preventFullCount             = securityContext.hasParameter("ignoreResultCount");
+			final ConcurrentLinkedQueue<Item<S>> queue = new ConcurrentLinkedQueue<>();
+			final List<Future> futures                 = new LinkedList<>();
+			int threadCount                            = 1;
+			int rawCount                               = 0;
 
-			try {
-				neoResult.page(offset);
-
-			} catch (NoSuchElementException nex) {
-
-				// do not throw an exception when a page beyond the
-				// number of elements is returned,
-				// return empty result instead
-				return new Result(Collections.emptyList(), overallCount.get(), true, false);
+			// fill queue with data and count elements
+			for (final S item : closeable) {
+				queue.add(new Item<>(rawCount++, item));
 			}
 
-			Iterator<S> resultPage = neoResult.nextPage();
+			if (rawCount < 100) {
 
-			while ( resultPage.hasNext()) {
+				// do not use multithreading
+				final InstantiationWorker worker = new InstantiationWorker(securityContext, queue, nodes, offset, pageSize, preventFullCount);
+				worker.setProcessedItems(processedItems);
+				worker.setOverallCount(overallCount);
+				worker.setKeepRunning(keepRunning);
 
-				final S s = resultPage.next();
-				final T t = (T) instantiate(s);
+				worker.doRun();
 
-				if(t != null){
-
-					nodes.add(t);
-				}
-			}
-
-			// We've run completely through the iterator,
-			// so the overall count from here is accurate.
-			return new Result(nodes, overallCount.get(), true, false);
+			} else {
 
 
-		} else {
+				final double t0 = System.nanoTime();
+				threadCount     = 8;
 
-			final List<Item<T>> nodes = new LinkedList<>();
+				// submit workers, use multithreading
+				for (int i=0; i<threadCount; i++) {
 
-			try (final IndexHits<S> closeable = input) {
-
-				final SecurityContext securityContext      = factoryProfile.getSecurityContext();
-				final boolean preventFullCount             = securityContext.hasParameter("ignoreResultCount");
-				final ConcurrentLinkedQueue<Item<S>> queue = new ConcurrentLinkedQueue<>();
-				final List<Future> futures                 = new LinkedList<>();
-				int threadCount                            = 1;
-				int rawCount                               = 0;
-
-				// fill queue with data and count elements
-				for (final S item : closeable) {
-					queue.add(new Item<>(rawCount++, item));
-				}
-
-				if (rawCount < 100) {
-
-					// do not use multithreading
-					final InstantiationWorker worker = new InstantiationWorker(securityContext, queue, nodes, offset, pageSize, dontCheckCount || preventFullCount);
+					final InstantiationWorker worker = new InstantiationWorker(securityContext, queue, nodes, offset, pageSize, preventFullCount);
 					worker.setProcessedItems(processedItems);
 					worker.setOverallCount(overallCount);
 					worker.setKeepRunning(keepRunning);
 
-					worker.doRun();
+					// first worker logs
+					worker.pleaseLog(i == 0);
 
-				} else {
+					futures.add(service.submit(worker));
+				}
 
+				// wait for result..
+				for (final Future future : futures) {
 
-					final double t0 = System.nanoTime();
-					threadCount     = 8;
+					try {
 
-					// submit workers, use multithreading
-					for (int i=0; i<threadCount; i++) {
+						future.get();
 
-						final InstantiationWorker worker = new InstantiationWorker(securityContext, queue, nodes, offset, pageSize, dontCheckCount || preventFullCount);
-						worker.setProcessedItems(processedItems);
-						worker.setOverallCount(overallCount);
-						worker.setKeepRunning(keepRunning);
-
-						// first worker logs
-						worker.pleaseLog(i == 0);
-
-						futures.add(service.submit(worker));
-					}
-
-					// wait for result..
-					for (final Future future : futures) {
-
-						try {
-
-							future.get();
-
-						} catch (InterruptedException | ExecutionException iex) {
-							iex.printStackTrace();
-						}
-					}
-
-					final double t1 = System.nanoTime();
-					if (t1-t0 > 1000000000) {
-						logger.log(Level.INFO, "Instantiated {0} out of {1} elements in {2} s using {3} threads.", new Object[] { nodes.size(), rawCount, (t1-t0) / 1000000000.0, threadCount } );
+					} catch (InterruptedException | ExecutionException iex) {
+						iex.printStackTrace();
 					}
 				}
 
+				final double t1 = System.nanoTime();
+				if (t1-t0 > 1000000000) {
+					logger.log(Level.INFO, "Instantiated {0} out of {1} elements in {2} s using {3} threads.", new Object[] { nodes.size(), rawCount, (t1-t0) / 1000000000.0, threadCount } );
+				}
 			}
 
-			// keep initial sort order
-			Collections.sort(nodes);
-
-			final int size = nodes.size();
-			final int from = Math.min(offset, size);
-			final int to   = Math.min(offset+pageSize, size);
-			final List<T> output = new LinkedList<>();
-
-			for (final Item<T> item : nodes.subList(from, to)) {
-				output.add(item.item);
-			}
-
-			// The overall count may be inaccurate
-			return new Result(output, overallCount.get(), true, false);
 		}
+
+		// keep initial sort order
+		Collections.sort(nodes);
+
+		final int size = nodes.size();
+		final int from = Math.min(offset, size);
+		final int to   = Math.min(offset+pageSize, size);
+		final List<T> output = new LinkedList<>();
+
+		for (final Item<T> item : nodes.subList(from, to)) {
+			output.add(item.item);
+		}
+
+		// The overall count may be inaccurate
+		return new Result(output, overallCount.get(), true, false);
 	}
 
 	//~--- inner classes --------------------------------------------------

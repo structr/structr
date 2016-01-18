@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,9 +25,10 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.search.BooleanClause;
-import org.neo4j.helpers.Predicate;
-import org.neo4j.helpers.collection.Iterables;
+import org.structr.api.util.Iterables;
+import org.structr.api.search.Occurrence;
+import org.structr.api.Predicate;
+import org.structr.api.search.SortType;
 import org.structr.common.NotNullPredicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -129,8 +130,8 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	}
 
 	@Override
-	public Integer getSortType() {
-		return null;
+	public SortType getSortType() {
+		return SortType.Default;
 	}
 
 	@Override
@@ -231,11 +232,6 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 		// no indexing
 	}
 
-	@Override
-	public Object getValueForEmptyFields() {
-		return null;
-	}
-
 	// ----- interface RelationProperty -----
 	@Override
 	public Notion getNotion() {
@@ -277,7 +273,7 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, List<S> searchValue, boolean exactMatch, final Query query) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, List<S> searchValue, boolean exactMatch, final Query query) {
 
 		final Predicate<GraphObject> predicate    = query != null ? query.toPredicate() : null;
 		final SourceSearchAttribute attr          = new SourceSearchAttribute(occur);
@@ -292,7 +288,7 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 
 					switch (occur) {
 
-						case MUST:
+						case REQUIRED:
 
 							if (!alreadyAdded) {
 
@@ -309,11 +305,11 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 
 							break;
 
-						case SHOULD:
+						case OPTIONAL:
 							intersectionResult.addAll(getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
 							break;
 
-						case MUST_NOT:
+						case FORBIDDEN:
 							break;
 					}
 				}

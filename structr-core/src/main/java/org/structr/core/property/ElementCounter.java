@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,17 +20,12 @@ package org.structr.core.property;
 
 import java.util.Collection;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.SortField;
-import org.neo4j.index.lucene.ValueContext;
+import org.structr.api.Predicate;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.search.IntegerSearchAttribute;
-import org.structr.core.graph.search.SearchAttribute;
-import static org.structr.core.property.IntProperty.INT_EMPTY_FIELD_VALUE;
 
 /**
  * A read-only property that returns the number of elements in a collection returned from a given property.
@@ -53,7 +48,7 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 	}
 
 	@Override
-	public Integer getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	public Integer getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		int count = 0;
 
@@ -99,8 +94,8 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 	}
 
 	@Override
-	public Integer getSortType() {
-		return SortField.INT;
+	public SortType getSortType() {
+		return SortType.Integer;
 	}
 
 	@Override
@@ -139,20 +134,4 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 
 		}
 	}
-
-	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, Integer searchValue, boolean exactMatch, final Query query) {
-		return new IntegerSearchAttribute(this, searchValue, occur, exactMatch);
-	}
-
-	@Override
-	public void index(GraphObject entity, Object value) {
-		super.index(entity, value != null ? ValueContext.numeric((Number)value) : value);
-	}
-
-	@Override
-	public String getValueForEmptyFields() {
-		return INT_EMPTY_FIELD_VALUE;
-	}
-
 }

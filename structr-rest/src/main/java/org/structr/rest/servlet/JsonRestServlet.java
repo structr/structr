@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -41,7 +41,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
-import org.neo4j.kernel.DeadlockDetectedException;
+import org.structr.api.DeadlockException;
 import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -194,7 +194,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 					tx.success();
 					retry = false;
 
-				} catch (DeadlockDetectedException ddex) {
+				} catch (DeadlockException ddex) {
 					retry = true;
 				}
 			}
@@ -315,7 +315,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 					tx.success();
 					retry = false;
 
-				} catch (DeadlockDetectedException ddex) {
+				} catch (DeadlockException ddex) {
 					retry = true;
 				}
 			}
@@ -429,7 +429,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 							tx.success();
 							retry = false;
 
-						} catch (DeadlockDetectedException ddex) {
+						} catch (DeadlockException ddex) {
 							retry = true;
 						}
 
@@ -444,7 +444,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 							retry = false;
 
-						} catch (DeadlockDetectedException ddex) {
+						} catch (DeadlockException ddex) {
 							retry = true;
 						}
 					}
@@ -606,7 +606,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 						tx.success();
 						retry = false;
 
-					} catch (DeadlockDetectedException ddex) {
+					} catch (DeadlockException ddex) {
 						retry = true;
 					}
 				}
@@ -698,12 +698,17 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 	private IJsonInput cleanAndParseJsonString(final App app, final String input) throws FrameworkException {
 
-		IJsonInput jsonInput;
+		IJsonInput jsonInput = null;
 
 		// isolate input parsing (will include read and write operations)
 		try (final Tx tx = app.tx()) {
+
 			jsonInput   = gson.get().fromJson(input, IJsonInput.class);
 			tx.success();
+
+		} catch (JsonSyntaxException jsx) {
+			jsx.printStackTrace();
+			throw new FrameworkException(400, jsx.getMessage());
 		}
 
 		if (jsonInput == null) {
@@ -806,7 +811,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 					tx.success();
 					retry = false;
 
-				} catch (DeadlockDetectedException ddex) {
+				} catch (DeadlockException ddex) {
 					retry = true;
 				}
 			}

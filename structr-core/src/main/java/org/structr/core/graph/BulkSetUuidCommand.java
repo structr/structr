@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,22 +19,18 @@
 package org.structr.core.graph;
 
 import java.util.Iterator;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.tooling.GlobalGraphOperations;
-
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.helpers.collection.Iterables;
+import org.structr.api.DatabaseService;
+import org.structr.api.util.Iterables;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrAndSpatialPredicate;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+
 
 //~--- classes ----------------------------------------------------------------
 
@@ -53,11 +49,11 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
 
-		final String nodeType                = (String) attributes.get("type");
-		final String relType                   = (String) attributes.get("relType");
-		final Boolean allNodes                 = (Boolean) attributes.get("allNodes");
-		final Boolean allRels                  = (Boolean) attributes.get("allRels");
-		final GraphDatabaseService graphDb     = (GraphDatabaseService) arguments.get("graphDb");
+		final String nodeType         = (String) attributes.get("type");
+		final String relType          = (String) attributes.get("relType");
+		final Boolean allNodes        = (Boolean) attributes.get("allNodes");
+		final Boolean allRels         = (Boolean) attributes.get("allRels");
+		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
 
 		if (nodeType != null || Boolean.TRUE.equals(allNodes)) {
 
@@ -65,7 +61,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				nodeIterator = Iterables.filter(new StructrAndSpatialPredicate(false, false, true), GlobalGraphOperations.at(graphDb).getAllNodes()).iterator();
+				nodeIterator = Iterables.filter(new StructrAndSpatialPredicate(false, false, true), graphDb.getAllNodes()).iterator();
 				tx.success();
 
 			} catch (FrameworkException fex) {
@@ -108,7 +104,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				relIterator = Iterables.filter(new StructrAndSpatialPredicate(false, false, true), GlobalGraphOperations.at(graphDb).getAllRelationships()).iterator();
+				relIterator = Iterables.filter(new StructrAndSpatialPredicate(false, false, true), graphDb.getAllRelationships()).iterator();
 				tx.success();
 
 			} catch (FrameworkException fex) {

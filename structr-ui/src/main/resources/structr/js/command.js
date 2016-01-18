@@ -1,20 +1,20 @@
 /*
- *  Copyright (C) 2010-2015 Structr GmbH
+ *  Copyright (C) 2010-2016 Structr GmbH
  *
  *  This file is part of Structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
+ *  Structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as
  *  published by the Free Software Foundation, either version 3 of the
  *  License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
+ *  Structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /**
@@ -505,9 +505,9 @@ var Command = {
 		var obj = {};
 		obj.command = 'SAVE_LOCAL_STORAGE';
 		var data = {};
-		data.localStorageString = JSON.stringify(localStorage);
+		data.localStorageString = JSON.stringify(localStorageObject);
 		obj.data = data;
-		//log('saveLocalStorage()', obj);
+		//log('saveLocalStorage()', data.localStorageString);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -1108,17 +1108,17 @@ var Command = {
 		return sendObj(obj, callback);
 	},
 	/**
-	 * Send a LIST_SNAPSHOTS command to the server.
+	 * Send a SNAPSHOTS command to the server.
 	 *
-	 * The server will return a list of restorable
-	 * snapshots from the snapshot location configured
-	 * in the structr.conf.
+	 * The server will return a status object.
 	 */
-	snapshots: function(mode, name, callback) {
+	snapshots: function(mode, name, types, callback) {
 		var obj  = {};
 		obj.data = { mode: mode, name: name };
+		if (types && types.length) {
+			obj.data.types = types.join(',');
+		}
 		obj.command = 'SNAPSHOTS';
-		log('snapshots()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**

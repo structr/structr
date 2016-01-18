@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,7 +24,6 @@ import com.jayway.restassured.RestAssured;
 import java.io.ByteArrayOutputStream;
 import org.apache.commons.io.FileUtils;
 
-import org.neo4j.graphdb.GraphDatabaseService;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
@@ -41,9 +40,10 @@ import java.util.*;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
 import org.hamcrest.Matcher;
+import org.structr.api.DatabaseService;
+import org.structr.api.config.Structr;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.StructrConf;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -97,7 +97,7 @@ public class StructrCsvTest extends TestCase {
 
 	public void test00DbAvailable() {
 
-		GraphDatabaseService graphDb = app.getGraphDatabaseService();
+		DatabaseService graphDb = app.getDatabaseService();
 
 		assertTrue(graphDb != null);
 	}
@@ -276,9 +276,9 @@ public class StructrCsvTest extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 
-		final StructrConf config = Services.getBaseConfiguration();
-		final Date now           = new Date();
-		final long timestamp     = now.getTime();
+		final Properties config = Services.getBaseConfiguration();
+		final Date now          = new Date();
+		final long timestamp    = now.getTime();
 
 		basePath = "/tmp/structr-test-" + timestamp;
 
@@ -289,7 +289,7 @@ public class StructrCsvTest extends TestCase {
 		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
 		config.setProperty(Services.TMP_PATH, "/tmp/");
 		config.setProperty(Services.BASE_PATH, basePath);
-		config.setProperty(Services.DATABASE_PATH, basePath + "/db");
+		config.setProperty(Structr.DATABASE_PATH, basePath + "/db");
 		config.setProperty(Services.FILES_PATH, basePath + "/files");
 		config.setProperty(Services.LOG_DATABASE_PATH, basePath + "/logDb.dat");
 		config.setProperty(Services.TCP_PORT, (System.getProperty("tcpPort") != null ? System.getProperty("tcpPort") : "13465"));

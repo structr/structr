@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,7 +25,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.lucene.search.BooleanClause.Occur;
+import org.structr.api.search.Occurrence;
+import org.structr.api.Predicate;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ReadOnlyPropertyToken;
@@ -150,7 +152,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occur occur, PropertyMap searchValues, boolean exactMatch, Query query) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, PropertyMap searchValues, boolean exactMatch, Query query) {
 
 		SearchAttributeGroup group = new SearchAttributeGroup(occur);
 
@@ -159,7 +161,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 			Object value = searchValues.get(new GenericProperty(key.jsonName()));
 			if (value != null) {
 
-				group.add(new PropertySearchAttribute(key, value.toString(), Occur.MUST, exactMatch));
+				group.add(new PropertySearchAttribute(key, value.toString(), Occurrence.REQUIRED, exactMatch));
 			}
 		}
 
@@ -307,7 +309,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	}
 
 	@Override
-	public PropertyMap getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	public PropertyMap getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 		return getGroupedProperties(securityContext, obj);
 	}
 
@@ -329,8 +331,8 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	}
 
 	@Override
-	public Integer getSortType() {
-		return null;
+	public SortType getSortType() {
+		return SortType.Default;
 	}
 
 	@Override
@@ -383,10 +385,5 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 				}
 			}
 		}
-	}
-
-	@Override
-	public Object getValueForEmptyFields() {
-		return null;
 	}
 }

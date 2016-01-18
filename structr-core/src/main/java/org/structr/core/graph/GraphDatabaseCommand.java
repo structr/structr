@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,16 +18,16 @@
  */
 package org.structr.core.graph;
 
-import org.neo4j.graphdb.GraphDatabaseService;
+import org.structr.api.DatabaseService;
 
 /**
  * Returns the Neo4j graph database instance.
- * 
+ *
  *
  */
 public class GraphDatabaseCommand extends NodeServiceCommand {
-	
-	public GraphDatabaseService execute() {
-		return (GraphDatabaseService)arguments.get("graphDb");
+
+	public DatabaseService execute() {
+		return (DatabaseService)arguments.get("graphDb");
 	}
 }

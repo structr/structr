@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,31 +18,21 @@
  */
 package org.structr.core.graph.search;
 
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.index.Term;
-import org.apache.lucene.search.BooleanClause.Occur;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.PhraseQuery;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
-import org.apache.lucene.search.WildcardQuery;
+import org.structr.api.search.ExactQuery;
+import org.structr.api.search.FulltextQuery;
+import org.structr.api.search.Occurrence;
 import org.structr.core.GraphObject;
-import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
 
 /**
  * Represents an attribute for textual search, used in {@link SearchNodeCommand}.
- *
- *
  */
-public class PropertySearchAttribute<T> extends SearchAttribute<T> {
-
-	private static final Logger logger = Logger.getLogger(PropertySearchAttribute.class.getName());
+public class PropertySearchAttribute<T> extends SearchAttribute<T> implements ExactQuery, FulltextQuery {
 
 	private boolean isExactMatch = false;
 
-	public PropertySearchAttribute(final PropertyKey<T> key, final T value, final Occur occur, final boolean isExactMatch) {
+	public PropertySearchAttribute(final PropertyKey<T> key, final T value, final Occurrence occur, final boolean isExactMatch) {
 
 		super(occur, key, value);
 
@@ -55,65 +45,8 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 	}
 
 	@Override
-	public Query getQuery() {
-
-		if (isExactMatch) {
-
-			String value = getStringValue();
-
-			if (StringUtils.isEmpty(value)) {
-
-				value = getValueForEmptyField();
-			}
-
-			if (value.matches("[\\s]+")) {
-
-				value = "\"" + value + "\"";
-			}
-
-			return new TermQuery(new Term(getKey().dbName(), value));
-
-		} else {
-
-			String value = getInexactValue();
-
-			// If there are double quotes around the search value treat as phrase
-			if (value.startsWith("\"") && value.endsWith("\"")) {
-
-				value = StringUtils.stripStart(StringUtils.stripEnd(value, "\""), "\"");
-
-				// Split string into words
-				String[] words = StringUtils.split(value, " ");
-
-
-				PhraseQuery query = new PhraseQuery();
-
-				for (String word : words) {
-
-					query.add(new Term(getKey().dbName(), word));
-
-				}
-
-				return query;
-
-			}
-
-			BooleanQuery query = new BooleanQuery();
-
-			// Split string into words
-			String[] words = StringUtils.split(value, " ");
-
-			for (String word : words) {
-
-				query.add(new WildcardQuery(new Term(getKey().dbName(), word)), Occur.SHOULD);
-
-				word = "*" + SearchCommand.escapeForLucene(word) + "*";
-
-				query.add(new WildcardQuery(new Term(getKey().dbName(), word)), Occur.SHOULD);
-			}
-
-			return query;
-		}
+	public Class getQueryType() {
+		return isExactMatch ? ExactQuery.class : FulltextQuery.class;
 	}
 
 	@Override
@@ -127,36 +60,13 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 	}
 
 	@Override
-	public String getStringValue() {
-
-		Object value = getValue();
-		if (value != null) {
-			return value.toString();
-		}
-
-		return null;
-	}
-
-	@Override
-	public String getInexactValue() {
-
-		String stringValue = getStringValue();
-		if (stringValue != null) {
-
-			return stringValue.toLowerCase();
-		}
-
-		return null;
-	}
-
-	@Override
 	public boolean includeInResult(final GraphObject entity) {
 
 		T nodeValue          = entity.getProperty(getKey());
-		Occur occur          = getOccur();
+		Occurrence occur     = getOccurrence();
 		T searchValue        = getValue();
 
-		if (occur.equals(Occur.MUST_NOT)) {
+		if (occur.equals(Occurrence.FORBIDDEN)) {
 
 			if ((nodeValue != null) && compare(nodeValue, searchValue) == 0) {
 
@@ -207,10 +117,5 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 		}
 
 		return 0;
-	}
-
-	@Override
-	public String getValueForEmptyField() {
-		return AbstractPrimitiveProperty.STRING_EMPTY_FIELD_VALUE;
 	}
 }

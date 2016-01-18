@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -42,16 +42,16 @@ import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Path;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.Result;
-import org.neo4j.graphdb.index.Index;
-import org.neo4j.helpers.collection.LruMap;
+import org.structr.api.DatabaseService;
+import org.structr.api.graph.Direction;
+import org.structr.api.index.Index;
+import org.structr.api.NativeResult;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Path;
+import org.structr.api.Predicate;
+import org.structr.api.graph.PropertyContainer;
+import org.structr.api.graph.Relationship;
+import org.structr.api.graph.RelationshipType;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.common.CMISExtensionsData;
 import org.structr.cmis.common.StructrItemActions;
@@ -63,6 +63,7 @@ import org.structr.cmis.info.CMISRelationshipInfo;
 import org.structr.cmis.info.CMISSecondaryInfo;
 import org.structr.common.AccessControllable;
 import org.structr.common.AccessPathCache;
+import org.structr.api.util.FixedSizeCache;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.IdSorter;
 import org.structr.common.Permission;
@@ -89,11 +90,11 @@ import org.structr.core.graph.NodeRelationshipStatisticsCommand;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.parser.Functions;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -104,7 +105,7 @@ import org.structr.schema.action.ActionContext;
  */
 public abstract class AbstractNode implements NodeInterface, AccessControllable, CMISInfo, CMISItemInfo {
 
-	private static final Map<String, Object> relationshipTemplateInstanceCache = new LruMap<>(1000);
+	private static final FixedSizeCache<String, Object> relationshipTemplateInstanceCache = new FixedSizeCache<>(1000);
 	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
 
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type);
@@ -121,7 +122,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	protected SecurityContext securityContext = null;
 	protected Principal cachedOwnerNode       = null;
-	protected String cachedUuid               = null;
 	protected Class entityType                = null;
 	protected Node dbNode                     = null;
 
@@ -350,13 +350,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	@Override
 	public String getUuid() {
-
-		if (cachedUuid == null) {
-			cachedUuid = getProperty(GraphObject.id);
-		}
-
-		return cachedUuid;
-
+		return getProperty(GraphObject.id);
 	}
 
 	public Long getNodeId() {
@@ -467,11 +461,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
-	public <T> T getProperty(final PropertyKey<T> key, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	public <T> T getProperty(final PropertyKey<T> key, final Predicate<GraphObject> predicate) {
 		return getProperty(key, true, predicate);
 	}
 
-	private <T> T getProperty(final PropertyKey<T> key, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	private <T> T getProperty(final PropertyKey<T> key, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		// early null check, this should not happen...
 		if (key == null || key.dbName() == null) {
@@ -616,7 +610,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		final Direction direction = template.getDirectionForType(entityType);
 		final RelationshipType relType = template;
 
-		return new IterableAdapter<>(dbNode.getRelationships(relType, direction), factory);
+		return new IterableAdapter<>(dbNode.getRelationships(direction, relType), factory);
 	}
 
 	@Override
@@ -699,7 +693,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	 * @param dir
 	 * @return number of relationships
 	 */
-	public Map<RelationshipType, Long> getRelationshipInfo(final Direction dir) throws FrameworkException {
+	public Map<String, Long> getRelationshipInfo(final Direction dir) throws FrameworkException {
 		return StructrApp.getInstance(securityContext).command(NodeRelationshipStatisticsCommand.class).execute(this, dir);
 	}
 
@@ -898,11 +892,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 				if (result) {
 
-					System.out.println("        " + permission.name() + " ALLOWED by path segment " + rawPathSegment.getType().name());
+					System.out.println("        " + permission.name() + " ALLOWED by path segment " + rawPathSegment.getType());
 
 				} else {
 
-					System.out.println("        " + permission.name() + " DENIED by path segment " + rawPathSegment.getType().name());
+					System.out.println("        " + permission.name() + " DENIED by path segment " + rawPathSegment.getType());
 				}
 			}
 
@@ -946,7 +940,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			// store all check attempts in the cache
 			mask.setChecked(permission);
 
-			final GraphDatabaseService db    = StructrApp.getInstance().getGraphDatabaseService();
+			final DatabaseService db         = StructrApp.getInstance().getDatabaseService();
 			final String relTypes            = getPermissionPropagationRelTypes();
 			final Map<String, Object> params = new HashMap<>();
 			final long principalId           = principal.getId();
@@ -957,8 +951,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			// FIXME: make fixed path length of 8 configurable
 			for (int i=1; i<10; i++) {
 
-				final String query  = "MATCH n, m, p = allShortestPaths(n-[" + relTypes + "*.." + i + "]-m) WHERE id(n) = {id1} AND id(m) = {id2} RETURN p";
-				final Result result = db.execute(query, params);
+				final String query        = "MATCH n, m, p = allShortestPaths(n-[" + relTypes + "*.." + i + "]-m) WHERE id(n) = {id1} AND id(m) = {id2} RETURN p";
+				final NativeResult result = db.execute(query, params);
 
 				while (result.hasNext()) {
 
@@ -1424,6 +1418,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		}
 	}
 
+
 	@Override
 	public void updateInIndex() {
 
@@ -1517,7 +1512,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 					return value;
 				}
 
-				return Functions.numberOrString(defaultValue);
+				return Function.numberOrString(defaultValue);
 		}
 	}
 

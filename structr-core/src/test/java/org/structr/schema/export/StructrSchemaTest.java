@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -49,88 +49,94 @@ public class StructrSchemaTest extends StructrTest {
 	}
 
 
-//	public void testSimpleProperties() {
-//
-//		try {
-//
-//			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
-//
-//			// a task
-//			final JsonType customer = sourceSchema.addType("Customer");
-//
-//			customer.addStringProperty("name", "public", "ui").setRequired(true).setUnique(true);
-//			customer.addStringProperty("street", "public", "ui");
-//			customer.addStringProperty("city", "public", "ui");
-//			customer.addDateProperty("birthday", "public", "ui");
-//			customer.addEnumProperty("status", "public", "ui").setEnums("active", "retired", "none");
-//			customer.addIntegerProperty("count", "public", "ui").setMinimum(1).setMaximum(10, true);
-//			customer.addNumberProperty("number", "public", "ui").setMinimum(2.0, true).setMaximum(5.0, true);
-//			customer.addLongProperty("loong", "public", "ui").setMinimum(20, true).setMaximum(50);
-//			customer.addBooleanProperty("isCustomer", "public", "ui");
-//			customer.addScriptProperty("displayName", "public", "ui").setSource("concat(this.name, '.', this.id)");
-//
-//			final String schema = sourceSchema.toString();
-//
-//			final Map<String, Object> map = new GsonBuilder().create().fromJson(schema, Map.class);
-//
-//			mapPathValue(map, "definitions.Customer.type",                                   "object");
-//			mapPathValue(map, "definitions.Customer.required.0",                             "name");
-//			mapPathValue(map, "definitions.Customer.properties.city.unique",                 null);
-//			mapPathValue(map, "definitions.Customer.properties.count.type",                  "integer");
-//			mapPathValue(map, "definitions.Customer.properties.count.minimum",               1.0);
-//			mapPathValue(map, "definitions.Customer.properties.count.maximum",               10.0);
-//			mapPathValue(map, "definitions.Customer.properties.count.exclusiveMaximum",      true);
-//			mapPathValue(map, "definitions.Customer.properties.number.type",                 "number");
-//			mapPathValue(map, "definitions.Customer.properties.number.minimum",              2.0);
-//			mapPathValue(map, "definitions.Customer.properties.number.maximum",              5.0);
-//			mapPathValue(map, "definitions.Customer.properties.number.exclusiveMinimum",     true);
-//			mapPathValue(map, "definitions.Customer.properties.number.exclusiveMaximum",     true);
-//			mapPathValue(map, "definitions.Customer.properties.loong.type",                  "long");
-//			mapPathValue(map, "definitions.Customer.properties.loong.minimum",               20.0);
-//			mapPathValue(map, "definitions.Customer.properties.loong.maximum",               50.0);
-//			mapPathValue(map, "definitions.Customer.properties.loong.exclusiveMinimum",      true);
-//			mapPathValue(map, "definitions.Customer.properties.isCustomer.type",             "boolean");
-//			mapPathValue(map, "definitions.Customer.properties.displayName.type",            "script");
-//			mapPathValue(map, "definitions.Customer.properties.displayName.source",          "concat(this.name, '.', this.id)");
-//			mapPathValue(map, "definitions.Customer.properties.name.type",                   "string");
-//			mapPathValue(map, "definitions.Customer.properties.name.unique",                 true);
-//			mapPathValue(map, "definitions.Customer.properties.street.type",                 "string");
-//			mapPathValue(map, "definitions.Customer.properties.street.type",                 "string");
-//			mapPathValue(map, "definitions.Customer.properties.status.type",                 "string");
-//			mapPathValue(map, "definitions.Customer.properties.status.enum.0",               "active");
-//			mapPathValue(map, "definitions.Customer.properties.status.enum.1",               "none");
-//			mapPathValue(map, "definitions.Customer.properties.status.enum.2",               "retired");
-//			mapPathValue(map, "definitions.Customer.views.public.0",                         "birthday");
-//			mapPathValue(map, "definitions.Customer.views.public.1",                         "city");
-//			mapPathValue(map, "definitions.Customer.views.public.2",                         "count");
-//			mapPathValue(map, "definitions.Customer.views.public.3",                         "displayName");
-//			mapPathValue(map, "definitions.Customer.views.public.4",                         "isCustomer");
-//			mapPathValue(map, "definitions.Customer.views.public.5",                         "loong");
-//			mapPathValue(map, "definitions.Customer.views.public.6",                         "name");
-//			mapPathValue(map, "definitions.Customer.views.public.7",                         "number");
-//			mapPathValue(map, "definitions.Customer.views.public.8",                         "status");
-//			mapPathValue(map, "definitions.Customer.views.public.9",                         "street");
-//			mapPathValue(map, "definitions.Customer.views.ui.0",                             "birthday");
-//			mapPathValue(map, "definitions.Customer.views.ui.1",                             "city");
-//			mapPathValue(map, "definitions.Customer.views.ui.2",                             "count");
-//			mapPathValue(map, "definitions.Customer.views.ui.3",                             "displayName");
-//			mapPathValue(map, "definitions.Customer.views.ui.4",                             "isCustomer");
-//			mapPathValue(map, "definitions.Customer.views.ui.5",                             "loong");
-//			mapPathValue(map, "definitions.Customer.views.ui.6",                             "name");
-//			mapPathValue(map, "definitions.Customer.views.ui.7",                             "number");
-//			mapPathValue(map, "definitions.Customer.views.ui.8",                             "status");
-//			mapPathValue(map, "definitions.Customer.views.ui.9",                             "street");
-//
-//			// advanced: test schema roundtrip
-//			compareSchemaRoundtrip(sourceSchema);
-//
-//		} catch (Exception t) {
-//
-//			t.printStackTrace();
-//			fail("Unexpected exception.");
-//		}
-//
-//	}
+	public void testSimpleProperties() {
+
+		try {
+
+			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
+
+			// a customer
+			final JsonType customer = sourceSchema.addType("Customer");
+
+			customer.addStringProperty("name", "public", "ui").setRequired(true).setUnique(true);
+			customer.addStringProperty("street", "public", "ui");
+			customer.addStringProperty("city", "public", "ui");
+			customer.addDateProperty("birthday", "public", "ui");
+			customer.addEnumProperty("status", "public", "ui").setEnums("active", "retired", "none");
+			customer.addIntegerProperty("count", "public", "ui").setMinimum(1).setMaximum(10, true);
+			customer.addNumberProperty("number", "public", "ui").setMinimum(2.0, true).setMaximum(5.0, true);
+			customer.addLongProperty("loong", "public", "ui").setMinimum(20, true).setMaximum(50);
+			customer.addBooleanProperty("isCustomer", "public", "ui");
+			customer.addFunctionProperty("displayName", "public", "ui").setReadFunction("concat(this.name, '.', this.id)");
+			customer.addStringProperty("description", "public", "ui").setContentType("text/plain").setFormat("multi-line");
+
+			final String schema = sourceSchema.toString();
+
+			final Map<String, Object> map = new GsonBuilder().create().fromJson(schema, Map.class);
+
+			mapPathValue(map, "definitions.Customer.type",                                   "object");
+			mapPathValue(map, "definitions.Customer.required.0",                             "name");
+			mapPathValue(map, "definitions.Customer.properties.city.unique",                 null);
+			mapPathValue(map, "definitions.Customer.properties.count.type",                  "integer");
+			mapPathValue(map, "definitions.Customer.properties.count.minimum",               1.0);
+			mapPathValue(map, "definitions.Customer.properties.count.maximum",               10.0);
+			mapPathValue(map, "definitions.Customer.properties.count.exclusiveMaximum",      true);
+			mapPathValue(map, "definitions.Customer.properties.number.type",                 "number");
+			mapPathValue(map, "definitions.Customer.properties.number.minimum",              2.0);
+			mapPathValue(map, "definitions.Customer.properties.number.maximum",              5.0);
+			mapPathValue(map, "definitions.Customer.properties.number.exclusiveMinimum",     true);
+			mapPathValue(map, "definitions.Customer.properties.number.exclusiveMaximum",     true);
+			mapPathValue(map, "definitions.Customer.properties.loong.type",                  "long");
+			mapPathValue(map, "definitions.Customer.properties.loong.minimum",               20.0);
+			mapPathValue(map, "definitions.Customer.properties.loong.maximum",               50.0);
+			mapPathValue(map, "definitions.Customer.properties.loong.exclusiveMinimum",      true);
+			mapPathValue(map, "definitions.Customer.properties.isCustomer.type",             "boolean");
+			mapPathValue(map, "definitions.Customer.properties.description.type",            "string");
+			mapPathValue(map, "definitions.Customer.properties.description.contentType",     "text/plain");
+			mapPathValue(map, "definitions.Customer.properties.description.format",          "multi-line");
+			mapPathValue(map, "definitions.Customer.properties.displayName.type",            "function");
+			mapPathValue(map, "definitions.Customer.properties.displayName.readFunction",    "concat(this.name, '.', this.id)");
+			mapPathValue(map, "definitions.Customer.properties.name.type",                   "string");
+			mapPathValue(map, "definitions.Customer.properties.name.unique",                 true);
+			mapPathValue(map, "definitions.Customer.properties.street.type",                 "string");
+			mapPathValue(map, "definitions.Customer.properties.street.type",                 "string");
+			mapPathValue(map, "definitions.Customer.properties.status.type",                 "string");
+			mapPathValue(map, "definitions.Customer.properties.status.enum.0",               "active");
+			mapPathValue(map, "definitions.Customer.properties.status.enum.1",               "none");
+			mapPathValue(map, "definitions.Customer.properties.status.enum.2",               "retired");
+			mapPathValue(map, "definitions.Customer.views.public.0",                         "birthday");
+			mapPathValue(map, "definitions.Customer.views.public.1",                         "city");
+			mapPathValue(map, "definitions.Customer.views.public.2",                         "count");
+			mapPathValue(map, "definitions.Customer.views.public.3",                         "description");
+			mapPathValue(map, "definitions.Customer.views.public.4",                         "displayName");
+			mapPathValue(map, "definitions.Customer.views.public.5",                         "isCustomer");
+			mapPathValue(map, "definitions.Customer.views.public.6",                         "loong");
+			mapPathValue(map, "definitions.Customer.views.public.7",                         "name");
+			mapPathValue(map, "definitions.Customer.views.public.8",                         "number");
+			mapPathValue(map, "definitions.Customer.views.public.9",                         "status");
+			mapPathValue(map, "definitions.Customer.views.public.10",                        "street");
+			mapPathValue(map, "definitions.Customer.views.ui.0",                             "birthday");
+			mapPathValue(map, "definitions.Customer.views.ui.1",                             "city");
+			mapPathValue(map, "definitions.Customer.views.ui.2",                             "count");
+			mapPathValue(map, "definitions.Customer.views.ui.3",                             "description");
+			mapPathValue(map, "definitions.Customer.views.ui.4",                             "displayName");
+			mapPathValue(map, "definitions.Customer.views.ui.5",                             "isCustomer");
+			mapPathValue(map, "definitions.Customer.views.ui.6",                             "loong");
+			mapPathValue(map, "definitions.Customer.views.ui.7",                             "name");
+			mapPathValue(map, "definitions.Customer.views.ui.8",                             "number");
+			mapPathValue(map, "definitions.Customer.views.ui.9",                             "status");
+			mapPathValue(map, "definitions.Customer.views.ui.10",                            "street");
+
+			// advanced: test schema roundtrip
+			compareSchemaRoundtrip(sourceSchema);
+
+		} catch (Exception t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+	}
 
 	public void testInheritance() {
 
@@ -141,7 +147,6 @@ public class StructrSchemaTest extends StructrTest {
 
 			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
 
-			// a task
 			final JsonType contact  = sourceSchema.addType("Contact").setExtends(StructrApp.getSchemaId(AbstractUser.class));
 			final JsonType customer = sourceSchema.addType("Customer").setExtends(contact);
 
@@ -175,7 +180,6 @@ public class StructrSchemaTest extends StructrTest {
 
 			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
 
-			// a task
 			final JsonObjectType project = sourceSchema.addType("Project");
 			final JsonObjectType task    = sourceSchema.addType("Task");
 
@@ -229,7 +233,6 @@ public class StructrSchemaTest extends StructrTest {
 			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
 			final String instanceId       = app.getInstanceId();
 
-			// a task
 			final JsonObjectType task = sourceSchema.addType("Task");
 			final JsonProperty title  = task.addStringProperty("title", "public", "ui").setRequired(true);
 			final JsonProperty desc   = task.addStringProperty("description", "public", "ui").setRequired(true);

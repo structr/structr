@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,16 +18,20 @@
  */
 package org.structr.core;
 
+import org.structr.api.service.Command;
+import org.structr.api.service.RunnableService;
+import org.structr.api.service.SingletonService;
+import org.structr.api.service.Service;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -36,23 +40,14 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.tooling.GlobalGraphOperations;
+import org.structr.api.DatabaseService;
+import org.structr.api.service.InitializationCallback;
+import org.structr.api.service.StructrServices;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.SecurityContext;
-import org.structr.common.StructrConf;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
-import org.structr.core.graph.RelationshipFactory;
-import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.Tx;
-import org.structr.core.property.StringProperty;
 import org.structr.module.JarConfigurationProvider;
 import org.structr.schema.ConfigurationProvider;
 
@@ -65,24 +60,20 @@ import org.structr.schema.ConfigurationProvider;
  *
  *
  */
-public class Services {
+public class Services implements StructrServices {
 
 	private static final Logger logger                                   = Logger.getLogger(StructrApp.class.getName());
-	private static StructrConf baseConf                                  = null;
+	private static Properties baseConf                                   = null;
 
 	// Configuration constants
 	public static final String INITIAL_SEED_FILE                         = "seed.zip";
 	public static final String BASE_PATH                                 = "base.path";
 	public static final String CONFIGURED_SERVICES                       = "configured.services";
 	public static final String CONFIG_FILE_PATH                          = "configfile.path";
-	public static final String DATABASE_PATH                             = "database.path";
 	public static final String FILES_PATH                                = "files.path";
 	public static final String DATA_EXCHANGE_PATH                        = "data.exchange.path";
 	public static final String LOG_DATABASE_PATH                         = "log.database.path";
 	public static final String FOREIGN_TYPE                              = "foreign.type.key";
-	public static final String NEO4J_SHELL_ENABLED                       = "neo4j.shell.enabled";
-	public static final String NEO4J_SHELL_PORT                          = "neo4j.shell.port";
-	public static final String NEO4J_PAGE_CACHE_MEMORY                   = "neo4j.pagecache.memory";
 	public static final String LOG_SERVICE_INTERVAL                      = "structr.logging.interval";
 	public static final String LOG_SERVICE_THRESHOLD                     = "structr.logging.threshold";
 	public static final String SERVER_IP                                 = "server.ip";
@@ -98,6 +89,7 @@ public class Services {
 	public static final String TMP_PATH                                  = "tmp.path";
 	public static final String UDP_PORT                                  = "udp.port";
 	public static final String JSON_INDENTATION                          = "json.indentation";
+	public static final String HTML_INDENTATION                          = "html.indentation";
 	public static final String JSON_REDUNDANCY_REDUCTION                 = "json.redundancyReduction";
 	public static final String GEOCODING_PROVIDER                        = "geocoding.provider";
 	public static final String GEOCODING_LANGUAGE                        = "geocoding.language";
@@ -134,7 +126,7 @@ public class Services {
 	private final Map<Class, Service> serviceCache             = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Set<Class> registeredServiceClasses          = new LinkedHashSet<>();
 	private final Set<String> configuredServiceClasses         = new LinkedHashSet<>();
-	private StructrConf structrConf                            = new StructrConf();
+	private Properties structrConf                             = new Properties();
 	private ConfigurationProvider configuration                = null;
 	private boolean initializationDone                         = false;
 	private boolean shutdownDone                               = false;
@@ -174,29 +166,16 @@ public class Services {
 		return singletonInstance;
 	}
 
-	public static Services getInstance(final StructrConf properties) {
+	public static Services getInstance(final Properties properties) {
 
 		if (singletonInstance == null) {
 
 			singletonInstance = new Services();
 			singletonInstance.initialize(properties);
-//
-//			new Thread(new Runnable() {
-//
-//				@Override
-//				public void run() {
-//
-//					// wait a second
-//					try { Thread.sleep(100); } catch (Throwable ignore) {}
 
-					// call initialization callbacks from a different thread
-					for (final InitializationCallback callback : singletonInstance.callbacks) {
-						callback.initializationDone();
-					}
-//				}
-//
-//			}).start();
-//
+			for (final InitializationCallback callback : singletonInstance.callbacks) {
+				callback.initializationDone();
+			}
 		}
 
 		return singletonInstance;
@@ -211,7 +190,7 @@ public class Services {
 	 * @param commandType the runtime type of the desired command
 	 * @return the command
 	 */
-	public <T extends Command> T command(SecurityContext securityContext, Class<T> commandType) {
+	public <T extends Command> T command(final SecurityContext securityContext, final Class<T> commandType) {
 
 		Class serviceClass = null;
 		T command          = null;
@@ -219,7 +198,9 @@ public class Services {
 		try {
 
 			command = commandType.newInstance();
-			command.setSecurityContext(securityContext);
+
+			// inject security context first
+			command.setArgument("securityContext", securityContext);
 
 			serviceClass = command.getServiceClass();
 
@@ -253,6 +234,8 @@ public class Services {
 				service.injectArguments(command);
 			}
 
+			command.initialized();
+
 		} catch (Throwable t) {
 
 			t.printStackTrace();
@@ -265,7 +248,7 @@ public class Services {
 
 	private void initialize() {
 
-		final StructrConf config = getBaseConfiguration();
+		final Properties config = getBaseConfiguration();
 
 		// read structr.conf
 		final String configTemplateFileName = "structr.conf_templ";
@@ -299,25 +282,20 @@ public class Services {
 		logger.log(Level.INFO, "Reading {0}..", configFileName);
 
 		try {
-//			final FileInputStream fis = new FileInputStream(configFileName);
-//			structrConf.load(fis);
-//			fis.close();
 
 			PropertiesConfiguration.setDefaultListDelimiter('\0');
-			final PropertiesConfiguration propConf = new PropertiesConfiguration(configFileName);
-
-			structrConf.load(propConf);
+			StructrServices.loadConfiguration(config, new PropertiesConfiguration(configFileName));
 
 		} catch (ConfigurationException ex) {
 			logger.log(Level.SEVERE, null, ex);
 		}
 
-		mergeConfiguration(config, structrConf);
+		StructrServices.mergeConfiguration(config, structrConf);
 
 		initialize(config);
 	}
 
-	private void initialize(final StructrConf properties) {
+	private void initialize(final Properties properties) {
 
 		this.structrConf = properties;
 
@@ -329,7 +307,7 @@ public class Services {
 
 		// if configuration is not yet established, instantiate it
 		// this is the place where the service classes get the
-		// opportunity to modifyConfiguration the default configuration
+		// opportunity to modify the default configuration
 		getConfigurationProvider();
 
 		logger.log(Level.INFO, "Starting services");
@@ -362,14 +340,6 @@ public class Services {
 
 		logger.log(Level.INFO, "{0} service(s) processed", serviceCache.size());
 		registeredServiceClasses.clear();
-
-		// do migration of an existing database
-		if (getService(NodeService.class) != null) {
-
-			if ("true".equals(properties.getProperty(Services.MIGRATION_KEY))) {
-				migrateDatabase();
-			}
-		}
 
 		logger.log(Level.INFO, "Registering shutdown hook.");
 
@@ -415,6 +385,7 @@ public class Services {
 		initializationDone = true;
 	}
 
+	@Override
 	public void registerInitializationCallback(final InitializationCallback callback) {
 		callbacks.add(callback);
 	}
@@ -630,8 +601,21 @@ public class Services {
 		return services;
 	}
 
+	@Override
 	public <T extends Service> T getService(final Class<T> type) {
 		return (T) serviceCache.get(type);
+	}
+
+	@Override
+	public DatabaseService getDatabaseService() {
+
+		final NodeService nodeService = getService(NodeService.class);
+		if (nodeService != null) {
+
+			return nodeService.getGraphDb();
+		}
+
+		return null;
 	}
 
 	public String getConfigValue(final Map<String, String> config, final String key, final String defaultValue) {
@@ -657,7 +641,7 @@ public class Services {
                 return (service != null && service.isRunning());
 	}
 
-	public StructrConf getCurrentConfig() {
+	public Properties getCurrentConfig() {
 		return structrConf;
 	}
 
@@ -696,24 +680,22 @@ public class Services {
 		return resources;
 	}
 
-	public static StructrConf getBaseConfiguration() {
+	public static Properties getBaseConfiguration() {
 
 		if (baseConf == null) {
 
-			baseConf = new StructrConf();
+			baseConf = new Properties();
 
 			baseConf.setProperty(CONFIGURATION,             JarConfigurationProvider.class.getName());
 			baseConf.setProperty(CONFIGURED_SERVICES,       "NodeService AgentService CronService SchemaService");
-			baseConf.setProperty(NEO4J_SHELL_ENABLED,       "true");
-			baseConf.setProperty(NEO4J_SHELL_PORT,          "1337");
 			baseConf.setProperty(JSON_INDENTATION,          "true");
+			baseConf.setProperty(HTML_INDENTATION,          "true");
 
 			baseConf.setProperty(SUPERUSER_USERNAME,        "superadmin");
 			baseConf.setProperty(SUPERUSER_PASSWORD,        RandomStringUtils.randomAlphanumeric(12));
 
 			baseConf.setProperty(BASE_PATH,                 "");
 			baseConf.setProperty(TMP_PATH,                  "/tmp");
-			baseConf.setProperty(DATABASE_PATH,             System.getProperty("user.dir").concat("/db"));
 			baseConf.setProperty(FILES_PATH,                System.getProperty("user.dir").concat("/files"));
 			baseConf.setProperty(LOG_DATABASE_PATH,         System.getProperty("user.dir").concat("/logDb.dat"));
 
@@ -724,139 +706,6 @@ public class Services {
 		}
 
 		return baseConf;
-	}
-
-	public static void mergeConfiguration(final StructrConf baseConfig, final StructrConf additionalConfig) {
-		baseConfig.putAll(additionalConfig);
-		trim(baseConfig);
-	}
-
-
-	private void migrateDatabase() {
-
-		final GraphDatabaseService graphDb     = getService(NodeService.class).getGraphDb();
-		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
-		final RelationshipFactory relFactory   = new RelationshipFactory(superUserContext);
-		final App app                          = StructrApp.getInstance();
-		final StringProperty uuidProperty      = new StringProperty("uuid");
-		final int txLimit                      = 2000;
-
-		boolean hasChanges                     = true;
-		int actualNodeCount                    = 0;
-		int actualRelCount                     = 0;
-
-		logger.log(Level.INFO, "Migration of ID properties from uuid to id requested.");
-
-		while (hasChanges) {
-
-			hasChanges = false;
-
-			try (final Tx tx = app.tx(false, false)) {
-
-				// iterate over all nodes,
-				final Iterator<Node> allNodes = GlobalGraphOperations.at(graphDb).getAllNodes().iterator();
-				while (allNodes.hasNext()) {
-
-					final Node node = allNodes.next();
-
-					// do migration of our own ID properties (and only our own!)
-					if (node.hasProperty("uuid") && node.getProperty("uuid") instanceof String && !node.hasProperty("id")) {
-
-						try {
-							final NodeInterface nodeInterface = nodeFactory.instantiate(node);
-							final String uuid = nodeInterface.getProperty(uuidProperty);
-
-							if (uuid != null) {
-
-								nodeInterface.setProperty(GraphObject.id, uuid);
-								nodeInterface.removeProperty(uuidProperty);
-								actualNodeCount++;
-								hasChanges = true;
-							}
-
-						} catch (Throwable t) {
-							t.printStackTrace();
-						}
-					}
-
-					// break out of loop to allow transaction to commit
-					if (hasChanges && (actualNodeCount % txLimit) == 0) {
-						break;
-					}
-				}
-
-				tx.success();
-
-			} catch (Throwable t) {
-
-				t.printStackTrace();
-			}
-
-			logger.log(Level.INFO, "Migrated {0} nodes so far.", actualNodeCount);
-		}
-
-		logger.log(Level.INFO, "Migrated {0} nodes to new ID property.", actualNodeCount);
-
-		// iterate over all relationships
-		hasChanges = true;
-		while (hasChanges) {
-
-			hasChanges = false;
-
-			try (final Tx tx = app.tx(false, false)) {
-
-				final Iterator<Relationship> allRels = GlobalGraphOperations.at(graphDb).getAllRelationships().iterator();
-				while (allRels.hasNext()) {
-
-					final Relationship rel = allRels.next();
-
-					// do migration of our own ID properties (and only our own!)
-					if (rel.hasProperty("uuid") && rel.getProperty("uuid") instanceof String && !rel.hasProperty("id")) {
-
-						try {
-							final RelationshipInterface relInterface = relFactory.instantiate(rel);
-							final String uuid = relInterface.getProperty(uuidProperty);
-
-							if (uuid != null) {
-								relInterface.setProperty(GraphObject.id, uuid);
-								relInterface.removeProperty(uuidProperty);
-								actualRelCount++;
-								hasChanges = true;
-							}
-
-						} catch (Throwable t) {
-							t.printStackTrace();
-						}
-					}
-
-					// break out of loop to allow transaction to commit
-					if (hasChanges && (actualRelCount % txLimit) == 0) {
-						break;
-					}
-				}
-
-				tx.success();
-
-			} catch (Throwable t) {
-
-				t.printStackTrace();
-			}
-
-			logger.log(Level.INFO, "Migrated {0} relationships so far.", actualRelCount);
-		}
-
-		logger.log(Level.INFO, "Migrated {0} relationships to new ID property.", actualRelCount);
-	}
-
-	public static String trim(final String value) {
-		return StringUtils.trim(value);
-	}
-
-	public static void trim(StructrConf properties) {
-		for (Object k : properties.keySet()) {
-			properties.put(k, trim((String) properties.get(k)));
-		}
 	}
 
 	/**
@@ -904,10 +753,5 @@ public class Services {
 
 	public static Set<Permission> getPermissionsForOwnerlessNodes() {
 		return getInstance().permissionsForOwnerlessNodes;
-	}
-
-	// ----- nested classes -----
-	public static interface InitializationCallback {
-		public void initializationDone();
 	}
 }

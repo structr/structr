@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,11 +18,11 @@
  */
 package org.structr.agent;
 
-import org.structr.core.Command;
+import org.structr.api.service.Command;
 
 /**
  * Abstract base class for agent service commands.
- * 
+ *
  *
  */
 public abstract class AgentServiceCommand extends Command

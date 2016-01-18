@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,21 +18,13 @@
  */
 package org.structr.common;
 
-import org.neo4j.graphdb.RelationshipType;
+import org.structr.api.graph.RelationshipType;
 
 /**
- * Defines relationship types for structr's internal relationships.
- * 
  *
  */
 public enum RelType implements RelationshipType {
-	
-	SECURITY,
-        OWNS,
-	IS_AT,
-	PROPERTY_ACCESS,
-	CONTAINS,
-	CONTAINS_NEXT_CHILD,
-	GENERIC
+
+	OWNS, SECURITY, IS_AT
 
 }

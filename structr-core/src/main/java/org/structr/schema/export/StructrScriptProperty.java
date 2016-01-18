@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,7 +31,7 @@ import org.structr.schema.json.JsonScriptProperty;
  *
  *
  */
-public class StructrScriptProperty extends StructrStringProperty implements JsonScriptProperty {
+public class StructrScriptProperty extends StructrPropertyDefinition implements JsonScriptProperty {
 
 	protected String contentType = null;
 	protected String source      = null;

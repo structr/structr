@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,7 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.neo4j.graphdb.RelationshipType;
+import org.structr.api.graph.RelationshipType;
 import org.structr.common.AccessPathCache;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,6 +30,8 @@ import org.structr.schema.action.ActionContext;
  */
 
 public class FilterExpression extends Expression {
+
+	public static final String ERROR_MESSAGE_FILTER = "Usage: ${filter(list, expression)}. Example: ${filter(this.children, gt(size(data.children), 0))}";
 
 	private Expression listExpression   = null;
 	private Expression filterExpression = null;
@@ -63,7 +65,7 @@ public class FilterExpression extends Expression {
 	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
 
 		if (listExpression == null) {
-			return Functions.ERROR_MESSAGE_FILTER;
+			return ERROR_MESSAGE_FILTER;
 		}
 
 		final Object listSource = listExpression.evaluate(ctx, entity);

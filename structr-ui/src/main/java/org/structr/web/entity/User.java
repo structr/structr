@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,12 +33,12 @@ import org.structr.core.entity.relationship.Groups;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNode;
+import org.structr.core.property.LowercaseStringProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
-import org.structr.core.validator.LowercaseTypeUniquenessValidator;
 import org.structr.core.validator.SimpleNonEmptyValueValidator;
 import org.structr.core.validator.SimpleRegexValidator;
 import org.structr.core.validator.TypeUniquenessValidator;
@@ -68,7 +68,7 @@ public class User extends AbstractUser {
 	public static final Property<Folder>      workingDirectory = new EndNode<>("workingDirectory", UserWorkDir.class);
 	public static final Property<List<Group>> groups           = new StartNodes<>("groups", Groups.class, new UiNotion());
 	public static final Property<Boolean>     isUser           = new BooleanProperty("isUser").defaultValue(true).readOnly();
-	public static final Property<String>      eMail            = new StringProperty("eMail").cmis().indexedCaseInsensitive();
+	public static final Property<String>      eMail            = new LowercaseStringProperty("eMail").cmis().indexed();
 	public static final Property<String>      twitterName      = new StringProperty("twitterName").cmis().indexed();
 	public static final Property<String>      localStorage     = new StringProperty("localStorage");
 
@@ -85,9 +85,9 @@ public class User extends AbstractUser {
 		// register this type as an overridden builtin type
 		SchemaService.registerBuiltinTypeOverride("User", User.class.getName());
 
-		User.eMail.addValidator(new LowercaseTypeUniquenessValidator(User.class));
 		User.name.addValidator(new SimpleNonEmptyValueValidator(User.class));
 		User.name.addValidator(new TypeUniquenessValidator(User.class));
+		User.eMail.addValidator(new TypeUniquenessValidator(User.class));
 		User.eMail.addValidator(new SimpleRegexValidator("[A-Za-z0-9!#$%&'*+-/=?^_`{|}~]+@[A-Za-z0-9-]+(.[A-Za-z0-9-]+)*"));
 	}
 

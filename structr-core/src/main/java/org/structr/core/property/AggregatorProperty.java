@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import org.structr.api.Predicate;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.Aggregation;
@@ -51,7 +53,7 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 	}
 
 	@Override
-	public List<T> getProperty(SecurityContext securityContext, GraphObject currentObject, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	public List<T> getProperty(SecurityContext securityContext, GraphObject currentObject, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		if(currentObject != null && currentObject instanceof AbstractNode) {
 
@@ -117,7 +119,7 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 	}
 
 	@Override
-	public Integer getSortType() {
-		return null;
+	public SortType getSortType() {
+		return SortType.Default;
 	}
 }

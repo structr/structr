@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -32,9 +32,9 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Relationship;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.PropertyContainer;
+import org.structr.api.graph.Relationship;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudListener;
 import org.structr.cloud.sync.Diff;

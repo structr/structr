@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,18 +21,12 @@ package org.structr.core.property;
 import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.SortField;
-import org.apache.lucene.util.NumericUtils;
-import org.neo4j.index.lucene.ValueContext;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NumberToken;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.search.IntegerSearchAttribute;
-import org.structr.core.graph.search.SearchAttribute;
 
 /**
 * A property that stores and retrieves a simple Integer value.
@@ -42,7 +36,6 @@ import org.structr.core.graph.search.SearchAttribute;
 public class IntProperty extends AbstractPrimitiveProperty<Integer> implements NumericalPropertyKey<Integer> {
 
 	private static final Logger logger = Logger.getLogger(IntProperty.class.getName());
-	public static final String INT_EMPTY_FIELD_VALUE = NumericUtils.intToPrefixCoded(Integer.MIN_VALUE);
 
 	public IntProperty(final String name) {
 		super(name);
@@ -59,8 +52,8 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 	}
 
 	@Override
-	public Integer getSortType() {
-		return SortField.INT;
+	public SortType getSortType() {
+		return SortType.Integer;
 	}
 
 	@Override
@@ -152,18 +145,8 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, Integer searchValue, boolean exactMatch, final Query query) {
-		return new IntegerSearchAttribute(this, searchValue, occur, exactMatch);
-	}
-
-	@Override
 	public void index(GraphObject entity, Object value) {
-		super.index(entity, value != null ? ValueContext.numeric((Number)fixDatabaseProperty(value)) : value);
-	}
-
-	@Override
-	public String getValueForEmptyFields() {
-		return INT_EMPTY_FIELD_VALUE;
+		super.index(entity, fixDatabaseProperty(value));
 	}
 
 	// ----- CMIS support -----

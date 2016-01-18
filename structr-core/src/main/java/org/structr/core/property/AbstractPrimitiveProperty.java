@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,8 +20,8 @@ package org.structr.core.property;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.helpers.Predicate;
+import org.structr.api.Predicate;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -42,8 +42,6 @@ import org.structr.core.graph.TransactionCommand;
 public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 	private static final Logger logger = Logger.getLogger(AbstractPrimitiveProperty.class.getName());
-
-	public static final String STRING_EMPTY_FIELD_VALUE		= new String(new byte[] { 0 } );
 
 	private boolean internalSystemProperty = false;
 	protected GraphObject entity;
@@ -215,11 +213,6 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	@Override
 	public boolean isCollection() {
 		return false;
-	}
-
-	@Override
-	public String getValueForEmptyFields() {
-		return STRING_EMPTY_FIELD_VALUE;
 	}
 
 	public AbstractPrimitiveProperty<T> internalSystemProperty() {

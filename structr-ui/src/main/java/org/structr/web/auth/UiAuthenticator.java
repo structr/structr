@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -225,7 +225,7 @@ public class UiAuthenticator implements Authenticator {
 
 		final ResourceAccess resourceAccess = ResourceAccess.findGrant(securityContext, rawResourceSignature);
 		final Method method                 = methods.get(request.getMethod());
-		final Principal user                = getUser(request, true);
+		final Principal user                = securityContext.getUser(false);
 		final boolean validUser             = (user != null);
 
 		// super user is always authenticated
@@ -549,15 +549,18 @@ public class UiAuthenticator implements Authenticator {
 
 		Principal user = null;
 
-		// First, check session (JSESSIONID cookie)
-		final HttpSession session = request.getSession(false);
+		if (request.getAttribute(SessionHelper.SESSION_IS_NEW) != null) {
+		
+			// First, check session (JSESSIONID cookie)
+			final HttpSession session = request.getSession(false);
 
-		if (session != null) {
+			if (session != null) {
 
-			user = AuthHelper.getPrincipalForSessionId(session.getId());
+				user = AuthHelper.getPrincipalForSessionId(session.getId());
 
+			}
 		}
-
+		
 		if (user == null) {
 
 			// Second, check X-Headers

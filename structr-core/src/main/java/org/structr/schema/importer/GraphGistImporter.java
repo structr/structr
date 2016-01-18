@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,10 +22,15 @@ import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.api.DatabaseService;
+import org.structr.api.Transaction;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.MaintenanceCommand;
 
 /**
@@ -80,6 +85,33 @@ public class GraphGistImporter extends SchemaImporter implements MaintenanceComm
 		}
 
 		analyzeSchema();
+	}
+
+
+	public static void importCypher(final List<String> sources) {
+
+		final App app                 = StructrApp.getInstance();
+		final DatabaseService graphDb = app.getDatabaseService();
+
+		// nothing to do
+		if (sources.isEmpty()) {
+			return;
+		}
+
+		// first step: execute cypher queries
+		for (final String source : sources) {
+
+			try (final Transaction tx = graphDb.beginTx()) {
+
+				// be very tolerant here, just execute everything
+				graphDb.execute(source);
+				tx.success();
+
+			} catch (Throwable t) {
+				// ignore
+				t.printStackTrace();
+			}
+		}
 	}
 
 	@Override

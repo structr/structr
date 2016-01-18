@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,7 +21,8 @@ package org.structr.core;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import org.neo4j.graphdb.PropertyContainer;
+import org.structr.api.Predicate;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.PermissionResolutionMask;
 import org.structr.common.SecurityContext;
@@ -146,7 +147,7 @@ public interface GraphObject {
 	 * @param filter the filter to apply to all properties
 	 * @return the converted, validated, transformed property value
 	 */
-	public <T> T getProperty(final PropertyKey<T> propertyKey, final org.neo4j.helpers.Predicate<GraphObject> filter);
+	public <T> T getProperty(final PropertyKey<T> propertyKey, final Predicate<GraphObject> filter);
 
 	/**
 	 * Returns the property value for the given key as a Comparable

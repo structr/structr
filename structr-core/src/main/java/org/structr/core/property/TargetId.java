@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,13 +18,12 @@
  */
 package org.structr.core.property;
 
-import org.neo4j.graphdb.Relationship;
+import org.structr.api.Predicate;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 
 /**
@@ -49,23 +48,11 @@ public class TargetId extends Property<String> {
 	}
 
 	@Override
-	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		if (obj instanceof RelationshipInterface) {
 
-			try {
-				final Relationship relationship = ((RelationshipInterface)obj).getRelationship();
-				final NodeInterface endNode     = new NodeFactory<>(securityContext).instantiate(relationship.getEndNode());
-
-				if (endNode != null) {
-
-					return endNode.getUuid();
-				}
-
-			} catch (Throwable t) {
-
-				t.printStackTrace();
-			}
+			return ((RelationshipInterface)obj).getTargetNodeId();
 		}
 
 		return null;
@@ -77,8 +64,8 @@ public class TargetId extends Property<String> {
 	}
 
 	@Override
-	public Integer getSortType() {
-		return null;
+	public SortType getSortType() {
+		return SortType.Default;
 	}
 
 	@Override
@@ -104,11 +91,6 @@ public class TargetId extends Property<String> {
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
-		return null;
-	}
-
-	@Override
-	public Object getValueForEmptyFields() {
 		return null;
 	}
 

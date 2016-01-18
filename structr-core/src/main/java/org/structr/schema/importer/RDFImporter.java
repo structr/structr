@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -77,15 +77,15 @@ public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 
 			if (fileName != null) {
 
-				importCypher(importRDF(new FileInputStream(fileName)));
+				GraphGistImporter.importCypher(importRDF(new FileInputStream(fileName)));
 
 			} else if (url != null) {
 
-				importCypher(importRDF(new URL(url).openStream()));
+				GraphGistImporter.importCypher(importRDF(new URL(url).openStream()));
 
 			} else if (source != null) {
 
-				importCypher(importRDF(new ByteArrayInputStream(source.getBytes())));
+				GraphGistImporter.importCypher(importRDF(new ByteArrayInputStream(source.getBytes())));
 
 			}
 

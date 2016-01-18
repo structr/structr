@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -110,7 +110,7 @@ public abstract class StreamingWriter {
 		try {
 			this.reduceRedundancy = Boolean.valueOf(Services.getInstance().getConfigurationValue(Services.JSON_REDUNDANCY_REDUCTION, "false"));
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "Unable to parse value for {0} from configuration file, invalid value.", Services.JSON_REDUNDANCY_REDUCTION);
+			logger.log(Level.WARNING, "Unable to parse value for {0}: {1}", new Object[] { Services.JSON_REDUNDANCY_REDUCTION, t.getMessage() } );
 		}
 
 		//this.writer = new StructrWriter(writer);
@@ -123,7 +123,7 @@ public abstract class StreamingWriter {
 		final String view       = propertyView.get(securityContext);
 
 		if (indent) {
-			writer.setIndent("   ");
+			writer.setIndent("	");
 		}
 
 		writer.beginDocument(null, view);
@@ -139,7 +139,7 @@ public abstract class StreamingWriter {
 		RestWriter writer = getRestWriter(securityContext, output);
 
 		if (indent) {
-			writer.setIndent("   ");
+			writer.setIndent("	");
 		}
 
 		// result fields in alphabetical order

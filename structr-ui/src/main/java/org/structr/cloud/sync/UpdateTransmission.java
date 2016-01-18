@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,10 +20,9 @@ package org.structr.cloud.sync;
 
 import java.io.IOException;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.tooling.GlobalGraphOperations;
+import org.structr.api.DatabaseService;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudService;
 import org.structr.cloud.CloudTransmission;
@@ -55,12 +54,11 @@ public class UpdateTransmission implements CloudTransmission {
 		client.send(new Synchronize());
 
 		// send all node and relationship data
-		final GraphDatabaseService graphDb   = StructrApp.getInstance().getGraphDatabaseService();
-		final GlobalGraphOperations ggo      = GlobalGraphOperations.at(graphDb);
+		final DatabaseService graphDb        = StructrApp.getInstance().getDatabaseService();
 		final NodeFactory nodeFactory        = new NodeFactory(SecurityContext.getSuperUserInstance());
 		final RelationshipFactory relFactory = new RelationshipFactory(SecurityContext.getSuperUserInstance());
 
-		for (final Node neo4jNode : ggo.getAllNodes()) {
+		for (final Node neo4jNode : graphDb.getAllNodes()) {
 
 			final NodeInterface node = nodeFactory.instantiate(neo4jNode);
 
@@ -74,7 +72,7 @@ public class UpdateTransmission implements CloudTransmission {
 			}
 		}
 
-		for (final Relationship relationship : ggo.getAllRelationships()) {
+		for (final Relationship relationship : graphDb.getAllRelationships()) {
 
 			final RelationshipInterface relationshipInterface = relFactory.instantiate(relationship);
 			client.send(new RelationshipDataContainer(relationshipInterface, 0));

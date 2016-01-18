@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,25 +19,21 @@
 package org.structr.core.graph;
 
 import java.util.Iterator;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.tooling.GlobalGraphOperations;
-
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.helpers.collection.Iterables;
+import org.structr.api.DatabaseService;
+import org.structr.api.util.Iterables;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaHelper;
-
-//~--- classes ----------------------------------------------------------------
 
 /**
  * Sets the properties found in the property set on all nodes matching the type.
@@ -54,7 +50,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 	@Override
 	public void execute(final Map<String, Object> properties) throws FrameworkException {
 
-		final GraphDatabaseService graphDb     = (GraphDatabaseService) arguments.get("graphDb");
+		final DatabaseService graphDb          = (DatabaseService) arguments.get("graphDb");
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
 
@@ -87,7 +83,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 
-					nodeIterator = Iterables.map(nodeFactory, GlobalGraphOperations.at(graphDb).getAllNodes()).iterator();
+					nodeIterator = Iterables.map(nodeFactory, graphDb.getAllNodes()).iterator();
 					tx.success();
 				}
 			}

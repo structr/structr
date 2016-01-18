@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,15 +34,15 @@ import org.structr.core.graph.Tx;
  *
  */
 public class IntegerPropertyTest extends StructrTest {
-	
+
 	public void test() {
-				
+
 
 		try {
 
 			final Property<Integer> instance = TestFour.integerProperty;
 			final TestFour testEntity        = createTestNode(TestFour.class);
-			
+
 			assertNotNull(testEntity);
 
 			// store integer in the test entitiy
@@ -59,24 +59,24 @@ public class IntegerPropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(value, instance.getProperty(securityContext, testEntity, true));
 			}
-				
+
 		} catch (FrameworkException fex) {
-			
+
 			fail("Unable to store array");
 		}
 	}
-	
+
 	public void testSimpleSearchOnNode() {
-		
+
 		try {
 
 			final PropertyMap properties  = new PropertyMap();
 			final PropertyKey<Integer> key = TestFour.integerProperty;
-			
+
 			properties.put(key, 2345);
-			
+
 			final TestFour testEntity     = createTestNode(TestFour.class, properties);
-			
+
 			assertNotNull(testEntity);
 
 			try (final Tx tx = app.tx()) {
@@ -89,27 +89,27 @@ public class IntegerPropertyTest extends StructrTest {
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
 			}
-		
+
 		} catch (FrameworkException fex) {
-			
+
 			fail("Unable to store array");
 		}
-		
+
 	}
-	
+
 	public void testSimpleSearchOnRelationship() {
-		
+
 		try {
 
 			final TestOne testOne        = createTestNode(TestOne.class);
 			final TestFour testFour      = createTestNode(TestFour.class);
 			final Property<Integer> key = OneFourOneToOne.integerProperty;
-			
+
 			assertNotNull(testOne);
 			assertNotNull(testFour);
-			
+
 			final OneFourOneToOne testEntity = createTestRelationship(testOne, testFour, OneFourOneToOne.class);
-			
+
 			assertNotNull(testEntity);
 
 			try (final Tx tx = app.tx()) {
@@ -128,10 +128,52 @@ public class IntegerPropertyTest extends StructrTest {
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
 			}
-		
+
 		} catch (FrameworkException fex) {
-			
+
 			fail("Unable to store array");
 		}
+	}
+
+	public void testRangeSearchOnNode() {
+
+		try {
+
+			final PropertyMap properties = new PropertyMap();
+			final Property<Integer> key  = OneFourOneToOne.integerProperty;
+
+			properties.put(key, 123456);
+
+			final TestFour testEntity = createTestNode(TestFour.class, properties);
+
+			assertNotNull(testEntity);
+
+			try (final Tx tx = app.tx()) {
+
+				// check value from database
+				assertEquals((Integer)123456, testEntity.getProperty(key));
+
+				Result<TestFour> result = app.nodeQuery(TestFour.class).andRange(key, 123455, 123457).getResult();
+
+				assertEquals(1, result.size());
+				assertEquals(testEntity, result.get(0));
+
+				tx.success();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				Result<TestFour> result = app.nodeQuery(TestFour.class).andRange(key, 123457, 123458).getResult();
+
+				assertEquals(0, result.size());
+
+				tx.success();
+			}
+
+		} catch (FrameworkException fex) {
+
+			fail("Unable to store array");
+		}
+
 	}
 }

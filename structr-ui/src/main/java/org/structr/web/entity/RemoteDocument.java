@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -55,6 +55,12 @@ public class RemoteDocument extends AbstractNode implements Indexable {
 	@Override
 	public void afterCreation(SecurityContext securityContext) {
 
+		update();
+	}
+
+	@Export
+	public void update() {
+		
 		try {
 
 			StructrApp.getInstance(securityContext).processTasks(new FulltextIndexingTask(this));
@@ -62,9 +68,8 @@ public class RemoteDocument extends AbstractNode implements Indexable {
 		} catch (Throwable t) {
 
 		}
-
 	}
-
+	
 	@Export
 	@Override
 	public GraphObject getSearchContext(final String searchTerm, final int contextLength) {

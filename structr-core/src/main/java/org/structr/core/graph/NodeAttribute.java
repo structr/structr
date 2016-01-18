@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,7 +21,7 @@ package org.structr.core.graph;
 import org.structr.core.property.PropertyKey;
 
 /**
- * A parameterized node attribute to identify a node attribute.
+ * A parameterized node attribute to identify a node.
  *
  *
  */
@@ -51,7 +51,7 @@ public class NodeAttribute<T> {
 	public void setKey(final PropertyKey<T> key) {
 		this.key = key;
 	}
-        
+
 	/**
 	 * @return the value
 	 */
@@ -82,11 +82,11 @@ public class NodeAttribute<T> {
 
 	@Override
 	public int hashCode() {
-		
+
 		if (key != null) {
 			return key.hashCode();
 		}
-		
+
 		return super.hashCode();
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,7 +21,6 @@ package org.structr.web.common;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Stack;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -29,13 +28,15 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
+import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.parser.Functions;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.ResourceProvider;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.relation.ResourceLink;
@@ -47,8 +48,6 @@ import org.structr.web.entity.html.relation.ResourceLink;
  *
  */
 public class RenderContext extends ActionContext {
-
-	private static final Logger logger = Logger.getLogger(RenderContext.class.getName());
 
 	private final Map<String, GraphObject> dataObjects = new LinkedHashMap<>();
 	private final Stack<SecurityContext> scStack       = new Stack<>();
@@ -68,6 +67,7 @@ public class RenderContext extends ActionContext {
 	private ResourceProvider resourceProvider          = null;
 	private Result result                              = null;
 	private boolean anyChildNodeCreatesNewLine         = false;
+	private boolean indentHtml                         = true;
 
 	public enum EditMode {
 
@@ -77,6 +77,8 @@ public class RenderContext extends ActionContext {
 
 	public RenderContext(final SecurityContext securityContext) {
 		super(securityContext);
+
+		readConfigParameters();
 	}
 
 	/**
@@ -104,6 +106,7 @@ public class RenderContext extends ActionContext {
 		this.result = other.result;
 		this.anyChildNodeCreatesNewLine = other.anyChildNodeCreatesNewLine;
 		this.locale = other.locale;
+		this.indentHtml = other.indentHtml;
 
 	}
 
@@ -115,6 +118,8 @@ public class RenderContext extends ActionContext {
 		this.response = response;
 
 		this.editMode = editMode;
+
+		readConfigParameters();
 
 	}
 
@@ -394,7 +399,7 @@ public class RenderContext extends ActionContext {
 
 						} else if (defaultValue != null) {
 
-							return Functions.numberOrString(defaultValue);
+							return Function.numberOrString(defaultValue);
 						}
 						break;
 
@@ -502,5 +507,18 @@ public class RenderContext extends ActionContext {
 		}
 
 		return value;
+	}
+
+	private void readConfigParameters () {
+
+		try {
+			indentHtml = Boolean.parseBoolean(StructrApp.getConfigurationValue(Services.HTML_INDENTATION, "true"));
+
+		} catch(Throwable t) {}
+
+	}
+
+	public boolean shouldIndentHtml() {
+		return indentHtml;
 	}
 }

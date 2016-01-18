@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -83,11 +83,6 @@ public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 
 	@Override
 	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext) {
-		return null;
-	}
-
-	@Override
-	public Object getValueForEmptyFields() {
 		return null;
 	}
 }

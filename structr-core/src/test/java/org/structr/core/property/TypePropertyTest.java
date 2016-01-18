@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,13 +22,14 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.fail;
-import org.neo4j.graphdb.DynamicLabel;
-import org.neo4j.graphdb.Label;
-import org.neo4j.helpers.collection.Iterables;
+import org.structr.api.DatabaseService;
+import org.structr.api.util.Iterables;
+import org.structr.api.graph.Label;
 import org.structr.common.AccessControllable;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.TestFive;
 import org.structr.core.entity.TestFour;
 import org.structr.core.graph.Tx;
@@ -41,15 +42,16 @@ public class TypePropertyTest extends StructrTest {
 
 	public void testModifyType() {
 
+		final DatabaseService db      = StructrApp.getInstance().getDatabaseService();
 		final Set<Label> labelsBefore = new LinkedHashSet<>();
 		final Set<Label> labelsAfter  = new LinkedHashSet<>();
 		String id                     = null;
 
-		labelsBefore.add(DynamicLabel.label(AccessControllable.class.getSimpleName()));
-		labelsBefore.add(DynamicLabel.label(TestFour.class.getSimpleName()));
+		labelsBefore.add(db.forName(Label.class, AccessControllable.class.getSimpleName()));
+		labelsBefore.add(db.forName(Label.class, TestFour.class.getSimpleName()));
 
-		labelsAfter.add(DynamicLabel.label(AccessControllable.class.getSimpleName()));
-		labelsAfter.add(DynamicLabel.label(TestFive.class.getSimpleName()));
+		labelsAfter.add(db.forName(Label.class, AccessControllable.class.getSimpleName()));
+		labelsAfter.add(db.forName(Label.class, TestFive.class.getSimpleName()));
 
 		// create a new node, check labels, modify type, check labels again
 
@@ -74,7 +76,7 @@ public class TypePropertyTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}

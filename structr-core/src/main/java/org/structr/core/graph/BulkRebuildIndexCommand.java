@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,9 +23,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.helpers.collection.Iterables;
-import org.neo4j.tooling.GlobalGraphOperations;
+import org.structr.api.DatabaseService;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.common.error.ErrorBuffer;
@@ -81,12 +80,12 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 	private void rebuildNodeIndex(final String entityType) {
 
 		final NodeFactory nodeFactory       = new NodeFactory(SecurityContext.getSuperUserInstance());
-		final GraphDatabaseService graphDb  = (GraphDatabaseService) arguments.get("graphDb");
+		final DatabaseService graphDb       = (DatabaseService) arguments.get("graphDb");
 		Iterator<AbstractNode> nodeIterator = null;
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			nodeIterator = Iterables.filter(new TypePredicate<>(entityType), Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllNodes()))).iterator();
+			nodeIterator = Iterables.filter(new TypePredicate<>(entityType), Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getAllNodes()))).iterator();
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -127,14 +126,14 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 	private void rebuildRelationshipIndex(final String relType) {
 
 		final RelationshipFactory relFactory = new RelationshipFactory(SecurityContext.getSuperUserInstance());
-		final GraphDatabaseService graphDb   = (GraphDatabaseService) arguments.get("graphDb");
+		final DatabaseService graphDb        = (DatabaseService) arguments.get("graphDb");
 
 		Iterator<AbstractRelationship> relIterator = null;
 
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			relIterator = Iterables.filter(new TypePredicate<>(relType), Iterables.map(relFactory,Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllRelationships()))).iterator();;
+			relIterator = Iterables.filter(new TypePredicate<>(relType), Iterables.map(relFactory,Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getAllRelationships()))).iterator();;
 			tx.success();
 
 		} catch (FrameworkException fex) {

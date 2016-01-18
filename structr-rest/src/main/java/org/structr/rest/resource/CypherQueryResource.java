@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -78,7 +78,7 @@ public class CypherQueryResource extends Resource {
 				return new Result(resultList, resultList.size(), true, false);
 			}
 
-		} catch (org.neo4j.graphdb.NotFoundException nfe) {
+		} catch (org.structr.api.NotFoundException nfe) {
 
 			throw new NotFoundException();
 		}
@@ -115,7 +115,7 @@ public class CypherQueryResource extends Resource {
 
 			return result;
 
-		} catch (org.neo4j.graphdb.NotFoundException nfe) {
+		} catch (org.structr.api.NotFoundException nfe) {
 
 			throw new NotFoundException();
 		}

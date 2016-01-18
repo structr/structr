@@ -1,20 +1,20 @@
 /*
- *  Copyright (C) 2010-2015 Structr GmbH
+ *  Copyright (C) 2010-2016 Structr GmbH
  *
  *  This file is part of Structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
+ *  Structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as
  *  published by the Free Software Foundation, either version 3 of the
  *  License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
+ *  Structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 var header, main, footer;
@@ -38,7 +38,6 @@ var pushConfigKey = 'structrPushConfigKey_' + port;
 var scrollInfoKey = 'structrScrollInfoKey_' + port;
 var hideInactiveTabsKey = 'structrHideInactiveTabs_' + port;
 var autoHideInactiveTabsKey = 'structrAutoHideInactiveTabs_' + port;
-
 
 var altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
 
@@ -404,25 +403,30 @@ var Structr = {
 		return false;
 	},
 	loadInitialModule: function(isLogin) {
-		var browserUrl = window.location.href;
-		var anchor = getAnchorFromUrl(browserUrl);
-		lastMenuEntry = ((!isLogin && anchor && anchor !== 'logout') ? anchor : LSWrapper.getItem(lastMenuEntryKey));
-		if (!lastMenuEntry) {
-			lastMenuEntry = LSWrapper.getItem(lastMenuEntryKey) || 'dashboard';
-		} else {
-			log('Last menu entry found: ' + lastMenuEntry);
-		}
-		log('lastMenuEntry', lastMenuEntry);
-		Structr.activateMenuEntry(lastMenuEntry);
-		log(Structr.modules);
-		var module = Structr.modules[lastMenuEntry];
-		if (module) {
-			//module.init();
-			module.onload();
-			if (module.resize)
-				module.resize();
-		}
-		Structr.updateVersionInfo();
+		
+		Structr.restoreLocalStorage(function() {
+			
+			var browserUrl = window.location.href;
+			var anchor = getAnchorFromUrl(browserUrl);
+			lastMenuEntry = ((!isLogin && anchor && anchor !== 'logout') ? anchor : LSWrapper.getItem(lastMenuEntryKey));
+			if (!lastMenuEntry) {
+				lastMenuEntry = LSWrapper.getItem(lastMenuEntryKey) || 'dashboard';
+			} else {
+				log('Last menu entry found: ' + lastMenuEntry);
+			}
+			log('lastMenuEntry', lastMenuEntry);
+			Structr.activateMenuEntry(lastMenuEntry);
+			log(Structr.modules);
+			var module = Structr.modules[lastMenuEntry];
+			if (module) {
+				//module.init();
+				module.onload();
+				if (module.resize)
+					module.resize();
+			}
+			Structr.updateVersionInfo();
+		});
+		
 	},
 	clearMain: function() {
 		var newDroppables = new Array();
@@ -1312,7 +1316,7 @@ var Structr = {
 		if (this.autoHideInactiveTabs) {
 			return this.autoHideInactiveTabs;
 		} else {
-			this.autoHideInactiveTabs = (LSWrapper.getItem(autoHideInactiveTabsKey) === "true");
+			this.autoHideInactiveTabs = (LSWrapper.getItem(autoHideInactiveTabsKey));
 			if (!this.autoHideInactiveTabs) {
 				this.setAutoHideInactiveTabs(false);
 			}
@@ -1322,7 +1326,6 @@ var Structr = {
 	setAutoHideInactiveTabs: function (val) {
 		this.autoHideInactiveTabs = val;
 		LSWrapper.setItem(autoHideInactiveTabsKey, val);
-
 		if (val) {
 			this.doHideInactiveTabs();
 			this.doHideSelectAllCheckbox();
@@ -1332,7 +1335,7 @@ var Structr = {
 		if (this.hideInactiveTabs) {
 			return this.hideInactiveTabs;
 		} else {
-			this.hideInactiveTabs = (LSWrapper.getItem(hideInactiveTabsKey) === "true");
+			this.hideInactiveTabs = (LSWrapper.getItem(hideInactiveTabsKey));
 			if (!this.hideInactiveTabs) {
 				this.setHideInactiveTabs(false);
 			}

@@ -1,20 +1,20 @@
 /*
- *  Copyright (C) 2010-2015 Structr GmbH
+ *  Copyright (C) 2010-2016 Structr GmbH
  *
  *  This file is part of Structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
+ *  Structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as
  *  published by the Free Software Foundation, either version 3 of the
  *  License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
+ *  Structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var canvas, instance, res, nodes = [], rels = [], localStorageSuffix = '_schema_' + port, undefinedRelType = 'UNDEFINED_RELATIONSHIP_TYPE', initialRelType = undefinedRelType;
 var radius = 20, stub = 30, offset = 0, maxZ = 0, reload = false;
@@ -276,6 +276,7 @@ var _Schema = {
 			var offset = $el.offset();
 			selectedNodes.push({
 				nodeId: $el.attr('id'),
+				name: $el.children('b').text(),
 				pos: {
 					top: (offset.top  - canvas.offset().top),
 					left: offset.left
@@ -2419,12 +2420,12 @@ var _Schema = {
 
 			table.empty();
 
-			Command.snapshots("list", "", function(data) {
+			Command.snapshots("list", "", null, function(data) {
 
-				var snapshots = data.snapshots;
+				var snapshots = data.snapshots; console.log(data)
 
 				snapshots.forEach(function(snapshot, i) {
-					table.append('<tr><td>' + snapshot + '</td><td style="text-align:right;"><button id="delete-' + i + '">Delete</button><button id="restore-' + i + '">Restore</button></td></tr>');
+					table.append('<tr><td>' + snapshot + '</td><td style="text-align:right;"><button id="delete-' + i + '">Delete</button><button id="add-' + i + '">Add</button><button id="restore-' + i + '">Restore</button></td></tr>');
 					$('#restore-' + i).on('click', function() {
 
 						Command.snapshots("restore", snapshot, function(data) {
@@ -2443,8 +2444,26 @@ var _Schema = {
 							}
 						});
 					});
+					$('#add-' + i).on('click', function() {
+
+						Command.snapshots("add", snapshot, null, function(data) {  console.log(data)
+
+							var status = data.status;
+
+							if (status === "success") {
+								window.location.reload();
+							} else {
+
+								if (dialogBox.is(':visible')) {
+
+									dialogMsg.html('<div class="infoBox error">' + status + '</div>');
+									$('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+								}
+							}
+						});
+					});
 					$('#delete-' + i).on('click', function() {
-						Command.snapshots("delete", snapshot, refresh);
+						Command.snapshots("delete", snapshot, null, refresh);
 					});
 				});
 			});
@@ -2453,7 +2472,15 @@ var _Schema = {
 		$('#create-snapshot').on('click', function() {
 
 			var title = $('#snapshot-title').val();
-			Command.snapshots("export", title, function(data) {
+			
+			var types = [];
+			if (selectedNodes && selectedNodes.length) {
+				selectedNodes.forEach(function(selectedNode) {
+					types.push(selectedNode.name);
+				});
+			}
+			
+			Command.snapshots("export", title, types, function(data) {
 
 				var status = data.status;
 				if (dialogBox.is(':visible')) {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,9 +24,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Result;
+import org.structr.api.NativeResult;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -52,7 +52,7 @@ public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 	protected SecurityContext securityContext = null;
 	protected String query                    = null;
 
-	public abstract Object handleQueryResults(final Result result) throws FrameworkException;
+	public abstract Object handleQueryResults(final NativeResult result) throws FrameworkException;
 
 	public CypherQueryHandler(Object... query) {
 

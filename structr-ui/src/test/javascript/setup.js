@@ -1,20 +1,20 @@
 /*
- *  Copyright (C) 2010-2015 Structr GmbH
+ *  Copyright (C) 2010-2016 Structr GmbH
  *
  *  This file is part of Structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
+ *  Structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as
  *  published by the Free Software Foundation, either version 3 of the
  *  License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
+ *  Structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 
@@ -407,7 +407,7 @@ exports.pad = function(num) {
  */
 exports.animateHtml = function(testName, heading, sections) {
 
-    var html = '<!DOCTYPE html><html><head><title>structr UI Test: ' + heading + '</title><link rel="stylesheet" type="text/css" media="screen" href="test.css"></head><body><div id="main"><h1>' + heading + '</h1>'
+    var html = '<!DOCTYPE html><html><head><title>Structr UI Test: ' + heading + '</title><link rel="stylesheet" type="text/css" media="screen" href="test.css"></head><body><div id="main"><h1>' + heading + '</h1>'
 
     sections.forEach(function(s) {
         html += '<section>' + s + '</section>';
@@ -441,7 +441,13 @@ exports.startRecording = function(window, casper, testName) {
     /**
      * Set casper options, see http://docs.casperjs.org/en/latest/modules/casper.html#index-1
      */
-    casper.options.viewportSize = {
+
+	/**
+	 * Set global timeout for all 'waitFor' functions
+	 */
+	casper.options.waitTimeout = 30000;
+	
+	casper.options.viewportSize = {
         width: w,
         height: h
     };

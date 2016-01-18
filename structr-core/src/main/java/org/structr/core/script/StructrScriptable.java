@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -50,6 +50,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.parser.Functions;
+import org.structr.core.parser.function.GrantFunction;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -695,7 +696,7 @@ public class StructrScriptable extends ScriptableObject {
 
 							try {
 
-								final Function grant = Functions.functions.get("grant");
+								final GrantFunction grant = new GrantFunction();
 								if (grant != null) {
 
 									if (parameters.length >= 2 && parameters[0] != null && parameters[1] != null) {

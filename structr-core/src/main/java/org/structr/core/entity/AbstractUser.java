@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
+import org.structr.api.Predicate;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.auth.HashHelper;
@@ -201,7 +202,7 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 	 * @return null for password
 	 */
 	@Override
-	public <T> T getProperty(final PropertyKey<T> key, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	public <T> T getProperty(final PropertyKey<T> key, final Predicate<GraphObject> predicate) {
 
 		if (password.equals(key) || salt.equals(key)) {
 

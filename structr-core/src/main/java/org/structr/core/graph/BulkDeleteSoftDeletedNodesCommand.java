@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,8 +19,6 @@
 package org.structr.core.graph;
 
 import java.util.Iterator;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.tooling.GlobalGraphOperations;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -28,7 +26,8 @@ import org.structr.core.entity.AbstractNode;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.helpers.collection.Iterables;
+import org.structr.api.DatabaseService;
+import org.structr.api.util.Iterables;
 import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.core.app.StructrApp;
 
@@ -48,7 +47,7 @@ public class BulkDeleteSoftDeletedNodesCommand extends NodeServiceCommand implem
 	@Override
 	public void execute(final Map<String, Object> properties) throws FrameworkException {
 
-		final GraphDatabaseService graphDb     = (GraphDatabaseService) arguments.get("graphDb");
+		final DatabaseService graphDb          = (DatabaseService) arguments.get("graphDb");
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 		final NodeFactory nodeFactory          = new NodeFactory(superUserContext, true, false);
 
@@ -58,7 +57,7 @@ public class BulkDeleteSoftDeletedNodesCommand extends NodeServiceCommand implem
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				nodeIterator = Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllNodes())).iterator();
+				nodeIterator = Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getAllNodes())).iterator();
 				tx.success();
 			}
 

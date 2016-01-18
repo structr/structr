@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,7 @@
  */
 package org.structr.rest.serialization.html.attr;
 
-import org.neo4j.helpers.Predicate;
+import org.structr.api.Predicate;
 import org.structr.rest.serialization.html.Attr;
 
 /**

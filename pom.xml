@@ -41,6 +41,7 @@
         <module>structr-rest</module>
         <module>structr-ui</module>
         <module>structr-archetype</module>
+        <module>structr-db-driver-api</module>
     </modules>
 
     <build>

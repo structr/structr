@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,12 +30,13 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.index.Index;
+import org.structr.api.graph.Direction;
+import org.structr.api.index.Index;
+import org.structr.api.graph.Node;
+import org.structr.api.Predicate;
+import org.structr.api.graph.PropertyContainer;
+import org.structr.api.graph.Relationship;
+import org.structr.api.graph.RelationshipType;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PermissionResolutionMask;
@@ -49,9 +50,6 @@ import org.structr.common.error.IdNotFoundToken;
 import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.GraphObject;
-import static org.structr.core.GraphObject.base;
-import static org.structr.core.GraphObject.id;
-import static org.structr.core.GraphObject.type;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -60,7 +58,6 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.parser.Functions;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -72,6 +69,7 @@ import org.structr.core.property.TargetId;
 import org.structr.core.property.TargetNodeProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
 
 
 /**
@@ -310,11 +308,11 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public <T> T getProperty(final PropertyKey<T> key, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	public <T> T getProperty(final PropertyKey<T> key, final Predicate<GraphObject> predicate) {
 		return getProperty(key, true, predicate);
 	}
 
-	private <T> T getProperty(final PropertyKey<T> key, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	private <T> T getProperty(final PropertyKey<T> key, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		// early null check, this should not happen...
 		if (key == null || key.dbName() == null) {
@@ -457,13 +455,13 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	}
 
-	public Map<RelationshipType, Long> getRelationshipInfo(Direction direction) {
+	public Map<String, Long> getRelationshipInfo(Direction direction) {
 
 		return null;
 
 	}
 
-	public List<AbstractRelationship> getRelationships(RelationshipType type, Direction dir) {
+	public List<AbstractRelationship> getRelationships(String type, Direction dir) {
 
 		return null;
 
@@ -471,13 +469,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	@Override
 	public String getType() {
-
-		final RelationshipType relType = getRelType();
-		if (relType != null) {
-			return relType.name();
-		}
-
-		return null;
+		return getRelType().name();
 	}
 
 	@Override
@@ -646,7 +638,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 				key.index(this, this.getPropertyForIndexing(key));
 			}
 		}
-
 	}
 
 	@Override
@@ -725,7 +716,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 				final Object value = getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, key));
 				if (value == null) {
 
-					return Functions.numberOrString(defaultValue);
+					return Function.numberOrString(defaultValue);
 				}
 				return value;
 		}

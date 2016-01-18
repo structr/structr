@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,6 +34,8 @@ import org.structr.core.entity.TestTwo;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.api.NotFoundException;
+import org.structr.api.NotInTransactionException;
 import org.structr.core.Result;
 import org.structr.core.entity.SixOneOneToOne;
 import org.structr.core.entity.TestSix;
@@ -145,7 +147,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 				rel.getRelationship().delete();
 
 				fail("Should have raised an org.neo4j.graphdb.NotInTransactionException");
-			} catch (org.neo4j.graphdb.NotInTransactionException e) {}
+			} catch (NotInTransactionException e) {}
 
 			// Relationship still there
 			assertNotNull(rel);
@@ -161,7 +163,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 				String uuid = rel.getUuid();
 				fail("Deleted entity should have thrown an exception on access.");
 
-			} catch (IllegalStateException iex) {
+			} catch (NotFoundException iex) {
 			}
 
 

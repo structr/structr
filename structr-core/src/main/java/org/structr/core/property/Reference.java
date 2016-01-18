@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,7 +21,9 @@ package org.structr.core.property;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
-import org.apache.lucene.search.BooleanClause.Occur;
+import org.structr.api.search.Occurrence;
+import org.structr.api.Predicate;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -135,7 +137,7 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public Integer getSortType() {
+	public SortType getSortType() {
 		return propertyKey.getSortType();
 	}
 
@@ -219,7 +221,7 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 		return propertyKey.getProperty(securityContext, obj, applyConverter);
 	}
 
@@ -229,7 +231,7 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occur occur, T searchValue, boolean exactMatch, final Query query) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, T searchValue, boolean exactMatch, final Query query) {
 		return propertyKey.getSearchAttribute(securityContext, occur, searchValue, exactMatch, query);
 	}
 
@@ -275,11 +277,6 @@ public class Reference<T> implements PropertyKey<T> {
 	@Override
 	public Property<T> indexed() {
 		return propertyKey.indexed();
-	}
-
-	@Override
-	public Property<T> indexedCaseInsensitive() {
-		return propertyKey.indexedCaseInsensitive();
 	}
 
 	@Override
@@ -341,7 +338,7 @@ public class Reference<T> implements PropertyKey<T> {
 	public Property<T> readFunction(final String readFunction) {
 		return null;
 	}
-	
+
 	@Override
 	public Property<T> writeFunction(final String writeFunction) {
 		return null;

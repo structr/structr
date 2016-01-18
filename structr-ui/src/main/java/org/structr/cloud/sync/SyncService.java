@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.logging.Level;
@@ -34,11 +35,10 @@ import org.structr.cloud.CloudListener;
 import org.structr.cloud.CloudService;
 import org.structr.cloud.transmission.SingleTransmission;
 import org.structr.common.SecurityContext;
-import org.structr.common.StructrConf;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
-import org.structr.core.RunnableService;
-import org.structr.core.Services;
+import org.structr.api.service.Command;
+import org.structr.api.service.RunnableService;
+import org.structr.api.service.StructrServices;
 import org.structr.core.StructrTransactionListener;
 import org.structr.core.TransactionSource;
 import org.structr.core.app.App;
@@ -80,7 +80,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 	}
 
 	@Override
-	public void initialize(final Services services, final StructrConf config) {
+	public void initialize(final StructrServices services, final Properties config) {
 
 		active = "true".equals(config.getProperty("sync.enabled", "false"));
 

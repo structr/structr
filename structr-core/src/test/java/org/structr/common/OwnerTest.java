@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -43,9 +43,9 @@ import org.structr.core.entity.TestOne;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.helpers.collection.Iterables;
+import org.structr.api.graph.Direction;
+import org.structr.api.util.Iterables;
+import org.structr.api.graph.Relationship;
 import org.structr.core.entity.relationship.Ownership;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,11 +21,8 @@ package org.structr.core.property;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanClause.Occur;
+import org.structr.api.search.Occurrence;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -58,36 +55,36 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
-		
+
 		// We can only try to fix a String and convert it into a String[]
 		if (value != null && value instanceof String) {
-			
+
 			String[] fixedValue = null;
-			
+
 			final String stringValue = (String) value;
-			
+
 			if (stringValue.contains(",")) {
 				fixedValue = stringValue.split(",");
 			}
-			
+
 			if (stringValue.contains(" ")) {
 				fixedValue = stringValue.split(" ");
 			}
-		
+
 			if (securityContext != null && entity != null) {
-			
+
 				try {
 					setProperty(securityContext, entity, (T[]) fixedValue);
 				} catch (FrameworkException ex) {
 					ex.printStackTrace();
 				}
-				
+
 			}
-			
+
 			return fixedValue;
-			
+
 		}
-		
+
 		return value;
 	}
 
@@ -102,8 +99,8 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 	}
 
 	@Override
-	public Integer getSortType() {
-		return null;
+	public SortType getSortType() {
+		return SortType.Default;
 	}
 
 	@Override
@@ -136,7 +133,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 		@Override
 		public T[] convert(Object source) throws FrameworkException {
-			
+
 			if (source == null) {
 				return null;
 			}
@@ -152,32 +149,32 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 			}
 
 			if (source instanceof String) {
-				
+
 				final String s = (String) source;
-				
+
 				if (s.contains(",")) {
 					return (T[]) s.split(",");
 				}
 			}
-			
+
 			return (T[]) new Object[] { source };
 		}
 
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, T[] searchValue, boolean exactMatch, Query query) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, T[] searchValue, boolean exactMatch, Query query) {
 
 		// early exit, return empty search attribute
 		if (searchValue == null) {
-			return new PropertySearchAttribute(this, "", exactMatch ? Occur.MUST : Occur.SHOULD, exactMatch);
+			return new PropertySearchAttribute(this, "", exactMatch ? Occurrence.REQUIRED : Occurrence.OPTIONAL, exactMatch);
 		}
 
 		final SearchAttributeGroup group = new SearchAttributeGroup(occur);
 
 		for (T value : searchValue) {
 
-			group.add(new PropertySearchAttribute(this, value, exactMatch ? Occur.MUST : Occur.SHOULD, exactMatch));
+			group.add(new PropertySearchAttribute(this, value, exactMatch ? Occurrence.REQUIRED : Occurrence.OPTIONAL, exactMatch));
 
 		}
 

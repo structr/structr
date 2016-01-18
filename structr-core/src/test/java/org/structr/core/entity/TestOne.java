@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -73,5 +73,9 @@ public class TestOne extends AbstractNode {
 
 	public static final View publicView = new View(TestOne.class, PropertyView.Public,
 		name, anInt, aDouble, aLong, aDate, createdDate, aString, anotherString, aBoolean, anEnum, stringWithDefault
+	);
+
+	public static final View protectedView = new View(TestOne.class, PropertyView.Protected,
+		name, anInt, aString
 	);
 }

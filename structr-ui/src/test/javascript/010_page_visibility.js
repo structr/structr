@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -32,10 +32,6 @@ s.startRecording(window, casper, testName);
 casper.test.begin(testName, numberOfTests, function(test) {
 
     casper.start(s.url);
-    
-    casper.thenEvaluate(function() {
-        window.localStorage.clear();
-    }, {});
     
     login.init(test, 'admin', 'admin');
     

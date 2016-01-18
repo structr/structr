@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,9 +24,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Relationship;
+import org.structr.api.graph.Node;
+import org.structr.api.Predicate;
+import org.structr.api.graph.PropertyContainer;
+import org.structr.api.graph.Relationship;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
@@ -170,7 +171,7 @@ public class SuperUser implements Principal, AccessControllable {
 	}
 
 	@Override
-	public <T> T getProperty(PropertyKey<T> key, org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	public <T> T getProperty(PropertyKey<T> key, Predicate<GraphObject> predicate) {
 		return null;
 	}
 

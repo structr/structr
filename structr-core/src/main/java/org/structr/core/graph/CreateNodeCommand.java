@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,7 +31,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.GraphDatabaseService;
+import org.structr.api.DatabaseService;
 import org.structr.common.Permission;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -79,9 +79,9 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 	public T execute(PropertyMap attributes) throws FrameworkException {
 
-		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		final Principal user               = securityContext.getUser(false);
-		T node	                           = null;
+		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
+		final Principal user          = securityContext.getUser(false);
+		T node	                      = null;
 
 		if (graphDb != null) {
 

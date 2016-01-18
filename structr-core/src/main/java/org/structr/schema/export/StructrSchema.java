@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,6 +24,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -53,11 +54,27 @@ public class StructrSchema {
 	 * @throws URISyntaxException
 	 */
 	public static JsonSchema createFromDatabase(final App app) throws FrameworkException, URISyntaxException {
+		return createFromDatabase(app, null);
+	}
+
+	/**
+	 * Creates JsonSchema instance from the current schema in Structr,
+	 * including only a subset of schema nodes.
+	 *
+	 * @param app
+	 * @param types
+	 *
+	 * @return the current Structr schema
+	 *
+	 * @throws FrameworkException
+	 * @throws URISyntaxException
+	 */
+	public static JsonSchema createFromDatabase(final App app, final List<String> types) throws FrameworkException, URISyntaxException {
 
 		try (final Tx tx = app.tx()) {
 
-			final JsonSchema schema = StructrSchemaDefinition.initializeFromDatabase(app);
-
+			final JsonSchema schema = StructrSchemaDefinition.initializeFromDatabase(app, types);
+			
 			tx.success();
 
 			return schema;
@@ -135,6 +152,25 @@ public class StructrSchema {
 				app.delete(schemaView);
 			}
 			
+			newSchema.createDatabaseSchema(app);
+
+			tx.success();
+		}
+	}
+	
+	/**
+	 * Extend the current Structr schema by the elements contained in the given new schema.
+	 *
+	 * @param app
+	 * @param newSchema the new schema to add to the current Structr schema
+	 *
+	 * @throws FrameworkException
+	 * @throws URISyntaxException
+	 */
+	public static void extendDatabaseSchema(final App app, final JsonSchema newSchema) throws FrameworkException, URISyntaxException {
+
+		try (final Tx tx = app.tx()) {
+
 			newSchema.createDatabaseSchema(app);
 
 			tx.success();

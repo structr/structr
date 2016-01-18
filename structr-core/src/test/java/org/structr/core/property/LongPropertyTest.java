@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,9 +31,9 @@ import org.structr.core.graph.Tx;
  *
  */
 public class LongPropertyTest extends StructrTest {
-	
+
 	public void test() {
-		
+
 		try {
 
 			final Property<Long> instance = TestFour.longProperty;
@@ -45,38 +45,38 @@ public class LongPropertyTest extends StructrTest {
 			final Long value = 2857312362L;
 
 			try (final Tx tx = app.tx()) {
-				
+
 				instance.setProperty(securityContext, testEntity, value);
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				// check value from database
 				assertEquals(value, instance.getProperty(securityContext, testEntity, true));
 			}
-			
+
 		} catch (FrameworkException fex) {
-			
+
 			fail("Unable to store array");
 		}
 	}
-	
+
 	public void testSimpleSearchOnNode() {
-		
+
 		try {
 
 			final PropertyMap properties  = new PropertyMap();
 			final PropertyKey<Long> key = TestFour.longProperty;
-			
+
 			properties.put(key, 2857312362L);
-			
+
 			final TestFour testEntity     = createTestNode(TestFour.class, properties);
-			
+
 			assertNotNull(testEntity);
 
 			try (final Tx tx = app.tx()) {
-				
+
 				// check value from database
 				assertEquals((Long)2857312362L, (Long)testEntity.getProperty(key));
 
@@ -85,37 +85,37 @@ public class LongPropertyTest extends StructrTest {
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
 			}
-		
+
 		} catch (FrameworkException fex) {
-			
+
 			fail("Unable to store array");
 		}
-		
+
 	}
-	
+
 	public void testSimpleSearchOnRelationship() {
-		
+
 		try {
 
 			final TestOne testOne        = createTestNode(TestOne.class);
 			final TestFour testFour      = createTestNode(TestFour.class);
 			final Property<Long> key = OneFourOneToOne.longProperty;
-			
+
 			assertNotNull(testOne);
 			assertNotNull(testFour);
-			
+
 			final OneFourOneToOne testEntity = createTestRelationship(testOne, testFour, OneFourOneToOne.class);
-			
+
 			assertNotNull(testEntity);
 
 			try (final Tx tx = app.tx()) {
-				
+
 				testEntity.setProperty(key, 2857312362L);
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				// check value from database
 				assertEquals((Long)2857312362L, (Long)testEntity.getProperty(key));
 
@@ -124,10 +124,52 @@ public class LongPropertyTest extends StructrTest {
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
 			}
-		
+
 		} catch (FrameworkException fex) {
-			
+
 			fail("Unable to store array");
 		}
+	}
+
+	public void testRangeSearchOnNode() {
+
+		try {
+
+			final PropertyMap properties  = new PropertyMap();
+			final PropertyKey<Long> key = TestFour.longProperty;
+
+			properties.put(key, 123456L);
+
+			final TestFour testEntity = createTestNode(TestFour.class, properties);
+
+			assertNotNull(testEntity);
+
+			try (final Tx tx = app.tx()) {
+
+				// check value from database
+				assertEquals((Long)123456L, testEntity.getProperty(key));
+
+				Result<TestFour> result = app.nodeQuery(TestFour.class).andRange(key, 123455L, 123457L).getResult();
+
+				assertEquals(1, result.size());
+				assertEquals(testEntity, result.get(0));
+
+				tx.success();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				Result<TestFour> result = app.nodeQuery(TestFour.class).andRange(key, 123457L, 123458L).getResult();
+
+				assertEquals(0, result.size());
+
+				tx.success();
+			}
+
+		} catch (FrameworkException fex) {
+
+			fail("Unable to store array");
+		}
+
 	}
 }

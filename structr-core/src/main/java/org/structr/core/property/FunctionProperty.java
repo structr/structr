@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,7 +20,8 @@ package org.structr.core.property;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.helpers.Predicate;
+import org.structr.api.Predicate;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -81,8 +82,8 @@ public class FunctionProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public Integer getSortType() {
-		return null; // use string search
+	public SortType getSortType() {
+		return SortType.Default;
 	}
 
 	@Override
@@ -93,11 +94,6 @@ public class FunctionProperty<T> extends Property<T> {
 	@Override
 	public Object fixDatabaseProperty(Object value) {
 		return value;
-	}
-
-	@Override
-	public Object getValueForEmptyFields() {
-		return null;
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,7 @@
  */
 package org.structr.core.entity;
 
-import org.neo4j.graphdb.Node;
+import org.structr.api.graph.Node;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -173,7 +173,7 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 		if (previousElement != null && nextElement != null) {
 
 			Node previousNode = previousElement.getNode();
-			Node nextNode = nextElement.getNode();
+			Node nextNode     = nextElement.getNode();
 
 			if (previousNode != null && nextNode != null) {
 

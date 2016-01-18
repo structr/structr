@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,14 +34,15 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matcher;
-import org.neo4j.graphdb.GraphDatabaseService;
+import org.structr.api.DatabaseService;
+import org.structr.api.config.Structr;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.StructrConf;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -52,6 +53,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.module.JarConfigurationProvider;
+import org.structr.neo4j.Neo4jDatabaseService;
 import org.structr.rest.DefaultResourceProvider;
 import org.structr.rest.entity.TestOne;
 import org.structr.rest.service.HttpService;
@@ -95,7 +97,7 @@ public class StructrRestTest extends TestCase {
 
 	public void test00DbAvailable() {
 
-		GraphDatabaseService graphDb = app.getGraphDatabaseService();
+		DatabaseService graphDb = app.getDatabaseService();
 
 		assertTrue(graphDb != null);
 
@@ -251,8 +253,8 @@ public class StructrRestTest extends TestCase {
 			buf.append(part);
 		}
 
-		final StructrConf config = Services.getBaseConfiguration();
-		
+		final Properties config = Services.getBaseConfiguration();
+
 		return getUuidFromLocation(
 			RestAssured
 			.given()
@@ -317,9 +319,9 @@ public class StructrRestTest extends TestCase {
 		System.out.println("# Starting " + getClass().getSimpleName() + "#" + getName());
 		System.out.println("######################################################################################");
 
-		final StructrConf config = Services.getBaseConfiguration();
-		final Date now           = new Date();
-		final long timestamp     = now.getTime();
+		final Properties config = Services.getBaseConfiguration();
+		final Date now          = new Date();
+		final long timestamp    = now.getTime();
 
 		basePath = "/tmp/structr-test-" + timestamp;
 
@@ -330,7 +332,9 @@ public class StructrRestTest extends TestCase {
 		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
 		config.setProperty(Services.TMP_PATH, "/tmp/");
 		config.setProperty(Services.BASE_PATH, basePath);
-		config.setProperty(Services.DATABASE_PATH, basePath + "/db");
+		config.setProperty(Structr.DATABASE_PATH, basePath + "/db");
+		config.setProperty(Neo4jDatabaseService.RELATIONSHIP_CACHE_SIZE, "1000");
+		config.setProperty(Neo4jDatabaseService.NODE_CACHE_SIZE, "1000");
 		config.setProperty(Services.FILES_PATH, basePath + "/files");
 		config.setProperty(Services.LOG_DATABASE_PATH, basePath + "/logDb.dat");
 		config.setProperty(Services.TCP_PORT, (System.getProperty("tcpPort") != null ? System.getProperty("tcpPort") : "13465"));
@@ -352,7 +356,7 @@ public class StructrRestTest extends TestCase {
 		config.setProperty("JsonRestServlet.user.autocreate", "false");
 		config.setProperty("JsonRestServlet.defaultview", PropertyView.Public);
 		config.setProperty("JsonRestServlet.outputdepth", "3");
-		
+
 		if (additionalConfig != null) {
 			config.putAll(additionalConfig);
 		}

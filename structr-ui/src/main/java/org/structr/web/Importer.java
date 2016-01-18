@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify it under the
- * terms of the GNU Affero General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr. If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web;
 
@@ -41,6 +41,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.FileUtils;
@@ -75,6 +76,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.dynamic.File;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.importer.GraphGistImporter;
+import org.structr.schema.importer.SchemaJsonImporter;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.diff.CreateOperation;
@@ -101,22 +103,23 @@ import org.structr.web.entity.dom.Page;
  */
 public class Importer {
 
-	private static final String[] hrefElements = new String[]{"link"};
+	private static final String[] hrefElements       = new String[]{"link"};
 	private static final String[] ignoreElementNames = new String[]{"#declaration", "#doctype"};
-	private static final String[] srcElements = new String[]{"img", "script", "audio", "video", "input", "source", "track"};
-	private static final Logger logger = Logger.getLogger(Importer.class.getName());
+	private static final String[] srcElements        = new String[]{"img", "script", "audio", "video", "input", "source", "track"};
+
+	private static final Logger              logger                  = Logger.getLogger(Importer.class.getName());
 	private static final Map<String, String> contentTypeForExtension = new HashMap<>();
 
 	private static App app;
 	private static ConfigurationProvider config;
 
 	private final static String DATA_STRUCTR_PREFIX = "data-structr-";
-	private final static String DATA_META_PREFIX = "data-structr-meta-";
+	private final static String DATA_META_PREFIX    = "data-structr-meta-";
 
 	static {
 
 		contentTypeForExtension.put("css", "text/css");
-		contentTypeForExtension.put("js", "text/javascript");
+		contentTypeForExtension.put("js",  "text/javascript");
 		contentTypeForExtension.put("xml", "text/xml");
 		contentTypeForExtension.put("php", "application/x-php");
 
@@ -134,26 +137,25 @@ public class Importer {
 
 	/**
 	 * Construct an instance of the importer to either read the given code, or download code from the given address.
-	 * 
+	 *
 	 * The importer will create a page with the given name. Visibility can be controlled by publicVisible and authVisible.
-	 * 
+	 *
 	 * @param securityContext
 	 * @param code
 	 * @param address
 	 * @param name
-	 * @param timeout
 	 * @param publicVisible
-	 * @param authVisible 
+	 * @param authVisible
 	 */
 	public Importer(final SecurityContext securityContext, final String code, final String address, final String name, final boolean publicVisible, final boolean authVisible) {
 
-		this.code = code;
-		this.address = address;
-		this.name = name;
+		this.code            = code;
+		this.address         = address;
+		this.name            = name;
 		this.securityContext = securityContext;
-		this.publicVisible = publicVisible;
-		this.authVisible = authVisible;
-		this.config = StructrApp.getConfiguration();
+		this.publicVisible   = publicVisible;
+		this.authVisible     = authVisible;
+		this.config          = StructrApp.getConfiguration();
 
 		if (address != null && !address.endsWith("/") && !address.endsWith(".html")) {
 			this.address = this.address.concat("/");
@@ -166,9 +168,9 @@ public class Importer {
 
 	/**
 	 * Parse the code previously read by {@link Importer#readPage()} and treat it as complete page.
-	 * 
+	 *
 	 * @return
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	public boolean parse() throws FrameworkException {
 		return parse(false);
@@ -176,10 +178,10 @@ public class Importer {
 
 	/**
 	 * Parse the code previously read by {@link Importer#readPage()} and treat it as page fragment.
-	 * 
+	 *
 	 * @param fragment
 	 * @return
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	public boolean parse(final boolean fragment) throws FrameworkException {
 
@@ -336,12 +338,12 @@ public class Importer {
 		}
 
 		final List<InvertibleModificationOperation> changeSet = new LinkedList<>();
-		final Map<String, DOMNode> indexMappedExistingNodes = new LinkedHashMap<>();
-		final Map<String, DOMNode> hashMappedExistingNodes = new LinkedHashMap<>();
-		final Map<DOMNode, Integer> depthMappedExistingNodes = new LinkedHashMap<>();
-		final Map<String, DOMNode> indexMappedNewNodes = new LinkedHashMap<>();
-		final Map<String, DOMNode> hashMappedNewNodes = new LinkedHashMap<>();
-		final Map<DOMNode, Integer> depthMappedNewNodes = new LinkedHashMap<>();
+		final Map<String, DOMNode>                  indexMappedExistingNodes = new LinkedHashMap<>();
+		final Map<String, DOMNode>                  hashMappedExistingNodes  = new LinkedHashMap<>();
+		final Map<DOMNode, Integer>                 depthMappedExistingNodes = new LinkedHashMap<>();
+		final Map<String, DOMNode>                  indexMappedNewNodes      = new LinkedHashMap<>();
+		final Map<String, DOMNode>                  hashMappedNewNodes       = new LinkedHashMap<>();
+		final Map<DOMNode, Integer>                 depthMappedNewNodes      = new LinkedHashMap<>();
 
 		InvertibleModificationOperation.collectNodes(sourceNode, indexMappedExistingNodes, hashMappedExistingNodes, depthMappedExistingNodes);
 		InvertibleModificationOperation.collectNodes(modifiedNode, indexMappedNewNodes, hashMappedNewNodes, depthMappedNewNodes);
@@ -621,7 +623,7 @@ public class Importer {
 					if (!key.equals("text")) { // Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
 
 						final String value = nodeAttr.getValue();
-						
+
 						if (key.startsWith("data-")) {
 
 							if (key.startsWith(DATA_META_PREFIX)) { // convert data-structr-meta-* attributes to local camel case properties on the node,
@@ -641,9 +643,9 @@ public class Importer {
 									}
 								}
 
-							} else 
+							} else
 							if (key.startsWith(DATA_STRUCTR_PREFIX)) { // don't convert data-structr-* attributes as they are internal
-								
+
 								PropertyKey propertyKey = config.getPropertyKeyForJSONName(newNode.getClass(), key);
 
 								if (propertyKey != null) {
@@ -658,7 +660,7 @@ public class Importer {
 									}
 								}
 							}
-							
+
 
 						} else {
 
@@ -688,10 +690,28 @@ public class Importer {
 
 				final StringProperty typeKey = new StringProperty(PropertyView.Html.concat("type"));
 
-				if ("script".equals(tag) && newNode.getProperty(typeKey) == null) {
+				if ("script".equals(tag)) {
+					
+					final String contentType = newNode.getProperty(typeKey);
+					
+					if (contentType == null) {
 
-					// Set default type of script tag to "text/javascript" to ensure inline JS gets imported properly
-					newNode.setProperty(typeKey, "text/javascript");
+						// Set default type of script tag to "text/javascript" to ensure inline JS gets imported properly
+						newNode.setProperty(typeKey, "text/javascript");
+						
+					} else if (contentType.equals("application/schema+json")) {
+						
+						for (final Node scriptContentNode : node.childNodes()) {
+							
+							final String source = scriptContentNode.toString();
+		
+							// Import schema JSON
+							SchemaJsonImporter.importSchemaJson(source);
+							
+						}
+						
+						
+					}
 				}
 
 				parent.appendChild(newNode);
@@ -858,9 +878,9 @@ public class Importer {
 					if (!fileNode.validatePath(securityContext, null)) {
 						fileNode.setProperty(AbstractNode.name, fileName.concat("_").concat(FileHelper.getDateString()));
 					}
-				
+
 				}
-				
+
 				return fileNode;
 
 			} else {
@@ -945,12 +965,12 @@ public class Importer {
 	private void copyURLToFile(final String uri, final java.io.File fileOnDisk) throws IOException {
 
 		final HttpClient client = getHttpClient();
-		final HttpMethod get = new GetMethod(uri);
+		final HttpMethod get = new GetMethod();
+		get.setURI(new URI(uri, false));
 
 		get.addRequestHeader("User-Agent", "curl/7.35.0");
 
 		logger.log(Level.INFO, "Downloading from {0}", uri);
-		get.setFollowRedirects(true);
 
 		final int statusCode = client.executeMethod(get);
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -149,6 +149,7 @@ public class AccessControlTest extends StructrTest {
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
 
 			try (final Tx tx = app.tx()) {
+
 				Result result = StructrApp.getInstance(publicContext).nodeQuery(type).getResult();
 
 				assertEquals(1, result.size());
