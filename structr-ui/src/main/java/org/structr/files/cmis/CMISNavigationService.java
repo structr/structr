@@ -436,9 +436,9 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 			for (final AbstractFile folderChild : app.nodeQuery(AbstractFile.class).sort(AbstractNode.name).and(AbstractFile.parent, (Folder)child).and(Image.isThumbnail, false).getAsList()) {
 				recursivelyCollectDescendants(childContainerList, folderChild, maxDepth, depth+1, includeAllowableActions);
 			}
-
 		}
 	}
+
 
 	public Query<AbstractFile> getChildrenQuery (final App app, final String folderId) throws FrameworkException {
 
@@ -465,6 +465,5 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 		}
 
 		return query;
-
 	}
 }
