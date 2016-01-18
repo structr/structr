@@ -128,7 +128,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	private final Set<String> possiblePropertyNamesForEntityResolving   = new LinkedHashSet<>();
 
 	private boolean isAsync = false;
-	
+
 
 	@Override
 	public StructrHttpServiceConfig getConfig() {
@@ -172,7 +172,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		final Authenticator auth        = getConfig().getAuthenticator();
 		List<Page> pages                = null;
 		boolean requestUriContainsUuids = false;
-		
+
 		SecurityContext securityContext;
 		final App app;
 
@@ -978,12 +978,12 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		if (pages == null) {
 			pages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).sort(Page.position).order(false).getAsList();
 		}
-		
+
 		for (final Page page : pages) {
 
 			final String pagePath = page.getPath();
 			final String name     = PathHelper.getName(path);
-			
+
 			if (((pagePath != null && pagePath.equals(path)) || name.equals(page.getName()) || name.equals(page.getUuid()) ) && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page))) {
 				return page;
 			}
@@ -1052,7 +1052,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			try (final Tx tx = app.tx()) {
 
 				results = app.nodeQuery(Principal.class).and(User.confirmationKey, key).getResult();
-				
+
 				tx.success();
 			}
 
@@ -1123,7 +1123,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			try (final Tx tx = app.tx()) {
 
 				results = app.nodeQuery(Principal.class).and(User.confirmationKey, key).getResult();
-				
+
 				tx.success();
 			}
 
@@ -1598,6 +1598,20 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		if (possiblePage == null) {
 			possiblePage = StructrApp.getInstance().nodeQuery(File.class).and(File.name, PathHelper.getName(path)).and(File.enableBasicAuth, true).getFirst();
+		}
+
+		if (possiblePage == null) {
+
+			final List<Page> authPages = StructrApp.getInstance().nodeQuery(Page.class).and(File.enableBasicAuth, true).sort(Page.position).getAsList();
+
+			for (final Page page : authPages) {
+
+				if (page.getProperty(Page.position) != null) {
+
+					possiblePage = page;
+					break;
+				}
+			}
 		}
 
 		if (possiblePage != null) {
