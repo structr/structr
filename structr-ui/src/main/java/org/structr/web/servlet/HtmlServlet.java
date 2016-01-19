@@ -976,7 +976,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	private Page findPage(final SecurityContext securityContext, List<Page> pages, final String path, final EditMode edit) throws FrameworkException {
 
 		if (pages == null) {
-			pages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).sort(Page.position).order(false).getAsList();
+			pages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).getAsList();
+			Collections.sort(pages, new GraphObjectComparator(Page.position, GraphObjectComparator.ASCENDING));
 		}
 
 		for (final Page page : pages) {
@@ -993,7 +994,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	}
 
 	/**
-	 * Find the page with the lowest position value which is visible in the
+	 * Find the page with the lowest non-empty position value which is visible in the
 	 * current security context and for the given site.
 	 *
 	 * @param securityContext
@@ -1005,13 +1006,22 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	private Page findIndexPage(final SecurityContext securityContext, List<Page> pages, final EditMode edit) throws FrameworkException {
 
 		if (pages == null) {
-			pages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).sort(Page.position).order(false).getAsList();
+			pages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).getAsList();
 			Collections.sort(pages, new GraphObjectComparator(Page.position, GraphObjectComparator.ASCENDING));
 		}
 
 		for (Page page : pages) {
+			
+			if (page.getProperty(Page.position) == null) {
+				continue;
+			}
 
-			if (securityContext.isVisible(page) && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page))) {
+			boolean isProtectedAndHasBasicAuthEnabled     = page.getProperty(Page.enableBasicAuth) != null && page.getProperty(Page.visibleToAuthenticatedUsers);
+			boolean isPublicOrVisibleForAuthenticatedUser = securityContext.isVisible(page);
+			boolean isVisibleForSiteOrIsEditMode          = (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page));
+			
+			if (isProtectedAndHasBasicAuthEnabled ||  isPublicOrVisibleForAuthenticatedUser || isVisibleForSiteOrIsEditMode) {
+				
 				return page;
 			}
 		}
