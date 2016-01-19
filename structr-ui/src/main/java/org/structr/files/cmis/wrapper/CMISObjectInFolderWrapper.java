@@ -77,24 +77,8 @@ public class CMISObjectInFolderWrapper extends CMISPagingListWrapper<ObjectInFol
 		return getPagedList();
 	}
 
-	/**
-	 * redundant code, thinking about better solution
-	 * @param orderBy
-	 */
-	public void sort(String orderBy) {
-
-		if(orderBy != null) {
-
-			if(orderBy.equals(PropertyIds.NAME)) {
-
-				sortByName();
-			}
-
-			//add here other potencial orderby in the future
-		}
-	}
-
-	private void sortByName() {
+	@Override
+	protected void sortByName() {
 
 		if(list.size() > 0) {
 

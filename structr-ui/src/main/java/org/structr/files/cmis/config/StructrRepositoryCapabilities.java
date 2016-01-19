@@ -138,11 +138,11 @@ public class StructrRepositoryCapabilities extends CMISExtensionsData implements
 		properties.add(PropertyType.BOOLEAN);
 		properties.add(PropertyType.DATETIME);
 		properties.add(PropertyType.DECIMAL);
-		properties.add(PropertyType.HTML);
-		properties.add(PropertyType.ID);
+	//	properties.add(PropertyType.HTML);
+	//	properties.add(PropertyType.ID);
 		properties.add(PropertyType.INTEGER);
 		properties.add(PropertyType.STRING);
-		properties.add(PropertyType.URI);
+	//	properties.add(PropertyType.URI);
 
 		return properties;
 	}
@@ -155,32 +155,32 @@ public class StructrRepositoryCapabilities extends CMISExtensionsData implements
 
 	@Override
 	public Boolean canSetLocalName() {
-		return true;
+		return false;
 	}
 
 	@Override
 	public Boolean canSetLocalNamespace() {
-		return true;
+		return false;
 	}
 
 	@Override
 	public Boolean canSetDisplayName() {
-		return true;
+		return false;
 	}
 
 	@Override
 	public Boolean canSetQueryName() {
-		return true;
+		return false;
 	}
 
 	@Override
 	public Boolean canSetDescription() {
-		return true;
+		return false;
 	}
 
 	@Override
 	public Boolean canSetCreatable() {
-		return true;
+		return false;
 	}
 
 	@Override
@@ -195,7 +195,7 @@ public class StructrRepositoryCapabilities extends CMISExtensionsData implements
 
 	@Override
 	public Boolean canSetFulltextIndexed() {
-		return true;
+		return false;
 	}
 
 	@Override

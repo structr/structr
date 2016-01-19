@@ -19,9 +19,11 @@
 package org.structr.files.cmis;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
@@ -35,6 +37,7 @@ import org.apache.chemistry.opencmis.commons.definitions.MutablePropertyDefiniti
 import org.apache.chemistry.opencmis.commons.definitions.MutableRelationshipTypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.MutableSecondaryTypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.MutableTypeDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionContainer;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionList;
@@ -59,9 +62,11 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
 import org.structr.dynamic.File;
 import org.structr.files.cmis.config.StructrRepositoryInfo;
 import org.structr.files.cmis.wrapper.CMISTypeDefinitionListWrapper;
@@ -236,9 +241,99 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 		throw new CmisObjectNotFoundException("Type with ID " + typeId + " does not exist");
 	}
 
+	/**
+	 * FIRST version of creating types (for Structr only cmis:item):
+	 * Simplify new type on its name and custom properties and create
+	 * it then
+	 * Example: "cmis:objectId" System Property and already default, no need
+	 * to extract this information
+	 * "age" has no "cmis:", therefore it is a new custom property
+	 * specified by the user
+	 * ONLY TESTED PROPERTYTYPE INTEGER AND STRING RIGHT NOW
+	 * @param repositoryId
+	 * @param type
+	 * @param extension
+	 * @return
+	 */
 	@Override
 	public TypeDefinition createType(String repositoryId, TypeDefinition type, ExtensionsData extension) {
-		return null;
+
+		final App app = StructrApp.getInstance(securityContext);
+
+		//------------------------------------------------------------
+
+		//all important data you can get out of the xml/json doc
+
+//
+//		BaseTypeId baseTypeId = type.getBaseTypeId();
+//		type.getDescription();
+//		type.getDisplayName();
+//		type.getBaseTypeId();
+//		type.getLocalName();
+//		type.getLocalNamespace();
+//		type.getParentTypeId();
+//
+//		//important
+//		type.getPropertyDefinitions();
+//
+//		type.getQueryName();
+//		type.getTypeMutability();
+//		type.isControllableAcl();
+//		type.isControllablePolicy();
+//		type.isCreatable();
+//		type.isFileable();
+//		type.isFulltextIndexed();
+//		type.isIncludedInSupertypeQuery();
+//		type.isQueryable();
+
+		//----------------------------------------------------------
+
+		//CHANGE ID TO THE REAL 32-DIGITS ID
+
+		//Name of the Schema/cmis:item itself
+		String typeName = type.getLocalName();
+
+		//Key is name of property, Value is the information of its type
+		//for example: Age:Integer
+		ArrayList<PropertyContainer> customProperties = new ArrayList<>();
+
+		for(Map.Entry<String, PropertyDefinition<?>> entry : type.getPropertyDefinitions().entrySet()) {
+
+			//if no "cmis:" at the beginning, the property is a
+			//custom property
+			if(!entry.getKey().startsWith("cmis:")) {
+
+				String propertyName = entry.getKey();
+				String propertyType = entry.getValue().getPropertyType().value();
+
+				customProperties.add(new PropertyContainer(propertyName, propertyType));
+			}
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			SchemaNode node = null;
+
+			node = app.create(SchemaNode.class,
+				new NodeAttribute(SchemaNode.name, typeName)
+			);
+
+			//set all new custom properties
+			for(PropertyContainer p : customProperties) {
+
+				node.setProperty(new StringProperty(p.propertyName), p.propertyType);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+		}
+
+		//return always cmis:item definition, because documenttypes,
+		//foldertypes and so on can't be created in Structr
+		return getItemTypeDefinition(type.getBaseTypeId().value(), true, true);
 	}
 
 	@Override
@@ -246,8 +341,27 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 		return null;
 	}
 
+	/**
+	 * Not tested yet, have to enable method first!
+	 */
 	@Override
 	public void deleteType(String repositoryId, String typeId, ExtensionsData extension) {
+
+		final App app = StructrApp.getInstance(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			SchemaNode node = null;
+
+			node = app.get(SchemaNode.class, typeId);
+			app.delete(node);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+		}
 	}
 
 	// ----- private methods -----
@@ -586,4 +700,47 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 
 		return null;
 	}
+
+	//------------------------
+
+	/**
+	 * Simple private class, to buffer all the necessary information for
+	 * custom property in createType(). Can be easily expanded in the future.
+	 */
+	private class PropertyContainer {
+
+		public String propertyName;
+		public String propertyType;
+
+		PropertyContainer(String name, String type) {
+
+			propertyName = "_" + name;
+			propertyType = type.substring(0,1).toUpperCase() + type.substring(1);
+		}
+	}
+
+	//-----------------------
 }
+
+/**
+* 						case BOOLEAN:
+		properties.add(objFactory.createPropertyBooleanData(key.jsonName(), (Boolean)entry.getValue()));
+		break;
+
+	case DATETIME:
+		properties.add(objFactory.createPropertyDateTimeData(key.jsonName(), valueOrNull((Date)entry.getValue())));
+		break;
+
+	case DECIMAL:
+		properties.add(objFactory.createPropertyDecimalData(key.jsonName(), valueOrNull((Double)entry.getValue())));
+		break;
+
+	case INTEGER:
+		// INTEGER includes int and long so we have to cover both cases here
+		properties.add(objFactory.createPropertyIntegerData(key.jsonName(), intOrNull(entry.getValue())));
+		break;
+
+	case STRING:
+		properties.add(objFactory.createPropertyStringData(key.jsonName(), (String)entry.getValue()));
+		break;
+ */

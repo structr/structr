@@ -22,6 +22,7 @@ import java.math.BigInteger;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.structr.cmis.common.CMISExtensionsData;
 
 /**
@@ -98,5 +99,23 @@ public class CMISPagingListWrapper<T> extends CMISExtensionsData {
 	public int getSize() {
 
 		return list.size();
+	}
+
+	public void sort(String orderBy) {
+
+		if(orderBy != null) {
+
+			if(orderBy.equals(PropertyIds.NAME)) {
+
+				sortByName();
+			}
+
+			//add here other potencial orderby in the future
+		}
+	}
+
+	protected void sortByName() {
+
+		//Implementation in subclasses
 	}
 }
