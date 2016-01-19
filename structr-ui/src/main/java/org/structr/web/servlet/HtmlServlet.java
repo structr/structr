@@ -1012,15 +1012,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		for (Page page : pages) {
 			
-			if (page.getProperty(Page.position) == null) {
-				continue;
-			}
-
-			boolean isProtectedAndHasBasicAuthEnabled     = page.getProperty(Page.enableBasicAuth) != null && page.getProperty(Page.visibleToAuthenticatedUsers);
-			boolean isPublicOrVisibleForAuthenticatedUser = securityContext.isVisible(page);
-			boolean isVisibleForSiteOrIsEditMode          = (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page));
-			
-			if (isProtectedAndHasBasicAuthEnabled ||  isPublicOrVisibleForAuthenticatedUser || isVisibleForSiteOrIsEditMode) {
+			if (page.getProperty(Page.position) != null && ((page.getProperty(Page.enableBasicAuth) != null && page.getProperty(Page.visibleToAuthenticatedUsers)) ||  securityContext.isVisible(page) || (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page)))) {
 				
 				return page;
 			}
