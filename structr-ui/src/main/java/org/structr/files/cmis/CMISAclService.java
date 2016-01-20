@@ -308,7 +308,7 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 	* of the current user when an ACL is applied."
 	* Didn't find a way to disable the macro yet. Implementing it complicates
 	* things only. Implementation probably for later.
-	* The function checks, if Macro was chosen by user and throw a exception.
+	* The function checks, if Macro was chosen by user and throws a exception.
 	*/
 	private void checkMacro(final Acl acl) {
 
@@ -323,7 +323,7 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 
 
 	/**
-	 * Users can only grant or revoke permissions to themself, their owned groups and anyone/anonymous.
+	 * Owners can only grant or revoke permissions to themself, their owned groups and anyone/anonymous.
 	 * Granting or revoking other principals permissions results into a exception.
 	*/
 	private void checkPermission(Acl acl, Principal user) {

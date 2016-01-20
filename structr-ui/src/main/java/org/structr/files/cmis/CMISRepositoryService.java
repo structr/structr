@@ -50,6 +50,7 @@ import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.TypeDefinitionContainerImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.TypeMutabilityImpl;
 import org.apache.chemistry.opencmis.commons.spi.RepositoryService;
 import org.apache.chemistry.opencmis.server.support.TypeDefinitionFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -260,36 +261,6 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 
 		final App app = StructrApp.getInstance(securityContext);
 
-		//------------------------------------------------------------
-
-		//all important data you can get out of the xml/json doc
-
-//
-//		BaseTypeId baseTypeId = type.getBaseTypeId();
-//		type.getDescription();
-//		type.getDisplayName();
-//		type.getBaseTypeId();
-//		type.getLocalName();
-//		type.getLocalNamespace();
-//		type.getParentTypeId();
-//
-//		//important
-//		type.getPropertyDefinitions();
-//
-//		type.getQueryName();
-//		type.getTypeMutability();
-//		type.isControllableAcl();
-//		type.isControllablePolicy();
-//		type.isCreatable();
-//		type.isFileable();
-//		type.isFulltextIndexed();
-//		type.isIncludedInSupertypeQuery();
-//		type.isQueryable();
-
-		//----------------------------------------------------------
-
-		//CHANGE ID TO THE REAL 32-DIGITS ID
-
 		//Name of the Schema/cmis:item itself
 		String typeName = type.getLocalName();
 
@@ -341,9 +312,6 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 		return null;
 	}
 
-	/**
-	 * Not tested yet, have to enable method first!
-	 */
 	@Override
 	public void deleteType(String repositoryId, String typeId, ExtensionsData extension) {
 
@@ -351,9 +319,13 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 
 		try (final Tx tx = app.tx()) {
 
-			SchemaNode node = null;
+			//Extracts SchemaNode with help of its name.
+			//Schemas have always a unique name, so it should be fine.
+			//Important and hard-coded Schemas like "User",
+			//won't be deleted. However I am working on a better
+			//solution.
 
-			node = app.get(SchemaNode.class, typeId);
+			SchemaNode node = app.nodeQuery(SchemaNode.class).and(AbstractNode.name, typeId).getFirst();
 			app.delete(node);
 
 			tx.success();
@@ -404,13 +376,35 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 
 		def.setIsCreatable(false);
 
-		initializeExtendedType(def, typeId);
+		if(typeId.equals(BaseTypeId.CMIS_ITEM.value())) {
+
+			initializeExtendedType(def, typeId);
+		} else {
+
+			initializeExtendedItemType(def, typeId);
+		}
 
 		if (!includePropertyDefinitions) {
 			def.removeAllPropertyDefinitions();
 		}
 
 		return def;
+	}
+
+	private void initializeExtendedItemType(final MutableTypeDefinition type, final String typeId) {
+
+		type.setId(typeId);
+
+		type.setLocalName(typeId);
+		type.setQueryName(typeId);
+		type.setDisplayName(typeId);
+		type.setDescription(typeId);
+
+		TypeMutabilityImpl t = new TypeMutabilityImpl();
+		t.setCanCreate(true);
+		t.setCanDelete(true);
+		t.setCanUpdate(true);
+		type.setTypeMutability(t);
 	}
 
 	private MutablePolicyTypeDefinition getPolicyTypeDefinition(final String typeId, final boolean includePropertyDefinitions, final boolean baseType) {
@@ -510,6 +504,7 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 					for (final SchemaNode schemaNode : app.nodeQuery(SchemaNode.class).sort(AbstractNode.name).getAsList()) {
 
 						final Class type = config.getNodeEntityClass(schemaNode.getClassName());
+
 						if (type != null) {
 
 							final CMISInfo info = getCMISInfo(type);
@@ -640,6 +635,12 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 		type.setQueryName(typeId);
 		type.setDisplayName(typeId);
 		type.setDescription(typeId);
+
+		TypeMutabilityImpl t = new TypeMutabilityImpl();
+		t.setCanCreate(false);
+		t.setCanDelete(false);
+		t.setCanUpdate(false);
+		type.setTypeMutability(t);
 	}
 
 	private MutablePropertyDefinition createProperty(final Class type, final PropertyKey key) {

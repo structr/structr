@@ -286,6 +286,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 						if(checkedOutDocs.getSize() >= maxItems.intValue()) {
 
 							//accessed limit, exit function
+							checkedOutDocs.sort(orderBy);
 							return checkedOutDocs;
 						}
 					}

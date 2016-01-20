@@ -615,7 +615,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
                     final InputStream inputOldContent = file.getInputStream();
 
                     //only put new content stream into the file, if file is empty or overwriteflag is set on true
-                    if((inputOldContent.available() == 0) || (inputOldContent.available() != 0 && overwriteFlag)) {
+                    if((inputOldContent.available() == 0) || (overwriteFlag)) {
 
                         if (inputNewContent != null) {
 
