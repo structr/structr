@@ -69,6 +69,7 @@ public class StructrSchemaTest extends StructrTest {
 			customer.addBooleanProperty("isCustomer", "public", "ui");
 			customer.addFunctionProperty("displayName", "public", "ui").setReadFunction("concat(this.name, '.', this.id)");
 			customer.addStringProperty("description", "public", "ui").setContentType("text/plain").setFormat("multi-line");
+			customer.addStringArrayProperty("stringArray", "public", "ui");
 
 			final String schema = sourceSchema.toString();
 
@@ -99,11 +100,12 @@ public class StructrSchemaTest extends StructrTest {
 			mapPathValue(map, "definitions.Customer.properties.name.type",                   "string");
 			mapPathValue(map, "definitions.Customer.properties.name.unique",                 true);
 			mapPathValue(map, "definitions.Customer.properties.street.type",                 "string");
-			mapPathValue(map, "definitions.Customer.properties.street.type",                 "string");
 			mapPathValue(map, "definitions.Customer.properties.status.type",                 "string");
 			mapPathValue(map, "definitions.Customer.properties.status.enum.0",               "active");
 			mapPathValue(map, "definitions.Customer.properties.status.enum.1",               "none");
 			mapPathValue(map, "definitions.Customer.properties.status.enum.2",               "retired");
+			mapPathValue(map, "definitions.Customer.properties.stringArray.type",            "array");
+			mapPathValue(map, "definitions.Customer.properties.stringArray.items.type",      "string");
 			mapPathValue(map, "definitions.Customer.views.public.0",                         "birthday");
 			mapPathValue(map, "definitions.Customer.views.public.1",                         "city");
 			mapPathValue(map, "definitions.Customer.views.public.2",                         "count");
