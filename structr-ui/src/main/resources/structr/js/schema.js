@@ -2428,7 +2428,7 @@ var _Schema = {
 					table.append('<tr><td>' + snapshot + '</td><td style="text-align:right;"><button id="delete-' + i + '">Delete</button><button id="add-' + i + '">Add</button><button id="restore-' + i + '">Restore</button></td></tr>');
 					$('#restore-' + i).on('click', function() {
 
-						Command.snapshots("restore", snapshot, function(data) {
+						Command.snapshots("restore", snapshot, null, function(data) {
 
 							var status = data.status;
 
@@ -2472,14 +2472,14 @@ var _Schema = {
 		$('#create-snapshot').on('click', function() {
 
 			var title = $('#snapshot-title').val();
-			
+
 			var types = [];
 			if (selectedNodes && selectedNodes.length) {
 				selectedNodes.forEach(function(selectedNode) {
 					types.push(selectedNode.name);
 				});
 			}
-			
+
 			Command.snapshots("export", title, types, function(data) {
 
 				var status = data.status;
