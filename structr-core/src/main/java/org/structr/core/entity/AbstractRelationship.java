@@ -565,7 +565,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 			logger.log(Level.SEVERE, "Tried to set property with null key (action was denied)");
 
-			throw new FrameworkException(422, new NullArgumentToken(getClass().getSimpleName(), base));
+			throw new FrameworkException(422, "Tried to set property with null key (action was denied)", new NullArgumentToken(getClass().getSimpleName(), base));
 
 		}
 
@@ -577,7 +577,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 				if (!readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
 
-					throw new FrameworkException(422, new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
+					throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
 
 				}
 
@@ -641,23 +641,23 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public void setSourceNodeId(final String startNodeId) throws FrameworkException {
+	public void setSourceNodeId(final String sourceNodeId) throws FrameworkException {
 
 		// Do nothing if new id equals old
-		if (getSourceNodeId().equals(startNodeId)) {
+		if (getSourceNodeId().equals(sourceNodeId)) {
 			return;
 		}
 
 		final App app = StructrApp.getInstance(securityContext);
 
-		final NodeInterface newStartNode = app.getNodeById(startNodeId);
+		final NodeInterface newStartNode = app.getNodeById(sourceNodeId);
 		final NodeInterface endNode      = getTargetNode();
 		final Class relationType         = getClass();
 		final PropertyMap _props         = getProperties();
 		final String type                = this.getClass().getSimpleName();
 
 		if (newStartNode == null) {
-			throw new FrameworkException(404, new IdNotFoundToken(type, startNodeId));
+			throw new FrameworkException(404, "Node with ID " + sourceNodeId + " not found", new IdNotFoundToken(type, sourceNodeId));
 		}
 
 		// delete this as the new rel will be the container afterwards
@@ -668,23 +668,23 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public void setTargetNodeId(final String targetIdNode) throws FrameworkException {
+	public void setTargetNodeId(final String targetNodeId) throws FrameworkException {
 
 		// Do nothing if new id equals old
-		if (getTargetNodeId().equals(targetIdNode)) {
+		if (getTargetNodeId().equals(targetNodeId)) {
 			return;
 		}
 
 		final App app = StructrApp.getInstance(securityContext);
 
-		final NodeInterface newTargetNode = app.getNodeById(targetIdNode);
+		final NodeInterface newTargetNode = app.getNodeById(targetNodeId);
 		final NodeInterface startNode     = getSourceNode();
 		final Class relationType          = getClass();
 		final PropertyMap _props          = getProperties();
 		final String type                 = this.getClass().getSimpleName();
 
 		if (newTargetNode == null) {
-			throw new FrameworkException(404, new IdNotFoundToken(type, targetIdNode));
+			throw new FrameworkException(404, "Node with ID " + targetNodeId + " not found", new IdNotFoundToken(type, targetNodeId));
 		}
 
 		// delete this as the new rel will be the container afterwards

@@ -80,7 +80,7 @@ public class ViewFilterResource extends WrappingResource {
 
 		}
 
-		throw new IllegalPathException();
+		throw new IllegalPathException("GET not allowed on " + getResourceSignature());
 	}
 
 	@Override
@@ -92,7 +92,7 @@ public class ViewFilterResource extends WrappingResource {
 
 		}
 
-		throw new IllegalPathException();
+		throw new IllegalPathException("POST not allowed on " + getResourceSignature());
 	}
 
 	@Override
@@ -153,7 +153,7 @@ public class ViewFilterResource extends WrappingResource {
 
 		return StringUtils.stripEnd(signature.toString(), "/");
 	}
-	
+
 	public String getPropertyView() {
 		return propertyView;
 	}

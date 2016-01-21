@@ -109,7 +109,7 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 
 				} catch (Throwable t) {
 
-					throw new FrameworkException(422, new NumberToken(declaringClass.getSimpleName(), IntProperty.this));
+					throw new FrameworkException(422, "Cannot parse input for property " + jsonName(), new NumberToken(declaringClass.getSimpleName(), IntProperty.this));
 				}
 			}
 

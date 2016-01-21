@@ -65,7 +65,7 @@ public class TypedIdResource extends FilterableResource {
 
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-		throw new IllegalMethodException();
+		throw new IllegalMethodException("POST not allowed on " + typeResource.getRawType() + " element resource");
 	}
 
 	@Override
@@ -130,7 +130,7 @@ public class TypedIdResource extends FilterableResource {
 			}
 		}
 
-		throw new NotFoundException();
+		throw new NotFoundException("Entity with ID " + idResource.getUuid() + " not found");
 
 	}
 }

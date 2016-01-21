@@ -88,7 +88,7 @@ public class Actions {
 
 		// check for errors raised by scripting
 		if (context.hasError()) {
-			throw new FrameworkException(422, context.getErrorBuffer());
+			throw new FrameworkException(422, "Server-side scripting error", context.getErrorBuffer());
 		}
 
 		return result;

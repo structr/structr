@@ -128,7 +128,7 @@ public class TypeResource extends SortableResource {
 		if (rawType != null) {
 
 			if (entityClass == null) {
-				throw new NotFoundException();
+				throw new NotFoundException("Type " + rawType + " does not exist");
 			}
 
 			collectSearchAttributes(query);
@@ -218,7 +218,7 @@ public class TypeResource extends SortableResource {
 				}
 
 				if (errorBuffer.hasError()) {
-					throw new FrameworkException(422, errorBuffer);
+					throw new FrameworkException(422, "Source node ID and target node ID of relationsips must be set", errorBuffer);
 				}
 
 				newRelationship = app.create(sourceNode, targetNode, entityClass, properties);
@@ -237,13 +237,13 @@ public class TypeResource extends SortableResource {
 			}
 
 			// shouldn't happen
-			throw new NotFoundException();
+			throw new NotFoundException("Type" + rawType + " does not exist");
 		}
 	}
 
 	@Override
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
-		throw new IllegalPathException();
+		throw new IllegalPathException("PUT not allowed on " + rawType + " collection resource");
 	}
 
 	public NodeInterface createNode(final Map<String, Object> propertySet) throws FrameworkException {
@@ -256,7 +256,7 @@ public class TypeResource extends SortableResource {
 			return app.create(entityClass, properties);
 		}
 
-		throw new NotFoundException();
+		throw new NotFoundException("Type " + rawType + " does not exist");
 	}
 
 	@Override
@@ -268,7 +268,7 @@ public class TypeResource extends SortableResource {
 
 		} else if (next instanceof TypeResource) {
 
-			throw new IllegalPathException();
+			throw new IllegalPathException("Cannot apply a second type resource to this type resource");
 		}
 
 		return super.tryCombineWith(next);

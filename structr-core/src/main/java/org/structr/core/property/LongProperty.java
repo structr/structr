@@ -110,7 +110,7 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 
 				} catch (Throwable t) {
 
-					throw new FrameworkException(422, new NumberToken(declaringClass.getSimpleName(), LongProperty.this));
+					throw new FrameworkException(422, "Cannot parse input for property " + jsonName(), new NumberToken(declaringClass.getSimpleName(), LongProperty.this));
 				}
 			}
 

@@ -92,7 +92,8 @@ public class RelationshipNodeResource extends WrappingResource {
 
 		}
 
-		throw new IllegalPathException();
+		throw new IllegalPathException(getResourceSignature() + " can only be applied to a non-empty resource");
+
 	}
 
 	@Override
@@ -101,7 +102,7 @@ public class RelationshipNodeResource extends WrappingResource {
 			return wrappedResource.doPost(propertySet);
 		}
 
-		throw new IllegalPathException();
+		throw new IllegalPathException(getResourceSignature() + " can only be applied to a non-empty resource");
 	}
 
 	@Override

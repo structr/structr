@@ -139,7 +139,7 @@ public class RelationshipResource extends WrappingResource {
 
 		}
 
-		throw new IllegalPathException();
+		throw new IllegalPathException(getResourceSignature() + " can only be applied to a non-empty resource");
 	}
 
 	@Override

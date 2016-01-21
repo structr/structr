@@ -101,16 +101,12 @@ public class RegistrationResource extends Resource {
 
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
-
-		throw new NotAllowedException();
-
+		throw new NotAllowedException("GET not allowed on " + getResourceSignature());
 	}
 
 	@Override
 	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
-
-		throw new NotAllowedException();
-
+		throw new NotAllowedException("PUT not allowed on " + getResourceSignature());
 	}
 
 	@Override
@@ -190,9 +186,7 @@ public class RegistrationResource extends Resource {
 
 	@Override
 	public RestMethodResult doOptions() throws FrameworkException {
-
-		throw new NotAllowedException();
-
+		throw new NotAllowedException("OPTIONS not allowed on " + getResourceSignature());
 	}
 
 	@Override

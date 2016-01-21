@@ -169,7 +169,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 					return result;
 				}
 
-				throw new FrameworkException(422, new DateFormatToken(declaringClass.getSimpleName(), DateProperty.this));
+				throw new FrameworkException(422, "Cannot parse input for property " + jsonName(), new DateFormatToken(declaringClass.getSimpleName(), DateProperty.this));
 
 			}
 

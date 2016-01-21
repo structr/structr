@@ -20,7 +20,6 @@ package org.structr.rest.resource;
 
 import org.structr.core.Result;
 import java.util.Collections;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.GraphObjectComparator;
 import org.structr.core.property.PropertyKey;
@@ -36,8 +35,6 @@ import org.structr.rest.servlet.JsonRestServlet;
  *
  */
 public class SortResource extends WrappingResource {
-
-	private static final Logger logger = Logger.getLogger(SortResource.class.getName());
 
 	private String sortOrder = null;
 	private String sortKey = null;
@@ -69,13 +66,13 @@ public class SortResource extends WrappingResource {
 
 			} catch(Throwable t) {
 
-				throw new FrameworkException(422, new InvalidSortKey(GraphObject.class.getSimpleName(), sortKey));
+				throw new FrameworkException(422, "Unable to sort results by " + sortKey.jsonName() + ": " + t.toString(), new InvalidSortKey(GraphObject.class.getSimpleName(), sortKey));
 			}
 
 			return result;
 		}
 
-		throw new IllegalPathException();
+		throw new IllegalPathException("Illegal path, sort resource needs a wrapped resource");
 	}
 
 	@Override

@@ -1029,7 +1029,7 @@ public class SchemaHelper {
 		}
 
 		errorBuffer.add(new InvalidPropertySchemaToken(SchemaProperty.class.getSimpleName(), propertyName, "invalid_property_definition", "Unknow value type " + source + ", options are " + Arrays.asList(Type.values()) + "."));
-		throw new FrameworkException(422, errorBuffer);
+		throw new FrameworkException(422, "Invalid property definition for property " + propertyDefinition.getPropertyName(), errorBuffer);
 	}
 
 	private static boolean hasRestClasses() {

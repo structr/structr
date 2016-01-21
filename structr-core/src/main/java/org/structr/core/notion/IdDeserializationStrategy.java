@@ -72,7 +72,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 					relatedNode = (T) app.getNodeById(map.get(GraphObject.id));
 
 					if (relatedNode != null && !type.isAssignableFrom(relatedNode.getClass())) {
-						throw new FrameworkException(422, new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
+						throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
 					}
 
 				} else {
@@ -167,7 +167,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 				final GraphObject obj = app.getNodeById(source.toString());
 
 				if (obj != null && !type.isAssignableFrom(obj.getClass())) {
-					throw new FrameworkException(422, new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
+					throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
 				}
 
 				return (T) obj;

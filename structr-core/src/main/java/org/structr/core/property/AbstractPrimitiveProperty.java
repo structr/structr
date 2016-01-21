@@ -187,7 +187,10 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 			} catch (Throwable t) {
 
 				// throw FrameworkException with the given cause
-				throw new FrameworkException(500, t);
+				final FrameworkException fex = new FrameworkException(500, "Unable to set property " + jsonName() + " on entity with ID " + obj.getUuid() + ": " + t.toString());
+				fex.initCause(t);
+
+				throw fex;
 			}
 
 			if (isIndexed()) {
