@@ -58,7 +58,7 @@ function nodeHovered(node) {
   var hoverMap = {};
   $('#graph-info').append('<span>Loading...</span>');
   $.ajax({
-    url: '/structr/rest/' + node.data.node.id + '/out/_structr_graph' + (domainOnly ? '?domainOnly=true' : ''),
+    url: '/structr/rest/' + node.data.node.id + '/out/_graph' + (domainOnly ? '?domainOnly=true' : ''),
     contentType: 'application/json',
     method: 'GET',
     statusCode: {
@@ -73,7 +73,7 @@ function nodeHovered(node) {
           }
         });
         $.ajax({
-          url: '/structr/rest/' + node.data.node.id + '/in/_structr_graph' + (domainOnly ? '?domainOnly=true' : ''),
+          url: '/structr/rest/' + node.data.node.id + '/in/_graph' + (domainOnly ? '?domainOnly=true' : ''),
           contentType: 'application/json',
           method: 'GET',
           statusCode: {
@@ -174,7 +174,7 @@ function expandNode(node, type) {
     edges: expanded[id] ? expanded[id].edges : []
   };
   $.ajax({
-    url: '/structr/rest/' + node.data.node.id + '/out/_structr_graph' + (domainOnly ? '?domainOnly=true' : ''),
+    url: '/structr/rest/' + node.data.node.id + '/out/_graph' + (domainOnly ? '?domainOnly=true' : ''),
     contentType: 'application/json',
     method: 'GET',
     statusCode: {
@@ -191,7 +191,7 @@ function expandNode(node, type) {
     }
   });
   $.ajax({
-    url: '/structr/rest/' + node.data.node.id + '/in/_structr_graph' + (domainOnly ? '?domainOnly=true' : ''),
+    url: '/structr/rest/' + node.data.node.id + '/in/_graph' + (domainOnly ? '?domainOnly=true' : ''),
     contentType: 'application/json',
     method: 'GET',
     statusCode: {

@@ -592,6 +592,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 						deserializedProperties.put(property.getName(), property);
 						typeDefinition.getProperties().add(property);
+
+					} else {
+
+						throw new IllegalStateException("Unknown JSON property definition: " + propertyName + ": " + value.toString());
+
 					}
 
 				} else {
