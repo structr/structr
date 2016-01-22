@@ -100,41 +100,44 @@ public class NodeExtender {
 
 			logger.log(Level.FINE, "Compiling {0} dynamic entities...", jfiles.size());
 
-			compiler.getTask(errorWriter, fileManager, new Listener(errorBuffer), null, null, jfiles).call();
-
-			final ClassLoader loader = fileManager.getClassLoader(null);
-			boolean success          = true;
-
-			for (final String fqcn : fqcns) {
-
-				try {
-
-					newClasses.add(loader.loadClass(fqcn));
-
-				} catch (Throwable t) {
-
-					logger.log(Level.WARNING, "Unable to load dynamic entity {0}: {1}", new Object[] { fqcn, t.toString() });
-					t.printStackTrace();
-
-					success = false;
-				}
-			}
+			Boolean success = compiler.getTask(errorWriter, fileManager, new Listener(errorBuffer), null, null, jfiles).call();
 
 			if (success) {
 
-				for (final Class oldType : classes.values()) {
-					StructrApp.getConfiguration().unregisterEntityType(oldType);
+				final ClassLoader loader = fileManager.getClassLoader(null);
+
+				for (final String fqcn : fqcns) {
+
+					try {
+
+						newClasses.add(loader.loadClass(fqcn));
+
+					} catch (Throwable t) {
+
+						logger.log(Level.WARNING, "Unable to load dynamic entity {0}: {1}", new Object[] { fqcn, t.toString() });
+						t.printStackTrace();
+
+						success = false;
+					}
 				}
 
-				// clear classes map
-				classes.clear();
+				if (success) {
 
-				// add new classes to map
-				for (final Class newType : newClasses) {
-					classes.put(newType.getName(), newType);
+					for (final Class oldType : classes.values()) {
+						StructrApp.getConfiguration().unregisterEntityType(oldType);
+					}
+
+					// clear classes map
+					classes.clear();
+
+					// add new classes to map
+					for (final Class newType : newClasses) {
+						classes.put(newType.getName(), newType);
+					}
+
+					logger.log(Level.INFO, "Successfully compiled {0} dynamic entities: {1}", new Object[] { jfiles.size(), jfiles.stream().map(f -> f.getName().replaceFirst("/", "")).collect(Collectors.joining(", ")) });
 				}
 
-				logger.log(Level.INFO, "Successfully compiled {0} dynamic entities: {1}", new Object[] { jfiles.size(), jfiles.stream().map(f -> f.getName().replaceFirst("/", "")).collect(Collectors.joining(", ")) });
 			}
 
 		}
