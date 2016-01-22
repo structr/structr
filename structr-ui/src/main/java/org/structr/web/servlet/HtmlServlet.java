@@ -1602,20 +1602,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			possiblePage = StructrApp.getInstance().nodeQuery(File.class).and(File.name, PathHelper.getName(path)).and(File.enableBasicAuth, true).getFirst();
 		}
 
-		if (possiblePage == null) {
-
-			final List<Page> authPages = StructrApp.getInstance().nodeQuery(Page.class).and(File.enableBasicAuth, true).sort(Page.position).getAsList();
-
-			for (final Page page : authPages) {
-
-				if (page.getProperty(Page.position) != null) {
-
-					possiblePage = page;
-					break;
-				}
-			}
-		}
-
 		if (possiblePage != null) {
 
 			String realm = possiblePage.getProperty(Page.basicAuthRealm);
