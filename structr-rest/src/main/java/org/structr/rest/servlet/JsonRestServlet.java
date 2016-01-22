@@ -656,6 +656,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		} catch (Throwable t) {
 
 			logger.log(Level.WARNING, "Exception in PUT", t);
+			t.printStackTrace();
 
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
