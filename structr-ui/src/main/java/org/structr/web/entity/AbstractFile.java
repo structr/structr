@@ -25,7 +25,9 @@ import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.PropertyValidator;
+import org.structr.common.error.UniqueToken;
+import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
@@ -34,7 +36,6 @@ import org.structr.core.property.EndNodes;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
-import org.structr.core.validator.PathUniquenessValidator;
 import org.structr.web.entity.relation.FileChildren;
 import org.structr.web.entity.relation.FileSiblings;
 import org.structr.web.entity.relation.FolderChildren;
@@ -53,45 +54,61 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 	public static final Property<AbstractFile> nextSibling     = new EndNode<>("nextSibling", FileSiblings.class);
 	public static final Property<List<String>> childrenIds     = new CollectionIdProperty("childrenIds", children);
 	public static final Property<String> nextSiblingId         = new EntityIdProperty("nextSiblingId", nextSibling);
-	public static final Property<String> path                  = new PathProperty("path", new PathUniquenessValidator(AbstractFile.class)).unique().indexed().readOnly();
+	public static final Property<String> path                  = new PathProperty("path").indexed().readOnly();
 	public static final Property<String> parentId              = new EntityIdProperty("parentId", parent);
 	public static final Property<Boolean> hasParent            = new BooleanProperty("hasParent").indexed();
 
 	public static final View defaultView = new View(AbstractFile.class, PropertyView.Public, path);
 	public static final View uiView      = new View(AbstractFile.class, PropertyView.Ui, path);
 
-	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		boolean valid = super.onCreation(securityContext, errorBuffer);
+	private static boolean validatePathUniqueness = false;
 
-		if (valid) {
-			return valid && validatePath(securityContext, errorBuffer);
-		}
+	static {
 
-		return valid;
+		try { validatePathUniqueness = Boolean.valueOf(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_UNIQUE_PATHS, "true")); } catch (Throwable t) {}
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		boolean valid = super.onModification(securityContext, errorBuffer);
+	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		if (valid) {
-			return validatePath(securityContext, errorBuffer);
-		}
-
-		return valid;
+		final boolean valid = validatePath(securityContext, errorBuffer);
+		return valid && super.onCreation(securityContext, errorBuffer);
 	}
 
-	public boolean validatePath(SecurityContext securityContext, ErrorBuffer errorBuffer) {
-		boolean valid = true;
+	@Override
+	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		final List<PropertyValidator<String>> validators = path.getValidators();
+		final boolean valid = validatePath(securityContext, errorBuffer);
+		return valid && super.onModification(securityContext, errorBuffer);
+	}
 
-		for (final PropertyValidator validator : validators) {
-			valid = valid && validator.isValid(securityContext, this, path, getProperty(path), errorBuffer);
+	public boolean validatePath(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		if (validatePathUniqueness) {
+
+			final String filePath = getProperty(path);
+			if (filePath != null) {
+
+				final List<AbstractFile> files = StructrApp.getInstance().nodeQuery(AbstractFile.class).and(path, filePath).getAsList();
+				for (final AbstractFile file : files) {
+
+					if (!file.getUuid().equals(getUuid())) {
+
+						if (errorBuffer != null) {
+
+							final UniqueToken token = new UniqueToken(AbstractFile.class.getSimpleName(), path, file.getUuid());
+							token.setValue(filePath);
+
+							errorBuffer.add(token);
+						}
+
+						return false;
+					}
+				}
+			}
 		}
 
-		return valid;
+		return true;
 	}
 
 	@Override

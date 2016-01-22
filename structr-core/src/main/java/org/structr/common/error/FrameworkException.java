@@ -107,7 +107,10 @@ public class FrameworkException extends Exception {
 				token.add("type",     getStringOrNull(errorToken.getType()));
 				token.add("property", getStringOrNull(errorToken.getProperty()));
 				token.add("token",    getStringOrNull(errorToken.getToken()));
-				token.add("detail",   getObjectOrNull(errorToken.getDetail()));
+
+				// optional
+				addIfNonNull(token, "detail", getObjectOrNull(errorToken.getDetail()));
+				addIfNonNull(token, "value",  getObjectOrNull(errorToken.getValue()));
 
 				errors.add(token);
 			}
@@ -116,7 +119,6 @@ public class FrameworkException extends Exception {
 		}
 
 		return container;
-
 	}
 
 	public ErrorBuffer getErrorBuffer() {
@@ -134,6 +136,15 @@ public class FrameworkException extends Exception {
 
 
 	// ----- private methods -----
+	private void addIfNonNull(final JsonObject obj, final String key, final JsonElement value) {
+
+		if (value != null && !JsonNull.INSTANCE.equals(value)) {
+
+			obj.add(key, value);
+		}
+	}
+
+
 	private JsonElement getStringOrNull(final String source) {
 
 		if (source != null) {
