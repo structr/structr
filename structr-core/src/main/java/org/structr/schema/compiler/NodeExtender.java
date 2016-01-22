@@ -133,7 +133,7 @@ public class NodeExtender {
 				for (final Class newType : newClasses) {
 					classes.put(newType.getName(), newType);
 				}
-				
+
 				logger.log(Level.INFO, "Successfully compiled {0} dynamic entities: {1}", new Object[] { jfiles.size(), jfiles.stream().map(f -> f.getName().replaceFirst("/", "")).collect(Collectors.joining(", ")) });
 			}
 
@@ -164,8 +164,8 @@ public class NodeExtender {
 
 				errorBuffer.add(new DiagnosticErrorToken(name, diagnostic));
 
-                                // log also to log file
-                                logger.log(Level.WARNING, "Unable to compile dynamic entity {0}: {1}", new Object[] { name, diagnostic.getMessage(Locale.ENGLISH) });
+				// log also to log file
+				logger.log(Level.WARNING, "Unable to compile dynamic entity {0}: {1}", new Object[] { name, diagnostic.getMessage(Locale.ENGLISH) });
 			}
 		}
 	}
