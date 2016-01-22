@@ -249,7 +249,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 			if (!nodesUpToOffset.isEmpty() && !gotOffset) {
 
-				throw new FrameworkException(404, new IdNotFoundToken("offsetId", offsetId));
+				throw new FrameworkException(404, "Node with ID " + offsetId + " not found", new IdNotFoundToken("offsetId", offsetId));
 			}
 
 			if (offset < 0) {

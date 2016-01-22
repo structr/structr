@@ -19,7 +19,6 @@
 package org.structr.rest.exception;
 
 import javax.servlet.http.HttpServletResponse;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 
 /**
@@ -27,7 +26,8 @@ import org.structr.common.error.FrameworkException;
  *
  */
 public class NotFoundException extends FrameworkException {
-	public NotFoundException() {
-		super(HttpServletResponse.SC_NOT_FOUND, new ErrorBuffer());
+
+	public NotFoundException(final String message) {
+		super(HttpServletResponse.SC_NOT_FOUND, message);
 	}
 }

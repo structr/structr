@@ -23,7 +23,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
 
@@ -71,30 +70,22 @@ public class LogoutResource extends Resource {
 
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
-
-		throw new NotAllowedException();
-
+		throw new NotAllowedException("GET not allowed on " + getResourceSignature());
 	}
 
 	@Override
 	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
-
-		throw new NotAllowedException();
-
+		throw new NotAllowedException("PUT not allowed on " + getResourceSignature());
 	}
 
 	@Override
 	public RestMethodResult doDelete() throws FrameworkException {
-
-		throw new NotAllowedException();
-
+		throw new NotAllowedException("DELETE not allowed on " + getResourceSignature());
 	}
 
 	@Override
 	public RestMethodResult doOptions() throws FrameworkException {
-
-		throw new IllegalMethodException();
-
+		throw new NotAllowedException("OPTIONS not allowed on " + getResourceSignature());
 	}
 
 	@Override

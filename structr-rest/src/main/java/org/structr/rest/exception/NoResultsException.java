@@ -19,7 +19,6 @@
 package org.structr.rest.exception;
 
 import javax.servlet.http.HttpServletResponse;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 
 /**
@@ -28,7 +27,7 @@ import org.structr.common.error.FrameworkException;
  */
 public class NoResultsException extends FrameworkException {
 
-	public NoResultsException() {
-		super(HttpServletResponse.SC_NO_CONTENT, new ErrorBuffer());
+	public NoResultsException(final String message) {
+		super(HttpServletResponse.SC_NO_CONTENT, message);
 	}
 }

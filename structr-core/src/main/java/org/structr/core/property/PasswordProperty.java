@@ -74,7 +74,7 @@ public class PasswordProperty extends StringProperty {
 
 				if (minLength > 0 && clearTextPassword.length() < minLength) {
 
-					throw new FrameworkException(422, new TooShortToken(errorType, errorKey, minLength));
+					throw new FrameworkException(422, "Validation of entity with ID " + obj.getUuid() + " failed", new TooShortToken(errorType, errorKey, minLength));
 				}
 			}
 

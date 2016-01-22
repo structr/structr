@@ -97,62 +97,41 @@ public class LoginResource extends Resource {
 
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
-
-		throw new NotAllowedException();
-
+		throw new NotAllowedException("GET not allowed on " + getResourceSignature());
 	}
 
 	@Override
 	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
-
-		throw new NotAllowedException();
-
+		throw new NotAllowedException("PUT not allowed on " + getResourceSignature());
 	}
 
 	@Override
 	public RestMethodResult doDelete() throws FrameworkException {
-
-		throw new NotAllowedException();
-
+		throw new NotAllowedException("DELETE not allowed on " + getResourceSignature());
 	}
 
 	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
-
 		return null;
-
 	}
-
-	// ----- private methods -----
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public Class getEntityClass() {
-
 		return null;
-
 	}
 
 	@Override
 	public String getUriPart() {
-
 		return "login";
-
 	}
 
 	@Override
 	public String getResourceSignature() {
-
 		return "_login";
-
 	}
 
 	@Override
 	public boolean isCollectionResource() {
-
 		return false;
-
 	}
-
 }

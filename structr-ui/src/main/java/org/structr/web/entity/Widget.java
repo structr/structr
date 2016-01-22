@@ -127,7 +127,7 @@ public class Widget extends AbstractNode implements Taggable {
 		} else {
 
 			// report error to ui
-			throw new FrameworkException(422, errorBuffer);
+			throw new FrameworkException(422, "Unable to import the given source code", errorBuffer);
 		}
 	}
 

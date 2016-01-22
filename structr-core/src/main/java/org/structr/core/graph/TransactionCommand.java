@@ -108,14 +108,14 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 				if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
 
 					tx.failure();
-					throw new FrameworkException(422, errorBuffer);
+					throw new FrameworkException(422, "Unable to commit transaction, validation failed", errorBuffer);
 				}
 
 				// 1.5: execute validatable post-transaction action
 				if (!modificationQueue.doPostProcessing(securityContext, errorBuffer)) {
 
 					tx.failure();
-					throw new FrameworkException(422, errorBuffer);
+					throw new FrameworkException(422, "Unable to commit transaction, transaction post processing failed", errorBuffer);
 				}
 			}
 
@@ -133,7 +133,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 				tx.failure();
 
 				// create error
-				throw new FrameworkException(422, errorBuffer);
+				throw new FrameworkException(422, "Unable to commit transaction, validation failed", errorBuffer);
 			}
 
 			try {

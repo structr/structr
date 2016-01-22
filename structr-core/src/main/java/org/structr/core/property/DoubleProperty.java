@@ -157,7 +157,7 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 
 				} catch (Throwable t) {
 
-					throw new FrameworkException(422, new NumberToken(declaringClass.getSimpleName(), DoubleProperty.this));
+					throw new FrameworkException(422, "Cannot parse input for property " + jsonName(), new NumberToken(declaringClass.getSimpleName(), DoubleProperty.this));
 				}
 			}
 

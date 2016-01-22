@@ -155,6 +155,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 			}
 
 			// just check for existance
+			String errorMessage = null;
 			final int size = result.size();
 			switch (size) {
 
@@ -172,6 +173,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 						}
 					}
 
+					errorMessage = "No node found for the given properties and auto-creation not enabled";
 					break;
 
 				case 1:
@@ -189,13 +191,14 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 
 				default:
 
+					errorMessage = "Found " + size + " nodes for given type and properties, property set is ambiguous";
 					logger.log(Level.SEVERE, "Found {0} nodes for given type and properties, property set is ambiguous!\n"
 						+ "This is often due to wrong modeling, or you should consider creating a uniquness constraint for " + type.getName(), size);
 
 					break;
 			}
 
-			throw new FrameworkException(404, new PropertiesNotFoundToken(type.getSimpleName(), AbstractNode.base, attributes));
+			throw new FrameworkException(404, errorMessage, new PropertiesNotFoundToken(type.getSimpleName(), AbstractNode.base, attributes));
 		}
 
 		return null;
@@ -206,7 +209,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 		GraphObject obj = result.get(0);
 
 		if (!type.isAssignableFrom(obj.getClass())) {
-			throw new FrameworkException(422, new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
+			throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
 		}
 
 		return result.get(0);

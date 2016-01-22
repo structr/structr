@@ -107,17 +107,17 @@ public class MaintenanceParameterResource extends Resource {
 
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
-		throw new NotAllowedException();
+		throw new NotAllowedException("GET not allowed, use POST to run maintenance commands");
 	}
 
 	@Override
 	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
-		throw new NotAllowedException();
+		throw new NotAllowedException("PUT not allowed, use POST to run maintenance commands");
 	}
 
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-		throw new NotAllowedException();
+		throw new NotAllowedException("POST not allowed here, this should not happen. Please report the URL that led to this error message to team@structr.com. Thank you!");
 	}
 
 	@Override
