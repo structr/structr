@@ -63,7 +63,25 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 			if (source instanceof JsonInput) {
 
 				final JsonInput properties = (JsonInput) source;
-				final PropertyMap map      = PropertyMap.inputTypeToJavaType(securityContext, type, properties.getAttributes());
+				Class<T> concreteType = type;
+
+				if (concreteType != null && concreteType.isInterface()) {
+
+					// try to identify concrete type from input set
+					// (creation wouldn't work otherwise anyway)
+					if (properties.containsKey(NodeInterface.type.jsonName())) {
+
+						final String typeFromInput = properties.get(NodeInterface.type.jsonName()).toString();
+						concreteType = StructrApp.getConfiguration().getNodeEntityClass(typeFromInput);
+
+						// reset type on failed check
+						if (concreteType == null) {
+							concreteType = type;
+						}
+					}
+				}
+
+				final PropertyMap map      = PropertyMap.inputTypeToJavaType(securityContext, concreteType, properties.getAttributes());
 				T relatedNode              = null;
 
 				// If property map contains the uuid, search only for uuid

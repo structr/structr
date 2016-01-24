@@ -51,6 +51,7 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.servlet.JsonRestServlet;
+import org.structr.rest.transform.StructrNodeSink;
 import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
@@ -67,21 +68,17 @@ public class TypeResource extends SortableResource {
 
 	private static final Logger logger = Logger.getLogger(TypeResource.class.getName());
 
-	//~--- fields ---------------------------------------------------------
-
 	protected Class<? extends SearchCommand> searchCommandType = null;
+	protected StructrNodeSink transformation                          = null;
 	protected Class entityClass                                = null;
 	protected String rawType                                   = null;
 	protected HttpServletRequest request                       = null;
 	protected Query query                                      = null;
 	protected boolean isNode                                   = true;
 
-	//~--- methods --------------------------------------------------------
-
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
 
-//		this.searchContext   = new SearchContext();
 		this.securityContext = securityContext;
 		this.request         = request;
 		this.rawType         = part;
@@ -110,6 +107,10 @@ public class TypeResource extends SortableResource {
 					isNode            = true;
 					return true;
 				}
+
+			} else {
+
+				transformation = app.nodeQuery(StructrNodeSink.class).andName(rawType).sort(StructrNodeSink.position).getFirst();
 			}
 		}
 
@@ -124,6 +125,11 @@ public class TypeResource extends SortableResource {
 		boolean publicOnly                     = false;
 		PropertyKey actualSortKey              = sortKey;
 		boolean actualSortOrder                = sortDescending;
+
+		// transformation extension
+		if (transformation != null) {
+			return transformation.doGet(sortKey, sortDescending, pageSize, page, offsetId);
+		}
 
 		if (rawType != null) {
 
@@ -179,6 +185,24 @@ public class TypeResource extends SortableResource {
 
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
+
+		// transformation extension
+		if (transformation != null) {
+
+			final RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
+			final GraphObject newEntity   = transformation.doPost(propertySet);
+
+			if (newEntity != null) {
+
+				result.addHeader("Location", buildLocationHeader(newEntity));
+				result.addContent(newEntity);
+			}
+
+			result.serializeAsPrimitiveArray(true);
+
+			// finally: return 201 Created
+			return result;
+		}
 
 		if (isNode) {
 
@@ -304,6 +328,16 @@ public class TypeResource extends SortableResource {
 	@Override
 	public boolean isCollectionResource() {
 		return true;
+	}
+
+	@Override
+	public boolean isPrimitiveArray() {
+
+		if (transformation != null) {
+			return transformation.isPrimitiveArray();
+		}
+
+		return false;
 	}
 
 	public void collectSearchAttributes(final Query query) throws FrameworkException {

@@ -37,6 +37,7 @@ import java.util.logging.Logger;
 import org.structr.api.NotFoundException;
 import org.structr.api.NotInTransactionException;
 import org.structr.core.Result;
+import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.SixOneOneToOne;
 import org.structr.core.entity.TestSix;
 import org.structr.core.entity.TestTen;
@@ -78,7 +79,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 		try {
 
 			final PropertyMap props = new PropertyMap();
-			final String type       = "UnknownTestType";
+			final String type       = "GenericNode";
 			final String name       = "GenericNode-name";
 			NodeInterface node      = null;
 			String uuid             = null;
@@ -88,7 +89,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				node = app.create(NodeInterface.class, props);
+				node = app.create(GenericNode.class, props);
 				tx.success();
 			}
 
