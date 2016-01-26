@@ -35,7 +35,6 @@ var rootUrl = '/structr/rest/';
 var viewRootUrl = '/';
 var wsRoot = '/structr/ws';
 var port = document.location.port;
-var userKey = 'structrUser_' + port;
 
 function wsConnect() {
 
@@ -52,8 +51,6 @@ function wsConnect() {
 				ws.onmessage = undefined;
 				ws = undefined;
 			}
-
-			LSWrapper.removeItem(userKey);
 
 			var isEnc = (window.location.protocol === 'https:');
 			var host = document.location.host;
@@ -142,20 +139,18 @@ function wsConnect() {
 
 			if (command === 'LOGIN' || code === 100) { /*********************** LOGIN or response to PING ************************/
 
-				log('user, oldUser', user, oldUser);
+				log('user, oldUser', user);
 				me = data.data;
 				_Dashboard.checkAdmin();
-				user = data.data.username;
 				isAdmin = data.data.isAdmin;
-				var oldUser = LSWrapper.getItem(userKey);
 
-				log(command, code, 'user:', user, ', oldUser:', oldUser, 'session valid:', sessionValid, 'isAdmin', isAdmin);
+				log(command, code, 'user:', user, 'session valid:', sessionValid, 'isAdmin', isAdmin);
 
 				if (!sessionValid) {
-					LSWrapper.removeItem(userKey);
 					Structr.clearMain();
 					Structr.login(msg);
-				} else if (!oldUser || (oldUser && (oldUser !== user)) || loginBox.is(':visible')) {
+				} else if (!user || user !== data.data.username || loginBox.is(':visible')) {
+					Structr.updateUsername(data.data.username);
 					loginBox.hide();
 					loginBox.find('#usernameField').val('');
 					loginBox.find('#passwordField').val('');
@@ -168,7 +163,7 @@ function wsConnect() {
 
 			} else if (command === 'LOGOUT') { /*********************** LOGOUT ************************/
 
-				LSWrapper.removeItem(userKey);
+				user = null;
 				Structr.clearMain();
 				Structr.login();
 
@@ -192,11 +187,11 @@ function wsConnect() {
 
 				if (code === 403) {
 					//Structr.clearMain();
-					LSWrapper.removeItem(userKey);
+					user = null;
 					Structr.login('Wrong username or password!');
 				} else if (code === 401) {
-					LSWrapper.removeItem(userKey);
 					//Structr.clearMain();
+					user = null;
 					Structr.login('');
 				} else {
 
@@ -516,7 +511,7 @@ function wsConnect() {
 
 				if (sessionValid === false) {
 					log('invalid session');
-					LSWrapper.removeItem(userKey);
+					user = null;
 					clearMain();
 
 					Structr.login();
