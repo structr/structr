@@ -28,7 +28,6 @@ import org.structr.core.Result;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
-import org.structr.dynamic.File;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
