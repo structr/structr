@@ -35,17 +35,18 @@ public class SchemaMethod extends SchemaReloadingNode {
 
 	public static final Property<AbstractSchemaNode> schemaNode  = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
 	public static final Property<String>             source      = new StringProperty("source");
+	public static final Property<String>             comment     = new StringProperty("comment");
 
 	public static final View defaultView = new View(SchemaMethod.class, PropertyView.Public,
-		name, schemaNode, source
+		name, schemaNode, source, comment
 	);
 
 	public static final View uiView = new View(SchemaMethod.class, PropertyView.Ui,
-		name, schemaNode, source
+		name, schemaNode, source, comment
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",
-		id, type, schemaNode, name, source
+		id, type, schemaNode, name, source, comment
 	);
 
 	public ActionEntry getActionEntry() {
