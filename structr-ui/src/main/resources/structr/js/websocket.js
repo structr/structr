@@ -169,14 +169,7 @@ function wsConnect() {
 
 			} else if (command === 'GET_LOCAL_STORAGE') { /*********************** GET_LOCAL_STORAGE ************************/
 
-				var localStorageString = data.data.localStorageString;
-
-				if (localStorageString && localStorageString.length) {
-					var localStorageData = JSON.parse(data.data.localStorageString);
-					Object.keys(localStorageData).forEach(function (key) {
-						LSWrapper.setItem(key, localStorageData[key]);
-					});
-				}
+				localStorageObject = JSON.parse(data.data.localStorageString);
 
 				StructrModel.callCallback(data.callback, data.data[data.data['key']]);
 				StructrModel.clearCallback(data.callback);
