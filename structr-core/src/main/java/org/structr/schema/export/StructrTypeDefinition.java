@@ -63,13 +63,13 @@ import org.structr.schema.json.JsonType;
  */
 public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implements JsonType, StructrDefinition {
 
-	protected final Set<StructrPropertyDefinition> properties = new TreeSet<>();
-	protected final Map<String, Set<String>> views            = new TreeMap<>();
-	protected final Map<String, String> methods               = new TreeMap<>();
-	protected StructrSchemaDefinition root                    = null;
-	protected URI baseTypeReference                           = null;
-	protected String name                                     = null;
-	protected T schemaNode                                    = null;
+	protected final Set<StructrPropertyDefinition> properties     = new TreeSet<>();
+	protected final Map<String, Set<String>> views                = new TreeMap<>();
+	protected final TreeMap<String, Map<String, String>> methods  = new TreeMap<>();
+	protected StructrSchemaDefinition root                        = null;
+	protected URI baseTypeReference                               = null;
+	protected String name                                         = null;
+	protected T schemaNode                                        = null;
 
 	StructrTypeDefinition(final StructrSchemaDefinition root, final String name) {
 
@@ -106,9 +106,13 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public JsonType addMethod(final String name, final String source) {
+	public JsonType addMethod(final String name, final String source, final String comment) {
 
-		methods.put(name, source);
+		final TreeMap methodDefinition = new TreeMap();
+		methodDefinition.put(SchemaMethod.source.jsonName(), source);
+		methodDefinition.put(SchemaMethod.comment.jsonName(), comment);
+
+		methods.put(name, methodDefinition);
 		return this;
 	}
 
@@ -138,7 +142,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public Map<String, String> getMethods() {
+	public Map<String, Map<String, String>> getMethods() {
 		return methods;
 	}
 
@@ -322,7 +326,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		switch (key) {
 
-			case "properties":
+			case JsonSchema.KEY_PROPERTIES:
 				return new StructrDefinition() {
 
 					@Override
@@ -340,7 +344,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 					}
 				};
 
-			case "views":
+			case JsonSchema.KEY_VIEWS:
 				return new StructrDefinition() {
 
 					@Override
@@ -449,10 +453,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		for (final SchemaMethod method : schemaNode.getProperty(AbstractSchemaNode.schemaMethods)) {
 
-			final String _name   = method.getName();
-			final String _source = method.getProperty(SchemaMethod.source);
+			final String _name     = method.getName();
+			final String _source   = method.getProperty(SchemaMethod.source);
+			final String _comment  = method.getProperty(SchemaMethod.comment);
 
-			methods.put(_name, _source);
+			addMethod(_name, _source, _comment);
 		}
 
 		// $extends
@@ -514,13 +519,16 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 
 		// create methods
-		for (final Entry<String, String> method : methods.entrySet()) {
+		for (final Entry<String, Map<String, String>> method : getMethods().entrySet()) {
+
+			final Map methodDefinition = method.getValue();
 
 			// create view node with parent and children
 			app.create(SchemaMethod.class,
-				new NodeAttribute(SchemaMethod.schemaNode, schemaNode),
-				new NodeAttribute(AbstractNode.name, method.getKey()),
-				new NodeAttribute(SchemaMethod.source, method.getValue())
+				new NodeAttribute(SchemaMethod.schemaNode,    schemaNode),
+				new NodeAttribute(AbstractNode.name,          method.getKey()),
+				new NodeAttribute(SchemaMethod.source,        methodDefinition.get(SchemaMethod.source.jsonName())),
+				new NodeAttribute(SchemaMethod.comment,       methodDefinition.get(SchemaMethod.comment.jsonName()))
 			);
 		}
 
@@ -646,11 +654,19 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 				if (value instanceof String) {
 
-					typeDefinition.getMethods().put(methodName, value.toString());
+					final TreeMap methodDefinition = new TreeMap();
+					methodDefinition.put(SchemaMethod.source.jsonName(), value.toString());
+					methodDefinition.put(SchemaMethod.comment.jsonName(), "");
+
+					typeDefinition.getMethods().put(methodName, methodDefinition);
+
+				} else if (value instanceof Map) {
+
+					typeDefinition.getMethods().put(methodName, value);
 
 				} else {
 
-					throw new IllegalStateException("Method definition " + methodName + " must be of type string.");
+					throw new IllegalStateException("Method definition " + methodName + " must be of type string or map.");
 				}
 			}
 		}

@@ -287,7 +287,7 @@ public class StructrSchemaTest extends StructrTest {
 			project.addDateProperty("startDate", "public", "ui");
 
 			// methods
-			project.addMethod("onCreate", "set(this, 'name', 'wurst')");
+			project.addMethod("onCreate", "set(this, 'name', 'wurst')", "comment for wurst");
 
 
 

@@ -1567,6 +1567,7 @@ button.add_property {
 .property-dbname,
 .property-format,
 .property-code,
+.property-comment,
 .property-attrs,
 .property-default,
 .localization-locale,
@@ -1583,6 +1584,7 @@ button.add_property {
 .schema.expanded .property-dbname,
 .schema.expanded .property-format,
 .schema.expanded .property-code,
+.schema.expanded .property-comment,
 .schema.expanded .property-attrs,
 .schema.expanded .property-default,
 #relationship-label {
@@ -1612,6 +1614,7 @@ button.add_property {
 .schema-details .property-format:hover,
 .schema-details .property-default:hover,
 .schema-details .property-code:hover,
+.schema-details .property-comment:hover,
 .schema-details .localization-locale:hover,
 .schema-details .localization-name:hover {
     cursor: text;
