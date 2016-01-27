@@ -500,4 +500,17 @@ public class StructrApp implements App {
 
 		return relUuidMap.get(uuid);
 	}
+
+	@Override
+	public void invalidateCache(){
+
+		if (nodeUuidMap != null) {
+			nodeUuidMap.clear();
+		}
+
+		if (relUuidMap != null) {
+			relUuidMap.clear();
+		}
+
+	}
 }
