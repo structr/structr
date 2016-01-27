@@ -43,6 +43,7 @@ import org.structr.core.graph.BulkCreateLabelsCommand;
 import org.structr.core.graph.BulkDeleteSoftDeletedNodesCommand;
 import org.structr.core.graph.BulkRebuildIndexCommand;
 import org.structr.core.graph.BulkSetUuidCommand;
+import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.SyncCommand;
 import org.structr.schema.SchemaHelper;
 import org.structr.rest.maintenance.SnapshotCommand;
@@ -80,6 +81,7 @@ public class MaintenanceParameterResource extends Resource {
 		maintenanceCommandMap.put("setUuid", BulkSetUuidCommand.class);
 		maintenanceCommandMap.put("sync", SyncCommand.class);
 		maintenanceCommandMap.put("snapshot", SnapshotCommand.class);
+		maintenanceCommandMap.put("flushCaches", FlushCachesCommand.class);
 
 	}
 
