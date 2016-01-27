@@ -51,7 +51,7 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.servlet.JsonRestServlet;
-import org.structr.rest.transform.StructrNodeSink;
+import org.structr.rest.transform.VirtualType;
 import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
@@ -69,7 +69,7 @@ public class TypeResource extends SortableResource {
 	private static final Logger logger = Logger.getLogger(TypeResource.class.getName());
 
 	protected Class<? extends SearchCommand> searchCommandType = null;
-	protected StructrNodeSink transformation                          = null;
+	protected VirtualType virtualType                          = null;
 	protected Class entityClass                                = null;
 	protected String rawType                                   = null;
 	protected HttpServletRequest request                       = null;
@@ -79,14 +79,30 @@ public class TypeResource extends SortableResource {
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
 
+		final App app = StructrApp.getInstance(securityContext);
+
 		this.securityContext = securityContext;
 		this.request         = request;
 		this.rawType         = part;
 
 		if (rawType != null) {
 
+			virtualType = app.nodeQuery(VirtualType.class).andName(rawType).sort(VirtualType.position).getFirst();
+			if (virtualType != null) {
+
+				final String sourceType = virtualType.getProperty(VirtualType.sourceType);
+				if (sourceType != null) {
+
+					// modify raw type to source type of virtual type
+					rawType = sourceType;
+
+				} else {
+
+					throw new FrameworkException(500, "Invalid virtual type " + rawType + ", missing value for sourceType");
+				}
+			}
+
 			final boolean inexactSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
-			final App app               = StructrApp.getInstance(securityContext);
 
 			// test if resource class exists
 			entityClass = SchemaHelper.getEntityClassForRawType(rawType);
@@ -107,10 +123,6 @@ public class TypeResource extends SortableResource {
 					isNode            = true;
 					return true;
 				}
-
-			} else {
-
-				transformation = app.nodeQuery(StructrNodeSink.class).andName(rawType).sort(StructrNodeSink.position).getFirst();
 			}
 		}
 
@@ -125,11 +137,6 @@ public class TypeResource extends SortableResource {
 		boolean publicOnly                     = false;
 		PropertyKey actualSortKey              = sortKey;
 		boolean actualSortOrder                = sortDescending;
-
-		// transformation extension
-		if (transformation != null) {
-			return transformation.doGet(sortKey, sortDescending, pageSize, page, offsetId);
-		}
 
 		if (rawType != null) {
 
@@ -164,7 +171,7 @@ public class TypeResource extends SortableResource {
 				}
 			}
 
-			return query
+			final Result result = query
 				.includeDeletedAndHidden(includeDeletedAndHidden)
 				.publicOnly(publicOnly)
 				.sort(actualSortKey)
@@ -173,6 +180,12 @@ public class TypeResource extends SortableResource {
 				.page(page)
 				.offsetId(offsetId)
 				.getResult();
+
+			if (virtualType != null) {
+				return virtualType.transformOutput(securityContext, entityClass, result);
+			}
+
+			return result;
 
 		} else {
 
@@ -186,22 +199,9 @@ public class TypeResource extends SortableResource {
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
-		// transformation extension
-		if (transformation != null) {
-
-			final RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
-			final GraphObject newEntity   = transformation.doPost(propertySet);
-
-			if (newEntity != null) {
-
-				result.addHeader("Location", buildLocationHeader(newEntity));
-				result.addContent(newEntity);
-			}
-
-			result.serializeAsPrimitiveArray(true);
-
-			// finally: return 201 Created
-			return result;
+		// virtual type?
+		if (virtualType != null) {
+			virtualType.transformInput(securityContext, entityClass, propertySet);
 		}
 
 		if (isNode) {
@@ -333,8 +333,8 @@ public class TypeResource extends SortableResource {
 	@Override
 	public boolean isPrimitiveArray() {
 
-		if (transformation != null) {
-			return transformation.isPrimitiveArray();
+		if (virtualType != null) {
+			return virtualType.isPrimitiveArray();
 		}
 
 		return false;
