@@ -189,12 +189,22 @@ public abstract class StreamingWriter {
 
 				writer.name(resultKeyName).beginArray();
 
-				for (GraphObject graphObject : results) {
+				for (final Object object : results) {
 
-					Object value = graphObject.getProperty(GraphObject.id);	// FIXME: UUID key hard-coded, use variable in Result here!
-					if (value != null) {
+					if (object != null) {
+						
+						if (object instanceof GraphObject) {
 
-						writer.value(value.toString());
+							Object value = ((GraphObject)object).getProperty(GraphObject.id);	// FIXME: UUID key hard-coded, use variable in Result here!
+							if (value != null) {
+
+								writer.value(value.toString());
+							}
+
+						} else {
+
+							writer.value(object.toString());
+						}
 					}
 				}
 

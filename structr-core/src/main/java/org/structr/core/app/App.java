@@ -97,4 +97,6 @@ public interface App extends Closeable {
 	 * @throws org.structr.common.error.FrameworkException
 	 */
 	public String getInstanceId() throws FrameworkException;
+
+	public void invalidateCache();
 }

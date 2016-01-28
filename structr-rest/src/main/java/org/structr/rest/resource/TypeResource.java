@@ -51,6 +51,7 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.servlet.JsonRestServlet;
+import org.structr.rest.transform.VirtualType;
 import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
@@ -67,29 +68,41 @@ public class TypeResource extends SortableResource {
 
 	private static final Logger logger = Logger.getLogger(TypeResource.class.getName());
 
-	//~--- fields ---------------------------------------------------------
-
 	protected Class<? extends SearchCommand> searchCommandType = null;
+	protected VirtualType virtualType                          = null;
 	protected Class entityClass                                = null;
 	protected String rawType                                   = null;
 	protected HttpServletRequest request                       = null;
 	protected Query query                                      = null;
 	protected boolean isNode                                   = true;
 
-	//~--- methods --------------------------------------------------------
-
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
 
-//		this.searchContext   = new SearchContext();
+		final App app = StructrApp.getInstance(securityContext);
+
 		this.securityContext = securityContext;
 		this.request         = request;
 		this.rawType         = part;
 
 		if (rawType != null) {
 
+			virtualType = app.nodeQuery(VirtualType.class).andName(rawType).sort(VirtualType.position).getFirst();
+			if (virtualType != null) {
+
+				final String sourceType = virtualType.getProperty(VirtualType.sourceType);
+				if (sourceType != null) {
+
+					// modify raw type to source type of virtual type
+					rawType = sourceType;
+
+				} else {
+
+					throw new FrameworkException(500, "Invalid virtual type " + rawType + ", missing value for sourceType");
+				}
+			}
+
 			final boolean inexactSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
-			final App app               = StructrApp.getInstance(securityContext);
 
 			// test if resource class exists
 			entityClass = SchemaHelper.getEntityClassForRawType(rawType);
@@ -128,7 +141,7 @@ public class TypeResource extends SortableResource {
 		if (rawType != null) {
 
 			if (entityClass == null) {
-				throw new NotFoundException();
+				throw new NotFoundException("Type " + rawType + " does not exist");
 			}
 
 			collectSearchAttributes(query);
@@ -158,7 +171,7 @@ public class TypeResource extends SortableResource {
 				}
 			}
 
-			return query
+			final Result result = query
 				.includeDeletedAndHidden(includeDeletedAndHidden)
 				.publicOnly(publicOnly)
 				.sort(actualSortKey)
@@ -167,6 +180,12 @@ public class TypeResource extends SortableResource {
 				.page(page)
 				.offsetId(offsetId)
 				.getResult();
+
+			if (virtualType != null) {
+				return virtualType.transformOutput(securityContext, entityClass, result);
+			}
+
+			return result;
 
 		} else {
 
@@ -179,6 +198,11 @@ public class TypeResource extends SortableResource {
 
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
+
+		// virtual type?
+		if (virtualType != null) {
+			virtualType.transformInput(securityContext, entityClass, propertySet);
+		}
 
 		if (isNode) {
 
@@ -218,7 +242,7 @@ public class TypeResource extends SortableResource {
 				}
 
 				if (errorBuffer.hasError()) {
-					throw new FrameworkException(422, errorBuffer);
+					throw new FrameworkException(422, "Source node ID and target node ID of relationsips must be set", errorBuffer);
 				}
 
 				newRelationship = app.create(sourceNode, targetNode, entityClass, properties);
@@ -237,13 +261,13 @@ public class TypeResource extends SortableResource {
 			}
 
 			// shouldn't happen
-			throw new NotFoundException();
+			throw new NotFoundException("Type" + rawType + " does not exist");
 		}
 	}
 
 	@Override
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
-		throw new IllegalPathException();
+		throw new IllegalPathException("PUT not allowed on " + rawType + " collection resource");
 	}
 
 	public NodeInterface createNode(final Map<String, Object> propertySet) throws FrameworkException {
@@ -256,7 +280,7 @@ public class TypeResource extends SortableResource {
 			return app.create(entityClass, properties);
 		}
 
-		throw new NotFoundException();
+		throw new NotFoundException("Type " + rawType + " does not exist");
 	}
 
 	@Override
@@ -268,7 +292,7 @@ public class TypeResource extends SortableResource {
 
 		} else if (next instanceof TypeResource) {
 
-			throw new IllegalPathException();
+			throw new IllegalPathException("Cannot apply a second type resource to this type resource");
 		}
 
 		return super.tryCombineWith(next);
@@ -304,6 +328,16 @@ public class TypeResource extends SortableResource {
 	@Override
 	public boolean isCollectionResource() {
 		return true;
+	}
+
+	@Override
+	public boolean isPrimitiveArray() {
+
+		if (virtualType != null) {
+			return virtualType.isPrimitiveArray();
+		}
+
+		return false;
 	}
 
 	public void collectSearchAttributes(final Query query) throws FrameworkException {

@@ -118,7 +118,7 @@ public class StaticRelationshipResource extends SortableResource {
 					} else {
 
 						// what here?
-						throw new NotFoundException();
+						throw new NotFoundException("Cannot access relationship collection " + typeResource.getRawType());
 					}
 				}
 
@@ -282,7 +282,7 @@ public class StaticRelationshipResource extends SortableResource {
 			}
 		}
 
-		throw new IllegalPathException();
+		throw new IllegalPathException("Illegal path");
 	}
 
 	private void unwrapTo(final Object source, final RestMethodResult result) {
@@ -319,7 +319,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 		if (next instanceof TypeResource) {
 
-			throw new IllegalPathException();
+			throw new IllegalPathException("Unable to resolve URL path, no type resource expected here");
 
 		}
 

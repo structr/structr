@@ -253,7 +253,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	public void setGroupedProperties(SecurityContext securityContext, PropertyMap source, GraphObject destination) throws FrameworkException {
 
 		if (source.containsKey(nullValuesOnlyProperty)) {
-			throw new FrameworkException(422, new ReadOnlyPropertyToken(destination.getClass().getSimpleName(), nullValuesOnlyProperty));
+			throw new FrameworkException(422, "Property " + jsonName + " is read-only", new ReadOnlyPropertyToken(destination.getClass().getSimpleName(), nullValuesOnlyProperty));
 		}
 
 		if (source.isEmpty()) {

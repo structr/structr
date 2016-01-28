@@ -39,4 +39,6 @@ public interface DatabaseService {
 
 	NativeResult execute(final String nativeQuery, final Map<String, Object> parameters);
 	NativeResult execute(final String nativeQuery);
+
+	void invalidateCache();
 }

@@ -112,6 +112,7 @@ public class Services implements StructrServices {
 	public static final String APPLICATION_FILESYSTEM_INDEXING_LIMIT     = "application.filesystem.indexing.limit";
 	public static final String APPLICATION_FILESYSTEM_INDEXING_MINLENGTH = "application.filesystem.indexing.word.minlength";
 	public static final String APPLICATION_FILESYSTEM_INDEXING_MAXLENGTH = "application.filesystem.indexing.word.maxlength";
+	public static final String APPLICATION_FILESYSTEM_UNIQUE_PATHS       = "application.filesystem.unique.paths";
 	public static final String SNAPSHOT_PATH                             = "snapshot.path";
 	public static final String WEBSOCKET_FRONTEND_ACCESS                 = "WebSocketServlet.frontendAccess";
 

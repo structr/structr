@@ -74,7 +74,7 @@ public class SchemaNode extends AbstractSchemaNode {
 
 	static {
 
-		name.addValidator(new TypeUniquenessValidator<String>(SchemaNode.class));
+		name.addValidator(new TypeUniquenessValidator<>(SchemaNode.class));
 	}
 
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,

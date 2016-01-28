@@ -125,8 +125,8 @@ public abstract class Resource {
 
 					if (!node.isGranted(Permission.delete, securityContext)) {
 
-						logger.log(Level.WARNING, "Could not delete {0} because {1} has no delete permission", new Object[]{obj, securityContext.getUser(true)});
-						throw new NotAllowedException();
+						logger.log(Level.WARNING, "Could not delete {0} because {1} has no delete permission", new Object[]{obj, securityContext.getUser(false)});
+						throw new NotAllowedException("Could not delete " + obj + " because " + securityContext.getUser(false) + " has no delete permission");
 					}
 
 					// delete cascading
@@ -159,7 +159,6 @@ public abstract class Resource {
 				for (final Entry<PropertyKey, Object> attr : properties.entrySet()) {
 
 					obj.setProperty(attr.getKey(), attr.getValue());
-
 				}
 
 			}
@@ -168,7 +167,7 @@ public abstract class Resource {
 
 		}
 
-		throw new IllegalPathException();
+		throw new IllegalPathException(getResourceSignature() + " can only be applied to a non-empty resource");
 	}
 
 	/**

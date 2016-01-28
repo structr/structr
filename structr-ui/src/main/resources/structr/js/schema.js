@@ -1089,7 +1089,7 @@ var _Schema = {
 	},
 	appendMethods: function(el, entity) {
 
-		el.append('<table class="actions schema-props"><thead><th>JSON Name</th><th>Code</th><th>Action</th></thead></table>');
+		el.append('<table class="actions schema-props"><thead><th>JSON Name</th><th>Code</th><th>Comment</th><th>Action</th></thead></table>');
 		el.append('<img alt="Add action" class="add-icon add-action-attribute" src="icon/add.png">');
 
 		var actionsTable = $('.actions.schema-props', el);
@@ -1102,8 +1102,9 @@ var _Schema = {
 
 		$('.add-action-attribute', el).on('click', function() {
 			actionsTable.append('<tr class="new"><td style="vertical-align:top;"><input size="15" type="text" class="action property-name" placeholder="Enter method name"></td>'
-					+ '<td><textarea rows="4" class="action property-code" placeholder="Enter Code"></textarea></td><td><img alt="Remove" class="remove-icon remove-action" src="icon/delete.png"></td>'
-					+ '</div');
+					+ '<td><textarea rows="4" class="action property-code" placeholder="Enter Code"></textarea></td><td><textarea rows="4" class="action property-comment" placeholder="Enter comment"></textarea></td>'
+					+ '<td><img alt="Remove" class="remove-icon remove-action" src="icon/delete.png"></td>'
+					+ '</div>');
 
 			$('.new .property-code.action', el).on('blur', function() {
 				_Schema.createMethod(el, entity);
@@ -1622,13 +1623,18 @@ var _Schema = {
 		// append default actions
 		el.append('<tr class="' + key + '"><td style="vertical-align:top;"><input size="15" type="text" class="property-name action" value="'
 				+ escapeForHtmlAttributes(method.name) + '"></td><td><textarea rows="4" class="property-code action">'
-				+ escapeForHtmlAttributes(method.source) + '</textarea></td><td><img alt="Remove" title="Remove view" class="remove-icon remove-action" src="icon/delete.png"></td></tr>');
+				+ escapeForHtmlAttributes(method.source) + '</textarea></td><td><textarea rows="4" class="property-comment action">'
+				+ escapeForHtmlAttributes(method.comment || '') + '</textarea></td><td><img alt="Remove" title="Remove view" class="remove-icon remove-action" src="icon/delete.png"></td></tr>');
+
+		$('.' + key + ' .property-name.action').on('blur', function() {
+			_Schema.saveMethod(method);
+		});
 
 		$('.' + key + ' .property-code.action').on('blur', function() {
 			_Schema.saveMethod(method);
 		});
 
-		$('.' + key + ' .property-name.action').on('blur', function() {
+		$('.' + key + ' .property-comment.action').on('blur', function() {
 			_Schema.saveMethod(method);
 		});
 
@@ -1769,15 +1775,18 @@ var _Schema = {
 
 		_Schema.unbindEvents(key);
 
-		var name = $('.' + key + ' .action.property-name').val();
-		var func = $('.' + key + ' .action.property-code').val();
+		var name    = $('.' + key + ' .action.property-name').val();
+		var source  = $('.' + key + ' .action.property-code').val();
+		var comment = $('.' + key + ' .action.property-comment').val();
 
 		if (name && name.length) {
 
-			var obj = {};
-			obj.schemaNode = { id: entity.id };
-			obj.name       = name;
-			obj.source     = func;
+			var obj = {
+				schemaNode: { id: entity.id },
+				name:    name,
+				source:  source,
+				comment: comment
+			};
 
 			_Schema.storeSchemaEntity('schema_methods', {}, JSON.stringify(obj), function(result) {
 
@@ -1813,11 +1822,15 @@ var _Schema = {
 									_Schema.confirmRemoveSchemaEntity(method, 'Delete method', function() { _Schema.openEditDialog(method.schemaNode.id, 'methods'); });
 								});
 
+								$('.' + name + ' .property-name.action').on('blur', function() {
+									_Schema.saveMethod(method);
+								});
+
 								$('.' + name + ' .property-code.action').on('blur', function() {
 									_Schema.saveMethod(method);
 								});
 
-								$('.' + name + ' .property-name.action').on('blur', function() {
+								$('.' + name + ' .property-comment.action').on('blur', function() {
 									_Schema.saveMethod(method);
 								});
 
@@ -1845,22 +1858,26 @@ var _Schema = {
 
 		_Schema.unbindEvents(key);
 
-		var name = $('.' + key + ' .action.property-name').val();
-		var func = $('.' + key + ' .action.property-code').val();
+		var name    = $('.' + key + ' .action.property-name').val();
+		var source  = $('.' + key + ' .action.property-code').val();
+		var comment = $('.' + key + ' .action.property-comment').val();
 
 		if (name && name.length) {
 
-			var obj    = {};
-			obj.name   = name;
-			obj.source = func;
+			var obj = {
+				name:    name,
+				source:  source,
+				comment: comment
+			};
 
 			_Schema.storeSchemaEntity('schema_methods', method, JSON.stringify(obj), function() {
 
 				blinkGreen($('.actions .' + key));
 
 				// accept values into property object
-				method.name   = obj.name;
-				method.source = obj.source;
+				method.name    = obj.name;
+				method.source  = obj.source;
+				method.comment = obj.comment;
 
 				// update row class so that consequent changes can be applied
 				$('.' + key).removeClass(key).addClass(method.name);
@@ -2428,7 +2445,7 @@ var _Schema = {
 					table.append('<tr><td>' + snapshot + '</td><td style="text-align:right;"><button id="delete-' + i + '">Delete</button><button id="add-' + i + '">Add</button><button id="restore-' + i + '">Restore</button></td></tr>');
 					$('#restore-' + i).on('click', function() {
 
-						Command.snapshots("restore", snapshot, function(data) {
+						Command.snapshots("restore", snapshot, null, function(data) {
 
 							var status = data.status;
 
@@ -2472,14 +2489,14 @@ var _Schema = {
 		$('#create-snapshot').on('click', function() {
 
 			var title = $('#snapshot-title').val();
-			
+
 			var types = [];
 			if (selectedNodes && selectedNodes.length) {
 				selectedNodes.forEach(function(selectedNode) {
 					types.push(selectedNode.name);
 				});
 			}
-			
+
 			Command.snapshots("export", title, types, function(data) {
 
 				var status = data.status;

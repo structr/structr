@@ -128,9 +128,7 @@ public class SchemaTypeResource extends Resource {
 
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-
-		throw new IllegalMethodException();
-
+		throw new IllegalMethodException("POST not allowed on " + getResourceSignature());
 	}
 
 	@Override

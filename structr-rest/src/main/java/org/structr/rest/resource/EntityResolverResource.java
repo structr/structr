@@ -43,7 +43,7 @@ public class EntityResolverResource extends SortableResource {
 
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
-		throw new IllegalMethodException();
+		throw new IllegalMethodException("GET not allowed on " + getResourceSignature());
 	}
 
 	@Override
@@ -72,12 +72,12 @@ public class EntityResolverResource extends SortableResource {
 
 	@Override
 	public RestMethodResult doDelete() throws FrameworkException {
-		throw new IllegalMethodException();
+		throw new IllegalMethodException("DELETE not allowed on " + getResourceSignature());
 	}
 
 	@Override
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
-		throw new IllegalMethodException();
+		throw new IllegalMethodException("PUT not allowed on " + getResourceSignature());
 	}
 
         @Override
