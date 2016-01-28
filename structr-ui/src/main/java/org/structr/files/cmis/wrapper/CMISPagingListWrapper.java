@@ -20,16 +20,20 @@ package org.structr.files.cmis.wrapper;
 
 import java.math.BigInteger;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
+import org.apache.chemistry.opencmis.commons.data.ObjectData;
+import org.apache.chemistry.opencmis.commons.data.ObjectInFolderData;
 import org.structr.cmis.common.CMISExtensionsData;
 
 /**
  *
  *
  */
-public class CMISPagingListWrapper<T> extends CMISExtensionsData {
+public class CMISPagingListWrapper<T> extends CMISExtensionsData  {
 
 	protected List<T> list  = null;
 	private int maxItems  = Integer.MAX_VALUE;
@@ -101,6 +105,7 @@ public class CMISPagingListWrapper<T> extends CMISExtensionsData {
 		return list.size();
 	}
 
+
 	public void sort(String orderBy) {
 
 		if(orderBy != null) {
@@ -114,8 +119,40 @@ public class CMISPagingListWrapper<T> extends CMISExtensionsData {
 		}
 	}
 
-	protected void sortByName() {
+	public void sortByName() {
 
-		//Implementation in subclasses
+		Collections.sort(list, new Comparator<T>() {
+
+			@Override
+			public int compare(T o1, T o2) {
+
+				Object obj1 = null;
+				Object obj2 = null;
+
+				//Type of CMISObjectInFolderWrapper
+				if(o1 instanceof ObjectInFolderData) {
+
+					ObjectInFolderData folderData1 = (ObjectInFolderData) o1;
+					ObjectInFolderData folderData2 = (ObjectInFolderData) o2;
+
+					obj1 = folderData1.getObject().getProperties().getProperties().get(PropertyIds.NAME).getFirstValue();
+					obj2 = folderData2.getObject().getProperties().getProperties().get(PropertyIds.NAME).getFirstValue();
+
+				//Type of CMISObjectListWrapper
+				} else if(o1 instanceof ObjectData) {
+
+					ObjectData objectData1 = (ObjectData) o1;
+					ObjectData objectData2 = (ObjectData) o2;
+
+					obj1 = objectData1.getProperties().getProperties().get(PropertyIds.NAME).getFirstValue();
+					obj2 = objectData2.getProperties().getProperties().get(PropertyIds.NAME).getFirstValue();
+				}
+
+				String name1 = (String)obj1;
+				String name2 = (String)obj2;
+
+				return name1.compareTo(name2);
+			}
+		});
 	}
 }

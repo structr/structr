@@ -388,7 +388,7 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 	 */
 	private class ACLEntry extends CMISExtensionsData implements Acl{
 
-		private List<Ace> aces;
+		final private List<Ace> aces;
 
 		public ACLEntry(List<Ace> aces) {
 

@@ -73,7 +73,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 	private static final Logger logger = Logger.getLogger(FileBase.class.getName());
 
-	public static final Property<String> contentType             = new StringProperty("contentType").indexedWhenEmpty();
+	public static final Property<String> contentType             = new StringProperty("contentType").defaultValue("application/octet-stream").indexedWhenEmpty();
 	public static final Property<String> relativeFilePath        = new StringProperty("relativeFilePath").readOnly();
 	public static final Property<Long> size                      = new LongProperty("size").indexed().readOnly();
 	public static final Property<String> url                     = new StringProperty("url");

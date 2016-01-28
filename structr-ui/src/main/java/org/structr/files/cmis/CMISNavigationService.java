@@ -271,6 +271,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 						children = app.nodeQuery(FileBase.class)
 								.and(AbstractFile.parent, folder)
 								.sort(AbstractFile.name)
+								.not().and(Image.isThumbnail, true)
 								.getAsList();
 					}
 				}

@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 import org.apache.chemistry.opencmis.commons.data.RepositoryInfo;
@@ -54,6 +55,7 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.TypeMutabilityImpl
 import org.apache.chemistry.opencmis.commons.spi.RepositoryService;
 import org.apache.chemistry.opencmis.server.support.TypeDefinitionFactory;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -83,6 +85,15 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 	private static final Logger logger = Logger.getLogger(CMISRepositoryService.class.getName());
 
 	private final RepositoryInfo repositoryInfo = new StructrRepositoryInfo();
+
+	//enthält die information über das derzeitig geladene schema, ob es
+	//vom user selbst gemacht ist oder hard-coded ist.
+	//dieses attribut dient quasi als temporäre lösung, damit ich das attribut
+	//nicht durch mehrere methoden per parameter durchgeben muss.
+	//noch sehr unschöne realisierung, die methoden sind aber so sehr
+	//miteinander verzweigt, dass ich es nicht an der stelle per datenbankaufruf
+	//laden kann, wo ich es auch brauche.
+	//private boolean isBuiltInType;
 
 	public CMISRepositoryService(final StructrCMISService parentService, final SecurityContext securityContext) {
 		super(parentService, securityContext);
@@ -139,7 +150,10 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 
 			results.add(getDocumentTypeDefinition(BaseTypeId.CMIS_DOCUMENT.value(), includePropertyDefinitions, true));
 			results.add(getFolderTypeDefinition(BaseTypeId.CMIS_FOLDER.value(), includePropertyDefinitions, true));
+
+			//Have to check every single cmis:type, if custom or hard-coded?
 			results.add(getItemTypeDefinition(BaseTypeId.CMIS_ITEM.value(), includePropertyDefinitions, true));
+
 			results.add(getPolicyTypeDefinition(BaseTypeId.CMIS_POLICY.value(), includePropertyDefinitions, true));
 			results.add(getRelationshipTypeDefinition(BaseTypeId.CMIS_RELATIONSHIP.value(), includePropertyDefinitions, true));
 			results.add(getSecondaryTypeDefinition(BaseTypeId.CMIS_SECONDARY.value(), includePropertyDefinitions, true));
@@ -266,31 +280,17 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 
 		//Key is name of property, Value is the information of its type
 		//for example: Age:Integer
-		ArrayList<PropertyContainer> customProperties = new ArrayList<>();
-
-		for(Map.Entry<String, PropertyDefinition<?>> entry : type.getPropertyDefinitions().entrySet()) {
-
-			//if no "cmis:" at the beginning, the property is a
-			//custom property
-			if(!entry.getKey().startsWith("cmis:")) {
-
-				String propertyName = entry.getKey();
-				String propertyType = entry.getValue().getPropertyType().value();
-
-				customProperties.add(new PropertyContainer(propertyName, propertyType));
-			}
-		}
+		ArrayList<CustomPropertyContainer> customProperties = new ArrayList<>();
+		extractCustomProperties(type, customProperties);
 
 		try (final Tx tx = app.tx()) {
 
-			SchemaNode node = null;
-
-			node = app.create(SchemaNode.class,
+			SchemaNode node = app.create(SchemaNode.class,
 				new NodeAttribute(SchemaNode.name, typeName)
 			);
 
 			//set all new custom properties
-			for(PropertyContainer p : customProperties) {
+			for(CustomPropertyContainer p : customProperties) {
 
 				node.setProperty(new StringProperty(p.propertyName), p.propertyType);
 			}
@@ -304,11 +304,70 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 
 		//return always cmis:item definition, because documenttypes,
 		//foldertypes and so on can't be created in Structr
-		return getItemTypeDefinition(type.getBaseTypeId().value(), true, true);
+		//isBuiltInType = false;
+		return getItemTypeDefinition(typeName, true, true);
 	}
 
 	@Override
 	public TypeDefinition updateType(String repositoryId, TypeDefinition type, ExtensionsData extension) {
+
+		/*
+			Object-Type type: A type definition object with the property definitions that are to change.
+			1) Repositories MUST ignore all fields in the type definition except for the type id and the list of properties.
+			2) Properties that are not changing MUST NOT be included, including any inherited property definitions.
+			3) For the properties that are being included, an entire copy of the property definition should be present
+			4) Special note about choice values. There are only two types of changes permitted.
+			– New choice added to the list.
+			– Changing the displayname for an existing choice.
+			5) For any choice that is being added or having its display name changed, both the displayName and
+			value MUST be present.
+		*/
+
+		//Custom-Attributes extrahieren und überprüfen, ob diese schon vorhanden sind.
+
+		final App app = StructrApp.getInstance(securityContext);
+
+		//Name of the Schema/cmis:item itself
+		String typeName = type.getLocalName();
+
+		//Key is name of property, Value is the information of its type
+		//for example: Age:Integer
+		ArrayList<CustomPropertyContainer> customProperties = new ArrayList<>();
+		extractCustomProperties(type, customProperties);
+
+		try (final Tx tx = app.tx()) {
+
+
+			SchemaNode node = app.nodeQuery(SchemaNode.class).and(AbstractNode.name, typeName).getFirst();
+			PropertyContainer container = node.getPropertyContainer();
+
+			//set all new custom properties
+			for(CustomPropertyContainer p : customProperties) {
+
+				//check if customproperty is already included
+				//PropertyKey k;
+
+
+				//node.getProperty(null);
+
+			//	node.
+
+				//if(container.hasProperty(p.propertyName)) {
+
+				//	int check=0;
+				//}
+
+				//node.setProperty(new StringProperty(p.propertyName), p.propertyType);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+		}
+
+
 		return null;
 	}
 
@@ -337,6 +396,22 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 	}
 
 	// ----- private methods -----
+	private void extractCustomProperties (TypeDefinition type, ArrayList<CustomPropertyContainer> customProperties) {
+
+		for(Map.Entry<String, PropertyDefinition<?>> entry : type.getPropertyDefinitions().entrySet()) {
+
+			//if no "cmis:" at the beginning, the property is a
+			//custom property
+			if(!entry.getKey().startsWith("cmis:")) {
+
+				String propertyName = entry.getKey();
+				String propertyType = entry.getValue().getPropertyType().value();
+
+				customProperties.add(new CustomPropertyContainer(propertyName, propertyType));
+			}
+		}
+	}
+
 	private MutableSecondaryTypeDefinition getSecondaryTypeDefinition(final String typeId, final boolean includePropertyDefinitions, final boolean baseType) {
 
 		final TypeDefinitionFactory factory      = TypeDefinitionFactory.newInstance();
@@ -402,8 +477,17 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 
 		TypeMutabilityImpl t = new TypeMutabilityImpl();
 		t.setCanCreate(true);
-		t.setCanDelete(true);
 		t.setCanUpdate(true);
+
+//		if(isBuiltInType) {
+//
+//			t.setCanDelete(false);
+//		} else {
+//
+//			t.setCanDelete(true);
+//		}
+
+		t.setCanDelete(true);
 		type.setTypeMutability(t);
 	}
 
@@ -509,6 +593,8 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 
 							final CMISInfo info = getCMISInfo(type);
 							if (info != null && baseTypeId.equals(info.getBaseTypeId())) {
+
+//								isBuiltInType = schemaNode.getProperty(SchemaNode.isBuiltinType);
 
 								final TypeDefinition extendedTypeDefinition = extendTypeDefinition(type, includePropertyDefinitions);
 								if (extendedTypeDefinition != null) {
@@ -708,40 +794,15 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 	 * Simple private class, to buffer all the necessary information for
 	 * custom property in createType(). Can be easily expanded in the future.
 	 */
-	private class PropertyContainer {
+	private class CustomPropertyContainer {
 
 		public String propertyName;
 		public String propertyType;
 
-		PropertyContainer(String name, String type) {
+		CustomPropertyContainer(String name, String type) {
 
 			propertyName = "_" + name;
 			propertyType = type.substring(0,1).toUpperCase() + type.substring(1);
 		}
 	}
-
-	//-----------------------
 }
-
-/**
-* 						case BOOLEAN:
-		properties.add(objFactory.createPropertyBooleanData(key.jsonName(), (Boolean)entry.getValue()));
-		break;
-
-	case DATETIME:
-		properties.add(objFactory.createPropertyDateTimeData(key.jsonName(), valueOrNull((Date)entry.getValue())));
-		break;
-
-	case DECIMAL:
-		properties.add(objFactory.createPropertyDecimalData(key.jsonName(), valueOrNull((Double)entry.getValue())));
-		break;
-
-	case INTEGER:
-		// INTEGER includes int and long so we have to cover both cases here
-		properties.add(objFactory.createPropertyIntegerData(key.jsonName(), intOrNull(entry.getValue())));
-		break;
-
-	case STRING:
-		properties.add(objFactory.createPropertyStringData(key.jsonName(), (String)entry.getValue()));
-		break;
- */

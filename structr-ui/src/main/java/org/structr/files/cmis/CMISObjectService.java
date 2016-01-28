@@ -18,12 +18,14 @@
  */
 package org.structr.files.cmis;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.SequenceInputStream;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -660,6 +662,8 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
                     writer.close();
                 }
 
+		tx.success();
+
             } catch (FrameworkException fex) {
 
 		throw new CmisConstraintException(fex.getMessage(), fex);
@@ -680,36 +684,35 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 				final InputStream inputAppendContent = contentStream.getStream();
 				final InputStream inputCurrentContent = file.getInputStream();
 
-				if(inputCurrentContent != null) {
+				if(inputCurrentContent != null && inputAppendContent != null) {
 
-					List<Integer> currentInputArray = new ArrayList();
-					int input;
-					while ((input = inputCurrentContent.read()) != -1) {
+					//Append here the two Inputstreams together
+					SequenceInputStream appendInput = new SequenceInputStream(inputCurrentContent, inputAppendContent);
 
-						currentInputArray.add(input);
+					//When the Inputstream gets written directly into the Output of the file,
+					//The inputdata of the current data gets lost. Because of that,
+					//"appendInput" needs to be copied in a bufferInputStream before.
+
+					//http://stackoverflow.com/questions/13289178/create-a-copy-of-an-inputstream-from-an-httpurlconnection-so-it-can-be-used-twic
+					//----------------------------------------------------------------
+					ByteArrayOutputStream into = new ByteArrayOutputStream();
+					byte[] buf = new byte[4096];
+
+					// appendInput is your original stream.
+					for (int n; 0 < (n = appendInput.read(buf));) {
+					    into.write(buf, 0, n);
 					}
-					inputCurrentContent.close();
+					into.close();
 
-					if (inputAppendContent != null) {
+					byte[] data = into.toByteArray();
 
-						try (final OutputStream outputStream = file.getOutputStream(false)) {
+					//This is the new stream that you can pass it to other code and use its data.
+					ByteArrayInputStream bufferInputStream = new ByteArrayInputStream(data);
+					//-----------------------------------------------------------------
 
-							//write first the current input of the file
-							//into the output
-							for(int i : currentInputArray) {
+					try (final OutputStream outputStream = file.getOutputStream(false)) {
 
-								outputStream.write(i);
-							}
-
-							//then write the input to append into the output
-							while ((input = inputAppendContent.read()) != -1) {
-
-								outputStream.write(input);
-							}
-
-							inputAppendContent.close();
-							outputStream.close();
-						}
+							IOUtils.copy(bufferInputStream, outputStream);
 					}
 				}
 			}
