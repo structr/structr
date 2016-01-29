@@ -59,6 +59,12 @@ var _Pager = {
 	restorePagerData: function(type) {
 		var pagerData = LSWrapper.getItem(pagerDataKey + type);
 		if (pagerData) {
+			
+			if (!pagerData.startsWith('{')) {
+				LSWrapper.removeItem(pagerDataKey + type);
+				return false;
+			}
+			
 			pagerData = JSON.parse(pagerData);
 
 			page[type] = pagerData.page;
