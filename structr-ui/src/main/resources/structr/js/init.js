@@ -26,7 +26,7 @@ var editorCursor, hintsJustClosed;
 var dialog, isMax = false;
 var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, saveAndClose, loginButton, loginBox, dialogCloseButton;
 var dialogId;
-var page = {}, pageSize = {}, sortKey = {}, sortOrder = {}, filterKey = {}, filterValue = {};
+var page = {}, pageSize = {}, sortKey = {}, sortOrder = {};
 var dialogMaximizedKey = 'structrDialogMaximized_' + port;
 var expandedIdsKey = 'structrTreeExpandedIds_' + port;
 var lastMenuEntryKey = 'structrLastMenuEntry_' + port;
@@ -989,9 +989,11 @@ var Structr = {
 		pageSizeForm.on('keypress', function(e) {
 			if (e.keyCode === 13) {
 				pageSize[type] = $(this).val();
+				pageCount[type] = Math.max(1, Math.ceil(rawResultCount[type] / pageSize[type]));
 				page[type] = 1;
 				$('.page', pager).val(page[type]);
 				$('.pageSize', pager).val(pageSize[type]);
+				$('.pageCount', pager).val(pageCount[type]);
 				$('.node', el).remove();
 				$('#resourceAccesses table tbody tr').remove();
 				if (isPagesEl)
@@ -1037,134 +1039,6 @@ var Structr = {
 			Command.list(type, rootOnly, pageSize[type], page[type], sortKey[type], sortOrder[type], null, callback);
 		});
 		return Command.list(type, rootOnly, pageSize[type], page[type], sortKey[type], sortOrder[type], null, callback);
-	},
-	addRestPager:function(el, type, filterAttr, callback) {
-
-		filterKey[type] = filterAttr;
-
-		if (!callback) {
-			callback = function(entities) {
-				entities.forEach(function(entity) {
-					StructrModel.create(entity);
-				});
-			};
-		}
-
-		var isPagesEl = (el === pages);
-
-		el.append('<div class="pager pager' + type + '" style="clear: both"><button class="pageLeft">&lt; Prev</button>'
-				+ ' <input class="page" type="text" size="3" value="' + page[type] + '"><button class="pageRight">Next &gt;</button>'
-				+ ' of <input class="readonly pageCount" readonly="readonly" size="3">'
-				+ ' Items: <input class="pageSize" type="text" size="3" value="' + pageSize[type] + '">'
-				+ ' Filter: <input class="pagerFilter" type="text" size="30" value="' + (filterValue[type] || '') + '"></div>');
-
-		var pager = $('.pager' + type, el);
-
-		var pageLeft = $('.pageLeft', pager);
-		var pageRight = $('.pageRight', pager);
-		var pageForm = $('.page', pager);
-		var pageSizeForm = $('.pageSize', pager);
-		var pagerFilter = $('.pagerFilter', pager);
-
-		pageSizeForm.on('keypress', function(e) {
-			if (e.keyCode === 13) {
-				pageSize[type] = $(this).val();
-				page[type] = 1;
-				$('.page', pager).val(page[type]);
-				$('.pageSize', pager).val(pageSize[type]);
-				$('.node', el).remove();
-				$('#resourceAccesses table tbody tr').remove();
-				if (isPagesEl)
-					_Pages.clearPreviews();
-				Structr.restPagerAction(type, callback);
-			}
-		});
-
-		pagerFilter.on('keypress', function(e) {
-			if (e.keyCode === 13) {
-				filterValue[type] = $(this).val();
-				page[type] = 1;
-				$('.page', pager).val(page[type]);
-				$('.pageSize', pager).val(pageSize[type]);
-				$('.node', el).remove();
-				$('#resourceAccesses table tbody tr').remove();
-				if (isPagesEl)
-					_Pages.clearPreviews();
-				Structr.restPagerAction(type, callback);
-			}
-		});
-
-		pageForm.on('keypress', function(e) {
-			if (e.keyCode === 13) {
-				page[type] = $(this).val();
-				$('.page', pager).val(page[type]);
-				$('.node', el).remove();
-				$('#resourceAccesses table tbody tr').remove();
-				if (isPagesEl)
-					_Pages.clearPreviews();
-				Structr.restPagerAction(type, callback);
-			}
-		});
-
-		pageLeft.on('click', function(e) {
-			e.stopPropagation();
-			pageRight.removeAttr('disabled').removeClass('disabled');
-			page[type]--;
-			$('.page', pager).val(page[type]);
-			$('.node', el).remove();
-			$('#resourceAccesses table tbody tr').remove();
-			if (isPagesEl) {
-				_Pages.clearPreviews();
-			}
-			Structr.restPagerAction(type, callback);
-		});
-
-		pageRight.on('click', function() {
-			pageLeft.removeAttr('disabled').removeClass('disabled');
-			page[type]++;
-			$('.page', pager).val(page[type]);
-			$('.node', el).remove();
-			$('#resourceAccesses table tbody tr').remove();
-			if (isPagesEl) {
-				_Pages.clearPreviews();
-			}
-			Structr.restPagerAction(type, callback);
-		});
-
-		Structr.restPagerAction(type, callback);
-	},
-	updatePager:function(resultCount){
-		$('.page', pager).val(page[type]);
-		$('.pageSize', pager).val(pageSize[type]);
-		$('.node', el).remove();
-		$('#resourceAccesses table tbody tr').remove();
-	},
-	restPagerAction:function(type, callback) {
-		var url = rootUrl + type + '?page=' + page[type] + '&pageSize=' + pageSize[type] + '&sort=' + sortKey[type] + '&order=' + sortOrder[type];
-
-		if (filterKey[type] && filterKey[type].length > 0 && filterValue[type] && filterValue[type].length > 0) {
-			url += '&' + filterKey[type] + '=' + filterValue[type] + '&loose=1';
-		}
-
-		$.ajax({
-			url: url,
-			contentType: 'application/json; charset=UTF-8',
-			dataType: 'json',
-			statusCode: {
-				200: function(data) {
-
-					rawResultCount[type] = data.result_count;
-					pageCount[type] = Math.max(1, Math.ceil(rawResultCount[type] / pageSize[type]));
-					Structr.updatePager(type, dialog.is(':visible') ? dialog : undefined);
-
-					$('.pageCount', $('.pager' + type)).val(pageCount[type]);
-
-					callback(data.result);
-
-				}
-			}
-
-		});
 	},
 	makePagesMenuDroppable: function() {
 
