@@ -34,7 +34,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
     casper.start(s.url);
 
     login.init(test, 'admin', 'admin');
-    
+
     createPage.init(test, 'test-page');
 
     openPagesTreeView.init(test);
@@ -54,7 +54,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
     });
 
     sections.push('Then drag the desired element and drop it onto the target element in the page tree or in the page preview window.');
-    
+
     casper.wait(5000, function() {
         test.assertEvalEquals(function() {
             return $('#pagesTree > .page > .html_element > div.node:eq(1) > div.node:eq(1) > .content:eq(1) > .content_').text();

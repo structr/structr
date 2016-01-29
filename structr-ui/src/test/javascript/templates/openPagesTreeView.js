@@ -18,7 +18,7 @@
  */
 
 ;exports.init = function(test){
-  
+
     casper.then(function() {
         s.moveMousePointerTo(casper, '#pagesTab');
     });
@@ -26,7 +26,7 @@
     casper.then(function() {
         this.click('#pagesTab');
     });
-    
+
     casper.wait(2000);
-    
+
 };

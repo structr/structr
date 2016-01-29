@@ -34,79 +34,79 @@ casper.test.begin(testName, numberOfTests, function(test) {
     casper.start(s.url);
     
     login.init(test, 'admin', 'admin');
-    
+
     createPage.init(test, 'visible');
-    
+
     openPagesTreeView.init(test);
-    
+
     sections.push('Open the Access Control tab.');
-    
+
     casper.then(function() {
-        s.moveMousePointerTo(casper, '#pagesTree .page .key_icon'); 
+        s.moveMousePointerTo(casper, '#pagesTree .page .key_icon');
     });
-    
+
     casper.then(function() {
         this.click('#pagesTree .page .key_icon');
     });
-    
+
     casper.wait(2000);
-    
+
     sections.push('Apply visibility switches recursively.');
-    
+
     casper.then(function() {
-        s.moveMousePointerTo(casper, '#recursive'); 
+        s.moveMousePointerTo(casper, '#recursive');
     });
     casper.then(function() {
         this.click('#recursive');
     });
-    
+
     casper.wait(2000);
-    
+
     sections.push('Change the visibility for public/auth users.');
-    
+
     casper.then(function() {
-        s.moveMousePointerTo(casper, '#dialogBox .visibleToPublicUsers_'); 
+        s.moveMousePointerTo(casper, '#dialogBox .visibleToPublicUsers_');
     });
     casper.then(function() {
         this.click('#dialogBox .visibleToPublicUsers_');
     });
-    
+
     casper.then(function() {
-        s.moveMousePointerTo(casper, '#dialogBox .visibleToAuthenticatedUsers_'); 
+        s.moveMousePointerTo(casper, '#dialogBox .visibleToAuthenticatedUsers_');
     });
     casper.then(function() {
         this.click('#dialogBox .visibleToAuthenticatedUsers_');
     });
-    
+
     casper.wait(2000);
-    
+
     casper.then(function() {
-        s.moveMousePointerTo(casper, '#dialogBox .dialogBtn .closeButton'); 
+        s.moveMousePointerTo(casper, '#dialogBox .dialogBtn .closeButton');
     });
     casper.then(function() {
         this.click('#dialogBox .dialogBtn .closeButton');
     });
-    
+
     casper.wait(2000);
-    
+
     sections.push ('Logout and open the created page.');
-    
+
     casper.then(function() {
-        s.moveMousePointerTo(casper, '#logout_'); 
+        s.moveMousePointerTo(casper, '#logout_');
     });
     casper.then(function() {
         this.click('#logout_');
     });
-    
+
     casper.wait(2000);
-    
+
     casper.thenOpen(s.baseUrl+'visible');
     casper.waitForSelector('body h1', function() {
         test.assertSelectorHasText('body h1','Visible');
     });
-    
+
     casper.wait(2000);
-    
+
     casper.then(function() {
         s.animateHtml(testName, heading, sections);
         this.exit();

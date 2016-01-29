@@ -64,7 +64,7 @@ exports.baseUrl = 'http://localhost:' + casper.cli.get('httpPort') + '/';
 
 /**
  * Image type extension
- * 
+ *
  * Use png, gif, or jpg
  */
 exports.imageType = 'png';
@@ -219,7 +219,7 @@ exports.moveMousePointer = function(casper, startPos, endPos, step) {
 
 /**
  * Move mouse pointer to element with given selector.
- * 
+ *
  * Set offset if you want to place the pointer off the center
  * of the target element.
  */
@@ -446,14 +446,14 @@ exports.startRecording = function(window, casper, testName) {
 	 * Set global timeout for all 'waitFor' functions
 	 */
 	casper.options.waitTimeout = 30000;
-	
+
 	casper.options.viewportSize = {
         width: w,
         height: h
     };
 
     var i = 0;
-    
+
     // Remove old screenshots
     fs.removeTree(exports.docsDir + '/screenshots/' + testName);
 
