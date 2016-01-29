@@ -46,10 +46,10 @@ var _Pages = {
 	autoRefresh: [],
 	init: function() {
 
-		Structr.initPager('Page', 1, 25, 'name', 'asc');
-		Structr.initPager('File', 1, 25, 'name', 'asc');
-		Structr.initPager('Folder', 1, 25, 'name', 'asc');
-		Structr.initPager('Image', 1, 25, 'name', 'asc');
+		_Pager.initPager('Page', 1, 25, 'name', 'asc');
+		_Pager.initPager('File', 1, 25, 'name', 'asc');
+		_Pager.initPager('Folder', 1, 25, 'name', 'asc');
+		_Pager.initPager('Image', 1, 25, 'name', 'asc');
 
 	},
 	resize: function(offsetLeft, offsetRight) {
@@ -303,11 +303,18 @@ var _Pages = {
 		pagesSlideout.append('<div class="ver-scrollable" id="pagesTree"></div>');
 		pages = $('#pagesTree', pagesSlideout);
 
-		Structr.addPager(pages, true, 'Page', function(pages) {
+		var pPager = _Pager.addPager(pages, true, 'Page', function(pages) {
 			pages.forEach(function(page) {
-				StructrModel.create(page); _Pages.pagesTabResizeContent();
+				StructrModel.create(page);
+				_Pages.pagesTabResizeContent();
 			});
 		});
+		pPager.cleanupFunction = function () {
+			_Pages.clearPreviews();
+			$('.node', pPager.el).remove();
+		};
+		pages.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
+		pPager.activateFilterElements();
 
 		previewTabs.append('<li id="import_page" title="Import Template" class="button"><img class="add_button icon" src="icon/page_white_put.png"></li>');
 		$('#import_page', previewTabs).on('click', function(e) {

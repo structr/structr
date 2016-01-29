@@ -33,7 +33,7 @@ var _Widgets = {
 	delete_widget_icon: 'icon/layout_delete.png',
 	init: function() {
 
-		Structr.initPager('Widget', 1, 25);
+		_Pager.initPager('Widget', 1, 25);
 
 	},
 	onload: function() {
@@ -83,7 +83,10 @@ var _Widgets = {
 			e.stopPropagation();
 			Command.create({'type': 'Widget'});
 		});
-		Structr.addPager(widgets, true, 'Widget');
+		var wPager = _Pager.addPager(widgets, true, 'Widget');
+		wPager.cleanupFunction = function() {
+			$('.node', wPager.el).remove();
+		};
 		Structr.resize();
 	},
 	refreshRemoteWidgets: function() {

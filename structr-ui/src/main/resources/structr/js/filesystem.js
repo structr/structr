@@ -31,7 +31,7 @@ $(document).ready(function() {
 
 	Structr.registerModule('filesystem', _Filesystem);
 	_Filesystem.resize();
-	
+
 });
 
 var _Filesystem = {
@@ -40,7 +40,7 @@ var _Filesystem = {
 		log('_Filesystem.init');
 
 		main = $('#main');
-		
+
 		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Search..."><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
 
 		searchField = $('.search', main);
@@ -104,7 +104,7 @@ var _Filesystem = {
 				'<button class="add_file_icon button"><img title="Add File" alt="Add File" src="' + _Files.add_file_icon + '"> Add File</button>'
 				+ '<button class="pull_file_icon button"><img title="Sync Files" alt="Sync Files" src="' + _Files.pull_file_icon + '"> Sync Files</button>'
 				);
-		
+
 		$('.add_file_icon', main).on('click', function(e) {
 			e.stopPropagation();
 			Command.create({ type: 'File', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
@@ -122,13 +122,13 @@ var _Filesystem = {
 		});
 
 		$.jstree.defaults.core.themes.dots = false;
-		
+
 		_Filesystem.loadAndSetWorkingDir(function() {
 			_Filesystem.initTree();
 			if (!currentWorkingDir) {
 				_Filesystem.displayFolderContents('root', null, '/');
 			}
-		
+
 		});
 
 		fileTree.on('select_node.jstree', function(evt, data) {
@@ -141,7 +141,7 @@ var _Filesystem = {
 			_Filesystem.displayFolderContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
 
 		});
-		
+
 		_Filesystem.activateUpload();
 
 		win.off('resize');
@@ -221,7 +221,7 @@ var _Filesystem = {
 								});
 
 								cb(list);
-								
+
 							});
 							break;
 
@@ -236,7 +236,7 @@ var _Filesystem = {
 				}
 			}
 		});
-		
+
 	},
 	unload: function() {
 		fastRemoveAllChildren(main[0]);
@@ -308,7 +308,7 @@ var _Filesystem = {
 
 				return false;
 			});
-		}		
+		}
 	},
 	uploadFile: function(file) {
 		var worker = new Worker('js/upload-worker.js');
@@ -366,7 +366,7 @@ var _Filesystem = {
 			} else {
 				currentWorkingDir = null;
 			}
-			
+
 			callback();
 		});
 
@@ -390,8 +390,8 @@ var _Filesystem = {
 				});
 
 				callback(list);
-				
-			});
+
+			}, true);
 
 		} else {
 
@@ -411,21 +411,21 @@ var _Filesystem = {
 
 				callback(list);
 
-			});
+			}, true);
 
 		}
-		
-		
+
+
 	},
 	setWorkingDirectory: function(id) {
-		
+
 		if (id === 'root') {
 			currentWorkingDir = null;
 		} else {
 			currentWorkingDir = { 'id': id };
 		}
 		var data = JSON.stringify({'workingDirectory': currentWorkingDir});
-		
+
 		$.ajax({
 			url: rootUrl + 'me',
 			dataType: 'application/json',
@@ -445,11 +445,46 @@ var _Filesystem = {
 				return '<a class="breadcrumb-entry" data-folder-id="' + parent + '"><i class="fa fa-caret-right"></i> ' + pathNames[idx] + '</span>';
 			}).join(' ');
 		}
+
+		var handleChildren = function(children) {
+			if (children && children.length) {
+				children.forEach(_Filesystem.appendFileOrFolderRow);
+			}
+		};
+
+		if (id === 'root') {
+			Command.list('Folder', true, 1000, 1, 'name', 'asc', null, handleChildren);
+		} else {
+			Command.query('Folder', 1000, 1, 'name', 'asc', {parentId: id}, handleChildren, true);
+		}
+
+
+		_Pager.initPager('FileBase', 1, 25, 'name', 'asc');
+		page['FileBase'] = 1;
+		_Pager.initFilters('FileBase', {
+			parentId: ((parentId === '#') ? '' : id),
+			hasParent: (parentId !== '#')
+		});
+
+		var filesPager = _Pager.addPager(content, false, 'FileBase', handleChildren);
+
+		filesPager.cleanupFunction = function () {
+			var toRemove = $('.node.file', filesPager.el).closest('tr');
+			toRemove.each(function(i, elem) {
+				fastRemoveAllChildren(elem);
+			});
+		};
+
+		content.append('<div>Filter: <input type="text" class="filter" data-attribute="name">');
+		content.append('<input type="text" class="filter" data-attribute="parentId" value="' + ((parentId === '#') ? '' : id) + '" hidden>');
+		content.append('<input type="checkbox" class="filter" data-attribute="hasParent" ' + ((parentId === '#') ? '' : 'checked') + ' hidden></div>');
+		filesPager.activateFilterElements();
+
 		content.append(
 				'<h2>' + path + '</h2>'
 				+ '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
 				+ '<tbody id="files-table-body">'
-				+ ((id != 'root') ? '<tr id="parent-file-link"><td class="file-type"><i class="fa fa-folder"></i></td><td><a href="#">..</a></td><td></td><td></td><td></td></tr>' : '')
+				+ ((id !== 'root') ? '<tr id="parent-file-link"><td class="file-type"><i class="fa fa-folder"></i></td><td><a href="#">..</a></td><td></td><td></td><td></td></tr>' : '')
 				+ '</tbody></table>'
 		);
 
@@ -467,23 +502,7 @@ var _Filesystem = {
 			}
 		});
 
-		var handleChildren = function(children) {
-			if (children && children.length) {
-				children.forEach(_Filesystem.appendFileOrFolderRow);
-			}
-		};
 
-		if (id === 'root') {
-
-			Command.list('Folder', true, 1000, 1, 'name', 'asc', null, handleChildren);
-			Command.list('FileBase', true, 1000, 1, 'name', 'asc', null, handleChildren);
-
-		} else {
-
-			Command.query('Folder', 1000, 1, 'name', 'asc', {parentId: id}, handleChildren);
-			Command.query('FileBase', 1000, 1, 'name', 'asc', {parentId: id}, handleChildren);
-
-		}
 	},
 	appendFileOrFolderRow: function(d) {
 
@@ -516,7 +535,7 @@ var _Filesystem = {
 
 		// Change working dir by click on folder icon
 		$('#id_' + d.id + '.folder').parent().prev().on('click', function(e) {
-			
+
 			e.preventDefault();
 			e.stopPropagation();
 
@@ -536,24 +555,24 @@ var _Filesystem = {
 
 				$('#' + d.id + '_anchor').click();
 			}
-			
+
 			return false;
 		});
-		
+
 		var div = Structr.node(d.id);
 
 		if (!div || !div.length)
 			return;
-		
+
 		div.on('remove', function() {
 			div.closest('tr').remove();
 		});
 
 		_Entities.appendAccessControlIcon(div, d);
-		
+
 		var delIcon = div.children('.delete_icon');
 		if (d.isFolder) {
-			
+
 			// ********** Folders **********
 
 			div.append('<img title="Sync folder \'' + d.name + '\' to remote instance" alt="Sync folder \'' + d.name + '\' to remote instance" class="push_icon button" src="icon/page_white_get.png">');
@@ -561,7 +580,7 @@ var _Filesystem = {
 				Structr.pushDialog(d.id, true);
 				return false;
 			});
-			
+
 			var newDelIcon = '<img title="Delete folder \'' + d.name + '\'" alt="Delete folder \'' + d.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
 			if (delIcon && delIcon.length) {
 				delIcon.replaceWith(newDelIcon);
@@ -574,7 +593,7 @@ var _Filesystem = {
 					_Filesystem.refreshTree();
 				});
 			});
-			
+
 			div.draggable({
 				revert: 'invalid',
 				stack: '.node'
@@ -586,10 +605,10 @@ var _Filesystem = {
 				hoverClass: 'nodeHover',
 				tolerance: 'pointer',
 				drop: function(e, ui) {
-					
+
 					e.preventDefault();
 					e.stopPropagation();
-					
+
 					var self = $(this);
 					var fileId = Structr.getId(ui.draggable);
 					var folderId = Structr.getId(self);
@@ -607,7 +626,7 @@ var _Filesystem = {
 								Command.setProperty(fileId, 'parentId', folderId, false, function() {
 									$(ui.draggable).remove();
 								});
-								
+
 							});
 							selectedElements.length = 0;
 						} else {
@@ -618,16 +637,16 @@ var _Filesystem = {
 
 						_Filesystem.refreshTree();
 					}
-					
+
 					return false;
 				}
 			});
-			
+
 
 		} else {
-			
+
 			// ********** Files **********
-			
+
 			if (_Files.isArchive(d)) {
 				div.append('<img class="unarchive_icon button" src="icon/compress.png">');
 				div.children('.unarchive_icon').on('click', function() {
@@ -657,7 +676,7 @@ var _Filesystem = {
 				e.stopPropagation();
 				_Entities.deleteNode(this, d);
 			});
-			
+
 			_Filesystem.appendEditFileIcon(div, d);
 
 			div.draggable({
@@ -690,12 +709,12 @@ var _Filesystem = {
 					return $(this).clone();
 				}
 			});
-			
+
 		}
 		_Entities.appendEditPropertiesIcon(div, d);
 		_Entities.setMouseOver(div);
-		
-		
+
+
 	},
 	appendEditFileIcon: function(parent, file) {
 
@@ -766,7 +785,7 @@ var _Filesystem = {
 		var container = $('#search-results');
 		content.on('scroll', function() {
 			window.history.pushState('', '', '#filesystem');
-			
+
 		});
 
 		//console.log('Search string:', searchString, url);
@@ -777,7 +796,7 @@ var _Filesystem = {
 				200: function(data) {
 
 					//console.log(data.result);
-					
+
 					if (!data.result || data.result.length === 0) {
 						container.append('<h1>No results for "' + searchString + '"</h1>');
 						container.append('<h2>Press ESC or click <a href="#filesystem" class="clear-results">here to clear</a> empty result list.</h2>');
@@ -790,7 +809,7 @@ var _Filesystem = {
 						data.result.forEach(function(d) {
 							var icon = _Filesystem.getIcon(d.name, d.contentType);
 							$('tbody', container).append('<tr><td><i class="fa ' + icon + '"></i> ' + d.type + ' (' + d.contentType + ')</td><td><a href="#results' + d.id + '">' + d.name + '</a></td><td>' + d.size + '</td></tr>');
-						
+
 						});
 					}
 
@@ -803,9 +822,9 @@ var _Filesystem = {
 							data: JSON.stringify({searchString: searchString, contextLength: 30}),
 							statusCode: {
 								200: function(data) {
-									
+
 									if (!data.result) return;
-									
+
 									//console.log(data.result);
 
 									container.append('<div class="search-result collapsed" id="results' + d.id + '"></div>');
@@ -815,7 +834,7 @@ var _Filesystem = {
 									//div.append('<h2><img id="preview' + d.id + '" src="' + icon + '" style="margin-left: 6px;" title="' + d.extractedContent + '" />' + d.path + '</h2>');
 									div.append('<h2><i class="fa ' + icon + '"></i> ' + d.name + '<img id="preview' + d.id + '" src="/structr/icon/eye.png" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
 									div.append('<i class="toggle-height fa fa-expand"></i>').append('<i class="go-to-top fa fa-chevron-up"></i>');
-									
+
 									$('.toggle-height', div).on('click', function() {
 										var icon = $(this);
 										div.toggleClass('collapsed');
@@ -826,7 +845,7 @@ var _Filesystem = {
 											icon.removeClass('fa-compress');
 											icon.addClass('fa-expand');
 										}
-										
+
 									});
 
 									$('.go-to-top', div).on('click', function() {

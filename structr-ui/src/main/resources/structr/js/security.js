@@ -30,9 +30,9 @@ $(document).ready(function() {
 var _Security = {
 
 	init : function() {
-		Structr.initPager('User', 1, 25, 'name', 'asc');
-		Structr.initPager('Group', 1, 25, 'name', 'asc');
-		Structr.initPager('ResourceAccess', 1, 25, 'signature', 'asc');
+		_Pager.initPager('User', 1, 25, 'name', 'asc');
+		_Pager.initPager('Group', 1, 25, 'name', 'asc');
+		_Pager.initPager('ResourceAccess', 1, 25, 'signature', 'asc');
 	},
 
 	onload : function() {
@@ -92,10 +92,18 @@ var _Security = {
 
 		Structr.ensureIsAdmin(resourceAccesses, function() {
 
-			Structr.addRestPager(resourceAccesses, 'ResourceAccess', 'signature');
+			var raPager = _Pager.addPager(resourceAccesses, true, 'ResourceAccess');
+
+			// set specialized cleanup function
+			raPager.cleanupFunction = function () {
+				$('#resourceAccesses table tbody tr').remove();
+			};
+
 			resourceAccesses.append('<table id="resourceAccessesTable"><thead><tr><th></th><th colspan="6" class="center">Authenticated users</th><th colspan="6" class="center">Non-authenticated (public) users</th><th colspan="3"></th></tr><tr><th>Signature</th><th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th>'
-					+ '<th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th><th>Bitmask</th><th>Del</th></tr></thead></table>');
+					+ '<th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th><th>Bitmask</th><th>Del</th></tr><tr><th><input type="text" class="filter" data-attribute="signature"></th><th colspan="15"></th></tr></thead></table>');
 			resourceAccesses.append('Signature: <input class="" type="text" size="20" id="resource-signature"> <button class="add_grant_icon button"><img title="Add Resource Grant" alt="Add Grant" src="icon/key_add.png"> Add Grant</button>');
+			raPager.activateFilterElements();
+
 			$('.add_grant_icon', main).on('click', function (e) {
 				e.stopPropagation();
 				var inp = $('#resource-signature');
@@ -117,7 +125,10 @@ var _Security = {
 			e.stopPropagation();
 			return Command.create({'type':'Group'});
 		});
-		Structr.addPager(groups, true, 'Group');
+		var grpPager = _Pager.addPager(groups, true, 'Group');
+		groups.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></th></div>');
+		grpPager.activateFilterElements();
+
 	},
 
 	refreshUsers : function() {
@@ -127,7 +138,9 @@ var _Security = {
 			e.stopPropagation();
 			return Command.create({'type':'User'});
 		});
-		Structr.addPager(users, true, 'User');
+		var usrPager = _Pager.addPager(users, true, 'User');
+		users.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></th></div>');
+		usrPager.activateFilterElements();
 	},
 
 	deleteUser : function(button, user) {

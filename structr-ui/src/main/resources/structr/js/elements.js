@@ -187,6 +187,7 @@ var _Elements = {
 		widgetsSlideout.append('<div class="ver-scrollable"><h2>Local Widgets</h2><div id="widgets"></div><h2>Remote Widgets</h2><input placeholder="Filter..." id="remoteWidgetsFilter"><div id="remoteWidgets"></div></div>');
 		widgets = $('#widgets', widgetsSlideout);
 
+
 		widgets.droppable({
 			drop: function(e, ui) {
 				e.preventDefault();
@@ -216,7 +217,8 @@ var _Elements = {
 
 		});
 
-		Command.list('Widget', true, 1000, 1, 'name', 'asc', 'id,name,type,source,treePath,isWidget', function(entities) {
+		_Pager.initPager('Widget', 1, 25);
+		_Pager.addPager(widgets, true, 'Widget', function(entities) {
 			entities.forEach(function (entity) {
 				StructrModel.create(entity, null, false);
 				_Widgets.appendWidgetElement(entity, false, widgets);
@@ -546,7 +548,7 @@ var _Elements = {
 
 					var pagesToLink = $('#pagesToLink');
 
-					Structr.addPager(pagesToLink, true, 'Page', function(pages) {
+					_Pager.addPager(pagesToLink, true, 'Page', function(pages) {
 
 						pages.forEach(function(page){
 
@@ -592,7 +594,7 @@ var _Elements = {
 					var filesToLink = $('#filesToLink');
 					var foldersToLink = $('#foldersToLink');
 
-					Structr.addPager(foldersToLink, true, 'Folder', function(folders) {
+					_Pager.addPager(foldersToLink, true, 'Folder', function(folders) {
 
 						folders.forEach(function(folder) {
 
@@ -622,7 +624,7 @@ var _Elements = {
 
 					});
 
-					Structr.addPager(filesToLink, true, 'File', function(files) {
+					_Pager.addPager(filesToLink, true, 'File', function(files) {
 
 						files.forEach(function(file) {
 
@@ -668,7 +670,7 @@ var _Elements = {
 
 					var imagesToLink = $('#imagesToLink');
 
-					Structr.addPager(imagesToLink, false, 'Image', function(images) {
+					_Pager.addPager(imagesToLink, false, 'Image', function(images) {
 
 						images.forEach(function(image) {
 

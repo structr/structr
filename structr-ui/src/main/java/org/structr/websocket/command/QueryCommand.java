@@ -65,7 +65,9 @@ public class QueryCommand extends AbstractCommand {
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final Map<String, Object> nodeData    = webSocketData.getNodeData();
 		final String rawType                  = (String)nodeData.get("type");
+		final Boolean hasParent               = (Boolean)nodeData.get("hasParent");
 		final String properties               = (String)nodeData.get("properties");
+		final Boolean exact                   = (Boolean)nodeData.get("exact");
 		final Class type                      = SchemaHelper.getEntityClassForRawType(rawType);
 
 		if (type == null) {
@@ -87,7 +89,6 @@ public class QueryCommand extends AbstractCommand {
 			.page(page)
 			.pageSize(pageSize);
 
-
 		if (properties != null) {
 
 			try {
@@ -100,6 +101,10 @@ public class QueryCommand extends AbstractCommand {
 					query.and(entry.getKey(), entry.getValue());
 				}
 
+				if (exact != null && exact == false) {
+					query.exact(false);
+				}
+
 			} catch (FrameworkException fex) {
 
 				logger.log(Level.WARNING, "Exception occured", fex);
@@ -107,12 +112,6 @@ public class QueryCommand extends AbstractCommand {
 
 				return;
 			}
-		}
-
-		// for image lists, suppress thumbnails
-		if (type.equals(Image.class) || type.equals(FileBase.class)) {
-
-			query.and(Image.isThumbnail, false);
 		}
 
 		try {

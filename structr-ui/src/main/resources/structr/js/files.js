@@ -46,8 +46,8 @@ var _Files = {
 
 		log('_Files.init');
 
-		Structr.initPager('File', 1, 25, 'name', 'asc');
-		Structr.initPager('Folder', 1, 25, 'name', 'asc');
+		_Pager.initPager('File', 1, 25, 'name', 'asc');
+		_Pager.initPager('Folder', 1, 25, 'name', 'asc');
 
 		Structr.makePagesMenuDroppable();
 
@@ -182,7 +182,7 @@ var _Files = {
 				return false;
 			});
 		}
-		Structr.addPager(files, true, 'File');
+		_Pager.addPager(files, true, 'File');
 		_Files.resize();
 	},
 	refreshFolders: function() {
@@ -193,7 +193,7 @@ var _Files = {
 			e.stopPropagation();
 			Command.create({'type': 'Folder'});
 		});
-		Structr.addPager(folders, true, 'Folder');
+		_Pager.addPager(folders, true, 'Folder');
 	},
 	getIcon: function(file) {
 		var icon = _Files.icon; // default

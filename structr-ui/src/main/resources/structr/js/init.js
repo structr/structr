@@ -26,7 +26,7 @@ var editorCursor, hintsJustClosed;
 var dialog, isMax = false;
 var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, saveAndClose, loginButton, loginBox, dialogCloseButton;
 var dialogId;
-var page = {}, pageSize = {}, sortKey = {}, sortOrder = {};
+var page = {}, pageSize = {}, sortKey = {}, sortOrder = {}, pagerFilters = {};
 var dialogMaximizedKey = 'structrDialogMaximized_' + port;
 var expandedIdsKey = 'structrTreeExpandedIds_' + port;
 var lastMenuEntryKey = 'structrLastMenuEntry_' + port;
@@ -891,6 +891,7 @@ var Structr = {
 
 		return entity;
 	},
+	/*
 	initPager: function(type, p, ps, sort, order) {
 		var pagerData = LSWrapper.getItem(pagerDataKey + type);
 		if (!pagerData) {
@@ -903,143 +904,7 @@ var Structr = {
 			Structr.restorePagerData(type, p, ps, sort, order);
 		}
 	},
-	updatePager: function(type, el) {
-		if (!type)
-			return;
-
-		var pager = (el && el.length) ? $('.pager' + type, el) : $('.pager' + type);
-		if (pager.length) {
-
-			var pageLeft = $('.pageLeft', pager);
-			var pageRight = $('.pageRight', pager);
-			var pageNo = $('.page', pager);
-
-			if (page[type] === 1) {
-				pageLeft.attr('disabled', 'disabled').addClass('disabled');
-			} else {
-				pageLeft.removeAttr('disabled', 'disabled').removeClass('disabled');
-			}
-
-			if (pageCount[type] === 1 || (page[type] === pageCount[type])) {
-				pageRight.attr('disabled', 'disabled').addClass('disabled');
-			} else {
-				pageRight.removeAttr('disabled', 'disabled').removeClass('disabled');
-			}
-
-			if (pageCount[type] === 1) {
-				pageNo.attr('disabled', 'disabled').addClass('disabled');
-			} else {
-				pageNo.removeAttr('disabled', 'disabled').removeClass('disabled');
-			}
-
-			Structr.storePagerData(type, page[type], pageSize[type], sortKey[type], sortOrder[type]);
-		}
-	},
-	storePagerData: function(type, page, pageSize, sort, order) {
-		if (page && pageSize && sort && order) {
-			LSWrapper.setItem(pagerDataKey + type, page + ',' + pageSize + ',' + sort + ',' + order);
-		}
-	},
-	restorePagerData: function(type) {
-		var pagerData = LSWrapper.getItem(pagerDataKey + type);
-		if (pagerData) {
-			var pagerData = pagerData.split(',');
-			page[type] = parseInt(pagerData[0]);
-			pageSize[type] = parseInt(pagerData[1]);
-			if (pagerData.length > 2) {
-				sortKey[type] = pagerData[2];
-				sortOrder[type] = pagerData[3];
-			}
-		}
-		log(page[type], pageSize[type], sortKey[type], sortOrder[type]);
-	},
-	/**
-	 * Append a pager for the given type to the given DOM element.
-	 *
-	 * This pager calls Command#list (WebSocket call) after being loaded
-	 * and binds Command#list to all actions.
-	 *
-	 * If the optional callback function is given, it will be executed
-	 * instead of the default action.
-	 */
-	addPager: function(el, rootOnly, type, callback) {
-		log('addPager', type, pageSize[type], page[type], sortKey[type], sortOrder[type]);
-		if (!callback) {
-			callback = function(entities) {
-				entities.forEach(function(entity) {
-					StructrModel.create(entity);
-				});
-			};
-		}
-
-		var isPagesEl = (el === pages);
-
-		el.append('<div class="pager pager' + type + '" style="clear: both"><button class="pageLeft">&lt; Prev</button>'
-				+ ' <input class="page" type="text" size="3" value="' + page[type] + '"><button class="pageRight">Next &gt;</button>'
-				+ ' of <input class="readonly pageCount" readonly="readonly" size="3">'
-				+ ' Items: <input class="pageSize" type="text" size="3" value="' + pageSize[type] + '"></div>');
-
-		var pager = $('.pager' + type, el);
-
-		var pageLeft = $('.pageLeft', pager);
-		var pageRight = $('.pageRight', pager);
-		var pageForm = $('.page', pager);
-		var pageSizeForm = $('.pageSize', pager);
-
-		pageSizeForm.on('keypress', function(e) {
-			if (e.keyCode === 13) {
-				pageSize[type] = $(this).val();
-				pageCount[type] = Math.max(1, Math.ceil(rawResultCount[type] / pageSize[type]));
-				page[type] = 1;
-				$('.page', pager).val(page[type]);
-				$('.pageSize', pager).val(pageSize[type]);
-				$('.pageCount', pager).val(pageCount[type]);
-				$('.node', el).remove();
-				$('#resourceAccesses table tbody tr').remove();
-				if (isPagesEl)
-					_Pages.clearPreviews();
-				Command.list(type, rootOnly, pageSize[type], page[type], sortKey[type], sortOrder[type], null, callback);
-			}
-		});
-
-		pageForm.on('keypress', function(e) {
-			if (e.keyCode === 13) {
-				page[type] = $(this).val();
-				$('.page', pager).val(page[type]);
-				$('.node', el).remove();
-				$('#resourceAccesses table tbody tr').remove();
-				if (isPagesEl)
-					_Pages.clearPreviews();
-				Command.list(type, rootOnly, pageSize[type], page[type], sortKey[type], sortOrder[type], null, callback);
-			}
-		});
-
-		pageLeft.on('click', function(e) {
-			e.stopPropagation();
-			pageRight.removeAttr('disabled').removeClass('disabled');
-			page[type]--;
-			$('.page', pager).val(page[type]);
-			$('.node', el).remove();
-			$('#resourceAccesses table tbody tr').remove();
-			if (isPagesEl) {
-				_Pages.clearPreviews();
-			}
-			Command.list(type, rootOnly, pageSize[type], page[type], sortKey[type], sortOrder[type], null, callback);
-		});
-
-		pageRight.on('click', function() {
-			pageLeft.removeAttr('disabled').removeClass('disabled');
-			page[type]++;
-			$('.page', pager).val(page[type]);
-			$('.node', el).remove();
-			$('#resourceAccesses table tbody tr').remove();
-			if (isPagesEl) {
-				_Pages.clearPreviews();
-			}
-			Command.list(type, rootOnly, pageSize[type], page[type], sortKey[type], sortOrder[type], null, callback);
-		});
-		return Command.list(type, rootOnly, pageSize[type], page[type], sortKey[type], sortOrder[type], null, callback);
-	},
+	*/
 	makePagesMenuDroppable: function() {
 
 		try {

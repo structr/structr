@@ -40,7 +40,7 @@ var _Images = {
 	//    delete_folder_icon : 'icon/folder_delete.png',
 	download_icon: 'icon/basket_put.png',
 	init: function() {
-		Structr.initPager('Image', 1, 100, 'name', 'asc');
+		_Pager.initPager('Image', 1, 100, 'name', 'asc');
 		Structr.makePagesMenuDroppable();
 	},
 	resize: function() {
@@ -168,7 +168,14 @@ var _Images = {
 				return false;
 			});
 		}
-		Structr.addPager(images, false, 'Image');
+
+		_Pager.initFilters('Image', {
+			isThumbnail: false
+		});
+		var imgPager = _Pager.addPager(images, false, 'Image');
+		images.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
+		imgPager.activateFilterElements();
+
 		_Images.resize();
 	},
 	getIcon: function(file) {
