@@ -53,8 +53,8 @@ public class VirtualProperty extends AbstractNode {
 		final String _outputFunction = getProperty(outputFunction);
 		String _targetName           = getProperty(targetName);
 
-		if (_sourceName == null) {
-			throw new FrameworkException(500, "VirtualProperty with ID " + getUuid() + " needs source name");
+		if (_sourceName == null && _outputFunction == null) {
+			throw new FrameworkException(500, "VirtualProperty with ID " + getUuid() + " needs source name or output function");
 		}
 
 		// don't rename
