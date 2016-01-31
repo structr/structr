@@ -19,6 +19,7 @@
 package org.structr.function;
 
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.structr.core.GraphObject;
@@ -40,7 +41,7 @@ public class GetFunction extends UiFunction {
 	@Override
 	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
 
-		if (sources != null && sources.length > 0) {
+		if (sources != null && sources.length > 0 && sources[0] != null) {
 
 			try {
 
