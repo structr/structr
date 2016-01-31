@@ -475,9 +475,9 @@ var _Filesystem = {
 			});
 		};
 
-		content.append('<div>Filter: <input type="text" class="filter" data-attribute="name">');
-		content.append('<input type="text" class="filter" data-attribute="parentId" value="' + ((parentId === '#') ? '' : id) + '" hidden>');
-		content.append('<input type="checkbox" class="filter" data-attribute="hasParent" ' + ((parentId === '#') ? '' : 'checked') + ' hidden></div>');
+		filesPager.pager.append('Filter: <input type="text" class="filter" data-attribute="name">');
+		filesPager.pager.append('<input type="text" class="filter" data-attribute="parentId" value="' + ((parentId === '#') ? '' : id) + '" hidden>');
+		filesPager.pager.append('<input type="checkbox" class="filter" data-attribute="hasParent" ' + ((parentId === '#') ? '' : 'checked') + ' hidden>');
 		filesPager.activateFilterElements();
 
 		content.append(

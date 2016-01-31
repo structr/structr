@@ -173,7 +173,7 @@ var _Images = {
 			isThumbnail: false
 		});
 		var imgPager = _Pager.addPager(images, false, 'Image');
-		images.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
+		imgPager.pager.append(' Filter: <input type="text" class="filter" data-attribute="name">');
 		imgPager.activateFilterElements();
 
 		_Images.resize();

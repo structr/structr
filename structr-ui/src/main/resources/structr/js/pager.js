@@ -133,6 +133,7 @@ var Pager = function (el, rootOnly, type, callback) {
 
 	// Parameters
 	this.el = el;
+	this.filterEl; // if set, use this as container for filters
 	this.rootOnly = rootOnly;
 	this.type = type;
 	if (!callback) {
@@ -267,9 +268,12 @@ var Pager = function (el, rootOnly, type, callback) {
 	 * must be called after the pager has been initialized because the
 	 * filters dont necessarily exist at the time the pager is created
 	 */
-	this.activateFilterElements = function () {
+	this.activateFilterElements = function (filterContainer) {
 
-		$('input.filter[type=text]', pagerObj.el).each(function (idx, elem) {
+		// If filterContainer is given, set as filter element. Default is the pager container itself.
+		this.filterEl = filterContainer || pagerObj.pager;
+
+		$('input.filter[type=text]', this.filterEl).each(function (idx, elem) {
 			$elem = $(elem);
 			var filterAttribute = $elem.data('attribute');
 			if (pagerFilters[pagerObj.type][filterAttribute]) {
@@ -277,24 +281,31 @@ var Pager = function (el, rootOnly, type, callback) {
 			}
 		});
 
-		$('input.filter[type=text]', pagerObj.el).on('keypress', function(e) {
+		$('input.filter[type=text]', this.filterEl).on('keyup', function(e) {
+			var $filterEl = $(this);
+			var filterAttribute = $filterEl.data('attribute');
 			if (e.keyCode === 13) {
 
-				var $filterEl = $(this);
-				var filterAttribute = $filterEl.data('attribute');
-
-				if(filterAttribute && filterAttribute.length) {
+				if (filterAttribute && filterAttribute.length) {
 					pagerFilters[pagerObj.type][filterAttribute] = $filterEl.val();
 
 					page[pagerObj.type] = 1;
-					pagerObj.updatePagerElements(pagerObj.el, pagerObj.pager, pagerObj.type);
+					pagerObj.updatePagerElements();
 					pagerObj.transportFunction();
-
 				}
+				
+			} else if (e.keyCode === 27) {
+				
+				pagerFilters[pagerObj.type][filterAttribute] = null;
+				$filterEl.val('');
+
+				page[pagerObj.type] = 1;
+				pagerObj.updatePagerElements();
+				pagerObj.transportFunction();
 			}
 		});
 
-		$('input.filter[type=checkbox]', pagerObj.el).each(function (idx, elem) {
+		$('input.filter[type=checkbox]', this.filterEl).each(function (idx, elem) {
 			$elem = $(elem);
 			var filterAttribute = $elem.data('attribute');
 			if (pagerFilters[pagerObj.type][filterAttribute]) {
@@ -302,7 +313,7 @@ var Pager = function (el, rootOnly, type, callback) {
 			}
 		});
 
-		$('input.filter[type=checkbox]', pagerObj.el).on('change', function(e) {
+		$('input.filter[type=checkbox]', this.filterEl).on('change', function(e) {
 			var $filterEl = $(this);
 			var filterAttribute = $filterEl.data('attribute');
 
@@ -310,7 +321,7 @@ var Pager = function (el, rootOnly, type, callback) {
 				pagerFilters[pagerObj.type][filterAttribute] = $filterEl.prop('checked');
 
 				page[pagerObj.type] = 1;
-				pagerObj.updatePagerElements(pagerObj.el, pagerObj.pager, pagerObj.type);
+				pagerObj.updatePagerElements();
 				pagerObj.transportFunction();
 			}
 		});

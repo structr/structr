@@ -313,7 +313,7 @@ var _Pages = {
 			_Pages.clearPreviews();
 			$('.node', pPager.el).remove();
 		};
-		pages.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
+		pPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
 		pPager.activateFilterElements();
 
 		previewTabs.append('<li id="import_page" title="Import Template" class="button"><img class="add_button icon" src="icon/page_white_put.png"></li>');

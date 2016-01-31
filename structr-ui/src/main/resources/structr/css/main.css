@@ -226,7 +226,7 @@ img.disabled {
 .slideOutRight {
     float: left;
     border: none;
-    width: 374px;
+    width: 400px;
     padding: 6px;
 }
 
@@ -378,7 +378,7 @@ img.disabled {
 }
 
 .slideOutLeft {
-    left: -386px;
+    left: -412px;
     border-bottom-right-radius: 3px;
     border-top-right-radius: 3px;
     border-right: 1px solid #a5a5a5 ! important;
@@ -1371,6 +1371,15 @@ button.enabled, button.active {
     height: 22px;
     border: 1px solid #999;
     background-color: #e5e5e5;
+}
+
+.pager input.filter[type="text"][data-attribute="name"] {
+    width: 60px;
+}
+
+.pager > div {
+    display: inline;
+    white-space: nowrap;
 }
 
 button.disabled {

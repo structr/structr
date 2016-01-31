@@ -102,7 +102,8 @@ var _Security = {
 			resourceAccesses.append('<table id="resourceAccessesTable"><thead><tr><th></th><th colspan="6" class="center">Authenticated users</th><th colspan="6" class="center">Non-authenticated (public) users</th><th colspan="3"></th></tr><tr><th>Signature</th><th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th>'
 					+ '<th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th><th>Bitmask</th><th>Del</th></tr><tr><th><input type="text" class="filter" data-attribute="signature"></th><th colspan="15"></th></tr></thead></table>');
 			resourceAccesses.append('Signature: <input class="" type="text" size="20" id="resource-signature"> <button class="add_grant_icon button"><img title="Add Resource Grant" alt="Add Grant" src="icon/key_add.png"> Add Grant</button>');
-			raPager.activateFilterElements();
+			
+			raPager.activateFilterElements(resourceAccesses);
 
 			$('.add_grant_icon', main).on('click', function (e) {
 				e.stopPropagation();
@@ -126,7 +127,7 @@ var _Security = {
 			return Command.create({'type':'Group'});
 		});
 		var grpPager = _Pager.addPager(groups, true, 'Group');
-		groups.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></th></div>');
+		grpPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
 		grpPager.activateFilterElements();
 
 	},
@@ -139,7 +140,7 @@ var _Security = {
 			return Command.create({'type':'User'});
 		});
 		var usrPager = _Pager.addPager(users, true, 'User');
-		users.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></th></div>');
+		usrPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></th></div>');
 		usrPager.activateFilterElements();
 	},
 
