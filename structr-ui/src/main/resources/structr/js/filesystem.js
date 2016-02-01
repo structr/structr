@@ -442,8 +442,9 @@ var _Filesystem = {
 			var pathNames = nodePath.split('/');
 			pathNames[0] = '/';
 			path = parents.map(function(parent, idx) {
-				return '<a class="breadcrumb-entry" data-folder-id="' + parent + '"><i class="fa fa-caret-right"></i> ' + pathNames[idx] + '</span>';
+				return '<a class="breadcrumb-entry" data-folder-id="' + parent + '"><i class="fa fa-caret-right"></i> ' + pathNames[idx] + '</span></a>';
 			}).join(' ');
+			path += ' <i class="fa fa-caret-right"></i> ' + pathNames.pop();
 		}
 
 		var handleChildren = function(children) {

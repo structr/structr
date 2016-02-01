@@ -2639,3 +2639,7 @@ i.fa.ps {
     top: 12px;
     right: 36px;
 }
+
+.breadcrumb-entry {
+	cursor: pointer;
+}
