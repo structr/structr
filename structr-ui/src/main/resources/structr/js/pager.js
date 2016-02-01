@@ -59,12 +59,12 @@ var _Pager = {
 	restorePagerData: function(type) {
 		var pagerData = LSWrapper.getItem(pagerDataKey + type);
 		if (pagerData) {
-			
+
 			if (!pagerData.startsWith('{')) {
 				LSWrapper.removeItem(pagerDataKey + type);
 				return false;
 			}
-			
+
 			pagerData = JSON.parse(pagerData);
 
 			page[type] = pagerData.page;
@@ -274,7 +274,7 @@ var Pager = function (el, rootOnly, type, callback) {
 		this.filterEl = filterContainer || pagerObj.pager;
 
 		$('input.filter[type=text]', this.filterEl).each(function (idx, elem) {
-			$elem = $(elem);
+			var $elem = $(elem);
 			var filterAttribute = $elem.data('attribute');
 			if (pagerFilters[pagerObj.type][filterAttribute]) {
 				$elem.val(pagerFilters[pagerObj.type][filterAttribute]);
@@ -293,9 +293,9 @@ var Pager = function (el, rootOnly, type, callback) {
 					pagerObj.updatePagerElements();
 					pagerObj.transportFunction();
 				}
-				
+
 			} else if (e.keyCode === 27) {
-				
+
 				pagerFilters[pagerObj.type][filterAttribute] = null;
 				$filterEl.val('');
 
@@ -306,7 +306,7 @@ var Pager = function (el, rootOnly, type, callback) {
 		});
 
 		$('input.filter[type=checkbox]', this.filterEl).each(function (idx, elem) {
-			$elem = $(elem);
+			var $elem = $(elem);
 			var filterAttribute = $elem.data('attribute');
 			if (pagerFilters[pagerObj.type][filterAttribute]) {
 				$elem.prop('checked', pagerFilters[pagerObj.type][filterAttribute]);
