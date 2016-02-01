@@ -109,13 +109,9 @@ public class SecurityContext {
 
 		if (request != null) {
 
-			try {
-
-				if ("disabled".equals(request.getHeader("Structr-Websocket-Broadcast"))) {
-					this.doTransactionNotifications = false;
-				}
-
-			} catch (Throwable t) {}
+			if ("disabled".equals(request.getHeader("Structr-Websocket-Broadcast"))) {
+				this.doTransactionNotifications = false;
+			}
 
 		}
 	}
