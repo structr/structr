@@ -655,7 +655,7 @@ var Structr = {
 		Structr.setSize($(window).width(), $(window).height(), Math.min(900, $(window).width() - 24), Math.min(600, $(window).height() - 24));
 
 		$('#minimizeDialog').hide();
-		$('#maximizeDialog').show().on('click', function() {
+		$('#maximizeDialog').show().off('click').on('click', function() {
 			Structr.maximize();
 		});
 
@@ -678,7 +678,7 @@ var Structr = {
 
 		isMax = true;
 		$('#maximizeDialog').hide();
-		$('#minimizeDialog').show().on('click', function() {
+		$('#minimizeDialog').show().off('click').on('click', function() {
 			isMax = false;
 			LSWrapper.removeItem(dialogMaximizedKey);
 			Structr.resize();
