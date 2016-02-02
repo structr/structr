@@ -92,27 +92,30 @@ public class CypherQueryCommand extends NodeServiceCommand {
 				Object value = entry.getValue();
 
 				final Object obj = handleObject(nodeFactory, relFactory, key, value, includeHiddenAndDeleted, publicOnly, 0);
-				if (obj instanceof GraphObject) {
+				if (obj != null) {
+					
+					if (obj instanceof GraphObject) {
 
-					resultList.add((GraphObject)obj);
+						resultList.add((GraphObject)obj);
 
-				} else if (obj instanceof Collection) {
+					} else if (obj instanceof Collection) {
 
-					for (final Object item : ((Collection)obj)) {
+						for (final Object item : ((Collection)obj)) {
 
-						if (item instanceof GraphObject) {
+							if (item instanceof GraphObject) {
 
-							resultList.add((GraphObject)item);
+								resultList.add((GraphObject)item);
 
-						} else {
+							} else {
 
-							logger.log(Level.WARNING, "Unable to handle Cypher query result object of type {0}, ignoring.", item.getClass().getName());
+								logger.log(Level.WARNING, "Unable to handle Cypher query result object of type {0}, ignoring.", item.getClass().getName());
+							}
 						}
+
+					} else {
+
+						logger.log(Level.WARNING, "Unable to handle Cypher query result object of type {0}, ignoring.", obj.getClass().getName());
 					}
-
-				} else {
-
-					logger.log(Level.WARNING, "Unable to handle Cypher query result object of type {0}, ignoring.", obj.getClass().getName());
 				}
 			}
 		}
