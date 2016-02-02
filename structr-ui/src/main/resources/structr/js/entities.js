@@ -373,10 +373,11 @@ var _Entities = {
 					return true;
 				});
 
-				dialog.append('<div id="tabs"><ul></ul></div>');
-				var mainTabs = $('#tabs', dialog);
+				var tabsdiv = dialogHead.append('<div id="tabs"></div>');
+				var mainTabs = tabsdiv.append('<ul></ul>');
+				var contentEl = dialog.append('<div></div>');
 
-				_Entities.appendViews(entity, views, tabTexts, mainTabs, activeView);
+				_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, activeView);
 
 			} else {
 
@@ -403,28 +404,32 @@ var _Entities = {
 					return true;
 				});
 
-				dialog.append('<div id="tabs"><ul></ul></div>');
-				var mainTabs = $('#tabs', dialog);
+				var tabsdiv = dialogHead.append('<div id="tabs"></div>');
+				var mainTabs = tabsdiv.append('<ul></ul>');
+				var contentEl = dialog.append('<div></div>');
 
 				if (hasHtmlAttributes) {
 
-					_Entities.appendPropTab(entity, mainTabs, 'query', 'Query and Data Binding', true, function(c) {
+					_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Query and Data Binding', true, function(c) {
 						_Entities.queryDialog(entity, c);
 					});
 
-					_Entities.appendPropTab(entity, mainTabs, 'editBinding', 'Edit Mode Binding', false, function(c) {
+					_Entities.appendPropTab(entity, mainTabs, contentEl, 'editBinding', 'Edit Mode Binding', false, function(c) {
 						_Entities.dataBindingDialog(entity, c);
 					});
 				}
 
-				_Entities.appendViews(entity, views, tabTexts, mainTabs, activeView);
+				_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, activeView);
 			}
 
+			Structr.resize();
 		});
 	},
-	appendPropTab: function(entity, el, name, label, active, callback) {
-		var ul = el.children('ul');
+	appendPropTab: function(entity, tabsEl, contentEl, name, label, active, callback) {
+
+		var ul = tabsEl.children('ul');
 		ul.append('<li id="tab-' + name + '">' + label + '</li>');
+
 		var tab = $('#tab-' + name + '');
 		if (active) {
 			tab.addClass('active');
@@ -434,13 +439,12 @@ var _Entities = {
 			var self = $(this);
 			$('.propTabContent').hide();
 			$('li', ul).removeClass('active');
-     		el.append('<div class="propTabContent" id="tabView-' + name + '"></div>');
-			var c = $('#tabView-' + name + '');
-			c.show();
+     		contentEl.append('<div class="propTabContent" id="tabView-' + name + '"></div>');
+			$('#tabView-' + name).show();
 			self.addClass('active');
 			LSWrapper.setItem(activeEditTabPrefix  + '_' + entity.id, name);
 		});
-		el.append('<div class="propTabContent" id="tabView-' + name + '"></div>');
+		contentEl.append('<div class="propTabContent" id="tabView-' + name + '"></div>');
 		var content = $('#tabView-' + name);
 		if (active) {
 			content.show();
@@ -450,23 +454,25 @@ var _Entities = {
 		}
 		return content;
 	},
-	appendViews: function(entity, views, texts, tabs, activeView) {
+	appendViews: function(entity, views, texts, tabsEl, contentEl, activeView) {
+
+		var ul = tabsEl.children('ul');
 
 		$(views).each(function(i, view) {
 
 			var tabText = texts[view];
 
-			tabs.children('ul').append('<li id="tab-' + view + '">' + tabText + '</li>');
+			ul.append('<li id="tab-' + view + '">' + tabText + '</li>');
 
-			tabs.append('<div class="propTabContent" id="tabView-' + view + '"></div>');
+			contentEl.append('<div class="propTabContent" id="tabView-' + view + '"></div>');
 
 			var tab = $('#tab-' + view);
 
 			tab.on('click', function(e) {
 				e.stopPropagation();
 				var self = $(this);
-				tabs.children('div').hide();
-				$('li', tabs).removeClass('active');
+				contentEl.children('div').hide();
+				$('li', ul).removeClass('active');
 				self.addClass('active');
 				var tabView = $('#tabView-' + view);
 				fastRemoveAllChildren(tabView[0]);

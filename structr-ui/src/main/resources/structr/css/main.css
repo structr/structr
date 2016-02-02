@@ -528,14 +528,14 @@ ul#previewTabs {
     height: 25px;
 }
 
-.data-tabs, .data-tabs ul, #tabs, #tabs ul, .files-tabs ul {
+.data-tabs, .data-tabs ul, #tabs, #tabs ul, .files-tabs ul, .dialogHeaderWrapper ul, .dialogText .schema-details ul {
     background: none;
     border: none;
     padding: 0;
     margin: 0;
 }
 
-#previewTabs > li, #tabs > ul > li, .compTab, .data-tabs > ul > li, .files-tabs > ul > li {
+#previewTabs > li, #tabs > ul > li, .compTab, .data-tabs > ul > li, .files-tabs > ul > li, .dialogHeaderWrapper > ul > li {
     vertical-align: middle;
     line-height: 1.5em;
     border-radius: 3px;
@@ -555,7 +555,7 @@ ul#previewTabs {
     height: 22px;
 }
 
-#previewTabs > li, #tabs > ul > li, .data-tabs > ul > li, .files-tabs > ul > li {
+#previewTabs > li, #tabs > ul > li, .data-tabs > ul > li, .files-tabs > ul > li, .dialogHeaderWrapper > ul > li {
     position: relative;
     z-index: 1;
 }
@@ -578,7 +578,7 @@ ul#previewTabs {
     margin: 6px 0 0 0;
 }
 
-.data-tabs > ul > li, #tabs > ul > li, .files-tabs > ul > li {
+.data-tabs > ul > li, #tabs > ul > li, .files-tabs > ul > li, .dialogHeaderWrapper > ul > li {
     font-size: 1em;
 }
 
@@ -610,7 +610,7 @@ ul#previewTabs {
     background-image: none;
 }
 
-#previewTabs li.active, #tabs li.active, .compTab.active, .data-tabs li.active, .files-tabs li.active {
+#previewTabs li.active, #tabs li.active, .compTab.active, .data-tabs li.active, .files-tabs li.active, .dialogHeaderWrapper li.active {
     color: #333 ! important;
     background-color: #81ce25;
     background-image: none;
@@ -1076,7 +1076,7 @@ button img {
     margin: 10px 0 0 12px;
 }
 
-.dialogText, .dialogMeta {
+.dialogHeaderWrapper, .dialogText, .dialogMeta {
     text-align: left;
     font-size: 9.5pt;
 }

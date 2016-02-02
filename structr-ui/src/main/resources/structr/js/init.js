@@ -56,16 +56,17 @@ $(function() {
 		footer.show();
 	}
 
-	dialogBox = $('#dialogBox');
-	dialog = $('.dialogText', dialogBox);
-	dialogMsg = $('.dialogMsg', dialogBox);
-	dialogBtn = $('.dialogBtn', dialogBox);
-	dialogTitle = $('.dialogTitle', dialogBox);
-	dialogMeta = $('.dialogMeta', dialogBox);
-	dialogText = $('.dialogText', dialogBox);
+	dialogBox          = $('#dialogBox');
+	dialog             = $('.dialogText', dialogBox);
+	dialogText         = $('.dialogText', dialogBox);
+	dialogHead         = $('.dialogHeaderWrapper', dialogBox);
+	dialogMsg          = $('.dialogMsg', dialogBox);
+	dialogBtn          = $('.dialogBtn', dialogBox);
+	dialogTitle        = $('.dialogTitle', dialogBox);
+	dialogMeta         = $('.dialogMeta', dialogBox);
 	dialogCancelButton = $('.closeButton');
-	dialogSaveButton = $('.save', dialogBox);
-	loginButton = $('#loginButton');
+	dialogSaveButton   = $('.save', dialogBox);
+	loginButton        = $('#loginButton');
 
 	$('#import_json').on('click', function(e) {
 		e.stopPropagation();
@@ -526,6 +527,7 @@ var Structr = {
 
 		if (browser) {
 
+			dialogHead.empty();
 			dialogText.empty();
 			dialogMsg.empty();
 			dialogMeta.empty();
@@ -623,7 +625,9 @@ var Structr = {
 		var horizontalOffset = 98;
 
 		var bw = (dw - 28) + 'px';
-		var bh = (dh - horizontalOffset) + 'px';
+
+		var dialogHeaderHeight = $('#dialogBox .dialogTextWrapper').offset().top - $('#dialogBox .dialogHeaderWrapper').offset().top;
+		var bh = (dh - horizontalOffset - dialogHeaderHeight) + 'px';
 
 		$('#dialogBox .dialogTextWrapper').css({
 			width: bw,
@@ -651,19 +655,21 @@ var Structr = {
 	},
 	resize: function(callback) {
 
-		// Calculate dimensions of dialog
-		Structr.setSize($(window).width(), $(window).height(), Math.min(900, $(window).width() - 24), Math.min(600, $(window).height() - 24));
-
-		$('#minimizeDialog').hide();
-		$('#maximizeDialog').show().off('click').on('click', function() {
-			Structr.maximize();
-		});
-
 		//LSWrapper.removeItem(dialogMaximizedKey);
 		isMax = LSWrapper.getItem(dialogMaximizedKey);
 
 		if (isMax) {
 			Structr.maximize();
+		} else {
+
+			// Calculate dimensions of dialog
+			Structr.setSize($(window).width(), $(window).height(), Math.min(900, $(window).width() - 24), Math.min(600, $(window).height() - 24));
+
+			$('#minimizeDialog').hide();
+			$('#maximizeDialog').show().off('click').on('click', function() {
+				Structr.maximize();
+			});
+
 		}
 
 		if (callback) {

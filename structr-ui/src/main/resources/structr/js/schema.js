@@ -517,7 +517,7 @@ var _Schema = {
 				instance.repaintEverything();
 			});
 
-			method(entity, dialogText, targetView);
+			method(entity, dialogHead, dialogText, targetView);
 
 		});
 
@@ -688,7 +688,7 @@ var _Schema = {
 			}
 		});
 	},
-	loadNode: function(entity, el, targetView) {
+	loadNode: function(entity, headEl, contentEl, targetView) {
 
 		remotePropertyKeys = [];
 
@@ -697,21 +697,21 @@ var _Schema = {
 		}
 
 		var id = '___' + entity.id;
-		el.append('<div id="' + id + '" class="schema-details"></div>');
+		headEl.append('<div id="' + id + '_head" class="schema-details"></div>');
+		var headContentDiv = $('#' + id + '_head');
 
-		var div = $('#' + id);
-		div.append('<b>' + entity.name + '</b>');
+		headContentDiv.append('<b>' + entity.name + '</b>');
 
 		if (!entity.isBuiltinType) {
-			div.append(' extends <select class="extends-class-select"></select>');
+			headContentDiv.append(' extends <select class="extends-class-select"></select>');
 
-			div.append(' <img id="edit-parent-class" class="icon edit" src="icon/pencil.png" alt="Edit parent class" title="Edit parent class">');
-			$("#edit-parent-class", div).click(function () {
+			headContentDiv.append(' <img id="edit-parent-class" class="icon edit" src="icon/pencil.png" alt="Edit parent class" title="Edit parent class">');
+			$("#edit-parent-class", headContentDiv).click(function () {
 				if ($(this).hasClass('disabled')) {
 					return;
 				}
 
-				var typeName = $('.extends-class-select', div).val().split('.').pop();
+				var typeName = $('.extends-class-select', headContentDiv).val().split('.').pop();
 
 				Command.search(typeName, 'SchemaNode', function (results) {
 					if (results.length === 1) {
@@ -745,40 +745,43 @@ var _Schema = {
 				$("#edit-parent-class").addClass('disabled');
 			}
 		}
-		div.append('<div id="tabs" style="margin-top:20px;"><ul></ul></div>');
 
-		var mainTabs = $('#tabs', div);
+		headContentDiv.append('<div id="tabs" style="margin-top:20px;"><ul></ul></div>');
+		var mainTabs = $('#tabs', headContentDiv);
 
-		_Entities.appendPropTab(entity, mainTabs, 'local', 'Local Attributes', targetView === 'local', function (c) {
+		contentEl.append('<div id="' + id + '_content" class="schema-details"></div>');
+		var contentDiv = $('#' + id + '_content');
+
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Local Attributes', targetView === 'local', function (c) {
 			Command.get(entity.id, function(e) {
 				_Schema.appendLocalProperties(c, e);
 			});
 		});
 
-		_Entities.appendPropTab(entity, mainTabs, 'views', 'Views', targetView === 'views', function (c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', targetView === 'views', function (c) {
 			Command.get(entity.id, function(e) {
 				_Schema.appendViews(c, 'schema_nodes', e);
 			});
 		});
 
-		_Entities.appendPropTab(entity, mainTabs, 'methods', 'Methods', targetView === 'methods', function (c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', targetView === 'methods', function (c) {
 			Command.get(entity.id, function(e) {
 				_Schema.appendMethods(c, e);
 			});
 		});
 
-		_Entities.appendPropTab(entity, mainTabs, 'remote', 'Remote Attributes', targetView === 'remote', function (c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Remote Attributes', targetView === 'remote', function (c) {
 			Command.get(entity.id, function(e) {
 				_Schema.appendRemoteProperties(c, e);
 			});
 		});
 
-		var n = $('.schema-details', el);
+		var n = $('.schema-details', contentDiv);
 		n.children('b').on('click', function() {
 			_Schema.makeAttrEditable(n, 'name');
 		});
 
-		var classSelect = $('.extends-class-select', el);
+		var classSelect = $('.extends-class-select', headEl);
 		$.get(rootUrl + '_schema', function(data) {
 			var result = data.result;
 			var classNames = [];
@@ -812,16 +815,16 @@ var _Schema = {
 			});
 		});
 
+		Structr.resize();
 	},
-	loadRelationship: function(entity, el) {
+	loadRelationship: function(entity, headEl, contentEl) {
 
 		var id = '___' + entity.id;
-		el.append('<div id="' + id + '" class="schema-details"></div>');
+		headEl.append('<div id="' + id + '_head" class="schema-details"></div>');
+		var headContentDiv = $('#' + id + '_head');
 
-		var div = $('#' + id);
-		div.append('<b>' + entity.relationshipType + '</b>');
-        div.append('<table id="relationship-options"><tr><td id="cascading-options"></td><td id="propagation-options"></td></tr></table>');
-		div.append('<div id="tabs" style="margin-top:6px;"><ul></ul></div>');
+		headContentDiv.append('<b>' + entity.relationshipType + '</b>');
+        headContentDiv.append('<table id="relationship-options"><tr><td id="cascading-options"></td><td id="propagation-options"></td></tr></table>');
 
         var relationshipOptions = $('#cascading-options');
     	relationshipOptions.append('<h3>Cascading Delete</h3>');
@@ -844,29 +847,31 @@ var _Schema = {
         propagationTable.append('<td class="selector"><p>Delete</p><select id="delete-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
         propagationTable.append('<td class="selector"><p>AccessControl</p><select id="access-control-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
 
+		headContentDiv.append('<div id="tabs" style="margin-top:20px;"><ul></ul></div>');
+		var mainTabs = $('#tabs', headContentDiv);
 
+		contentEl.append('<div id="' + id + '_content" class="schema-details"></div>');
+		var contentDiv = $('#' + id + '_content');
 
-        var mainTabs = $('#tabs', div);
-
-		_Entities.appendPropTab(entity, mainTabs, 'local', 'Local Attributes', true, function (c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Local Attributes', true, function (c) {
 			Command.get(entity.id, function(e) {
 				_Schema.appendLocalProperties(c, e);
 			});
 		});
 
-		_Entities.appendPropTab(entity, mainTabs, 'views', 'Views', false, function (c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', false, function (c) {
 			Command.get(entity.id, function(e) {
 				_Schema.appendViews(c, 'schema_relationship_nodes', e);
 			});
 		});
 
-		_Entities.appendPropTab(entity, mainTabs, 'methods', 'Methods', false, function (c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', false, function (c) {
 			Command.get(entity.id, function(e) {
 				_Schema.appendMethods(c, e);
 			});
 		});
 
-		var n = $('.schema-details', el);
+		var n = $('.schema-details', headEl);
 		n.children('b').on('click', function() {
 			_Schema.makeAttrEditable(n, 'relationshipType', true);
 		});
@@ -974,6 +979,7 @@ var _Schema = {
 			});
 		});
 
+		Structr.resize();
 	},
 	appendLocalProperties: function(el, entity) {
 

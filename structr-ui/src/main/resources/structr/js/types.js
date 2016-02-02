@@ -125,11 +125,11 @@ var _Types = {
 		$('#resourceTabsMenu input[type="checkbox"]').on('click', function(e) {
 			e.stopPropagation();
 			//e.preventDefault();
-			
+
 			var inp = $(this);
 
 			var key = inp.parent().find('span').text();
-			
+
 			if (!inp.is(':checked')) {
 				hiddenTypesTabs.push(key);
 			} else {
@@ -137,7 +137,7 @@ var _Types = {
 					hiddenTypesTabs.splice(hiddenTypesTabs.indexOf(key), 1);
 				}
 			}
-			
+
 			 LSWrapper.setItem(typesHiddenTabsKey, JSON.stringify(hiddenTypesTabs));
 
 			 Structr.determineSelectAllCheckboxState();
@@ -363,7 +363,7 @@ var _Types = {
 		}
 
 		_Types.resize();
-		
+
 		$('#resourceTabsMenu li.last').removeClass('hidden');
 
 	},
