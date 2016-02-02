@@ -124,7 +124,7 @@ var _Graph = {
 		colors.push('#9A4700');
 
 		var max = 255, min = 0;
-		
+
 		for (i = 50; i < 999; i++) {
 			var color = 'rgb(' + (Math.floor((max - min) * Math.random()) + min) + ',' + (Math.floor((max - min) * Math.random()) + min) + ',' + (Math.floor((max - min) * Math.random()) + min) + ')';
 			colors.push(color);
@@ -135,7 +135,7 @@ var _Graph = {
 		sigma.renderers.def = sigma.renderers.canvas;
 
 		if (engine) {
-			log('sigma engine already exists', engine);
+			_Logger.log('sigma engine already exists', engine);
 			//_Graph.scheduleRefreshEngine();
 			//_Graph.clearGraph();
 			//engine.refresh();
@@ -201,10 +201,10 @@ var _Graph = {
 
 		engine.bind('clickNode', function(e) {
 
-			log('clickNode');
+			_Logger.log('clickNode');
 
 			if (hasDoubleClicked) {
-				log('double clicked, returning');
+				_Logger.log('double clicked, returning');
 				return false;
 			}
 
@@ -253,7 +253,7 @@ var _Graph = {
 					}
 
 					if (draggedNodeSchemaNode.relatedTo) {
-						
+
 						// outgoing schema rels
 						draggedNodeSchemaNode.relatedTo.forEach(function(toRel) {
 
@@ -303,9 +303,9 @@ var _Graph = {
 							}
 						});
 					}
-					
+
 					if (draggedNodeSchemaNode.relatedFrom) {
-						
+
 						// incoming schema rels
 						draggedNodeSchemaNode.relatedFrom.forEach(function(fromRel) {
 
@@ -372,7 +372,7 @@ var _Graph = {
 
 							if (edge.added) {
 								var replaced = edge.replaced;
-								log('edge replaced ', replaced);
+								_Logger.log('edge replaced ', replaced);
 								engine.graph.dropEdge(edge.id);
 								if (replaced && engine.graph.edges(replaced)) {
 									engine.graph.edges(replaced).hidden = false;
@@ -430,7 +430,7 @@ var _Graph = {
 
 	},
 	onload: function() {
-		
+
 		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Graph');
 
 		activeTabLeftGraph = LSWrapper.getItem(activeTabRightGraphKey);
@@ -996,7 +996,7 @@ var _Graph = {
 			width: win.width()
 		});
 
-		$('canvas', graph).css({	
+		$('canvas', graph).css({
 			height: ch,
 			width: win.width()
 		});
@@ -1052,8 +1052,8 @@ var _Graph = {
 	updateNodeTypes: function() {
 
 		var nodeTypesBox = $('#node-types');
-		fastRemoveAllChildren(nodeTypesBox[0]);	
-		
+		fastRemoveAllChildren(nodeTypesBox[0]);
+
 		// getByType: function(type, pageSize, page, sort, order, properties, includeDeletedAndHidden, callback) {
 		Command.getSchemaInfo(function(nodes) {
 
@@ -1064,16 +1064,16 @@ var _Graph = {
 			});
 
 			nodes.forEach(function(node) {
-				
+
 				var hide = false;
-				
+
 				if (!displayCustomTypes && node.className.startsWith('org.structr.dynamic')) hide = true;
 				if (!hide && !displayCoreTypes   && node.className.startsWith('org.structr.core.entity')) hide = true;
 				if (!hide && !displayHtmlTypes   && node.className.startsWith('org.structr.web.entity.html')) hide = true;
 				if (!hide && !displayUiTypes     && node.className.startsWith('org.structr.web.entity') && !(displayHtmlTypes && node.className.startsWith('org.structr.web.entity.html'))) hide = true;
 				if (!hide && !displayLogTypes    && node.className.startsWith('org.structr.rest.logging.entity')) hide = true;
 				if (!hide && !displayOtherTypes  && node.className.startsWith('org.structr.xmpp')) hide = true;
-				
+
 				//console.log(hide, node.type);
 				if (hide) {
 					filteredNodeTypes.push(node.type);
@@ -1081,7 +1081,7 @@ var _Graph = {
 				} else {
 					filteredNodeTypes.splice(filteredNodeTypes.indexOf(node.type), 1);
 				}
-				
+
 				//console.log(filteredNodeTypes);
 
 				schemaNodes[node.type] = node;
@@ -1106,7 +1106,7 @@ var _Graph = {
 				//Object.keys(nodeColors).forEach(function (nodeType) {
 				nodeTypesBox.append('<div id="node-type-' + nodeType + '" class="node-type" data-node-type="' + nodeType + '"><input type="checkbox" class="toggle-type" checked="checked"> <div class="circle" style="background-color: ' + nodeColors[nodeType] + '"></div>' + nodeType + '</div>');
 				var nt = $('#node-type-' + nodeType, nodeTypesBox);
-				
+
 				if (isIn(nodeType, hiddenNodeTypes)) {
 					nt.attr('data-hidden', 1);
 					nt.addClass('hidden-node-type');
@@ -1125,7 +1125,7 @@ var _Graph = {
 				}).draggable({
 					helper: 'clone'
 				});
-				
+
 				$('.toggle-type', nt).on('click', function() {
 					var n = $(this);
 					if (n.attr('data-hidden')) {

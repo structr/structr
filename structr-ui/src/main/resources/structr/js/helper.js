@@ -164,7 +164,7 @@ function cleanText(input) {
 	//console.log(output);
 	return output;
 
-//    if (debug) console.log(input);
+//    _Logger.consoleLog(input);
 //    var output = '';
 //    $(input).each(function(i, line) {
 //        var cleaned = $(line).text();
@@ -504,3 +504,56 @@ function fastRemoveAllChildren(el) {
 		el.removeChild(child);
 	}
 }
+
+/**
+ * The Logger object
+ * After an implementation of the log-method is chosen we dont need to re-evalute the debug parameter.
+ * Also we can change the implementation on-the-fly if we need to.
+ */
+var _Logger = {
+	/**
+	 * Initializes the logger
+	 * The caller would normally use the URL parameter 'debug' as a parameter.
+	 */
+	initLogger: function (debug) {
+		footer.hide();
+
+		if (debug === 'true' || debug === '1') {
+			_Logger.log = _Logger.htmlLog;
+			footer.show();
+		} else if (debug === '2') {
+			_Logger.log = _Logger.consoleLog;
+		} else {
+			_Logger.log = _Logger.nopLog;
+		}
+	},
+
+	/**
+	 * The log function (needs to be initialized in order for logging to work)
+	 */
+	log: function () {
+		/* The default implementation does nothing */
+	},
+
+	/**
+	 * Does nothing
+	 */
+	nopLog: function () {},
+
+	/**
+	 * Logs all arguments to the console
+	 */
+	consoleLog: function () {
+		console.log(arguments);
+	},
+
+	/**
+	 * Logs all arguments to the log area in the footer
+	 */
+	htmlLog: function () {
+		var msg = Array.prototype.slice.call(arguments).join(' ');
+		var div = $('#log', footer);
+		div.append(msg + '<br>');
+		footer.scrollTop(div.height());
+	}
+};

@@ -1458,7 +1458,7 @@ var _Schema = {
 			return;
 		}
 		var div = element.append('<div class="editor"></div>');
-		log(div);
+		_Logger.log(div);
 		var contentBox = $('.editor', element);
 		contentType = contentType ? contentType : entity.contentType;
 		var text1, text2;
@@ -1541,10 +1541,8 @@ var _Schema = {
 			if (!text2)
 				text2 = '';
 
-			if (debug) {
-				console.log('text1', text1);
-				console.log('text2', text2);
-			}
+			_Logger.consoleLog('text1', text1);
+			_Logger.consoleLog('text2', text2);
 
 			if (text1 === text2) {
 				return;

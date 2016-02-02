@@ -55,11 +55,11 @@ var StructrModel = {
 	 */
 	create: function(data, refId, append) {
 
-		log("StructrModel.create", data);
+		_Logger.log("StructrModel.create", data);
 		if (!data) return;
 
 		var keys = Object.keys(data);
-		
+
 		if (keys.length === 1 && keys[0] === 'id') {
 			Command.get(data.id, function(data) {
 				return StructrModel.createFromData(data, refId, append);
@@ -71,9 +71,9 @@ var StructrModel = {
 
 	},
 	createFromData: function(data, refId, append) {
-		
+
 		var obj;
-		
+
 		if (data.isPage) {
 
 			obj = new StructrPage(data);
@@ -127,7 +127,7 @@ var StructrModel = {
 				if (el.parent().prop('id') === 'elementsArea') {
 					el.remove();
 				} else {
-					log('obj exists');
+					_Logger.log('obj exists');
 					return obj;
 				}
 			}
@@ -139,7 +139,7 @@ var StructrModel = {
 		}
 
 		return obj;
-		
+
 	},
 	/**
 	 * Append and check expand status
@@ -162,7 +162,7 @@ var StructrModel = {
 	 */
 	expand: function(element, obj) {
 
-		log('StructrModel.expand', element, obj);
+		_Logger.log('StructrModel.expand', element, obj);
 
 		if (element) {
 
@@ -174,11 +174,11 @@ var StructrModel = {
 
 			if (parent && parent.hasClass('node') && parent.children('.node') && parent.children('.node').length) {
 
-				log('parent of last appended object has children');
+				_Logger.log('parent of last appended object has children');
 
 				var ent = Structr.entityFromElement(parent);
 				_Entities.ensureExpanded(parent);
-				log('entity', ent);
+				_Logger.log('entity', ent);
 				_Entities.appendExpandIcon(parent, ent, true, true);
 
 			}
@@ -228,7 +228,7 @@ var StructrModel = {
 		if (obj && data.modifiedProperties && data.modifiedProperties.length) {
 
 			$.each(data.modifiedProperties, function(i, key) {
-				log('update model', key, data.data[key]);
+				_Logger.log('update model', key, data.data[key]);
 				obj[key] = data.data[key];
 				//console.log('object ', obj, 'updated with key', key, '=', obj[key]);
 				//StructrModel.refreshKey(obj.id, key);
@@ -242,7 +242,7 @@ var StructrModel = {
 
 	},
 	updateKey: function(id, key, value) {
-		log('StructrModel.updateKey', id, key, value);
+		_Logger.log('StructrModel.updateKey', id, key, value);
 		var obj = StructrModel.obj(id);
 
 		if (obj) {
@@ -271,9 +271,9 @@ var StructrModel = {
 
 		//for (var key in data.data) {
 		var inputElement = $('td.' + key + '_ input', element);
-		log(inputElement);
+		_Logger.log(inputElement);
 		var newValue = obj[key];
-		log(key, newValue, typeof newValue);
+		_Logger.log(key, newValue, typeof newValue);
 
 		var attrElement = element.children('.' + key + '_');
 
@@ -291,7 +291,7 @@ var StructrModel = {
 				if (attrElement && tag === 'select') {
 					attrElement.val(newValue);
 				} else {
-					log(key, newValue);
+					_Logger.log(key, newValue);
 					if (key === 'name') {
 						attrElement.attr('title', newValue).html(fitStringToWidth(newValue, w));
 					}
@@ -303,7 +303,7 @@ var StructrModel = {
 
 				if (key === 'content') {
 
-					log(attrElement.text(), newValue);
+					_Logger.log(attrElement.text(), newValue);
 
 					attrElement.text(newValue);
 
@@ -317,7 +317,7 @@ var StructrModel = {
 			}
 		}
 
-		log(key, Structr.getClass(element));
+		_Logger.log(key, Structr.getClass(element));
 
 		if (key === 'name') {
 
@@ -330,16 +330,16 @@ var StructrModel = {
 
 				tabNameElement.attr('title', newValue).html(fitStringToWidth(newValue, w));
 
-				log('Model: Reload iframe', id, newValue);
+				_Logger.log('Model: Reload iframe', id, newValue);
 				_Pages.reloadIframe(id);
 
 			} else if (Structr.getClass(element) === 'folder') {
-				
+
 				_Filesystem.refreshTree();
-			
+
 			}
 		}
-		
+
 
 	},
 	/**
@@ -349,7 +349,7 @@ var StructrModel = {
 	refresh: function(id) {
 
 		var obj = StructrModel.obj(id);
-		log('Model refresh, updated object', obj);
+		_Logger.log('Model refresh, updated object', obj);
 
 		if (obj) {
 			var element = Structr.node(id);
@@ -365,7 +365,7 @@ var StructrModel = {
 			if (!element)
 				return;
 
-			log(obj, id, element);
+			_Logger.log(obj, id, element);
 
 			// update values with given key
 			$.each(Object.keys(obj), function(i, key) {
@@ -426,7 +426,7 @@ var StructrModel = {
 						e.stopPropagation();
 						_Entities.makeNameEditable(element, 200);
 					});
-					
+
 					element.children('.name_').replaceWith('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>');
 					element.children('b.name_').on('click', function (e) {
 						e.stopPropagation();
@@ -453,7 +453,7 @@ var StructrModel = {
 	 */
 	save: function(id) {
 		var obj = StructrModel.obj(id);
-		log('StructrModel.save', obj);
+		_Logger.log('StructrModel.save', obj);
 
 		// Filter out object type data
 		var data = {};
@@ -472,10 +472,10 @@ var StructrModel = {
 
 	callCallback: function(callback, entity, resultSize) {
 		if (callback) {
-			log('Calling callback', callback, 'on entity', entity, resultSize);
+			_Logger.log('Calling callback', callback, 'on entity', entity, resultSize);
 			var callbackFunction = StructrModel.callbacks[callback];
 			if (callback && callbackFunction) {
-				log(callback, callbackFunction.toString());
+				_Logger.log(callback, callbackFunction.toString());
 				StructrModel.callbacks[callback](entity, resultSize);
 			}
 		}
@@ -867,7 +867,7 @@ StructrElement.prototype.remove = function() {
 		element.remove();
 	}
 
-	log(this, element, parent, Structr.containsNodes(parent));
+	_Logger.log(this, element, parent, Structr.containsNodes(parent));
 
 	if (element && parent && !Structr.containsNodes(parent)) {
 		_Entities.removeExpandIcon(parent);
@@ -960,7 +960,7 @@ StructrContent.prototype.append = function(refNode) {
 	if (!div)
 		return;
 
-	log('appendContentElement div', div);
+	_Logger.log('appendContentElement div', div);
 
 	StructrModel.expand(div, this);
 

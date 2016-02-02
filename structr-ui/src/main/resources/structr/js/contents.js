@@ -29,7 +29,7 @@ var _Contents = {
 	add_icon: 'icon/page_white_add.png',
 	delete_icon: 'icon/page_white_delete.png',
 	appendContentElement: function(entity, refNode, refNodeIsParent) {
-		log('Contents.appendContentElement', entity, refNode);
+		_Logger.log('Contents.appendContentElement', entity, refNode);
 
 		var parent;
 
@@ -109,9 +109,9 @@ var _Contents = {
 	},
 	openEditContentDialog: function(btn, entity) {
 		Structr.dialog('Edit content of ' + (entity.name ? entity.name : entity.id), function() {
-			log('content saved');
+			_Logger.log('content saved');
 		}, function() {
-			log('cancelled');
+			_Logger.log('cancelled');
 		});
 		Command.getProperty(entity.id, 'content', function(text) {
             currentEntity = entity;
@@ -131,7 +131,7 @@ var _Contents = {
 					   }
 				   }
 				}
-				
+
 			});
       }, 100);
       return CodeMirror.Pass;
@@ -158,7 +158,7 @@ var _Contents = {
 			return;
 		}
 		var div = element.append('<div class="editor"></div>');
-		log(div);
+		_Logger.log(div);
 		var contentBox = $('.editor', element);
 		contentType = contentType ? contentType : entity.contentType;
 		var text1, text2;
@@ -311,11 +311,9 @@ var _Contents = {
 			if (!text2)
 				text2 = '';
 
-			if (debug) {
-				console.log('Element', contentNode);
-				console.log('text1', text1);
-				console.log('text2', text2);
-			}
+			_Logger.consoleLog('Element', contentNode);
+			_Logger.consoleLog('text1', text1);
+			_Logger.consoleLog('text2', text2);
 
 			if (text1 === text2) {
 				return;

@@ -28,7 +28,7 @@ var _Entities = {
 	readOnlyAttrs: ['lastModifiedDate', 'createdDate', 'createdBy', 'id', 'checksum', 'size', 'version', 'relativeFilePath'],
 	changeBooleanAttribute: function(attrElement, value, activeLabel, inactiveLabel) {
 
-		log('Change boolean attribute ', attrElement, ' to ', value);
+		_Logger.log('Change boolean attribute ', attrElement, ' to ', value);
 
 		if (value === true) {
 			attrElement.removeClass('inactive').addClass('active').prop('checked', true).html('<img src="icon/tick.png">' + (activeLabel ? ' ' + activeLabel : ''));
@@ -40,7 +40,7 @@ var _Entities = {
 	reloadChildren: function(id) {
 		var el = Structr.node(id);
 
-		log('reloadChildren', el);
+		_Logger.log('reloadChildren', el);
 
 		$(el).children('.node').remove();
 		_Entities.resetMouseOverState(el);
@@ -195,9 +195,9 @@ var _Entities = {
 	editSource: function(entity) {
 
 		Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', function () {
-			log('Element source saved');
+			_Logger.log('Element source saved');
 		}, function () {
-			log('cancelled');
+			_Logger.log('cancelled');
 		});
 
 		// Get content in widget mode
@@ -735,19 +735,19 @@ var _Entities = {
 			});
 
 			input.on('focusout', function() {
-				log('relId', relId);
+				_Logger.log('relId', relId);
 				var objId = relId ? relId : id;
-				log('set properties of obj', objId);
+				_Logger.log('set properties of obj', objId);
 
 				var keyInput = input.parent().parent().children('td').first().children('input');
-				log(keyInput);
+				_Logger.log(keyInput);
 				if (keyInput && keyInput.length) {
 
 					var newKey = keyInput.val();
 					var val = input.val();
 
 					// new key
-					log('new key: Command.setProperty(', objId, newKey, val);
+					_Logger.log('new key: Command.setProperty(', objId, newKey, val);
 					Command.setProperty(objId, newKey, val, false, function() {
 						blinkGreen(input);
 						dialogMsg.html('<div class="infoBox success">New property "' + newKey + '" was added and saved with value "' + val + '".</div>');
@@ -761,7 +761,7 @@ var _Entities = {
 					var isPassword = input.prop('type') === 'password';
 					if (input.data('changed')) {
 						input.data('changed', false);
-						log('existing key: Command.setProperty(', objId, key, val);
+						_Logger.log('existing key: Command.setProperty(', objId, key, val);
 						_Entities.setProperty(objId, key, val, false, function(newVal) {
 							if (isPassword || (newVal && newVal !== oldVal)) {
 								blinkGreen(input);
@@ -905,7 +905,7 @@ var _Entities = {
 		var btn = $('.apply_' + key, el);
 		btn.on('click', function() {
 			Command.setProperty(entity.id, key, $('.' + key + '_', el).val(), false, function(obj) {
-				log(key + ' successfully updated!', obj[key]);
+				_Logger.log(key + ' successfully updated!', obj[key]);
 				blinkGreen(btn);
 				_Pages.reloadPreviews();
 			});
@@ -919,7 +919,7 @@ var _Entities = {
 		var btn = $('.save_' + key, el);
 		btn.on('click', function() {
 			Command.setProperty(entity.id, key, $('.' + key + '_', el).val(), false, function(obj) {
-				log(key + ' successfully updated!', obj[key]);
+				_Logger.log(key + ' successfully updated!', obj[key]);
 				blinkGreen(btn);
 				_Pages.reloadPreviews();
 			});
@@ -1003,7 +1003,7 @@ var _Entities = {
 		}
 		editIcon.on('click', function(e) {
 			e.stopPropagation();
-			log('editSource', entity);
+			_Logger.log('editSource', entity);
 			_Entities.editSource(entity);
 		});
 	},
@@ -1017,7 +1017,7 @@ var _Entities = {
 		}
 		editIcon.on('click', function(e) {
 			e.stopPropagation();
-			log('showProperties', entity);
+			_Logger.log('showProperties', entity);
 			_Entities.showProperties(entity);
 		});
 		if (visible) {
@@ -1038,23 +1038,23 @@ var _Entities = {
 		}
 		dataIcon.on('click', function(e) {
 			e.stopPropagation();
-			log('showDataDialog', entity);
+			_Logger.log('showDataDialog', entity);
 			_Entities.showDataDialog(entity);
 		});
 	},
 	appendExpandIcon: function(el, entity, hasChildren, expand) {
 
-		log('_Entities.appendExpandIcon', el, entity, hasChildren, expand);
+		_Logger.log('_Entities.appendExpandIcon', el, entity, hasChildren, expand);
 
 		var button = $(el.children('.expand_icon').first());
 		if (button && button.length) {
-			log('Expand icon already existing', el, button);
+			_Logger.log('Expand icon already existing', el, button);
 			return;
 		}
 
 		if (hasChildren) {
 
-			log('appendExpandIcon hasChildren?', hasChildren, 'expand?', expand);
+			_Logger.log('appendExpandIcon hasChildren?', hasChildren, 'expand?', expand);
 
 			var typeIcon = $(el.children('.typeIcon').first());
 			var icon = expand ? Structr.expanded_icon : Structr.expand_icon;
@@ -1097,7 +1097,7 @@ var _Entities = {
 	removeExpandIcon: function(el) {
 		if (!el)
 			return;
-		log('removeExpandIcon', el);
+		_Logger.log('removeExpandIcon', el);
 		var button = $(el.children('.expand_icon').first());
 
 		// unregister click handlers
@@ -1221,7 +1221,7 @@ var _Entities = {
 		if (_Entities.isExpanded(element)) {
 			return;
 		} else {
-			log('ensureExpanded: fetch children', el);
+			_Logger.log('ensureExpanded: fetch children', el);
 			Command.children(id, callback);
 			el.children('.expand_icon').first().prop('src', 'icon/tree_arrow_down.png');
 		}
@@ -1254,7 +1254,7 @@ var _Entities = {
 		var el = $(element);
 		var id = Structr.getId(el) || Structr.getComponentId(el);
 
-		log('toggleElement: ', el, id);
+		_Logger.log('toggleElement: ', el, id);
 
 		var b = el.children('.expand_icon').first();
 
@@ -1270,7 +1270,7 @@ var _Entities = {
 		} else {
 
 			if (!expanded) {
-				log('toggleElement: fetch children', id);
+				_Logger.log('toggleElement: fetch children', id);
 				Command.children(id);
 
 			}
@@ -1514,7 +1514,7 @@ function addPrincipal(entity, principal, permissions) {
 			Command.setPermission(entity.id, principal.id, permissions[perm] ? 'revoke' : 'grant', perm, rec, function() {
 				permissions[perm] = !permissions[perm];
 				sw.prop('checked', permissions[perm]);
-				log('Permission successfully updated!');
+				_Logger.log('Permission successfully updated!');
 				blinkGreen(sw.parent());
 
 

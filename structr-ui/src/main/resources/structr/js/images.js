@@ -115,17 +115,17 @@ var _Images = {
 			drop.on('drop', function(event) {
 
 				if (!event.originalEvent.dataTransfer) {
-					log(event);
+					_Logger.log(event);
 					return;
 				}
 
-				log('dropped something in the #files area');
+				_Logger.log('dropped something in the #files area');
 
 				event.stopPropagation();
 				event.preventDefault();
 
 				fileList = event.originalEvent.dataTransfer.files;
-				log(fileList);
+				_Logger.log(fileList);
 				var filesToUpload = [];
 				var tooLargeFiles = [];
 
@@ -150,7 +150,7 @@ var _Images = {
 							fadeOut: 25
 						});
 						$(filesToUpload).each(function(i, file) {
-							log(file);
+							_Logger.log(file);
 							if (file)
 								Command.createFile(file);
 						});
@@ -184,7 +184,7 @@ var _Images = {
 	},
 	appendImageElement: function(img) {
 
-		log('Images.appendImageElement', img);
+		_Logger.log('Images.appendImageElement', img);
 
 		//if (!folderId && file.parentFolder) return false;
 
@@ -299,7 +299,7 @@ var _Images = {
 			var tnZoom = $($('.thumbnailZoom', images)[0]);
 
 			tnZoom.on('load', function() {
-				log(tnZoom, tnZoom.position(), tnZoom.width(), tnZoom.height());
+				_Logger.log(tnZoom, tnZoom.position(), tnZoom.width(), tnZoom.height());
 				var pos = el.position();
 
 				tnZoom.css({
@@ -355,9 +355,9 @@ var _Images = {
 		$(parent.children('.edit_file_icon')).on('click', function(e) {
 			e.stopPropagation();
 			Structr.dialog('Edit ' + file.name, function() {
-				log('content saved');
+				_Logger.log('content saved');
 			}, function() {
-				log('cancelled');
+				_Logger.log('cancelled');
 			});
 			_Images.editImage(this, file, $('#dialogBox .dialogText'));
 		});
@@ -366,7 +366,7 @@ var _Images = {
 		element.append('<img class="imageDetail" src="/' + image.id + '"><br><a href="/' + image.id + '">Download</a>');
 	},
 	editImage: function(button, image, element) {
-		log(image);
+		_Logger.log(image);
 		element.append('Download links: <a href="' + image.path + '">Path</a>&nbsp;|&nbsp;<a href="/' + image.id + '">UUID</a><br><br><img src="/' + image.id + '">');
 	}
 };
