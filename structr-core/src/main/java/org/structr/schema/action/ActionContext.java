@@ -281,6 +281,8 @@ public class ActionContext {
 						return securityContext.getUser(false);
 
 					case "element":
+						logger.log(Level.WARNING, "The 'element' keyword is deprecated! Please use 'this' instead. Used in {0}", entity.getProperty(GraphObject.id));
+
 					case "this":
 						return entity;
 
