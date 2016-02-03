@@ -445,15 +445,6 @@ public class RenderContext extends ActionContext {
 						}
 						break;
 
-					case "host":
-						return securityContext.getRequest().getServerName();
-
-					case "port":
-						return securityContext.getRequest().getServerPort();
-
-					case "path_info":
-						return securityContext.getRequest().getPathInfo();
-
 					case "result_count":
 					case "result_size":
 
