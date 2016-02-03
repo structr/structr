@@ -301,8 +301,6 @@ var _Contents = {
 		dialogSaveButton.on('click', function(e) {
 			e.stopPropagation();
 
-			//var contentNode = Structr.node(entity.id)[0];
-
 			text1 = text;
 			text2 = editor.getValue();
 
@@ -311,9 +309,10 @@ var _Contents = {
 			if (!text2)
 				text2 = '';
 
-			_Logger.consoleLog('Element', contentNode);
-			_Logger.consoleLog('text1', text1);
-			_Logger.consoleLog('text2', text2);
+//			var contentNode = Structr.node(entity.id)[0];
+//			_Logger.consoleLog('Element', contentNode);
+//			_Logger.consoleLog('text1', text1);
+//			_Logger.consoleLog('text2', text2);
 
 			if (text1 === text2) {
 				return;
