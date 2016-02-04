@@ -184,6 +184,11 @@ function expandNewline(text) {
 	return output;
 }
 
+var uuidRegexp = new RegExp('[a-fA-F0-9]{32}');
+function isUUID (str) {
+	return (str.length === 32 && uuidRegexp.test(str));
+}
+
 function shorten(uuid) {
 	return uuid.substring(0, 8);
 }
@@ -518,10 +523,10 @@ var _Logger = {
 	initLogger: function (debug) {
 		footer.hide();
 
-		if (debug === 'true' || debug === '1') {
+		if (debug === 'true' || debug === '1' || debug === 'page') {
 			_Logger.log = _Logger.htmlLog;
 			footer.show();
-		} else if (debug === '2') {
+		} else if (debug === '2' || debug === 'console') {
 			_Logger.log = _Logger.consoleLog;
 		} else {
 			_Logger.log = _Logger.nopLog;
