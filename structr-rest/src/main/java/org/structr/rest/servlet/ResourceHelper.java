@@ -48,7 +48,6 @@ import org.structr.rest.resource.ViewFilterResource;
 /**
  * Helper class for parsing and optimizing the resource path
  *
- *  @author Axel Morgner
  */
 public class ResourceHelper {
 

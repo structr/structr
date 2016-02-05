@@ -23,10 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  *
- * @author kaischwaiger
  */
-
-
 public class HashHelper {
 
 	/**
