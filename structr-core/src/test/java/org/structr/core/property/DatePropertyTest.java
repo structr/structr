@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * aDate with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.property;
 
