@@ -41,7 +41,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.Tx;
 import org.structr.schema.SchemaHelper;
 
 /**
@@ -72,8 +71,6 @@ public class SecurityContext {
 	private Set<String> customView               = null;
 	private String cachedUserName                = null;
 	private String cachedUserId                  = null;
-	
-	private Tx tx;
 
 	//~--- constructors ---------------------------------------------------
 	private SecurityContext() {
