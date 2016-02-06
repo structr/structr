@@ -94,6 +94,7 @@
                         <exclude>**/README</exclude>
                         <exclude>src/**/.directory</exclude>
                         <exclude>src/**/*.properties</exclude>
+                        <exclude>src/main/resources/*.js</exclude>
                     </excludes>
                     <properties>
                         <year>2016</year>
@@ -103,7 +104,7 @@
                 <executions>
                     <execution>
                         <goals>
-                            <goal>format</goal>
+                            <goal>check</goal>
                         </goals>
                     </execution>
                 </executions>

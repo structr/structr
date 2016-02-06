@@ -641,6 +641,13 @@
                         <exclude>src/**/*.sh</exclude>
                         <exclude>src/main/resources/**/*.html</exclude>
                         <exclude>src/main/resources/**/*.xml</exclude>
+                        <exclude>src/main/resources/**/*.xsl*</exclude>
+                        <exclude>src/main/resources/**/*.eot</exclude>
+                        <exclude>src/main/resources/**/*.woff</exclude>
+                        <exclude>src/main/resources/**/*.woff2</exclude>
+                        <exclude>src/main/resources/**/*.ttf</exclude>
+                        <exclude>src/main/resources/**/*.otf</exclude>
+                        <exclude>src/main/resources/**/*.svg</exclude>
                         <exclude>src/main/resources/bin/**</exclude>
                         <exclude>src/main/resources/mime.types</exclude>
                         <exclude>src/main/resources/structr/codemirror/**</exclude>
@@ -658,7 +665,7 @@
                 <executions>
                     <execution>
                         <goals>
-                            <goal>format</goal>
+                            <goal>check</goal>
                         </goals>
                     </execution>
                 </executions>
