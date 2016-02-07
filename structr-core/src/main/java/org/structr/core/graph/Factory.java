@@ -19,10 +19,12 @@
 package org.structr.core.graph;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -33,7 +35,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
+import org.bouncycastle.util.test.SimpleTestResult;
+import org.structr.api.DatabaseService;
+import org.structr.api.NotFoundException;
 import org.structr.api.QueryResult;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;
@@ -344,15 +352,17 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 	protected Result page(final QueryResult<S> input, final int overallResultCount, final int offset, final int pageSize) throws FrameworkException {
 
+		final SecurityContext securityContext      = factoryProfile.getSecurityContext();
+
 		final AtomicBoolean keepRunning    = new AtomicBoolean(true);
 		final AtomicInteger overallCount   = new AtomicInteger();
 		final AtomicInteger processedItems = new AtomicInteger();
 
-		final List<Item<T>> nodes = new LinkedList<>();
+		final List<Item<T>> nodes          = new LinkedList<>();
+		final List<Item<S>> failed         = new LinkedList<>();
 
 		try (final QueryResult<S> closeable = input) {
 
-			final SecurityContext securityContext      = factoryProfile.getSecurityContext();
 			final boolean preventFullCount             = securityContext.hasParameter("ignoreResultCount");
 			final ConcurrentLinkedQueue<Item<S>> queue = new ConcurrentLinkedQueue<>();
 			final List<Future> futures                 = new LinkedList<>();
@@ -367,7 +377,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 			if (rawCount < 100) {
 
 				// do not use multithreading
-				final InstantiationWorker worker = new InstantiationWorker(securityContext, queue, nodes, offset, pageSize, preventFullCount);
+				final InstantiationWorker worker = new InstantiationWorker(securityContext, queue, failed, nodes, offset, pageSize, preventFullCount);
 				worker.setProcessedItems(processedItems);
 				worker.setOverallCount(overallCount);
 				worker.setKeepRunning(keepRunning);
@@ -383,7 +393,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 				// submit workers, use multithreading
 				for (int i=0; i<threadCount; i++) {
 
-					final InstantiationWorker worker = new InstantiationWorker(securityContext, queue, nodes, offset, pageSize, preventFullCount);
+					final InstantiationWorker worker = new InstantiationWorker(securityContext, queue, failed, nodes, offset, pageSize, preventFullCount);
 					worker.setProcessedItems(processedItems);
 					worker.setOverallCount(overallCount);
 					worker.setKeepRunning(keepRunning);
@@ -402,7 +412,10 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 						future.get();
 
 					} catch (InterruptedException | ExecutionException iex) {
-						iex.printStackTrace();
+						
+						if (!iex.getMessage().contains("org.neo4j.kernel.api.exceptions.EntityNotFoundException")) {
+							iex.printStackTrace();
+						}
 					}
 				}
 
@@ -422,10 +435,22 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		final int to   = Math.min(offset+pageSize, size);
 		final List<T> output = new LinkedList<>();
 
-		for (final Item<T> item : nodes.subList(from, to)) {
+		nodes.subList(from, to).stream().forEach((item) -> {
 			output.add(item.item);
-		}
+		});
+		
+		// manually instantiate entities which couldn't be found due to tx isolation
+		failed.stream().map((item) -> (T) instantiate((S) item.item)).map((obj) -> {
 
+			if (output.contains(obj)) {
+				output.remove(obj);
+			}
+			return obj;	
+
+		}).forEach((obj) -> {
+			output.add(obj);
+		});
+		
 		// The overall count may be inaccurate
 		return new Result(output, overallCount.get(), true, false);
 	}
@@ -437,6 +462,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		private final SecurityContext securityContext;
 		private final Queue<Item<S>> source;
 		private final List<Item<T>> nodes;
+		private final List<Item<S>> failed;
 
 		private AtomicInteger processedItems = null;
 		private AtomicInteger overallCount   = null;
@@ -446,7 +472,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		private int pageSize                 = 0;
 		private int offset                   = 0;
 
-		public InstantiationWorker(final SecurityContext securityContext, final Queue<Item<S>> source, final List<Item<T>> nodes, final int offset, final int pageSize, final boolean dontCheckCount) {
+		public InstantiationWorker(final SecurityContext securityContext, final Queue<Item<S>> source, final List<Item<S>> failed, final List<Item<T>> nodes, final int offset, final int pageSize, final boolean dontCheckCount) {
 
 			this.securityContext = securityContext;
 			this.offset          = offset;
@@ -454,6 +480,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 			this.dontCheckCount  = dontCheckCount;
 			this.pageSize        = pageSize;
 			this.nodes           = nodes;
+			this.failed          = failed;
 		}
 
 		@Override
@@ -484,7 +511,18 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 					processedItems.incrementAndGet();
 
-					T n = instantiate(item.item);
+					T n = null;
+					
+					try {
+						n = instantiate(item.item);
+						
+					} catch (NotFoundException nfe) {
+
+						synchronized(failed) {
+							failed.add(item);
+						}
+					}
+
 					if (n != null) {
 
 						overallCount.incrementAndGet();
