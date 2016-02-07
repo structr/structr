@@ -420,6 +420,11 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 		}
 
+		// manually instantiate entities which couldn't be found due to tx isolation
+		failed.stream().forEach((item) -> {
+			nodes.add(new Item<>(item.index, (T) instantiate((S) item.item)));
+		});
+
 		// keep initial sort order
 		Collections.sort(nodes);
 
@@ -430,18 +435,6 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 		nodes.subList(from, to).stream().forEach((item) -> {
 			output.add(item.item);
-		});
-
-		// manually instantiate entities which couldn't be found due to tx isolation
-		failed.stream().map((item) -> (T) instantiate((S) item.item)).map((obj) -> {
-
-			if (output.contains(obj)) {
-				output.remove(obj);
-			}
-			return obj;
-
-		}).forEach((obj) -> {
-			output.add(obj);
 		});
 
 		// The overall count may be inaccurate
