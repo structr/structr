@@ -1,22 +1,21 @@
 /*
- *  Copyright (C) 2010-2016 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
- *  This file is part of Structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  Structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  Structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 var elements, dropBlocked;
 
 var _Elements = {
@@ -195,7 +194,7 @@ var _Elements = {
 				dropBlocked = true;
 				var sourceEl = $(ui.draggable);
 				if (sourceEl.parent().attr('id') === 'widgets') {
-					log('widget dropped on widget area, aborting');
+					_Logger.log('widget dropped on widget area, aborting');
 					return false;
 				}
 				var sourceId = Structr.getId(sourceEl);
@@ -264,7 +263,7 @@ var _Elements = {
 		if (!$('.draggable', palette).length) {
 
 			$(_Elements.elementGroups).each(function(i, group) {
-				log(group);
+				_Logger.log(group);
 				palette.append('<div class="elementGroup" id="group_' + group.name + '"><h3>' + group.name + '</h3></div>');
 				$(group.elements).each(function(j, elem) {
 					var div = $('#group_' + group.name);
@@ -306,7 +305,7 @@ var _Elements = {
 				if (!sourceId) return false;
 				var obj = StructrModel.obj(sourceId);
 				if (obj && obj.syncedNodes && obj.syncedNodes.length || sourceEl.parent().attr('id') === 'componentsArea') {
-					log('component dropped on components area, aborting');
+					_Logger.log('component dropped on components area, aborting');
 					return false;
 				}
 				Command.createComponent(sourceId);
@@ -389,7 +388,7 @@ var _Elements = {
 	 * Create a DOM node and append to the appropriate parent
 	 */
 	appendElementElement: function(entity, refNode, refNodeIsParent) {
-		log('_Elements.appendElementElement', entity);
+		_Logger.log('_Elements.appendElementElement', entity);
 
 		if (!entity) {
 			return false;
@@ -410,7 +409,7 @@ var _Elements = {
 			parent = entity.parent && entity.parent.id ? Structr.node(entity.parent.id) : elements;
 		}
 
-		log('appendElementElement parent, refNode, refNodeIsParent', parent, refNode, refNodeIsParent);
+		_Logger.log('appendElementElement parent, refNode, refNodeIsParent', parent, refNode, refNodeIsParent);
 		if (!parent)
 			return false;
 
@@ -428,7 +427,7 @@ var _Elements = {
 
 		var div = Structr.node(id);
 
-		log('Element appended (div, parent)', div, parent);
+		_Logger.log('Element appended (div, parent)', div, parent);
 
 		if (!div)
 			return false;
@@ -520,9 +519,9 @@ var _Elements = {
 				var file = {'name': entity.linkable, 'id': entity.linkableId};
 
 				Structr.dialog('Edit ' + file.name, function() {
-					log('content saved')
+					_Logger.log('content saved')
 				}, function() {
-					log('cancelled')
+					_Logger.log('cancelled')
 				});
 				_Files.editContent(this, file, $('#dialogBox .dialogText'));
 

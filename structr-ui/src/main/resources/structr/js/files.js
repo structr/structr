@@ -1,22 +1,21 @@
 /*
- *  Copyright (C) 2010-2016 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
- *  This file is part of Structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  Structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  Structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 var images, files, folders, drop;
 var fileList;
 var chunkSize = 1024 * 64;
@@ -44,7 +43,7 @@ var _Files = {
 	download_icon: 'icon/basket_put.png',
 	init: function() {
 
-		log('_Files.init');
+		_Logger.log('_Files.init');
 
 		_Pager.initPager('File', 1, 25, 'name', 'asc');
 		_Pager.initPager('Folder', 1, 25, 'name', 'asc');
@@ -125,7 +124,7 @@ var _Files = {
 			drop = $('#dropArea');
 
 			drop.on('dragover', function(event) {
-				log('dragging over #files area');
+				_Logger.log('dragging over #files area');
 				event.originalEvent.dataTransfer.dropEffect = 'copy';
 				return false;
 			});
@@ -136,7 +135,7 @@ var _Files = {
 					return;
 				}
 
-				log('dropped something in the #files area');
+				_Logger.log('dropped something in the #files area');
 
 				event.stopPropagation();
 				event.preventDefault();
@@ -166,7 +165,7 @@ var _Files = {
 							fadeOut: 25
 						});
 						$(filesToUpload).each(function(i, file) {
-							log(file);
+							_Logger.log(file);
 							if (file) {
 								Command.createFile(file);
 							}
@@ -253,7 +252,7 @@ var _Files = {
 		if (_Files.isArchive(file)) {
 			div.append('<img class="unarchive_icon button" src="icon/compress.png">');
 			div.children('.unarchive_icon').on('click', function() {
-				log('unarchive', file.id);
+				_Logger.log('unarchive', file.id);
 				Command.unarchive(file.id);
 			});
 		}
@@ -268,7 +267,7 @@ var _Files = {
 			e.stopPropagation();
 			window.open(file.path, 'Download ' + file.name);
 		});
-		log(folderId, add);
+		_Logger.log(folderId, add);
 
 		delIcon = div.children('.delete_icon');
 
@@ -341,11 +340,11 @@ var _Files = {
 	},
 	appendFolderElement: function(folder) {
 
-		log('appendFolderElement', folder, folder.parent);
+		_Logger.log('appendFolderElement', folder, folder.parent);
 
 		var hasParent = folder.parent && folder.parent.id;
 
-		log(folder.name, 'has parent?', hasParent);
+		_Logger.log(folder.name, 'has parent?', hasParent);
 
 		var parentId, parentFolderElement;
 		if (folder.parent && folder.parent.id) {
@@ -406,7 +405,7 @@ var _Files = {
 
 		var hasChildren = (folder.folders && folder.folders.length) || (folder.files && folder.files.length);
 
-		log(folder.name, 'has children?', hasChildren, 'is expanded?', isExpanded(folder.id));
+		_Logger.log(folder.name, 'has children?', hasChildren, 'is expanded?', isExpanded(folder.id));
 
 		_Entities.appendExpandIcon(div, folder, hasChildren);
 
@@ -424,7 +423,7 @@ var _Files = {
 				var self = $(this);
 				var fileId = Structr.getId(ui.draggable);
 				var folderId = Structr.getId(self);
-				log('fileId, folderId', fileId, folderId);
+				_Logger.log('fileId, folderId', fileId, folderId);
 				if (!(fileId === folderId)) {
 					var nodeData = {};
 					nodeData.id = fileId;
@@ -472,13 +471,13 @@ var _Files = {
 
 			var typeIcon = Structr.node(file.id).find('.typeIcon');
 			var iconSrc = typeIcon.prop('src');
-			log('Icon src: ', iconSrc);
+			_Logger.log('Icon src: ', iconSrc);
 			typeIcon.prop('src', iconSrc + '?' + new Date().getTime());
 		};
 
 		$(fileList).each(function(i, fileObj) {
 			if (fileObj.name === file.name) {
-				log('Uploading chunks for file ' + file.id);
+				_Logger.log('Uploading chunks for file ' + file.id);
 				worker.postMessage(fileObj);
 			}
 		});
@@ -515,9 +514,9 @@ var _Files = {
 			}
 
 			Structr.dialog('Edit files', function() {
-				log('content saved');
+				_Logger.log('content saved');
 			}, function() {
-				log('cancelled');
+				_Logger.log('cancelled');
 			});
 
 			dialogText.append('<div id="files-tabs" class="files-tabs"><ul></ul></div>');
@@ -549,7 +548,7 @@ var _Files = {
 	},
 	editContent: function(button, file, element) {
 		var url = viewRootUrl + file.id + '?edit=1';
-		log('editContent', button, file, element, url);
+		_Logger.log('editContent', button, file, element, url);
 		var text = '';
 
 		var contentType = file.contentType;
@@ -564,7 +563,7 @@ var _Files = {
 				contentType = 'text/plain';
 			}
 		}
-		log(viewRootUrl, url);
+		_Logger.log(viewRootUrl, url);
 
 		$.ajax({
 			url: url,
@@ -572,7 +571,7 @@ var _Files = {
 			dataType: dataType,
 			contentType: contentType,
 			success: function(data) {
-				log(file.id, fileContents);
+				_Logger.log(file.id, fileContents);
 				text = fileContents[file.id] || data;
 				if (isDisabled(button))
 					return;

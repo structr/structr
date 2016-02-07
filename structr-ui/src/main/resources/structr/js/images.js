@@ -1,22 +1,21 @@
 /*
- *  Copyright (C) 2010-2016 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
- *  This file is part of Structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  Structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  Structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 var images, folders, drop;
 var fileList;
 var chunkSize = 1024 * 64;
@@ -115,17 +114,17 @@ var _Images = {
 			drop.on('drop', function(event) {
 
 				if (!event.originalEvent.dataTransfer) {
-					log(event);
+					_Logger.log(event);
 					return;
 				}
 
-				log('dropped something in the #files area');
+				_Logger.log('dropped something in the #files area');
 
 				event.stopPropagation();
 				event.preventDefault();
 
 				fileList = event.originalEvent.dataTransfer.files;
-				log(fileList);
+				_Logger.log(fileList);
 				var filesToUpload = [];
 				var tooLargeFiles = [];
 
@@ -150,7 +149,7 @@ var _Images = {
 							fadeOut: 25
 						});
 						$(filesToUpload).each(function(i, file) {
-							log(file);
+							_Logger.log(file);
 							if (file)
 								Command.createFile(file);
 						});
@@ -184,7 +183,7 @@ var _Images = {
 	},
 	appendImageElement: function(img) {
 
-		log('Images.appendImageElement', img);
+		_Logger.log('Images.appendImageElement', img);
 
 		//if (!folderId && file.parentFolder) return false;
 
@@ -299,7 +298,7 @@ var _Images = {
 			var tnZoom = $($('.thumbnailZoom', images)[0]);
 
 			tnZoom.on('load', function() {
-				log(tnZoom, tnZoom.position(), tnZoom.width(), tnZoom.height());
+				_Logger.log(tnZoom, tnZoom.position(), tnZoom.width(), tnZoom.height());
 				var pos = el.position();
 
 				tnZoom.css({
@@ -355,9 +354,9 @@ var _Images = {
 		$(parent.children('.edit_file_icon')).on('click', function(e) {
 			e.stopPropagation();
 			Structr.dialog('Edit ' + file.name, function() {
-				log('content saved');
+				_Logger.log('content saved');
 			}, function() {
-				log('cancelled');
+				_Logger.log('cancelled');
 			});
 			_Images.editImage(this, file, $('#dialogBox .dialogText'));
 		});
@@ -366,7 +365,7 @@ var _Images = {
 		element.append('<img class="imageDetail" src="/' + image.id + '"><br><a href="/' + image.id + '">Download</a>');
 	},
 	editImage: function(button, image, element) {
-		log(image);
+		_Logger.log(image);
 		element.append('Download links: <a href="' + image.path + '">Path</a>&nbsp;|&nbsp;<a href="/' + image.id + '">UUID</a><br><br><img src="/' + image.id + '">');
 	}
 };

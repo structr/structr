@@ -1,22 +1,21 @@
 /*
- *  Copyright (C) 2010-2016 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
- *  This file is part of Structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  Structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  Structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 var defaultType, defaultView, defaultSort, defaultOrder, defaultPage, defaultPageSize;
 var searchField;
 var defaultCollectionPageSize = 10;
@@ -52,7 +51,7 @@ if (browser) {
 }
 
 var _Crud = {
-	types: [],
+	types: {},
 	keys: {},
 	getProperties: function(type, callback) {
 
@@ -113,11 +112,11 @@ var _Crud = {
 	},
 	type: null,
 	pageCount: null,
-	view: [],
-	sort: [],
-	order: [],
-	page: [],
-	pageSize: [],
+	view: {},
+	sort: {},
+	order: {},
+	page: {},
+	pageSize: {},
 	filteredNodeTypes: [],
 	displayCustomTypes: true,
 	displayCoreTypes: false,
@@ -284,7 +283,7 @@ var _Crud = {
 			_Crud.resize();
 		});
 		hiddenTabs = JSON.parse(LSWrapper.getItem(crudHiddenTabsKey)) || hiddenTabs;
-		log('########## Hidden tabs ##############', hiddenTabs);
+		_Logger.log('########## Hidden tabs ##############', hiddenTabs);
 
 	},
 	initTabs: function() {
@@ -719,9 +718,9 @@ var _Crud = {
 	},
 	appendCellPager: function(el, id, type, key) {
 
-		//console.log('appendCellPager', id, el, type, key);
+		// console.log('appendCellPager', id, el, type, key);
 
-		var pageSize = _Crud.getCollectionPageSize(type, key);
+		var pageSize = _Crud.getCollectionPageSize(type, key) || defaultCollectionPageSize;
 
 		$.ajax({
 			url: rootUrl + type + '/' + id + '/' + key + '?pageSize=' + pageSize,
@@ -781,6 +780,11 @@ var _Crud = {
 
 				}
 
+			},
+			error:function(jqXHR, textStatus, errorThrown) {
+				_Logger.log('appendCellPager', id, el, type, key);
+				_Logger.log('Property: ', _Crud.keys[type][key]);
+				_Logger.log('Error: ', textStatus, errorThrown, jqXHR.responseJSON);
 			}
 
 		});
@@ -1687,7 +1691,11 @@ var _Crud = {
 				_Crud.displaySearch(type, id, key, simpleType, dialogText);
 			});
 
-			_Crud.appendCellPager(cell, id, type, key);
+			if (_Crud.keys[type][key] && _Crud.keys[type][key].className.indexOf('CollectionIdProperty') === -1) {
+
+				_Crud.appendCellPager(cell, id, type, key);
+
+			}
 
 		} else {
 
@@ -1749,13 +1757,32 @@ var _Crud = {
 	},
 	getAndAppendNode: function(parentType, parentId, key, obj, cell) {
 		//console.log(parentType, parentId, key, obj, cell);
-		if (!obj)
+		if (!obj) {
 			return;
+		}
 		var id;
 		if ((typeof obj) === 'object') {
 			id = obj.id;
-		} else {
+		} else if (isUUID(obj)) {
 			id = obj;
+		} else {
+			// search object by name
+			var type = _Crud.keys[parentType][key].relatedType.split('.').pop();
+
+			$.ajax({
+				url: rootUrl + type + '?name=' + obj,
+				type: 'GET',
+				dataType: 'json',
+				contentType: 'application/json; charset=utf-8;',
+				//async: false,
+				success: function(data) {
+					if (data.result.length > 0) {
+						_Crud.getAndAppendNode(parentType, parentId, key, data.result[0], cell);
+					}
+				}
+			});
+
+			return;
 		}
 
 		$.ajax({

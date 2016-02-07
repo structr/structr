@@ -1,22 +1,21 @@
 /*
- *  Copyright (C) 2010-2016 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
- *  This file is part of Structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  Structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  Structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 var pages, shadowPage, pageVersion = {};
 var previews, previewTabs, controls, activeTab, activeTabLeft, activeTabRight, paletteSlideout, elementsSlideout, componentsSlideout, widgetsSlideout, pagesSlideout, activeElementsSlideout, dataBindingSlideout;
 var lsw, rsw;
@@ -111,9 +110,9 @@ var _Pages = {
 		activeTab = LSWrapper.getItem(activeTabKey);
 		activeTabLeft = LSWrapper.getItem(activeTabLeftKey);
 		activeTabRight = LSWrapper.getItem(activeTabRightKey);
-		log('value read from local storage', activeTab);
+		_Logger.log('value read from local storage', activeTab);
 
-		log('onload');
+		_Logger.log('onload');
 
 		main.prepend(
 				'<div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div>'
@@ -264,7 +263,7 @@ var _Pages = {
 						width: (leftSlideoutWidth-13) + 'px'
 					});
 				}, 100);
-				log(LSWrapper.getItem(leftSlideoutWidthKey), leftSlideoutWidth);
+				_Logger.log(LSWrapper.getItem(leftSlideoutWidthKey), leftSlideoutWidth);
 			}
 			$('#' + activeTabLeft).addClass('active').click();
 		}
@@ -340,11 +339,11 @@ var _Pages = {
 
 			var addressField = $('#_address', dialog);
 
-			log('addressField', addressField);
+			_Logger.log('addressField', addressField);
 
 			addressField.on('blur', function() {
 				var addr = $(this).val().replace(/\/+$/, "");
-				log(addr);
+				_Logger.log(addr);
 				$('#_name', dialog).val(addr.substring(addr.lastIndexOf("/") + 1));
 			});
 
@@ -360,7 +359,7 @@ var _Pages = {
 				var publicVisible = $('#_publicVisible', dialog).prop('checked');
 				var authVisible = $('#_authVisible', dialog).prop('checked');
 
-				log('start');
+				_Logger.log('start');
 				return Command.importPage(code, address, name, publicVisible, authVisible);
 			});
 
@@ -424,7 +423,7 @@ var _Pages = {
 	},
 	resetTab: function(element) {
 
-		log('resetTab', element);
+		_Logger.log('resetTab', element);
 
 		element.children('input').hide();
 		element.children('.name_').show();
@@ -446,7 +445,7 @@ var _Pages = {
 			var self = $(this);
 			var clicks = e.originalEvent.detail;
 			if (clicks === 1) {
-				log('click', self, self.css('z-index'));
+				_Logger.log('click', self, self.css('z-index'));
 				if (self.hasClass('active')) {
 					_Pages.makeTabEditable(self);
 				} else {
@@ -463,7 +462,7 @@ var _Pages = {
 
 		//var name = $.trim(element.children('.name_').text());
 		var name = $.trim(element.children('b.name_').attr('title'));
-		log('activateTab', element, name);
+		_Logger.log('activateTab', element, name);
 
 		previewTabs.children('li').each(function() {
 			$(this).removeClass('active');
@@ -484,7 +483,7 @@ var _Pages = {
 
 		element.addClass('active');
 
-		log('store active tab', activeTab);
+		_Logger.log('store active tab', activeTab);
 		LSWrapper.setItem(activeTabKey, activeTab);
 
 		_Pages.refreshActiveElements(id);
@@ -510,7 +509,7 @@ var _Pages = {
 		Command.get(id, function(obj) {
 			pageVersion[id] = obj.version;
 			iframe.prop('src', viewRootUrl + obj.name + '?edit=2');
-			log('iframe', id, 'activated');
+			_Logger.log('iframe', id, 'activated');
 			iframe.parent().show();
 			_Pages.resize();
 			_Pages.refreshActiveElements(id);
@@ -527,10 +526,10 @@ var _Pages = {
 		var autoRefreshDisabled = LSWrapper.getItem(autoRefreshDisabledKey + id);
 		if (!autoRefreshDisabled && id) {
 			Command.get(id, function(obj) {
-				log('reloading preview iframe', id, obj.name);
+				_Logger.log('reloading preview iframe', id, obj.name);
 				var v = obj.version || 0;
 				var s = pageVersion[id] || 0;
-				log('stored version:', s, 'current version:', v);
+				_Logger.log('stored version:', s, 'current version:', v);
 				if (v > s) {
 					pageVersion[id] = v;
 					_Pages.loadIframe(id);
@@ -539,14 +538,14 @@ var _Pages = {
 		}
 	},
 	unloadIframes: function() {
-		log('unloading all preview iframes');
+		_Logger.log('unloading all preview iframes');
 		_Pages.clearIframeDroppables();
 		$('iframe', $('#previews')).each(function() {
 			var self = $(this);
 			var pageId = self.prop('id').substring('preview_'.length);
 			var iframe = $('#preview_' + pageId);
 			iframe.contents().empty();
-			log('iframe', pageId, 'deactivated');
+			_Logger.log('iframe', pageId, 'deactivated');
 		});
 	},
 	/**
@@ -588,7 +587,7 @@ var _Pages = {
 
 		input.on('blur', function() {
 			input.off('blur');
-			log('blur');
+			_Logger.log('blur');
 			var self = $(this);
 			var newName = self.val();
 			Command.setProperty(id, "name", newName);
@@ -598,7 +597,7 @@ var _Pages = {
 		input.keypress(function(e) {
 			if (e.keyCode === 13 || e.keyCode === 9) {
 				e.preventDefault();
-				log('keypress');
+				_Logger.log('keypress');
 				var self = $(this);
 				var newName = self.val();
 				Command.setProperty(id, "name", newName);
@@ -709,11 +708,11 @@ var _Pages = {
 						e.stopPropagation();
 						var self = $(this);
 						var element = self.closest('[data-structr-id]');
-						log(element);
+						_Logger.log(element);
 						var entity = Structr.entity(structrId, element.prop('data-structr-id'));
 						entity.type = element.prop('data-structr_type');
 						entity.name = element.prop('data-structr_name');
-						log('move', entity);
+						_Logger.log('move', entity);
 						self.parent().children('.structr-node').show();
 					});
 
@@ -724,7 +723,7 @@ var _Pages = {
 						var entity = Structr.entity(structrId, element.prop('data-structr-id'));
 						entity.type = element.prop('data-structr_type');
 						entity.name = element.prop('data-structr_name');
-						log('delete', entity);
+						_Logger.log('delete', entity);
 						var parentId = element.prop('data-structr-id');
 
 						Command.removeSourceFromTarget(entity.id, parentId);
@@ -766,7 +765,7 @@ var _Pages = {
 								left: pos.left + offsetLeft + 'px',
 								cursor: 'pointer'
 							}).show();
-							log(header);
+							_Logger.log(header);
 						},
 						mouseout: function(e) {
 							e.stopPropagation();
@@ -874,7 +873,7 @@ var _Pages = {
 		return droppables;
 	},
 	appendElementElement: function(entity, refNode, refNodeIsParent) {
-		log('_Pages.appendElementElement(', entity, refNode, refNodeIsParent, ');');
+		_Logger.log('_Pages.appendElementElement(', entity, refNode, refNodeIsParent, ');');
 		entity = StructrModel.ensureObject(entity);
 		var div = _Elements.appendElementElement(entity, refNode, refNodeIsParent);
 
@@ -918,7 +917,7 @@ var _Pages = {
 			$('iframe', box).width(w);
 			$('iframe', box).height(h);
 
-			log("box,w,h", box, w, h);
+			_Logger.log("box,w,h", box, w, h);
 
 		});
 

@@ -24,7 +24,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  *
- * @author Christian Morgner
  */
 public class FixedSizeCache<K, V> {
 

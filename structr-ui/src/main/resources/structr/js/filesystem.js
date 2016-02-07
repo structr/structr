@@ -1,22 +1,21 @@
 /*
- *  Copyright (C) 2010-2016 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
- *  This file is part of Structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  Structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  Structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 var main, filesystemMain, fileTree, folderContents;
 var fileList;
 var chunkSize = 1024 * 64;
@@ -37,7 +36,7 @@ $(document).ready(function() {
 var _Filesystem = {
 	init: function() {
 
-		log('_Filesystem.init');
+		_Logger.log('_Filesystem.init');
 
 		main = $('#main');
 
@@ -247,7 +246,7 @@ var _Filesystem = {
 			drop = $('#folder-contents');
 
 			drop.on('dragover', function(event) {
-				log('dragging over #files area');
+				_Logger.log('dragging over #files area');
 				event.originalEvent.dataTransfer.dropEffect = 'copy';
 				return false;
 			});
@@ -258,7 +257,7 @@ var _Filesystem = {
 					return;
 				}
 
-				log('dropped something in the #files area');
+				_Logger.log('dropped something in the #files area');
 
 				event.stopPropagation();
 				event.preventDefault();
@@ -288,7 +287,7 @@ var _Filesystem = {
 							fadeOut: 25
 						});
 						$(filesToUpload).each(function(i, file) {
-							log(file);
+							_Logger.log(file);
 							if (file) {
 								Command.createFile(file);
 							}
@@ -325,13 +324,13 @@ var _Filesystem = {
 			}
 			var typeIcon = Structr.node(file.id).parent().find('.typeIcon');
 			var iconSrc = typeIcon.prop('src');
-			log('Icon src: ', iconSrc);
+			_Logger.log('Icon src: ', iconSrc);
 			typeIcon.prop('src', iconSrc + '?' + new Date().getTime());
 		};
 
 		$(fileList).each(function(i, fileObj) {
 			if (fileObj.name === file.name) {
-				log('Uploading chunks for file ' + file.id);
+				_Logger.log('Uploading chunks for file ' + file.id);
 				worker.postMessage(fileObj);
 			}
 		});
@@ -613,7 +612,7 @@ var _Filesystem = {
 					var self = $(this);
 					var fileId = Structr.getId(ui.draggable);
 					var folderId = Structr.getId(self);
-					log('fileId, folderId', fileId, folderId);
+					_Logger.log('fileId, folderId', fileId, folderId);
 					if (!(fileId === folderId)) {
 						var nodeData = {};
 						nodeData.id = fileId;
@@ -651,7 +650,7 @@ var _Filesystem = {
 			if (_Files.isArchive(d)) {
 				div.append('<img class="unarchive_icon button" src="icon/compress.png">');
 				div.children('.unarchive_icon').on('click', function() {
-					log('unarchive', d.id);
+					_Logger.log('unarchive', d.id);
 					Command.unarchive(d.id);
 				});
 			}
@@ -739,9 +738,9 @@ var _Filesystem = {
 			}
 
 			Structr.dialog('Edit files', function() {
-				log('content saved');
+				_Logger.log('content saved');
 			}, function() {
-				log('cancelled');
+				_Logger.log('cancelled');
 			});
 
 			dialogText.append('<div id="files-tabs" class="files-tabs"><ul></ul></div>');

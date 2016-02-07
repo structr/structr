@@ -1,22 +1,21 @@
 /*
- *  Copyright (C) 2010-2016 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
- *  This file is part of Structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  Structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  Structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 var ws;
 var loggedIn = false, isAdmin = false;
 var user, me;
@@ -38,7 +37,7 @@ var port = document.location.port;
 
 function wsConnect() {
 
-	log('################ Global connect() ################', ws, ws ? ws.readyState : '');
+	_Logger.log('################ Global connect() ################', ws, ws ? ws.readyState : '');
 
 	try {
 
@@ -56,7 +55,7 @@ function wsConnect() {
 			var host = document.location.host;
 			var wsUrl = 'ws' + (isEnc ? 's' : '') + '://' + host + wsRoot;
 
-			log(wsUrl);
+			_Logger.log(wsUrl);
 			if ('WebSocket' in window) {
 
 				try {
@@ -79,7 +78,7 @@ function wsConnect() {
 
 		ws.onopen = function () {
 
-			log('############### WebSocket onopen ###############');
+			_Logger.log('############### WebSocket onopen ###############');
 
 			if ($.unblockUI) {
 				$.unblockUI({
@@ -87,7 +86,7 @@ function wsConnect() {
 				});
 			}
 
-			log('de-activating reconnect loop', reconn);
+			_Logger.log('de-activating reconnect loop', reconn);
 			Structr.stopReconnect();
 
 			Structr.init();
@@ -96,10 +95,10 @@ function wsConnect() {
 
 		ws.onclose = function () {
 
-			log('############### WebSocket onclose ###############', reconn);
+			_Logger.log('############### WebSocket onclose ###############', reconn);
 
 			if (reconn) {
-				log('Automatic reconnect already active');
+				_Logger.log('Automatic reconnect already active');
 				return;
 			}
 
@@ -115,7 +114,7 @@ function wsConnect() {
 				}
 				Structr.reconnectDialog('<b>Connection lost or timed out.</b><br><br>Don\'t reload the page!' + restoreDialogText + '<br><br>Trying to reconnect... <img class="al" src="data:image/gif;base64,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" alt="">');
 				//log('Connection was lost or timed out. Trying automatic reconnect');
-				log('ws onclose');
+				_Logger.log('ws onclose');
 				Structr.reconnect();
 
 			}, 100);
@@ -125,7 +124,7 @@ function wsConnect() {
 		ws.onmessage = function (message) {
 
 			var data = $.parseJSON(message.data);
-			log('ws.onmessage:', data);
+			_Logger.log('ws.onmessage:', data);
 
 			//var msg = $.parseJSON(message);
 			var type = data.data.type;
@@ -135,7 +134,7 @@ function wsConnect() {
 			var sessionValid = data.sessionValid;
 			var code = data.code;
 
-			log('####################################### ', command, ' #########################################');
+			_Logger.log('####################################### ', command, ' #########################################');
 
 			if (command === 'LOGIN' || code === 100) { /*********************** LOGIN or response to PING ************************/
 
@@ -143,7 +142,7 @@ function wsConnect() {
 				_Dashboard.checkAdmin();
 				isAdmin = data.data.isAdmin;
 
-				log(command, code, 'user:', user, 'session valid:', sessionValid, 'isAdmin', isAdmin);
+				_Logger.log(command, code, 'user:', user, 'session valid:', sessionValid, 'isAdmin', isAdmin);
 
 				if (!sessionValid) {
 					Structr.clearMain();
@@ -177,7 +176,7 @@ function wsConnect() {
 
 			} else if (command === 'STATUS') { /*********************** STATUS ************************/
 
-				log('Error code: ' + code, message);
+				_Logger.log('Error code: ' + code, message);
 
 				if (code === 403) {
 					//Structr.clearMain();
@@ -256,14 +255,14 @@ function wsConnect() {
 
 			} else if (command === 'GET_PROPERTY') { /*********************** GET_PROPERTY ************************/
 
-				log('GET_PROPERTY', data.id, data.data['key'], data.data[data.data['key']]);
+				_Logger.log('GET_PROPERTY', data.id, data.data['key'], data.data[data.data['key']]);
 				StructrModel.updateKey(data.id, data.data['key'], data.data[data.data['key']]);
 				StructrModel.callCallback(data.callback, data.data[data.data['key']]);
 				StructrModel.clearCallback(data.callback);
 
 			} else if (command === 'UPDATE' || command === 'SET_PERMISSION') { /*********************** UPDATE / SET_PERMISSION ************************/
 
-				log(command, data);
+				_Logger.log(command, data);
 
 				var obj = StructrModel.obj(data.id);
 
@@ -284,14 +283,14 @@ function wsConnect() {
 
 			} else if (command.startsWith('GET') || command === 'GET_BY_TYPE' || command === 'GET_SCHEMA_INFO' || command === 'CREATE_RELATIONSHIP') { /*********************** GET_BY_TYPE ************************/
 
-				log(command, data);
+				_Logger.log(command, data);
 
 				StructrModel.callCallback(data.callback, result);
 				StructrModel.clearCallback(data.callback);
 
 			} else if (command.endsWith('CHILDREN')) { /*********************** CHILDREN ************************/
 
-				log('CHILDREN', data);
+				_Logger.log('CHILDREN', data);
 
 				// sort the folders/files in the Files tab
 				if (command === 'CHILDREN' && result.length > 0 && result[0].name) {
@@ -315,7 +314,7 @@ function wsConnect() {
 
 			} else if (command.startsWith('LIST_UNATTACHED_NODES')) { /*********************** LIST_UNATTACHED_NODES ************************/
 
-				log('LIST_UNATTACHED_NODES', result, data);
+				_Logger.log('LIST_UNATTACHED_NODES', result, data);
 
 				$(result).each(function (i, entity) {
 
@@ -327,7 +326,7 @@ function wsConnect() {
 
 			} else if (command.startsWith('LIST_SCHEMA_PROPERTIES')) { /*********************** LIST_SCHEMA_PROPERTIES ************************/
 
-				log('LIST_SCHEMA_PROPERTIES', result, data);
+				_Logger.log('LIST_SCHEMA_PROPERTIES', result, data);
 
 				// send full result in a single callback
 				StructrModel.callCallback(data.callback, result);
@@ -335,7 +334,7 @@ function wsConnect() {
 
 			} else if (command.startsWith('LIST_COMPONENTS')) { /*********************** LIST_COMPONENTS ************************/
 
-				log('LIST_COMPONENTS', result, data);
+				_Logger.log('LIST_COMPONENTS', result, data);
 
 				$(result).each(function (i, entity) {
 
@@ -347,9 +346,9 @@ function wsConnect() {
 
 			} else if (command.startsWith('LIST_SYNCABLES')) { /*********************** LIST_SYNCABLES ************************/
 
-				log(data);
+				_Logger.log(data);
 
-				log('LIST_SYNCABLES', result, data);
+				_Logger.log('LIST_SYNCABLES', result, data);
 
 				$(result).each(function (i, entity) {
 
@@ -361,7 +360,7 @@ function wsConnect() {
 
 			} else if (command.startsWith('LIST_ACTIVE_ELEMENTS')) { /*********************** LIST_ACTIVE_ELEMENTS ************************/
 
-				log('LIST_ACTIVE_ELEMENTS', result, data);
+				_Logger.log('LIST_ACTIVE_ELEMENTS', result, data);
 
 				$(result).each(function (i, entity) {
 
@@ -373,7 +372,7 @@ function wsConnect() {
 
 			} else if (command.startsWith('SNAPSHOTS')) { /*********************** LIST_SNAPSHOTS ************************/
 
-				log('SNAPSHOTS', result, data);
+				_Logger.log('SNAPSHOTS', result, data);
 
 				$(result).each(function (i, entity) {
 
@@ -385,7 +384,7 @@ function wsConnect() {
 
 			} else if (command.startsWith('LIST')) { /*********************** LIST ************************/
 
-				log('LIST', result, data);
+				_Logger.log('LIST', result, data);
 
 				StructrModel.callCallback(data.callback, result, data.rawResultCount);
 //				$(result).each(function (i, entity) {
@@ -396,7 +395,7 @@ function wsConnect() {
 
 			} else if (command.startsWith('QUERY')) { /*********************** QUERY ************************/
 
-				log('QUERY', result, data);
+				_Logger.log('QUERY', result, data);
 
 				StructrModel.callCallback(data.callback, result, data.rawResultCount);
 				StructrModel.clearCallback(data.callback);
@@ -417,7 +416,7 @@ function wsConnect() {
 
 				var obj = StructrModel.obj(data.id);
 				if (obj) {
-					log(command, 'Remove object from model', obj);
+					_Logger.log(command, 'Remove object from model', obj);
 					obj.remove();
 				}
 
@@ -498,7 +497,7 @@ function wsConnect() {
 				console.log('Received unknown command: ' + command);
 
 				if (sessionValid === false) {
-					log('invalid session');
+					_Logger.log('invalid session');
 					user = null;
 					clearMain();
 
@@ -508,7 +507,7 @@ function wsConnect() {
 		};
 
 	} catch (exception) {
-		log('Error in connect(): ' + exception);
+		_Logger.log('Error in connect(): ' + exception);
 		if (ws) {
 			ws.close();
 			ws.length = 0;
@@ -527,15 +526,15 @@ function sendObj(obj, callback) {
 	var t = $.toJSON(obj);
 
 	if (!t) {
-		log('No text to send!');
+		_Logger.log('No text to send!');
 		return false;
 	}
 
 	try {
 		ws.send(t);
-		log('Sent: ' + t);
+		_Logger.log('Sent: ' + t);
 	} catch (exception) {
-		log('Error in send(): ' + exception);
+		_Logger.log('Error in send(): ' + exception);
 		//Structr.ping();
 	}
 	return true;
@@ -543,21 +542,11 @@ function sendObj(obj, callback) {
 
 function send(text) {
 
-	log(ws.readyState);
+	_Logger.log(ws.readyState);
 
 	var obj = $.parseJSON(text);
 
 	return sendObj(obj);
-}
-
-function log() {
-	if (debug) {
-		/*log(arguments);*/
-		var msg = Array.prototype.slice.call(arguments).join(' ');
-		var div = $('#log', footer);
-		div.append(msg + '<br>');
-		footer.scrollTop(div.height());
-	}
 }
 
 function getAnchorFromUrl(url) {

@@ -1,22 +1,21 @@
 /*
- *  Copyright (C) 2010-2016 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
- *  This file is part of Structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  Structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  Structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 var groups, users, resourceAccesses;
 var securityTabKey = 'structrSecurityTab_' + port;
 
@@ -40,7 +39,7 @@ var _Security = {
 
 		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Users and Groups');
 		//Structr.activateMenuEntry('usersAndGroups');
-		log('onload');
+		_Logger.log('onload');
 
 		main.append('<div id="securityTabs"><ul id="securityTabsMenu"><li><a id="usersAndGroups_" href="#usersAndGroups"><span>Users and Groups</span></a></li><li><a id="resourceAccess_" href="#resourceAccess"><span>Resource Access Grants</span></a></li></ul><div id="usersAndGroups"></div><div id="resourceAccess"></div></div>');
 
@@ -102,7 +101,7 @@ var _Security = {
 			resourceAccesses.append('<table id="resourceAccessesTable"><thead><tr><th></th><th colspan="6" class="center">Authenticated users</th><th colspan="6" class="center">Non-authenticated (public) users</th><th colspan="3"></th></tr><tr><th>Signature</th><th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th>'
 					+ '<th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th><th>Bitmask</th><th>Del</th></tr><tr><th><input type="text" class="filter" data-attribute="signature"></th><th colspan="15"></th></tr></thead></table>');
 			resourceAccesses.append('Signature: <input class="" type="text" size="20" id="resource-signature"> <button class="add_grant_icon button"><img title="Add Resource Grant" alt="Add Grant" src="icon/key_add.png"> Add Grant</button>');
-			
+
 			raPager.activateFilterElements(resourceAccesses);
 
 			$('.add_grant_icon', main).on('click', function (e) {
@@ -145,17 +144,17 @@ var _Security = {
 	},
 
 	deleteUser : function(button, user) {
-		log('deleteUser ' + user);
+		_Logger.log('deleteUser ' + user);
 		_Entities.deleteNode(button, user);
 	},
 
 	deleteGroup : function(button, group) {
-		log('deleteGroup ' + group);
+		_Logger.log('deleteGroup ' + group);
 		_Entities.deleteNode(button, group);
 	},
 
 	deleteResourceAccess : function(button, resourceAccess) {
-		log('deleteResourceAccess ' + resourceAccess);
+		_Logger.log('deleteResourceAccess ' + resourceAccess);
 		_Entities.deleteNode(button, resourceAccess);
 	},
 
@@ -276,7 +275,7 @@ var _Security = {
 		}
 
 		var hasChildren = group.members && group.members.length;
-		log('appendGroupElement', group, hasChildren);
+		_Logger.log('appendGroupElement', group, hasChildren);
 		groups.append('<div id="id_' + group.id + '" class="node group">'
 			+ '<img class="typeIcon" src="icon/group.png">'
 			+ '<b title="' + group.name + '" class="name_">' + group.name + '</b> <span class="id">' + group.id + '</span>'
@@ -317,7 +316,7 @@ var _Security = {
 	},
 
 	appendUserElement : function(user, group) {
-		log('appendUserElement', user);
+		_Logger.log('appendUserElement', user);
 
 		if (!users || !users.is(':visible')) {
 			return;
@@ -386,7 +385,7 @@ var _Security = {
 
 		var newDelIcon = '<img title="Remove user \'' + user.name + '\' from group \'' + group.name + '\'" alt="Remove user ' + user.name + ' from group \'' + group.name + '\'" class="delete_icon button" src="icon/user_delete.png">';
 
-		log('parent, div', parent, div);
+		_Logger.log('parent, div', parent, div);
 
 		if (div && div.length) {
 			parent.append(div.css({
@@ -396,11 +395,11 @@ var _Security = {
 			delIcon = $('.delete_icon', div);
 			delIcon.replaceWith(newDelIcon);
 
-			log('################ disable delete icon');
+			_Logger.log('################ disable delete icon');
 
 		} else {
 
-			log('### new user, appending to ', parent);
+			_Logger.log('### new user, appending to ', parent);
 
 			if (parent) {
 				parent.append(_Security.getUserElementMarkup(user));

@@ -42,7 +42,7 @@
         <dependency>
             <groupId>org.structr</groupId>
             <artifactId>structr-neo4j-driver</artifactId>
-            <version>2.0-SNAPSHOT</version>
+            <version>2.2.8-2.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -222,7 +222,7 @@
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <version>2.6</version>
+                <version>2.11</version>
                 <configuration>
                     <header>header.txt</header>
                     <includes>
@@ -234,14 +234,14 @@
                         <exclude>src/**/*.properties</exclude>
                     </excludes>
                     <properties>
-                        <year>2015</year>
+                        <year>2016</year>
                         <owner>Structr GmbH</owner>
                     </properties>
                 </configuration>
                 <executions>
                     <execution>
                         <goals>
-                            <goal>format</goal>
+                            <goal>check</goal>
                         </goals>
                     </execution>
                 </executions>

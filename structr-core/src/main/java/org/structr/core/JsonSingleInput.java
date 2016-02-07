@@ -23,7 +23,6 @@ import java.util.List;
 
 /**
 *
-* @author Dennis Laske
 */
 public class JsonSingleInput implements IJsonInput {
 

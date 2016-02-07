@@ -1,22 +1,21 @@
 /*
- *  Copyright (C) 2010-2016 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
- *  This file is part of Structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  Structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  Structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 function lastPart(id, separator) {
 	if (!separator) {
 		separator = '_';
@@ -164,7 +163,7 @@ function cleanText(input) {
 	//console.log(output);
 	return output;
 
-//    if (debug) console.log(input);
+//    _Logger.consoleLog(input);
 //    var output = '';
 //    $(input).each(function(i, line) {
 //        var cleaned = $(line).text();
@@ -182,6 +181,11 @@ function cleanText(input) {
 function expandNewline(text) {
 	var output = text.replace(/\\\\n/g, '<br>');
 	return output;
+}
+
+var uuidRegexp = new RegExp('[a-fA-F0-9]{32}');
+function isUUID (str) {
+	return (str.length === 32 && uuidRegexp.test(str));
 }
 
 function shorten(uuid) {
@@ -504,3 +508,56 @@ function fastRemoveAllChildren(el) {
 		el.removeChild(child);
 	}
 }
+
+/**
+ * The Logger object
+ * After an implementation of the log-method is chosen we dont need to re-evalute the debug parameter.
+ * Also we can change the implementation on-the-fly if we need to.
+ */
+var _Logger = {
+	/**
+	 * Initializes the logger
+	 * The caller would normally use the URL parameter 'debug' as a parameter.
+	 */
+	initLogger: function (debug) {
+		footer.hide();
+
+		if (debug === 'true' || debug === '1' || debug === 'page') {
+			_Logger.log = _Logger.htmlLog;
+			footer.show();
+		} else if (debug === '2' || debug === 'console') {
+			_Logger.log = _Logger.consoleLog;
+		} else {
+			_Logger.log = _Logger.nopLog;
+		}
+	},
+
+	/**
+	 * The log function (needs to be initialized in order for logging to work)
+	 */
+	log: function () {
+		/* The default implementation does nothing */
+	},
+
+	/**
+	 * Does nothing
+	 */
+	nopLog: function () {},
+
+	/**
+	 * Logs all arguments to the console
+	 */
+	consoleLog: function () {
+		console.log(arguments);
+	},
+
+	/**
+	 * Logs all arguments to the log area in the footer
+	 */
+	htmlLog: function () {
+		var msg = Array.prototype.slice.call(arguments).join(' ');
+		var div = $('#log', footer);
+		div.append(msg + '<br>');
+		footer.scrollTop(div.height());
+	}
+};

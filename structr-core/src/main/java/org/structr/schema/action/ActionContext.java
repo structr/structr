@@ -258,6 +258,15 @@ public class ActionContext {
 					case "request":
 						return securityContext.getRequest();
 
+					case "host":
+						return securityContext.getRequest().getServerName();
+
+					case "port":
+						return securityContext.getRequest().getServerPort();
+
+					case "path_info":
+						return securityContext.getRequest().getPathInfo();
+
 					case "response":
 						if (securityContext != null) {
 							final HttpServletResponse response = securityContext.getResponse();
@@ -281,6 +290,8 @@ public class ActionContext {
 						return securityContext.getUser(false);
 
 					case "element":
+						logger.log(Level.WARNING, "The 'element' keyword is deprecated! Please use 'this' instead. Used in {0}", entity.getProperty(GraphObject.id));
+
 					case "this":
 						return entity;
 

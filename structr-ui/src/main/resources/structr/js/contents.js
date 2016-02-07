@@ -1,22 +1,21 @@
 /*
- *  Copyright (C) 2010-2016 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
- *  This file is part of Structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  Structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  Structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 var lineWrappingKey = 'structrEditorLineWrapping_' + port;
 var contents, editor, contentType, currentEntity;
 
@@ -29,7 +28,7 @@ var _Contents = {
 	add_icon: 'icon/page_white_add.png',
 	delete_icon: 'icon/page_white_delete.png',
 	appendContentElement: function(entity, refNode, refNodeIsParent) {
-		log('Contents.appendContentElement', entity, refNode);
+		_Logger.log('Contents.appendContentElement', entity, refNode);
 
 		var parent;
 
@@ -109,9 +108,9 @@ var _Contents = {
 	},
 	openEditContentDialog: function(btn, entity) {
 		Structr.dialog('Edit content of ' + (entity.name ? entity.name : entity.id), function() {
-			log('content saved');
+			_Logger.log('content saved');
 		}, function() {
-			log('cancelled');
+			_Logger.log('cancelled');
 		});
 		Command.getProperty(entity.id, 'content', function(text) {
             currentEntity = entity;
@@ -131,7 +130,7 @@ var _Contents = {
 					   }
 				   }
 				}
-				
+
 			});
       }, 100);
       return CodeMirror.Pass;
@@ -158,7 +157,7 @@ var _Contents = {
 			return;
 		}
 		var div = element.append('<div class="editor"></div>');
-		log(div);
+		_Logger.log(div);
 		var contentBox = $('.editor', element);
 		contentType = contentType ? contentType : entity.contentType;
 		var text1, text2;
@@ -301,8 +300,6 @@ var _Contents = {
 		dialogSaveButton.on('click', function(e) {
 			e.stopPropagation();
 
-			//var contentNode = Structr.node(entity.id)[0];
-
 			text1 = text;
 			text2 = editor.getValue();
 
@@ -311,11 +308,10 @@ var _Contents = {
 			if (!text2)
 				text2 = '';
 
-			if (debug) {
-				console.log('Element', contentNode);
-				console.log('text1', text1);
-				console.log('text2', text2);
-			}
+//			var contentNode = Structr.node(entity.id)[0];
+//			_Logger.consoleLog('Element', contentNode);
+//			_Logger.consoleLog('text1', text1);
+//			_Logger.consoleLog('text2', text2);
 
 			if (text1 === text2) {
 				return;
