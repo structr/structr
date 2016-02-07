@@ -54,6 +54,7 @@ public class FixedSizeCache<K, V> {
 				}
 			}
 
+			keyQueue.remove(key);
 			keyQueue.add(key);
 		}
 	}
