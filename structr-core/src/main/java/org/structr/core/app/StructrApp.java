@@ -174,7 +174,7 @@ public class StructrApp implements App {
 		final Long nodeId = getNodeFromCache(uuid);
 		if (nodeId == null) {
 
-			GraphObject entity = nodeQuery().uuid(uuid).includeDeletedAndHidden().getFirst();
+			final GraphObject entity = nodeQuery().uuid(uuid).includeDeletedAndHidden().getFirst();
 			if (entity != null && uuid.equals(entity.getUuid())) {
 
 				nodeUuidMap.put(uuid, entity.getId());
@@ -204,7 +204,7 @@ public class StructrApp implements App {
 		final Long id = getRelFromCache(uuid);
 		if (id == null) {
 
-			GraphObject entity = relationshipQuery().uuid(uuid).getFirst();
+			final GraphObject entity = relationshipQuery().uuid(uuid).getFirst();
 			if (entity != null && uuid.equals(entity.getUuid())) {
 
 				relUuidMap.put(uuid, entity.getId());
