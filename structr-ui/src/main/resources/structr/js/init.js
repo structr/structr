@@ -1554,7 +1554,7 @@ function setPosition(parentId, nodeUrl, pos) {
 var keyEventBlocked = true;
 var keyEventTimeout;
 
-$(window).on('unload', function(event) {
+$(window).on('beforeunload', function(event) {
 	if (event.target === document) {
 		_Logger.log('########################################### unload #####################################################');
 		// Remove dialog data in case of page reload
