@@ -475,7 +475,11 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 												if (finished.get()) {
 
 													async.complete();
-													response.setStatus(HttpServletResponse.SC_OK);
+													
+													// don't overwrite 404 code from error page
+													if (response.getStatus() != HttpServletResponse.SC_NOT_FOUND) {
+														response.setStatus(HttpServletResponse.SC_OK);
+													}
 
 													// prevent this block from being called again
 													break;
