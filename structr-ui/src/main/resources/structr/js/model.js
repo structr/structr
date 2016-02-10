@@ -389,12 +389,19 @@ var StructrModel = {
 			// update icon
 			var icon = undefined;
 			if (element.hasClass('element')) {
-				var isComponent = obj.sharedComponent || (obj.syncedNodes && obj.syncedNodes.length);
-				var isActiveNode = obj.hideOnIndex || obj.hideOnDetail || obj.hideConditions || obj.showConditions || obj.dataKey;
-				icon = isActiveNode ? _Elements.icon_repeater : isComponent ? _Elements.icon_comp : _Elements.icon;
+
+				icon = _Elements.getElementIcon(obj);
+
+			} else if (element.hasClass('content')) {
+
+				icon = _Contents.getContentIcon(obj);
+
 			} else if (element.hasClass('file')) {
+
 				icon = _Files.getIcon(obj);
+
 			}
+
 			var iconEl = element.children('.typeIcon');
 			if (icon && iconEl.length) {
 				iconEl.attr('src', icon);
@@ -890,6 +897,9 @@ StructrElement.prototype.exists = function() {
 	return !isMasterComponent && Structr.node(obj.id);
 };
 
+StructrElement.prototype.isActiveNode = function() {
+	return this.hideOnIndex || this.hideOnDetail || this.hideConditions || this.showConditions || this.dataKey;
+};
 
 /**************************************
  * Structr Content
@@ -984,6 +994,10 @@ StructrContent.prototype.append = function(refNode) {
 StructrContent.prototype.exists = function() {
 
 	return Structr.node(this.id);
+};
+
+StructrContent.prototype.isActiveNode = function() {
+	return this.hideOnIndex || this.hideOnDetail || this.hideConditions || this.showConditions || this.dataKey;
 };
 
 /**************************************

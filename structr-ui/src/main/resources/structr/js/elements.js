@@ -397,10 +397,9 @@ var _Elements = {
 		entity = StructrModel.ensureObject(entity);
 
 		var hasChildren = entity.childrenIds && entity.childrenIds.length;
-		var isComponent = entity.sharedComponent || (entity.syncedNodes && entity.syncedNodes.length);
 
 		// store active nodes in special place..
-		var isActiveNode = entity.hideOnIndex || entity.hideOnDetail || entity.hideConditions || entity.showConditions || entity.dataKey;
+		var isActiveNode = entity.isActiveNode();
 
 		var parent;
 		if (refNodeIsParent) {
@@ -434,7 +433,7 @@ var _Elements = {
 
 		var displayName = getElementDisplayName(entity);
 
-		var icon = isActiveNode ? _Elements.icon_repeater : isComponent ? _Elements.icon_comp : _Elements.icon;
+		var icon = _Elements.getElementIcon(entity);
 
 		div.append('<img class="typeIcon" src="' + icon + '">'
 			+ '<b title="' + displayName + '" class="tag_ name_">' + fitStringToWidth(displayName, 200) + '</b><span class="id">' + entity.id + '</span>'
@@ -713,6 +712,12 @@ var _Elements = {
 			});
 		}
 		return div;
+	},
+	getElementIcon:function(element) {
+		var isComponent = element.sharedComponent || (element.syncedNodes && element.syncedNodes.length);
+		var isActiveNode = element.isActiveNode();
+
+		return isActiveNode ? _Elements.icon_repeater : isComponent ? _Elements.icon_comp : _Elements.icon;
 	},
 	classIdString: function(idString, classString) {
 		var classIdString = '<span class="class-id-attrs">' + (idString ? '<span class="_html_id_">#' + idString.replace(/\${.*}/g, '${…}') + '</span>' : '')
