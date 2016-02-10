@@ -22,6 +22,7 @@ import com.rometools.fetcher.FeedFetcher;
 import com.rometools.fetcher.FetcherException;
 import com.rometools.fetcher.impl.HttpURLFeedFetcher;
 import com.rometools.rome.feed.synd.SyndContent;
+import com.rometools.rome.feed.synd.SyndEnclosure;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
@@ -54,14 +55,14 @@ import org.structr.web.entity.relation.FeedItems;
 
 /**
  * Represents a data feed as a collection of feed items.
- * 
+ *
  */
 
 
 public class DataFeed extends AbstractNode {
 
 	private static final Logger logger = Logger.getLogger(DataFeed.class.getName());
-	
+
 	public static final Property<List<FeedItem>> items          = new EndNodes<>("items", FeedItems.class);
 	public static final Property<String>         url            = new StringProperty("url").indexed();
 	public static final Property<String>         feedType       = new StringProperty("feedType").indexed();
@@ -70,7 +71,7 @@ public class DataFeed extends AbstractNode {
 	public static final Property<Date>           lastUpdated    = new ISO8601DateProperty("lastUpdated");
 	public static final Property<Long>           maxAge         = new LongProperty("maxAge"); // maximum age of the oldest feed entry in milliseconds
 	public static final Property<Integer>        maxItems       = new IntProperty("maxItems"); // maximum number of feed entries to retain
-	
+
 	public static final View defaultView = new View(DataFeed.class, PropertyView.Public, id, type, url, items, feedType, description);
 
 	public static final View uiView = new View(DataFeed.class, PropertyView.Ui,
@@ -89,96 +90,96 @@ public class DataFeed extends AbstractNode {
 	 */
 	@Export
 	public void cleanUp() {
-		
+
 		final Integer maxItemsToRetain = getProperty(maxItems);
 		final Long    maxItemAge       = getProperty(maxAge);
-		
+
 		int i = 0;
 
 		// Don't do anything if maxItems and maxAge are not set
 		if (maxItemsToRetain != null || maxItemAge != null) {
-			
+
 			final List<FeedItem> feedItems = getProperty(items);
-			
+
 			// Sort by publication date, youngest items first
 			feedItems.sort(new GraphObjectComparator(FeedItem.pubDate, GraphObjectComparator.DESCENDING));
 
 			for (final FeedItem item : feedItems) {
-				
+
 				i++;
 
 				final Date itemDate = item.getProperty(FeedItem.pubDate);
-				
+
 				if ((maxItemsToRetain != null && i > maxItemsToRetain) || (maxItemAge != null && itemDate.before(new Date(new Date().getTime() - maxItemAge)))) {
-					
+
 					try {
 						StructrApp.getInstance().delete(item);
-						
+
 					} catch (FrameworkException ex) {
 						logger.log(Level.SEVERE, "Error while deleting old/surplus feed item " + item, ex);
 					}
 				}
 			}
-			
+
 		}
-		
+
 	}
-	
+
 	/**
 	 * Update the feed only if it was last updated before the update interval.
 	 */
 	@Export
 	public void updateIfDue() {
-		
+
 		final Date lastUpdate = getProperty(lastUpdated);
 		final Long interval   = getProperty(updateInterval);
-		
+
 		if ((lastUpdate == null || interval != null) && new Date().after(new Date(lastUpdate.getTime() + interval))) {
-			
+
 			// Update feed and clean-up afterwards
 			updateFeed(true);
-			
+
 		}
-		
+
 	}
 	@Export
 	public void updateFeed() {
 		updateFeed(true);
 	}
-	
+
 	/**
 	 * Update the feed from the given URL.
-	 * 
+	 *
 	 * @param cleanUp	Clean-up old items after update
 	 */
 	@Export
 	public void updateFeed(final boolean cleanUp) {
-		
+
 		final String remoteUrl = getProperty(url);
 		if (StringUtils.isNotBlank(remoteUrl)) {
-			
+
 			final App app = StructrApp.getInstance(securityContext);
-			
+
 			try {
-				
+
 				final FeedFetcher     feedFetcher = new HttpURLFeedFetcher();
 				final SyndFeed        feed        = feedFetcher.retrieveFeed(new URL(remoteUrl));
 				final List<SyndEntry> entries     = feed.getEntries();
-				
+
 				setProperty(feedType,    feed.getFeedType());
 				setProperty(description, feed.getDescription());
-				
+
 				final List<FeedItem> newItems = getProperty(items);
-				
+
 				for (final SyndEntry entry : entries) {
-					 
+
 					final PropertyMap props = new PropertyMap();
 
 					final String link = entry.getLink();
-					
+
 					// Check if item with this link already exists
 					if (app.nodeQuery(FeedItem.class).and(FeedItem.url, link).getFirst() == null) {
-					
+
 						props.put(FeedItem.url, entry.getLink());
 						props.put(FeedItem.name, entry.getTitle());
 						props.put(FeedItem.author, entry.getAuthor());
@@ -186,19 +187,32 @@ public class DataFeed extends AbstractNode {
 
 						final FeedItem item = app.create(FeedItem.class, props);
 						item.setProperty(FeedItem.pubDate, entry.getPublishedDate());
-						
-						final List<FeedItemContent> itemContents = new LinkedList<>();
 
+						final List<FeedItemContent> itemContents = new LinkedList<>();
+                                                final List<FeedItemEnclosure> itemEnclosures = new LinkedList<>();
+
+                                                //Get and add all contents
 						final List<SyndContent> contents = entry.getContents();
 						for (final SyndContent content : contents) {
-
 							final FeedItemContent itemContent = app.create(FeedItemContent.class);
 							itemContent.setProperty(FeedItemContent.value, content.getValue());
 
 							itemContents.add(itemContent);
 						}
 
+                                                //Get and add all enclosures
+                                                final List<SyndEnclosure> enclosures = entry.getEnclosures();
+                                                for (final SyndEnclosure enclosure : enclosures){
+                                                        final FeedItemEnclosure itemEnclosure= app.create(FeedItemEnclosure.class);
+                                                        itemEnclosure.setProperty(FeedItemEnclosure.url, enclosure.getUrl());
+                                                        itemEnclosure.setProperty(FeedItemEnclosure.enclosureLength, enclosure.getLength());
+                                                        itemEnclosure.setProperty(FeedItemEnclosure.enclosureType, enclosure.getType());
+
+                                                        itemEnclosures.add(itemEnclosure);
+                                                }
+
 						item.setProperty(FeedItem.contents, itemContents);
+                                                item.setProperty(FeedItem.enclosures, itemEnclosures);
 
 						newItems.add(item);
 
@@ -209,16 +223,16 @@ public class DataFeed extends AbstractNode {
 
 				setProperty(items, newItems);
 				setProperty(lastUpdated, new Date());
-				
+
 			} catch (IllegalArgumentException | IOException | FetcherException | FeedException | FrameworkException ex) {
 				logger.log(Level.SEVERE, "Error while updating feed", ex);
 			}
-			
+
 		}
-		
+
 		if (cleanUp) {
 			cleanUp();
 		}
 	}
-	
+
 }
