@@ -303,6 +303,7 @@ public class Functions {
 		functions.put("merge_properties", new MergePropertiesFunction());
 		functions.put("keys", new KeysFunction());
 		functions.put("values", new ValuesFunction());
+		functions.put("changelog", new ChangelogFunction());
 
 		// ----- BEGIN functions with side effects -----
 		functions.put("retrieve", new RetrieveFunction());
