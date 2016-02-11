@@ -35,6 +35,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.files.text.FulltextIndexingTask;
+import org.structr.schema.SchemaService;
 import org.structr.web.common.DownloadHelper;
 import org.structr.web.entity.Indexable;
 import static org.structr.web.entity.Indexable.contentType;
@@ -66,7 +67,7 @@ public class FeedItemEnclosure extends AbstractNode implements Indexable {
 		try {
 
 			StructrApp.getInstance(securityContext).processTasks(new FulltextIndexingTask(this));
-			
+
 		} catch (Throwable t) {
 
 		}
@@ -88,7 +89,12 @@ public class FeedItemEnclosure extends AbstractNode implements Indexable {
 
 	@Override
 	public InputStream getInputStream() {
-		
+
 		return IOUtils.toInputStream(getProperty(url));
 	}
+
+
+        static{
+            SchemaService.registerBuiltinTypeOverride("FeedItemEnclosure", FeedItemEnclosure.class.getName());
+        }
 }
