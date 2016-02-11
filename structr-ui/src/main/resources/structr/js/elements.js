@@ -592,7 +592,7 @@ var _Elements = {
 					var filesToLink = $('#filesToLink');
 					var foldersToLink = $('#foldersToLink');
 
-					_Pager.addPager(foldersToLink, true, 'Folder', function(folders) {
+					var linkFolderPager = _Pager.addPager(foldersToLink, true, 'Folder', function(folders) {
 
 						folders.forEach(function(folder) {
 
@@ -622,7 +622,11 @@ var _Elements = {
 
 					});
 
-					_Pager.addPager(filesToLink, true, 'File', function(files) {
+					linkFolderPager.pager.append('<input type="checkbox" class="filter" data-attribute="hasParent" hidden>');
+					linkFolderPager.activateFilterElements();
+
+
+					var linkFilesPager = _Pager.addPager(filesToLink, true, 'FileBase', function(files) {
 
 						files.forEach(function(file) {
 
@@ -659,6 +663,9 @@ var _Elements = {
 						});
 
 					});
+
+					linkFilesPager.pager.append('<input type="checkbox" class="filter" data-attribute="hasParent" hidden>');
+					linkFilesPager.activateFilterElements();
 
 				}
 
