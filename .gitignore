@@ -11,6 +11,7 @@ structr-ui/logs
 structr-ui/modules
 structr-ui/jsp
 structr-ui/structr.conf
+structr-ui/log4j.log
 structr-ui/logDb.dat
 structr-ui/src/test/javascript/screenshots
 structr-ui/structr-ui*.pid
@@ -19,3 +20,4 @@ structr-ui/structr-ui*.pid
 docs/html
 docs/screenshots
 *.DS_Store
+**nbactions.xml

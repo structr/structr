@@ -46,6 +46,7 @@ import org.structr.core.validator.TypeUniquenessValidator;
 import org.structr.files.text.FulltextIndexingTask;
 import org.structr.web.common.DownloadHelper;
 import org.structr.web.entity.relation.FeedItemContents;
+import org.structr.web.entity.relation.FeedItemEnclosures;
 import org.structr.web.entity.relation.FeedItems;
 
 /**
@@ -59,7 +60,9 @@ public class FeedItem extends AbstractNode implements Indexable {
 	public static final Property<String> url                     = new StringProperty("url").unique().indexed();
 	public static final Property<String> author                  = new StringProperty("author");
 	public static final Property<String> comments                = new StringProperty("comments");
+        public static final Property<String> description              = new StringProperty("description");
 	public static final Property<List<FeedItemContent>> contents = new EndNodes<>("contents", FeedItemContents.class);
+        public static final Property<List<FeedItemEnclosure>> enclosures = new EndNodes<>("enclosures", FeedItemEnclosures.class);
 	public static final Property<Date> pubDate                   = new ISO8601DateProperty("pubDate").indexed();
 	
 	public static final Property<Long> checksum                  = new LongProperty("checksum").indexed().unvalidated().readOnly();
@@ -69,9 +72,9 @@ public class FeedItem extends AbstractNode implements Indexable {
 	public static final Property<DataFeed> feed                  = new StartNode<>("feed", FeedItems.class);
 	
 	public static final View publicView = new View(FeedItem.class, PropertyView.Public, type, name, contentType, owner, 
-		url, feed, author, comments, contents, pubDate);
+		url, feed, author, comments, contents, pubDate, description, enclosures);
 	public static final View uiView     = new View(FeedItem.class, PropertyView.Ui, type, contentType, checksum, version, cacheForSeconds, owner, extractedContent, indexedWords,
-		url, feed, author, comments, contents, pubDate);
+		url, feed, author, comments, contents, pubDate, description, enclosures);
 
 	
 	static {
