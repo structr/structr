@@ -106,7 +106,22 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		if (super.onModification(securityContext, errorBuffer)) {
-			setProperty(hasParent, getProperty(parentId) != null);
+
+			synchronized (this) {
+
+				// save current security context
+				final SecurityContext previousSecurityContext = securityContext;
+
+				// replace with SU context
+				this.securityContext = SecurityContext.getSuperUserInstance();
+
+				// set property as super user
+				setProperty(hasParent, getProperty(parentId) != null);
+
+				// restore previous security context
+				this.securityContext = previousSecurityContext;
+			}
+
 			return true;
 		}
 

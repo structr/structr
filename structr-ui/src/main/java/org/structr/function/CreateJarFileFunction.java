@@ -48,6 +48,7 @@ import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import javax.security.auth.x500.X500Principal;
 import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.DEROutputStream;
 import org.bouncycastle.cert.jcajce.JcaCertStore;
 import org.bouncycastle.cms.CMSException;
@@ -285,8 +286,9 @@ public class CreateJarFileFunction extends UiFunction {
 		final CMSSignedData sigData = gen.generate(data, false);
 		final ASN1InputStream asn1  = new ASN1InputStream(sigData.getEncoded());
 		final DEROutputStream dos   = new DEROutputStream(jos);
+		final ASN1Primitive obj     = asn1.readObject();
 
-		dos.writeObject(asn1.readObject());
+		dos.writeObject(obj);
 	}
 
 	private PrivateKey getOrCreatePrivateKey(final String keygenAlgorithm, final String srngAlgorithm, final String signAlgorithm) {
