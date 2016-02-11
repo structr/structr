@@ -21,10 +21,12 @@ var contents, editor, contentType, currentEntity;
 
 var _Contents = {
 	icon: 'icon/page_white.png',
+	active_content_icon: 'icon/page_yellow.png',
 	comment_icon: 'icon/comment.png',
 	comp_icon: 'icon/page_yellow.png',
 	comp_templ_icon: 'icon/layout_yellow.png',
 	template_icon: 'icon/layout_content.png',
+	active_template_icon: 'icon/layout_yellow.png',
 	add_icon: 'icon/page_white_add.png',
 	delete_icon: 'icon/page_white_delete.png',
 	appendContentElement: function(entity, refNode, refNodeIsParent) {
@@ -42,15 +44,13 @@ var _Contents = {
 		if (!parent)
 			return false;
 
-		var isActiveNode = entity.hideOnIndex || entity.hideOnDetail || entity.hideConditions || entity.showConditions || entity.dataKey;
+		var isActiveNode = entity.isActiveNode();
 		var isTemplate = (entity.type === 'Template');
 
 		var name = entity.name;
 		var displayName = getElementDisplayName(entity);
 
-		var isComment = (entity.type === 'Comment');
-		var isComponent = entity.sharedComponent || (entity.syncedNodes && entity.syncedNodes.length);
-		var icon = isComment ? _Contents.comment_icon : ((isTemplate && isComponent) ? _Contents.comp_templ_icon : (isTemplate ? _Contents.template_icon : (isComponent ? _Contents.comp_icon : _Contents.icon)));
+		var icon = _Contents.getContentIcon(entity);
 		var html = '<div id="id_' + entity.id + '" class="node content ' + (isActiveNode ? ' activeNode' : 'staticNode') + '">'
 				+ '<img class="typeIcon" src="' + icon + '">'
 				+ (name ? ('<b title="' + displayName + '" class="tag_ name_">' + fitStringToWidth(displayName, 200) + '</b>') : ('<div class="content_">' + escapeTags(entity.content) + '</div>'))
@@ -105,6 +105,14 @@ var _Contents = {
 		_Entities.appendEditPropertiesIcon(div, entity);
 
 		return div;
+	},
+	getContentIcon:function(content) {
+		var isComment = (content.type === 'Comment');
+		var isTemplate = (content.type === 'Template');
+		var isComponent = content.sharedComponent || (content.syncedNodes && content.syncedNodes.length);
+		var isActiveNode = content.isActiveNode();
+
+		return isComment ? _Contents.comment_icon : ((isTemplate && isComponent) ? _Contents.comp_templ_icon : (isTemplate ? (isActiveNode ? _Contents.active_template_icon : _Contents.template_icon) : (isComponent ? _Contents.comp_icon : (isActiveNode ? _Contents.active_content_icon : _Contents.icon))));
 	},
 	openEditContentDialog: function(btn, entity) {
 		Structr.dialog('Edit content of ' + (entity.name ? entity.name : entity.id), function() {

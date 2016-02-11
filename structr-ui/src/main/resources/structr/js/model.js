@@ -374,38 +374,45 @@ var StructrModel = {
 			// update HTML 'class' and 'id' attributes
 			if (isIn('_html_id', Object.keys(obj)) || isIn('_html_class', Object.keys(obj))) {
 
-				var classIdAttrsEl = $(element).children('.class-id-attrs');
+				var classIdAttrsEl = element.children('.class-id-attrs');
 				if (classIdAttrsEl.length) {
 					classIdAttrsEl.remove();
 				}
 
 				var classIdString = _Elements.classIdString(obj._html_id, obj._html_class);
-				var idEl = $(element).children('.id');
+				var idEl = element.children('.id');
 				if (idEl.length) {
-					$(element).children('.id').after(classIdString);
+					element.children('.id').after(classIdString);
 				}
 			}
 
 			// update icon
 			var icon = undefined;
-			if ($(element).hasClass('element')) {
-				var isComponent = obj.sharedComponent || (obj.syncedNodes && obj.syncedNodes.length);
-				var isActiveNode = obj.hideOnIndex || obj.hideOnDetail || obj.hideConditions || obj.showConditions || obj.dataKey;
-				icon = isActiveNode ? _Elements.icon_repeater : isComponent ? _Elements.icon_comp : _Elements.icon;
-			} else if ($(element).hasClass('file')) {
+			if (element.hasClass('element')) {
+
+				icon = _Elements.getElementIcon(obj);
+
+			} else if (element.hasClass('content')) {
+
+				icon = _Contents.getContentIcon(obj);
+
+			} else if (element.hasClass('file')) {
+
 				icon = _Files.getIcon(obj);
+
 			}
-			var iconEl = $(element).children('.typeIcon');
+
+			var iconEl = element.children('.typeIcon');
 			if (icon && iconEl.length) {
 				iconEl.attr('src', icon);
 			}
 
 			// check if key icon needs to be displayed (in case of nodes not visible to public/auth users)
 			var protected = !obj.visibleToPublicUsers || !obj.visibleToAuthenticatedUsers;
-			var keyIcon = $(element).children('.key_icon');
+			var keyIcon = element.children('.key_icon');
 			if (!keyIcon.length) {
 				// Images have a special subnode containing the icons
-				keyIcon = $('.icons', $(element)).children('.key_icon');
+				keyIcon = $('.icons', element).children('.key_icon');
 			}
 			if (protected) {
 				keyIcon.show();
@@ -890,6 +897,9 @@ StructrElement.prototype.exists = function() {
 	return !isMasterComponent && Structr.node(obj.id);
 };
 
+StructrElement.prototype.isActiveNode = function() {
+	return this.hideOnIndex || this.hideOnDetail || this.hideConditions || this.showConditions || this.dataKey;
+};
 
 /**************************************
  * Structr Content
@@ -984,6 +994,10 @@ StructrContent.prototype.append = function(refNode) {
 StructrContent.prototype.exists = function() {
 
 	return Structr.node(this.id);
+};
+
+StructrContent.prototype.isActiveNode = function() {
+	return this.hideOnIndex || this.hideOnDetail || this.hideConditions || this.showConditions || this.dataKey;
 };
 
 /**************************************

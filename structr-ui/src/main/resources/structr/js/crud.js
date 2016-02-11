@@ -2228,6 +2228,7 @@ var _Crud = {
 
 		if (browser) {
 
+			dialogHead.empty();
 			dialogText.empty();
 			dialogMsg.empty();
 			dialogMeta.empty();
