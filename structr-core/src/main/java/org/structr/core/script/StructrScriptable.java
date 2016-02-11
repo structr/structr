@@ -356,6 +356,16 @@ public class StructrScriptable extends ScriptableObject {
 
 				return list;
 
+			} else if (source instanceof StructrArray) {
+
+				final List list = new ArrayList();
+				for (final Object obj : ((StructrArray)source).toArray()) {
+
+					list.add(unwrap(obj));
+				}
+
+				return list;
+
 			} else if (source.getClass().getName().equals("org.mozilla.javascript.NativeDate")) {
 
 				// FIXME: this is one of the worst ways I've ever resorted to in order
