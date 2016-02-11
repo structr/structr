@@ -94,7 +94,7 @@ public class StructrScriptable extends ScriptableObject {
 				@Override
 				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable scope, final Scriptable thisObject, final Object[] parameters) {
 
-					if (parameters.length > 0 && parameters[0] != null) {
+					if (parameters.length == 1 && parameters[0] != null) {
 
 						try {
 
@@ -103,6 +103,29 @@ public class StructrScriptable extends ScriptableObject {
 						} catch (FrameworkException ex) {
 							exception = ex;
 						}
+
+					} else if (parameters.length > 1) {
+
+						// execute builtin get function
+						final Function<Object, Object> function = Functions.functions.get("get");
+						try {
+
+							final Object[] unwrappedParameters = new Object[parameters.length];
+							int i                              = 0;
+
+							// unwrap JS objects
+							for (final Object param : parameters) {
+								unwrappedParameters[i++] = unwrap(param);
+							}
+
+							return wrap(context, scope, null, function.apply(actionContext, entity, unwrappedParameters));
+
+						} catch (FrameworkException fex) {
+							exception = fex;
+						}
+
+						return null;
+
 					}
 
 					return null;
