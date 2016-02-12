@@ -18,7 +18,8 @@
  */
 package org.structr.core.parser.function;
 
-import com.google.gson.JsonElement;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.util.ArrayList;
@@ -26,16 +27,17 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
 public class ChangelogFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_CHANGLOG = "Usage: ${changelog(entity[, resolve=false])}. Example: ${changelog(me)}";
+	public static final String ERROR_MESSAGE_CHANGLOG = "Usage: ${changelog(entity[, resolve=false])}. Example: ${changelog(current)}";
+	public static final String ERROR_MESSAGE_CHANGLOG_JS = "Usage: ${{Structr.changelog(entity[, resolve=false])}}. Example: ${{Structr.changelog(Structr.get('current'))}}";
 
 	private static final Logger logger = Logger.getLogger(ChangelogFunction.class.getName());
 
@@ -50,7 +52,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 
 		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
 
-			final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+			final App app = StructrApp.getInstance();
 
 			GraphObject dataObject;
 
@@ -60,61 +62,64 @@ public class ChangelogFunction extends Function<Object, Object> {
 				return usage(ctx.isJavaScriptContext());
 			}
 
+			final String changelog = dataObject.getProperty(GraphObject.structrChangeLog);
 			final List list = new ArrayList();
 
-			final String[] entries = dataObject.getProperty(GraphObject.structrChangeLog).split("\n");
+			if (changelog != null) {
 
-			if (entries.length > 0) {
+				final String[] entries = changelog.split("\n");
 
-				final boolean resolveTargets = (sources.length >= 2 && Boolean.TRUE.equals(sources[1]));
-				final JsonParser parser = new JsonParser();
+				if (entries.length > 0) {
 
-				for (String entry : entries) {
-					final JsonObject jsonObj = parser.parse(entry).getAsJsonObject();
+					final boolean resolveTargets = (sources.length >= 2 && Boolean.TRUE.equals(sources[1]));
+					final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
+					final JsonParser parser = new JsonParser();
 
-					final String verb = jsonObj.get("verb").getAsString();
+					for (String entry : entries) {
+						final JsonObject jsonObj = parser.parse(entry).getAsJsonObject();
 
-					final TreeMap<String, Object> obj = new TreeMap<>();
-					obj.put("verb", verb);
-					obj.put("time", jsonObj.get("time").getAsLong());
-					obj.put("userId", jsonObj.get("userId").getAsString());
-					obj.put("userName", jsonObj.get("userName").getAsString());
+						final String verb = jsonObj.get("verb").getAsString();
 
-					if (verb.equals("create") || verb.equals("delete")) {
+						final TreeMap<String, Object> obj = new TreeMap<>();
+						obj.put("verb", verb);
+						obj.put("time", jsonObj.get("time").getAsLong());
+						obj.put("userId", jsonObj.get("userId").getAsString());
+						obj.put("userName", jsonObj.get("userName").getAsString());
 
-						obj.put("target", jsonObj.get("target").getAsString());
+						if (verb.equals("create") || verb.equals("delete")) {
 
-						if (resolveTargets) {
-							obj.put("targetObj", StructrApp.getInstance(securityContext).get(jsonObj.get("target").getAsString()));
+							obj.put("target", jsonObj.get("target").getAsString());
+
+							if (resolveTargets) {
+								obj.put("targetObj", app.get(jsonObj.get("target").getAsString()));
+							}
+
+							list.add(obj);
+
+						} else if (verb.equals("link") || verb.equals("unlink")) {
+
+							obj.put("rel", jsonObj.get("rel").getAsString());
+							obj.put("target", jsonObj.get("target").getAsString());
+
+							if (resolveTargets) {
+								obj.put("targetObj", app.get(jsonObj.get("target").getAsString()));
+							}
+
+							list.add(obj);
+
+						} else if (verb.equals("change")) {
+
+							obj.put("key", jsonObj.get("key").getAsString());
+							obj.put("prev", gson.toJson(jsonObj.get("prev")));
+							obj.put("val", gson.toJson(jsonObj.get("val")));
+
+							list.add(obj);
+
+						} else {
+
+							logger.log(Level.WARNING, "Unknown verb in changelog: '{0}'", verb);
+
 						}
-
-						list.add(obj);
-
-					} else if (verb.equals("link") || verb.equals("unlink")) {
-
-						obj.put("rel", jsonObj.get("rel").getAsString());
-						obj.put("target", jsonObj.get("target").getAsString());
-
-						if (resolveTargets) {
-							obj.put("targetObj", StructrApp.getInstance(securityContext).get(jsonObj.get("target").getAsString()));
-						}
-
-						list.add(obj);
-
-					} else if (verb.equals("change")) {
-
-						obj.put("key", jsonObj.get("key").getAsString());
-
-						final JsonElement prev = jsonObj.get("prev");
-						obj.put("prev", (prev.isJsonNull() ? null : prev.getAsString()));
-
-						final JsonElement val = jsonObj.get("key");
-						obj.put("val", (val.isJsonNull() ? null : val.getAsString()));
-						list.add(obj);
-
-					} else {
-
-						logger.log(Level.WARNING, "Unknown verb in changelog: '{0}'", (verb == null ? "null" : verb));
 
 					}
 
@@ -134,7 +139,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_CHANGLOG;
+		return (inJavaScriptContext ? ERROR_MESSAGE_CHANGLOG_JS : ERROR_MESSAGE_CHANGLOG);
 	}
 
 	@Override

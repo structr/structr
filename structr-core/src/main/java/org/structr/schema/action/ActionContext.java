@@ -53,6 +53,7 @@ public class ActionContext {
 	protected Map<String, String> headers     = new HashMap<>();
 	protected Map<String, Object> constants   = new HashMap<>();
 	protected Map<String, Object> tmpStore    = new HashMap<>();
+	protected Map<String, Date> timerStore    = new HashMap<>();
 	protected Map<Integer, Integer> counters  = new HashMap<>();
 	protected ErrorBuffer errorBuffer         = new ErrorBuffer();
 	protected StringBuilder outputBuffer      = new StringBuilder();
@@ -79,6 +80,7 @@ public class ActionContext {
 	public ActionContext(final ActionContext other) {
 
 		this.tmpStore        = other.tmpStore;
+		this.timerStore      = other.timerStore;
 		this.counters        = other.counters;
 		this.errorBuffer     = other.errorBuffer;
 		this.constants       = other.constants;
@@ -203,6 +205,14 @@ public class ActionContext {
 
 	public Map<String, Object> getAllVariables () {
 		return tmpStore;
+	}
+
+	public void addTimer(final String key) {
+		timerStore.put(key, new Date());
+	}
+
+	public Date getTimer(final String key) {
+		return timerStore.get(key);
 	}
 
 	public void addHeader(final String key, final String value) {

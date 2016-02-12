@@ -304,6 +304,7 @@ public class Functions {
 		functions.put("keys", new KeysFunction());
 		functions.put("values", new ValuesFunction());
 		functions.put("changelog", new ChangelogFunction());
+		functions.put("timer", new TimerFunction());
 
 		// ----- BEGIN functions with side effects -----
 		functions.put("retrieve", new RetrieveFunction());
