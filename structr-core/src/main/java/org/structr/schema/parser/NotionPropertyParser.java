@@ -23,6 +23,8 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.InvalidPropertySchemaToken;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.CollectionNotionProperty;
 import org.structr.core.property.EntityNotionProperty;
 import org.structr.schema.Schema;
@@ -77,7 +79,8 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 
 		if (StringUtils.isBlank(expression)) {
 
-			throw new FrameworkException(422, "Notion property expression may not be empty.");
+			//reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), expression, "invalid_property_definition", "Empty notion property expression."));
+			throw new FrameworkException(422, "Empty notion property expression", new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), expression, "invalid_property_definition", "Empty notion property expression."));
 		}
 
 		final StringBuilder buf = new StringBuilder();
@@ -181,8 +184,8 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 				buf.append(")");
 
 			} else {
-
-				// base property not found, most likely in superclass!
+				throw new FrameworkException(422, "Invalid notion property expression.", new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), expression, "invalid_property_definition", "Invalid notion property expression."));
+				//reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), expression, "invalid_property_definition", "Invalid notion property expression."));
 			}
 		}
 

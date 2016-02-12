@@ -28,6 +28,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.ValidationHelper;
@@ -63,6 +66,8 @@ import org.structr.schema.parser.Validator;
  */
 public class SchemaNode extends AbstractSchemaNode {
 
+	private static final Logger logger = Logger.getLogger(SchemaNode.class.getName());
+	
 	public static final Property<List<SchemaRelationshipNode>> relatedTo        = new EndNodes<>("relatedTo", SchemaRelationshipSourceNode.class);
 	public static final Property<List<SchemaRelationshipNode>> relatedFrom      = new StartNodes<>("relatedFrom", SchemaRelationshipTargetNode.class);
 	public static final Property<String>                       extendsClass     = new StringProperty("extendsClass").indexed();
@@ -278,24 +283,27 @@ public class SchemaNode extends AbstractSchemaNode {
 	@Override
 	public String getMultiplicity(final String propertyNameToCheck) {
 
-		final Set<String> existingPropertyNames = new LinkedHashSet<>();
-		final String _className                 = getProperty(name);
+		String multiplicity = getMultiplicity(this, propertyNameToCheck);
+		
+		if (multiplicity == null) {
 
-		for (final SchemaRelationshipNode outRel : getProperty(SchemaNode.relatedTo)) {
+			try {
+				// check if property is defined in parent class
+				final SchemaNode parentSchemaNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(StringUtils.substringAfterLast(getProperty(SchemaNode.extendsClass), ".")).getFirst();
 
-			if (propertyNameToCheck.equals(outRel.getPropertyName(_className, existingPropertyNames, true))) {
-				return outRel.getMultiplicity(true);
+				multiplicity = getMultiplicity(parentSchemaNode, propertyNameToCheck);
+
+
+			} catch (FrameworkException ex) {
+				logger.log(Level.WARNING, "Can't find schema node for parent class!", ex);
 			}
+
 		}
-
-		// output related node definitions, collect property views
-		for (final SchemaRelationshipNode inRel : getProperty(SchemaNode.relatedFrom)) {
-
-			if (propertyNameToCheck.equals(inRel.getPropertyName(_className, existingPropertyNames, false))) {
-				return inRel.getMultiplicity(false);
-			}
+		
+		if (multiplicity != null) {
+			return multiplicity;
 		}
-
+		
 		// fallback, search NodeInterface (this allows the owner relationship to be used in Notions!)
 		final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(NodeInterface.class, propertyNameToCheck, false);
 		if (key != null) {
@@ -318,13 +326,71 @@ public class SchemaNode extends AbstractSchemaNode {
 		return null;
 	}
 
+	private String getMultiplicity(final SchemaNode schemaNode, final String propertyNameToCheck) {
+		
+		final Set<String> existingPropertyNames = new LinkedHashSet<>();
+		final String _className                 = schemaNode.getProperty(name);
+
+		for (final SchemaRelationshipNode outRel : schemaNode.getProperty(SchemaNode.relatedTo)) {
+
+			if (propertyNameToCheck.equals(outRel.getPropertyName(_className, existingPropertyNames, true))) {
+				return outRel.getMultiplicity(true);
+			}
+		}
+
+		// output related node definitions, collect property views
+		for (final SchemaRelationshipNode inRel : schemaNode.getProperty(SchemaNode.relatedFrom)) {
+
+			if (propertyNameToCheck.equals(inRel.getPropertyName(_className, existingPropertyNames, false))) {
+				return inRel.getMultiplicity(false);
+			}
+		}
+		
+		return null;
+	}
+	
 	@Override
 	public String getRelatedType(final String propertyNameToCheck) {
 
-		final Set<String> existingPropertyNames = new LinkedHashSet<>();
-		final String _className                 = getProperty(name);
+		String relatedType = getRelatedType(this, propertyNameToCheck);
+		
+		if (relatedType == null) {
+			try {
+				// check if property is defined in parent class
+				final SchemaNode parentSchemaNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(StringUtils.substringAfterLast(getProperty(SchemaNode.extendsClass), ".")).getFirst();
 
-		for (final SchemaRelationshipNode outRel : getProperty(SchemaNode.relatedTo)) {
+				relatedType = getRelatedType(parentSchemaNode, propertyNameToCheck);
+
+			} catch (FrameworkException ex) {
+				logger.log(Level.WARNING, "Can't find schema node for parent class!", ex);
+			}
+
+		}
+		
+		if (relatedType != null) {
+			return relatedType;
+		}
+		
+		// fallback, search NodeInterface (this allows the owner relationship to be used in Notions!)
+		final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(NodeInterface.class, propertyNameToCheck, false);
+		if (key != null) {
+
+			final Class relatedTypeClass = key.relatedType();
+			if (relatedTypeClass != null) {
+
+				return relatedTypeClass.getSimpleName();
+			}
+		}
+
+		return null;
+	}
+
+	private String getRelatedType(final SchemaNode schemaNode, final String propertyNameToCheck) {
+		
+		final Set<String> existingPropertyNames = new LinkedHashSet<>();
+		final String _className                 = schemaNode.getProperty(name);
+
+		for (final SchemaRelationshipNode outRel : schemaNode.getProperty(SchemaNode.relatedTo)) {
 
 			if (propertyNameToCheck.equals(outRel.getPropertyName(_className, existingPropertyNames, true))) {
 				return outRel.getSchemaNodeTargetType();
@@ -332,27 +398,16 @@ public class SchemaNode extends AbstractSchemaNode {
 		}
 
 		// output related node definitions, collect property views
-		for (final SchemaRelationshipNode inRel : getProperty(SchemaNode.relatedFrom)) {
+		for (final SchemaRelationshipNode inRel : schemaNode.getProperty(SchemaNode.relatedFrom)) {
 
 			if (propertyNameToCheck.equals(inRel.getPropertyName(_className, existingPropertyNames, false))) {
 				return inRel.getSchemaNodeSourceType();
 			}
 		}
-
-		// fallback, search NodeInterface (this allows the owner relationship to be used in Notions!)
-		final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(NodeInterface.class, propertyNameToCheck, false);
-		if (key != null) {
-
-			final Class relatedType = key.relatedType();
-			if (relatedType != null) {
-
-				return relatedType.getSimpleName();
-			}
-		}
-
+		
 		return null;
 	}
-
+	
 	@Override
 	public String getAuxiliarySource() throws FrameworkException {
 
