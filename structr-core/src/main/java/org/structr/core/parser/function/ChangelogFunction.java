@@ -112,7 +112,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 							final JsonElement prev = jsonObj.get("prev");
 							obj.put("prev", (prev.isJsonNull() ? null : prev.getAsString()));
 
-							final JsonElement val = jsonObj.get("key");
+							final JsonElement val = jsonObj.get("val");
 							obj.put("val", (val.isJsonNull() ? null : val.getAsString()));
 							list.add(obj);
 
