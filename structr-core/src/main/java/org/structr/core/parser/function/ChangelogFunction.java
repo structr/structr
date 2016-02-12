@@ -61,61 +61,66 @@ public class ChangelogFunction extends Function<Object, Object> {
 				return usage(ctx.isJavaScriptContext());
 			}
 
+			final String changelog = dataObject.getProperty(GraphObject.structrChangeLog);
 			final List list = new ArrayList();
 
-			final String[] entries = dataObject.getProperty(GraphObject.structrChangeLog).split("\n");
+			if (changelog != null) {
 
-			if (entries.length > 0) {
+				final String[] entries = changelog.split("\n");
 
-				final boolean resolveTargets = (sources.length >= 2 && Boolean.TRUE.equals(sources[1]));
-				final JsonParser parser = new JsonParser();
+				if (entries.length > 0) {
 
-				for (String entry : entries) {
-					final JsonObject jsonObj = parser.parse(entry).getAsJsonObject();
+					final boolean resolveTargets = (sources.length >= 2 && Boolean.TRUE.equals(sources[1]));
+					final JsonParser parser = new JsonParser();
 
-					final String verb = jsonObj.get("verb").getAsString();
+					for (String entry : entries) {
+						final JsonObject jsonObj = parser.parse(entry).getAsJsonObject();
 
-					final TreeMap<String, Object> obj = new TreeMap<>();
-					obj.put("verb", verb);
-					obj.put("time", jsonObj.get("time").getAsLong());
-					obj.put("userId", jsonObj.get("userId").getAsString());
-					obj.put("userName", jsonObj.get("userName").getAsString());
+						final String verb = jsonObj.get("verb").getAsString();
 
-					if (verb.equals("create") || verb.equals("delete")) {
+						final TreeMap<String, Object> obj = new TreeMap<>();
+						obj.put("verb", verb);
+						obj.put("time", jsonObj.get("time").getAsLong());
+						obj.put("userId", jsonObj.get("userId").getAsString());
+						obj.put("userName", jsonObj.get("userName").getAsString());
 
-						obj.put("target", jsonObj.get("target").getAsString());
+						if (verb.equals("create") || verb.equals("delete")) {
 
-						if (resolveTargets) {
-							obj.put("targetObj", app.get(jsonObj.get("target").getAsString()));
+							obj.put("target", jsonObj.get("target").getAsString());
+
+							if (resolveTargets) {
+								obj.put("targetObj", app.get(jsonObj.get("target").getAsString()));
+							}
+
+							list.add(obj);
+
+						} else if (verb.equals("link") || verb.equals("unlink")) {
+
+							obj.put("rel", jsonObj.get("rel").getAsString());
+							obj.put("target", jsonObj.get("target").getAsString());
+
+							if (resolveTargets) {
+								obj.put("targetObj", app.get(jsonObj.get("target").getAsString()));
+							}
+
+							list.add(obj);
+
+						} else if (verb.equals("change")) {
+
+							obj.put("key", jsonObj.get("key").getAsString());
+
+							final JsonElement prev = jsonObj.get("prev");
+							obj.put("prev", (prev.isJsonNull() ? null : prev.getAsString()));
+
+							final JsonElement val = jsonObj.get("key");
+							obj.put("val", (val.isJsonNull() ? null : val.getAsString()));
+							list.add(obj);
+
+						} else {
+
+							logger.log(Level.WARNING, "Unknown verb in changelog: '{0}'", verb);
+
 						}
-
-						list.add(obj);
-
-					} else if (verb.equals("link") || verb.equals("unlink")) {
-
-						obj.put("rel", jsonObj.get("rel").getAsString());
-						obj.put("target", jsonObj.get("target").getAsString());
-
-						if (resolveTargets) {
-							obj.put("targetObj", app.get(jsonObj.get("target").getAsString()));
-						}
-
-						list.add(obj);
-
-					} else if (verb.equals("change")) {
-
-						obj.put("key", jsonObj.get("key").getAsString());
-
-						final JsonElement prev = jsonObj.get("prev");
-						obj.put("prev", (prev.isJsonNull() ? null : prev.getAsString()));
-
-						final JsonElement val = jsonObj.get("key");
-						obj.put("val", (val.isJsonNull() ? null : val.getAsString()));
-						list.add(obj);
-
-					} else {
-
-						logger.log(Level.WARNING, "Unknown verb in changelog: '{0}'", (verb == null ? "null" : verb));
 
 					}
 
