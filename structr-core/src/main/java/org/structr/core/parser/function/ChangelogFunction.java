@@ -18,7 +18,8 @@
  */
 package org.structr.core.parser.function;
 
-import com.google.gson.JsonElement;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.util.ArrayList;
@@ -71,6 +72,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 				if (entries.length > 0) {
 
 					final boolean resolveTargets = (sources.length >= 2 && Boolean.TRUE.equals(sources[1]));
+					final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
 					final JsonParser parser = new JsonParser();
 
 					for (String entry : entries) {
@@ -108,12 +110,9 @@ public class ChangelogFunction extends Function<Object, Object> {
 						} else if (verb.equals("change")) {
 
 							obj.put("key", jsonObj.get("key").getAsString());
+							obj.put("prev", gson.toJson(jsonObj.get("prev")));
+							obj.put("val", gson.toJson(jsonObj.get("val")));
 
-							final JsonElement prev = jsonObj.get("prev");
-							obj.put("prev", (prev.isJsonNull() ? null : prev.getAsString()));
-
-							final JsonElement val = jsonObj.get("val");
-							obj.put("val", (val.isJsonNull() ? null : val.getAsString()));
 							list.add(obj);
 
 						} else {
