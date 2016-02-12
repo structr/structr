@@ -52,8 +52,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 
 		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
 
-			final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-			final App app = StructrApp.getInstance(securityContext);
+			final App app = StructrApp.getInstance();
 
 			GraphObject dataObject;
 
