@@ -29,13 +29,15 @@ import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
 public class ChangelogFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_CHANGLOG = "Usage: ${changelog(entity[, resolve=false])}. Example: ${changelog(me)}";
+	public static final String ERROR_MESSAGE_CHANGLOG = "Usage: ${changelog(entity[, resolve=false])}. Example: ${changelog(current)}";
+	public static final String ERROR_MESSAGE_CHANGLOG_JS = "Usage: ${{Structr.changelog(entity[, resolve=false])}}. Example: ${{Structr.changelog(Structr.get('current'))}}";
 
 	private static final Logger logger = Logger.getLogger(ChangelogFunction.class.getName());
 
@@ -51,6 +53,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
 
 			final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+			final App app = StructrApp.getInstance(securityContext);
 
 			GraphObject dataObject;
 
@@ -85,7 +88,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 						obj.put("target", jsonObj.get("target").getAsString());
 
 						if (resolveTargets) {
-							obj.put("targetObj", StructrApp.getInstance(securityContext).get(jsonObj.get("target").getAsString()));
+							obj.put("targetObj", app.get(jsonObj.get("target").getAsString()));
 						}
 
 						list.add(obj);
@@ -96,7 +99,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 						obj.put("target", jsonObj.get("target").getAsString());
 
 						if (resolveTargets) {
-							obj.put("targetObj", StructrApp.getInstance(securityContext).get(jsonObj.get("target").getAsString()));
+							obj.put("targetObj", app.get(jsonObj.get("target").getAsString()));
 						}
 
 						list.add(obj);
@@ -134,7 +137,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_CHANGLOG;
+		return (inJavaScriptContext ? ERROR_MESSAGE_CHANGLOG_JS : ERROR_MESSAGE_CHANGLOG);
 	}
 
 	@Override
