@@ -51,6 +51,7 @@ import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.SchemaService;
 import org.structr.web.entity.relation.FeedItems;
 
 /**
@@ -184,6 +185,7 @@ public class DataFeed extends AbstractNode {
 						props.put(FeedItem.name, entry.getTitle());
 						props.put(FeedItem.author, entry.getAuthor());
 						props.put(FeedItem.comments, entry.getComments());
+                                                props.put(FeedItem.description, entry.getDescription().getValue());
 
 						final FeedItem item = app.create(FeedItem.class, props);
 						item.setProperty(FeedItem.pubDate, entry.getPublishedDate());
@@ -234,5 +236,7 @@ public class DataFeed extends AbstractNode {
 			cleanUp();
 		}
 	}
-
+        static{
+            SchemaService.registerBuiltinTypeOverride("DataFeed", DataFeed.class.getName());
+        }
 }

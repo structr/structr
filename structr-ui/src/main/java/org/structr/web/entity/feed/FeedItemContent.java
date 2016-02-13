@@ -33,6 +33,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.files.text.FulltextIndexingTask;
+import org.structr.schema.SchemaService;
 import org.structr.web.common.DownloadHelper;
 import org.structr.web.entity.relation.FeedItemContents;
 
@@ -48,8 +49,8 @@ public class FeedItemContent extends AbstractNode implements Indexable {
 	public static final Property<String> itemType                = new StringProperty("itemType");
 	public static final Property<String> value                   = new StringProperty("value");
 	public static final Property<FeedItem> item                  = new StartNode<>("item", FeedItemContents.class);
-	
-	public static final View publicView = new View(FeedItemContent.class, PropertyView.Public, type, contentType, owner, 
+
+	public static final View publicView = new View(FeedItemContent.class, PropertyView.Public, type, contentType, owner,
 		mode, itemType, value, item);
 	public static final View uiView     = new View(FeedItemContent.class, PropertyView.Ui, type, contentType, owner, extractedContent, indexedWords,
 		mode, itemType, value, item);
@@ -60,7 +61,7 @@ public class FeedItemContent extends AbstractNode implements Indexable {
 		try {
 
 			StructrApp.getInstance(securityContext).processTasks(new FulltextIndexingTask(this));
-			
+
 		} catch (Throwable t) {
 
 		}
@@ -82,10 +83,14 @@ public class FeedItemContent extends AbstractNode implements Indexable {
 
 	@Override
 	public InputStream getInputStream() {
-		
+
 		return IOUtils.toInputStream(getProperty(value));
 	}
 
 	// ----- private methods -----
 
+
+        static{
+            SchemaService.registerBuiltinTypeOverride("FeedItemContent", FeedItemContent.class.getName());
+        }
 }

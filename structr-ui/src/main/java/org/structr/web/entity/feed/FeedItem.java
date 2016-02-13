@@ -44,6 +44,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.validator.SimpleNonEmptyValueValidator;
 import org.structr.core.validator.TypeUniquenessValidator;
 import org.structr.files.text.FulltextIndexingTask;
+import org.structr.schema.SchemaService;
 import org.structr.web.common.DownloadHelper;
 import org.structr.web.entity.relation.FeedItemContents;
 import org.structr.web.entity.relation.FeedItemEnclosures;
@@ -64,19 +65,19 @@ public class FeedItem extends AbstractNode implements Indexable {
 	public static final Property<List<FeedItemContent>> contents = new EndNodes<>("contents", FeedItemContents.class);
         public static final Property<List<FeedItemEnclosure>> enclosures = new EndNodes<>("enclosures", FeedItemEnclosures.class);
 	public static final Property<Date> pubDate                   = new ISO8601DateProperty("pubDate").indexed();
-	
+
 	public static final Property<Long> checksum                  = new LongProperty("checksum").indexed().unvalidated().readOnly();
 	public static final Property<Integer> cacheForSeconds        = new IntProperty("cacheForSeconds").cmis();
 	public static final Property<Integer> version                = new IntProperty("version").indexed().readOnly();
 
 	public static final Property<DataFeed> feed                  = new StartNode<>("feed", FeedItems.class);
-	
-	public static final View publicView = new View(FeedItem.class, PropertyView.Public, type, name, contentType, owner, 
+
+	public static final View publicView = new View(FeedItem.class, PropertyView.Public, type, name, contentType, owner,
 		url, feed, author, comments, contents, pubDate, description, enclosures);
 	public static final View uiView     = new View(FeedItem.class, PropertyView.Ui, type, contentType, checksum, version, cacheForSeconds, owner, extractedContent, indexedWords,
 		url, feed, author, comments, contents, pubDate, description, enclosures);
 
-	
+
 	static {
 
 		FeedItem.url.addValidator(new SimpleNonEmptyValueValidator(FeedItem.class));
@@ -88,10 +89,10 @@ public class FeedItem extends AbstractNode implements Indexable {
 		StructrApp.getInstance(securityContext).processTasks(new FulltextIndexingTask(this));
 		return super.onCreation(securityContext, errorBuffer);
 	}
-	
-	
-		
-	
+
+
+
+
 	@Override
 	public void afterCreation(SecurityContext securityContext) {
 		StructrApp.getInstance(securityContext).processTasks(new FulltextIndexingTask(this));
@@ -127,16 +128,20 @@ public class FeedItem extends AbstractNode implements Indexable {
 
 	@Override
 	public InputStream getInputStream() {
-		
+
 		final String remoteUrl = getProperty(url);
 		if (StringUtils.isNotBlank(remoteUrl)) {
-			
+
 			return DownloadHelper.getInputStream(remoteUrl);
 		}
-		
+
 		return null;
 	}
 
 	// ----- private methods -----
 
+
+        static{
+            SchemaService.registerBuiltinTypeOverride("FeedItem", FeedItem.class.getName());
+        }
 }
