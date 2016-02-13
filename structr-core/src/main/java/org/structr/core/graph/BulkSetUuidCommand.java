@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.api.DatabaseService;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrAndSpatialPredicate;
@@ -31,8 +33,6 @@ import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.neo4j.wrapper.NodeWrapper;
-import org.structr.neo4j.wrapper.RelationshipWrapper;
 
 
 //~--- classes ----------------------------------------------------------------
@@ -57,15 +57,15 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 		final Boolean allNodes        = (Boolean) attributes.get("allNodes");
 		final Boolean allRels         = (Boolean) attributes.get("allRels");
 		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
-		
+
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
 		final RelationshipFactory relFactory   = new RelationshipFactory(superUserContext);
 
 		if (nodeType != null || Boolean.TRUE.equals(allNodes)) {
 
-			Iterable<NodeWrapper> nodes = null;
 			Result<AbstractNode> result = null;
+			Iterable<Node> nodes        = null;
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
@@ -74,9 +74,9 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 				} else {
 					nodes = Iterables.filter(new TypePredicate<>(nodeType),Iterables.filter(new StructrAndSpatialPredicate(false, false, true), graphDb.getAllNodes()));
 				}
-				
+
 				result = nodeFactory.instantiateAll(nodes);
-				
+
 				tx.success();
 
 			} catch (FrameworkException fex) {
@@ -93,13 +93,13 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 					try {
 						node.setProperty(GraphObject.id, NodeServiceCommand.getNextUuid());
-					
+
 					} catch (FrameworkException fex) {
 
 						logger.log(Level.WARNING, "Unable to set UUID of node {0}: {1}", new Object[] { node, fex.getMessage() });
 					}
 				}
-				
+
 				@Override
 				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
 					logger.log(Level.WARNING, "Unable to set UUID of node {0}: {1}", new Object[] { node, t.getMessage() });
@@ -118,8 +118,8 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 		if (relType != null || Boolean.TRUE.equals(allRels)) {
 
-			Iterable<RelationshipWrapper> rels  = null;
 			Result<AbstractRelationship> result = null;
+			Iterable<Relationship> rels         = null;
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
@@ -128,7 +128,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 				} else {
 					rels = Iterables.filter(new TypePredicate<>(relType), Iterables.filter(new StructrAndSpatialPredicate(false, false, true), graphDb.getAllRelationships()));
 				}
-				
+
 				result = relFactory.instantiateAll(rels);
 
 				tx.success();
@@ -147,13 +147,13 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 					try {
 						rel.setProperty(GraphObject.id, NodeServiceCommand.getNextUuid());
-					
+
 					} catch (FrameworkException fex) {
 
 						logger.log(Level.WARNING, "Unable to set UUID of relationship {0}: {1}", new Object[] { rel, fex.getMessage() });
 					}
 				}
-				
+
 				@Override
 				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractRelationship rel) {
 					logger.log(Level.WARNING, "Unable to set UUID of relationship {0}: {1}", new Object[] { rel, t.getMessage() });
