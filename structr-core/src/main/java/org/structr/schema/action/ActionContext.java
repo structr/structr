@@ -277,6 +277,13 @@ public class ActionContext {
 					case "path_info":
 						return securityContext.getRequest().getPathInfo();
 
+					case "remote_address":
+						final String remoteAddress = securityContext.getRequest().getHeader("X-FORWARDED-FOR");
+						if (remoteAddress == null) {
+							return securityContext.getRequest().getRemoteAddr();
+						}
+						return remoteAddress;
+
 					case "response":
 						if (securityContext != null) {
 							final HttpServletResponse response = securityContext.getResponse();
