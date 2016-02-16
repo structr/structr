@@ -17,67 +17,48 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var s = require('../setup'),
-    login = require('../templates/login'),
-    createPage = require('../templates/createPage');
-    
+	login = require('../templates/login'),
+	createPage = require('../templates/createPage');
+
 var testName = '003_create_user';
 var heading = "Create User", sections = [];
-var desc = "This animation shows how to create a new user."
+var desc = "This animation shows how to create a new user.";
 var numberOfTests = 3;
 
 s.startRecording(window, casper, testName);
 
 casper.test.begin(testName, numberOfTests, function(test) {
 
-    casper.start(s.url);
-    
-    sections.push('Click on the "Users and Groups" menu entry.');
+	casper.start(s.url);
 
-    login.init(test, 'admin', 'admin');
-    
-    casper.then(function() {
-        s.moveMousePointerTo(casper, '#security_');
-    });
+	login.init(test, 'admin', 'admin');
 
-    casper.then(function() {
-        this.click('#security_');
-    });
+	sections.push('Click on the "Users and Groups" menu entry.');
 
-    casper.then(function() {
-        s.moveMousePointerTo(casper, '#usersAndGroups_');
-    });
+	casper.then(function() {
+		s.moveMousePointerAndClick(casper, {selector: "#security_", wait: 1000});
+	});
 
-    casper.then(function() {
-        this.click('#usersAndGroups_');
-    });
+	casper.then(function() {
+		s.moveMousePointerAndClick(casper, {selector: "#usersAndGroups_", wait: 1000});
+	});
 
-    casper.wait(1000);
-    
-    sections.push('Click the "Add User" icon.');
-    
-    casper.then(function() {
-        s.moveMousePointerTo(casper, '.add_user_icon');
-    });
+	sections.push('Click the "Add User" icon.');
 
-    casper.then(function() {
-        this.click('.add_user_icon');
-    });
+	casper.then(function() {
+		s.moveMousePointerAndClick(casper, {selector: ".add_user_icon", wait: 1000});
+	});
 
-    casper.wait(1000);
+	casper.then(function() {
+		test.assertElementCount('#users .node.user', 2);
+	});
 
-    casper.then(function() {
-        test.assertEval(function() {
-            return $('#users .node.user').size() === 2;
-        });
-    });
+	sections.push('A new user with a random name has been created in the users area.');
 
-    sections.push('A new user with a random name has been created in the users area.');
+	casper.then(function() {
+		s.animateHtml(testName, heading, sections);
+	});
 
-    casper.then(function() {
-        s.animateHtml(testName, heading, sections);
-        this.exit();
-    });
-
-    casper.run();
+	casper.run();
 
 });

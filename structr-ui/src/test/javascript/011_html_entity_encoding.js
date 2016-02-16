@@ -22,7 +22,7 @@ var s = require('../setup'),
 var testName = '011_html_entity_encoding';
 var heading = "HTML entity encoding", sections = [];
 var desc = "This animation shows that html entities stay intact when saving a file.";
-var numberOfTests = 3;
+var numberOfTests = 4;
 var entityTestString = 'javascript:escape("&quot;");';
 
 s.startRecording(window, casper, testName);
@@ -33,102 +33,66 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
 	login.init(test, 'admin', 'admin');
 
-	sections.push('Access the filesystem tab');
+	sections.push('Click on the "Filesystem" menu entry.');
 
 	casper.then(function() {
-		s.moveMousePointerTo(casper, '#filesystem_');
+		s.moveMousePointerAndClick(casper, {selector: "#filesystem_", wait: 1000});
 	});
-	casper.then(function() {
-		this.click('#filesystem_');
-	});
-	casper.wait(1000);
-
-
 
 	sections.push('Create a new file');
 
 	casper.then(function() {
-		s.moveMousePointerTo(casper, '#folder-contents-container button.add_file_icon');
+		s.moveMousePointerAndClick(casper, {selector: '#folder-contents-container button.add_file_icon', wait: 1000});
 	});
-	casper.then(function() {
-		this.click('#folder-contents-container button.add_file_icon');
-	});
-	casper.wait(1000);
-
-
-	sections.push('Edit that file');
 
 	casper.then(function() {
-		s.moveMousePointerTo(casper, '#files-table-body tr:last-child img.edit_file_icon');
+		test.assertElementCount('#files-table .node.file', 1);
 	});
+
+	sections.push('Edit the file');
+
 	casper.then(function() {
-		this.click('#files-table-body tr:last-child img.edit_file_icon');
+		s.moveMousePointerTo(casper, '#files-table-body tr:last-child .node');
 	});
-	casper.wait(1000);
 
-
+	casper.then(function() {
+		s.moveMousePointerAndClick(casper, {selector: '#files-table-body tr:last-child img.edit_file_icon', wait: 1000});
+	});
 
 	sections.push('Enter the test string');
 
 	casper.then(function() {
-		s.moveMousePointerTo(casper, '.CodeMirror-code');
+		s.moveMousePointerAndClick(casper, {selector: '.CodeMirror-code', wait: 1000});
 	});
+
 	casper.then(function() {
-		this.click('.CodeMirror-code pre');
+		s.animatedType(this, '.CodeMirror-code div:first-child', false, entityTestString, true);
 	});
-	casper.wait(1000);
-
-    casper.then(function() {
-        s.animatedType(this, '.CodeMirror-code div:first-child', false, entityTestString, true);
-    });
 
 	casper.wait(1000);
-
 
 	sections.push('Save the file');
 
 	casper.then(function() {
-		s.moveMousePointerTo(casper, '#dialogBox #saveAndClose');
+		s.moveMousePointerAndClick(casper, {selector: '#dialogBox #saveAndClose', wait: 1000});
 	});
-	casper.then(function() {
-		this.click('#dialogBox #saveAndClose');
-	});
-	casper.wait(1000);
-
-
 
 	sections.push('Re-open the editor');
 
 	casper.then(function() {
-		s.moveMousePointerTo(casper, '#files-table-body tr:last-child img.edit_file_icon');
+		s.moveMousePointerAndClick(casper, {selector: '#files-table-body tr:last-child img.edit_file_icon', wait: 1000});
 	});
+
 	casper.then(function() {
-		this.click('#files-table-body tr:last-child img.edit_file_icon');
+		test.assertSelectorHasText('.CodeMirror-code pre', entityTestString);
 	});
 
 	casper.wait(1000);
 
-
-//	casper.then(function() {
-//        test.assertEvalEquals(function() {
-//            return $('.CodeMirror-code pre').text();
-//        }, entityTestString);
-//    });
-//
-
 	casper.then(function() {
-        test.assertEval(function (r) {
-			return ($('.CodeMirror-code pre').text() === r);
-		}, '', entityTestString);
-    });
-
-	casper.wait(1000);
-
-
-    casper.then(function() {
-        s.animateHtml(testName, heading, sections);
-        this.exit();
-    });
+		s.animateHtml(testName, heading, sections);
+		this.exit();
+	});
 
 	casper.run();
 

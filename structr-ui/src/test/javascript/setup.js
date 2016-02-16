@@ -20,6 +20,12 @@
 
 var fs = require('fs');
 
+/**
+ * return a failure exit code for any failed tests
+ */
+casper.test.on("fail", function () {
+	casper.exit(1);
+});
 
 /**
  * Screenshot/animation dimensions (pixel)
@@ -87,134 +93,133 @@ exports.debug = false;
  */
 exports.animatedType = function(casper, selector, inIframe, text, blur, len) {
 
-    var t = '';
+	var t = '';
 
-    if (len === undefined) {
-        len = 1;
-    }
+	if (len === undefined) {
+		len = 1;
+	}
 
-    if (len === text.length + 1) {
+	if (len === text.length + 1) {
 
-        if (blur) {
-            casper.thenEvaluate(function(s, f) {
-                var el;
-                if (f) {
-                    el = $('iframe:first-child').contents().find(s);
-                } else {
-                    el = $(s);
-                }
+		if (blur) {
+			casper.thenEvaluate(function(s, f) {
+				var el;
+				if (f) {
+					el = $('iframe:first-child').contents().find(s);
+				} else {
+					el = $(s);
+				}
 
-                el.blur();
+				el.blur();
 
-            }, selector, inIframe);
-        }
+			}, selector, inIframe);
+		}
 
-        return;
-    }
+		return;
+	}
 
-    //t = text.substr(0, len);
-    t = text.substring(len - 1, len);
+	//t = text.substr(0, len);
+	t = text.substring(len - 1, len);
 
-    if (exports.debug)
-        console.log('Typing text ', t, ' in', selector, 'in iframe?', inIframe);
+	if (exports.debug)
+		console.log('Typing text ', t, ' in', selector, 'in iframe?', inIframe);
 
-    casper.then(function() {
+	casper.then(function() {
 
-        if (inIframe) {
-            casper.withFrame(0, function() {
-                casper.sendKeys(selector, t, {keepFocus: true});
-            });
-        } else {
-            casper.sendKeys(selector, t, {keepFocus: true});
-            //casper.sendKeys(selector, t);
-        }
+		if (inIframe) {
+			casper.withFrame(0, function() {
+				casper.sendKeys(selector, t, {keepFocus: true});
+			});
+		} else {
+			casper.sendKeys(selector, t, {keepFocus: true});
+			//casper.sendKeys(selector, t);
+		}
 
-    });
+	});
 
-    casper.wait(inIframe ? 1 : typeInterval, function() {
-        exports.animatedType(casper, selector, inIframe, text, blur, len + 1);
-    });
+	casper.wait(inIframe ? 1 : typeInterval, function() {
+		exports.animatedType(casper, selector, inIframe, text, blur, len + 1);
+	});
 
-
-}
+};
 
 /**
  * Clicks the node which matches the selector in the first iframe
  */
 exports.clickInIframe = function(casper, selector) {
 
-    if (exports.debug)
-        console.log('Clicking in iframe on', selector);
+	if (exports.debug)
+		console.log('Clicking in iframe on', selector);
 
-    casper.evaluate(function(s) {
-        var el = $('iframe:first-child').contents().find(s);
-        el.click();
-        el.focus();
-    }, selector);
+	casper.evaluate(function(s) {
+		var el = $('iframe:first-child').contents().find(s);
+		el.click();
+		el.focus();
+	}, selector);
 
-}
+};
 
 /**
  * Display a mouse pointer at the given position
  */
 exports.mousePointer = function(casper, pos) {
 
-    if (exports.debug)
-        console.log('displaying mouse cursor at', pos.left, pos.top);
+	if (exports.debug)
+		console.log('displaying mouse cursor at', pos.left, pos.top);
 
-    //casper.then(function() {
+	//casper.then(function() {
 
-    var currentPos = casper.evaluate(function(p) {
+	var currentPos = casper.evaluate(function(p) {
 
-        var c = $('#testCursor');
-        if (!c.length) {
-            $('body').append('<img id="testCursor" src="icon/cursor2.png" style="position: absolute; top: ' + p.top + 'px; left: ' + p.left + 'px; z-index: 999999">')
-            c = $('#testCursor');
-        } else {
-            c.offset({
-                top: p.top,
-                left: p.left
-            });
-        }
-        return c.offset();
-    }, pos);
+		var c = $('#testCursor');
+		if (!c.length) {
+			$('body').append('<img id="testCursor" src="icon/cursor2.png" style="position: absolute; top: ' + p.top + 'px; left: ' + p.left + 'px; z-index: 999999">');
+			c = $('#testCursor');
+		} else {
+			c.offset({
+				top: p.top,
+				left: p.left
+			});
+		}
+		return c.offset();
+	}, pos);
 
-    if (exports.debug)
-        console.log('current cursor position', currentPos.left, currentPos.top);
+	if (exports.debug)
+		console.log('current cursor position', currentPos.left, currentPos.top);
 
-    //});
+	//});
 
-}
+};
 
 /**
  * Move mouse pointer
  */
 exports.moveMousePointer = function(casper, startPos, endPos, step) {
 
-    var pos;
+	var pos;
 
-    // Stop after a certain number of steps
-    if (step === mouseSteps) {
-        exports.mousePointer(casper, endPos);
-        return;
-    }
+	// Stop after a certain number of steps
+	if (step === mouseSteps) {
+		exports.mousePointer(casper, endPos);
+		return;
+	}
 
-    if (step === undefined) {
-        step = 0;
-    }
+	if (step === undefined) {
+		step = 0;
+	}
 
-    pos = {
-        left: startPos.left + (endPos.left - startPos.left) / mouseSteps * step,
-        top: startPos.top + (endPos.top - startPos.top) / mouseSteps * step
-    };
+	pos = {
+		left: startPos.left + (endPos.left - startPos.left) / mouseSteps * step,
+		top: startPos.top + (endPos.top - startPos.top) / mouseSteps * step
+	};
 
-    exports.mousePointer(casper, pos);
+	exports.mousePointer(casper, pos);
 
-    casper.then(function() {
-        exports.moveMousePointer(casper, startPos, endPos, step + 1);
-    });
+	casper.then(function() {
+		exports.moveMousePointer(casper, startPos, endPos, step + 1);
+	});
 
-}
+};
 
 /**
  * Move mouse pointer to element with given selector.
@@ -224,222 +229,237 @@ exports.moveMousePointer = function(casper, startPos, endPos, step) {
  */
 exports.moveMousePointerTo = function(casper, selector, offset) {
 
-    if (exports.debug)
-        console.log('move mouse pointer to', selector);
+	if (exports.debug)
+		console.log('move mouse pointer to', selector);
 
-    casper.then(function() {
+	casper.then(function() {
 
-        var positions = this.evaluate(function(s, o) {
-            var el = $(s);
-            var c = $('#testCursor');
+		var positions = this.evaluate(function(s, o) {
+			var el = $(s);
+			var c = $('#testCursor');
 
-            if (el.length && c.length) {
+			if (el.length && c.length) {
 
-                var startPos = {
-                    left: c.offset().left + c.width() / 2,
-                    top: c.offset().top + c.height() / 2
-                };
+				var startPos = {
+					left: c.offset().left + c.width() / 2,
+					top: c.offset().top + c.height() / 2
+				};
 
-                var endPos = {
-                    left: (el.offset().left + el.width() / 2) + (o ? o.x : 0),
-                    top: (el.offset().top + el.height() / 2) + (o ? o.y : 0)
-                };
+				var endPos = {
+					left: (el.offset().left + el.width() / 2) + (o ? o.x : 0),
+					top: (el.offset().top + el.height() / 2) + (o ? o.y : 0)
+				};
 
-                return {
-                    start: startPos,
-                    end: endPos
-                };
+				return {
+					start: startPos,
+					end: endPos
+				};
 
-            }
+			}
 
 
-        }, selector, offset);
+		}, selector, offset);
 
-        if (exports.debug)
-            console.log('start position:', positions.start.left, positions.start.top, ', end position:', positions.end.left, positions.end.top);
+		if (exports.debug)
+			console.log('start position:', positions.start.left, positions.start.top, ', end position:', positions.end.left, positions.end.top);
 
-        exports.moveMousePointer(casper, positions.start, positions.end);
+		exports.moveMousePointer(casper, positions.start, positions.end);
 
-        this.mouseEvent('mouseover', selector);
+		this.mouseEvent('mouseover', selector);
 
-    });
+	});
 
-}
+};
+
+/**
+ * move cursor to position and click
+ */
+exports.moveMousePointerAndClick = function (casper, params) {
+
+	exports.moveMousePointerTo(casper, params.selector, params.offset);
+
+	casper.then(function() {
+		this.click(params.selector);
+	});
+
+	casper.wait(params.wait || 1000);
+
+};
 
 /**
  * Drag element with given source selector onto element with target selector
  */
 exports.dragDropElement = function(casper, sourceSelector, targetSelector, offset) {
 
-    if (exports.debug)
-        console.log('drag element', sourceSelector, targetSelector, offset);
+	if (exports.debug)
+		console.log('drag element', sourceSelector, targetSelector, offset);
 
-    var positions;
+	var positions;
 
-    casper.then(function() {
+	casper.then(function() {
 
-        //  exports.moveMousePointerTo(casper, sourceSelector);
+		//  exports.moveMousePointerTo(casper, sourceSelector);
 
-        positions = this.evaluate(function(s, t, o) {
-            var sourceEl = $(s);
-            var targetEl = $(t);
+		positions = this.evaluate(function(s, t, o) {
+			var sourceEl = $(s);
+			var targetEl = $(t);
 
-            if (sourceEl.length && targetEl.length) {
+			if (sourceEl.length && targetEl.length) {
 
 
-                var sourcePos = {
-                    left: sourceEl.offset().left + sourceEl.width() / 2,
-                    top: sourceEl.offset().top + sourceEl.height() / 2
-                };
-                var targetPos = {
-                    left: (targetEl.offset().left + targetEl.width() / 2) + (o ? o.x : 0),
-                    top: (targetEl.offset().top + targetEl.height() / 2) + (o ? o.y : 0)
-                };
+				var sourcePos = {
+					left: sourceEl.offset().left + sourceEl.width() / 2,
+					top: sourceEl.offset().top + sourceEl.height() / 2
+				};
+				var targetPos = {
+					left: (targetEl.offset().left + targetEl.width() / 2) + (o ? o.x : 0),
+					top: (targetEl.offset().top + targetEl.height() / 2) + (o ? o.y : 0)
+				};
 
-                return {sourcePos: sourcePos, targetPos: targetPos};
+				return {sourcePos: sourcePos, targetPos: targetPos};
 
-            }
+			}
 
-        }, sourceSelector, targetSelector, offset);
+		}, sourceSelector, targetSelector, offset);
 
-        if (exports.debug)
-            console.log('move element from ... to ...', positions.sourcePos.left, positions.sourcePos.top, positions.targetPos.left, positions.targetPos.top);
+		if (exports.debug)
+			console.log('move element from ... to ...', positions.sourcePos.left, positions.sourcePos.top, positions.targetPos.left, positions.targetPos.top);
 
-        exports.moveMousePointerTo(casper, sourceSelector);
+		exports.moveMousePointerTo(casper, sourceSelector);
 
-        var steps = 10;
+		var steps = 10;
 
-        for (var i = 1; i <= steps; i++) {
+		for (var i = 1; i <= steps; i++) {
 
-            //window.setTimeout(function() {
+			//window.setTimeout(function() {
 
-            this.thenEvaluate(function(source, sourcePos, targetPos, st, j) {
+			this.thenEvaluate(function(source, sourcePos, targetPos, st, j) {
 
-                var sourceEl = $(source);
+				var sourceEl = $(source);
 
-                var dx = targetPos.left - sourcePos.left;
-                var dy = targetPos.top - sourcePos.top;
+				var dx = targetPos.left - sourcePos.left;
+				var dy = targetPos.top - sourcePos.top;
 
-                var newX = sourcePos.left + dx / st * j;
-                var newY = sourcePos.top + dy / st * j;
+				var newX = sourcePos.left + dx / st * j;
+				var newY = sourcePos.top + dy / st * j;
 
-                var movedEl = $('#moved-element-clone');
-                if (!movedEl.length) {
-                    movedEl = sourceEl.clone();
-                    movedEl.attr('id', 'moved-element-clone').appendTo('body');
-                }
+				var movedEl = $('#moved-element-clone');
+				if (!movedEl.length) {
+					movedEl = sourceEl.clone();
+					movedEl.attr('id', 'moved-element-clone').appendTo('body');
+				}
 
-                var c = $('#testCursor');
-                c.appendTo(movedEl);
+				var c = $('#testCursor');
+				c.appendTo(movedEl);
 
-                movedEl.offset({left: newX, top: newY});
-                c.offset({left: newX, top: newY});
+				movedEl.offset({left: newX, top: newY});
+				c.offset({left: newX, top: newY});
 
-            }, sourceSelector, positions.sourcePos, positions.targetPos, steps, i);
-            //exports.mousePointer(this, positions.targetPos);
-        }
-    });
+			}, sourceSelector, positions.sourcePos, positions.targetPos, steps, i);
+			//exports.mousePointer(this, positions.targetPos);
+		}
+	});
 
-    casper.thenEvaluate(function(s, t, o) {
+	casper.thenEvaluate(function(s, t, o) {
 
-        //exports.moveMousePointerTo(casper, sourceSelector);
+		//exports.moveMousePointerTo(casper, sourceSelector);
 
-        var movedEl = $('#moved-element-clone');
-        if (movedEl.length) {
-            movedEl.remove();
-        }
+		var movedEl = $('#moved-element-clone');
+		if (movedEl.length) {
+			movedEl.remove();
+		}
 
 //            var positions = this.evaluate(function(s, t, o) {
-        var sourceEl = $(s);
-        var targetEl = $(t);
+		var sourceEl = $(s);
+		var targetEl = $(t);
 
-        if (sourceEl.length && targetEl.length) {
+		if (sourceEl.length && targetEl.length) {
 
 
-            var sourcePos = {
-                left: sourceEl.offset().left + sourceEl.width() / 2,
-                top: sourceEl.offset().top + sourceEl.height() / 2
-            };
-            var targetPos = {
-                left: (targetEl.offset().left + targetEl.width() / 2) + (o ? o.x : 0),
-                top: (targetEl.offset().top + targetEl.height() / 2) + (o ? o.y : 0)
-            };
+			var sourcePos = {
+				left: sourceEl.offset().left + sourceEl.width() / 2,
+				top: sourceEl.offset().top + sourceEl.height() / 2
+			};
+			var targetPos = {
+				left: (targetEl.offset().left + targetEl.width() / 2) + (o ? o.x : 0),
+				top: (targetEl.offset().top + targetEl.height() / 2) + (o ? o.y : 0)
+			};
 
-        }
+		}
 
 //            }, sourceSelector, targetSelector, offset);
 
 
 
-        var d = {
-            x: targetPos.left - sourcePos.left,
-            y: targetPos.top - sourcePos.top
-        }
+		var d = {
+			x: targetPos.left - sourcePos.left,
+			y: targetPos.top - sourcePos.top
+		};
 
 //            this.evaluate(function(s) {
 
-        var sourceEl = $(s);
-        sourceEl.simulate('drag-n-drop', {
-            dx: d.x,
-            dy: d.y
+		var sourceEl = $(s);
+		sourceEl.simulate('drag-n-drop', {
+			dx: d.x,
+			dy: d.y
 //            dx: -1350,
 //            dy: 190
-        });
+		});
 
-        this.mouseEvent('mouseover', targetSelector);
+		this.mouseEvent('mouseover', targetSelector);
 
-    }, sourceSelector, targetSelector, offset);
+	}, sourceSelector, targetSelector, offset);
 
-    //console.log('d[x,y]: ' + d.x + ', ' + d.y);
+	//console.log('d[x,y]: ' + d.x + ', ' + d.y);
 
-}
+};
 
 /**
  * Utility function to left-fill a file name with leading '0's
  */
 exports.pad = function(num) {
-    return ('000000000' + num).substr(-filenameLength);
-}
+	return ('000000000' + num).substr(-filenameLength);
+};
 
 /**
  * Create an HTML file with JS-animated video
  */
 exports.animateHtml = function(testName, heading, sections) {
 
-    var html = '<!DOCTYPE html><html><head><title>Structr UI Test: ' + heading + '</title><link rel="stylesheet" type="text/css" media="screen" href="test.css"></head><body><div id="main"><h1>' + heading + '</h1>'
+	var html = '<!DOCTYPE html><html><head><title>Structr UI Test: ' + heading + '</title><link rel="stylesheet" type="text/css" media="screen" href="test.css"></head><body><div id="main"><h1>' + heading + '</h1>';
 
-    sections.forEach(function(s) {
-        html += '<section>' + s + '</section>';
-    });
+	sections.forEach(function(s) {
+		html += '<section>' + s + '</section>';
+	});
 
-    html += '<img width="' + w + '" height="' + h + '" id="anim"><script>'
+	html += '<img width="' + w + '" height="' + h + '" id="anim"><script>';
 
-    html += '\n'
-            + 'var t; var anim = document.getElementById("anim");\n'
-            + 'play(0,50);\n';
+	html += '\n'
+			+ 'var t; var anim = document.getElementById("anim");\n'
+			+ 'play(0,50);\n';
 
-    var files = fs.list(exports.docsDir + '/screenshots/' + testName + '/');
+	var files = fs.list(exports.docsDir + '/screenshots/' + testName + '/');
 
-    html += 'function setImg(i) { anim.src = "../screenshots/' + testName + '/" + ("000000000" + i).substr(-' + filenameLength + ') + ".' + exports.imageType + '"; }\n'
-            + 'function play(i, v) { setImg(i);\n'
-            + ' if (i<' + (files.length - 3) + ') { t = window.setTimeout(function() { play(i+1,v); }, v?v:100); }; }\n';
+	html += 'function setImg(i) { anim.src = "../screenshots/' + testName + '/" + ("000000000" + i).substr(-' + filenameLength + ') + ".' + exports.imageType + '"; }\n'
+			+ 'function play(i, v) { setImg(i);\n'
+			+ ' if (i<' + (files.length - 3) + ') { t = window.setTimeout(function() { play(i+1,v); }, v?v:100); }; }\n';
 
-    html += '</script><div><button onclick="play(0,50)">Play</button><button onclick="window.clearTimeout(t)">Stop</button><button onclick="play(0,250)">Slow Motion</button></div></div></body></html>';
+	html += '</script><div><button onclick="play(0,50)">Play</button><button onclick="window.clearTimeout(t)">Stop</button><button onclick="play(0,250)">Slow Motion</button></div></div></body></html>';
 
-    fs.write(exports.docsDir + '/html/' + testName + '_test.html', html);
+	fs.write(exports.docsDir + '/html/' + testName + '_test.html', html);
 
-    exports.createNavigation();
+	exports.createNavigation();
 
-}
+};
 
 /**
  * Start recording of screenshots
  */
 exports.startRecording = function(window, casper, testName) {
 
-    /**
-     * Set casper options, see http://docs.casperjs.org/en/latest/modules/casper.html#index-1
-     */
+	/**
+	 * Set casper options, see http://docs.casperjs.org/en/latest/modules/casper.html#index-1
+	 */
 
 	/**
 	 * Set global timeout for all 'waitFor' functions
@@ -447,46 +467,46 @@ exports.startRecording = function(window, casper, testName) {
 	casper.options.waitTimeout = 30000;
 
 	casper.options.viewportSize = {
-        width: w,
-        height: h
-    };
+		width: w,
+		height: h
+	};
 
-    var i = 0;
+	var i = 0;
 
-    // Remove old screenshots
-    fs.removeTree(exports.docsDir + '/screenshots/' + testName);
+	// Remove old screenshots
+	fs.removeTree(exports.docsDir + '/screenshots/' + testName);
 
-    window.setInterval(function() {
-        casper.capture(exports.docsDir + '/screenshots/' + testName + '/' + exports.pad(i++) + '.' + exports.imageType);
-        if (exports.debug)
-            console.log('screenshot ' + i + ' created');
-    }, recordingInterval);
+	window.setInterval(function() {
+		casper.capture(exports.docsDir + '/screenshots/' + testName + '/' + exports.pad(i++) + '.' + exports.imageType);
+		if (exports.debug)
+			console.log('screenshot ' + i + ' created');
+	}, recordingInterval);
 
-}
+};
 
 /**
  * Create navigation page
  */
 exports.createNavigation = function() {
 
-    var fs = require('fs');
+	var fs = require('fs');
 
-    var files = fs.list(exports.docsDir + '/html/');
+	var files = fs.list(exports.docsDir + '/html/');
 
-    var html = '<!DOCTYPE html><html><head><title>Structr Documentation Menu</title><link rel="stylesheet" type="text/css" media="screen" href="test.css"></head><body><ul id="menu">'
+	var html = '<!DOCTYPE html><html><head><title>Structr Documentation Menu</title><link rel="stylesheet" type="text/css" media="screen" href="test.css"></head><body><ul id="menu">';
 
-    files.forEach(function(file) {
-        if (file.indexOf('_test') > -1) {
-            var name = file.substring(4, file.indexOf('_test')).split('_').map(function(n) {
-                return n.charAt(0).toUpperCase() + n.slice(1);
-            }).join(' ');
-            html += '<li><a href="' + file + '" target="cont">' + name + '</a></li>\n';
-        }
+	files.forEach(function(file) {
+		if (file.indexOf('_test') > -1) {
+			var name = file.substring(4, file.indexOf('_test')).split('_').map(function(n) {
+				return n.charAt(0).toUpperCase() + n.slice(1);
+			}).join(' ');
+			html += '<li><a href="' + file + '" target="cont">' + name + '</a></li>\n';
+		}
 
-    });
+	});
 
-    html += '</ul></body></html>';
+	html += '</ul></body></html>';
 
-    fs.write(exports.docsDir + '/html/nav.html', html);
+	fs.write(exports.docsDir + '/html/nav.html', html);
 
-}
+};

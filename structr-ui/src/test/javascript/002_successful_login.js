@@ -20,45 +20,48 @@ var s = require('../setup');
 
 var testName = '002_successful_login';
 var heading = "Successful Login", sections = [];
-var desc = "This animation shows a successful login."
+var desc = "This animation shows a successful login.";
 var numberOfTests = 2;
 
 casper.test.begin(testName, numberOfTests, function(test) {
 
-    s.startRecording(window, casper, testName);
+	s.startRecording(window, casper, testName);
 
-    casper.start(s.url);
-    
-    sections.push('If you enter a valid combination of username and password, the system allows you to log in.');
-    
-    casper.waitForSelector('#usernameField').then(function() {
-        s.animatedType(this, '#usernameField', false, 'admin');
-    });
+	casper.start(s.url);
 
-    casper.waitForSelector('#passwordField').then(function() {
-        s.animatedType(this, '#passwordField', false, 'admin');
-    });
+	sections.push('If you enter a valid combination of username and password, the system allows you to log in.');
 
-    casper.then(function() {
-        s.mousePointer(casper, { left: 600, top: 400 });
-        s.moveMousePointerTo(casper, '#loginButton');
-    });
+	casper.waitForSelector('#usernameField').then(function() {
+		s.animatedType(this, '#usernameField', false, 'admin');
+	});
 
-    casper.then(function() {
-        this.click('#loginButton');
-    });
+	casper.waitForSelector('#passwordField').then(function() {
+		s.animatedType(this, '#passwordField', false, 'admin');
+	});
 
-    casper.waitForSelector('#dashboard', function() {
-        test.assertEval(function() { return !($('#errorText').text() === 'Wrong username or password!'); });
-        test.assertEval(function() { return $('#dashboard').is(':visible'); });
-    });
+	casper.then(function() {
+		s.mousePointer(casper, { left: 600, top: 400 });
+	});
 
-    casper.then(function() {
-        s.animateHtml(testName, heading, sections);
-        this.exit();
-    });
+	casper.then(function() {
+		s.moveMousePointerAndClick(casper, {selector: "#loginButton", wait: 1000});
+	});
 
-    casper.run();
+	casper.waitForSelector('#about-me', function() {
+		test.assertSelectorDoesntHaveText('#errorText', 'Wrong username or password!');
+
+		test.assertEval(function() {
+			return $('#dashboard').is(':visible');
+		});
+
+//		// this strangely does not work even though the element is visible. bug in casperjs?
+//		test.assertVisible('#dashboard');
+	});
+
+	casper.then(function() {
+		s.animateHtml(testName, heading, sections);
+	});
+
+	casper.run();
 
 });
-

@@ -17,114 +17,76 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var s = require('../setup'),
-    login = require('../templates/login');
+	login = require('../templates/login');
 
 var testName = '009_create_and_edit_file';
 var heading = "Create and Edit File", sections = [];
-var desc = "This animation shows how to create and edit a new file."
-var numberOfTests = 3;
+var desc = "This animation shows how to create and edit a new file.";
+var numberOfTests = 4;
+var testString = 'Random text';
 
 s.startRecording(window, casper, testName);
 
 casper.test.begin(testName, numberOfTests, function(test) {
 
-    casper.start(s.url);
+	casper.start(s.url);
 
-    login.init(test, 'admin', 'admin');
+	login.init(test, 'admin', 'admin');
 
-    sections.push('Click on the "Files" menu entry.');
+	sections.push('Click on the "Filesystem" menu entry.');
 
-    casper.then(function() {
-        s.moveMousePointerTo(casper, '#filesystem_');
-    });
+	casper.then(function() {
+		s.moveMousePointerAndClick(casper, {selector: "#filesystem_", wait: 1000});
+	});
 
-    casper.then(function() {
-        this.click('#filesystem_');
-    });
+	sections.push('Click the "Add File" icon.');
 
-    casper.wait(1000);
+	casper.then(function() {
+		s.moveMousePointerAndClick(casper, {selector: ".add_file_icon", wait: 1000});
+	});
 
-    sections.push('Click the "Add File" icon.');
+	sections.push('A new file with a random name has been created in the files area. You can also drag and drop a file here from your desktop or from an OS folder to upload it, using the HTML5 Drag & Drop API.');
 
-    casper.then(function() {
-        s.moveMousePointerTo(casper, '.add_file_icon');
-    });
+	casper.then(function() {
+		test.assertElementCount('#files-table .node.file', 1);
+	});
 
-    casper.then(function() {
-        this.click('.add_file_icon');
-    });
+	casper.then(function() {
+		s.moveMousePointerTo(casper, '#files-table-body tr:last-child .node');
+	});
 
-    casper.wait(2000);
+	casper.then(function() {
+		s.moveMousePointerAndClick(casper, {selector: "#files-table .file .edit_file_icon", wait: 1000});
+	});
 
-    sections.push('A new file with a random name has been created in the files area. You can also drag and drop a file here from your desktop or from an OS folder to upload it, using the HTML5 Drag & Drop API.');
+	sections.push('Enter the test string');
 
-    casper.then(function() {
-        test.assertEval(function() {
-            return $('#files-table .node.file').size() === 1;
-        });
-    });
+	casper.then(function() {
+		s.moveMousePointerAndClick(casper, {selector: '.CodeMirror-code', wait: 1000});
+	});
 
-    casper.then(function() {
-        s.moveMousePointerTo(casper, '#files-table .file');
-        //this.mouseEvent('mouseover', '#files-table .file');
-    });
+	casper.then(function() {
+		s.animatedType(this, '.CodeMirror-code div:first-child', false, testString, true);
+	});
 
-    casper.then(function() {
-        s.moveMousePointerTo(casper, '#files-table .file .edit_file_icon');
-    });
+	casper.wait(1000);
 
-    casper.then(function() {
-        this.click('#files-table .file .edit_file_icon');
-    });
+	casper.then(function() {
+		s.moveMousePointerAndClick(casper, {selector: "#saveAndClose", wait: 1000});
+	});
 
-    casper.wait(1000);
+	casper.then(function() {
+		s.moveMousePointerAndClick(casper, {selector: "#files-table .file .edit_file_icon", wait: 1000});
+	});
 
-    casper.then(function() {
-        this.click('.CodeMirror-code div:first-child');
-    });
+	casper.then(function() {
+		test.assertSelectorHasText('.CodeMirror-code pre', testString);
+	});
 
-    casper.wait(1000);
+	casper.then(function() {
+		s.animateHtml(testName, heading, sections);
+	});
 
-    casper.then(function() {
-        s.animatedType(this, '.CodeMirror-code div:first-child', false, 'Random text', true);
-        //this.sendKeys('.CodeMirror-code div:first-child', 'Random text');
-    });
-
-    casper.wait(1000);
-
-    casper.then(function() {
-        s.moveMousePointerTo(casper, '#saveAndClose');
-    });
-
-    casper.wait(1000);
-
-    casper.then(function() {
-        this.click('#saveAndClose');
-    });
-
-    casper.wait(1000);
-
-    casper.then(function() {
-        s.moveMousePointerTo(casper, '#files-table .file .edit_file_icon');
-    });
-
-    casper.then(function() {
-        this.click('#files-table .file .edit_file_icon');
-    });
-
-    casper.wait(1000);
-
-    casper.then(function() {
-        test.assertEval(function() {
-            return $('.CodeMirror-code span').text() === 'Random text';
-        });
-    });
-
-    casper.then(function() {
-        s.animateHtml(testName, heading, sections);
-        this.exit();
-    });
-
-    casper.run();
+	casper.run();
 
 });

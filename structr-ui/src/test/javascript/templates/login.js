@@ -18,31 +18,30 @@
  */
 ;exports.init = function(test, name, password){
 
-    sections.push('Login with username and password.');
+	sections.push('Login with username and password.');
 
-    casper.waitForSelector('#usernameField').then(function() {
-        s.animatedType(this, '#usernameField', false, name);
-    });
+	casper.waitForSelector('#usernameField').then(function() {
+		s.animatedType(this, '#usernameField', false, name);
+	});
 
-    casper.waitForSelector('#passwordField').then(function() {
-        s.animatedType(this, '#passwordField', false, password);
-    });
+	casper.waitForSelector('#passwordField').then(function() {
+		s.animatedType(this, '#passwordField', false, password);
+	});
 
-    casper.then(function() {
-        s.mousePointer(casper, { left: 600, top: 400 });
-        s.moveMousePointerTo(casper, '#loginButton');
-    });
+	casper.then(function() {
+		s.mousePointer(casper, { left: 600, top: 400 });
+		s.moveMousePointerTo(casper, '#loginButton');
+	});
 
-    casper.then(function() {
-        this.click('#loginButton');
-    });
+	casper.then(function() {
+		this.click('#loginButton');
+	});
 
-    casper.waitForSelector('#dashboard', function() {
+	casper.waitForSelector('#dashboard', function() {
 
-        test.assertEval(function() { return !($('#errorText').text() === 'Wrong username or password!'); });
-        test.assertEval(function() { return $('#dashboard').is(':visible'); });
+		test.assertEval(function() { return !($('#errorText').text() === 'Wrong username or password!'); });
+		test.assertEval(function() { return $('#dashboard').is(':visible'); });
 
-    });
+	});
 
-    
 };

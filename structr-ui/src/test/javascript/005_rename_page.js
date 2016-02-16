@@ -17,55 +17,49 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var s = require('../setup'),
-    login = require('../templates/login'),
-    createPage = require('../templates/createPage');
+	login = require('../templates/login'),
+	createPage = require('../templates/createPage');
 
 var testName = '005_rename_page';
 var heading = "Rename Page", sections = [];
-var desc = "This animation shows how a new page can be renamed."
-var numberOfTests = 3;
+var desc = "This animation shows how a new page can be renamed.";
+var numberOfTests = 4;
+var renamedPageName = 'renamed-page';
 
 s.startRecording(window, casper, testName);
 
 casper.test.begin(testName, numberOfTests, function(test) {
 
-    casper.start(s.url);
-    
-    sections.push('<a href="004_create_page_test.html">Login and create a page.</a>');
+	casper.start(s.url);
 
-    login.init(test, 'admin', 'admin');
-    
-    createPage.init(test, 'test-page');
+	sections.push('<a href="004_create_page_test.html">Login and create a page.</a>');
 
-    sections.push('You can rename a page by simply clicking on the name on the preview tab. After entering a new name, press return or tab, or click outside the input field.');
+	login.init(test, 'admin', 'admin');
 
-    casper.then(function() {
-        s.moveMousePointerTo(casper, '#previewTabs li.page.active');
-    });
+	createPage.init(test, 'test-page');
 
-    casper.then(function() {
-        this.click('#previewTabs li.page.active');
-    });
+	sections.push('You can rename a page by simply clicking on the name on the preview tab. After entering a new name, press return or tab, or click outside the input field.');
 
-    casper.waitForSelector('#previewTabs li input.new-name', function() {
-        s.animatedType(this, '#previewTabs li input.new-name', false, 'renamed-page', true);
-    });
+	casper.then(function() {
+		s.moveMousePointerAndClick(casper, {selector: "#previewTabs li.page.active", wait: 0});
+	});
 
-    casper.wait(1000);
+	casper.waitForSelector('#previewTabs li input.new-name', function() {
+		s.animatedType(this, '#previewTabs li input.new-name', false, renamedPageName, true);
+	});
 
-    casper.then(function() {
-        test.assertEval(function() {
-            return $('#previewTabs li.page.active .name_').text() === 'renamed-page';
-        });
-    });
+	casper.wait(1000);
 
-    casper.wait(1000);
+	casper.then(function() {
+		test.assertSelectorHasText('#previewTabs li.page.active .name_', renamedPageName);
+	});
 
-    casper.then(function() {
-        s.animateHtml(testName, heading, sections);
-        this.exit();
-    });
+	casper.wait(1000);
 
-    casper.run();
+	casper.then(function() {
+		s.animateHtml(testName, heading, sections);
+	});
+
+	casper.run();
 
 });
