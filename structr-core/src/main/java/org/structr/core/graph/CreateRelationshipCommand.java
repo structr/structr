@@ -71,23 +71,23 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 		if (newRel != null) {
 
-			newRel.unlockReadOnlyPropertiesOnce();
+			newRel.unlockSystemPropertiesOnce();
 			newRel.setProperty(GraphObject.type, relType.getSimpleName());
 
 			// set UUID
-			newRel.unlockReadOnlyPropertiesOnce();
+			newRel.unlockSystemPropertiesOnce();
 			newRel.setProperty(GraphObject.id, getNextUuid());
 
 			// set created date
-			newRel.unlockReadOnlyPropertiesOnce();
+			newRel.unlockSystemPropertiesOnce();
 			newRel.setProperty(AbstractRelationship.createdDate, now);
 
 			// set last modified date
-			newRel.unlockReadOnlyPropertiesOnce();
+			newRel.unlockSystemPropertiesOnce();
 			newRel.setProperty(AbstractRelationship.lastModifiedDate, now);
 
 			// Try to get the cascading delete flag from the domain specific relationship type
-			newRel.unlockReadOnlyPropertiesOnce();
+			newRel.unlockSystemPropertiesOnce();
 			newRel.setProperty(AbstractRelationship.cascadeDelete, factory.instantiate(rel).getCascadingDeleteFlag());
 
 			// notify transaction handler
@@ -101,7 +101,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 					// on creation, writing of read-only properties should be possible
 					if (key.isReadOnly() || key.isWriteOnce()) {
-						newRel.unlockReadOnlyPropertiesOnce();
+						newRel.unlockSystemPropertiesOnce();
 					}
 
 					newRel.setProperty(entry.getKey(), entry.getValue());

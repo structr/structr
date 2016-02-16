@@ -97,7 +97,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			if (node != null) {
 
 				// very first action: set UUID
-				node.unlockReadOnlyPropertiesOnce();
+				node.unlockSystemPropertiesOnce();
 				node.setProperty(GraphObject.id, getNextUuid());
 
 				TransactionCommand.nodeCreated(user, node);
@@ -112,31 +112,31 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 					Security securityRel = app.create(user, (NodeInterface)node, Security.class);
 					securityRel.setAllowed(Permission.allPermissions);
 
-					node.unlockReadOnlyPropertiesOnce();
+					node.unlockSystemPropertiesOnce();
 					node.setProperty(AbstractNode.createdBy, user.getProperty(GraphObject.id));
 				}
 
 				// set type
 				if (nodeType != null) {
 
-					node.unlockReadOnlyPropertiesOnce();
+					node.unlockSystemPropertiesOnce();
 					node.setProperty(GraphObject.type, nodeType.getSimpleName());
 				}
 
 				// set created date
-				node.unlockReadOnlyPropertiesOnce();
+				node.unlockSystemPropertiesOnce();
 				node.setProperty(AbstractNode.createdDate, now);
 
 				// set last modified date
-				node.unlockReadOnlyPropertiesOnce();
+				node.unlockSystemPropertiesOnce();
 				node.setProperty(AbstractNode.lastModifiedDate, now);
 
 				for (Entry<PropertyKey, Object> attr : properties.entrySet()) {
 
 					final Object value = attr.getValue();
 					PropertyKey key = attr.getKey();
-					if (key.isReadOnly()) {
-						node.unlockReadOnlyPropertiesOnce();
+					if (key.isSystemInternal()) {
+						node.unlockSystemPropertiesOnce();
 					}
 					node.setProperty(key, value);
 

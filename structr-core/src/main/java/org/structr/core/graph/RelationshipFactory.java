@@ -130,7 +130,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 			if (type == null || (type != null && !type.equals(relClass.getSimpleName()))) {
 
 				try {
-					newRel.unlockReadOnlyPropertiesOnce();
+					newRel.unlockSystemPropertiesOnce();
 					newRel.setProperty(GraphObject.type, relClass.getSimpleName());
 
 				} catch (FrameworkException fex) {

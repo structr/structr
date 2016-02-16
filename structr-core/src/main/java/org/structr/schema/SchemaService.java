@@ -222,7 +222,7 @@ public class SchemaService implements Service {
 			}
 
 			schemaNode.setProperty(SchemaNode.extendsClass, fqcn);
-			schemaNode.unlockReadOnlyPropertiesOnce();
+			schemaNode.unlockSystemPropertiesOnce();
 			schemaNode.setProperty(SchemaNode.isBuiltinType, true);
 		}
 	}

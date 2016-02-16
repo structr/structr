@@ -54,11 +54,11 @@ public interface GraphObject {
 	public static final Property<String>  type                        = new TypeProperty();
 	public static final Property<String>  id                          = new UuidProperty();
 
-	public static final Property<Date>    createdDate                 = new ISO8601DateProperty("createdDate").indexed().unvalidated().readOnly().writeOnce();
+	public static final Property<Date>    createdDate                 = new ISO8601DateProperty("createdDate").systemInternal().indexed().unvalidated().writeOnce();
 	public static final Property<String>  createdBy                   = new StringProperty("createdBy").readOnly().writeOnce().unvalidated();
 
-	public static final Property<Date>    lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").internalSystemProperty().passivelyIndexed().unvalidated().readOnly();
-	public static final Property<String>  lastModifiedBy              = new StringProperty("lastModifiedBy").internalSystemProperty().unvalidated();
+	public static final Property<Date>    lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").systemInternal().passivelyIndexed().unvalidated();
+	public static final Property<String>  lastModifiedBy              = new StringProperty("lastModifiedBy").systemInternal().unvalidated();
 
 	public static final Property<Boolean> visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers").passivelyIndexed();
 	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed();
@@ -190,12 +190,18 @@ public interface GraphObject {
 	public String getDefaultSortOrder();
 
 	/**
+	 * Unlock all system properties in this entity for a single <code>setProperty</code>
+	 * call.
+	 */
+	public void unlockSystemPropertiesOnce();
+
+	/**
 	 * Unlock all read-only properties in this entity for a single <code>setProperty</code>
 	 * call.
 	 */
 	public void unlockReadOnlyPropertiesOnce();
 
-
+	
 	public boolean isValid(ErrorBuffer errorBuffer);
 
 

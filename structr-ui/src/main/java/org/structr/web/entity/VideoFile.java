@@ -34,7 +34,7 @@ import org.structr.core.app.StructrApp;
 import static org.structr.core.graph.NodeInterface.name;
 import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.DoubleProperty;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
@@ -71,7 +71,7 @@ public class VideoFile extends File {
 	public static final Property<List<VideoFile>> convertedVideos = new EndNodes<>("convertedVideos", VideoFileHasConvertedVideoFile.class);
 	public static final Property<VideoFile> originalVideo         = new StartNode<>("originalVideo", VideoFileHasConvertedVideoFile.class);
 	public static final Property<Image> posterImage               = new EndNode<>("posterImage", VideoFileHasPosterImage.class);
-	public static final Property<Boolean> isVideo                 = new BooleanProperty("isVideo").defaultValue(true).readOnly();
+	public static final Property<Boolean> isVideo                 = new ConstantBooleanProperty("isVideo", true);
 	public static final Property<String>  videoCodecName          = new StringProperty("videoCodecName").cmis();
 	public static final Property<String>  videoCodec              = new StringProperty("videoCodec").cmis();
 	public static final Property<String>  pixelFormat             = new StringProperty("pixelFormat").cmis();

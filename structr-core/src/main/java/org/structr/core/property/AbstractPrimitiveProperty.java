@@ -135,11 +135,14 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 				throw new FrameworkException(500, "setProperty outside of transaction.");
 			}
 
+			boolean internalSystemPropertiesUnlocked = false;
+			
 			// notify only non-system properties
-			if (!unvalidated) {
 
-				// collect modified properties
-				if (obj instanceof AbstractNode) {
+			// collect modified properties
+			if (obj instanceof AbstractNode) {
+
+				if (!unvalidated) {
 
 					TransactionCommand.nodeModified(
 						securityContext.getCachedUser(),
@@ -148,8 +151,12 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 						propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null,
 						value
 					);
+				}
+				internalSystemPropertiesUnlocked = ((AbstractNode) obj).internalSystemPropertiesUnlocked;
 
-				} else if (obj instanceof AbstractRelationship) {
+			} else if (obj instanceof AbstractRelationship) {
+
+				if (!unvalidated) {
 
 					TransactionCommand.relationshipModified(
 						securityContext.getCachedUser(),
@@ -159,6 +166,8 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 						value
 					);
 				}
+
+				internalSystemPropertiesUnlocked = ((AbstractRelationship) obj).internalSystemPropertiesUnlocked;
 			}
 
 			// catch all sorts of errors and wrap them in a FrameworkException
@@ -171,13 +180,13 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 				} else {
 
-					if (!internalSystemProperty) {
+					if (!internalSystemProperty || internalSystemPropertiesUnlocked) {
 
 						propertyContainer.setProperty(dbName(), convertedValue);
 
 					} else {
 
-						logger.log(Level.FINE, "Tried to set internal system property (action was denied).");
+						logger.log(Level.WARNING, "Tried to set internal system property {0} to {1}. Action was denied.", new Object[]{dbName(), convertedValue});
 
 					}
 				}
@@ -216,12 +225,6 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	@Override
 	public boolean isCollection() {
 		return false;
-	}
-
-	public AbstractPrimitiveProperty<T> internalSystemProperty() {
-
-		this.internalSystemProperty = true;
-		return this;
 	}
 
 	// ----- private methods -----

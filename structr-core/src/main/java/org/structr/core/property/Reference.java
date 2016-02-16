@@ -172,6 +172,11 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public boolean isSystemInternal() {
+		return propertyKey.isSystemInternal();
+	}
+
+	@Override
 	public boolean isReadOnly() {
 		return propertyKey.isReadOnly();
 	}

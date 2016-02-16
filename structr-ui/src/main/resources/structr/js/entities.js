@@ -562,13 +562,15 @@ var _Entities = {
 
 								var type = typeInfo[key].type;
 
-								var isHidden = isIn(key, _Entities.hiddenAttrs);
-								var isReadOnly = isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly && !isAdmin);
+								var isHidden   = isIn(key, _Entities.hiddenAttrs);
+								var isReadOnly = isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly);
+								var isSystem   = typeInfo[key].system;
+								
 								if (type) {
 									var isBoolean = (type === 'Boolean'); //typeInfo[key].className === 'org.structr.core.property.BooleanProperty'; //isIn(key, _Entities.booleanAttrs);
 									var isDate = (type === 'Date'); //typeInfo[key].className === 'org.structr.core.property.ISO8601DateProperty'; //isIn(key, _Entities.dateAttrs);
 									var isPassword = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
-									var isArray = type.endsWith('[]');
+									
 									var isRelated = typeInfo[key].relatedType;
 								}
 
@@ -581,7 +583,7 @@ var _Entities = {
 											if (val) {
 												checkbox.prop('checked', true);
 											}
-											if (!isReadOnly) {
+											if ((!isReadOnly || isAdmin) && !isSystem) {
 												checkbox.on('change', function() {
 													var checked = checkbox.prop('checked');
 													_Entities.setProperty(id, key, checked, false, function(newVal) {

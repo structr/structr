@@ -50,6 +50,7 @@ import org.structr.core.notion.PropertyNotion;
 import org.structr.core.parser.Functions;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
+import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.EntityIdProperty;
@@ -149,7 +150,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	public static final Property<Page> ownerDocument = new EndNode<>("ownerDocument", PageLink.class);
 	public static final Property<String> pageId = new EntityIdProperty("pageId", ownerDocument);
-	public static final Property<Boolean> isDOMNode = new BooleanProperty("isDOMNode").defaultValue(true).readOnly();
+	public static final Property<Boolean> isDOMNode = new ConstantBooleanProperty("isDOMNode", true);
 
 	public static final Property<String> dataStructrIdProperty = new StringProperty("data-structr-id");
 	public static final Property<String> dataHashProperty = new StringProperty("data-structr-hash");
@@ -633,7 +634,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		if (page != null) {
 
-			page.unlockReadOnlyPropertiesOnce();
 			page.increaseVersion();
 
 		}

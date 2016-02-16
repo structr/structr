@@ -99,10 +99,10 @@ public class ChunkCommand extends AbstractCommand {
 				final long checksum = FileHelper.getChecksum(file);
 				final long size     = FileHelper.getSize(file);
 
-				file.unlockReadOnlyPropertiesOnce();
+				file.unlockSystemPropertiesOnce();
 				file.setProperty(File.checksum, checksum);
 
-				file.unlockReadOnlyPropertiesOnce();
+				file.unlockSystemPropertiesOnce();
 				file.setProperty(File.size, size);
 
 				file.increaseVersion();

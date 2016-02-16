@@ -35,7 +35,11 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 	private boolean constantValue;
 	
 	public ConstantBooleanProperty(final String name, final boolean constantValue) {
+		
 		super(name);
+		systemInternal();
+		readOnly();
+		
 		this.constantValue = constantValue;
 	}
 
@@ -60,6 +64,11 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 
 	@Override
 	public boolean isReadOnly() {
+		return true;
+	}
+
+	@Override
+	public boolean isSystemInternal() {
 		return true;
 	}
 

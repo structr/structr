@@ -161,7 +161,7 @@ public class ModificationQueue {
 							final String newLog      = ev.getChangeLog();
 							final String newValue    = existingLog != null ? existingLog + newLog : newLog;
 
-							obj.unlockReadOnlyPropertiesOnce();
+							obj.unlockSystemPropertiesOnce();
 							obj.setProperty(GraphObject.structrChangeLog, newValue);
 						}
 

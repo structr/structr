@@ -50,6 +50,7 @@ import org.structr.core.graph.NodeAttribute;
 import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
@@ -109,7 +110,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
 	public static final Property<String> showOnErrorCodes = new StringProperty("showOnErrorCodes").indexed();
 	public static final Property<List<DOMNode>> elements = new StartNodes<>("elements", PageLink.class);
-	public static final Property<Boolean> isPage = new BooleanProperty("isPage").defaultValue(true).readOnly();
+	public static final Property<Boolean> isPage = new ConstantBooleanProperty("isPage", true);
 	public static final Property<Boolean> dontCache = new BooleanProperty("dontCache").defaultValue(false);
 
 	// if enabled, prevents asynchronous page rendering; enable this flag when using the stream() builtin method

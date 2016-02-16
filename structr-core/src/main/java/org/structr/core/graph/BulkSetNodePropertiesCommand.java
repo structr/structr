@@ -127,7 +127,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 							if (propertyKey != null) {
 
 								try {
-									node.unlockReadOnlyPropertiesOnce();
+									node.unlockSystemPropertiesOnce();
 									node.setProperty(propertyKey, val);
 
 								} catch (FrameworkException fex) {

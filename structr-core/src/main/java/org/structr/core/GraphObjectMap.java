@@ -105,6 +105,10 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
+	public void unlockSystemPropertiesOnce() {
+	}
+
+	@Override
 	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 		return true;
 	}

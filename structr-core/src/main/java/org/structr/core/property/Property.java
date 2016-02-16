@@ -65,6 +65,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected Class<? extends GraphObject> declaringClass  = null;
 	protected T defaultValue                               = null;
 	protected boolean readOnly                             = false;
+	protected boolean systemInternal                       = false;
 	protected boolean writeOnce                            = false;
 	protected boolean unvalidated                          = false;
 	protected boolean indexed                              = false;
@@ -122,6 +123,16 @@ public abstract class Property<T> implements PropertyKey<T> {
 	 */
 	public Property<T> readOnly() {
 		this.readOnly = true;
+		return this;
+	}
+
+	/**
+	 * Use this method to mark a property as being system-internal.
+	 *
+	 * @return the Property to satisfy the builder pattern
+	 */
+	public Property<T> systemInternal() {
+		this.systemInternal = true;
 		return this;
 	}
 
@@ -426,6 +437,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return readOnly;
 	}
 
+	@Override
+	public boolean isSystemInternal() {
+		return systemInternal;
+	}
+	
 	@Override
 	public boolean isWriteOnce() {
 		return writeOnce;

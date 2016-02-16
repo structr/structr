@@ -31,7 +31,7 @@ import org.structr.common.SecurityDelegate;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.entity.relationship.Groups;
-import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.schema.SchemaService;
 
 //~--- classes ----------------------------------------------------------------
@@ -44,7 +44,7 @@ import org.structr.schema.SchemaService;
 public class Group extends AbstractUser implements Principal {
 
 	public static final Property<List<Principal>> members = new EndNodes<>("members", Groups.class);
-	public static final Property<Boolean>        isGroup  = new BooleanProperty("isGroup").defaultValue(true).readOnly();
+	public static final Property<Boolean>        isGroup  = new ConstantBooleanProperty("isGroup", true);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Group.class, PropertyView.Ui,
 		type, name, members, blocked, isGroup

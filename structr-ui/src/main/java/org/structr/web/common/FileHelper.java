@@ -82,7 +82,7 @@ public class FileHelper {
 
 		if (existingFile != null) {
 
-			existingFile.unlockReadOnlyPropertiesOnce();
+			existingFile.unlockSystemPropertiesOnce();
 			existingFile.setProperty(AbstractNode.type, fileType == null ? org.structr.dynamic.File.class.getSimpleName() : fileType.getSimpleName());
 
 			existingFile = getFileByUuid(securityContext, uuid);
@@ -214,13 +214,13 @@ public class FileHelper {
 
 		file.setProperty(org.structr.dynamic.File.contentType, contentType != null ? contentType : getContentMimeType(file));
 
-		file.unlockReadOnlyPropertiesOnce();
+		file.unlockSystemPropertiesOnce();
 		file.setProperty(org.structr.dynamic.File.checksum, FileHelper.getChecksum(file));
 
-		file.unlockReadOnlyPropertiesOnce();
+		file.unlockSystemPropertiesOnce();
 		file.setProperty(org.structr.dynamic.File.size, FileHelper.getSize(file));
 
-		file.unlockReadOnlyPropertiesOnce();
+		file.unlockSystemPropertiesOnce();
 		file.setProperty(org.structr.dynamic.File.version, 1);
 
 	}
@@ -237,11 +237,11 @@ public class FileHelper {
 		file.setProperty(org.structr.dynamic.File.contentType, getContentMimeType(file));
 
 		// checksum is read-only
-		file.unlockReadOnlyPropertiesOnce();
+		file.unlockSystemPropertiesOnce();
 		file.setProperty(org.structr.dynamic.File.checksum, FileHelper.getChecksum(file));
 
 		// size is read-only
-		file.unlockReadOnlyPropertiesOnce();
+		file.unlockSystemPropertiesOnce();
 		file.setProperty(org.structr.dynamic.File.size, FileHelper.getSize(file));
 
 	}
@@ -340,11 +340,11 @@ public class FileHelper {
 			final String newUuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
 			id = newUuid;
 
-			fileNode.unlockReadOnlyPropertiesOnce();
+			fileNode.unlockSystemPropertiesOnce();
 			fileNode.setProperty(GraphObject.id, newUuid);
 		}
 
-		fileNode.unlockReadOnlyPropertiesOnce();
+		fileNode.unlockSystemPropertiesOnce();
 		fileNode.setProperty(org.structr.dynamic.File.relativeFilePath, org.structr.dynamic.File.getDirectoryPath(id) + "/" + id);
 
 		final String filesPath = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
