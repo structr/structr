@@ -1027,6 +1027,30 @@ var _Entities = {
 		}
 		return editIcon;
 	},
+	appendCollapseChildrenIcon: function(parent, entity, visible) {
+
+		var collapseChildrenIcon = $('.collapse_children_icon', parent);
+
+		if (!(collapseChildrenIcon && collapseChildrenIcon.length)) {
+			parent.append('<img title="Collapse Children" alt="Collapse Children" class="collapse_children_icon button" src="' + '/structr/icon/text_indent_remove.png' + '">');
+			collapseChildrenIcon = $('.collapse_children_icon', parent);
+		}
+		collapseChildrenIcon.on('click', function(e) {
+			e.stopPropagation();
+			$(parent).find('.node').each(function(i, el) {
+				if (_Entities.isExpanded(el)) {
+					_Entities.toggleElement(el);
+				}
+			});
+		});
+		if (visible) {
+			collapseChildrenIcon.css({
+				visibility: 'visible',
+				display: 'inline-block'
+			});
+		}
+		return collapseChildrenIcon;
+	},
 	appendDataIcon: function(parent, entity) {
 
 		var dataIcon = $('.data_icon', parent);

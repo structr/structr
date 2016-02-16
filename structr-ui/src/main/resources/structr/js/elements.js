@@ -176,6 +176,35 @@ var _Elements = {
 		}
 	],
 	voidAttrs: ['br', 'hr', 'img', 'input', 'link', 'meta', 'area', 'base', 'col', 'embed', 'keygen', 'menuitem', 'param', 'track', 'wbr'],
+	favoriteChildElements: {
+		'script': ['content'],
+		'button': ['content', 'span', 'img', 'i'],
+		'table': ['thead', 'tbody', 'tfoot'],
+		'title': ['content'],
+		'thead': ['tr'],
+		'tbody': ['tr'],
+		'tfoot': ['tr'],
+		'html': ['head', 'body'],
+		'head': ['link', 'meta', 'script', 'title'],
+		'body': ['div', 'script'],
+		'span': ['content', 'img', 'span', 'i'],
+		'div': ['div', 'content', 'span', 'button', 'img', 'table', 'form'],
+		'tr': ['th', 'td'],
+		'th': ['div', 'p', 'span', 'a', 'content'],
+		'td': ['div', 'p', 'span', 'a', 'content'],
+		'ul': ['li'],
+		'ol': ['li'],
+		'li': ['content', 'a', 'div', 'span', 'button'],
+		'h1': ['content', 'span'],
+		'h2': ['content', 'span'],
+		'h3': ['content', 'span'],
+		'h4': ['content', 'span'],
+		'h5': ['content', 'span'],
+		'h6': ['content', 'span'],
+		'p': ['content', 'a', 'img', 'button', 'span'],
+		'a': ['content', 'img', 'span'],
+		'i': ['content']
+	},
 	/**
 	 * Reload widgets
 	 */
@@ -440,11 +469,49 @@ var _Elements = {
 			+ _Elements.classIdString(entity._html_id, entity._html_class)
 			+ '</div>');
 
-		div.append('<img title="Clone ' + entity.tag + ' element ' + entity.id + '\" alt="Clone ' + entity.tag + ' element ' + entity.id + '" class="clone_icon button" src="icon/page_copy.png">');
+		div.append('<img title="Clone ' + entity.tag + ' element ' + entity.id + '" alt="Clone ' + entity.tag + ' element ' + entity.id + '" class="clone_icon button" src="icon/page_copy.png">');
 		$('.clone_icon', div).on('click', function(e) {
 			e.stopPropagation();
 			Command.cloneNode(entity.id, entity.parent.id, true);
 		});
+
+		var possibleChildren = _Elements.favoriteChildElements[entity.tag];
+		if (possibleChildren && possibleChildren.length) {
+
+			div.append('<img title="Insert child element" alt="Insert child element" class="add_child_icon button" src="icon/textfield_add.png" >');
+			$('.add_child_icon', div).on('click', function(e) {
+
+				e.stopPropagation();
+
+				div.append('<div id="add-child-dialog"></div>');
+				$('#add-child-dialog').css({left: $(this).position().left});
+
+				if (possibleChildren.length === 1) {
+					if (possibleChildren[0] === 'content') {
+						Command.createAndAppendDOMNode(entity.pageId, entity.id, null, {});
+					} else {
+						Command.createAndAppendDOMNode(entity.pageId, entity.id, possibleChildren[0], {});
+					}
+					$('#add-child-dialog').remove();
+				} else {
+					possibleChildren.forEach(function(tag) {
+						$('#add-child-dialog').append('<span id="add-' + tag + '">' + tag + '</span>');
+						$('#add-' + tag).on('click', function(e) {
+							e.stopPropagation();
+							if (tag === 'content') {
+								Command.createAndAppendDOMNode(entity.pageId, entity.id, null, {});
+							} else {
+								Command.createAndAppendDOMNode(entity.pageId, entity.id, tag, {});
+							}
+							$('#add-child-dialog').remove();
+						});
+					});
+				}
+
+				$('#add-child-dialog').hover(function(){}, function(){ $(this).remove(); });
+
+			});
+		}
 
 		_Entities.appendExpandIcon(div, entity, hasChildren);
 
@@ -494,6 +561,7 @@ var _Elements = {
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodes&&entity.syncedNodes.length)?entity.syncedNodes:[entity.sharedComponent]));
 
 		if (!hasChildren) {
+
 			if (entity.sharedComponent) {
 				Command.get(entity.sharedComponent, function(obj) {
 					_Entities.appendEditSourceIcon(div, obj);
@@ -501,7 +569,12 @@ var _Elements = {
 			} else {
 				_Entities.appendEditSourceIcon(div, entity);
 			}
+
+		} else {
+
+			_Entities.appendCollapseChildrenIcon(div, entity);
 		}
+
 		_Entities.appendEditPropertiesIcon(div, entity);
 		//_Entities.appendDataIcon(div, entity);
 
