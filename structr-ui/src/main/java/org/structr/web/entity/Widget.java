@@ -30,7 +30,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ValueToken;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -53,7 +53,7 @@ public class Widget extends AbstractNode implements Taggable {
 	public static final Property<String>      description = new StringProperty("description").cmis();
 	public static final Property<String>      treePath    = new StringProperty("treePath").cmis().indexed();
 	public static final Property<List<Image>> pictures    = new EndNodes<>("pictures", ImageWidget.class, new UiNotion());
-	public static final Property<Boolean>     isWidget    = new BooleanProperty("isWidget").defaultValue(true).readOnly();
+	public static final Property<Boolean>     isWidget    = new ConstantBooleanProperty("isWidget", true);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Widget.class, PropertyView.Ui,
 		type, name, source, description, pictures, tags, treePath, isWidget

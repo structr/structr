@@ -231,11 +231,20 @@ public interface PropertyKey<T> {
 	/**
 	 * Indicates whether this property is read-only. Read-only properties
 	 * will throw a FrameworkException with error code 422 when the value
-	 * is modified.
+	 * is modified unless the action is unlocked before.
 	 *
 	 * @return isReadOnly
 	 */
 	public boolean isReadOnly();
+
+	/**
+	 * Indicates whether this property is an system-internal property.
+	 * System properties will throw a FrameworkException with error code 422
+	 * when the value is modified unless the action is unlocked before.
+	 *
+	 * @return isSystemInternal
+	 */
+	public boolean isSystemInternal();
 
 	/**
 	 * Indicates whether this property is write-once. Write-once properties

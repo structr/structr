@@ -17,66 +17,43 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var s = require('../setup'),
-    login = require('../templates/login');
+	login = require('../templates/login');
 
 var testName = '008_create_folder';
 var heading = "Create Folder", sections = [];
-var desc = "This animation shows how to create a new folder."
-var numberOfTests = 5;
+var desc = "This animation shows how to create a new folder.";
+var numberOfTests = 3;
 
 s.startRecording(window, casper, testName);
 
 casper.test.begin(testName, numberOfTests, function(test) {
 
-    casper.start(s.url);
+	casper.start(s.url);
 
-    login.init(test, 'admin', 'admin');
+	login.init(test, 'admin', 'admin');
 
-    casper.waitForSelector('#errorText', function() {
+	sections.push('Click on the "Filesystem" menu entry.');
 
-        test.assertEval(function() { return !($('#errorText').text() === 'Wrong username or password!'); });
+	casper.then(function() {
+		s.moveMousePointerAndClick(casper, {selector: "#filesystem_", wait: 1000});
+	});
 
-        test.assertEval(function() { return $('#pages').is(':visible'); });
+	sections.push('Click the "Add Folder" icon.');
 
-    });
+	casper.then(function() {
+		s.moveMousePointerAndClick(casper, {selector: ".add_folder_icon", wait: 2000});
+	});
 
-    sections.push('Click on the "Files" menu entry.');
+	sections.push('A new folder with a random name has been created in the folders area.');
 
-    casper.then(function() {
-        s.moveMousePointerTo(casper, '#filesystem_');
-    });
+	casper.then(function() {
+		test.assertElementCount('#files-table .node.folder', 1);
+	});
 
-    casper.then(function() {
-        this.click('#filesystem_');
-    });
+	casper.then(function() {
+		s.animateHtml(testName, heading, sections);
+	});
 
-    casper.wait(1000);
-
-    sections.push('Click the "Add Folder" icon.');
-
-    casper.then(function() {
-        s.moveMousePointerTo(casper, '.add_folder_icon');
-    });
-
-    casper.then(function() {
-        this.click('.add_folder_icon');
-    });
-
-    casper.wait(1000);
-
-    sections.push('A new folder with a random name has been created in the folders area.');
-
-    casper.then(function() {
-        test.assertEval(function() {
-            return $('#folders .node.folder').size() === 1;
-        });
-    });
-
-    casper.then(function() {
-        s.animateHtml(testName, heading, sections);
-        this.exit();
-    });
-
-    casper.run();
+	casper.run();
 
 });

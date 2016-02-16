@@ -34,6 +34,7 @@ import org.structr.core.entity.Relation;
 import static org.structr.core.graph.NodeInterface.name;
 import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -72,10 +73,10 @@ public class Image extends File {
 	public static final Property<Image> tnSmall       = new ThumbnailProperty("tnSmall").format("100, 100, false");
 	public static final Property<Image> tnMid         = new ThumbnailProperty("tnMid").format("300, 300, false");
 
-	public static final Property<Boolean> isThumbnail = new BooleanProperty("isThumbnail").indexed().unvalidated().readOnly();
+	public static final Property<Boolean> isThumbnail = new BooleanProperty("isThumbnail").indexed().unvalidated().systemInternal();
 	public static final ImageDataProperty imageData   = new ImageDataProperty("imageData");
 
-	public static final Property<Boolean> isImage     = new BooleanProperty("isImage").defaultValue(true).readOnly();
+	public static final Property<Boolean> isImage     = new ConstantBooleanProperty("isImage", true);
 
 	public static final org.structr.common.View uiView              = new org.structr.common.View(Image.class, PropertyView.Ui, type, name, contentType, size, relativeFilePath, width, height, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage);
 	public static final org.structr.common.View publicView          = new org.structr.common.View(Image.class, PropertyView.Public, type, name, width, height, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage);
@@ -240,7 +241,7 @@ public class Image extends File {
 
 		try {
 
-			originalImage.unlockReadOnlyPropertiesOnce();
+			originalImage.unlockSystemPropertiesOnce();
 			originalImage.setProperty(File.checksum, newChecksum);
 
 			// check size requirements for thumbnail
@@ -285,7 +286,7 @@ public class Image extends File {
 					// thumbnailRelationships.add(thumbnailRelationship);
 					long size = data.length;
 
-					thumbnail.unlockReadOnlyPropertiesOnce();
+					thumbnail.unlockSystemPropertiesOnce();
 					thumbnail.setProperty(File.size, size);
 					thumbnail.setProperty(Image.width, tnWidth);
 					thumbnail.setProperty(Image.height, tnHeight);
@@ -298,7 +299,7 @@ public class Image extends File {
 					thumbnailRelationship.setProperty(Image.width, tnWidth);
 					thumbnailRelationship.setProperty(Image.height, tnHeight);
 
-					thumbnailRelationship.unlockReadOnlyPropertiesOnce();
+					thumbnailRelationship.unlockSystemPropertiesOnce();
 					thumbnailRelationship.setProperty(Image.checksum, newChecksum);
 
 					// Delete outdated thumbnails

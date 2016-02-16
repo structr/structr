@@ -17,9 +17,9 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var s = require('../setup'),
-    login = require('../templates/login'),
-    createPage = require('../templates/createPage'),
-    openPagesTreeView = require('../templates/openPagesTreeView');
+	login = require('../templates/login'),
+	createPage = require('../templates/createPage'),
+	openPagesTreeView = require('../templates/openPagesTreeView');
 
 var testName = '010_page_visibility';
 var heading = "Page Visibility", sections = [];
@@ -30,87 +30,58 @@ s.startRecording(window, casper, testName);
 
 casper.test.begin(testName, numberOfTests, function(test) {
 
-    casper.start(s.url);
-    
-    login.init(test, 'admin', 'admin');
+	casper.start(s.url);
 
-    createPage.init(test, 'visible');
+	login.init(test, 'admin', 'admin');
 
-    openPagesTreeView.init(test);
+	createPage.init(test, 'visible');
 
-    sections.push('Open the Access Control tab.');
+	openPagesTreeView.init(test);
 
-    casper.then(function() {
-        s.moveMousePointerTo(casper, '#pagesTree .page .key_icon');
-    });
+	sections.push('Open the Access Control tab.');
 
-    casper.then(function() {
-        this.click('#pagesTree .page .key_icon');
-    });
+	casper.then(function() {
+		s.moveMousePointerAndClick(casper, {selector: "#pagesTree .page .key_icon", wait: 2000});
+	});
 
-    casper.wait(2000);
+	sections.push('Apply visibility switches recursively.');
 
-    sections.push('Apply visibility switches recursively.');
+	casper.then(function() {
+		s.moveMousePointerAndClick(casper, {selector: "#recursive", wait: 2000});
+	});
 
-    casper.then(function() {
-        s.moveMousePointerTo(casper, '#recursive');
-    });
-    casper.then(function() {
-        this.click('#recursive');
-    });
+	sections.push('Change the visibility for public/auth users.');
 
-    casper.wait(2000);
+	casper.then(function() {
+		s.moveMousePointerAndClick(casper, {selector: "#dialogBox .visibleToPublicUsers_", wait: 0});
+	});
 
-    sections.push('Change the visibility for public/auth users.');
+	casper.then(function() {
+		s.moveMousePointerAndClick(casper, {selector: "#dialogBox .visibleToAuthenticatedUsers_", wait: 2000});
+	});
 
-    casper.then(function() {
-        s.moveMousePointerTo(casper, '#dialogBox .visibleToPublicUsers_');
-    });
-    casper.then(function() {
-        this.click('#dialogBox .visibleToPublicUsers_');
-    });
+	casper.then(function() {
+		s.moveMousePointerAndClick(casper, {selector: "#dialogBox .dialogBtn .closeButton", wait: 2000});
+	});
 
-    casper.then(function() {
-        s.moveMousePointerTo(casper, '#dialogBox .visibleToAuthenticatedUsers_');
-    });
-    casper.then(function() {
-        this.click('#dialogBox .visibleToAuthenticatedUsers_');
-    });
+	sections.push ('Logout and open the created page.');
 
-    casper.wait(2000);
+	casper.then(function() {
+		s.moveMousePointerAndClick(casper, {selector: "#logout_", wait: 2000});
+	});
 
-    casper.then(function() {
-        s.moveMousePointerTo(casper, '#dialogBox .dialogBtn .closeButton');
-    });
-    casper.then(function() {
-        this.click('#dialogBox .dialogBtn .closeButton');
-    });
+	casper.thenOpen(s.baseUrl + 'visible');
 
-    casper.wait(2000);
+	casper.waitForSelector('body h1', function() {
+		test.assertSelectorHasText('body h1', 'Visible');
+	});
 
-    sections.push ('Logout and open the created page.');
+	casper.wait(2000);
 
-    casper.then(function() {
-        s.moveMousePointerTo(casper, '#logout_');
-    });
-    casper.then(function() {
-        this.click('#logout_');
-    });
+	casper.then(function() {
+		s.animateHtml(testName, heading, sections);
+	});
 
-    casper.wait(2000);
-
-    casper.thenOpen(s.baseUrl+'visible');
-    casper.waitForSelector('body h1', function() {
-        test.assertSelectorHasText('body h1','Visible');
-    });
-
-    casper.wait(2000);
-
-    casper.then(function() {
-        s.animateHtml(testName, heading, sections);
-        this.exit();
-    });
-
-    casper.run();
+	casper.run();
 
 });

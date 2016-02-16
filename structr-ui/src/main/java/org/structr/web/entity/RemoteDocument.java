@@ -87,7 +87,7 @@ public class RemoteDocument extends AbstractNode implements Indexable {
 
 		final Integer _version = getProperty(RemoteDocument.version);
 
-		unlockReadOnlyPropertiesOnce();
+		unlockSystemPropertiesOnce();
 		if (_version == null) {
 
 			setProperty(RemoteDocument.version, 1);

@@ -44,8 +44,8 @@ public abstract class FrontendTest extends StructrUiTest {
 	//~--- methods --------------------------------------------------------
 	protected int run(final String testName) {
 
-		
-		
+
+
 		try (final Tx tx = app.tx()) {
 
 			createAdminUser();
@@ -69,12 +69,12 @@ public abstract class FrontendTest extends StructrUiTest {
 			}
 
 			final int maxRetries = 60;
-			
+
 			Integer exitValue = 1; // default is error
 			try {
-				
+
 				int r = 0;
-				
+
 				while (proc.isAlive() && r < maxRetries) {
 					Thread.sleep(1000);
 					r++;
@@ -84,7 +84,7 @@ public abstract class FrontendTest extends StructrUiTest {
 				makeVideo(testName);
 
 				return exitValue;
-				
+
 			} catch (IllegalThreadStateException ex) {
 				logger.log(Level.WARNING, "Subprocess has not properly exited", ex);
 				ex.printStackTrace();

@@ -32,6 +32,7 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.relationship.Groups;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.LowercaseStringProperty;
 import org.structr.core.property.Property;
@@ -67,7 +68,7 @@ public class User extends AbstractUser {
 	public static final Property<Folder>      homeDirectory    = new EndNode<>("homeDirectory", UserHomeDir.class);
 	public static final Property<Folder>      workingDirectory = new EndNode<>("workingDirectory", UserWorkDir.class);
 	public static final Property<List<Group>> groups           = new StartNodes<>("groups", Groups.class, new UiNotion());
-	public static final Property<Boolean>     isUser           = new BooleanProperty("isUser").defaultValue(true).readOnly();
+	public static final Property<Boolean>     isUser           = new ConstantBooleanProperty("isUser", true);
 	public static final Property<String>      eMail            = new LowercaseStringProperty("eMail").cmis().indexed();
 	public static final Property<String>      twitterName      = new StringProperty("twitterName").cmis().indexed();
 	public static final Property<String>      localStorage     = new StringProperty("localStorage");

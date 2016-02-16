@@ -20,51 +20,42 @@ var s = require('../setup');
 
 var testName = '001_failed_login';
 var heading = "Failed Login", sections = [];
-var desc = "This animation shows what happens if an incorrect username/password combination was entered."
+var desc = "This animation shows what happens if an incorrect username/password combination was entered.";
 var numberOfTests = 2;
 
 s.startRecording(window, casper, testName);
 
 casper.test.begin(testName, numberOfTests, function(test) {
 
-    casper.start(s.url);
-    
-    sections.push('If you enter a wrong combination of username and password, the system does not allow you to log in.');
+	casper.start(s.url);
 
-    casper.waitForSelector('#usernameField').then(function() {
-        s.animatedType(this, '#usernameField', false, 'wrong');
-    });
+	sections.push('If you enter a wrong combination of username and password, the system does not allow you to log in.');
 
-    casper.waitForSelector('#passwordField').then(function() {
-        s.animatedType(this, '#passwordField', false, 'wrong');
-    });
+	casper.waitForSelector('#usernameField').then(function() {
+		s.animatedType(this, '#usernameField', false, 'wrong');
+	});
 
-    casper.then(function() {
-        s.mousePointer(casper, { left: 600, top: 400 });
-        s.moveMousePointerTo(casper, '#loginButton');
-    });
+	casper.waitForSelector('#passwordField').then(function() {
+		s.animatedType(this, '#passwordField', false, 'wrong');
+	});
 
-    casper.then(function() {
-        this.click('#loginButton');
-    });
+	casper.then(function() {
+		s.mousePointer(casper, { left: 600, top: 400 });
+	});
 
-    casper.waitForSelector('#errorText', function() {
+	casper.then(function() {
+		s.moveMousePointerAndClick(casper, {selector: "#loginButton", wait: 0});
+	});
 
-        test.assertEval(function() {
-            return $('#errorText').text() === 'Wrong username or password!';
-        });
-        
-        test.assertEval(function() {
-            return !$('#dashboard').is(':visible');
-        });
+	casper.waitForSelector('#errorText', function() {
+		test.assertSelectorHasText('#errorText', 'Wrong username or password!');
+		test.assertNotVisible('#dashboard');
+	});
 
-    });
-    
-    casper.then(function() {
-        s.animateHtml(testName, heading, sections);
-        this.exit();
-    });
+	casper.then(function() {
+		s.animateHtml(testName, heading, sections);
+	});
 
-    casper.run();
+	casper.run();
 
 });

@@ -70,6 +70,8 @@ public class TypePropertyTest extends StructrTest {
 			id = testEntity.getUuid();
 
 			// change type to TestFive
+			// system properties have to be unlocked now, admin rights are not enough anymore
+			testEntity.unlockSystemPropertiesOnce();
 			testEntity.setProperty(GraphObject.type, TestFive.class.getSimpleName());
 
 			// commit transaction

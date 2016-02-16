@@ -88,7 +88,7 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 						// overrides the default setProperty behaviour, we
 						// do not need to set a different type value first.
 
-						node.unlockReadOnlyPropertiesOnce();
+						node.unlockSystemPropertiesOnce();
 						GraphObject.type.setProperty(securityContext, node, type);
 
 					} catch (FrameworkException fex) {

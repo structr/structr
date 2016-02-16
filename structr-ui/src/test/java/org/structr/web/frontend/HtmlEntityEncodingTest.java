@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -16,10 +16,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-;exports.init = function(test){
+package org.structr.web.frontend;
 
-	casper.then(function() {
-		s.moveMousePointerAndClick(casper, {selector: "#pagesTab", wait: 2000});
-	});
+import org.structr.web.test.FrontendTest;
 
-};
+public class HtmlEntityEncodingTest extends FrontendTest {
+
+	public void test() {
+		assertEquals(0, run("011_html_entity_encoding"));
+	}
+
+}

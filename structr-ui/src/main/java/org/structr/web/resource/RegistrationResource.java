@@ -407,7 +407,7 @@ public class RegistrationResource extends Resource {
 				user = new NodeFactory<Principal>(securityContext).instantiate(user.getNode());
 
 				// convert to user
-				user.unlockReadOnlyPropertiesOnce();
+				user.unlockSystemPropertiesOnce();
 				user.setProperty(AbstractNode.type, User.class.getSimpleName());
 				user.setProperty(User.confirmationKey, confKey);
 

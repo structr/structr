@@ -42,6 +42,7 @@ import org.structr.web.entity.dom.relationship.DOMSiblings;
 import org.structr.web.entity.html.relation.ResourceLink;
 import org.structr.web.entity.relation.PageLink;
 import org.structr.web.entity.relation.Sync;
+import static org.structr.core.graph.NodeServiceCommand.bulkGraphOperation;
 
 /**
  * Migrate UI relationships of the pre-0.9 scheme to the new scheme
@@ -85,7 +86,7 @@ public class BulkMigrateRelationships extends NodeServiceCommand implements Main
 							String relType   = rel.getType();
 
 							rel.getRelationship().removeProperty("combinedType");
-							rel.unlockReadOnlyPropertiesOnce();
+							rel.unlockSystemPropertiesOnce();
 
 							if ("CONTAINS".equals(relType)) {
 

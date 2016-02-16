@@ -74,6 +74,7 @@ import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.InternalSystemPropertyToken;
 import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.GraphObject;
@@ -113,10 +114,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		id, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate
 	);
 
+	public boolean internalSystemPropertiesUnlocked = false;
+
 	private PermissionResolutionMask permissionResolutionMask = null;
 	private Relationship rawPathSegment                       = null;
-	private boolean readOnlyPropertiesUnlocked = false;
-	private boolean isCreation                 = false;
+	
+	private boolean readOnlyPropertiesUnlocked       = false;
+	private boolean isCreation                       = false;
 
 
 	protected SecurityContext securityContext = null;
@@ -249,9 +253,20 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	 */
 	@Override
 	public void unlockReadOnlyPropertiesOnce() {
-
 		this.readOnlyPropertiesUnlocked = true;
+	}
 
+	/**
+	 * Can be used to permit the setting of a system property once. The
+	 * lock will be restored automatically after the next setProperty
+	 * operation. This method exists to prevent automatic set methods from
+	 * setting a system property while allowing a manual set method to
+	 * override this default behaviour.
+	 */
+	@Override
+	public void unlockSystemPropertiesOnce() {
+		this.internalSystemPropertiesUnlocked = true;
+		unlockReadOnlyPropertiesOnce();
 	}
 
 	@Override
@@ -279,10 +294,26 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 					// permit write operation once and
 					// lock read-only properties again
-					readOnlyPropertiesUnlocked = false;
+					internalSystemPropertiesUnlocked = false;
 				} else {
 
 					throw new FrameworkException(404, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getType(), key));
+				}
+
+			}
+
+			// check for system properties - cannot be overriden with super-user rights
+			if (key.isSystemInternal()) {
+
+				// allow super user to set read-only properties
+				if (internalSystemPropertiesUnlocked) {
+
+					// permit write operation once and
+					// lock read-only properties again
+					internalSystemPropertiesUnlocked = false;
+				} else {
+
+					throw new FrameworkException(404, "Property " + key.jsonName() + " is read-only", new InternalSystemPropertyToken(getType(), key));
 				}
 
 			}
@@ -1351,33 +1382,30 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	@Override
 	public <T> Object setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
 
-		try {
+		// allow setting of ID without permissions
+		if (!key.equals(GraphObject.id)) {
 
-			// allow setting of ID without permissions
-			if (!key.equals(GraphObject.id)) {
+			if (!isGranted(Permission.write, securityContext)) {
 
-				if (!isGranted(Permission.write, securityContext)) {
-					throw new FrameworkException(403, "Modification not permitted.");
-				}
+				internalSystemPropertiesUnlocked = false;
+				readOnlyPropertiesUnlocked       = false;
+
+				throw new FrameworkException(403, "Modification not permitted.");
 			}
+		}
 
-			T oldValue = getProperty(key);
+		T oldValue = getProperty(key);
 
-			// no old value exists  OR  old value exists and is NOT equal => set property
-			if ( ((oldValue == null) && (value != null)) || ((oldValue != null) && !oldValue.equals(value)) ) {
+		// no old value exists  OR  old value exists and is NOT equal => set property
+		if ( ((oldValue == null) && (value != null)) || ((oldValue != null) && !oldValue.equals(value)) ) {
 
-				return setPropertyInternal(key, value);
-
-			}
-
-		} finally {
-
-			// unconditionally lock read-only properties after every write (attempt) to avoid security problems
-			// since we made "unlock_readonly_properties_once" available through scripting
-			this.readOnlyPropertiesUnlocked = false;
+			return setPropertyInternal(key, value);
 
 		}
 
+		internalSystemPropertiesUnlocked = false;
+		readOnlyPropertiesUnlocked       = false;
+		
 		return null;
 	}
 
@@ -1391,18 +1419,35 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		}
 
-		// check for read-only properties
-		if (key.isReadOnly() || (key.isWriteOnce() && (dbNode != null) && dbNode.hasProperty(key.dbName()))) {
+		try {
+			if (dbNode != null && dbNode.hasProperty(key.dbName())) {
 
-			if (!readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
+				// check for system properties
+				if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
 
-				throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
+					throw new FrameworkException(422, "Property " + key.jsonName() + " is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key));
+
+				}
+
+				// check for read-only properties
+				if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
+
+					throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
+
+				}
 
 			}
 
+			return key.setProperty(securityContext, this, value);
+
+		} finally {
+			
+			// unconditionally lock read-only properties after every write (attempt) to avoid security problems
+			// since we made "unlock_readonly_properties_once" available through scripting
+			internalSystemPropertiesUnlocked = false;
+			readOnlyPropertiesUnlocked       = false;
 		}
 
-		return key.setProperty(securityContext, this, value);
 	}
 
 	@Override

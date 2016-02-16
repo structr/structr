@@ -579,7 +579,7 @@ var _Files = {
 				var contentBox = $('.editor', element);
 				var lineWrapping = LSWrapper.getItem(lineWrappingKey);
 				editor = CodeMirror(contentBox.get(0), {
-					value: unescapeTags(text),
+					value: text,
 					mode: contentType,
 					lineNumbers: true,
 					lineWrapping: lineWrapping

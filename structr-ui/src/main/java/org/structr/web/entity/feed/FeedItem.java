@@ -115,7 +115,7 @@ public class FeedItem extends AbstractNode implements Indexable {
 
 		final Integer _version = getProperty(FeedItem.version);
 
-		unlockReadOnlyPropertiesOnce();
+		unlockSystemPropertiesOnce();
 		if (_version == null) {
 
 			setProperty(FeedItem.version, 1);

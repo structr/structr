@@ -964,7 +964,7 @@ public class SchemaHelper {
 		}
 		map.put("format", property.format());
 		map.put("readOnly", property.isReadOnly());
-		map.put("system", property.isUnvalidated());
+		map.put("system", property.isSystemInternal());
 		map.put("indexed", property.isIndexed());
 		map.put("indexedWhenEmpty", property.isIndexedWhenEmpty());
 		map.put("unique", property.isUnique());

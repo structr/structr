@@ -42,9 +42,11 @@ public class TypeProperty extends StringProperty {
 
 		super("type");
 
+		systemInternal();
 		readOnly();
 		indexed();
 		writeOnce();
+		
 	}
 
 	@Override
@@ -100,4 +102,5 @@ public class TypeProperty extends StringProperty {
 
 		return null;
 	}
+	
 }

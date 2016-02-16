@@ -19,11 +19,11 @@
 var s = require('../setup'),
 	login = require('../templates/login');
 
-var testName = '009_create_and_edit_file';
-var heading = "Create and Edit File", sections = [];
-var desc = "This animation shows how to create and edit a new file.";
+var testName = '011_html_entity_encoding';
+var heading = "HTML entity encoding", sections = [];
+var desc = "This animation shows that html entities stay intact when saving a file.";
 var numberOfTests = 4;
-var testString = 'Random text';
+var entityTestString = 'javascript:escape("&quot;");';
 
 s.startRecording(window, casper, testName);
 
@@ -39,24 +39,24 @@ casper.test.begin(testName, numberOfTests, function(test) {
 		s.moveMousePointerAndClick(casper, {selector: "#filesystem_", wait: 1000});
 	});
 
-	sections.push('Click the "Add File" icon.');
+	sections.push('Create a new file');
 
 	casper.then(function() {
-		s.moveMousePointerAndClick(casper, {selector: ".add_file_icon", wait: 1000});
+		s.moveMousePointerAndClick(casper, {selector: '#folder-contents-container button.add_file_icon', wait: 1000});
 	});
-
-	sections.push('A new file with a random name has been created in the files area. You can also drag and drop a file here from your desktop or from an OS folder to upload it, using the HTML5 Drag & Drop API.');
 
 	casper.then(function() {
 		test.assertElementCount('#files-table .node.file', 1);
 	});
+
+	sections.push('Edit the file');
 
 	casper.then(function() {
 		s.moveMousePointerTo(casper, '#files-table-body tr:last-child .node');
 	});
 
 	casper.then(function() {
-		s.moveMousePointerAndClick(casper, {selector: "#files-table .file .edit_file_icon", wait: 1000});
+		s.moveMousePointerAndClick(casper, {selector: '#files-table-body tr:last-child img.edit_file_icon', wait: 1000});
 	});
 
 	sections.push('Enter the test string');
@@ -66,25 +66,32 @@ casper.test.begin(testName, numberOfTests, function(test) {
 	});
 
 	casper.then(function() {
-		s.animatedType(this, '.CodeMirror-code div:first-child', false, testString, true);
+		s.animatedType(this, '.CodeMirror-code div:first-child', false, entityTestString, true);
+	});
+
+	casper.wait(1000);
+
+	sections.push('Save the file');
+
+	casper.then(function() {
+		s.moveMousePointerAndClick(casper, {selector: '#dialogBox #saveAndClose', wait: 1000});
+	});
+
+	sections.push('Re-open the editor');
+
+	casper.then(function() {
+		s.moveMousePointerAndClick(casper, {selector: '#files-table-body tr:last-child img.edit_file_icon', wait: 1000});
+	});
+
+	casper.then(function() {
+		test.assertSelectorHasText('.CodeMirror-code pre', entityTestString);
 	});
 
 	casper.wait(1000);
 
 	casper.then(function() {
-		s.moveMousePointerAndClick(casper, {selector: "#saveAndClose", wait: 1000});
-	});
-
-	casper.then(function() {
-		s.moveMousePointerAndClick(casper, {selector: "#files-table .file .edit_file_icon", wait: 1000});
-	});
-
-	casper.then(function() {
-		test.assertSelectorHasText('.CodeMirror-code pre', testString);
-	});
-
-	casper.then(function() {
 		s.animateHtml(testName, heading, sections);
+		this.exit();
 	});
 
 	casper.run();

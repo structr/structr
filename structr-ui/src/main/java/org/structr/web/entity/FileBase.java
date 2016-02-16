@@ -52,7 +52,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
@@ -75,13 +75,13 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	private static final Logger logger = Logger.getLogger(FileBase.class.getName());
 
 	public static final Property<String> contentType             = new StringProperty("contentType").indexedWhenEmpty();
-	public static final Property<String> relativeFilePath        = new StringProperty("relativeFilePath").readOnly();
-	public static final Property<Long> size                      = new LongProperty("size").indexed().readOnly();
+	public static final Property<String> relativeFilePath        = new StringProperty("relativeFilePath").systemInternal();
+	public static final Property<Long> size                      = new LongProperty("size").indexed().systemInternal();
 	public static final Property<String> url                     = new StringProperty("url");
-	public static final Property<Long> checksum                  = new LongProperty("checksum").indexed().unvalidated().readOnly();
+	public static final Property<Long> checksum                  = new LongProperty("checksum").indexed().unvalidated().systemInternal();
 	public static final Property<Integer> cacheForSeconds        = new IntProperty("cacheForSeconds").cmis();
-	public static final Property<Integer> version                = new IntProperty("version").indexed().readOnly();
-	public static final Property<Boolean> isFile                 = new BooleanProperty("isFile").defaultValue(true).readOnly();
+	public static final Property<Integer> version                = new IntProperty("version").indexed().systemInternal();
+	public static final Property<Boolean> isFile                 = new ConstantBooleanProperty("isFile", true);
 
 	public static final View publicView = new View(FileBase.class, PropertyView.Public, type, name, contentType, size, url, owner, path, isFile);
 	//public static final View uiView = new View(FileBase.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, isFile, hasParent, extractedContent, indexedWords);
@@ -143,7 +143,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 		final String filePath = getDirectoryPath(uuid) + "/" + uuid;
 
 		try {
-			unlockReadOnlyPropertiesOnce();
+			unlockSystemPropertiesOnce();
 			setProperty(relativeFilePath, filePath);
 
 		} catch (Throwable t) {
@@ -204,15 +204,15 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 				return;
 			}
 
-			unlockReadOnlyPropertiesOnce();
+			unlockSystemPropertiesOnce();
 			setProperty(checksum, FileHelper.getChecksum(FileBase.this));
 
-			unlockReadOnlyPropertiesOnce();
+			unlockSystemPropertiesOnce();
 			setProperty(version, 0);
 
 			long fileSize = FileHelper.getSize(FileBase.this);
 			if (fileSize > 0) {
-				unlockReadOnlyPropertiesOnce();
+				unlockSystemPropertiesOnce();
 				setProperty(size, fileSize);
 			}
 
@@ -296,7 +296,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		final Integer _version = getProperty(FileBase.version);
 
-		unlockReadOnlyPropertiesOnce();
+		unlockSystemPropertiesOnce();
 		if (_version == null) {
 
 			setProperty(FileBase.version, 1);
@@ -379,10 +379,10 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 							final String _contentType = FileHelper.getContentMimeType(FileBase.this);
 
-							unlockReadOnlyPropertiesOnce();
+							unlockSystemPropertiesOnce();
 							setProperty(checksum, FileHelper.getChecksum(FileBase.this));
 
-							unlockReadOnlyPropertiesOnce();
+							unlockSystemPropertiesOnce();
 							setProperty(size, FileHelper.getSize(FileBase.this));
 							setProperty(contentType, _contentType);
 

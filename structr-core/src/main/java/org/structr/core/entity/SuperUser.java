@@ -63,6 +63,9 @@ public class SuperUser implements Principal, AccessControllable {
 	public void revoke(Permission permission, Principal obj) {}
 
 	@Override
+	public void unlockSystemPropertiesOnce() {}
+
+	@Override
 	public void unlockReadOnlyPropertiesOnce() {}
 
 	@Override
@@ -526,4 +529,5 @@ public class SuperUser implements Principal, AccessControllable {
 	public PermissionResolutionMask getPermissionResolutionMask() {
 		return null;
 	}
+
 }

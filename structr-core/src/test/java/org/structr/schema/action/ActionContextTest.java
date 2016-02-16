@@ -1162,7 +1162,7 @@ public class ActionContextTest extends StructrTest {
 		}
 	}
 
-	public void testReadOnlyProperties () {
+	public void testSystemProperties () {
 		try {
 
 			final TestUser user  = createTestNode(TestUser.class);
@@ -1182,11 +1182,11 @@ public class ActionContextTest extends StructrTest {
 				try {
 
 					assertEquals("setting the type should fail", "TestTwo", Scripting.replaceVariables(userActionContext, t1, "${(set(this, 'type', 'TestThree'), get(this, 'type'))}"));
-					fail("setting the a readonly property should fail");
+					fail("setting a system property should fail");
 
 				} catch (FrameworkException fx) { }
 
-				assertEquals("setting the type should work after setting it with unlock_readonly_properties_once", "TestFour", Scripting.replaceVariables(userActionContext, t1, "${(unlock_readonly_properties_once(this), set(this, 'type', 'TestFour'), get(this, 'type'))}"));
+				assertEquals("setting the type should work after setting it with unlock_system_properties_once", "TestFour", Scripting.replaceVariables(userActionContext, t1, "${(unlock_system_properties_once(this), set(this, 'type', 'TestFour'), get(this, 'type'))}"));
 
 				tx.success();
 			}

@@ -47,6 +47,7 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
+import org.structr.common.error.InternalSystemPropertyToken;
 import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.GraphObject;
@@ -102,7 +103,10 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		id, type, relType, sourceNodeProperty, targetNodeProperty
 	);
 
+	public boolean internalSystemPropertiesUnlocked = false;
+
 	private boolean readOnlyPropertiesUnlocked = false;
+	
 	private String cachedEndNodeId             = null;
 	private String cachedStartNodeId           = null;
 
@@ -180,10 +184,14 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
+	public void unlockSystemPropertiesOnce() {
+		this.internalSystemPropertiesUnlocked = true;
+		unlockReadOnlyPropertiesOnce();
+	}
+	
+	@Override
 	public void unlockReadOnlyPropertiesOnce() {
-
 		this.readOnlyPropertiesUnlocked = true;
-
 	}
 
 	@Override
@@ -571,11 +579,17 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 		try {
 
-			// check for read-only properties
-			//if (StructrApp.getConfiguration().isReadOnlyProperty(type, key) || (StructrApp.getConfiguration().isWriteOnceProperty(type, key) && (dbRelationship != null) && dbRelationship.hasProperty(key.name()))) {
-			if (key.isReadOnly() || (key.isWriteOnce() && (dbRelationship != null) && dbRelationship.hasProperty(key.dbName()))) {
+			if (dbRelationship != null && dbRelationship.hasProperty(key.dbName())) {
 
-				if (!readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
+				// check for system properties
+				if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
+
+					throw new FrameworkException(422, "Property " + key.jsonName() + " is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key));
+
+				}
+
+				// check for read-only properties
+				if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
 
 					throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
 
@@ -584,14 +598,39 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			}
 
 			return key.setProperty(securityContext, this, value);
-
+			
 		} finally {
 
 			// unconditionally lock read-only properties after every write (attempt) to avoid security problems
 			// since we made "unlock_readonly_properties_once" available through scripting
-			this.readOnlyPropertiesUnlocked = false;
+			internalSystemPropertiesUnlocked = false;
+			readOnlyPropertiesUnlocked       = false;
 
 		}
+
+//		try {
+//
+//			// check for read-only properties
+//			//if (StructrApp.getConfiguration().isReadOnlyProperty(type, key) || (StructrApp.getConfiguration().isWriteOnceProperty(type, key) && (dbRelationship != null) && dbRelationship.hasProperty(key.name()))) {
+//			if (key.isReadOnly() || (key.isWriteOnce() && (dbRelationship != null) && dbRelationship.hasProperty(key.dbName()))) {
+//
+//				if (!readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
+//
+//					throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
+//
+//				}
+//
+//			}
+//
+//			return key.setProperty(securityContext, this, value);
+//
+//		} finally {
+//
+//			// unconditionally lock read-only properties after every write (attempt) to avoid security problems
+//			// since we made "unlock_readonly_properties_once" available through scripting
+//			this.readOnlyPropertiesUnlocked = false;
+//
+//		}
 	}
 
 	@Override

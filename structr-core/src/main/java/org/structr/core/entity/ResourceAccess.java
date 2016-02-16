@@ -32,7 +32,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.Access;
 import org.structr.core.notion.PropertySetNotion;
-import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
@@ -80,7 +80,7 @@ public class ResourceAccess extends AbstractNode {
 	public static final Property<Long>                 flags              = new LongProperty("flags").cmis().indexed();
 	public static final Property<Integer>              position           = new IntProperty("position").cmis().indexed();
 	public static final Property<List<PropertyAccess>> propertyAccess     = new EndNodes<>("propertyAccess", Access.class, new PropertySetNotion(id, name));
-	public static final Property<Boolean>              isResourceAccess   = new BooleanProperty("isResourceAccess").defaultValue(true).readOnly();
+	public static final Property<Boolean>              isResourceAccess   = new ConstantBooleanProperty("isResourceAccess", true);
 
 	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
 		signature, flags, position, isResourceAccess
