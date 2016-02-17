@@ -133,7 +133,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			relIterator = Iterables.filter(new TypePredicate<>(relType), Iterables.map(relFactory,Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getAllRelationships()))).iterator();;
+			relIterator = Iterables.filter(new TypePredicate<>(relType), Iterables.map(relFactory,Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getAllRelationships()))).iterator();
 			tx.success();
 
 		} catch (FrameworkException fex) {
