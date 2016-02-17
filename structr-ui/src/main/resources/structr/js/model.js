@@ -55,7 +55,10 @@ var StructrModel = {
 	create: function(data, refId, append) {
 
 		_Logger.log("StructrModel.create", data);
-		if (!data) return;
+
+		if (!data || !data.id) {
+			return;
+		}
 
 		var keys = Object.keys(data);
 
@@ -70,6 +73,10 @@ var StructrModel = {
 
 	},
 	createFromData: function(data, refId, append) {
+		
+		if (!data || !data.id) {
+			return;
+		}
 
 		var obj;
 
@@ -144,6 +151,8 @@ var StructrModel = {
 	 * Append and check expand status
 	 */
 	append: function(obj, refId) {
+		
+		if (!obj) return;
 
 		if (obj.content) {
 			// only show the first 40 characters for content elements
@@ -190,6 +199,8 @@ var StructrModel = {
 	 * activate the tab to the left before removing it.
 	 */
 	del: function(id) {
+		
+		if (!id) return;
 
 		var node = Structr.node(id);
 		if (node) {
@@ -222,6 +233,11 @@ var StructrModel = {
 	 * and will trigger a UI refresh.
 	 **/
 	update: function(data) {
+		
+		if (!data || !data.id) {
+			return;
+		}
+		
 		var obj = StructrModel.obj(data.id);
 
 		if (obj && data.modifiedProperties && data.modifiedProperties.length) {
@@ -484,6 +500,7 @@ var StructrModel = {
 				_Logger.log(callback, callbackFunction.toString());
 				StructrModel.callbacks[callback](entity, resultSize);
 			}
+			StructrModel.clearCallback(callback);
 		}
 	},
 

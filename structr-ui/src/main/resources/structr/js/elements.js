@@ -315,23 +315,27 @@ var _Elements = {
 		});
 		_Dragndrop.makeSortable(components);
 
-		Command.listComponents(1000, 1, 'name', 'asc', function(entity) {
+		Command.listComponents(1000, 1, 'name', 'asc', function(result) {
+			
+			result.forEach(function(entity) {
 
-			if (!entity) {
-				return false;
-			}
+				if (!entity) {
+					return false;
+				}
 
-			var obj = StructrModel.create(entity, null, false);
-			var el;
-			if (obj.isContent || obj.type === 'Template') {
-				el = _Contents.appendContentElement(obj, components, true);
-			} else {
-				el = _Pages.appendElementElement(obj, components, true);
-			}
+				var obj = StructrModel.create(entity, null, false);
+				var el;
+				if (obj.isContent || obj.type === 'Template') {
+					el = _Contents.appendContentElement(obj, components, true);
+				} else {
+					el = _Pages.appendElementElement(obj, components, true);
+				}
 
-			if (isExpanded(entity.id)) {
-				_Entities.ensureExpanded(el);
-			}
+				if (isExpanded(entity.id)) {
+					_Entities.ensureExpanded(el);
+				}
+			
+			});
 
 		});
 
@@ -360,23 +364,26 @@ var _Elements = {
 		});
 
 		_Dragndrop.makeSortable(elements);
-		Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(entity) {
+		Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(result) {
+			
+			result.forEach(function(entity) {
+				
+				if (!entity) {
+					return;
+				}
 
-			if (!entity) {
-				return;
-			}
+				var obj = StructrModel.create(entity, null, false);
+				var el;
+				if (obj.isContent) {
+					el = _Contents.appendContentElement(obj, elements, true);
+				} else {
+					el = _Pages.appendElementElement(obj, elements, true);
+				}
 
-			var obj = StructrModel.create(entity, null, false);
-			var el;
-			if (obj.isContent) {
-				el = _Contents.appendContentElement(obj, elements, true);
-			} else {
-				el = _Pages.appendElementElement(obj, elements, true);
-			}
-
-			if (isExpanded(entity.id)) {
-				_Entities.ensureExpanded(el);
-			}
+				if (isExpanded(entity.id)) {
+					_Entities.ensureExpanded(el);
+				}
+			});
 
 		});
 

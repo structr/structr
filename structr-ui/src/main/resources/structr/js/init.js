@@ -1095,41 +1095,45 @@ var Structr = {
 			fastRemoveAllChildren(syncables[0]);
 			syncables.append('<tr><th>Name</th><th>Size</th><th>Last Modified</th><th>Type</th><th>Recursive</th><th>Actions</th></tr>');
 
-			Command.listSyncables(host, port, username, password, key, type, function(syncable) {
+			Command.listSyncables(host, port, username, password, key, type, function(result) {
+				
+				result.forEach(function(syncable) {
+					
+					syncables.append(
+							'<tr>'
+							+ '<td>' + syncable.name + '</td>'
+							+ '<td>' + (syncable.size ? syncable.size : "-") + '</td>'
+							+ '<td>' + (syncable.lastModifiedDate ? syncable.lastModifiedDate : "-") + '</td>'
+							+ '<td>' + syncable.type + '</td>'
+							+ '<td><input type="checkbox" id="recursive-' + syncable.id + '"></td>'
+							+ '<td><button id="pull-' + syncable.id + '"></td>'
+							+ '</tr>'
+							);
 
-				syncables.append(
-						'<tr>'
-						+ '<td>' + syncable.name + '</td>'
-						+ '<td>' + (syncable.size ? syncable.size : "-") + '</td>'
-						+ '<td>' + (syncable.lastModifiedDate ? syncable.lastModifiedDate : "-") + '</td>'
-						+ '<td>' + syncable.type + '</td>'
-						+ '<td><input type="checkbox" id="recursive-' + syncable.id + '"></td>'
-						+ '<td><button id="pull-' + syncable.id + '"></td>'
-						+ '</tr>'
-						);
+					var syncButton = $('#pull-' + syncable.id, dialog);
 
-				var syncButton = $('#pull-' + syncable.id, dialog);
-
-				if (syncable.isSynchronized) {
-					syncButton.empty();
-					syncButton.append('<img src="icon/arrow_refresh.png" title="Update" alt="Update"> Update');
-				} else {
-					syncButton.empty();
-					syncButton.append('<img src="icon/page_white_put.png" title="Import" alt="Import"> Import');
-				}
-
-				syncButton.on('click', function() {
-
-					syncButton.empty();
-					syncButton.append('Importing..');
-
-					var recursive = $('#recursive-' + syncable.id, syncables).prop('checked');
-					Command.pull(syncable.id, host, port, username, password, 'key-' + syncable.id, recursive, function() {
-						// update table cell..
+					if (syncable.isSynchronized) {
 						syncButton.empty();
 						syncButton.append('<img src="icon/arrow_refresh.png" title="Update" alt="Update"> Update');
-					});
+					} else {
+						syncButton.empty();
+						syncButton.append('<img src="icon/page_white_put.png" title="Import" alt="Import"> Import');
+					}
+
+					syncButton.on('click', function() {
+
+						syncButton.empty();
+						syncButton.append('Importing..');
+
+						var recursive = $('#recursive-' + syncable.id, syncables).prop('checked');
+						Command.pull(syncable.id, host, port, username, password, 'key-' + syncable.id, recursive, function() {
+							// update table cell..
+							syncButton.empty();
+							syncButton.append('<img src="icon/arrow_refresh.png" title="Update" alt="Update"> Update');
+						});
+					});					
 				});
+
 			});
 		});
 

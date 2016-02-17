@@ -493,8 +493,10 @@ var _Pages = {
 		$('#activeElements div.inner').empty().attr('id', 'id_' + id);
 		activeElements = {};
 
-		Command.listActiveElements(id, function(activeElement) {
-			_Entities.handleActiveElement(activeElement);
+		Command.listActiveElements(id, function(result) {
+			result.forEach(function(activeElement) {
+				_Entities.handleActiveElement(activeElement);
+			});
 		});
 	},
 	/**
@@ -532,7 +534,7 @@ var _Pages = {
 				_Logger.log('stored version:', s, 'current version:', v);
 				if (v > s) {
 					pageVersion[id] = v;
-					_Pages.loadIframe(id);
+					_Pages.loadIframe(id);console.log('really reload iframe', s,v)
 				}
 			});
 		}

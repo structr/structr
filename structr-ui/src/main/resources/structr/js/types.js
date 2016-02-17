@@ -247,7 +247,7 @@ var _Types = {
 				200: function(data) {
 
 					// no schema entry found?
-					if (data.result_count === 0){
+					if (data.result_count === 0) {
 
 						// console.log("ERROR: loading Schema " + type);
 						new MessageBuilder().warning("Failed loading Schema for '" + type + "' - check your resource access grants.").show();

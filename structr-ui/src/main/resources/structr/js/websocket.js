@@ -157,7 +157,6 @@ function wsConnect() {
 				}
 
 				StructrModel.callCallback(data.callback, data.data[data.data['key']]);
-				StructrModel.clearCallback(data.callback);
 
 			} else if (command === 'LOGOUT') { /*********************** LOGOUT ************************/
 
@@ -172,7 +171,6 @@ function wsConnect() {
 				}
 
 				StructrModel.callCallback(data.callback, data.data[data.data['key']]);
-				StructrModel.clearCallback(data.callback);
 
 			} else if (command === 'STATUS') { /*********************** STATUS ************************/
 
@@ -258,7 +256,6 @@ function wsConnect() {
 				_Logger.log('GET_PROPERTY', data.id, data.data['key'], data.data[data.data['key']]);
 				StructrModel.updateKey(data.id, data.data['key'], data.data[data.data['key']]);
 				StructrModel.callCallback(data.callback, data.data[data.data['key']]);
-				StructrModel.clearCallback(data.callback);
 
 			} else if (command === 'UPDATE' || command === 'SET_PERMISSION') { /*********************** UPDATE / SET_PERMISSION ************************/
 
@@ -273,9 +270,7 @@ function wsConnect() {
 
 				obj = StructrModel.update(data);
 
-				if (StructrModel.callCallback(data.callback, obj)) {
-					StructrModel.clearCallback(data.callback);
-				}
+				StructrModel.callCallback(data.callback, obj);
 
 			} else if (command === 'GET') { /*********************** GET ************************/
 
@@ -286,7 +281,6 @@ function wsConnect() {
 				_Logger.log(command, data);
 
 				StructrModel.callCallback(data.callback, result);
-				StructrModel.clearCallback(data.callback);
 
 			} else if (command.endsWith('CHILDREN')) { /*********************** CHILDREN ************************/
 
@@ -304,7 +298,6 @@ function wsConnect() {
 				});
 
 				StructrModel.callCallback(data.callback, result);
-				StructrModel.clearCallback(data.callback);
 
 			} else if (command.startsWith('SEARCH')) { /*********************** SEARCH ************************/
 
@@ -316,13 +309,7 @@ function wsConnect() {
 
 				_Logger.log('LIST_UNATTACHED_NODES', result, data);
 
-				$(result).each(function (i, entity) {
-
-					StructrModel.callCallback(data.callback, entity);
-
-				});
-
-				StructrModel.clearCallback(data.callback);
+				StructrModel.callCallback(data.callback, result);
 
 			} else if (command.startsWith('LIST_SCHEMA_PROPERTIES')) { /*********************** LIST_SCHEMA_PROPERTIES ************************/
 
@@ -330,19 +317,12 @@ function wsConnect() {
 
 				// send full result in a single callback
 				StructrModel.callCallback(data.callback, result);
-				StructrModel.clearCallback(data.callback);
 
 			} else if (command.startsWith('LIST_COMPONENTS')) { /*********************** LIST_COMPONENTS ************************/
 
 				_Logger.log('LIST_COMPONENTS', result, data);
 
-				$(result).each(function (i, entity) {
-
-					StructrModel.callCallback(data.callback, entity);
-
-				});
-
-				StructrModel.clearCallback(data.callback);
+				StructrModel.callCallback(data.callback, result);
 
 			} else if (command.startsWith('LIST_SYNCABLES')) { /*********************** LIST_SYNCABLES ************************/
 
@@ -350,55 +330,31 @@ function wsConnect() {
 
 				_Logger.log('LIST_SYNCABLES', result, data);
 
-				$(result).each(function (i, entity) {
-
-					StructrModel.callCallback(data.callback, entity);
-
-				});
-
-				StructrModel.clearCallback(data.callback);
+				StructrModel.callCallback(data.callback, result);
 
 			} else if (command.startsWith('LIST_ACTIVE_ELEMENTS')) { /*********************** LIST_ACTIVE_ELEMENTS ************************/
 
 				_Logger.log('LIST_ACTIVE_ELEMENTS', result, data);
 
-				$(result).each(function (i, entity) {
-
-					StructrModel.callCallback(data.callback, entity);
-
-				});
-
-				StructrModel.clearCallback(data.callback);
+				StructrModel.callCallback(data.callback, result);
 
 			} else if (command.startsWith('SNAPSHOTS')) { /*********************** LIST_SNAPSHOTS ************************/
 
 				_Logger.log('SNAPSHOTS', result, data);
 
-				$(result).each(function (i, entity) {
-
-					StructrModel.callCallback(data.callback, entity);
-
-				});
-
-				StructrModel.clearCallback(data.callback);
+				StructrModel.callCallback(data.callback, result);
 
 			} else if (command.startsWith('LIST')) { /*********************** LIST ************************/
 
 				_Logger.log('LIST', result, data);
 
 				StructrModel.callCallback(data.callback, result, data.rawResultCount);
-//				$(result).each(function (i, entity) {
-//					StructrModel.callCallback(data.callback, entity, result.length);
-//				});
-
-				StructrModel.clearCallback(data.callback);
 
 			} else if (command.startsWith('QUERY')) { /*********************** QUERY ************************/
 
 				_Logger.log('QUERY', result, data);
 
 				StructrModel.callCallback(data.callback, result, data.rawResultCount);
-				StructrModel.clearCallback(data.callback);
 
 			} else if (command === 'DELETE') { /*********************** DELETE ************************/
 
@@ -471,8 +427,6 @@ function wsConnect() {
 
 				});
 
-				StructrModel.clearCallback(data.callback);
-
 				if (!LSWrapper.getItem(autoRefreshDisabledKey + activeTab)) {
 					_Pages.reloadPreviews();
 				}
@@ -486,12 +440,10 @@ function wsConnect() {
 			} else if (command === 'FINISHED') { /*********************** FINISHED ************************/
 
 				StructrModel.callCallback(data.callback);
-				StructrModel.clearCallback(data.callback);
 
 		        } else if (command === 'AUTOCOMPLETE') { /*********************** AUTOCOMPLETE ************************/
 
 				StructrModel.callCallback(data.callback, result);
-				StructrModel.clearCallback(data.callback);
 
 			} else {
 				console.log('Received unknown command: ' + command);
