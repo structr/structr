@@ -54,7 +54,7 @@ var StructrModel = {
 	 */
 	create: function(data, refId, append) {
 
-		_Logger.log("StructrModel.create", data);
+		_Logger.log(_LogType.MODEL, "StructrModel.create", data);
 
 		if (!data || !data.id) {
 			return;
@@ -73,7 +73,7 @@ var StructrModel = {
 
 	},
 	createFromData: function(data, refId, append) {
-		
+
 		if (!data || !data.id) {
 			return;
 		}
@@ -133,7 +133,7 @@ var StructrModel = {
 				if (el.parent().prop('id') === 'elementsArea') {
 					el.remove();
 				} else {
-					_Logger.log('obj exists');
+					_Logger.log(_LogType.MODEL, 'obj exists');
 					return obj;
 				}
 			}
@@ -151,7 +151,7 @@ var StructrModel = {
 	 * Append and check expand status
 	 */
 	append: function(obj, refId) {
-		
+
 		if (!obj) return;
 
 		if (obj.content) {
@@ -170,7 +170,7 @@ var StructrModel = {
 	 */
 	expand: function(element, obj) {
 
-		_Logger.log('StructrModel.expand', element, obj);
+		_Logger.log(_LogType.MODEL, 'StructrModel.expand', element, obj);
 
 		if (element) {
 
@@ -182,11 +182,11 @@ var StructrModel = {
 
 			if (parent && parent.hasClass('node') && parent.children('.node') && parent.children('.node').length) {
 
-				_Logger.log('parent of last appended object has children');
+				_Logger.log(_LogType.MODEL, 'parent of last appended object has children');
 
 				var ent = Structr.entityFromElement(parent);
 				_Entities.ensureExpanded(parent);
-				_Logger.log('entity', ent);
+				_Logger.log(_LogType.MODEL, 'entity', ent);
 				_Entities.appendExpandIcon(parent, ent, true, true);
 
 			}
@@ -199,7 +199,7 @@ var StructrModel = {
 	 * activate the tab to the left before removing it.
 	 */
 	del: function(id) {
-		
+
 		if (!id) return;
 
 		var node = Structr.node(id);
@@ -233,17 +233,17 @@ var StructrModel = {
 	 * and will trigger a UI refresh.
 	 **/
 	update: function(data) {
-		
+
 		if (!data || !data.id) {
 			return;
 		}
-		
+
 		var obj = StructrModel.obj(data.id);
 
 		if (obj && data.modifiedProperties && data.modifiedProperties.length) {
 
 			$.each(data.modifiedProperties, function(i, key) {
-				_Logger.log('update model', key, data.data[key]);
+				_Logger.log(_LogType.MODEL, 'update model', key, data.data[key]);
 				obj[key] = data.data[key];
 				//console.log('object ', obj, 'updated with key', key, '=', obj[key]);
 				//StructrModel.refreshKey(obj.id, key);
@@ -257,7 +257,7 @@ var StructrModel = {
 
 	},
 	updateKey: function(id, key, value) {
-		_Logger.log('StructrModel.updateKey', id, key, value);
+		_Logger.log(_LogType.MODEL, 'StructrModel.updateKey', id, key, value);
 		var obj = StructrModel.obj(id);
 
 		if (obj) {
@@ -286,9 +286,9 @@ var StructrModel = {
 
 		//for (var key in data.data) {
 		var inputElement = $('td.' + key + '_ input', element);
-		_Logger.log(inputElement);
+		_Logger.log(_LogType.MODEL, inputElement);
 		var newValue = obj[key];
-		_Logger.log(key, newValue, typeof newValue);
+		_Logger.log(_LogType.MODEL, key, newValue, typeof newValue);
 
 		var attrElement = element.children('.' + key + '_');
 
@@ -306,7 +306,7 @@ var StructrModel = {
 				if (attrElement && tag === 'select') {
 					attrElement.val(newValue);
 				} else {
-					_Logger.log(key, newValue);
+					_Logger.log(_LogType.MODEL, key, newValue);
 					if (key === 'name') {
 						attrElement.attr('title', newValue).html(fitStringToWidth(newValue, w));
 					}
@@ -318,7 +318,7 @@ var StructrModel = {
 
 				if (key === 'content') {
 
-					_Logger.log(attrElement.text(), newValue);
+					_Logger.log(_LogType.MODEL, attrElement.text(), newValue);
 
 					attrElement.text(newValue);
 
@@ -332,7 +332,7 @@ var StructrModel = {
 			}
 		}
 
-		_Logger.log(key, Structr.getClass(element));
+		_Logger.log(_LogType.MODEL, key, Structr.getClass(element));
 
 		if (key === 'name') {
 
@@ -345,7 +345,7 @@ var StructrModel = {
 
 				tabNameElement.attr('title', newValue).html(fitStringToWidth(newValue, w));
 
-				_Logger.log('Model: Reload iframe', id, newValue);
+				_Logger.log(_LogType.MODEL, 'Model: Reload iframe', id, newValue);
 				_Pages.reloadIframe(id);
 
 			} else if (Structr.getClass(element) === 'folder') {
@@ -364,7 +364,7 @@ var StructrModel = {
 	refresh: function(id) {
 
 		var obj = StructrModel.obj(id);
-		_Logger.log('Model refresh, updated object', obj);
+		_Logger.log(_LogType.MODEL, 'Model refresh, updated object', obj);
 
 		if (obj) {
 			var element = Structr.node(id);
@@ -380,7 +380,7 @@ var StructrModel = {
 			if (!element)
 				return;
 
-			_Logger.log(obj, id, element);
+			_Logger.log(_LogType.MODEL, obj, id, element);
 
 			// update values with given key
 			$.each(Object.keys(obj), function(i, key) {
@@ -475,7 +475,7 @@ var StructrModel = {
 	 */
 	save: function(id) {
 		var obj = StructrModel.obj(id);
-		_Logger.log('StructrModel.save', obj);
+		_Logger.log(_LogType.MODEL, 'StructrModel.save', obj);
 
 		// Filter out object type data
 		var data = {};
@@ -494,10 +494,10 @@ var StructrModel = {
 
 	callCallback: function(callback, entity, resultSize) {
 		if (callback) {
-			_Logger.log('Calling callback', callback, 'on entity', entity, resultSize);
+			_Logger.log(_LogType.MODEL, 'Calling callback', callback, 'on entity', entity, resultSize);
 			var callbackFunction = StructrModel.callbacks[callback];
 			if (callback && callbackFunction) {
-				_Logger.log(callback, callbackFunction.toString());
+				_Logger.log(_LogType.MODEL, callback, callbackFunction.toString());
 				StructrModel.callbacks[callback](entity, resultSize);
 			}
 			StructrModel.clearCallback(callback);
@@ -890,7 +890,7 @@ StructrElement.prototype.remove = function() {
 		element.remove();
 	}
 
-	_Logger.log(this, element, parent, Structr.containsNodes(parent));
+	_Logger.log(_LogType.MODEL, this, element, parent, Structr.containsNodes(parent));
 
 	if (element && parent && !Structr.containsNodes(parent)) {
 		_Entities.removeExpandIcon(parent);
@@ -986,7 +986,7 @@ StructrContent.prototype.append = function(refNode) {
 	if (!div)
 		return;
 
-	_Logger.log('appendContentElement div', div);
+	_Logger.log(_LogType.MODEL, 'appendContentElement div', div);
 
 	StructrModel.expand(div, this);
 

@@ -134,7 +134,7 @@ var _Graph = {
 		sigma.renderers.def = sigma.renderers.canvas;
 
 		if (engine) {
-			_Logger.log('sigma engine already exists', engine);
+			_Logger.log(_LogType.GRAPH, 'sigma engine already exists', engine);
 			//_Graph.scheduleRefreshEngine();
 			//_Graph.clearGraph();
 			//engine.refresh();
@@ -200,10 +200,10 @@ var _Graph = {
 
 		engine.bind('clickNode', function(e) {
 
-			_Logger.log('clickNode');
+			_Logger.log(_LogType.GRAPH, 'clickNode');
 
 			if (hasDoubleClicked) {
-				_Logger.log('double clicked, returning');
+				_Logger.log(_LogType.GRAPH, 'double clicked, returning');
 				return false;
 			}
 
@@ -371,7 +371,7 @@ var _Graph = {
 
 							if (edge.added) {
 								var replaced = edge.replaced;
-								_Logger.log('edge replaced ', replaced);
+								_Logger.log(_LogType.GRAPH, 'edge replaced ', replaced);
 								engine.graph.dropEdge(edge.id);
 								if (replaced && engine.graph.edges(replaced)) {
 									engine.graph.edges(replaced).hidden = false;

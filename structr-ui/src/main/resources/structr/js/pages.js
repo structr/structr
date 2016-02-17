@@ -110,9 +110,9 @@ var _Pages = {
 		activeTab = LSWrapper.getItem(activeTabKey);
 		activeTabLeft = LSWrapper.getItem(activeTabLeftKey);
 		activeTabRight = LSWrapper.getItem(activeTabRightKey);
-		_Logger.log('value read from local storage', activeTab);
+		_Logger.log(_LogType.PAGES, 'value read from local storage', activeTab);
 
-		_Logger.log('onload');
+		_Logger.log(_LogType.PAGES, 'onload');
 
 		main.prepend(
 				'<div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div>'
@@ -263,7 +263,7 @@ var _Pages = {
 						width: (leftSlideoutWidth-13) + 'px'
 					});
 				}, 100);
-				_Logger.log(LSWrapper.getItem(leftSlideoutWidthKey), leftSlideoutWidth);
+				_Logger.log(_LogType.PAGES, LSWrapper.getItem(leftSlideoutWidthKey), leftSlideoutWidth);
 			}
 			$('#' + activeTabLeft).addClass('active').click();
 		}
@@ -339,11 +339,11 @@ var _Pages = {
 
 			var addressField = $('#_address', dialog);
 
-			_Logger.log('addressField', addressField);
+			_Logger.log(_LogType.PAGES, 'addressField', addressField);
 
 			addressField.on('blur', function() {
 				var addr = $(this).val().replace(/\/+$/, "");
-				_Logger.log(addr);
+				_Logger.log(_LogType.PAGES, addr);
 				$('#_name', dialog).val(addr.substring(addr.lastIndexOf("/") + 1));
 			});
 
@@ -359,7 +359,7 @@ var _Pages = {
 				var publicVisible = $('#_publicVisible', dialog).prop('checked');
 				var authVisible = $('#_authVisible', dialog).prop('checked');
 
-				_Logger.log('start');
+				_Logger.log(_LogType.PAGES, 'start');
 				return Command.importPage(code, address, name, publicVisible, authVisible);
 			});
 
@@ -423,7 +423,7 @@ var _Pages = {
 	},
 	resetTab: function(element) {
 
-		_Logger.log('resetTab', element);
+		_Logger.log(_LogType.PAGES, 'resetTab', element);
 
 		element.children('input').hide();
 		element.children('.name_').show();
@@ -445,7 +445,7 @@ var _Pages = {
 			var self = $(this);
 			var clicks = e.originalEvent.detail;
 			if (clicks === 1) {
-				_Logger.log('click', self, self.css('z-index'));
+				_Logger.log(_LogType.PAGES, 'click', self, self.css('z-index'));
 				if (self.hasClass('active')) {
 					_Pages.makeTabEditable(self);
 				} else {
@@ -462,7 +462,7 @@ var _Pages = {
 
 		//var name = $.trim(element.children('.name_').text());
 		var name = $.trim(element.children('b.name_').attr('title'));
-		_Logger.log('activateTab', element, name);
+		_Logger.log(_LogType.PAGES, 'activateTab', element, name);
 
 		previewTabs.children('li').each(function() {
 			$(this).removeClass('active');
@@ -483,7 +483,7 @@ var _Pages = {
 
 		element.addClass('active');
 
-		_Logger.log('store active tab', activeTab);
+		_Logger.log(_LogType.PAGES, 'store active tab', activeTab);
 		LSWrapper.setItem(activeTabKey, activeTab);
 
 		_Pages.refreshActiveElements(id);
@@ -511,7 +511,7 @@ var _Pages = {
 		Command.get(id, function(obj) {
 			pageVersion[id] = obj.version;
 			iframe.prop('src', viewRootUrl + obj.name + '?edit=2');
-			_Logger.log('iframe', id, 'activated');
+			_Logger.log(_LogType.PAGES, 'iframe', id, 'activated');
 			iframe.parent().show();
 			_Pages.resize();
 			_Pages.refreshActiveElements(id);
@@ -528,10 +528,10 @@ var _Pages = {
 		var autoRefreshDisabled = LSWrapper.getItem(autoRefreshDisabledKey + id);
 		if (!autoRefreshDisabled && id) {
 			Command.get(id, function(obj) {
-				_Logger.log('reloading preview iframe', id, obj.name);
+				_Logger.log(_LogType.PAGES, 'reloading preview iframe', id, obj.name);
 				var v = obj.version || 0;
 				var s = pageVersion[id] || 0;
-				_Logger.log('stored version:', s, 'current version:', v);
+				_Logger.log(_LogType.PAGES, 'stored version:', s, 'current version:', v);
 				if (v > s) {
 					pageVersion[id] = v;
 					_Pages.loadIframe(id);console.log('really reload iframe', s,v)
@@ -540,14 +540,14 @@ var _Pages = {
 		}
 	},
 	unloadIframes: function() {
-		_Logger.log('unloading all preview iframes');
+		_Logger.log(_LogType.PAGES, 'unloading all preview iframes');
 		_Pages.clearIframeDroppables();
 		$('iframe', $('#previews')).each(function() {
 			var self = $(this);
 			var pageId = self.prop('id').substring('preview_'.length);
 			var iframe = $('#preview_' + pageId);
 			iframe.contents().empty();
-			_Logger.log('iframe', pageId, 'deactivated');
+			_Logger.log(_LogType.PAGES, 'iframe', pageId, 'deactivated');
 		});
 	},
 	/**
@@ -589,7 +589,7 @@ var _Pages = {
 
 		input.on('blur', function() {
 			input.off('blur');
-			_Logger.log('blur');
+			_Logger.log(_LogType.PAGES, 'blur');
 			var self = $(this);
 			var newName = self.val();
 			Command.setProperty(id, "name", newName);
@@ -599,7 +599,7 @@ var _Pages = {
 		input.keypress(function(e) {
 			if (e.keyCode === 13 || e.keyCode === 9) {
 				e.preventDefault();
-				_Logger.log('keypress');
+				_Logger.log(_LogType.PAGES, 'keypress');
 				var self = $(this);
 				var newName = self.val();
 				Command.setProperty(id, "name", newName);
@@ -710,11 +710,11 @@ var _Pages = {
 						e.stopPropagation();
 						var self = $(this);
 						var element = self.closest('[data-structr-id]');
-						_Logger.log(element);
+						_Logger.log(_LogType.PAGES, element);
 						var entity = Structr.entity(structrId, element.prop('data-structr-id'));
 						entity.type = element.prop('data-structr_type');
 						entity.name = element.prop('data-structr_name');
-						_Logger.log('move', entity);
+						_Logger.log(_LogType.PAGES, 'move', entity);
 						self.parent().children('.structr-node').show();
 					});
 
@@ -725,7 +725,7 @@ var _Pages = {
 						var entity = Structr.entity(structrId, element.prop('data-structr-id'));
 						entity.type = element.prop('data-structr_type');
 						entity.name = element.prop('data-structr_name');
-						_Logger.log('delete', entity);
+						_Logger.log(_LogType.PAGES, 'delete', entity);
 						var parentId = element.prop('data-structr-id');
 
 						Command.removeSourceFromTarget(entity.id, parentId);
@@ -767,7 +767,7 @@ var _Pages = {
 								left: pos.left + offsetLeft + 'px',
 								cursor: 'pointer'
 							}).show();
-							_Logger.log(header);
+							_Logger.log(_LogType.PAGES, header);
 						},
 						mouseout: function(e) {
 							e.stopPropagation();
@@ -875,7 +875,7 @@ var _Pages = {
 		return droppables;
 	},
 	appendElementElement: function(entity, refNode, refNodeIsParent) {
-		_Logger.log('_Pages.appendElementElement(', entity, refNode, refNodeIsParent, ');');
+		_Logger.log(_LogType.PAGES, '_Pages.appendElementElement(', entity, refNode, refNodeIsParent, ');');
 		entity = StructrModel.ensureObject(entity);
 		var div = _Elements.appendElementElement(entity, refNode, refNodeIsParent);
 
@@ -919,7 +919,7 @@ var _Pages = {
 			$('iframe', box).width(w);
 			$('iframe', box).height(h);
 
-			_Logger.log("box,w,h", box, w, h);
+			_Logger.log(_LogType.PAGES, "box,w,h", box, w, h);
 
 		});
 

@@ -43,7 +43,7 @@ var _Files = {
 	download_icon: 'icon/basket_put.png',
 	init: function() {
 
-		_Logger.log('_Files.init');
+		_Logger.log(_LogType.FILES, '_Files.init');
 
 		_Pager.initPager('File', 1, 25, 'name', 'asc');
 		_Pager.initPager('Folder', 1, 25, 'name', 'asc');
@@ -124,7 +124,7 @@ var _Files = {
 			drop = $('#dropArea');
 
 			drop.on('dragover', function(event) {
-				_Logger.log('dragging over #files area');
+				_Logger.log(_LogType.FILES, 'dragging over #files area');
 				event.originalEvent.dataTransfer.dropEffect = 'copy';
 				return false;
 			});
@@ -135,7 +135,7 @@ var _Files = {
 					return;
 				}
 
-				_Logger.log('dropped something in the #files area');
+				_Logger.log(_LogType.FILES, 'dropped something in the #files area');
 
 				event.stopPropagation();
 				event.preventDefault();
@@ -165,7 +165,7 @@ var _Files = {
 							fadeOut: 25
 						});
 						$(filesToUpload).each(function(i, file) {
-							_Logger.log(file);
+							_Logger.log(_LogType.FILES, file);
 							if (file) {
 								Command.createFile(file);
 							}
@@ -252,7 +252,7 @@ var _Files = {
 		if (_Files.isArchive(file)) {
 			div.append('<img class="unarchive_icon button" src="icon/compress.png">');
 			div.children('.unarchive_icon').on('click', function() {
-				_Logger.log('unarchive', file.id);
+				_Logger.log(_LogType.FILES, 'unarchive', file.id);
 				Command.unarchive(file.id);
 			});
 		}
@@ -267,7 +267,7 @@ var _Files = {
 			e.stopPropagation();
 			window.open(file.path, 'Download ' + file.name);
 		});
-		_Logger.log(folderId, add);
+		_Logger.log(_LogType.FILES, folderId, add);
 
 		delIcon = div.children('.delete_icon');
 
@@ -340,11 +340,11 @@ var _Files = {
 	},
 	appendFolderElement: function(folder) {
 
-		_Logger.log('appendFolderElement', folder, folder.parent);
+		_Logger.log(_LogType.FILES, 'appendFolderElement', folder, folder.parent);
 
 		var hasParent = folder.parent && folder.parent.id;
 
-		_Logger.log(folder.name, 'has parent?', hasParent);
+		_Logger.log(_LogType.FILES, folder.name, 'has parent?', hasParent);
 
 		var parentId, parentFolderElement;
 		if (folder.parent && folder.parent.id) {
@@ -405,7 +405,7 @@ var _Files = {
 
 		var hasChildren = (folder.folders && folder.folders.length) || (folder.files && folder.files.length);
 
-		_Logger.log(folder.name, 'has children?', hasChildren, 'is expanded?', isExpanded(folder.id));
+		_Logger.log(_LogType.FILES, folder.name, 'has children?', hasChildren, 'is expanded?', isExpanded(folder.id));
 
 		_Entities.appendExpandIcon(div, folder, hasChildren);
 
@@ -423,7 +423,7 @@ var _Files = {
 				var self = $(this);
 				var fileId = Structr.getId(ui.draggable);
 				var folderId = Structr.getId(self);
-				_Logger.log('fileId, folderId', fileId, folderId);
+				_Logger.log(_LogType.FILES, 'fileId, folderId', fileId, folderId);
 				if (!(fileId === folderId)) {
 					var nodeData = {};
 					nodeData.id = fileId;
@@ -471,13 +471,13 @@ var _Files = {
 
 			var typeIcon = Structr.node(file.id).find('.typeIcon');
 			var iconSrc = typeIcon.prop('src');
-			_Logger.log('Icon src: ', iconSrc);
+			_Logger.log(_LogType.FILES, 'Icon src: ', iconSrc);
 			typeIcon.prop('src', iconSrc + '?' + new Date().getTime());
 		};
 
 		$(fileList).each(function(i, fileObj) {
 			if (fileObj.name === file.name) {
-				_Logger.log('Uploading chunks for file ' + file.id);
+				_Logger.log(_LogType.FILES, 'Uploading chunks for file ' + file.id);
 				worker.postMessage(fileObj);
 			}
 		});
@@ -514,9 +514,9 @@ var _Files = {
 			}
 
 			Structr.dialog('Edit files', function() {
-				_Logger.log('content saved');
+				_Logger.log(_LogType.FILES, 'content saved');
 			}, function() {
-				_Logger.log('cancelled');
+				_Logger.log(_LogType.FILES, 'cancelled');
 			});
 
 			dialogText.append('<div id="files-tabs" class="files-tabs"><ul></ul></div>');
@@ -548,7 +548,7 @@ var _Files = {
 	},
 	editContent: function(button, file, element) {
 		var url = viewRootUrl + file.id + '?edit=1';
-		_Logger.log('editContent', button, file, element, url);
+		_Logger.log(_LogType.FILES, 'editContent', button, file, element, url);
 		var text = '';
 
 		var contentType = file.contentType;
@@ -563,7 +563,7 @@ var _Files = {
 				contentType = 'text/plain';
 			}
 		}
-		_Logger.log(viewRootUrl, url);
+		_Logger.log(_LogType.FILES, viewRootUrl, url);
 
 		$.ajax({
 			url: url,
@@ -571,7 +571,7 @@ var _Files = {
 			dataType: dataType,
 			contentType: contentType,
 			success: function(data) {
-				_Logger.log(file.id, fileContents);
+				_Logger.log(_LogType.FILES, file.id, fileContents);
 				text = fileContents[file.id] || data;
 				if (isDisabled(button))
 					return;

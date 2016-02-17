@@ -114,17 +114,17 @@ var _Images = {
 			drop.on('drop', function(event) {
 
 				if (!event.originalEvent.dataTransfer) {
-					_Logger.log(event);
+					_Logger.log(_LogType.IMAGES, event);
 					return;
 				}
 
-				_Logger.log('dropped something in the #files area');
+				_Logger.log(_LogType.IMAGES, 'dropped something in the #files area');
 
 				event.stopPropagation();
 				event.preventDefault();
 
 				fileList = event.originalEvent.dataTransfer.files;
-				_Logger.log(fileList);
+				_Logger.log(_LogType.IMAGES, fileList);
 				var filesToUpload = [];
 				var tooLargeFiles = [];
 
@@ -149,7 +149,7 @@ var _Images = {
 							fadeOut: 25
 						});
 						$(filesToUpload).each(function(i, file) {
-							_Logger.log(file);
+							_Logger.log(_LogType.IMAGES, file);
 							if (file)
 								Command.createFile(file);
 						});
@@ -183,7 +183,7 @@ var _Images = {
 	},
 	appendImageElement: function(img) {
 
-		_Logger.log('Images.appendImageElement', img);
+		_Logger.log(_LogType.IMAGES, 'Images.appendImageElement', img);
 
 		//if (!folderId && file.parentFolder) return false;
 
@@ -298,7 +298,7 @@ var _Images = {
 			var tnZoom = $($('.thumbnailZoom', images)[0]);
 
 			tnZoom.on('load', function() {
-				_Logger.log(tnZoom, tnZoom.position(), tnZoom.width(), tnZoom.height());
+				_Logger.log(_LogType.IMAGES, tnZoom, tnZoom.position(), tnZoom.width(), tnZoom.height());
 				var pos = el.position();
 
 				tnZoom.css({
@@ -354,9 +354,9 @@ var _Images = {
 		$(parent.children('.edit_file_icon')).on('click', function(e) {
 			e.stopPropagation();
 			Structr.dialog('Edit ' + file.name, function() {
-				_Logger.log('content saved');
+				_Logger.log(_LogType.IMAGES, 'content saved');
 			}, function() {
-				_Logger.log('cancelled');
+				_Logger.log(_LogType.IMAGES, 'cancelled');
 			});
 			_Images.editImage(this, file, $('#dialogBox .dialogText'));
 		});
@@ -365,7 +365,7 @@ var _Images = {
 		element.append('<img class="imageDetail" src="/' + image.id + '"><br><a href="/' + image.id + '">Download</a>');
 	},
 	editImage: function(button, image, element) {
-		_Logger.log(image);
+		_Logger.log(_LogType.IMAGES, image);
 		element.append('Download links: <a href="' + image.path + '">Path</a>&nbsp;|&nbsp;<a href="/' + image.id + '">UUID</a><br><br><img src="/' + image.id + '">');
 	}
 };

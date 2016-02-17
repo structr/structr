@@ -46,7 +46,7 @@ $(function() {
 	footer = $('#footer');
 	loginBox = $('#login');
 
-	_Logger.initLogger(urlParam('debug'));
+	_Logger.initLogger(urlParam('debug'), urlParam('events'));
 
 	dialogBox          = $('#dialogBox');
 	dialog             = $('.dialogText', dialogBox);
@@ -241,15 +241,15 @@ var Structr = {
 	autoHideInactiveTabs: undefined,
 
 	reconnect: function() {
-		_Logger.log('deactivated ping');
+		_Logger.log(_LogType.INIT, 'deactivated ping');
 		Structr.stopPing();
-		_Logger.log('activating reconnect loop');
+		_Logger.log(_LogType.INIT, 'activating reconnect loop');
 		Structr.stopReconnect();
 		reconn = window.setInterval(function() {
 			wsConnect();
 		}, 1000);
 		wsConnect();
-		_Logger.log('activated reconnect loop', reconn);
+		_Logger.log(_LogType.INIT, 'activated reconnect loop', reconn);
 	},
 	stopReconnect: function() {
 		if (reconn) {
@@ -258,13 +258,13 @@ var Structr = {
 		}
 	},
 	init: function() {
-		_Logger.log('###################### Initialize UI ####################');
+		_Logger.log(_LogType.INIT, '###################### Initialize UI ####################');
 		$('#errorText').empty();
-		_Logger.log('user', user);
+		_Logger.log(_LogType.INIT, 'user', user);
 		Structr.ping();
 		Structr.startPing();
 		Structr.expanded = JSON.parse(LSWrapper.getItem(expandedIdsKey));
-		_Logger.log('######## Expanded IDs after reload ##########', Structr.expanded);
+		_Logger.log(_LogType.INIT, '######## Expanded IDs after reload ##########', Structr.expanded);
 	},
 	ping: function(callback) {
 
@@ -275,7 +275,6 @@ var Structr = {
 		sessionId = Structr.getSessionId();
 
 		if (sessionId) {
-			_Logger.log('sending ping');
 			sendObj({command: 'PING', sessionId: sessionId}, callback);
 		}
 	},
@@ -303,9 +302,9 @@ var Structr = {
 		}
 	},
 	startPing: function() {
-		_Logger.log('Starting PING');
+		_Logger.log(_LogType.INIT, 'Starting PING');
 		Structr.stopPing();
-		_Logger.log('ping', ping);
+		_Logger.log(_LogType.INIT, 'ping', ping);
 		if (!ping) {
 			ping = window.setInterval(function() {
 				Structr.ping();
@@ -322,7 +321,7 @@ var Structr = {
 		return $.cookie('JSESSIONID');
 	},
 	connect: function() {
-		_Logger.log('connect');
+		_Logger.log(_LogType.INIT, 'connect');
 		sessionId = Structr.getSessionId();
 		if (!sessionId) {
 			$.get('/').always(function() {
@@ -361,7 +360,7 @@ var Structr = {
 	},
 	doLogin: function(username, password) {
 		$.ajax('/structr/rest/_env').always(function() {
-			_Logger.log('doLogin ' + username + ' with ' + password);
+			_Logger.log(_LogType.INIT, 'doLogin ' + username + ' with ' + password);
 			var obj = {};
 			obj.command = 'LOGIN';
 			obj.sessionId = Structr.getSessionId();
@@ -377,7 +376,7 @@ var Structr = {
 	},
 	doLogout: function(text) {
 		Structr.saveLocalStorage();
-		_Logger.log('doLogout ' + user);
+		_Logger.log(_LogType.INIT, 'doLogout ' + user);
 		var obj = {};
 		obj.command = 'LOGOUT';
 		obj.sessionId = Structr.getSessionId();
@@ -404,11 +403,11 @@ var Structr = {
 			if (!lastMenuEntry) {
 				lastMenuEntry = LSWrapper.getItem(lastMenuEntryKey) || 'dashboard';
 			} else {
-				_Logger.log('Last menu entry found: ' + lastMenuEntry);
+				_Logger.log(_LogType.INIT, 'Last menu entry found: ' + lastMenuEntry);
 			}
-			_Logger.log('lastMenuEntry', lastMenuEntry);
+			_Logger.log(_LogType.INIT, 'lastMenuEntry', lastMenuEntry);
 			Structr.activateMenuEntry(lastMenuEntry);
-			_Logger.log(Structr.modules);
+			_Logger.log(_LogType.INIT, Structr.modules);
 			var module = Structr.modules[lastMenuEntry];
 			if (module) {
 				//module.init();
@@ -474,7 +473,7 @@ var Structr = {
 		Command.getLocalStorage(callback);
 	},
 	restoreDialog: function(dialogData) {
-		_Logger.log('restoreDialog', dialogData, dialogBox);
+		_Logger.log(_LogType.INIT, 'restoreDialog', dialogData, dialogBox);
 		$.blockUI.defaults.overlayCSS.opacity = .6;
 		$.blockUI.defaults.applyPlatformOpacityRules = false;
 
@@ -596,7 +595,7 @@ var Structr = {
 
 			Structr.resize();
 
-			_Logger.log('Open dialog', dialog, text, dw, dh, t, l, callbackOk, callbackCancel);
+			_Logger.log(_LogType.INIT, 'Open dialog', dialog, text, dw, dh, t, l, callbackOk, callbackCancel);
 			var dialogData = {'text': text, 'top': t, 'left': l, 'width': dw, 'height': dh};
 			LSWrapper.setItem(dialogDataKey, JSON.stringify(dialogData));
 
@@ -815,10 +814,10 @@ var Structr = {
 	},
 	registerModule: function(name, module) {
 		Structr.modules[name] = module;
-		_Logger.log('Module ' + name + ' registered');
+		_Logger.log(_LogType.INIT, 'Module ' + name + ' registered');
 	},
 	containsNodes: function(element) {
-		_Logger.log(element, Structr.numberOfNodes(element), Structr.numberOfNodes(element) > 0);
+		_Logger.log(_LogType.INIT, element, Structr.numberOfNodes(element), Structr.numberOfNodes(element) > 0);
 		return (element && Structr.numberOfNodes(element) && Structr.numberOfNodes(element) > 0);
 	},
 	numberOfNodes: function(element, excludeId) {
@@ -827,17 +826,17 @@ var Structr = {
 			childNodes = childNodes.not('.' + excludeId + '_');
 		}
 		var n = childNodes.length;
-		_Logger.log('children', $(element).children('.node'));
-		_Logger.log('number of nodes in element', element, n);
+		_Logger.log(_LogType.INIT, 'children', $(element).children('.node'));
+		_Logger.log(_LogType.INIT, 'number of nodes in element', element, n);
 		return n;
 	},
 	findParent: function(parentId, componentId, pageId, defaultElement) {
 		var parent = Structr.node(parentId, null, componentId, pageId);
-		_Logger.log('findParent', parentId, componentId, pageId, defaultElement, parent);
-		_Logger.log('findParent: parent element from Structr.node: ', parent);
+		_Logger.log(_LogType.INIT, 'findParent', parentId, componentId, pageId, defaultElement, parent);
+		_Logger.log(_LogType.INIT, 'findParent: parent element from Structr.node: ', parent);
 		if (!parent)
 			parent = defaultElement;
-		_Logger.log('findParent: final parent element: ', parent);
+		_Logger.log(_LogType.INIT, 'findParent: final parent element: ', parent);
 		return parent;
 	},
 	parent: function(id) {
@@ -855,18 +854,18 @@ var Structr = {
 	},
 	getClass: function(el) {
 		var c;
-		_Logger.log(Structr.classes);
+		_Logger.log(_LogType.INIT, Structr.classes);
 		$(Structr.classes).each(function(i, cls) {
-			_Logger.log('testing class', cls);
+			_Logger.log(_LogType.INIT, 'testing class', cls);
 			if (el && el.hasClass(cls)) {
 				c = cls;
-				_Logger.log('found class', cls);
+				_Logger.log(_LogType.INIT, 'found class', cls);
 			}
 		});
 		return c;
 	},
 	entityFromElement: function(element) {
-		_Logger.log(element);
+		_Logger.log(_LogType.INIT, element);
 
 		var entity = {};
 		entity.id = Structr.getId($(element));
@@ -908,7 +907,7 @@ var Structr = {
 		try {
 			$('#pages_').droppable('destroy');
 		} catch (err) {
-			_Logger.log('exception:', err.toString());
+			_Logger.log(_LogType.INIT, 'exception:', err.toString());
 		}
 
 		$('#pages_').droppable({
@@ -920,7 +919,7 @@ var Structr = {
 
 				e.stopPropagation();
 				$('a#pages_').droppable('disable');
-				_Logger.log('over is off');
+				_Logger.log(_LogType.INIT, 'over is off');
 
 				Structr.activateMenuEntry('pages');
 				window.location.href = '/structr/#pages';
@@ -1096,9 +1095,9 @@ var Structr = {
 			syncables.append('<tr><th>Name</th><th>Size</th><th>Last Modified</th><th>Type</th><th>Recursive</th><th>Actions</th></tr>');
 
 			Command.listSyncables(host, port, username, password, key, type, function(result) {
-				
+
 				result.forEach(function(syncable) {
-					
+
 					syncables.append(
 							'<tr>'
 							+ '<td>' + syncable.name + '</td>'
@@ -1131,7 +1130,7 @@ var Structr = {
 							syncButton.empty();
 							syncButton.append('<img src="icon/arrow_refresh.png" title="Update" alt="Update"> Update');
 						});
-					});					
+					});
 				});
 
 			});
@@ -1446,7 +1445,7 @@ function isVideo(contentType) {
 }
 
 function addExpandedNode(id) {
-	_Logger.log('addExpandedNode', id);
+	_Logger.log(_LogType.INIT, 'addExpandedNode', id);
 
 	if (!id)
 		return;
@@ -1463,7 +1462,7 @@ function addExpandedNode(id) {
 }
 
 function removeExpandedNode(id) {
-	_Logger.log('removeExpandedNode', id);
+	_Logger.log(_LogType.INIT, 'removeExpandedNode', id);
 
 	if (!id)
 		return;
@@ -1473,14 +1472,14 @@ function removeExpandedNode(id) {
 }
 
 function isExpanded(id) {
-	_Logger.log('id, getExpanded()[id]', id, getExpanded()[id]);
+	_Logger.log(_LogType.INIT, 'id, getExpanded()[id]', id, getExpanded()[id]);
 
 	if (!id)
 		return false;
 
 	var isExpanded = getExpanded()[id] === true ? true : false;
 
-	_Logger.log(isExpanded);
+	_Logger.log(_LogType.INIT, isExpanded);
 
 	return isExpanded;
 }
@@ -1560,7 +1559,7 @@ var keyEventTimeout;
 
 $(window).on('beforeunload', function(event) {
 	if (event.target === document) {
-		_Logger.log('########################################### unload #####################################################');
+		_Logger.log(_LogType.INIT, '########################################### unload #####################################################');
 		// Remove dialog data in case of page reload
 		LSWrapper.removeItem(dialogDataKey);
 		Structr.saveLocalStorage();

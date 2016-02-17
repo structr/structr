@@ -283,7 +283,7 @@ var _Crud = {
 			_Crud.resize();
 		});
 		hiddenTabs = JSON.parse(LSWrapper.getItem(crudHiddenTabsKey)) || hiddenTabs;
-		_Logger.log('########## Hidden tabs ##############', hiddenTabs);
+		_Logger.log(_LogType.CRUD, '########## Hidden tabs ##############', hiddenTabs);
 
 	},
 	initTabs: function() {
@@ -782,9 +782,9 @@ var _Crud = {
 
 			},
 			error:function(jqXHR, textStatus, errorThrown) {
-				_Logger.log('appendCellPager', id, el, type, key);
-				_Logger.log('Property: ', _Crud.keys[type][key]);
-				_Logger.log('Error: ', textStatus, errorThrown, jqXHR.responseJSON);
+				_Logger.log(_LogType.CRUD, 'appendCellPager', id, el, type, key);
+				_Logger.log(_LogType.CRUD, 'Property: ', _Crud.keys[type][key]);
+				_Logger.log(_LogType.CRUD, 'Error: ', textStatus, errorThrown, jqXHR.responseJSON);
 			}
 
 		});

@@ -510,54 +510,196 @@ function fastRemoveAllChildren(el) {
 }
 
 /**
+ * static list of all logtypes
+ */
+var _LogType = {
+	CONTENTS:   "CONTENTS",
+	CRUD:       "CRUD",
+	DND:        "DND",
+	ELEMENTS:   "ELEMENTS",
+	ENTITIES:   "ENTITIES",
+	FILES:      "FILES",
+	FILESYSTEM: "FILESYSTEM",
+	GRAPH:      "GRAPH",
+	INIT:       "INIT",
+	MODEL:      "MODEL",
+	PAGER:      "PAGER",
+	PAGES:      "PAGES",
+	SCHEMA:     "SCHEMA",
+	SECURTIY:   "SECURTIY",
+	WEBSOCKET:  "WS",
+	WIDGETS:    "WIDGETS",
+	WS: {
+		ADD:                        "WS.ADD",
+		APPEND_CHILD:               "WS.APPEND_CHILD",
+		APPEND_FILE:                "WS.APPEND_FILE",
+		APPEND_USER:                "WS.APPEND_USER",
+		APPEND_WIDGET:              "WS.APPEND_WIDGET",
+		AUTOCOMPLETE:               "WS.AUTOCOMPLETE",
+		CHILDREN:                   "WS.CHILDREN",
+		CHUNK:                      "WS.CHUNK",
+		CLONE_COMPONENT:            "WS.CLONE_COMPONENT",
+		CLONE_NODE:                 "WS.CLONE_NODE",
+		CLONE_PAGE:                 "WS.CLONE_PAGE",
+		CREATE:                     "WS.CREATE",
+		CREATE_AND_APPEND_DOM_NODE: "WS.CREATE_AND_APPEND_DOM_NODE",
+		CREATE_COMPONENT:           "WS.CREATE_COMPONENT",
+		CREATE_DOM_NODE:            "WS.CREATE_DOM_NODE",
+		CREATE_LOCAL_WIDGET:        "WS.CREATE_LOCAL_WIDGET",
+		CREATE_RELATIONSHIP:        "WS.CREATE_RELATIONSHIP",
+		CREATE_SIMPLE_PAGE:         "WS.CREATE_SIMPLE_PAGE",
+		DELETE:                     "WS.DELETE",
+		DELETE_RELATIONSHIP:        "WS.DELETE_RELATIONSHIP",
+		DELETE_UNATTACHED_NODES:    "WS.DELETE_UNATTACHED_NODES",
+		DOM_NODE_CHILDREN:          "WS.DOM_NODE_CHILDREN",
+		GET:                        "WS.GET",
+		GET_BY_TYPE:                "WS.GET_BY_TYPE",
+		GET_LOCAL_STORAGE:          "WS.GET_LOCAL_STORAGE",
+		GET_PROPERTY:               "WS.GET_PROPERTY",
+		GET_RELATIONSHIP:           "WS.GET_RELATIONSHIP",
+		GET_SCHEMA_INFO:            "WS.GET_SCHEMA_INFO",
+		GET_TYPE_INFO:              "WS.GET_TYPE_INFO",
+		IMPORT:                     "WS.IMPORT",
+		INSERT_BEFORE:              "WS.INSERT_BEFORE",
+		LINK:                       "WS.LINK",
+		LIST:                       "WS.LIST",
+		LIST_ACTIVE_ELEMENTS:       "WS.LIST_ACTIVE_ELEMENTS",
+		LIST_COMPONENTS:            "WS.LIST_COMPONENTS",
+		LIST_SCHEMA_PROPERTIES:     "WS.LIST_SCHEMA_PROPERTIES",
+		LIST_SYNCABLES:             "WS.LIST_SYNCABLES",
+		LIST_UNATTACHED_NODES:      "WS.LIST_UNATTACHED_NODES",
+		PATCH:                      "WS.PATCH",
+		PULL:                       "WS.PULL",
+		PUSH:                       "WS.PUSH",
+		PUSH_SCHEMA:                "WS.PUSH_SCHEMA",
+		QUERY:                      "WS.QUERY",
+		REMOVE:                     "WS.REMOVE",
+		REMOVE_FROM_COLLECTION:     "WS.REMOVE_FROM_COLLECTION",
+		REPLACE_WIDGET:             "WS.REPLACE_WIDGET",
+		SAVE_LOCAL_STORAGE:         "WS.SAVE_LOCAL_STORAGE",
+		SAVE_NODE:                  "WS.SAVE_NODE",
+		SEARCH:                     "WS.SEARCH",
+		SET_PERMISSION:             "WS.SET_PERMISSION",
+		SNAPSHOTS:                  "WS.SNAPSHOTS",
+		STATUS:                     "WS.STATUS",
+		SYNC_MODE:                  "WS.SYNC_MODE",
+		UNARCHIVE:                  "WS.UNARCHIVE",
+		UPDATE:                     "WS.UPDATE",
+		UPLOAD:                     "WS.UPLOAD",
+		WRAP_CONTENT:               "WS.WRAP_CONTENT"
+	}
+};
+/**
  * The Logger object
  * After an implementation of the log-method is chosen we dont need to re-evalute the debug parameter.
  * Also we can change the implementation on-the-fly if we need to.
  */
 var _Logger = {
+	subscriptions: [],
+
 	/**
 	 * Initializes the logger
 	 * The caller would normally use the URL parameter 'debug' as a parameter.
 	 */
-	initLogger: function (debug) {
+	initLogger: function (mode, subscriptions) {
 		footer.hide();
 
-		if (debug === 'true' || debug === '1' || debug === 'page') {
-			_Logger.log = _Logger.htmlLog;
-			footer.show();
-		} else if (debug === '2' || debug === 'console') {
-			_Logger.log = _Logger.consoleLog;
+		switch (mode) {
+			case 'true':
+			case '1':
+			case 'page':
+				_Logger.log = _Logger.htmlLog;
+				footer.show();
+				break;
+
+			case 'console':
+			case '2':
+				_Logger.log = _Logger.consoleLog;
+				break;
+
+			default:
+				_Logger.log = function () {};
+		}
+
+		this.subscriptions = [];
+		if (subscriptions) {
+			if (typeof subscriptions === "string") {
+				this.subscriptions = subscriptions.split(',');
+			} else if (Array.prototype.isPrototypeOf(subscriptions)) {
+				this.subscriptions = subscriptions;
+			} else {
+				console.log("Unknown subscription initialization! " + subscriptions);
+				console.log("Subscribing to every log type.");
+				this.subscriptions = this.getAllLogTypes();
+			}
 		} else {
-			_Logger.log = _Logger.nopLog;
+			this.subscriptions = this.getAllLogTypes();
 		}
 	},
 
 	/**
 	 * The log function (needs to be initialized in order for logging to work)
+	 * default implementation does nothing
 	 */
-	log: function () {
-		/* The default implementation does nothing */
-	},
+	log: function () {},
 
 	/**
-	 * Does nothing
-	 */
-	nopLog: function () {},
-
-	/**
-	 * Logs all arguments to the console
+	 * Sends all arguments to console.log
 	 */
 	consoleLog: function () {
-		console.log(arguments);
+		if (this.subscribed(Array.prototype.slice.call(arguments, 0, 1)[0])) {
+			console.log(Array.prototype.slice.call(arguments));
+		}
 	},
 
 	/**
 	 * Logs all arguments to the log area in the footer
 	 */
 	htmlLog: function () {
-		var msg = Array.prototype.slice.call(arguments).join(' ');
-		var div = $('#log', footer);
-		div.append(msg + '<br>');
-		footer.scrollTop(div.height());
+		if (this.subscribed(Array.prototype.slice.call(arguments, 0, 1)[0])) {
+			var msg = Array.prototype.slice.call(arguments).join(' ');
+			var div = $('#log', footer);
+			div.append(msg + '<br>');
+			footer.scrollTop(div.height());
+		}
+	},
+
+
+	subscribeToLogEvent: function (type) {
+		this.subscriptions.push(type);
+	},
+
+	unsubscribeFromLogEvent: function (type) {
+		var pos = this.subscriptions.indexOf(type);
+		if (pos !== -1) {
+			this.subscriptions.splice(pos, 1);
+		}
+	},
+
+	/**
+	 * decide whether we allow the event to be shown to the user
+	 */
+	subscribed: function (type) {
+		if (type) {
+			return (this.subscriptions.indexOf(type) !== -1 || this.subscriptions.indexOf(type.split('.')[0]) !== -1);
+		} else {
+			console.error("undefined log type!");
+			return false;
+		}
+	},
+
+	getAllLogTypes: function() {
+		var logtypes = [];
+		Object.keys(_LogType).forEach(function(key) {
+			if (typeof _LogType[key] === "string") {
+				logtypes.push(_LogType[key]);
+			} else {
+				Object.keys(_LogType[key]).forEach(function(key2) {
+					logtypes.push(_LogType[key][key2]);
+				});
+			}
+		});
+
+		return logtypes;
 	}
 };

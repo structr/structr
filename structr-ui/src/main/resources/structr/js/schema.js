@@ -1458,7 +1458,7 @@ var _Schema = {
 			return;
 		}
 		var div = element.append('<div class="editor"></div>');
-		_Logger.log(div);
+		_Logger.log(_LogType.SCHEMA, div);
 		var contentBox = $('.editor', element);
 		contentType = contentType ? contentType : entity.contentType;
 		var text1, text2;
@@ -2442,9 +2442,9 @@ var _Schema = {
 			table.empty();
 
 			Command.snapshots("list", "", null, function(result) {
-				
+
 				result.forEach(function(data) {
-					
+
 					var snapshots = data.snapshots;
 
 					snapshots.forEach(function(snapshot, i) {
@@ -2489,7 +2489,7 @@ var _Schema = {
 							Command.snapshots("delete", snapshot, null, refresh);
 						});
 					});
-					
+
 				});
 
 			});
