@@ -683,8 +683,8 @@ var _Logger = {
 		if (type) {
 			return (this.subscriptions.indexOf(type) !== -1 || this.subscriptions.indexOf(type.split('.')[0]) !== -1);
 		} else {
-			console.error("undefined log type!");
-			return false;
+			console.error("undefined log type - this should not happen!");
+			return true;
 		}
 	},
 
