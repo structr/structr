@@ -1691,7 +1691,7 @@ var _Crud = {
 				_Crud.displaySearch(type, id, key, simpleType, dialogText);
 			});
 
-			if (_Crud.keys[type][key] && _Crud.keys[type][key].className.indexOf('CollectionIdProperty') === -1) {
+			if (_Crud.keys[type][key] && _Crud.keys[type][key].className.indexOf('CollectionIdProperty') === -1 && _Crud.keys[type][key].className.indexOf("CollectionNotionProperty") === -1) {
 
 				_Crud.appendCellPager(cell, id, type, key);
 
