@@ -255,6 +255,7 @@ var Structr = {
 		if (reconn) {
 			window.clearInterval(reconn);
 			reconn = undefined;
+			user = undefined;
 		}
 	},
 	init: function() {

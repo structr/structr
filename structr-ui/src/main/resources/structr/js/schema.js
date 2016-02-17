@@ -2551,7 +2551,8 @@ var _Schema = {
 		var toolsTable = $('#admin-tools-table');
 		toolsTable.append('<tr><td><button id="rebuild-index"><img src="icon/arrow_refresh.png"> Rebuild Index</button></td><td><label for"rebuild-index">Rebuild database index for all nodes and relationships</label></td></tr>');
 		toolsTable.append('<tr><td><button id="clear-schema"><img src="icon/delete.png"> Clear Schema</button></td><td><label for"clear-schema">Delete all schema nodes and relationships of dynamic schema</label></td></tr>');
-		toolsTable.append('<tr><td><select id="node-type-selector"><option value="">-- Select Node Type --</option></select><!--select id="rel-type-selector"><option>-- Select Relationship Type --</option></select--><button id="add-uuids">Add UUIDs</button></td><td><label for"setUuid">Add UUIDs to all nodes of the selected type</label></td></tr>');
+		toolsTable.append('<tr><td><select id="node-type-selector"><option selected value="">-- Select Node Type --</option><option disabled>──────────</option><option value="allNodes">All Node Types</option><option disabled>──────────</option></select><button id="add-node-uuids">Add UUIDs</button></td><td><label for"setUuid">Add UUIDs to all nodes of the selected type</label></td></tr>');
+		toolsTable.append('<tr><td><select id="rel-type-selector"><option selected value="">-- Select Relationship Type --</option><option disabled>──────────</option><option value="allRels">All Relationship Types</option><option disabled>──────────</option></select><button id="add-rel-uuids">Add UUIDs</button></td><td><label for"setUuid">Add UUIDs to all relationships of the selected type</label></td></tr>');
 
 		toolsTable.append('<tr><td><button id="save-layout"><img src="icon/database.png"> Save Schema Layout</button></td><td><label for"save-layout">Save current positions to backend.</label></td></tr>');
 		toolsTable.append('<tr><td><button id="export-layout">Export Schema Layout</button></td><td><label for"export-layout">Export current schema positions as a JSON string</label></td></tr>');
@@ -2641,8 +2642,6 @@ var _Schema = {
 
 		});
 
-		var nodeTypeSelector = $('#node-type-selector');
-
 		$('#rebuild-index').on('click', function(e) {
 			var btn = $(this);
 			var text = btn.text();
@@ -2710,24 +2709,26 @@ var _Schema = {
 					});
 		});
 
-		Command.list('SchemaNode', true, 100, 1, 'name', 'asc', 'id,name', function(nodes) {
+		var nodeTypeSelector = $('#node-type-selector');
+		var relTypeSelector = $('#rel-type-selector');
+
+		Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name', function(nodes) {
 			nodes.forEach(function(node) {
-				$('#node-type-selector').append('<option>' + node.name + '</option>');
+				nodeTypeSelector.append('<option>' + node.name + '</option>');
 			});
 		});
 
-		Command.list('SchemaRelationship', true, 100, 1, 'relationshipType', 'asc', 'id,name', function(rels) {
+		Command.list('SchemaRelationshipNode', true, 1000, 1, 'relationshipType', 'asc', 'id,relationshipType', function(rels) {
 			rels.forEach(function(rel) {
-				$('#rel-type-selector').append('<option>' + rel.relationshipType + '</option>');
+				relTypeSelector.append('<option>' + rel.relationshipType + '</option>');
 			});
 		});
 
-		$('#add-uuids').on('click', function(e) {
+		$('#add-node-uuids').on('click', function(e) {
 			var btn = $(this);
 			var text = btn.text();
 			e.preventDefault();
 			var type = nodeTypeSelector.val();
-			var relType = $('#rel-type-selector').val();
 			if (!type) {
 				nodeTypeSelector.addClass('notify');
 				nodeTypeSelector.on('change', function() {
@@ -2735,16 +2736,60 @@ var _Schema = {
 				});
 				return;
 			}
+			var data;
+			if (type === 'allNodes') {
+				data = JSON.stringify({'allNodes': true});
+			} else {
+				data = JSON.stringify({'type': type});
+			}
 			btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="img/al.gif">');
 			$.ajax({
 				url: rootUrl + 'maintenance/setUuid',
 				type: 'POST',
-				data: JSON.stringify({'type': type, 'relType': relType}),
+				data: data,
 				contentType: 'application/json',
 				statusCode: {
 					200: function() {
-						var btn = $('#add-uuids');
+						var btn = $('#add-node-uuids');
 						nodeTypeSelector.removeClass('notify');
+						btn.removeClass('disabled').attr('disabled', null);
+						btn.html(text + ' <img src="icon/tick.png">');
+						window.setTimeout(function() {
+							$('img', btn).fadeOut();
+						}, 1000);
+					}
+				}
+			});
+		});
+
+		$('#add-rel-uuids').on('click', function(e) {
+			var btn = $(this);
+			var text = btn.text();
+			e.preventDefault();
+			var relType = relTypeSelector.val();
+			if (!relType) {
+				relTypeSelector.addClass('notify');
+				relTypeSelector.on('change', function() {
+					relTypeSelector.removeClass('notify');
+				});
+				return;
+			}
+			var data;
+			if (relType === 'allRels') {
+				data = JSON.stringify({'allRels': true});
+			} else {
+				data = JSON.stringify({'relType': relType});
+			}
+			btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="img/al.gif">');
+			$.ajax({
+				url: rootUrl + 'maintenance/setUuid',
+				type: 'POST',
+				data: data,
+				contentType: 'application/json',
+				statusCode: {
+					200: function() {
+						var btn = $('#add-rel-uuids');
+						relTypeSelector.removeClass('notify');
 						btn.removeClass('disabled').attr('disabled', null);
 						btn.html(text + ' <img src="icon/tick.png">');
 						window.setTimeout(function() {
