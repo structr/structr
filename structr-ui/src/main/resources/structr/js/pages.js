@@ -534,7 +534,7 @@ var _Pages = {
 				_Logger.log(_LogType.PAGES, 'stored version:', s, 'current version:', v);
 				if (v > s) {
 					pageVersion[id] = v;
-					_Pages.loadIframe(id);console.log('really reload iframe', s,v)
+					_Pages.loadIframe(id);
 				}
 			});
 		}
