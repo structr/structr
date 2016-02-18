@@ -1127,13 +1127,8 @@ var _Schema = {
 
 				$.each(data.result, function(i, res) {
 
-					var source = nodes[res.sourceId];
-					var target = nodes[res.targetId];
-
-					_Schema.getPropertyName(source.name, res.relationshipType, target.name, true, function(key) {
-						_Schema.appendRelatedProperty($('.related-attrs', el), res, res.targetJsonName ? res.targetJsonName : key, true);
-						instance.repaintEverything();
-					});
+					_Schema.appendRelatedProperty($('.related-attrs', el), res, res.targetJsonName ? res.targetJsonName : res.oldTargetJsonName, true);
+					instance.repaintEverything();
 
 				});
 
@@ -1149,13 +1144,8 @@ var _Schema = {
 
 				$.each(data.result, function(i, res) {
 
-					var source = nodes[res.sourceId];
-					var target = nodes[res.targetId];
-
-					_Schema.getPropertyName(target.name, res.relationshipType, source.name, false, function(key) {
-						_Schema.appendRelatedProperty($('.related-attrs', el), res, res.sourceJsonName ? res.sourceJsonName : key, false);
-						instance.repaintEverything();
-					});
+					_Schema.appendRelatedProperty($('.related-attrs', el), res, res.sourceJsonName ? res.sourceJsonName : res.oldSourceJsonName, false);
+					instance.repaintEverything();
 
 				});
 
@@ -2461,7 +2451,7 @@ var _Schema = {
 						});
 						$('#add-' + i).on('click', function() {
 
-							Command.snapshots("add", snapshot, null, function(data) {  console.log(data)
+							Command.snapshots("add", snapshot, null, function(data) {
 
 								var status = data.status;
 
