@@ -288,10 +288,20 @@ public class SchemaNode extends AbstractSchemaNode {
 		if (multiplicity == null) {
 
 			try {
-				// check if property is defined in parent class
-				final SchemaNode parentSchemaNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(StringUtils.substringAfterLast(getProperty(SchemaNode.extendsClass), ".")).getFirst();
+				final String parentClass = getProperty(SchemaNode.extendsClass);
+				
+				if (parentClass != null) {
+				
+					// check if property is defined in parent class
+					final SchemaNode parentSchemaNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(StringUtils.substringAfterLast(parentClass, ".")).getFirst();
 
-				multiplicity = getMultiplicity(parentSchemaNode, propertyNameToCheck);
+					if (parentSchemaNode != null) {
+					
+						multiplicity = getMultiplicity(parentSchemaNode, propertyNameToCheck);
+						
+					}
+				
+				}
 
 
 			} catch (FrameworkException ex) {
@@ -355,11 +365,22 @@ public class SchemaNode extends AbstractSchemaNode {
 		String relatedType = getRelatedType(this, propertyNameToCheck);
 		
 		if (relatedType == null) {
-			try {
-				// check if property is defined in parent class
-				final SchemaNode parentSchemaNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(StringUtils.substringAfterLast(getProperty(SchemaNode.extendsClass), ".")).getFirst();
 
-				relatedType = getRelatedType(parentSchemaNode, propertyNameToCheck);
+			try {
+				
+				final String parentClass = getProperty(SchemaNode.extendsClass);
+				
+				if (parentClass != null) {
+
+					// check if property is defined in parent class
+					final SchemaNode parentSchemaNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(StringUtils.substringAfterLast(parentClass, ".")).getFirst();
+
+					if (parentSchemaNode != null) {
+					
+						relatedType = getRelatedType(parentSchemaNode, propertyNameToCheck);
+						
+					}
+				}
 
 			} catch (FrameworkException ex) {
 				logger.log(Level.WARNING, "Can't find schema node for parent class!", ex);
