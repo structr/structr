@@ -260,6 +260,10 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 					newProperty = new StructrThumbnailProperty(parent, name);
 					break;
 
+				case "count":
+					newProperty = new StructrCountProperty(parent, name);
+					break;
+
 				case "script":
 					newProperty = new StructrScriptProperty(parent, name);
 					break;
@@ -398,10 +402,8 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 				return bool;
 
 			case Count:
-				final StructrIntegerProperty count = new StructrIntegerProperty(parent, name);
+				final StructrCountProperty count = new StructrCountProperty(parent, name);
 				count.deserialize(property);
-
-				//count.put(JsonSchema.KEY_SIZE_OF, "#/definitions/" + name + "/properties/" + _format);
 				return count;
 
 			case Integer:
