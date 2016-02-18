@@ -753,27 +753,19 @@ var _Schema = {
 		var contentDiv = $('#' + id + '_content');
 
 		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Local Attributes', targetView === 'local', function (c) {
-			Command.get(entity.id, function(e) {
-				_Schema.appendLocalProperties(c, e);
-			});
+			_Schema.appendLocalProperties(c, entity);
 		});
 
 		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', targetView === 'views', function (c) {
-			Command.get(entity.id, function(e) {
-				_Schema.appendViews(c, 'schema_nodes', e);
-			});
+			_Schema.appendViews(c, 'schema_nodes', entity);
 		});
 
 		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', targetView === 'methods', function (c) {
-			Command.get(entity.id, function(e) {
-				_Schema.appendMethods(c, e);
-			});
+			_Schema.appendMethods(c, entity);
 		});
 
 		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Remote Attributes', targetView === 'remote', function (c) {
-			Command.get(entity.id, function(e) {
-				_Schema.appendRemoteProperties(c, e);
-			});
+			_Schema.appendRemoteProperties(c, entity);
 		});
 
 		var n = $('.schema-details', contentDiv);
