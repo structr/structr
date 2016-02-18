@@ -228,7 +228,7 @@ var Structr = {
 		sessionId = Structr.getSessionId();
 
 		if (sessionId) {
-			sendObj({command: 'PING', sessionId: sessionId}, callback);
+			Command.ping(callback);
 		}
 	},
 	refreshUi: function() {
@@ -313,30 +313,12 @@ var Structr = {
 	},
 	doLogin: function(username, password) {
 		$.ajax('/structr/rest/_env').always(function() {
-			_Logger.log(_LogType.INIT, 'doLogin ' + username + ' with ' + password);
-			var obj = {};
-			obj.command = 'LOGIN';
-			obj.sessionId = Structr.getSessionId();
-			var data = {};
-			data.username = username;
-			data.password = password;
-			obj.data = data;
-			if (sendObj(obj)) {
-				return true;
-			}
-			return false;
+			return Command.login(username, password);
 		});
 	},
 	doLogout: function(text) {
 		Structr.saveLocalStorage();
-		_Logger.log(_LogType.INIT, 'doLogout ' + user);
-		var obj = {};
-		obj.command = 'LOGOUT';
-		obj.sessionId = Structr.getSessionId();
-		var data = {};
-		data.username = user;
-		obj.data = data;
-		if (sendObj(obj)) {
+		if (Command.logout(user)) {
 			$.cookie('JSESSIONID', null);
 			sessionId.length = 0;
 			Structr.clearMain();
@@ -420,9 +402,11 @@ var Structr = {
 
 	},
 	saveLocalStorage: function() {
+		_Logger.log(_LogType.INIT, "Saving localstorage");
 		Command.saveLocalStorage();
 	},
 	restoreLocalStorage: function(callback) {
+		_Logger.log(_LogType.INIT, "Restoring localstorage");
 		Command.getLocalStorage(callback);
 	},
 	restoreDialog: function(dialogData) {

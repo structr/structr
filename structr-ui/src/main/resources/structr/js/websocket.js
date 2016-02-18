@@ -492,7 +492,7 @@ function sendObj(obj, callback) {
 
 function send(text) {
 
-	_Logger.log(_LogType.WEBSOCKET, ws.readyState);
+	_Logger.log(_LogType.WEBSOCKET, 'Sending text: "' + text + '" - ws.readyState=' + ws.readyState);
 
 	var obj = $.parseJSON(text);
 

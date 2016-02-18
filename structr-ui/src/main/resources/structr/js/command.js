@@ -24,6 +24,43 @@
  */
 var Command = {
 	/**
+	 * Send the LOGIN command to the server.
+	 */
+	login: function(username, password) {
+		var obj = {};
+		obj.command = 'LOGIN';
+		obj.sessionId = Structr.getSessionId();
+		var data = {};
+		data.username = username;
+		data.password = password;
+		obj.data = data;
+		_Logger.log(_LogType.WS[obj.command], 'login()' + username + ' with ' + password);
+		return sendObj(obj);
+	},
+	/**
+	 * Send the LOGOUT command to the server.
+	 */
+	logout: function(username) {
+		var obj = {};
+		obj.command = 'LOGOUT';
+		obj.sessionId = Structr.getSessionId();
+		var data = {};
+		data.username = username;
+		obj.data = data;
+		_Logger.log(_LogType.WS[obj.command], 'logout() ' + username);
+		return sendObj(obj);
+	},
+	/**
+	 * Send the PING command to the server.
+	 */
+	ping: function(callback) {
+		var obj = {};
+		obj.command = 'PING';
+		obj.sessionId = Structr.getSessionId();
+		_Logger.log(_LogType.WS[obj.command], 'ping()');
+		return sendObj(obj, callback);
+	},
+	/**
 	 * Send a single GET command to the server.
 	 *
 	 * The server will return a list containing a single node with all properties
