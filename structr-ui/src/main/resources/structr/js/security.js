@@ -337,10 +337,13 @@ var _Security = {
 	},
 	appendUserToUserList: function (user) {
 		users.append(_Security.getUserElementMarkup(user));
+	
+		var name = _Security.getUserName(user);
 		var div = Structr.node(user.id);
 		if (!div || !div.length) return;
 
-		var newDelIcon = '<img title="Delete user \'' + user.name + '\'" alt="Delete user \'' + user.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+
+		var newDelIcon = '<img title="Delete user \'' + name + '\'" alt="Delete user \'' + name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
 		var delIcon = $('.delete_icon', div);
 
 		if (delIcon && delIcon.length) {
@@ -428,9 +431,10 @@ var _Security = {
 		return div;
 	},
 	getUserElementMarkup:function (user) {
+		var name = _Security.getUserName(user);
 		return '<div id="id_' + user.id + '" class="node user">'
 			+ '<img class="typeIcon" src="icon/user.png">'
-			+ ' <b title="' + user.name + '" class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'
+			+ ' <b title="' + name + '" class="name_">' + name + '</b> <span class="id">' + user.id + '</span>'
 			+ '</div>';
 	},
 	resize: function() {
@@ -465,5 +469,8 @@ var _Security = {
 		$('.searchResults').css({
 			height: h - 103 + 'px'
 		});
+	},
+	getUserName: function(user) {
+		return name = user.name ? user.name : user.eMail ? '[' + user.eMail + ']' : '[unnamed]';
 	}
 };
