@@ -39,7 +39,7 @@ public class StructrDateProperty extends StructrStringProperty implements JsonDa
 
 		super(parent, name);
 
-		setFormat("date-time");
+		setFormat(JsonSchema.FORMAT_DATE_TIME);
 	}
 
 	// ----- public methods -----
