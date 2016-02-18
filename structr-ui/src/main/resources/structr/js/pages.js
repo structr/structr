@@ -272,12 +272,12 @@ var _Pages = {
 			$('#' + activeTabRight).addClass('active').click();
 		}
 
-		// activate first page when local storage is empty
+		// activate first page if local storage is empty
 		if (!LSWrapper.getItem(activeTabKey)) {
 			window.setTimeout(function(e) {  _Pages.activateTab($('#previewTabs .page').first()); }, 1000);
 		}
 
-		//window.setTimeout('_Pages.resize(0,0)', 100);
+		_Pages.resize();
 
 		win.off('resize');
 		win.resize(function() {

@@ -80,58 +80,10 @@ $(function() {
 		Structr.doLogout();
 	});
 
-	$('#dashboard_').on('click', function(e) {
-		Structr.activateModule(e, 'dashboard');
-	});
-
-	$('#graph_').on('click', function(e) {
-		Structr.activateModule(e, 'graph');
-	});
-
-	$('#pages_').on('click', function(e) {
-		Structr.activateModule(e, 'pages');
-		_Pages.resize();
-	});
-
-	$('#widgets_').on('click', function(e) {
-		Structr.activateModule(e, 'widgets');
-		Structr.resize();
-	});
-
-	$('#types_').on('click', function(e) {
-		Structr.activateModule(e, 'types');
-	});
-
-	$('#schema_').on('click', function(e) {
-		Structr.activateModule(e, 'schema');
-	});
-
-	$('#elements_').on('click', function(e) {
-		Structr.activateModule(e, 'elements');
-	});
-
-	$('#contents_').on('click', function(e) {
-		Structr.activateModule(e, 'contents');
-	});
-
-	$('#crud_').on('click', function(e) {
-		Structr.activateModule(e, 'crud');
-	});
-
-	$('#files_').on('click', function(e) {
-		Structr.activateModule(e, 'files');
-	});
-
-	$('#filesystem_').on('click', function(e) {
-		Structr.activateModule(e, 'filesystem');
-	});
-
-	$('#images_').on('click', function(e) {
-		Structr.activateModule(e, 'images');
-	});
-
-	$('#security_').on('click', function(e) {
-		Structr.activateModule(e, 'security');
+	$('[data-activate-module]').on('click', function(e) {
+		var module = $(this).data('activateModule');
+		_Logger.log(_LogType.INIT, 'Activating module ' + module);
+		Structr.activateModule(e, module);
 	});
 
 	Structr.connect();
