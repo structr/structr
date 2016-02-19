@@ -915,7 +915,7 @@ StructrElement.prototype.exists = function() {
 };
 
 StructrElement.prototype.isActiveNode = function() {
-	return this.hideOnIndex || this.hideOnDetail || this.hideConditions || this.showConditions || this.dataKey;
+	return this.hideOnIndex || this.hideOnDetail || this.hideConditions || this.showConditions || this.dataKey || this["data-structr-action"] || this["data-structr-attributes"] || this["data-structr-attr"] || this["data-structr-name"] || this["data-structr-hide"] || this["data-structr-raw-value"];
 };
 
 /**************************************
