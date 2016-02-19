@@ -470,16 +470,6 @@ var _Elements = {
 			e.stopPropagation();
 		});
 
-		// Prevent html id from being draggable
-		$('._html_id_', div).on('mousedown', function(e) {
-			e.stopPropagation();
-		});
-
-		// Prevent html class from being draggable
-		$('._html_class_', div).on('mousedown', function(e) {
-			e.stopPropagation();
-		});
-
 		_Entities.appendAccessControlIcon(div, entity);
 		div.append('<img title="Delete ' + entity.tag + ' element ' + entity.id + '" alt="Delete ' + entity.tag + ' element ' + entity.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
 		$('.delete_icon', div).on('click', function(e) {

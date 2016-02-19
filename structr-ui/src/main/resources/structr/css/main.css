@@ -2642,3 +2642,7 @@ i.fa.ps {
 .breadcrumb-entry {
 	cursor: pointer;
 }
+
+.class-id-attrs {
+	pointer-events: none;
+}
