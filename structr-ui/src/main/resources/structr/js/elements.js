@@ -447,7 +447,7 @@ var _Elements = {
 			+ _Elements.classIdString(entity._html_id, entity._html_class)
 			+ '</div>');
 
-		div.append('<img title="Clone ' + entity.tag + ' element ' + entity.id + '\" alt="Clone ' + entity.tag + ' element ' + entity.id + '" class="clone_icon button" src="icon/page_copy.png">');
+		div.append('<img title="Clone ' + displayName + ' element ' + entity.id + '\" alt="Clone ' + entity.tag + ' element ' + entity.id + '" class="clone_icon button" src="icon/page_copy.png">');
 		$('.clone_icon', div).on('click', function(e) {
 			e.stopPropagation();
 			Command.cloneNode(entity.id, entity.parent.id, true);
@@ -470,8 +470,13 @@ var _Elements = {
 			e.stopPropagation();
 		});
 
+		// Prevent icons from being draggable
+		$('img', div).on('mousedown', function(e) {
+			e.stopPropagation();
+		});
+
 		_Entities.appendAccessControlIcon(div, entity);
-		div.append('<img title="Delete ' + entity.tag + ' element ' + entity.id + '" alt="Delete ' + entity.tag + ' element ' + entity.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+		div.append('<img title="Delete ' + displayName + ' element ' + entity.id + '" alt="Delete ' + entity.tag + ' element ' + entity.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
 		$('.delete_icon', div).on('click', function(e) {
 			e.stopPropagation();
 			_Entities.deleteNode(this, entity, function() {

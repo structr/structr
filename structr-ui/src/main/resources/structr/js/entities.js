@@ -1060,9 +1060,11 @@ var _Entities = {
 			var typeIcon = $(el.children('.typeIcon').first());
 			var icon = expand ? Structr.expanded_icon : Structr.expand_icon;
 
+			var displayName = getElementDisplayName(entity);
+
 			typeIcon.css({
 				paddingRight: 0 + 'px'
-			}).after('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + icon + '">');
+			}).after('<img title="Expand ' + displayName + '" alt="Expand ' + displayName + '" class="expand_icon" src="' + icon + '">');
 
 			$(el).on('click', function(e) {
 				e.stopPropagation();
@@ -1223,8 +1225,13 @@ var _Entities = {
 			return;
 		} else {
 			_Logger.log(_LogType.ENTITIES, 'ensureExpanded: fetch children', el);
+			
 			Command.children(id, callback);
-			el.children('.expand_icon').first().prop('src', 'icon/tree_arrow_down.png');
+			var displayName = getElementDisplayName(Structr.entity(id));
+			
+			el.children('.expand_icon').first().prop('src', 'icon/tree_arrow_down.png')
+				.prop('alt', 'Collapse ' + displayName)
+				.prop('title', 'Collapse ' + displayName);
 		}
 	},
 	expandAll: function(ids) {
@@ -1258,6 +1265,7 @@ var _Entities = {
 		_Logger.log(_LogType.ENTITIES, 'toggleElement: ', el, id);
 
 		var b = el.children('.expand_icon').first();
+		var displayName = getElementDisplayName(Structr.entity(id));
 
 		if (_Entities.isExpanded(element)) {
 
@@ -1265,7 +1273,9 @@ var _Entities = {
 				$(child).remove();
 			});
 
-			b.prop('src', 'icon/tree_arrow_right.png');
+			b.prop('src', 'icon/tree_arrow_right.png')
+				.prop('alt', 'Expand ' + displayName)
+				.prop('title', 'Expand ' + displayName);
 
 			removeExpandedNode(id);
 		} else {
@@ -1275,7 +1285,10 @@ var _Entities = {
 				Command.children(id);
 
 			}
-			b.prop('src', 'icon/tree_arrow_down.png');
+			b.prop('src', 'icon/tree_arrow_down.png')
+				.prop('alt', 'Collapse ' + displayName)
+				.prop('title', 'Collapse ' + displayName);
+;
 
 			addExpandedNode(id);
 		}
@@ -1423,12 +1436,14 @@ var _Entities = {
 				var typeIcon = $(div.children('.typeIcon').first());
 				var padding = 0;
 
+				var displayName = getElementDisplayName(entity);
+
 				if (!expand) {
 					padding = 11;
 				} else {
 					typeIcon.css({
 						paddingRight: padding + 'px'
-					}).after('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + Structr.expanded_icon + '">');
+					}).after('<img title="Expand ' + displayName + '" alt="Expand ' + displayName + '" class="expand_icon" src="' + Structr.expanded_icon + '">');
 				}
 			}
 		}

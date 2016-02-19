@@ -134,9 +134,12 @@ var _Dragndrop = {
 			iframeFix: true,
 			//sortable: '.node',
 			appendTo: '#main',
-			helper: function (event, $el) {
-				$el.css({height: "17px"});
-				var hlp = $el.clone();
+			forceHelperSize: true,
+			forcePlaceholderSize: true,
+			distance: 5,
+			helper: function (event, helperEl) {
+				helperEl.css({height: '17px'});
+				var hlp = helperEl.clone();
 				hlp.find('.node').remove();
 				hlp.find('.expand_icon').attr('src', 'icon/tree_arrow_right.png');
 				return hlp;
@@ -184,7 +187,7 @@ var _Dragndrop = {
 			}
 		};
 
-		el.sortable(sortableOptions);
+		el.sortable(sortableOptions).disableSelection();
 
 	},
 	/**
