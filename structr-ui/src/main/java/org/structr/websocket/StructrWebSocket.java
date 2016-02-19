@@ -39,6 +39,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.dynamic.File;
 import org.structr.rest.auth.AuthHelper;
+import org.structr.rest.auth.SessionHelper;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.User;
 import org.structr.websocket.command.AbstractCommand;
@@ -390,7 +391,19 @@ public class StructrWebSocket implements WebSocketListener {
 
 		if (user != null) {
 
-			this.setAuthenticated(sessionId, user);
+			try {
+				final boolean sessionValid = ! SessionHelper.isSessionTimeOut(sessionId);
+
+				if (sessionValid) {
+					this.setAuthenticated(sessionId, user);
+				} else {
+					logger.log(Level.WARNING, "Session timed out - ignoring request");
+				}
+
+			} catch (FrameworkException ex) {
+				logger.log(Level.WARNING, "FXE", ex);
+			}
+
 		}
 
 	}
