@@ -447,11 +447,14 @@ var _Elements = {
 			+ _Elements.classIdString(entity._html_id, entity._html_class)
 			+ '</div>');
 
-		div.append('<img title="Clone ' + displayName + ' element ' + entity.id + '\" alt="Clone ' + entity.tag + ' element ' + entity.id + '" class="clone_icon button" src="icon/page_copy.png">');
-		$('.clone_icon', div).on('click', function(e) {
-			e.stopPropagation();
-			Command.cloneNode(entity.id, entity.parent.id, true);
-		});
+		if (entity.parent) {
+			div.append('<img title="Clone ' + displayName + ' element ' + entity.id + '\" alt="Clone ' + entity.tag + ' element ' + entity.id + '" class="clone_icon button" src="icon/page_copy.png">');
+			$('.clone_icon', div).on('click', function(e) {
+				e.stopPropagation();
+				_Logger.log(_LogType.ELEMENTS, 'Cloning node (div, parent)', entity, entity.parent);
+				Command.cloneNode(entity.id, entity.parent.id, true);
+			});
+		}
 
 		_Entities.appendExpandIcon(div, entity, hasChildren);
 
