@@ -41,10 +41,9 @@ import org.structr.rest.service.HttpService;
 public class SessionHelper {
 
 	public static final String STANDARD_ERROR_MSG = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
-	private static final Logger logger             = Logger.getLogger(SessionHelper.class.getName());
-	
-	public static final String SESSION_IS_NEW = "SESSION_IS_NEW";
+	private static final Logger logger = Logger.getLogger(SessionHelper.class.getName());
 
+	public static final String SESSION_IS_NEW = "SESSION_IS_NEW";
 
 	public static boolean isSessionTimedOut(final HttpSession session) {
 
@@ -60,7 +59,7 @@ public class SessionHelper {
 
 			if (now > lastAccessed + Services.getGlobalSessionTimeout() * 1000) {
 
-				logger.log(Level.INFO, "Session {0} timed out, last accessed at {1}", new Object[]{ session, lastAccessed});
+				logger.log(Level.INFO, "Session {0} timed out, last accessed at {1}", new Object[]{session, lastAccessed});
 				return true;
 			}
 
@@ -70,6 +69,31 @@ public class SessionHelper {
 
 			return true;
 		}
+
+	}
+
+	public static boolean isSessionTimeOut (final String sessionId) throws FrameworkException {
+
+		final HashSessionManager sessionManager = Services.getInstance().getService(HttpService.class).getHashSessionManager();
+
+		HttpSession session = sessionManager.getSession(sessionId);
+
+		final boolean sessionTimedOut = SessionHelper.isSessionTimedOut(session);
+
+		if (sessionTimedOut) {
+
+			final Principal user = AuthHelper.getPrincipalForSessionId(sessionId);
+
+			logger.log(Level.FINE, "Invalid session: {0}, last accessed {1}, authenticated with user {2}", new Object[]{session, (session != null ? session.getLastAccessedTime() : ""), user});
+
+			if (user != null) {
+
+				AuthHelper.killSession(session, user);
+			}
+
+		}
+
+		return sessionTimedOut;
 
 	}
 
@@ -105,7 +129,7 @@ public class SessionHelper {
 	public static void clearSession(final String sessionId) {
 
 		final App app = StructrApp.getInstance();
-		final Query<Principal> query = app.nodeQuery(Principal.class).and(Principal.sessionIds, new String[]{ sessionId });
+		final Query<Principal> query = app.nodeQuery(Principal.class).and(Principal.sessionIds, new String[]{sessionId});
 
 		try {
 			List<Principal> principals = query.getAsList();
@@ -192,7 +216,6 @@ public class SessionHelper {
 
 	}
 
-
 	public static Principal checkSessionAuthentication(final HttpServletRequest request) throws FrameworkException {
 
 		String requestedSessionId = request.getRequestedSessionId();
@@ -206,7 +229,7 @@ public class SessionHelper {
 
 			// Store info in request that session is new => saves us a lookup later
 			request.setAttribute(SESSION_IS_NEW, true);
-			
+
 			// we just created a totally new session, there can't
 			// be a user with this session ID, so don't search.
 			return null;
@@ -247,16 +270,15 @@ public class SessionHelper {
 		if (sessionValid) {
 
 			final Principal user = AuthHelper.getPrincipalForSessionId(session.getId());
-			logger.log(Level.FINE, "Valid session found: {0}, last accessed {1}, authenticated with user {2}", new Object[] { session, session.getLastAccessedTime(), user });
+			logger.log(Level.FINE, "Valid session found: {0}, last accessed {1}, authenticated with user {2}", new Object[]{session, session.getLastAccessedTime(), user});
 
 			return user;
-
 
 		} else {
 
 			final Principal user = AuthHelper.getPrincipalForSessionId(requestedSessionId);
 
-			logger.log(Level.FINE, "Invalid session: {0}, last accessed {1}, authenticated with user {2}", new Object[] { session, (session != null ? session.getLastAccessedTime() : ""), user });
+			logger.log(Level.FINE, "Invalid session: {0}, last accessed {1}, authenticated with user {2}", new Object[]{session, (session != null ? session.getLastAccessedTime() : ""), user});
 
 			if (user != null) {
 
@@ -266,7 +288,6 @@ public class SessionHelper {
 			try { request.logout(); request.changeSessionId(); } catch (Throwable t) {}
 
 		}
-
 
 		return null;
 

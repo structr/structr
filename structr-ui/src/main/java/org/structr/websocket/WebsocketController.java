@@ -299,6 +299,14 @@ public class WebsocketController implements StructrTransactionListener {
 				}
 			}
 
+			if (modificationEvent.isDeleted()) {
+				
+				final WebSocketMessage message = createMessage("DELETE");
+				message.setId(modificationEvent.getRemovedProperties().get(GraphObject.id));
+				
+				return message;
+			}
+			
 			if (modificationEvent.isModified()) {
 
 				final WebSocketMessage message = createMessage("UPDATE");
@@ -307,22 +315,19 @@ public class WebsocketController implements StructrTransactionListener {
 				message.getRemovedProperties().addAll(modificationEvent.getRemovedProperties().keySet());
 				message.setNodeData(modificationEvent.getData(securityContext));
 
-				if (!modificationEvent.isDeleted()) {
-					message.setGraphObject(relationship);
-					message.setId(relationship.getUuid());
+				message.setGraphObject(relationship);
+				message.setId(relationship.getUuid());
 
-					final PropertyMap relProperties = relationship.getProperties();
-					final NodeInterface startNode = relationship.getSourceNode();
-					final NodeInterface endNode = relationship.getTargetNode();
+				final PropertyMap relProperties = relationship.getProperties();
+				final NodeInterface startNode = relationship.getSourceNode();
+				final NodeInterface endNode = relationship.getTargetNode();
 
-					relProperties.put(new StringProperty("startNodeId"), startNode.getUuid());
-					relProperties.put(new StringProperty("endNodeId"), endNode.getUuid());
+				relProperties.put(new StringProperty("startNodeId"), startNode.getUuid());
+				relProperties.put(new StringProperty("endNodeId"), endNode.getUuid());
 
-					final Map<String, Object> properties = PropertyMap.javaTypeToInputType(securityContext, relationship.getClass(), relProperties);
+				final Map<String, Object> properties = PropertyMap.javaTypeToInputType(securityContext, relationship.getClass(), relProperties);
 
-					message.setRelData(properties);
-				}
-
+				message.setRelData(properties);
 
 				return message;
 			}

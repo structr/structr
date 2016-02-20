@@ -27,7 +27,7 @@ var _Entities = {
 	readOnlyAttrs: ['lastModifiedDate', 'createdDate', 'createdBy', 'id', 'checksum', 'size', 'version', 'relativeFilePath'],
 	changeBooleanAttribute: function(attrElement, value, activeLabel, inactiveLabel) {
 
-		_Logger.log('Change boolean attribute ', attrElement, ' to ', value);
+		_Logger.log(_LogType.ENTITIES, 'Change boolean attribute ', attrElement, ' to ', value);
 
 		if (value === true) {
 			attrElement.removeClass('inactive').addClass('active').prop('checked', true).html('<img src="icon/tick.png">' + (activeLabel ? ' ' + activeLabel : ''));
@@ -39,7 +39,7 @@ var _Entities = {
 	reloadChildren: function(id) {
 		var el = Structr.node(id);
 
-		_Logger.log('reloadChildren', el);
+		_Logger.log(_LogType.ENTITIES, 'reloadChildren', el);
 
 		$(el).children('.node').remove();
 		_Entities.resetMouseOverState(el);
@@ -194,9 +194,9 @@ var _Entities = {
 	editSource: function(entity) {
 
 		Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', function () {
-			_Logger.log('Element source saved');
+			_Logger.log(_LogType.ENTITIES, 'Element source saved');
 		}, function () {
-			_Logger.log('cancelled');
+			_Logger.log(_LogType.ENTITIES, 'cancelled');
 		});
 
 		// Get content in widget mode
@@ -565,12 +565,12 @@ var _Entities = {
 								var isHidden   = isIn(key, _Entities.hiddenAttrs);
 								var isReadOnly = isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly);
 								var isSystem   = typeInfo[key].system;
-								
+
 								if (type) {
 									var isBoolean = (type === 'Boolean'); //typeInfo[key].className === 'org.structr.core.property.BooleanProperty'; //isIn(key, _Entities.booleanAttrs);
 									var isDate = (type === 'Date'); //typeInfo[key].className === 'org.structr.core.property.ISO8601DateProperty'; //isIn(key, _Entities.dateAttrs);
 									var isPassword = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
-									
+
 									var isRelated = typeInfo[key].relatedType;
 								}
 
@@ -736,19 +736,19 @@ var _Entities = {
 			});
 
 			input.on('focusout', function() {
-				_Logger.log('relId', relId);
+				_Logger.log(_LogType.ENTITIES, 'relId', relId);
 				var objId = relId ? relId : id;
-				_Logger.log('set properties of obj', objId);
+				_Logger.log(_LogType.ENTITIES, 'set properties of obj', objId);
 
 				var keyInput = input.parent().parent().children('td').first().children('input');
-				_Logger.log(keyInput);
+				_Logger.log(_LogType.ENTITIES, keyInput);
 				if (keyInput && keyInput.length) {
 
 					var newKey = keyInput.val();
 					var val = input.val();
 
 					// new key
-					_Logger.log('new key: Command.setProperty(', objId, newKey, val);
+					_Logger.log(_LogType.ENTITIES, 'new key: Command.setProperty(', objId, newKey, val);
 					Command.setProperty(objId, newKey, val, false, function() {
 						blinkGreen(input);
 						dialogMsg.html('<div class="infoBox success">New property "' + newKey + '" was added and saved with value "' + val + '".</div>');
@@ -762,7 +762,7 @@ var _Entities = {
 					var isPassword = input.prop('type') === 'password';
 					if (input.data('changed')) {
 						input.data('changed', false);
-						_Logger.log('existing key: Command.setProperty(', objId, key, val);
+						_Logger.log(_LogType.ENTITIES, 'existing key: Command.setProperty(', objId, key, val);
 						_Entities.setProperty(objId, key, val, false, function(newVal) {
 							if (isPassword || (newVal && newVal !== oldVal)) {
 								blinkGreen(input);
@@ -906,7 +906,7 @@ var _Entities = {
 		var btn = $('.apply_' + key, el);
 		btn.on('click', function() {
 			Command.setProperty(entity.id, key, $('.' + key + '_', el).val(), false, function(obj) {
-				_Logger.log(key + ' successfully updated!', obj[key]);
+				_Logger.log(_LogType.ENTITIES, key + ' successfully updated!', obj[key]);
 				blinkGreen(btn);
 				_Pages.reloadPreviews();
 			});
@@ -920,7 +920,7 @@ var _Entities = {
 		var btn = $('.save_' + key, el);
 		btn.on('click', function() {
 			Command.setProperty(entity.id, key, $('.' + key + '_', el).val(), false, function(obj) {
-				_Logger.log(key + ' successfully updated!', obj[key]);
+				_Logger.log(_LogType.ENTITIES, key + ' successfully updated!', obj[key]);
 				blinkGreen(btn);
 				_Pages.reloadPreviews();
 			});
@@ -1004,7 +1004,7 @@ var _Entities = {
 		}
 		editIcon.on('click', function(e) {
 			e.stopPropagation();
-			_Logger.log('editSource', entity);
+			_Logger.log(_LogType.ENTITIES, 'editSource', entity);
 			_Entities.editSource(entity);
 		});
 	},
@@ -1018,7 +1018,7 @@ var _Entities = {
 		}
 		editIcon.on('click', function(e) {
 			e.stopPropagation();
-			_Logger.log('showProperties', entity);
+			_Logger.log(_LogType.ENTITIES, 'showProperties', entity);
 			_Entities.showProperties(entity);
 		});
 		if (visible) {
@@ -1063,30 +1063,32 @@ var _Entities = {
 		}
 		dataIcon.on('click', function(e) {
 			e.stopPropagation();
-			_Logger.log('showDataDialog', entity);
+			_Logger.log(_LogType.ENTITIES, 'showDataDialog', entity);
 			_Entities.showDataDialog(entity);
 		});
 	},
 	appendExpandIcon: function(el, entity, hasChildren, expand) {
 
-		_Logger.log('_Entities.appendExpandIcon', el, entity, hasChildren, expand);
+		_Logger.log(_LogType.ENTITIES, '_Entities.appendExpandIcon', el, entity, hasChildren, expand);
 
 		var button = $(el.children('.expand_icon').first());
 		if (button && button.length) {
-			_Logger.log('Expand icon already existing', el, button);
+			_Logger.log(_LogType.ENTITIES, 'Expand icon already existing', el, button);
 			return;
 		}
 
 		if (hasChildren) {
 
-			_Logger.log('appendExpandIcon hasChildren?', hasChildren, 'expand?', expand);
+			_Logger.log(_LogType.ENTITIES, 'appendExpandIcon hasChildren?', hasChildren, 'expand?', expand);
 
 			var typeIcon = $(el.children('.typeIcon').first());
 			var icon = expand ? Structr.expanded_icon : Structr.expand_icon;
 
+			var displayName = getElementDisplayName(entity);
+
 			typeIcon.css({
 				paddingRight: 0 + 'px'
-			}).after('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + icon + '">');
+			}).after('<img title="Expand ' + displayName + '" alt="Expand ' + displayName + '" class="expand_icon" src="' + icon + '">');
 
 			$(el).on('click', function(e) {
 				e.stopPropagation();
@@ -1122,7 +1124,7 @@ var _Entities = {
 	removeExpandIcon: function(el) {
 		if (!el)
 			return;
-		_Logger.log('removeExpandIcon', el);
+		_Logger.log(_LogType.ENTITIES, 'removeExpandIcon', el);
 		var button = $(el.children('.expand_icon').first());
 
 		// unregister click handlers
@@ -1246,9 +1248,14 @@ var _Entities = {
 		if (_Entities.isExpanded(element)) {
 			return;
 		} else {
-			_Logger.log('ensureExpanded: fetch children', el);
+			_Logger.log(_LogType.ENTITIES, 'ensureExpanded: fetch children', el);
+			
 			Command.children(id, callback);
-			el.children('.expand_icon').first().prop('src', 'icon/tree_arrow_down.png');
+			var displayName = getElementDisplayName(Structr.entity(id));
+			
+			el.children('.expand_icon').first().prop('src', 'icon/tree_arrow_down.png')
+				.prop('alt', 'Collapse ' + displayName)
+				.prop('title', 'Collapse ' + displayName);
 		}
 	},
 	expandAll: function(ids) {
@@ -1279,9 +1286,10 @@ var _Entities = {
 		var el = $(element);
 		var id = Structr.getId(el) || Structr.getComponentId(el);
 
-		_Logger.log('toggleElement: ', el, id);
+		_Logger.log(_LogType.ENTITIES, 'toggleElement: ', el, id);
 
 		var b = el.children('.expand_icon').first();
+		var displayName = getElementDisplayName(Structr.entity(id));
 
 		if (_Entities.isExpanded(element)) {
 
@@ -1289,17 +1297,22 @@ var _Entities = {
 				$(child).remove();
 			});
 
-			b.prop('src', 'icon/tree_arrow_right.png');
+			b.prop('src', 'icon/tree_arrow_right.png')
+				.prop('alt', 'Expand ' + displayName)
+				.prop('title', 'Expand ' + displayName);
 
 			removeExpandedNode(id);
 		} else {
 
 			if (!expanded) {
-				_Logger.log('toggleElement: fetch children', id);
+				_Logger.log(_LogType.ENTITIES, 'toggleElement: fetch children', id);
 				Command.children(id);
 
 			}
-			b.prop('src', 'icon/tree_arrow_down.png');
+			b.prop('src', 'icon/tree_arrow_down.png')
+				.prop('alt', 'Collapse ' + displayName)
+				.prop('title', 'Collapse ' + displayName);
+;
 
 			addExpandedNode(id);
 		}
@@ -1447,12 +1460,14 @@ var _Entities = {
 				var typeIcon = $(div.children('.typeIcon').first());
 				var padding = 0;
 
+				var displayName = getElementDisplayName(entity);
+
 				if (!expand) {
 					padding = 11;
 				} else {
 					typeIcon.css({
 						paddingRight: padding + 'px'
-					}).after('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + Structr.expanded_icon + '">');
+					}).after('<img title="Expand ' + displayName + '" alt="Expand ' + displayName + '" class="expand_icon" src="' + Structr.expanded_icon + '">');
 				}
 			}
 		}
@@ -1539,7 +1554,7 @@ function addPrincipal(entity, principal, permissions) {
 			Command.setPermission(entity.id, principal.id, permissions[perm] ? 'revoke' : 'grant', perm, rec, function() {
 				permissions[perm] = !permissions[perm];
 				sw.prop('checked', permissions[perm]);
-				_Logger.log('Permission successfully updated!');
+				_Logger.log(_LogType.ENTITIES, 'Permission successfully updated!');
 				blinkGreen(sw.parent());
 
 

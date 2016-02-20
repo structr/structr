@@ -223,7 +223,7 @@ var _Elements = {
 				dropBlocked = true;
 				var sourceEl = $(ui.draggable);
 				if (sourceEl.parent().attr('id') === 'widgets') {
-					_Logger.log('widget dropped on widget area, aborting');
+					_Logger.log(_LogType.ELEMENTS, 'widget dropped on widget area, aborting');
 					return false;
 				}
 				var sourceId = Structr.getId(sourceEl);
@@ -292,7 +292,7 @@ var _Elements = {
 		if (!$('.draggable', palette).length) {
 
 			$(_Elements.elementGroups).each(function(i, group) {
-				_Logger.log(group);
+				_Logger.log(_LogType.ELEMENTS, group);
 				palette.append('<div class="elementGroup" id="group_' + group.name + '"><h3>' + group.name + '</h3></div>');
 				$(group.elements).each(function(j, elem) {
 					var div = $('#group_' + group.name);
@@ -334,7 +334,7 @@ var _Elements = {
 				if (!sourceId) return false;
 				var obj = StructrModel.obj(sourceId);
 				if (obj && obj.syncedNodes && obj.syncedNodes.length || sourceEl.parent().attr('id') === 'componentsArea') {
-					_Logger.log('component dropped on components area, aborting');
+					_Logger.log(_LogType.ELEMENTS, 'component dropped on components area, aborting');
 					return false;
 				}
 				Command.createComponent(sourceId);
@@ -344,23 +344,27 @@ var _Elements = {
 		});
 		_Dragndrop.makeSortable(components);
 
-		Command.listComponents(1000, 1, 'name', 'asc', function(entity) {
+		Command.listComponents(1000, 1, 'name', 'asc', function(result) {
 
-			if (!entity) {
-				return false;
-			}
+			result.forEach(function(entity) {
 
-			var obj = StructrModel.create(entity, null, false);
-			var el;
-			if (obj.isContent || obj.type === 'Template') {
-				el = _Contents.appendContentElement(obj, components, true);
-			} else {
-				el = _Pages.appendElementElement(obj, components, true);
-			}
+				if (!entity) {
+					return false;
+				}
 
-			if (isExpanded(entity.id)) {
-				_Entities.ensureExpanded(el);
-			}
+				var obj = StructrModel.create(entity, null, false);
+				var el;
+				if (obj.isContent || obj.type === 'Template') {
+					el = _Contents.appendContentElement(obj, components, true);
+				} else {
+					el = _Pages.appendElementElement(obj, components, true);
+				}
+
+				if (isExpanded(entity.id)) {
+					_Entities.ensureExpanded(el);
+				}
+
+			});
 
 		});
 
@@ -389,23 +393,26 @@ var _Elements = {
 		});
 
 		_Dragndrop.makeSortable(elements);
-		Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(entity) {
+		Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(result) {
 
-			if (!entity) {
-				return;
-			}
+			result.forEach(function(entity) {
 
-			var obj = StructrModel.create(entity, null, false);
-			var el;
-			if (obj.isContent) {
-				el = _Contents.appendContentElement(obj, elements, true);
-			} else {
-				el = _Pages.appendElementElement(obj, elements, true);
-			}
+				if (!entity) {
+					return;
+				}
 
-			if (isExpanded(entity.id)) {
-				_Entities.ensureExpanded(el);
-			}
+				var obj = StructrModel.create(entity, null, false);
+				var el;
+				if (obj.isContent) {
+					el = _Contents.appendContentElement(obj, elements, true);
+				} else {
+					el = _Pages.appendElementElement(obj, elements, true);
+				}
+
+				if (isExpanded(entity.id)) {
+					_Entities.ensureExpanded(el);
+				}
+			});
 
 		});
 
@@ -417,7 +424,7 @@ var _Elements = {
 	 * Create a DOM node and append to the appropriate parent
 	 */
 	appendElementElement: function(entity, refNode, refNodeIsParent) {
-		_Logger.log('_Elements.appendElementElement', entity);
+		_Logger.log(_LogType.ELEMENTS, '_Elements.appendElementElement', entity);
 
 		if (!entity) {
 			return false;
@@ -437,7 +444,7 @@ var _Elements = {
 			parent = entity.parent && entity.parent.id ? Structr.node(entity.parent.id) : elements;
 		}
 
-		_Logger.log('appendElementElement parent, refNode, refNodeIsParent', parent, refNode, refNodeIsParent);
+		_Logger.log(_LogType.ELEMENTS, 'appendElementElement parent, refNode, refNodeIsParent', parent, refNode, refNodeIsParent);
 		if (!parent)
 			return false;
 
@@ -455,7 +462,7 @@ var _Elements = {
 
 		var div = Structr.node(id);
 
-		_Logger.log('Element appended (div, parent)', div, parent);
+		_Logger.log(_LogType.ELEMENTS, 'Element appended (div, parent)', div, parent);
 
 		if (!div)
 			return false;
@@ -469,11 +476,14 @@ var _Elements = {
 			+ _Elements.classIdString(entity._html_id, entity._html_class)
 			+ '</div>');
 
-		div.append('<img title="Clone ' + entity.tag + ' element ' + entity.id + '" alt="Clone ' + entity.tag + ' element ' + entity.id + '" class="clone_icon button" src="icon/page_copy.png">');
-		$('.clone_icon', div).on('click', function(e) {
-			e.stopPropagation();
-			Command.cloneNode(entity.id, entity.parent.id, true);
-		});
+		if (entity.parent) {
+			div.append('<img title="Clone ' + displayName + ' element ' + entity.id + '\" alt="Clone ' + entity.tag + ' element ' + entity.id + '" class="clone_icon button" src="icon/page_copy.png">');
+			$('.clone_icon', div).on('click', function(e) {
+				e.stopPropagation();
+				_Logger.log(_LogType.ELEMENTS, 'Cloning node (div, parent)', entity, entity.parent);
+				Command.cloneNode(entity.id, entity.parent.id, true);
+			});
+		}
 
 		var possibleChildren = _Elements.favoriteChildElements[entity.tag];
 		if (possibleChildren && possibleChildren.length) {
@@ -530,18 +540,13 @@ var _Elements = {
 			e.stopPropagation();
 		});
 
-		// Prevent html id from being draggable
-		$('._html_id_', div).on('mousedown', function(e) {
-			e.stopPropagation();
-		});
-
-		// Prevent html class from being draggable
-		$('._html_class_', div).on('mousedown', function(e) {
+		// Prevent icons from being draggable
+		$('img', div).on('mousedown', function(e) {
 			e.stopPropagation();
 		});
 
 		_Entities.appendAccessControlIcon(div, entity);
-		div.append('<img title="Delete ' + entity.tag + ' element ' + entity.id + '" alt="Delete ' + entity.tag + ' element ' + entity.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+		div.append('<img title="Delete ' + displayName + ' element ' + entity.id + '" alt="Delete ' + entity.tag + ' element ' + entity.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
 		$('.delete_icon', div).on('click', function(e) {
 			e.stopPropagation();
 			_Entities.deleteNode(this, entity, function() {
@@ -591,9 +596,9 @@ var _Elements = {
 				var file = {'name': entity.linkable, 'id': entity.linkableId};
 
 				Structr.dialog('Edit ' + file.name, function() {
-					_Logger.log('content saved')
+					_Logger.log(_LogType.ELEMENTS, 'content saved')
 				}, function() {
-					_Logger.log('cancelled')
+					_Logger.log(_LogType.ELEMENTS, 'cancelled')
 				});
 				_Files.editContent(this, file, $('#dialogBox .dialogText'));
 

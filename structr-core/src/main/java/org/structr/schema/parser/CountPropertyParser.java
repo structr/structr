@@ -66,9 +66,10 @@ public class CountPropertyParser extends PropertySourceGenerator {
 	@Override
 	public void parseFormatString(final Schema entity, final String expression) throws FrameworkException {
 
-		if (expression.isEmpty()) {
-			reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), expression, "invalid_property_reference", "Empty property reference."));
-			return;
+		if (expression == null || expression.isEmpty()) {
+			throw new FrameworkException(422, "Invalid count property expression.", new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), expression, "invalid_property_reference", "Empty property reference."));
+//			reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), expression, "invalid_property_reference", "Empty property reference."));
+//			return;
 		}
 
 		auxType = ", " + expression + "Property";

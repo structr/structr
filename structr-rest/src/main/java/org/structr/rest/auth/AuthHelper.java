@@ -196,15 +196,21 @@ public class AuthHelper {
 		// We need a session to logout a user
 		if (session != null) {
 
-			SessionHelper.clearSession(session.getId());
-
-			SessionHelper.invalidateSession(session);
-
-			Actions.call(Actions.NOTIFICATION_LOGOUT, user);
+			AuthHelper.killSession(session, user);
 
 			try { request.logout(); request.changeSessionId(); } catch (Throwable t) {}
 
 		}
+	}
+
+	public static void killSession (final HttpSession session, final Principal user) throws FrameworkException {
+
+		SessionHelper.clearSession(session.getId());
+
+		SessionHelper.invalidateSession(session);
+
+		Actions.call(Actions.NOTIFICATION_LOGOUT, user);
+
 	}
 
 }

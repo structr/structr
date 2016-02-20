@@ -30,7 +30,7 @@ var _Contents = {
 	add_icon: 'icon/page_white_add.png',
 	delete_icon: 'icon/page_white_delete.png',
 	appendContentElement: function(entity, refNode, refNodeIsParent) {
-		_Logger.log('Contents.appendContentElement', entity, refNode);
+		_Logger.log(_LogType.CONTENTS, 'Contents.appendContentElement', entity, refNode);
 
 		var parent;
 
@@ -116,9 +116,9 @@ var _Contents = {
 	},
 	openEditContentDialog: function(btn, entity) {
 		Structr.dialog('Edit content of ' + (entity.name ? entity.name : entity.id), function() {
-			_Logger.log('content saved');
+			_Logger.log(_LogType.CONTENTS, 'content saved');
 		}, function() {
-			_Logger.log('cancelled');
+			_Logger.log(_LogType.CONTENTS, 'cancelled');
 		});
 		Command.getProperty(entity.id, 'content', function(text) {
             currentEntity = entity;
@@ -165,7 +165,7 @@ var _Contents = {
 			return;
 		}
 		var div = element.append('<div class="editor"></div>');
-		_Logger.log(div);
+		_Logger.log(_LogType.CONTENTS, div);
 		var contentBox = $('.editor', element);
 		contentType = contentType ? contentType : entity.contentType;
 		var text1, text2;

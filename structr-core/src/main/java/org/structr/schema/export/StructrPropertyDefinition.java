@@ -235,7 +235,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 		if (propertyType != null) {
 
-			final boolean isDate   = source.containsKey(JsonSchema.KEY_FORMAT) && "date-time".equals(source.get(JsonSchema.KEY_FORMAT));
+			final boolean isDate   = source.containsKey(JsonSchema.KEY_FORMAT) && JsonSchema.FORMAT_DATE_TIME.equals(source.get(JsonSchema.KEY_FORMAT));
 			final boolean isEnum   = source.containsKey(JsonSchema.KEY_ENUM);
 
 			switch (propertyType) {
@@ -254,6 +254,14 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 						newProperty = new StructrStringProperty(parent, name);
 					}
+					break;
+
+				case "thumbnail":
+					newProperty = new StructrThumbnailProperty(parent, name);
+					break;
+
+				case "count":
+					newProperty = new StructrCountProperty(parent, name);
 					break;
 
 				case "script":
@@ -394,10 +402,8 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 				return bool;
 
 			case Count:
-				final StructrIntegerProperty count = new StructrIntegerProperty(parent, name);
+				final StructrCountProperty count = new StructrCountProperty(parent, name);
 				count.deserialize(property);
-
-				//count.put(JsonSchema.KEY_SIZE_OF, "#/definitions/" + name + "/properties/" + _format);
 				return count;
 
 			case Integer:
@@ -425,6 +431,12 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 				final StructrEnumProperty enumProperty = new StructrEnumProperty(parent, name);
 				enumProperty.deserialize(property);
 				return enumProperty;
+
+			case Thumbnail:
+				final StructrThumbnailProperty thumb = new StructrThumbnailProperty(parent, name);
+				thumb.deserialize(property);
+				thumb.setDefaultValue(property.getDefaultValue());
+				return thumb;
 		}
 
 		throw new IllegalStateException("Unknown type " + type);

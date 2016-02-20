@@ -39,7 +39,7 @@ var _Security = {
 
 		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Users and Groups');
 		//Structr.activateMenuEntry('usersAndGroups');
-		_Logger.log('onload');
+		_Logger.log(_LogType.SECURTIY, 'onload');
 
 		main.append('<div id="securityTabs"><ul id="securityTabsMenu"><li><a id="usersAndGroups_" href="#usersAndGroups"><span>Users and Groups</span></a></li><li><a id="resourceAccess_" href="#resourceAccess"><span>Resource Access Grants</span></a></li></ul><div id="usersAndGroups"></div><div id="resourceAccess"></div></div>');
 
@@ -144,17 +144,17 @@ var _Security = {
 	},
 
 	deleteUser : function(button, user) {
-		_Logger.log('deleteUser ' + user);
+		_Logger.log(_LogType.SECURTIY, 'deleteUser ' + user);
 		_Entities.deleteNode(button, user);
 	},
 
 	deleteGroup : function(button, group) {
-		_Logger.log('deleteGroup ' + group);
+		_Logger.log(_LogType.SECURTIY, 'deleteGroup ' + group);
 		_Entities.deleteNode(button, group);
 	},
 
 	deleteResourceAccess : function(button, resourceAccess) {
-		_Logger.log('deleteResourceAccess ' + resourceAccess);
+		_Logger.log(_LogType.SECURTIY, 'deleteResourceAccess ' + resourceAccess);
 		_Entities.deleteNode(button, resourceAccess);
 	},
 
@@ -275,7 +275,7 @@ var _Security = {
 		}
 
 		var hasChildren = group.members && group.members.length;
-		_Logger.log('appendGroupElement', group, hasChildren);
+		_Logger.log(_LogType.SECURTIY, 'appendGroupElement', group, hasChildren);
 		groups.append('<div id="id_' + group.id + '" class="node group">'
 			+ '<img class="typeIcon" src="icon/group.png">'
 			+ '<b title="' + group.name + '" class="name_">' + group.name + '</b> <span class="id">' + group.id + '</span>'
@@ -316,7 +316,7 @@ var _Security = {
 	},
 
 	appendUserElement : function(user, group) {
-		_Logger.log('appendUserElement', user);
+		_Logger.log(_LogType.SECURTIY, 'appendUserElement', user);
 
 		if (!users || !users.is(':visible')) {
 			return;
@@ -337,10 +337,13 @@ var _Security = {
 	},
 	appendUserToUserList: function (user) {
 		users.append(_Security.getUserElementMarkup(user));
+	
+		var name = _Security.getUserName(user);
 		var div = Structr.node(user.id);
 		if (!div || !div.length) return;
 
-		var newDelIcon = '<img title="Delete user \'' + user.name + '\'" alt="Delete user \'' + user.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+
+		var newDelIcon = '<img title="Delete user \'' + name + '\'" alt="Delete user \'' + name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
 		var delIcon = $('.delete_icon', div);
 
 		if (delIcon && delIcon.length) {
@@ -385,7 +388,7 @@ var _Security = {
 
 		var newDelIcon = '<img title="Remove user \'' + user.name + '\' from group \'' + group.name + '\'" alt="Remove user ' + user.name + ' from group \'' + group.name + '\'" class="delete_icon button" src="icon/user_delete.png">';
 
-		_Logger.log('parent, div', parent, div);
+		_Logger.log(_LogType.SECURTIY, 'parent, div', parent, div);
 
 		if (div && div.length) {
 			parent.append(div.css({
@@ -395,11 +398,11 @@ var _Security = {
 			delIcon = $('.delete_icon', div);
 			delIcon.replaceWith(newDelIcon);
 
-			_Logger.log('################ disable delete icon');
+			_Logger.log(_LogType.SECURTIY, '################ disable delete icon');
 
 		} else {
 
-			_Logger.log('### new user, appending to ', parent);
+			_Logger.log(_LogType.SECURTIY, '### new user, appending to ', parent);
 
 			if (parent) {
 				parent.append(_Security.getUserElementMarkup(user));
@@ -428,9 +431,10 @@ var _Security = {
 		return div;
 	},
 	getUserElementMarkup:function (user) {
+		var name = _Security.getUserName(user);
 		return '<div id="id_' + user.id + '" class="node user">'
 			+ '<img class="typeIcon" src="icon/user.png">'
-			+ ' <b title="' + user.name + '" class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'
+			+ ' <b title="' + name + '" class="name_">' + name + '</b> <span class="id">' + user.id + '</span>'
 			+ '</div>';
 	},
 	resize: function() {
@@ -465,5 +469,8 @@ var _Security = {
 		$('.searchResults').css({
 			height: h - 103 + 'px'
 		});
+	},
+	getUserName: function(user) {
+		return name = user.name ? user.name : user.eMail ? '[' + user.eMail + ']' : '[unnamed]';
 	}
 };

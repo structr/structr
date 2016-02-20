@@ -1533,7 +1533,7 @@ button.add_property {
     margin: 8px 12px 4px 12px;
 }
 
-#connector-style, #node-type-selector {
+#connector-style, #node-type-selector, #rel-type-selector {
     color: #222;
     padding: 1px 2px 3px 4px;
     vertical-align: middle;
@@ -1548,7 +1548,7 @@ button.add_property {
     margin: 0 8px 4px 12px;
 }
 
-#node-type-selector {
+#node-type-selector, #rel-type-selector {
     margin: 0 8px 4px 0;
 }
 
@@ -2677,4 +2677,8 @@ i.fa.ps {
 
 .breadcrumb-entry {
 	cursor: pointer;
+}
+
+.class-id-attrs {
+	pointer-events: none;
 }

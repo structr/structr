@@ -81,7 +81,7 @@ var _Pager = {
 	},
 /*
 	addRestPager: function (el, rootOnly, type, callback) {
-		_Logger.log('add Rest Pager', type, pageSize[type], page[type], sortKey[type], sortOrder[type]);
+		_Logger.log(_LogType.PAGER, 'add Rest Pager', type, pageSize[type], page[type], sortKey[type], sortOrder[type]);
 		var pgr = new Pager(el, rootOnly, type, callback);
 		pgr.transportFunction = function() {
 
@@ -115,7 +115,7 @@ var _Pager = {
 	},
 */
 	addPager: function (el, rootOnly, type, callback) {
-		_Logger.log('add WS Pager', type, pageSize[type], page[type], sortKey[type], sortOrder[type]);
+		_Logger.log(_LogType.PAGER, 'add WS Pager', type, pageSize[type], page[type], sortKey[type], sortOrder[type]);
 		var pgr = new Pager(el, rootOnly, type, callback);
 		pgr.transportFunction = function() {
 			var filterAttrs = pgr.getNonEmptyFilterAttributes();
