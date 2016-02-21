@@ -176,35 +176,60 @@ var _Elements = {
 		}
 	],
 	voidAttrs: ['br', 'hr', 'img', 'input', 'link', 'meta', 'area', 'base', 'col', 'embed', 'keygen', 'menuitem', 'param', 'track', 'wbr'],
-	favoriteChildElements: {
-		'script': ['content'],
-		'button': ['content', 'span', 'img', 'i'],
-		'table': ['thead', 'tbody', 'tfoot'],
-		'title': ['content'],
-		'thead': ['tr'],
-		'tbody': ['tr'],
-		'tfoot': ['tr'],
-		'html': ['head', 'body'],
-		'head': ['link', 'meta', 'script', 'title'],
-		'body': ['div', 'script'],
-		'span': ['content', 'img', 'span', 'i'],
-		'div': ['div', 'content', 'span', 'button', 'img', 'table', 'form'],
-		'tr': ['th', 'td'],
-		'th': ['div', 'p', 'span', 'a', 'content'],
-		'td': ['div', 'p', 'span', 'a', 'content'],
-		'ul': ['li'],
-		'ol': ['li'],
-		'li': ['content', 'a', 'div', 'span', 'button'],
-		'h1': ['content', 'span'],
-		'h2': ['content', 'span'],
-		'h3': ['content', 'span'],
-		'h4': ['content', 'span'],
-		'h5': ['content', 'span'],
-		'h6': ['content', 'span'],
-		'p': ['content', 'a', 'img', 'button', 'span'],
-		'a': ['content', 'img', 'span'],
-		'i': ['content']
-	},
+	sortedElementGroups: [
+		{
+			'name': 'A',
+			'elements': ['a', 'abbr', 'address', 'area', 'aside', 'article', 'audio'],
+		},
+		{
+			'name': 'B',
+			'elements': ['b', 'base', 'bdi', 'bdo', 'blockquote', 'body', 'br', 'button'],
+		},
+		{
+			'name': 'C',
+			'elements': ['canvas', 'caption', 'cite', 'code', 'colgroup', 'col', 'command', 'comment'],
+		},
+		{
+			'name': 'D',
+			'elements': ['datalist', 'dd', 'del', 'details', 'div', 'dfn', 'dl', 'dt'],
+		},
+		{
+			'name': 'E-F',
+			'elements': ['em', 'embed', '|', 'fieldset', 'figcaption', 'figure', 'form', 'footer'],
+		},
+		{
+			'name': 'G-H',
+			'elements': ['g', '|', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr'],
+		},
+		{
+			'name': 'I-K',
+			'elements': ['i', 'iframe', 'img', 'input', 'ins', '|', 'kbd', 'keygen'],
+		},
+		{
+			'name': 'L-M',
+			'elements': ['label', 'legend', 'li', 'link', '|', 'map', 'mark', 'menu', 'meta', 'meter'],
+		},
+		{
+			'name': 'N-O',
+			'elements': ['nav', 'noscript', '|', 'object', 'ol', 'optgroup', 'option', 'output'],
+		},
+		{
+			'name': 'P-R',
+			'elements': ['p', 'param', 'pre', 'progress', '|', 'rp', 'rt', 'ruby'],
+		},
+		{
+			'name': 'S',
+			'elements': ['s', 'samp', 'script', 'section', 'select', 'small', 'source', 'span', 'strong', 'style', 'sub', 'summary', 'sup'],
+		},
+		{
+			'name': 'T',
+			'elements': ['table', 'tbody', 'td', 'textarea', 'th', 'thead', 'tfoot', 'time', 'title', 'tr', 'track'],
+		},
+		{
+			'name': 'U-W',
+			'elements': ['u', 'ul', '|', 'var', 'video', '|', 'wbr'],
+		}
+	],
 	/**
 	 * Reload widgets
 	 */
@@ -890,8 +915,11 @@ var _Elements = {
 			window.setTimeout(function() { $(div).addClass('nodeHover') }, 10);
 
 			var menu = [
-				{ name: 'Insert element',    elements: _Elements.elementGroups },
-				{ name: 'Expand / Collapse', elements: [
+				{ name: 'Insert HTML element', elements: _Elements.sortedElementGroups },
+				{ name: 'Insert Structr element', elements: [
+						'content', 'template'
+				]},
+				{ name: 'Expand / Collapse',   elements: [
 						{ name: 'Expand subtree', func: function() {
 
 							$(div).find('.node').each(function(i, el) {
@@ -946,7 +974,9 @@ var _Elements = {
 					'<ul class="element-group hidden ' + cssPositionClasses + '" id="element-group-' + i + '"></ul></li></ul>'
 				);
 
-				$('#element-menu-' + i ).append(item.separator ? '<hr />' : '');
+				if (item.separator) {
+					$('#element-menu-' + i ).append('<hr />');
+				}
 
 				item.elements.forEach(function(subitem, j) {
 
@@ -960,17 +990,24 @@ var _Elements = {
 
 						subitem.elements.forEach(function(tag, k) {
 
-							$('#element-subgroup-' + i + '-' + j).append('<li id="add-' + tag + '-' + i + '-' + j + '-' + k + '">' + tag + '</li>');
-							$('#add-' + tag + '-' + i + '-' + j + '-' + k).on('mouseup', function(e) {
-								e.stopPropagation();
-								if (tag === 'content') {
-									Command.createAndAppendDOMNode(entity.pageId, entity.id, null, {});
-								} else {
-									Command.createAndAppendDOMNode(entity.pageId, entity.id, tag, {});
-								}
-								$('#add-child-dialog').remove();
-								$(div).removeClass('nodeHover');
-							});
+							if (tag === '|') {
+								$('#element-subgroup-' + i + '-' + j).append('<hr />');
+							} else {
+
+								$('#element-subgroup-' + i + '-' + j).append('<li id="add-' + tag + '-' + i + '-' + j + '-' + k + '">' + tag + '</li>');
+								$('#add-' + tag + '-' + i + '-' + j + '-' + k).on('mouseup', function(e) {
+
+
+									e.stopPropagation();
+									if (tag === 'content') {
+										Command.createAndAppendDOMNode(entity.pageId, entity.id, null, {});
+									} else {
+										Command.createAndAppendDOMNode(entity.pageId, entity.id, tag, {});
+									}
+									$('#add-child-dialog').remove();
+									$(div).removeClass('nodeHover');
+								});
+							}
 						});
 
 					} else {
