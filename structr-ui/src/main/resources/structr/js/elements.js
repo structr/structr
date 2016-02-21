@@ -1007,9 +1007,11 @@ var _Elements = {
 
 				// remove offHandler when menu closes
 				$(window.document).off('mouseup', offHandler);
+				$('iframe').off('mouseover', offHandler);
 			};
 
 			$(window.document).on('mouseup', offHandler);
+			$('iframe').on('mouseover', offHandler);
 		});
 	}
 };
