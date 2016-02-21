@@ -845,8 +845,14 @@ var _Elements = {
 	},
 	appendContextMenu: function(div, entity) {
 
-		$('#menu-area').on("contextmenu",function(){
-		       return false;
+		$('#menu-area').on("contextmenu",function(e){
+			e.stopPropagation();
+			e.preventDefault();
+		});
+
+		$(div).on("contextmenu",function(e){
+			e.stopPropagation();
+			e.preventDefault();
 		});
 
 		$(div).on('mousedown', function(e) {
