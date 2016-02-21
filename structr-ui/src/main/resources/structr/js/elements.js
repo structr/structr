@@ -485,43 +485,7 @@ var _Elements = {
 			});
 		}
 
-		var possibleChildren = _Elements.favoriteChildElements[entity.tag];
-		if (possibleChildren && possibleChildren.length) {
-
-			div.append('<img title="Insert child element" alt="Insert child element" class="add_child_icon button" src="icon/textfield_add.png" >');
-			$('.add_child_icon', div).on('click', function(e) {
-
-				e.stopPropagation();
-
-				div.append('<div id="add-child-dialog"></div>');
-				$('#add-child-dialog').css({left: $(this).position().left});
-
-				if (possibleChildren.length === 1) {
-					if (possibleChildren[0] === 'content') {
-						Command.createAndAppendDOMNode(entity.pageId, entity.id, null, {});
-					} else {
-						Command.createAndAppendDOMNode(entity.pageId, entity.id, possibleChildren[0], {});
-					}
-					$('#add-child-dialog').remove();
-				} else {
-					possibleChildren.forEach(function(tag) {
-						$('#add-child-dialog').append('<span id="add-' + tag + '">' + tag + '</span>');
-						$('#add-' + tag).on('click', function(e) {
-							e.stopPropagation();
-							if (tag === 'content') {
-								Command.createAndAppendDOMNode(entity.pageId, entity.id, null, {});
-							} else {
-								Command.createAndAppendDOMNode(entity.pageId, entity.id, tag, {});
-							}
-							$('#add-child-dialog').remove();
-						});
-					});
-				}
-
-				$('#add-child-dialog').hover(function(){}, function(){ $(this).remove(); });
-
-			});
-		}
+		_Elements.appendContextMenu(div, entity);
 
 		_Entities.appendExpandIcon(div, entity, hasChildren);
 
@@ -574,10 +538,6 @@ var _Elements = {
 			} else {
 				_Entities.appendEditSourceIcon(div, entity);
 			}
-
-		} else {
-
-			_Entities.appendCollapseChildrenIcon(div, entity);
 		}
 
 		_Entities.appendEditPropertiesIcon(div, entity);
@@ -881,6 +841,166 @@ var _Elements = {
 				});
 			});
 
+		});
+	},
+	appendContextMenu: function(div, entity) {
+
+		$('#menu-area').on("contextmenu",function(){
+		       return false;
+		});
+
+		$(div).on('mousedown', function(e) {
+
+			if (e.button !== 2 || $(e.target).hasClass('content')) {
+				return;
+			}
+
+			e.stopPropagation();
+
+			$('#menu-area').append('<div id="add-child-dialog"></div>');
+
+			var leftOrRight = 'left';
+			var topOrBottom = 'top';
+			var x = (e.pageX - 8);
+			var y = (div.offset().top - 58);
+
+			if (e.pageX > ($(window).width() / 2)) {
+				leftOrRight = 'right';
+			}
+
+			if (e.pageY > ($(window).height() / 2)) {
+				topOrBottom = 'bottom';
+				y -= 36;
+			}
+
+			var cssPositionClasses = leftOrRight + ' ' + topOrBottom;
+
+			$('#add-child-dialog').css('left', x + 'px');
+			$('#add-child-dialog').css('top', y + 'px');
+
+			// FIXME: its either this or accept that the div will not be highlighted any more when the menu appears. This is
+			// due to the fact that the menu has to be outside of the actual div to be visible even with overflow: hidden,
+			// which is needed to hide the vertical scroll bar in the pages tree view and others.
+			window.setTimeout(function() { $(div).addClass('nodeHover') }, 10);
+
+			var menu = [
+				{ name: 'Insert element',    elements: _Elements.elementGroups },
+				{ name: 'Expand / Collapse', elements: [
+						{ name: 'Expand subtree', func: function() {
+
+							$(div).find('.node').each(function(i, el) {
+								if (!_Entities.isExpanded(el)) {
+									_Entities.toggleElement(el);
+								}
+							});
+							if (!_Entities.isExpanded(div)) {
+								_Entities.toggleElement(div);
+							}
+						}},
+						{ name: 'Collapse subtree', func: function() {
+
+							$(div).find('.node').each(function(i, el) {
+								if (_Entities.isExpanded(el)) {
+									_Entities.toggleElement(el);
+								}
+							});
+							if (_Entities.isExpanded(div)) {
+								_Entities.toggleElement(div);
+							}
+						}}
+					]
+				},
+				/*
+				{ name: 'Movement', elements: [
+
+						{ name: 'Move to top',    func: function() {} },
+						{ name: 'Move to bottom', func: function() {} }
+					]
+				},
+				{ name: 'Other actions', elements: [
+						{ name: 'Remove element', func: function() {} },
+						{ name: 'Delete element', func: function() {} }
+					]
+				}
+				*/
+			]
+
+			menu.forEach(function(item, i) {
+
+				$('#add-child-dialog').append(
+					'<ul class="' + cssPositionClasses + '" id="element-menu-' + i + '"><li id="element-group-switch-' + i + '">' + item.name +
+					'<i class="fa fa-caret-right pull-right"></i>' +
+					'<ul class="element-group hidden ' + cssPositionClasses + '" id="element-group-' + i + '"></ul></li></ul>'
+				);
+
+				item.elements.forEach(function(subitem, j) {
+
+					if (subitem.elements && subitem.elements.length) {
+
+						$('#element-group-' + i).append(
+							'<li id="element-subgroup-switch-' + i + '-' + j + '">' + subitem.name +
+							'<i class="fa fa-caret-right pull-right"></i>' +
+							'<ul class="element-subgroup hidden ' + cssPositionClasses + '" id="element-subgroup-' + i + '-' + j + '"></ul></li>'
+						);
+
+						subitem.elements.forEach(function(tag, k) {
+
+							$('#element-subgroup-' + i + '-' + j).append('<li id="add-' + tag + '-' + i + '-' + j + '-' + k + '">' + tag + '</li>');
+							$('#add-' + tag + '-' + i + '-' + j + '-' + k).on('mouseup', function(e) {
+								e.stopPropagation();
+								if (tag === 'content') {
+									Command.createAndAppendDOMNode(entity.pageId, entity.id, null, {});
+								} else {
+									Command.createAndAppendDOMNode(entity.pageId, entity.id, tag, {});
+								}
+								$('#add-child-dialog').remove();
+								$(div).removeClass('nodeHover');
+							});
+						});
+
+					} else {
+
+						$('#element-group-' + i ).append('<li id="add-' + i + '-' + j + '">' + subitem.name + '</li>');
+						$('#add-' + i + '-' + j).on('mouseup', function(e) {
+							e.stopPropagation();
+							if (subitem.func && (typeof subitem.func === 'function')) {
+								subitem.func();
+							}
+							$('#add-child-dialog').remove();
+							$(div).removeClass('nodeHover');
+						});
+					}
+
+					$('#element-subgroup-switch-' + i + '-' + j).hover(function() {
+						$('.element-subgroup').addClass('hidden');
+						$('#element-subgroup-' + i + '-' + j).removeClass('hidden');
+					}, function() {
+						//$('#element-subgroup-' + i + '-' + j).addClass('hidden');
+					});
+				});
+
+				$('#element-group-switch-' + i).hover(function() {
+					$('.element-group').addClass('hidden');
+					$('#element-group-' + i).removeClass('hidden');
+				}, function() {
+					//$('#element-group-' + i).addClass('hidden');
+				});
+			});
+
+			/*
+			$('#add-child-dialog').hover(function(){}, function(){
+				$(this).remove();
+				$(div).removeClass('nodeHover');
+			});
+			*/
+
+			var offHandler = function() {
+				$('#add-child-dialog').remove();
+				$(div).removeClass('nodeHover');
+				$(window.document).remove('mouseup', offHandler);
+			};
+
+			$(window.document).on('mouseup', offHandler);
 		});
 	}
 };

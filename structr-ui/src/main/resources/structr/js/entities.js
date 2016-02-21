@@ -1038,12 +1038,6 @@ var _Entities = {
 			collapseChildrenIcon = $('.collapse_children_icon', parent);
 		}
 		collapseChildrenIcon.on('click', function(e) {
-			e.stopPropagation();
-			$(parent).find('.node').each(function(i, el) {
-				if (_Entities.isExpanded(el)) {
-					_Entities.toggleElement(el);
-				}
-			});
 		});
 		if (visible) {
 			collapseChildrenIcon.css({
@@ -1249,10 +1243,10 @@ var _Entities = {
 			return;
 		} else {
 			_Logger.log(_LogType.ENTITIES, 'ensureExpanded: fetch children', el);
-			
+
 			Command.children(id, callback);
 			var displayName = getElementDisplayName(Structr.entity(id));
-			
+
 			el.children('.expand_icon').first().prop('src', 'icon/tree_arrow_down.png')
 				.prop('alt', 'Collapse ' + displayName)
 				.prop('title', 'Collapse ' + displayName);

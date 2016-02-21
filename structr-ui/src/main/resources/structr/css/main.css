@@ -852,7 +852,7 @@ span.id {
     cursor: pointer;
     height: 16px;
     width: 16px;
-    margin-left: 44px ! important;
+    margin-left: 24px ! important;
     vertical-align: top;
     position: absolute;
 }
@@ -920,32 +920,6 @@ li.page .view_icon {
     right: 12px;
     top: 68px;
     margin: 0;
-}
-
-#add-child-dialog {
-    position: absolute;
-    top: -1px;
-    left: 0px;
-    background-color: #eee;
-    border: 1px solid #aaa;
-    padding: 2px;
-    padding-right: 6px;
-    border-radius: 5px;
-}
-
-#add-child-dialog span {
-    cursor: pointer;
-    font-weight: bold;
-    display: inline-block;
-    width: 100%;
-    padding-left: 2px;
-    border: 1px solid #eee;
-    border-radius: 2px;
-}
-
-#add-child-dialog span:hover {
-    background-color: #ddd;
-    border: 1px solid #ccc;
 }
 
 img.button {
@@ -2681,4 +2655,85 @@ i.fa.ps {
 
 .class-id-attrs {
 	pointer-events: none;
+}
+
+/**
+ * Settings for insert shortcut menu
+ */
+
+
+/**
+ * Settings for insert shortcut menu
+ */
+#menu-area {
+    position: relative;
+}
+
+#add-child-dialog {
+    padding: 0;
+    top: 1px;
+    left: 0px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    z-index: 99999;
+    position: absolute;
+}
+
+#add-child-dialog ul {
+    list-style-type: none;
+    margin: 0;
+    padding:0;
+    width: 130px;
+    z-index: 99999;
+    position: relative;
+}
+
+#add-child-dialog li {
+    cursor: pointer;
+    margin: 0px;
+    padding: 5px 8px;
+    color: #000;
+    background-color: #fff;
+    z-index: 99999;
+    position: relative;
+}
+
+#add-child-dialog li i {
+    font-size: 8pt;
+    line-height: 18px;
+    color: #999;
+    z-index: 99999;
+}
+
+#add-child-dialog li:hover {
+    background-color: #81ce25;
+    color: #000;
+    z-index: 99999;
+}
+
+#add-child-dialog ul ul {
+    position: absolute;
+    list-style-type: none;
+    padding: 0;
+    background-color: #fff;
+    z-index: 99999;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+#add-child-dialog ul.right ul.right {
+    right: 130px;
+}
+
+#add-child-dialog ul.left ul.left {
+    left: 130px;
+}
+
+#add-child-dialog ul.top ul.top {
+    top: -1px;
+}
+
+#add-child-dialog ul.bottom ul.bottom {
+    bottom: 1px;
 }
