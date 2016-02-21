@@ -914,7 +914,7 @@ var _Elements = {
 								_Entities.toggleElement(div);
 							}
 						}}
-					]
+					], separator: true
 				},
 				/*
 				{ name: 'Movement', elements: [
@@ -929,7 +929,14 @@ var _Elements = {
 					]
 				}
 				*/
-			]
+			];
+
+			// information about most used elements in this page from backend
+			if (entity.mostUsedTags && entity.mostUsedTags.length) {
+				menu.push({
+					name: 'Most used elements', elements: entity.mostUsedTags
+				});
+			}
 
 			menu.forEach(function(item, i) {
 
@@ -938,6 +945,8 @@ var _Elements = {
 					'<i class="fa fa-caret-right pull-right"></i>' +
 					'<ul class="element-group hidden ' + cssPositionClasses + '" id="element-group-' + i + '"></ul></li></ul>'
 				);
+
+				$('#element-menu-' + i ).append(item.separator ? '<hr />' : '');
 
 				item.elements.forEach(function(subitem, j) {
 
@@ -966,11 +975,13 @@ var _Elements = {
 
 					} else {
 
-						$('#element-group-' + i ).append('<li id="add-' + i + '-' + j + '">' + subitem.name + '</li>');
+						$('#element-group-' + i ).append('<li id="add-' + i + '-' + j + '">' + (subitem.name ? subitem.name : subitem) + '</li>');
 						$('#add-' + i + '-' + j).on('mouseup', function(e) {
 							e.stopPropagation();
 							if (subitem.func && (typeof subitem.func === 'function')) {
 								subitem.func();
+							} else {
+								Command.createAndAppendDOMNode(entity.pageId, entity.id, subitem, {});
 							}
 							$('#add-child-dialog').remove();
 							$(div).removeClass('nodeHover');

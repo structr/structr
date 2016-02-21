@@ -23,9 +23,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
@@ -102,7 +105,8 @@ import org.w3c.dom.Text;
  */
 public class Page extends DOMNode implements Linkable, Document, DOMImplementation, FtpFile {
 
-	private static final Logger logger = Logger.getLogger(Page.class.getName());
+	public static final Set<String> nonBodyTags = new HashSet<>(Arrays.asList(new String[] { "html", "head", "body", "meta", "link" } ));
+	private static final Logger logger          = Logger.getLogger(Page.class.getName());
 
 	public static final Property<Integer> version = new IntProperty("version").indexed().readOnly();
 	public static final Property<Integer> position = new IntProperty("position").indexed();
@@ -128,7 +132,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		path, children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes, isPage, site, dontCache, pageCreatesRawData, enableBasicAuth, basicAuthRealm
 	);
 
-	private Html5DocumentType docTypeNode = null;
+	private Html5DocumentType docTypeNode               = null;
 
 	// register this type as an overridden builtin type
 	static {

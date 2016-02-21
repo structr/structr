@@ -2722,6 +2722,16 @@ i.fa.ps {
     border-radius: 3px;
 }
 
+#add-child-dialog hr {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    height: 1px;
+    border: none;
+    color: #eee;
+    background-color: #ccc;
+}
+
 #add-child-dialog ul.right ul.right {
     right: 130px;
 }

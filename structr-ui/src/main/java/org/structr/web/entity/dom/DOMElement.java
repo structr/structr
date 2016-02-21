@@ -36,7 +36,6 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.BooleanProperty;
@@ -175,7 +174,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final org.structr.common.View uiView = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, pageId, path, parent, children, childrenIds, owner,
 		restQuery, cypherQuery, xpathQuery, functionQuery, partialUpdateKey, dataKey, syncedNodes, sharedComponent, isDOMNode,
 		renderDetails, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions,
-		_reload, _confirm, _action, _attributes, _attr, _fieldName, _hide, _rawValue, _class, _id
+		_reload, _confirm, _action, _attributes, _attr, _fieldName, _hide, _rawValue, _class, _id, mostUsedTagsProperty
 	);
 
 	public static final org.structr.common.View htmlView = new org.structr.common.View(DOMElement.class, PropertyView.Html, _accesskey, _class, _contenteditable, _contextmenu, _dir,

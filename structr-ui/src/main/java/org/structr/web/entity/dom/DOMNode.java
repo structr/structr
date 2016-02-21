@@ -20,10 +20,14 @@ package org.structr.web.entity.dom;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,6 +38,7 @@ import org.structr.api.Predicate;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
+import org.structr.api.search.SortType;
 import org.structr.common.Filter;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
@@ -48,6 +53,7 @@ import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.parser.Functions;
+import org.structr.core.property.AbstractReadOnlyProperty;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.ConstantBooleanProperty;
@@ -154,6 +160,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	public static final Property<String> dataStructrIdProperty = new StringProperty("data-structr-id");
 	public static final Property<String> dataHashProperty = new StringProperty("data-structr-hash");
+
+	public static final Property<List<String>> mostUsedTagsProperty = new MostUsedTagsProperty("mostUsedTags");
 
 	static {
 
@@ -1566,5 +1574,110 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 
 		return cachedOwnerDocument;
+	}
+
+	private Map<String, Integer> cachedMostUsedTagNames = null;
+
+	public synchronized Map<String, Integer> getMostUsedElementNames() {
+
+		if (cachedMostUsedTagNames == null) {
+
+			cachedMostUsedTagNames = new LinkedHashMap<>();
+
+			getMostUsedElementNames(cachedMostUsedTagNames, this, 0);
+		}
+
+		return cachedMostUsedTagNames;
+	}
+
+	private void getMostUsedElementNames(final Map<String, Integer> mostUsedElements, final DOMNode parent, final int depth) {
+
+		for (final DOMNode node : parent.getProperty(DOMNode.children)) {
+
+			final String tag = node.getProperty(DOMElement.tag);
+
+			if (tag != null && !Page.nonBodyTags.contains(tag)) {
+
+				final Integer value = cachedMostUsedTagNames.get(tag);
+				if (value == null) {
+					cachedMostUsedTagNames.put(tag, 1);
+				} else {
+					cachedMostUsedTagNames.put(tag, value + 1);
+				}
+			}
+
+			getMostUsedElementNames(mostUsedElements, node, depth + 1);
+		}
+	}
+
+	// nested classes
+	private static class MostUsedTagsProperty extends AbstractReadOnlyProperty<List<String>> {
+
+		public MostUsedTagsProperty(final String name) {
+			super(name);
+		}
+
+		@Override
+		public Class valueType() {
+			return List.class;
+		}
+
+		@Override
+		public Class relatedType() {
+			return null;
+		}
+
+		@Override
+		public List<String> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+			return getProperty(securityContext, obj, applyConverter, null);
+		}
+
+		@Override
+		public List<String> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, Predicate<GraphObject> predicate) {
+
+			final List<String> recentNodes = new LinkedList<>();
+
+			if (obj instanceof DOMNode) {
+
+				DOMNode node                        = (DOMNode)obj;
+				final Map<String, Integer> mostUsed = node.getMostUsedElementNames();
+				final List<Entry<String, Integer>> list = new LinkedList<>(mostUsed.entrySet());
+
+				Collections.sort(list, new Comparator<Entry<String, Integer>>() {
+
+					@Override
+					public int compare(final Entry<String, Integer> o1, final Entry<String, Integer> o2) {
+
+						final Integer v1 = o1.getValue();
+						final Integer v2 = o2.getValue();
+
+						return v2.compareTo(v1);
+					}
+
+				});
+
+				for (final Entry<String, Integer> entry : list) {
+
+					recentNodes.add(entry.getKey());
+
+					if (recentNodes.size() > 4) {
+						break;
+					}
+				}
+			}
+
+			return recentNodes;
+
+		}
+
+		@Override
+		public boolean isCollection() {
+			return true;
+		}
+
+		@Override
+		public SortType getSortType() {
+			return SortType.Default;
+		}
 	}
 }
