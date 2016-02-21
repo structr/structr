@@ -980,30 +980,22 @@ var _Elements = {
 					$('#element-subgroup-switch-' + i + '-' + j).hover(function() {
 						$('.element-subgroup').addClass('hidden');
 						$('#element-subgroup-' + i + '-' + j).removeClass('hidden');
-					}, function() {
-						//$('#element-subgroup-' + i + '-' + j).addClass('hidden');
-					});
+					}, function() {});
 				});
 
 				$('#element-group-switch-' + i).hover(function() {
 					$('.element-group').addClass('hidden');
 					$('#element-group-' + i).removeClass('hidden');
-				}, function() {
-					//$('#element-group-' + i).addClass('hidden');
-				});
+				}, function() {});
 			});
-
-			/*
-			$('#add-child-dialog').hover(function(){}, function(){
-				$(this).remove();
-				$(div).removeClass('nodeHover');
-			});
-			*/
 
 			var offHandler = function() {
+
 				$('#add-child-dialog').remove();
 				$(div).removeClass('nodeHover');
-				$(window.document).remove('mouseup', offHandler);
+
+				// remove offHandler when menu closes
+				$(window.document).off('mouseup', offHandler);
 			};
 
 			$(window.document).on('mouseup', offHandler);
