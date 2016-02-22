@@ -50,6 +50,10 @@ var _Pages = {
 		_Pager.initPager('Folder', 1, 25, 'name', 'asc');
 		_Pager.initPager('Image', 1, 25, 'name', 'asc');
 
+		$(window.document).on('mouseup', function() {
+			$('#add-child-dialog').remove();
+		});
+
 	},
 	resize: function(offsetLeft, offsetRight) {
 

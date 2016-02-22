@@ -995,7 +995,7 @@ var _Elements = {
 							} else {
 
 								$('#element-subgroup-' + i + '-' + j).append('<li id="add-' + tag + '-' + i + '-' + j + '-' + k + '">' + tag + '</li>');
-								$('#add-' + tag + '-' + i + '-' + j + '-' + k).on('click', function(e) {
+								$('#add-' + tag + '-' + i + '-' + j + '-' + k).on('mousedown', function(e) {
 
 									e.stopPropagation();
 									if (tag === 'content') {
@@ -1012,7 +1012,7 @@ var _Elements = {
 					} else {
 
 						$('#element-group-' + i ).append('<li id="add-' + i + '-' + j + '">' + (subitem.name ? subitem.name : subitem) + '</li>');
-						$('#add-' + i + '-' + j).on('click', function(e) {
+						$('#add-' + i + '-' + j).on('mousedown', function(e) {
 							e.stopPropagation();
 							if (subitem.func && (typeof subitem.func === 'function')) {
 								subitem.func();
@@ -1040,20 +1040,5 @@ var _Elements = {
 				}, function() {});
 			});
 		});
-
-		var offHandler = function() {
-
-			$('#add-child-dialog').remove();
-			$(div).removeClass('nodeHover');
-
-			// remove offHandler when menu closes
-			$(window.document).off('mouseup', offHandler);
-			$('iframe').off('mouseover', offHandler);
-
-			return true;
-		};
-
-		$(window.document).on('mouseup', offHandler);
-		$('iframe').on('mouseover', offHandler);
 	}
 };
