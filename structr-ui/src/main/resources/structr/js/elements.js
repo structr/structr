@@ -880,7 +880,7 @@ var _Elements = {
 			e.preventDefault();
 		});
 
-		$(div).on('mousedown', function(e) {
+		$(div).on('mouseup', function(e) {
 
 			if (e.button !== 2 || $(e.target).hasClass('content')) {
 				return;
@@ -995,8 +995,7 @@ var _Elements = {
 							} else {
 
 								$('#element-subgroup-' + i + '-' + j).append('<li id="add-' + tag + '-' + i + '-' + j + '-' + k + '">' + tag + '</li>');
-								$('#add-' + tag + '-' + i + '-' + j + '-' + k).on('mouseup', function(e) {
-
+								$('#add-' + tag + '-' + i + '-' + j + '-' + k).on('click', function(e) {
 
 									e.stopPropagation();
 									if (tag === 'content') {
@@ -1013,12 +1012,16 @@ var _Elements = {
 					} else {
 
 						$('#element-group-' + i ).append('<li id="add-' + i + '-' + j + '">' + (subitem.name ? subitem.name : subitem) + '</li>');
-						$('#add-' + i + '-' + j).on('mouseup', function(e) {
+						$('#add-' + i + '-' + j).on('click', function(e) {
 							e.stopPropagation();
 							if (subitem.func && (typeof subitem.func === 'function')) {
 								subitem.func();
 							} else {
-								Command.createAndAppendDOMNode(entity.pageId, entity.id, subitem, {});
+								if (subitem === 'content') {
+									Command.createAndAppendDOMNode(entity.pageId, entity.id, null, {});
+								} else {
+									Command.createAndAppendDOMNode(entity.pageId, entity.id, subitem, {});
+								}
 							}
 							$('#add-child-dialog').remove();
 							$(div).removeClass('nodeHover');
@@ -1036,19 +1039,21 @@ var _Elements = {
 					$('#element-group-' + i).removeClass('hidden');
 				}, function() {});
 			});
-
-			var offHandler = function() {
-
-				$('#add-child-dialog').remove();
-				$(div).removeClass('nodeHover');
-
-				// remove offHandler when menu closes
-				$(window.document).off('mouseup', offHandler);
-				$('iframe').off('mouseover', offHandler);
-			};
-
-			$(window.document).on('mouseup', offHandler);
-			$('iframe').on('mouseover', offHandler);
 		});
+
+		var offHandler = function() {
+
+			$('#add-child-dialog').remove();
+			$(div).removeClass('nodeHover');
+
+			// remove offHandler when menu closes
+			$(window.document).off('mouseup', offHandler);
+			$('iframe').off('mouseover', offHandler);
+
+			return true;
+		};
+
+		$(window.document).on('mouseup', offHandler);
+		$('iframe').on('mouseover', offHandler);
 	}
 };
