@@ -392,12 +392,21 @@ public class StructrWebSocket implements WebSocketListener {
 		if (user != null) {
 
 			try {
-				final boolean sessionValid = ! SessionHelper.isSessionTimeOut(sessionId);
+
+				final boolean sessionValid = ! SessionHelper.isSessionTimedOut(SessionHelper.getSessionBySessionId(sessionId));
 
 				if (sessionValid) {
 					this.setAuthenticated(sessionId, user);
 				} else {
-					logger.log(Level.WARNING, "Session timed out - ignoring request");
+
+					logger.log(Level.WARNING, "Session {0} timed out - last accessed by {1}", new Object[]{sessionId, user});
+
+					SessionHelper.clearSession(sessionId);
+
+					SessionHelper.invalidateSession(SessionHelper.getSessionBySessionId(sessionId));
+
+					AuthHelper.sendLogoutNotification(user);
+
 				}
 
 			} catch (FrameworkException ex) {

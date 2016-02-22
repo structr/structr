@@ -41,9 +41,9 @@ import org.structr.rest.service.HttpService;
 public class SessionHelper {
 
 	public static final String STANDARD_ERROR_MSG = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
-	private static final Logger logger = Logger.getLogger(SessionHelper.class.getName());
+	public static final String SESSION_IS_NEW     = "SESSION_IS_NEW";
 
-	public static final String SESSION_IS_NEW = "SESSION_IS_NEW";
+	private static final Logger logger = Logger.getLogger(SessionHelper.class.getName());
 
 	public static boolean isSessionTimedOut(final HttpSession session) {
 
@@ -72,34 +72,16 @@ public class SessionHelper {
 
 	}
 
-	public static boolean isSessionTimeOut (final String sessionId) throws FrameworkException {
+	public static HttpSession getSessionBySessionId (final String sessionId) throws FrameworkException {
 
-		final HashSessionManager sessionManager = Services.getInstance().getService(HttpService.class).getHashSessionManager();
-
-		HttpSession session = sessionManager.getSession(sessionId);
-
-		final boolean sessionTimedOut = SessionHelper.isSessionTimedOut(session);
-
-		if (sessionTimedOut) {
-
-			final Principal user = AuthHelper.getPrincipalForSessionId(sessionId);
-
-			logger.log(Level.FINE, "Invalid session: {0}, last accessed {1}, authenticated with user {2}", new Object[]{session, (session != null ? session.getLastAccessedTime() : ""), user});
-
-			if (user != null) {
-
-				AuthHelper.killSession(session, user);
-			}
-
-		}
-
-		return sessionTimedOut;
+		return Services.getInstance().getService(HttpService.class).getHashSessionManager().getSession(sessionId);
 
 	}
 
 	public static HttpSession newSession(final HttpServletRequest request) {
 
 		HttpSession session = request.getSession(true);
+
 		if (session == null) {
 
 			// try again
@@ -164,35 +146,13 @@ public class SessionHelper {
 		if (sessionIds != null && sessionIds.length > 0) {
 
 			for (String sessionId : user.getProperty(Principal.sessionIds)) {
-				HttpSession session = sessionManager.getSession(sessionId);
+				final HttpSession session = sessionManager.getSession(sessionId);
 
 				if (session == null || SessionHelper.isSessionTimedOut(session)) {
 					SessionHelper.clearSession(sessionId);
 				}
 
 			}
-
-		}
-
-	}
-
-	public static void invalidateSessionId(final String sessionId) {
-
-		final HashSessionManager sessionManager = Services.getInstance().getService(HttpService.class).getHashSessionManager();
-
-		HttpSession session = sessionManager.getSession(sessionId);
-
-		try {
-
-			if (session != null) {
-
-				session.invalidate();
-
-			}
-
-		} catch (IllegalArgumentException iae) {
-
-			logger.log(Level.WARNING, "Invalidating already invalidated session failed: {0}", sessionId);
 
 		}
 
