@@ -74,7 +74,6 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 	private static final Logger logger = Logger.getLogger(FileBase.class.getName());
 
-	public static final Property<String> contentType             = new StringProperty("contentType").indexedWhenEmpty();
 	public static final Property<String> relativeFilePath        = new StringProperty("relativeFilePath").systemInternal();
 	public static final Property<Long> size                      = new LongProperty("size").indexed().systemInternal();
 	public static final Property<String> url                     = new StringProperty("url");
@@ -93,8 +92,6 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		if (super.onCreation(securityContext, errorBuffer)) {
 
-			setProperty(hasParent, getProperty(parentId) != null);
-
 			if ("true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_ENABLED, "false"))) {
 
 				final Folder workingOrHomeDir = getCurrentWorkingDir();
@@ -103,6 +100,8 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 					setProperty(AbstractFile.parent, workingOrHomeDir);
 				}
 			}
+
+			setProperty(hasParent, getProperty(parentId) != null);
 
 			return true;
 		}

@@ -915,19 +915,19 @@ StructrElement.prototype.exists = function() {
 };
 
 StructrElement.prototype.isActiveNode = function() {
-	return this.hideOnIndex || this.hideOnDetail || this.hideConditions || this.showConditions || this.dataKey 
+	return this.hideOnIndex || this.hideOnDetail || this.hideConditions || this.showConditions || this.dataKey
 		//String attributes
-		|| this["data-structr-action"] 	
-		|| this["data-structr-attr"] 
-		|| this["data-structr-attributes"] 
-		|| this["data-structr-custom-options-query"] 
+		|| this["data-structr-action"]
+		|| this["data-structr-attr"]
+		|| this["data-structr-attributes"]
+		|| this["data-structr-custom-options-query"]
 		|| this["data-structr-edit-class"]
-		|| this["data-structr-hide"]  
+		|| this["data-structr-hide"]
 		|| this["data-structr-id"]
-		|| this["data-structr-name"] 
+		|| this["data-structr-name"]
 		|| this["data-structr-options-key"]
-		|| this["data-structr-raw-value"] 
-		|| this["data-structr-return"] 
+		|| this["data-structr-raw-value"]
+		|| this["data-structr-return"]
 		|| this["data-structr-type"]
 		//Boolean attributes
 		|| this["data-structr-append-id"]==true

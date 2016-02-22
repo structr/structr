@@ -25,8 +25,6 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
-import org.structr.core.app.App;
-import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractUser;
@@ -44,7 +42,8 @@ import org.structr.schema.action.Actions;
 public class AuthHelper {
 
 	public static final String STANDARD_ERROR_MSG = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
-	private static final Logger logger             = Logger.getLogger(AuthHelper.class.getName());
+
+	private static final Logger logger            = Logger.getLogger(AuthHelper.class.getName());
 
 	//~--- get methods ----------------------------------------------------
 
@@ -57,22 +56,17 @@ public class AuthHelper {
 	 */
 	public static <T> Principal getPrincipalForCredential(final PropertyKey<T> key, final T value) {
 
-		if (value == null) {
-			return null;
-		}
+		if (value != null) {
 
-		final App app = StructrApp.getInstance();
+			try {
 
+				return StructrApp.getInstance().nodeQuery(Principal.class).and(key, value).getFirst();
 
+			} catch (FrameworkException fex) {
 
-		final Query<Principal> query = app.nodeQuery(Principal.class).and(key, value);
+				logger.log(Level.WARNING, "Error while searching for principal", fex);
+			}
 
-		try {
-			return query.getFirst();
-
-		} catch (FrameworkException fex) {
-
-			logger.log(Level.WARNING, "Error while searching for principal", fex);
 		}
 
 		return null;
@@ -166,7 +160,9 @@ public class AuthHelper {
 	 * @return principal
 	 */
 	public static Principal getPrincipalForSessionId(final String sessionId) {
+
 		return getPrincipalForCredential(Principal.sessionIds, new String[]{ sessionId });
+
 	}
 
 	public static void doLogin(final HttpServletRequest request, final Principal user) throws FrameworkException {
@@ -193,21 +189,22 @@ public class AuthHelper {
 
 		final HttpSession session = request.getSession(false);
 
-		// We need a session to logout a user
-		if (session != null) {
-
-			AuthHelper.killSession(session, user);
-
-			try { request.logout(); request.changeSessionId(); } catch (Throwable t) {}
-
-		}
-	}
-
-	public static void killSession (final HttpSession session, final Principal user) throws FrameworkException {
-
 		SessionHelper.clearSession(session.getId());
 
 		SessionHelper.invalidateSession(session);
+
+		AuthHelper.sendLogoutNotification(user);
+
+		try {
+
+			request.logout();
+			request.changeSessionId();
+
+		} catch (Throwable t) {}
+
+	}
+
+	public static void sendLogoutNotification (final Principal user) throws FrameworkException {
 
 		Actions.call(Actions.NOTIFICATION_LOGOUT, user);
 

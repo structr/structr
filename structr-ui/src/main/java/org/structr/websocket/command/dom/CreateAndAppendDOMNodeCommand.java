@@ -48,10 +48,10 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 	private static final Logger logger = Logger.getLogger(CreateAndAppendDOMNodeCommand.class.getName());
 
 	static {
-		
+
 		StructrWebSocket.addCommand(CreateAndAppendDOMNodeCommand.class);
 	}
-	
+
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
@@ -59,55 +59,57 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 		final String parentId              = (String) nodeData.get("parentId");
 		final String childContent          = (String) nodeData.get("childContent");
 		final String pageId                = webSocketData.getPageId();
-		
+
 		nodeData.remove("parentId");
 
 		if (pageId != null) {
 
 			// check for parent ID before creating any nodes
 			if (parentId == null) {
-		
-				getWebSocket().send(MessageBuilder.status().code(422).message("Cannot add node without parentId").build(), true);		
+
+				getWebSocket().send(MessageBuilder.status().code(422).message("Cannot add node without parentId").build(), true);
 				return;
 			}
 
 			// check if parent node with given ID exists
 			final DOMNode parentNode = getDOMNode(parentId);
 			if (parentNode == null) {
-		
-				getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);		
+
+				getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);
 				return;
 			}
-			
+
 			final Document document = getPage(pageId);
 			if (document != null) {
 
 				final String tagName = (String) nodeData.get("tagName");
-				
+
 				nodeData.remove("tagName");
-				
+
 				try {
 
 					DOMNode newNode;
 
 					if (tagName != null && "comment".equals(tagName)) {
-						
+
 						newNode = (DOMNode) document.createComment("#comment");
-						
+
 					} else if (tagName != null && "template".equals(tagName)) {
-						
+
 						newNode = (DOMNode) document.createTextNode("#template");
-	
+
 						try {
-						
+
+							newNode.unlockSystemPropertiesOnce();
+
 							newNode.setProperty(NodeInterface.type, Template.class.getSimpleName());
-						
+
 						} catch (FrameworkException fex) {
 
 							logger.log(Level.WARNING, "Unable to set type of node {1} to Template: {3}", new Object[] { newNode.getUuid(), fex.getMessage() } );
 
 						}
-						
+
 					} else if (tagName != null && !tagName.isEmpty()) {
 
 						newNode = (DOMNode) document.createElement(tagName);
@@ -119,7 +121,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 					// Instantiate node again to get correct class
 					newNode = getDOMNode(newNode.getUuid());
-					
+
 					// append new node to parent
 					if (newNode != null) {
 
@@ -164,22 +166,22 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 						}
 
 					}
-					
+
 				} catch (DOMException dex) {
-						
+
 					// send DOM exception
-					getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);		
-					
+					getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);
+
 				}
-				
+
 			} else {
-		
-				getWebSocket().send(MessageBuilder.status().code(404).message("Page not found").build(), true);		
+
+				getWebSocket().send(MessageBuilder.status().code(404).message("Page not found").build(), true);
 			}
-			
+
 		} else {
-		
-			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot create node without pageId").build(), true);		
+
+			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot create node without pageId").build(), true);
 		}
 	}
 
