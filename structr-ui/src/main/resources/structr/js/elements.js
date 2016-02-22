@@ -996,7 +996,7 @@ var _Elements = {
 							} else {
 
 								$('#element-subgroup-' + i + '-' + j).append('<li id="add-' + tag + '-' + i + '-' + j + '-' + k + '">' + tag + '</li>');
-								$('#add-' + tag + '-' + i + '-' + j + '-' + k).on('mousedown', function(e) {
+								$('#add-' + tag + '-' + i + '-' + j + '-' + k).on('mouseup', function(e) {
 
 									e.stopPropagation();
 									if (tag === 'content') {
@@ -1013,7 +1013,7 @@ var _Elements = {
 					} else {
 
 						$('#element-group-' + i ).append('<li id="add-' + i + '-' + j + '">' + (subitem.name ? subitem.name : subitem) + '</li>');
-						$('#add-' + i + '-' + j).on('mousedown', function(e) {
+						$('#add-' + i + '-' + j).on('mouseup', function(e) {
 							e.stopPropagation();
 							if (subitem.func && (typeof subitem.func === 'function')) {
 								subitem.func();

@@ -67,6 +67,8 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 		} catch (java.lang.IllegalStateException ise) {
 			logger.log(Level.WARNING, "Trying to delete a node which is already deleted", ise.getMessage());
 			return null;
+		} catch (org.structr.api.NotFoundException nfex) {
+			// exception can be ignored, node is already deleted
 		}
 
 		deletedNodes.add(node);

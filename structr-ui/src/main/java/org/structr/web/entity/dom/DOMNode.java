@@ -1188,6 +1188,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
 					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
 					&& !key.equals(DOMElement.syncedNodes)
+					&& !key.equals(DOMNode.mostUsedTagsProperty)
 					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
 
 					properties.put(key, getProperty(key));
@@ -1205,6 +1206,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
 					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
 					&& !key.equals(DOMElement.syncedNodes)
+					&& !key.equals(DOMNode.mostUsedTagsProperty)
 					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
 
 					properties.put(key, getProperty(key));
