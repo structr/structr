@@ -888,6 +888,7 @@ var _Elements = {
 
 			e.stopPropagation();
 
+			$('#add-child-dialog').remove();
 			$('#menu-area').append('<div id="add-child-dialog"></div>');
 
 			var leftOrRight = 'left';
