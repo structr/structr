@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.SessionHelper;
-import org.structr.schema.action.Actions;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
