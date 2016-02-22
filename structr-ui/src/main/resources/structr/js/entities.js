@@ -337,24 +337,17 @@ var _Entities = {
 			editor.markText(sc.from(), sc.to(), {className: 'data-structr-hash', collapsed: true, inclusiveLeft: true});
 		}
 	},
-	showProperties: function(obj) {
+	showProperties: function(obj, activeViewOverride) {
 
 		Command.get(obj.id, function (entity) {
 
 			var views, activeView = 'ui';
-//        if (isIn(entity.type, ['Comment', 'Content', 'Template', 'Page', 'User', 'Group', 'ResourceAccess', 'VideoFile', 'Image', 'File', 'Folder', 'Widget']) || entity.isUser) {
-//            views = ['ui', 'in', 'out'];
-//        } else {
-//            views = ['_html_', 'ui', 'in', 'out'];
-//            activeView = '_html_';
-//        }
-
-			//var attrs = Object.keys(entity);
-
-			//console.log(entity);
-
 			var isRelationship = false;
 			var tabTexts = [];
+
+			if (activeViewOverride) {
+				activeView = activeViewOverride;
+			}
 
 			if (entity.hasOwnProperty('relType')) {
 
@@ -418,7 +411,7 @@ var _Entities = {
 					});
 				}
 
-				_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, activeView);
+				_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, activeView, activeViewOverride);
 			}
 
 			Structr.resize();
@@ -453,7 +446,7 @@ var _Entities = {
 		}
 		return content;
 	},
-	appendViews: function(entity, views, texts, tabsEl, contentEl, activeView) {
+	appendViews: function(entity, views, texts, tabsEl, contentEl, activeView, activeViewOverride) {
 
 		var ul = tabsEl.children('ul');
 
@@ -492,7 +485,7 @@ var _Entities = {
 				});
 			});
 		});
-		activeView = LSWrapper.getItem(activeEditTabPrefix  + '_' + entity.id) || activeView;
+		activeView = activeViewOverride || LSWrapper.getItem(activeEditTabPrefix  + '_' + entity.id) || activeView;
 		$('#tab-' + activeView).click();
 
 	},
@@ -810,91 +803,94 @@ var _Entities = {
 
 		btn.on('click', function(e) {
 			e.stopPropagation();
-			Structr.dialog('Access Control and Visibility', function() {
-			}, function() {
-				Command.get(id, function(entity) {
-					_Crud.refreshRow(id, entity, entity.type);
-				});
-			});
+			_Entities.showAccessControlDialog(id);
+		});
+	},
+	showAccessControlDialog: function(id) {
 
+		Structr.dialog('Access Control and Visibility', function() {
+		}, function() {
 			Command.get(id, function(entity) {
-				_Entities.appendSimpleSelection(dialogText, entity, 'users', 'Owner', 'owner.id');
+				_Crud.refreshRow(id, entity, entity.type);
+			});
+		});
 
-				dialogText.append('<h3>Visibility</h3>');
+		Command.get(id, function(entity) {
+			_Entities.appendSimpleSelection(dialogText, entity, 'users', 'Owner', 'owner.id');
 
-				//('<div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
+			dialogText.append('<h3>Visibility</h3>');
 
-				if (entity.type === 'Template' || entity.isFolder || (lastMenuEntry === 'pages' && !(entity.isContent))) {
-					dialogText.append('<div>Apply visibility switches recursively? <input id="recursive" type="checkbox" name="recursive"></div><br>');
+			//('<div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
+
+			if (entity.type === 'Template' || entity.isFolder || (lastMenuEntry === 'pages' && !(entity.isContent))) {
+				dialogText.append('<div>Apply visibility switches recursively? <input id="recursive" type="checkbox" name="recursive"></div><br>');
+			}
+
+			_Entities.appendBooleanSwitch(dialogText, entity, 'visibleToPublicUsers', ['Visible to public users', 'Not visible to public users'], 'Click to toggle visibility for users not logged-in', '#recursive');
+			_Entities.appendBooleanSwitch(dialogText, entity, 'visibleToAuthenticatedUsers', ['Visible to auth. users', 'Not visible to auth. users'], 'Click to toggle visibility to logged-in users', '#recursive');
+
+			dialogText.append('<h3>Access Rights</h3>');
+			dialogText.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th><th>Access Control</th></tr></thead><tbody></tbody></table');
+
+			var tb = $('#principals tbody', dialogText);
+			tb.append('<tr id="new"><td><select style="width: 300px;z-index: 999" id="newPrincipal"><option>Select Group/User</option></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newWrite" type="checkbox" disabled="disabled"></td><td><input id="newDelete" type="checkbox" disabled="disabled"></td><td><input id="newAccessControl" type="checkbox" disabled="disabled"></td></tr>');
+
+			$.ajax({
+				url: rootUrl + '/' + entity.id + '/in',
+				dataType: 'json',
+				contentType: 'application/json; charset=utf-8',
+				success: function(data) {
+
+					$(data.result).each(function(i, result) {
+
+						var permissions = {
+							'read': isIn('read', result.allowed),
+							'write': isIn('write', result.allowed),
+							'delete': isIn('delete', result.allowed),
+							'accessControl': isIn('accessControl', result.allowed)
+						};
+
+						var principalId = result.principalId;
+						if (principalId) {
+							Command.get(principalId, function(p) {
+								addPrincipal(entity, p, permissions);
+							});
+
+						}
+
+					});
 				}
-
-				_Entities.appendBooleanSwitch(dialogText, entity, 'visibleToPublicUsers', ['Visible to public users', 'Not visible to public users'], 'Click to toggle visibility for users not logged-in', '#recursive');
-				_Entities.appendBooleanSwitch(dialogText, entity, 'visibleToAuthenticatedUsers', ['Visible to auth. users', 'Not visible to auth. users'], 'Click to toggle visibility to logged-in users', '#recursive');
-
-				dialogText.append('<h3>Access Rights</h3>');
-				dialogText.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th><th>Access Control</th></tr></thead><tbody></tbody></table');
-
-				var tb = $('#principals tbody', dialogText);
-				tb.append('<tr id="new"><td><select style="width: 300px;z-index: 999" id="newPrincipal"><option>Select Group/User</option></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newWrite" type="checkbox" disabled="disabled"></td><td><input id="newDelete" type="checkbox" disabled="disabled"></td><td><input id="newAccessControl" type="checkbox" disabled="disabled"></td></tr>');
-
-				$.ajax({
-					url: rootUrl + '/' + entity.id + '/in',
-					dataType: 'json',
-					contentType: 'application/json; charset=utf-8',
-					success: function(data) {
-
-						$(data.result).each(function(i, result) {
-
-							var permissions = {
-								'read': isIn('read', result.allowed),
-								'write': isIn('write', result.allowed),
-								'delete': isIn('delete', result.allowed),
-								'accessControl': isIn('accessControl', result.allowed)
-							};
-
-							var principalId = result.principalId;
-							if (principalId) {
-								Command.get(principalId, function(p) {
-									addPrincipal(entity, p, permissions);
-								});
-
-							}
-
-						});
-					}
+			});
+			var select = $('#newPrincipal');
+			select.chosen({width: '90%'});
+			var i = 0, n = 10000;
+			Command.getByType('Group', n, 1, 'name', 'asc', 'id,name', false, function(groups) {
+				groups.forEach(function(group) {
+					select.append('<option value="' + group.id + '">' + group.name + '</option>');
 				});
-				var select = $('#newPrincipal');
-				select.chosen({width: '90%'});
-				var i = 0, n = 10000;
-				Command.getByType('Group', n, 1, 'name', 'asc', 'id,name', false, function(groups) {
-					groups.forEach(function(group) {
-						select.append('<option value="' + group.id + '">' + group.name + '</option>');
-					});
-					select.trigger("chosen:updated");
+				select.trigger("chosen:updated");
+			});
+			i = 0;
+			var al2 = Structr.loaderIcon(select.parent(), {float: 'right'});
+			Command.getByType('User', n, 1, 'name', 'asc', 'id,name', false, function(users) {
+				users.forEach(function(user) {
+					select.append('<option value="' + user.id + '">' + user.name + '</option>');
 				});
-				i = 0;
-				var al2 = Structr.loaderIcon(select.parent(), {float: 'right'});
-				Command.getByType('User', n, 1, 'name', 'asc', 'id,name', false, function(users) {
-					users.forEach(function(user) {
-						select.append('<option value="' + user.id + '">' + user.name + '</option>');
-					});
-					select.trigger("chosen:updated");
-					if (al2.length)
-						al2.remove();
-				});
-				select.on('change', function() {
-					var sel = $(this);
-					var pId = sel[0].value;
-					var rec = $('#recursive', dialogText).is(':checked');
-					Command.setPermission(entity.id, pId, 'grant', 'read', rec);
-					$('#new', tb).selectedIndex = 0;
+				select.trigger("chosen:updated");
+				if (al2.length)
+					al2.remove();
+			});
+			select.on('change', function() {
+				var sel = $(this);
+				var pId = sel[0].value;
+				var rec = $('#recursive', dialogText).is(':checked');
+				Command.setPermission(entity.id, pId, 'grant', 'read', rec);
+				$('#new', tb).selectedIndex = 0;
 
-					Command.get(pId, function(p) {
-						addPrincipal(entity, p, {'read': true});
-					});
+				Command.get(pId, function(p) {
+					addPrincipal(entity, p, {'read': true});
 				});
 			});
-
 		});
 	},
 	appendTextarea: function(el, entity, key, label, desc) {

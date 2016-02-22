@@ -2684,7 +2684,7 @@ i.fa.ps {
     list-style-type: none;
     margin: 0;
     padding:0;
-    width: 130px;
+    width: 150px;
     z-index: 99999;
     position: relative;
 }
@@ -2733,11 +2733,11 @@ i.fa.ps {
 }
 
 #add-child-dialog ul.right ul.right {
-    right: 130px;
+    right: 150px;
 }
 
 #add-child-dialog ul.left ul.left {
-    left: 130px;
+    left: 150px;
 }
 
 #add-child-dialog ul.top ul.top {
@@ -2745,5 +2745,5 @@ i.fa.ps {
 }
 
 #add-child-dialog ul.bottom ul.bottom {
-    bottom: 1px;
+    bottom: -1px;
 }

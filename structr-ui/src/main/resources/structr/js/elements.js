@@ -902,7 +902,11 @@ var _Elements = {
 
 			if (e.pageY > ($(window).height() / 2)) {
 				topOrBottom = 'bottom';
-				y -= 36;
+				y -= 175;
+
+				if (entity.mostUsedTags.length) {
+					y -= 24;
+				}
 			}
 
 			var cssPositionClasses = leftOrRight + ' ' + topOrBottom;
@@ -913,13 +917,67 @@ var _Elements = {
 			// FIXME: its either this or accept that the div will not be highlighted any more when the menu appears. This is
 			// due to the fact that the menu has to be outside of the actual div to be visible even with overflow: hidden,
 			// which is needed to hide the vertical scroll bar in the pages tree view and others.
-			window.setTimeout(function() { $(div).addClass('nodeHover') }, 10);
+			var setHover = function() {
+				$(div).addClass('nodeHover');
+				if ($('#add-child-dialog').length) {
+					window.setTimeout(setHover, 200);
+				}
+			};
+
+			window.setTimeout(setHover, 10);
 
 			var menu = [
 				{ name: 'Insert HTML element', elements: _Elements.sortedElementGroups },
-				{ name: 'Insert Structr element', elements: [
+				{
+					name: 'Insert Structr element',
+					elements: [
 						'content', 'template'
-				]},
+					],
+					separator: true
+				},
+				{ name: 'Query Settings...',  func: function() { _Entities.showProperties(entity, 'query'); } },
+				{ name: 'Data Binding...',    func: function() { _Entities.showProperties(entity, 'editBinding'); } },
+				{ name: 'HTML Attributes...', func: function() { _Entities.showProperties(entity, '_html_'); } },
+				{ name: 'Node Properties...', func: function() { _Entities.showProperties(entity, 'ui'); }, separator: true },
+				{ name: 'Security...', elements: [
+
+					{ name: 'Edit Security...', func: function() { _Entities.showAccessControlDialog(entity.id); }, separator: true },
+					{ name: 'Authenticated Users...', elements: [
+						{ name: 'Element visible', func: function() {
+							Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, false); }
+						},
+						{ name: 'Element NOT visible', func: function() {
+							Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, false); }
+						},
+						{ name: 'Subtree visible', func: function() {
+							Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, true); },
+							separator: true
+						},
+						{ name: 'Subtree NOT visible', func: function() {
+							Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, true); }
+						},
+						],
+						separator: true
+					},
+					{ name: 'Public Users...', elements: [
+						{ name: 'Element visible', func: function() {
+							Command.setProperty(entity.id, 'visibleToPublicUsers', true, false); }
+						},
+						{ name: 'Element NOT visible', func: function() {
+							Command.setProperty(entity.id, 'visibleToPublicUsers', false, false); }
+						},
+						{ name: 'Subtree visible', func: function() {
+							Command.setProperty(entity.id, 'visibleToPublicUsers', true, true); },
+							separator: true
+						},
+						{ name: 'Subtree NOT visible', func: function() {
+							Command.setProperty(entity.id, 'visibleToPublicUsers', false, true); }
+						},
+						]
+					}
+					],
+					separator: true
+				},
 				{ name: 'Expand / Collapse',   elements: [
 						{ name: 'Expand subtree', func: function() {
 
@@ -945,19 +1003,6 @@ var _Elements = {
 						}}
 					], separator: true
 				},
-				/*
-				{ name: 'Movement', elements: [
-
-						{ name: 'Move to top',    func: function() {} },
-						{ name: 'Move to bottom', func: function() {} }
-					]
-				},
-				{ name: 'Other actions', elements: [
-						{ name: 'Remove element', func: function() {} },
-						{ name: 'Delete element', func: function() {} }
-					]
-				}
-				*/
 			];
 
 			// information about most used elements in this page from backend
@@ -969,71 +1014,118 @@ var _Elements = {
 
 			menu.forEach(function(item, i) {
 
+				var isSubmenu = item.elements && item.elements.length;
+
 				$('#add-child-dialog').append(
 					'<ul class="' + cssPositionClasses + '" id="element-menu-' + i + '"><li id="element-group-switch-' + i + '">' + item.name +
-					'<i class="fa fa-caret-right pull-right"></i>' +
-					'<ul class="element-group hidden ' + cssPositionClasses + '" id="element-group-' + i + '"></ul></li></ul>'
+					(isSubmenu ?
+						'<i class="fa fa-caret-right pull-right"></i>' +
+						'<ul class="element-group hidden ' +
+						cssPositionClasses +
+						'" id="element-group-' + i + '"></ul>'
+						: ''
+					) +
+					'</li></ul>'
 				);
 
 				if (item.separator) {
 					$('#element-menu-' + i ).append('<hr />');
 				}
 
-				item.elements.forEach(function(subitem, j) {
+				if (isSubmenu) {
 
-					if (subitem.elements && subitem.elements.length) {
+					item.elements.forEach(function(subitem, j) {
 
-						$('#element-group-' + i).append(
-							'<li id="element-subgroup-switch-' + i + '-' + j + '">' + subitem.name +
-							'<i class="fa fa-caret-right pull-right"></i>' +
-							'<ul class="element-subgroup hidden ' + cssPositionClasses + '" id="element-subgroup-' + i + '-' + j + '"></ul></li>'
-						);
+						if (subitem.elements && subitem.elements.length) {
 
-						subitem.elements.forEach(function(tag, k) {
+							if (subitem.separator) {
+								$('#element-group-' + i).append('<hr />');
+							}
 
-							if (tag === '|') {
-								$('#element-subgroup-' + i + '-' + j).append('<hr />');
-							} else {
+							$('#element-group-' + i).append(
+								'<li id="element-subgroup-switch-' + i + '-' + j + '">' + subitem.name +
+								'<i class="fa fa-caret-right pull-right"></i>' +
+								'<ul class="element-subgroup hidden ' + cssPositionClasses + '" id="element-subgroup-' + i + '-' + j + '"></ul></li>'
+							);
 
-								$('#element-subgroup-' + i + '-' + j).append('<li id="add-' + tag + '-' + i + '-' + j + '-' + k + '">' + tag + '</li>');
-								$('#add-' + tag + '-' + i + '-' + j + '-' + k).on('mouseup', function(e) {
+							subitem.elements.forEach(function(subsubitem, k) {
 
-									e.stopPropagation();
-									if (tag === 'content') {
+								if (subsubitem.separator) {
+									$('#element-subgroup-' + i + '-' + j).append('<hr />');
+								}
+
+								if (subsubitem.func && (typeof subsubitem.func === 'function')) {
+
+									$('#element-subgroup-' + i + '-' + j).append(
+										'<li id="element-subsubgroup-switch-' + i + '-' + j + '-' + k + '">' + subsubitem.name + '</li>'
+									);
+
+									$('#element-subsubgroup-switch-' + i + '-' + j + '-' + k).on('mouseup', subsubitem.func);
+
+								} else {
+
+									if (subsubitem === '|') {
+
+										$('#element-subgroup-' + i + '-' + j).append('<hr />');
+
+									} else {
+
+										$('#element-subgroup-' + i + '-' + j).append('<li id="add-' + subsubitem + '-' + i + '-' + j + '-' + k + '">' + subsubitem + '</li>');
+										$('#add-' + subsubitem + '-' + i + '-' + j + '-' + k).on('mouseup', function(e) {
+
+											e.stopPropagation();
+											if (subsubitem === 'content') {
+												Command.createAndAppendDOMNode(entity.pageId, entity.id, null, {});
+											} else {
+												Command.createAndAppendDOMNode(entity.pageId, entity.id, subsubitem, {});
+											}
+											$('#add-child-dialog').remove();
+											$(div).removeClass('nodeHover');
+										});
+									}
+								}
+							});
+
+						} else {
+
+							$('#element-group-' + i ).append('<li id="add-' + i + '-' + j + '">' + (subitem.name ? subitem.name : subitem) + '</li>');
+							$('#add-' + i + '-' + j).on('mouseup', function(e) {
+
+								e.stopPropagation();
+								if (subitem.func && (typeof subitem.func === 'function')) {
+									subitem.func();
+								} else {
+									if (subitem === 'content') {
 										Command.createAndAppendDOMNode(entity.pageId, entity.id, null, {});
 									} else {
-										Command.createAndAppendDOMNode(entity.pageId, entity.id, tag, {});
+										Command.createAndAppendDOMNode(entity.pageId, entity.id, subitem, {});
 									}
-									$('#add-child-dialog').remove();
-									$(div).removeClass('nodeHover');
-								});
-							}
-						});
-
-					} else {
-
-						$('#element-group-' + i ).append('<li id="add-' + i + '-' + j + '">' + (subitem.name ? subitem.name : subitem) + '</li>');
-						$('#add-' + i + '-' + j).on('mouseup', function(e) {
-							e.stopPropagation();
-							if (subitem.func && (typeof subitem.func === 'function')) {
-								subitem.func();
-							} else {
-								if (subitem === 'content') {
-									Command.createAndAppendDOMNode(entity.pageId, entity.id, null, {});
-								} else {
-									Command.createAndAppendDOMNode(entity.pageId, entity.id, subitem, {});
 								}
-							}
-							$('#add-child-dialog').remove();
-							$(div).removeClass('nodeHover');
-						});
-					}
+								$('#add-child-dialog').remove();
+								$(div).removeClass('nodeHover');
+							});
+						}
 
-					$('#element-subgroup-switch-' + i + '-' + j).hover(function() {
-						$('.element-subgroup').addClass('hidden');
-						$('#element-subgroup-' + i + '-' + j).removeClass('hidden');
-					}, function() {});
-				});
+						$('#element-subgroup-switch-' + i + '-' + j).hover(function() {
+							$('.element-subgroup').addClass('hidden');
+							$('#element-subgroup-' + i + '-' + j).removeClass('hidden');
+						}, function() {});
+					});
+
+				} else {
+
+					$('#element-menu-' + i).on('mouseup', function(e) {
+
+						e.stopPropagation();
+
+						if (item.func && (typeof item.func === 'function')) {
+							item.func();
+						}
+
+						$('#add-child-dialog').remove();
+						$(div).removeClass('nodeHover');
+					});
+				}
 
 				$('#element-group-switch-' + i).hover(function() {
 					$('.element-group').addClass('hidden');

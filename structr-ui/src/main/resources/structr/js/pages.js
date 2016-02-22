@@ -33,6 +33,7 @@ var selectedTypeKey = 'structrSelectedType_' + port;
 var win = $(window);
 
 $(document).ready(function() {
+
 	Structr.registerModule('pages', _Pages);
 	Structr.classes.push('page');
 });
