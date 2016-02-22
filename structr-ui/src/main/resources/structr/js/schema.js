@@ -846,21 +846,15 @@ var _Schema = {
 		var contentDiv = $('#' + id + '_content');
 
 		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Local Attributes', true, function (c) {
-			Command.get(entity.id, function(e) {
-				_Schema.appendLocalProperties(c, e);
-			});
+			_Schema.appendLocalProperties(c, entity);
 		});
 
 		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', false, function (c) {
-			Command.get(entity.id, function(e) {
-				_Schema.appendViews(c, 'schema_relationship_nodes', e);
-			});
+			_Schema.appendViews(c, 'schema_relationship_nodes', entity);
 		});
 
 		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', false, function (c) {
-			Command.get(entity.id, function(e) {
-				_Schema.appendMethods(c, e);
-			});
+			_Schema.appendMethods(c, entity);
 		});
 
 		var n = $('.schema-details', headEl);
