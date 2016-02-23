@@ -1206,6 +1206,13 @@ var _Schema = {
 									_Schema.confirmRemoveSchemaEntity(property, 'Delete property', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); }, 'Property values will not be removed from data nodes.');
 								});
 
+								var $el = $("#tabView-views.propTabContent");
+								$el.empty();
+								_Schema.appendViews(
+									$el,
+									'schema_relationship_nodes',
+									entity
+								);
 								_Schema.bindEvents(property);
 							}
 						}
