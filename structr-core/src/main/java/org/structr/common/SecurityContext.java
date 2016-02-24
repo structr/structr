@@ -59,6 +59,7 @@ public class SecurityContext {
 	private static final Pattern customViewPattern       = Pattern.compile(".*properties=([a-zA-Z_,]+)");
 	private boolean doTransactionNotifications           = true;
 	private boolean dontModifyAccessTime                 = false;
+	private boolean ignoreResultCount                    = false;
 
 	//~--- fields ---------------------------------------------------------
 	private final Map<String, QueryRange> ranges = new ConcurrentHashMap<>();
@@ -113,6 +114,9 @@ public class SecurityContext {
 				this.doTransactionNotifications = false;
 			}
 
+			if (request.getParameter("ignoreResultCount") != null) {
+				this.ignoreResultCount = true;
+			}
 		}
 	}
 
@@ -711,6 +715,14 @@ public class SecurityContext {
 
 	public void preventModificationOfAccessTime() {
 		dontModifyAccessTime = true;
+	}
+
+	public void ignoreResultCount(final boolean doIgnore) {
+		this.ignoreResultCount = doIgnore;
+	}
+
+	public boolean ignoreResultCount() {
+		return ignoreResultCount;
 	}
 
 	// ----- nested classes -----
