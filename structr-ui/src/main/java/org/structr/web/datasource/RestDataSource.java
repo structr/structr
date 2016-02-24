@@ -178,18 +178,24 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 
 		}
 
+		// experimental: disable result count, prevents instantiation
+		// of large collections just for counting all the objects..
+		securityContext.ignoreResultCount(true);
+
+
 		// TODO: decide if we need to rest the REST request here
 		//securityContext.checkResourceAccess(request, resource.getResourceSignature(), resource.getGrant(request, response), PropertyView.Ui);
 		// add sorting & paging
 		String pageSizeParameter = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
-		String pageParameter = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER);
-		String offsetId = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID);
-		String sortOrder = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
-		String sortKeyName = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
-		boolean sortDescending = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
-		int pageSize = parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
-		int page = parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
-		PropertyKey sortKey = null;
+		String pageParameter     = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER);
+		String offsetId          = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID);
+		String sortOrder         = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
+		String sortKeyName       = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
+		boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
+		int pageSize             = parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
+		int page                 = parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
+
+		PropertyKey sortKey      = null;
 
 		// set sort key
 		if (sortKeyName != null) {

@@ -516,11 +516,11 @@ public class AdvancedPagingTest extends PagingTest {
 		}
 	}
 
-	public void testPagingWithHiddenOrDeletedElements() {
+	public void test08PagingWithHiddenOrDeletedElements() {
 
 		try {
 
-			// create 20 nodes
+			// create 10 nodes
 			createTestNodes(TestOne.class, 10);
 
 		} catch (FrameworkException fex) {

@@ -356,7 +356,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 		try (final QueryResult<S> closeable = input) {
 
-			final boolean preventFullCount             = securityContext.hasParameter("ignoreResultCount");
+			final boolean preventFullCount             = securityContext.ignoreResultCount();
 			final ConcurrentLinkedQueue<Item<S>> queue = new ConcurrentLinkedQueue<>();
 			final List<Future> futures                 = new LinkedList<>();
 			int threadCount                            = 1;

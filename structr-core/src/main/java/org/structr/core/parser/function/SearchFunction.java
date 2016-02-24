@@ -64,6 +64,10 @@ public class SearchFunction extends Function<Object, Object> {
 					query.andTypes(type);
 				}
 			}
+			
+			// experimental: disable result count, prevents instantiation
+			// of large collections just for counting all the objects..
+			securityContext.ignoreResultCount(true);
 
 			// extension for native javascript objects
 			if (sources.length == 2 && sources[1] instanceof Map) {

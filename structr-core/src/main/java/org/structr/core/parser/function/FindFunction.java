@@ -75,6 +75,10 @@ public class FindFunction extends Function<Object, Object> {
 				return "Error in find(): no type specified.";
 			}
 
+			// experimental: disable result count, prevents instantiation
+			// of large collections just for counting all the objects..
+			securityContext.ignoreResultCount(true);
+
 			// extension for native javascript objects
 			if (sources.length == 2 && sources[1] instanceof Map) {
 

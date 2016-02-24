@@ -18,61 +18,60 @@
  */
 package org.structr.api.util;
 
-import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  *
  */
 public class FixedSizeCache<K, V> {
 
-	private final ConcurrentHashMap<K, V> cache = new ConcurrentHashMap<>(10000);
-	private final Queue<K> keyQueue             = new ConcurrentLinkedQueue<>();
-	private long maxSize                        = 10000;
+	private int maxSize      = 100000;
+	private Map<K, V> cache  = null;
+	private int currentSize  = 0;
 
-	public FixedSizeCache(final long maxSize) {
+	public FixedSizeCache(final int maxSize) {
+
+		this.cache   = Collections.synchronizedMap(new LRUMap());
 		this.maxSize = maxSize;
 	}
 
-	public void put(final K key, final V value) {
-
-		// only check size restriction if the
-		// put operation does not replace an
-		// existing element
-		if (cache.put(key, value) == null) {
-
-			// check size
-			if (cache.size() > maxSize) {
-
-				// remove eldest entry (head of queue)
-				final K keyToRemove = keyQueue.poll();
-				if (keyToRemove != null) {
-
-					cache.remove(keyToRemove);
-				}
-			}
-
-			keyQueue.remove(key);
-			keyQueue.add(key);
-		}
+	public synchronized void put(final K key, final V value) {
+		cache.put(key, value);
+		currentSize++;
 	}
 
-	public V get(final K key) {
+	public synchronized V get(final K key) {
 		return cache.get(key);
 	}
 
-	public void remove(final K key) {
+	public synchronized void remove(final K key) {
 		cache.remove(key);
-		keyQueue.remove(key);
+		currentSize--;
 	}
 
-	public void clear() {
+	public synchronized void clear() {
 		cache.clear();
-		keyQueue.clear();
+		currentSize = 0;
 	}
 
-	public int size() {
-		return cache.size();
+	public synchronized int size() {
+		return currentSize;
+	}
+
+	private class LRUMap extends LinkedHashMap<K, V> {
+
+		@Override
+		protected boolean removeEldestEntry(final Entry<K, V> entry) {
+
+			if (currentSize >= maxSize) {
+				currentSize--;
+				return true;
+			}
+
+			return false;
+		}
 	}
 }
