@@ -32,7 +32,6 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.Transaction;
 import org.structr.api.config.Structr;
-import org.structr.api.util.FixedSizeCache;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.api.service.Command;
@@ -41,7 +40,6 @@ import org.structr.core.Services;
 import org.structr.api.service.SingletonService;
 import org.structr.api.service.StructrServices;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 
 
 /**
@@ -52,8 +50,7 @@ import org.structr.core.entity.AbstractNode;
  */
 public class NodeService implements SingletonService {
 
-	private static final Logger logger                                  = Logger.getLogger(NodeService.class.getName());
-	private static final FixedSizeCache<String, AbstractNode> nodeCache = new FixedSizeCache<>(10000);
+	private static final Logger logger = Logger.getLogger(NodeService.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
@@ -180,29 +177,10 @@ public class NodeService implements SingletonService {
 
 	}
 
-	public static void addNodeToCache(String uuid, AbstractNode node) {
-
-		nodeCache.put(uuid, node);
-
-	}
-
-	public static void removeNodeFromCache(String uuid) {
-
-		nodeCache.remove(uuid);
-
-	}
-
-
 	@Override
 	public String getName() {
 
 		return NodeService.class.getSimpleName();
-
-	}
-
-	public static AbstractNode getNodeFromCache(String uuid) {
-
-		return nodeCache.get(uuid);
 
 	}
 

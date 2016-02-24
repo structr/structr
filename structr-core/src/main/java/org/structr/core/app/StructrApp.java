@@ -483,7 +483,7 @@ public class StructrApp implements App {
 
 		if (nodeUuidMap == null) {
 
-			final int cacheSize = Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_UUID_CACHE_SIZE), 10000);
+			final int cacheSize = Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_UUID_CACHE_SIZE), 100000);
 			nodeUuidMap = new FixedSizeCache<>(cacheSize);
 		}
 
@@ -494,7 +494,7 @@ public class StructrApp implements App {
 
 		if (relUuidMap == null) {
 
-			final int cacheSize = Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_UUID_CACHE_SIZE), 10000);
+			final int cacheSize = Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_UUID_CACHE_SIZE), 100000);
 			relUuidMap = new FixedSizeCache<>(cacheSize);
 		}
 

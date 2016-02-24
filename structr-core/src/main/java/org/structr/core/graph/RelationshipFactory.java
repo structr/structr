@@ -47,7 +47,7 @@ import org.structr.core.app.StructrApp;
  */
 public class RelationshipFactory<T extends RelationshipInterface> extends Factory<Relationship, T> {
 
-	private static final FixedSizeCache<Long, Class> idTypeMap = new FixedSizeCache<>(Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_REL_CACHE_SIZE), 10000));
+	private static final FixedSizeCache<Long, Class> idTypeMap = new FixedSizeCache<>(Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_REL_CACHE_SIZE), 100000));
 	private static final Logger logger                         = Logger.getLogger(RelationshipFactory.class.getName());
 
 	// private Map<String, Class> nodeTypeCache = new ConcurrentHashMap<String, Class>();
