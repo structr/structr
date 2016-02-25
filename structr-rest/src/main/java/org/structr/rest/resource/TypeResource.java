@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.GraphObjectComparator;
+import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
@@ -170,22 +171,32 @@ public class TypeResource extends SortableResource {
 					actualSortKey = AbstractNode.name;
 				}
 			}
-
-			final Result result = query
-				.includeDeletedAndHidden(includeDeletedAndHidden)
-				.publicOnly(publicOnly)
-				.sort(actualSortKey)
-				.order(actualSortOrder)
-				.pageSize(pageSize)
-				.page(page)
-				.offsetId(offsetId)
-				.getResult();
-
 			if (virtualType != null) {
-				return virtualType.transformOutput(securityContext, entityClass, result);
-			}
 
-			return result;
+				final Result untransformedResult = query
+					.includeDeletedAndHidden(includeDeletedAndHidden)
+					.publicOnly(publicOnly)
+					.sort(actualSortKey)
+					.order(actualSortOrder)
+					.offsetId(offsetId)
+					.getResult();
+
+				final Result result = virtualType.transformOutput(securityContext, entityClass, untransformedResult);
+
+				return PagingHelper.subResult(result, pageSize, page, offsetId);
+
+			} else {
+
+				return query
+					.includeDeletedAndHidden(includeDeletedAndHidden)
+					.publicOnly(publicOnly)
+					.sort(actualSortKey)
+					.order(actualSortOrder)
+					.pageSize(pageSize)
+					.page(page)
+					.offsetId(offsetId)
+					.getResult();
+			}
 
 		} else {
 
