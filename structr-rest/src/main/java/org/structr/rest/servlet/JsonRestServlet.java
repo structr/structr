@@ -393,6 +393,9 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8;");
 
+			// get reader before initalizing security context
+			final String input = IOUtils.toString(request.getReader());
+
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 				authenticator = config.getAuthenticator();
@@ -401,7 +404,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			}
 
 			final App app              = StructrApp.getInstance(securityContext);
-			final String input         = IOUtils.toString(request.getReader());
 			final IJsonInput jsonInput = cleanAndParseJsonString(app, input);
 
 			if (securityContext != null) {
@@ -576,6 +578,9 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8;");
 
+			// get reader before initalizing security context
+			final String input = IOUtils.toString(request.getReader());
+
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 				authenticator = config.getAuthenticator();
@@ -584,7 +589,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			}
 
 			final App app              = StructrApp.getInstance(securityContext);
-			final String input         = IOUtils.toString(request.getReader());
 			final IJsonInput jsonInput = cleanAndParseJsonString(app, input);
 
 			if (securityContext != null) {
