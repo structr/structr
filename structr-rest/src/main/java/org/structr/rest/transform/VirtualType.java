@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
+import org.structr.api.Predicate;
 import org.structr.api.util.Iterables;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
@@ -40,6 +42,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 
 /**
@@ -50,22 +53,25 @@ public class VirtualType extends AbstractNode {
 	public static final Property<List<VirtualProperty>> properties = new EndNodes<>("properties", VirtualTypeProperty.class);
 	public static final Property<Integer> position                 = new IntProperty("position").indexed();
 	public static final Property<String> sourceType                = new StringProperty("sourceType");
+	public static final Property<String> filterExpression          = new StringProperty("filterExpression");
 
 	public static final View defaultView = new View(VirtualType.class, PropertyView.Public,
-		name, sourceType, position, properties
+		name, sourceType, position, properties, filterExpression
 	);
 
 	public static final View uiView = new View(VirtualType.class, PropertyView.Ui,
-		name, sourceType, position, properties
+		name, sourceType, position, properties, filterExpression
 	);
 
 	public Result transformOutput(final SecurityContext securityContext, final Class sourceType, final Result result) throws FrameworkException {
 
-		final List<VirtualProperty> props    = sort(getProperty(properties));
-		final Mapper mapper                  = new Mapper(securityContext, props, entityType);
-		final Iterable<GraphObject> iterable = Iterables.map(mapper, result.getResults());
+		final List<VirtualProperty> props         = sort(getProperty(properties));
+		final Mapper mapper                       = new Mapper(securityContext, props, entityType);
+		final Filter filter                       = new Filter(securityContext, getProperty(filterExpression));
+		final Iterable<GraphObject> iterable      = Iterables.filter(filter, Iterables.map(mapper, result.getResults()));
+		final List<GraphObject> transformedResult = Iterables.toList(iterable);
 
-		return new Result(Iterables.toList(iterable), result.getRawResultCount(), result.isCollection(), result.isPrimitiveArray());
+		return new Result(transformedResult,transformedResult.size(), result.isCollection(), result.isPrimitiveArray());
 	}
 
 	public void transformInput(final SecurityContext securityContext, final Class type, final Map<String, Object> propertySet) throws FrameworkException {
@@ -93,6 +99,35 @@ public class VirtualType extends AbstractNode {
 	}
 
 	// ----- nested classes -----
+	private static class Filter implements Predicate<GraphObject> {
+
+		private ActionContext ctx = null;
+		private String expression = null;
+
+		public Filter(final SecurityContext securityContext, final String expression) {
+
+			this.ctx        = new ActionContext(securityContext);
+			this.expression = expression;
+		}
+
+		@Override
+		public boolean accept(final GraphObject value) {
+
+			if (StringUtils.isNotBlank(expression)) {
+
+				try {
+
+					return Boolean.TRUE.equals(Scripting.evaluate(ctx, value, "${" + expression + "}"));
+
+				} catch (FrameworkException fex) {
+					fex.printStackTrace();
+				}
+			}
+
+			return true;
+		}
+	}
+
 	private static class Mapper implements Function<GraphObject, GraphObject> {
 
 		private final List<Transformation> transformations = new LinkedList<>();
