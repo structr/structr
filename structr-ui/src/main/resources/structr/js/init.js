@@ -372,14 +372,19 @@ var Structr = {
 		if (text) {
 			$('#confirmation .confirmationText').html(text);
 		}
+		var $yesButton = $('#confirmation .yesButton');
+		var $noButton = $('#confirmation .noButton');
+
 		if (yesCallback) {
-			$('#confirmation .yesButton').on('click', function(e) {
+			$yesButton.on('click', function(e) {
 				e.stopPropagation();
 				yesCallback();
-				$(this).off('click');
+				$yesButton.off('click');
+				$noButton.off('click');
 			});
 		}
-		$('#confirmation .noButton').on('click', function(e) {
+
+		$noButton.on('click', function(e) {
 			e.stopPropagation();
 			$.unblockUI({
 				fadeOut: 25
@@ -387,6 +392,8 @@ var Structr = {
 			if (noCallback) {
 				noCallback();
 			}
+			$yesButton.off('click');
+			$noButton.off('click');
 		});
 		$.blockUI.defaults.overlayCSS.opacity = .6;
 		$.blockUI.defaults.applyPlatformOpacityRules = false;
