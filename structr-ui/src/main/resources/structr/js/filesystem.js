@@ -427,7 +427,8 @@ var _Filesystem = {
 
 		$.ajax({
 			url: rootUrl + 'me',
-			dataType: 'application/json',
+			dataType: 'json',
+			contentType: 'application/json; UTF-8',
 			type: 'PUT',
 			data: data
 		});
