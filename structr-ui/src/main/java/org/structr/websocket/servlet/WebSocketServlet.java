@@ -21,6 +21,7 @@ package org.structr.websocket.servlet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
+import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.rest.service.HttpServiceServlet;
@@ -54,8 +55,11 @@ public class WebSocketServlet extends org.eclipse.jetty.websocket.servlet.WebSoc
 
 		// create GSON serializer
 		final GsonBuilder gsonBuilder = new GsonBuilder()
-			.setPrettyPrinting()
 			.registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(config.getOutputNestingDepth()));
+
+		if (Boolean.parseBoolean(StructrApp.getConfigurationValue(Services.WS_INDENTATION, "true"))) {
+			gsonBuilder.setPrettyPrinting();
+		}
 
 		final boolean lenient = Boolean.parseBoolean(StructrApp.getConfigurationValue("json.lenient", "false"));
 		if (lenient) {

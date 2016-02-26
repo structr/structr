@@ -90,6 +90,7 @@ public class Services implements StructrServices {
 	public static final String UDP_PORT                                  = "udp.port";
 	public static final String JSON_INDENTATION                          = "json.indentation";
 	public static final String HTML_INDENTATION                          = "html.indentation";
+	public static final String WS_INDENTATION                            = "ws.indentation";
 	public static final String JSON_REDUNDANCY_REDUCTION                 = "json.redundancyReduction";
 	public static final String GEOCODING_PROVIDER                        = "geocoding.provider";
 	public static final String GEOCODING_LANGUAGE                        = "geocoding.language";

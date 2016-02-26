@@ -88,6 +88,7 @@ superuser.password =
 # Indentation
 html.indentation = true
 json.indentation = true
+ws.indentation = true
 
 # Use lenient serialization, e.g. allow to serialize NaN, -Infinity, Infinity instead of just returning null
 # Please note: As long as Javascript doesn't support NaN etc., most of the UI will be broken
