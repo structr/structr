@@ -667,15 +667,13 @@ var _Schema = {
 
 					$('#rel_' + res.id + ' .remove').on('click', function(e) {
 						e.stopPropagation();
-						Structr.confirmation('<h3>Delete schema relationship?</h3>',
-								function() {
-									$.unblockUI({
-										fadeOut: 25
-									});
-									_Schema.detach(res.id);
-									_Schema.reload();
-								});
-						_Schema.reload();
+						Structr.confirmation('<h3>Delete schema relationship?</h3>', function() {
+							$.unblockUI({
+								fadeOut: 25
+							});
+							_Schema.detach(res.id);
+							_Schema.reload();
+						});
 						return false;
 					});
 				});
