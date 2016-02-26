@@ -1010,7 +1010,7 @@ var _Schema = {
 			propertiesTable.append('<tr class="' + rowClass + '"><td><input size="15" type="text" class="property-name" placeholder="Enter JSON name" autofocus></td>'
 					+ '<td><input size="15" type="text" class="property-dbname" placeholder="Enter DB name"></td>'
 					+ '<td>' + typeOptions + '</td>'
-					+ '<td><input size="15" type="text" class="property-format" placeholder="Enter format or read function code"></td>'
+					+ '<td><input size="15" type="text" class="property-format" placeholder="Enter format"></td>'
 					+ '<td><input class="not-null" type="checkbox"></td>'
 					+ '<td><input class="unique" type="checkbox"></td>'
 					+ '<td><input class="indexed" type="checkbox"></td>'
@@ -1589,7 +1589,7 @@ var _Schema = {
 			});
 
 		} else {
-			
+
 			Command.get(rel.sourceId, function(sourceSchemaNode) {
 				$('.' + key + ' td:nth-child(2)', el).append(' <span class="remote-schema-node" id="source_' + sourceSchemaNode.id + '">'+ sourceSchemaNode.name + '</span>');
 
