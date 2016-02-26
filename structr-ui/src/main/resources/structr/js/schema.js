@@ -1110,7 +1110,7 @@ var _Schema = {
 	},
 	appendRemoteProperties: function(el, entity) {
 
-		el.append('<table class="related-attrs schema-props"><thead><th>JSON Name</th><th>Type and Direction</th></thead></table>');
+		el.append('<table class="related-attrs schema-props"><thead><th>JSON Name</th><th>Type, Direction and Remote type</th></thead></table>');
 
 		var url = rootUrl + 'schema_relationship_nodes?sourceId=' + entity.id;
 		$.ajax({
@@ -1574,6 +1574,32 @@ var _Schema = {
 
 		el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name related" value="' + key + '"></td><td>'
 				+ (out ? '-' : '&lt;-') + '[:' + relType + ']' + (out ? '-&gt;' : '-') + '</td></tr>');
+
+
+		if (out) {
+
+			Command.get(rel.targetId, function(targetSchemaNode) {
+				$('.' + key + ' td:nth-child(2)', el).append(' <span class="remote-schema-node" id="target_' + targetSchemaNode.id + '">'+ targetSchemaNode.name + '</span>');
+
+				$('#target_' + targetSchemaNode.id, el).on('click', function(e) {
+					e.stopPropagation();
+					_Schema.openEditDialog(targetSchemaNode.id);
+					return false;
+				});
+			});
+
+		} else {
+			
+			Command.get(rel.sourceId, function(sourceSchemaNode) {
+				$('.' + key + ' td:nth-child(2)', el).append(' <span class="remote-schema-node" id="source_' + sourceSchemaNode.id + '">'+ sourceSchemaNode.name + '</span>');
+
+				$('#target_' + sourceSchemaNode.id, el).on('click', function(e) {
+					e.stopPropagation();
+					_Schema.openEditDialog(sourceSchemaNode.id);
+					return false;
+				});
+			});
+		}
 
 		$('.' + key + ' .property-name', el).on('blur', function() {
 
