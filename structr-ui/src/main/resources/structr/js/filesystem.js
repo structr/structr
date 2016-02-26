@@ -213,7 +213,7 @@ var _Filesystem = {
 
 									children.push({
 										id: d.id,
-										text: d.name,
+										text: d.name ? d.name : '[unnamed]',
 										children: d.isFolder && d.folders.length > 0,
 										icon: 'fa fa-folder'
 									});
@@ -381,7 +381,7 @@ var _Filesystem = {
 				folders.forEach(function(d) {
 					list.push({
 						id: d.id,
-						text: d.name,
+						text:  d.name ? d.name : '[unnamed]',
 						children: d.isFolder && d.folders.length > 0,
 						icon: 'fa fa-folder',
 						path: d.path
@@ -401,7 +401,7 @@ var _Filesystem = {
 				folders.forEach(function(d) {
 					list.push({
 						id: d.id,
-						text: d.name,
+						text:  d.name ? d.name : '[unnamed]',
 						children: d.isFolder && d.folders.length > 0,
 						icon: 'fa fa-folder',
 						path: d.path
@@ -526,13 +526,13 @@ var _Filesystem = {
 		} else {
 			row.append('<td class="file-type"><a href="' + d.path + '" target="_blank"><i class="fa ' + icon + '"></i></a></td>');
 			row.append('<td><div id="id_' + d.id + '" data-structr_type="file" class="node file">'
-			+ '<b title="' + d.name + '" class="name_">' + fitStringToWidth(d.name, 200) + '</b>'
+			+ '<b title="' +  (d.name ? d.name : '[unnamed]') + '" class="name_">' + fitStringToWidth(d.name ? d.name : '[unnamed]', 200) + '</b>'
 			+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + d.size + '</span></div></div></div><span class="id">' + d.id + '</span></div></td>');
 		}
 
 		row.append('<td>' + size + '</td>');
 		row.append('<td>' + d.type + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td>');
-		row.append('<td>' + (d.owner ? d.owner.name : '') + '</td>');
+		row.append('<td>' + (d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '') + '</td>');
 
 		// Change working dir by click on folder icon
 		$('#id_' + d.id + '.folder').parent().prev().on('click', function(e) {
