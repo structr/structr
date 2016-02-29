@@ -29,6 +29,7 @@ var mouseDownCoords = {x:0, y:0};
 var mouseUpCoords = {x:0, y:0};
 var selectBox, nodeDragStartpoint;
 var selectedNodes = [];
+var showSchemaOverlaysKey = 'structrShowSchemaOverlays_' + port;
 
 
 $(document).ready(function() {
@@ -137,6 +138,11 @@ var _Schema = {
 				_Schema.openSchemaDisplayOptions();
 			});
 
+			schemaContainer.append('<input type="checkbox" id="schema-show-overlays" name="schema-show-overlays" style="margin-left:10px"><label for="schema-show-overlays"> Show Overlays</label>');
+			$('#schema-show-overlays').on('change', function() {
+				_Schema.updateOverlayVisibility($(this).prop('checked'));
+			});
+
 			$('#type-name').on('keyup', function(e) {
 
 				if (e.keyCode === 13) {
@@ -218,6 +224,8 @@ var _Schema = {
 					_Schema.resize();
 
 					Structr.unblockMenu(500);
+
+					_Schema.updateOverlayVisibility(LSWrapper.getItem(showSchemaOverlaysKey));
 
 				});
 
@@ -2955,6 +2963,15 @@ var _Schema = {
 		collection.sort(function(a, b) {
 			return ((a[sortKey] > b[sortKey]) ? 1 : ((a[sortKey] < b[sortKey]) ? -1 : 0));
 		});
+	},
+	updateOverlayVisibility:function(show) {
+		LSWrapper.setItem(showSchemaOverlaysKey, show);
+		$('#schema-show-overlays').prop('checked', show);
+		if (show) {
+			$('.rel-type, .multiplicity').show();
+		} else {
+			$('.rel-type, .multiplicity').hide();
+		}
 	}
 };
 
