@@ -124,6 +124,11 @@ var _Filesystem = {
 		$.jstree.defaults.core.themes.dots      = false;
 		$.jstree.defaults.dnd.inside_pos        = 'last';
 		$.jstree.defaults.dnd.large_drop_target = true;
+
+		fileTree.on('ready.jstree', function() {
+			var rootEl = $('#root > .jstree-wholerow');
+			_Dragndrop.makeDroppable(rootEl);
+		});
 		
 		_Filesystem.loadAndSetWorkingDir(function() {
 			_Filesystem.initTree();
@@ -132,7 +137,6 @@ var _Filesystem = {
 			}
 
 		});
-	
 
 		fileTree.on('select_node.jstree', function(evt, data) {
 
@@ -226,11 +230,6 @@ var _Filesystem = {
 
 								callback(list);
 								
-								window.setTimeout(function() {
-									var rootEl = $('#root > .jstree-wholerow');
-									_Dragndrop.makeDroppable(rootEl);
-								}, 500);
-
 							});
 							break;
 
@@ -244,8 +243,7 @@ var _Filesystem = {
 					}
 				}
 			}
-		});
-		
+		});		
 	},
 	unload: function() {
 		fastRemoveAllChildren(main[0]);
@@ -435,7 +433,6 @@ var _Filesystem = {
 						_Dragndrop.makeDroppable(el);
 					});
 				}, 500);
-
 
 			}, true);
 		}

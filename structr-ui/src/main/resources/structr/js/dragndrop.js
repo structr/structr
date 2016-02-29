@@ -456,10 +456,19 @@ var _Dragndrop = {
 		var refreshTimeout;
 		if (!pageId) {
 			
+			if (source.id === target.id) {
+				return false;
+			}
+			
 			if (selectedElements.length > 1) {
 
 				$.each(selectedElements, function(i, fileEl) {
 					var fileId = Structr.getId(fileEl);
+					
+					if (fileId === target.id) {
+						return false;
+					}
+					
 					Command.appendFile(fileId, target.id, function() {
 						if (refreshTimeout) {
 							window.clearTimeout(refreshTimeout);

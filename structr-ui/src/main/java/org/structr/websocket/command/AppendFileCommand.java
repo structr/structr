@@ -64,11 +64,21 @@ public class AppendFileCommand extends AbstractCommand {
 		// check for parent ID
 		if (parentId == null) {
 
-			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot add node without parentId").build(), true);
+			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot append node without parentId").build(), true);
 
 			return;
 
 		}
+		
+		// never append to self
+		if (parentId.equals(id)) {
+
+			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot append node as its own child.").build(), true);
+
+			return;
+
+		}
+		
 
 		// check if parent node with given ID exists
 		AbstractNode parentNode = getNode(parentId);
