@@ -832,20 +832,6 @@ var Structr = {
 
 		return entity;
 	},
-	/*
-	initPager: function(type, p, ps, sort, order) {
-		var pagerData = LSWrapper.getItem(pagerDataKey + type);
-		if (!pagerData) {
-			page[type] = parseInt(p);
-			pageSize[type] = parseInt(ps);
-			sortKey[type] = sort;
-			sortOrder[type] = order;
-			Structr.storePagerData(type, p, ps, sort, order);
-		} else {
-			Structr.restorePagerData(type, p, ps, sort, order);
-		}
-	},
-	*/
 	makePagesMenuDroppable: function() {
 
 		try {

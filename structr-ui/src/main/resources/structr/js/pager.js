@@ -29,8 +29,8 @@ var _Pager = {
 
 	initPager: function(type, p, ps, sort, order, filters) {
 		if (!_Pager.restorePagerData(type)) {
-			page[type] = p;
-			pageSize[type] = ps;
+			page[type] = parseInt(p);
+			pageSize[type] = parseInt(ps);
 			sortKey[type] = sort;
 			sortOrder[type] = order;
 			pagerFilters[type] = filters || {};
@@ -46,8 +46,8 @@ var _Pager = {
 
 	storePagerData: function(type, page, pageSize, sort, order, filters) {
 		var data = {
-			page: page,
-			pageSize: pageSize,
+			page: parseInt(page),
+			pageSize: parseInt(pageSize),
 			sort: sort,
 			order: order,
 			filters: filters
