@@ -1188,7 +1188,7 @@ button img {
     border: 1px solid #666;
 }
 
-#files h1, #images h1 {
+#filesystem-main h1, #images h1 {
     color: #333;
     font-size: 16px;
     font-weight: bold;
@@ -1198,10 +1198,10 @@ button img {
 
 }
 
-#files .selected, #files .selected:hover {
+#filesystem-main .selected, #filesystem-main .selected:hover {
     color: #333 ! important;
-    border: 1px solid #a5a5a5;
-    background-color: #81ce25;
+    border: 1px solid #a5a5a5 ! important;
+    background-color: #81ce25 ! important;
 }
 
 .node-helper {
@@ -2415,6 +2415,10 @@ td#cascading-options, td#propagation-options {
 
 #filesystem-main input.new-name {
   font-weight: normal;
+}
+
+#file-tree .nodeHover {
+    border: none;
 }
 
 #file-tree-container {

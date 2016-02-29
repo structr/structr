@@ -34,6 +34,7 @@ $(document).ready(function() {
 });
 
 var _Filesystem = {
+
 	init: function() {
 
 		_Logger.log(_LogType.FILESYSTEM, '_Filesystem.init');
@@ -69,7 +70,7 @@ var _Filesystem = {
 
 		var windowWidth = win.width();
 		var windowHeight = win.height();
-		var headerOffsetHeight = 82 + 48;
+		var headerOffsetHeight = 100;
 
 		if (fileTree) {
 			fileTree.css({
@@ -81,7 +82,7 @@ var _Filesystem = {
 		if (folderContents) {
 			folderContents.css({
 				width: windowWidth - 400 - 64 + 'px',
-				height: windowHeight - headerOffsetHeight - 43 + 'px'
+				height: windowHeight - headerOffsetHeight - 55 + 'px'
 			});
 		}
 		Structr.resize();
@@ -120,8 +121,10 @@ var _Filesystem = {
 			});
 		});
 
-		$.jstree.defaults.core.themes.dots = false;
-
+		$.jstree.defaults.core.themes.dots      = false;
+		$.jstree.defaults.dnd.inside_pos        = 'last';
+		$.jstree.defaults.dnd.large_drop_target = true;
+		
 		_Filesystem.loadAndSetWorkingDir(function() {
 			_Filesystem.initTree();
 			if (!currentWorkingDir) {
@@ -129,6 +132,7 @@ var _Filesystem = {
 			}
 
 		});
+	
 
 		fileTree.on('select_node.jstree', function(evt, data) {
 
@@ -175,6 +179,7 @@ var _Filesystem = {
 			}
 			_Filesystem.open(dirs);
 		});
+		
 	},
 	refreshTree: function() {
 		fileTree.jstree('refresh');
@@ -186,7 +191,7 @@ var _Filesystem = {
 				'animation': 0,
 				'state': {'key': 'structr-ui'},
 				'async': true,
-				'data': function(obj, cb) {
+				'data': function(obj, callback) {
 
 					switch (obj.id) {
 
@@ -219,23 +224,28 @@ var _Filesystem = {
 									});
 								});
 
-								cb(list);
+								callback(list);
+								
+								window.setTimeout(function() {
+									var rootEl = $('#root');
+									_Dragndrop.makeDroppable(rootEl);
+								}, 100);
 
 							});
 							break;
 
 						case 'root':
-							_Filesystem.load(null, cb);
+							_Filesystem.load(null, callback);
 							break;
 
 						default:
-							_Filesystem.load(obj.id, cb);
+							_Filesystem.load(obj.id, callback);
 							break;
 					}
 				}
 			}
 		});
-
+		
 	},
 	unload: function() {
 		fastRemoveAllChildren(main[0]);
@@ -389,7 +399,15 @@ var _Filesystem = {
 				});
 
 				callback(list);
-
+				
+				window.setTimeout(function() {
+					list.forEach(function(obj) {
+						var el = $('#file-tree #' + obj.id);
+						StructrModel.create({id: obj.id});
+						_Dragndrop.makeDroppable(el);
+					});
+				}, 100);
+			
 			}, true);
 
 		} else {
@@ -409,11 +427,18 @@ var _Filesystem = {
 				});
 
 				callback(list);
+				
+				window.setTimeout(function() {
+					list.forEach(function(obj) {
+						var el = $('#file-tree #' + obj.id);
+						StructrModel.create({id: obj.id});
+						_Dragndrop.makeDroppable(el);
+					});
+				}, 100);
+
 
 			}, true);
-
 		}
-
 
 	},
 	setWorkingDirectory: function(id) {
@@ -570,7 +595,6 @@ var _Filesystem = {
 		});
 
 		_Entities.appendAccessControlIcon(div, d);
-
 		var delIcon = div.children('.delete_icon');
 		if (d.isFolder) {
 
@@ -593,11 +617,6 @@ var _Filesystem = {
 				_Entities.deleteNode(this, d, true, function() {
 					_Filesystem.refreshTree();
 				});
-			});
-
-			div.draggable({
-				revert: 'invalid',
-				stack: '.node'
 			});
 
 			div.droppable({
@@ -643,7 +662,6 @@ var _Filesystem = {
 				}
 			});
 
-
 		} else {
 
 			// ********** Files **********
@@ -680,41 +698,43 @@ var _Filesystem = {
 
 			_Filesystem.appendEditFileIcon(div, d);
 
-			div.draggable({
-				revert: 'invalid',
-				//helper: 'clone',
-				containment: 'document',
-				//stack: '.node',
-				appendTo: '#main',
-				//zIndex: 2,
-//				start: function(e, ui) {
-//					$(this).hide();
-//					ui.helper.css({
-//						width: files.width() + 'px'
-//					});
-//				},
-				stop: function(e, ui) {
-					$(this).show();
-					//$('#pages_').droppable('enable').removeClass('nodeHover');
-					$(e.toElement).one('click', function(e) {
-						e.stopImmediatePropagation();
-					});
-				},
-				helper: function(event) {
-					selectedElements = $('.node.selected');
-					if (selectedElements.length > 1) {
-						selectedElements.removeClass('selected');
-						return $('<img class="node-helper" src="icon/page_white_stack.png">')
-								.css("margin-left", event.clientX - $(event.target).offset().left);
-					}
-					return $(this).clone();
-				}
-			});
-
 		}
+
+		div.draggable({
+			revert: 'invalid',
+			//helper: 'clone',
+			containment: 'body',
+			stack: '.jstree-node',
+			appendTo: '#main',
+			forceHelperSize: true,
+			forcePlaceholderSize: true,
+			distance: 5,
+			cursorAt: { top: 8, left: 25 },
+			zIndex: 99,
+			//containment: 'body',
+			stop: function(e, ui) {
+				$(this).show();
+				//$('#pages_').droppable('enable').removeClass('nodeHover');
+				$(e.toElement).one('click', function(e) {
+					e.stopImmediatePropagation();
+				});
+			},
+			helper: function(event) {
+				var helperEl = $(this);
+				selectedElements = $('.node.selected');
+				if (selectedElements.length > 1) {
+					selectedElements.removeClass('selected');
+					return $('<img class="node-helper" src="icon/page_white_stack.png">');//.css("margin-left", event.clientX - $(event.target).offset().left);
+				}
+				var hlp = helperEl.clone();
+				hlp.find('.button').remove();
+				return hlp;
+			}
+		});
+
 		_Entities.appendEditPropertiesIcon(div, d);
 		_Entities.setMouseOver(div);
-
+		_Entities.makeSelectable(div);
 
 	},
 	appendEditFileIcon: function(parent, file) {
@@ -809,7 +829,7 @@ var _Filesystem = {
 						container.append('<h1>' + data.result.length + ' search results:</h1><table class="props"><thead><th class="_type">Type</th><th>Name</th><th>Size</th></thead><tbody></tbody></table>');
 						data.result.forEach(function(d) {
 							var icon = _Filesystem.getIcon(d.name, d.contentType);
-							$('tbody', container).append('<tr><td><i class="fa ' + icon + '"></i> ' + d.type + ' (' + d.contentType + ')</td><td><a href="#results' + d.id + '">' + d.name + '</a></td><td>' + d.size + '</td></tr>');
+							$('tbody', container).append('<tr><td><i class="fa ' + icon + '"></i> ' + d.type + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td><td><a href="#results' + d.id + '">' + d.name + '</a></td><td>' + d.size + '</td></tr>');
 
 						});
 					}

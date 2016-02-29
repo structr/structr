@@ -421,7 +421,7 @@ var Command = {
 	 * to the new one.
 	 *
 	 */
-	appendFile: function(id, parentId) {
+	appendFile: function(id, parentId, callback) {
 		var obj = {};
 		obj.command = 'APPEND_FILE';
 		obj.id = id;
@@ -429,7 +429,7 @@ var Command = {
 		data.parentId = parentId;
 		obj.data = data;
 		_Logger.log(_LogType.WS[obj.command], 'appendFile()', obj);
-		return sendObj(obj);
+		return sendObj(obj, callback);
 	},
 	/**
 	 * Send an UNARCHIVE command to the server.

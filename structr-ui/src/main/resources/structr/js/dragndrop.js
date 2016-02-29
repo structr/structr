@@ -72,6 +72,19 @@ var _Dragndrop = {
 
 				var targetId = Structr.getId(self);
 
+				if (self.hasClass('jstree-node')) {
+					targetId = self.prop('id');
+					
+					if (targetId === 'root') {
+						Command.setProperty(sourceId, 'parent', null, false, function() {
+							$(ui.draggable).remove();
+							_Filesystem.refreshTree();
+							return true;
+						});
+						return;
+					}
+				}
+
 				if (!targetId) {
 					targetId = self.attr('data-structr-id');
 				}
@@ -88,7 +101,7 @@ var _Dragndrop = {
 
 				var source = StructrModel.obj(sourceId);
 				var target = StructrModel.obj(targetId);
-
+				
 				var page = self.closest('.page')[0];
 
 				if (!page) {
@@ -246,7 +259,7 @@ var _Dragndrop = {
 
 		}
 
-		if (source && source.isFile) {
+		if (source && (source.isFile || source.isFolder)) {
 
 			return _Dragndrop.fileDropped(source, target, pageId);
 
@@ -440,6 +453,34 @@ var _Dragndrop = {
 
 	},
 	fileDropped: function(source, target, pageId) {
+		var refreshTimeout;
+		if (!pageId) {
+			
+			if (selectedElements.length > 1) {
+
+				$.each(selectedElements, function(i, fileEl) {
+					var fileId = Structr.getId(fileEl);
+					Command.appendFile(fileId, target.id, function() {
+						if (refreshTimeout) {
+							window.clearTimeout(refreshTimeout);
+						}
+						refreshTimeout = window.setTimeout(function() {
+							_Filesystem.refreshTree();
+							refreshTimeout = 0;
+						}, 100);
+						
+					});
+				});
+				selectedElements.length = 0;
+
+			} else {
+				Command.appendFile(source.id, target.id, function() {
+					_Filesystem.refreshTree();
+				});
+			}
+			
+			return true;
+		}
 
 		var nodeData = {}, tag;
 

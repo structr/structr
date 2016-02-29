@@ -1190,8 +1190,9 @@ var Structr = {
 		return Structr.getIdFromPrefixIdString($(element).prop('id'), 'id_') || undefined;
 	},
 	getIdFromPrefixIdString: function(idString, prefix) {
-		if (!idString || !idString.startsWith(prefix))
+		if (!idString || !idString.startsWith(prefix)) {
 			return false;
+		}
 		return idString.substring(prefix.length);
 	},
 	getComponentId: function(element) {
