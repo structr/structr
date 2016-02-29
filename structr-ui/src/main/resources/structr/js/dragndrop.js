@@ -72,8 +72,8 @@ var _Dragndrop = {
 
 				var targetId = Structr.getId(self);
 
-				if (self.hasClass('jstree-node')) {
-					targetId = self.prop('id');
+				if (self.hasClass('jstree-wholerow')) {
+					targetId = self.parent().prop('id');
 					
 					if (targetId === 'root') {
 						Command.setProperty(sourceId, 'parent', null, false, function() {

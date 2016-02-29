@@ -933,7 +933,7 @@ img.button {
 }
 
 .nodeHover {
-    z-index: 2;
+    /*z-index: 2;*/
 }
 
 .nodeSelected {
@@ -2419,6 +2419,7 @@ td#cascading-options, td#propagation-options {
 
 #file-tree .nodeHover {
     border: none;
+    background-color: #eff8e3 ! important;
 }
 
 #file-tree-container {

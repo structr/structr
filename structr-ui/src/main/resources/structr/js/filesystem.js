@@ -227,9 +227,9 @@ var _Filesystem = {
 								callback(list);
 								
 								window.setTimeout(function() {
-									var rootEl = $('#root');
+									var rootEl = $('#root > .jstree-wholerow');
 									_Dragndrop.makeDroppable(rootEl);
-								}, 100);
+								}, 500);
 
 							});
 							break;
@@ -402,11 +402,11 @@ var _Filesystem = {
 				
 				window.setTimeout(function() {
 					list.forEach(function(obj) {
-						var el = $('#file-tree #' + obj.id);
+						var el = $('#file-tree #' + obj.id + ' > .jstree-wholerow');
 						StructrModel.create({id: obj.id});
 						_Dragndrop.makeDroppable(el);
 					});
-				}, 100);
+				}, 500);
 			
 			}, true);
 
@@ -430,11 +430,11 @@ var _Filesystem = {
 				
 				window.setTimeout(function() {
 					list.forEach(function(obj) {
-						var el = $('#file-tree #' + obj.id);
+						var el = $('#file-tree #' + obj.id + ' > .jstree-wholerow');
 						StructrModel.create({id: obj.id});
 						_Dragndrop.makeDroppable(el);
 					});
-				}, 100);
+				}, 500);
 
 
 			}, true);
