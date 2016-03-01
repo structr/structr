@@ -535,7 +535,7 @@ var _Filesystem = {
 		var tableBody = $('#files-table-body');
 		var files = d.files || [];
 		var folders = d.folders || [];
-		var size = d.isFolder ? folders.length + files.length : d.size;
+		var size = d.isFolder ? folders.length + files.length : (d.size ? d.size : '-');
 
 		var rowId = 'row' + d.id;
 		tableBody.append('<tr id="' + rowId + '"></tr>');
