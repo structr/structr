@@ -33,6 +33,7 @@ import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -59,6 +60,7 @@ import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -68,6 +70,9 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SuperUser;
+import org.structr.schema.ReloadSchema;
+import org.structr.schema.SchemaHelper;
+import org.structr.schema.compiler.NodeExtender;
 
 /**
  *
@@ -640,6 +645,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		final SuperUser superUser            = new SuperUser();
 		double t0                            = System.nanoTime();
 		PropertyContainer currentObject      = null;
+		Set<String> nodeTypes                = new HashSet<>();
 		String currentKey                    = null;
 		boolean finished                     = false;
 		long totalNodeCount                  = 0;
@@ -648,127 +654,128 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		do {
 
 			try (final Tx tx = app.tx(doValidation)) {
+
 				final List<Relationship> rels = new LinkedList<>();
 				final List<Node> nodes        = new LinkedList<>();
 				long nodeCount                = 0;
 				long relCount                 = 0;
 
+				OUTER:
 				do {
-
 					try {
-
-						// store current position
 						dis.mark(4);
-
-						// read one byte
 						byte objectType = dis.readByte();
-
-						// skip newlines
 						if (objectType == '\n') {
 							continue;
 						}
+						
+						switch (objectType) {
+							
+							case 'N':
 
-						if (objectType == 'N') {
-
-							// break loop after 200 objects, commit and restart afterwards
-							 if(nodeCount + relCount >= internalBatchSize) {
-								 dis.reset();
-								 break;
-							 }
-
-							currentObject = graphDb.createNode();
-							nodeCount++;
-
-							// store for later use
-							nodes.add((Node)currentObject);
-
-						} else if (objectType == 'R') {
-
-							// break look after 200 objects, commit and restart afterwards
-							 if(nodeCount + relCount >= internalBatchSize) {
-								 dis.reset();
-								 break;
-							 }
-
-							String startId     = (String)deserialize(dis);
-							String endId       = (String)deserialize(dis);
-							String relTypeName = (String)deserialize(dis);
-
-							Node endNode   = uuidMap.get(endId);
-							Node startNode = uuidMap.get(startId);
-
-							if (startNode != null && endNode != null) {
-
-								if (deletedNodes.contains(startNode.getId()) || deletedNodes.contains(endNode.getId())) {
-
-									System.out.println("NOT creating relationship between deleted nodes..");
-
-								} else {
-
-									RelationshipType relType = RelationshipType.forName(relTypeName);
-									currentObject = startNode.createRelationshipTo(endNode, relType);
-
-									// store for later use
-									rels.add((Relationship)currentObject);
-
-									relCount++;
+								// break loop after a limited number of objects, commit and restart afterwards
+								if (nodeCount + relCount >= internalBatchSize) {
+									dis.reset();
+									break OUTER;
 								}
 
-							} else {
+								currentObject = graphDb.createNode();
+								nodeCount++;
 
-								System.out.println("NOT creating relationship of type " + relTypeName + ", start: " + startId + ", end: " + endId);
-							}
+								// store for later use
+								nodes.add((Node)currentObject);
+								break;
+								
+							case 'R':
+								
+								// break look after a limited number of objects, commit and restart afterwards
+								if (nodeCount + relCount >= internalBatchSize) {
+									dis.reset();
+									break OUTER;
+								}
+								
+								String startId     = (String)deserialize(dis);
+								String endId       = (String)deserialize(dis);
+								String relTypeName = (String)deserialize(dis);
 
-						} else {
+								Node endNode   = uuidMap.get(endId);
+								Node startNode = uuidMap.get(startId);
 
-							// reset if not at the beginning of a line
-							dis.reset();
-
-							if (currentKey == null) {
-
-								currentKey = (String)deserialize(dis);
-
-							} else {
-
-								if (currentObject != null) {
-
-									Object obj = deserialize(dis);
-
-									if (uuidPropertyName.equals(currentKey) && currentObject instanceof Node) {
-
-										String uuid = (String)obj;
-										uuidMap.put(uuid, (Node)currentObject);
+								if (startNode != null && endNode != null) {
+									
+									if (deletedNodes.contains(startNode.getId()) || deletedNodes.contains(endNode.getId())) {
+										
+										System.out.println("NOT creating relationship between deleted nodes..");
+										
+									} else {
+										
+										RelationshipType relType = RelationshipType.forName(relTypeName);
+										currentObject = startNode.createRelationshipTo(endNode, relType);
+										
+										// store for later use
+										rels.add((Relationship)currentObject);
+										
+										relCount++;
 									}
+									
+								} else {
+									
+									System.out.println("NOT creating relationship of type " + relTypeName + ", start: " + startId + ", end: " + endId);
+								}
+								
+								break;
+								
+							default:
 
-									if (currentKey.length() != 0) {
-
-										// store object in DB
-										currentObject.setProperty(currentKey, obj);
-
-										// set type label
-										if (currentObject instanceof Node && NodeInterface.type.dbName().equals(currentKey)) {
-											((Node) currentObject).addLabel(graphDb.forName(Label.class, (String) obj));
+								// reset if not at the beginning of a line
+								dis.reset();
+								if (currentKey == null) {
+									
+									currentKey = (String)deserialize(dis);
+									
+								} else {
+									
+									if (currentObject != null) {
+										
+										Object obj = deserialize(dis);
+										
+										if (uuidPropertyName.equals(currentKey) && currentObject instanceof Node) {
+											
+											String uuid = (String)obj;
+											uuidMap.put(uuid, (Node)currentObject);
 										}
 
+										if (currentKey.length() != 0) {
+											
+											// store object in DB
+											currentObject.setProperty(currentKey, obj);
+											
+											// set type label
+											if (currentObject instanceof Node && NodeInterface.type.dbName().equals(currentKey)) {
+												((Node) currentObject).addLabel(graphDb.forName(Label.class, (String) obj));
+												
+												nodeTypes.add((String)obj);
+											}
+											
+										} else {
+											
+											logger.log(Level.SEVERE, "Invalid property key for value {0}, ignoring", obj);
+										}
+										
+										currentKey = null;
+										
 									} else {
-
-										logger.log(Level.SEVERE, "Invalid property key for value {0}, ignoring", obj);
+										
+										logger.log(Level.WARNING, "No current object to store property in.");
 									}
-
-									currentKey = null;
-
-								} else {
-
-									logger.log(Level.WARNING, "No current object to store property in.");
-								}
-							}
+								}	break;
 						}
-
+						
 					} catch (EOFException eofex) {
-
+						
 						finished = true;
 					}
-
+					
 				} while (!finished);
 
 				totalNodeCount += nodeCount;
@@ -788,7 +795,8 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 						if (!deletedNodes.contains(node.getId())) {
 
 							TransactionCommand.nodeCreated(superUser, entity);
-							entity.addToIndex();
+							entity.addToIndex();	
+							
 						}
 					}
 				}
@@ -804,6 +812,14 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				}
 
 				logger.log(Level.INFO, "Imported {0} nodes and {1} rels, committing transaction..", new Object[] { totalNodeCount, totalRelCount } );
+
+				SchemaHelper.reloadSchema(new ErrorBuffer());
+				
+				for (final String type : nodeTypes) {
+					app.command(BulkCreateLabelsCommand.class).execute(Collections.singletonMap("type", type));
+				}
+				
+				nodeTypes = new HashSet<>();
 
 				tx.success();
 

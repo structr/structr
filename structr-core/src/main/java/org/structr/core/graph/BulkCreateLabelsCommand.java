@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph;
 
+import java.util.Collections;
 import java.util.Iterator;
 
 import org.structr.common.SecurityContext;
@@ -29,18 +30,15 @@ import java.util.logging.Logger;
 import org.structr.api.DatabaseService;
 import org.structr.api.util.Iterables;
 import org.structr.common.StructrAndSpatialPredicate;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
 /**
- * Rebuild index for nodes or relationships of given type.
- *
- * Use 'type' argument for node type, and 'relType' for relationship type.
- *
- *
+ * Create labels for all nodes of the given type.
  */
-public class BulkCreateLabelsCommand extends NodeServiceCommand implements MaintenanceCommand {
+public class BulkCreateLabelsCommand extends NodeServiceCommand implements MaintenanceCommand, TransactionPostProcess {
 
 	private static final Logger logger = Logger.getLogger(BulkCreateLabelsCommand.class.getName());
 
@@ -74,7 +72,7 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 			logger.log(Level.INFO, "Starting creation of labels for all nodes of type {0}", entityType);
 		}
 
-		final long count = NodeServiceCommand.bulkGraphOperation(securityContext, nodeIterator, 1000, "CreateLabels", new BulkGraphOperation<AbstractNode>() {
+		final long count = NodeServiceCommand.bulkGraphOperation(securityContext, nodeIterator, 10000, "CreateLabels", new BulkGraphOperation<AbstractNode>() {
 
 			@Override
 			public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
@@ -116,5 +114,14 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 	@Override
 	public boolean requiresEnclosingTransaction() {
 		return false;
+	}
+
+	// ----- interface TransactionPostProcess -----
+	@Override
+	public boolean execute(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+		execute(Collections.EMPTY_MAP);
+
+		return true;
 	}
 }
