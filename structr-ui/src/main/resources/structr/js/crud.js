@@ -1060,6 +1060,7 @@ var _Crud = {
 					if (dialogCloseButton) {
 						dialogCloseButton.remove();
 					}
+					$('#saveProperties').remove();
 				},
 				400: function(data, status, xhr) {
 					_Crud.error('Bad request: ' + data.responseText, true);
@@ -2234,8 +2235,10 @@ var _Crud = {
 			dialogMeta.empty();
 			//dialogBtn.empty();
 
-			if (text)
+			if (text) {
 				dialogTitle.html(text);
+			}
+			
 			if (callbackCancel) {
 				dialogCancelButton.off('click');
 				dialogCancelButton.on('click', function(e) {
