@@ -23,7 +23,6 @@ import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.mozilla.javascript.Context;
-import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
 import org.structr.common.error.FrameworkException;
@@ -39,10 +38,6 @@ import org.structr.schema.parser.DatePropertyParser;
  *
  */
 public class Scripting {
-
-	static {
-		ContextFactory.initGlobal(new ContextFactory());
-	}
 
 	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue) throws FrameworkException {
 
@@ -155,7 +150,7 @@ public class Scripting {
 
 			// Set version to JavaScript1.2 so that we get object-literal style
 			// printing instead of "[object Object]"
-			scriptingContext.setLanguageVersion(Context.VERSION_1_8);
+			scriptingContext.setLanguageVersion(Context.VERSION_1_2);
 
 			// Initialize the standard objects (Object, Function, etc.)
 			// This must be done before scripts can be executed.
