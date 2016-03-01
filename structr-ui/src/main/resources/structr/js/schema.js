@@ -31,7 +31,6 @@ var selectBox, nodeDragStartpoint;
 var selectedNodes = [];
 var showSchemaOverlaysKey = 'structrShowSchemaOverlays_' + port;
 
-
 $(document).ready(function() {
 
 	Structr.registerModule('schema', _Schema);
@@ -260,15 +259,19 @@ var _Schema = {
 		}
 	},
 	selectionStart: function (e) {
-		canvas.addClass('noselect');
-		selectionInProgress = true;
-		mouseDownCoords.x = e.pageX;
-		mouseDownCoords.y = e.pageY;
+		if (e.which === 1) {
+			canvas.addClass('noselect');
+			selectionInProgress = true;
+			var schemaOffset = canvas.offset();
+			mouseDownCoords.x = e.pageX - schemaOffset.left;
+			mouseDownCoords.y = e.pageY - schemaOffset.top;
+		}
 	},
 	selectionDrag: function (e) {
-		if (selectionInProgress === true) {
-			mouseUpCoords.x = e.pageX;
-			mouseUpCoords.y = e.pageY;
+		if (selectionInProgress === true && e.which === 1) {
+			var schemaOffset = canvas.offset();
+			mouseUpCoords.x = e.pageX - schemaOffset.left;
+			mouseUpCoords.y = e.pageY - schemaOffset.top;
 			_Schema.drawSelectElem();
 		}
 	},
@@ -301,9 +304,9 @@ var _Schema = {
 		}
 		var cssRect = {
 			position: 'absolute',
-			top: (Math.min(mouseDownCoords.y, mouseUpCoords.y) - canvas.offset().top) / zoomLevel,
-			left: Math.min(mouseDownCoords.x, mouseUpCoords.x) / zoomLevel,
-			width: Math.abs(mouseDownCoords.x - mouseUpCoords.x)  / zoomLevel,
+			top:    Math.min(mouseDownCoords.y, mouseUpCoords.y)  / zoomLevel,
+			left:   Math.min(mouseDownCoords.x, mouseUpCoords.x)  / zoomLevel,
+			width:  Math.abs(mouseDownCoords.x - mouseUpCoords.x) / zoomLevel,
 			height: Math.abs(mouseDownCoords.y - mouseUpCoords.y) / zoomLevel
 		};
 		selectBox.css(cssRect);
@@ -322,18 +325,17 @@ var _Schema = {
 				$el.removeClass('selected');
 			}
 		});
-
-		// console.log(selectedElements.map(function($el) { return $el.find('b').text();}));
 	},
 	isElemInSelection: function ($el, selectionRect) {
 		var elPos = $el.offset();
 		elPos.top /= zoomLevel;
 		elPos.left /= zoomLevel;
+		var schemaOffset = canvas.offset();
 		return !(
-			(elPos.top) > (selectionRect.top + canvas.offset().top / zoomLevel + selectionRect.height) ||
-			elPos.left > (selectionRect.left + selectionRect.width) ||
-			(elPos.top + $el.innerHeight()) < (selectionRect.top + canvas.offset().top / zoomLevel) ||
-			(elPos.left + $el.innerWidth()) < selectionRect.left
+			(elPos.top) > (selectionRect.top + schemaOffset.top / zoomLevel + selectionRect.height) ||
+			elPos.left > (selectionRect.left + schemaOffset.left / zoomLevel + selectionRect.width) ||
+			(elPos.top + $el.innerHeight()) < (selectionRect.top + schemaOffset.top / zoomLevel) ||
+			(elPos.left + $el.innerWidth()) < (selectionRect.left + schemaOffset.left / zoomLevel)
 		);
 	},
 	onload: function() {
