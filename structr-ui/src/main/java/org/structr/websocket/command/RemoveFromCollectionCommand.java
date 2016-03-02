@@ -26,6 +26,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -48,7 +51,7 @@ public class RemoveFromCollectionCommand extends AbstractCommand {
 
 	//~--- methods --------------------------------------------------------
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 
 		final String keyString  = (String) webSocketData.getNodeData().get("key");
@@ -98,6 +101,15 @@ public class RemoveFromCollectionCommand extends AbstractCommand {
 					List collection = (List) obj.getProperty(key);
 					collection.remove(objToRemove);
 					obj.setProperty(key, collection);
+					
+					if (obj instanceof NodeInterface) {
+
+						TransactionCommand.registerNodeCallback((NodeInterface) obj, callback);
+
+					} else if (obj instanceof RelationshipInterface) {
+
+						TransactionCommand.registerRelCallback((RelationshipInterface) obj, callback);
+					}
 
 				}
 

@@ -35,6 +35,7 @@ public interface ModificationEvent {
 
 	public int getStatus();
 	public String getChangeLog();
+	public String getCallbackId();
 
 	public boolean isDeleted();
 	public boolean isModified();

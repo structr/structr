@@ -40,7 +40,7 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Base class for all WebSocket messages in structr.
+ * Base class for all WebSocket commands in structr.
  *
  *
  */
@@ -52,6 +52,7 @@ public abstract class AbstractCommand {
 
 	protected Session session              = null;
 	protected StructrWebSocket webSocket   = null;
+	protected String callback              = null;
 
 	public abstract void processMessage(final WebSocketMessage webSocketData) throws FrameworkException;
 
@@ -253,5 +254,9 @@ public abstract class AbstractCommand {
 
 	public void setWebSocket(final StructrWebSocket webSocket) {
 		this.webSocket = webSocket;
+	}
+
+	public void setCallback(final String callback) {
+		this.callback = callback;
 	}
 }

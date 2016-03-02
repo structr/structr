@@ -27,6 +27,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.schema.SchemaHelper;
@@ -67,6 +68,8 @@ public class CreateCommand extends AbstractCommand {
 			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, nodeData);
 			Class type                   = SchemaHelper.getEntityClassForRawType(properties.get(AbstractNode.type));
 			final NodeInterface newNode  = app.create(type, properties);
+			
+			TransactionCommand.registerNodeCallback(newNode, callback);
 
 			// check for File node and store in WebSocket to receive chunks
 			if (newNode instanceof FileBase) {

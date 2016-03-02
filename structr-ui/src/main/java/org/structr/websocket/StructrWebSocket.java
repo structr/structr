@@ -61,7 +61,6 @@ public class StructrWebSocket implements WebSocketListener {
 	private static final Map<String, Class> commandSet = new LinkedHashMap<>();
 
 	//~--- fields ---------------------------------------------------------
-	private String callback                        = null;
 	private Session session                        = null;
 	private Gson gson                              = null;
 	private HttpServletRequest request             = null;
@@ -149,8 +148,6 @@ public class StructrWebSocket implements WebSocketListener {
 
 		final App app = StructrApp.getInstance(securityContext);
 
-		this.callback = webSocketData.getCallback();
-
 		final String command = webSocketData.getCommand();
 		final Class type = commandSet.get(command);
 
@@ -190,6 +187,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 				abstractCommand.setWebSocket(this);
 				abstractCommand.setSession(session);
+				abstractCommand.setCallback(webSocketData.getCallback());
 
 				// The below blocks allow a websocket command to manage its own
 				// transactions in case of bulk processing commands etc.
@@ -203,7 +201,7 @@ public class StructrWebSocket implements WebSocketListener {
 						webSocketData.setSessionValid(isAuthenticated());
 
 						abstractCommand.processMessage(webSocketData);
-
+						
 						// commit transaction
 						tx.success();
 					}
@@ -291,10 +289,6 @@ public class StructrWebSocket implements WebSocketListener {
 
 			message.setSessionId(null);
 		}
-
-		// set callback
-		message.setCallback(callback);
-
 
 		if ("LOGIN".equals(message.getCommand()) && !isAuthenticated) {
 
@@ -455,16 +449,6 @@ public class StructrWebSocket implements WebSocketListener {
 
 		return securityContext;
 
-	}
-
-	public String getCallback() {
-
-		return callback;
-
-	}
-
-	public void setCallback(final String callback) {
-		this.callback = callback;
 	}
 
 	public String getPagePath() {

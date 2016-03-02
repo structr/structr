@@ -72,6 +72,16 @@ public class GraphObjectModificationState implements ModificationEvent {
 	private GraphObject object                   = null;
 	private String uuid                          = null;
 	private int status                           = 0;
+	private String callbackId                    = null;
+
+	@Override
+	public String getCallbackId() {
+		return this.callbackId;
+	}
+	
+	public void setCallbackId(final String callbackId) {
+		this.callbackId = callbackId;
+	}
 
 	public enum Verb {
 		create, change, delete, link, unlink

@@ -19,7 +19,7 @@
 package org.structr.core;
 
 /**
- * Identifies the source of a transaction. This interface exists in order to ne
+ * Identifies the source of a transaction. This interface exists in order to be
  * able to differentiate between local and remote transactions (i.e. those
  * coming from a replication master).
  *

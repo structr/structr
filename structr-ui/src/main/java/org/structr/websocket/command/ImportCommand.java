@@ -53,7 +53,7 @@ public class ImportCommand extends AbstractCommand {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final Map<String, Object> properties  = webSocketData.getNodeData();

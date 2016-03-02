@@ -50,7 +50,7 @@ public class ChildrenCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final RelationshipFactory factory = new RelationshipFactory(this.getWebSocket().getSecurityContext());
 		final AbstractNode node           = getNode(webSocketData.getId());

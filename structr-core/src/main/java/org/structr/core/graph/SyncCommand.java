@@ -70,9 +70,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SuperUser;
-import org.structr.schema.ReloadSchema;
 import org.structr.schema.SchemaHelper;
-import org.structr.schema.compiler.NodeExtender;
 
 /**
  *

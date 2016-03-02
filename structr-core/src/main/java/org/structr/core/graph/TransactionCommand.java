@@ -412,6 +412,50 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 		return false;
 	}
 
+	public static void registerNodeCallback(final NodeInterface node, final String callbackId) {
+		
+		TransactionCommand command = currentCommand.get();
+		if (command != null) {
+
+			ModificationQueue modificationQueue = command.getModificationQueue();
+			if (modificationQueue != null) {
+
+				modificationQueue.registerNodeCallback(node, callbackId);
+
+			} else {
+
+				logger.log(Level.SEVERE, "Got empty changeSet from command!");
+			}
+
+		} else {
+
+			logger.log(Level.SEVERE, "Unable to register node callback");
+		}
+		
+	}
+	
+	public static void registerRelCallback(final RelationshipInterface rel, final String callbackId) {
+		
+		TransactionCommand command = currentCommand.get();
+		if (command != null) {
+
+			ModificationQueue modificationQueue = command.getModificationQueue();
+			if (modificationQueue != null) {
+
+				modificationQueue.registerRelCallback(rel, callbackId);
+
+			} else {
+
+				logger.log(Level.SEVERE, "Got empty changeSet from command!");
+			}
+
+		} else {
+
+			logger.log(Level.SEVERE, "Unable to register relationship callback");
+		}
+		
+	}
+
 	// ----- private methods -----
 	private ModificationQueue getModificationQueue() {
 		return queues.get();

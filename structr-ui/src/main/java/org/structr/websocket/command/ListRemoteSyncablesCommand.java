@@ -57,7 +57,7 @@ public class ListRemoteSyncablesCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final Map<String, Object> properties = webSocketData.getNodeData();
 		final String username                = (String)properties.get("username");
@@ -77,7 +77,7 @@ public class ListRemoteSyncablesCommand extends AbstractCommand {
 					webSocket.getSecurityContext(),
 					new SingleTransmission<>(new ListSyncables(type)),
 					new HostInfo(username, password, host, port.intValue()),
-					new WebsocketProgressListener(getWebSocket(), key)
+					new WebsocketProgressListener(getWebSocket(), key, callback)
 				);
 
 				if (syncables != null) {

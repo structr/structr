@@ -88,6 +88,13 @@ public class MessageBuilder {
 		return this;
 	}
 
+	public MessageBuilder callback(String callback) {
+		if (callback != null) {
+			data.setCallback(callback);
+		}
+		return this;
+	}
+
 	public MessageBuilder data(String key, Object value) {
 		data.setNodeData(key, value);
 		return this;

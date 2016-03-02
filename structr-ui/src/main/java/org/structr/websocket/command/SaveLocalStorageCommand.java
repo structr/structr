@@ -23,6 +23,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.SecurityContext;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.User;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -41,7 +43,7 @@ public class SaveLocalStorageCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final Map<String, Object> nodeData = webSocketData.getNodeData();
 		final String localStorageString = (String) nodeData.get("localStorageString");
@@ -51,7 +53,10 @@ public class SaveLocalStorageCommand extends AbstractCommand {
 
 			try {
 
-				securityContext.getUser(false).setProperty(User.localStorage, localStorageString);
+				final Principal me = securityContext.getUser(false);
+				me.setProperty(User.localStorage, localStorageString);
+				
+				TransactionCommand.registerNodeCallback(me, callback);
 
 			} catch (Throwable t) {
 

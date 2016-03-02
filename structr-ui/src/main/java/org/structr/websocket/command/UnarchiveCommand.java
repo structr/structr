@@ -65,7 +65,7 @@ public class UnarchiveCommand extends AbstractCommand {
 
 	//~--- methods --------------------------------------------------------
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final Set<String> supportedByArchiveStreamFactory = new HashSet<>(Arrays.asList(new String[]{
 			ArchiveStreamFactory.AR,

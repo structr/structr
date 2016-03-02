@@ -25,6 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.AbstractFile;
 
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.relation.FileChildren;
 import org.structr.web.entity.relation.Folders;
@@ -46,7 +47,7 @@ public class AppendFileCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		String id                    = webSocketData.getId();
 		Map<String, Object> nodeData = webSocketData.getNodeData();
@@ -105,10 +106,11 @@ public class AppendFileCommand extends AbstractCommand {
 					if (currentParent != null) {
 						
 						currentParent.treeRemoveChild(file);
-						
 					}
 					
 					folder.treeAppendChild(file);
+					
+					TransactionCommand.registerNodeCallback(file, callback);
 					
 				} catch (FrameworkException ex) {
 					logger.log(Level.SEVERE, null, ex);

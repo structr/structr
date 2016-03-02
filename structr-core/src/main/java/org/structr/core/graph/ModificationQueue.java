@@ -322,6 +322,14 @@ public class ModificationQueue {
 		return false;
 	}
 
+	public void registerNodeCallback(final NodeInterface node, final String callbackId) {
+		getState(node).setCallbackId(callbackId);
+	}
+
+	public void registerRelCallback(final RelationshipInterface rel, final String callbackId) {
+		getState(rel).setCallbackId(callbackId);
+	}
+
 	// ----- private methods -----
 	private void modifyEndNodes(final Principal user, final NodeInterface startNode, final NodeInterface endNode, final RelationshipType relType) {
 

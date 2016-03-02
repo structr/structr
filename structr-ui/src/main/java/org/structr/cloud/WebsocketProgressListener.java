@@ -29,10 +29,12 @@ public class WebsocketProgressListener implements CloudListener {
 
 	private StructrWebSocket websocket = null;
 	private String key                 = null;
-
-	public WebsocketProgressListener(final StructrWebSocket websocket, final String key) {
-		this.websocket = websocket;
-		this.key       = key;
+	private String callbackId          = null;
+	
+	public WebsocketProgressListener(final StructrWebSocket websocket, final String key, final String callbackId) {
+		this.websocket  = websocket;
+		this.key        = key;
+		this.callbackId = callbackId;
 	}
 
 	@Override
@@ -42,7 +44,7 @@ public class WebsocketProgressListener implements CloudListener {
 
 	@Override
 	public void transmissionFinished() {
-		websocket.send(MessageBuilder.status().code(200).message("Transmission finished").build(), true);
+		websocket.send(MessageBuilder.status().code(200).message("Transmission finished").callback(callbackId).build(), true);
 	}
 
 	@Override

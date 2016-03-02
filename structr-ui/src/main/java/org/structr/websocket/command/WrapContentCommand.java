@@ -41,7 +41,7 @@ public class WrapContentCommand extends AbstractCommand {
 	}
 	
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final Map<String, Object> nodeData = webSocketData.getNodeData();
 		final String parentId              = (String) nodeData.get("parentId");

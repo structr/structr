@@ -50,7 +50,7 @@ public class RemoveCommand extends AbstractCommand {
 	private static final Logger logger = Logger.getLogger(RemoveCommand.class.getName());
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		String id = webSocketData.getId();

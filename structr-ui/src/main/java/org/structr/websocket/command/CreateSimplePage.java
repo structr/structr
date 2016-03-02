@@ -28,6 +28,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
@@ -57,7 +58,9 @@ public class CreateSimplePage extends AbstractCommand {
 
 		try {
 
-			Page.createSimplePage(securityContext, pageName);
+			final Page page = Page.createSimplePage(securityContext, pageName);
+			
+			TransactionCommand.registerNodeCallback(page, callback);
 
 		} catch (FrameworkException fex) {
 

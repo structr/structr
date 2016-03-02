@@ -26,6 +26,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.Importer;
 import org.structr.web.diff.InvertibleModificationOperation;
 import org.structr.web.entity.dom.DOMNode;
@@ -49,7 +50,7 @@ public class SaveNodeCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final String nodeId = webSocketData.getId();
 		final Map<String, Object> nodeData = webSocketData.getNodeData();
@@ -62,6 +63,8 @@ public class SaveNodeCommand extends AbstractCommand {
 		DOMNode sourceNode = (DOMNode) getNode(nodeId);
 		
 		if (sourceNode != null) {
+			
+			TransactionCommand.registerNodeCallback(sourceNode, callback);
 
 			try {
 

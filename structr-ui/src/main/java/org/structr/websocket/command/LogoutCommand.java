@@ -39,7 +39,7 @@ public class LogoutCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) throws FrameworkException {
+	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
 		final Principal user = getWebSocket().getCurrentUser();
 

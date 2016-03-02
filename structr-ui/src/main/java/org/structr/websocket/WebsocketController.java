@@ -100,8 +100,6 @@ public class WebsocketController implements StructrTransactionListener {
 
 			Session session = socket.getSession();
 
-			webSocketData.setCallback(socket.getCallback());
-
 			if (session != null && socket.isAuthenticated()) {
 
 				List<? extends GraphObject> result = webSocketData.getResult();
@@ -212,13 +210,15 @@ public class WebsocketController implements StructrTransactionListener {
 	// ----- private methods -----
 	private WebSocketMessage getMessageForEvent(final SecurityContext securityContext, final ModificationEvent modificationEvent) throws FrameworkException {
 
+		final String callbackId = modificationEvent.getCallbackId();
+		
 		if (modificationEvent.isNode()) {
 
 			final NodeInterface node = (NodeInterface) modificationEvent.getGraphObject();
 
 			if (modificationEvent.isDeleted()) {
 
-				final WebSocketMessage message = createMessage("DELETE");
+				final WebSocketMessage message = createMessage("DELETE", callbackId);
 
 				message.setId(modificationEvent.getRemovedProperties().get(GraphObject.id));
 
@@ -227,7 +227,7 @@ public class WebsocketController implements StructrTransactionListener {
 
 			if (modificationEvent.isCreated()) {
 
-				final WebSocketMessage message = createMessage("CREATE");
+				final WebSocketMessage message = createMessage("CREATE", callbackId);
 
 				message.setGraphObject(node);
 				message.setResult(Arrays.asList(new GraphObject[]{node}));
@@ -237,7 +237,7 @@ public class WebsocketController implements StructrTransactionListener {
 
 			if (modificationEvent.isModified()) {
 
-				final WebSocketMessage message = createMessage("UPDATE");
+				final WebSocketMessage message = createMessage("UPDATE", callbackId);
 
 				message.setGraphObject(node);
 				message.setResult(Arrays.asList(new GraphObject[]{node}));
@@ -260,7 +260,7 @@ public class WebsocketController implements StructrTransactionListener {
 
 				if (modificationEvent.isDeleted()) {
 
-					final WebSocketMessage message = createMessage("REMOVE_CHILD");
+					final WebSocketMessage message = createMessage("REMOVE_CHILD", callbackId);
 
 					message.setNodeData("parentId", relationship.getSourceNodeId());
 					message.setId(relationship.getTargetNodeId());
@@ -301,7 +301,7 @@ public class WebsocketController implements StructrTransactionListener {
 
 			if (modificationEvent.isDeleted()) {
 				
-				final WebSocketMessage message = createMessage("DELETE");
+				final WebSocketMessage message = createMessage("DELETE", callbackId);
 				message.setId(modificationEvent.getRemovedProperties().get(GraphObject.id));
 				
 				return message;
@@ -309,7 +309,7 @@ public class WebsocketController implements StructrTransactionListener {
 			
 			if (modificationEvent.isModified()) {
 
-				final WebSocketMessage message = createMessage("UPDATE");
+				final WebSocketMessage message = createMessage("UPDATE", callbackId);
 
 				message.getModifiedProperties().addAll(modificationEvent.getModifiedProperties().keySet());
 				message.getRemovedProperties().addAll(modificationEvent.getRemovedProperties().keySet());
@@ -337,11 +337,14 @@ public class WebsocketController implements StructrTransactionListener {
 		return null;
 	}
 
-	private WebSocketMessage createMessage(final String command) {
+	private WebSocketMessage createMessage(final String command, final String callbackId) {
 
 		final WebSocketMessage newMessage = new WebSocketMessage();
 
 		newMessage.setCommand(command);
+		if (callbackId != null) {
+			newMessage.setCallback(callbackId);
+		}
 
 		return newMessage;
 	}

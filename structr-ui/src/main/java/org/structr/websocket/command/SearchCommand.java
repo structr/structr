@@ -55,7 +55,7 @@ public class SearchCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final String searchString = (String) webSocketData.getNodeData().get("searchString");

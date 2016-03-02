@@ -45,7 +45,7 @@ public class AppendWidgetCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		String pageId			= webSocketData.getPageId();
 		Map<String, Object> nodeData	= webSocketData.getNodeData();

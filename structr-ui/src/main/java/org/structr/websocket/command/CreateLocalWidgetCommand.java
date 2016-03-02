@@ -24,6 +24,7 @@ import java.util.logging.Logger;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMNode;
@@ -45,7 +46,7 @@ public class CreateLocalWidgetCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final App app                      = StructrApp.getInstance(getWebSocket().getSecurityContext());
 		final String id	                   = webSocketData.getId();
@@ -82,7 +83,9 @@ public class CreateLocalWidgetCommand extends AbstractCommand {
 			properties.put(AbstractNode.name, name);
 			properties.put(Widget.source, source);
 
-			app.create(Widget.class, properties);
+			final Widget widget = app.create(Widget.class, properties);
+			
+			TransactionCommand.registerNodeCallback(widget, callback);
 
 		} catch (Throwable t) {
 

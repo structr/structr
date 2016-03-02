@@ -55,8 +55,9 @@ public class PingCommand extends AbstractCommand {
 		final Principal currentUser = AuthHelper.getPrincipalForSessionId(sessionId);
 
 		if (currentUser != null) {
-
+			
 			getWebSocket().send(MessageBuilder.status()
+				.callback(webSocketData.getCallback())
 				.data("username", currentUser.getProperty(AbstractNode.name))
 				.data("isAdmin", currentUser.getProperty(Principal.isAdmin))
 				.code(100).build(), true);

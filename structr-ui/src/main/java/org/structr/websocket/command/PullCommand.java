@@ -45,7 +45,7 @@ public class PullCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final Map<String, Object> properties = webSocketData.getNodeData();
 		final String sourceId                = webSocketData.getId();
@@ -71,11 +71,11 @@ public class PullCommand extends AbstractCommand {
 					webSocket.getSecurityContext(),
 					new PullTransmission(sourceId, recursive),
 					new HostInfo(username, password, host, port.intValue()),
-					new WebsocketProgressListener(getWebSocket(), key)
+					new WebsocketProgressListener(getWebSocket(), key, callback)
 				);
 
 				// send finished event
-				getWebSocket().send(MessageBuilder.finished().build(), true);
+				getWebSocket().send(MessageBuilder.finished().callback(webSocketData.getCallback()).build(), true);
 
 			} catch (FrameworkException fex) {
 

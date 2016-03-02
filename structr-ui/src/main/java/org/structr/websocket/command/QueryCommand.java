@@ -60,12 +60,11 @@ public class QueryCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final Map<String, Object> nodeData    = webSocketData.getNodeData();
 		final String rawType                  = (String)nodeData.get("type");
-		final Boolean hasParent               = (Boolean)nodeData.get("hasParent");
 		final String properties               = (String)nodeData.get("properties");
 		final Boolean exact                   = (Boolean)nodeData.get("exact");
 		final Class type                      = SchemaHelper.getEntityClassForRawType(rawType);

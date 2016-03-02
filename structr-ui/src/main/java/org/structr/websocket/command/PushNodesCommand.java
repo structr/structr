@@ -46,7 +46,7 @@ public class PushNodesCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final Map<String, Object> properties = webSocketData.getNodeData();
 		final String sourceId                = webSocketData.getId();
@@ -75,7 +75,7 @@ public class PushNodesCommand extends AbstractCommand {
 						webSocket.getSecurityContext(),
 						new PushTransmission(root, recursive),
 						new HostInfo(username, password, host, port.intValue()),
-						new WebsocketProgressListener(getWebSocket(), key)
+						new WebsocketProgressListener(getWebSocket(), key, callback)
 					);
 
 				} else {
