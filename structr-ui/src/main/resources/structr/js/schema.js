@@ -137,7 +137,7 @@ var _Schema = {
 				_Schema.openSchemaDisplayOptions();
 			});
 
-			schemaContainer.append('<input type="checkbox" id="schema-show-overlays" name="schema-show-overlays" style="margin-left:10px"><label for="schema-show-overlays"> Show Overlays</label>');
+			schemaContainer.append('<input type="checkbox" id="schema-show-overlays" name="schema-show-overlays" style="margin-left:10px"><label for="schema-show-overlays"> Show relationship labels</label>');
 			$('#schema-show-overlays').on('change', function() {
 				_Schema.updateOverlayVisibility($(this).prop('checked'));
 			});
@@ -224,7 +224,8 @@ var _Schema = {
 
 					Structr.unblockMenu(500);
 
-					_Schema.updateOverlayVisibility(LSWrapper.getItem(showSchemaOverlaysKey));
+					var showSchemaOverlays = LSWrapper.getItem(showSchemaOverlaysKey) === undefined ? true : LSWrapper.getItem(showSchemaOverlaysKey);
+					_Schema.updateOverlayVisibility(showSchemaOverlays);
 
 				});
 
@@ -2966,7 +2967,7 @@ var _Schema = {
 			return ((a[sortKey] > b[sortKey]) ? 1 : ((a[sortKey] < b[sortKey]) ? -1 : 0));
 		});
 	},
-	updateOverlayVisibility:function(show) {
+	updateOverlayVisibility: function(show) {
 		LSWrapper.setItem(showSchemaOverlaysKey, show);
 		$('#schema-show-overlays').prop('checked', show);
 		if (show) {
