@@ -112,6 +112,11 @@ var _Filesystem = {
 			});
 		});
 
+		$('.pull_file_icon', main).on('click', function(e) {
+			e.stopPropagation();
+			Structr.pullDialog('File,Folder');
+		});
+
 		$('#folder-contents-container').prepend('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Files.add_folder_icon + '"> Add Folder</button>');
 		$('.add_folder_icon', main).on('click', function(e) {
 			e.stopPropagation();
