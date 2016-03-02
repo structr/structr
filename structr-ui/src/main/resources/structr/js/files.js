@@ -181,7 +181,7 @@ var _Files = {
 				return false;
 			});
 		}
-		_Pager.addPager(files, true, 'File');
+		_Pager.addPager(files, true, 'File', 'public');
 		_Files.resize();
 	},
 	refreshFolders: function() {
@@ -192,7 +192,7 @@ var _Files = {
 			e.stopPropagation();
 			Command.create({'type': 'Folder'});
 		});
-		_Pager.addPager(folders, true, 'Folder');
+		_Pager.addPager(folders, true, 'Folder', 'public');
 	},
 	getIcon: function(file) {
 		var icon = _Files.icon; // default

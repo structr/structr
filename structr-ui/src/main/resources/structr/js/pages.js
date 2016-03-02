@@ -307,7 +307,7 @@ var _Pages = {
 		pagesSlideout.append('<div class="ver-scrollable" id="pagesTree"></div>');
 		pages = $('#pagesTree', pagesSlideout);
 
-		var pPager = _Pager.addPager(pages, true, 'Page', function(pages) {
+		var pPager = _Pager.addPager(pages, true, 'Page', null, function(pages) {
 			pages.forEach(function(page) {
 				StructrModel.create(page);
 				_Pages.pagesTabResizeContent();

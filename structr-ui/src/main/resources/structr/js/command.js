@@ -171,7 +171,7 @@ var Command = {
 	 *
 	 * The optional callback function will be executed for each node in the result set.
 	 */
-	query: function(type, pageSize, page, sort, order, properties, callback, exact) {
+	query: function(type, pageSize, page, sort, order, properties, callback, exact, view) {
 		var obj = {};
 		obj.command = 'QUERY';
 		var data = {};
@@ -182,6 +182,7 @@ var Command = {
 		obj.page = page;
 		obj.sort = sort;
 		obj.order = order;
+		if (view) obj.view = view;
 		obj.data = data;
 		_Logger.log(_LogType.WS[obj.command], 'query()', obj, callback);
 		return sendObj(obj, callback);

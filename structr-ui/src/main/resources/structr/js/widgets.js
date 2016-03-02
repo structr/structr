@@ -82,7 +82,7 @@ var _Widgets = {
 			e.stopPropagation();
 			Command.create({'type': 'Widget'});
 		});
-		var wPager = _Pager.addPager(widgets, true, 'Widget');
+		var wPager = _Pager.addPager(widgets, true, 'Widget', 'public');
 		wPager.cleanupFunction = function() {
 			$('.node', wPager.el).remove();
 		};
