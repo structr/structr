@@ -2415,7 +2415,7 @@ var _Schema = {
 
 		$('#pull', dialog).on('click', function(e) {
 			e.stopPropagation();
-			Structr.pullDialog('SchemaNode,SchemaRelationship');
+			Structr.pullDialog('SchemaNode,SchemaRelationshipNode');
 		});
 
 		dialog.append('<table class="props push">'
