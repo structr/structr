@@ -171,7 +171,7 @@ var _Images = {
 		_Pager.initFilters('Image', {
 			isThumbnail: false
 		});
-		var imgPager = _Pager.addPager(images, false, 'Image');
+		var imgPager = _Pager.addPager(images, false, 'Image', 'public');
 		imgPager.pager.append(' Filter: <input type="text" class="filter" data-attribute="name">');
 		imgPager.activateFilterElements();
 

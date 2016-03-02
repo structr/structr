@@ -271,7 +271,7 @@ var _Elements = {
 		});
 
 		_Pager.initPager('Widget', 1, 25);
-		_Pager.addPager(widgets, true, 'Widget', function(entities) {
+		_Pager.addPager(widgets, true, 'Widget', 'public', function(entities) {
 			entities.forEach(function (entity) {
 				StructrModel.create(entity, null, false);
 				_Widgets.appendWidgetElement(entity, false, widgets);
@@ -609,7 +609,7 @@ var _Elements = {
 
 					var pagesToLink = $('#pagesToLink');
 
-					_Pager.addPager(pagesToLink, true, 'Page', function(pages) {
+					_Pager.addPager(pagesToLink, true, 'Page', null, function(pages) {
 
 						pages.forEach(function(page){
 
@@ -655,7 +655,7 @@ var _Elements = {
 					var filesToLink = $('#filesToLink');
 					var foldersToLink = $('#foldersToLink');
 
-					var linkFolderPager = _Pager.addPager(foldersToLink, true, 'Folder', function(folders) {
+					var linkFolderPager = _Pager.addPager(foldersToLink, true, 'Folder', 'public', function(folders) {
 
 						folders.forEach(function(folder) {
 
@@ -689,7 +689,7 @@ var _Elements = {
 					linkFolderPager.activateFilterElements();
 
 
-					var linkFilesPager = _Pager.addPager(filesToLink, true, 'FileBase', function(files) {
+					var linkFilesPager = _Pager.addPager(filesToLink, true, 'FileBase', 'public', function(files) {
 
 						files.forEach(function(file) {
 
@@ -738,7 +738,7 @@ var _Elements = {
 
 					var imagesToLink = $('#imagesToLink');
 
-					_Pager.addPager(imagesToLink, false, 'Image', function(images) {
+					_Pager.addPager(imagesToLink, false, 'Image', 'public', function(images) {
 
 						images.forEach(function(image) {
 

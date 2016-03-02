@@ -79,54 +79,19 @@ var _Pager = {
 
 		return false;
 	},
-/*
-	addRestPager: function (el, rootOnly, type, callback) {
-		_Logger.log(_LogType.PAGER, 'add Rest Pager', type, pageSize[type], page[type], sortKey[type], sortOrder[type]);
-		var pgr = new Pager(el, rootOnly, type, callback);
-		pgr.transportFunction = function() {
-
-			var url = rootUrl + type + '?page=' + page[pgr.type] + '&pageSize=' + pageSize[pgr.type] + '&sort=' + sortKey[pgr.type] + '&order=' + sortOrder[pgr.type];
-
-			var filterAttributes = Object.keys(pgr.getNonEmptyFilterAttributes());
-
-			if (filterAttributes.length > 0) {
-				Object.keys(pgr.getNonEmptyFilterAttributes()).forEach(function(fa) {
-					url += '&' + fa + '=' + pagerFilters[pgr.type][fa];
-					filterAdded = true;
-				});
-
-				url += '&loose=1';
-			}
-
-			$.ajax({
-				url: url,
-				contentType: 'application/json; charset=UTF-8',
-				dataType: 'json',
-				statusCode: {
-					200: function(data) {
-						pgr.internalCallback(data.result, data.result_count);
-					}
-				}
-			});
-		};
-
-		pgr.init();
-		return pgr;
-	},
-*/
-	addPager: function (el, rootOnly, type, callback) {
+	addPager: function (el, rootOnly, type, view, callback) {
 		_Logger.log(_LogType.PAGER, 'add WS Pager', type, pageSize[type], page[type], sortKey[type], sortOrder[type]);
-		var pgr = new Pager(el, rootOnly, type, callback);
+		var pgr = new Pager(el, rootOnly, type, view, callback);
 		pgr.transportFunction = function() {
 			var filterAttrs = pgr.getNonEmptyFilterAttributes();
-			Command.query(pgr.type,  pageSize[type], page[pgr.type], sortKey[pgr.type], sortOrder[pgr.type], filterAttrs, pgr.internalCallback, false);
+			Command.query(pgr.type,  pageSize[type], page[pgr.type], sortKey[pgr.type], sortOrder[pgr.type], filterAttrs, pgr.internalCallback, false, view);
 		}
 		pgr.init();
 		return pgr;
 	}
 };
 
-var Pager = function (el, rootOnly, type, callback) {
+var Pager = function (el, rootOnly, type, view, callback) {
 
 	var pagerObj = this;
 
@@ -135,6 +100,7 @@ var Pager = function (el, rootOnly, type, callback) {
 	this.filterEl; // if set, use this as container for filters
 	this.rootOnly = rootOnly;
 	this.type = type;
+	this.view = view;
 	if (!callback) {
 		this.callback = function(entities) {
 			entities.forEach(function(entity) {

@@ -129,7 +129,7 @@ var _Filesystem = {
 			var rootEl = $('#root > .jstree-wholerow');
 			_Dragndrop.makeDroppable(rootEl);
 		});
-		
+
 		_Filesystem.loadAndSetWorkingDir(function() {
 			_Filesystem.initTree();
 			if (!currentWorkingDir) {
@@ -183,7 +183,7 @@ var _Filesystem = {
 			}
 			_Filesystem.open(dirs);
 		});
-		
+
 	},
 	refreshTree: function() {
 		fileTree.jstree('refresh');
@@ -229,7 +229,7 @@ var _Filesystem = {
 								});
 
 								callback(list);
-								
+
 							});
 							break;
 
@@ -243,7 +243,7 @@ var _Filesystem = {
 					}
 				}
 			}
-		});		
+		});
 	},
 	unload: function() {
 		fastRemoveAllChildren(main[0]);
@@ -397,7 +397,7 @@ var _Filesystem = {
 				});
 
 				callback(list);
-				
+
 				window.setTimeout(function() {
 					list.forEach(function(obj) {
 						var el = $('#file-tree #' + obj.id + ' > .jstree-wholerow');
@@ -405,7 +405,7 @@ var _Filesystem = {
 						_Dragndrop.makeDroppable(el);
 					});
 				}, 500);
-			
+
 			}, true);
 
 		} else {
@@ -425,7 +425,7 @@ var _Filesystem = {
 				});
 
 				callback(list);
-				
+
 				window.setTimeout(function() {
 					list.forEach(function(obj) {
 						var el = $('#file-tree #' + obj.id + ' > .jstree-wholerow');
@@ -489,7 +489,7 @@ var _Filesystem = {
 			hasParent: (parentId !== '#')
 		});
 
-		var filesPager = _Pager.addPager(content, false, 'FileBase', handleChildren);
+		var filesPager = _Pager.addPager(content, false, 'FileBase', 'public', handleChildren);
 
 		filesPager.cleanupFunction = function () {
 			var toRemove = $('.node.file', filesPager.el).closest('tr');

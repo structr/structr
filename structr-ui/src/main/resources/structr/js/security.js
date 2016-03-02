@@ -91,7 +91,7 @@ var _Security = {
 
 		Structr.ensureIsAdmin(resourceAccesses, function() {
 
-			var raPager = _Pager.addPager(resourceAccesses, true, 'ResourceAccess');
+			var raPager = _Pager.addPager(resourceAccesses, true, 'ResourceAccess', 'public');
 
 			// set specialized cleanup function
 			raPager.cleanupFunction = function () {
@@ -125,7 +125,7 @@ var _Security = {
 			e.stopPropagation();
 			return Command.create({'type':'Group'});
 		});
-		var grpPager = _Pager.addPager(groups, true, 'Group');
+		var grpPager = _Pager.addPager(groups, true, 'Group', 'public');
 		grpPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
 		grpPager.activateFilterElements();
 
@@ -138,7 +138,7 @@ var _Security = {
 			e.stopPropagation();
 			return Command.create({'type':'User'});
 		});
-		var usrPager = _Pager.addPager(users, true, 'User');
+		var usrPager = _Pager.addPager(users, true, 'User', 'public');
 		usrPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></th></div>');
 		usrPager.activateFilterElements();
 	},
@@ -337,7 +337,7 @@ var _Security = {
 	},
 	appendUserToUserList: function (user) {
 		users.append(_Security.getUserElementMarkup(user));
-	
+
 		var name = _Security.getUserName(user);
 		var div = Structr.node(user.id);
 		if (!div || !div.length) return;
