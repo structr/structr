@@ -23,6 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.mozilla.javascript.Context;
+import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
 import org.structr.common.error.FrameworkException;
@@ -144,7 +145,7 @@ public class Scripting {
 
 		final String entityName        = entity != null ? entity.getProperty(AbstractNode.name) : null;
 		final String entityDescription = entity != null ? ( StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + entity.getUuid() : "anonymous";
-		final Context scriptingContext = Context.enter();
+		final Context scriptingContext = new ContextFactory().enterContext();
 
 		try {
 
