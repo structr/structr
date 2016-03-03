@@ -224,7 +224,7 @@ var _Schema = {
 
 					Structr.unblockMenu(500);
 
-					var showSchemaOverlays = LSWrapper.getItem(showSchemaOverlaysKey) === undefined ? true : LSWrapper.getItem(showSchemaOverlaysKey);
+					var showSchemaOverlays = LSWrapper.getItem(showSchemaOverlaysKey) === null ? true : LSWrapper.getItem(showSchemaOverlaysKey);
 					_Schema.updateOverlayVisibility(showSchemaOverlays);
 
 				});
@@ -282,7 +282,7 @@ var _Schema = {
 			selectBox.remove();
 			selectBox = undefined;
 		}
-		selectedNodes = [];
+		selectedNodes = []
 		$('.node.selected', canvas).each(function (idx, el) {
 			$el = $(el);
 			var offset = $el.offset();
@@ -602,7 +602,7 @@ var _Schema = {
 							],
 							["Label", {
 									cssClass: "label rel-type",
-									label: '<div id="rel_' + res.id + '">' + (res.relationshipType === initialRelType ? '&nbsp;' : res.relationshipType)
+									label: '<div id="rel_' + res.id + '" data-name="' + res.name + '" data-source-type="' + nodes[sId].name + '" data-target-type="' + nodes[tId].name + '">' + (res.relationshipType === initialRelType ? '&nbsp;' : res.relationshipType)
 											+ ' <img title="Edit schema relationship" alt="Edit schema relationship" class="edit icon" src="icon/pencil.png">'
 											+ ' <img title="Remove schema relationship" alt="Remove schema relationship" class="remove icon" src="icon/delete.png"></div>',
 									location: .5 + offset,
@@ -2452,28 +2452,44 @@ var _Schema = {
 		Structr.dialog('Schema Snapshots', function() {}, function() {});
 
 		dialog.append('<h3>Create snapshot</h3>');
-		dialog.append('<p>Creates a new snapshot of the current schema configuration that can be restored later. You can enter an (optional) title for the snapshot.</p>');
-		dialog.append('<p><input type="text" name="title" id="snapshot-title" placeholder="Enter a title" length="20" /> <button id="create-snapshot">New snapshot</button></p>');
+		dialog.append('<p>Creates a new snapshot of the current schema configuration that can be restored later. You can enter an (optional) suffix for the snapshot.</p>');
+		dialog.append('<p><input type="text" name="suffix" id="snapshot-suffix" placeholder="Enter a suffix" length="20" /> <button id="create-snapshot">Create snapshot</button></p>');
 
 		var refresh = function() {
 
 			table.empty();
 
-			Command.snapshots("list", "", null, function(result) {
+			Command.snapshots('list', '', null, function(result) {
 
 				result.forEach(function(data) {
 
 					var snapshots = data.snapshots;
 
 					snapshots.forEach(function(snapshot, i) {
-						table.append('<tr><td>' + snapshot + '</td><td style="text-align:right;"><button id="delete-' + i + '">Delete</button><button id="add-' + i + '">Add</button><button id="restore-' + i + '">Restore</button></td></tr>');
+						table.append('<tr><td class="snapshot-link name-' + i + '"><a href="#">' + snapshot + '</td><td style="text-align:right;"><button id="restore-' + i + '">Restore</button><button id="add-' + i + '">Add</button><button id="delete-' + i + '">Delete</button></td></tr>');
+						
+						$('.name-' + i + ' a').on('click', function() {
+							Command.snapshots("get", snapshot, null, function(data) {
+								
+								var element = document.createElement('a');
+								element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data.schemaJson));
+								element.setAttribute('download', snapshot);
+
+								element.style.display = 'none';
+								document.body.appendChild(element);
+
+								element.click();
+								document.body.removeChild(element);
+							});
+						});
+						
 						$('#restore-' + i).on('click', function() {
 
 							Command.snapshots("restore", snapshot, null, function(data) {
 
-								var status = data.status;
+								var status = data[0].status;
 
-								if (status === "success") {
+								if (status === 'success') {
 									window.location.reload();
 								} else {
 
@@ -2487,11 +2503,11 @@ var _Schema = {
 						});
 						$('#add-' + i).on('click', function() {
 
-							Command.snapshots("add", snapshot, null, function(data) {
+							Command.snapshots('add', snapshot, null, function(data) {
 
-								var status = data.status;
+								var status = data[0].status;
 
-								if (status === "success") {
+								if (status === 'success') {
 									window.location.reload();
 								} else {
 
@@ -2504,7 +2520,7 @@ var _Schema = {
 							});
 						});
 						$('#delete-' + i).on('click', function() {
-							Command.snapshots("delete", snapshot, null, refresh);
+							Command.snapshots('delete', snapshot, null, refresh);
 						});
 					});
 
@@ -2515,18 +2531,30 @@ var _Schema = {
 
 		$('#create-snapshot').on('click', function() {
 
-			var title = $('#snapshot-title').val();
+			var suffix = $('#snapshot-suffix').val();
 
 			var types = [];
 			if (selectedNodes && selectedNodes.length) {
 				selectedNodes.forEach(function(selectedNode) {
 					types.push(selectedNode.name);
 				});
+				
+				$('.label.rel-type', canvas).each(function (idx, el) {
+					$el = $(el);
+					
+					var sourceType = $el.children('div').attr('data-source-type');
+					var targetType = $el.children('div').attr('data-target-type');
+					
+					// include schema relationship if both source and target type are selected
+					if (types.indexOf(sourceType) !== -1 && types.indexOf(targetType) !== -1) {
+						types.push($el.children('div').attr('data-name'));
+				    }
+				});
 			}
 
-			Command.snapshots("export", title, types, function(data) {
+			Command.snapshots('export', suffix, types, function(data) {
 
-				var status = data.status;
+				var status = data[0].status;
 				if (dialogBox.is(':visible')) {
 
 					if (status === 'success') {
@@ -2865,7 +2893,6 @@ var _Schema = {
 			$('td', schemaOptionsTable).on('mouseup', function(e) {
 				e.stopPropagation();
 				e.preventDefault();
-				console.log('td clicked');
 				var td = $(this);
 				var inp = $('.toggle-type', td);
 				inp.prop("checked", !inp.prop("checked"));
