@@ -871,6 +871,9 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		syncables.add(getSourceNode());
 		syncables.add(getTargetNode());
+		
+		syncables.add(getIncomingRelationship(SchemaRelationshipSourceNode.class));
+		syncables.add(getOutgoingRelationship(SchemaRelationshipTargetNode.class));
 
 		return syncables;
 	}
