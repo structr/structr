@@ -178,55 +178,55 @@ var _Elements = {
 	voidAttrs: ['br', 'hr', 'img', 'input', 'link', 'meta', 'area', 'base', 'col', 'embed', 'keygen', 'menuitem', 'param', 'track', 'wbr'],
 	sortedElementGroups: [
 		{
-			'name': 'A',
+			'name': 'a',
 			'elements': ['a', 'abbr', 'address', 'area', 'aside', 'article', 'audio'],
 		},
 		{
-			'name': 'B',
+			'name': 'b',
 			'elements': ['b', 'base', 'bdi', 'bdo', 'blockquote', 'body', 'br', 'button'],
 		},
 		{
-			'name': 'C',
+			'name': 'c',
 			'elements': ['canvas', 'caption', 'cite', 'code', 'colgroup', 'col', 'command', 'comment'],
 		},
 		{
-			'name': 'D',
+			'name': 'd',
 			'elements': ['datalist', 'dd', 'del', 'details', 'div', 'dfn', 'dl', 'dt'],
 		},
 		{
-			'name': 'E-F',
+			'name': 'e-f',
 			'elements': ['em', 'embed', '|', 'fieldset', 'figcaption', 'figure', 'form', 'footer'],
 		},
 		{
-			'name': 'G-H',
+			'name': 'g-h',
 			'elements': ['g', '|', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr'],
 		},
 		{
-			'name': 'I-K',
+			'name': 'i-k',
 			'elements': ['i', 'iframe', 'img', 'input', 'ins', '|', 'kbd', 'keygen'],
 		},
 		{
-			'name': 'L-M',
+			'name': 'l-m',
 			'elements': ['label', 'legend', 'li', 'link', '|', 'map', 'mark', 'menu', 'meta', 'meter'],
 		},
 		{
-			'name': 'N-O',
+			'name': 'n-o',
 			'elements': ['nav', 'noscript', '|', 'object', 'ol', 'optgroup', 'option', 'output'],
 		},
 		{
-			'name': 'P-R',
+			'name': 'p-r',
 			'elements': ['p', 'param', 'pre', 'progress', '|', 'rp', 'rt', 'ruby'],
 		},
 		{
-			'name': 'S',
+			'name': 's',
 			'elements': ['s', 'samp', 'script', 'section', 'select', 'small', 'source', 'span', 'strong', 'style', 'sub', 'summary', 'sup'],
 		},
 		{
-			'name': 'T',
+			'name': 't',
 			'elements': ['table', 'tbody', 'td', 'textarea', 'th', 'thead', 'tfoot', 'time', 'title', 'tr', 'track'],
 		},
 		{
-			'name': 'U-W',
+			'name': 'u-w',
 			'elements': ['u', 'ul', '|', 'var', 'video', '|', 'wbr'],
 		}
 	],
@@ -929,48 +929,48 @@ var _Elements = {
 			var menu = [
 				{ name: 'Insert HTML element', elements: _Elements.sortedElementGroups },
 				{
-					name: 'Insert Structr element',
+					name: 'Insert content element',
 					elements: [
 						'content', 'template'
 					],
 					separator: true
 				},
-				{ name: 'Query Settings...',  func: function() { _Entities.showProperties(entity, 'query'); } },
-				{ name: 'Data Binding...',    func: function() { _Entities.showProperties(entity, 'editBinding'); } },
+				{ name: 'Query and Data Binding...',  func: function() { _Entities.showProperties(entity, 'query'); } },
+				{ name: 'Edit Mode Binding...',    func: function() { _Entities.showProperties(entity, 'editBinding'); } },
 				{ name: 'HTML Attributes...', func: function() { _Entities.showProperties(entity, '_html_'); } },
 				{ name: 'Node Properties...', func: function() { _Entities.showProperties(entity, 'ui'); }, separator: true },
 				{ name: 'Security...', elements: [
 
-					{ name: 'Edit Security...', func: function() { _Entities.showAccessControlDialog(entity.id); }, separator: true },
+					{ name: 'Access Control and Visibility...', func: function() { _Entities.showAccessControlDialog(entity.id); }, separator: true },
 					{ name: 'Authenticated Users...', elements: [
-						{ name: 'Element visible', func: function() {
+						{ name: 'Make element visible', func: function() {
 							Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, false); }
 						},
-						{ name: 'Element NOT visible', func: function() {
+						{ name: 'Make Element invisible', func: function() {
 							Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, false); }
 						},
-						{ name: 'Subtree visible', func: function() {
+						{ name: 'Make subtree visible', func: function() {
 							Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, true); },
 							separator: true
 						},
-						{ name: 'Subtree NOT visible', func: function() {
+						{ name: 'Make subtree invisible', func: function() {
 							Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, true); }
 						},
 						],
 						separator: true
 					},
 					{ name: 'Public Users...', elements: [
-						{ name: 'Element visible', func: function() {
+						{ name: 'Make element visible', func: function() {
 							Command.setProperty(entity.id, 'visibleToPublicUsers', true, false); }
 						},
-						{ name: 'Element NOT visible', func: function() {
+						{ name: 'Make element invisible', func: function() {
 							Command.setProperty(entity.id, 'visibleToPublicUsers', false, false); }
 						},
-						{ name: 'Subtree visible', func: function() {
+						{ name: 'Make subtree visible', func: function() {
 							Command.setProperty(entity.id, 'visibleToPublicUsers', true, true); },
 							separator: true
 						},
-						{ name: 'Subtree NOT visible', func: function() {
+						{ name: 'Make subtree invisible', func: function() {
 							Command.setProperty(entity.id, 'visibleToPublicUsers', false, true); }
 						},
 						]

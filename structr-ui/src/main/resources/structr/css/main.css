@@ -2683,8 +2683,9 @@ i.fa.ps {
     top: 1px;
     left: 0px;
     background-color: #fff;
-    border: 1px solid #ccc;
-    border-radius: 3px;
+    border-top: 1px solid #ccc;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
     z-index: 99999;
     position: absolute;
 }
@@ -2693,7 +2694,7 @@ i.fa.ps {
     list-style-type: none;
     margin: 0;
     padding:0;
-    width: 150px;
+    width: 160px;
     z-index: 99999;
     position: relative;
 }
@@ -2728,7 +2729,6 @@ i.fa.ps {
     background-color: #fff;
     z-index: 99999;
     border: 1px solid #ccc;
-    border-radius: 3px;
 }
 
 #add-child-dialog hr {
@@ -2742,11 +2742,11 @@ i.fa.ps {
 }
 
 #add-child-dialog ul.right ul.right {
-    right: 150px;
+    right: 160px;
 }
 
 #add-child-dialog ul.left ul.left {
-    left: 150px;
+    left: 160px;
 }
 
 #add-child-dialog ul.top ul.top {
