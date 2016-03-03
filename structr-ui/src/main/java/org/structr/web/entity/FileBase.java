@@ -92,7 +92,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		if (super.onCreation(securityContext, errorBuffer)) {
 
-			if ("true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_ENABLED, "false"))) {
+			if ("true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_ENABLED, "false")) && !getProperty(AbstractFile.hasParent)) {
 
 				final Folder workingOrHomeDir = getCurrentWorkingDir();
 				if (workingOrHomeDir != null && getProperty(AbstractFile.parent) == null) {

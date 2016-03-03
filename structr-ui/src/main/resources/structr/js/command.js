@@ -914,6 +914,7 @@ var Command = {
 		data.name = file.name;
 		data.size = file.size;
 		data.parent = file.parent;
+		data.hasParent = file.hasParent;
 		data.parentId = file.parentId;
 		data.type = isImage(file.type) ? 'Image' : isVideo(file.type) ? 'VideoFile' : 'File';
 		obj.data = data;

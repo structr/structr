@@ -310,8 +310,8 @@ var _Filesystem = {
 				} else {
 					$(filesToUpload).each(function(i, file) {
 						//file.parent = { id: currentWorkingDir };
-						file.parentId = currentWorkingDir ? currentWorkingDir.id : null;;
-						file.hasParent = true;
+						file.parentId = currentWorkingDir ? currentWorkingDir.id : null;
+						file.hasParent = true; // Setting hasParent = true forces the backend to upload the file to the root dir even if parentId is null
 						Command.createFile(file, function(f) {
 							_Filesystem.appendFileOrFolderRow(f);
 						});
