@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -226,7 +227,7 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 	public static File locateFile(final String name, final boolean addTimestamp) throws FrameworkException {
 
 		String fileName = name;
-		if (fileName == null) {
+		if (StringUtils.isBlank(fileName)) {
 
 			// create default value
 			fileName = "schema.json";

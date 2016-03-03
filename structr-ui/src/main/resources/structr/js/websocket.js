@@ -437,9 +437,9 @@ function wsConnect() {
 
 			} else if (command === 'FINISHED') { /*********************** FINISHED ************************/
 
-				StructrModel.callCallback(data.callback);
+				StructrModel.callCallback(data.callback, data.data);
 
-				} else if (command === 'AUTOCOMPLETE') { /*********************** AUTOCOMPLETE ************************/
+			} else if (command === 'AUTOCOMPLETE') { /*********************** AUTOCOMPLETE ************************/
 
 				StructrModel.callCallback(data.callback, result);
 

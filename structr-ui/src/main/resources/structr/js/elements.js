@@ -1008,7 +1008,7 @@ var _Elements = {
 			// information about most used elements in this page from backend
 			if (entity.mostUsedTags && entity.mostUsedTags.length) {
 				menu.push({
-					name: 'Most used elements', elements: entity.mostUsedTags
+					name: 'Most used elements', elements: entity.mostUsedTags, separator: true
 				});
 			}
 

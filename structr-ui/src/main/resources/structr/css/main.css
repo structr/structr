@@ -977,6 +977,11 @@ img.button {
     background-color: #f1cd2e !important;
 }
 
+#schema-graph .label.rel-type.selected {
+    border-color: #ca0;
+    background-color: #f1cd2e !important;
+}
+
 button {
     color: #222;
     font-weight: bold;
