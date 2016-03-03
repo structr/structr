@@ -68,7 +68,7 @@ public class VirtualType extends AbstractNode {
 		final List<VirtualProperty> props         = sort(getProperty(properties));
 		final Mapper mapper                       = new Mapper(securityContext, props, entityType);
 		final Filter filter                       = new Filter(securityContext, getProperty(filterExpression));
-		final Iterable<GraphObject> iterable      = Iterables.filter(filter, Iterables.map(mapper, result.getResults()));
+		final Iterable<GraphObject> iterable      = Iterables.map(mapper, Iterables.filter(filter, result.getResults()));
 		final List<GraphObject> transformedResult = Iterables.toList(iterable);
 
 		return new Result(transformedResult,transformedResult.size(), result.isCollection(), result.isPrimitiveArray());
