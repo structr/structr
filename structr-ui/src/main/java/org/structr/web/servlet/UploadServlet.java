@@ -47,6 +47,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
+import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -128,11 +129,20 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 				return;
 			}
 
-			final SecurityContext securityContext = getConfig().getAuthenticator().initializeAndExamineRequest(request, response);
+			final SecurityContext securityContext;
+			try {
+				securityContext = getConfig().getAuthenticator().initializeAndExamineRequest(request, response);
+				
+			} catch (AuthenticationException ae) {
+				
+				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+				response.getOutputStream().write("ERROR (401): Invalid user or password.\n".getBytes("UTF-8"));
+				return;
+			}
 
 			if (securityContext.getUser(false) == null && Boolean.FALSE.equals(Boolean.parseBoolean(StructrApp.getConfigurationValue("UploadServlet.allowAnonymousUploads", "false")))) {
-				response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-				response.getOutputStream().write("ERROR (403): Anonymous uploads forbidden.\n".getBytes("UTF-8"));
+				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+				response.getOutputStream().write("ERROR (401): Anonymous uploads forbidden.\n".getBytes("UTF-8"));
 				return;
 			}
 
