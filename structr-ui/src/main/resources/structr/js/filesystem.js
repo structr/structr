@@ -483,7 +483,7 @@ var _Filesystem = {
 		if (id === 'root') {
 			Command.list('Folder', true, 1000, 1, 'name', 'asc', null, handleChildren);
 		} else {
-			Command.query('Folder', 1000, 1, 'name', 'asc', {parentId: id}, handleChildren, true);
+			Command.query('Folder', 1000, 1, 'name', 'asc', {parentId: id}, handleChildren, true, 'public');
 		}
 
 
