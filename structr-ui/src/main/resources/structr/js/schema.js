@@ -208,12 +208,16 @@ var _Schema = {
 					});
 
 					canvas.on('mousedown', function(e) {
-						_Schema.clearSelection();
-						_Schema.selectionStart(e);
+						if (e.which === 1) {
+							_Schema.clearSelection();
+							_Schema.selectionStart(e);
+						}
 					});
 
 					canvas.on('mousemove', function (e) {
-						_Schema.selectionDrag(e);
+						if (e.which === 1) {
+							_Schema.selectionDrag(e);
+						}
 					});
 
 					canvas.on('mouseup', function (e) {
@@ -260,16 +264,14 @@ var _Schema = {
 		}
 	},
 	selectionStart: function (e) {
-		if (e.which === 1) {
-			canvas.addClass('noselect');
-			selectionInProgress = true;
-			var schemaOffset = canvas.offset();
-			mouseDownCoords.x = e.pageX - schemaOffset.left;
-			mouseDownCoords.y = e.pageY - schemaOffset.top;
-		}
+		canvas.addClass('noselect');
+		selectionInProgress = true;
+		var schemaOffset = canvas.offset();
+		mouseDownCoords.x = e.pageX - schemaOffset.left;
+		mouseDownCoords.y = e.pageY - schemaOffset.top;
 	},
 	selectionDrag: function (e) {
-		if (selectionInProgress === true && e.which === 1) {
+		if (selectionInProgress === true) {
 			var schemaOffset = canvas.offset();
 			mouseUpCoords.x = e.pageX - schemaOffset.left;
 			mouseUpCoords.y = e.pageY - schemaOffset.top;
@@ -2467,10 +2469,10 @@ var _Schema = {
 
 					snapshots.forEach(function(snapshot, i) {
 						table.append('<tr><td class="snapshot-link name-' + i + '"><a href="#">' + snapshot + '</td><td style="text-align:right;"><button id="restore-' + i + '">Restore</button><button id="add-' + i + '">Add</button><button id="delete-' + i + '">Delete</button></td></tr>');
-						
+
 						$('.name-' + i + ' a').on('click', function() {
 							Command.snapshots("get", snapshot, null, function(data) {
-								
+
 								var element = document.createElement('a');
 								element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data.schemaJson));
 								element.setAttribute('download', snapshot);
@@ -2482,7 +2484,7 @@ var _Schema = {
 								document.body.removeChild(element);
 							});
 						});
-						
+
 						$('#restore-' + i).on('click', function() {
 
 							Command.snapshots("restore", snapshot, null, function(data) {
@@ -2538,13 +2540,13 @@ var _Schema = {
 				selectedNodes.forEach(function(selectedNode) {
 					types.push(selectedNode.name);
 				});
-				
+
 				$('.label.rel-type', canvas).each(function (idx, el) {
 					$el = $(el);
-					
+
 					var sourceType = $el.children('div').attr('data-source-type');
 					var targetType = $el.children('div').attr('data-target-type');
-					
+
 					// include schema relationship if both source and target type are selected
 					if (types.indexOf(sourceType) !== -1 && types.indexOf(targetType) !== -1) {
 						types.push($el.children('div').attr('data-name'));
