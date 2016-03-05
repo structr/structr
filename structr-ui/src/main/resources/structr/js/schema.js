@@ -792,9 +792,8 @@ var _Schema = {
 			_Schema.appendRemoteProperties(c, entity);
 		});
 
-		var n = $('.schema-details', contentDiv);
-		n.children('b').on('click', function() {
-			_Schema.makeAttrEditable(n, 'name');
+		headContentDiv.children('b').on('click', function() {
+			_Schema.makeAttrEditable(headContentDiv, 'name');
 		});
 
 		var classSelect = $('.extends-class-select', headEl);
@@ -881,9 +880,8 @@ var _Schema = {
 			_Schema.appendMethods(c, entity);
 		});
 
-		var n = $('.schema-details', headEl);
-		n.children('b').on('click', function() {
-			_Schema.makeAttrEditable(n, 'relationshipType', true);
+		headContentDiv.children('b').on('click', function() {
+			_Schema.makeAttrEditable(headContentDiv, 'relationshipType', true);
 		});
 
 		$.get(rootUrl + entity.id, function(data) {
@@ -2348,7 +2346,8 @@ var _Schema = {
 	makeAttrEditable: function(element, key, isRel) {
 		//element.off('dblclick');
 
-		var id = element.prop('id').substring(3);
+		// cut off three leading underscores and only use 32 characters (the UUID)
+		var id = element.prop('id').substring(3,35);
 
 		element.off('hover');
 		element.children('b').hide();
