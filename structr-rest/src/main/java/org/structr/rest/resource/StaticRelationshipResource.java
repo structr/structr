@@ -19,6 +19,7 @@
 package org.structr.rest.resource;
 
 import java.util.Collection;
+import java.util.Iterator;
 import org.structr.common.PagingHelper;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -51,6 +52,7 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.script.StructrScriptable;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
@@ -136,16 +138,42 @@ public class StaticRelationshipResource extends SortableResource {
 				final Predicate<GraphObject> predicate = query.toPredicate();
 				final Object value = sourceEntity.getProperty(propertyKey, predicate);
 
-				if (value != null) {
+    				if (value != null) {
 
 					if (value instanceof Iterable) {
 
 						final Set<GraphObject> propertyResults = new LinkedHashSet<>();
 
-						// fill set with data
-						for (final GraphObject obj : ((Iterable<GraphObject>) value)) {
-							propertyResults.add(obj);
-						}
+                                                boolean iterableContainsGraphObject = false;
+                                                Iterator<Object> iter = ((Iterable<Object>) value).iterator();
+
+                                                while(iter.hasNext()){
+                                                    Object obj = iter.next();
+
+                                                    if(obj != null){
+
+                                                        if(iterableContainsGraphObject){
+
+                                                            propertyResults.add((GraphObject)obj);
+
+                                                        } else if (!iterableContainsGraphObject){
+
+                                                            if(obj instanceof GraphObject){
+
+                                                                iterableContainsGraphObject = true;
+                                                                propertyResults.add((GraphObject)obj);
+
+                                                            } else {
+
+                                                                logger.log(Level.INFO, "Found object {0} of type iterable, but contained elements are not of type GraphObject.", value);
+                                                                break;
+
+                                                            }
+
+                                                        }
+
+                                                    }
+                                                }
 
 						final List<GraphObject> finalResult = new LinkedList<>(propertyResults);
 						applyDefaultSorting(finalResult, sortKey, sortDescending);
