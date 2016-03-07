@@ -585,7 +585,7 @@ var _Elements = {
 				}, function() {
 					_Logger.log(_LogType.ELEMENTS, 'cancelled')
 				});
-				_Files.editContent(this, file, $('#dialogBox .dialogText'));
+				_Filesystem.editContent(this, file, $('#dialogBox .dialogText'));
 
 			});
 
@@ -693,7 +693,7 @@ var _Elements = {
 
 						files.forEach(function(file) {
 
-							filesToLink.append('<div class="node file ' + file.id + '_"><img class="typeIcon" src="' + _Files.getIcon(file) + '">'
+							filesToLink.append('<div class="node file ' + file.id + '_"><img class="typeIcon" src="' + _Filesystem.getIcon(file) + '">'
 									+ '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
 
 							var div = $('.' + file.id + '_', filesToLink);
@@ -754,7 +754,7 @@ var _Elements = {
 							div.on('click', function(e) {
 								e.stopPropagation();
 								if (div.hasClass('nodeActive')) {
-									console.log('removing')
+									//console.log('removing')
 									Command.setProperty(entity.id, 'linkableId', null);
 								} else {
 									Command.link(entity.id, image.id);
@@ -836,7 +836,7 @@ var _Elements = {
 
 			Command.get(f.id, function(file) {
 
-				$('.' + folder.id + '_').append('<div class="clear"></div><div class="node file sub ' + file.id + '_"><img class="typeIcon" src="' + _Files.getIcon(file) + '">'
+				$('.' + folder.id + '_').append('<div class="clear"></div><div class="node file sub ' + file.id + '_"><img class="typeIcon" src="' + _Filesystem.getIcon(file) + '">'
 						+ '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
 				var div = $('.' + file.id + '_');
 

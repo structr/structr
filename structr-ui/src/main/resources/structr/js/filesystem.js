@@ -22,6 +22,7 @@ var chunkSize = 1024 * 64;
 var sizeLimit = 1024 * 1024 * 1024;
 var win = $(window);
 var selectedElements = [];
+var activeFileId, fileContents = {};
 var counter = 0;
 var currentWorkingDir;
 var folderPageSize = 10000, folderPage = 1;
@@ -34,6 +35,15 @@ $(document).ready(function() {
 });
 
 var _Filesystem = {
+
+	icon: 'icon/page_white.png',
+	add_file_icon: 'icon/page_white_add.png',
+	pull_file_icon: 'icon/page_white_put.png',
+	delete_file_icon: 'icon/page_white_delete.png',
+	add_folder_icon: 'icon/folder_add.png',
+	folder_icon: 'icon/folder.png',
+	delete_folder_icon: 'icon/folder_delete.png',
+	download_icon: 'icon/basket_put.png',
 
 	init: function() {
 
@@ -101,8 +111,8 @@ var _Filesystem = {
 		folderContents = $('#folder-contents');
 
 		$('#folder-contents-container').prepend(
-				'<button class="add_file_icon button"><img title="Add File" alt="Add File" src="' + _Files.add_file_icon + '"> Add File</button>'
-				+ '<button class="pull_file_icon button"><img title="Sync Files" alt="Sync Files" src="' + _Files.pull_file_icon + '"> Sync Files</button>'
+				'<button class="add_file_icon button"><img title="Add File" alt="Add File" src="' + _Filesystem.add_file_icon + '"> Add File</button>'
+				+ '<button class="pull_file_icon button"><img title="Sync Files" alt="Sync Files" src="' + _Filesystem.pull_file_icon + '"> Sync Files</button>'
 				);
 
 		$('.add_file_icon', main).on('click', function(e) {
@@ -117,7 +127,7 @@ var _Filesystem = {
 			Structr.pullDialog('File,Folder');
 		});
 
-		$('#folder-contents-container').prepend('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Files.add_folder_icon + '"> Add Folder</button>');
+		$('#folder-contents-container').prepend('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Filesystem.add_folder_icon + '"> Add Folder</button>');
 		$('.add_folder_icon', main).on('click', function(e) {
 			e.stopPropagation();
 			Command.create({ type: 'Folder', parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
@@ -192,6 +202,10 @@ var _Filesystem = {
 	},
 	refreshTree: function() {
 		fileTree.jstree('refresh');
+		window.setTimeout(function() {
+			var rootEl = $('#root > .jstree-wholerow');
+			_Dragndrop.makeDroppable(rootEl);
+		}, 500);
 	},
 	initTree: function() {
 		fileTree.jstree({
@@ -251,7 +265,8 @@ var _Filesystem = {
 		});
 	},
 	unload: function() {
-		fastRemoveAllChildren(main[0]);
+		$('.searchBox', main).remove();
+		$('#filesystem-main', main).remove();
 	},
 	activateUpload: function() {
 		if (window.File && window.FileReader && window.FileList && window.Blob) {
@@ -545,7 +560,7 @@ var _Filesystem = {
 		var rowId = 'row' + d.id;
 		tableBody.append('<tr id="' + rowId + '"></tr>');
 		var row = $('#' + rowId);
-		var icon = d.isFolder ? 'fa-folder' : _Filesystem.getIcon(d.name, d.contentType);
+		var icon = d.isFolder ? 'fa-folder' : _Filesystem.getIcon(d);
 
 		if (d.isFolder) {
 			row.append('<td class="file-type"><i class="fa ' + icon + '"></i></td>');
@@ -668,7 +683,7 @@ var _Filesystem = {
 
 			// ********** Files **********
 
-			if (_Files.isArchive(d)) {
+			if (_Filesystem.isArchive(d)) {
 				div.append('<img class="unarchive_icon button" src="icon/compress.png">');
 				div.children('.unarchive_icon').on('click', function() {
 					_Logger.log(_LogType.FILESYSTEM, 'unarchive', d.id);
@@ -784,14 +799,15 @@ var _Filesystem = {
 
 						activeFileId = Structr.getIdFromPrefixIdString($(this).prop('id'), 'tab-');
 						$('#content-tab-' + activeFileId).empty();
-						_Files.editContent(null, entity, $('#content-tab-' + activeFileId));
+						_Filesystem.editContent(null, entity, $('#content-tab-' + activeFileId));
 
 						return false;
 					});
-
-					if (entity.id === file.id) {
+					
+					if (i+1 === selectedElements.length) {
 						_Entities.activateTabs(file.id, '#files-tabs', '#content-tab-' + file.id);
 					}
+
 				});
 
 			});
@@ -830,7 +846,7 @@ var _Filesystem = {
 					} else {
 						container.append('<h1>' + data.result.length + ' search results:</h1><table class="props"><thead><th class="_type">Type</th><th>Name</th><th>Size</th></thead><tbody></tbody></table>');
 						data.result.forEach(function(d) {
-							var icon = _Filesystem.getIcon(d.name, d.contentType);
+							var icon = _Filesystem.getIcon(d);
 							$('tbody', container).append('<tr><td><i class="fa ' + icon + '"></i> ' + d.type + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td><td><a href="#results' + d.id + '">' + d.name + '</a></td><td>' + d.size + '</td></tr>');
 
 						});
@@ -853,7 +869,7 @@ var _Filesystem = {
 									container.append('<div class="search-result collapsed" id="results' + d.id + '"></div>');
 
 									var div = $('#results' + d.id);
-									var icon = _Filesystem.getIcon(d.name, d.contentType);
+									var icon = _Filesystem.getIcon(d);
 									//div.append('<h2><img id="preview' + d.id + '" src="' + icon + '" style="margin-left: 6px;" title="' + d.extractedContent + '" />' + d.path + '</h2>');
 									div.append('<h2><i class="fa ' + icon + '"></i> ' + d.name + '<img id="preview' + d.id + '" src="/structr/icon/eye.png" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
 									div.append('<i class="toggle-height fa fa-expand"></i>').append('<i class="go-to-top fa fa-chevron-up"></i>');
@@ -897,7 +913,10 @@ var _Filesystem = {
 
 		});
 	},
-	getIcon: function(fileName, contentType) {
+	getIcon: function(file) {
+
+		var fileName = file.name;
+		var contentType = file.contentType;
 
 		var result = 'fa-file-o';
 
@@ -986,6 +1005,150 @@ var _Filesystem = {
 		}
 
 		return result;
-	}
+	},
+	updateTextFile: function(file, text) {
+		var chunks = Math.ceil(text.length / chunkSize);
+		for (var c = 0; c < chunks; c++) {
+			var start = c * chunkSize;
+			var end = (c + 1) * chunkSize;
+			var chunk = utf8_to_b64(text.substring(start, end));
+			Command.chunk(file.id, c, chunkSize, chunk, chunks);
+		}
+	},
+	editContent: function(button, file, element) {
+		var url = viewRootUrl + file.id + '?edit=1';
+		_Logger.log(_LogType.FILES, 'editContent', button, file, element, url);
+		var text = '';
 
+		var contentType = file.contentType;
+		var dataType = 'text';
+
+		if (!contentType) {
+			if (file.name.endsWith('.css')) {
+				contentType = 'text/css';
+			} else if (file.name.endsWith('.js')) {
+				contentType = 'text/javascript';
+			} else {
+				contentType = 'text/plain';
+			}
+		}
+		_Logger.log(_LogType.FILES, viewRootUrl, url);
+
+		$.ajax({
+			url: url,
+			//async: false,
+			dataType: dataType,
+			contentType: contentType,
+			success: function(data) {
+				_Logger.log(_LogType.FILES, file.id, fileContents);
+				text = fileContents[file.id] || data;
+				if (isDisabled(button))
+					return;
+				element.append('<div class="editor"></div>');
+				var contentBox = $('.editor', element);
+				var lineWrapping = LSWrapper.getItem(lineWrappingKey);
+				editor = CodeMirror(contentBox.get(0), {
+					value: text,
+					mode: contentType,
+					lineNumbers: true,
+					lineWrapping: lineWrapping
+				});
+
+				var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + file.id));
+				if (scrollInfo) {
+					editor.scrollTo(scrollInfo.left, scrollInfo.top);
+				}
+
+				editor.on('scroll', function() {
+					var scrollInfo = editor.getScrollInfo();
+					LSWrapper.setItem(scrollInfoKey + '_' + file.id, JSON.stringify(scrollInfo));
+				});
+				editor.id = file.id;
+
+				dialogBtn.children('#saveFile').remove();
+				dialogBtn.children('#saveAndClose').remove();
+
+				dialogMeta.html('<span class="editor-info"><label for"lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
+				$('#lineWrapping').on('change', function() {
+					var inp = $(this);
+					if (inp.is(':checked')) {
+						LSWrapper.setItem(lineWrappingKey, "1");
+						editor.setOption('lineWrapping', true);
+					} else {
+						LSWrapper.removeItem(lineWrappingKey);
+						editor.setOption('lineWrapping', false);
+					}
+					editor.refresh();
+				});
+
+				dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled"> Save </button>');
+				dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
+
+				dialogSaveButton = $('#saveFile', dialogBtn);
+				saveAndClose = $('#saveAndClose', dialogBtn);
+
+				text1 = text;
+
+				editor.on('change', function(cm, change) {
+
+					text2 = editor.getValue();
+
+					if (text2 === data) {
+						dialogSaveButton.prop("disabled", true).addClass('disabled');
+						saveAndClose.prop("disabled", true).addClass('disabled');
+					} else {
+						dialogSaveButton.prop("disabled", false).removeClass('disabled');
+						saveAndClose.prop("disabled", false).removeClass('disabled');
+					}
+				});
+
+				if (text1 === data) {
+					dialogSaveButton.prop("disabled", true).addClass('disabled');
+					saveAndClose.prop("disabled", true).addClass('disabled');
+				} else {
+					dialogSaveButton.prop("disabled", false).removeClass('disabled');
+					saveAndClose.prop("disabled", false).removeClass('disabled');
+				}
+
+				$('button#saveFile', dialogBtn).on('click', function(e) {
+					e.preventDefault();
+					e.stopPropagation();
+					var newText = editor.getValue();
+					if (data === newText) {
+						return;
+					}
+					_Filesystem.updateTextFile(file, newText);
+					text1 = newText;
+					dialogSaveButton.prop("disabled", true).addClass('disabled');
+					saveAndClose.prop("disabled", true).addClass('disabled');
+				});
+
+				saveAndClose.on('click', function(e) {
+					e.stopPropagation();
+					dialogSaveButton.click();
+					setTimeout(function() {
+						dialogSaveButton.remove();
+						saveAndClose.remove();
+						dialogCancelButton.click();
+					}, 500);
+				});
+
+				_Filesystem.resize();
+
+			},
+			error: function(xhr, statusText, error) {
+				console.log(xhr, statusText, error);
+			}
+		});
+
+	},
+	isArchive: function(file) {
+		var contentType = file.contentType;
+		var extension = file.name.substring(file.name.lastIndexOf('.') + 1);
+
+		var archiveTypes = ['application/zip', 'application/x-tar', 'application/x-cpio', 'application/x-dump', 'application/x-java-archive'];
+		var archiveExtensions = ['zip', 'tar', 'cpio', 'dump', 'jar'];
+
+		return isIn(contentType, archiveTypes) || isIn(extension, archiveExtensions);
+    }
 };

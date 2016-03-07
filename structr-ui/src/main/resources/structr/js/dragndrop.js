@@ -534,7 +534,7 @@ var _Dragndrop = {
 		}
 		source.id = undefined;
 
-		Structr.modules['files'].unload();
+		Structr.modules['filesystem'].unload();
 		Command.createAndAppendDOMNode(pageId, target.id, tag, nodeData);
 
 		return true;
