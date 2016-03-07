@@ -113,6 +113,9 @@ var _Schema = {
 					zoomLevel = newZoomLevel;
 					LSWrapper.setItem(localStorageSuffix + 'zoomLevel', newZoomLevel);
 					_Schema.setZoom(newZoomLevel, instance, [0,0], $('#schema-graph')[0]);
+					if (selectedNodes.length > 0) {
+						_Schema.updateSelectedNodes();
+					}
 					_Schema.resize();
 				}
 			});
@@ -208,12 +211,16 @@ var _Schema = {
 					});
 
 					canvas.on('mousedown', function(e) {
-						_Schema.clearSelection();
-						_Schema.selectionStart(e);
+						if (e.which === 1) {
+							_Schema.clearSelection();
+							_Schema.selectionStart(e);
+						}
 					});
 
 					canvas.on('mousemove', function (e) {
-						_Schema.selectionDrag(e);
+						if (e.which === 1) {
+							_Schema.selectionDrag(e);
+						}
 					});
 
 					canvas.on('mouseup', function (e) {
@@ -260,16 +267,14 @@ var _Schema = {
 		}
 	},
 	selectionStart: function (e) {
-		if (e.which === 1) {
-			canvas.addClass('noselect');
-			selectionInProgress = true;
-			var schemaOffset = canvas.offset();
-			mouseDownCoords.x = e.pageX - schemaOffset.left;
-			mouseDownCoords.y = e.pageY - schemaOffset.top;
-		}
+		canvas.addClass('noselect');
+		selectionInProgress = true;
+		var schemaOffset = canvas.offset();
+		mouseDownCoords.x = e.pageX - schemaOffset.left;
+		mouseDownCoords.y = e.pageY - schemaOffset.top;
 	},
 	selectionDrag: function (e) {
-		if (selectionInProgress === true && e.which === 1) {
+		if (selectionInProgress === true) {
 			var schemaOffset = canvas.offset();
 			mouseUpCoords.x = e.pageX - schemaOffset.left;
 			mouseUpCoords.y = e.pageY - schemaOffset.top;
@@ -282,21 +287,24 @@ var _Schema = {
 			selectBox.remove();
 			selectBox = undefined;
 		}
-		selectedNodes = []
+		_Schema.updateSelectedNodes();
+		canvas.removeClass('noselect');
+	},
+	updateSelectedNodes: function() {
+		selectedNodes = [];
+		var canvasOffset = canvas.offset();
 		$('.node.selected', canvas).each(function (idx, el) {
 			$el = $(el);
-			var offset = $el.offset();
+			var elementOffset = $el.offset();
 			selectedNodes.push({
 				nodeId: $el.attr('id'),
 				name: $el.children('b').text(),
 				pos: {
-					top: (offset.top  - canvas.offset().top),
-					left: offset.left
+					top:  (elementOffset.top  - canvasOffset.top ),
+					left: (elementOffset.left - canvasOffset.left)
 				}
 			});
 		});
-
-		canvas.removeClass('noselect');
 	},
 	drawSelectElem: function () {
 		if (!selectBox || !selectBox.length) {
@@ -463,29 +471,36 @@ var _Schema = {
 					instance.draggable(id, {
 						containment: true,
 						start: function (ui) {
-							var tmp = $(ui.el).offset();
+							var nodeOffset   = $(ui.el).offset();
+							var canvasOffset = canvas.offset();
 							nodeDragStartpoint = {
-								top: (tmp.top - canvas.offset().top),
-								left: tmp.left
+								top:  (nodeOffset.top  - canvasOffset.top ),
+								left: (nodeOffset.left - canvasOffset.left)
 							};
 						},
 						drag: function (ui) {
 
-							if (!$(ui.el).hasClass('selected')) {
+							var $element = $(ui.el);
+
+							if (!$element.hasClass('selected')) {
 
 								_Schema.clearSelection();
 
 							} else {
+
+								var nodeOffset = $element.offset();
+								var canvasOffset = canvas.offset();
+
 								var posDelta = {
-									top: nodeDragStartpoint.top - (ui.pos[1] * zoomLevel + canvas.offset().top),
-									left: nodeDragStartpoint.left - ui.pos[0] * zoomLevel
+									top:  (nodeDragStartpoint.top  - nodeOffset.top ),
+									left: (nodeDragStartpoint.left - nodeOffset.left)
 								};
 
 								selectedNodes.forEach(function (selectedNode) {
-									if (selectedNode.nodeId !== $(ui.el).attr('id')) {
+									if (selectedNode.nodeId !== $element.attr('id')) {
 										$('#' + selectedNode.nodeId).offset({
-											top:(selectedNode.pos.top - posDelta.top > (canvas.offset().top) ) ? (selectedNode.pos.top - posDelta.top) : canvas.offset().top,
-											left:(selectedNode.pos.left - posDelta.left > 0 ) ? (selectedNode.pos.left - posDelta.left) : 0
+											top:  (selectedNode.pos.top  - posDelta.top  > canvasOffset.top ) ? (selectedNode.pos.top  - posDelta.top ) : canvasOffset.top,
+											left: (selectedNode.pos.left - posDelta.left > canvasOffset.left) ? (selectedNode.pos.left - posDelta.left) : canvasOffset.left
 										});
 									}
 								});
@@ -777,9 +792,8 @@ var _Schema = {
 			_Schema.appendRemoteProperties(c, entity);
 		});
 
-		var n = $('.schema-details', contentDiv);
-		n.children('b').on('click', function() {
-			_Schema.makeAttrEditable(n, 'name');
+		headContentDiv.children('b').on('click', function() {
+			_Schema.makeAttrEditable(headContentDiv, 'name');
 		});
 
 		var classSelect = $('.extends-class-select', headEl);
@@ -866,9 +880,8 @@ var _Schema = {
 			_Schema.appendMethods(c, entity);
 		});
 
-		var n = $('.schema-details', headEl);
-		n.children('b').on('click', function() {
-			_Schema.makeAttrEditable(n, 'relationshipType', true);
+		headContentDiv.children('b').on('click', function() {
+			_Schema.makeAttrEditable(headContentDiv, 'relationshipType', true);
 		});
 
 		$.get(rootUrl + entity.id, function(data) {
@@ -2333,7 +2346,8 @@ var _Schema = {
 	makeAttrEditable: function(element, key, isRel) {
 		//element.off('dblclick');
 
-		var id = element.prop('id').substring(3);
+		// cut off three leading underscores and only use 32 characters (the UUID)
+		var id = element.prop('id').substring(3,35);
 
 		element.off('hover');
 		element.children('b').hide();
@@ -2467,10 +2481,10 @@ var _Schema = {
 
 					snapshots.forEach(function(snapshot, i) {
 						table.append('<tr><td class="snapshot-link name-' + i + '"><a href="#">' + snapshot + '</td><td style="text-align:right;"><button id="restore-' + i + '">Restore</button><button id="add-' + i + '">Add</button><button id="delete-' + i + '">Delete</button></td></tr>');
-						
+
 						$('.name-' + i + ' a').on('click', function() {
 							Command.snapshots("get", snapshot, null, function(data) {
-								
+
 								var element = document.createElement('a');
 								element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data.schemaJson));
 								element.setAttribute('download', snapshot);
@@ -2482,7 +2496,7 @@ var _Schema = {
 								document.body.removeChild(element);
 							});
 						});
-						
+
 						$('#restore-' + i).on('click', function() {
 
 							Command.snapshots("restore", snapshot, null, function(data) {
@@ -2538,13 +2552,13 @@ var _Schema = {
 				selectedNodes.forEach(function(selectedNode) {
 					types.push(selectedNode.name);
 				});
-				
+
 				$('.label.rel-type', canvas).each(function (idx, el) {
 					$el = $(el);
-					
+
 					var sourceType = $el.children('div').attr('data-source-type');
 					var targetType = $el.children('div').attr('data-target-type');
-					
+
 					// include schema relationship if both source and target type are selected
 					if (types.indexOf(sourceType) !== -1 && types.indexOf(targetType) !== -1) {
 						types.push($el.children('div').attr('data-name'));

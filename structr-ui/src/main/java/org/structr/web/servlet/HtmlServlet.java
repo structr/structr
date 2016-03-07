@@ -1016,7 +1016,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		for (Page page : pages) {
 			
-			if (page.getProperty(Page.position) != null && ((page.getProperty(Page.enableBasicAuth) != null && page.getProperty(Page.visibleToAuthenticatedUsers)) ||  securityContext.isVisible(page) || (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page)))) {
+			if (securityContext.isVisible(page) && page.getProperty(Page.position) != null && ((EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page)) || (page.getProperty(Page.enableBasicAuth) && page.getProperty(Page.visibleToAuthenticatedUsers)))) {
 				
 				return page;
 			}
@@ -1508,14 +1508,14 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		final int serverPort = request.getServerPort();
 
 		if (StringUtils.isNotBlank(serverName) && !serverName.equals(site.getProperty(Site.hostname))) {
-			logger.log(Level.INFO, "Server name {0} does not fit site hostname {1}", new Object[]{serverName, site.getProperty(Site.hostname)});
+			logger.log(Level.FINE, "Server name {0} does not fit site hostname {1}", new Object[]{serverName, site.getProperty(Site.hostname)});
 			return false;
 		}
 
 		final Integer sitePort = site.getProperty(Site.port);
 
 		if (sitePort != null && serverPort != sitePort) {
-			logger.log(Level.INFO, "Server port {0} does not match site port {1}", new Object[]{serverPort, sitePort});
+			logger.log(Level.FINE, "Server port {0} does not match site port {1}", new Object[]{serverPort, sitePort});
 			return false;
 		}
 
