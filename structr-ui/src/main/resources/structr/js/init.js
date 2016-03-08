@@ -856,10 +856,6 @@ var Structr = {
 
 				if (filesystemMain && filesystemMain.length)
 					filesystemMain.hide();
-				if (files && files.length)
-					files.hide();
-				if (folders && folders.length)
-					folders.hide();
 				if (widgets && widgets.length)
 					widgets.hide();
 

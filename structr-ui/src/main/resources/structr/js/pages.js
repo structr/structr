@@ -551,7 +551,9 @@ var _Pages = {
 			var self = $(this);
 			var pageId = self.prop('id').substring('preview_'.length);
 			var iframe = $('#preview_' + pageId);
-			iframe.contents().empty();
+			try {
+				iframe.contents().empty();
+			} catch (e) {}
 			_Logger.log(_LogType.PAGES, 'iframe', pageId, 'deactivated');
 		});
 	},
@@ -667,188 +669,194 @@ var _Pages = {
 		_Pages.resetTab(tab, entity.name);
 
 		$('#preview_' + entity.id).hover(function() {
-			var self = $(this);
-			var elementContainer = self.contents().find('.structr-element-container');
-			elementContainer.addClass('structr-element-container-active');
-			elementContainer.removeClass('structr-element-container');
+			try {
+				var self = $(this);
+				var elementContainer = self.contents().find('.structr-element-container');
+				elementContainer.addClass('structr-element-container-active');
+				elementContainer.removeClass('structr-element-container');
+			} catch (e) {}
 		}, function() {
-			var self = $(this);
-			var elementContainer = self.contents().find('.structr-element-container-active');
-			elementContainer.addClass('structr-element-container');
-			elementContainer.removeClass('structr-element-container-active');
-			//self.find('.structr-element-container-header').remove();
+			try {
+				var self = $(this);
+				var elementContainer = self.contents().find('.structr-element-container-active');
+				elementContainer.addClass('structr-element-container');
+				elementContainer.removeClass('structr-element-container-active');
+				//self.find('.structr-element-container-header').remove();
+			} catch (e) {}
 		});
 
 		$('#preview_' + entity.id).load(function() {
-			var doc = $(this).contents();
-			var head = $(doc).find('head');
-			if (head) {
-				head.append('<style media="screen" type="text/css">'
-						+ '* { z-index: 0}\n'
-						+ '.nodeHover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
-						+ '.structr-content-container { min-height: .25em; min-width: .25em; }\n'
-						+ '.structr-element-container-active:hover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
-						+ '.structr-element-container-selected { -moz-box-shadow: 0 0 8px #860; -webkit-box-shadow: 0 0 8px #860; box-shadow: 0 0 8px #860; }\n'
-						+ '.structr-element-container-selected:hover { -moz-box-shadow: 0 0 10px #750; -webkit-box-shadow: 0 0 10px #750; box-shadow: 0 0 10px #750; }\n'
-						+ '.nodeHover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
-						+ '.structr-editable-area { background-color: #ffe; -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px yellow; box-shadow: 0 0 5px #888; }\n'
-						+ '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange ! important; color: #333; }\n'
-						+ '.link-hover { border: 1px solid #00c; }\n'
-						+ '.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon {  cursor: pointer; heigth: 16px; width: 16px; vertical-align: top; float: right;  position: relative;}\n'
-						/**
-						 * Fix for bug in Chrome preventing the modal dialog background
-						 * from being displayed if a page is shown in the preview which has the
-						 * transform3d rule activated.
-						 */
-						+ '.navbar-fixed-top { -webkit-transform: none ! important; }'
-						+ '</style>');
-			}
-			_Pages.findDroppablesInIframe(doc, entity.id).each(function(i, element) {
-				var el = $(element);
-
-				_Dragndrop.makeDroppable(el, entity.id);
-
-				var structrId = el.attr('data-structr-id');
-				if (structrId) {
-
-					$('.move_icon', el).on('mousedown', function(e) {
-						e.stopPropagation();
-						var self = $(this);
-						var element = self.closest('[data-structr-id]');
-						_Logger.log(_LogType.PAGES, element);
-						var entity = Structr.entity(structrId, element.prop('data-structr-id'));
-						entity.type = element.prop('data-structr_type');
-						entity.name = element.prop('data-structr_name');
-						_Logger.log(_LogType.PAGES, 'move', entity);
-						self.parent().children('.structr-node').show();
-					});
-
-					$('.delete_icon', el).on('click', function(e) {
-						e.stopPropagation();
-						var self = $(this);
-						var element = self.closest('[data-structr-id]');
-						var entity = Structr.entity(structrId, element.prop('data-structr-id'));
-						entity.type = element.prop('data-structr_type');
-						entity.name = element.prop('data-structr_name');
-						_Logger.log(_LogType.PAGES, 'delete', entity);
-						var parentId = element.prop('data-structr-id');
-
-						Command.removeSourceFromTarget(entity.id, parentId);
-						_Entities.deleteNode(this, entity);
-					});
-					var offsetTop = -30;
-					var offsetLeft = 0;
-					el.on({
-						click: function(e) {
-							e.stopPropagation();
-							var self = $(this);
-							var selected = self.hasClass('structr-element-container-selected');
-							self.closest('body').find('.structr-element-container-selected').removeClass('structr-element-container-selected');
-							if (!selected) {
-								self.toggleClass('structr-element-container-selected');
-							}
-							$('.nodeSelected').removeClass('nodeSelected');
-							_Pages.displayDataBinding(structrId);
-							if (!Structr.node(structrId)) {
-								_Pages.expandTreeNode(structrId);
-							} else {
-								var treeEl = Structr.node(structrId);
-								if (treeEl && !selected) {
-									treeEl.toggleClass('nodeSelected');
-								}
-							}
-							return false;
-						},
-						mouseover: function(e) {
-							e.stopPropagation();
-							var self = $(this);
-							self.addClass('structr-element-container-active');
-							_Pages.highlight(structrId);
-							var pos = self.position();
-							var header = self.children('.structr-element-container-header');
-							header.css({
-								position: "absolute",
-								top: pos.top + offsetTop + 'px',
-								left: pos.left + offsetLeft + 'px',
-								cursor: 'pointer'
-							}).show();
-							_Logger.log(_LogType.PAGES, header);
-						},
-						mouseout: function(e) {
-							e.stopPropagation();
-							var self = $(this);
-							self.removeClass('.structr-element-container');
-							var header = self.children('.structr-element-container-header');
-							header.remove();
-							_Pages.unhighlight(structrId);
-						}
-					});
-
+			try {
+				var doc = $(this).contents();
+				var head = $(doc).find('head');
+				if (head) {
+					head.append('<style media="screen" type="text/css">'
+							+ '* { z-index: 0}\n'
+							+ '.nodeHover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
+							+ '.structr-content-container { min-height: .25em; min-width: .25em; }\n'
+							+ '.structr-element-container-active:hover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
+							+ '.structr-element-container-selected { -moz-box-shadow: 0 0 8px #860; -webkit-box-shadow: 0 0 8px #860; box-shadow: 0 0 8px #860; }\n'
+							+ '.structr-element-container-selected:hover { -moz-box-shadow: 0 0 10px #750; -webkit-box-shadow: 0 0 10px #750; box-shadow: 0 0 10px #750; }\n'
+							+ '.nodeHover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
+							+ '.structr-editable-area { background-color: #ffe; -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px yellow; box-shadow: 0 0 5px #888; }\n'
+							+ '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange ! important; color: #333; }\n'
+							+ '.link-hover { border: 1px solid #00c; }\n'
+							+ '.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon {  cursor: pointer; heigth: 16px; width: 16px; vertical-align: top; float: right;  position: relative;}\n'
+							/**
+							 * Fix for bug in Chrome preventing the modal dialog background
+							 * from being displayed if a page is shown in the preview which has the
+							 * transform3d rule activated.
+							 */
+							+ '.navbar-fixed-top { -webkit-transform: none ! important; }'
+							+ '</style>');
 				}
-			});
+				_Pages.findDroppablesInIframe(doc, entity.id).each(function(i, element) {
+					var el = $(element);
 
-			doc.find('*').each(function(i, element) {
+					_Dragndrop.makeDroppable(el, entity.id);
 
-				getComments(element).forEach(function(c) {
+					var structrId = el.attr('data-structr-id');
+					if (structrId) {
 
-					var inner = $(getNonCommentSiblings(c.node));
-					$(c.node).replaceWith('<div data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, false) + '"></div>');
-					var el = $(element).children('[data-structr-id="' + c.id + '"]');
-					el.append(inner);
-
-					$(el).on({
-						mouseover: function(e) {
+						$('.move_icon', el).on('mousedown', function(e) {
 							e.stopPropagation();
 							var self = $(this);
-							self.addClass('structr-editable-area');
-							_Pages.highlight(self.attr('data-structr-id'));
-						},
-						mouseout: function(e) {
-							e.stopPropagation();
-							var self = $(this);
-							self.removeClass('structr-editable-area');
-							_Pages.unhighlight(self.attr('data-structr-id'));
-						},
-						click: function(e) {
-							e.stopPropagation();
-							e.preventDefault();
-							var self = $(this);
+							var element = self.closest('[data-structr-id]');
+							_Logger.log(_LogType.PAGES, element);
+							var entity = Structr.entity(structrId, element.prop('data-structr-id'));
+							entity.type = element.prop('data-structr_type');
+							entity.name = element.prop('data-structr_name');
+							_Logger.log(_LogType.PAGES, 'move', entity);
+							self.parent().children('.structr-node').show();
+						});
 
-							if (contentSourceId) {
-								// click on same element again?
-								if (self.attr('data-structr-id') === contentSourceId) {
-									return;
+						$('.delete_icon', el).on('click', function(e) {
+							e.stopPropagation();
+							var self = $(this);
+							var element = self.closest('[data-structr-id]');
+							var entity = Structr.entity(structrId, element.prop('data-structr-id'));
+							entity.type = element.prop('data-structr_type');
+							entity.name = element.prop('data-structr_name');
+							_Logger.log(_LogType.PAGES, 'delete', entity);
+							var parentId = element.prop('data-structr-id');
+
+							Command.removeSourceFromTarget(entity.id, parentId);
+							_Entities.deleteNode(this, entity);
+						});
+						var offsetTop = -30;
+						var offsetLeft = 0;
+						el.on({
+							click: function(e) {
+								e.stopPropagation();
+								var self = $(this);
+								var selected = self.hasClass('structr-element-container-selected');
+								self.closest('body').find('.structr-element-container-selected').removeClass('structr-element-container-selected');
+								if (!selected) {
+									self.toggleClass('structr-element-container-selected');
 								}
-							}
-							contentSourceId = self.attr('data-structr-id');
-
-							if (self.hasClass('structr-editable-area-active')) {
+								$('.nodeSelected').removeClass('nodeSelected');
+								_Pages.displayDataBinding(structrId);
+								if (!Structr.node(structrId)) {
+									_Pages.expandTreeNode(structrId);
+								} else {
+									var treeEl = Structr.node(structrId);
+									if (treeEl && !selected) {
+										treeEl.toggleClass('nodeSelected');
+									}
+								}
 								return false;
+							},
+							mouseover: function(e) {
+								e.stopPropagation();
+								var self = $(this);
+								self.addClass('structr-element-container-active');
+								_Pages.highlight(structrId);
+								var pos = self.position();
+								var header = self.children('.structr-element-container-header');
+								header.css({
+									position: "absolute",
+									top: pos.top + offsetTop + 'px',
+									left: pos.left + offsetLeft + 'px',
+									cursor: 'pointer'
+								}).show();
+								_Logger.log(_LogType.PAGES, header);
+							},
+							mouseout: function(e) {
+								e.stopPropagation();
+								var self = $(this);
+								self.removeClass('.structr-element-container');
+								var header = self.children('.structr-element-container-header');
+								header.remove();
+								_Pages.unhighlight(structrId);
 							}
-							self.removeClass('structr-editable-area').addClass('structr-editable-area-active').prop('contenteditable', true).focus();
+						});
 
-							// Store old text in global var and attribute
-							textBeforeEditing = self.text();
+					}
+				});
 
-							var srcText = expandNewline(self.attr('data-structr-raw-content'));
+				doc.find('*').each(function(i, element) {
 
-							// Replace only if it differs (e.g. for variables)
-							if (srcText !== textBeforeEditing) {
-								self.html(srcText);
-								textBeforeEditing = srcText;
+					getComments(element).forEach(function(c) {
+
+						var inner = $(getNonCommentSiblings(c.node));
+						$(c.node).replaceWith('<div data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, false) + '"></div>');
+						var el = $(element).children('[data-structr-id="' + c.id + '"]');
+						el.append(inner);
+
+						$(el).on({
+							mouseover: function(e) {
+								e.stopPropagation();
+								var self = $(this);
+								self.addClass('structr-editable-area');
+								_Pages.highlight(self.attr('data-structr-id'));
+							},
+							mouseout: function(e) {
+								e.stopPropagation();
+								var self = $(this);
+								self.removeClass('structr-editable-area');
+								_Pages.unhighlight(self.attr('data-structr-id'));
+							},
+							click: function(e) {
+								e.stopPropagation();
+								e.preventDefault();
+								var self = $(this);
+
+								if (contentSourceId) {
+									// click on same element again?
+									if (self.attr('data-structr-id') === contentSourceId) {
+										return;
+									}
+								}
+								contentSourceId = self.attr('data-structr-id');
+
+								if (self.hasClass('structr-editable-area-active')) {
+									return false;
+								}
+								self.removeClass('structr-editable-area').addClass('structr-editable-area-active').prop('contenteditable', true).focus();
+
+								// Store old text in global var and attribute
+								textBeforeEditing = self.text();
+
+								var srcText = expandNewline(self.attr('data-structr-raw-content'));
+
+								// Replace only if it differs (e.g. for variables)
+								if (srcText !== textBeforeEditing) {
+									self.html(srcText);
+									textBeforeEditing = srcText;
+								}
+								_Pages.expandTreeNode(contentSourceId);
+								return false;
+							},
+							blur: function(e) {
+								e.stopPropagation();
+								_Pages.saveInlineElement(this);
 							}
-							_Pages.expandTreeNode(contentSourceId);
-							return false;
-						},
-						blur: function(e) {
-							e.stopPropagation();
-							_Pages.saveInlineElement(this);
-						}
+						});
+
 					});
 
 				});
-
-			});
+			} catch (e) {}
 
 		});
 

@@ -414,7 +414,7 @@ var StructrModel = {
 
 			} else if (element.hasClass('file')) {
 
-				icon = _Files.getIcon(obj);
+				icon = _Filesystem.getIcon(obj);
 
 			}
 
@@ -537,8 +537,10 @@ StructrFolder.prototype.setProperty = function(key, value, recursive, callback) 
 StructrFolder.prototype.remove = function() {
 
 	var folder = this;
-	var parentFolder = StructrModel.obj(folder.parent.id);
-	var parentFolderEl = Structr.node(parentFolder.id);
+	if (folder.parent) {
+		var parentFolder = StructrModel.obj(folder.parent.id);
+		var parentFolderEl = Structr.node(parentFolder.id);
+	}
 
 	if (!parentFolderEl)
 		return;
@@ -618,9 +620,6 @@ StructrFile.prototype.remove = function() {
 	} else {
 		fileEl.remove();
 	}
-
-	_Files.appendFileElement(this);
-
 };
 
 StructrFile.prototype.append = function() {
@@ -634,7 +633,7 @@ StructrFile.prototype.append = function() {
 			parentFolder.files.push(file);
 		}
 	}
-	//StructrModel.expand(_Files.appendFileElement(this, parentFolder), this);
+	//StructrModel.expand(_Filesystem.appendFileElement(this, parentFolder), this);
 };
 
 
@@ -681,7 +680,7 @@ StructrImage.prototype.remove = function() {
 		fileEl.remove();
 	}
 
-	_Files.appendFileElement(this);
+	//_Filesystem.appendFileElement(this);
 };
 
 StructrImage.prototype.append = function(refNode) {
@@ -693,7 +692,7 @@ StructrImage.prototype.append = function(refNode) {
 	if (images && images.length) {
 		StructrModel.expand(_Images.appendImageElement(this, parentFolder), this);
 	} else {
-		StructrModel.expand(_Files.appendFileElement(this, parentFolder || refNode), this);
+		_Filesystem.appendFileOrFolderRow(this);
 	}
 };
 

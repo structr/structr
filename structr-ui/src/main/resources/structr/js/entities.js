@@ -1181,7 +1181,9 @@ var _Entities = {
 
 				var page = $(el).closest('.page');
 				if (page.length) {
-					$('#preview_' + Structr.getId(page)).contents().find('[data-structr-id=' + nodeId + ']').addClass('nodeHover');
+					try {
+						$('#preview_' + Structr.getId(page)).contents().find('[data-structr-id=' + nodeId + ']').addClass('nodeHover');
+					} catch (e) {}
 				}
 				self.addClass('nodeHover').children('img.button').show().css('display', 'inline-block');
 				self.children('.icons').children('img.button').show();
@@ -1212,7 +1214,9 @@ var _Entities = {
 		var page = node.closest('.page');
 		if (page.length) {
 			//$('#preview_' + Structr.getId(page)).contents().find('[data-structr-id=' + Structr.getId(node) + ']').removeClass('nodeHover');
-			$('#preview_' + Structr.getId(page)).contents().find('[data-structr-id]').removeClass('nodeHover');
+			try {
+				$('#preview_' + Structr.getId(page)).contents().find('[data-structr-id]').removeClass('nodeHover');
+			} catch (e) {}
 		}
 	},
 	isExpanded: function(element) {
