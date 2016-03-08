@@ -185,6 +185,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		Functions.functions.put("create_jar_file", new CreateJarFileFunction());
 		Functions.functions.put("jar_entry", new JarEntryFunction());
 		Functions.functions.put("set_details_object", new SetDetailsObjectFunction());
+		Functions.functions.put("escape_html", new EscapeHtmlFunction());
 	}
 
 	public abstract boolean isSynced();
@@ -841,16 +842,13 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	}
 
-	protected String escapeForHtml(final String raw) {
-
+	public static String escapeForHtml(final String raw) {
 		return StringUtils.replaceEach(raw, new String[]{"&", "<", ">"}, new String[]{"&amp;", "&lt;", "&gt;"});
 
 	}
 
-	protected String escapeForHtmlAttributes(final String raw) {
-
+	public static String escapeForHtmlAttributes(final String raw) {
 		return StringUtils.replaceEach(raw, new String[]{"&", "<", ">", "\"", "'"}, new String[]{"&amp;", "&lt;", "&gt;", "&quot;", "&#39;"});
-
 	}
 
 	protected void collectNodesByPredicate(Node startNode, DOMNodeList results, Predicate<Node> predicate, int depth, boolean stopOnFirstHit) {
