@@ -315,7 +315,7 @@ public class SchemaHelper {
 					sig = grant.getResourceSignature();
 					
 				} catch (NotFoundException nfe) {
-					logger.log(Level.WARNING, "Unable to get signature from grant");
+					logger.log(Level.FINE, "Unable to get signature from grant");
 					continue;
 				}
 
