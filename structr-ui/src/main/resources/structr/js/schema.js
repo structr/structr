@@ -415,7 +415,7 @@ var _Schema = {
 						});
 					}
 
-					node.on('click', function() {
+					node.on('mousedown', function() {
 						node.css({zIndex: ++maxZ});
 					});
 
