@@ -824,8 +824,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 			if (returnContent) {
 
-				result.setIsCollection(resource.isCollectionResource());
-				result.setIsPrimitiveArray(resource.isPrimitiveArray());
+				//result.setIsCollection(resource.isCollectionResource());
+				//result.setIsPrimitiveArray(resource.isPrimitiveArray());
 
 				PagingHelper.addPagingParameter(result, pageSize, page);
 

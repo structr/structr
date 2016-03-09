@@ -187,19 +187,31 @@ public abstract class StreamingWriter {
 
 			} else if (result.isPrimitiveArray()) {
 
-				writer.name(resultKeyName).beginArray();
+                                writer.name(resultKeyName);
+
+                                if(results.size() > 1){
+                                    writer.beginArray();
+                                }
 
 				for (final Object object : results) {
 
 					if (object != null) {
-						
+
 						if (object instanceof GraphObject) {
 
-							Object value = ((GraphObject)object).getProperty(GraphObject.id);	// FIXME: UUID key hard-coded, use variable in Result here!
-							if (value != null) {
+                                                    // keep track of serialization time
+                                                    long startTime            = System.currentTimeMillis();
+                                                    String localPropertyView  = propertyView.get(null);
+                                                    root.serialize(writer, (GraphObject)object, localPropertyView, 0);
 
-								writer.value(value.toString());
-							}
+                                                    // check for timeout
+                                                    if (System.currentTimeMillis() > startTime + MAX_SERIALIZATION_TIME) {
+
+                                                            logger.log(Level.SEVERE, "JSON serialization took more than {0} ms, aborted. Please review output view size or adjust timeout.", MAX_SERIALIZATION_TIME);
+
+                                                            // TODO: create some output indicating that streaming was interrupted
+                                                            break;
+                                                    }
 
 						} else {
 
@@ -208,14 +220,19 @@ public abstract class StreamingWriter {
 					}
 				}
 
-				writer.endArray();
+                                if(results.size() > 1){
 
+                                    writer.endArray();
+
+                                }
 
 			} else {
 
 				if (results.size() > 1 && !result.isCollection()){
+
 					throw new IllegalStateException(result.getClass().getSimpleName() + " is not a collection resource, but result set has size " + results.size());
-				}
+
+                                }
 
 				// keep track of serialization time
 				long startTime            = System.currentTimeMillis();

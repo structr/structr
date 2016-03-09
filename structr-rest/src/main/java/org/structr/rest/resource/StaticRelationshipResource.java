@@ -18,7 +18,9 @@
  */
 package org.structr.rest.resource;
 
+import java.lang.reflect.Array;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 import org.structr.common.PagingHelper;
 import java.util.LinkedHashSet;
@@ -41,6 +43,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
@@ -51,11 +54,20 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
+import org.structr.core.property.ArrayProperty;
+import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.DateProperty;
+import org.structr.core.property.DoubleProperty;
+import org.structr.core.property.GenericProperty;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.LongProperty;
 import org.structr.core.property.RelationProperty;
-import org.structr.core.script.StructrScriptable;
+import org.structr.core.property.StringProperty;
+import org.structr.core.validator.TypeValidator;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
+import org.structr.schema.parser.StringArrayPropertyParser;
 //~--- JDK imports ------------------------------------------------------------
 
 //~--- classes ----------------------------------------------------------------
@@ -143,7 +155,7 @@ public class StaticRelationshipResource extends SortableResource {
 					if (value instanceof Iterable) {
 
 						final Set<GraphObject> propertyResults = new LinkedHashSet<>();
-
+                                                final Set<Object> rawPropertyResults = new LinkedHashSet<>();
                                                 boolean iterableContainsGraphObject = false;
                                                 Iterator<Object> iter = ((Iterable<Object>) value).iterator();
 
@@ -164,15 +176,23 @@ public class StaticRelationshipResource extends SortableResource {
                                                                 propertyResults.add((GraphObject)obj);
 
                                                             } else {
-
-                                                                logger.log(Level.INFO, "Found object {0} of type iterable, but contained elements are not of type GraphObject.", value);
-                                                                break;
+                                                                rawPropertyResults.add(obj);
+                                                                //logger.log(Level.INFO, "Found object {0} of type iterable, but contained elements are not of type GraphObject.", value);
+                                                                //break;
 
                                                             }
 
                                                         }
 
                                                     }
+                                                }
+
+                                                if(rawPropertyResults.size() > 0){
+
+                                                    GraphObjectMap gObject = new GraphObjectMap();
+                                                    gObject.setProperty(new ArrayProperty(this.typeResource.rawType, Object.class, new TypeValidator(Object.class)), rawPropertyResults.toArray());
+                                                    return new Result(gObject, true);
+
                                                 }
 
 						final List<GraphObject> finalResult = new LinkedList<>(propertyResults);
@@ -184,6 +204,33 @@ public class StaticRelationshipResource extends SortableResource {
 					} else if (value instanceof GraphObject) {
 
 						return new Result((GraphObject)value, isPrimitiveArray());
+
+                                        } else if (value != null) {
+
+                                            GraphObjectMap gObject = new GraphObjectMap();
+                                            PropertyKey key;
+                                            String keyName = this.typeResource.rawType;
+
+                                            if(value instanceof String){
+                                                key = new StringProperty(keyName);
+                                            } else if (value instanceof Integer){
+                                                key = new IntProperty(keyName);
+                                            } else if (value instanceof Long){
+                                                key = new LongProperty(keyName);
+                                            } else if (value instanceof Double){
+                                                key = new DoubleProperty(keyName);
+                                            } else if (value instanceof Boolean){
+                                                key = new BooleanProperty(keyName);
+                                            } else if (value instanceof Date){
+                                                key = new DateProperty(keyName);
+                                            } else if (value instanceof String[]){
+                                                key = new ArrayProperty(keyName, String.class, new TypeValidator(String.class));
+                                            } else {
+                                                key = new StringProperty(keyName);
+                                            }
+
+                                            gObject.setProperty(key, value);
+                                            return new Result(gObject, true);
 
 					} else {
 
