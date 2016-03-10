@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -70,7 +69,6 @@ import org.structr.core.validator.TypeValidator;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
-import org.structr.schema.parser.StringArrayPropertyParser;
 //~--- JDK imports ------------------------------------------------------------
 
 //~--- classes ----------------------------------------------------------------
@@ -229,22 +227,24 @@ public class StaticRelationshipResource extends SortableResource {
 
                                                 //FIXME: Dynamically resolve all property types and their result count
                                                 if(value instanceof String){
-                                                    key = new StringProperty(keyName);
+                                                        key = new StringProperty(keyName);
                                                 } else if (value instanceof Integer){
-                                                    key = new IntProperty(keyName);
+                                                        key = new IntProperty(keyName);
                                                 } else if (value instanceof Long){
-                                                    key = new LongProperty(keyName);
+                                                        key = new LongProperty(keyName);
                                                 } else if (value instanceof Double){
-                                                    key = new DoubleProperty(keyName);
+                                                        key = new DoubleProperty(keyName);
                                                 } else if (value instanceof Boolean){
-                                                    key = new BooleanProperty(keyName);
+                                                        key = new BooleanProperty(keyName);
                                                 } else if (value instanceof Date){
-                                                    key = new DateProperty(keyName);
+                                                        key = new DateProperty(keyName);
                                                 } else if (value instanceof String[]){
-                                                    key = new ArrayProperty(keyName, String.class, new TypeValidator(String.class));
-                                                    resultCount = ((String[])value).length;
+
+                                                        key = new ArrayProperty(keyName, String.class, new TypeValidator(String.class));
+                                                        resultCount = ((String[])value).length;
+
                                                 } else {
-                                                    key = new GenericProperty(keyName);
+                                                        key = new GenericProperty(keyName);
                                                 }
 
                                                 gObject.setProperty(key, value);

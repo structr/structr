@@ -207,7 +207,7 @@ public abstract class StreamingWriter {
                                                         // keep track of serialization time
                                                         long startTime            = System.currentTimeMillis();
                                                         String localPropertyView  = propertyView.get(null);
-
+                                                        
                                                         GraphObject obj = (GraphObject)object;
                                                         Iterator<PropertyKey> keyIt = obj.getPropertyKeys(localPropertyView).iterator();
 
