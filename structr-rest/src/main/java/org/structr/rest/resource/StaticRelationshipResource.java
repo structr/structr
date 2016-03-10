@@ -167,13 +167,13 @@ public class StaticRelationshipResource extends SortableResource {
                                                 boolean iterableContainsGraphObject = false;
                                                 Iterator<Object> iter = ((Iterable<Object>) value).iterator();
 
-                                                while(iter.hasNext()){
+                                                while (iter.hasNext()) {
 
                                                         Object obj = iter.next();
 
-                                                        if(obj != null){
+                                                        if (obj != null) {
 
-                                                                if(obj instanceof GraphObject){
+                                                                if (obj instanceof GraphObject) {
 
                                                                         iterableContainsGraphObject = true;
                                                                         break;
@@ -188,7 +188,7 @@ public class StaticRelationshipResource extends SortableResource {
 
                                                 }
 
-                                                if(!iterableContainsGraphObject){
+                                                if (!iterableContainsGraphObject) {
 
                                                         GraphObjectMap gObject = new GraphObjectMap();
                                                         gObject.setProperty(new ArrayProperty(this.typeResource.rawType, Object.class, new TypeValidator(Object.class)), propertyResults.toArray());
@@ -226,19 +226,19 @@ public class StaticRelationshipResource extends SortableResource {
                                                 int resultCount = 1;
 
                                                 //FIXME: Dynamically resolve all property types and their result count
-                                                if(value instanceof String){
+                                                if (value instanceof String) {
                                                         key = new StringProperty(keyName);
-                                                } else if (value instanceof Integer){
+                                                } else if (value instanceof Integer) {
                                                         key = new IntProperty(keyName);
-                                                } else if (value instanceof Long){
+                                                } else if (value instanceof Long) {
                                                         key = new LongProperty(keyName);
-                                                } else if (value instanceof Double){
+                                                } else if (value instanceof Double) {
                                                         key = new DoubleProperty(keyName);
-                                                } else if (value instanceof Boolean){
+                                                } else if (value instanceof Boolean) {
                                                         key = new BooleanProperty(keyName);
-                                                } else if (value instanceof Date){
+                                                } else if (value instanceof Date) {
                                                         key = new DateProperty(keyName);
-                                                } else if (value instanceof String[]){
+                                                } else if (value instanceof String[]) {
 
                                                         key = new ArrayProperty(keyName, String.class, new TypeValidator(String.class));
                                                         resultCount = ((String[])value).length;
@@ -261,7 +261,7 @@ public class StaticRelationshipResource extends SortableResource {
 				}
 
                                 // check propertyKey to return the right variant of empty result
-                                if(!(propertyKey instanceof StartNode || propertyKey instanceof EndNode)){
+                                if (!(propertyKey instanceof StartNode || propertyKey instanceof EndNode)) {
 
                                         return new Result(Collections.EMPTY_LIST, 1, false, true);
 

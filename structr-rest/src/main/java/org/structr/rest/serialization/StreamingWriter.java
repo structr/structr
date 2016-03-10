@@ -194,7 +194,7 @@ public abstract class StreamingWriter {
 
                                 writer.name(resultKeyName);
 
-                                if(results.size() > 1){
+                                if (results.size() > 1) {
                                         writer.beginArray();
                                 }
 
@@ -207,11 +207,11 @@ public abstract class StreamingWriter {
                                                         // keep track of serialization time
                                                         long startTime            = System.currentTimeMillis();
                                                         String localPropertyView  = propertyView.get(null);
-                                                        
+
                                                         GraphObject obj = (GraphObject)object;
                                                         Iterator<PropertyKey> keyIt = obj.getPropertyKeys(localPropertyView).iterator();
 
-                                                        while(keyIt.hasNext()){
+                                                        while (keyIt.hasNext()) {
 
                                                                 PropertyKey k = keyIt.next();
                                                                 Object value = obj.getProperty(k);
@@ -235,7 +235,7 @@ public abstract class StreamingWriter {
 					}
 				}
 
-                                if(results.size() > 1){
+                                if (results.size() > 1) {
 
                                         writer.endArray();
 
@@ -244,7 +244,7 @@ public abstract class StreamingWriter {
 			} else {
 
                                 // result is an attribute called via REST API
-				if (results.size() > 1 && !result.isCollection()){
+				if (results.size() > 1 && !result.isCollection()) {
 
                                         throw new IllegalStateException(result.getClass().getSimpleName() + " is not a collection resource, but result set has size " + results.size());
 
