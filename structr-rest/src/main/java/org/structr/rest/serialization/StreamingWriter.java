@@ -23,6 +23,7 @@ import java.util.List;
 import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Locale;
@@ -181,7 +182,11 @@ public abstract class StreamingWriter {
 
 		if (results != null) {
 
-			if (results.isEmpty()) {
+			if (results.isEmpty() && result.isPrimitiveArray()) {
+
+				writer.name(resultKeyName).nullValue();
+
+                        } else if (results.isEmpty() && !result.isPrimitiveArray()) {
 
 				writer.name(resultKeyName).beginArray().endArray();
 
@@ -190,7 +195,7 @@ public abstract class StreamingWriter {
                                 writer.name(resultKeyName);
 
                                 if(results.size() > 1){
-                                    writer.beginArray();
+                                        writer.beginArray();
                                 }
 
 				for (final Object object : results) {
@@ -199,19 +204,29 @@ public abstract class StreamingWriter {
 
 						if (object instanceof GraphObject) {
 
-                                                    // keep track of serialization time
-                                                    long startTime            = System.currentTimeMillis();
-                                                    String localPropertyView  = propertyView.get(null);
-                                                    root.serialize(writer, (GraphObject)object, localPropertyView, 0);
+                                                        // keep track of serialization time
+                                                        long startTime            = System.currentTimeMillis();
+                                                        String localPropertyView  = propertyView.get(null);
 
-                                                    // check for timeout
-                                                    if (System.currentTimeMillis() > startTime + MAX_SERIALIZATION_TIME) {
+                                                        GraphObject obj = (GraphObject)object;
+                                                        Iterator<PropertyKey> keyIt = obj.getPropertyKeys(localPropertyView).iterator();
 
-                                                            logger.log(Level.SEVERE, "JSON serialization took more than {0} ms, aborted. Please review output view size or adjust timeout.", MAX_SERIALIZATION_TIME);
+                                                        while(keyIt.hasNext()){
 
-                                                            // TODO: create some output indicating that streaming was interrupted
-                                                            break;
-                                                    }
+                                                                PropertyKey k = keyIt.next();
+                                                                Object value = obj.getProperty(k);
+                                                                root.serializeProperty(writer, k, value, localPropertyView, 0);
+
+                                                        }
+
+                                                        // check for timeout
+                                                        if (System.currentTimeMillis() > startTime + MAX_SERIALIZATION_TIME) {
+
+                                                                logger.log(Level.SEVERE, "JSON serialization took more than {0} ms, aborted. Please review output view size or adjust timeout.", MAX_SERIALIZATION_TIME);
+
+                                                                // TODO: create some output indicating that streaming was interrupted
+                                                                break;
+                                                        }
 
 						} else {
 
@@ -222,15 +237,16 @@ public abstract class StreamingWriter {
 
                                 if(results.size() > 1){
 
-                                    writer.endArray();
+                                        writer.endArray();
 
                                 }
 
 			} else {
 
+                                // result is an attribute called via REST API
 				if (results.size() > 1 && !result.isCollection()){
 
-					throw new IllegalStateException(result.getClass().getSimpleName() + " is not a collection resource, but result set has size " + results.size());
+                                        throw new IllegalStateException(result.getClass().getSimpleName() + " is not a collection resource, but result set has size " + results.size());
 
                                 }
 

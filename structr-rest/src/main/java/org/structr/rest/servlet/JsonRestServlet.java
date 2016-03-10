@@ -60,6 +60,7 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
 import org.structr.rest.adapter.ResultGSONAdapter;
 import org.structr.rest.resource.Resource;
+import org.structr.rest.resource.StaticRelationshipResource;
 import org.structr.rest.serialization.StreamingHtmlWriter;
 import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.rest.service.HttpServiceServlet;
@@ -824,8 +825,12 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 			if (returnContent) {
 
-				//result.setIsCollection(resource.isCollectionResource());
-				//result.setIsPrimitiveArray(resource.isPrimitiveArray());
+                                if(!(resource instanceof StaticRelationshipResource) && !result.isPrimitiveArray() && !result.isEmpty()){
+
+                                        result.setIsCollection(resource.isCollectionResource());
+                                        result.setIsPrimitiveArray(resource.isPrimitiveArray());
+
+                                }
 
 				PagingHelper.addPagingParameter(result, pageSize, page);
 
