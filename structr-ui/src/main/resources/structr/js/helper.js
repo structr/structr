@@ -696,10 +696,6 @@ var _Logger = {
 		Object.keys(_LogType).forEach(function(key) {
 			if (typeof _LogType[key] === "string") {
 				logtypes.push(_LogType[key]);
-			} else {
-				Object.keys(_LogType[key]).forEach(function(key2) {
-					logtypes.push(_LogType[key][key2]);
-				});
 			}
 		});
 
