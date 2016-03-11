@@ -370,7 +370,7 @@ var _Contents = {
 		});
 
 		dialogMeta.append('<span class="editor-info">Characters: <span id="chars">' + editor.getValue().length + '</span></span>');
-		dialogMeta.append('<span class="editor-info">Words: <span id="chars">' + editor.getValue().match(/\S+/g).length + '</span></span>');
+		dialogMeta.append('<span class="editor-info">Words: <span id="words">' + editor.getValue().match(/\S+/g).length + '</span></span>');
 
 		editor.id = entity.id;
 
