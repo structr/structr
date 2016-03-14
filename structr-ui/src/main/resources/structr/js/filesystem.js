@@ -265,8 +265,8 @@ var _Filesystem = {
 		});
 	},
 	unload: function() {
-		$('.searchBox', main).remove();
-		$('#filesystem-main', main).remove();
+		fastRemoveAllChildren($('.searchBox', main));
+		fastRemoveAllChildren($('#filesystem-main', main));
 	},
 	activateUpload: function() {
 		if (window.File && window.FileReader && window.FileList && window.Blob) {
@@ -803,7 +803,7 @@ var _Filesystem = {
 
 						return false;
 					});
-					
+
 					if (i+1 === selectedElements.length) {
 						_Entities.activateTabs(file.id, '#files-tabs', '#content-tab-' + file.id);
 					}

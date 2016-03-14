@@ -292,7 +292,7 @@ var _Contents = {
 			}
 
 			$('#chars').text(editor.getValue().length);
-			$('#words').text(editor.getValue().match(/\S+/g).length);
+			$('#words').text(editor.getValue().match(/\S+/g) !== null ? editor.getValue().match(/\S+/g).length : 0);
 		});
 
 		var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
@@ -370,7 +370,7 @@ var _Contents = {
 		});
 
 		dialogMeta.append('<span class="editor-info">Characters: <span id="chars">' + editor.getValue().length + '</span></span>');
-		dialogMeta.append('<span class="editor-info">Words: <span id="chars">' + editor.getValue().match(/\S+/g).length + '</span></span>');
+		dialogMeta.append('<span class="editor-info">Words: <span id="words">' + (editor.getValue().match(/\S+/g) !== null ? editor.getValue().match(/\S+/g).length : 0) + '</span></span>');
 
 		editor.id = entity.id;
 
