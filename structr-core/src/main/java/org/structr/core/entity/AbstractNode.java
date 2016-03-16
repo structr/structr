@@ -90,6 +90,7 @@ import org.structr.core.graph.NodeRelationshipStatisticsCommand;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
@@ -118,7 +119,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	private PermissionResolutionMask permissionResolutionMask = null;
 	private Relationship rawPathSegment                       = null;
-	
+
 	private boolean readOnlyPropertiesUnlocked       = false;
 	private boolean isCreation                       = false;
 
@@ -1397,7 +1398,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		T oldValue = getProperty(key);
 
 		// no old value exists  OR  old value exists and is NOT equal => set property
-		if ( ((oldValue == null) && (value != null)) || ((oldValue != null) && !oldValue.equals(value)) ) {
+		if ( ((oldValue == null) && (value != null)) || ((oldValue != null) && (!oldValue.equals(value)) || (key instanceof FunctionProperty)) ) {
 
 			return setPropertyInternal(key, value);
 
@@ -1405,7 +1406,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		internalSystemPropertiesUnlocked = false;
 		readOnlyPropertiesUnlocked       = false;
-		
+
 		return null;
 	}
 
@@ -1441,7 +1442,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			return key.setProperty(securityContext, this, value);
 
 		} finally {
-			
+
 			// unconditionally lock read-only properties after every write (attempt) to avoid security problems
 			// since we made "unlock_readonly_properties_once" available through scripting
 			internalSystemPropertiesUnlocked = false;
