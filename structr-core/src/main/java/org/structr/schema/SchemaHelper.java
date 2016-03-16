@@ -29,8 +29,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javatools.parsers.PlingStemmer;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.NotFoundException;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.common.CaseHelper;
 import org.structr.common.GraphObjectComparator;
@@ -91,6 +94,8 @@ import org.structr.schema.parser.Validator;
  */
 public class SchemaHelper {
 
+	private static final Logger logger = Logger.getLogger(SchemaHelper.class.getName());
+	
 	private static final String WORD_SEPARATOR = "_";
 
 	public enum Type {
@@ -269,7 +274,13 @@ public class SchemaHelper {
 
 		try {
 
-			for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
+			final App app = StructrApp.getInstance();
+			
+			final List<SchemaNode> existingSchemaNodes = app.nodeQuery(SchemaNode.class).getAsList();
+
+			cleanUnusedDynamicGrants(existingSchemaNodes);
+			
+			for (final SchemaNode schemaNode : existingSchemaNodes) {
 
 				createDynamicGrants(schemaNode.getResourceSignature());
 
@@ -289,6 +300,44 @@ public class SchemaHelper {
 
 		return SchemaService.reloadSchema(errorBuffer);
 
+	}
+	
+	public static void cleanUnusedDynamicGrants(final List<SchemaNode> existingSchemaNodes) {
+		
+		try {
+
+			final List<DynamicResourceAccess> existingDynamicGrants  = StructrApp.getInstance().nodeQuery(DynamicResourceAccess.class).getAsList();
+
+			for (final DynamicResourceAccess grant : existingDynamicGrants) {
+
+				String sig;
+				try {
+					sig = grant.getResourceSignature();
+					
+				} catch (NotFoundException nfe) {
+					logger.log(Level.FINE, "Unable to get signature from grant");
+					continue;
+				}
+
+				boolean exists = false;
+
+				for (final SchemaNode schemaNode : existingSchemaNodes) {
+
+					if (schemaNode.getResourceSignature().equals(sig)) {
+						exists = true;
+						break;
+					}
+				}
+
+				if (!exists) {
+					removeDynamicGrants(sig);
+				}
+			}
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+		}		
 	}
 
 	public static List<DynamicResourceAccess> createDynamicGrants(final String signature) {

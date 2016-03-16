@@ -101,6 +101,8 @@ neo4j.shell.port = 1337
 # E-Mail settings: Set host and port of an MTA Structr will use to send e-mails
 smtp.host = localhost
 smtp.port = 25
+#smtp.user =
+#smtp.password =
 smtp.tls.enabled = true
 smtp.tls.required = false
 

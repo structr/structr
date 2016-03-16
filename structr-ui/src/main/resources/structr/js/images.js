@@ -80,11 +80,11 @@ var _Images = {
 		main.append('<div id="dropArea"><div class="fit-to-height" id="images"></div></div>');
 		images = $('#images');
 
-		// clear files and folders
-		if (files)
-			files.length = 0;
-		if (folders)
-			folders.length = 0;
+//		// clear files and folders
+//		if (files)
+//			files.length = 0;
+//		if (folders)
+//			folders.length = 0;
 
 		_Images.refreshImages();
 
