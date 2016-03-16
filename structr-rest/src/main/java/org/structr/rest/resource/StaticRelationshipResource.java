@@ -156,37 +156,27 @@ public class StaticRelationshipResource extends SortableResource {
 					if (value instanceof Iterable) {
 
 						final Set<Object> propertyResults = new LinkedHashSet<>();
-
-                                                ((Iterable<Object>)value).forEach(
-
-                                                        v -> propertyResults.add(v)
-
-                                                );
-                                                int rawResultCount = propertyResults.size();
-
-                                                boolean iterableContainsGraphObject = false;
                                                 Iterator<Object> iter = ((Iterable<Object>) value).iterator();
+                                                boolean iterableContainsGraphObject = false;
 
                                                 while (iter.hasNext()) {
 
                                                         Object obj = iter.next();
+                                                        propertyResults.add(obj);
 
-                                                        if (obj != null) {
+                                                        if (obj != null && !iterableContainsGraphObject) {
 
                                                                 if (obj instanceof GraphObject) {
 
                                                                         iterableContainsGraphObject = true;
-                                                                        break;
-
-                                                                } else {
-
-                                                                        break;
 
                                                                 }
 
                                                         }
 
                                                 }
+
+                                                int rawResultCount = propertyResults.size();
 
                                                 if (!iterableContainsGraphObject) {
 
