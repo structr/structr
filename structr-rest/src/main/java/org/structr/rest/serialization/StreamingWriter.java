@@ -23,6 +23,7 @@ import java.util.List;
 import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Locale;
@@ -181,25 +182,51 @@ public abstract class StreamingWriter {
 
 		if (results != null) {
 
-			if (results.isEmpty()) {
+			if (results.isEmpty() && result.isPrimitiveArray()) {
+
+				writer.name(resultKeyName).nullValue();
+
+                        } else if (results.isEmpty() && !result.isPrimitiveArray()) {
 
 				writer.name(resultKeyName).beginArray().endArray();
 
 			} else if (result.isPrimitiveArray()) {
 
-				writer.name(resultKeyName).beginArray();
+                                writer.name(resultKeyName);
+
+                                if (results.size() > 1) {
+                                        writer.beginArray();
+                                }
 
 				for (final Object object : results) {
 
 					if (object != null) {
-						
+
 						if (object instanceof GraphObject) {
 
-							Object value = ((GraphObject)object).getProperty(GraphObject.id);	// FIXME: UUID key hard-coded, use variable in Result here!
-							if (value != null) {
+                                                        // keep track of serialization time
+                                                        long startTime            = System.currentTimeMillis();
+                                                        String localPropertyView  = propertyView.get(null);
 
-								writer.value(value.toString());
-							}
+                                                        GraphObject obj = (GraphObject)object;
+                                                        Iterator<PropertyKey> keyIt = obj.getPropertyKeys(localPropertyView).iterator();
+
+                                                        while (keyIt.hasNext()) {
+
+                                                                PropertyKey k = keyIt.next();
+                                                                Object value = obj.getProperty(k);
+                                                                root.serializeProperty(writer, k, value, localPropertyView, 0);
+
+                                                        }
+
+                                                        // check for timeout
+                                                        if (System.currentTimeMillis() > startTime + MAX_SERIALIZATION_TIME) {
+
+                                                                logger.log(Level.SEVERE, "JSON serialization took more than {0} ms, aborted. Please review output view size or adjust timeout.", MAX_SERIALIZATION_TIME);
+
+                                                                // TODO: create some output indicating that streaming was interrupted
+                                                                break;
+                                                        }
 
 						} else {
 
@@ -208,14 +235,20 @@ public abstract class StreamingWriter {
 					}
 				}
 
-				writer.endArray();
+                                if (results.size() > 1) {
 
+                                        writer.endArray();
+
+                                }
 
 			} else {
 
-				if (results.size() > 1 && !result.isCollection()){
-					throw new IllegalStateException(result.getClass().getSimpleName() + " is not a collection resource, but result set has size " + results.size());
-				}
+                                // result is an attribute called via REST API
+				if (results.size() > 1 && !result.isCollection()) {
+
+                                        throw new IllegalStateException(result.getClass().getSimpleName() + " is not a collection resource, but result set has size " + results.size());
+
+                                }
 
 				// keep track of serialization time
 				long startTime            = System.currentTimeMillis();
