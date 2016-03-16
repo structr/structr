@@ -1195,11 +1195,11 @@ function inputField(f) {
 }
 
 function field(f) {
-	return '<span type="text" data-structr-id="' + f.id + '" data-structr-type="' + f.type + (f.format ? ' data-structr-format="' + f.format + '"' : '') + (f.class ? ' data-structr-edit-class="' + f.class + '"' : '') + ' data-structr-name="' + f.key + '">' + f.val + '</span>';
+	return '<span type="text" data-structr-id="' + f.id + '" data-structr-type="' + f.type + '"' + (f.format ? ' data-structr-format="' + f.format + '"' : '') + (f.class ? ' data-structr-edit-class="' + f.class + '"' : '') + ' data-structr-name="' + f.key + '">' + f.val + '</span>';
 }
 
 function checkbox(f) {
-	return '<input type="checkbox" data-structr-id="' + f.id + '" data-structr-type="' + f.type + (f.format ? ' data-structr-format="' + f.format + '"' : '') + (f.class ? ' data-structr-edit-class="' + f.class + '"' : '') + ' data-structr-name="' + f.key + '" ' + (f.val ? 'checked="checked"' : '') + '">';
+	return '<input type="checkbox" data-structr-id="' + f.id + '" data-structr-type="' + f.type + '"' + (f.format ? ' data-structr-format="' + f.format + '"' : '') + (f.class ? ' data-structr-edit-class="' + f.class + '"' : '') + ' data-structr-name="' + f.key + '" ' + (f.val ? 'checked="checked"' : '') + '>';
 }
 
 function enumSelect(f) {
