@@ -19,6 +19,9 @@
 package org.structr.rest.resource;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
 import org.structr.common.PagingHelper;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -40,6 +43,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
@@ -50,7 +54,18 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
+import org.structr.core.property.ArrayProperty;
+import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.DateProperty;
+import org.structr.core.property.DoubleProperty;
+import org.structr.core.property.EndNode;
+import org.structr.core.property.GenericProperty;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.LongProperty;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
+import org.structr.core.validator.TypeValidator;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
@@ -136,38 +151,126 @@ public class StaticRelationshipResource extends SortableResource {
 				final Predicate<GraphObject> predicate = query.toPredicate();
 				final Object value = sourceEntity.getProperty(propertyKey, predicate);
 
-				if (value != null) {
+    				if (value != null) {
 
 					if (value instanceof Iterable) {
 
-						final Set<GraphObject> propertyResults = new LinkedHashSet<>();
+						final Set<Object> propertyResults = new LinkedHashSet<>();
 
-						// fill set with data
-						for (final GraphObject obj : ((Iterable<GraphObject>) value)) {
-							propertyResults.add(obj);
-						}
+                                                ((Iterable<Object>)value).forEach(
 
-						final List<GraphObject> finalResult = new LinkedList<>(propertyResults);
+                                                        v -> propertyResults.add(v)
+
+                                                );
+                                                int rawResultCount = propertyResults.size();
+
+                                                boolean iterableContainsGraphObject = false;
+                                                Iterator<Object> iter = ((Iterable<Object>) value).iterator();
+
+                                                while (iter.hasNext()) {
+
+                                                        Object obj = iter.next();
+
+                                                        if (obj != null) {
+
+                                                                if (obj instanceof GraphObject) {
+
+                                                                        iterableContainsGraphObject = true;
+                                                                        break;
+
+                                                                } else {
+
+                                                                        break;
+
+                                                                }
+
+                                                        }
+
+                                                }
+
+                                                if (!iterableContainsGraphObject) {
+
+                                                        GraphObjectMap gObject = new GraphObjectMap();
+                                                        gObject.setProperty(new ArrayProperty(this.typeResource.rawType, Object.class, new TypeValidator(Object.class)), propertyResults.toArray());
+                                                        Result r = new Result(gObject, true);
+                                                        r.setRawResultCount(rawResultCount);
+                                                        return r;
+
+                                                }
+
+						final List<GraphObject> finalResult = new LinkedList<>();
+
+                                                propertyResults.forEach(
+
+                                                        v -> finalResult.add((GraphObject)v)
+
+                                                );
+
+
 						applyDefaultSorting(finalResult, sortKey, sortDescending);
 
 						// return result
-						return new Result(PagingHelper.subList(finalResult, pageSize, page, offsetId), finalResult.size(), isCollectionResource(), isPrimitiveArray());
+                                                Result r = new Result(PagingHelper.subList(finalResult, pageSize, page, offsetId), finalResult.size(), isCollectionResource(), isPrimitiveArray());
+                                                r.setRawResultCount(rawResultCount);
+						return r;
 
 					} else if (value instanceof GraphObject) {
 
 						return new Result((GraphObject)value, isPrimitiveArray());
+
+                                        } else if (value != null) {
+
+                                                GraphObjectMap gObject = new GraphObjectMap();
+                                                PropertyKey key;
+                                                String keyName = this.typeResource.rawType;
+                                                int resultCount = 1;
+
+                                                //FIXME: Dynamically resolve all property types and their result count
+                                                if (value instanceof String) {
+                                                        key = new StringProperty(keyName);
+                                                } else if (value instanceof Integer) {
+                                                        key = new IntProperty(keyName);
+                                                } else if (value instanceof Long) {
+                                                        key = new LongProperty(keyName);
+                                                } else if (value instanceof Double) {
+                                                        key = new DoubleProperty(keyName);
+                                                } else if (value instanceof Boolean) {
+                                                        key = new BooleanProperty(keyName);
+                                                } else if (value instanceof Date) {
+                                                        key = new DateProperty(keyName);
+                                                } else if (value instanceof String[]) {
+
+                                                        key = new ArrayProperty(keyName, String.class, new TypeValidator(String.class));
+                                                        resultCount = ((String[])value).length;
+
+                                                } else {
+                                                        key = new GenericProperty(keyName);
+                                                }
+
+                                                gObject.setProperty(key, value);
+                                                Result r = new Result(gObject, true);
+                                                r.setRawResultCount(resultCount);
+                                                return r;
 
 					} else {
 
 						logger.log(Level.INFO, "Found object {0}, but will not return as it is no graph object or iterable", value);
 
 					}
+
 				}
+
+                                // check propertyKey to return the right variant of empty result
+                                if (!(propertyKey instanceof StartNode || propertyKey instanceof EndNode)) {
+
+                                        return new Result(Collections.EMPTY_LIST, 1, false, true);
+
+                                }
 
 			}
 		}
 
-		return Result.EMPTY_RESULT;
+		return new Result(Collections.EMPTY_LIST, 0, false, true);
 	}
 
 	@Override
