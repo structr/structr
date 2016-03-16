@@ -1,4 +1,4 @@
-.handlers = java.util.logging.ConsoleHandler, java.util.logging.FileHandler
+.handlers = java.util.logging.ConsoleHandler
 
 # Default log level
 .level = INFO
@@ -8,9 +8,6 @@
 # Describes specific configuration info for Handlers.
 ############################################################
 
-java.util.logging.FileHandler.pattern = logs/log4j.log
-java.util.logging.FileHandler.limit = 50000
-java.util.logging.FileHandler.count = 1
-java.util.logging.FileHandler.formatter = java.util.logging.SimpleFormatter
-
 java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter
+
+java.util.logging.SimpleFormatter.format=%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS %4$-10s %2$s %5$s%6$s%n
