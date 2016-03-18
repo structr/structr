@@ -39,7 +39,7 @@ var _Images = {
 	//    delete_folder_icon : 'icon/folder_delete.png',
 	download_icon: 'icon/basket_put.png',
 	init: function() {
-		_Pager.initPager('Image', 1, 100, 'name', 'asc');
+		_Pager.initPager('images', 'Image', 1, 100, 'name', 'asc');
 		Structr.makePagesMenuDroppable();
 	},
 	resize: function() {
@@ -168,12 +168,12 @@ var _Images = {
 			});
 		}
 
-		_Pager.initFilters('Image', {
+		_Pager.initFilters('images', 'Image', {
 			isThumbnail: false
 		});
-		var imgPager = _Pager.addPager(images, false, 'Image', 'public');
+		var imgPager = _Pager.addPager('images', images, false, 'Image', 'public');
 		imgPager.pager.append(' Filter: <input type="text" class="filter" data-attribute="name">');
-		imgPager.activateFilterElements();
+		//imgPager.activateFilterElements();
 
 		_Images.resize();
 	},

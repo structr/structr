@@ -270,8 +270,8 @@ var _Elements = {
 
 		});
 
-		_Pager.initPager('Widget', 1, 25);
-		_Pager.addPager(widgets, true, 'Widget', 'public', function(entities) {
+		_Pager.initPager('local-widgets', 'Widget', 1, 25);
+		_Pager.addPager('local-widgets', widgets, true, 'Widget', 'public', function(entities) {
 			entities.forEach(function (entity) {
 				StructrModel.create(entity, null, false);
 				_Widgets.appendWidgetElement(entity, false, widgets);
@@ -609,7 +609,8 @@ var _Elements = {
 
 					var pagesToLink = $('#pagesToLink');
 
-					_Pager.addPager(pagesToLink, true, 'Page', null, function(pages) {
+					_Pager.initPager('pages-to-link', 'Page', 1, 25);
+					_Pager.addPager('pages-to-link', pagesToLink, true, 'Page', null, function(pages) {
 
 						pages.forEach(function(page){
 
@@ -655,7 +656,11 @@ var _Elements = {
 					var filesToLink = $('#filesToLink');
 					var foldersToLink = $('#foldersToLink');
 
-					var linkFolderPager = _Pager.addPager(foldersToLink, true, 'Folder', 'public', function(folders) {
+					_Pager.initPager('folders-to-link', 'Folder', 1, 25);
+					_Pager.initFilters('folders-to-link', 'Folder', {
+						hasParent: false
+					});
+					var linkFolderPager = _Pager.addPager('folders-to-link', foldersToLink, true, 'Folder', 'public', function(folders) {
 
 						folders.forEach(function(folder) {
 
@@ -663,7 +668,7 @@ var _Elements = {
 								return;
 							}
 
-							foldersToLink.append('<div class="node folder ' + folder.id + '_"><img class="typeIcon" src="icon/folder.png">'
+							foldersToLink.append('<div class="node folder ' + folder.id + '_"><i class="fa fa-folder"></i> '
 									+ '<b title="' + folder.name + '" class="name_">' + folder.name + '</b></div>');
 
 							var div = $('.' + folder.id + '_', foldersToLink);
@@ -688,12 +693,12 @@ var _Elements = {
 					linkFolderPager.pager.append('<input type="checkbox" class="filter" data-attribute="hasParent" hidden>');
 					linkFolderPager.activateFilterElements();
 
-
-					var linkFilesPager = _Pager.addPager(filesToLink, true, 'FileBase', 'public', function(files) {
+					_Pager.initPager('files-to-link', 'FileBase', 1, 25);
+					var linkFilesPager = _Pager.addPager('files-to-link', filesToLink, true, 'FileBase', 'public', function(files) {
 
 						files.forEach(function(file) {
 
-							filesToLink.append('<div class="node file ' + file.id + '_"><img class="typeIcon" src="' + _Filesystem.getIcon(file) + '">'
+							filesToLink.append('<div class="node file ' + file.id + '_"><i class="fa ' + _Filesystem.getIcon(file) + '"></i> '
 									+ '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
 
 							var div = $('.' + file.id + '_', filesToLink);
@@ -738,7 +743,8 @@ var _Elements = {
 
 					var imagesToLink = $('#imagesToLink');
 
-					_Pager.addPager(imagesToLink, false, 'Image', 'public', function(images) {
+					_Pager.initPager('images-to-link', 'Image', 1, 25);
+					_Pager.addPager('images-to-link', imagesToLink, false, 'Image', 'public', function(images) {
 
 						images.forEach(function(image) {
 
@@ -800,7 +806,7 @@ var _Elements = {
 		}
 
 		var div = $('.' + folder.id + '_');
-		div.css({'border': '1px solid #ccc', 'backgroundColor': '#f5f5f5'});
+		//div.css({'border': '1px solid #ccc', 'backgroundColor': '#f5f5f5'});
 
 		div.children('b').on('click', function() {
 			$(this).siblings('.node.sub').remove();
@@ -808,7 +814,7 @@ var _Elements = {
 
 		$.each(folder.folders, function(i, subFolder) {
 			e.stopPropagation();
-			$('.' + folder.id + '_').append('<div class="clear"></div><div class="node folder sub ' + subFolder.id + '_"><img class="typeIcon" src="icon/folder.png">'
+			$('.' + folder.id + '_').append('<div class="clear"></div><div class="node folder sub ' + subFolder.id + '_"><i class="fa fa-folder"></i> '
 					+ '<b title="' + subFolder.name + '" class="name_">' + subFolder.name + '</b></div>');
 			var subDiv = $('.' + subFolder.id + '_');
 
@@ -836,7 +842,7 @@ var _Elements = {
 
 			Command.get(f.id, function(file) {
 
-				$('.' + folder.id + '_').append('<div class="clear"></div><div class="node file sub ' + file.id + '_"><img class="typeIcon" src="' + _Filesystem.getIcon(file) + '">'
+				$('.' + folder.id + '_').append('<div class="clear"></div><div class="node file sub ' + file.id + '_"><i class="fa ' + _Filesystem.getIcon(file) + '"></i> '
 						+ '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
 				var div = $('.' + file.id + '_');
 

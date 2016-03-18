@@ -46,10 +46,10 @@ var _Pages = {
 	autoRefresh: [],
 	init: function() {
 
-		_Pager.initPager('Page', 1, 25, 'name', 'asc');
-		_Pager.initPager('File', 1, 25, 'name', 'asc');
-		_Pager.initPager('Folder', 1, 25, 'name', 'asc');
-		_Pager.initPager('Image', 1, 25, 'name', 'asc');
+		_Pager.initPager('pages',   'Page', 1, 25, 'name', 'asc');
+		_Pager.initPager('files',   'File', 1, 25, 'name', 'asc');
+		_Pager.initPager('folders', 'Folder', 1, 25, 'name', 'asc');
+		_Pager.initPager('images',  'Image', 1, 25, 'name', 'asc');
 
 		$(window.document).on('mouseup', function() {
 			$('#add-child-dialog').remove();
@@ -307,7 +307,7 @@ var _Pages = {
 		pagesSlideout.append('<div class="ver-scrollable" id="pagesTree"></div>');
 		pages = $('#pagesTree', pagesSlideout);
 
-		var pPager = _Pager.addPager(pages, true, 'Page', null, function(pages) {
+		var pPager = _Pager.addPager('pages', pages, true, 'Page', null, function(pages) {
 			pages.forEach(function(page) {
 				StructrModel.create(page);
 				_Pages.pagesTabResizeContent();

@@ -502,14 +502,14 @@ var _Filesystem = {
 		}
 
 
-		_Pager.initPager('FileBase', 1, 25, 'name', 'asc');
+		_Pager.initPager('filesystem-files', 'FileBase', 1, 25, 'name', 'asc');
 		page['FileBase'] = 1;
-		_Pager.initFilters('FileBase', {
+		_Pager.initFilters('filesystem-files', 'FileBase', {
 			parentId: ((parentId === '#') ? '' : id),
 			hasParent: (parentId !== '#')
 		});
 
-		var filesPager = _Pager.addPager(content, false, 'FileBase', 'public', handleChildren);
+		var filesPager = _Pager.addPager('filesystem-files', content, false, 'FileBase', 'public', handleChildren);
 
 		filesPager.cleanupFunction = function () {
 			var toRemove = $('.node.file', filesPager.el).closest('tr');
