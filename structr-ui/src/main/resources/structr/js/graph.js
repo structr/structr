@@ -186,7 +186,7 @@ var _Graph = {
 				//maxArrowSize: 12,
 				labelSize: 'proportional',
 				labelSizeRatio: 1,
-				sideMargin: 100
+				//sideMargin: 100
 			}
 		});
 
