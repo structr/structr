@@ -84,7 +84,7 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 		boolean valid = true;
 
 		valid &= super.isValid(errorBuffer);
-		valid &= ValidationHelper.checkStringMatchesRegex(this, name, "[:_a-zA-Z0-9\\s\\-\\.öäüÖÄÜß]+", errorBuffer);
+		valid &= ValidationHelper.checkStringMatchesRegex(this, name, "[^\\/\\x00]+", errorBuffer);
 
 		return valid;
 	}

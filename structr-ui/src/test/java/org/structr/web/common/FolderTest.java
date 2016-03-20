@@ -66,4 +66,91 @@ public class FolderTest extends StructrTest {
 		
 	}
 
+	public void testAllowedCharacters() {
+		
+		try (final Tx tx = app.tx()) {
+			
+			app.create(Folder.class, "/a/b");
+						
+			tx.success();
+			
+			fail("Folder with non-allowed characters were created.");
+			
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+		}
+		
+		try (final Tx tx = app.tx()) {
+			
+			app.create(Folder.class, "a/b");
+						
+			tx.success();
+			
+			fail("Folder with non-allowed characters were created.");
+			
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+		}
+
+		try (final Tx tx = app.tx()) {
+			
+			app.create(Folder.class, "/");
+						
+			tx.success();
+			
+			fail("Folder with non-allowed characters were created.");
+			
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+		}
+
+		try (final Tx tx = app.tx()) {
+			
+			app.create(Folder.class, "c/");
+						
+			tx.success();
+			
+			fail("Folder with non-allowed characters were created.");
+			
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+		}
+
+		try (final Tx tx = app.tx()) {
+			
+			app.create(Folder.class, "abc\0");
+						
+			tx.success();
+			
+			fail("Folder with non-allowed characters were created.");
+			
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+		}
+
+		try (final Tx tx = app.tx()) {
+			
+			app.create(Folder.class, "\0abc");
+						
+			tx.success();
+			
+			fail("Folder with non-allowed characters were created.");
+			
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+		}
+		
+		try (final Tx tx = app.tx()) {
+			
+			app.create(Folder.class, "a\0bc");
+						
+			tx.success();
+			
+			fail("Folder with non-allowed characters were created.");
+			
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+		}
+	}
+	
 }
