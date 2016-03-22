@@ -381,6 +381,9 @@ oauth.facebook.return_uri = /
 #org.structr.examples.CleanupTask.cronExpression = 0 0 4 * * * \
 
 
+# Enable/disable uniqueness constraint for files/folders
+# application.filesystem.unique.paths = false
+
 # The instance name and stage configuration entries will be displayed in the top right corner of structr-ui
 # application.instance.name =
 # application.instance.stage =
