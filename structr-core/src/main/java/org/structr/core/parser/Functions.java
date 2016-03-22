@@ -305,6 +305,7 @@ public class Functions {
 		functions.put("values", new ValuesFunction());
 		functions.put("changelog", new ChangelogFunction());
 		functions.put("timer", new TimerFunction());
+		functions.put("str_replace", new StrReplaceFunction());
 
 		// ----- BEGIN functions with side effects -----
 		functions.put("retrieve", new RetrieveFunction());
