@@ -29,6 +29,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Result;
+import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
@@ -96,6 +98,10 @@ public class EnvResource extends Resource {
 		info.setProperty(new GenericProperty("modules"), modules);
 
 		info.setProperty(new StringProperty("classPath"), classPath);
+
+		info.setProperty(new StringProperty("instanceName"), StructrApp.getConfigurationValue(Services.APPLICATION_INSTANCE_NAME, ""));
+
+		info.setProperty(new StringProperty("instanceStage"), StructrApp.getConfigurationValue(Services.APPLICATION_INSTANCE_STAGE, ""));
 
 		resultList.add(info);
 

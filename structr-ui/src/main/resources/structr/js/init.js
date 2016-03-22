@@ -1085,6 +1085,10 @@ var Structr = {
 	updateVersionInfo: function() {
 		$.get(rootUrl + '_env', function(envInfo) {
 			if (envInfo && envInfo.result) {
+
+				$('#header .structr-instance-name').text(envInfo.result.instanceName);
+				$('#header .structr-instance-stage').text(envInfo.result.instanceStage);
+
 				var ui = envInfo.result.modules['structr-ui'];
 				if (ui !== null) {
 

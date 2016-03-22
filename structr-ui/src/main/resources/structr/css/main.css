@@ -110,11 +110,33 @@ input[type="checkbox"] {
     left: 32px;
 }
 
-#header .structr-version {
+#header .structr-instance-info {
     float: right;
     color: #fff;
-    font-size: 8.5px;
-    margin: 38px 12px 0 0;
+    margin-right: 12px;
+}
+
+#header .structr-instance {
+	height: 27px;
+	margin-top: 12px;
+	font-size: 20px;
+}
+
+#header .structr-instance-stage {
+	margin-left:10px;
+}
+
+#header .structr-instance-stage:not(:empty)::before {
+	content:"(";
+}
+
+#header .structr-instance-stage:not(:empty)::after {
+	content:")";
+}
+
+#header .structr-version {
+	font-size: 8.5px;
+	text-align: right;
 }
 
 #header .structr-version a,

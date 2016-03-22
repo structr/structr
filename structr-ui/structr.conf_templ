@@ -379,3 +379,8 @@ oauth.facebook.return_uri = /
 #org.structr.examples.UpdateTask.cronExpression = 0 0 * * * * \
 #org.structr.examples.CleanupTask \
 #org.structr.examples.CleanupTask.cronExpression = 0 0 4 * * * \
+
+
+# The instance name and stage configuration entries will be displayed in the top right corner of structr-ui
+# application.instance.name =
+# application.instance.stage =
