@@ -1189,7 +1189,7 @@ function textarea(f) {
 function inputField(f) {
 	//console.log('rendering input field  ', f);
 	var size = (f.val ? f.val.length : (f.type && f.type === 'Date' ? 25 : f.key.length));
-	return '<input data-structr-id="' + f.id + '"' + (f.class ? ' data-structr-edit-class="' + f.class + '"' : '') + (f.format ? ' data-structr-format="' + f.format + '"' : '') + '" data-structr-name="' + f.key + '" data-structr-type="' + f.type + '" type="text" placeholder="' + (f.placeholder ? f.placeholder : (f.key ? f.key.capitalize() : ''))
+	return '<input data-structr-id="' + f.id + '"' + (f.class ? ' data-structr-edit-class="' + f.class + '"' : '') + (f.format ? ' data-structr-format="' + f.format + '"' : '') + '" data-structr-name="' + f.key + '" data-structr-type="' + f.type + '" type="text" placeholder="' + (f.placeholder ? f.placeholder : '')
 			+ '" value="' + escapeForHtmlAttributes(f.val === 'null' ? '' : f.val)
 			+ '" size="' + size + '">';
 }
