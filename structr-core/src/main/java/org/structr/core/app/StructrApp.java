@@ -93,19 +93,30 @@ public class StructrApp implements App {
 
 		final CreateNodeCommand<T> command = command(CreateNodeCommand.class);
 		final PropertyMap properties       = new PropertyMap(source);
+		String finalType                   = type.getSimpleName();
 
-		// interface types cannot be created and will result in GenericNode,
-		// so the user must supply a valid non-interface type..
-		if (type != null && !type.isInterface()) {
+		// try to identify the actual type from input set (creation wouldn't work otherwise anyway)
+		final String typeFromInput = properties.get(NodeInterface.type);
+		if (typeFromInput != null) {
 
-			// overwrite type information when creating a node
-			// (adhere to type specified by resource!)
-			properties.put(AbstractNode.type, type.getSimpleName());
+			Class actualType = StructrApp.getConfiguration().getNodeEntityClass(typeFromInput);
+			if (actualType == null) {
 
-		} else if (!(properties.containsKey(AbstractNode.type))) {
+				// overwrite type information when creating a node (adhere to type specified by resource!)
+				properties.put(AbstractNode.type, type.getSimpleName());
 
-			throw new FrameworkException(422, "Invalid interface type " + type.getSimpleName() + ", please supply a non-interface class name in the type property");
+			} else if (actualType.isInterface()) {
+
+				throw new FrameworkException(422, "Invalid interface type " + type.getSimpleName() + ", please supply a non-interface class name in the type property");
+
+			} else {
+
+				finalType = actualType.getSimpleName();
+			}
 		}
+
+		// set type
+		properties.put(AbstractNode.type, finalType);
 
 		return command.execute(properties);
 	}
