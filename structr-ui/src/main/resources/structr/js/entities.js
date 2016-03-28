@@ -1402,8 +1402,8 @@ var _Entities = {
 
 				div.append('<img class="typeIcon" src="' + icon + '">'
 					+ '<b title="' + name + '">' + fitStringToWidth(name, 180, 'slideOut') + '</b>'
-					+ '<b class="action">' + action + '</b    >'
-					+ '<span class="content_">' + content + '</span>'
+					+ '<b class="action">' + (action ? action : '&nbsp;') + '</b    >'
+					+ '<span class="content_">' + (content ? fitStringToWidth(content, 180, 'slideOut') : '&nbsp;') + '</span>'
 					+ '<span class="id">' + entity.id + '</span>'
 //                        + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id.replace(/\${.*}/g, '${…}') + '</span>' : '')
 //                        + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/\${.*}/g, '${…}').replace(/ /g, '.') + '</span>' : '')

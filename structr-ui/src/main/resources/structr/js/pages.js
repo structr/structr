@@ -165,6 +165,7 @@ var _Pages = {
 			if (Math.abs(activeElementsSlideout.position().left + asw) <= 3) {
 				Structr.closeLeftSlideOuts([pagesSlideout, dataBindingSlideout], activeTabLeftKey);
 				Structr.openLeftSlideOut(activeElementsSlideout, this, activeTabLeftKey, function() {
+					_Pages.refreshActiveElements();
 				});
 			} else {
 				Structr.closeLeftSlideOuts([activeElementsSlideout], activeTabLeftKey);
@@ -491,10 +492,9 @@ var _Pages = {
 		_Logger.log(_LogType.PAGES, 'store active tab', activeTab);
 		LSWrapper.setItem(activeTabKey, activeTab);
 
-		_Pages.refreshActiveElements(id);
-
 	},
-	refreshActiveElements: function(id) {
+	refreshActiveElements: function() {
+		var id = activeTab;
 		$('#activeElements div.inner').empty().attr('id', 'id_' + id);
 		activeElements = {};
 
@@ -519,7 +519,6 @@ var _Pages = {
 			_Logger.log(_LogType.PAGES, 'iframe', id, 'activated');
 			iframe.parent().show();
 			_Pages.resize();
-			_Pages.refreshActiveElements(id);
 		});
 	},
 	/**
