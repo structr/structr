@@ -20,19 +20,23 @@ package org.structr.core.graph;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.api.DatabaseService;
+import org.structr.api.graph.Label;
+import org.structr.api.graph.Node;
 import org.structr.api.util.Iterables;
 import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.search.SearchCommand;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -77,24 +81,43 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 			@Override
 			public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
-				final String type = node.getProperty(GraphObject.type);
-				if (type != null) {
+				final Set<Label> intersection = new LinkedHashSet<>();
+				final Set<Label> toRemove     = new LinkedHashSet<>();
+				final Set<Label> toAdd        = new LinkedHashSet<>();
+				final Node dbNode             = node.getNode();
 
-					try {
+				// collect labels that are already present on a node
+				for (final Label label : dbNode.getLabels()) {
+					toRemove.add(label);
+				}
 
-						// Since the setProperty method of the TypeProperty
-						// overrides the default setProperty behaviour, we
-						// do not need to set a different type value first.
+				// collect new labels
+				for (final Class supertype : SearchCommand.typeAndAllSupertypes(node.getClass())) {
 
-						node.unlockSystemPropertiesOnce();
-						GraphObject.type.setProperty(securityContext, node, type);
+					final String supertypeName = supertype.getName();
 
-					} catch (FrameworkException fex) {
-						// ignore
+					if (supertypeName.startsWith("org.structr.") || supertypeName.startsWith("com.structr.")) {
+						toAdd.add(graphDb.forName(Label.class, supertype.getSimpleName()));
 					}
 				}
-				node.updateInIndex();
 
+				// calculate intersection
+				intersection.addAll(toAdd);
+				intersection.retainAll(toRemove);
+
+				// calculate differences
+				toAdd.removeAll(intersection);
+				toRemove.removeAll(intersection);
+
+				// remove difference
+				for (final Label remove : toRemove) {
+					dbNode.removeLabel(remove);
+				}
+
+				// add difference
+				for (final Label add : toAdd) {
+					dbNode.addLabel(add);
+				}
 			}
 
 			@Override

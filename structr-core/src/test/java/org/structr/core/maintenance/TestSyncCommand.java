@@ -41,7 +41,7 @@ import org.structr.core.graph.Tx;
 public class TestSyncCommand extends StructrTest {
 
 	private final static String EXPORT_FILENAME = "___structr-test-export___.zip";
-	
+
 	public void testSyncCommandParameters() {
 
 		try {
@@ -84,22 +84,22 @@ public class TestSyncCommand extends StructrTest {
 
 		try {
 			// create test nodes
-			final List<TestOne> testNodes = createTestNodes(TestOne.class, 100);
+			createTestNodes(TestOne.class, 100);
 
 			// test export
 			app.command(SyncCommand.class).execute(toMap("mode", "export", "file", EXPORT_FILENAME));
-			
+
 			final Path exportFile = Paths.get(EXPORT_FILENAME);
-			
+
  			assertTrue("Export file doesn't exist!", Files.exists(exportFile));
-			
+
 			// stop existing and start new database
 			this.tearDown();
 			this.setUp();
-			
+
 			// test import
 			app.command(SyncCommand.class).execute(toMap("mode", "import", "file", EXPORT_FILENAME));
-			
+
 			try (final Tx tx = app.tx()) {
 				assertEquals(100, app.nodeQuery(TestOne.class).getResult().size());
 			}
@@ -120,18 +120,18 @@ public class TestSyncCommand extends StructrTest {
 			final List<TestEleven> testNodes = createTestNodes(TestEleven.class, 10);
 
 			try (final Tx tx = app.tx()) {
-				
+
 				for (final TestEleven node : testNodes) {
-					
+
 					Iterable<Label> labels = node.getNode().getLabels();
 
 					assertEquals(7, Iterables.count(labels));
-					
+
 					for (final Label label : labels) {
 						System.out.print(label.name() + " ");
 					}
 					System.out.println();
-					
+
 					assertEquals("First label has to be AbstractNode",       Iterables.toList(labels).get(0).name(), "AbstractNode");
 					assertEquals("Second label has to be NodeInterface",     Iterables.toList(labels).get(1).name(), "NodeInterface");
 					assertEquals("Third label has to be AccessControllable", Iterables.toList(labels).get(2).name(), "AccessControllable");
@@ -143,34 +143,34 @@ public class TestSyncCommand extends StructrTest {
 
 				tx.success();
 			}
-			
-			
+
+
 			// test export
 			app.command(SyncCommand.class).execute(toMap("mode", "export", "file", EXPORT_FILENAME));
-			
+
 			final Path exportFile = Paths.get(EXPORT_FILENAME);
-			
+
  			assertTrue("Export file doesn't exist!", Files.exists(exportFile));
-			
+
 			// stop existing and start new database
 			this.tearDown();
 			this.setUp();
-			
+
 			// test import
 			app.command(SyncCommand.class).execute(toMap("mode", "import", "file", EXPORT_FILENAME));
-			
-			
+
+
 			try (final Tx tx = app.tx()) {
-	
+
 				final Result<TestEleven> result = app.nodeQuery(TestEleven.class).getResult();
 				assertEquals(10, result.size());
 
 				for (final TestEleven node : result.getResults()) {
-					
+
 					Iterable<Label> labels = node.getNode().getLabels();
 
 					assertEquals(7, Iterables.count(labels));
-					
+
 					assertEquals("First label has to be AbstractNode",       Iterables.toList(labels).get(0).name(), "AbstractNode");
 					assertEquals("Second label has to be NodeInterface",     Iterables.toList(labels).get(1).name(), "NodeInterface");
 					assertEquals("Third label has to be AccessControllable", Iterables.toList(labels).get(2).name(), "AccessControllable");
@@ -180,7 +180,7 @@ public class TestSyncCommand extends StructrTest {
 					assertEquals("Seventh label has to be TestOne",          Iterables.toList(labels).get(6).name(), "TestOne");
 
 				}
-				
+
 				tx.success();
 			}
 
