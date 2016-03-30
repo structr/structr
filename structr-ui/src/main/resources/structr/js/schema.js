@@ -731,9 +731,10 @@ var _Schema = {
 
 		if (!entity.isBuiltinType) {
 			headContentDiv.append(' extends <select class="extends-class-select"></select>');
-
 			headContentDiv.append(' <img id="edit-parent-class" class="icon edit" src="icon/pencil.png" alt="Edit parent class" title="Edit parent class">');
+
 			$("#edit-parent-class", headContentDiv).click(function () {
+
 				if ($(this).hasClass('disabled')) {
 					return;
 				}
@@ -795,9 +796,13 @@ var _Schema = {
 			_Schema.appendRemoteProperties(c, entity);
 		});
 
-		headContentDiv.children('b').on('click', function() {
-			_Schema.makeAttrEditable(headContentDiv, 'name');
-		});
+		if (!entity.isBuiltinType) {
+
+			headContentDiv.children('b').on('click', function() {
+				_Schema.makeAttrEditable(headContentDiv, 'name');
+			});
+
+		}
 
 		var classSelect = $('.extends-class-select', headEl);
 		$.get(rootUrl + '_schema', function(data) {
