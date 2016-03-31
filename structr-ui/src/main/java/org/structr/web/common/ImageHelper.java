@@ -88,13 +88,13 @@ public abstract class ImageHelper extends FileHelper {
 	public static Image createImage(final SecurityContext securityContext, final byte[] imageData, final String contentType, final Class<? extends Image> imageType, final String name, final boolean markAsThumbnail)
 		throws FrameworkException, IOException {
 
-		PropertyMap props                          = new PropertyMap();
+		final PropertyMap props = new PropertyMap();
 
 		props.put(AbstractNode.type, imageType == null ? Image.class.getSimpleName() : imageType.getSimpleName());
 		props.put(Image.isThumbnail, markAsThumbnail);
 		props.put(AbstractNode.name, name);
 
-		Image newImage = StructrApp.getInstance(securityContext).create(imageType, props);
+		final Image newImage = StructrApp.getInstance(securityContext).create(imageType, props);
 
 		if (imageData != null && imageData.length > 0) {
 
@@ -142,28 +142,27 @@ public abstract class ImageHelper extends FileHelper {
 				return null;
 			}
 
-			final long start     = System.nanoTime();
-			BufferedImage source = null;
+			final long start = System.nanoTime();
+			final BufferedImage source = ImageIO.read(in);
 
-			// read image
-			source = ImageIO.read(in);
 			if (source != null) {
 
-				int sourceWidth  = source.getWidth();
-				int sourceHeight = source.getHeight();
+				final int sourceWidth  = source.getWidth();
+				final int sourceHeight = source.getHeight();
 
 				// Update image dimensions
 				originalImage.setProperty(Image.width, sourceWidth);
 				originalImage.setProperty(Image.height, sourceHeight);
 
 				// float aspectRatio = sourceWidth/sourceHeight;
-				float scaleX = 1.0f * sourceWidth / maxWidth;
-				float scaleY = 1.0f * sourceHeight / maxHeight;
-				float scale;
+				final float scaleX = 1.0f * sourceWidth / maxWidth;
+				final float scaleY = 1.0f * sourceHeight / maxHeight;
+				final float scale;
 
 				if (crop) {
 
 					scale = Math.min(scaleX, scaleY);
+
 				} else {
 
 					scale = Math.max(scaleX, scaleY);
@@ -177,14 +176,14 @@ public abstract class ImageHelper extends FileHelper {
 
 					//System.out.println(destWidth + " / " + destHeight);
 
-					ResampleOp resampleOp   = new ResampleOp(destWidth, destHeight);
-					BufferedImage resampled = resampleOp.filter(source, null);
+					final ResampleOp resampleOp   = new ResampleOp(destWidth, destHeight);
+					final BufferedImage resampled = resampleOp.filter(source, null);
 					BufferedImage result    = null;
 
 					if (crop) {
 
-						int offsetX = Math.abs(maxWidth - destWidth) / 2;
-						int offsetY = Math.abs(maxHeight - destHeight) / 2;
+						final int offsetX = Math.abs(maxWidth - destWidth) / 2;
+						final int offsetY = Math.abs(maxHeight - destHeight) / 2;
 
 						logger.log(Level.FINE, "Offset and Size (x,y,w,h): {0},{1},{2},{3}", new Object[] { offsetX, offsetY, maxWidth, maxHeight });
 
@@ -215,13 +214,16 @@ public abstract class ImageHelper extends FileHelper {
 			} else {
 
 				logger.log(Level.FINE, "Thumbnail could not be created");
+
 				return null;
+
 			}
 
-			long end  = System.nanoTime();
-			long time = (end - start) / 1000000;
+			final long end  = System.nanoTime();
+			final long time = (end - start) / 1000000;
 
-			logger.log(Level.FINE, "Thumbnail created. Reading, scaling and writing took {0} ms", time);
+			logger.log(Level.INFO, "Thumbnail created. Reading, scaling and writing took {0} ms", time);
+
 			tn.setBytes(baos.toByteArray());
 
 			return tn;
@@ -254,7 +256,7 @@ public abstract class ImageHelper extends FileHelper {
 			return new byte[] {};
 		}
 
-		ByteArrayInputStream in = new ByteArrayInputStream(original);
+		final ByteArrayInputStream in = new ByteArrayInputStream(original);
 
 		// If JPEG image starts with ff d9 ffd8, strip this sequence from the beginning
 		// FF D9 = EOI (end of image)
@@ -264,7 +266,7 @@ public abstract class ImageHelper extends FileHelper {
 			in.skip(4);
 		}
 
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		final ByteArrayOutputStream out = new ByteArrayOutputStream();
 		BufferedImage source;
 
 		try {
@@ -304,10 +306,11 @@ public abstract class ImageHelper extends FileHelper {
 	public static String getBase64String(final File file) {
 
 		try {
-         InputStream dataStream = file.getInputStream();
+			final InputStream dataStream = file.getInputStream();
 
-         if (dataStream != null)
-			   return Base64.encodeToString(IOUtils.toByteArray(file.getInputStream()), false);
+			if (dataStream != null) {
+				return Base64.encodeToString(IOUtils.toByteArray(file.getInputStream()), false);
+			}
 
 		} catch (IOException ex) {
 			logger.log(Level.SEVERE, "Could not get base64 string from file ", ex);
@@ -332,8 +335,8 @@ public abstract class ImageHelper extends FileHelper {
 			return false;
 		}
 
-		String extension         = urlString.toLowerCase().substring(urlString.lastIndexOf(".") + 1);
-		String[] imageExtensions = {
+		final String extension         = urlString.toLowerCase().substring(urlString.lastIndexOf(".") + 1);
+		final String[] imageExtensions = {
 
 			"png", "gif", "jpg", "jpeg", "bmp", "tif", "tiff"
 		};
@@ -367,8 +370,8 @@ public abstract class ImageHelper extends FileHelper {
 			return false;
 		}
 
-		String extension         = urlString.toLowerCase().substring(urlString.lastIndexOf(".") + 1);
-		String[] imageExtensions = { "swf" };
+		final String extension         = urlString.toLowerCase().substring(urlString.lastIndexOf(".") + 1);
+		final String[] imageExtensions = { "swf" };
 
 		for (String ext : imageExtensions) {
 
@@ -394,7 +397,7 @@ public abstract class ImageHelper extends FileHelper {
 
 		public Base64URIData(final String rawData) {
 
-			String[] parts = StringUtils.split(rawData, ",");
+			final String[] parts = StringUtils.split(rawData, ",");
 
 			data        = parts[1];
 			contentType = StringUtils.substringBetween(parts[0], "data:", ";base64");
