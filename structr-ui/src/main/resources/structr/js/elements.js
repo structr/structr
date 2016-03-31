@@ -554,15 +554,8 @@ var _Elements = {
 
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodes&&entity.syncedNodes.length)?entity.syncedNodes:[entity.sharedComponent]));
 
-		if (!hasChildren) {
-
-			if (entity.sharedComponent) {
-				Command.get(entity.sharedComponent, function(obj) {
-					_Entities.appendEditSourceIcon(div, obj);
-				});
-			} else {
-				_Entities.appendEditSourceIcon(div, entity);
-			}
+		if (!hasChildren && !entity.sharedComponent) {
+			_Entities.appendEditSourceIcon(div, entity);
 		}
 
 		_Entities.appendEditPropertiesIcon(div, entity);
