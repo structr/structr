@@ -222,7 +222,7 @@ public abstract class ImageHelper extends FileHelper {
 			final long end  = System.nanoTime();
 			final long time = (end - start) / 1000000;
 
-			logger.log(Level.INFO, "Thumbnail created. Reading, scaling and writing took {0} ms", time);
+			logger.log(Level.FINE, "Thumbnail created. Reading, scaling and writing took {0} ms", time);
 
 			tn.setBytes(baos.toByteArray());
 

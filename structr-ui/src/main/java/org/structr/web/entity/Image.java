@@ -73,6 +73,8 @@ public class Image extends File {
 
 	public static final Property<Boolean> isImage                 = new ConstantBooleanProperty("isImage", true);
 
+	public static final Property<Boolean> isCreatingThumb         = new BooleanProperty("isCreatingThumb").systemInternal();
+
 	public static final org.structr.common.View uiView            = new org.structr.common.View(Image.class, PropertyView.Ui, type, name, contentType, size, relativeFilePath, width, height, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage);
 	public static final org.structr.common.View publicView        = new org.structr.common.View(Image.class, PropertyView.Public, type, name, width, height, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage);
 
@@ -226,91 +228,100 @@ public class Image extends File {
 
 			}
 
-
 		}
 
-		// No thumbnail exists, or thumbnail was too old, so let's create a new one
-		logger.log(Level.FINE, "Creating thumbnail for {0} (w={1} h={2} crop={3})", new Object[] { getName(), maxWidth, maxHeight, cropToFit });
+		if (originalImage.getProperty(Image.isCreatingThumb).equals(Boolean.TRUE)) {
 
-		final App app = StructrApp.getInstance(securityContext);
+			logger.log(Level.INFO, "Another thumbnail is being created - waiting....");
 
-		try {
+		} else {
 
-			originalImage.unlockSystemPropertiesOnce();
-			originalImage.setProperty(File.checksum, newChecksum);
+			try {
 
-			final Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight, cropToFit);
-			if (thumbnailData != null) {
+				// No thumbnail exists, or thumbnail was too old, so let's create a new one
+				logger.log(Level.FINE, "Creating thumbnail for {0} (w={1} h={2} crop={3})", new Object[] { getName(), maxWidth, maxHeight, cropToFit });
 
-				final Integer tnWidth  = thumbnailData.getWidth();
-				final Integer tnHeight = thumbnailData.getHeight();
-				byte[] data      = null;
+				originalImage.unlockSystemPropertiesOnce();
+				originalImage.setProperty(Image.isCreatingThumb, Boolean.TRUE);
 
-				try {
+				final App app = StructrApp.getInstance(securityContext);
 
-					data = thumbnailData.getBytes();
-					final String thumbnailName = originalImage.getName() + "_thumb_" + tnWidth + "x" + tnHeight;
+				originalImage.unlockSystemPropertiesOnce();
+				originalImage.setProperty(File.checksum, newChecksum);
 
-					// create thumbnail node
-					thumbnail = ImageHelper.createImage(securityContext, data, "image/" + Thumbnail.FORMAT, Image.class, thumbnailName, true);
+				final Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight, cropToFit);
+				if (thumbnailData != null) {
 
-				} catch (IOException ex) {
+					final Integer tnWidth  = thumbnailData.getWidth();
+					final Integer tnHeight = thumbnailData.getHeight();
+					byte[] data            = null;
 
-					logger.log(Level.WARNING, "Could not create thumbnail image", ex);
+					try {
 
-				}
+						data = thumbnailData.getBytes();
+						final String thumbnailName = originalImage.getName() + "_thumb_" + tnWidth + "x" + tnHeight;
 
-				if (thumbnail != null && data != null) {
+						// create thumbnail node
+						thumbnail = ImageHelper.createImage(securityContext, data, "image/" + Thumbnail.FORMAT, Image.class, thumbnailName, true);
 
-					// Create a thumbnail relationship
-					final Thumbnails thumbnailRelationship = app.create(originalImage, thumbnail, Thumbnails.class);
+					} catch (IOException ex) {
 
-					// Thumbnails always have to be removed along with origin image
-					thumbnailRelationship.setProperty(AbstractRelationship.cascadeDelete, Relation.SOURCE_TO_TARGET);
+						logger.log(Level.WARNING, "Could not create thumbnail image", ex);
 
-					// Add to cache list
-					// thumbnailRelationships.add(thumbnailRelationship);
-
-					thumbnail.unlockSystemPropertiesOnce();
-					thumbnail.setProperty(File.size,                                data.length);
-					thumbnail.setProperty(Image.width,                              tnWidth);
-					thumbnail.setProperty(Image.height,                             tnHeight);
-
-					thumbnail.setProperty(AbstractNode.hidden,                      originalImage.getProperty(AbstractNode.hidden));
-					thumbnail.setProperty(AbstractNode.visibleToAuthenticatedUsers, originalImage.getProperty(AbstractNode.visibleToAuthenticatedUsers));
-					thumbnail.setProperty(AbstractNode.visibleToPublicUsers,        originalImage.getProperty(AbstractNode.visibleToPublicUsers));
-					thumbnail.setProperty(AbstractNode.owner,                       originalImage.getProperty(AbstractNode.owner));
-
-					thumbnailRelationship.setProperty(Image.width,                  tnWidth);
-					thumbnailRelationship.setProperty(Image.height,                 tnHeight);
-
-					thumbnailRelationship.unlockSystemPropertiesOnce();
-					thumbnailRelationship.setProperty(Image.checksum,               newChecksum);
-
-					// Delete outdated thumbnails
-					for (final Image tn : oldThumbnails) {
-						app.delete(tn);
 					}
+
+					if (thumbnail != null && data != null) {
+
+						// Create a thumbnail relationship
+						final Thumbnails thumbnailRelationship = app.create(originalImage, thumbnail, Thumbnails.class);
+
+						// Thumbnails always have to be removed along with origin image
+						thumbnailRelationship.setProperty(AbstractRelationship.cascadeDelete, Relation.SOURCE_TO_TARGET);
+
+						// Add to cache list
+						// thumbnailRelationships.add(thumbnailRelationship);
+
+						thumbnail.unlockSystemPropertiesOnce();
+						thumbnail.setProperty(File.size,                                data.length);
+						thumbnail.setProperty(Image.width,                              tnWidth);
+						thumbnail.setProperty(Image.height,                             tnHeight);
+
+						thumbnail.setProperty(AbstractNode.hidden,                      originalImage.getProperty(AbstractNode.hidden));
+						thumbnail.setProperty(AbstractNode.visibleToAuthenticatedUsers, originalImage.getProperty(AbstractNode.visibleToAuthenticatedUsers));
+						thumbnail.setProperty(AbstractNode.visibleToPublicUsers,        originalImage.getProperty(AbstractNode.visibleToPublicUsers));
+						thumbnail.setProperty(AbstractNode.owner,                       originalImage.getProperty(AbstractNode.owner));
+
+						thumbnailRelationship.setProperty(Image.width,                  tnWidth);
+						thumbnailRelationship.setProperty(Image.height,                 tnHeight);
+
+						thumbnailRelationship.unlockSystemPropertiesOnce();
+						thumbnailRelationship.setProperty(Image.checksum,               newChecksum);
+
+						// Delete outdated thumbnails
+						for (final Image tn : oldThumbnails) {
+							app.delete(tn);
+						}
+
+					}
+
+				} else {
+
+					logger.log(Level.FINE, "Could not create thumbnail for image {0} ({1})", new Object[] { getName(), getUuid() });
+
 				}
 
-			} else {
+				originalImage.unlockSystemPropertiesOnce();
+				originalImage.removeProperty(Image.isCreatingThumb);
 
-				logger.log(Level.FINE, "Could not create thumbnail for image {0} ({1})", new Object[] { getName(), getUuid() });
+			} catch (FrameworkException fex) {
+
+				logger.log(Level.WARNING, "Unable to create thumbnail", fex);
+
 			}
-
-		} catch (FrameworkException fex) {
-
-			logger.log(Level.WARNING, "Unable to create thumbnail", fex);
 
 		}
 
 		return thumbnail;
-
-	}
-
-	public boolean isNotThumbnail() {
-
-		return !isThumbnail();
 
 	}
 
