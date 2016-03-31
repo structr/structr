@@ -244,15 +244,6 @@ public class Image extends File {
 			originalImage.unlockSystemPropertiesOnce();
 			originalImage.setProperty(File.checksum, newChecksum);
 
-			// check size requirements for thumbnail
-			if (origWidth != null && origHeight != null) {
-
-				if (origWidth <= maxWidth && origHeight <= maxHeight) {
-
-					return originalImage;
-				}
-			}
-
 			Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight, cropToFit);
 			if (thumbnailData != null) {
 
