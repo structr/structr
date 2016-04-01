@@ -232,7 +232,7 @@ public class Image extends File {
 
 		if (originalImage.getProperty(Image.isCreatingThumb).equals(Boolean.TRUE)) {
 
-			logger.log(Level.INFO, "Another thumbnail is being created - waiting....");
+			logger.log(Level.FINE, "Another thumbnail is being created - waiting....");
 
 		} else {
 
