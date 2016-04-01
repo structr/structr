@@ -553,6 +553,9 @@ var _Filesystem = {
 		StructrModel.createFromData(d, null, false);
 
 		var tableBody = $('#files-table-body');
+
+		$('#row' + d.id, tableBody).remove();
+
 		var files = d.files || [];
 		var folders = d.folders || [];
 		var size = d.isFolder ? folders.length + files.length : (d.size ? d.size : '-');
