@@ -1054,7 +1054,10 @@ var _Filesystem = {
 					value: text,
 					mode: contentType,
 					lineNumbers: true,
-					lineWrapping: lineWrapping
+					lineWrapping: lineWrapping,
+					indentUnit: 4,
+					tabSize:4,
+					indentWithTabs: true
 				});
 
 				var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + file.id));

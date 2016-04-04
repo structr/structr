@@ -281,7 +281,10 @@ var _Widgets = {
 				editor = CodeMirror(contentBox.get(0), {
 					value: unescapeTags(text),
 					mode: 'text/html',
-					lineNumbers: true
+					lineNumbers: true,
+					indentUnit: 4,
+					tabSize:4,
+					indentWithTabs: true
 				});
 				editor.focus();
 				Structr.resize();
@@ -363,7 +366,10 @@ var _Widgets = {
 		editor = CodeMirror(contentBox.get(0), {
 			value: unescapeTags(text),
 			mode: 'text/html',
-			lineNumbers: true
+			lineNumbers: true,
+			indentUnit: 4,
+			tabSize:4,
+			indentWithTabs: true
 		});
 		editor.focus();
 		Structr.resize();

@@ -178,10 +178,13 @@ var _Contents = {
 			mode: contentType,
 			lineNumbers: true,
 			lineWrapping: lineWrapping,
-            extraKeys: {
-               "'.'":        _Contents.autoComplete,
-               "Ctrl-Space": _Contents.autoComplete
-            }
+			extraKeys: {
+				"'.'":        _Contents.autoComplete,
+				"Ctrl-Space": _Contents.autoComplete
+			},
+			indentUnit: 4,
+			tabSize:4,
+			indentWithTabs: true
         });
 
 		Structr.resize();

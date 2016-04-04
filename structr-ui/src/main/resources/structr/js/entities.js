@@ -224,7 +224,10 @@ var _Entities = {
 					value: unescapeTags(innerText),
 					mode: contentType,
 					lineNumbers: true,
-					lineWrapping: lineWrapping
+					lineWrapping: lineWrapping,
+					indentUnit: 4,
+					tabSize:4,
+					indentWithTabs: true
 				});
 
 				$('.CodeMirror-scroll').prepend('<div class="starttag"></div>');
