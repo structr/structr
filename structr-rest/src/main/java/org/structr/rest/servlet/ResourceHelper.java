@@ -170,11 +170,16 @@ public class ResourceHelper {
 	/**
 	 * Optimize the resource chain by trying to combine two resources to a new one
 	 *
-	 * @param resourceChain
+	 * @param securityContext
+	 * @param request
+	 * @param resourceMap
+	 * @param propertyView
 	 * @return finalResource
 	 * @throws FrameworkException
 	 */
-	public static Resource optimizeNestedResourceChain(final List<Resource> resourceChain) throws FrameworkException {
+	public static Resource optimizeNestedResourceChain(final SecurityContext securityContext, final HttpServletRequest request, final Map<Pattern, Class<? extends Resource>> resourceMap, final Value<String> propertyView) throws FrameworkException {
+
+		final List<Resource> resourceChain = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView);
 
 		ViewFilterResource view = null;
 		int num                 = resourceChain.size();
@@ -244,6 +249,10 @@ public class ResourceHelper {
 			}
 
 			return finalResource;
+
+		} else {
+
+			logger.log(Level.WARNING, "Resource chain evaluation for path {0} resulted in {1} entries, returning status code 400.", new Object[] { request.getPathInfo(), resourceChain.size() });
 
 		}
 

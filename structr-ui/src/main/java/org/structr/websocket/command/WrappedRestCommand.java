@@ -48,22 +48,22 @@ import org.structr.websocket.message.WebSocketMessage;
 /**
  *
  *
- * 
+ *
  * This WS-Command is a facade for REST commands. (for the time being only POST and PUT is allowed)
- * 
+ *
  */
 
 
 public class WrappedRestCommand extends AbstractCommand {
-	
+
 	private static final Logger logger = Logger.getLogger(WrapContentCommand.class.getName());
 
 	static {
-		
+
 		StructrWebSocket.addCommand(WrappedRestCommand.class);
 
 	}
-	
+
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
@@ -78,7 +78,7 @@ public class WrappedRestCommand extends AbstractCommand {
 			return;
 
 		}
-		
+
 		ResourceProvider resourceProvider;
 		try {
 
@@ -91,10 +91,10 @@ public class WrappedRestCommand extends AbstractCommand {
 			return;
 
 		}
-		
+
 		final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 		resourceMap.putAll(resourceProvider.getResources());
-		
+
 		final StructrWebSocket socket        = this.getWebSocket();
 		final String url                     = (String) nodeData.get("url");
 
@@ -146,14 +146,14 @@ public class WrappedRestCommand extends AbstractCommand {
 		final StaticValue fakePropertyView = new StaticValue(PropertyView.Public);
 		try {
 
-			resource = ResourceHelper.applyViewTransformation(wrappedRequest, socket.getSecurityContext(), ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(socket.getSecurityContext(), wrappedRequest, resourceMap, fakePropertyView)), fakePropertyView);
+			resource = ResourceHelper.applyViewTransformation(wrappedRequest, socket.getSecurityContext(), ResourceHelper.optimizeNestedResourceChain(socket.getSecurityContext(), wrappedRequest, resourceMap, fakePropertyView), fakePropertyView);
 
 		} catch (IllegalPathException | NotFoundException e) {
 
 			logger.log(Level.WARNING, "Illegal path for REST query");
 			getWebSocket().send(MessageBuilder.wrappedRest().code(422).message("Illegal path for REST query").build(), true);
 			return;
-			
+
 		}
 
 		final String data                    = (String) nodeData.get("data");
@@ -161,19 +161,19 @@ public class WrappedRestCommand extends AbstractCommand {
 		final Map<String, Object> jsonData   = gson.fromJson(data, Map.class);
 
 		RestMethodResult result = null;
-		
+
 		switch (method) {
 			case "PUT":
 				// we want to update data
 				result = resource.doPut(jsonData);
-				
+
 				break;
-				
+
 			case "POST":
 				// we either want to create data or call a method on an object
 				result = resource.doPost(jsonData);
-				
-				
+
+
 				break;
 		}
 

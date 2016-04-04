@@ -161,7 +161,7 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 		Resource resource = null;
 		try {
 
-			resource = ResourceHelper.applyViewTransformation(wrappedRequest, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, wrappedRequest, resourceMap, propertyView)), propertyView);
+			resource = ResourceHelper.applyViewTransformation(wrappedRequest, securityContext, ResourceHelper.optimizeNestedResourceChain(securityContext, wrappedRequest, resourceMap, propertyView), propertyView);
 
 		} catch (IllegalPathException | NotFoundException e) {
 
