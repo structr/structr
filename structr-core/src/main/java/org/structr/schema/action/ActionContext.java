@@ -274,9 +274,15 @@ public class ActionContext {
 					case "port":
 						return securityContext.getRequest().getServerPort();
 
+					case "pathInfo":
 					case "path_info":
 						return securityContext.getRequest().getPathInfo();
 
+					case "parameterMap":
+					case "parameter_map":
+						return securityContext.getRequest().getParameterMap();
+
+					case "remoteAddress":
 					case "remote_address":
 						final String remoteAddress = securityContext.getRequest().getHeader("X-FORWARDED-FOR");
 						if (remoteAddress == null) {
