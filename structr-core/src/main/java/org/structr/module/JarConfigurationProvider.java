@@ -522,9 +522,9 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			nodeEntityPackages.remove(fqcn);
 			relationshipPackages.remove(fqcn);
 
-			globalPropertyViewMap.remove(simpleName);
-			globalClassDBNamePropertyMap.remove(simpleName);
-			globalClassJSNamePropertyMap.remove(simpleName);
+			globalPropertyViewMap.remove(fqcn);
+			globalClassDBNamePropertyMap.remove(fqcn);
+			globalClassJSNamePropertyMap.remove(fqcn);
 
 			interfaceMap.remove(oldType);
 
@@ -547,19 +547,19 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		// moved here from scanEntity, no reason to have this in a separate
 		// method requiring two different calls instead of one
 		String simpleName = type.getSimpleName();
-		String fullName   = type.getName();
+		String fqcn       = type.getName();
 
 		if (AbstractNode.class.isAssignableFrom(type)) {
 			nodeEntityClassCache.put(simpleName, type);
-			nodeEntityPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
-			globalPropertyViewMap.remove(type.getName());
+			nodeEntityPackages.add(fqcn.substring(0, fqcn.lastIndexOf(".")));
+			globalPropertyViewMap.remove(fqcn);
 		}
 
 		if (AbstractRelationship.class.isAssignableFrom(type)) {
 
 			relationshipEntityClassCache.put(simpleName, type);
-			relationshipPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
-			globalPropertyViewMap.remove(type.getName());
+			relationshipPackages.add(fqcn.substring(0, fqcn.lastIndexOf(".")));
+			globalPropertyViewMap.remove(fqcn);
 		}
 
 		for (Class interfaceClass : type.getInterfaces()) {
@@ -581,14 +581,14 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		try {
 
-			Map<Field, PropertyKey> allProperties = getFieldValuesOfType(PropertyKey.class, type);
-			Map<Field, View> views = getFieldValuesOfType(View.class, type);
+			final Map<Field, PropertyKey> allProperties = getFieldValuesOfType(PropertyKey.class, type);
+			final Map<Field, View> views = getFieldValuesOfType(View.class, type);
 
-			for (Map.Entry<Field, PropertyKey> entry : allProperties.entrySet()) {
+			for (final Map.Entry<Field, PropertyKey> entry : allProperties.entrySet()) {
 
-				PropertyKey propertyKey = entry.getValue();
-				Field field = entry.getKey();
-				Class declaringClass = field.getDeclaringClass();
+				final PropertyKey propertyKey = entry.getValue();
+				final Field field = entry.getKey();
+				final Class declaringClass = field.getDeclaringClass();
 
 				if (declaringClass != null) {
 
@@ -602,8 +602,8 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 			for (Map.Entry<Field, View> entry : views.entrySet()) {
 
-				Field field = entry.getKey();
-				View view = entry.getValue();
+				final Field field = entry.getKey();
+				final View view = entry.getValue();
 
 				for (PropertyKey propertyKey : view.properties()) {
 
@@ -618,10 +618,10 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			t.printStackTrace();
 		}
 
-		Map<String, Method> typeMethods = exportedMethodMap.get(type.getName());
+		Map<String, Method> typeMethods = exportedMethodMap.get(fqcn);
 		if (typeMethods == null) {
 			typeMethods = new HashMap<>();
-			exportedMethodMap.put(type.getName(), typeMethods);
+			exportedMethodMap.put(fqcn, typeMethods);
 		}
 
 		typeMethods.putAll(getAnnotatedMethods(type, Export.class));
