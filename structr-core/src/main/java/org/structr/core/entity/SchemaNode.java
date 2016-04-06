@@ -67,7 +67,7 @@ import org.structr.schema.parser.Validator;
 public class SchemaNode extends AbstractSchemaNode {
 
 	private static final Logger logger = Logger.getLogger(SchemaNode.class.getName());
-	
+
 	public static final Property<List<SchemaRelationshipNode>> relatedTo        = new EndNodes<>("relatedTo", SchemaRelationshipSourceNode.class);
 	public static final Property<List<SchemaRelationshipNode>> relatedFrom      = new StartNodes<>("relatedFrom", SchemaRelationshipTargetNode.class);
 	public static final Property<String>                       extendsClass     = new StringProperty("extendsClass").indexed();
@@ -284,23 +284,23 @@ public class SchemaNode extends AbstractSchemaNode {
 	public String getMultiplicity(final String propertyNameToCheck) {
 
 		String multiplicity = getMultiplicity(this, propertyNameToCheck);
-		
+
 		if (multiplicity == null) {
 
 			try {
 				final String parentClass = getProperty(SchemaNode.extendsClass);
-				
+
 				if (parentClass != null) {
-				
+
 					// check if property is defined in parent class
 					final SchemaNode parentSchemaNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(StringUtils.substringAfterLast(parentClass, ".")).getFirst();
 
 					if (parentSchemaNode != null) {
-					
+
 						multiplicity = getMultiplicity(parentSchemaNode, propertyNameToCheck);
-						
+
 					}
-				
+
 				}
 
 
@@ -309,11 +309,11 @@ public class SchemaNode extends AbstractSchemaNode {
 			}
 
 		}
-		
+
 		if (multiplicity != null) {
 			return multiplicity;
 		}
-		
+
 		// fallback, search NodeInterface (this allows the owner relationship to be used in Notions!)
 		final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(NodeInterface.class, propertyNameToCheck, false);
 		if (key != null) {
@@ -337,7 +337,7 @@ public class SchemaNode extends AbstractSchemaNode {
 	}
 
 	private String getMultiplicity(final SchemaNode schemaNode, final String propertyNameToCheck) {
-		
+
 		final Set<String> existingPropertyNames = new LinkedHashSet<>();
 		final String _className                 = schemaNode.getProperty(name);
 
@@ -355,30 +355,30 @@ public class SchemaNode extends AbstractSchemaNode {
 				return inRel.getMultiplicity(false);
 			}
 		}
-		
+
 		return null;
 	}
-	
+
 	@Override
 	public String getRelatedType(final String propertyNameToCheck) {
 
 		String relatedType = getRelatedType(this, propertyNameToCheck);
-		
+
 		if (relatedType == null) {
 
 			try {
-				
+
 				final String parentClass = getProperty(SchemaNode.extendsClass);
-				
+
 				if (parentClass != null) {
 
 					// check if property is defined in parent class
 					final SchemaNode parentSchemaNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(StringUtils.substringAfterLast(parentClass, ".")).getFirst();
 
 					if (parentSchemaNode != null) {
-					
+
 						relatedType = getRelatedType(parentSchemaNode, propertyNameToCheck);
-						
+
 					}
 				}
 
@@ -387,11 +387,11 @@ public class SchemaNode extends AbstractSchemaNode {
 			}
 
 		}
-		
+
 		if (relatedType != null) {
 			return relatedType;
 		}
-		
+
 		// fallback, search NodeInterface (this allows the owner relationship to be used in Notions!)
 		final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(NodeInterface.class, propertyNameToCheck, false);
 		if (key != null) {
@@ -407,7 +407,7 @@ public class SchemaNode extends AbstractSchemaNode {
 	}
 
 	private String getRelatedType(final SchemaNode schemaNode, final String propertyNameToCheck) {
-		
+
 		final Set<String> existingPropertyNames = new LinkedHashSet<>();
 		final String _className                 = schemaNode.getProperty(name);
 
@@ -425,10 +425,10 @@ public class SchemaNode extends AbstractSchemaNode {
 				return inRel.getSchemaNodeSourceType();
 			}
 		}
-		
+
 		return null;
 	}
-	
+
 	@Override
 	public String getAuxiliarySource() throws FrameworkException {
 
@@ -450,7 +450,7 @@ public class SchemaNode extends AbstractSchemaNode {
 		final String viewDefinitions     = SchemaHelper.extractViews(this, viewProperties, dummyErrorBuffer);
 		final String methodDefinitions   = SchemaHelper.extractMethods(this, saveActions);
 
-		if (!propertyNames.isEmpty() || validators.isEmpty() || !saveActions.isEmpty()) {
+		if (!propertyNames.isEmpty() || !viewProperties.isEmpty() || validators.isEmpty() || !saveActions.isEmpty()) {
 
 			final StringBuilder src = new StringBuilder();
 
@@ -487,6 +487,21 @@ public class SchemaNode extends AbstractSchemaNode {
 					src.append("\t\t").append(propertyName).append(".setDeclaringClass(").append(_className).append(".class);\n\n");
 					src.append("\t\tStructrApp.getConfiguration().registerDynamicProperty(").append(_className).append(".class, ").append(propertyName).append(");\n");
 					src.append("\t\tStructrApp.getConfiguration().registerPropertySet(").append(_className).append(".class, PropertyView.Ui, ").append(propertyName).append(");\n\n");
+
+				}
+
+				// Code for custom Views on "File" type
+				for (final String viewName : viewProperties.keySet()) {
+
+					for (String propertyName : viewProperties.get(viewName)) {
+
+						if (propertyName.endsWith("Property")) {
+							propertyName = propertyName.substring(0, propertyName.length() - 8);
+						}
+
+						src.append("\t\tStructrApp.getConfiguration().registerPropertySet(").append(_className).append(".class, \"").append(viewName).append("\", \"").append(propertyName).append("\");\n\n");
+
+					}
 
 				}
 

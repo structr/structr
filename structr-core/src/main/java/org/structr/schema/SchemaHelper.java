@@ -95,7 +95,7 @@ import org.structr.schema.parser.Validator;
 public class SchemaHelper {
 
 	private static final Logger logger = Logger.getLogger(SchemaHelper.class.getName());
-	
+
 	private static final String WORD_SEPARATOR = "_";
 
 	public enum Type {
@@ -275,11 +275,11 @@ public class SchemaHelper {
 		try {
 
 			final App app = StructrApp.getInstance();
-			
+
 			final List<SchemaNode> existingSchemaNodes = app.nodeQuery(SchemaNode.class).getAsList();
 
 			cleanUnusedDynamicGrants(existingSchemaNodes);
-			
+
 			for (final SchemaNode schemaNode : existingSchemaNodes) {
 
 				createDynamicGrants(schemaNode.getResourceSignature());
@@ -301,9 +301,9 @@ public class SchemaHelper {
 		return SchemaService.reloadSchema(errorBuffer);
 
 	}
-	
+
 	public static void cleanUnusedDynamicGrants(final List<SchemaNode> existingSchemaNodes) {
-		
+
 		try {
 
 			final List<DynamicResourceAccess> existingDynamicGrants  = StructrApp.getInstance().nodeQuery(DynamicResourceAccess.class).getAsList();
@@ -313,7 +313,7 @@ public class SchemaHelper {
 				String sig;
 				try {
 					sig = grant.getResourceSignature();
-					
+
 				} catch (NotFoundException nfe) {
 					logger.log(Level.FINE, "Unable to get signature from grant");
 					continue;
@@ -337,7 +337,7 @@ public class SchemaHelper {
 		} catch (Throwable t) {
 
 			t.printStackTrace();
-		}		
+		}
 	}
 
 	public static List<DynamicResourceAccess> createDynamicGrants(final String signature) {

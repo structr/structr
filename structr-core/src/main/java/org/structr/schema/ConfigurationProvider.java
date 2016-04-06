@@ -79,6 +79,7 @@ public interface ConfigurationProvider {
 	public void registerDynamicViews(final Set<String> dynamicViews);
 
 	public void registerPropertySet(final Class type, final String propertyView, final PropertyKey... propertyKey);
+	public void registerPropertySet(final Class type, final String propertyView, final String propertyName);
 	public Set<PropertyKey> getPropertySet(final Class type, final String propertyView);
 
 	public PropertyKey getPropertyKeyForDatabaseName(final Class type, final String dbName);
