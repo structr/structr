@@ -862,6 +862,13 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
+	public void registerPropertySet(final Class type, final String propertyView, final String propertyName) {
+
+		this.registerPropertySet(type, propertyView, this.getPropertyKeyForJSONName(type, propertyName));
+
+	}
+
+	@Override
 	public PropertyKey getPropertyKeyForDatabaseName(Class type, String dbName) {
 		return getPropertyKeyForDatabaseName(type, dbName, true);
 	}
