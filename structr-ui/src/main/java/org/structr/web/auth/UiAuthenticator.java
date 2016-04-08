@@ -236,7 +236,7 @@ public class UiAuthenticator implements Authenticator {
 		// no grants => no access rights
 		if (resourceAccess == null) {
 
-			logger.log(Level.INFO, "No resource access grant found for signature {0}.", rawResourceSignature);
+			logger.log(Level.INFO, "No resource access grant found for signature {0}. (URI: {1})", new Object[] { rawResourceSignature, securityContext.getCompoundRequestURI() } );
 
 			throw new UnauthorizedException("Forbidden");
 
@@ -550,7 +550,7 @@ public class UiAuthenticator implements Authenticator {
 		Principal user = null;
 
 		if (request.getAttribute(SessionHelper.SESSION_IS_NEW) != null) {
-		
+
 			// First, check session (JSESSIONID cookie)
 			final HttpSession session = request.getSession(false);
 
@@ -560,7 +560,7 @@ public class UiAuthenticator implements Authenticator {
 
 			}
 		}
-		
+
 		if (user == null) {
 
 			// Second, check X-Headers

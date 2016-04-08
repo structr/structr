@@ -915,7 +915,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Exception in GET", t);
+			logger.log(Level.WARNING, "Exception in GET (URI: {0})", securityContext.getCompoundRequestURI());
+			logger.log(Level.WARNING, " => Error thrown: ", t);
 
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
