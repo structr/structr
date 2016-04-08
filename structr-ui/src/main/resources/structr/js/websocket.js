@@ -124,7 +124,6 @@ function wsConnect() {
 		ws.onmessage = function (message) {
 
 			var data = $.parseJSON(message.data);
-			_Logger.log(_LogType.WEBSOCKET, 'ws.onmessage:', data);
 
 			//var msg = $.parseJSON(message);
 			var type = data.data.type;
@@ -134,6 +133,7 @@ function wsConnect() {
 			var sessionValid = data.sessionValid;
 			var code = data.code;
 
+			_Logger.log(_LogType.WS[command], 'ws.onmessage:', data);
 			_Logger.log(_LogType.WS[command], '####################################### ', command, ' #########################################');
 
 			if (command === 'LOGIN' || code === 100) { /*********************** LOGIN or response to PING ************************/
@@ -482,7 +482,7 @@ function sendObj(obj, callback) {
 
 	try {
 		ws.send(t);
-		_Logger.log(_LogType.WEBSOCKET, 'Sent: ' + t);
+		_Logger.log(_LogType.WS[obj.command], 'Sent: ' + t);
 	} catch (exception) {
 		_Logger.log(_LogType.WEBSOCKET, 'Error in send(): ' + exception);
 		//Structr.ping();

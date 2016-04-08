@@ -599,6 +599,7 @@ var _LogType = {
  */
 var _Logger = {
 	subscriptions: [],
+	ignored: ["WS.STATUS", "WS.PING"],
 
 	/**
 	 * Initializes the logger
@@ -668,23 +669,39 @@ var _Logger = {
 	},
 
 
-	subscribeToLogEvent: function (type) {
-		this.subscriptions.push(type);
+	subscribe: function (type) {
+		if (this.subscriptions.indexOf(type) === -1) {
+			this.subscriptions.push(type);
+		}
 	},
 
-	unsubscribeFromLogEvent: function (type) {
+	unsubscribe: function (type) {
 		var pos = this.subscriptions.indexOf(type);
 		if (pos !== -1) {
 			this.subscriptions.splice(pos, 1);
 		}
 	},
 
+	ignore: function (type) {
+		if (this.ignored.indexOf(type) === -1) {
+			this.ignored.push(type);
+		}
+	},
+
+	unignore: function (type) {
+		var pos = this.ignored.indexOf(type);
+		if (pos !== -1) {
+			this.ignored.splice(pos, 1);
+		}
+	},
+
 	/**
 	 * decide whether we allow the event to be shown to the user
+	 * only if it is not in the ignore liste AND in the subscription list we return true
 	 */
 	subscribed: function (type) {
 		if (type) {
-			return (this.subscriptions.indexOf(type) !== -1 || this.subscriptions.indexOf(type.split('.')[0]) !== -1);
+			return (this.ignored.indexOf(type) === -1) && (this.subscriptions.indexOf(type) !== -1 || this.subscriptions.indexOf(type.split('.')[0]) !== -1);
 		} else {
 			console.error("undefined log type - this should not happen!");
 			return true;
