@@ -1991,10 +1991,4 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			return getPrincipalId();
 		}
 	}
-
-	// ----- public static methods -----
-	public static void invalidateCacheFor(final String uuid) {
-
-
-	}
 }

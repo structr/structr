@@ -93,7 +93,7 @@ public class ArrayExpression extends Expression {
 					// silently ignore array index errors
 					return CollectionUtils.get(value, index);
 
-				} catch (ArrayIndexOutOfBoundsException ignore) {}
+				} catch (Throwable t) {}
 
 			} else {
 

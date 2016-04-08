@@ -21,6 +21,7 @@ package org.structr.rest.resource;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
@@ -110,6 +111,14 @@ public class SchemaResource extends Resource {
 
 		}
 
+		if (next != null) {
+
+			logger.log(Level.WARNING, "Trying to combine SchemaResource with {0}.", next.getClass().getName());
+
+		} else {
+
+			logger.log(Level.WARNING, "Trying to combine SchemaResource with null.");
+		}
 		throw new IllegalPathException("Illegal path, /" + getResourceSignature() + " must be followed by a type resource");
 	}
 

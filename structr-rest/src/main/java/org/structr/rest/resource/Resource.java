@@ -87,6 +87,10 @@ public abstract class Resource {
 	public abstract Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException;
 	public abstract RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException;
 
+	@Override
+	public String toString() {
+		return getClass().getName() + "(" + getResourceSignature() + ")";
+	}
 
 	public RestMethodResult doHead() throws FrameworkException {
 		Thread.dumpStack();
