@@ -701,6 +701,25 @@ public class SecurityContext {
 		return locale;
 	}
 
+	public String getCompoundRequestURI() {
+
+		if (request != null) {
+
+			if (request.getQueryString() != null) {
+
+				return request.getRequestURI().concat("?").concat(request.getQueryString());
+
+			} else {
+
+				return request.getRequestURI();
+
+			}
+
+		}
+
+		return "[No request available]";
+	}
+
 	public boolean isDoTransactionNotifications() {
 		return doTransactionNotifications;
 	}

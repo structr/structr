@@ -186,17 +186,17 @@ public abstract class StreamingWriter {
 
 				writer.name(resultKeyName).nullValue();
 
-                        } else if (results.isEmpty() && !result.isPrimitiveArray()) {
+			} else if (results.isEmpty() && !result.isPrimitiveArray()) {
 
 				writer.name(resultKeyName).beginArray().endArray();
 
 			} else if (result.isPrimitiveArray()) {
 
-                                writer.name(resultKeyName);
+				writer.name(resultKeyName);
 
-                                if (results.size() > 1) {
-                                        writer.beginArray();
-                                }
+				if (results.size() > 1) {
+					writer.beginArray();
+				}
 
 				for (final Object object : results) {
 
@@ -204,29 +204,29 @@ public abstract class StreamingWriter {
 
 						if (object instanceof GraphObject) {
 
-                                                        // keep track of serialization time
-                                                        long startTime            = System.currentTimeMillis();
-                                                        String localPropertyView  = propertyView.get(null);
+							// keep track of serialization time
+							long startTime            = System.currentTimeMillis();
+							String localPropertyView  = propertyView.get(null);
 
-                                                        GraphObject obj = (GraphObject)object;
-                                                        Iterator<PropertyKey> keyIt = obj.getPropertyKeys(localPropertyView).iterator();
+							GraphObject obj = (GraphObject)object;
+							Iterator<PropertyKey> keyIt = obj.getPropertyKeys(localPropertyView).iterator();
 
-                                                        while (keyIt.hasNext()) {
+							while (keyIt.hasNext()) {
 
-                                                                PropertyKey k = keyIt.next();
-                                                                Object value = obj.getProperty(k);
-                                                                root.serializeProperty(writer, k, value, localPropertyView, 0);
+								PropertyKey k = keyIt.next();
+								Object value = obj.getProperty(k);
+								root.serializeProperty(writer, k, value, localPropertyView, 0);
 
-                                                        }
+							}
 
-                                                        // check for timeout
-                                                        if (System.currentTimeMillis() > startTime + MAX_SERIALIZATION_TIME) {
+							// check for timeout
+							if (System.currentTimeMillis() > startTime + MAX_SERIALIZATION_TIME) {
 
-                                                                logger.log(Level.SEVERE, "JSON serialization took more than {0} ms, aborted. Please review output view size or adjust timeout.", MAX_SERIALIZATION_TIME);
+								logger.log(Level.SEVERE, "JSON serialization of {0} with {1} results took more than {2} ms, aborted. Please review output view size or adjust timeout.", new Object[] { securityContext.getCompoundRequestURI(), results.size(), MAX_SERIALIZATION_TIME } );
 
-                                                                // TODO: create some output indicating that streaming was interrupted
-                                                                break;
-                                                        }
+								// TODO: create some output indicating that streaming was interrupted
+								break;
+							}
 
 						} else {
 
@@ -235,20 +235,20 @@ public abstract class StreamingWriter {
 					}
 				}
 
-                                if (results.size() > 1) {
+				if (results.size() > 1) {
 
-                                        writer.endArray();
+					writer.endArray();
 
-                                }
+				}
 
 			} else {
 
-                                // result is an attribute called via REST API
+				// result is an attribute called via REST API
 				if (results.size() > 1 && !result.isCollection()) {
 
-                                        throw new IllegalStateException(result.getClass().getSimpleName() + " is not a collection resource, but result set has size " + results.size());
+					throw new IllegalStateException(result.getClass().getSimpleName() + " is not a collection resource, but result set has size " + results.size());
 
-                                }
+				}
 
 				// keep track of serialization time
 				long startTime            = System.currentTimeMillis();
@@ -266,7 +266,7 @@ public abstract class StreamingWriter {
 						// check for timeout
 						if (System.currentTimeMillis() > startTime + MAX_SERIALIZATION_TIME) {
 
-							logger.log(Level.SEVERE, "JSON serialization took more than {0} ms, aborted. Please review output view size or adjust timeout.", MAX_SERIALIZATION_TIME);
+							logger.log(Level.SEVERE, "JSON serialization of {0} with {1} results took more than {2} ms, aborted. Please review output view size or adjust timeout.", new Object[] { securityContext.getRequest().getRequestURI().concat( (securityContext.getRequest().getQueryString() == null) ? "" : "?".concat(securityContext.getRequest().getQueryString()) ), results.size(), MAX_SERIALIZATION_TIME } );
 
 							// TODO: create some output indicating that streaming was interrupted
 							break;
