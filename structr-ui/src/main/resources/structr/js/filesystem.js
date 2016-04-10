@@ -585,12 +585,12 @@ var _Filesystem = {
 			e.preventDefault();
 			e.stopPropagation();
 
-			if (d.parent && d.parent.id) {
+			if (d.parentId) {
 
-				fileTree.jstree('open_node', $('#' + d.parent.id), function() {
+				fileTree.jstree('open_node', $('#' + d.parentId), function() {
 
 					if (d.name === '..') {
-						$('#' + d.parent.id + '_anchor').click();
+						$('#' + d.parentId + '_anchor').click();
 					} else {
 						$('#' + d.id + '_anchor').click();
 					}
