@@ -2541,6 +2541,12 @@ table.dataTable thead th, table.dataTable thead td {
   text-align: left;
 }
 
+#files-table tr.thumbnail,
+#files-table tr.thumbnail .file,
+#files-table tr.thumbnail i.fa-file-image-o {
+  color: #a0a0a0;
+}
+
 i.fa {
   font-size: 12pt;
 }
