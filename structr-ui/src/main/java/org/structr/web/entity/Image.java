@@ -283,6 +283,7 @@ public class Image extends File {
 
 						thumbnail.unlockSystemPropertiesOnce();
 						thumbnail.setProperty(File.size,                                data.length);
+						
 						thumbnail.setProperty(Image.width,                              tnWidth);
 						thumbnail.setProperty(Image.height,                             tnHeight);
 
@@ -290,6 +291,9 @@ public class Image extends File {
 						thumbnail.setProperty(AbstractNode.visibleToAuthenticatedUsers, originalImage.getProperty(AbstractNode.visibleToAuthenticatedUsers));
 						thumbnail.setProperty(AbstractNode.visibleToPublicUsers,        originalImage.getProperty(AbstractNode.visibleToPublicUsers));
 						thumbnail.setProperty(AbstractNode.owner,                       originalImage.getProperty(AbstractNode.owner));
+						
+						// Store thumbnail in same folder as original image to prevent polluting the root path
+						thumbnail.setProperty(File.parent,                              originalImage.getProperty(File.parent));
 
 						thumbnailRelationship.setProperty(Image.width,                  tnWidth);
 						thumbnailRelationship.setProperty(Image.height,                 tnHeight);
