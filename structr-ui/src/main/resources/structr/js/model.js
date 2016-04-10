@@ -416,6 +416,10 @@ var StructrModel = {
 
 				icon = _Filesystem.getIcon(obj);
 
+			} else if (element.hasClass('folder')) {
+
+				_Filesystem.refreshTree();
+
 			}
 
 			var iconEl = element.children('.typeIcon');
