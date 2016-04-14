@@ -26,7 +26,6 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.json.JsonFunctionProperty;
 import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonScriptProperty;
 
 /**
  *
@@ -106,46 +105,33 @@ public class StructrFunctionProperty extends StructrStringProperty implements Js
 		super.deserialize(source);
 
 		final Object readFunctionValue = source.get(JsonSchema.KEY_READ_FUNCTION);
-		if (readFunctionValue != null) {
+		if (readFunctionValue != null && readFunctionValue instanceof String) {
 
-			if (readFunctionValue instanceof String) {
-
-				this.readFunction = (String)readFunctionValue;
-
-			} else {
-
-				throw new IllegalStateException("Invalid readFunction for property " + name + ", expected string.");
-			}
+			this.readFunction = (String)readFunctionValue;
 
 		} else {
 
-			throw new IllegalStateException("Missing readFunction value for property " + name);
+			throw new IllegalStateException("Invalid readFunction for property " + name + ", expected string.");
 		}
 
 		final Object writeFunctionValue = source.get(JsonSchema.KEY_WRITE_FUNCTION);
-		if (writeFunctionValue != null) {
+		if (writeFunctionValue != null && writeFunctionValue instanceof String) {
 
-			if (writeFunctionValue instanceof String) {
+			this.writeFunction = (String)writeFunctionValue;
 
-				this.writeFunction = (String)writeFunctionValue;
+		} else {
 
-			} else {
-
-				throw new IllegalStateException("Invalid writeFunction for property " + name + ", expected string.");
-			}
+			throw new IllegalStateException("Invalid writeFunction for property " + name + ", expected string.");
 		}
 
 		final Object contentTypeValue = source.get(JsonSchema.KEY_CONTENT_TYPE);
-		if (contentTypeValue != null) {
+		if (contentTypeValue != null && contentTypeValue instanceof String) {
 
-			if (contentTypeValue instanceof String) {
+			this.contentType = (String)contentTypeValue;
 
-				this.contentType = (String)contentTypeValue;
+		} else {
 
-			} else {
-
-				throw new IllegalStateException("Invalid contentType for property " + name + ", expected string.");
-			}
+			throw new IllegalStateException("Invalid contentType for property " + name + ", expected string.");
 		}
 		
 	}
