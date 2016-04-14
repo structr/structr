@@ -105,33 +105,42 @@ public class StructrFunctionProperty extends StructrStringProperty implements Js
 		super.deserialize(source);
 
 		final Object readFunctionValue = source.get(JsonSchema.KEY_READ_FUNCTION);
-		if (readFunctionValue != null && readFunctionValue instanceof String) {
+		if (readFunctionValue != null) {
 
-			this.readFunction = (String)readFunctionValue;
+			if (readFunctionValue instanceof String) {
 
-		} else {
+				this.readFunction = (String)readFunctionValue;
 
-			throw new IllegalStateException("Invalid readFunction for property " + name + ", expected string.");
+			} else {
+
+				throw new IllegalStateException("Invalid readFunction for property " + name + ", expected string.");
+			}
 		}
 
 		final Object writeFunctionValue = source.get(JsonSchema.KEY_WRITE_FUNCTION);
-		if (writeFunctionValue != null && writeFunctionValue instanceof String) {
+		if (writeFunctionValue != null) {
 
-			this.writeFunction = (String)writeFunctionValue;
+			if (writeFunctionValue instanceof String) {
 
-		} else {
+				this.writeFunction = (String)writeFunctionValue;
 
-			throw new IllegalStateException("Invalid writeFunction for property " + name + ", expected string.");
+			} else {
+
+				throw new IllegalStateException("Invalid writeFunction for property " + name + ", expected string.");
+			}
 		}
 
 		final Object contentTypeValue = source.get(JsonSchema.KEY_CONTENT_TYPE);
-		if (contentTypeValue != null && contentTypeValue instanceof String) {
+		if (contentTypeValue != null) {
 
-			this.contentType = (String)contentTypeValue;
+			if (contentTypeValue instanceof String) {
 
-		} else {
+				this.contentType = (String)contentTypeValue;
 
-			throw new IllegalStateException("Invalid contentType for property " + name + ", expected string.");
+			} else {
+
+				throw new IllegalStateException("Invalid contentType for property " + name + ", expected string.");
+			}
 		}
 		
 	}
