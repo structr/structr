@@ -43,7 +43,6 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 	private static final Logger logger = Logger.getLogger(AbstractPrimitiveProperty.class.getName());
 
-	private boolean internalSystemProperty = false;
 	protected GraphObject entity;
 	protected SecurityContext securityContext;
 
@@ -180,7 +179,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 				} else {
 
-					if (!internalSystemProperty || internalSystemPropertiesUnlocked) {
+					if (!isSystemInternal() || internalSystemPropertiesUnlocked) {
 
 						propertyContainer.setProperty(dbName(), convertedValue);
 
