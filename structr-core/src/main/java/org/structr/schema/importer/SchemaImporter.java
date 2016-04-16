@@ -103,7 +103,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 					buf.append(line);
 					buf.append("\n");
 
-					if (line.endsWith(";")) {
+					if (trimmedLine.endsWith(";")) {
 
 						sources.add(buf.toString());
 						buf.setLength(0);
