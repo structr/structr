@@ -46,6 +46,8 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.security.auth.x500.X500Principal;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
@@ -72,6 +74,8 @@ import org.structr.schema.action.ActionContext;
  *
  */
 public class CreateJarFileFunction extends UiFunction {
+
+	private static final Logger logger = Logger.getLogger(CreateJarFileFunction.class.getName());
 
 	@Override
 	public String getName() {
@@ -139,7 +143,7 @@ public class CreateJarFileFunction extends UiFunction {
 //
 //									} catch (Throwable t) {
 //
-//										t.printStackTrace();
+//										logger.log(Level.WARNING, "", t);
 //									}
 //								}
 //							}
@@ -207,7 +211,7 @@ public class CreateJarFileFunction extends UiFunction {
 					jos.finish();
 
 				} catch (Throwable t) {
-					t.printStackTrace();
+					logger.log(Level.WARNING, "", t);
 				}
 
 			} else {
@@ -302,7 +306,7 @@ public class CreateJarFileFunction extends UiFunction {
 				return (PrivateKey)keyStore.getKey("priv", keystorePass.toCharArray());
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 		}
 
@@ -318,7 +322,7 @@ public class CreateJarFileFunction extends UiFunction {
 				return (X509Certificate)keyStore.getCertificate("cert");
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 		}
 
@@ -343,7 +347,7 @@ public class CreateJarFileFunction extends UiFunction {
 
 			} catch (Throwable t) {
 
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 
 		} else {
@@ -385,7 +389,7 @@ public class CreateJarFileFunction extends UiFunction {
 
 			} catch (Throwable t) {
 
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 		}
 

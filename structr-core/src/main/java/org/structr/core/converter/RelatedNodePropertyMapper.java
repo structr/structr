@@ -112,7 +112,7 @@ public class RelatedNodePropertyMapper<T extends NodeInterface> extends Property
 
 					} catch (FrameworkException fex) {
 
-						fex.printStackTrace();
+						logger.log(Level.WARNING, "", fex);
 					}
 					
 				} else {

@@ -18,6 +18,7 @@
  */
 package org.structr.common;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -151,7 +152,7 @@ public class AdvancedAccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 
 		}
@@ -186,7 +187,7 @@ public class AdvancedAccessControlTest extends StructrTest {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 	}
 

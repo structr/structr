@@ -441,7 +441,7 @@ public abstract class StreamingWriter {
 			} catch(Throwable t) {
 
 				// CHM: remove debug code later
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 
 				logger.log(Level.WARNING, "Exception while serializing property {0} ({1}) of entity {2} (value {3}) : {4}", new Object[] {
 					key.jsonName(),

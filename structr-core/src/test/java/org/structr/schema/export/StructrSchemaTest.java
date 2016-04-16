@@ -22,6 +22,8 @@ import com.google.gson.GsonBuilder;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
@@ -43,11 +45,12 @@ import org.structr.schema.json.JsonType;
  */
 public class StructrSchemaTest extends StructrTest {
 
+	private static final Logger logger = Logger.getLogger(StructrSchemaTest.class.getName());
+
 	@Override
 	public void test00DbAvailable() {
 
 	}
-
 
 	public void testSimpleProperties() {
 
@@ -134,7 +137,7 @@ public class StructrSchemaTest extends StructrTest {
 
 		} catch (Exception t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 			fail("Unexpected exception.");
 		}
 
@@ -167,7 +170,7 @@ public class StructrSchemaTest extends StructrTest {
 			compareSchemaRoundtrip(sourceSchema);
 
 		} catch (Exception t) {
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 			fail("Unexpected exception.");
 		}
 
@@ -219,7 +222,7 @@ public class StructrSchemaTest extends StructrTest {
 
 		} catch (FrameworkException | InvalidSchemaException |URISyntaxException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception.");
 		}
 
@@ -306,7 +309,7 @@ public class StructrSchemaTest extends StructrTest {
 
 		} catch (Exception ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception.");
 		}
 	}

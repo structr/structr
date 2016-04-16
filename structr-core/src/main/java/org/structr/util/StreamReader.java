@@ -24,12 +24,16 @@ import java.io.InputStreamReader;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  *
  */
 public class StreamReader extends Thread {
+
+	private static final Logger logger = Logger.getLogger(StreamReader.class.getName());
 
 	private final Queue<String> queue = new ConcurrentLinkedQueue<>();
 	private BufferedReader reader     = null;
@@ -78,7 +82,7 @@ public class StreamReader extends Thread {
 				Thread.sleep(10);
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 		}
 	}

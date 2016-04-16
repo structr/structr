@@ -163,7 +163,7 @@ public class CloudService extends Thread implements RunnableService {
 		try {
 			maxKeyLen = Cipher.getMaxAllowedKeyLength(CloudService.STREAM_CIPHER);
 		} catch (NoSuchAlgorithmException nsaex) {
-			nsaex.printStackTrace();
+			logger.log(Level.WARNING, "", nsaex);
 		}
 
 		try {
@@ -201,7 +201,7 @@ public class CloudService extends Thread implements RunnableService {
 
 		} catch (IOException  ioex) {
 
-			ioex.printStackTrace();
+			logger.log(Level.WARNING, "", ioex);
 
 			throw new FrameworkException(504, "Unable to connect to remote server: " + ioex.getMessage());
 

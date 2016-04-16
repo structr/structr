@@ -103,7 +103,7 @@ public class XMPPContext {
 					tx.success();
 
 				} catch (Throwable t) {
-					t.printStackTrace();
+					logger.log(Level.WARNING, "", t);
 				}
 			}
 		});
@@ -130,7 +130,7 @@ public class XMPPContext {
 
 		} catch (IOException | SmackException | XMPPException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 		}
 	}
 
@@ -414,7 +414,7 @@ public class XMPPContext {
 
 			} catch (Exception ex) {
 
-				ex.printStackTrace();
+				logger.log(Level.WARNING, "", ex);
 			}
 		}
 

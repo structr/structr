@@ -227,7 +227,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				child.setProperty(ownerDocument, page);
 
 			} catch (FrameworkException ex) {
-				ex.printStackTrace();
+				logger.log(Level.WARNING, "", ex);
 			}
 
 		}
@@ -586,7 +586,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			} catch (FrameworkException fex) {
 
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 
 				logger.log(Level.WARNING, "Could not retrieve data from graph data source {0}: {1}", new Object[]{source, fex});
 			}

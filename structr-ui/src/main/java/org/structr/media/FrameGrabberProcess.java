@@ -82,7 +82,7 @@ public class FrameGrabberProcess extends AbstractProcess<Image> {
 			tx.success();
 
 		} catch (FrameworkException | IOException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 	}
 
@@ -137,7 +137,7 @@ public class FrameGrabberProcess extends AbstractProcess<Image> {
 				tx.success();
 
 			} catch (FrameworkException | IOException fex) {
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 			}
 
 		} else {
@@ -149,7 +149,7 @@ public class FrameGrabberProcess extends AbstractProcess<Image> {
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 			}
 
 		}

@@ -256,7 +256,7 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return attr;

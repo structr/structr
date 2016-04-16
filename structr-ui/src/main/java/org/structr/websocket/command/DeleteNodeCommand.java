@@ -78,7 +78,7 @@ public class DeleteNodeCommand extends AbstractCommand {
 				}
 
 			} catch (FrameworkException ex) {
-				ex.printStackTrace();
+				logger.log(Level.WARNING, "", ex);
 			}
 
 			if (Boolean.TRUE.equals(recursive)) {

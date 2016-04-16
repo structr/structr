@@ -19,6 +19,8 @@
 package org.structr.websocket.command;
 
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.cloud.CloudService;
 import org.structr.cloud.HostInfo;
 import org.structr.cloud.WebsocketProgressListener;
@@ -40,6 +42,8 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class PushNodesCommand extends AbstractCommand {
 
+	private static final Logger logger = Logger.getLogger(PushNodesCommand.class.getName());
+	
 	static {
 
 		StructrWebSocket.addCommand(PushNodesCommand.class);
@@ -87,7 +91,7 @@ public class PushNodesCommand extends AbstractCommand {
 
 			} catch (FrameworkException fex) {
 
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 
 				getWebSocket().send(MessageBuilder.status().code(400).message(fex.getMessage()).build(), true);
 			}

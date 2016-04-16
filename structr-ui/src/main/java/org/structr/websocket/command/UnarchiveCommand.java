@@ -110,7 +110,7 @@ public class UnarchiveCommand extends AbstractCommand {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 
 			String msg = t.toString();
 

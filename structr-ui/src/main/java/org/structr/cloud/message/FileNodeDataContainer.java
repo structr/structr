@@ -111,7 +111,7 @@ public class FileNodeDataContainer extends NodeDataContainer {
 			}
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 	}
 
@@ -129,7 +129,7 @@ public class FileNodeDataContainer extends NodeDataContainer {
 				outputStream.close();
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 
 		} else {

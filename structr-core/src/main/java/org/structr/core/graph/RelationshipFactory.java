@@ -134,7 +134,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 					newRel.setProperty(GraphObject.type, relClass.getSimpleName());
 
 				} catch (FrameworkException fex) {
-					fex.printStackTrace();
+					logger.log(Level.WARNING, "", fex);
 				}
 			}
 		}

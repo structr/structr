@@ -140,7 +140,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 				tx.success();
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 		}
 	}
@@ -168,7 +168,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 					tx.close();
 
 				} catch (Throwable t) {
-					t.printStackTrace();
+					logger.log(Level.WARNING, "", t);
 
 				} finally {
 

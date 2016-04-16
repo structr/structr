@@ -21,6 +21,8 @@ package org.structr.files.ssh.shell;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.codehaus.plexus.util.StringUtils;
 import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
@@ -37,6 +39,8 @@ import org.structr.web.entity.User;
  *
  */
 public class CdCommand extends NonInteractiveShellCommand {
+
+	private static final Logger logger = Logger.getLogger(CdCommand.class.getName());
 
 	private String target = null;
 
@@ -95,7 +99,7 @@ public class CdCommand extends NonInteractiveShellCommand {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 	}
 
@@ -236,7 +240,7 @@ public class CdCommand extends NonInteractiveShellCommand {
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 			}
 
 

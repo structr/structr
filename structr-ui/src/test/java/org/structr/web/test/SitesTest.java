@@ -20,6 +20,8 @@ package org.structr.web.test;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.hamcrest.Matchers;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
@@ -36,6 +38,8 @@ import org.w3c.dom.Text;
  *
  */
 public class SitesTest extends StructrUiTest {
+
+	private static final Logger logger = Logger.getLogger(SitesTest.class.getName());
 
 	public void testSites() {
 
@@ -57,7 +61,7 @@ public class SitesTest extends StructrUiTest {
 				html.appendChild(textNode);
 
 			} catch (DOMException dex) {
-				dex.printStackTrace();
+				logger.log(Level.WARNING, "", dex);
 				throw new FrameworkException(422, dex.getMessage());
 			}
 
@@ -74,7 +78,7 @@ public class SitesTest extends StructrUiTest {
 				html.appendChild(textNode);
 
 			} catch (DOMException dex) {
-				dex.printStackTrace();
+				logger.log(Level.WARNING, "", dex);
 				throw new FrameworkException(422, dex.getMessage());
 			}
 
@@ -101,7 +105,7 @@ public class SitesTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 

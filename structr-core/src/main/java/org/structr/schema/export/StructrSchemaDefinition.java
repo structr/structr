@@ -42,6 +42,8 @@ import org.structr.schema.json.JsonType;
  */
 public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 
+	private static final Logger logger = Logger.getLogger(StructrSchemaDefinition.class.getName());
+
 	protected final Set<String> existingPropertyNames = new TreeSet<>();
 	private StructrTypeDefinitions typeDefinitions    = null;
 	private String description                        = null;
@@ -286,7 +288,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 				id = new URI(idValue.toString());
 
 			} catch (URISyntaxException ex) {
-				ex.printStackTrace();
+				logger.log(Level.WARNING, "", ex);
 			}
 		}
 
@@ -309,7 +311,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 			id = new URI("https://structr.org/schema/" + app.getInstanceId() + "/#");
 
 		} catch (URISyntaxException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 		}
 
 

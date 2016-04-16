@@ -23,6 +23,8 @@ import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
 import org.structr.rest.common.StructrRestTest;
@@ -44,6 +46,8 @@ import org.structr.rest.entity.TestUser;
  *
  */
 public class AdvancedSearchTest extends StructrRestTest {
+
+	private static final Logger logger = Logger.getLogger(AdvancedSearchTest.class.getName());
 
 	public void testGraphBasedIndexingSearchOnNotionProperties() {
 
@@ -777,7 +781,7 @@ public class AdvancedSearchTest extends StructrRestTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 
 		}
@@ -843,7 +847,7 @@ public class AdvancedSearchTest extends StructrRestTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 
 		}
@@ -1059,7 +1063,7 @@ public class AdvancedSearchTest extends StructrRestTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 
 		}

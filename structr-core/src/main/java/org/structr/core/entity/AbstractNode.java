@@ -563,7 +563,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 				} catch (Throwable t) {
 
-					t.printStackTrace();
+					logger.log(Level.WARNING, "", t);
 
 					logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[]{
 						key.dbName(),
@@ -1075,7 +1075,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			}
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 		mask.setPermission(permission, false);
@@ -1513,7 +1513,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				// TODO: throw meaningful exception here,
 				// should be a RuntimeException that indicates
 				// wrong use of Relationships etc.
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 		}
 
@@ -1589,7 +1589,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 				} else {
 
-					t.printStackTrace();
+					logger.log(Level.WARNING, "", t);
 
 					logger.log(Level.FINE, "Unable to invoke method {0}: {1}", new Object[]{methodName, t.getMessage()});
 				}

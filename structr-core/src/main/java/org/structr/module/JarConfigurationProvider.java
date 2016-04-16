@@ -615,7 +615,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		} catch (Throwable t) {
 			logger.log(Level.SEVERE, "Unable to register type {0}: {1}", new Object[]{type, t.getMessage()});
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 		Map<String, Method> typeMethods = exportedMethodMap.get(fqcn);
@@ -1031,7 +1031,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		} catch (IOException ioex) {
 
 			logger.log(Level.WARNING, "Error loading module {0}: {1}", new Object[]{resourceName, ioex});
-			ioex.printStackTrace();
+			logger.log(Level.WARNING, "", ioex);
 
 		}
 
@@ -1176,7 +1176,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 				} catch (Throwable t) {
 					// ignore
-					t.printStackTrace();
+					logger.log(Level.WARNING, "", t);
 				}
 
 			}
@@ -1193,7 +1193,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		} catch (Throwable t) {
 			// ignore
-			//t.printStackTrace();
+			//logger.log(Level.WARNING, "", t);
 		}
 
 		return null;

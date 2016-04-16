@@ -19,7 +19,8 @@
 package org.structr.function;
 
 import java.util.Map;
-import org.apache.commons.lang3.StringUtils;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.structr.core.GraphObject;
@@ -30,6 +31,8 @@ import org.structr.schema.action.ActionContext;
  */
 public class GetFunction extends UiFunction {
 
+	private static final Logger logger = Logger.getLogger(GetFunction.class.getName());
+	
 	public static final String ERROR_MESSAGE_GET    = "Usage: ${GET(URL[, contentType[, selector]])}. Example: ${GET('http://structr.org', 'text/html')}";
 	public static final String ERROR_MESSAGE_GET_JS = "Usage: ${{Structr.GET(URL[, contentType[, selector]])}}. Example: ${{Structr.HEAD('http://structr.org', 'text/html')}}";
 
@@ -87,7 +90,7 @@ public class GetFunction extends UiFunction {
 				}
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 
 			return "";

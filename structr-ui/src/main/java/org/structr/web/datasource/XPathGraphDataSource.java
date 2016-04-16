@@ -90,7 +90,7 @@ public class XPathGraphDataSource implements GraphDataSource<List<GraphObject>> 
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 
 			logger.log(Level.WARNING, "Unable to execute xpath query: {0}", t.getMessage());
 		}

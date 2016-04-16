@@ -22,6 +22,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -61,6 +63,8 @@ import org.structr.web.entity.relation.VideoFileHasPosterImage;
  *
  */
 public class VideoFile extends File {
+
+	private static final Logger logger = Logger.getLogger(VideoFile.class.getName());
 
 	// register this type as an overridden builtin type
 	static {
@@ -125,7 +129,7 @@ public class VideoFile extends File {
 			}
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return null;
@@ -211,7 +215,7 @@ public class VideoFile extends File {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 	}
 

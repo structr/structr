@@ -70,7 +70,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 			logger.log(Level.WARNING, "Exception while evaluating read function in Function property {0}.", jsonName());
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 		return null;
@@ -130,7 +130,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 			logger.log(Level.WARNING, "Exception while evaluating write function in Function property '{0}'.", new Object[] { jsonName() });
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 		return null;

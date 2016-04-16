@@ -18,6 +18,8 @@
  */
 package org.structr.common;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -32,6 +34,8 @@ import org.structr.core.graph.Tx;
  */
 public class GroupTest extends StructrTest {
 
+	private static final Logger logger = Logger.getLogger(GroupTest.class.getName());
+	
 	public void testGroupMembershipVisibility() {
 
 		TestUser user1 = null;
@@ -50,7 +54,7 @@ public class GroupTest extends StructrTest {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 			fail("Unexpected exception.");
 		}
 
@@ -71,7 +75,7 @@ public class GroupTest extends StructrTest {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 			fail("Unexpected exception.");
 		}
 
@@ -91,7 +95,7 @@ public class GroupTest extends StructrTest {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 			fail("Unexpected exception.");
 		}
 
@@ -111,7 +115,7 @@ public class GroupTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -125,7 +129,7 @@ public class GroupTest extends StructrTest {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 			fail("Unexpected exception.");
 		}
 
@@ -142,7 +146,7 @@ public class GroupTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -180,7 +184,7 @@ public class GroupTest extends StructrTest {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 			fail("Unexpected exception.");
 		}
 
@@ -198,7 +202,7 @@ public class GroupTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -222,7 +226,7 @@ public class GroupTest extends StructrTest {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 			fail("Unexpected exception.");
 		}
 
@@ -247,7 +251,7 @@ public class GroupTest extends StructrTest {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 			fail("Unexpected exception.");
 		}
 
@@ -267,7 +271,7 @@ public class GroupTest extends StructrTest {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 			fail("Unexpected exception.");
 		}
 

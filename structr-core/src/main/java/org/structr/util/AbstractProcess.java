@@ -78,7 +78,7 @@ public abstract class AbstractProcess<T> implements Callable<T> {
 
 		} catch (IOException | InterruptedException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 		}
 
 		running.set(false);

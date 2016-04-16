@@ -95,7 +95,7 @@ public class PageRenderingBenchmark extends StructrUiTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
@@ -130,7 +130,7 @@ public class PageRenderingBenchmark extends StructrUiTest {
 
 		} catch (Exception ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected Exception");
@@ -221,7 +221,7 @@ public class PageRenderingBenchmark extends StructrUiTest {
 
 		} catch (Exception ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected Exception");

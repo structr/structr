@@ -124,7 +124,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			}
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.log(Level.WARNING, "", ioex);
 		}
 
 		return sources;
@@ -155,7 +155,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			tx.success();
 
 		} catch(FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		logger.log(Level.INFO, "Starting to analyze nodes..");
@@ -185,7 +185,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 
@@ -199,7 +199,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		logger.log(Level.INFO, "Aggregating type information..");
@@ -212,7 +212,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		logger.log(Level.INFO, "Identifying property sets..");
@@ -224,7 +224,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 
@@ -237,7 +237,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		final Map<String, TypeInfo> reducedTypeInfoMap = new LinkedHashMap<>();
@@ -272,7 +272,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			tx.success();
 
 		} catch(FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		logger.log(Level.INFO, "Starting with analyzing relationships..");

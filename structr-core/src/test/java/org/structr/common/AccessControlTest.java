@@ -19,6 +19,7 @@
 package org.structr.common;
 
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
@@ -79,7 +80,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 
 		}
@@ -117,7 +118,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 
 		}
@@ -158,7 +159,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 
 		}
@@ -199,7 +200,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 
 		}
@@ -241,7 +242,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 
 		}
@@ -297,7 +298,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 
 		}
@@ -338,7 +339,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 
 		}
@@ -390,7 +391,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 
 		}
@@ -431,7 +432,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 
 		}
@@ -452,7 +453,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 	}
 

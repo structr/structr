@@ -662,7 +662,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		} catch (Throwable t) {
 
 			logger.log(Level.WARNING, "Exception in PUT", t);
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
@@ -714,7 +714,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			tx.success();
 
 		} catch (JsonSyntaxException jsx) {
-			jsx.printStackTrace();
+			logger.log(Level.WARNING, "", jsx);
 			throw new FrameworkException(400, jsx.getMessage());
 		}
 

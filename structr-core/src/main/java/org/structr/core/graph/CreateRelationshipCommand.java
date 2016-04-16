@@ -27,6 +27,7 @@ import org.structr.core.entity.AbstractRelationship;
 
 import java.util.Date;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
@@ -131,7 +132,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 			return type.newInstance();
 
 		} catch(Throwable t) {
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 		return null;

@@ -27,6 +27,8 @@ import java.nio.file.StandardCopyOption;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -41,6 +43,8 @@ import org.structr.web.entity.VideoFile;
  */
 
 public class SetMetadataProcess extends AbstractProcess<Void> {
+
+	private static final Logger logger = Logger.getLogger(SetMetadataProcess.class.getName());
 
 	private final Map<String, String> metadata = new LinkedHashMap<>();
 	private VideoFile inputVideo               = null;
@@ -96,7 +100,7 @@ public class SetMetadataProcess extends AbstractProcess<Void> {
 				commandLine.append("\"");
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 		}
 
@@ -130,7 +134,7 @@ public class SetMetadataProcess extends AbstractProcess<Void> {
 				tx.success();
 
 			} catch (FrameworkException | IOException fex) {
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 			}
 
 		}

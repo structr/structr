@@ -95,13 +95,13 @@ public class RelativeXPathTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 
 		} catch (XPathExpressionException xpeex) {
 
-			xpeex.printStackTrace();
+			logger.log(Level.WARNING, "", xpeex);
 
 			fail("Unexpected exception");
 

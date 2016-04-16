@@ -18,6 +18,8 @@
  */
 package org.structr.core.parser.function;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.mail.EmailException;
 import org.structr.common.MailHelper;
 import org.structr.common.error.FrameworkException;
@@ -29,6 +31,8 @@ import org.structr.schema.action.Function;
  *
  */
 public class SendHtmlMailFunction extends Function<Object, Object> {
+
+	private static final Logger logger = Logger.getLogger(SendHtmlMailFunction.class.getName());
 
 	public static final String ERROR_MESSAGE_SEND_HTML_MAIL = "Usage: ${send_html_mail(fromAddress, fromName, toAddress, toName, subject, content)}.";
 
@@ -58,7 +62,7 @@ public class SendHtmlMailFunction extends Function<Object, Object> {
 				return MailHelper.sendHtmlMail(from, fromName, to, toName, null, null, from, subject, htmlContent, textContent);
 
 			} catch (EmailException eex) {
-				eex.printStackTrace();
+				logger.log(Level.WARNING, "", eex);
 			}
 		}
 

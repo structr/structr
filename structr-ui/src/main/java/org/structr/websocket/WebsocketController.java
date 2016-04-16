@@ -203,7 +203,7 @@ public class WebsocketController implements StructrTransactionListener {
 			tx.success();
 
 		} catch (FrameworkException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 		}
 	}
 

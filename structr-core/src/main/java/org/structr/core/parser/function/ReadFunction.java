@@ -21,6 +21,8 @@ package org.structr.core.parser.function;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -31,6 +33,8 @@ import org.structr.schema.action.Function;
  *
  */
 public class ReadFunction extends Function<Object, Object> {
+
+	private static final Logger logger = Logger.getLogger(ReadFunction.class.getName());
 
 	public static final String ERROR_MESSAGE_READ = "Usage: ${read(filename)}. Example: ${read(\"text.xml\")}";
 
@@ -59,7 +63,7 @@ public class ReadFunction extends Function<Object, Object> {
 				}
 
 			} catch (IOException ioex) {
-				ioex.printStackTrace();
+				logger.log(Level.WARNING, "", ioex);
 			}
 		}
 

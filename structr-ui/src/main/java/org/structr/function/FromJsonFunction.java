@@ -24,6 +24,8 @@ import com.google.gson.reflect.TypeToken;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -33,6 +35,8 @@ import org.structr.schema.action.ActionContext;
  *
  */
 public class FromJsonFunction extends UiFunction {
+
+	private static final Logger logger = Logger.getLogger(FromJsonFunction.class.getName());
 
 	public static final String ERROR_MESSAGE_FROM_JSON    = "Usage: ${from_json(src)}. Example: ${from_json('{name:test}')}";
 	public static final String ERROR_MESSAGE_FROM_JSON_JS = "Usage: ${{Structr.from_json(src)}}. Example: ${{Structr.from_json('{name:test}')}}";
@@ -91,7 +95,7 @@ public class FromJsonFunction extends UiFunction {
 					}
 
 				} catch (Throwable t) {
-					t.printStackTrace();
+					logger.log(Level.WARNING, "", t);
 				}
 			}
 

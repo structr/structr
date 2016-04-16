@@ -55,6 +55,8 @@ import org.structr.rest.auth.AuthHelper;
  */
 public class SSHService implements SingletonService, PasswordAuthenticator, PublickeyAuthenticator, FileSystemFactory, CommandFactory, Factory<org.apache.sshd.server.Command> {
 
+	private static final Logger logger = Logger.getLogger(SSHService.class.getName());
+
 	public static final String APPLICATION_SSH_PORT = "application.ssh.port";
 
 	private SshServer server = null;
@@ -142,7 +144,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 			tx.success();
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 
 			isValid = false;
 		}

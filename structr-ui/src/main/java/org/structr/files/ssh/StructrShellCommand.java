@@ -124,7 +124,7 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 			}
 
 		} else {
@@ -267,7 +267,7 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return buf.toString();
@@ -343,7 +343,7 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 				return clazz.newInstance();
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 		}
 

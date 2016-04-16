@@ -115,7 +115,7 @@ public class NodeExtender {
 					} catch (Throwable t) {
 
 						logger.log(Level.WARNING, "Unable to load dynamic entity {0}: {1}", new Object[] { fqcn, t.toString() });
-						t.printStackTrace();
+						logger.log(Level.WARNING, "", t);
 
 						success = false;
 					}

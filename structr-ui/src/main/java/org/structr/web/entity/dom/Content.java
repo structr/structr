@@ -418,7 +418,8 @@ public class Content extends DOMNode implements Text {
 		} catch (Throwable t) {
 
 			// catch exception to prevent ugly status 500 error pages in frontend.
-			t.printStackTrace();
+			logger.log(Level.SEVERE, "", t);
+			
 		}
 
 	}

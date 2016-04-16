@@ -138,7 +138,7 @@ public class AuthHelper {
 
 			} catch (FrameworkException fex) {
 
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 
 			}
 

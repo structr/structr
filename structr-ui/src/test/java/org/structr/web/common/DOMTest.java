@@ -19,6 +19,8 @@
 package org.structr.web.common;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.Page;
@@ -31,6 +33,8 @@ import org.w3c.dom.Node;
  */
 
 public abstract class DOMTest extends StructrUiTest {
+	
+	private static final Logger logger = Logger.getLogger(DOMTest.class.getName());
 	
 	protected Document getDocument() {
 		
@@ -45,7 +49,7 @@ public abstract class DOMTest extends StructrUiTest {
 			
 		} catch (FrameworkException fex) {
 			
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return null;
@@ -66,7 +70,7 @@ public abstract class DOMTest extends StructrUiTest {
 			
 		} catch (FrameworkException fex) {
 			
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return null;

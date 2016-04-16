@@ -22,6 +22,8 @@ import java.net.HttpCookie;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static junit.framework.TestCase.fail;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
@@ -55,6 +57,8 @@ import org.w3c.dom.NodeList;
 
 public class RenderContextTest extends StructrUiTest {
 
+	private static final Logger logger = Logger.getLogger(RenderContextTest.class.getName());
+
 	public void testVariableReplacementInDynamicTypes() {
 
 		SchemaNode itemNode  = null;
@@ -82,7 +86,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 		}
@@ -108,7 +112,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 		}
@@ -128,7 +132,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 		}
@@ -143,7 +147,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 		}
@@ -168,7 +172,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 		}
@@ -185,7 +189,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 		}
@@ -206,7 +210,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 		}
@@ -261,7 +265,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 		}
@@ -294,7 +298,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 		}
@@ -324,7 +328,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 		}
@@ -547,7 +551,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 		}
@@ -576,7 +580,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 			fail("Unexpected exception.");
 		}
 	}

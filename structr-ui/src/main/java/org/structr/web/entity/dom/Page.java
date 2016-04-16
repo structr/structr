@@ -233,7 +233,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 			} catch (DOMException dex) {
 
-				dex.printStackTrace();
+				logger.log(Level.WARNING, "", dex);
 
 				throw new FrameworkException(422, dex.getMessage());
 			}
@@ -340,7 +340,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 				child.setProperty(ownerDocument, this);
 
 			} catch (FrameworkException ex) {
-				ex.printStackTrace();
+				logger.log(Level.WARNING, "", ex);
 			}
 
 		}
@@ -366,7 +366,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		} catch (FrameworkException fex) {
 
 			// FIXME: what to do with the exception here?
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return null;
@@ -393,7 +393,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		} catch (FrameworkException fex) {
 
 			// FIXME: what to do with the exception here?
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return null;
@@ -419,7 +419,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		} catch (FrameworkException fex) {
 
 			// FIXME: what to do with the exception here?
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return null;
@@ -444,7 +444,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		} catch (FrameworkException fex) {
 
 			// FIXME: what to do with the exception here?
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return null;
@@ -904,7 +904,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			tx.success();
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 	}
 
@@ -1182,7 +1182,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 					tx.success();
 
 				} catch (FrameworkException fex) {
-					fex.printStackTrace();
+					logger.log(Level.WARNING, "", fex);
 				}
 
 				super.flush();
@@ -1204,7 +1204,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return bis;

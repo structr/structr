@@ -20,6 +20,8 @@ package org.structr.core.script;
 
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static junit.framework.TestCase.assertEquals;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
@@ -32,6 +34,8 @@ import org.structr.schema.action.ActionContext;
  *
  */
 public class ScriptingTest extends StructrTest {
+
+	private static final Logger logger = Logger.getLogger(ScriptingTest.class.getName());
 
 	public void testExtractScripts() {
 
@@ -81,7 +85,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 			fail("Unexpected exception.");
 		}
 	}

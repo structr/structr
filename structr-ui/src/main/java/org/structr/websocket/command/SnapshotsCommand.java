@@ -132,7 +132,7 @@ public class SnapshotsCommand extends AbstractCommand {
 						msg.put(statusProperty, "success");
 
 					} catch (Throwable t) {
-						t.printStackTrace();
+						logger.log(Level.WARNING, "", t);
 						msg.put(statusProperty, t.getMessage());
 					}
 			}

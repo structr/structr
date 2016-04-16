@@ -24,6 +24,8 @@ import org.structr.common.error.FrameworkException;
 
 
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.common.AccessControllable;
@@ -44,6 +46,8 @@ import org.structr.core.entity.relationship.NodeHasLocation;
  *
  */
 public class NodeFactory<T extends NodeInterface & AccessControllable> extends Factory<Node, T> {
+
+	private static final Logger logger = Logger.getLogger(NodeFactory.class.getName());
 
 	private static final FixedSizeCache<Long, Class> idTypeMap = new FixedSizeCache<>(Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_NODE_CACHE_SIZE), 100000));
 
@@ -150,7 +154,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 				newNode = nodeClass.newInstance();
 				newNode.init(factoryProfile.getSecurityContext(), entity, nodeClass, false);
 
-			} catch (InstantiationException|IllegalAccessException itex) { itex.printStackTrace(); }
+			} catch (InstantiationException|IllegalAccessException itex) { logger.log(Level.WARNING, "", itex); }
 
 		}
 

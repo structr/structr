@@ -25,6 +25,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.web.entity.VideoFile;
 
@@ -34,6 +36,8 @@ import org.structr.web.entity.VideoFile;
  */
 
 public class GetMetadataProcess extends AbstractProcess<Map<String, String>> {
+
+	private static final Logger logger = Logger.getLogger(GetMetadataProcess.class.getName());
 
 	private VideoFile inputVideo = null;
 
@@ -83,7 +87,7 @@ public class GetMetadataProcess extends AbstractProcess<Map<String, String>> {
 				}
 
 			} catch (IOException ioex) {
-				ioex.printStackTrace();
+				logger.log(Level.WARNING, "", ioex);
 			}
 
 			return map;

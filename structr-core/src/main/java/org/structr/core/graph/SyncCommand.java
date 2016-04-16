@@ -220,7 +220,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 			throw new FrameworkException(500, t.getMessage());
 		}
 
@@ -299,7 +299,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 
 			throw new FrameworkException(500, t.getMessage());
 		}
@@ -316,7 +316,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 
 			throw new FrameworkException(500, t.getMessage());
 		}
@@ -345,7 +345,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		} catch (IOException ioex) {
 
-			ioex.printStackTrace();
+			logger.log(Level.WARNING, "", ioex);
 		}
 	}
 
@@ -824,7 +824,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		// set correct labels after schema has been compiled

@@ -80,7 +80,7 @@ public class GraphGistImporter extends SchemaImporter implements MaintenanceComm
 			}
 
 		} catch (IOException ioex) {
-			//ioex.printStackTrace();
+			//iologger.log(Level.WARNING, "", ex);
 			logger.log(Level.FINE, "Filename: " + fileName + ", URL: " + url + ", source: " + source, ioex);
 		}
 
@@ -109,7 +109,7 @@ public class GraphGistImporter extends SchemaImporter implements MaintenanceComm
 
 			} catch (Throwable t) {
 				// ignore
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 		}
 	}

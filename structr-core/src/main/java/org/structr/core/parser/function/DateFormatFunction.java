@@ -21,6 +21,8 @@ package org.structr.core.parser.function;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.mozilla.javascript.ScriptableObject;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -31,6 +33,8 @@ import org.structr.schema.action.Function;
  *
  */
 public class DateFormatFunction extends Function<Object, Object> {
+
+	private static final Logger logger = Logger.getLogger(DateFormatFunction.class.getName());
 
 	public static final String ERROR_MESSAGE_DATE_FORMAT    = "Usage: ${date_format(value, pattern)}. Example: ${date_format(this.creationDate, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
 	public static final String ERROR_MESSAGE_DATE_FORMAT_JS = "Usage: ${{Structr.date_format(value, pattern)}}. Example: ${{Structr.date_format(Structr.get('this').creationDate, \"yyyy-MM-dd'T'HH:mm:ssZ\")}}";
@@ -69,7 +73,7 @@ public class DateFormatFunction extends Function<Object, Object> {
 					date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").parse(sources[0].toString());
 
 				} catch (ParseException ex) {
-					ex.printStackTrace();
+					logger.log(Level.WARNING, "", ex);
 				}
 
 			}

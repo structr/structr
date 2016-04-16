@@ -199,7 +199,7 @@ public class SecurityContext {
 
 									} catch (Throwable t) {
 
-										t.printStackTrace();
+										logger.log(Level.WARNING, "", t);
 									}
 								}
 							}

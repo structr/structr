@@ -110,7 +110,7 @@ public class PagingTest extends StructrTest {
 
               } catch (FrameworkException ex) {
 
-		      ex.printStackTrace();
+		      logger.log(Level.WARNING, "", ex);
 
                       logger.log(Level.SEVERE, ex.toString());
                       fail("Unexpected exception");
@@ -174,7 +174,7 @@ public class PagingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");

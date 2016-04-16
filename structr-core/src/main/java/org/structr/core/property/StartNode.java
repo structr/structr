@@ -89,7 +89,7 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 			this.relation = relationClass.newInstance();
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 		this.notion        = notion;

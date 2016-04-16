@@ -75,7 +75,7 @@ public class WriteFunction extends Function<Object, Object> {
 				}
 
 			} catch (IOException ioex) {
-				ioex.printStackTrace();
+				logger.log(Level.WARNING, "", ioex);
 			}
 		}
 

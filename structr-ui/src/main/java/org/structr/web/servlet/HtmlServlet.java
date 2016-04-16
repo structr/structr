@@ -435,14 +435,14 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 										tx.success();
 
 									} catch (Throwable t) {
-										t.printStackTrace();
+										logger.log(Level.WARNING, "", t);
 										final String errorMsg = t.getMessage();
 										try {
 											//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 											response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorMsg);
 											finished.set(true);
 										} catch (IOException ex) {
-											ex.printStackTrace();
+											logger.log(Level.WARNING, "", ex);
 										}
 									}
 								}
@@ -490,13 +490,13 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 										}
 
 									} catch (Throwable t) {
-										t.printStackTrace();
+										logger.log(Level.WARNING, "", t);
 									}
 								}
 
 								@Override
 								public void onError(Throwable t) {
-									t.printStackTrace();
+									logger.log(Level.WARNING, "", t);
 								}
 							});
 
@@ -515,7 +515,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 								response.getOutputStream().close();
 
 							} catch (IOException ioex) {
-								ioex.printStackTrace();
+								logger.log(Level.WARNING, "", ioex);
 							}
 						}
 					}
@@ -524,13 +524,13 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 				logger.log(Level.SEVERE, "Exception while processing request", fex);
 			}
 
 		} catch (IOException | FrameworkException t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 			logger.log(Level.SEVERE, "Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
@@ -805,13 +805,13 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				tx.success();
 
 			} catch (Throwable fex) {
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 				logger.log(Level.SEVERE, "Exception while processing request", fex);
 			}
 
 		} catch (FrameworkException t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 			logger.log(Level.SEVERE, "Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
@@ -835,7 +835,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (FrameworkException t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 			logger.log(Level.SEVERE, "Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
@@ -1478,7 +1478,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				file.invokeMethod("onDownload", Collections.EMPTY_MAP, false);
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 			}
 		}
 	}

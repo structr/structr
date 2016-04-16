@@ -320,7 +320,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
@@ -410,7 +410,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 			fail("Unexpected exception");
 		}
 

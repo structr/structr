@@ -79,7 +79,7 @@ public class ExecBinaryFunction extends Function<Object, Object> {
 
 				} catch (InterruptedException | ExecutionException iex) {
 
-					iex.printStackTrace();
+					logger.log(Level.WARNING, "", iex);
 
 				} finally {
 

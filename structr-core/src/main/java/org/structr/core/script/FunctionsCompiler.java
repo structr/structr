@@ -21,6 +21,8 @@ package org.structr.core.script;
 import java.lang.reflect.Constructor;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
@@ -37,6 +39,8 @@ import org.structr.schema.compiler.ClassFileManager;
  *
  */
 public class FunctionsCompiler {
+
+	private static final Logger logger = Logger.getLogger(FunctionsCompiler.class.getName());
 
 	public static final String PROXY_CLASS_NAME      = "org.structr.core.script.FunctionsProxy";
 	private static final JavaCompiler compiler       = ToolProvider.getSystemJavaCompiler();
@@ -56,7 +60,7 @@ public class FunctionsCompiler {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 		return null;

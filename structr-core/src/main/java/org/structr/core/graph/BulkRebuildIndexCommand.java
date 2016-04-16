@@ -90,7 +90,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 		} catch (FrameworkException fex) {
 			logger.log(Level.WARNING, "Exception while creating all nodes iterator.");
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		if (entityType == null) {
@@ -138,7 +138,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 		} catch (FrameworkException fex) {
 			logger.log(Level.WARNING, "Exception while creating all relationships iterator.");
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		if (relType == null) {

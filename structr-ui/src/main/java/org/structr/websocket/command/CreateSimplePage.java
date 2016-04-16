@@ -64,7 +64,7 @@ public class CreateSimplePage extends AbstractCommand {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			logger.log(Level.WARNING, "Could not create node.", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.toString()).build(), true);

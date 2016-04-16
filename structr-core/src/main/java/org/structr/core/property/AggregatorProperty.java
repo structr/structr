@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
@@ -38,6 +40,8 @@ import org.structr.core.notion.Notion;
  *
  */
 public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T> {
+
+	private static final Logger logger = Logger.getLogger(AggregatorProperty.class.getName());
 
 	private Aggregation aggregation = null;
 
@@ -94,7 +98,7 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 				}
 
 			} catch(Throwable t) {
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 
 			return results;

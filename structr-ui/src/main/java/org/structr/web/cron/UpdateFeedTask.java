@@ -38,6 +38,8 @@ import org.structr.web.entity.feed.DataFeed;
 
 public class UpdateFeedTask<T extends DataFeed> implements Task<T> {
 
+	private static final Logger logger = Logger.getLogger(UpdateFeedTask.class.getName());
+
 	@Override
 	public Principal getUser() {
 		return null;
@@ -50,7 +52,7 @@ public class UpdateFeedTask<T extends DataFeed> implements Task<T> {
 			return (List<T>) StructrApp.getInstance().get(DataFeed.class);
 		} catch (FrameworkException ex) {
 			Logger.getLogger(UpdateFeedTask.class.getName()).log(Level.SEVERE, null, ex);
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 		}
 		
 		return Collections.EMPTY_LIST;

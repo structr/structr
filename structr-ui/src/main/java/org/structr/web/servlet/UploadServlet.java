@@ -110,7 +110,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (FrameworkException t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 	}
 
@@ -245,7 +245,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 			
 			
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 			logger.log(Level.SEVERE, "Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
@@ -338,7 +338,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (FrameworkException | IOException | FileUploadException t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 			logger.log(Level.SEVERE, "Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}

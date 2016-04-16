@@ -87,7 +87,7 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 
 				} catch (Throwable t) {
 
-					t.printStackTrace();
+					logger.log(Level.WARNING, "", t);
 				}
 
 			}

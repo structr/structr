@@ -24,6 +24,8 @@ import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
@@ -37,6 +39,8 @@ import org.structr.rest.entity.TestUser;
  *
  */
 public class AccessControlTest extends StructrRestTest {
+
+	private static final Logger logger = Logger.getLogger(AccessControlTest.class.getName());
 
 	@Override
 	protected void setUp() throws Exception {
@@ -85,7 +89,7 @@ public class AccessControlTest extends StructrRestTest {
 			tx.success();
 			
 		} catch (FrameworkException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail(ex.getMessage());
 		}
 
@@ -131,7 +135,7 @@ public class AccessControlTest extends StructrRestTest {
 			tx.success();
 			
 		} catch (FrameworkException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail(ex.getMessage());
 		}
 		

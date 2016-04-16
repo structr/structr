@@ -166,7 +166,7 @@ public class ModificationQueue {
 						}
 
 					} catch (Throwable t) {
-						t.printStackTrace();
+						logger.log(Level.WARNING, "", t);
 					}
 				}
 			}

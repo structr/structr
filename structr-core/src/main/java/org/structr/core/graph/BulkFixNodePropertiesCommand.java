@@ -110,7 +110,7 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 									} catch (Throwable t) {
 
 										// log exceptions of other types
-										t.printStackTrace();
+										logger.log(Level.WARNING, "", t);
 									}
 								}
 							}

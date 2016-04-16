@@ -295,7 +295,7 @@ public class SchemaHelper {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 		return SchemaService.reloadSchema(errorBuffer);
@@ -336,7 +336,7 @@ public class SchemaHelper {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 	}
 
@@ -380,7 +380,7 @@ public class SchemaHelper {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 		return grants;
@@ -399,7 +399,7 @@ public class SchemaHelper {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 	}
 
@@ -430,7 +430,7 @@ public class SchemaHelper {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 	}
@@ -478,7 +478,7 @@ public class SchemaHelper {
 
 							} catch (FrameworkException ex) {
 
-								ex.printStackTrace();
+								logger.log(Level.WARNING, "", ex);
 							}
 						}
 
@@ -1074,7 +1074,7 @@ public class SchemaHelper {
 			return parserClass.getConstructor(ErrorBuffer.class, String.class, PropertyDefinition.class).newInstance(errorBuffer, className, propertyDefinition);
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 		errorBuffer.add(new InvalidPropertySchemaToken(SchemaProperty.class.getSimpleName(), propertyName, "invalid_property_definition", "Unknow value type " + source + ", options are " + Arrays.asList(Type.values()) + "."));

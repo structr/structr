@@ -83,7 +83,7 @@ public class SchemaJsonImporter extends SchemaImporter implements MaintenanceCom
 			}
 
 		} catch (IOException ioex) {
-			//ioex.printStackTrace();
+			//iologger.log(Level.WARNING, "", ex);
 			logger.log(Level.FINE, "Filename: " + fileName + ", URL: " + url + ", source: " + source, ioex);
 		}
 

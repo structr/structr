@@ -300,7 +300,7 @@ public class ActionContext {
 									return response.getOutputStream();
 
 								} catch (IOException ioex) {
-									ioex.printStackTrace();
+									logger.log(Level.WARNING, "", ioex);
 								}
 							}
 						}
@@ -410,7 +410,7 @@ public class ActionContext {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return buf.toString();

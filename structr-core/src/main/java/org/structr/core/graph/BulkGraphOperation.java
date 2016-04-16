@@ -37,12 +37,12 @@ public abstract class BulkGraphOperation<T> {
 
 	public void handleThrowable(final SecurityContext securityContext, final Throwable t, final T currentObject) {
 		logger.log(Level.WARNING, "Exception in bulk graph operation.");
-		t.printStackTrace();
+		logger.log(Level.WARNING, "", t);
 	}
 
 	public void handleTransactionFailure(final SecurityContext securityContext, final Throwable t) {
 		logger.log(Level.WARNING, "Transaction failure in bulk graph operation.");
-		t.printStackTrace();
+		logger.log(Level.WARNING, "", t);
 	}
 
 	public Predicate<Long> getCondition() {

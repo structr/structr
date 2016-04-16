@@ -55,11 +55,15 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A Jar file builder with signature support.
  */
 public class SignedJarBuilder {
+
+	private static final Logger logger = Logger.getLogger(SignedJarBuilder.class.getName());
 
 	private final byte[] buffer             = new byte[4096];
 	private JarOutputStream jarOutputStream = null;
@@ -128,7 +132,7 @@ public class SignedJarBuilder {
 				writeSignatureBlock(jarOutputStream, new CMSProcessableByteArray(signedData), certificate, privateKey);
 
 			} catch (Exception e) {
-				e.printStackTrace();
+				logger.log(Level.WARNING, "", e);
 			}
 		}
 

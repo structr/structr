@@ -102,7 +102,7 @@ public abstract class Agent<T extends NodeInterface> extends Thread implements S
 							// someone killed us or the task processing failed..
 							// Log this!!
 							logger.log(Level.SEVERE, "Processing task {0} failed. Maybe someone killed us?", currentTask.getType());
-							t.printStackTrace();
+							logger.log(Level.WARNING, "", t);
 						}
 
 					} else {
@@ -116,7 +116,7 @@ public abstract class Agent<T extends NodeInterface> extends Thread implements S
 							// someone killed us or the task processing failed..
 							// Log this!!
 							logger.log(Level.SEVERE, "Processing task {0} failed. Maybe someone killed us?", currentTask.getType());
-							t.printStackTrace();
+							logger.log(Level.WARNING, "", t);
 						}
 					}
 				}

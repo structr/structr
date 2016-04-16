@@ -24,6 +24,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
 import org.apache.commons.lang3.StringUtils;
@@ -53,6 +55,8 @@ import org.structr.core.script.Scripting;
 
 
 public class ActionContextTest extends StructrTest {
+
+	private static final Logger logger = Logger.getLogger(ActionContextTest.class.getName());
 
 	public void testVariableReplacement() {
 
@@ -136,7 +140,7 @@ public class ActionContextTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 		}
@@ -1156,7 +1160,7 @@ public class ActionContextTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail(fex.getMessage());
 		}
@@ -1193,7 +1197,7 @@ public class ActionContextTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 
 		}
@@ -1218,7 +1222,7 @@ public class ActionContextTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 
 		}
@@ -1244,7 +1248,7 @@ public class ActionContextTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 
 		}
@@ -1265,7 +1269,7 @@ public class ActionContextTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 
 		}
@@ -1291,7 +1295,7 @@ public class ActionContextTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 
 		}

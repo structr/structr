@@ -247,7 +247,7 @@ public class StructrWebSocket implements WebSocketListener {
 					tx.success();
 
 				} catch (FrameworkException fex) {
-					fex.printStackTrace();
+					logger.log(Level.WARNING, "", fex);
 				}
 
 				return;
@@ -277,7 +277,7 @@ public class StructrWebSocket implements WebSocketListener {
 			tx.success();
 
 		} catch (FrameworkException t) {
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 

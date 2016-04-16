@@ -61,7 +61,7 @@ public class SaveLocalStorageCommand extends AbstractCommand {
 			} catch (Throwable t) {
 
 				logger.log(Level.WARNING, t.toString());
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 
 				// send exception
 				getWebSocket().send(MessageBuilder.status().code(422).message(t.toString()).build(), true);

@@ -127,7 +127,7 @@ public class StructrCMISServicesFactory implements CmisServiceFactory {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		throw new CmisUnauthorizedException();

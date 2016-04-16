@@ -156,7 +156,7 @@ public abstract class Function<S, T> extends Hint {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 		return null;
@@ -218,7 +218,7 @@ public abstract class Function<S, T> extends Hint {
 
 			} catch (Throwable t) {
 
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 		}
 

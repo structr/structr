@@ -21,6 +21,8 @@ package org.structr.core.script;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
@@ -39,6 +41,8 @@ import org.structr.schema.parser.DatePropertyParser;
  *
  */
 public class Scripting {
+
+	private static final Logger logger = Logger.getLogger(Scripting.class.getName());
 
 	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue) throws FrameworkException {
 
@@ -200,7 +204,7 @@ public class Scripting {
 		} catch (final Throwable t) {
 
 			// if any other kind of Throwable is encountered throw a new FrameworkException and be done with it
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 			throw new FrameworkException(422, t.getMessage());
 
 		} finally {

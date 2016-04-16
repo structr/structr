@@ -64,7 +64,7 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 
 		} catch (FrameworkException fex) {
 			logger.log(Level.WARNING, "Exception while creating all nodes iterator.");
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		if (entityType == null) {

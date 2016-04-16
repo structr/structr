@@ -170,7 +170,7 @@ public class SchemaService implements Service {
 				} catch (Throwable t) {
 
 					logger.log(Level.SEVERE, "Unable to compile dynamic schema.", t);
-					t.printStackTrace();
+					logger.log(Level.WARNING, "", t);
 
 					success = false;
 				}
@@ -259,7 +259,7 @@ public class SchemaService implements Service {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 	}
 

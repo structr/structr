@@ -90,7 +90,7 @@ public class RelationClassAssignmentTest extends StructrUiTest {
 			
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");

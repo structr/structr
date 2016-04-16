@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
 import org.apache.commons.lang3.StringUtils;
@@ -44,6 +46,8 @@ import org.structr.schema.action.ActionContext;
  */
 public class TransactionTest extends StructrTest {
 
+	private static final Logger logger = Logger.getLogger(TransactionTest.class.getName());
+
 	public void testRollbackOnError () {
 
 		final ActionContext ctx = new ActionContext(securityContext, null);
@@ -63,7 +67,7 @@ public class TransactionTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 
 		}
@@ -89,7 +93,7 @@ public class TransactionTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 
 		}
@@ -167,7 +171,7 @@ public class TransactionTest extends StructrTest {
 
 			} catch (Throwable t) {
 
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 				fail("Unexpected exception");
 			}
 		}

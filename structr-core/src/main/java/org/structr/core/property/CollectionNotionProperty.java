@@ -327,7 +327,7 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return attr;

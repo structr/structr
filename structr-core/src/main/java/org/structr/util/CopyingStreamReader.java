@@ -21,6 +21,8 @@ package org.structr.util;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 
 /**
@@ -28,6 +30,8 @@ import org.apache.commons.io.IOUtils;
  *
  */
 public class CopyingStreamReader extends Thread {
+
+	private static final Logger logger = Logger.getLogger(CopyingStreamReader.class.getName());
 
 	private InputStream inputStream   = null;
 	private OutputStream outputStream = null;
@@ -56,7 +60,7 @@ public class CopyingStreamReader extends Thread {
 				Thread.sleep(10);
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 		}
 	}

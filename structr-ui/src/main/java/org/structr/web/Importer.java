@@ -103,11 +103,12 @@ import org.structr.web.entity.dom.Page;
  */
 public class Importer {
 
+	private static final Logger logger = Logger.getLogger(Importer.class.getName());
+	
 	private static final String[] hrefElements       = new String[]{"link"};
 	private static final String[] ignoreElementNames = new String[]{"#declaration", "#doctype"};
 	private static final String[] srcElements        = new String[]{"img", "script", "audio", "video", "input", "source", "track"};
 
-	private static final Logger              logger                  = Logger.getLogger(Importer.class.getName());
 	private static final Map<String, String> contentTypeForExtension = new HashMap<>();
 
 	private static App app;
@@ -235,7 +236,7 @@ public class Importer {
 
 			} catch (IOException ioe) {
 
-				ioe.printStackTrace();
+				logger.log(Level.WARNING, "", ioe);
 
 				throw new FrameworkException(500, "Error while parsing content from " + address);
 
@@ -767,7 +768,7 @@ public class Importer {
 			}
 
 			logger.log(Level.WARNING, "Unable to download from {0} {1}", new Object[]{originalUrl, downloadAddress});
-			ioe.printStackTrace();
+			logger.log(Level.WARNING, "", ioe);
 
 			try {
 				// Try alternative baseUrl with trailing "/"
@@ -787,11 +788,11 @@ public class Importer {
 				copyURLToFile(downloadUrl.toString(), fileOnDisk);
 
 			} catch (MalformedURLException ex) {
-				ex.printStackTrace();
+				logger.log(Level.WARNING, "", ex);
 				logger.log(Level.SEVERE, "Could not resolve address {0}", address.concat("/"));
 				return null;
 			} catch (IOException ex) {
-				ex.printStackTrace();
+				logger.log(Level.WARNING, "", ex);
 				logger.log(Level.WARNING, "Unable to download from {0}", address.concat("/"));
 				return null;
 			}

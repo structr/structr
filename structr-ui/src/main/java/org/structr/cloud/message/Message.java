@@ -273,7 +273,7 @@ public abstract class Message<T> {
 					return msg;
 
 				} catch (Throwable t) {
-					t.printStackTrace();
+					logger.log(Level.WARNING, "", t);
 				}
 
 			} else {

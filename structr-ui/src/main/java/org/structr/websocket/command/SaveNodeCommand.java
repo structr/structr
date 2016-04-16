@@ -93,7 +93,7 @@ public class SaveNodeCommand extends AbstractCommand {
 			} catch (Throwable t) {
 
 				logger.log(Level.WARNING, t.toString());
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 
 				// send exception
 				getWebSocket().send(MessageBuilder.status().code(422).message(t.toString()).build(), true);
@@ -105,7 +105,7 @@ public class SaveNodeCommand extends AbstractCommand {
 
 			} catch (FrameworkException ex) {
 
-				ex.printStackTrace();
+				logger.log(Level.WARNING, "", ex);
 			}
 
 		} else {

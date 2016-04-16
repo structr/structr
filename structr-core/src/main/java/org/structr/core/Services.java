@@ -242,7 +242,7 @@ public class Services implements StructrServices {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 
 			logger.log(Level.SEVERE, "Exception while creating command " + commandType.getName(), t);
 		}
@@ -337,7 +337,7 @@ public class Services implements StructrServices {
 					} catch (Throwable t) {
 
 						logger.log(Level.WARNING, "Exception while registering service {0}: {1}", new Object[] { serviceClassName, t });
-						t.printStackTrace();
+						logger.log(Level.WARNING, "", t);
 					}
 				}
 		}
@@ -459,7 +459,7 @@ public class Services implements StructrServices {
 //			//service.modifyConfiguration(getBaseConfiguration());
 //
 //		} catch (Throwable t) {
-//			t.printStackTrace();
+//			logger.log(Level.WARNING, "", t);
 //		}
 	}
 
@@ -500,7 +500,7 @@ public class Services implements StructrServices {
 
 			} catch (Throwable t) {
 
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 
 				logger.log(Level.SEVERE, "Unable to instantiate schema provider of type {0}: {1}", new Object[] { configurationClass, t.getMessage() });
 			}
@@ -572,7 +572,7 @@ public class Services implements StructrServices {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 
 			if (service.isVital()) {
 

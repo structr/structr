@@ -22,6 +22,7 @@ import java.math.BigInteger;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
@@ -77,7 +78,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 			tx.success();
 
 		} catch (final FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return wrapper;
@@ -106,7 +107,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 			tx.success();
 
 		} catch (final FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return result;
@@ -155,7 +156,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 			tx.success();
 
 		} catch (final FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return result;
@@ -186,7 +187,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 			return data;
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 		return null;
@@ -214,7 +215,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 			tx.success();
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 		if (result != null) {

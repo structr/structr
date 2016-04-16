@@ -20,6 +20,8 @@ package org.structr.function;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
@@ -37,6 +39,8 @@ import static org.structr.web.entity.dom.DOMNode.extractHeaders;
  *
  */
 public class PostFunction extends Function<Object, Object> {
+
+	private static final Logger logger = Logger.getLogger(PostFunction.class.getName());
 
 	public static final String ERROR_MESSAGE_POST    = "Usage: ${POST(URL, body [, contentType, charset])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:Test}', 'application/json', 'utf-8')}";
 	public static final String ERROR_MESSAGE_POST_JS = "Usage: ${{Structr.POST(URL, body [, contentType, charset])}}. Example: ${{Structr.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'utf-8')}}";
@@ -101,7 +105,7 @@ public class PostFunction extends Function<Object, Object> {
 				return response;
 
 			} catch (IOException ioex) {
-				ioex.printStackTrace();
+				logger.log(Level.WARNING, "", ioex);
 			}
 
 		} else {

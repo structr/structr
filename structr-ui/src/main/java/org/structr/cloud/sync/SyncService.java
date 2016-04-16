@@ -164,7 +164,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 					initializeSyncHosts(minimum);
 
 				} catch (FrameworkException fex) {
-					fex.printStackTrace();
+					logger.log(Level.WARNING, "", fex);
 				}
 			}
 
@@ -253,7 +253,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 				}
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 		}
 	}
@@ -318,7 +318,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 				synchronized (syncQueue) { syncQueue.notify(); }
 
 			} catch (InterruptedException iex) {
-				iex.printStackTrace();
+				logger.log(Level.WARNING, "", iex);
 			}
 
 		}
@@ -370,7 +370,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 
 			} catch (Throwable t) {
 
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 				reachable = false;
 			}
 
@@ -441,7 +441,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 			tx.success();
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 		logger.log(Level.INFO, "Done.");

@@ -406,7 +406,7 @@ public class FileHelper {
 			}
 
 		} catch (MagicParseException | MagicMatchNotFoundException | MagicException ignore) {
-			// mex.printStackTrace();
+			// mlogger.log(Level.WARNING, "", ex);
 		}
 
 

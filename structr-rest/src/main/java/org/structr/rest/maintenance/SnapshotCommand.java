@@ -31,6 +31,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
@@ -48,6 +50,8 @@ import org.structr.schema.json.JsonSchema;
  *
  */
 public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCommand {
+
+	private static final Logger logger = Logger.getLogger(SnapshotCommand.class.getName());
 
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
@@ -124,7 +128,7 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 			tx.success();
 
 		} catch (IOException | URISyntaxException ioex) {
-			ioex.printStackTrace();
+			logger.log(Level.WARNING, "", ioex);
 		}
 	}
 
@@ -156,7 +160,7 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 			tx.success();
 
 		} catch (IOException | URISyntaxException ioex) {
-			ioex.printStackTrace();
+			logger.log(Level.WARNING, "", ioex);
 		}
 	}
 
@@ -188,7 +192,7 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 			tx.success();
 
 		} catch (IOException | URISyntaxException ioex) {
-			ioex.printStackTrace();
+			logger.log(Level.WARNING, "", ioex);
 		}
 	}
 

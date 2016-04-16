@@ -100,7 +100,7 @@ public class SetPermissionCommand extends AbstractCommand {
 				tx.success();
 
 			} catch (FrameworkException ex) {
-				ex.printStackTrace();
+				logger.log(Level.WARNING, "", ex);
 			}
 
 			try {

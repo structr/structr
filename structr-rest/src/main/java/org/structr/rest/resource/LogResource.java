@@ -246,7 +246,7 @@ public class LogResource extends Resource {
 					collectFilesAndStore(context, new File(filesPath + SUBJECTS).toPath(), 0);
 
 				} catch (FrameworkException fex) {
-					fex.printStackTrace();
+					logger.log(Level.WARNING, "", fex);
 				}
 
 				return new RestMethodResult(200);
@@ -365,7 +365,7 @@ public class LogResource extends Resource {
 			}
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.log(Level.WARNING, "", ioex);
 		}
 	}
 
@@ -640,7 +640,7 @@ public class LogResource extends Resource {
 			return format.parse(format.format(timestamp)).getTime();
 
 		} catch (ParseException pex) {
-			pex.printStackTrace();
+			logger.log(Level.WARNING, "", pex);
 		}
 
 		return 0L;
@@ -672,7 +672,7 @@ public class LogResource extends Resource {
 			return max;
 
 		} catch (ParseException pex) {
-			pex.printStackTrace();
+			logger.log(Level.WARNING, "", pex);
 		}
 
 		return max;
@@ -1189,7 +1189,7 @@ public class LogResource extends Resource {
 
 							} catch (ParseException pex) {
 
-								pex.printStackTrace();
+								logger.log(Level.WARNING, "", pex);
 							}
 						}
 					}

@@ -383,7 +383,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return propertyName;

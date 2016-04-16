@@ -249,7 +249,7 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 
 		} catch (IOException ioex) {
 
-			ioex.printStackTrace();
+			logger.log(Level.WARNING, "", ioex);
 		}
 	}
 }

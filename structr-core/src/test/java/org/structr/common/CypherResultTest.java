@@ -38,6 +38,8 @@ import org.structr.core.property.StringProperty;
  */
 public class CypherResultTest extends StructrTest {
 
+	private static final Logger logger = Logger.getLogger(CypherResultTest.class.getName());
+
 	public void testCypherResultWrapping() {
 
 		try (final Tx tx = app.tx()) {
@@ -54,7 +56,7 @@ public class CypherResultTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 		}
 

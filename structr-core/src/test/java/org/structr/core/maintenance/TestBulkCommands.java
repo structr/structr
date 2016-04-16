@@ -22,6 +22,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
 import org.structr.api.DatabaseService;
@@ -44,6 +46,8 @@ import org.structr.core.graph.Tx;
  *
  */
 public class TestBulkCommands extends StructrTest {
+
+	private static final Logger logger = Logger.getLogger(TestBulkCommands.class.getName());
 
 	public void testBulkCreateLabelsCommand() {
 
@@ -108,7 +112,7 @@ public class TestBulkCommands extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -157,7 +161,7 @@ public class TestBulkCommands extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -226,7 +230,7 @@ public class TestBulkCommands extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 			fail("Unexpected exception.");
 		}
 	}

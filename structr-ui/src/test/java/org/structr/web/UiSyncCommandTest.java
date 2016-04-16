@@ -21,6 +21,8 @@ package org.structr.web;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import static org.hamcrest.Matchers.equalTo;
 import org.structr.common.error.FrameworkException;
@@ -40,6 +42,8 @@ import org.structr.web.entity.html.Script;
  *
  */
 public class UiSyncCommandTest extends StructrUiTest {
+
+	private static final Logger logger = Logger.getLogger(UiSyncCommandTest.class.getName());
 
 	public void testExportErrors() {
 
@@ -106,7 +110,7 @@ public class UiSyncCommandTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 			fail("Unexpected exception");
 		}
 
@@ -130,7 +134,7 @@ public class UiSyncCommandTest extends StructrUiTest {
 
 		} catch (FrameworkException | IOException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 			fail("Unexpected exception");
 		}
 
@@ -147,7 +151,7 @@ public class UiSyncCommandTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 			fail("Unexpected exception");
 		}
 
@@ -179,7 +183,7 @@ public class UiSyncCommandTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 			fail("Unexpected exception");
 		}
 
@@ -196,7 +200,7 @@ public class UiSyncCommandTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 			fail("Unexpected exception");
 		}
 
@@ -236,7 +240,7 @@ public class UiSyncCommandTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 			fail("Unexpected exception");
 		}
 	}

@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
@@ -32,6 +34,8 @@ import org.structr.dynamic.File;
  *
  */
 public class FileHelperTest extends StructrUiTest {
+
+	private static final Logger logger = Logger.getLogger(FileHelperTest.class.getName());
 
 	public void testExtensionBasedMimeTypeDetection() {
 
@@ -62,7 +66,7 @@ public class FileHelperTest extends StructrUiTest {
 
 					} catch (IOException ioex) {
 
-						ioex.printStackTrace();
+						logger.log(Level.WARNING, "", ioex);
 						fail("Unexpected exception");
 					}
 
@@ -125,7 +129,7 @@ public class FileHelperTest extends StructrUiTest {
 
 					} catch (IOException ioex) {
 
-						ioex.printStackTrace();
+						logger.log(Level.WARNING, "", ioex);
 						fail("Unexpected exception");
 					}
 

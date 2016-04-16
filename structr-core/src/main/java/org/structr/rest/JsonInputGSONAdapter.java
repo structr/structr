@@ -42,6 +42,7 @@ import java.lang.reflect.Type;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.structr.core.IJsonInput;
@@ -66,7 +67,7 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 			return (IJsonInput)type.getClass().newInstance();
 
 		} catch (InstantiationException | IllegalAccessException e) {
-			e.printStackTrace();
+			logger.log(Level.WARNING, "", e);
 		}
 
 		return null;

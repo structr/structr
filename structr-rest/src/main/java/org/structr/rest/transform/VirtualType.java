@@ -50,6 +50,8 @@ import org.structr.schema.action.ActionContext;
  */
 public class VirtualType extends AbstractNode {
 
+	private static final Logger logger = Logger.getLogger(VirtualType.class.getName());
+
 	public static final Property<List<VirtualProperty>> properties = new EndNodes<>("properties", VirtualTypeProperty.class);
 	public static final Property<Integer> position                 = new IntProperty("position").indexed();
 	public static final Property<String> sourceType                = new StringProperty("sourceType");
@@ -120,7 +122,7 @@ public class VirtualType extends AbstractNode {
 					return Boolean.TRUE.equals(Scripting.evaluate(ctx, value, "${" + expression + "}"));
 
 				} catch (FrameworkException fex) {
-					fex.printStackTrace();
+					logger.log(Level.WARNING, "", fex);
 				}
 			}
 

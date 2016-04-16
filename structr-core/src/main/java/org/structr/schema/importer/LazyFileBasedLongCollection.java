@@ -40,6 +40,8 @@ import org.structr.core.graph.SyncCommand;
  */
 public class LazyFileBasedLongCollection implements Collection<Long>, Closeable {
 
+	private static final Logger logger = Logger.getLogger(LazyFileBasedLongCollection.class.getName());
+
 	private DataOutputStream dos = null;
 	private File file            = null;
 
@@ -207,7 +209,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 			}
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.log(Level.WARNING, "", ioex);
 		}
 
 		try {
@@ -215,7 +217,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 			dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file, append)));
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.log(Level.WARNING, "", ioex);
 		}
 	}
 
@@ -232,7 +234,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 
 			} catch (IOException ioex) {
 
-				ioex.printStackTrace();
+				logger.log(Level.WARNING, "", ioex);
 			}
 		}
 
@@ -271,7 +273,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 				dis.close();
 
 			} catch (IOException ioex) {
-				ioex.printStackTrace();
+				logger.log(Level.WARNING, "", ioex);
 			}
 		}
 

@@ -19,6 +19,8 @@
 package org.structr.core.property;
 
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
@@ -30,6 +32,8 @@ import org.structr.core.graph.Tx;
  *
  */
 public class FunctionPropertyTest extends StructrTest {
+
+	private static final Logger logger = Logger.getLogger(FunctionPropertyTest.class.getName());
 
 	@Override
 	protected void setUp(Map<String, Object> additionalConfig) {
@@ -53,7 +57,7 @@ public class FunctionPropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 			fail("Unexpected exception.");
 		}
 	}

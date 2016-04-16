@@ -407,7 +407,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 					} catch (InterruptedException | ExecutionException iex) {
 
 						if (!iex.getMessage().contains("org.neo4j.kernel.api.exceptions.EntityNotFoundException")) {
-							iex.printStackTrace();
+							logger.log(Level.WARNING, "", iex);
 						}
 					}
 				}
@@ -480,7 +480,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 			}
 		}
 

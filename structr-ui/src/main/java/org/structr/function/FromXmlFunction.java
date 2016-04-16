@@ -74,7 +74,7 @@ public class FromXmlFunction extends UiFunction {
 					}
 
 				} catch (Throwable t) {
-					t.printStackTrace();
+					logger.log(Level.WARNING, "", t);
 				}
 			}
 

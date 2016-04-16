@@ -31,6 +31,8 @@ import org.structr.web.entity.Folder;
  */
 public class FolderTest extends StructrTest {
 	
+	private static final Logger logger = Logger.getLogger(FolderTest.class.getName());
+
 	public void testCreateFolder() {
 		
 		try (final Tx tx = app.tx()) {
@@ -77,7 +79,7 @@ public class FolderTest extends StructrTest {
 			fail("Folder with non-allowed characters were created.");
 			
 		} catch (FrameworkException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 		}
 		
 		try (final Tx tx = app.tx()) {
@@ -89,7 +91,7 @@ public class FolderTest extends StructrTest {
 			fail("Folder with non-allowed characters were created.");
 			
 		} catch (FrameworkException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -101,7 +103,7 @@ public class FolderTest extends StructrTest {
 			fail("Folder with non-allowed characters were created.");
 			
 		} catch (FrameworkException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -113,7 +115,7 @@ public class FolderTest extends StructrTest {
 			fail("Folder with non-allowed characters were created.");
 			
 		} catch (FrameworkException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -125,7 +127,7 @@ public class FolderTest extends StructrTest {
 			fail("Folder with non-allowed characters were created.");
 			
 		} catch (FrameworkException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -137,7 +139,7 @@ public class FolderTest extends StructrTest {
 			fail("Folder with non-allowed characters were created.");
 			
 		} catch (FrameworkException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 		}
 		
 		try (final Tx tx = app.tx()) {
@@ -149,7 +151,7 @@ public class FolderTest extends StructrTest {
 			fail("Folder with non-allowed characters were created.");
 			
 		} catch (FrameworkException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 		}
 	}
 	

@@ -18,6 +18,8 @@
  */
 package org.structr.web.test;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static junit.framework.TestCase.assertEquals;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
@@ -32,6 +34,8 @@ import org.w3c.dom.DOMException;
  */
 public class PagePathTest extends StructrUiTest {
 	
+	private static final Logger logger = Logger.getLogger(PagePathTest.class.getName());
+
 	public void testPagePath() {
 		
 		final String pageName	= "page-01";
@@ -94,7 +98,7 @@ public class PagePathTest extends StructrUiTest {
 			
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 			
 			fail("Unexpected exception");
 			

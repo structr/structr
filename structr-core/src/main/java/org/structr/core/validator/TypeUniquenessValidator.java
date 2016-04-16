@@ -18,6 +18,7 @@
  */
 package org.structr.core.validator;
 
+import java.util.logging.Level;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
@@ -87,7 +88,7 @@ public class TypeUniquenessValidator<T> implements PropertyValidator<T> {
 
 			} catch (FrameworkException fex) {
 
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 
 			}
 

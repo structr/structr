@@ -26,6 +26,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.sshd.common.file.SshFile;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -45,6 +47,8 @@ import org.structr.web.entity.Folder;
  *
  */
 public class StructrSSHFile implements SshFile {
+
+	private static final Logger logger = Logger.getLogger(StructrSSHFile.class.getName());
 
 	protected static final NullFile nullFile     = new NullFile();
 	protected static final NullFolder nullFolder = new NullFolder();
@@ -128,7 +132,7 @@ public class StructrSSHFile implements SshFile {
 				return true;
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 			}
 		}
 
@@ -153,7 +157,7 @@ public class StructrSSHFile implements SshFile {
 				return true;
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 			}
 		}
 
@@ -188,7 +192,7 @@ public class StructrSSHFile implements SshFile {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return files;
@@ -254,7 +258,7 @@ public class StructrSSHFile implements SshFile {
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 			}
 		}
 
@@ -329,7 +333,7 @@ public class StructrSSHFile implements SshFile {
 				return name;
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 			}
 		}
 
@@ -412,7 +416,7 @@ public class StructrSSHFile implements SshFile {
 				return true;
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 			}
 		}
 
@@ -433,7 +437,7 @@ public class StructrSSHFile implements SshFile {
 				return time;
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 			}
 		}
 
@@ -454,7 +458,7 @@ public class StructrSSHFile implements SshFile {
 				return true;
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 			}
 		}
 
@@ -475,7 +479,7 @@ public class StructrSSHFile implements SshFile {
 				return size;
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 			}
 		}
 
@@ -502,7 +506,7 @@ public class StructrSSHFile implements SshFile {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return os;
@@ -523,7 +527,7 @@ public class StructrSSHFile implements SshFile {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return is;

@@ -20,6 +20,8 @@ package org.structr.core.property;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.fail;
 import org.structr.api.DatabaseService;
@@ -39,6 +41,8 @@ import org.structr.core.graph.Tx;
  *
  */
 public class TypePropertyTest extends StructrTest {
+
+	private static final Logger logger = Logger.getLogger(TypePropertyTest.class.getName());
 
 	public void testModifyType() {
 
@@ -79,7 +83,7 @@ public class TypePropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 			fail("Unexpected exception");
 		}
 
@@ -95,7 +99,7 @@ public class TypePropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 			fail("Unexpected exception");
 		}
 	}

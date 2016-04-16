@@ -279,7 +279,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 			logger.log(Level.SEVERE, ex.toString());
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 
 			fail("Unexpected exception");
 		}
@@ -332,7 +332,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 		} catch (Throwable ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");

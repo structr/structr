@@ -23,6 +23,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -33,6 +35,8 @@ import org.structr.schema.action.Function;
  *
  */
 public class AppendFunction extends Function<Object, Object> {
+
+	private static final Logger logger = Logger.getLogger(AppendFunction.class.getName());
 
 	public static final String ERROR_MESSAGE_APPEND = "Usage: ${append(filename, value)}. Example: ${append(\"test.txt\", this.name)}";
 
@@ -63,7 +67,7 @@ public class AppendFunction extends Function<Object, Object> {
 				}
 
 			} catch (IOException ioex) {
-				ioex.printStackTrace();
+				logger.log(Level.WARNING, "", ioex);
 			}
 		}
 

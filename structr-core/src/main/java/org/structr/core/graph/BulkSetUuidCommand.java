@@ -83,7 +83,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 			} catch (FrameworkException fex) {
 				logger.log(Level.WARNING, "Exception while creating all nodes iterator.");
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 			}
 
 			final long count = bulkGraphOperation(securityContext, nodeIterator, 1000, "SetNodeUuid", new BulkGraphOperation<AbstractNode>() {
@@ -140,7 +140,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 			} catch (FrameworkException fex) {
 				logger.log(Level.WARNING, "Exception while creating all nodes iterator.");
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 			}
 
 			final long count = bulkGraphOperation(securityContext, relIterator, 1000, "SetRelationshipUuid", new BulkGraphOperation<AbstractRelationship>() {

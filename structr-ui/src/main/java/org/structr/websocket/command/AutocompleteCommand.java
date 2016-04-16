@@ -84,7 +84,7 @@ public class AutocompleteCommand extends AbstractCommand {
 					result.addAll(hints);
 
 				} catch(FrameworkException fex) {
-					fex.printStackTrace();
+					logger.log(Level.WARNING, "", fex);
 				}
 
 			} else {

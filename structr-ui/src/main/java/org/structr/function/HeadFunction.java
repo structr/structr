@@ -18,6 +18,8 @@
  */
 package org.structr.function;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 
@@ -25,6 +27,8 @@ import org.structr.schema.action.ActionContext;
  *
  */
 public class HeadFunction extends UiFunction {
+
+	private static final Logger logger = Logger.getLogger(HeadFunction.class.getName());
 
 	public static final String ERROR_MESSAGE_HEAD    = "Usage: ${HEAD(URL[, username, password])}. Example: ${HEAD('http://structr.org', 'foo', 'bar')}";
 	public static final String ERROR_MESSAGE_HEAD_JS = "Usage: ${{Structr.HEAD(URL[, username, password]])}}. Example: ${{Structr.HEAD('http://structr.org', 'foo', 'bar')}}";
@@ -56,7 +60,7 @@ public class HeadFunction extends UiFunction {
 				return headFromUrl(ctx, address, username, password);
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 
 			return "";

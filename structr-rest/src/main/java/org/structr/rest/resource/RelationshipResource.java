@@ -130,7 +130,7 @@ public class RelationshipResource extends WrappingResource {
 			} catch (Throwable t) {
 
 				logger.log(Level.WARNING, "Exception while fetching relationships", t);
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 
 		} else {

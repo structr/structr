@@ -346,7 +346,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 				out.append("Error while rendering node ").append(getUuid()).append(": ").append(t.getMessage());
 
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 
 			}
 

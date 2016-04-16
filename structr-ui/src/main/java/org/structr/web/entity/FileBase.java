@@ -411,7 +411,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 			} catch (FileNotFoundException e) {
 
-				e.printStackTrace();
+				logger.log(Level.WARNING, "", e);
 				logger.log(Level.SEVERE, "File not found: {0}", new Object[]{path});
 			}
 
@@ -505,7 +505,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 			return IOUtils.toString(is);
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.log(Level.WARNING, "", ioex);
 		}
 
 		return null;

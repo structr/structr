@@ -22,6 +22,8 @@ import java.io.StringReader;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -34,6 +36,8 @@ import org.structr.schema.action.ActionContext;
  */
 public class FromCsvFunction extends UiFunction {
 
+	private static final Logger logger = Logger.getLogger(FromCsvFunction.class.getName());
+	
 	public static final String ERROR_MESSAGE_FROM_CSV    = "Usage: ${from_csv(source [, delimiter, quoteChar, recordSeparator])}. Example: ${from_csv('one;two;three')}";
 	public static final String ERROR_MESSAGE_FROM_CSV_JS = "Usage: ${{Structr.from_csv(src [, delimiter, quoteChar, recordSeparator])}}. Example: ${{Structr.from_csv('one;two;three')}}";
 
@@ -82,7 +86,7 @@ public class FromCsvFunction extends UiFunction {
 					return objects;
 
 				} catch (Throwable t) {
-					t.printStackTrace();
+					logger.log(Level.WARNING, "", t);
 				}
 			}
 

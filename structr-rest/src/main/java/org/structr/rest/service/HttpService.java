@@ -286,7 +286,7 @@ public class HttpService implements RunnableService {
 
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 		hashSessionManager = new HashSessionManager();

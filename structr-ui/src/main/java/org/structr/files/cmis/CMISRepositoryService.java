@@ -23,6 +23,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 import org.apache.chemistry.opencmis.commons.data.RepositoryInfo;
@@ -413,7 +414,7 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 					tx.success();
 
 				} catch (final FrameworkException fex) {
-					fex.printStackTrace();
+					logger.log(Level.WARNING, "", fex);
 				}
 				break;
 		}
@@ -512,7 +513,7 @@ public class CMISRepositoryService extends AbstractStructrCmisService implements
 			}
 
 		} catch (final IllegalAccessException | InstantiationException iex) {
-			iex.printStackTrace();
+			logger.log(Level.WARNING, "", iex);
 		}
 
 

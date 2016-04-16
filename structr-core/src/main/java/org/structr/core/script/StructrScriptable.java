@@ -235,7 +235,7 @@ public class StructrScriptable extends ScriptableObject {
 						}
 
 					} catch (FrameworkException fex) {
-						fex.printStackTrace();
+						logger.log(Level.WARNING, "", fex);
 					}
 
 					return null;
@@ -383,7 +383,7 @@ public class StructrScriptable extends ScriptableObject {
 					return new Date(value.longValue());
 
 				} catch (Throwable t) {
-					t.printStackTrace();
+					logger.log(Level.WARNING, "", t);
 				}
 
 			} else {
