@@ -29,7 +29,6 @@ import org.structr.api.Predicate;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.auth.HashHelper;
-import static org.structr.core.entity.Principal.password;
 import org.structr.core.entity.relationship.Groups;
 import org.structr.core.property.PropertyKey;
 
@@ -44,7 +43,7 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 
 	private static final Logger logger = Logger.getLogger(AbstractUser.class.getName());
 	private Boolean cachedIsAdminFlag  = null;
-	private static final Object HIDDEN = "****** HIDDEN ******";
+	public static final Object HIDDEN = "****** HIDDEN ******";
 
 	@Override
 	public void addSessionId(final String sessionId) {
