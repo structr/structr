@@ -128,7 +128,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Exception while evaluating write function in Function property '{0}'.", new Object[] { jsonName() });
+			logger.log(Level.WARNING, "Exception while evaluating write function in Function property \"{0}\".", new Object[] { jsonName() });
 
 			logger.log(Level.WARNING, "", t);
 		}
