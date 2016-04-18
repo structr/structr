@@ -135,4 +135,11 @@ public class FunctionProperty<T> extends Property<T> {
 
 		return null;
 	}
+
+	@Override
+	public Property<T> format(final String format) {
+		this.readFunction = format;
+		return this;
+	}
+
 }
