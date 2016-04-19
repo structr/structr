@@ -55,12 +55,14 @@ public class RoundFunction extends Function<Object, Object> {
 
 			} catch (Throwable t) {
 
+				logException(t, "{0}: Exception for parameters: {1}", new Object[] { getName(), getParametersAsString(sources) });
 				return t.getMessage();
 
 			}
 
 		} else {
 
+			logParameterError(sources, ctx.isJavaScriptContext());
 			return "";
 		}
 	}

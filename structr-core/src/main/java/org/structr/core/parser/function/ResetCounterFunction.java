@@ -40,7 +40,20 @@ public class ResetCounterFunction extends Function<Object, Object> {
 
 		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 
-			ctx.resetCounter(parseInt(sources[0]));
+			try {
+
+				ctx.resetCounter(parseInt(sources[0]));
+
+			} catch (NumberFormatException nfe) {
+
+				logException(nfe, "{0}: NumberFormatException parsing counter level \"{1}\". Parameters: {2}", new Object[] { getName(), sources[0].toString(), getParametersAsString(sources) });
+
+			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

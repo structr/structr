@@ -19,6 +19,7 @@
 package org.structr.function;
 
 import java.util.Locale;
+import java.util.logging.Level;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
@@ -43,16 +44,22 @@ public class IsLocaleFunction extends UiFunction {
 		if (locale != null) {
 
 			final String localeString = locale.toString();
-			if (sources != null && sources.length > 0) {
+			if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
 				final int len = sources.length;
 				for (int i = 0; i < len; i++) {
 
-					if (sources[i] != null && localeString.equals(sources[i].toString())) {
+					if (localeString.equals(sources[i].toString())) {
 						return true;
 					}
 				}
+
+			} else {
+
+				logParameterError(sources, ctx.isJavaScriptContext());
+
 			}
+
 		}
 
 		return false;

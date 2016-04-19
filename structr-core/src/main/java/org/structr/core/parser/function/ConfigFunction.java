@@ -56,6 +56,10 @@ public class ConfigFunction extends Function<Object, Object> {
 
 			return StructrApp.getConfigurationValue(configKey, defaultValue);
 
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

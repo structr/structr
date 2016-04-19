@@ -19,8 +19,6 @@
 package org.structr.function;
 
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.structr.core.GraphObject;
@@ -31,8 +29,6 @@ import org.structr.schema.action.ActionContext;
  */
 public class GetFunction extends UiFunction {
 
-	private static final Logger logger = Logger.getLogger(GetFunction.class.getName());
-	
 	public static final String ERROR_MESSAGE_GET    = "Usage: ${GET(URL[, contentType[, selector]])}. Example: ${GET('http://structr.org', 'text/html')}";
 	public static final String ERROR_MESSAGE_GET_JS = "Usage: ${{Structr.GET(URL[, contentType[, selector]])}}. Example: ${{Structr.HEAD('http://structr.org', 'text/html')}}";
 
@@ -44,7 +40,7 @@ public class GetFunction extends UiFunction {
 	@Override
 	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
 
-		if (sources != null && sources.length > 0 && sources[0] != null) {
+		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 4)) {
 
 			try {
 
@@ -53,16 +49,12 @@ public class GetFunction extends UiFunction {
 				String username = null;
 				String password = null;
 
-				if (sources.length > 1) {
-					contentType = sources[1].toString();
-				}
+				switch (sources.length) {
 
-				if (sources.length > 2) {
-					username = sources[2].toString();
-				}
-
-				if (sources.length > 3) {
-					password = sources[3].toString();
+					case 4: password = sources[3].toString();
+					case 3: username = sources[2].toString();
+					case 2: contentType = sources[1].toString();
+						break;
 				}
 
 				//long t0 = System.currentTimeMillis();
@@ -90,10 +82,17 @@ public class GetFunction extends UiFunction {
 				}
 
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "", t);
+
+				logException(t, "{0}: Exception for parameter: {1}", new Object[] { getName(), getParametersAsString(sources) });
+
 			}
 
 			return "";
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return usage(ctx.isJavaScriptContext());

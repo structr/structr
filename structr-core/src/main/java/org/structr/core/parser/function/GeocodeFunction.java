@@ -62,6 +62,10 @@ public class GeocodeFunction extends Function<Object, Object> {
 				return serialize(gson, map);
 			}
 
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

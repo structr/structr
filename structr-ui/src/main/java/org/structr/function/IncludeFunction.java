@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
@@ -42,8 +41,6 @@ import org.structr.web.entity.dom.DOMNode;
  * behavior (instead of including the node).
  */
 public class IncludeFunction extends Function<Object, Object> {
-
-	private static final Logger logger = Logger.getLogger(IncludeFunction.class.getName());
 
 	public static final String ERROR_MESSAGE_INCLUDE    = "Usage: ${include(name)}. Example: ${include(\"Main Template\")}";
 	public static final String ERROR_MESSAGE_INCLUDE_JS = "Usage: ${{Structr.include(name)}}. Example: ${{Structr.include(\"Main Template\")}}";
@@ -121,6 +118,7 @@ public class IncludeFunction extends Function<Object, Object> {
 
 					if (contentType == null || StringUtils.isBlank(extension)) {
 
+						logger.log(Level.WARNING, "No valid file type detected. Please make sure {0} has a valid content type set or file extension. Parameters: {1}", new Object[] { name, getParametersAsString(sources) });
 						return "No valid file type detected. Please make sure " + name + " has a valid content type set or file extension.";
 
 					}
@@ -136,11 +134,16 @@ public class IncludeFunction extends Function<Object, Object> {
 					} else if (contentType.startsWith("image/svg")) {
 
 						try {
+
 							final byte[] buffer = new byte[file.getSize().intValue()];
 							IOUtils.read(file.getInputStream(), buffer);
 							return StringUtils.toEncodedString(buffer, Charset.forName(charset));
+
 						} catch (IOException ex) {
-							logger.log(Level.SEVERE, null, ex);
+
+							logger.log(Level.WARNING, "Exception for parameters: {0}", getParametersAsString(sources));
+							logger.log(Level.SEVERE, "", ex);
+
 						}
 
 						return "<img alt=\"" + name + "\" src=\"" + file.getPath() + "\">";
@@ -151,6 +154,7 @@ public class IncludeFunction extends Function<Object, Object> {
 
 					} else {
 
+						logger.log(Level.WARNING, "Don't know how to render content type or extension of {0}. Parameters: {1}", new Object[] { name, getParametersAsString(sources) });
 						return "Don't know how to render content type or extension of  " + name + ".";
 
 					}
@@ -160,6 +164,11 @@ public class IncludeFunction extends Function<Object, Object> {
 			}
 
 			return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return usage(ctx.isJavaScriptContext());

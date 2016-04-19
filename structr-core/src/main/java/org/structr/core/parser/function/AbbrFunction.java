@@ -18,6 +18,7 @@
  */
 package org.structr.core.parser.function;
 
+import java.util.logging.Level;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -39,7 +40,7 @@ public class AbbrFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
 			try {
 				int maxLength = Double.valueOf(sources[1].toString()).intValue();
@@ -55,9 +56,15 @@ public class AbbrFunction extends Function<Object, Object> {
 
 			} catch (NumberFormatException nfe) {
 
+				logException(nfe, sources);
+
 				return nfe.getMessage();
 
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
 
 		}
 

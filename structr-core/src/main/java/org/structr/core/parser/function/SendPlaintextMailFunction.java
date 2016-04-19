@@ -18,7 +18,6 @@
  */
 package org.structr.core.parser.function;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.mail.EmailException;
 import org.structr.common.MailHelper;
@@ -54,11 +53,19 @@ public class SendPlaintextMailFunction extends Function<Object, Object> {
 			final String textContent = sources[5].toString();
 
 			try {
+
 				return MailHelper.sendSimpleMail(from, fromName, to, toName, null, null, from, subject, textContent);
 
 			} catch (EmailException eex) {
-				logger.log(Level.WARNING, "", eex);
+
+				logException(eex, "{0}: Exception for parameters: {1}", new Object[] { getName(), getParametersAsString(sources) });
+
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

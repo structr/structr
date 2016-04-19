@@ -18,6 +18,7 @@
  */
 package org.structr.core.parser.function;
 
+import java.util.logging.Level;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -59,15 +60,19 @@ public class PropertyInfoFunction extends Function<Object, Object> {
 
 				} else {
 
+					logger.log(Level.WARNING, "Error: Unknown property \"{0}.{1}\". Parameters: {2}", new Object[] { typeName, keyName, getParametersAsString(sources) });
 					return "Unknown property " + typeName + "." + keyName;
 				}
 
 			} else {
 
+				logger.log(Level.WARNING, "Error: Unknown type \"{0}\". Parameters: {1}", new Object[] { typeName, getParametersAsString(sources) });
 				return "Unknown type " + typeName;
 			}
 
 		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
 		}

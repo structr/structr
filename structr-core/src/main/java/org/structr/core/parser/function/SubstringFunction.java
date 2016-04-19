@@ -38,18 +38,23 @@ public class SubstringFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 3)) {
 
 			final String source = sources[0].toString();
 			final int sourceLength = source.length();
-			final int start = parseInt(sources[1]);
-			final int length = sources.length >= 3 ? parseInt(sources[2]) : sourceLength - start;
-			final int end = start + length;
+			final int beginIndex = parseInt(sources[1]);
+			final int length = sources.length == 3 ? parseInt(sources[2]) : sourceLength - beginIndex;
+			final int endIndex = beginIndex + length;
 
-			if (start >= 0 && start < sourceLength && end >= 0 && end <= sourceLength && start <= end) {
+			if (beginIndex >= 0 && beginIndex < sourceLength && endIndex >= beginIndex && endIndex <= sourceLength) {
 
-				return source.substring(start, end);
+				return source.substring(beginIndex, endIndex);
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

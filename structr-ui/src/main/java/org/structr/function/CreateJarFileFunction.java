@@ -47,7 +47,6 @@ import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.security.auth.x500.X500Principal;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
@@ -74,8 +73,6 @@ import org.structr.schema.action.ActionContext;
  *
  */
 public class CreateJarFileFunction extends UiFunction {
-
-	private static final Logger logger = Logger.getLogger(CreateJarFileFunction.class.getName());
 
 	@Override
 	public String getName() {
@@ -211,13 +208,21 @@ public class CreateJarFileFunction extends UiFunction {
 					jos.finish();
 
 				} catch (Throwable t) {
-					logger.log(Level.WARNING, "", t);
+
+					logException(t, "{0}: Exception for parameter: {1}", new Object[] { getName(), getParametersAsString(sources) });
+
 				}
 
 			} else {
 
+				logger.log(Level.WARNING, "First parameter of create_jar_file() must be an output stream. Parameters: {0}", getParametersAsString(sources));
 				return "First parameter of create_jar_file() must be an output stream.";
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

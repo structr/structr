@@ -39,9 +39,18 @@ public class EscapeJsonFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
-			? StringEscapeUtils.escapeJson(sources[0].toString())
-			: "";
+		if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+
+			return StringEscapeUtils.escapeJson(sources[0].toString());
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
+		}
+
+		return "";
+
 	}
 
 	@Override

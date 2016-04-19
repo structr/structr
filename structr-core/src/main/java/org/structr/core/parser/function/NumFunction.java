@@ -44,8 +44,15 @@ public class NumFunction extends Function<Object, Object> {
 				return getDoubleOrNull(sources[0]);
 
 			} catch (Throwable t) {
-				// ignore
+
+				logException(t, "{0}: Exception for parameters: {1}", new Object[] { getName(), getParametersAsString(sources) });
+
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

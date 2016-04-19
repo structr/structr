@@ -38,12 +38,18 @@ public class UrlEncodeFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
-			? encodeURL(sources[0].toString())
-			: "";
+		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 
+			return encodeURL(sources[0].toString());
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
+		}
+
+		return "";
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {

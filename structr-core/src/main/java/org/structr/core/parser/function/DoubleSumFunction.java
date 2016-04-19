@@ -50,6 +50,11 @@ public class DoubleSumFunction extends Function<Object, Object> {
 					result += num.doubleValue();
 				}
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return result;

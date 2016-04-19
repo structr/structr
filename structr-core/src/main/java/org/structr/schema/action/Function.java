@@ -24,12 +24,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.structr.common.error.FrameworkException;
@@ -48,10 +50,57 @@ import org.structr.schema.parser.DatePropertyParser;
  */
 public abstract class Function<S, T> extends Hint {
 
-	private static final Logger logger = Logger.getLogger(Functions.class.getName());
+	protected static final Logger logger = Logger.getLogger(Functions.class.getName());
 
 	public abstract T apply(ActionContext ctx, GraphObject entity, S[] sources) throws FrameworkException;
 	public abstract String usage(boolean inJavaScriptContext);
+
+	/**
+	 * Basic logging for functions called with wrong parameter count
+	 *
+	 * @param parameters The function parameters
+	 * @param inJavaScriptContext Has the function been called from a JavaScript context?
+	 */
+	protected void logParameterError(final Object[] parameters, final boolean inJavaScriptContext) {
+		logger.log(Level.WARNING, "{0}: unsupported parameter combination/count. Parameters: {1}. {2}", new Object[] { getName(), getParametersAsString(parameters), usage(inJavaScriptContext) });
+	}
+
+	/**
+	 * Basic logging of an Exception in a function with a simple message outputting the name and call parameters of the function
+	 * (A bit clunky because we want the log to show a StackTrace while building a custom message. If the LogLevel is suppressed using parameters is way faster than building the string beforehand)
+	 *
+	 * @param t The thrown Exception
+	 * @param parameters The method parameters
+	 */
+	protected void logException (final Throwable t, final Object[] parameters) {
+
+		final LogRecord lr = new LogRecord(Level.WARNING, "{0}: Exception for parameters: {1}");
+        lr.setParameters(new Object[] { getName(), getParametersAsString(parameters) });
+		lr.setThrown(t);
+		logger.log(lr);
+
+	}
+
+	/**
+	 * Basic logging of an Exception in a function with custom message and message parameters.
+	 * (A bit clunky because we want the log to show a StackTrace while building a custom message. If the LogLevel is suppressed using parameters is way faster than building the string beforehand)
+	 *
+	 * @param t The thrown Exception
+	 * @param msg The message to be printed
+	 * @param messageParams The parameters for the message
+	 */
+	protected void logException (final Throwable t, final String msg, final Object[] messageParams) {
+
+		final LogRecord lr = new LogRecord(Level.WARNING, msg);
+        lr.setParameters(messageParams);
+		lr.setThrown(t);
+		logger.log(lr);
+
+	}
+
+	protected String getParametersAsString (final Object[] sources) {
+		return Arrays.toString(sources);
+	}
 
 	/**
 	 * Test if the given object array has a minimum length and all its elements are not null.
@@ -156,7 +205,7 @@ public abstract class Function<S, T> extends Hint {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "", t);
+			logException(t, "{0}: Exception for parameter: {1}", new Object[] { getName(), obj });
 		}
 
 		return null;
@@ -218,7 +267,7 @@ public abstract class Function<S, T> extends Hint {
 
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "", t);
+				logException(t, "{0}: Exception for parameter: {1}", new Object[] { getName(), obj });
 			}
 		}
 

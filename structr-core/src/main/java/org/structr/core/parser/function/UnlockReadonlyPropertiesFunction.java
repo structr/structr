@@ -18,6 +18,7 @@
  */
 package org.structr.core.parser.function;
 
+import java.util.logging.Level;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
@@ -40,7 +41,7 @@ public class UnlockReadonlyPropertiesFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 
 			if (sources[0] instanceof AbstractNode) {
 
@@ -48,9 +49,16 @@ public class UnlockReadonlyPropertiesFunction extends Function<Object, Object> {
 
 			} else {
 
+				logger.log(Level.WARNING, "Parameter 1 is not a node. Parameters: {0}", getParametersAsString(sources));
+
 				return usage(ctx.isJavaScriptContext());
 
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

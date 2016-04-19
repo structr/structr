@@ -21,8 +21,6 @@ package org.structr.function;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.schema.action.ActionContext;
@@ -32,8 +30,6 @@ import org.structr.web.common.microformat.MicroformatParser;
  *
  */
 public class ParseFunction extends UiFunction {
-
-	private static final Logger logger = Logger.getLogger(ParseFunction.class.getName());
 
 	public static final String ERROR_MESSAGE_PARSE    = "Usage: ${parse(URL, selector)}. Example: ${parse('http://structr.org', 'li.data')}";
 	public static final String ERROR_MESSAGE_PARSE_JS = "Usage: ${{Structr.parse(URL, selector)}}. Example: ${{Structr.parse('http://structr.org', 'li.data')}}";
@@ -46,7 +42,7 @@ public class ParseFunction extends UiFunction {
 	@Override
 	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
 
-		if (sources != null && sources.length > 1) {
+		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
 
 			try {
 
@@ -66,10 +62,17 @@ public class ParseFunction extends UiFunction {
 				return elements;
 
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "", t);
+
+				logException(t, "{0}: Exception for parameter: {1}", new Object[] { getName(), getParametersAsString(sources) });
+
 			}
 
 			return "";
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return usage(ctx.isJavaScriptContext());

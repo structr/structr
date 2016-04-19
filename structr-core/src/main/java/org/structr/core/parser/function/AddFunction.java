@@ -18,6 +18,7 @@
  */
 package org.structr.core.parser.function;
 
+import java.util.logging.Level;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
@@ -52,14 +53,14 @@ public class AddFunction extends Function<Object, Object> {
 
 					} catch (Throwable t) {
 
+						logException(t, sources);
+
 						return t.getMessage();
 
 					}
 
-				} else {
-
-					result += 0.0;
 				}
+
 			}
 
 		}

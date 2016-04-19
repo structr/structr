@@ -46,12 +46,15 @@ public class StoreFunction extends Function<Object, Object> {
 				ctx.store(sources[0].toString(), sources[1]);
 			}
 
+			return "";
+
 		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
 		}
 
-		return "";
 	}
 
 

@@ -20,8 +20,6 @@ package org.structr.core.parser.function;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -36,8 +34,6 @@ import org.xml.sax.SAXException;
  *
  */
 public class XmlFunction extends Function<Object, Object> {
-
-	private static final Logger logger = Logger.getLogger(XmlFunction.class.getName());
 
 	public static final String ERROR_MESSAGE_XML = "Usage: ${xml(xmlSource)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\")}";
 
@@ -64,8 +60,15 @@ public class XmlFunction extends Function<Object, Object> {
 				}
 
 			} catch (IOException | SAXException | ParserConfigurationException ex) {
-				logger.log(Level.WARNING, "", ex);
+
+				logException(ex, "{0}: Exception for parameters: {1}", new Object[] { getName(), getParametersAsString(sources) });
+
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

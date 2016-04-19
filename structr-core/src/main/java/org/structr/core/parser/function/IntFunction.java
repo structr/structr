@@ -48,8 +48,15 @@ public class IntFunction extends Function<Object, Object> {
 				return getDoubleOrNull(sources[0]).intValue();
 
 			} catch (Throwable t) {
-				// ignore
+
+				logException(t, "{0}: Exception for parameters: {1}", new Object[] { getName(), getParametersAsString(sources) });
+				return null;
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

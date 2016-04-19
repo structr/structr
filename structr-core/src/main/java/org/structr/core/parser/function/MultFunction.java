@@ -40,7 +40,7 @@ public class MultFunction extends Function<Object, Object> {
 
 		Double result = 1.0d;
 
-		if (sources != null) {
+		if (sources != null && sources.length > 0) {
 
 			for (Object i : sources) {
 
@@ -50,10 +50,16 @@ public class MultFunction extends Function<Object, Object> {
 
 				} catch (Throwable t) {
 
+					logException(t, "{0}: Exception for parameters: {1}", new Object[] { getName(), getParametersAsString(sources) });
+
 					return t.getMessage();
 
 				}
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
 
 		}
 

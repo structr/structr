@@ -18,6 +18,7 @@
  */
 package org.structr.function;
 
+import java.util.logging.Level;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
@@ -38,16 +39,28 @@ public class SetDetailsObjectFunction extends UiFunction {
 	@Override
 	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
 
-		if (sources != null && sources.length == 1) {
+		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 
 			if (sources[0] instanceof GraphObject) {
+
 				((RenderContext) ctx).setDetailsDataObject((GraphObject)sources[0]);
+
+			} else {
+
+				logger.log(Level.WARNING, "Error: Parameter 1 is not a graph object. Parameters: {0}", getParametersAsString(sources));
+
 			}
 
 			return "";
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
+			return usage(ctx.isJavaScriptContext());
+
 		}
 
-		return usage(ctx.isJavaScriptContext());
 	}
 
 	@Override
@@ -57,7 +70,7 @@ public class SetDetailsObjectFunction extends UiFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Adds the given header field and value to the response of the current rendering run";
+		return "Sets the given object as the detail object";
 	}
 
 }

@@ -38,9 +38,17 @@ public class UpperFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
-			? sources[0].toString().toUpperCase()
-			: "";
+		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+
+			return sources[0].toString().toUpperCase();
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
+		}
+
+		return "";
 	}
 
 	@Override

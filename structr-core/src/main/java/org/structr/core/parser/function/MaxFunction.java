@@ -38,24 +38,27 @@ public class MaxFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		Object result = "";
-		String errorMsg = "ERROR! Usage: ${max(val1, val2)}. Example: ${max(5,10)}";
-
 		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
 			try {
-				result = Math.max(Double.parseDouble(sources[0].toString()), Double.parseDouble(sources[1].toString()));
 
-			} catch (Throwable t) {
-				result = errorMsg;
+				return Math.max(Double.parseDouble(sources[0].toString()), Double.parseDouble(sources[1].toString()));
+
+			} catch (NumberFormatException nfe) {
+
+				logException(nfe, "{0}: NumberFormatException for parameters: {1}", new Object[] { getName(), getParametersAsString(sources) });
+
+				return usage(ctx.isJavaScriptContext());
+
 			}
 
 		} else {
 
-			result = "";
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
-		return result;
+		return "";
 
 	}
 

@@ -52,7 +52,13 @@ public class CallFunction extends Function<Object, Object> {
 			} else {
 
 				return Actions.call(key);
+
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

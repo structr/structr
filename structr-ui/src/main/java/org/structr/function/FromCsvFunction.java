@@ -22,8 +22,6 @@ import java.io.StringReader;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -36,8 +34,6 @@ import org.structr.schema.action.ActionContext;
  */
 public class FromCsvFunction extends UiFunction {
 
-	private static final Logger logger = Logger.getLogger(FromCsvFunction.class.getName());
-	
 	public static final String ERROR_MESSAGE_FROM_CSV    = "Usage: ${from_csv(source [, delimiter, quoteChar, recordSeparator])}. Example: ${from_csv('one;two;three')}";
 	public static final String ERROR_MESSAGE_FROM_CSV_JS = "Usage: ${{Structr.from_csv(src [, delimiter, quoteChar, recordSeparator])}}. Example: ${{Structr.from_csv('one;two;three')}}";
 
@@ -49,48 +45,52 @@ public class FromCsvFunction extends UiFunction {
 	@Override
 	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
 
-		if (sources != null && sources.length > 0) {
+		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 4)) {
 
-			if (sources[0] != null) {
+			try {
 
-				try {
+				final List<Map<String, String>> objects = new LinkedList<>();
+				final String source                     = sources[0].toString();
+				String delimiter                        = ";";
+				String quoteChar                        = "\"";
+				String recordSeparator                  = "\n";
 
-					final List<Map<String, String>> objects = new LinkedList<>();
-					final String source                     = sources[0].toString();
-					String delimiter                        = ";";
-					String quoteChar                        = "\"";
-					String recordSeparator                  = "\n";
+				switch (sources.length) {
 
-					switch (sources.length) {
-
-						case 4: recordSeparator = (String)sources[3];
-						case 3: quoteChar = (String)sources[2];
-						case 2: delimiter = (String)sources[1];
-							break;
-					}
-
-					CSVFormat format = CSVFormat.newFormat(delimiter.charAt(0)).withHeader();
-					format = format.withQuote(quoteChar.charAt(0));
-					format = format.withRecordSeparator(recordSeparator);
-					format = format.withIgnoreEmptyLines(true);
-					format = format.withIgnoreSurroundingSpaces(true);
-					format = format.withSkipHeaderRecord(true);
-					format = format.withQuoteMode(QuoteMode.ALL);
-
-					CSVParser parser = new CSVParser(new StringReader(source), format);
-					for (final CSVRecord record : parser.getRecords()) {
-
-						objects.add(record.toMap());
-					}
-
-					return objects;
-
-				} catch (Throwable t) {
-					logger.log(Level.WARNING, "", t);
+					case 4: recordSeparator = (String)sources[3];
+					case 3: quoteChar = (String)sources[2];
+					case 2: delimiter = (String)sources[1];
+						break;
 				}
+
+				CSVFormat format = CSVFormat.newFormat(delimiter.charAt(0)).withHeader();
+				format = format.withQuote(quoteChar.charAt(0));
+				format = format.withRecordSeparator(recordSeparator);
+				format = format.withIgnoreEmptyLines(true);
+				format = format.withIgnoreSurroundingSpaces(true);
+				format = format.withSkipHeaderRecord(true);
+				format = format.withQuoteMode(QuoteMode.ALL);
+
+				CSVParser parser = new CSVParser(new StringReader(source), format);
+				for (final CSVRecord record : parser.getRecords()) {
+
+					objects.add(record.toMap());
+				}
+
+				return objects;
+
+			} catch (Throwable t) {
+
+				logException(t, "{0}: Exception for parameter: {1}", new Object[] { getName(), getParametersAsString(sources) });
+
 			}
 
 			return "";
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return usage(ctx.isJavaScriptContext());

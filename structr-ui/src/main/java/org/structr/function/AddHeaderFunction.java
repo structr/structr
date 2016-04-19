@@ -37,7 +37,7 @@ public class AddHeaderFunction extends UiFunction {
 	@Override
 	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
 
-		if (sources != null && sources.length == 2) {
+		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
 			final String name = sources[0].toString();
 			final String value = sources[1].toString();
@@ -45,6 +45,11 @@ public class AddHeaderFunction extends UiFunction {
 			ctx.addHeader(name, value);
 
 			return "";
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return usage(ctx.isJavaScriptContext());

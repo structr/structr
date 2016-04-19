@@ -59,6 +59,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 			if (sources[0] instanceof GraphObject) {
 				dataObject = (GraphObject)sources[0];
 			} else {
+				logger.log(Level.WARNING, "First parameter must be of type GraphObject: \"{0}\"", sources[0]);
 				return usage(ctx.isJavaScriptContext());
 			}
 
@@ -117,7 +118,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 
 						} else {
 
-							logger.log(Level.WARNING, "Unknown verb in changelog: '{0}'", verb);
+							logger.log(Level.WARNING, "Unknown verb in changelog: \"{0}\"", verb);
 
 						}
 
@@ -130,6 +131,8 @@ public class ChangelogFunction extends Function<Object, Object> {
 			return list;
 
 		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
 

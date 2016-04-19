@@ -43,10 +43,6 @@ public class NumberFormatFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (sources == null || sources != null && sources.length != 3) {
-			return usage(ctx.isJavaScriptContext());
-		}
-
 		if (arrayHasLengthAndAllElementsNotNull(sources, 3)) {
 
 			if (StringUtils.isBlank(sources[0].toString())) {
@@ -55,14 +51,24 @@ public class NumberFormatFunction extends Function<Object, Object> {
 
 			try {
 
-				Double val = Double.parseDouble(sources[0].toString());
-				String langCode = sources[1].toString();
-				String pattern = sources[2].toString();
+				final Double val = Double.parseDouble(sources[0].toString());
+				final String langCode = sources[1].toString();
+				final String pattern = sources[2].toString();
 
 				return new DecimalFormat(pattern, DecimalFormatSymbols.getInstance(Locale.forLanguageTag(langCode))).format(val);
 
 			} catch (Throwable t) {
+
+				logException(t, "{0}: Exception for parameters: {1}", new Object[] { getName(), getParametersAsString(sources) });
+
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
+			return usage(ctx.isJavaScriptContext());
+
 		}
 
 		return "";

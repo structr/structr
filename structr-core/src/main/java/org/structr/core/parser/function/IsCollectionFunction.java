@@ -40,9 +40,15 @@ public class IsCollectionFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+
 			return (sources[0] instanceof Collection);
+
 		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 			return false;
+
 		}
 
 	}

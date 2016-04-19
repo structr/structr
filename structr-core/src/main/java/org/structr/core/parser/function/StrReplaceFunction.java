@@ -42,6 +42,10 @@ public class StrReplaceFunction extends Function<Object, Object> {
 
 			return sources[0].toString().replaceAll(sources[1].toString(), sources[2].toString());
 
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

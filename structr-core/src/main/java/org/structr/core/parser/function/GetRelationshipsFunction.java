@@ -20,6 +20,7 @@ package org.structr.core.parser.function;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractRelationship;
@@ -45,7 +46,7 @@ public class GetRelationshipsFunction extends Function<Object, Object> {
 
 		final List<AbstractRelationship> list = new ArrayList<>();
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 3)) {
 
 			final Object source = sources[0];
 			final Object target = sources[1];
@@ -60,7 +61,9 @@ public class GetRelationshipsFunction extends Function<Object, Object> {
 
 			} else {
 
+				logger.log(Level.WARNING, "Error: entities are not nodes. Parameters: {0}", getParametersAsString(sources));
 				return "Error: Entities are not nodes.";
+
 			}
 
 			if (sources.length == 2) {
@@ -96,6 +99,11 @@ public class GetRelationshipsFunction extends Function<Object, Object> {
 				}
 
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return list;

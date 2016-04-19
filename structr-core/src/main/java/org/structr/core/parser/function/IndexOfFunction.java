@@ -44,6 +44,11 @@ public class IndexOfFunction extends Function<Object, Object> {
 			final String part = sources[1].toString();
 
 			return source.indexOf(part);
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

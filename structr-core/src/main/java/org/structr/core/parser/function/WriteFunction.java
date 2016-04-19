@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -35,8 +34,6 @@ import org.structr.schema.action.Function;
  *
  */
 public class WriteFunction extends Function<Object, Object> {
-
-	private static final Logger logger = Logger.getLogger(WriteFunction.class.getName());
 
 	public static final String ERROR_MESSAGE_WRITE = "Usage: ${write(filename, value)}. Example: ${write(\"text.txt\", this.name)}";
 
@@ -71,12 +68,20 @@ public class WriteFunction extends Function<Object, Object> {
 					} else {
 
 						logger.log(Level.SEVERE, "Trying to overwrite an existing file, please use append() for that purpose.");
+
 					}
 				}
 
 			} catch (IOException ioex) {
-				logger.log(Level.WARNING, "", ioex);
+
+				logException(ioex, "{0}: Exception for parameters: {1}", new Object[] { getName(), getParametersAsString(sources) });
+
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

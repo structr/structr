@@ -63,6 +63,10 @@ public class ValuesFunction extends Function<Object, Object> {
 
 			return new LinkedList<>(((Map)sources[0]).values());
 
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

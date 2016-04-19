@@ -44,7 +44,7 @@ public class LogEventFunction extends UiFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 4)) {
 
 			final String action = sources[0].toString();
 			final String message = sources[1].toString();
@@ -86,6 +86,11 @@ public class LogEventFunction extends UiFunction {
 				new NodeAttribute(LogEvent.subjectProperty, subject),
 				new NodeAttribute(LogEvent.objectProperty, object)
 			);
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

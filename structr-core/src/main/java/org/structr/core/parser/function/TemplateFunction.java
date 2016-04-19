@@ -18,6 +18,7 @@
  */
 package org.structr.core.parser.function;
 
+import java.util.logging.Level;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
@@ -44,10 +45,6 @@ public class TemplateFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (sources == null || sources != null && sources.length != 3) {
-			return usage(ctx.isJavaScriptContext());
-		}
-
 		if (arrayHasLengthAndAllElementsNotNull(sources, 3) && sources[2] instanceof AbstractNode) {
 
 			final App app = StructrApp.getInstance(entity != null ? entity.getSecurityContext() : ctx.getSecurityContext());
@@ -64,7 +61,19 @@ public class TemplateFunction extends Function<Object, Object> {
 					// recursive replacement call, be careful here
 					return Scripting.replaceVariables(ctx, templateInstance, text);
 				}
+
+			} else {
+
+				logger.log(Level.WARNING, "No MailTemplate found for parameters: {0}", getParametersAsString(sources));
+
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
+			return usage(ctx.isJavaScriptContext());
+
 		}
 
 		return "";

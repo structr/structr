@@ -120,6 +120,11 @@ public class GetFunction extends Function<Object, Object> {
 
 				return ERROR_MESSAGE_GET_ENTITY;
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return usage(ctx.isJavaScriptContext());
