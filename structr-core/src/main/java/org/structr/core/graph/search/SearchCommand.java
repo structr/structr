@@ -89,7 +89,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	private IndexType indexType                  = IndexType.Exact;
 	private PropertyKey sortKey                  = null;
 	private boolean publicOnly                   = false;
-	private boolean includeDeletedAndHidden      = false;
+	private boolean includeDeletedAndHidden      = true;
 	private boolean sortDescending               = false;
 	private boolean doNotSort                    = false;
 	private boolean exactSearch                  = true;
