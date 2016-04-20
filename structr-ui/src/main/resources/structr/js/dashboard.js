@@ -53,7 +53,7 @@ var _Dashboard = {
 		});
 		_Dashboard.checkAdmin();
 		
-		aboutMe.append('<button id="clear-local-storage-on-server">Clear UI configuration on server</button>');
+		aboutMe.append('<button id="clear-local-storage-on-server">Reset stored UI settings</button>');
 		$('#clear-local-storage-on-server').on('click', function() {
 			_Dashboard.clearLocalStorageOnServer();
 		});
@@ -115,11 +115,13 @@ var _Dashboard = {
 			Command.rest("/me/ui", function (result) {
 				Command.setProperty(result[0].id, 'localStorage', null, false, function() {
 					blinkGreen($('#clear-local-storage-on-server'));
+					localStorageObject = {};
 				});
 			});
 		} else {
 			Command.setProperty(meObj.id, 'localStorage', null, false, function() {
 				blinkGreen($('#clear-local-storage-on-server'));
+				localStorageObject = {};
 			});
 		}
 	}
