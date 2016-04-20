@@ -39,9 +39,17 @@ public class StripHtmlFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
-			? sources[0].toString().replaceAll("\\<.*?>", "")
-			: "";
+		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+
+			return sources[0].toString().replaceAll("\\<.*?>", "");
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
+		}
+
+		return "";
 
 	}
 
@@ -52,7 +60,7 @@ public class StripHtmlFunction extends Function<Object, Object> {
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Strips all (HTML) tags from the given string";
 	}
 
 

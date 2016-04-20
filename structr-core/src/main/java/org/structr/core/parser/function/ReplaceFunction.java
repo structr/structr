@@ -40,7 +40,7 @@ public class ReplaceFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
 			final String template = sources[0].toString();
 			GraphObject node = null;
@@ -65,9 +65,14 @@ public class ReplaceFunction extends Function<Object, Object> {
 			}
 
 			return "";
-		}
 
-		return usage(ctx.isJavaScriptContext());
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
+			return usage(ctx.isJavaScriptContext());
+
+		}
 
 	}
 

@@ -39,12 +39,19 @@ public class CapitalizeFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
-			? StringUtils.capitalize(sources[0].toString())
-			: "";
+		if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+
+			return StringUtils.capitalize(sources[0].toString());
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
+		}
+
+		return "";
 
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {

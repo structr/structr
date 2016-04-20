@@ -70,6 +70,11 @@ public class CleanFunction extends Function<Object, Object> {
 			}
 
 			return cleanString(sources[0]);
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return null;

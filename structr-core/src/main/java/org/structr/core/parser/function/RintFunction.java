@@ -42,11 +42,19 @@ public class RintFunction extends Function<Object, Object> {
 		if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof Number) {
 
 			try {
+
 				return new Random(System.currentTimeMillis()).nextInt(((Number)sources[0]).intValue());
 
 			} catch (Throwable t) {
-				// ignore
+
+				logException(t, "{0}: Exception for parameters: {1}", new Object[] { getName(), getParametersAsString(sources) });
+
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

@@ -81,6 +81,11 @@ public class GetOrNullFunction extends Function<Object, Object> {
 
 				return "";
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return null;
@@ -88,7 +93,7 @@ public class GetOrNullFunction extends Function<Object, Object> {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		
+
 		if (inJavaScriptContext) {
 			return ERROR_MESSAGE_GET_OR_NULL_JS;
 		}

@@ -39,7 +39,7 @@ public class SetResponseHeaderFunction extends UiFunction {
 	@Override
 	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
 
-		if (sources != null && sources.length == 2) {
+		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
 			final String name = sources[0].toString();
 			final String value = sources[1].toString();
@@ -55,9 +55,15 @@ public class SetResponseHeaderFunction extends UiFunction {
 			}
 
 			return "";
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
+			return usage(ctx.isJavaScriptContext());
+
 		}
 
-		return usage(ctx.isJavaScriptContext());
 	}
 
 	@Override

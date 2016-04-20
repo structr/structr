@@ -18,6 +18,7 @@
  */
 package org.structr.core.parser.function;
 
+import java.util.logging.Level;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.error.FrameworkException;
@@ -43,7 +44,7 @@ public class OutgoingFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
 
 			final RelationshipFactory factory = new RelationshipFactory(entity != null ? entity.getSecurityContext() : ctx.getSecurityContext());
 			final Object source = sources[0];
@@ -67,8 +68,15 @@ public class OutgoingFunction extends Function<Object, Object> {
 
 			} else {
 
+				logger.log(Level.WARNING, "Error: entity is not a node. Parameters: {0}", getParametersAsString(sources));
 				return "Error: entity is not a node.";
+
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

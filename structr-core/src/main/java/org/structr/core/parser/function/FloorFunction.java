@@ -44,12 +44,13 @@ public class FloorFunction extends Function<Object, Object> {
 
 		} else {
 
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 
 		}
 
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {

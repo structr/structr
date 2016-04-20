@@ -31,7 +31,7 @@ import org.structr.schema.action.Function;
  */
 public class CypherFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_CYPHER    = "Usage: ${cypher('MATCH (n) RETURN n')}";
+	public static final String ERROR_MESSAGE_CYPHER    = "Usage: ${cypher(query)}. Example ${cypher('MATCH (n) RETURN n')}";
 	public static final String ERROR_MESSAGE_CYPHER_JS = "Usage: ${{Structr.cypher(query)}}. Example ${{Structr.cypher('MATCH (n) RETURN n')}}";
 
 	@Override
@@ -53,6 +53,11 @@ public class CypherFunction extends Function<Object, Object> {
 			}
 
 			return StructrApp.getInstance(ctx.getSecurityContext()).cypher(query, params);
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

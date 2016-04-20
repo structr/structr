@@ -21,7 +21,6 @@ package org.structr.function;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -40,7 +39,6 @@ import org.w3c.dom.NodeList;
  */
 public class FromXmlFunction extends UiFunction {
 
-	private static final Logger logger                     = Logger.getLogger(FromXmlFunction.class.getName());
 	private static final Property<List> attributesProperty = new GenericProperty<>("attributes");
 	private static final Property<List> childrenProperty   = new GenericProperty<>("children");
 	private static final Property<String> valueProperty    = new StringProperty("value");
@@ -53,32 +51,36 @@ public class FromXmlFunction extends UiFunction {
 	@Override
 	public Object apply(ActionContext ctx, GraphObject entity, Object[] sources) throws FrameworkException {
 
-		if (sources != null && sources.length > 0) {
+		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 
-			if (sources[0] != null) {
+			try {
 
-				try {
+				final GraphObjectMap result = new GraphObjectMap();
+				final XmlFunction xml       = new XmlFunction();
+				final Document document     = (Document)xml.apply(ctx, entity, sources);
 
-					final GraphObjectMap result = new GraphObjectMap();
-					final XmlFunction xml       = new XmlFunction();
-					final Document document     = (Document)xml.apply(ctx, entity, sources);
+				if (document != null) {
 
-					if (document != null) {
+					convertNode(result, document);
+					return result;
 
-						convertNode(result, document);
-						return result;
+				} else {
 
-					} else {
-
-						logger.log(Level.WARNING, "Unable to parse XML document: {0}", sources[0].toString());
-					}
-
-				} catch (Throwable t) {
-					logger.log(Level.WARNING, "", t);
+					logger.log(Level.WARNING, "Unable to parse XML document: {0}", sources[0].toString());
 				}
+
+			} catch (Throwable t) {
+
+				logException(t, "{0}: Exception for parameter: {1}", new Object[] { getName(), getParametersAsString(sources) });
+
 			}
 
 			return "";
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return usage(ctx.isJavaScriptContext());
@@ -86,12 +88,7 @@ public class FromXmlFunction extends UiFunction {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-
-		if (inJavaScriptContext) {
-			return ERROR_MESSAGE_FROM_XML_JS;
-		}
-
-		return ERROR_MESSAGE_FROM_XML;
+		return (inJavaScriptContext ? ERROR_MESSAGE_FROM_XML_JS : ERROR_MESSAGE_FROM_XML);
 	}
 
 	@Override

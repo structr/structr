@@ -65,6 +65,11 @@ public class NthFunction extends Function<Object, Object> {
 					return arr[pos];
 				}
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return null;

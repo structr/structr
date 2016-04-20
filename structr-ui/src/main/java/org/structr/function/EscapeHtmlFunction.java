@@ -40,9 +40,17 @@ public class EscapeHtmlFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
-			? DOMNode.escapeForHtmlAttributes(sources[0].toString())
-			: "";
+		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+
+			return DOMNode.escapeForHtmlAttributes(sources[0].toString());
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
+		}
+
+		return "";
 
 	}
 
@@ -55,6 +63,5 @@ public class EscapeHtmlFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "";
 	}
-
 
 }

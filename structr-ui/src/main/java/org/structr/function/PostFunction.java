@@ -20,8 +20,6 @@ package org.structr.function;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
@@ -39,8 +37,6 @@ import static org.structr.web.entity.dom.DOMNode.extractHeaders;
  *
  */
 public class PostFunction extends Function<Object, Object> {
-
-	private static final Logger logger = Logger.getLogger(PostFunction.class.getName());
 
 	public static final String ERROR_MESSAGE_POST    = "Usage: ${POST(URL, body [, contentType, charset])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:Test}', 'application/json', 'utf-8')}";
 	public static final String ERROR_MESSAGE_POST_JS = "Usage: ${{Structr.POST(URL, body [, contentType, charset])}}. Example: ${{Structr.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'utf-8')}}";
@@ -60,14 +56,11 @@ public class PostFunction extends Function<Object, Object> {
 			String contentType = "application/json";
 			String charset = "utf-8";
 
-			// override default content type
-			if (sources.length >= 3 && sources[2] != null) {
-				contentType = sources[2].toString();
-			}
+			switch (sources.length) {
 
-			// override default content type
-			if (sources.length >= 4 && sources[3] != null) {
-				charset = sources[3].toString();
+				case 4: charset = sources[3].toString();
+				case 3: contentType = sources[2].toString();
+					break;
 			}
 
 			final HttpClientParams params = new HttpClientParams(HttpClientParams.getDefaultParams());
@@ -105,11 +98,14 @@ public class PostFunction extends Function<Object, Object> {
 				return response;
 
 			} catch (IOException ioex) {
-				logger.log(Level.WARNING, "", ioex);
+
+				logException(ioex, "{0}: Exception for parameter: {1}", new Object[] { getName(), getParametersAsString(sources) });
+
 			}
 
 		} else {
 
+			logParameterError(sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
 

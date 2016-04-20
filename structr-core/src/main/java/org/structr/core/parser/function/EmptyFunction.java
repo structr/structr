@@ -44,7 +44,9 @@ public class EmptyFunction extends Function<Object, Object> {
 			return true;
 
 		} else {
+
 			return false;
+
 		}
 
 	}

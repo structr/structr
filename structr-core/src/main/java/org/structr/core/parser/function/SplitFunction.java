@@ -39,7 +39,7 @@ public class SplitFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
 
 			final String toSplit = sources[0].toString();
 			String splitExpr = "[,;]+";
@@ -49,6 +49,11 @@ public class SplitFunction extends Function<Object, Object> {
 			}
 
 			return Arrays.asList(toSplit.split(splitExpr));
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

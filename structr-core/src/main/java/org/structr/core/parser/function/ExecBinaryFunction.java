@@ -23,7 +23,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -37,8 +36,6 @@ import org.structr.util.AbstractBinaryProcess;
  *
  */
 public class ExecBinaryFunction extends Function<Object, Object> {
-
-	private static final Logger logger = Logger.getLogger(ExecBinaryFunction.class.getName());
 
 	public static final String ERROR_MESSAGE_EXEC    = "Usage: ${exec_binary(output, fileName [, parameters...]}";
 	public static final String ERROR_MESSAGE_EXEC_JS = "Usage: ${{Structr.exec_binary(output, fileName [, parameters...]}}";
@@ -79,7 +76,7 @@ public class ExecBinaryFunction extends Function<Object, Object> {
 
 				} catch (InterruptedException | ExecutionException iex) {
 
-					logger.log(Level.WARNING, "", iex);
+					logException(iex, sources);
 
 				} finally {
 
@@ -88,8 +85,13 @@ public class ExecBinaryFunction extends Function<Object, Object> {
 
 			} else {
 
-				logger.log(Level.WARNING, "No script found for key {0} in structr.conf, nothing executed.", scriptKey);
+				logger.log(Level.WARNING, "No script found for key \"{0}\" in structr.conf, nothing executed.", scriptKey);
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

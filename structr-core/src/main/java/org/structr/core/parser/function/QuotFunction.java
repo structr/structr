@@ -44,27 +44,33 @@ public class QuotFunction extends Function<Object, Object> {
 
 				return Double.parseDouble(sources[0].toString()) / Double.parseDouble(sources[1].toString());
 
-			} catch (Throwable t) {
+			} catch (NumberFormatException nfe) {
 
-				return t.getMessage();
+				logException(nfe, "{0}: NumberFormatException for parameters: {1}", new Object[] { getName(), getParametersAsString(sources) });
+				return nfe.getMessage();
 
+			}
+
+		} else if (sources.length > 0 && sources[0] != null) {
+
+			try {
+
+				return Double.parseDouble(sources[0].toString());
+
+			} catch (NumberFormatException nfe) {
+
+				logException(nfe, "{0}: NumberFormatException for parameters: {1}", new Object[] { getName(), getParametersAsString(sources) });
+				return nfe.getMessage();
 			}
 
 		} else {
 
-			if (sources != null) {
+			logParameterError(sources, ctx.isJavaScriptContext());
+			return "";
 
-				if (sources.length > 0 && sources[0] != null) {
-					return Double.valueOf(sources[0].toString());
-				}
-
-				return "";
-			}
 		}
 
-		return "";
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {

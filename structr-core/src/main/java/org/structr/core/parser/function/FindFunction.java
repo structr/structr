@@ -19,6 +19,7 @@
 package org.structr.core.parser.function;
 
 import java.util.Map;
+import java.util.logging.Level;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -66,12 +67,15 @@ public class FindFunction extends Function<Object, Object> {
 
 				} else {
 
+					logger.log(Level.WARNING, "Error in find(): type \"{0}\" not found.", typeString);
 					return "Error in find(): type " + typeString + " not found.";
+
 				}
 			}
 
 			// exit gracefully instead of crashing..
 			if (type == null) {
+				logger.log(Level.WARNING, "Error in find(): no type specified. Parameters: {0}", getParametersAsString(sources));
 				return "Error in find(): no type specified.";
 			}
 
@@ -93,18 +97,13 @@ public class FindFunction extends Function<Object, Object> {
 
 				final int resultCount = query.getResult().size();
 
-				if (resultCount == 1) {
-
-					return query.getFirst();
-
-				} else if (resultCount == 0) {
-
-					return null;
-
-				} else {
-
-					throw new FrameworkException(400, "Multiple Objects found for id! [" + sources[1].toString() + "]");
-
+				switch (resultCount) {
+					case 1:
+						return query.getFirst();
+					case 0:
+						return null;
+					default:
+						throw new FrameworkException(400, "Multiple Objects found for id! [" + sources[1].toString() + "]");
 				}
 
 			} else {

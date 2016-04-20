@@ -19,13 +19,13 @@
 package org.structr.core.parser.function;
 
 import java.util.Map;
+import java.util.logging.Level;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import static org.structr.core.parser.function.FindFunction.ERROR_MESSAGE_FIND;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
@@ -57,14 +57,27 @@ public class SearchFunction extends Function<Object, Object> {
 
 			if (sources.length >= 1 && sources[0] != null) {
 
-				type = config.getNodeEntityClass(sources[0].toString());
+				final String typeString = sources[0].toString();
+				type = config.getNodeEntityClass(typeString);
 
 				if (type != null) {
 
 					query.andTypes(type);
+
+				} else {
+
+					logger.log(Level.WARNING, "Error in search(): type {0} not found.", typeString);
+					return "Error in search(): type " + typeString + " not found.";
+
 				}
 			}
-			
+
+			// exit gracefully instead of crashing..
+			if (type == null) {
+				logger.log(Level.WARNING, "Error in search(): no type specified. Parameters: {0}", getParametersAsString(sources));
+				return "Error in search(): no type specified.";
+			}
+
 			// experimental: disable result count, prevents instantiation
 			// of large collections just for counting all the objects..
 			securityContext.ignoreResultCount(true);
@@ -84,7 +97,7 @@ public class SearchFunction extends Function<Object, Object> {
 
 				if (parameter_count % 2 == 0) {
 
-					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_FIND);
+					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_SEARCH);
 				}
 
 				for (Integer c = 1; c < parameter_count; c += 2) {
@@ -125,11 +138,11 @@ public class SearchFunction extends Function<Object, Object> {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_SEARCH;
+		return (inJavaScriptContext ? ERROR_MESSAGE_SEARCH_JS : ERROR_MESSAGE_SEARCH);
 	}
 
 	@Override
 	public String shortDescription() {
-		return "";
+		return "Returns a collection of entities of the given type from the database, takes optional key/value pairs. Searches case-insensitve / inexact.";
 	}
 }

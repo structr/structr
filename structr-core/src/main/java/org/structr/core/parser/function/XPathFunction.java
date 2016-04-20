@@ -18,8 +18,6 @@
  */
 package org.structr.core.parser.function;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -34,8 +32,6 @@ import org.w3c.dom.Document;
  *
  */
 public class XPathFunction extends Function<Object, Object> {
-
-	private static final Logger logger = Logger.getLogger(XPathFunction.class.getName());
 
 	public static final String ERROR_MESSAGE_XPATH = "Usage: ${xpath(xmlDocument, expression)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\")}";
 
@@ -55,8 +51,15 @@ public class XPathFunction extends Function<Object, Object> {
 				return xpath.evaluate(sources[1].toString(), sources[0], XPathConstants.STRING);
 
 			} catch (XPathExpressionException ioex) {
-				logger.log(Level.WARNING, "", ioex);
+
+				logException(ioex, "{0}: Exception for parameters: {1}", new Object[] { getName(), getParametersAsString(sources) });
+
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

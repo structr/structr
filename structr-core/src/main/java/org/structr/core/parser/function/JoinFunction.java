@@ -51,6 +51,11 @@ public class JoinFunction extends Function<Object, Object> {
 
 				return StringUtils.join((Object[])sources[0], sources[1].toString());
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

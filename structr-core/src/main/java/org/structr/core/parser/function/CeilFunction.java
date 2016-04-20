@@ -44,6 +44,8 @@ public class CeilFunction extends Function<Object, Object> {
 
 		} else {
 
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 
 		}

@@ -20,8 +20,6 @@ package org.structr.function;
 
 import java.io.StringWriter;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
@@ -35,8 +33,6 @@ import org.structr.schema.action.ActionContext;
  */
 public class ToJsonFunction extends UiFunction {
 
-	private static final Logger logger = Logger.getLogger(ToJsonFunction.class.getName());
-
 	public static final String ERROR_MESSAGE_TO_JSON    = "Usage: ${to_json(obj [, view])}. Example: ${to_json(this)}";
 	public static final String ERROR_MESSAGE_TO_JSON_JS = "Usage: ${{Structr.to_json(obj [, view])}}. Example: ${{Structr.to_json(Structr.get('this'))}}";
 
@@ -48,7 +44,7 @@ public class ToJsonFunction extends UiFunction {
 	@Override
 	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
 
-		if (sources != null && sources.length > 0) {
+		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 3)) {
 
 			final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
 
@@ -78,7 +74,9 @@ public class ToJsonFunction extends UiFunction {
 					return writer.getBuffer().toString();
 
 				} catch (Throwable t) {
-					logger.log(Level.WARNING, "", t);
+
+					logException(t, "{0}: Exception for parameter: {1}", new Object[] { getName(), getParametersAsString(sources) });
+
 				}
 
 			} else if (sources[0] instanceof List) {
@@ -108,14 +106,22 @@ public class ToJsonFunction extends UiFunction {
 					return writer.getBuffer().toString();
 
 				} catch (Throwable t) {
-					logger.log(Level.WARNING, "", t);
+
+					logException(t, "{0}: Exception for parameter: {1}", new Object[] { getName(), getParametersAsString(sources) });
+
 				}
+
 			}
 
 			return "";
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
+
 		}
 
-		return usage(ctx.isJavaScriptContext());
 	}
 
 	@Override

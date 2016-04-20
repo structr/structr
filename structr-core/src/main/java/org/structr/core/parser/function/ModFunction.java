@@ -44,20 +44,23 @@ public class ModFunction extends Function<Object, Object> {
 
 				return ((int)Double.parseDouble(sources[0].toString())) % ((int)Double.parseDouble(sources[1].toString()));
 
-			} catch (Throwable t) {
+			} catch (NumberFormatException nfe) {
 
-				return t.getMessage();
+				logException(nfe, "{0}: NumberFormatException for parameters: {1}", new Object[] { getName(), getParametersAsString(sources) });
+
+				return nfe.getMessage();
 
 			}
 
 		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
 
 		}
 
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {

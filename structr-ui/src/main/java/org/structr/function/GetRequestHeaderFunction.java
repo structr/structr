@@ -39,7 +39,7 @@ public class GetRequestHeaderFunction extends UiFunction {
 	@Override
 	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
 
-		if (sources != null && arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
 			final String name = sources[0].toString();
@@ -54,6 +54,11 @@ public class GetRequestHeaderFunction extends UiFunction {
 			}
 
 			return "";
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return usage(ctx.isJavaScriptContext());

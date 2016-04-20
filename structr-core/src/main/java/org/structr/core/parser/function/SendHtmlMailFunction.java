@@ -18,7 +18,6 @@
  */
 package org.structr.core.parser.function;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.mail.EmailException;
 import org.structr.common.MailHelper;
@@ -44,7 +43,7 @@ public class SendHtmlMailFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 6)) {
+		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 6, 7)) {
 
 			final String from = sources[0].toString();
 			final String fromName = sources[1].toString();
@@ -59,11 +58,19 @@ public class SendHtmlMailFunction extends Function<Object, Object> {
 			}
 
 			try {
+
 				return MailHelper.sendHtmlMail(from, fromName, to, toName, null, null, from, subject, htmlContent, textContent);
 
 			} catch (EmailException eex) {
-				logger.log(Level.WARNING, "", eex);
+
+				logException(eex, "{0}: Exception for parameters: {1}", new Object[] { getName(), getParametersAsString(sources) });
+
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

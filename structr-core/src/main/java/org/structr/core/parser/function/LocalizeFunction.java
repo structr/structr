@@ -19,6 +19,7 @@
 package org.structr.core.parser.function;
 
 import java.util.List;
+import java.util.logging.Level;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -82,11 +83,13 @@ public class LocalizeFunction extends Function<Object, Object> {
 
 				if (sources.length > 1) {
 
-					return "Ambiguous localization for key '" + sources[0] + "' and domain '" + sources[1] + "' found. Please fix.";
+					logger.log(Level.WARNING, "Found ambiguous localization for key \"{0}\" and domain \"{1}\". Please fix. Parameters: {2}", new Object[] { sources[0].toString(), sources[1].toString(), getParametersAsString(sources) });
+					return "Found ambiguous localization for key \"" + sources[0] + "\" and domain \"" + sources[1] + "\". Please fix.";
 
 				} else {
 
-					return "Ambiguous localization for key '" + sources[0] + "' found. Please fix.";
+					logger.log(Level.WARNING, "Found ambiguous localization for key \"{0}\". Please fix. Parameters: {1}", new Object[] { sources[0].toString(), getParametersAsString(sources) });
+					return "Found ambiguous localization for key \"" + sources[0] + "\". Please fix.";
 
 				}
 
@@ -102,10 +105,14 @@ public class LocalizeFunction extends Function<Object, Object> {
 
 		} else if (sources.length == 1 || sources.length == 2) {
 
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 			// silently ignore null values
 			return "";
 
 		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
 
 			// only show the error message for wrong parameter count
 			return usage(ctx.isJavaScriptContext());

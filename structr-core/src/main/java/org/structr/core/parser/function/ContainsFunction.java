@@ -58,6 +58,11 @@ public class ContainsFunction extends Function<Object, Object> {
 
 				return ArrayUtils.contains((Object[])sources[0], sources[1]);
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return false;

@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -35,8 +34,6 @@ import org.structr.schema.action.Function;
  *
  */
 public class AppendFunction extends Function<Object, Object> {
-
-	private static final Logger logger = Logger.getLogger(AppendFunction.class.getName());
 
 	public static final String ERROR_MESSAGE_APPEND = "Usage: ${append(filename, value)}. Example: ${append(\"test.txt\", this.name)}";
 
@@ -51,7 +48,9 @@ public class AppendFunction extends Function<Object, Object> {
 		if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
 			try {
+
 				final String sandboxFilename = getSandboxFileName(sources[0].toString());
+
 				if (sandboxFilename != null) {
 
 					final File file = new File(sandboxFilename);
@@ -64,11 +63,19 @@ public class AppendFunction extends Function<Object, Object> {
 
 						writer.flush();
 					}
+
 				}
 
 			} catch (IOException ioex) {
-				logger.log(Level.WARNING, "", ioex);
+
+				logException(ioex, sources);
+
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

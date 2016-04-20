@@ -42,6 +42,10 @@ public class NotFunction extends Function<Object, Object> {
 
 			return !("true".equals(sources[0].toString()) || Boolean.TRUE.equals(sources[0]));
 
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return true;

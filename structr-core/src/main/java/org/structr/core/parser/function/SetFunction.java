@@ -85,6 +85,10 @@ public class SetFunction extends Function<Object, Object> {
 				throw new FrameworkException(422, "Invalid use of builtin method set, usage: set(entity, params..)");
 			}
 
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

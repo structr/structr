@@ -63,6 +63,10 @@ public class KeysFunction extends Function<Object, Object> {
 
 			return new LinkedList<>(((Map)sources[0]).keySet());
 
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

@@ -41,6 +41,11 @@ public class LengthFunction extends Function<Object, Object> {
 		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 
 			return sources[0].toString().length();
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

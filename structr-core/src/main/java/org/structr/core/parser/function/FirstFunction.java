@@ -53,6 +53,11 @@ public class FirstFunction extends Function<Object, Object> {
 					return arr[0];
 				}
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return null;

@@ -18,6 +18,7 @@
  */
 package org.structr.core.parser.function;
 
+import java.util.logging.Level;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -57,6 +58,7 @@ public class CreateRelationshipFunction extends Function<Object, Object> {
 
 			} else {
 
+				logger.log(Level.WARNING, "Error: entities are not nodes. Parameters: {0}", getParametersAsString(sources));
 				return "Error: entities are not nodes.";
 			}
 
@@ -68,8 +70,13 @@ public class CreateRelationshipFunction extends Function<Object, Object> {
 
 			} else {
 
+				logger.log(Level.WARNING, "Error: Unknown relationship type. Parameters: {0}", getParametersAsString(sources));
 				return "Error: Unknown relationship type";
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
 
 		}
 

@@ -18,6 +18,7 @@
  */
 package org.structr.core.parser.function;
 
+import java.util.logging.Level;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
@@ -40,11 +41,7 @@ public class AndFunction extends Function<Object, Object> {
 
 		boolean result = true;
 
-		if (sources != null) {
-
-			if (sources.length < 2) {
-				return usage(ctx.isJavaScriptContext());
-			}
+		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
 			for (Object i : sources) {
 
@@ -56,6 +53,8 @@ public class AndFunction extends Function<Object, Object> {
 
 					} catch (Throwable t) {
 
+						logException(t, sources);
+
 						return t.getMessage();
 
 					}
@@ -65,7 +64,14 @@ public class AndFunction extends Function<Object, Object> {
 					// null is false
 					return false;
 				}
+
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
+			result = false;
 
 		}
 

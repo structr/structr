@@ -19,6 +19,7 @@
 package org.structr.function;
 
 import java.util.Collection;
+import java.util.logging.Level;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -43,7 +44,7 @@ public class RenderFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (sources != null && sources.length == 1) {
+		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 
 			RenderContext innerCtx = new RenderContext((RenderContext)ctx);
 
@@ -61,12 +62,22 @@ public class RenderFunction extends Function<Object, Object> {
 
 				}
 
+			} else {
+
+				logger.log(Level.WARNING, "Error: Parameter 1 is neither node nor collection. Parameters: {0}", getParametersAsString(sources));
+
 			}
 
 			return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
+			return usage(ctx.isJavaScriptContext());
+
 		}
 
-		return usage(ctx.isJavaScriptContext());
 	}
 
 	@Override

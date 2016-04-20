@@ -43,7 +43,13 @@ public class InstantiateFunction extends Function<Object, Object> {
 		if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
 			return new NodeFactory<>(ctx.getSecurityContext()).instantiate((Node)sources[0]);
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
+
 		return "";
 	}
 

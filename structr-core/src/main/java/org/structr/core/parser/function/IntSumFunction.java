@@ -50,6 +50,11 @@ public class IntSumFunction extends Function<Object, Object> {
 					result += num.intValue();
 				}
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return result;

@@ -85,6 +85,11 @@ public class ExtractFunction extends Function<Object, Object> {
 
 				return extraction;
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return null;

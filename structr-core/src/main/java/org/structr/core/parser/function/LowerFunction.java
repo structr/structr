@@ -38,9 +38,17 @@ public class LowerFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
-			? sources[0].toString().toLowerCase()
-			: "";
+		if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+
+			return sources[0].toString().toLowerCase();
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
+		}
+
+		return "";
 	}
 
 	@Override

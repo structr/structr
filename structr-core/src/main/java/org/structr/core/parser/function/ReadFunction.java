@@ -21,7 +21,6 @@ package org.structr.core.parser.function;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.error.FrameworkException;
@@ -63,8 +62,15 @@ public class ReadFunction extends Function<Object, Object> {
 				}
 
 			} catch (IOException ioex) {
-				logger.log(Level.WARNING, "", ioex);
+
+				logException(ioex, "{0}: IOException for parameters: {1}", new Object[] { getName(), getParametersAsString(sources) });
+
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

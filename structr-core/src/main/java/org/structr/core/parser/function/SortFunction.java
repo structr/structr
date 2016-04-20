@@ -34,7 +34,7 @@ import org.structr.schema.action.Function;
  */
 public class SortFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_SORT = "Usage: ${sort(list1, key [, true])}. Example: ${sort(this.children, \"name\")}";
+	public static final String ERROR_MESSAGE_SORT = "Usage: ${sort(list1, key [, descending=false])}. Example: ${sort(this.children, \"name\")}";
 
 	@Override
 	public String getName() {
@@ -44,7 +44,7 @@ public class SortFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 3)) {
 
 			if (sources[0] instanceof List && sources[1] instanceof String) {
 
@@ -72,6 +72,11 @@ public class SortFunction extends Function<Object, Object> {
 
 				}
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return sources[0];

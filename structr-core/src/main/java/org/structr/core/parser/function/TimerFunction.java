@@ -20,7 +20,6 @@ package org.structr.core.parser.function;
 
 import java.util.Date;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
@@ -31,8 +30,10 @@ public class TimerFunction extends Function<Object, Object>{
 	public static final String ERROR_MESSAGE_TIMER = "Usage: ${timer(name, action)}. Example: ${timer('benchmark1', 'start')}";
 	public static final String ERROR_MESSAGE_TIMER_JS = "Usage: ${{Structr.timer(name, action)}}. Example: ${{Structr.timer('benchmark1', 'start')}}";
 
-	private static final Logger logger = Logger.getLogger(ChangelogFunction.class.getName());
-
+	@Override
+	public String getName() {
+		return "timer()";
+	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
@@ -50,7 +51,7 @@ public class TimerFunction extends Function<Object, Object>{
 
 			} else if (action.equals("get")) {
 
-				Date begin = ctx.getTimer(name);
+				final Date begin = ctx.getTimer(name);
 
 				if (begin == null) {
 
@@ -72,6 +73,10 @@ public class TimerFunction extends Function<Object, Object>{
 
 			}
 
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return usage(ctx.isJavaScriptContext());
@@ -85,11 +90,6 @@ public class TimerFunction extends Function<Object, Object>{
 	@Override
 	public String shortDescription() {
 		return "Starts/Stops/Pings a timer";
-	}
-
-	@Override
-	public String getName() {
-		return "timer()";
 	}
 
 }

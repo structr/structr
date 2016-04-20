@@ -28,7 +28,7 @@ import org.structr.schema.action.Function;
  */
 public class IncCounterFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_INC_COUNTER = "Usage: ${inc_counter(level, [resetLowerLevels])}. Example: ${inc_counter(1, true)}";
+	public static final String ERROR_MESSAGE_INC_COUNTER = "Usage: ${inc_counter(level[, resetLowerLevels])}. Example: ${inc_counter(1, true)}";
 
 	@Override
 	public String getName() {
@@ -38,20 +38,33 @@ public class IncCounterFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
 
-			final int level = parseInt(sources[0]);
+			try {
 
-			ctx.incrementCounter(level);
+				final int level = parseInt(sources[0]);
 
-			// reset lower levels?
-			if (sources.length == 2 && "true".equals(sources[1].toString())) {
+				ctx.incrementCounter(level);
 
-				// reset lower levels
-				for (int i = level + 1; i < 10; i++) {
-					ctx.resetCounter(i);
+				// reset lower levels?
+				if (sources.length == 2 && "true".equals(sources[1].toString())) {
+
+					// reset lower levels
+					for (int i = level + 1; i < 10; i++) {
+						ctx.resetCounter(i);
+					}
 				}
+
+			} catch (NumberFormatException nfe) {
+
+				logException(nfe, "{0}: NumberFormatException parsing counter level \"{1}\". Parameters: {2}", new Object[] { getName(), sources[0].toString(), getParametersAsString(sources) });
+
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

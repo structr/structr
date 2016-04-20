@@ -68,6 +68,11 @@ public class MergePropertiesFunction extends Function<Object, Object> {
 				}
 
 			}
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return "";

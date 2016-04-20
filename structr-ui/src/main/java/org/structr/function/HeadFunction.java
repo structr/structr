@@ -18,8 +18,6 @@
  */
 package org.structr.function;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 
@@ -27,8 +25,6 @@ import org.structr.schema.action.ActionContext;
  *
  */
 public class HeadFunction extends UiFunction {
-
-	private static final Logger logger = Logger.getLogger(HeadFunction.class.getName());
 
 	public static final String ERROR_MESSAGE_HEAD    = "Usage: ${HEAD(URL[, username, password])}. Example: ${HEAD('http://structr.org', 'foo', 'bar')}";
 	public static final String ERROR_MESSAGE_HEAD_JS = "Usage: ${{Structr.HEAD(URL[, username, password]])}}. Example: ${{Structr.HEAD('http://structr.org', 'foo', 'bar')}}";
@@ -41,7 +37,7 @@ public class HeadFunction extends UiFunction {
 	@Override
 	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
 
-		if (sources != null && sources.length > 0) {
+		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 3)) {
 
 			try {
 
@@ -49,21 +45,27 @@ public class HeadFunction extends UiFunction {
 				String username = null;
 				String password = null;
 
-				if (sources.length > 1) {
-					username = sources[1].toString();
-				}
+				switch (sources.length) {
 
-				if (sources.length > 2) {
-					password = sources[2].toString();
+					case 3: password = sources[2].toString();
+					case 2: username = sources[1].toString();
+						break;
 				}
 
 				return headFromUrl(ctx, address, username, password);
 
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "", t);
+
+				logException(t, "{0}: Exception for parameter: {1}", new Object[] { getName(), getParametersAsString(sources) });
+
 			}
 
 			return "";
+
+		} else {
+
+			logParameterError(sources, ctx.isJavaScriptContext());
+
 		}
 
 		return usage(ctx.isJavaScriptContext());
