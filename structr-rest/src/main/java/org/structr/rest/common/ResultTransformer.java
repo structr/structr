@@ -16,33 +16,22 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.transform;
+package org.structr.rest.common;
 
-import org.structr.core.entity.OneToMany;
-import org.structr.core.entity.Relation;
+import java.util.Map;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Result;
 
 /**
  *
  */
-public class VirtualTypeProperty extends OneToMany<VirtualType, VirtualProperty> {
+public interface ResultTransformer {
 
-	@Override
-	public Class<VirtualType> getSourceType() {
-		return VirtualType.class;
-	}
+	String getSourceType();
 
-	@Override
-	public Class<VirtualProperty> getTargetType() {
-		return VirtualProperty.class;
-	}
+	Result transformOutput(final SecurityContext securityContext, final Class sourceType, final Result result) throws FrameworkException;
+	void transformInput(final SecurityContext securityContext, final Class type, final Map<String, Object> propertySet) throws FrameworkException;
 
-	@Override
-	public String name() {
-		return "virtualProperty";
-	}
-
-	@Override
-	public int getAutocreationFlag() {
-		return Relation.SOURCE_TO_TARGET;
-	}
+	boolean isPrimitiveArray();
 }
