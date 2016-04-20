@@ -42,7 +42,9 @@ import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.TestOne;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -317,6 +319,67 @@ public class SearchTest extends StructrTest {
 
 				tx.success();
 
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+
+	public void test06InexactSearchWithHyphen() {
+
+		final Map<String, Integer> testResults = new LinkedHashMap<>();
+
+		testResults.put("ABCDE12345",  1);
+		testResults.put("ABCDE#1234",  1);
+		testResults.put("ABCDE\\2345", 1);
+		testResults.put("ABCDE+2345",  1);
+		testResults.put("ABCDE-2345",  1);
+		testResults.put("ABCDE!2345",  1);
+		testResults.put("ABCDE(2345",  1);
+		testResults.put("ABCDE)2345",  1);
+		testResults.put("ABCDE:2345",  1);
+		testResults.put("ABCDE^2345",  1);
+		testResults.put("ABCDE[2345",  1);
+		testResults.put("ABCDE]2345",  1);
+		testResults.put("ABCDE\"2345", 1);
+		testResults.put("ABCDE{2345",  1);
+		testResults.put("ABCDE}2345",  1);
+		testResults.put("ABCDE~2345",  1);
+		testResults.put("ABCDE*2345", 22);
+		testResults.put("ABCDE?2345",  1);
+		testResults.put("ABCDE|2345",  1);
+		testResults.put("ABCDE&2345",  1);
+		testResults.put("ABCDE;2345",  1);
+		testResults.put("ABCDE/2345",  1);
+
+		try  {
+
+			try (final Tx tx = app.tx()) {
+
+				for (final String source : testResults.keySet()) {
+					app.create(TestOne.class, source);
+				}
+
+				tx.success();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				for (final String source : testResults.keySet()) {
+
+					final String query         = source.substring(0, 6);
+					final int count            = testResults.get(source);
+					final List<TestOne> result = app.nodeQuery(TestOne.class, false).and(AbstractNode.name, query, false).getAsList();
+
+					assertEquals("Unexpected query result for special char query " + query, count, result.size());
+				}
+
+				tx.success();
 			}
 
 		} catch (FrameworkException ex) {
