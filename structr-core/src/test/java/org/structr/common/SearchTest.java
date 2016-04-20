@@ -336,7 +336,6 @@ public class SearchTest extends StructrTest {
 
 		testResults.put("ABCDE12345",  1);
 		testResults.put("ABCDE#1234",  1);
-		testResults.put("ABCDE\\2345", 1);
 		testResults.put("ABCDE+2345",  1);
 		testResults.put("ABCDE-2345",  1);
 		testResults.put("ABCDE!2345",  1);
