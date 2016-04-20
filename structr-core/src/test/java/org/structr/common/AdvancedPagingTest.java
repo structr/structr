@@ -550,7 +550,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Result<TestOne> result = app.nodeQuery(TestOne.class).getResult();
+			final Result<TestOne> result = app.nodeQuery(TestOne.class).includeDeletedAndHidden(false).getResult();
 
 			assertEquals("Result count should not include deleted or hidden nodes", 7, (int)result.getRawResultCount());
 			assertEquals("Actual result size should be equal to result count", 7, (int)result.getResults().size());

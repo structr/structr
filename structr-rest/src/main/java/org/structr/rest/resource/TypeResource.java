@@ -134,7 +134,7 @@ public class TypeResource extends SortableResource {
 	@Override
 	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
-		boolean includeDeletedAndHidden        = false;
+		boolean includeDeletedAndHidden        = true;
 		boolean publicOnly                     = false;
 		PropertyKey actualSortKey              = sortKey;
 		boolean actualSortOrder                = sortDescending;

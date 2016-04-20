@@ -314,6 +314,7 @@ var _Crud = {
 		});
 
 		$('#resourceTabs').tabs({
+			active: true,
 			activate: function(event, ui) {
 
 				var newType = ui.newPanel[0].id;
@@ -658,7 +659,7 @@ var _Crud = {
 				if (callback) {
 					callback();
 				} else {
-					document.location.reload();
+					_Crud.refreshList(type);
 				}
 			}
 		});
@@ -671,7 +672,7 @@ var _Crud = {
 					if (callback) {
 						callback();
 					} else {
-						document.location.reload();
+						_Crud.refreshList(type);
 					}
 				}
 			}
