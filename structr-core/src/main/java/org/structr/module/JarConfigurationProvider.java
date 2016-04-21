@@ -89,6 +89,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private final Map<String, Class> combinedTypeRelationClassCache                                = new ConcurrentHashMap<>(100);
 	private final Map<String, Set<Class>> interfaceCache                                           = new ConcurrentHashMap<>(2000);
+	private final Map<String, StructrModule> modules                                               = new ConcurrentHashMap<>(100);
 
 	private final String fileSep                                                                   = System.getProperty("file.separator");
 	private final String pathSep                                                                   = System.getProperty("path.separator");
@@ -382,40 +383,29 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	 */
 	private Class findNearestMatchingRelationClass(final String sourceTypeName, final String relType, final String targetTypeName) {
 
-		//System.out.println("###### Find nearest matching relation class for " + sourceTypeName + " " + relType + " " + targetTypeName);
-		Map<Integer, Class> candidates = new TreeMap<>();
-		Class sourceType = getNodeEntityClass(sourceTypeName);
-		Class targetType = getNodeEntityClass(targetTypeName);
+		final Class sourceType               = getNodeEntityClass(sourceTypeName);
+		final Class targetType               = getNodeEntityClass(targetTypeName);
+		final Map<Integer, Class> candidates = new TreeMap<>();
 
 		for (final Class candidate : getRelationClassCandidatesForRelType(relType)) {
 
-			Relation rel = instantiate(candidate);
-
-			//System.out.println("? " + candidate.getSimpleName() + " for [" + sourceTypeName + " " + relType + " " + targetTypeName + "]");
-			int distance = getDistance(rel.getSourceType(), sourceType, -1) + getDistance(rel.getTargetType(), targetType, -1);
+			final Relation rel = instantiate(candidate);
+			final int distance = getDistance(rel.getSourceType(), sourceType, -1) + getDistance(rel.getTargetType(), targetType, -1);
 
 			if (distance >= 2000) {
-
 				candidates.put(distance - 2000, candidate);
-				//System.out.println("\n=========================== Found " + candidate.getSimpleName() + " for " + sourceTypeName + " " + relType + " " + targetTypeName + " at distance " + (distance-2000));
-
-			} else {
-				//System.out.println(" no match.");
 			}
 
 		}
 
 		if (candidates.isEmpty()) {
-
-			//System.out.println("!!!!!!! No matching relation class found for " + sourceTypeName + " " + relType + " " + targetTypeName);
 			return null;
 
 		} else {
 
-			Entry<Integer, Class> candidateEntry = candidates.entrySet().iterator().next();
-			Class c = candidateEntry.getValue();
+			final Entry<Integer, Class> candidateEntry = candidates.entrySet().iterator().next();
+			final Class c = candidateEntry.getValue();
 
-			//System.out.println("########### Final nearest relation class : " + c.getSimpleName() + " <" + candidateEntry.getKey() + ">############################################\n\n");
 			combinedTypeRelationClassCache.put(getCombinedType(sourceTypeName, relType, targetTypeName), c);
 
 			return c;
@@ -435,15 +425,11 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			return Integer.MIN_VALUE;
 		}
 
-		//System.out.print(".");
 		// Abort if type is Object.class here
 		if (type.equals(Object.class)) {
 			return Integer.MIN_VALUE;
 		}
 
-		//System.out.print(".");
-		//System.out.print(candidateType.getSimpleName() + "<" + distance + ">");
-		//System.out.print(".");
 		// Check direct equality
 		if (type.equals(candidateType)) {
 			//System.out.print("MATCH<" + distance + ">!");
@@ -455,32 +441,31 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			return Integer.MIN_VALUE;
 		}
 
-		//System.out.print(".");
 		// Relation candidate's source and target types must be superclasses or interfaces of the given relationship
 		if (!(candidateType.isAssignableFrom(type))) {
 			return Integer.MIN_VALUE;
 		}
 
-		//System.out.print(".");
 		distance++;
 
 		// Test source's interfaces against target class
 		Class[] interfaces = type.getInterfaces();
-		for (Class iface : interfaces) {
-			//System.out.print("." + iface.getSimpleName() + "<" + distance + ">" + "(SI).");
+
+		for (final Class iface : interfaces) {
+
 			if (iface.equals(candidateType)) {
-				//System.out.print("MATCH<" + distance + ">!");
 				return distance + 1000;
 			}
 		}
 
 		distance++;
 
-		Class superClass = type.getSuperclass();
+		final Class superClass = type.getSuperclass();
 		if (superClass != null) {
-			//System.out.println("." + superClass.getSimpleName() + "<" + distance + ">");
-			int d = getDistance(candidateType, superClass, distance);
+
+			final int d = getDistance(candidateType, superClass, distance);
 			if (d >= 1000) {
+
 				return d;
 			}
 		}
@@ -491,10 +476,10 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	@Override
 	public Map<String, Method> getAnnotatedMethods(Class entityType, Class annotationType) {
 
-		Map<String, Method> methods = new HashMap<>();
-		Set<Class<?>> allTypes      = getAllTypes(entityType);
+		final Map<String, Method> methods = new HashMap<>();
+		final Set<Class<?>> allTypes      = getAllTypes(entityType);
 
-		for (Class<?> type : allTypes) {
+		for (final Class<?> type : allTypes) {
 
 			for (Method method : type.getDeclaredMethods()) {
 
@@ -951,7 +936,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 				}
 			}
 
-//                      logger.log(Level.INFO, "Validator class {0} found for type {1}", new Object[] { clazz != null ? clazz.getSimpleName() : "null", localType } );
 			// one level up :)
 			localType = localType.getSuperclass();
 
@@ -981,9 +965,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 			registerProperty(type, propertyKey);
 
-			// scan all existing classes and find all classes that have the given
-			// type as a supertype
-
+			// scan all existing classes and find all classes that have the given type as a supertype
 			for (final Class possibleSubclass : nodeEntityClassCache.values()) {
 
 				// need to compare strings not classes here..
@@ -999,11 +981,14 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		}
 	}
 
+	@Override
+	public Map<String, StructrModule> getModules() {
+		return modules;
+	}
 	// ----- private methods -----
 	private void scanResources() {
 
 		Set<String> resourcePaths = getResourcesToScan();
-
 		for (String resourcePath : resourcePaths) {
 
 			scanResource(resourcePath);
@@ -1013,12 +998,11 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	}
 
-	private void scanResource(String resourceName) {
+	private void scanResource(final String resourceName) {
 
 		try {
 
-			Module module = loadResource(resourceName);
-
+			final StructrModuleInfo module = loadResource(resourceName);
 			if (module != null) {
 
 				importResource(module);
@@ -1037,7 +1021,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	}
 
-	private void importResource(Module module) throws IOException {
+	private void importResource(StructrModuleInfo module) throws IOException {
 
 		final Set<String> classes = module.getClasses();
 
@@ -1045,15 +1029,11 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 			String className = StringUtils.removeStart(name, ".");
 
-			logger.log(Level.FINE, "Instantiating class {0} ", className);
-
 			try {
 
 				// instantiate class..
-				Class clazz = Class.forName(className);
-				int modifiers = clazz.getModifiers();
-
-				logger.log(Level.FINE, "Class {0} instantiated: {1}", new Object[]{className, clazz});
+				final Class clazz   = Class.forName(className);
+				final int modifiers = clazz.getModifiers();
 
 				// register node entity classes
 				if (NodeInterface.class.isAssignableFrom(clazz)) {
@@ -1076,30 +1056,41 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 				// register agents
 				if (Agent.class.isAssignableFrom(clazz) && !(Modifier.isAbstract(modifiers))) {
 
-					String simpleName = clazz.getSimpleName();
-					String fullName = clazz.getName();
+					final String simpleName = clazz.getSimpleName();
+					final String fullName   = clazz.getName();
 
 					agentClassCache.put(simpleName, clazz);
 					agentPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
-
 				}
 
-			} catch (Throwable t) {
+				// register modules
+				if (StructrModule.class.isAssignableFrom(clazz) && !(Modifier.isAbstract(modifiers))) {
+
+					try {
+
+						// we need to make sure that a module is initialized exactly once
+						final StructrModule structrModule = (StructrModule)clazz.newInstance();
+						modules.put(structrModule.getName(), structrModule);
+
+					} catch (Throwable t) {
+						logger.log(Level.WARNING, "Unable to instantiate module " + clazz.getName(), t);
+					}
+				}
+
+			} catch (Throwable ignore) {
 			}
-
 		}
-
 	}
 
-	private Module loadResource(String resource) throws IOException {
+	private StructrModuleInfo loadResource(String resource) throws IOException {
 
 		// create module
-		DefaultModule ret = new DefaultModule(resource);
-		Set<String> classes = ret.getClasses();
+		final StructrModuleInfo ret   = new StructrModuleInfo(resource);
+		final Set<String> classes = ret.getClasses();
 
 		if (resource.endsWith(".jar") || resource.endsWith(".war")) {
 
-			ZipFile zipFile = new ZipFile(new File(resource), ZipFile.OPEN_READ);
+			final ZipFile zipFile = new ZipFile(new File(resource), ZipFile.OPEN_READ);
 
 			// conventions that might be useful here:
 			// ignore entries beginning with meta-inf/
@@ -1109,10 +1100,11 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			// handle other entries as potential page and/or entity classes
 			// .. to be extended
 			// (entries that end with "/" are directories)
-			for (Enumeration<? extends ZipEntry> entries = zipFile.entries(); entries.hasMoreElements();) {
 
-				ZipEntry entry = entries.nextElement();
-				String entryName = entry.getName();
+			for (final Enumeration<? extends ZipEntry> entries = zipFile.entries(); entries.hasMoreElements();) {
+
+				final ZipEntry entry = entries.nextElement();
+				final String entryName = entry.getName();
 
 				if (entryName.endsWith(".class")) {
 
@@ -1152,7 +1144,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			return;
 		}
 
-		for (File file : files) {
+		for (final File file : files) {
 
 			if (file.isDirectory()) {
 
@@ -1193,7 +1185,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		} catch (Throwable t) {
 			// ignore
-			//logger.log(Level.WARNING, "", t);
 		}
 
 		return null;
@@ -1216,14 +1207,14 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	 */
 	private Set<String> getResourcesToScan() {
 
-		String classPath = System.getProperty("java.class.path");
-		Set<String> modules = new LinkedHashSet<>();
-		Pattern pattern = Pattern.compile(".*(structr).*(war|jar)");
-		Matcher matcher = pattern.matcher("");
+		final String classPath    = System.getProperty("java.class.path");
+		final Set<String> modules = new LinkedHashSet<>();
+		final Pattern pattern     = Pattern.compile(".*(structr).*(war|jar)");
+		final Matcher matcher     = pattern.matcher("");
 
-		for (String jarPath : classPath.split("[".concat(pathSep).concat("]+"))) {
+		for (final String jarPath : classPath.split("[".concat(pathSep).concat("]+"))) {
 
-			String lowerPath = jarPath.toLowerCase();
+			final String lowerPath = jarPath.toLowerCase();
 
 			if (lowerPath.endsWith(classesDir) || lowerPath.endsWith(testClassesDir)) {
 
@@ -1231,7 +1222,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 			} else {
 
-				String moduleName = lowerPath.substring(lowerPath.lastIndexOf(pathSep) + 1);
+				final String moduleName = lowerPath.substring(lowerPath.lastIndexOf(pathSep) + 1);
 
 				matcher.reset(moduleName);
 
@@ -1244,9 +1235,9 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		}
 
-		for (String resource : Services.getInstance().getResources()) {
+		for (final String resource : Services.getInstance().getResources()) {
 
-			String lowerResource = resource.toLowerCase();
+			final String lowerResource = resource.toLowerCase();
 
 			if (lowerResource.endsWith(".jar") || lowerResource.endsWith(".war")) {
 
@@ -1258,14 +1249,14 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		return modules;
 	}
 
-	private <T> Map<Field, T> getFieldValuesOfType(Class<T> fieldType, Class entityType) {
+	private <T> Map<Field, T> getFieldValuesOfType(final Class<T> fieldType, final Class entityType) {
 
-		Map<Field, T> fields = new LinkedHashMap<>();
-		Set<Class<?>> allTypes = getAllTypes(entityType);
+		final Map<Field, T> fields = new LinkedHashMap<>();
+		final Set<Class<?>> allTypes = getAllTypes(entityType);
 
-		for (Class<?> type : allTypes) {
+		for (final Class<?> type : allTypes) {
 
-			for (Field field : type.getDeclaredFields()) {
+			for (final Field field : type.getDeclaredFields()) {
 
 				// only use static fields, because field.get(null) will throw a NPE on non-static fields
 				if (fieldType.isAssignableFrom(field.getType()) && Modifier.isStatic(field.getModifiers())) {
@@ -1292,9 +1283,9 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		return fields;
 	}
 
-	private Set<Class<?>> getAllTypes(Class<?> type) {
+	private Set<Class<?>> getAllTypes(final Class<?> type) {
 
-		List<Class<?>> types = new LinkedList<>();
+		final List<Class<?>> types = new LinkedList<>();
 		Class localType = type;
 
 		do {
@@ -1311,23 +1302,22 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		return new LinkedHashSet<>(types);
 	}
 
-	private void collectAllInterfaces(Class<?> type, List<Class<?>> interfaces) {
+	private void collectAllInterfaces(final Class<?> type, final List<Class<?>> interfaces) {
 
 		if (interfaces.contains(type)) {
 			return;
 		}
 
-		for (Class iface : type.getInterfaces()) {
+		for (final Class iface : type.getInterfaces()) {
 
 			collectAllInterfaces(iface, interfaces);
 			interfaces.add(iface);
 		}
 	}
 
-	private Map<String, Set<PropertyKey>> getPropertyViewMapForType(Class type) {
+	private Map<String, Set<PropertyKey>> getPropertyViewMapForType(final Class type) {
 
 		Map<String, Set<PropertyKey>> propertyViewMap = globalPropertyViewMap.get(type.getName());
-
 		if (propertyViewMap == null) {
 
 			propertyViewMap = new LinkedHashMap<>();
@@ -1339,10 +1329,9 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		return propertyViewMap;
 	}
 
-	private Map<String, PropertyKey> getClassDBNamePropertyMapForType(Class type) {
+	private Map<String, PropertyKey> getClassDBNamePropertyMapForType(final Class type) {
 
 		Map<String, PropertyKey> classDBNamePropertyMap = globalClassDBNamePropertyMap.get(type.getName());
-
 		if (classDBNamePropertyMap == null) {
 
 			classDBNamePropertyMap = new LinkedHashMap<>();
@@ -1354,10 +1343,9 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		return classDBNamePropertyMap;
 	}
 
-	private Map<String, PropertyKey> getClassJSNamePropertyMapForType(Class type) {
+	private Map<String, PropertyKey> getClassJSNamePropertyMapForType(final Class type) {
 
 		Map<String, PropertyKey> classJSNamePropertyMap = globalClassJSNamePropertyMap.get(type.getName());
-
 		if (classJSNamePropertyMap == null) {
 
 			classJSNamePropertyMap = new LinkedHashMap<>();
@@ -1369,10 +1357,9 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		return classJSNamePropertyMap;
 	}
 
-	private Map<PropertyKey, Set<PropertyValidator>> getPropertyValidatorMapForType(Class type) {
+	private Map<PropertyKey, Set<PropertyValidator>> getPropertyValidatorMapForType(final Class type) {
 
 		Map<PropertyKey, Set<PropertyValidator>> validatorMap = globalValidatorMap.get(type.getName());
-
 		if (validatorMap == null) {
 
 			validatorMap = new LinkedHashMap<>();
@@ -1384,10 +1371,9 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		return validatorMap;
 	}
 
-	private Map<String, PropertyGroup> getAggregatedPropertyGroupMapForType(Class type) {
+	private Map<String, PropertyGroup> getAggregatedPropertyGroupMapForType(final Class type) {
 
 		Map<String, PropertyGroup> groupMap = globalAggregatedPropertyGroupMap.get(type.getName());
-
 		if (groupMap == null) {
 
 			groupMap = new LinkedHashMap<>();
@@ -1399,10 +1385,9 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		return groupMap;
 	}
 
-	private Map<String, PropertyGroup> getPropertyGroupMapForType(Class type) {
+	private Map<String, PropertyGroup> getPropertyGroupMapForType(final Class type) {
 
 		Map<String, PropertyGroup> groupMap = globalPropertyGroupMap.get(type.getName());
-
 		if (groupMap == null) {
 
 			groupMap = new LinkedHashMap<>();
@@ -1414,7 +1399,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		return groupMap;
 	}
 
-	private Set<Transformation<GraphObject>> getEntityCreationTransformationsForType(Class type) {
+	private Set<Transformation<GraphObject>> getEntityCreationTransformationsForType(final Class type) {
 
 		final String name = type.getName();
 
@@ -1429,10 +1414,11 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		return transformations;
 	}
 
-	private Map<String, ViewTransformation> getViewTransformationMapForType(Class type) {
+	private Map<String, ViewTransformation> getViewTransformationMapForType(final Class type) {
 
 		Map<String, ViewTransformation> viewTransformationMap = viewTransformations.get(type.getName());
 		if (viewTransformationMap == null) {
+
 			viewTransformationMap = new LinkedHashMap<>();
 			viewTransformations.put(type.getName(), viewTransformationMap);
 		}

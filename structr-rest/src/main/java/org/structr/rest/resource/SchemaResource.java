@@ -35,9 +35,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Multiplicity;
-import static org.structr.core.entity.SchemaRelationshipNode.relationshipType;
-import static org.structr.core.entity.SchemaRelationshipNode.sourceMultiplicity;
-import static org.structr.core.entity.SchemaRelationshipNode.targetMultiplicity;
+import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.GenericProperty;
@@ -229,10 +227,10 @@ public class SchemaResource extends Resource {
 		 *
 		 */
 
-		map.put(sourceMultiplicity, multiplictyToString(relation.getSourceMultiplicity()));
-		map.put(targetMultiplicity, multiplictyToString(relation.getTargetMultiplicity()));
+		map.put(SchemaRelationship.sourceMultiplicity, multiplictyToString(relation.getSourceMultiplicity()));
+		map.put(SchemaRelationship.targetMultiplicity, multiplictyToString(relation.getTargetMultiplicity()));
 		map.put(typeProperty, relation.getClass().getSimpleName());
-		map.put(relationshipType, relation.name());
+		map.put(SchemaRelationship.relationshipType, relation.name());
 
 		final Class sourceType = relation.getSourceType();
 		final Class targetType = relation.getTargetType();

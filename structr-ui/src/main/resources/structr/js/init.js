@@ -1089,7 +1089,7 @@ var Structr = {
 				$('#header .structr-instance-name').text(envInfo.result.instanceName);
 				$('#header .structr-instance-stage').text(envInfo.result.instanceStage);
 
-				var ui = envInfo.result.modules['structr-ui'];
+				var ui = envInfo.result.components['structr-ui'];
 				if (ui !== null) {
 
 					var version = ui.version;

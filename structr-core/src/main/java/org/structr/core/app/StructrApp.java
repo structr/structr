@@ -59,6 +59,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.module.StructrModule;
 import org.structr.schema.ConfigurationProvider;
 
 /**
@@ -420,7 +421,13 @@ public class StructrApp implements App {
 	@Override
 	public FulltextIndexer getFulltextIndexer(final Object... params) {
 
-		// TODO: load fulltext indexer module if available!
+		final Map<String, StructrModule> modules = StructrApp.getConfiguration().getModules();
+		final StructrModule module               = modules.get("fulltext-indexer");
+
+		if (module != null && module instanceof FulltextIndexer) {
+			return (FulltextIndexer)module;
+		}
+
 		return new DummyFulltextIndexer();
 	}
 

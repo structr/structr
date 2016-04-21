@@ -32,6 +32,7 @@ import org.structr.agent.Agent;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.module.StructrModule;
 
 /**
  *
@@ -119,4 +120,6 @@ public interface ConfigurationProvider {
 	 * @param propertyKey
 	 */
 	public void registerDynamicProperty(final Class type, final PropertyKey propertyKey);
+
+	Map<String, StructrModule> getModules();
 }

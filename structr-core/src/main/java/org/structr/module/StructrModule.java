@@ -16,40 +16,34 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core;
+package org.structr.module;
 
-import java.io.Serializable;
 import java.util.Set;
 
 /**
- * A structr module.
- *
- *
  */
-public interface Module extends Serializable
-{
-	/**
-	 * @return the path of this module
-	 */
-	public String getModulePath();
+public interface StructrModule {
 
 	/**
-	 * @return the classes this module contains
+	 * Returns the name of this module, with an optional version number.
+	 *
+	 * @return the name of this module
 	 */
-	public Set<String> getClasses();
+	String getName();
 
 	/**
-	 * @return the properties this module contains
+	 * Returns a set of module names (as returned by getName()) of modules
+	 * this module depends on, or null if no dependencies exist.
+	 *
+	 * @return a set of module names or null
 	 */
-	public Set<String> getProperties();
+	Set<String> getDependencies();
 
 	/**
-	 * @return the resources this module contains
+	 * Returns the set of feature keys this module provides, or null if
+	 * not applicable.
+	 *
+	 * @return a set of feature names or null
 	 */
-	public Set<String> getResources();
-
-	/**
-	 * @return the libraries this module contains
-	 */
-	public Set<String> getLibraries();
+	Set<String> getFeatures();
 }

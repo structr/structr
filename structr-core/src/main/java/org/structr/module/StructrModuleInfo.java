@@ -20,53 +20,40 @@ package org.structr.module;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-import org.structr.core.Module;
 
 /**
- * The default implementation of a structr module.
- *
- *
+ * A Structr module record, contains all the information needed to
+ * scan and initialize a module.
  */
-public class DefaultModule implements Module {
-	
-	private Set<String> rawClasses = new LinkedHashSet<>();
-	private Set<String> properties = new LinkedHashSet<>();
-	private Set<String> resources  = new LinkedHashSet<>();
-	private Set<String> libraries  = new LinkedHashSet<>();
-	private String modulePath      = null;
+public class StructrModuleInfo {
 
-	public DefaultModule(String modulePath)
-	{
+	private final Set<String> rawClasses = new LinkedHashSet<>();
+	private final Set<String> properties = new LinkedHashSet<>();
+	private final Set<String> resources  = new LinkedHashSet<>();
+	private final Set<String> libraries  = new LinkedHashSet<>();
+	private String modulePath            = null;
+
+	public StructrModuleInfo(String modulePath) {
 		this.modulePath = modulePath;
 	}
 
-	@Override
-	public String getModulePath()
-	{
+	public String getModulePath() {
 		return(modulePath);
 	}
 
-	@Override
-	public Set<String> getClasses()
-	{
+	public Set<String> getClasses() {
 		return(rawClasses);
 	}
 
-	@Override
-	public Set<String> getProperties()
-	{
+	public Set<String> getProperties() {
 		return(properties);
 	}
 
-        @Override
-	public Set<String> getResources()
-	{
+	public Set<String> getResources() {
 		return(resources);
 	}
 
-        @Override
-	public Set<String> getLibraries()
-	{
+	public Set<String> getLibraries() {
 		return(libraries);
 	}
 }
