@@ -157,7 +157,7 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 
 					// remove prefix from full property name
 					if (fullPropertyName.startsWith("_")) {
-						fullPropertyName = fullPropertyName.substring(1);
+						fullPropertyName = fullPropertyName.substring(1) + "Property";
 					}
 
 					if (!"true".equals(propertyName.toLowerCase()) && !propertyName.contains(".")) {
