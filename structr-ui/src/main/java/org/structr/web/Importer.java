@@ -44,12 +44,12 @@ import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
-import org.apache.http.client.params.ClientPNames;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Comment;
@@ -104,7 +104,7 @@ import org.structr.web.entity.dom.Page;
 public class Importer {
 
 	private static final Logger logger = Logger.getLogger(Importer.class.getName());
-	
+
 	private static final String[] hrefElements       = new String[]{"link"};
 	private static final String[] ignoreElementNames = new String[]{"#declaration", "#doctype"};
 	private static final String[] srcElements        = new String[]{"img", "script", "audio", "video", "input", "source", "track"};
@@ -292,7 +292,7 @@ public class Importer {
 		final HttpClient client = new HttpClient();
 
 		client.getParams().setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
-		client.getParams().setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);
+		client.getParams().setParameter(HttpClientParams.ALLOW_CIRCULAR_REDIRECTS, true);
 
 		return client;
 	}
@@ -692,26 +692,26 @@ public class Importer {
 				final StringProperty typeKey = new StringProperty(PropertyView.Html.concat("type"));
 
 				if ("script".equals(tag)) {
-					
+
 					final String contentType = newNode.getProperty(typeKey);
-					
+
 					if (contentType == null) {
 
 						// Set default type of script tag to "text/javascript" to ensure inline JS gets imported properly
 						newNode.setProperty(typeKey, "text/javascript");
-						
+
 					} else if (contentType.equals("application/schema+json")) {
-						
+
 						for (final Node scriptContentNode : node.childNodes()) {
-							
+
 							final String source = scriptContentNode.toString();
-		
+
 							// Import schema JSON
 							SchemaJsonImporter.importSchemaJson(source);
-							
+
 						}
-						
-						
+
+
 					}
 				}
 

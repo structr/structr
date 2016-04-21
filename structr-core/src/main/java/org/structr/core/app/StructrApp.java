@@ -37,6 +37,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.api.service.Command;
 import org.structr.core.GraphObject;
 import org.structr.api.service.Service;
+import org.structr.common.fulltext.DummyFulltextIndexer;
+import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
@@ -413,6 +415,13 @@ public class StructrApp implements App {
 			System.out.println("instance id: " + instanceId);
 			return instanceId;
 		}
+	}
+
+	@Override
+	public FulltextIndexer getFulltextIndexer(final Object... params) {
+
+		// TODO: load fulltext indexer module if available!
+		return new DummyFulltextIndexer();
 	}
 
 	// ----- public static methods ----

@@ -22,6 +22,7 @@ import org.structr.web.entity.*;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
@@ -29,6 +30,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -43,7 +45,6 @@ import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.core.validator.SimpleNonEmptyValueValidator;
 import org.structr.core.validator.TypeUniquenessValidator;
-import org.structr.files.text.FulltextIndexingTask;
 import org.structr.schema.SchemaService;
 import org.structr.web.common.DownloadHelper;
 import org.structr.web.entity.relation.FeedItemContents;
@@ -85,17 +86,25 @@ public class FeedItem extends AbstractNode implements Indexable {
 	}
 
 	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		StructrApp.getInstance(securityContext).processTasks(new FulltextIndexingTask(this));
+	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
+		indexer.addToFulltextIndex(this);
+
 		return super.onCreation(securityContext, errorBuffer);
 	}
 
-
-
-
 	@Override
-	public void afterCreation(SecurityContext securityContext) {
-		StructrApp.getInstance(securityContext).processTasks(new FulltextIndexingTask(this));
+	public void afterCreation(final SecurityContext securityContext) {
+
+		try {
+			final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
+			indexer.addToFulltextIndex(this);
+
+		} catch (FrameworkException fex) {
+
+			logger.log(Level.WARNING, "Unable to index " + this, fex);
+		}
 	}
 
 	@Export
@@ -105,7 +114,8 @@ public class FeedItem extends AbstractNode implements Indexable {
 		final String text = getProperty(extractedContent);
 		if (text != null) {
 
-			return DownloadHelper.getContextObject(searchTerm, text, contextLength);
+			final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
+			return indexer.getContextObject(searchTerm, text, contextLength);
 		}
 
 		return null;

@@ -19,12 +19,14 @@
 package org.structr.web.entity;
 
 import java.io.InputStream;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -33,7 +35,6 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
-import org.structr.files.text.FulltextIndexingTask;
 import org.structr.web.common.DownloadHelper;
 
 /**
@@ -60,16 +61,18 @@ public class RemoteDocument extends AbstractNode implements Indexable {
 
 	@Export
 	public void update() {
-		
+
 		try {
 
-			StructrApp.getInstance(securityContext).processTasks(new FulltextIndexingTask(this));
-			
-		} catch (Throwable t) {
+			final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
+			indexer.addToFulltextIndex(this);
 
+		} catch (FrameworkException fex) {
+
+			logger.log(Level.WARNING, "Unable to index " + this, fex);
 		}
 	}
-	
+
 	@Export
 	@Override
 	public GraphObject getSearchContext(final String searchTerm, final int contextLength) {
@@ -77,7 +80,8 @@ public class RemoteDocument extends AbstractNode implements Indexable {
 		final String text = getProperty(extractedContent);
 		if (text != null) {
 
-			return DownloadHelper.getContextObject(searchTerm, text, contextLength);
+			final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
+			return indexer.getContextObject(searchTerm, text, contextLength);
 		}
 
 		return null;
@@ -103,10 +107,10 @@ public class RemoteDocument extends AbstractNode implements Indexable {
 
 		final String remoteUrl = getProperty(url);
 		if (StringUtils.isNotBlank(remoteUrl)) {
-			
+
 			return DownloadHelper.getInputStream(remoteUrl);
 		}
-		
+
 		return null;
 	}
 

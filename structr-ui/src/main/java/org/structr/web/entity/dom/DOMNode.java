@@ -175,15 +175,12 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		Functions.functions.put("parse", new ParseFunction());
 		Functions.functions.put("to_json", new ToJsonFunction());
 		Functions.functions.put("from_json", new FromJsonFunction());
-		Functions.functions.put("from_csv", new FromCsvFunction());
 		Functions.functions.put("from_xml", new FromXmlFunction());
 		Functions.functions.put("add_header", new AddHeaderFunction());
 		Functions.functions.put("set_response_header", new SetResponseHeaderFunction());
 		Functions.functions.put("get_request_header", new GetRequestHeaderFunction());
 		Functions.functions.put("log_event", new LogEventFunction());
 		Functions.functions.put("is_locale", new IsLocaleFunction());
-		Functions.functions.put("create_jar_file", new CreateJarFileFunction());
-		Functions.functions.put("jar_entry", new JarEntryFunction());
 		Functions.functions.put("set_details_object", new SetDetailsObjectFunction());
 		Functions.functions.put("escape_html", new EscapeHtmlFunction());
 	}

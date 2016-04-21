@@ -20,11 +20,14 @@ package org.structr.web.entity.feed;
 
 import org.structr.web.entity.*;
 import java.io.InputStream;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -32,9 +35,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
-import org.structr.files.text.FulltextIndexingTask;
 import org.structr.schema.SchemaService;
-import org.structr.web.common.DownloadHelper;
 import org.structr.web.entity.relation.FeedItemContents;
 
 /**
@@ -59,13 +60,13 @@ public class FeedItemContent extends AbstractNode implements Indexable {
 	public void afterCreation(SecurityContext securityContext) {
 
 		try {
+			final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
+			indexer.addToFulltextIndex(this);
 
-			StructrApp.getInstance(securityContext).processTasks(new FulltextIndexingTask(this));
+		} catch (FrameworkException fex) {
 
-		} catch (Throwable t) {
-
+			logger.log(Level.WARNING, "Unable to index " + this, fex);
 		}
-
 	}
 
 	@Export
@@ -75,7 +76,8 @@ public class FeedItemContent extends AbstractNode implements Indexable {
 		final String text = getProperty(extractedContent);
 		if (text != null) {
 
-			return DownloadHelper.getContextObject(searchTerm, text, contextLength);
+			final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
+			return indexer.getContextObject(searchTerm, text, contextLength);
 		}
 
 		return null;

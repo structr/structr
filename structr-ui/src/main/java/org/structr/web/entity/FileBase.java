@@ -45,6 +45,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -58,9 +59,7 @@ import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.files.cmis.config.StructrFileActions;
-import org.structr.files.text.FulltextIndexingTask;
 import org.structr.schema.action.JavaScriptSource;
-import org.structr.web.common.DownloadHelper;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import static org.structr.web.entity.Indexable.extractedContent;
@@ -235,14 +234,23 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 		final String text = getProperty(extractedContent);
 		if (text != null) {
 
-			return DownloadHelper.getContextObject(searchTerm, text, contextLength);
+			final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
+			return indexer.getContextObject(searchTerm, text, contextLength);
 		}
 
 		return null;
 	}
 
 	public void notifyUploadCompletion() {
-		StructrApp.getInstance(securityContext).processTasks(new FulltextIndexingTask(this));
+
+		try {
+			final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
+			indexer.addToFulltextIndex(this);
+
+		} catch (FrameworkException fex) {
+
+			logger.log(Level.WARNING, "Unable to index " + this, fex);
+		}
 	}
 
 	public String getRelativeFilePath() {

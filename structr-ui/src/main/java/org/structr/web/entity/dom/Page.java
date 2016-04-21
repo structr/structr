@@ -18,13 +18,8 @@
  */
 package org.structr.web.entity.dom;
 
-import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,9 +27,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ftpserver.ftplet.FtpFile;
 import org.structr.api.Predicate;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -46,8 +39,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractUser;
-import org.structr.core.entity.Principal;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
 import static org.structr.core.graph.NodeInterface.owner;
@@ -61,9 +52,6 @@ import org.structr.core.property.RelationProperty;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
-import org.structr.dynamic.File;
-import org.structr.files.ftp.AbstractStructrFtpFile;
-import org.structr.files.ftp.StructrFtpFile;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaService;
 import org.structr.web.Importer;
@@ -103,7 +91,7 @@ import org.w3c.dom.Text;
  *
  *
  */
-public class Page extends DOMNode implements Linkable, Document, DOMImplementation, FtpFile {
+public class Page extends DOMNode implements Linkable, Document, DOMImplementation {
 
 	public static final Set<String> nonBodyTags = new HashSet<>(Arrays.asList(new String[] { "html", "head", "body", "meta", "link" } ));
 	private static final Logger logger          = Logger.getLogger(Page.class.getName());
@@ -906,308 +894,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		} catch (Throwable t) {
 			logger.log(Level.WARNING, "", t);
 		}
-	}
-
-	// ----- interface FtpFile -----
-	@Override
-	public String getAbsolutePath() {
-		try (Tx tx = StructrApp.getInstance().tx()) {
-			final String path = getPath();
-			tx.success();
-			return path;
-		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error in getPath() of abstract ftp file", fex);
-		}
-		return null;
-	}
-
-	@Override
-	public boolean isDirectory() {
-		return false;
-	}
-
-	@Override
-	public boolean isFile() {
-		return true;
-	}
-
-	@Override
-	public boolean doesExist() {
-		return true;
-	}
-
-	@Override
-	public boolean isReadable() {
-		return true;
-	}
-
-	@Override
-	public boolean isWritable() {
-		return true;
-	}
-
-	@Override
-	public boolean isRemovable() {
-		return true;
-	}
-
-	private Principal getOwner() {
-		try (Tx tx = StructrApp.getInstance().tx()) {
-			Principal owner = getProperty(File.owner);
-			tx.success();
-			return owner;
-		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error while getting owner of " + this, fex);
-		}
-		return null;
-	}
-
-	@Override
-	public String getOwnerName() {
-
-		String name = "";
-
-		try (Tx tx = StructrApp.getInstance().tx()) {
-
-			Principal owner = getOwner();
-			if (owner != null) {
-
-				name = owner.getProperty(AbstractUser.name);
-			}
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error while getting owner name of " + this, fex);
-		}
-
-		return name;
-	}
-
-	@Override
-	public String getGroupName() {
-
-		String name = "";
-
-		try (Tx tx = StructrApp.getInstance().tx()) {
-
-			Principal owner = getOwner();
-
-			if (owner != null) {
-				List<Principal> parents = owner.getParents();
-				if (!parents.isEmpty()) {
-
-					name = parents.get(0).getProperty(AbstractNode.name);
-				}
-			}
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error while getting group name of " + this, fex);
-		}
-
-		return name;
-	}
-
-	@Override
-	public int getLinkCount() {
-		return 1;
-	}
-
-	@Override
-	public long getLastModified() {
-
-		long lastModified = 0L;
-
-		try (Tx tx = StructrApp.getInstance().tx()) {
-
-			lastModified = getProperty(lastModifiedDate).getTime();
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error while last modified date of " + this, fex);
-		}
-
-		return lastModified;
-	}
-
-	@Override
-	public boolean setLastModified(long time) {
-
-		try (Tx tx = StructrApp.getInstance().tx()) {
-			setProperty(lastModifiedDate, new Date(time));
-			tx.success();
-		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, null, ex);
-		}
-
-		return true;
-	}
-
-	@Override
-	public long getSize() {
-
-		long size = 0L;
-
-		try (Tx tx = StructrApp.getInstance().tx()) {
-
-			size = getContent(RenderContext.EditMode.RAW).length();
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error while last modified date of " + this, fex);
-		}
-
-		return size;
-	}
-
-	@Override
-	public String getName() {
-
-		String name = null;
-
-		try (Tx tx = StructrApp.getInstance().tx()) {
-
-			name = getProperty(AbstractNode.name);
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error in getName() of page", fex);
-		}
-
-		return name;
-	}
-
-	@Override
-	public boolean isHidden() {
-
-		boolean hidden = true;
-
-		try (Tx tx = StructrApp.getInstance().tx()) {
-
-			hidden = getProperty(Page.hidden);
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error in isHidden() of page", fex);
-		}
-
-		return hidden;
-	}
-
-	@Override
-	public boolean mkdir() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	public boolean delete() {
-		final App app = StructrApp.getInstance();
-
-		try (Tx tx = StructrApp.getInstance().tx()) {
-			app.delete(this);
-			tx.success();
-		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, null, ex);
-		}
-
-		return true;
-	}
-
-	@Override
-	public boolean move(FtpFile target) {
-		try (Tx tx = StructrApp.getInstance().tx()) {
-
-			logger.log(Level.INFO, "move()");
-
-			final AbstractStructrFtpFile targetFile = (AbstractStructrFtpFile) target;
-			final String path = targetFile instanceof StructrFtpFile ? "/" : targetFile.getAbsolutePath();
-
-			try {
-
-				if (!("/".equals(path))) {
-					final String newName = path.contains("/") ? StringUtils.substringAfterLast(path, "/") : path;
-					setProperty(AbstractNode.name, newName);
-				}
-
-			} catch (FrameworkException ex) {
-				logger.log(Level.SEVERE, "Could not move ftp file", ex);
-				return false;
-			}
-
-			tx.success();
-
-			return true;
-		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, null, ex);
-		}
-
-		return false;
-	}
-
-	@Override
-	public List<FtpFile> listFiles() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	public OutputStream createOutputStream(long offset) throws IOException {
-
-		final Page origPage = this;
-
-		OutputStream out = new ByteArrayOutputStream() {
-
-			@Override
-			public void flush() throws IOException {
-
-				final String source = toString();
-
-				final App app = StructrApp.getInstance();
-				try (Tx tx = app.tx()) {
-
-					// parse page from modified source
-					Page modifiedPage = Importer.parsePageFromSource(securityContext, source, "__FTP_Temporary_Page__");
-
-					final List<InvertibleModificationOperation> changeSet = Importer.diffNodes(origPage, modifiedPage);
-
-					for (final InvertibleModificationOperation op : changeSet) {
-
-						// execute operation
-						op.apply(app, origPage, modifiedPage);
-
-					}
-
-					app.delete(modifiedPage);
-
-					tx.success();
-
-				} catch (FrameworkException fex) {
-					logger.log(Level.WARNING, "", fex);
-				}
-
-				super.flush();
-
-			}
-
-		};
-
-		return out;
-	}
-
-	@Override
-	public InputStream createInputStream(long offset) throws IOException {
-
-		ByteArrayInputStream bis = null;
-		try (Tx tx = StructrApp.getInstance().tx()) {
-
-			bis = new ByteArrayInputStream(getContent(RenderContext.EditMode.RAW).getBytes("UTF-8"));
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
-		}
-
-		return bis;
 	}
 
 	// ----- interface Syncable -----
