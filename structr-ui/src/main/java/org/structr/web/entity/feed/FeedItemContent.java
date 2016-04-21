@@ -18,6 +18,7 @@
  */
 package org.structr.web.entity.feed;
 
+import org.structr.common.fulltext.Indexable;
 import org.structr.web.entity.*;
 import java.io.InputStream;
 import java.util.logging.Level;

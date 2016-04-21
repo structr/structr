@@ -18,6 +18,7 @@
  */
 package org.structr.web.entity;
 
+import org.structr.common.fulltext.Indexable;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -62,7 +63,7 @@ import org.structr.files.cmis.config.StructrFileActions;
 import org.structr.schema.action.JavaScriptSource;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
-import static org.structr.web.entity.Indexable.extractedContent;
+import static org.structr.common.fulltext.Indexable.extractedContent;
 import org.structr.web.entity.relation.Folders;
 
 /**

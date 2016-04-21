@@ -22,7 +22,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.entity.AbstractNode;
 
 /**
  *
@@ -33,7 +32,7 @@ public class DummyFulltextIndexer implements FulltextIndexer {
 	private static final Logger logger = Logger.getLogger(DummyFulltextIndexer.class.getName());
 
 	@Override
-	public void addToFulltextIndex(final AbstractNode node) throws FrameworkException {
+	public void addToFulltextIndex(final Indexable indexable) throws FrameworkException {
 		logger.log(Level.WARNING, "No fulltext indexer installed, this is a dummy implementation that does nothing.");
 	}
 

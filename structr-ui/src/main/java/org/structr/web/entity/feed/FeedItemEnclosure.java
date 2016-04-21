@@ -38,10 +38,10 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaService;
-import org.structr.web.entity.Indexable;
-import static org.structr.web.entity.Indexable.contentType;
-import static org.structr.web.entity.Indexable.extractedContent;
-import static org.structr.web.entity.Indexable.indexedWords;
+import org.structr.common.fulltext.Indexable;
+import static org.structr.common.fulltext.Indexable.contentType;
+import static org.structr.common.fulltext.Indexable.extractedContent;
+import static org.structr.common.fulltext.Indexable.indexedWords;
 import org.structr.web.entity.relation.FeedItemContents;
 
 /**
