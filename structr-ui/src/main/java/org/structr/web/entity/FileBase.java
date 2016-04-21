@@ -60,6 +60,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.files.cmis.config.StructrFileActions;
 import org.structr.files.text.FulltextIndexingTask;
 import org.structr.schema.action.JavaScriptSource;
+import org.structr.util.LogMessageSupplier;
 import org.structr.web.common.DownloadHelper;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
@@ -411,8 +412,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 			} catch (FileNotFoundException e) {
 
-				logger.log(Level.WARNING, "", e);
-				logger.log(Level.SEVERE, "File not found: {0}", new Object[]{path});
+				logger.log(Level.SEVERE, e, LogMessageSupplier.create("File not found: {0}", path));
 			}
 
 		}

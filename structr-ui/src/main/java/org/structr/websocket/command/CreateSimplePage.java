@@ -59,12 +59,10 @@ public class CreateSimplePage extends AbstractCommand {
 		try {
 
 			final Page page = Page.createSimplePage(securityContext, pageName);
-			
+
 			TransactionCommand.registerNodeCallback(page, callback);
 
 		} catch (FrameworkException fex) {
-
-			logger.log(Level.WARNING, "", fex);
 
 			logger.log(Level.WARNING, "Could not create node.", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.toString()).build(), true);

@@ -45,29 +45,29 @@ public class DownloadHelper {
 	//~--- methods --------------------------------------------------------
 
 	public static InputStream getInputStream(final String address) {
-		
+
 		try {
 			final URL originalUrl = new URL(address);
-			
+
 			final HttpClient client = Importer.getHttpClient();
-			
+
 			final GetMethod get = new GetMethod(originalUrl.toString());
 			get.addRequestHeader("User-Agent", "curl/7.35.0");
 			get.addRequestHeader("Connection", "close");
 			get.getParams().setParameter("http.protocol.single-cookie-header", true);
-			
+
 			get.setFollowRedirects(true);
-			
+
 			client.executeMethod(get);
-			
+
 			return get.getResponseBodyAsStream();
-			
+
 		} catch (MalformedURLException ex) {
-			Logger.getLogger(DownloadHelper.class.getName()).log(Level.SEVERE, "Can't download content from malformed URL " + address, ex);
+			logger.log(Level.SEVERE, "Can't download content from malformed URL " + address, ex);
 		} catch (IOException ex) {
-			Logger.getLogger(DownloadHelper.class.getName()).log(Level.SEVERE, "Can't download content from URL " + address, ex);
+			logger.log(Level.SEVERE, "Can't download content from URL " + address, ex);
 		}
-		
+
 		return null;
 
 	}

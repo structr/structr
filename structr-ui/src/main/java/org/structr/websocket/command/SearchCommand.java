@@ -110,7 +110,7 @@ public class SearchCommand extends AbstractCommand {
 					return;
 
 				} catch (FrameworkException ex) {
-					Logger.getLogger(SearchCommand.class.getName()).log(Level.SEVERE, null, ex);
+					logger.log(Level.SEVERE, null, ex);
 				}
 
 			}

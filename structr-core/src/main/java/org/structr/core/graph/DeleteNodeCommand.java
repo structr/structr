@@ -32,6 +32,7 @@ import java.util.logging.Logger;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.util.LogMessageSupplier;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -165,7 +166,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Exception while deleting node: {0}", t);
+			logger.log(Level.WARNING, t, LogMessageSupplier.create("Exception while deleting node: {0}", node));
 
 		}
 

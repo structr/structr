@@ -132,9 +132,9 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 			final SecurityContext securityContext;
 			try {
 				securityContext = getConfig().getAuthenticator().initializeAndExamineRequest(request, response);
-				
+
 			} catch (AuthenticationException ae) {
-				
+
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				response.getOutputStream().write("ERROR (401): Invalid user or password.\n".getBytes("UTF-8"));
 				return;
@@ -243,9 +243,6 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (FrameworkException | IOException | FileUploadException t) {
 
-			
-			
-			logger.log(Level.WARNING, "", t);
 			logger.log(Level.SEVERE, "Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
@@ -338,7 +335,6 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (FrameworkException | IOException | FileUploadException t) {
 
-			logger.log(Level.WARNING, "", t);
 			logger.log(Level.SEVERE, "Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}

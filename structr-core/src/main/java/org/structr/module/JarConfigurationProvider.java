@@ -66,6 +66,7 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
+import org.structr.util.LogMessageSupplier;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -614,8 +615,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			}
 
 		} catch (Throwable t) {
-			logger.log(Level.SEVERE, "Unable to register type {0}: {1}", new Object[]{type, t.getMessage()});
-			logger.log(Level.WARNING, "", t);
+			logger.log(Level.SEVERE, t, LogMessageSupplier.create("Unable to register type {0}: {1}", new Object[]{type, t.getMessage()}));
 		}
 
 		Map<String, Method> typeMethods = exportedMethodMap.get(fqcn);
@@ -1030,8 +1030,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		} catch (IOException ioex) {
 
-			logger.log(Level.WARNING, "Error loading module {0}: {1}", new Object[]{resourceName, ioex});
-			logger.log(Level.WARNING, "", ioex);
+			logger.log(Level.WARNING, ioex, LogMessageSupplier.create("Error loading module {0}: {1}", new Object[]{resourceName, ioex.getMessage()}));
 
 		}
 

@@ -28,16 +28,17 @@ import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.ViewTransformation;
 import org.structr.core.entity.AbstractNode;
+import org.structr.util.LogMessageSupplier;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  * A comparator for structr entities that uses a given property key and sort
  * order for comparison.
- * 
+ *
  * Properties with null values (not existing properties) are always handled
  * as "lower than", so that any not-null value ranks higher.
- * 
+ *
  *
  */
 public class GraphObjectComparator extends ViewTransformation<GraphObject> implements Comparator<GraphObject> {
@@ -55,13 +56,13 @@ public class GraphObjectComparator extends ViewTransformation<GraphObject> imple
 
 	/**
 	 * Creates a new GraphObjectComparator with the given sort key and order.
-	 * @param sortKey 
-	 * @param sortDescending 
+	 * @param sortKey
+	 * @param sortDescending
 	 */
 	public GraphObjectComparator(final PropertyKey sortKey, final boolean sortDescending) {
 		this(sortKey, sortDescending ? DESCENDING : ASCENDING);
 	}
-	
+
 	public GraphObjectComparator(final PropertyKey sortKey, final String sortOrder) {
 
 		this.sortKey   = sortKey;
@@ -74,35 +75,35 @@ public class GraphObjectComparator extends ViewTransformation<GraphObject> imple
 	public int compare(GraphObject n1, GraphObject n2) {
 
 		if (n1 == null || n2 == null) {
-			
+
 			throw new NullPointerException();
-			
+
 		}
-	
+
 		try {
 			boolean desc = DESCENDING.equalsIgnoreCase(sortOrder);
-			
+
 			Comparable c1 = n1.getComparableProperty(sortKey);
 			Comparable c2 = n2.getComparableProperty(sortKey);
 
 			if (c1 == null || c2 == null) {
 
 				if (c1 == null && c2 == null) {
-					
+
 					return 0;
-					
+
 				} else if (c1 == null) {
-					
+
 					return desc ? -1 : 1;
-					
+
 				} else {
-					
+
 					return desc ? 1 : -1;
-					
+
 				}
 
 			}
-			
+
 			if (desc) {
 
 				return c2.compareTo(c1);
@@ -112,21 +113,19 @@ public class GraphObjectComparator extends ViewTransformation<GraphObject> imple
 				return c1.compareTo(c2);
 
 			}
-			
+
 		} catch (Throwable t) {
-			
-			logger.log(Level.WARNING, "", t);
-			
-			logger.log(Level.WARNING, "Cannot compare properties {0} of type {1} to {2} of type {3}, property {4} error.",
+
+			logger.log(Level.WARNING, t, LogMessageSupplier.create("Cannot compare properties {0} of type {1} to {2} of type {3}, property {4} error.",
 				new Object[] {
 					n1.getProperty(GraphObject.id),
 					n1.getProperty(AbstractNode.type),
 					n2.getProperty(GraphObject.id),
 					n2.getProperty(AbstractNode.type),
 					sortKey
-				});
+				}));
 		}
-		
+
 		return 0;
 	}
 

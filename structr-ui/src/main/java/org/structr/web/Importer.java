@@ -77,6 +77,7 @@ import org.structr.dynamic.File;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.importer.GraphGistImporter;
 import org.structr.schema.importer.SchemaJsonImporter;
+import org.structr.util.LogMessageSupplier;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.diff.CreateOperation;
@@ -104,7 +105,7 @@ import org.structr.web.entity.dom.Page;
 public class Importer {
 
 	private static final Logger logger = Logger.getLogger(Importer.class.getName());
-	
+
 	private static final String[] hrefElements       = new String[]{"link"};
 	private static final String[] ignoreElementNames = new String[]{"#declaration", "#doctype"};
 	private static final String[] srcElements        = new String[]{"img", "script", "audio", "video", "input", "source", "track"};
@@ -692,26 +693,26 @@ public class Importer {
 				final StringProperty typeKey = new StringProperty(PropertyView.Html.concat("type"));
 
 				if ("script".equals(tag)) {
-					
+
 					final String contentType = newNode.getProperty(typeKey);
-					
+
 					if (contentType == null) {
 
 						// Set default type of script tag to "text/javascript" to ensure inline JS gets imported properly
 						newNode.setProperty(typeKey, "text/javascript");
-						
+
 					} else if (contentType.equals("application/schema+json")) {
-						
+
 						for (final Node scriptContentNode : node.childNodes()) {
-							
+
 							final String source = scriptContentNode.toString();
-		
+
 							// Import schema JSON
 							SchemaJsonImporter.importSchemaJson(source);
-							
+
 						}
-						
-						
+
+
 					}
 				}
 
@@ -767,8 +768,7 @@ public class Importer {
 
 			}
 
-			logger.log(Level.WARNING, "Unable to download from {0} {1}", new Object[]{originalUrl, downloadAddress});
-			logger.log(Level.WARNING, "", ioe);
+			logger.log(Level.WARNING, ioe, LogMessageSupplier.create("Unable to download from {0} {1}", new Object[]{originalUrl, downloadAddress}));
 
 			try {
 				// Try alternative baseUrl with trailing "/"
@@ -788,12 +788,10 @@ public class Importer {
 				copyURLToFile(downloadUrl.toString(), fileOnDisk);
 
 			} catch (MalformedURLException ex) {
-				logger.log(Level.WARNING, "", ex);
-				logger.log(Level.SEVERE, "Could not resolve address {0}", address.concat("/"));
+				logger.log(Level.SEVERE, ex, LogMessageSupplier.create("Could not resolve address {0}", address.concat("/")));
 				return null;
 			} catch (IOException ex) {
-				logger.log(Level.WARNING, "", ex);
-				logger.log(Level.WARNING, "Unable to download from {0}", address.concat("/"));
+				logger.log(Level.WARNING, ex, LogMessageSupplier.create("Unable to download from {0}", address.concat("/")));
 				return null;
 			}
 

@@ -24,12 +24,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
@@ -66,24 +68,24 @@ public abstract class Function<S, T> extends Hint {
 	}
 
 	/**
-	 * Basic logging of an Exception in a function with a simple message outputting the name and call parameters of the function
-	 * (A bit clunky because we want the log to show a StackTrace while building a custom message. If the LogLevel is suppressed using parameters is way faster than building the string beforehand)
+	 * Logging of an Exception in a function with a simple message outputting the name and call parameters of the function
 	 *
 	 * @param t The thrown Exception
 	 * @param parameters The method parameters
 	 */
 	protected void logException (final Throwable t, final Object[] parameters) {
 
-		final LogRecord lr = new LogRecord(Level.WARNING, "{0}: Exception for parameters: {1}");
-        lr.setParameters(new Object[] { getName(), getParametersAsString(parameters) });
-		lr.setThrown(t);
-		logger.log(lr);
+		logger.log(Level.WARNING, t, new Supplier<String>() {
+			@Override
+			public String get() {
+				return MessageFormat.format("{0}: Exception for parameters: {1}", new Object[] { getName(), getParametersAsString(parameters) });
+			}
+		});
 
 	}
 
 	/**
-	 * Basic logging of an Exception in a function with custom message and message parameters.
-	 * (A bit clunky because we want the log to show a StackTrace while building a custom message. If the LogLevel is suppressed using parameters is way faster than building the string beforehand)
+	 * Logging of an Exception in a function with custom message and message parameters.
 	 *
 	 * @param t The thrown Exception
 	 * @param msg The message to be printed
@@ -91,10 +93,12 @@ public abstract class Function<S, T> extends Hint {
 	 */
 	protected void logException (final Throwable t, final String msg, final Object[] messageParams) {
 
-		final LogRecord lr = new LogRecord(Level.WARNING, msg);
-        lr.setParameters(messageParams);
-		lr.setThrown(t);
-		logger.log(lr);
+		logger.log(Level.WARNING, t, new Supplier<String>() {
+			@Override
+			public String get() {
+				return MessageFormat.format(msg, messageParams);
+			}
+		});
 
 	}
 

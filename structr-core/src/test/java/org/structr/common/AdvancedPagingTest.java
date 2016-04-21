@@ -320,8 +320,6 @@ public class AdvancedPagingTest extends PagingTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
-
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 

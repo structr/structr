@@ -555,7 +555,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 
 		@Override
 		public void transmissionProgress(final String message) {
-			logger.log(Level.INFO, "Transmission progress {0}", new Object[] { message } );
+			logger.log(Level.INFO, "Transmission progress {0}", message );
 		}
 	}
 }

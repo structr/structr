@@ -70,20 +70,19 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 					nodeIterator = Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(false, false, true), graphDb.getAllNodes())).iterator();
 
-					logger.log(Level.INFO, "Start setting UUID on all nodes", new Object[] { nodeType });
+					logger.log(Level.INFO, "Start setting UUID on all nodes");
 
 				} else {
 
 					nodeIterator = Iterables.filter(new TypePredicate<>(nodeType), Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(false, false, true), graphDb.getAllNodes()))).iterator();
-					
+
 					logger.log(Level.INFO, "Start setting UUID on nodes of type {0}", new Object[] { nodeType });
 				}
 
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "Exception while creating all nodes iterator.");
-				logger.log(Level.WARNING, "", fex);
+				logger.log(Level.WARNING, "Exception while creating all nodes iterator.", fex);
 			}
 
 			final long count = bulkGraphOperation(securityContext, nodeIterator, 1000, "SetNodeUuid", new BulkGraphOperation<AbstractNode>() {
@@ -94,7 +93,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 					try {
 						node.unlockSystemPropertiesOnce();
 						node.setProperty(GraphObject.id, NodeServiceCommand.getNextUuid());
-						
+
 					} catch (FrameworkException fex) {
 
 						logger.log(Level.WARNING, "Unable to set UUID of node {0}: {1}", new Object[] { node, fex.getMessage() });
@@ -139,8 +138,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "Exception while creating all nodes iterator.");
-				logger.log(Level.WARNING, "", fex);
+				logger.log(Level.WARNING, "Exception while creating all nodes iterator.", fex);
 			}
 
 			final long count = bulkGraphOperation(securityContext, relIterator, 1000, "SetRelationshipUuid", new BulkGraphOperation<AbstractRelationship>() {

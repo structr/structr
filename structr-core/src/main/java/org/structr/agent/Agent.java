@@ -32,6 +32,7 @@ import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.util.LogMessageSupplier;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -101,8 +102,7 @@ public abstract class Agent<T extends NodeInterface> extends Thread implements S
 
 							// someone killed us or the task processing failed..
 							// Log this!!
-							logger.log(Level.SEVERE, "Processing task {0} failed. Maybe someone killed us?", currentTask.getType());
-							logger.log(Level.WARNING, "", t);
+							logger.log(Level.SEVERE, t, LogMessageSupplier.create("Processing task {0} failed. Maybe someone killed us?", currentTask.getType()));
 						}
 
 					} else {
@@ -115,8 +115,7 @@ public abstract class Agent<T extends NodeInterface> extends Thread implements S
 
 							// someone killed us or the task processing failed..
 							// Log this!!
-							logger.log(Level.SEVERE, "Processing task {0} failed. Maybe someone killed us?", currentTask.getType());
-							logger.log(Level.WARNING, "", t);
+							logger.log(Level.SEVERE, t, LogMessageSupplier.create("Processing task {0} failed. Maybe someone killed us?", currentTask.getType()));
 						}
 					}
 				}
