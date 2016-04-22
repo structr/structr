@@ -66,6 +66,10 @@ public class StructrSSHFile implements Path {
 		this.actualFile = actualFile;
 		this.parent     = parent;
 		this.name       = name;
+		
+		if (parent != null) {
+			this.fileSystem = parent.getFileSystem();
+		}
 	}
 
 	@Override

@@ -21,6 +21,7 @@ package org.structr.files.ssh;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.AccessMode;
 import java.nio.file.CopyOption;
@@ -35,14 +36,23 @@ import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
+import java.nio.file.attribute.FileTime;
+import java.nio.file.attribute.GroupPrincipal;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFileAttributes;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.UserPrincipal;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sshd.common.session.Session;
 import org.structr.common.SecurityContext;
+import org.structr.dynamic.File;
+import org.structr.web.entity.AbstractFile;
 
 
 /**
@@ -74,92 +84,178 @@ public class StructrSSHFileSystem extends FileSystem {
 			
 			@Override
 			public String getScheme() {
-				throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+				logger.log(Level.INFO, "Method not implemented yet"); return null;
 			}
 
 			@Override
 			public FileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException {
-				throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+				logger.log(Level.INFO, "Method not implemented yet"); return null;
 			}
 
 			@Override
 			public FileSystem getFileSystem(URI uri) {
-				throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+				logger.log(Level.INFO, "Method not implemented yet"); return null;
 			}
 
 			@Override
 			public Path getPath(URI uri) {
-				throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+				logger.log(Level.INFO, "Method not implemented yet"); return null;
 			}
 
 			@Override
 			public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
-				throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+				
+				final AbstractFile file = ((StructrSSHFile) path).getActualFile();
+				
+				return new SeekableByteChannel() {
+					@Override
+					public int read(ByteBuffer bb) throws IOException {
+						return ((File) file).getInputStream().read(bb.array());
+					}
+
+					@Override
+					public int write(ByteBuffer bb) throws IOException {
+						((File) file).getOutputStream().write(bb.array());
+						return bb.array().length;
+						
+					}
+
+					@Override
+					public long position() throws IOException {
+						throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+					}
+
+					@Override
+					public SeekableByteChannel position(long l) throws IOException {
+						throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+					}
+
+					@Override
+					public long size() throws IOException {
+						throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+					}
+
+					@Override
+					public SeekableByteChannel truncate(long l) throws IOException {
+						throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+					}
+
+					@Override
+					public boolean isOpen() {
+						throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+					}
+
+					@Override
+					public void close() throws IOException {
+						throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+					}
+				};
 			}
 
 			@Override
 			public DirectoryStream<Path> newDirectoryStream(Path dir, DirectoryStream.Filter<? super Path> filter) throws IOException {
-				throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+				logger.log(Level.INFO, "Method not implemented yet"); return null;
 			}
 
 			@Override
 			public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
-				throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+				logger.log(Level.INFO, "Method not implemented yet");
 			}
 
 			@Override
 			public void delete(Path path) throws IOException {
-				throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+				logger.log(Level.INFO, "Method not implemented yet");
 			}
 
 			@Override
 			public void copy(Path source, Path target, CopyOption... options) throws IOException {
-				throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+				logger.log(Level.INFO, "Method not implemented yet");
 			}
 
 			@Override
 			public void move(Path source, Path target, CopyOption... options) throws IOException {
-				throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+				logger.log(Level.INFO, "Method not implemented yet");
 			}
 
 			@Override
 			public boolean isSameFile(Path path, Path path2) throws IOException {
-				throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+				return path != null && path.equals(path);
 			}
 
 			@Override
 			public boolean isHidden(Path path) throws IOException {
-				throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+				logger.log(Level.INFO, "Method not implemented yet"); return false;
 			}
 
 			@Override
 			public FileStore getFileStore(Path path) throws IOException {
-				throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+				logger.log(Level.INFO, "Method not implemented yet"); return null;
 			}
 
 			@Override
 			public void checkAccess(Path path, AccessMode... modes) throws IOException {
-				// Do nothing
+				logger.log(Level.INFO, "Checking access", new Object[] { path, modes });
 			}
 
 			@Override
-			public <V extends FileAttributeView> V getFileAttributeView(Path path, Class<V> type, LinkOption... options) {
-				throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+			public <V extends FileAttributeView> V getFileAttributeView(final Path path, final Class<V> type, final LinkOption... options) {
+				
+				return (V) new PosixFileAttributeView()  {
+					
+					@Override
+					public String name() {
+						return "posix";
+					}
+
+					@Override
+					public PosixFileAttributes readAttributes() throws IOException {
+						return new StructrPosixFileAttributes((StructrSSHFile) path);
+					}
+
+					@Override
+					public void setPermissions(Set<PosixFilePermission> set) throws IOException {
+						throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+					}
+
+					@Override
+					public void setGroup(GroupPrincipal gp) throws IOException {
+						throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+					}
+
+					@Override
+					public void setTimes(FileTime ft, FileTime ft1, FileTime ft2) throws IOException {
+						throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+					}
+
+					@Override
+					public UserPrincipal getOwner() throws IOException {
+						throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+					}
+
+					@Override
+					public void setOwner(UserPrincipal up) throws IOException {
+						throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+					}
+					
+				};
 			}
 
 			@Override
 			public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException {
-				throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+				
+				logger.log(Level.INFO, "Read attributes", new Object[] { path, type, options });
+				
+				return (A) new StructrPosixFileAttributes((StructrSSHFile) path);
 			}
 
 			@Override
 			public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) throws IOException {
-				throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+				logger.log(Level.INFO, "Method not implemented yet"); return null;
 			}
 
 			@Override
 			public void setAttribute(Path path, String attribute, Object value, LinkOption... options) throws IOException {
-				throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+				logger.log(Level.INFO, "Method not implemented yet");;
 			}
 		};
 		
@@ -197,7 +293,12 @@ public class StructrSSHFileSystem extends FileSystem {
 
 	@Override
 	public Set<String> supportedFileAttributeViews() {
-		logger.log(Level.INFO, "Method not implemented yet"); return null;
+		
+		final Set<String> views = new HashSet<>();
+		
+		views.add("posix");
+		
+		return views;
 	}
 
 	@Override
