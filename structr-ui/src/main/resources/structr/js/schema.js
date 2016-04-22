@@ -125,7 +125,7 @@ var _Schema = {
 				_Schema.openAdminTools();
 			});
 
-			schemaContainer.append('<button class="btn" id="sync-schema"><img src="icon/page_white_get.png"> Sync schema</button>');
+			schemaContainer.append('<button class="btn module-dependend" data-module="structr-cloud-module" id="sync-schema"><img src="icon/page_white_get.png"> Sync schema</button>');
 			$('#sync-schema').on('click', function() {
 				_Schema.syncSchemaDialog();
 			});
@@ -242,6 +242,9 @@ var _Schema = {
 			});
 
 			_Schema.resize();
+
+			Structr.adaptUiToPresentModules();
+
 		});
 
 	},

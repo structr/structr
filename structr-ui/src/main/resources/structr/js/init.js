@@ -179,6 +179,7 @@ $(function() {
 
 var Structr = {
 	modules: {},
+	activeModules: {},
 	classes: [],
 	expanded: {},
 	add_icon: 'icon/add.png',
@@ -347,6 +348,7 @@ var Structr = {
 			if (module) {
 				//module.init();
 				module.onload();
+				Structr.adaptUiToPresentModules();
 				if (module.resize)
 					module.resize();
 			}
@@ -737,6 +739,7 @@ var Structr = {
 			Structr.clearMain();
 			Structr.activateMenuEntry(name);
 			Structr.modules[name].onload();
+			Structr.adaptUiToPresentModules();
 		}
 	},
 	activateMenuEntry: function(name) {
@@ -861,6 +864,7 @@ var Structr = {
 
 //                _Pages.init();
 				Structr.modules['pages'].onload();
+				Structr.adaptUiToPresentModules();
 				_Pages.resize();
 				$('a#pages_').removeClass('nodeHover').droppable('enable');
 			}
@@ -1104,6 +1108,8 @@ var Structr = {
 					$('.structr-version').html('<a target="_blank" href="' + versionLink + '">' + version + '</a> build <a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a> (' + date + ')');
 
 				}
+
+				Structr.activeModules = envInfo.result.modules;
 			}
 		});
 	},
@@ -1200,6 +1206,20 @@ var Structr = {
 	},
 	getActiveElementId: function(element) {
 		return Structr.getIdFromPrefixIdString($(element).prop('id'), 'active_') || undefined;
+	},
+	adaptUiToPresentModules: function() {
+		console.log("adaptUiToModuleLoadStatus");
+		$('.module-dependend').each(function(idx, el) {
+
+			$el = $(el);
+			if (! Structr.isModulePresent($el.data('module'))) {
+				$el.hide();
+			}
+
+		});
+	},
+	isModulePresent:function(moduleName) {
+		return Structr.activeModules[moduleName] !== undefined;
 	}
 };
 

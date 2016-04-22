@@ -51,7 +51,7 @@ var _Filesystem = {
 
 		main = $('#main');
 
-		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Search..."><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
+		main.append('<div class="searchBox module-dependend" data-module="structr-text-search-module"><input class="search" name="search" placeholder="Search..."><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
 
 		searchField = $('.search', main);
 		searchField.focus();
@@ -112,7 +112,7 @@ var _Filesystem = {
 
 		$('#folder-contents-container').prepend(
 				'<button class="add_file_icon button"><img title="Add File" alt="Add File" src="' + _Filesystem.add_file_icon + '"> Add File</button>'
-				+ '<button class="pull_file_icon button"><img title="Sync Files" alt="Sync Files" src="' + _Filesystem.pull_file_icon + '"> Sync Files</button>'
+				+ '<button class="pull_file_icon button module-dependend" data-module="structr-cloud-module"><img title="Sync Files" alt="Sync Files" src="' + _Filesystem.pull_file_icon + '"> Sync Files</button>'
 				);
 
 		$('.add_file_icon', main).on('click', function(e) {
@@ -620,11 +620,13 @@ var _Filesystem = {
 
 			// ********** Folders **********
 
-			div.append('<img title="Sync folder \'' + d.name + '\' to remote instance" alt="Sync folder \'' + d.name + '\' to remote instance" class="push_icon button" src="icon/page_white_get.png">');
-			div.children('.push_icon').on('click', function() {
-				Structr.pushDialog(d.id, true);
-				return false;
-			});
+			if (Structr.isModulePresent('structr-cloud-module')) {
+				div.append('<img title="Sync folder \'' + d.name + '\' to remote instance" alt="Sync folder \'' + d.name + '\' to remote instance" class="push_icon button" src="icon/page_white_get.png">');
+				div.children('.push_icon').on('click', function() {
+					Structr.pushDialog(d.id, true);
+					return false;
+				});
+			}
 
 			var newDelIcon = '<img title="Delete folder \'' + d.name + '\'" alt="Delete folder \'' + d.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
 			if (delIcon && delIcon.length) {
@@ -694,11 +696,13 @@ var _Filesystem = {
 				});
 			}
 
-			div.append('<img title="Sync file \'' + d.name + '\' to remote instance" alt="Sync file \'' + d.name + '\' to remote instance" class="push_icon button" src="icon/page_white_get.png">');
-			div.children('.push_icon').on('click', function() {
-				Structr.pushDialog(d.id, false);
-				return false;
-			});
+			if (Structr.isModulePresent('structr-cloud-module')) {
+				div.append('<img title="Sync file \'' + d.name + '\' to remote instance" alt="Sync file \'' + d.name + '\' to remote instance" class="push_icon button" src="icon/page_white_get.png">');
+				div.children('.push_icon').on('click', function() {
+					Structr.pushDialog(d.id, false);
+					return false;
+				});
+			}
 
 			div.children('.typeIcon').on('click', function(e) {
 				e.stopPropagation();

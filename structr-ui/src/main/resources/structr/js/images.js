@@ -247,11 +247,13 @@ var _Images = {
 
 		_Entities.appendAccessControlIcon(iconArea, img);
 
-		div.append('<img title="Push image \'' + img.name + '\'" alt="Push image \'' + img.name + '\'" class="push_icon button" src="icon/page_white_get.png">');
-		div.children('.push_icon').on('click', function() {
-			Structr.pushDialog(img.id, false);
-			return false;
-		});
+		if (Structr.isModulePresent('structr-cloud-module')) {
+			div.append('<img title="Push image \'' + img.name + '\'" alt="Push image \'' + img.name + '\'" class="push_icon button" src="icon/page_white_get.png">');
+			div.children('.push_icon').on('click', function() {
+				Structr.pushDialog(img.id, false);
+				return false;
+			});
+		}
 
 		delIcon = $('.delete_icon', div);
 
