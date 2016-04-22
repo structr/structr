@@ -1208,7 +1208,6 @@ var Structr = {
 		return Structr.getIdFromPrefixIdString($(element).prop('id'), 'active_') || undefined;
 	},
 	adaptUiToPresentModules: function() {
-		console.log("adaptUiToModuleLoadStatus");
 		$('.module-dependend').each(function(idx, el) {
 
 			$el = $(el);
