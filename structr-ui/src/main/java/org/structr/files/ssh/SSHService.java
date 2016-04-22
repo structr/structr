@@ -19,26 +19,30 @@
 package org.structr.files.ssh;
 
 import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.Paths;
 import java.security.PublicKey;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sshd.SshServer;
 import org.apache.sshd.common.Factory;
 import org.apache.sshd.common.NamedFactory;
-import org.apache.sshd.common.Session;
+import org.apache.sshd.common.config.keys.KeyUtils;
+import org.apache.sshd.common.config.keys.PublicKeyEntry;
+import org.apache.sshd.common.config.keys.PublicKeyEntryResolver;
 import org.apache.sshd.common.file.FileSystemFactory;
-import org.apache.sshd.common.file.FileSystemView;
+import org.apache.sshd.common.session.Session;
 import org.apache.sshd.server.CommandFactory;
 import org.apache.sshd.server.Environment;
-import org.apache.sshd.server.PasswordAuthenticator;
-import org.apache.sshd.server.PublickeyAuthenticator;
-import org.apache.sshd.server.command.ScpCommandFactory;
+import org.apache.sshd.server.SshServer;
+import org.apache.sshd.server.auth.password.PasswordAuthenticator;
+import org.apache.sshd.server.auth.pubkey.PublickeyAuthenticator;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
+import org.apache.sshd.server.scp.ScpCommandFactory;
 import org.apache.sshd.server.session.ServerSession;
-import org.apache.sshd.server.sftp.SftpSubsystem;
+import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory;
 import org.structr.api.service.Command;
 import org.structr.core.Services;
 import org.structr.api.service.SingletonService;
@@ -60,7 +64,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	public static final String APPLICATION_SSH_PORT = "application.ssh.port";
 
 	private SshServer server = null;
-	private boolean running  = false;
+	private boolean running = false;
 
 	@Override
 	public void injectArguments(final Command command) {
@@ -71,23 +75,27 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 		server = SshServer.setUpDefaultServer();
 
-		server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("db/structr_hostkey"));
+		server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(Paths.get("db/structr_hostkey")));
 		server.setPort(Services.parseInt(APPLICATION_SSH_PORT, 8022));
 		server.setPasswordAuthenticator(this);
 		server.setPublickeyAuthenticator(this);
 		server.setFileSystemFactory(this);
 		server.setSubsystemFactories(getSftpSubsystem());
 		server.setShellFactory(this);
-		server.setCommandFactory(new ScpCommandFactory(this));
+
+		final ScpCommandFactory scp = new ScpCommandFactory.Builder()
+			.withDelegate(this)
+			.addEventListener(new StructrScpTransferEventListener()).build();
+
+		server.setCommandFactory(scp);
 
 		try {
 
 			server.start();
 			running = true;
 
-
 		} catch (IOException ex) {
-			Logger.getLogger(SSHService.class.getName()).log(Level.SEVERE, null, ex);
+			logger.log(Level.SEVERE, null, ex);
 		}
 	}
 
@@ -99,7 +107,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 			server.stop(true);
 			running = false;
 
-		} catch (InterruptedException ex) {
+		} catch (IOException ex) {
 			Logger.getLogger(SSHService.class.getName()).log(Level.SEVERE, null, ex);
 		}
 	}
@@ -124,8 +132,8 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	}
 
 	@Override
-	public FileSystemView createFileSystemView(final Session session) throws IOException {
-		return new StructrSSHFileSystemView(session);
+	public FileSystem createFileSystem(final Session session) throws IOException {
+		return new StructrSSHFileSystem(session);
 	}
 
 	@Override
@@ -155,8 +163,36 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	@Override
 	public boolean authenticate(final String username, final PublicKey key, final ServerSession session) {
 
-		// no pubkey auth yet
-		return false;
+		boolean isValid = false;
+
+		if (key == null) {
+			return isValid;
+		}
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			final Principal principal = StructrApp.getInstance().nodeQuery(Principal.class).andName(username).getFirst();
+			if (principal != null) {
+
+				final String pubKeyData = principal.getProperty(Principal.publicKey);
+
+				if (pubKeyData != null) {
+
+					final PublicKey pubKey = PublicKeyEntry.parsePublicKeyEntry(pubKeyData).resolvePublicKey(PublicKeyEntryResolver.FAILING);
+
+					isValid = KeyUtils.compareKeys(pubKey, key);
+				}
+			}
+
+			tx.success();
+
+		} catch (Throwable t) {
+			logger.log(Level.WARNING, "", t);
+
+			isValid = false;
+		}
+
+		return isValid;
 	}
 
 	@Override
@@ -170,7 +206,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 				super.start(env);
 
 				// non-interactively handle the command
-				this. handleLine(command);
+				this.handleLine(command);
 				this.flush();
 				this.handleExit();
 			}
@@ -194,7 +230,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 		final List<NamedFactory<org.apache.sshd.server.Command>> list = new LinkedList<>();
 
-		list.add(new SftpSubsystem.Factory());
+		list.add(new SftpSubsystemFactory());
 
 		return list;
 	}

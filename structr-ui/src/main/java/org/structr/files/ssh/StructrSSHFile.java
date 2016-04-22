@@ -19,25 +19,23 @@
 package org.structr.files.ssh;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedList;
+import java.net.URI;
+import java.nio.file.FileSystem;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sshd.common.file.SshFile;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
-import org.structr.dynamic.File;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
@@ -46,14 +44,12 @@ import org.structr.web.entity.Folder;
  *
  *
  */
-public class StructrSSHFile implements SshFile {
+public class StructrSSHFile implements Path {
 
 	private static final Logger logger = Logger.getLogger(StructrSSHFile.class.getName());
 
-	protected static final NullFile nullFile     = new NullFile();
-	protected static final NullFolder nullFolder = new NullFolder();
-
 	protected SecurityContext securityContext = null;
+	protected FileSystem fileSystem           = null;
 	protected StructrSSHFile parent           = null;
 	protected AbstractFile actualFile         = null;
 	protected String name                     = null;
@@ -90,113 +86,117 @@ public class StructrSSHFile implements SshFile {
 		return actualFile;
 	}
 
+	public void setFileSystem(final FileSystem fileSystem) {
+		this.fileSystem = fileSystem;
+	}
+	
 	// ----- interface SshFile -----
-	@Override
-	public boolean isDirectory() {
-
-		if (parent == null) {
-			return true;
-		}
-
-		if (actualFile != null) {
-			return actualFile instanceof Folder;
-		}
-
-		return false;
-	}
-
-	@Override
-	public boolean isFile() {
-
-		if (actualFile != null) {
-			return actualFile instanceof FileBase;
-		}
-
-		return false;
-	}
-
-	@Override
-	public boolean mkdir() {
-
-		if (actualFile == null) {
-
-			final App app = StructrApp.getInstance(parent.getSecurityContext());
-			try (final Tx tx = app.tx()) {
-
-				actualFile = app.create(Folder.class,
-					new NodeAttribute(AbstractNode.name, name),
-					new NodeAttribute(AbstractFile.parent, parent != null ? parent.getActualFile() : null)
-				);
-				tx.success();
-
-				return true;
-
-			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "", fex);
-			}
-		}
-
-		return false;
-	}
-
-	@Override
-	public boolean create() throws IOException {
-
-		if (actualFile == null) {
-
-			final App app = StructrApp.getInstance(parent.getSecurityContext());
-			try (final Tx tx = app.tx()) {
-
-				actualFile = app.create(File.class,
-					new NodeAttribute(AbstractNode.name, name),
-					new NodeAttribute(AbstractFile.parent, parent != null ? parent.getActualFile() : null)
-				);
-
-				tx.success();
-
-				return true;
-
-			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "", fex);
-			}
-		}
-
-		return false;
-	}
-
-	@Override
-	public void truncate() throws IOException {
-	}
-
-	@Override
-	public boolean move(final SshFile destination) {
-		return false;
-	}
-
-	@Override
-	public List<SshFile> listSshFiles() {
-
-		final App app             = StructrApp.getInstance(parent.getSecurityContext());
-		final List<SshFile> files = new LinkedList<>();
-
-		try (final Tx tx = app.tx()) {
-
-			for (final Folder child : getFolders()) {
-				files.add(new StructrSSHFile(this, child.getName(), child));
-			}
-
-			for (final FileBase child : getFiles()) {
-				files.add(new StructrSSHFile(this, child.getName(), child));
-			}
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
-		}
-
-		return files;
-	}
+//	@Override
+//	public boolean isDirectory() {
+//
+//		if (parent == null) {
+//			return true;
+//		}
+//
+//		if (actualFile != null) {
+//			return actualFile instanceof Folder;
+//		}
+//
+//		return false;
+//	}
+//
+//	@Override
+//	public boolean isFile() {
+//
+//		if (actualFile != null) {
+//			return actualFile instanceof FileBase;
+//		}
+//
+//		return false;
+//	}
+//
+//	@Override
+//	public boolean mkdir() {
+//
+//		if (actualFile == null) {
+//
+//			final App app = StructrApp.getInstance(parent.getSecurityContext());
+//			try (final Tx tx = app.tx()) {
+//
+//				actualFile = app.create(Folder.class,
+//					new NodeAttribute(AbstractNode.name, name),
+//					new NodeAttribute(AbstractFile.parent, parent != null ? parent.getActualFile() : null)
+//				);
+//				tx.success();
+//
+//				return true;
+//
+//			} catch (FrameworkException fex) {
+//				logger.log(Level.WARNING, "", fex);
+//			}
+//		}
+//
+//		return false;
+//	}
+//
+//	@Override
+//	public boolean create() throws IOException {
+//
+//		if (actualFile == null) {
+//
+//			final App app = StructrApp.getInstance(parent.getSecurityContext());
+//			try (final Tx tx = app.tx()) {
+//
+//				actualFile = app.create(File.class,
+//					new NodeAttribute(AbstractNode.name, name),
+//					new NodeAttribute(AbstractFile.parent, parent != null ? parent.getActualFile() : null)
+//				);
+//
+//				tx.success();
+//
+//				return true;
+//
+//			} catch (FrameworkException fex) {
+//				logger.log(Level.WARNING, "", fex);
+//			}
+//		}
+//
+//		return false;
+//	}
+//
+//	@Override
+//	public void truncate() throws IOException {
+//	}
+//
+//	@Override
+//	public boolean move(final SshFile destination) {
+//		return false;
+//	}
+//
+//	@Override
+//	public List<SshFile> listSshFiles() {
+//
+//		final App app             = StructrApp.getInstance(parent.getSecurityContext());
+//		final List<SshFile> files = new LinkedList<>();
+//
+//		try (final Tx tx = app.tx()) {
+//
+//			for (final Folder child : getFolders()) {
+//				files.add(new StructrSSHFile(this, child.getName(), child));
+//			}
+//
+//			for (final FileBase child : getFiles()) {
+//				files.add(new StructrSSHFile(this, child.getName(), child));
+//			}
+//
+//			tx.success();
+//
+//		} catch (FrameworkException fex) {
+//			logger.log(Level.WARNING, "", fex);
+//		}
+//
+//		return files;
+//	}
 
 	public StructrSSHFile findFile(final String path) {
 
@@ -298,242 +298,374 @@ public class StructrSSHFile implements SshFile {
 		}
 	}
 
+//	@Override
+//	public String getAbsolutePath() {
+//
+//		if (parent != null) {
+//			return parent.getAbsolutePath() + "/" + getName();
+//		}
+//
+//		return "/";
+//	}
+//
+//	@Override
+//	public String getName() {
+//		return name;
+//	}
+//
+//	@Override
+//	public String getOwner() {
+//
+//		if (actualFile != null) {
+//
+//			try (final Tx tx = StructrApp.getInstance(parent.getSecurityContext()).tx()) {
+//
+//				final Principal owner = actualFile.getOwnerNode();
+//				String name           = null;
+//
+//				if (owner != null) {
+//
+//					name = owner.getProperty(AbstractNode.name);
+//				}
+//
+//				tx.success();
+//
+//				return name;
+//
+//			} catch (FrameworkException fex) {
+//				logger.log(Level.WARNING, "", fex);
+//			}
+//		}
+//
+//		return null;
+//	}
+//
+//	@Override
+//	public Map<Attribute, Object> getAttributes(boolean followLinks) throws IOException {
+//		return Collections.emptyMap();
+//	}
+//
+//	@Override
+//	public void setAttributes(Map<Attribute, Object> attributes) throws IOException {
+//	}
+//
+//	@Override
+//	public Object getAttribute(Attribute attribute, boolean followLinks) throws IOException {
+//		return null;
+//	}
+//
+//	@Override
+//	public void setAttribute(Attribute attribute, Object value) throws IOException {
+//	}
+//
+//	@Override
+//	public String readSymbolicLink() throws IOException {
+//		return null;
+//	}
+//
+//	@Override
+//	public void createSymbolicLink(final SshFile destination) throws IOException {
+//	}
+//
+//	@Override
+//	public boolean doesExist() {
+//		return parent == null || actualFile != null;
+//	}
+//
+//	@Override
+//	public boolean isReadable() {
+//		return true;
+//	}
+//
+//	@Override
+//	public boolean isWritable() {
+//		return true;
+//	}
+//
+//	@Override
+//	public boolean isExecutable() {
+//		return false;
+//	}
+//
+//	@Override
+//	public boolean isRemovable() {
+//		return true;
+//	}
+//
+//	@Override
+//	public SshFile getParentFile() {
+//
+//		if (parent != null) {
+//			return parent;
+//		}
+//
+//		return nullFile;
+//	}
+//
+//	@Override
+//	public boolean delete() {
+//
+//		if (actualFile != null) {
+//
+//			final App app = StructrApp.getInstance(parent.getSecurityContext());
+//			try (final Tx tx = app.tx()) {
+//
+//				app.delete(actualFile);
+//				tx.success();
+//
+//				return true;
+//
+//			} catch (FrameworkException fex) {
+//				logger.log(Level.WARNING, "", fex);
+//			}
+//		}
+//
+//		return false;
+//	}
+//
+//	@Override
+//	public long getLastModified() {
+//
+//		if (actualFile != null) {
+//
+//			try (final Tx tx = StructrApp.getInstance(parent.getSecurityContext()).tx()) {
+//
+//				final long time = actualFile.getLastModifiedDate().getTime();
+//
+//				tx.success();
+//
+//				return time;
+//
+//			} catch (FrameworkException fex) {
+//				logger.log(Level.WARNING, "", fex);
+//			}
+//		}
+//
+//		return 0;
+//	}
+//
+//	@Override
+//	public boolean setLastModified(final long time) {
+//
+//		if (actualFile != null) {
+//
+//			try (final Tx tx = StructrApp.getInstance(parent.getSecurityContext()).tx()) {
+//
+//				actualFile.setProperty(AbstractFile.lastModifiedDate, new Date(time));
+//
+//				tx.success();
+//
+//				return true;
+//
+//			} catch (FrameworkException fex) {
+//				logger.log(Level.WARNING, "", fex);
+//			}
+//		}
+//
+//		return false;
+//	}
+//
+//	@Override
+//	public long getSize() {
+//
+//		if (actualFile != null) {
+//
+//			try (final Tx tx = StructrApp.getInstance(parent.getSecurityContext()).tx()) {
+//
+//				final long size = actualFile.getProperty(FileBase.size);
+//
+//				tx.success();
+//
+//				return size;
+//
+//			} catch (FrameworkException fex) {
+//				logger.log(Level.WARNING, "", fex);
+//			}
+//		}
+//
+//		return 0;
+//	}
+//
+//	@Override
+//	public OutputStream createOutputStream(long offset) throws IOException {
+//
+//		final App app   = StructrApp.getInstance(parent.getSecurityContext());
+//		OutputStream os = null;
+//
+//		try (final Tx tx = app.tx()) {
+//
+//
+//			if (actualFile == null) {
+//				create();
+//			}
+//
+//			if (actualFile != null) {
+//				os = ((FileBase)actualFile).getOutputStream();
+//			}
+//
+//			tx.success();
+//
+//		} catch (FrameworkException fex) {
+//			logger.log(Level.WARNING, "", fex);
+//		}
+//
+//		return os;
+//	}
+//
+//	@Override
+//	public InputStream createInputStream(long offset) throws IOException {
+//
+//		final App app  = StructrApp.getInstance(parent.getSecurityContext());
+//		InputStream is = null;
+//
+//		try (final Tx tx = app.tx()) {
+//
+//			if (actualFile != null) {
+//				is = ((FileBase)actualFile).getInputStream();
+//			}
+//
+//			tx.success();
+//
+//		} catch (FrameworkException fex) {
+//			logger.log(Level.WARNING, "", fex);
+//		}
+//
+//		return is;
+//	}
+//
+//	@Override
+//	public void handleClose() throws IOException {
+//	}
+
 	@Override
-	public String getAbsolutePath() {
-
-		if (parent != null) {
-			return parent.getAbsolutePath() + "/" + getName();
-		}
-
-		return "/";
+	public FileSystem getFileSystem() {
+		return fileSystem;
 	}
 
 	@Override
-	public String getName() {
-		return name;
-	}
-
-	@Override
-	public String getOwner() {
-
-		if (actualFile != null) {
-
-			try (final Tx tx = StructrApp.getInstance(parent.getSecurityContext()).tx()) {
-
-				final Principal owner = actualFile.getOwnerNode();
-				String name           = null;
-
-				if (owner != null) {
-
-					name = owner.getProperty(AbstractNode.name);
-				}
-
-				tx.success();
-
-				return name;
-
-			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "", fex);
-			}
-		}
-
-		return null;
-	}
-
-	@Override
-	public Map<Attribute, Object> getAttributes(boolean followLinks) throws IOException {
-		return Collections.emptyMap();
-	}
-
-	@Override
-	public void setAttributes(Map<Attribute, Object> attributes) throws IOException {
-	}
-
-	@Override
-	public Object getAttribute(Attribute attribute, boolean followLinks) throws IOException {
-		return null;
-	}
-
-	@Override
-	public void setAttribute(Attribute attribute, Object value) throws IOException {
-	}
-
-	@Override
-	public String readSymbolicLink() throws IOException {
-		return null;
-	}
-
-	@Override
-	public void createSymbolicLink(final SshFile destination) throws IOException {
-	}
-
-	@Override
-	public boolean doesExist() {
-		return parent == null || actualFile != null;
-	}
-
-	@Override
-	public boolean isReadable() {
+	public boolean isAbsolute() {
 		return true;
 	}
 
 	@Override
-	public boolean isWritable() {
-		return true;
+	public Path getRoot() {
+		return getFileSystem().getPath("/");
 	}
 
 	@Override
-	public boolean isExecutable() {
-		return false;
+	public Path getFileName() {
+		return Paths.get(actualFile.getName());
 	}
 
 	@Override
-	public boolean isRemovable() {
-		return true;
+	public Path getParent() {
+		return parent;
 	}
 
 	@Override
-	public SshFile getParentFile() {
-
-		if (parent != null) {
-			return parent;
-		}
-
-		return nullFile;
+	public int getNameCount() {
+		logger.log(Level.INFO, "Method not implemented yet"); return 0;
 	}
 
 	@Override
-	public boolean delete() {
-
-		if (actualFile != null) {
-
-			final App app = StructrApp.getInstance(parent.getSecurityContext());
-			try (final Tx tx = app.tx()) {
-
-				app.delete(actualFile);
-				tx.success();
-
-				return true;
-
-			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "", fex);
-			}
-		}
-
-		return false;
+	public Path getName(int i) {
+		logger.log(Level.INFO, "Method not implemented yet"); return null;
 	}
 
 	@Override
-	public long getLastModified() {
-
-		if (actualFile != null) {
-
-			try (final Tx tx = StructrApp.getInstance(parent.getSecurityContext()).tx()) {
-
-				final long time = actualFile.getLastModifiedDate().getTime();
-
-				tx.success();
-
-				return time;
-
-			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "", fex);
-			}
-		}
-
-		return 0;
+	public Path subpath(int i, int i1) {
+		logger.log(Level.INFO, "Method not implemented yet"); return null;
 	}
 
 	@Override
-	public boolean setLastModified(final long time) {
-
-		if (actualFile != null) {
-
-			try (final Tx tx = StructrApp.getInstance(parent.getSecurityContext()).tx()) {
-
-				actualFile.setProperty(AbstractFile.lastModifiedDate, new Date(time));
-
-				tx.success();
-
-				return true;
-
-			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "", fex);
-			}
-		}
-
-		return false;
+	public boolean startsWith(Path path) {
+		logger.log(Level.INFO, "Method not implemented yet"); return false;
 	}
 
 	@Override
-	public long getSize() {
-
-		if (actualFile != null) {
-
-			try (final Tx tx = StructrApp.getInstance(parent.getSecurityContext()).tx()) {
-
-				final long size = actualFile.getProperty(FileBase.size);
-
-				tx.success();
-
-				return size;
-
-			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "", fex);
-			}
-		}
-
-		return 0;
+	public boolean startsWith(String string) {
+		logger.log(Level.INFO, "Method not implemented yet"); return false;
 	}
 
 	@Override
-	public OutputStream createOutputStream(long offset) throws IOException {
-
-		final App app   = StructrApp.getInstance(parent.getSecurityContext());
-		OutputStream os = null;
-
-		try (final Tx tx = app.tx()) {
-
-
-			if (actualFile == null) {
-				create();
-			}
-
-			if (actualFile != null) {
-				os = ((FileBase)actualFile).getOutputStream();
-			}
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
-		}
-
-		return os;
+	public boolean endsWith(Path path) {
+		logger.log(Level.INFO, "Method not implemented yet"); return false;
 	}
 
 	@Override
-	public InputStream createInputStream(long offset) throws IOException {
-
-		final App app  = StructrApp.getInstance(parent.getSecurityContext());
-		InputStream is = null;
-
-		try (final Tx tx = app.tx()) {
-
-			if (actualFile != null) {
-				is = ((FileBase)actualFile).getInputStream();
-			}
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
-		}
-
-		return is;
+	public boolean endsWith(String string) {
+		logger.log(Level.INFO, "Method not implemented yet"); return false;
 	}
 
 	@Override
-	public void handleClose() throws IOException {
+	public Path normalize() {
+		// We assume no redundant path parts, see https://docs.oracle.com/javase/7/docs/api/java/nio/file/Path.html#normalize()
+		return this;
+	}
+
+	@Override
+	public Path resolve(Path path) {
+		logger.log(Level.INFO, "Method not implemented yet"); return null;
+	}
+
+	@Override
+	public Path resolve(String string) {
+		logger.log(Level.INFO, "Method not implemented yet"); return null;
+	}
+
+	@Override
+	public Path resolveSibling(Path path) {
+		logger.log(Level.INFO, "Method not implemented yet"); return null;
+	}
+
+	@Override
+	public Path resolveSibling(String string) {
+		logger.log(Level.INFO, "Method not implemented yet"); return null;
+	}
+
+	@Override
+	public Path relativize(Path path) {
+		logger.log(Level.INFO, "Method not implemented yet"); return null;
+	}
+
+	@Override
+	public URI toUri() {
+		logger.log(Level.INFO, "Method not implemented yet"); return null;
+	}
+
+	@Override
+	public Path toAbsolutePath() {
+		// We assume this is already an absolute path, see https://docs.oracle.com/javase/7/docs/api/java/nio/file/Path.html#toAbsolutePath()
+		return this;
+	}
+
+	@Override
+	public Path toRealPath(LinkOption... los) throws IOException {
+		logger.log(Level.INFO, "Method not implemented yet"); return null;
+	}
+
+	@Override
+	public java.io.File toFile() {
+		logger.log(Level.INFO, "Method not implemented yet"); return null;
+	}
+
+	@Override
+	public WatchKey register(WatchService ws, WatchEvent.Kind<?>[] kinds, WatchEvent.Modifier... mdfrs) throws IOException {
+		logger.log(Level.INFO, "Method not implemented yet"); return null;
+	}
+
+	@Override
+	public WatchKey register(WatchService ws, WatchEvent.Kind<?>... kinds) throws IOException {
+		logger.log(Level.INFO, "Method not implemented yet"); return null;
+	}
+
+	@Override
+	public Iterator<Path> iterator() {
+		logger.log(Level.INFO, "Method not implemented yet"); return null;
+	}
+
+	@Override
+	public int compareTo(Path path) {
+		logger.log(Level.INFO, "Method not implemented yet"); return 0;
 	}
 }
