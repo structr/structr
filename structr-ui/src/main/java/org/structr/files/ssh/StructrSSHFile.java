@@ -91,6 +91,10 @@ public class StructrSSHFile implements Path {
 	public AbstractFile getActualFile() {
 		return actualFile;
 	}
+	
+	public void setActualFile(final AbstractFile file) {
+		this.actualFile = file;
+	}
 
 	public void setFileSystem(final FileSystem fileSystem) {
 		this.fileSystem = fileSystem;

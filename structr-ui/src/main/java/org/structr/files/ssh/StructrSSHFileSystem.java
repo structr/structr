@@ -244,12 +244,17 @@ public class StructrSSHFileSystem extends FileSystem {
 				final StructrSSHFile parent = (StructrSSHFile) dir.getParent();
 
 				final App app = StructrApp.getInstance(securityContext);
+				final String name = dir.getFileName().toString();
+				
 				try (final Tx tx = app.tx()) {
 
-					app.create(Folder.class,
-						new NodeAttribute(AbstractNode.name, dir.getFileName().toString()),
+					final Folder folder = app.create(Folder.class,
+						new NodeAttribute(AbstractNode.name, name),
 						new NodeAttribute(AbstractFile.parent, parent != null ? parent.getActualFile() : null)
 					);
+					
+					((StructrSSHFile) dir).setActualFile(folder);
+
 					tx.success();
 
 				} catch (FrameworkException fex) {
@@ -344,7 +349,7 @@ public class StructrSSHFileSystem extends FileSystem {
 			public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException {
 
 				if (path != null) {
-					
+
 					if (path instanceof StructrSSHFile) {
 						
 						final StructrSSHFile sshFile = (StructrSSHFile) path;
