@@ -213,11 +213,24 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	}
 
 	@Override
+	public void onNodeDeletion() {
+
+		try {
+
+			removeSourceAndTargetJsonNames();
+
+		} catch (Throwable t) {
+
+			// this method must not prevent
+			// the deletion of a node
+			t.printStackTrace();
+		}
+	}
+
+	@Override
 	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 
 		if (super.onDeletion(securityContext, errorBuffer, properties)) {
-
-			removeSourceAndTargetJsonNames(properties);
 
 			// register transaction post processing that recreates the schema information
 			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
@@ -871,7 +884,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		syncables.add(getSourceNode());
 		syncables.add(getTargetNode());
-		
+
 		syncables.add(getIncomingRelationship(SchemaRelationshipSourceNode.class));
 		syncables.add(getOutgoingRelationship(SchemaRelationshipTargetNode.class));
 
@@ -1045,12 +1058,12 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		}
 	}
 
-	private void removeSourceAndTargetJsonNames(PropertyMap properties) throws FrameworkException {
+	private void removeSourceAndTargetJsonNames() throws FrameworkException {
 
 		final SchemaNode _sourceNode         = getProperty(sourceNode);
 		final SchemaNode _targetNode         = getProperty(targetNode);
-		final String _currentSourceJsonName  = (properties.get(sourceJsonName) != null) ? properties.get(sourceJsonName) : properties.get(previousSourceJsonName);
-		final String _currentTargetJsonName  = (properties.get(targetJsonName) != null) ? properties.get(targetJsonName) : properties.get(previousTargetJsonName);
+		final String _currentSourceJsonName  = ((getProperty(sourceJsonName) != null) ? getProperty(sourceJsonName) : getPropertyName(getSchemaNodeTargetType(), new LinkedHashSet<>(), false));
+		final String _currentTargetJsonName  = ((getProperty(targetJsonName) != null) ? getProperty(targetJsonName) : getPropertyName(getSchemaNodeSourceType(), new LinkedHashSet<>(), true));
 
 		if (_sourceNode != null) {
 
