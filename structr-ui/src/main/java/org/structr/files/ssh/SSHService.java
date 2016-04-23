@@ -47,6 +47,8 @@ import org.structr.api.service.Command;
 import org.structr.core.Services;
 import org.structr.api.service.SingletonService;
 import org.structr.api.service.StructrServices;
+import org.structr.common.AccessMode;
+import org.structr.common.SecurityContext;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
@@ -63,8 +65,9 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 	public static final String APPLICATION_SSH_PORT = "application.ssh.port";
 
-	private SshServer server = null;
-	private boolean running = false;
+	private SshServer server                = null;
+	private boolean running                 = false;
+	private SecurityContext securityContext = null;
 
 	@Override
 	public void injectArguments(final Command command) {
@@ -134,20 +137,22 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 	@Override
 	public FileSystem createFileSystem(final Session session) throws IOException {
-		return new StructrSSHFileSystem(session);
+		return new StructrSSHFileSystem(securityContext, session);
 	}
 
 	@Override
 	public boolean authenticate(final String username, final String password, final ServerSession session) {
 
-		boolean isValid = false;
-
+		boolean isValid     = false;
+		Principal principal = null;
+		
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			final Principal principal = AuthHelper.getPrincipalForPassword(AbstractNode.name, username, password);
+			principal = AuthHelper.getPrincipalForPassword(AbstractNode.name, username, password);
 			if (principal != null) {
 
 				isValid = true;
+				securityContext = SecurityContext.getInstance(principal, AccessMode.Backend);
 			}
 
 			tx.success();
@@ -158,6 +163,15 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 			isValid = false;
 		}
 
+		try {
+			if (isValid) {
+				session.setAuthenticated();
+			}
+
+		} catch (IOException ex) {
+			logger.log(Level.SEVERE, null, ex);
+		}
+		
 		return isValid;
 	}
 
@@ -175,6 +189,8 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 			final Principal principal = StructrApp.getInstance().nodeQuery(Principal.class).andName(username).getFirst();
 			if (principal != null) {
 
+				securityContext = SecurityContext.getInstance(principal, AccessMode.Backend);
+				
 				final String pubKeyData = principal.getProperty(Principal.publicKey);
 
 				if (pubKeyData != null) {
@@ -191,6 +207,15 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 			logger.log(Level.WARNING, "", t);
 
 			isValid = false;
+		}
+
+		try {
+			if (isValid) {
+				session.setAuthenticated();
+			}
+
+		} catch (IOException ex) {
+			logger.log(Level.SEVERE, null, ex);
 		}
 
 		return isValid;

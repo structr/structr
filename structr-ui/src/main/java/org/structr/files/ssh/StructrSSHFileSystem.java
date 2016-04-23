@@ -76,10 +76,15 @@ public class StructrSSHFileSystem extends FileSystem {
 
 	private static final Logger logger = Logger.getLogger(StructrSSHFileSystem.class.getName());
 
-	private StructrSSHFile rootFolder = null;
+	private StructrSSHFile rootFolder       = null;
+	private Session        session          = null;
+	private SecurityContext securityContext = null;
 
-	public StructrSSHFileSystem(final Session session) {
-		this.rootFolder = new StructrSSHFile(SecurityContext.getSuperUserInstance());
+	public StructrSSHFileSystem(final SecurityContext securityContext, final Session session) {
+		this.securityContext = securityContext;
+		this.session         = session;
+		this.rootFolder      = new StructrSSHFile(securityContext);
+
 		this.rootFolder.setFileSystem(this);
 	}
 
@@ -95,7 +100,7 @@ public class StructrSSHFileSystem extends FileSystem {
 
 				FileBase actualFile = (FileBase) ((StructrSSHFile) path).getActualFile();
 				
-				try (final Tx tx = StructrApp.getInstance().tx()) {
+				try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 					if (actualFile == null) {
 						
@@ -122,7 +127,7 @@ public class StructrSSHFileSystem extends FileSystem {
 				
 				InputStream inputStream = null;
 				
-				try (final Tx tx = StructrApp.getInstance().tx()) {
+				try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 		
 					final FileBase fileNode = (FileBase) ((StructrSSHFile) path).getActualFile();
 					inputStream = fileNode.getInputStream();
@@ -170,7 +175,7 @@ public class StructrSSHFileSystem extends FileSystem {
 				
 				if (fileNode != null) {
 
-					try (Tx tx = StructrApp.getInstance().tx()) {
+					try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 						final Path filePath = FileHelper.getPath(fileNode);
 						channel = Files.newByteChannel(filePath);
 
@@ -196,7 +201,7 @@ public class StructrSSHFileSystem extends FileSystem {
 						
 						if (!closed) {
 							
-							final App app = StructrApp.getInstance();
+							final App app = StructrApp.getInstance(securityContext);
 							final List<StructrSSHFile> files = new LinkedList<>();
 							
 							final StructrSSHFile thisDir = (StructrSSHFile) dir;
@@ -238,7 +243,7 @@ public class StructrSSHFileSystem extends FileSystem {
 				
 				final StructrSSHFile parent = (StructrSSHFile) dir.getParent();
 
-				final App app = StructrApp.getInstance(parent.getSecurityContext());
+				final App app = StructrApp.getInstance(securityContext);
 				try (final Tx tx = app.tx()) {
 
 					app.create(Folder.class,
@@ -374,7 +379,7 @@ public class StructrSSHFileSystem extends FileSystem {
 
 				AbstractFile newFile = null;
 
-				final App app = StructrApp.getInstance(parent.getSecurityContext());
+				final App app = StructrApp.getInstance(securityContext);
 				try (final Tx tx = app.tx()) {
 					
 					final String fileName = path.getFileName().toString();
