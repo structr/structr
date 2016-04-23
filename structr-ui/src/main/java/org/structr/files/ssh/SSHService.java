@@ -84,8 +84,9 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 		server.setShellFactory(this);
 
 		final ScpCommandFactory scp = new ScpCommandFactory.Builder()
-			.withDelegate(this)
-			.addEventListener(new StructrScpTransferEventListener()).build();
+			//.withDelegate(this)
+			//.addEventListener(new StructrScpTransferEventListener());
+			.build();
 
 		server.setCommandFactory(scp);
 
@@ -108,7 +109,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 			running = false;
 
 		} catch (IOException ex) {
-			Logger.getLogger(SSHService.class.getName()).log(Level.SEVERE, null, ex);
+			logger.log(Level.SEVERE, null, ex);
 		}
 	}
 

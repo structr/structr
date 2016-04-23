@@ -27,6 +27,8 @@ import java.nio.file.Paths;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
@@ -278,7 +280,7 @@ public class StructrSSHFile implements Path {
 		return this;
 	}
 
-	private List<Folder> getFolders() throws FrameworkException {
+	protected List<Folder> getFolders() throws FrameworkException {
 
 		if (actualFile != null && parent != null) {
 
@@ -290,7 +292,7 @@ public class StructrSSHFile implements Path {
 		}
 	}
 
-	private List<FileBase> getFiles() throws FrameworkException {
+	protected List<FileBase> getFiles() throws FrameworkException {
 
 		if (actualFile != null && parent != null) {
 
@@ -489,57 +491,6 @@ public class StructrSSHFile implements Path {
 //
 //		return 0;
 //	}
-//
-//	@Override
-//	public OutputStream createOutputStream(long offset) throws IOException {
-//
-//		final App app   = StructrApp.getInstance(parent.getSecurityContext());
-//		OutputStream os = null;
-//
-//		try (final Tx tx = app.tx()) {
-//
-//
-//			if (actualFile == null) {
-//				create();
-//			}
-//
-//			if (actualFile != null) {
-//				os = ((FileBase)actualFile).getOutputStream();
-//			}
-//
-//			tx.success();
-//
-//		} catch (FrameworkException fex) {
-//			logger.log(Level.WARNING, "", fex);
-//		}
-//
-//		return os;
-//	}
-//
-//	@Override
-//	public InputStream createInputStream(long offset) throws IOException {
-//
-//		final App app  = StructrApp.getInstance(parent.getSecurityContext());
-//		InputStream is = null;
-//
-//		try (final Tx tx = app.tx()) {
-//
-//			if (actualFile != null) {
-//				is = ((FileBase)actualFile).getInputStream();
-//			}
-//
-//			tx.success();
-//
-//		} catch (FrameworkException fex) {
-//			logger.log(Level.WARNING, "", fex);
-//		}
-//
-//		return is;
-//	}
-//
-//	@Override
-//	public void handleClose() throws IOException {
-//	}
 
 	@Override
 	public FileSystem getFileSystem() {
@@ -558,7 +509,7 @@ public class StructrSSHFile implements Path {
 
 	@Override
 	public Path getFileName() {
-		return Paths.get(actualFile.getName());
+		return Paths.get(name);
 	}
 
 	@Override
@@ -609,12 +560,12 @@ public class StructrSSHFile implements Path {
 
 	@Override
 	public Path resolve(Path path) {
-		logger.log(Level.INFO, "Method not implemented yet"); return null;
+		return findFile(path.toString());
 	}
 
 	@Override
 	public Path resolve(String string) {
-		logger.log(Level.INFO, "Method not implemented yet"); return null;
+		return findFile(string);
 	}
 
 	@Override
@@ -665,7 +616,18 @@ public class StructrSSHFile implements Path {
 
 	@Override
 	public Iterator<Path> iterator() {
-		logger.log(Level.INFO, "Method not implemented yet"); return null;
+		
+		Path parent = this.getParent();
+		
+		final List<Path> pathElements = new ArrayList<>();
+		pathElements.add(this);
+		
+		while (parent != null) {
+			pathElements.add(parent);
+		}
+		Collections.reverse(pathElements);
+		
+		return pathElements.iterator();
 	}
 
 	@Override
