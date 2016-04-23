@@ -1101,8 +1101,12 @@ var Structr = {
 					} else {
 						versionLink = 'http://repo1.maven.org/maven2/org/structr/structr-ui/' + version;
 					}
-					$('.structr-version').html('<a target="_blank" href="' + versionLink + '">' + version + '</a> build <a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a> (' + date + ')');
-
+					var versionInfo = '<a target="_blank" href="' + versionLink + '">' + version + '</a>';
+					if (build && date) {
+						versionInfo += ' build <a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a> (' + date + ')';
+					}
+					
+					$('.structr-version').html(versionInfo);
 				}
 			}
 		});
