@@ -315,7 +315,7 @@
         <dependency>
             <groupId>org.apache.sshd</groupId>
             <artifactId>sshd-core</artifactId>
-            <version>1.2.1-SNAPSHOT</version>
+            <version>1.2.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
