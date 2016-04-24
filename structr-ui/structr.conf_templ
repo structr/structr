@@ -74,9 +74,6 @@ configuration.provider = org.structr.module.JarConfigurationProvider
 # Configure services to automatically run at start-up
 configured.services = NodeService AgentService CronService SchemaService LogService HttpService FtpService CloudService Neo4jService SSHService
 
-# Support migration from 0.8.x and earlier versions
-#NodeService.migration = true
-
 # Superuser username and password
 # You have to set a superuser username and password in order to use
 # administration and maintenance tools
