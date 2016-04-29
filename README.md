@@ -2,18 +2,27 @@
 
 [![Build Status](http://ci.structr.org:59398/buildStatus/icon?job=Structr&style=plastic)](http://ci.structr.org:59398/job/Structr)
 
-Structr (pronounce it like 'structure') is a Java framework for mobile and web applications based on the graph database Neo4j. It was designed to simplify the creation of complex graph database applications by providing a comprehensive Java API and a set of features common to most use cases. This enables developers to build a sophisticated web or mobile app based on Neo4j within hours.
+Structr (pronounce it like 'structure') is a powerful application platform for **Enterprise Master Data Management**, **Product Data Management**, **Enterprise Content Management** and more.
 
-Structr was awarded with the Graphie Award (by Neo4j maker Neo Technology) for the Most Innovative Open Source Graph Application in 2012.
+Technically, it is a build and runtime environment for mobile and web applications based on the graph database Neo4j. It was designed to simplify the creation of complex graph database applications by providing a comprehensive set of features common to many use cases like **security**, **schema** enforcement, **JSON REST API** and integrated **search**, **CMS** and **DMS** functionality.
 
+## Editions and Modules
+
+Structr is free and open source software and dual licensed (GPLv3/AGPLv3). For an overview of the available editions and modules see [https://structr.com/editions](https://structr.com/editions).
+
+## Download
+
+Download the binary distributions package from [https://structr.org/download](https://structr.org/download).
+
+## Documentation
+
+The one-stop documentation and support site can be found at [https://support.structr.com/](https://support.structr.com/).
 
 ## Quick Start
 
-Build and run Structr from the source code.
+Prerequisites are the Java JDK 1.8 (not JRE!), Maven 3.0.4+ and git.
 
-Prerequisites are the Java JDK 1.7 or 1.8, Maven 3.0.4+ and git.
-
-Verify the java/maven version with mvn -v, then do:
+Verify the Java/Maven version with `mvn -v`, then do:
 
 ```
 git clone https://github.com/structr/structr.git
@@ -24,38 +33,13 @@ cd structr-ui
 
 mvn validate exec:exec
 ```
-
-To run Structr on Windows, check the [guide for a manual Windows installation](https://github.com/structr/structr/blob/master/docs/markdown/installation-and-configuration-guide/00_installation/03_windows-manual-installation.md).
-
 Login with the credentials admin/admin at:
 
 [http://localhost:8082/structr/](http://localhost:8082/structr/)
 
-For documentation, please take a look here:
+This help article describes how to build and run Structr from the source code: [https://support.structr.com/article/280](https://support.structr.com/article/280).
 
-http://docs.structr.org
-
-## Getting Started
-
-A Structr Demo Application in Less Than Ten Minutes: [https://structr.org/blog/structr-demo-in-ten-minutes](https://structr.org/blog/structr-demo-in-ten-minutes)
-
-Using [Apache Maven](http://maven.apache.org/) archetypes, you get a demo project up and running in 5 minutes.
-
-- See the [screencast](http://vimeo.com/53235075) for a short introduction to the maven archetype and a small feature demo.
-- See the [structr-android-client](https://github.com/structr/structr-android-client) project on github for more information on how to use structr as a mobile backend.
-
-
-## Components
-
-To get an overview of the components, just browse the source code and review the READMEs.
-
-Name             | Description                              | Documentation
----------------- | ---------------------------------------- | -----------------------------------------------------------------
-**structr-core** | The Structr Server (Neo4j, OGM, ...)     | [docs](http://docs.structr.org/developer-guide#Object-to-graph mapping)
-**structr-rest** | The REST server (add-on to structr-core) | [docs](http://docs.structr.org/REST-user-guide)
-**structr-ui**   | The Structr UI (add-on to structr-rest)  | [docs](http://docs.structr.org/frontend-user-guide)
-
-Structr UI is a browser based frontend for Visual Schema Design, CRUD operations and basic CMS functionalitiy, e.g. for handling pages, files, images, users/groups.
+For a guide about the installation on Windows, see [https://support.structr.com/article/258](https://support.structr.com/article/258).
 
 ## Google Group / Mailing List
 
@@ -63,7 +47,7 @@ For non-technical questions about Structr, Structr's licensing, use-cases etc. p
 
 ## Report Bugs
 
-You can submit issues (bugs, feature requests etc.) on the [issue-tracker](https://github.com/structr/structr/issues).
+You can submit issues (bugs, feature requests etc.) on the [issue-tracker](https://github.com/structr/structr/issues). Please don't ask questions or discuss general topics in the issue system.
 
 ## Contribute
 
@@ -77,12 +61,6 @@ https://structr.com/services
 
 https://hosting.structr.com/
 
-## Learn More
-
-- [structr.org](http://structr.org)
-- [Neo4j](http://neo4j.com)
-- [@structr](https://twitter.com/structr)
-
 ## Initial Authors
 
 - Axel Morgner (axel.morgner@structr.com, @amorgner)
@@ -90,6 +68,6 @@ https://hosting.structr.com/
 
 ## Copyright and License
 
-Copyright 2010-2015 Structr GmbH
+Copyright 2010-2016 Structr GmbH
 
-Structr is licensed under the GPLv3 and AGPLv3 (Structr UI).
+Structr is dual licensed under the GPLv3 and AGPLv3. [Commercial editions](https://structr.com/editions) also available.
