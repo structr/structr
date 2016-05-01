@@ -52,13 +52,13 @@ public class XPathFunction extends Function<Object, Object> {
 
 			} catch (XPathExpressionException ioex) {
 
-				logException(ioex, "{0}: Exception for parameters: {1}", new Object[] { getName(), getParametersAsString(sources) });
+				logException(entity, ioex, sources);
 
 			}
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 		}
 

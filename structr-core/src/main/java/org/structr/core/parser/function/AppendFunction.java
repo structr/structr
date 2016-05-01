@@ -68,13 +68,13 @@ public class AppendFunction extends Function<Object, Object> {
 
 			} catch (IOException ioex) {
 
-				logException(ioex, sources);
+				logException(entity, ioex, sources);
 
 			}
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 		}
 

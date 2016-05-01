@@ -58,13 +58,13 @@ public class ParseDateFunction extends Function<Object, Object> {
 
 			} catch (ParseException ex) {
 
-				logException(ex, "{0}: Could not parse date and format it to pattern. Parameters: {1}", new Object[] { getName(), getParametersAsString(sources) });
+				logException(ex, "{0}: Could not parse date and format it to pattern in element: \"{1}\". Parameters: {2}", new Object[] { getName(), entity, getParametersAsString(sources) });
 
 			}
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
 		}

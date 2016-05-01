@@ -90,7 +90,7 @@ public class FromJsonFunction extends UiFunction {
 
 			} catch (Throwable t) {
 
-				logException(t, "{0}: Exception for parameter: {1}", new Object[] { getName(), getParametersAsString(sources) });
+				logException(entity, t, sources);
 
 			}
 
@@ -98,7 +98,7 @@ public class FromJsonFunction extends UiFunction {
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 		}
 

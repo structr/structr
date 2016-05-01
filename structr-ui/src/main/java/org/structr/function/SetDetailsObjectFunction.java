@@ -55,7 +55,7 @@ public class SetDetailsObjectFunction extends UiFunction {
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
 

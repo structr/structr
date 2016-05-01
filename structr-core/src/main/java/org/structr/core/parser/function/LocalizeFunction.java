@@ -105,14 +105,14 @@ public class LocalizeFunction extends Function<Object, Object> {
 
 		} else if (sources.length == 1 || sources.length == 2) {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 			// silently ignore null values
 			return "";
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 			// only show the error message for wrong parameter count
 			return usage(ctx.isJavaScriptContext());

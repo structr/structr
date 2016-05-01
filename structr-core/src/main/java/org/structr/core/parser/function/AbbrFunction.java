@@ -56,7 +56,7 @@ public class AbbrFunction extends Function<Object, Object> {
 
 			} catch (NumberFormatException nfe) {
 
-				logException(nfe, sources);
+				logException(entity, nfe, sources);
 
 				return nfe.getMessage();
 
@@ -64,7 +64,7 @@ public class AbbrFunction extends Function<Object, Object> {
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 		}
 

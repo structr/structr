@@ -53,7 +53,7 @@ public class AddFunction extends Function<Object, Object> {
 
 					} catch (Throwable t) {
 
-						logException(t, sources);
+						logException(entity, t, sources);
 
 						return t.getMessage();
 

@@ -63,13 +63,13 @@ public class ReadFunction extends Function<Object, Object> {
 
 			} catch (IOException ioex) {
 
-				logException(ioex, "{0}: IOException for parameters: {1}", new Object[] { getName(), getParametersAsString(sources) });
+				logException(ioex, "{0}: IOException in element \"{1}\" for parameters: {2}", new Object[] { getName(), entity, getParametersAsString(sources) });
 
 			}
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 		}
 

@@ -53,7 +53,7 @@ public class AndFunction extends Function<Object, Object> {
 
 					} catch (Throwable t) {
 
-						logException(t, sources);
+						logException(entity, t, sources);
 
 						return t.getMessage();
 
@@ -69,7 +69,7 @@ public class AndFunction extends Function<Object, Object> {
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 			result = false;
 

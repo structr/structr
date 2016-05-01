@@ -68,7 +68,7 @@ public class DateFormatFunction extends Function<Object, Object> {
 
 				} catch (ParseException ex) {
 
-					logException(ex, sources);
+					logException(entity, ex, sources);
 
 				}
 
@@ -79,7 +79,7 @@ public class DateFormatFunction extends Function<Object, Object> {
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
 

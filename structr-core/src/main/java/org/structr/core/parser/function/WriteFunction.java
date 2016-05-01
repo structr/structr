@@ -74,13 +74,13 @@ public class WriteFunction extends Function<Object, Object> {
 
 			} catch (IOException ioex) {
 
-				logException(ioex, "{0}: Exception for parameters: {1}", new Object[] { getName(), getParametersAsString(sources) });
+				logException(entity, ioex, sources);
 
 			}
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 		}
 
