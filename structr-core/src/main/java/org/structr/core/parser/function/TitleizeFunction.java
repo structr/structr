@@ -39,16 +39,17 @@ public class TitleizeFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (sources == null || sources[0] == null) {
-			return null;
-		}
-
-		if (StringUtils.isBlank(sources[0].toString())) {
+		if (sources == null || sources.length == 0 || (sources.length == 1 && sources[0] == null) || StringUtils.isBlank(sources[0].toString())) {
 			return "";
+		}
+		
+		if (sources.length > 2) {
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 		}
 
 		final String separator;
-		if (sources.length < 2) {
+		if (sources.length == 1) {
 			separator = " ";
 		} else {
 			separator = sources[1].toString();
