@@ -1,7 +1,7 @@
 .handlers = java.util.logging.ConsoleHandler, java.util.logging.FileHandler
 
 # Default log level
-.level = INFO
+.level = INFOi # SEVERE WARNING INFO CONFIG FINE FINER FINEST
 
 ############################################################
 # Handler specific properties.
