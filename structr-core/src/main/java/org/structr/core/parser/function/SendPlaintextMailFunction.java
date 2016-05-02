@@ -58,7 +58,7 @@ public class SendPlaintextMailFunction extends Function<Object, Object> {
 
 			} catch (EmailException eex) {
 
-				logException(entity, eex, new Object[] { getName(), getParametersAsString(sources) });
+				logException(entity, eex, sources);
 
 			}
 

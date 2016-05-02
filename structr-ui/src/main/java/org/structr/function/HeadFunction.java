@@ -37,7 +37,7 @@ public class HeadFunction extends UiFunction {
 	@Override
 	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
 
-		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 3)) {
+		if (sources != null && sources.length >= 1 && sources.length <= 3) {
 
 			try {
 

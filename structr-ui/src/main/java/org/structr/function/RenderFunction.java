@@ -44,7 +44,7 @@ public class RenderFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+		if (sources != null && sources.length == 1) {
 
 			RenderContext innerCtx = new RenderContext((RenderContext)ctx);
 
@@ -74,10 +74,9 @@ public class RenderFunction extends Function<Object, Object> {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
-
 		}
 
+		return usage(ctx.isJavaScriptContext());
 	}
 
 	@Override

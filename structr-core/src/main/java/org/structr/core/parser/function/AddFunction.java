@@ -18,7 +18,6 @@
  */
 package org.structr.core.parser.function;
 
-import java.util.logging.Level;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;

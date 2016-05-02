@@ -45,7 +45,11 @@ public class FromCsvFunction extends UiFunction {
 	@Override
 	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
 
-		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 4)) {
+		if (sources != null && sources.length >= 1 && sources.length <= 4) {
+
+			if (sources[0] == null) {
+				return "";
+			}
 
 			try {
 

@@ -43,6 +43,11 @@ public class NumberFormatFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
+		if (sources == null || sources != null && sources.length != 3) {
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
+		}
+
 		if (arrayHasLengthAndAllElementsNotNull(sources, 3)) {
 
 			if (StringUtils.isBlank(sources[0].toString())) {
@@ -66,8 +71,6 @@ public class NumberFormatFunction extends Function<Object, Object> {
 		} else {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
-
-			return usage(ctx.isJavaScriptContext());
 
 		}
 

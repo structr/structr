@@ -42,6 +42,11 @@ public class ParseDateFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
+		if (sources == null || sources != null && sources.length != 2) {
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
+		}
+
 		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
 			final String dateString = sources[0].toString();
@@ -66,7 +71,6 @@ public class ParseDateFunction extends Function<Object, Object> {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
 		}
 
 		return "";

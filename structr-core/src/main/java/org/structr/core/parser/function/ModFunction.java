@@ -46,7 +46,7 @@ public class ModFunction extends Function<Object, Object> {
 
 			} catch (NumberFormatException nfe) {
 
-				logException(nfe, "{0}: NumberFormatException in element \"{1}\" for parameters: {2}", new Object[] { getName(), entity, getParametersAsString(sources) });
+				logException(entity, nfe, sources);
 
 				return nfe.getMessage();
 

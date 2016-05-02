@@ -45,7 +45,11 @@ public class FromJsonFunction extends UiFunction {
 	@Override
 	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+		if (sources != null && sources.length > 0) {
+
+			if (sources[0] == null) {
+				return "";
+			}
 
 			try {
 

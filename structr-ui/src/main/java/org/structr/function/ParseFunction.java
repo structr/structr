@@ -42,7 +42,7 @@ public class ParseFunction extends UiFunction {
 	@Override
 	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
 
-		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
+		if (sources != null && sources.length == 2) {
 
 			try {
 

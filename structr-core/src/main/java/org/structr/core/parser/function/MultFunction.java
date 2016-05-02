@@ -40,7 +40,7 @@ public class MultFunction extends Function<Object, Object> {
 
 		Double result = 1.0d;
 
-		if (sources != null && sources.length > 0) {
+		if (sources != null) {
 
 			for (Object i : sources) {
 
