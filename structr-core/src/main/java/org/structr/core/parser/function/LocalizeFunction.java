@@ -84,12 +84,12 @@ public class LocalizeFunction extends Function<Object, Object> {
 				if (sources.length > 1) {
 
 					logger.log(Level.WARNING, "Found ambiguous localization for key \"{0}\" and domain \"{1}\". Please fix. Parameters: {2}", new Object[] { sources[0].toString(), sources[1].toString(), getParametersAsString(sources) });
-					return "Found ambiguous localization for key \"" + sources[0] + "\" and domain \"" + sources[1] + "\". Please fix.";
+					return localizations.get(0).getProperty(Localization.localizedName);
 
 				} else {
 
 					logger.log(Level.WARNING, "Found ambiguous localization for key \"{0}\". Please fix. Parameters: {1}", new Object[] { sources[0].toString(), getParametersAsString(sources) });
-					return "Found ambiguous localization for key \"" + sources[0] + "\". Please fix.";
+					return localizations.get(0).getProperty(Localization.localizedName);
 
 				}
 
@@ -105,14 +105,14 @@ public class LocalizeFunction extends Function<Object, Object> {
 
 		} else if (sources.length == 1 || sources.length == 2) {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 			// silently ignore null values
 			return "";
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 			// only show the error message for wrong parameter count
 			return usage(ctx.isJavaScriptContext());

@@ -365,7 +365,7 @@ public class FileHelper {
 	public static File getFile(final org.structr.web.entity.FileBase file) {
 		return new java.io.File(getFilePath(file.getRelativeFilePath()));
 	}
-	
+
 	public static Path getPath(final org.structr.web.entity.FileBase file) {
 		return Paths.get(getFilePath(file.getRelativeFilePath()));
 	}

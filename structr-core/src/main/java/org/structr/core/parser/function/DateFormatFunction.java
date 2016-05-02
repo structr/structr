@@ -45,6 +45,11 @@ public class DateFormatFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
+		if (sources == null || sources != null && sources.length != 2) {
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
+		}
+
 		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
 			Date date = null;
@@ -58,7 +63,7 @@ public class DateFormatFunction extends Function<Object, Object> {
 				date = new Date(((Number)sources[0]).longValue());
 
 			} else if (sources[0] instanceof ScriptableObject) {
-
+				// FIXME: This was empty - what is it here for?
 			} else {
 
 				try {
@@ -68,7 +73,7 @@ public class DateFormatFunction extends Function<Object, Object> {
 
 				} catch (ParseException ex) {
 
-					logException(ex, sources);
+					logException(entity, ex, sources);
 
 				}
 
@@ -79,12 +84,11 @@ public class DateFormatFunction extends Function<Object, Object> {
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
-
-			return usage(ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 		}
 
+		return "";
 	}
 
 	@Override

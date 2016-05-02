@@ -26,7 +26,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -382,7 +384,8 @@ public class Services implements StructrServices {
 			permissionsForOwnerlessNodes.add(Permission.read);
 		}
 
-		logger.log(Level.INFO, "Initialization complete");
+		// Don't use logger here because start/stop scripts rely on this line.
+		System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.ms").format(new Date()) + "  ---------------- Initialization complete ----------------");
 
 		initializationDone = true;
 	}

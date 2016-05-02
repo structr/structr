@@ -51,7 +51,11 @@ public class FromXmlFunction extends UiFunction {
 	@Override
 	public Object apply(ActionContext ctx, GraphObject entity, Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+		if (sources != null && sources.length > 0) {
+
+			if (sources[0] == null) {
+				return "";
+			}
 
 			try {
 
@@ -71,7 +75,7 @@ public class FromXmlFunction extends UiFunction {
 
 			} catch (Throwable t) {
 
-				logException(t, "{0}: Exception for parameter: {1}", new Object[] { getName(), getParametersAsString(sources) });
+				logException(entity, t, sources);
 
 			}
 
@@ -79,7 +83,7 @@ public class FromXmlFunction extends UiFunction {
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 		}
 

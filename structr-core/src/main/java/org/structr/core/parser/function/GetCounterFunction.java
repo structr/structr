@@ -46,13 +46,13 @@ public class GetCounterFunction extends Function<Object, Object> {
 
 			} catch (NumberFormatException nfe) {
 
-				logException(nfe, "{0}: NumberFormatException parsing counter level \"{1}\". Parameters: {2}", new Object[] { getName(), sources[0].toString(), getParametersAsString(sources) });
+				logException(nfe, "{0}: NumberFormatException parsing counter level \"{1}\" in element \"{2}\". Parameters: {3}", new Object[] { getName(), sources[0].toString(), entity, getParametersAsString(sources) });
 
 			}
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 		}
 

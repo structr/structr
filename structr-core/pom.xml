@@ -6,13 +6,13 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>2.0.0</version>
+        <version>2.0.1-SNAPSHOT</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-core</artifactId>
     <packaging>jar</packaging>
-    <version>2.0.0</version>
+    <version>2.0.1-SNAPSHOT</version>
     <name>Structr Core</name>
     <description>Structr is an open source framework based on the popular Neo4j graph database.</description>
     <developers>
@@ -30,14 +30,14 @@
     <properties>
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <structr.version>2.0.0</structr.version>
+        <structr.version>2.0.1-SNAPSHOT</structr.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.structr</groupId>
             <artifactId>structr-neo4j-enterprise-driver</artifactId>
-            <version>2.2.9-2.0.0</version>
+            <version>2.2.9-2.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

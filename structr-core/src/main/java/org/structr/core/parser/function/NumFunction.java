@@ -45,13 +45,13 @@ public class NumFunction extends Function<Object, Object> {
 
 			} catch (Throwable t) {
 
-				logException(t, "{0}: Exception for parameters: {1}", new Object[] { getName(), getParametersAsString(sources) });
+				logException(entity, t, sources);
 
 			}
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 		}
 

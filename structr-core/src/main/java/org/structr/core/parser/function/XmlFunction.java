@@ -61,13 +61,13 @@ public class XmlFunction extends Function<Object, Object> {
 
 			} catch (IOException | SAXException | ParserConfigurationException ex) {
 
-				logException(ex, "{0}: Exception for parameters: {1}", new Object[] { getName(), getParametersAsString(sources) });
+				logException(entity, ex, sources);
 
 			}
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 		}
 

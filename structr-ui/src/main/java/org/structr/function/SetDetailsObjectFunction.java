@@ -39,7 +39,7 @@ public class SetDetailsObjectFunction extends UiFunction {
 	@Override
 	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+		if (sources != null && sources.length == 1) {
 
 			if (sources[0] instanceof GraphObject) {
 
@@ -55,7 +55,7 @@ public class SetDetailsObjectFunction extends UiFunction {
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
 

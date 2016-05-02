@@ -30,7 +30,7 @@ import org.structr.schema.action.Function;
  */
 public class ContainsFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_CONTAINS = "Usage: ${contains(string, word)}. Example: ${contains(this.name, \"the\")}";
+	public static final String ERROR_MESSAGE_CONTAINS = "Usage: ${contains(string, word)} or ${contains(collection, element)}. Example: ${contains(this.name, \"the\")} or ${contains(find('Page'), page)}";
 
 	@Override
 	public String getName() {
@@ -61,7 +61,7 @@ public class ContainsFunction extends Function<Object, Object> {
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 		}
 

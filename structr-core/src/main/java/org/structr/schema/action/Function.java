@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.logging.Level;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.structr.common.error.FrameworkException;
@@ -60,27 +59,24 @@ public abstract class Function<S, T> extends Hint {
 	/**
 	 * Basic logging for functions called with wrong parameter count
 	 *
+	 * @param entity The element that caused the error
 	 * @param parameters The function parameters
 	 * @param inJavaScriptContext Has the function been called from a JavaScript context?
 	 */
-	protected void logParameterError(final Object[] parameters, final boolean inJavaScriptContext) {
-		logger.log(Level.WARNING, "{0}: unsupported parameter combination/count. Parameters: {1}. {2}", new Object[] { getName(), getParametersAsString(parameters), usage(inJavaScriptContext) });
+	protected void logParameterError(final GraphObject entity, final Object[] parameters, final boolean inJavaScriptContext) {
+		logger.log(Level.WARNING, "{0}: unsupported parameter combination/count in element \"{1}\". Parameters: {2}. {3}", new Object[] { getName(), entity, getParametersAsString(parameters), usage(inJavaScriptContext) });
 	}
 
 	/**
 	 * Logging of an Exception in a function with a simple message outputting the name and call parameters of the function
 	 *
+	 * @param entity The element that caused the error
 	 * @param t The thrown Exception
 	 * @param parameters The method parameters
 	 */
-	protected void logException (final Throwable t, final Object[] parameters) {
+	protected void logException (final GraphObject entity, final Throwable t, final Object[] parameters) {
 
-		logger.log(Level.WARNING, t, new Supplier<String>() {
-			@Override
-			public String get() {
-				return MessageFormat.format("{0}: Exception for parameters: {1}", new Object[] { getName(), getParametersAsString(parameters) });
-			}
-		});
+		logException(t, "{0}: Exception in element \"{1}\" for parameters: {2}", new Object[] { getName(), entity, getParametersAsString(parameters) });
 
 	}
 
@@ -209,7 +205,7 @@ public abstract class Function<S, T> extends Hint {
 
 		} catch (Throwable t) {
 
-			logException(t, "{0}: Exception for parameter: {1}", new Object[] { getName(), obj });
+			logException(t, "{0}: Exception parsing \"1\"", new Object[] { getName(), obj });
 		}
 
 		return null;
@@ -271,7 +267,7 @@ public abstract class Function<S, T> extends Hint {
 
 			} catch (Throwable t) {
 
-				logException(t, "{0}: Exception for parameter: {1}", new Object[] { getName(), obj });
+				logException(t, "{0}: Exception parsing \"1\"", new Object[] { getName(), obj });
 			}
 		}
 

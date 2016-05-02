@@ -39,7 +39,7 @@ public class PrintFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (sources != null && sources.length > 0) {
+		if (sources != null) {
 
 			for (Object i : sources) {
 
@@ -48,7 +48,7 @@ public class PrintFunction extends Function<Object, Object> {
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 		}
 

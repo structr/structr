@@ -18,7 +18,6 @@
  */
 package org.structr.core.parser.function;
 
-import java.util.logging.Level;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
@@ -41,7 +40,7 @@ public class AndFunction extends Function<Object, Object> {
 
 		boolean result = true;
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+		if (sources != null) {
 
 			for (Object i : sources) {
 
@@ -53,7 +52,8 @@ public class AndFunction extends Function<Object, Object> {
 
 					} catch (Throwable t) {
 
-						logException(t, sources);
+						// FIXME: What in the above code can cause an exception? I don't see anything...
+						logException(entity, t, sources);
 
 						return t.getMessage();
 
@@ -69,7 +69,7 @@ public class AndFunction extends Function<Object, Object> {
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 			result = false;
 
@@ -77,7 +77,6 @@ public class AndFunction extends Function<Object, Object> {
 
 		return result;
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {

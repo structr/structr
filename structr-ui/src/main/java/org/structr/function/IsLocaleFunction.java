@@ -44,8 +44,8 @@ public class IsLocaleFunction extends UiFunction {
 		if (locale != null) {
 
 			final String localeString = locale.toString();
-			if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
+			if (sources != null && sources.length > 0) {
 				final int len = sources.length;
 				for (int i = 0; i < len; i++) {
 
@@ -56,7 +56,7 @@ public class IsLocaleFunction extends UiFunction {
 
 			} else {
 
-				logParameterError(sources, ctx.isJavaScriptContext());
+				logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 			}
 
