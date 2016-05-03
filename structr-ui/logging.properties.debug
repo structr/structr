@@ -1,7 +1,7 @@
 .handlers = java.util.logging.ConsoleHandler, java.util.logging.FileHandler
 
 # Default log level, set to one of these values: SEVERE WARNING INFO CONFIG FINE FINER FINEST
-.level = SEVERE
+.level = INFO
 
 ############################################################
 # Handler specific properties.
