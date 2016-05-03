@@ -398,7 +398,8 @@ var _Pages = {
 			var self = $(this);
 			//var name = $(self.parent().children('b.name_')[0]).text();
 			var link = $.trim(self.parent().children('b.name_').attr('title'));
-			window.open(viewRootUrl + link);
+			var url = viewRootUrl + link + (LSWrapper.getItem(detailsObjectId + entity.id) ? '/' + LSWrapper.getItem(detailsObjectId + entity.id) : '');
+			window.open(url);
 		});
 
 		var editUiPropertiesIcon = $('.edit_ui_properties_icon', tab);
