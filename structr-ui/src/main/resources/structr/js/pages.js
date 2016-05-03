@@ -1,22 +1,21 @@
 /*
- *  Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
- *  This file is part of Structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 var pages, shadowPage, pageVersion = {};
 var previews, previewTabs, controls, activeTab, activeTabLeft, activeTabRight, paletteSlideout, elementsSlideout, componentsSlideout, widgetsSlideout, pagesSlideout, activeElementsSlideout, dataBindingSlideout;
 var lsw, rsw;
@@ -34,6 +33,7 @@ var selectedTypeKey = 'structrSelectedType_' + port;
 var win = $(window);
 
 $(document).ready(function() {
+
 	Structr.registerModule('pages', _Pages);
 	Structr.classes.push('page');
 });
@@ -46,10 +46,14 @@ var _Pages = {
 	autoRefresh: [],
 	init: function() {
 
-		Structr.initPager('Page', 1, 25, 'name', 'asc');
-		Structr.initPager('File', 1, 25, 'name', 'asc');
-		Structr.initPager('Folder', 1, 25, 'name', 'asc');
-		Structr.initPager('Image', 1, 25, 'name', 'asc');
+		_Pager.initPager('pages',   'Page', 1, 25, 'name', 'asc', { hidden: false });
+		_Pager.initPager('files',   'File', 1, 25, 'name', 'asc');
+		_Pager.initPager('folders', 'Folder', 1, 25, 'name', 'asc');
+		_Pager.initPager('images',  'Image', 1, 25, 'name', 'asc');
+
+		$(window.document).on('mouseup', function() {
+			$('#add-child-dialog').remove();
+		});
 
 	},
 	resize: function(offsetLeft, offsetRight) {
@@ -111,9 +115,9 @@ var _Pages = {
 		activeTab = LSWrapper.getItem(activeTabKey);
 		activeTabLeft = LSWrapper.getItem(activeTabLeftKey);
 		activeTabRight = LSWrapper.getItem(activeTabRightKey);
-		log('value read from local storage', activeTab);
+		_Logger.log(_LogType.PAGES, 'value read from local storage', activeTab);
 
-		log('onload');
+		_Logger.log(_LogType.PAGES, 'onload');
 
 		main.prepend(
 				'<div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div>'
@@ -161,6 +165,7 @@ var _Pages = {
 			if (Math.abs(activeElementsSlideout.position().left + asw) <= 3) {
 				Structr.closeLeftSlideOuts([pagesSlideout, dataBindingSlideout], activeTabLeftKey);
 				Structr.openLeftSlideOut(activeElementsSlideout, this, activeTabLeftKey, function() {
+					_Pages.refreshActiveElements();
 				});
 			} else {
 				Structr.closeLeftSlideOuts([activeElementsSlideout], activeTabLeftKey);
@@ -264,7 +269,7 @@ var _Pages = {
 						width: (leftSlideoutWidth-13) + 'px'
 					});
 				}, 100);
-				log(LSWrapper.getItem(leftSlideoutWidthKey), leftSlideoutWidth);
+				_Logger.log(_LogType.PAGES, LSWrapper.getItem(leftSlideoutWidthKey), leftSlideoutWidth);
 			}
 			$('#' + activeTabLeft).addClass('active').click();
 		}
@@ -273,12 +278,12 @@ var _Pages = {
 			$('#' + activeTabRight).addClass('active').click();
 		}
 
-		// activate first page when local storage is empty
+		// activate first page if local storage is empty
 		if (!LSWrapper.getItem(activeTabKey)) {
 			window.setTimeout(function(e) {  _Pages.activateTab($('#previewTabs .page').first()); }, 1000);
 		}
 
-		//window.setTimeout('_Pages.resize(0,0)', 100);
+		_Pages.resize();
 
 		win.off('resize');
 		win.resize(function() {
@@ -303,11 +308,18 @@ var _Pages = {
 		pagesSlideout.append('<div class="ver-scrollable" id="pagesTree"></div>');
 		pages = $('#pagesTree', pagesSlideout);
 
-		Structr.addPager(pages, true, 'Page', function(pages) {
+		var pPager = _Pager.addPager('pages', pages, true, 'Page', null, function(pages) {
 			pages.forEach(function(page) {
-				StructrModel.create(page); _Pages.pagesTabResizeContent();
+				StructrModel.create(page);
+				_Pages.pagesTabResizeContent();
 			});
 		});
+		pPager.cleanupFunction = function () {
+			_Pages.clearPreviews();
+			$('.node', pPager.el).remove();
+		};
+		pPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
+		pPager.activateFilterElements();
 
 		previewTabs.append('<li id="import_page" title="Import Template" class="button"><img class="add_button icon" src="icon/page_white_put.png"></li>');
 		$('#import_page', previewTabs).on('click', function(e) {
@@ -327,18 +339,17 @@ var _Pages = {
 
 			dialog.append('<h3>... or fetch page from URL: <input id="_address" name="address" size="40" value="http://"></h3><table class="props">'
 					+ '<tr><td><label for="name">Name of new page:</label></td><td><input id="_name" name="name" size="20"></td></tr>'
-					+ '<tr><td><label for="timeout">Timeout (ms)</label></td><td><input id="_timeout" name="timeout" size="20" value="5000"></td></tr>'
 					+ '<tr><td><label for="publicVisibilty">Visible to public</label></td><td><input type="checkbox" id="_publicVisible" name="publicVisibility"></td></tr>'
 					+ '<tr><td><label for="authVisibilty">Visible to authenticated users</label></td><td><input type="checkbox" checked="checked" id="_authVisible" name="authVisibilty"></td></tr>'
 					+ '</table>');
 
 			var addressField = $('#_address', dialog);
 
-			log('addressField', addressField);
+			_Logger.log(_LogType.PAGES, 'addressField', addressField);
 
 			addressField.on('blur', function() {
 				var addr = $(this).val().replace(/\/+$/, "");
-				log(addr);
+				_Logger.log(_LogType.PAGES, addr);
 				$('#_name', dialog).val(addr.substring(addr.lastIndexOf("/") + 1));
 			});
 
@@ -351,12 +362,11 @@ var _Pages = {
 				var code = $('#_code', dialog).val();
 				var address = $('#_address', dialog).val();
 				var name = $('#_name', dialog).val();
-				var timeout = $('#_timeout', dialog).val();
-				var publicVisible = $('#_publicVisible:checked', dialog).val() === 'on';
-				var authVisible = $('#_authVisible:checked', dialog).val() === 'on';
+				var publicVisible = $('#_publicVisible', dialog).prop('checked');
+				var authVisible = $('#_authVisible', dialog).prop('checked');
 
-				log('start');
-				return Command.importPage(code, address, name, timeout, publicVisible, authVisible);
+				_Logger.log(_LogType.PAGES, 'start');
+				return Command.importPage(code, address, name, publicVisible, authVisible);
 			});
 
 		});
@@ -379,9 +389,8 @@ var _Pages = {
 
 		var tab = $('#show_' + entity.id, previews);
 
-		tab.append('<img class="typeIcon" src="icon/page.png"> <b title="' + entity.name + '" class="name_">' + fitStringToWidth(entity.name, 200) + '</b>');
-		tab.append('<input title="Auto-refresh page on changes" alt="Auto-refresh page on changes" class="auto-refresh" type="checkbox"' + (LSWrapper.getItem(autoRefreshDisabledKey + entity.id) ? '' : ' checked="checked"') + '>');
-		tab.append('<img title="Delete page \'' + entity.name + '\'" alt="Delete page \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
+		tab.append('<b title="' + entity.name + '" class="name_">' + fitStringToWidth(entity.name, 200) + '</b>');
+		tab.append('<img title="Edit page settings of ' + entity.name + '" alt="Edit page settings of ' + entity.name + '" class="edit_ui_properties_icon button" src="' + Structr.edit_ui_properties_icon + '">');
 		tab.append('<img class="view_icon button" title="View ' + entity.name + ' in new window" alt="View ' + entity.name + ' in new window" src="icon/eye.png">');
 
 		$('.view_icon', tab).on('click', function(e) {
@@ -389,37 +398,86 @@ var _Pages = {
 			var self = $(this);
 			//var name = $(self.parent().children('b.name_')[0]).text();
 			var link = $.trim(self.parent().children('b.name_').attr('title'));
-			window.open(viewRootUrl + link);
+			var url = viewRootUrl + link + (LSWrapper.getItem(detailsObjectId + entity.id) ? '/' + LSWrapper.getItem(detailsObjectId + entity.id) : '');
+			window.open(url);
 		});
 
-		var deleteIcon = $('.delete_icon', tab);
-		deleteIcon.hide();
-		deleteIcon.on('click', function(e) {
+		var editUiPropertiesIcon = $('.edit_ui_properties_icon', tab);
+		editUiPropertiesIcon.hide();
+		editUiPropertiesIcon.on('click', function(e) {
 			e.stopPropagation();
-			_Entities.deleteNode(this, entity);
+
+			Structr.dialog('Edit Preview Settings of ' + entity.name, function() {
+				return true;
+			}, function() {
+				return true;
+			});
+
+			dialog.empty();
+			dialogMsg.empty();
+			
+			dialog.append('<p>With these settings you can influence the behaviour of the page previews only. They are not persisted on the Page object but only stored in the UI settings.</p>');
+			
+
+			dialog.append('<table class="props">'
+					//+ '<tr><td><label for="name">Name</label></td><td><input id="_name" name="name" size="20"></td></tr>'
+					+ '<tr><td><label for="details-object-id">UUID of details object to append to preview URL</label></td><td><input id="_details-object-id" name="details-object-id" size="30" value="' + (LSWrapper.getItem(detailsObjectId + entity.id) ?  LSWrapper.getItem(detailsObjectId + entity.id) : '') + '"> <img id="clear-details-object-id" src="icon/cross_small_grey.png"></td></tr>'
+					+ '<tr><td><label for="auto-refresh">Automatic refresh</label></td><td><input title="Auto-refresh page on changes" alt="Auto-refresh page on changes" class="auto-refresh" type="checkbox"' + (LSWrapper.getItem(autoRefreshDisabledKey + entity.id) ? '' : ' checked="checked"') + '></td></tr>'
+					+ '</table>');
+
+			var detailsObjectIdInput = $('#_details-object-id');
+
+			window.setTimeout(function() {
+				detailsObjectIdInput.select().focus();
+			}, 200);
+			
+			$('#clear-details-object-id').on('click', function() {
+				detailsObjectIdInput.val('');
+				var oldVal = LSWrapper.getItem(detailsObjectId + entity.id) || null;
+				if (oldVal) {
+					blinkGreen(detailsObjectIdInput);
+					LSWrapper.removeItem(detailsObjectId + entity.id);
+					detailsObjectIdInput.focus();
+				}
+			});
+
+			$('#_details-object-id').on('blur', function() {
+				var inp = $(this);
+				var oldVal = LSWrapper.getItem(detailsObjectId + entity.id) || null;
+				var newVal = inp.val() || null;
+				if (newVal !== oldVal) {
+					LSWrapper.setItem(detailsObjectId + entity.id, newVal);
+					blinkGreen(detailsObjectIdInput);
+				}
+			});
+
+			$('.auto-refresh', dialog).on('click', function(e) {
+				e.stopPropagation();
+				var key = autoRefreshDisabledKey + entity.id;
+				var autoRefreshDisabled = LSWrapper.getItem(key) === '1';
+				if (autoRefreshDisabled) {
+					LSWrapper.removeItem(key);
+				} else {
+					LSWrapper.setItem(key, '1');
+				}
+				blinkGreen($('.auto-refresh', dialog).parent());
+			});
+
 		});
-		deleteIcon.on('mouseover', function(e) {
+
+		editUiPropertiesIcon.on('mouseover', function(e) {
 			var self = $(this);
 			self.show();
-
 		});
 
-		$('.auto-refresh', tab).on('click', function(e) {
-			e.stopPropagation();
-			var key = autoRefreshDisabledKey + entity.id;
-			var autoRefreshDisabled = LSWrapper.getItem(key) === '1';
-			if (autoRefreshDisabled) {
-				LSWrapper.removeItem(key);
-			} else {
-				LSWrapper.setItem(key, '1');
-			}
-		});
+
+
 
 		return tab;
 	},
 	resetTab: function(element) {
 
-		log('resetTab', element);
+		_Logger.log(_LogType.PAGES, 'resetTab', element);
 
 		element.children('input').hide();
 		element.children('.name_').show();
@@ -441,7 +499,7 @@ var _Pages = {
 			var self = $(this);
 			var clicks = e.originalEvent.detail;
 			if (clicks === 1) {
-				log('click', self, self.css('z-index'));
+				_Logger.log(_LogType.PAGES, 'click', self, self.css('z-index'));
 				if (self.hasClass('active')) {
 					_Pages.makeTabEditable(self);
 				} else {
@@ -458,7 +516,7 @@ var _Pages = {
 
 		//var name = $.trim(element.children('.name_').text());
 		var name = $.trim(element.children('b.name_').attr('title'));
-		log('activateTab', element, name);
+		_Logger.log(_LogType.PAGES, 'activateTab', element, name);
 
 		previewTabs.children('li').each(function() {
 			$(this).removeClass('active');
@@ -479,18 +537,19 @@ var _Pages = {
 
 		element.addClass('active');
 
-		log('store active tab', activeTab);
+		_Logger.log(_LogType.PAGES, 'store active tab', activeTab);
 		LSWrapper.setItem(activeTabKey, activeTab);
 
-		_Pages.refreshActiveElements(id);
-
 	},
-	refreshActiveElements: function(id) {
+	refreshActiveElements: function() {
+		var id = activeTab;
 		$('#activeElements div.inner').empty().attr('id', 'id_' + id);
 		activeElements = {};
 
-		Command.listActiveElements(id, function(activeElement) {
-			_Entities.handleActiveElement(activeElement);
+		Command.listActiveElements(id, function(result) {
+			result.forEach(function(activeElement) {
+				_Entities.handleActiveElement(activeElement);
+			});
 		});
 	},
 	/**
@@ -504,11 +563,11 @@ var _Pages = {
 		var iframe = $('#preview_' + id);
 		Command.get(id, function(obj) {
 			pageVersion[id] = obj.version;
-			iframe.prop('src', viewRootUrl + obj.name + '?edit=2');
-			log('iframe', id, 'activated');
+			var url = viewRootUrl + obj.name + (LSWrapper.getItem(detailsObjectId + id) ? '/' + LSWrapper.getItem(detailsObjectId + id) : '') + '?edit=2';
+			iframe.prop('src', url);
+			_Logger.log(_LogType.PAGES, 'iframe', id, 'activated');
 			iframe.parent().show();
 			_Pages.resize();
-			_Pages.refreshActiveElements(id);
 		});
 	},
 	/**
@@ -522,10 +581,10 @@ var _Pages = {
 		var autoRefreshDisabled = LSWrapper.getItem(autoRefreshDisabledKey + id);
 		if (!autoRefreshDisabled && id) {
 			Command.get(id, function(obj) {
-				log('reloading preview iframe', id, obj.name);
+				_Logger.log(_LogType.PAGES, 'reloading preview iframe', id, obj.name);
 				var v = obj.version || 0;
 				var s = pageVersion[id] || 0;
-				log('stored version:', s, 'current version:', v);
+				_Logger.log(_LogType.PAGES, 'stored version:', s, 'current version:', v);
 				if (v > s) {
 					pageVersion[id] = v;
 					_Pages.loadIframe(id);
@@ -534,14 +593,16 @@ var _Pages = {
 		}
 	},
 	unloadIframes: function() {
-		log('unloading all preview iframes');
+		_Logger.log(_LogType.PAGES, 'unloading all preview iframes');
 		_Pages.clearIframeDroppables();
 		$('iframe', $('#previews')).each(function() {
 			var self = $(this);
 			var pageId = self.prop('id').substring('preview_'.length);
 			var iframe = $('#preview_' + pageId);
-			iframe.contents().empty();
-			log('iframe', pageId, 'deactivated');
+			try {
+				iframe.contents().empty();
+			} catch (e) {}
+			_Logger.log(_LogType.PAGES, 'iframe', pageId, 'deactivated');
 		});
 	},
 	/**
@@ -583,7 +644,7 @@ var _Pages = {
 
 		input.on('blur', function() {
 			input.off('blur');
-			log('blur');
+			_Logger.log(_LogType.PAGES, 'blur');
 			var self = $(this);
 			var newName = self.val();
 			Command.setProperty(id, "name", newName);
@@ -593,7 +654,7 @@ var _Pages = {
 		input.keypress(function(e) {
 			if (e.keyCode === 13 || e.keyCode === 9) {
 				e.preventDefault();
-				log('keypress');
+				_Logger.log(_LogType.PAGES, 'keypress');
 				var self = $(this);
 				var newName = self.val();
 				Command.setProperty(id, "name", newName);
@@ -632,7 +693,7 @@ var _Pages = {
 		});
 
 		_Entities.appendEditPropertiesIcon(div, entity);
-		_Entities.appendEditSourceIcon(div, entity);
+		//_Entities.appendEditSourceIcon(div, entity);
 
 		div.append('<img title="Clone page \'' + entity.name + '\'" alt="Clone page \'' + entity.name + '\'" class="clone_icon button" src="icon/page_copy.png">');
 		$('.clone_icon', div).on('click', function(e) {
@@ -656,188 +717,194 @@ var _Pages = {
 		_Pages.resetTab(tab, entity.name);
 
 		$('#preview_' + entity.id).hover(function() {
-			var self = $(this);
-			var elementContainer = self.contents().find('.structr-element-container');
-			elementContainer.addClass('structr-element-container-active');
-			elementContainer.removeClass('structr-element-container');
+			try {
+				var self = $(this);
+				var elementContainer = self.contents().find('.structr-element-container');
+				elementContainer.addClass('structr-element-container-active');
+				elementContainer.removeClass('structr-element-container');
+			} catch (e) {}
 		}, function() {
-			var self = $(this);
-			var elementContainer = self.contents().find('.structr-element-container-active');
-			elementContainer.addClass('structr-element-container');
-			elementContainer.removeClass('structr-element-container-active');
-			//self.find('.structr-element-container-header').remove();
+			try {
+				var self = $(this);
+				var elementContainer = self.contents().find('.structr-element-container-active');
+				elementContainer.addClass('structr-element-container');
+				elementContainer.removeClass('structr-element-container-active');
+				//self.find('.structr-element-container-header').remove();
+			} catch (e) {}
 		});
 
 		$('#preview_' + entity.id).load(function() {
-			var doc = $(this).contents();
-			var head = $(doc).find('head');
-			if (head) {
-				head.append('<style media="screen" type="text/css">'
-						+ '* { z-index: 0}\n'
-						+ '.nodeHover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
-						+ '.structr-content-container { min-height: .25em; min-width: .25em; }\n'
-						+ '.structr-element-container-active:hover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
-						+ '.structr-element-container-selected { -moz-box-shadow: 0 0 8px #860; -webkit-box-shadow: 0 0 8px #860; box-shadow: 0 0 8px #860; }\n'
-						+ '.structr-element-container-selected:hover { -moz-box-shadow: 0 0 10px #750; -webkit-box-shadow: 0 0 10px #750; box-shadow: 0 0 10px #750; }\n'
-						+ '.nodeHover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
-						+ '.structr-editable-area { background-color: #ffe; -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px yellow; box-shadow: 0 0 5px #888; }\n'
-						+ '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange ! important; color: #333; }\n'
-						+ '.link-hover { border: 1px solid #00c; }\n'
-						+ '.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon {  cursor: pointer; heigth: 16px; width: 16px; vertical-align: top; float: right;  position: relative;}\n'
-						/**
-						 * Fix for bug in Chrome preventing the modal dialog background
-						 * from being displayed if a page is shown in the preview which has the
-						 * transform3d rule activated.
-						 */
-						+ '.navbar-fixed-top { -webkit-transform: none ! important; }'
-						+ '</style>');
-			}
-			_Pages.findDroppablesInIframe(doc, entity.id).each(function(i, element) {
-				var el = $(element);
-
-				_Dragndrop.makeDroppable(el, entity.id);
-
-				var structrId = el.attr('data-structr-id');
-				if (structrId) {
-
-					$('.move_icon', el).on('mousedown', function(e) {
-						e.stopPropagation();
-						var self = $(this);
-						var element = self.closest('[data-structr-id]');
-						log(element);
-						var entity = Structr.entity(structrId, element.prop('data-structr-id'));
-						entity.type = element.prop('data-structr_type');
-						entity.name = element.prop('data-structr_name');
-						log('move', entity);
-						self.parent().children('.structr-node').show();
-					});
-
-					$('.delete_icon', el).on('click', function(e) {
-						e.stopPropagation();
-						var self = $(this);
-						var element = self.closest('[data-structr-id]');
-						var entity = Structr.entity(structrId, element.prop('data-structr-id'));
-						entity.type = element.prop('data-structr_type');
-						entity.name = element.prop('data-structr_name');
-						log('delete', entity);
-						var parentId = element.prop('data-structr-id');
-
-						Command.removeSourceFromTarget(entity.id, parentId);
-						_Entities.deleteNode(this, entity);
-					});
-					var offsetTop = -30;
-					var offsetLeft = 0;
-					el.on({
-						click: function(e) {
-							e.stopPropagation();
-							var self = $(this);
-							var selected = self.hasClass('structr-element-container-selected');
-							self.closest('body').find('.structr-element-container-selected').removeClass('structr-element-container-selected');
-							if (!selected) {
-								self.toggleClass('structr-element-container-selected');
-							}
-							$('.nodeSelected').removeClass('nodeSelected');
-							_Pages.displayDataBinding(structrId);
-							if (!Structr.node(structrId)) {
-								_Pages.expandTreeNode(structrId);
-							} else {
-								var treeEl = Structr.node(structrId);
-								if (treeEl && !selected) {
-									treeEl.toggleClass('nodeSelected');
-								}
-							}
-							return false;
-						},
-						mouseover: function(e) {
-							e.stopPropagation();
-							var self = $(this);
-							self.addClass('structr-element-container-active');
-							_Pages.highlight(structrId);
-							var pos = self.position();
-							var header = self.children('.structr-element-container-header');
-							header.css({
-								position: "absolute",
-								top: pos.top + offsetTop + 'px',
-								left: pos.left + offsetLeft + 'px',
-								cursor: 'pointer'
-							}).show();
-							log(header);
-						},
-						mouseout: function(e) {
-							e.stopPropagation();
-							var self = $(this);
-							self.removeClass('.structr-element-container');
-							var header = self.children('.structr-element-container-header');
-							header.remove();
-							_Pages.unhighlight(structrId);
-						}
-					});
-
+			try {
+				var doc = $(this).contents();
+				var head = $(doc).find('head');
+				if (head) {
+					head.append('<style media="screen" type="text/css">'
+							+ '* { z-index: 0}\n'
+							+ '.nodeHover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
+							+ '.structr-content-container { min-height: .25em; min-width: .25em; }\n'
+							+ '.structr-element-container-active:hover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
+							+ '.structr-element-container-selected { -moz-box-shadow: 0 0 8px #860; -webkit-box-shadow: 0 0 8px #860; box-shadow: 0 0 8px #860; }\n'
+							+ '.structr-element-container-selected:hover { -moz-box-shadow: 0 0 10px #750; -webkit-box-shadow: 0 0 10px #750; box-shadow: 0 0 10px #750; }\n'
+							+ '.nodeHover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
+							+ '.structr-editable-area { background-color: #ffe; -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px yellow; box-shadow: 0 0 5px #888; }\n'
+							+ '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange ! important; color: #333; }\n'
+							+ '.link-hover { border: 1px solid #00c; }\n'
+							+ '.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon {  cursor: pointer; heigth: 16px; width: 16px; vertical-align: top; float: right;  position: relative;}\n'
+							/**
+							 * Fix for bug in Chrome preventing the modal dialog background
+							 * from being displayed if a page is shown in the preview which has the
+							 * transform3d rule activated.
+							 */
+							+ '.navbar-fixed-top { -webkit-transform: none ! important; }'
+							+ '</style>');
 				}
-			});
+				_Pages.findDroppablesInIframe(doc, entity.id).each(function(i, element) {
+					var el = $(element);
 
-			doc.find('*').each(function(i, element) {
+					_Dragndrop.makeDroppable(el, entity.id);
 
-				getComments(element).forEach(function(c) {
+					var structrId = el.attr('data-structr-id');
+					if (structrId) {
 
-					var inner = $(getNonCommentSiblings(c.node));
-					$(c.node).replaceWith('<div data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, false) + '"></div>');
-					var el = $(element).children('[data-structr-id="' + c.id + '"]');
-					el.append(inner);
-
-					$(el).on({
-						mouseover: function(e) {
+						$('.move_icon', el).on('mousedown', function(e) {
 							e.stopPropagation();
 							var self = $(this);
-							self.addClass('structr-editable-area');
-							_Pages.highlight(self.attr('data-structr-id'));
-						},
-						mouseout: function(e) {
-							e.stopPropagation();
-							var self = $(this);
-							self.removeClass('structr-editable-area');
-							_Pages.unhighlight(self.attr('data-structr-id'));
-						},
-						click: function(e) {
-							e.stopPropagation();
-							e.preventDefault();
-							var self = $(this);
+							var element = self.closest('[data-structr-id]');
+							_Logger.log(_LogType.PAGES, element);
+							var entity = Structr.entity(structrId, element.prop('data-structr-id'));
+							entity.type = element.prop('data-structr_type');
+							entity.name = element.prop('data-structr_name');
+							_Logger.log(_LogType.PAGES, 'move', entity);
+							self.parent().children('.structr-node').show();
+						});
 
-							if (contentSourceId) {
-								// click on same element again?
-								if (self.attr('data-structr-id') === contentSourceId) {
-									return;
+						$('.delete_icon', el).on('click', function(e) {
+							e.stopPropagation();
+							var self = $(this);
+							var element = self.closest('[data-structr-id]');
+							var entity = Structr.entity(structrId, element.prop('data-structr-id'));
+							entity.type = element.prop('data-structr_type');
+							entity.name = element.prop('data-structr_name');
+							_Logger.log(_LogType.PAGES, 'delete', entity);
+							var parentId = element.prop('data-structr-id');
+
+							Command.removeSourceFromTarget(entity.id, parentId);
+							_Entities.deleteNode(this, entity);
+						});
+						var offsetTop = -30;
+						var offsetLeft = 0;
+						el.on({
+							click: function(e) {
+								e.stopPropagation();
+								var self = $(this);
+								var selected = self.hasClass('structr-element-container-selected');
+								self.closest('body').find('.structr-element-container-selected').removeClass('structr-element-container-selected');
+								if (!selected) {
+									self.toggleClass('structr-element-container-selected');
 								}
-							}
-							contentSourceId = self.attr('data-structr-id');
-
-							if (self.hasClass('structr-editable-area-active')) {
+								$('.nodeSelected').removeClass('nodeSelected');
+								_Pages.displayDataBinding(structrId);
+								if (!Structr.node(structrId)) {
+									_Pages.expandTreeNode(structrId);
+								} else {
+									var treeEl = Structr.node(structrId);
+									if (treeEl && !selected) {
+										treeEl.toggleClass('nodeSelected');
+									}
+								}
 								return false;
+							},
+							mouseover: function(e) {
+								e.stopPropagation();
+								var self = $(this);
+								self.addClass('structr-element-container-active');
+								_Pages.highlight(structrId);
+								var pos = self.position();
+								var header = self.children('.structr-element-container-header');
+								header.css({
+									position: "absolute",
+									top: pos.top + offsetTop + 'px',
+									left: pos.left + offsetLeft + 'px',
+									cursor: 'pointer'
+								}).show();
+								_Logger.log(_LogType.PAGES, header);
+							},
+							mouseout: function(e) {
+								e.stopPropagation();
+								var self = $(this);
+								self.removeClass('.structr-element-container');
+								var header = self.children('.structr-element-container-header');
+								header.remove();
+								_Pages.unhighlight(structrId);
 							}
-							self.removeClass('structr-editable-area').addClass('structr-editable-area-active').prop('contenteditable', true).focus();
+						});
 
-							// Store old text in global var and attribute
-							textBeforeEditing = self.text();
+					}
+				});
 
-							var srcText = expandNewline(self.attr('data-structr-raw-content'));
+				doc.find('*').each(function(i, element) {
 
-							// Replace only if it differs (e.g. for variables)
-							if (srcText !== textBeforeEditing) {
-								self.html(srcText);
-								textBeforeEditing = srcText;
+					getComments(element).forEach(function(c) {
+
+						var inner = $(getNonCommentSiblings(c.node));
+						$(c.node).replaceWith('<div data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, false) + '"></div>');
+						var el = $(element).children('[data-structr-id="' + c.id + '"]');
+						el.append(inner);
+
+						$(el).on({
+							mouseover: function(e) {
+								e.stopPropagation();
+								var self = $(this);
+								self.addClass('structr-editable-area');
+								_Pages.highlight(self.attr('data-structr-id'));
+							},
+							mouseout: function(e) {
+								e.stopPropagation();
+								var self = $(this);
+								self.removeClass('structr-editable-area');
+								_Pages.unhighlight(self.attr('data-structr-id'));
+							},
+							click: function(e) {
+								e.stopPropagation();
+								e.preventDefault();
+								var self = $(this);
+
+								if (contentSourceId) {
+									// click on same element again?
+									if (self.attr('data-structr-id') === contentSourceId) {
+										return;
+									}
+								}
+								contentSourceId = self.attr('data-structr-id');
+
+								if (self.hasClass('structr-editable-area-active')) {
+									return false;
+								}
+								self.removeClass('structr-editable-area').addClass('structr-editable-area-active').prop('contenteditable', true).focus();
+
+								// Store old text in global var and attribute
+								textBeforeEditing = self.text();
+
+								var srcText = expandNewline(self.attr('data-structr-raw-content'));
+
+								// Replace only if it differs (e.g. for variables)
+								if (srcText !== textBeforeEditing) {
+									self.html(srcText);
+									textBeforeEditing = srcText;
+								}
+								_Pages.expandTreeNode(contentSourceId);
+								return false;
+							},
+							blur: function(e) {
+								e.stopPropagation();
+								_Pages.saveInlineElement(this);
 							}
-							_Pages.expandTreeNode(contentSourceId);
-							return false;
-						},
-						blur: function(e) {
-							e.stopPropagation();
-							_Pages.saveInlineElement(this);
-						}
+						});
+
 					});
 
 				});
-
-			});
+			} catch (e) {}
 
 		});
 
@@ -869,7 +936,7 @@ var _Pages = {
 		return droppables;
 	},
 	appendElementElement: function(entity, refNode, refNodeIsParent) {
-		log('_Pages.appendElementElement(', entity, refNode, refNodeIsParent, ');');
+		_Logger.log(_LogType.PAGES, '_Pages.appendElementElement(', entity, refNode, refNodeIsParent, ');');
 		entity = StructrModel.ensureObject(entity);
 		var div = _Elements.appendElementElement(entity, refNode, refNodeIsParent);
 
@@ -913,7 +980,7 @@ var _Pages = {
 			$('iframe', box).width(w);
 			$('iframe', box).height(h);
 
-			log("box,w,h", box, w, h);
+			_Logger.log(_LogType.PAGES, "box,w,h", box, w, h);
 
 		});
 

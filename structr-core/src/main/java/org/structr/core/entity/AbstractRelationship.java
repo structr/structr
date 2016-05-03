@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,12 +30,13 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.index.Index;
+import org.structr.api.graph.Direction;
+import org.structr.api.index.Index;
+import org.structr.api.graph.Node;
+import org.structr.api.Predicate;
+import org.structr.api.graph.PropertyContainer;
+import org.structr.api.graph.Relationship;
+import org.structr.api.graph.RelationshipType;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PermissionResolutionMask;
@@ -46,12 +47,10 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
+import org.structr.common.error.InternalSystemPropertyToken;
 import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.GraphObject;
-import static org.structr.core.GraphObject.base;
-import static org.structr.core.GraphObject.id;
-import static org.structr.core.GraphObject.type;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -60,7 +59,6 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.parser.Functions;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -72,6 +70,7 @@ import org.structr.core.property.TargetId;
 import org.structr.core.property.TargetNodeProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
 
 
 /**
@@ -104,7 +103,10 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		id, type, relType, sourceNodeProperty, targetNodeProperty
 	);
 
+	public boolean internalSystemPropertiesUnlocked = false;
+
 	private boolean readOnlyPropertiesUnlocked = false;
+	
 	private String cachedEndNodeId             = null;
 	private String cachedStartNodeId           = null;
 
@@ -182,10 +184,14 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
+	public void unlockSystemPropertiesOnce() {
+		this.internalSystemPropertiesUnlocked = true;
+		unlockReadOnlyPropertiesOnce();
+	}
+	
+	@Override
 	public void unlockReadOnlyPropertiesOnce() {
-
 		this.readOnlyPropertiesUnlocked = true;
-
 	}
 
 	@Override
@@ -310,11 +316,11 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public <T> T getProperty(final PropertyKey<T> key, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	public <T> T getProperty(final PropertyKey<T> key, final Predicate<GraphObject> predicate) {
 		return getProperty(key, true, predicate);
 	}
 
-	private <T> T getProperty(final PropertyKey<T> key, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	private <T> T getProperty(final PropertyKey<T> key, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		// early null check, this should not happen...
 		if (key == null || key.dbName() == null) {
@@ -375,91 +381,37 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	@Override
 	public T getTargetNode() {
-
-		try {
-
-			NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
-			return nodeFactory.instantiate(dbRelationship.getEndNode());
-
-		} catch (FrameworkException t) {
-			// ignore FrameworkException but let NotInTransactionException pass
-		}
-
-		return null;
+		NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
+		return nodeFactory.instantiate(dbRelationship.getEndNode());
 	}
 
 	@Override
 	public T getTargetNodeAsSuperUser() {
-
-		try {
-
-			NodeFactory<T> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
-			return nodeFactory.instantiate(dbRelationship.getEndNode());
-
-		} catch (FrameworkException t) {
-			// ignore FrameworkException but let NotInTransactionException pass
-		}
-
-		return null;
+		NodeFactory<T> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
+		return nodeFactory.instantiate(dbRelationship.getEndNode());
 	}
 
 	@Override
 	public S getSourceNode() {
-
-		try {
-
-			NodeFactory<S> nodeFactory = new NodeFactory<>(securityContext);
-			return nodeFactory.instantiate(dbRelationship.getStartNode());
-
-		} catch (FrameworkException t) {
-			// ignore FrameworkException but let NotInTransactionException pass
-		}
-
-		return null;
+		NodeFactory<S> nodeFactory = new NodeFactory<>(securityContext);
+		return nodeFactory.instantiate(dbRelationship.getStartNode());
 	}
 
 	@Override
 	public S getSourceNodeAsSuperUser() {
-
-		try {
-
-			NodeFactory<S> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
-			return nodeFactory.instantiate(dbRelationship.getStartNode());
-
-		} catch (FrameworkException t) {
-			// ignore FrameworkException but let NotInTransactionException pass
-		}
-
-		return null;
+		NodeFactory<S> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
+		return nodeFactory.instantiate(dbRelationship.getStartNode());
 	}
 
 	@Override
 	public NodeInterface getOtherNode(final NodeInterface node) {
-
-		try {
-
-			NodeFactory nodeFactory = new NodeFactory(securityContext);
-			return nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
-
-		} catch (FrameworkException t) {
-			// ignore FrameworkException but let NotInTransactionException pass
-		}
-
-		return null;
+		NodeFactory nodeFactory = new NodeFactory(securityContext);
+		return nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
 	}
 
 	public NodeInterface getOtherNodeAsSuperUser(final NodeInterface node) {
-
-		try {
-
-			NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
-			return nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
-
-		} catch (FrameworkException t) {
-			// ignore FrameworkException but let NotInTransactionException pass
-		}
-
-		return null;
+		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+		return nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
 	}
 
 	@Override
@@ -511,13 +463,13 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	}
 
-	public Map<RelationshipType, Long> getRelationshipInfo(Direction direction) {
+	public Map<String, Long> getRelationshipInfo(Direction direction) {
 
 		return null;
 
 	}
 
-	public List<AbstractRelationship> getRelationships(RelationshipType type, Direction dir) {
+	public List<AbstractRelationship> getRelationships(String type, Direction dir) {
 
 		return null;
 
@@ -525,13 +477,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	@Override
 	public String getType() {
-
-		final RelationshipType relType = getRelType();
-		if (relType != null) {
-			return relType.name();
-		}
-
-		return null;
+		return getRelType().name();
 	}
 
 	@Override
@@ -627,33 +573,64 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 			logger.log(Level.SEVERE, "Tried to set property with null key (action was denied)");
 
-			throw new FrameworkException(422, new NullArgumentToken(getClass().getSimpleName(), base));
+			throw new FrameworkException(422, "Tried to set property with null key (action was denied)", new NullArgumentToken(getClass().getSimpleName(), base));
 
 		}
 
 		try {
 
-			// check for read-only properties
-			//if (StructrApp.getConfiguration().isReadOnlyProperty(type, key) || (StructrApp.getConfiguration().isWriteOnceProperty(type, key) && (dbRelationship != null) && dbRelationship.hasProperty(key.name()))) {
-			if (key.isReadOnly() || (key.isWriteOnce() && (dbRelationship != null) && dbRelationship.hasProperty(key.dbName()))) {
+			if (dbRelationship != null && dbRelationship.hasProperty(key.dbName())) {
 
-				if (!readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
+				// check for system properties
+				if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
 
-					throw new FrameworkException(422, new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
+					throw new FrameworkException(422, "Property " + key.jsonName() + " is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key));
+
+				}
+
+				// check for read-only properties
+				if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
+
+					throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
 
 				}
 
 			}
 
 			return key.setProperty(securityContext, this, value);
-
+			
 		} finally {
 
 			// unconditionally lock read-only properties after every write (attempt) to avoid security problems
 			// since we made "unlock_readonly_properties_once" available through scripting
-			this.readOnlyPropertiesUnlocked = false;
+			internalSystemPropertiesUnlocked = false;
+			readOnlyPropertiesUnlocked       = false;
 
 		}
+
+//		try {
+//
+//			// check for read-only properties
+//			//if (StructrApp.getConfiguration().isReadOnlyProperty(type, key) || (StructrApp.getConfiguration().isWriteOnceProperty(type, key) && (dbRelationship != null) && dbRelationship.hasProperty(key.name()))) {
+//			if (key.isReadOnly() || (key.isWriteOnce() && (dbRelationship != null) && dbRelationship.hasProperty(key.dbName()))) {
+//
+//				if (!readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
+//
+//					throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
+//
+//				}
+//
+//			}
+//
+//			return key.setProperty(securityContext, this, value);
+//
+//		} finally {
+//
+//			// unconditionally lock read-only properties after every write (attempt) to avoid security problems
+//			// since we made "unlock_readonly_properties_once" available through scripting
+//			this.readOnlyPropertiesUnlocked = false;
+//
+//		}
 	}
 
 	@Override
@@ -700,27 +677,26 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 				key.index(this, this.getPropertyForIndexing(key));
 			}
 		}
-
 	}
 
 	@Override
-	public void setSourceNodeId(final String startNodeId) throws FrameworkException {
+	public void setSourceNodeId(final String sourceNodeId) throws FrameworkException {
 
 		// Do nothing if new id equals old
-		if (getSourceNodeId().equals(startNodeId)) {
+		if (getSourceNodeId().equals(sourceNodeId)) {
 			return;
 		}
 
 		final App app = StructrApp.getInstance(securityContext);
 
-		final NodeInterface newStartNode = app.getNodeById(startNodeId);
+		final NodeInterface newStartNode = app.getNodeById(sourceNodeId);
 		final NodeInterface endNode      = getTargetNode();
 		final Class relationType         = getClass();
 		final PropertyMap _props         = getProperties();
 		final String type                = this.getClass().getSimpleName();
 
 		if (newStartNode == null) {
-			throw new FrameworkException(404, new IdNotFoundToken(type, startNodeId));
+			throw new FrameworkException(404, "Node with ID " + sourceNodeId + " not found", new IdNotFoundToken(type, sourceNodeId));
 		}
 
 		// delete this as the new rel will be the container afterwards
@@ -731,23 +707,23 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public void setTargetNodeId(final String targetIdNode) throws FrameworkException {
+	public void setTargetNodeId(final String targetNodeId) throws FrameworkException {
 
 		// Do nothing if new id equals old
-		if (getTargetNodeId().equals(targetIdNode)) {
+		if (getTargetNodeId().equals(targetNodeId)) {
 			return;
 		}
 
 		final App app = StructrApp.getInstance(securityContext);
 
-		final NodeInterface newTargetNode = app.getNodeById(targetIdNode);
+		final NodeInterface newTargetNode = app.getNodeById(targetNodeId);
 		final NodeInterface startNode     = getSourceNode();
 		final Class relationType          = getClass();
 		final PropertyMap _props          = getProperties();
 		final String type                 = this.getClass().getSimpleName();
 
 		if (newTargetNode == null) {
-			throw new FrameworkException(404, new IdNotFoundToken(type, targetIdNode));
+			throw new FrameworkException(404, "Node with ID " + targetNodeId + " not found", new IdNotFoundToken(type, targetNodeId));
 		}
 
 		// delete this as the new rel will be the container afterwards
@@ -779,7 +755,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 				final Object value = getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, key));
 				if (value == null) {
 
-					return Functions.numberOrString(defaultValue);
+					return Function.numberOrString(defaultValue);
 				}
 				return value;
 		}

@@ -1,198 +1,211 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title id="title">Structr</title>
-        <!-- structr UI is released under the <a href="agplv3.html">AGPLv3</a>-->
-        <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
-        <meta name="viewport" content="width=1024, user-scalable=yes" />
-        <link rel="stylesheet" type="text/css" media="screen" href="css/lib/jquery-ui-1.10.3.custom.min.css" >
-        <link rel="stylesheet" type="text/css" media="screen" href="css/lib/jquery.dataTables.min.css" >
-        <link rel="stylesheet" type="text/css" media="screen" href="css/lib/fixedHeader.jqueryui.min.css" >
-        <link rel="stylesheet" type="text/css" media="screen" href="css/lib/chosen.min.css" >
-        <link rel="stylesheet" type="text/css" media="screen" href="css/lib/jstree-3.2.1.min.css" >
-        <link rel="stylesheet" type="text/css" href="css/lib/font-awesome.min.css">
-        <link rel="stylesheet" href="codemirror/lib/codemirror.css">
-        <link rel="stylesheet" href="codemirror/addon/dialog/dialog.css">
-        <link rel="stylesheet" href="codemirror/addon/hint/show-hint.css">
-        <link rel="stylesheet" href="codemirror/addon/search/matchesonscrollbar.css">
-        <link rel="stylesheet" type="text/css" media="screen" href="css/main.css" >
-        <link rel="stylesheet" type="text/css" media="screen" href="css/crud.css" >
-        <link rel="stylesheet" type="text/css" media="screen" href="css/graph_editor.css" >
-        <link rel="icon" href="favicon.ico" type="image/x-icon">
-        <script src="js/lib/jquery-1.11.1.min.js"></script>
-        <script src="js/lib/jquery-ui-1.11.0.custom.min.js"></script>
-        <script src="js/lib/chosen.jquery.min.js"></script>
-        <script src="js/lib/moment-with-locales.min.js"></script>
-        <script src="js/lib/moment-jdateformatparser.min.js"></script>
-        <script src="js/lib/dateformatconverter.js"></script>
-        <script src="js/lib/jquery-ui-timepicker-addon.js"></script>
-        <script src="js/lib/jquery-ui-idrop.js"></script>
-        <script src="js/lib/jquery.json-2.3.min.js"></script>
-        <script src="js/lib/jquery.mousewheel.js"></script>
-        <script src="js/lib/jquery.hoverIntent.min.js"></script>
-        <script src="js/lib/jquery.caret.min.js"></script>
-        <script src="js/lib/jquery.dataTables.min.js"></script>
-        <script src="js/lib/dataTables.fixedHeader.min.js"></script>
-        <script src="js/lib/jstree-3.2.1.min.js"></script>
-        <script src="js/lib/diff_match_patch.js"></script>
-        <script src="js/lib/jquery.blockUI.js"></script>
-        <script src="js/lib/jquery.cookie.js"></script>
-        <script src="js/lib/dom.jsPlumb-1.7.3-min.js"></script>
-        <script src="js/lib/test/jquery.simulate.js"></script>
-        <script src="js/lib/test/jquery.simulate.ext.js"></script>
-        <script src="js/lib/test/jquery.simulate.drag-n-drop.js"></script>
-        <script src="js/lib/uuid.js"></script>
-        <script src="js/lib/sigma/sigma.min.js"></script>
-        <!--<script src="js/lib/sigma/plugins/sigma.layout.forceAtlas2.min.js"></script>-->
-        <script src="js/lib/sigma/plugins/sigma.layout.fruchterman.min.js"></script>
-        <script src="js/lib/sigma/plugins/sigma.renderers.edgeLabels.min.js"></script>
-        <!--<script src="js/lib/sigma/plugins/sigma.renderers.customShapes.min.js"></script>-->
-        <!--<script src="js/lib/sigma/plugins/sigma.renderers.customEdgeShapes.min.js"></script>-->
-        <script src="js/lib/sigma/plugins/sigma.plugins.dragNodes.min.js"></script>
-        <script src="js/lib/sigma/plugins/sigma.plugins.animate.min.js"></script>
+	<head>
+		<title id="title">Structr</title>
+		<!-- structr UI is released under the <a href="agplv3.html">AGPLv3</a>-->
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+		<meta name="viewport" content="width=1024, user-scalable=yes" />
+		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/jquery-ui-1.10.3.custom.min.css" >
+		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/jquery.dataTables.min.css" >
+		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/fixedHeader.jqueryui.min.css" >
+		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/chosen.min.css" >
+		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/jstree-3.2.1.min.css" >
+		<link rel="stylesheet" type="text/css" href="css/lib/font-awesome.min.css">
+		<link rel="stylesheet" href="codemirror/lib/codemirror.css">
+		<link rel="stylesheet" href="codemirror/addon/dialog/dialog.css">
+		<link rel="stylesheet" href="codemirror/addon/hint/show-hint.css">
+		<link rel="stylesheet" href="codemirror/addon/search/matchesonscrollbar.css">
+		<link rel="stylesheet" type="text/css" media="screen" href="css/main.css" >
+		<link rel="stylesheet" type="text/css" media="screen" href="css/crud.css" >
+		<link rel="stylesheet" type="text/css" media="screen" href="css/graph_editor.css" >
+		<link rel="icon" href="favicon.ico" type="image/x-icon">
+		<script src="js/lib/jquery-1.11.1.min.js"></script>
+		<script src="js/lib/jquery-ui-1.11.0.custom.min.js"></script>
+		<script src="js/lib/chosen.jquery.min.js"></script>
+		<script src="js/lib/moment-with-locales.min.js"></script>
+		<script src="js/lib/moment-jdateformatparser.min.js"></script>
+		<script src="js/lib/dateformatconverter.js"></script>
+		<script src="js/lib/jquery-ui-timepicker-addon.js"></script>
+		<script src="js/lib/jquery-ui-idrop.js"></script>
+		<script src="js/lib/jquery.json-2.3.min.js"></script>
+		<script src="js/lib/jquery.mousewheel.js"></script>
+		<script src="js/lib/jquery.hoverIntent.min.js"></script>
+		<script src="js/lib/jquery.caret.min.js"></script>
+		<script src="js/lib/jquery.dataTables.min.js"></script>
+		<script src="js/lib/dataTables.fixedHeader.min.js"></script>
+		<script src="js/lib/jstree-3.2.1.min.js"></script>
+		<script src="js/lib/diff_match_patch.js"></script>
+		<script src="js/lib/jquery.blockUI.js"></script>
+		<script src="js/lib/jquery.cookie.js"></script>
+		<script src="js/lib/dom.jsPlumb-1.7.3-min.js"></script>
+		<script src="js/lib/test/jquery.simulate.js"></script>
+		<script src="js/lib/test/jquery.simulate.ext.js"></script>
+		<script src="js/lib/test/jquery.simulate.drag-n-drop.js"></script>
+		<script src="js/lib/uuid.js"></script>
+		<script src="js/lib/sigma/sigma.min.js"></script>
+		<!--<script src="js/lib/sigma/plugins/sigma.layout.forceAtlas2.min.js"></script>-->
+		<script src="js/lib/sigma/plugins/sigma.layout.fruchterman.min.js"></script>
+		<script src="js/lib/sigma/plugins/sigma.renderers.edgeLabels.min.js"></script>
+		<!--<script src="js/lib/sigma/plugins/sigma.renderers.customShapes.min.js"></script>-->
+		<!--<script src="js/lib/sigma/plugins/sigma.renderers.customEdgeShapes.min.js"></script>-->
+		<script src="js/lib/sigma/plugins/sigma.plugins.dragNodes.min.js"></script>
+		<script src="js/lib/sigma/plugins/sigma.plugins.animate.min.js"></script>
 
-        <script src="js/lib/sigma/plugins/sigma.renderers.parallelEdges/utils.js"></script>
-        <script src="js/lib/sigma/plugins/sigma.renderers.parallelEdges/sigma.canvas.edges.curve.js"></script>
-        <script src="js/lib/sigma/plugins/sigma.renderers.parallelEdges/sigma.canvas.edges.curvedArrow.js"></script>
-        <script src="js/lib/sigma/plugins/sigma.renderers.parallelEdges/sigma.canvas.edges.labels.curve.js"></script>
-        <script src="js/lib/sigma/plugins/sigma.renderers.parallelEdges/sigma.canvas.edgehovers.curve.js"></script>
-        <script src="js/lib/sigma/plugins/sigma.renderers.parallelEdges/sigma.canvas.edgehovers.curvedArrow.js"></script>
-        <script src="js/lib/clipboard.min.js"></script>
+		<script src="js/lib/sigma/plugins/sigma.renderers.parallelEdges/utils.js"></script>
+		<script src="js/lib/sigma/plugins/sigma.renderers.parallelEdges/sigma.canvas.edges.curve.js"></script>
+		<script src="js/lib/sigma/plugins/sigma.renderers.parallelEdges/sigma.canvas.edges.curvedArrow.js"></script>
+		<script src="js/lib/sigma/plugins/sigma.renderers.parallelEdges/sigma.canvas.edges.labels.curve.js"></script>
+		<script src="js/lib/sigma/plugins/sigma.renderers.parallelEdges/sigma.canvas.edgehovers.curve.js"></script>
+		<script src="js/lib/sigma/plugins/sigma.renderers.parallelEdges/sigma.canvas.edgehovers.curvedArrow.js"></script>
+		<script src="js/lib/clipboard.min.js"></script>
 
-        <script src="codemirror/codemirror-compressed.js"></script>
-        <!--        <script src="codemirror/addon/edit/closetag.js"></script>
-                <script src="codemirror/addon/edit/closebrackets.js"></script>
-                <script src="codemirror/addon/search/search.js"></script>
-                <script src="codemirror/addon/search/search.js"></script>
-                <script src="codemirror/addon/search/searchcursor.js"></script>
-                <script src="codemirror/addon/search/match-highlighter.js"></script>-->
-        <script src="codemirror/addon/scroll/annotatescrollbar.js"></script>
-        <script src="codemirror/addon/search/matchesonscrollbar.js"></script>
-        <script src="codemirror/addon/dialog/dialog.js"></script>
-        <script src="codemirror/addon/hint/show-hint.js"></script>
-        <script src="js/helper.js"></script>
-        <script src="js/dragndrop.js"></script>
-        <script src="js/websocket.js"></script>
-        <script src="js/command.js"></script>
-        <script src="js/entities.js"></script>
-        <script src="js/crud.js"></script>
-        <script src="js/security.js"></script>
-        <script src="js/types.js"></script>
-        <script src="js/schema.js"></script>
-        <script src="js/pages.js"></script>
-        <script src="js/widgets.js"></script>
-        <script src="js/elements.js"></script>
-        <script src="js/contents.js"></script>
-        <script src="js/files.js"></script>
-        <script src="js/filesystem.js"></script>
-        <script src="js/images.js"></script>
-        <script src="js/dashboard.js"></script>
-        <!--        <script src="js/layout.js"></script>
-                <script src="js/ge/ge_lib.js"></script>
-                <script src="js/ge/ge_obj.js"></script>
-                <script src="js/ge/graph_editor.js"></script>
-                <script src="js/ge/engine.js"></script>-->
-        <script src="js/graph.js"></script>
-        <script src="js/init.js"></script>
-        <script src="js/model.js"></script>
-        <script src="js/speech.js"></script>
-    </head>
-    <body>
-        <div id="info-area"></div>
-        <div id="header">
-            <img alt="structr logo" class="logo" src="img/structr-logo.png">
-            <div class="structr-version">No version info available.</div>
-            <div id="menu" class="menu">
-                <ul>
-                    <li><a id="dashboard_" href="#dashboard">Dashboard</a></li>
-                    <li><a id="graph_" href="#graph">Graph</a></li>
-                    <li><a id="pages_" href="#pages">Pages</a></li>
-                    <li><a id="widgets_" href="#widgets">Widgets</a></li>
-                    <!--<li><a id="files_" href="#files">Files</a></li>-->
-                    <li><a id="filesystem_" href="#filesystem">Filesystem</a></li>
-                    <li><a id="images_" href="#images">Images</a></li>
-                    <li><a id="security_" href="#security">Security</a></li>
-                    <li><a id="schema_" href="#schema">Schema</a></li>
-                    <li><a id="types_" href="#types">Types</a></li>
-                    <li><a id="crud_" href="#crud">Data</a></li>
-                    <li><a id="logout_" href="#">Login</a></li>
-                </ul>
-            </div>
-            <div id="main-help"><a target="_blank" href="http://docs.structr.org"><img alt="Help" src="icon/information.png"></a></div>
-        </div>
+		<script src="codemirror/codemirror-compressed.js"></script>
+		<!--
+		<script src="codemirror/addon/edit/closetag.js"></script>
+		<script src="codemirror/addon/edit/closebrackets.js"></script>
+		<script src="codemirror/addon/search/search.js"></script>
+		<script src="codemirror/addon/search/search.js"></script>
+		<script src="codemirror/addon/search/searchcursor.js"></script>
+		<script src="codemirror/addon/search/match-highlighter.js"></script>
+		-->
+		<script src="codemirror/addon/scroll/annotatescrollbar.js"></script>
+		<script src="codemirror/addon/search/matchesonscrollbar.js"></script>
+		<script src="codemirror/addon/dialog/dialog.js"></script>
+		<script src="codemirror/addon/hint/show-hint.js"></script>
+		<script src="js/helper.js"></script>
+		<script src="js/pager.js"></script>
+		<script src="js/dragndrop.js"></script>
+		<script src="js/websocket.js"></script>
+		<script src="js/command.js"></script>
+		<script src="js/entities.js"></script>
+		<script src="js/crud.js"></script>
+		<script src="js/security.js"></script>
+		<script src="js/types.js"></script>
+		<script src="js/schema.js"></script>
+		<script src="js/pages.js"></script>
+		<script src="js/widgets.js"></script>
+		<script src="js/elements.js"></script>
+		<script src="js/contents.js"></script>
+		<!--<script src="js/files.js"></script>-->
+		<script src="js/filesystem.js"></script>
+		<script src="js/images.js"></script>
+		<script src="js/dashboard.js"></script>
+		<!--
+		<script src="js/layout.js"></script>
+		<script src="js/ge/ge_lib.js"></script>
+		<script src="js/ge/ge_obj.js"></script>
+		<script src="js/ge/graph_editor.js"></script>
+		<script src="js/ge/engine.js"></script>
+		-->
+		<script src="js/graph.js"></script>
+		<script src="js/init.js"></script>
+		<script src="js/model.js"></script>
+		<script src="js/speech.js"></script>
+	</head>
+	<body>
+		<div id="info-area"></div>
+		<div id="header">
+			<img alt="structr logo" class="logo" src="img/structr-logo.png">
+			<div class="structr-instance-info">
+				<div class="structr-instance">
+					<span class="structr-instance-name"></span><span class="structr-instance-stage"></span>
+				</div>
+				<div class="structr-version">No version info available.</div>
+			</div>
+			<div id="menu" class="menu">
+				<ul>
+					<li><a id="dashboard_" href="#dashboard" data-activate-module="dashboard">Dashboard</a></li>
+					<li><a id="graph_" href="#graph" data-activate-module="graph">Graph</a></li>
+					<li><a id="pages_" href="#pages" data-activate-module="pages">Pages</a></li>
+					<li><a id="widgets_" href="#widgets" data-activate-module="widgets">Widgets</a></li>
+					<!--<li><a id="files_" href="#files" data-activate-module="files">Files</a></li>-->
+					<li><a id="filesystem_" href="#filesystem" data-activate-module="filesystem">Filesystem</a></li>
+					<li><a id="images_" href="#images" data-activate-module="images">Images</a></li>
+					<li><a id="security_" href="#security" data-activate-module="security">Security</a></li>
+					<li><a id="schema_" href="#schema" data-activate-module="schema">Schema</a></li>
+					<li><a id="types_" href="#types" data-activate-module="types">Types</a></li>
+					<li><a id="crud_" href="#crud" data-activate-module="crud">Data</a></li>
+					<li><a id="logout_" href="#">Login</a></li>
+				</ul>
+			</div>
+			<div id="main-help"><a target="_blank" href="http://docs.structr.org"><img alt="Help" src="icon/information.png"></a></div>
+		</div>
 
-        <div id="main">
-            <!--<div id="ajaxLoader"><img src="img/ajax-loader.gif"></div>-->
-        </div>
+		<div id="main">
+			<!--<div id="ajaxLoader"><img src="img/ajax-loader.gif"></div>-->
+		</div>
 
-        <div id="login" class="dialog">
-            <img alt="Structr Logo" class="logo-login" src="img/structr_gray_200x54.png">
-            <form action="javascript:void(0)">
-                <table>
-                    <tr><td><label for="usernameField">Username:</label></td><td><input id="usernameField" type="text" name="username" autofocus required></td></tr>
-                    <tr><td><label for="passwordField">Password:</label></td><td><input id="passwordField" type="password" name="password" autofocus required></td></tr>
-                    <tr><td colspan="2" class="btn"><span id="errorText"></span></td></tr>
-                    <tr><td colspan="2" class="btn"><button id="loginButton" name="login"><img src="icon/key.png"> Login</button></td></tr>
-                </table>
-            </form>
-        </div>
+		<div id="login" class="dialog">
+			<img alt="Structr Logo" class="logo-login" src="img/structr_gray_200x54.png">
+			<form action="javascript:void(0)">
+				<table>
+					<tr><td><label for="usernameField">Username:</label></td><td><input id="usernameField" type="text" name="username" autofocus required></td></tr>
+					<tr><td><label for="passwordField">Password:</label></td><td><input id="passwordField" type="password" name="password" autofocus required></td></tr>
+					<tr><td colspan="2" class="btn"><span id="errorText"></span></td></tr>
+					<tr><td colspan="2" class="btn"><button id="loginButton" name="login"><img src="icon/key.png"> Login</button></td></tr>
+				</table>
+			</form>
+		</div>
 
-        <div id="confirmation" class="dialog">
-            <div class="confirmationText"></div>
-            <button class="yesButton"><img src="icon/tick.png">Yes</button>
-            <button class="noButton"><img src="icon/cross.png">No</button>
-        </div>
+		<div id="confirmation" class="dialog">
+			<div class="confirmationText"></div>
+			<button class="yesButton"><img src="icon/tick.png">Yes</button>
+			<button class="noButton"><img src="icon/cross.png">No</button>
+		</div>
 
-        <div id="infoBox" class="dialog">
-            <div id="infoText"></div>
-            <div class="dialogBtn">
-                <button class="closeButton">Close</button>
-            </div>
-        </div>
+		<div id="infoBox" class="dialog">
+			<div id="infoText"></div>
+			<div class="dialogBtn">
+				<button class="closeButton">Close</button>
+			</div>
+		</div>
 
-        <div id="tempInfoBox" class="dialog">
-            <div class="infoHeading"></div>
-            <div class="infoMsg"></div>
-            <div class="dialogBtn">
-                <button class="closeButton">Close</button>
-            </div>
-        </div>
+		<div id="tempInfoBox" class="dialog">
+			<div class="infoHeading"></div>
+			<div class="infoMsg"></div>
+			<div class="dialogBtn">
+				<button class="closeButton">Close</button>
+			</div>
+		</div>
 
-        <div id="errorBox" class="dialog">
-            <div class="errorText"></div>
-            <div class="errorMsg"></div>
-            <div class="dialogBtn">
-                <button class="closeButton">Close</button>
-            </div>
-        </div>
+		<div id="errorBox" class="dialog">
+			<div class="errorText"></div>
+			<div class="errorMsg"></div>
+			<div class="dialogBtn">
+				<button class="closeButton">Close</button>
+			</div>
+		</div>
 
-        <div id="tempErrorBox" class="dialog">
-            <div class="errorText"></div>
-            <div class="errorMsg"></div>
-            <div class="dialogBtn">
-                <button class="closeButton">Close</button>
-            </div>
-        </div>
+		<div id="tempErrorBox" class="dialog">
+			<div class="errorText"></div>
+			<div class="errorMsg"></div>
+			<div class="dialogBtn">
+				<button class="closeButton">Close</button>
+			</div>
+		</div>
 
-        <div id="dialogBox" class="dialog">
-            <img id="maximizeDialog" class="minmax" src="icon/arrow_out.png">
-            <img id="minimizeDialog" class="minmax" src="icon/arrow_in.png">
-            <h2 class="dialogTitle"></h2>
-            <div class="dialogTextWrapper">
-                <div class="dialogText"></div>
-                <div style="clear: both"></div>
-            </div>
-            <div class="dialogMsg"></div>
-            <!--            <button id="dialogOkButton">Save</button>-->
-            <div class="dialogMeta"></div>
-            <div class="dialogBtn">
-                <button class="closeButton">Close</button>
-            </div>
-        </div>
+		<div id="dialogBox" class="dialog">
+			<img id="maximizeDialog" class="minmax" src="icon/arrow_out.png">
+			<img id="minimizeDialog" class="minmax" src="icon/arrow_in.png">
+			<h2 class="dialogTitle"></h2>
+			<div class="dialogHeaderWrapper"></div>
+			<div class="dialogTextWrapper">
+				<div class="dialogText"></div>
+				<div style="clear: both"></div>
+			</div>
+			<div class="dialogMsg"></div>
+			<!--<button id="dialogOkButton">Save</button>-->
+			<div class="dialogMeta"></div>
+			<div class="dialogBtn">
+				<button class="closeButton">Close</button>
+			</div>
+		</div>
 
-        <div id="footer">
-            <div id="log"></div>
-        </div>
+		<div id="footer">
+			<div id="log"></div>
+		</div>
 
-    </body>
+		<div id="menu-area"></div>
+
+	</body>
 </html>

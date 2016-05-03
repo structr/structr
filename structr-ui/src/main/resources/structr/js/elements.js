@@ -1,22 +1,21 @@
 /*
- *  Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
- *  This file is part of Structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 var elements, dropBlocked;
 
 var _Elements = {
@@ -159,9 +158,78 @@ var _Elements = {
 			'elements': ['iframe'],
 			'attrs': ['src', 'width', 'height'],
 			'focus' : 'src'
+		},
+		{
+			'elements': ['source'],
+			'attrs': ['src', 'type', 'media'],
+			'focus' : 'src'
+		},
+		{
+			'elements': ['video'],
+			'attrs': ['autoplay', 'controls', 'height', 'loop', 'muted', 'poster', 'preload', 'src', 'width'],
+			'focus' : 'controls'
+		},
+		{
+			'elements': ['audio'],
+			'attrs': ['autoplay', 'controls', 'loop', 'muted', 'preload', 'src'],
+			'focus' : 'controls'
 		}
 	],
-	voidAttrs: ['br', 'hr', 'img', 'input', 'link', 'meta', 'area', 'base', 'col', 'embed', 'keygen', 'menuitem', 'param', 'source', 'track', 'wbr'],    
+	voidAttrs: ['br', 'hr', 'img', 'input', 'link', 'meta', 'area', 'base', 'col', 'embed', 'keygen', 'menuitem', 'param', 'track', 'wbr'],
+	sortedElementGroups: [
+		{
+			'name': 'a',
+			'elements': ['a', 'abbr', 'address', 'area', 'aside', 'article', 'audio'],
+		},
+		{
+			'name': 'b',
+			'elements': ['b', 'base', 'bdi', 'bdo', 'blockquote', 'body', 'br', 'button'],
+		},
+		{
+			'name': 'c',
+			'elements': ['canvas', 'caption', 'cite', 'code', 'colgroup', 'col', 'command', 'comment'],
+		},
+		{
+			'name': 'd',
+			'elements': ['datalist', 'dd', 'del', 'details', 'div', 'dfn', 'dl', 'dt'],
+		},
+		{
+			'name': 'e-f',
+			'elements': ['em', 'embed', '|', 'fieldset', 'figcaption', 'figure', 'form', 'footer'],
+		},
+		{
+			'name': 'g-h',
+			'elements': ['g', '|', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr'],
+		},
+		{
+			'name': 'i-k',
+			'elements': ['i', 'iframe', 'img', 'input', 'ins', '|', 'kbd', 'keygen'],
+		},
+		{
+			'name': 'l-m',
+			'elements': ['label', 'legend', 'li', 'link', '|', 'map', 'mark', 'menu', 'meta', 'meter'],
+		},
+		{
+			'name': 'n-o',
+			'elements': ['nav', 'noscript', '|', 'object', 'ol', 'optgroup', 'option', 'output'],
+		},
+		{
+			'name': 'p-r',
+			'elements': ['p', 'param', 'pre', 'progress', '|', 'rp', 'rt', 'ruby'],
+		},
+		{
+			'name': 's',
+			'elements': ['s', 'samp', 'script', 'section', 'select', 'small', 'source', 'span', 'strong', 'style', 'sub', 'summary', 'sup'],
+		},
+		{
+			'name': 't',
+			'elements': ['table', 'tbody', 'td', 'textarea', 'th', 'thead', 'tfoot', 'time', 'title', 'tr', 'track'],
+		},
+		{
+			'name': 'u-w',
+			'elements': ['u', 'ul', '|', 'var', 'video', '|', 'wbr'],
+		}
+	],
 	/**
 	 * Reload widgets
 	 */
@@ -172,6 +240,7 @@ var _Elements = {
 		widgetsSlideout.append('<div class="ver-scrollable"><h2>Local Widgets</h2><div id="widgets"></div><h2>Remote Widgets</h2><input placeholder="Filter..." id="remoteWidgetsFilter"><div id="remoteWidgets"></div></div>');
 		widgets = $('#widgets', widgetsSlideout);
 
+
 		widgets.droppable({
 			drop: function(e, ui) {
 				e.preventDefault();
@@ -179,7 +248,7 @@ var _Elements = {
 				dropBlocked = true;
 				var sourceEl = $(ui.draggable);
 				if (sourceEl.parent().attr('id') === 'widgets') {
-					log('widget dropped on widget area, aborting');
+					_Logger.log(_LogType.ELEMENTS, 'widget dropped on widget area, aborting');
 					return false;
 				}
 				var sourceId = Structr.getId(sourceEl);
@@ -201,7 +270,8 @@ var _Elements = {
 
 		});
 
-		Command.list('Widget', true, 1000, 1, 'name', 'asc', 'id,name,type,source,treePath,isWidget', function(entities) {
+		_Pager.initPager('local-widgets', 'Widget', 1, 25);
+		_Pager.addPager('local-widgets', widgets, true, 'Widget', 'public', function(entities) {
 			entities.forEach(function (entity) {
 				StructrModel.create(entity, null, false);
 				_Widgets.appendWidgetElement(entity, false, widgets);
@@ -247,7 +317,7 @@ var _Elements = {
 		if (!$('.draggable', palette).length) {
 
 			$(_Elements.elementGroups).each(function(i, group) {
-				log(group);
+				_Logger.log(_LogType.ELEMENTS, group);
 				palette.append('<div class="elementGroup" id="group_' + group.name + '"><h3>' + group.name + '</h3></div>');
 				$(group.elements).each(function(j, elem) {
 					var div = $('#group_' + group.name);
@@ -289,7 +359,7 @@ var _Elements = {
 				if (!sourceId) return false;
 				var obj = StructrModel.obj(sourceId);
 				if (obj && obj.syncedNodes && obj.syncedNodes.length || sourceEl.parent().attr('id') === 'componentsArea') {
-					log('component dropped on components area, aborting');
+					_Logger.log(_LogType.ELEMENTS, 'component dropped on components area, aborting');
 					return false;
 				}
 				Command.createComponent(sourceId);
@@ -299,23 +369,27 @@ var _Elements = {
 		});
 		_Dragndrop.makeSortable(components);
 
-		Command.listComponents(1000, 1, 'name', 'asc', function(entity) {
+		Command.listComponents(1000, 1, 'name', 'asc', function(result) {
 
-			if (!entity) {
-				return false;
-			}
+			result.forEach(function(entity) {
 
-			var obj = StructrModel.create(entity, null, false);
-			var el;
-			if (obj.isContent || obj.type === 'Template') {
-				el = _Contents.appendContentElement(obj, components, true);
-			} else {
-				el = _Pages.appendElementElement(obj, components, true);
-			}
+				if (!entity) {
+					return false;
+				}
 
-			if (isExpanded(entity.id)) {
-				_Entities.ensureExpanded(el);
-			}
+				var obj = StructrModel.create(entity, null, false);
+				var el;
+				if (obj.isContent || obj.type === 'Template') {
+					el = _Contents.appendContentElement(obj, components, true);
+				} else {
+					el = _Pages.appendElementElement(obj, components, true);
+				}
+
+				if (isExpanded(entity.id)) {
+					_Entities.ensureExpanded(el);
+				}
+
+			});
 
 		});
 
@@ -344,23 +418,26 @@ var _Elements = {
 		});
 
 		_Dragndrop.makeSortable(elements);
-		Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(entity) {
+		Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(result) {
 
-			if (!entity) {
-				return;
-			}
+			result.forEach(function(entity) {
 
-			var obj = StructrModel.create(entity, null, false);
-			var el;
-			if (obj.isContent) {
-				el = _Contents.appendContentElement(obj, elements, true);
-			} else {
-				el = _Pages.appendElementElement(obj, elements, true);
-			}
+				if (!entity) {
+					return;
+				}
 
-			if (isExpanded(entity.id)) {
-				_Entities.ensureExpanded(el);
-			}
+				var obj = StructrModel.create(entity, null, false);
+				var el;
+				if (obj.isContent) {
+					el = _Contents.appendContentElement(obj, elements, true);
+				} else {
+					el = _Pages.appendElementElement(obj, elements, true);
+				}
+
+				if (isExpanded(entity.id)) {
+					_Entities.ensureExpanded(el);
+				}
+			});
 
 		});
 
@@ -372,7 +449,7 @@ var _Elements = {
 	 * Create a DOM node and append to the appropriate parent
 	 */
 	appendElementElement: function(entity, refNode, refNodeIsParent) {
-		log('_Elements.appendElementElement', entity);
+		_Logger.log(_LogType.ELEMENTS, '_Elements.appendElementElement', entity);
 
 		if (!entity) {
 			return false;
@@ -381,10 +458,9 @@ var _Elements = {
 		entity = StructrModel.ensureObject(entity);
 
 		var hasChildren = entity.childrenIds && entity.childrenIds.length;
-		var isComponent = entity.sharedComponent || (entity.syncedNodes && entity.syncedNodes.length);
 
 		// store active nodes in special place..
-		var isActiveNode = entity.hideOnIndex || entity.hideOnDetail || entity.hideConditions || entity.showConditions || entity.dataKey;
+		var isActiveNode = entity.isActiveNode();
 
 		var parent;
 		if (refNodeIsParent) {
@@ -393,7 +469,7 @@ var _Elements = {
 			parent = entity.parent && entity.parent.id ? Structr.node(entity.parent.id) : elements;
 		}
 
-		log('appendElementElement parent, refNode, refNodeIsParent', parent, refNode, refNodeIsParent);
+		_Logger.log(_LogType.ELEMENTS, 'appendElementElement parent, refNode, refNodeIsParent', parent, refNode, refNodeIsParent);
 		if (!parent)
 			return false;
 
@@ -411,25 +487,30 @@ var _Elements = {
 
 		var div = Structr.node(id);
 
-		log('Element appended (div, parent)', div, parent);
+		_Logger.log(_LogType.ELEMENTS, 'Element appended (div, parent)', div, parent);
 
 		if (!div)
 			return false;
 
 		var displayName = getElementDisplayName(entity);
 
-		var icon = isActiveNode ? _Elements.icon_repeater : isComponent ? _Elements.icon_comp : _Elements.icon;
+		var icon = _Elements.getElementIcon(entity);
 
 		div.append('<img class="typeIcon" src="' + icon + '">'
 			+ '<b title="' + displayName + '" class="tag_ name_">' + fitStringToWidth(displayName, 200) + '</b><span class="id">' + entity.id + '</span>'
 			+ _Elements.classIdString(entity._html_id, entity._html_class)
 			+ '</div>');
 
-		div.append('<img title="Clone ' + entity.tag + ' element ' + entity.id + '\" alt="Clone ' + entity.tag + ' element ' + entity.id + '" class="clone_icon button" src="icon/page_copy.png">');
-		$('.clone_icon', div).on('click', function(e) {
-			e.stopPropagation();
-			Command.cloneNode(entity.id, entity.parent.id, true);
-		});
+		if (entity.parent) {
+			div.append('<img title="Clone ' + displayName + ' element ' + entity.id + '\" alt="Clone ' + entity.tag + ' element ' + entity.id + '" class="clone_icon button" src="icon/page_copy.png">');
+			$('.clone_icon', div).on('click', function(e) {
+				e.stopPropagation();
+				_Logger.log(_LogType.ELEMENTS, 'Cloning node (div, parent)', entity, entity.parent);
+				Command.cloneNode(entity.id, entity.parent.id, true);
+			});
+		}
+
+		_Elements.appendContextMenu(div, entity);
 
 		_Entities.appendExpandIcon(div, entity, hasChildren);
 
@@ -448,18 +529,13 @@ var _Elements = {
 			e.stopPropagation();
 		});
 
-		// Prevent html id from being draggable
-		$('._html_id_', div).on('mousedown', function(e) {
-			e.stopPropagation();
-		});
-
-		// Prevent html class from being draggable
-		$('._html_class_', div).on('mousedown', function(e) {
+		// Prevent icons from being draggable
+		$('img', div).on('mousedown', function(e) {
 			e.stopPropagation();
 		});
 
 		_Entities.appendAccessControlIcon(div, entity);
-		div.append('<img title="Delete ' + entity.tag + ' element ' + entity.id + '" alt="Delete ' + entity.tag + ' element ' + entity.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+		div.append('<img title="Delete ' + displayName + ' element ' + entity.id + '" alt="Delete ' + entity.tag + ' element ' + entity.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
 		$('.delete_icon', div).on('click', function(e) {
 			e.stopPropagation();
 			_Entities.deleteNode(this, entity, function() {
@@ -477,7 +553,11 @@ var _Elements = {
 		});
 
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodes&&entity.syncedNodes.length)?entity.syncedNodes:[entity.sharedComponent]));
-		_Entities.appendEditSourceIcon(div, entity);
+
+		if (!hasChildren && !entity.sharedComponent) {
+			_Entities.appendEditSourceIcon(div, entity);
+		}
+
 		_Entities.appendEditPropertiesIcon(div, entity);
 		//_Entities.appendDataIcon(div, entity);
 
@@ -494,11 +574,11 @@ var _Elements = {
 				var file = {'name': entity.linkable, 'id': entity.linkableId};
 
 				Structr.dialog('Edit ' + file.name, function() {
-					log('content saved')
+					_Logger.log(_LogType.ELEMENTS, 'content saved')
 				}, function() {
-					log('cancelled')
+					_Logger.log(_LogType.ELEMENTS, 'cancelled')
 				});
-				_Files.editContent(this, file, $('#dialogBox .dialogText'));
+				_Filesystem.editContent(this, file, $('#dialogBox .dialogText'));
 
 			});
 
@@ -522,7 +602,8 @@ var _Elements = {
 
 					var pagesToLink = $('#pagesToLink');
 
-					Structr.addPager(pagesToLink, true, 'Page', function(pages) {
+					_Pager.initPager('pages-to-link', 'Page', 1, 25);
+					_Pager.addPager('pages-to-link', pagesToLink, true, 'Page', null, function(pages) {
 
 						pages.forEach(function(page){
 
@@ -568,7 +649,11 @@ var _Elements = {
 					var filesToLink = $('#filesToLink');
 					var foldersToLink = $('#foldersToLink');
 
-					Structr.addPager(foldersToLink, true, 'Folder', function(folders) {
+					_Pager.initPager('folders-to-link', 'Folder', 1, 25);
+					_Pager.initFilters('folders-to-link', 'Folder', {
+						hasParent: false
+					});
+					var linkFolderPager = _Pager.addPager('folders-to-link', foldersToLink, true, 'Folder', 'public', function(folders) {
 
 						folders.forEach(function(folder) {
 
@@ -576,7 +661,7 @@ var _Elements = {
 								return;
 							}
 
-							foldersToLink.append('<div class="node folder ' + folder.id + '_"><img class="typeIcon" src="icon/folder.png">'
+							foldersToLink.append('<div class="node folder ' + folder.id + '_"><i class="fa fa-folder"></i> '
 									+ '<b title="' + folder.name + '" class="name_">' + folder.name + '</b></div>');
 
 							var div = $('.' + folder.id + '_', foldersToLink);
@@ -598,11 +683,15 @@ var _Elements = {
 
 					});
 
-					Structr.addPager(filesToLink, true, 'File', function(files) {
+					linkFolderPager.pager.append('<input type="checkbox" class="filter" data-attribute="hasParent" hidden>');
+					linkFolderPager.activateFilterElements();
+
+					_Pager.initPager('files-to-link', 'FileBase', 1, 25);
+					var linkFilesPager = _Pager.addPager('files-to-link', filesToLink, true, 'FileBase', 'public', function(files) {
 
 						files.forEach(function(file) {
 
-							filesToLink.append('<div class="node file ' + file.id + '_"><img class="typeIcon" src="' + _Files.getIcon(file) + '">'
+							filesToLink.append('<div class="node file ' + file.id + '_"><i class="fa ' + _Filesystem.getIcon(file) + '"></i> '
 									+ '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
 
 							var div = $('.' + file.id + '_', filesToLink);
@@ -636,6 +725,9 @@ var _Elements = {
 
 					});
 
+					linkFilesPager.pager.append('<input type="checkbox" class="filter" data-attribute="hasParent" hidden>');
+					linkFilesPager.activateFilterElements();
+
 				}
 
 				if (entity.tag === 'img' || entity.tag === 'link' || entity.tag === 'a') {
@@ -644,7 +736,8 @@ var _Elements = {
 
 					var imagesToLink = $('#imagesToLink');
 
-					Structr.addPager(imagesToLink, false, 'Image', function(images) {
+					_Pager.initPager('images-to-link', 'Image', 1, 25);
+					_Pager.addPager('images-to-link', imagesToLink, false, 'Image', 'public', function(images) {
 
 						images.forEach(function(image) {
 
@@ -660,7 +753,7 @@ var _Elements = {
 							div.on('click', function(e) {
 								e.stopPropagation();
 								if (div.hasClass('nodeActive')) {
-									console.log('removing')
+									//console.log('removing')
 									Command.setProperty(entity.id, 'linkableId', null);
 								} else {
 									Command.link(entity.id, image.id);
@@ -689,6 +782,12 @@ var _Elements = {
 		}
 		return div;
 	},
+	getElementIcon:function(element) {
+		var isComponent = element.sharedComponent || (element.syncedNodes && element.syncedNodes.length);
+		var isActiveNode = element.isActiveNode();
+
+		return isActiveNode ? _Elements.icon_repeater : isComponent ? _Elements.icon_comp : _Elements.icon;
+	},
 	classIdString: function(idString, classString) {
 		var classIdString = '<span class="class-id-attrs">' + (idString ? '<span class="_html_id_">#' + idString.replace(/\${.*}/g, '${…}') + '</span>' : '')
 				+ (classString ? '<span class="_html_class_">.' + classString.replace(/\${.*}/g, '${…}').replace(/ /g, '.') + '</span>' : '') + '</span>';
@@ -700,7 +799,7 @@ var _Elements = {
 		}
 
 		var div = $('.' + folder.id + '_');
-		div.css({'border': '1px solid #ccc', 'backgroundColor': '#f5f5f5'});
+		//div.css({'border': '1px solid #ccc', 'backgroundColor': '#f5f5f5'});
 
 		div.children('b').on('click', function() {
 			$(this).siblings('.node.sub').remove();
@@ -708,7 +807,7 @@ var _Elements = {
 
 		$.each(folder.folders, function(i, subFolder) {
 			e.stopPropagation();
-			$('.' + folder.id + '_').append('<div class="clear"></div><div class="node folder sub ' + subFolder.id + '_"><img class="typeIcon" src="icon/folder.png">'
+			$('.' + folder.id + '_').append('<div class="clear"></div><div class="node folder sub ' + subFolder.id + '_"><i class="fa fa-folder"></i> '
 					+ '<b title="' + subFolder.name + '" class="name_">' + subFolder.name + '</b></div>');
 			var subDiv = $('.' + subFolder.id + '_');
 
@@ -733,10 +832,10 @@ var _Elements = {
 		});
 
 		$.each(folder.files, function(i, f) {
-			
+
 			Command.get(f.id, function(file) {
-			
-				$('.' + folder.id + '_').append('<div class="clear"></div><div class="node file sub ' + file.id + '_"><img class="typeIcon" src="' + _Files.getIcon(file) + '">'
+
+				$('.' + folder.id + '_').append('<div class="clear"></div><div class="node file sub ' + file.id + '_"><i class="fa ' + _Filesystem.getIcon(file) + '"></i> '
 						+ '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
 				var div = $('.' + file.id + '_');
 
@@ -765,7 +864,273 @@ var _Elements = {
 					$(this).removeClass('nodeHover');
 				});
 			});
-		
+
+		});
+	},
+	appendContextMenu: function(div, entity) {
+
+		$('#menu-area').on("contextmenu",function(e){
+			e.stopPropagation();
+			e.preventDefault();
+		});
+
+		$(div).on("contextmenu",function(e){
+			e.stopPropagation();
+			e.preventDefault();
+		});
+
+		$(div).on('mouseup', function(e) {
+
+			if (e.button !== 2 || $(e.target).hasClass('content')) {
+				return;
+			}
+
+			e.stopPropagation();
+
+			$('#add-child-dialog').remove();
+			$('#menu-area').append('<div id="add-child-dialog"></div>');
+
+			var leftOrRight = 'left';
+			var topOrBottom = 'top';
+			var x = (e.pageX - 8);
+			var y = (div.offset().top - 58);
+
+			if (e.pageX > ($(window).width() / 2)) {
+				leftOrRight = 'right';
+			}
+
+			if (e.pageY > ($(window).height() / 2)) {
+				topOrBottom = 'bottom';
+				y -= 175;
+
+				if (entity.mostUsedTags.length) {
+					y -= 24;
+				}
+			}
+
+			var cssPositionClasses = leftOrRight + ' ' + topOrBottom;
+
+			$('#add-child-dialog').css('left', x + 'px');
+			$('#add-child-dialog').css('top', y + 'px');
+
+			// FIXME: its either this or accept that the div will not be highlighted any more when the menu appears. This is
+			// due to the fact that the menu has to be outside of the actual div to be visible even with overflow: hidden,
+			// which is needed to hide the vertical scroll bar in the pages tree view and others.
+			var setHover = function() {
+				$(div).addClass('nodeHover');
+				if ($('#add-child-dialog').length) {
+					window.setTimeout(setHover, 200);
+				}
+			};
+
+			window.setTimeout(setHover, 10);
+
+			var menu = [
+				{ name: 'Insert HTML element', elements: _Elements.sortedElementGroups },
+				{
+					name: 'Insert content element',
+					elements: [
+						'content', 'template'
+					],
+					separator: true
+				},
+				{ name: 'Query and Data Binding...',  func: function() { _Entities.showProperties(entity, 'query'); } },
+				{ name: 'Edit Mode Binding...',    func: function() { _Entities.showProperties(entity, 'editBinding'); } },
+				{ name: 'HTML Attributes...', func: function() { _Entities.showProperties(entity, '_html_'); } },
+				{ name: 'Node Properties...', func: function() { _Entities.showProperties(entity, 'ui'); }, separator: true },
+				{ name: 'Security...', elements: [
+
+					{ name: 'Access Control and Visibility...', func: function() { _Entities.showAccessControlDialog(entity.id); }, separator: true },
+					{ name: 'Authenticated Users...', elements: [
+						{ name: 'Make element visible', func: function() {
+							Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, false); }
+						},
+						{ name: 'Make Element invisible', func: function() {
+							Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, false); }
+						},
+						{ name: 'Make subtree visible', func: function() {
+							Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, true); },
+							separator: true
+						},
+						{ name: 'Make subtree invisible', func: function() {
+							Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, true); }
+						},
+						],
+						separator: true
+					},
+					{ name: 'Public Users...', elements: [
+						{ name: 'Make element visible', func: function() {
+							Command.setProperty(entity.id, 'visibleToPublicUsers', true, false); }
+						},
+						{ name: 'Make element invisible', func: function() {
+							Command.setProperty(entity.id, 'visibleToPublicUsers', false, false); }
+						},
+						{ name: 'Make subtree visible', func: function() {
+							Command.setProperty(entity.id, 'visibleToPublicUsers', true, true); },
+							separator: true
+						},
+						{ name: 'Make subtree invisible', func: function() {
+							Command.setProperty(entity.id, 'visibleToPublicUsers', false, true); }
+						},
+						]
+					}
+					],
+					separator: true
+				},
+				{ name: 'Expand / Collapse',   elements: [
+						{ name: 'Expand subtree', func: function() {
+
+							$(div).find('.node').each(function(i, el) {
+								if (!_Entities.isExpanded(el)) {
+									_Entities.toggleElement(el);
+								}
+							});
+							if (!_Entities.isExpanded(div)) {
+								_Entities.toggleElement(div);
+							}
+						}},
+						{ name: 'Collapse subtree', func: function() {
+
+							$(div).find('.node').each(function(i, el) {
+								if (_Entities.isExpanded(el)) {
+									_Entities.toggleElement(el);
+								}
+							});
+							if (_Entities.isExpanded(div)) {
+								_Entities.toggleElement(div);
+							}
+						}}
+					], separator: true
+				},
+			];
+
+			// information about most used elements in this page from backend
+			if (entity.mostUsedTags && entity.mostUsedTags.length) {
+				menu.push({
+					name: 'Most used elements', elements: entity.mostUsedTags, separator: true
+				});
+			}
+
+			menu.forEach(function(item, i) {
+
+				var isSubmenu = item.elements && item.elements.length;
+
+				$('#add-child-dialog').append(
+					'<ul class="' + cssPositionClasses + '" id="element-menu-' + i + '"><li id="element-group-switch-' + i + '">' + item.name +
+					(isSubmenu ?
+						'<i class="fa fa-caret-right pull-right"></i>' +
+						'<ul class="element-group hidden ' +
+						cssPositionClasses +
+						'" id="element-group-' + i + '"></ul>'
+						: ''
+					) +
+					'</li></ul>'
+				);
+
+				if (item.separator) {
+					$('#element-menu-' + i ).append('<hr />');
+				}
+
+				if (isSubmenu) {
+
+					item.elements.forEach(function(subitem, j) {
+
+						if (subitem.elements && subitem.elements.length) {
+
+							if (subitem.separator) {
+								$('#element-group-' + i).append('<hr />');
+							}
+
+							$('#element-group-' + i).append(
+								'<li id="element-subgroup-switch-' + i + '-' + j + '">' + subitem.name +
+								'<i class="fa fa-caret-right pull-right"></i>' +
+								'<ul class="element-subgroup hidden ' + cssPositionClasses + '" id="element-subgroup-' + i + '-' + j + '"></ul></li>'
+							);
+
+							subitem.elements.forEach(function(subsubitem, k) {
+
+								if (subsubitem.separator) {
+									$('#element-subgroup-' + i + '-' + j).append('<hr />');
+								}
+
+								if (subsubitem.func && (typeof subsubitem.func === 'function')) {
+
+									$('#element-subgroup-' + i + '-' + j).append(
+										'<li id="element-subsubgroup-switch-' + i + '-' + j + '-' + k + '">' + subsubitem.name + '</li>'
+									);
+
+									$('#element-subsubgroup-switch-' + i + '-' + j + '-' + k).on('mouseup', subsubitem.func);
+
+								} else {
+
+									if (subsubitem === '|') {
+
+										$('#element-subgroup-' + i + '-' + j).append('<hr />');
+
+									} else {
+
+										$('#element-subgroup-' + i + '-' + j).append('<li id="add-' + subsubitem + '-' + i + '-' + j + '-' + k + '">' + subsubitem + '</li>');
+										$('#add-' + subsubitem + '-' + i + '-' + j + '-' + k).on('mouseup', function(e) {
+
+											e.stopPropagation();
+											if (subsubitem === 'content') {
+												Command.createAndAppendDOMNode(entity.pageId, entity.id, null, {});
+											} else {
+												Command.createAndAppendDOMNode(entity.pageId, entity.id, subsubitem, {});
+											}
+											$('#add-child-dialog').remove();
+											$(div).removeClass('nodeHover');
+										});
+									}
+								}
+							});
+
+						} else {
+
+							$('#element-group-' + i ).append('<li id="add-' + i + '-' + j + '">' + (subitem.name ? subitem.name : subitem) + '</li>');
+							$('#add-' + i + '-' + j).on('mouseup', function(e) {
+
+								e.stopPropagation();
+								if (subitem.func && (typeof subitem.func === 'function')) {
+									subitem.func();
+								} else {
+									if (subitem === 'content') {
+										Command.createAndAppendDOMNode(entity.pageId, entity.id, null, {});
+									} else {
+										Command.createAndAppendDOMNode(entity.pageId, entity.id, subitem, {});
+									}
+								}
+								$('#add-child-dialog').remove();
+								$(div).removeClass('nodeHover');
+							});
+						}
+
+						$('#element-subgroup-switch-' + i + '-' + j).hover(function() {
+							$('.element-subgroup').addClass('hidden');
+							$('#element-subgroup-' + i + '-' + j).removeClass('hidden');
+						}, function() {});
+					});
+
+				} else {
+
+					$('#element-menu-' + i).on('mouseup', function(e) {
+
+						e.stopPropagation();
+
+						if (item.func && (typeof item.func === 'function')) {
+							item.func();
+						}
+
+						$('#add-child-dialog').remove();
+						$(div).removeClass('nodeHover');
+					});
+				}
+
+				$('#element-group-switch-' + i).hover(function() {
+					$('.element-group').addClass('hidden');
+					$('#element-group-' + i).removeClass('hidden');
+				}, function() {});
+			});
 		});
 	}
 };

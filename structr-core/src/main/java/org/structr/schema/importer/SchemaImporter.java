@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -36,12 +36,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.helpers.collection.Iterables;
-import org.neo4j.tooling.GlobalGraphOperations;
+import org.structr.api.DatabaseService;
+import org.structr.api.util.Iterables;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.common.error.FrameworkException;
@@ -54,7 +52,6 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.BulkGraphOperation;
 import org.structr.core.graph.BulkRebuildIndexCommand;
-import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
@@ -106,7 +103,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 					buf.append(line);
 					buf.append("\n");
 
-					if (line.endsWith(";")) {
+					if (trimmedLine.endsWith(";")) {
 
 						sources.add(buf.toString());
 						buf.setLength(0);
@@ -127,43 +124,18 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			}
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.log(Level.WARNING, "", ioex);
 		}
 
 		return sources;
 	}
 
-	public static void importCypher(final List<String> sources) {
-
-		final App app                      = StructrApp.getInstance();
-		final GraphDatabaseService graphDb = app.command(GraphDatabaseCommand.class).execute();
-
-		// nothing to do
-		if (sources.isEmpty()) {
-			return;
-		}
-
-		// first step: execute cypher queries
-		for (final String source : sources) {
-
-			try (final Transaction tx = graphDb.beginTx()) {
-
-				// be very tolerant here, just execute everything
-				graphDb.execute(source);
-				tx.success();
-
-			} catch (Throwable t) {
-				// ignore
-				t.printStackTrace();
-			}
-		}
-	}
 
 	public static void analyzeSchema() {
 
 		final App app                                       = StructrApp.getInstance();
 		final FileBasedHashLongMap<NodeInfo> nodeIdMap      = new FileBasedHashLongMap<>(userHome + File.separator + ".structrSchemaAnalyzer");
-		final GraphDatabaseService graphDb                  = app.command(GraphDatabaseCommand.class).execute();
+		final DatabaseService graphDb                       = app.getDatabaseService();
 		final ConfigurationProvider configuration           = Services.getInstance().getConfigurationProvider();
 		final Set<NodeInfo> nodeTypes                       = new LinkedHashSet<>();
 		final Set<RelationshipInfo> relationships           = new LinkedHashSet<>();
@@ -179,11 +151,11 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 
 		try (final Tx tx = app.tx()) {
 
-			nodeIterator = Iterables.filter(new StructrAndSpatialPredicate(false, false, true), GlobalGraphOperations.at(graphDb).getAllNodes()).iterator();
+			nodeIterator = Iterables.filter(new StructrAndSpatialPredicate(false, false, true), graphDb.getAllNodes()).iterator();
 			tx.success();
 
 		} catch(FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		logger.log(Level.INFO, "Starting to analyze nodes..");
@@ -202,7 +174,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 				nodeIdMap.add(nodeInfo, node.getId());
 			}
 		});
-		
+
 		logger.log(Level.INFO, "Identifying common base classes..");
 
 		try (final Tx tx = app.tx(true, false, false)) {
@@ -213,10 +185,10 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
-		
+
 		logger.log(Level.INFO, "Collecting type information..");
 
 		try (final Tx tx = app.tx(true, false, false)) {
@@ -227,7 +199,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		logger.log(Level.INFO, "Aggregating type information..");
@@ -240,7 +212,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		logger.log(Level.INFO, "Identifying property sets..");
@@ -252,7 +224,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 
@@ -265,7 +237,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		final Map<String, TypeInfo> reducedTypeInfoMap = new LinkedHashMap<>();
@@ -296,11 +268,11 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 
 		try (final Tx tx = app.tx(false, false, false)) {
 
-			relIterator = Iterables.filter(new StructrAndSpatialPredicate(false, false, true), GlobalGraphOperations.at(graphDb).getAllRelationships()).iterator();
+			relIterator = Iterables.filter(new StructrAndSpatialPredicate(false, false, true), graphDb.getAllRelationships()).iterator();
 			tx.success();
 
 		} catch(FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		logger.log(Level.INFO, "Starting with analyzing relationships..");
@@ -326,9 +298,9 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 					if (startNodeType != null && endNodeType != null) {
 
 						final String combinedType = getCombinedType(startNodeType, relationshipType, endNodeType);
-						
+
 						logger.log(Level.FINE, "Combined relationship type {0} found for rel type {1}, start node type {2}, end node type {3}", new Object[]{combinedType, relationshipType, startNodeType, endNodeType});
-						
+
 						rel.setProperty(GraphObject.type.dbName(), combinedType);
 					}
 
@@ -467,13 +439,13 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 	}
 
 	// ----- private static methods -----
-	
+
 	private static String getCombinedType(final String startNodeType, final String relationshipType, final String endNodeType) {
-		
+
 		return startNodeType.concat(relationshipType).concat(endNodeType);
-		
+
 	}
-	
+
 	private static void identifyCommonBaseClasses(final App app, final Set<NodeInfo> nodeTypes, final FileBasedHashLongMap<NodeInfo> nodeIds, final List<TypeInfo> typeInfos) {
 
 		// next we need to identify common base classes, which can be found by

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,7 +24,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.neo4j.helpers.collection.Iterables;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -67,7 +67,7 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 		if (lastChild != null) {
 			LinkedTreeNode.super.listInsertAfter(lastChild, childElement);
 		}
-		
+
 		ensureCorrectChildPositions();
 	}
 
@@ -117,7 +117,7 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 
 		// insert new node in linked list
 		LinkedTreeNode.super.listInsertBefore(refChild, newChild);
-		
+
 		ensureCorrectChildPositions();
 	}
 
@@ -154,7 +154,7 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 
 		// insert new node in linked list
 		LinkedTreeNode.super.listInsertAfter(refChild, newChild);
-		
+
 		ensureCorrectChildPositions();
 
 	}
@@ -187,7 +187,7 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 		// replace element in linked list as well
 		LinkedTreeNode.super.listInsertBefore(oldChild, newChild);
 		LinkedTreeNode.super.listRemove(oldChild);
-		
+
 		ensureCorrectChildPositions();
 	}
 
@@ -249,7 +249,7 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 	}
 
 	public int treeGetChildCount() {
-		return (int) Iterables.count(getOutgoingRelationships(getChildLinkType()));
+		return (int)Iterables.count(getOutgoingRelationships(getChildLinkType()));
 	}
 
 	public List<R> treeGetChildRelationships() {
@@ -312,10 +312,10 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 
 	/**
 	 * Return a set containing all child nodes of this node.
-	 * 
+	 *
 	 * This node is not included.
 	 * There are no duplicates.
-	 * 
+	 *
 	 * @return child nodes
 	 */
 	public Set<T> getAllChildNodes() {
@@ -325,10 +325,10 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 		List<T> childNodes = treeGetChildren();
 
 		for (final T child : childNodes) {
-			
+
 			allChildNodes.add(child);
 			allChildNodes.addAll(child.getAllChildNodes());
-			
+
 		}
 
 		return allChildNodes;

@@ -1,22 +1,21 @@
 /*
- *  Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
- *  This file is part of Structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 /**
  * Use these commands to send command calls to the websocket server.
  *
@@ -24,6 +23,43 @@
  *
  */
 var Command = {
+	/**
+	 * Send the LOGIN command to the server.
+	 */
+	login: function(username, password) {
+		var obj = {};
+		obj.command = 'LOGIN';
+		obj.sessionId = Structr.getSessionId();
+		var data = {};
+		data.username = username;
+		data.password = password;
+		obj.data = data;
+		_Logger.log(_LogType.WS[obj.command], 'login()' + username + ' with ' + password);
+		return sendObj(obj);
+	},
+	/**
+	 * Send the LOGOUT command to the server.
+	 */
+	logout: function(username) {
+		var obj = {};
+		obj.command = 'LOGOUT';
+		obj.sessionId = Structr.getSessionId();
+		var data = {};
+		data.username = username;
+		obj.data = data;
+		_Logger.log(_LogType.WS[obj.command], 'logout() ' + username);
+		return sendObj(obj);
+	},
+	/**
+	 * Send the PING command to the server.
+	 */
+	ping: function(callback) {
+		var obj = {};
+		obj.command = 'PING';
+		obj.sessionId = Structr.getSessionId();
+		_Logger.log(_LogType.WS[obj.command], 'ping()');
+		return sendObj(obj, callback);
+	},
 	/**
 	 * Send a single GET command to the server.
 	 *
@@ -37,7 +73,7 @@ var Command = {
 		//var data = {};
 		//data.id = id;
 		//obj.data = data;
-		log('get()', obj, callback);
+		_Logger.log(_LogType.WS[obj.command], 'get()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -53,7 +89,7 @@ var Command = {
 		//var data = {};
 		//data.id = id;
 		//obj.data = data;
-		log('getRelationship()', obj, callback);
+		_Logger.log(_LogType.WS[obj.command], 'getRelationship()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -75,7 +111,7 @@ var Command = {
 		if (properties) data.properties = properties;
 		data.includeDeletedAndHidden = includeDeletedAndHidden;
 		obj.data = data;
-		log('getByType()', obj, callback);
+		_Logger.log(_LogType.WS[obj.command], 'getByType()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -90,7 +126,7 @@ var Command = {
 		var data = {};
 		data.type = type;
 		obj.data = data;
-		log('getTypeInfo()', obj, callback);
+		_Logger.log(_LogType.WS[obj.command], 'getTypeInfo()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -101,7 +137,7 @@ var Command = {
 	getSchemaInfo: function(callback) {
 		var obj = {};
 		obj.command = 'GET_SCHEMA_INFO';
-		log('getSchemaInfo()', obj, callback);
+		_Logger.log(_LogType.WS[obj.command], 'getSchemaInfo()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -124,7 +160,7 @@ var Command = {
 		obj.sort = sort;
 		obj.order = order;
 		obj.data = data;
-		log('list()', obj, callback);
+		_Logger.log(_LogType.WS[obj.command], 'list()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -135,18 +171,20 @@ var Command = {
 	 *
 	 * The optional callback function will be executed for each node in the result set.
 	 */
-	query: function(type, pageSize, page, sort, order, properties, callback) {
+	query: function(type, pageSize, page, sort, order, properties, callback, exact, view) {
 		var obj = {};
 		obj.command = 'QUERY';
 		var data = {};
 		data.type = type;
 		if (properties) data.properties = JSON.stringify(properties);
+		if (exact != null) data.exact = exact;
 		obj.pageSize = pageSize;
 		obj.page = page;
 		obj.sort = sort;
 		obj.order = order;
+		if (view) obj.view = view;
 		obj.data = data;
-		log('query()', obj, callback);
+		_Logger.log(_LogType.WS[obj.command], 'query()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -165,13 +203,13 @@ var Command = {
 		var structrObj = StructrModel.obj(id);
 		if (structrObj && (structrObj instanceof StructrElement || structrObj.type === 'Template')) {
 			obj.command = 'DOM_NODE_CHILDREN';
-			log('children of DOM node requested', structrObj);
+			_Logger.log(_LogType.WS[obj.command], 'children of DOM node requested', structrObj);
 		} else {
 			obj.command = 'CHILDREN';
 		}
 
 		obj.data = data;
-		log('children()', obj, callback);
+		_Logger.log(_LogType.WS[obj.command], 'children()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -187,7 +225,7 @@ var Command = {
 		var data = {};
 		data.key = key;
 		obj.data = data;
-		log('getProperty()', obj, callback);
+		_Logger.log(_LogType.WS[obj.command], 'getProperty()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -207,7 +245,7 @@ var Command = {
 		data.searchString = searchString;
 		data.type = type;
 		obj.data = data;
-		log('search()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'search()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -220,7 +258,7 @@ var Command = {
 		var data = {};
 		data.restQuery = searchString;
 		obj.data = data;
-		log('rest()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'rest()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -234,7 +272,7 @@ var Command = {
 		data.cypherQuery = query;
 		data.cypherParams = params;
 		obj.data = data;
-		log('cypher()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'cypher()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -252,7 +290,7 @@ var Command = {
 			data.recursive = recursive;
 		}
 		obj.data = data;
-		log('deleteNode()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'deleteNode()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -270,7 +308,7 @@ var Command = {
 			data.recursive = recursive;
 		}
 		obj.data = data;
-		log('deleteRelationship()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'deleteRelationship()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -280,14 +318,14 @@ var Command = {
 	 * with the given targetId and broadcast a removal notification.
 	 */
 	removeSourceFromTarget: function(entityId, parentId) {
-		log('Remove ' + entityId + ' from ' + parentId);
 		var obj = {};
 		obj.command = 'REMOVE';
 		obj.id = entityId;
 		var data = {};
 		data.id = parentId;
 		obj.data = data;
-		log('removeSourceFromTarget()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'Remove ' + entityId + ' from ' + parentId);
+		_Logger.log(_LogType.WS[obj.command], 'removeSourceFromTarget()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -297,13 +335,13 @@ var Command = {
 	 * tree and broadcast a removal notification.
 	 */
 	removeChild: function(id) {
-		log('Remove ' + id);
 		var obj = {};
 		obj.command = 'REMOVE';
 		obj.id = id;
 		var data = {};
 		obj.data = data;
-		log('removeChild()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'Remove ' + id);
+		_Logger.log(_LogType.WS[obj.command], 'removeChild()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -320,7 +358,7 @@ var Command = {
 		data.key = key;
 		data.idToRemove = idToRemove;
 		obj.data = data;
-		log('removeFromCollection()', obj, callback);
+		_Logger.log(_LogType.WS[obj.command], 'removeFromCollection()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -342,7 +380,7 @@ var Command = {
 			data['recursive'] = true;
 		}
 		obj.data = data;
-		log('setProperty()', obj, callback);
+		_Logger.log(_LogType.WS[obj.command], 'setProperty()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -356,7 +394,7 @@ var Command = {
 		obj.command = 'UPDATE';
 		obj.id = id;
 		obj.data = data;
-		log('setProperties()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'setProperties()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -370,7 +408,7 @@ var Command = {
 		obj.command = 'SET_PERMISSION';
 		obj.id = id;
 		obj.data = { 'principalId': principalId, 'action': action, 'permission': permission, 'recursive': recursive };
-		log('setPermission()', obj, callback);
+		_Logger.log(_LogType.WS[obj.command], 'setPermission()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -384,15 +422,15 @@ var Command = {
 	 * to the new one.
 	 *
 	 */
-	appendFile: function(id, parentId) {
+	appendFile: function(id, parentId, callback) {
 		var obj = {};
 		obj.command = 'APPEND_FILE';
 		obj.id = id;
 		var data = {};
 		data.parentId = parentId;
 		obj.data = data;
-		log('appendFile()', obj);
-		return sendObj(obj);
+		_Logger.log(_LogType.WS[obj.command], 'appendFile()', obj);
+		return sendObj(obj, callback);
 	},
 	/**
 	 * Send an UNARCHIVE command to the server.
@@ -407,7 +445,7 @@ var Command = {
 		obj.id = id;
 		var data = {};
 		obj.data = data;
-		log('unarchive()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'unarchive()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -424,7 +462,7 @@ var Command = {
 		var data = {};
 		data.parentId = groupId;
 		obj.data = data;
-		log('appendUser()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'appendUser()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -446,7 +484,7 @@ var Command = {
 		data.parentId = parentId;
 		data.key = key;
 		obj.data = data;
-		log('appendChild()', obj, key);
+		_Logger.log(_LogType.WS[obj.command], 'appendChild()', obj, key);
 		return sendObj(obj);
 	},
 	/**
@@ -460,7 +498,7 @@ var Command = {
 	 * to the new one.
 	 *
 	 */
-	appendWidget: function(source, parentId, pageId, widgetHostBaseUrl, attributes, callback) {
+	appendWidget: function(source, parentId, pageId, widgetHostBaseUrl, attributes) {
 		var obj = {};
 		obj.command = 'APPEND_WIDGET';
 		obj.pageId = pageId;
@@ -474,8 +512,8 @@ var Command = {
 			});
 		}
 		obj.data = data;
-		log('appendWidget()', obj);
-		return sendObj(obj, callback);
+		_Logger.log(_LogType.WS[obj.command], 'appendWidget()', obj);
+		return sendObj(obj);
 	},
 	/**
 	 * Send a SAVE_NODE command to the server.
@@ -491,7 +529,7 @@ var Command = {
 		var data = {};
 		data.source = source;
 		obj.data = data;
-		log('saveNode()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'saveNode()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -505,9 +543,9 @@ var Command = {
 		var obj = {};
 		obj.command = 'SAVE_LOCAL_STORAGE';
 		var data = {};
-		data.localStorageString = JSON.stringify(localStorage);
+		data.localStorageString = JSON.stringify(localStorageObject);
 		obj.data = data;
-		//log('saveLocalStorage()', obj);
+		//_Logger.log(_LogType.WS[obj.command], 'saveLocalStorage()', data.localStorageString);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -516,26 +554,7 @@ var Command = {
 	getLocalStorage: function(callback) {
 		var obj = {};
 		obj.command = 'GET_LOCAL_STORAGE';
-		log('getLocalStorage()', obj);
-		return sendObj(obj, callback);
-	},
-	/**
-	 * Send a REPLACE_WIDGET command to the server.
-	 *
-	 * The server will create nodes from the given source and
-	 * replace the original node with the nodes created.
-	 *
-	 */
-	replaceWidget: function(source, id, parentId, pageId, callback) {
-		var obj = {};
-		obj.command = 'REPLACE_WIDGET';
-		obj.id = id;
-		obj.pageId = pageId;
-		var data = {};
-		data.source = source;
-		data.parentId = parentId;
-		obj.data = data;
-		log('replaceWidget()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'getLocalStorage()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -557,7 +576,7 @@ var Command = {
 		data.refId = refId;
 		data.parentId = parentId;
 		obj.data = data;
-		log('insertBefore()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'insertBefore()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -573,7 +592,7 @@ var Command = {
 		obj.command = 'CREATE_DOM_NODE';
 		obj.pageId = pageId;
 		obj.data.tagName = tagName;
-		log('createDOMNode()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'createDOMNode()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -597,7 +616,7 @@ var Command = {
 			data[key] = attributes[key];
 		});
 		obj.data = data;
-		log('createAndAppendDOMNode()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'createAndAppendDOMNode()', obj);
 		return sendObj(obj);
 	},
 	wrapContent: function(pageId, parentId, tagName) {
@@ -608,7 +627,7 @@ var Command = {
 		data.parentId = parentId;
 		data.tagName = tagName;
 		obj.data = data;
-		log('wrapContentInElement()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'wrapContentInElement()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -621,7 +640,7 @@ var Command = {
 		var obj = {};
 		obj.command = 'CREATE_COMPONENT';
 		obj.id = id;
-		log('createComponent()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'createComponent()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -638,7 +657,7 @@ var Command = {
 		var data = {};
 		data.parentId = parentId;
 		obj.data = data;
-		log('cloneComponent()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'cloneComponent()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -655,7 +674,7 @@ var Command = {
 		data.name = name;
 		data.source = source;
 		obj.data = data;
-		log('createLocalWidget()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'createLocalWidget()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -673,7 +692,7 @@ var Command = {
 		data.parentId = parentId;
 		data.deep = deep;
 		obj.data = data;
-		log('cloneNode()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'cloneNode()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -694,7 +713,7 @@ var Command = {
 		data.targetId = targetId;
 		data.syncMode = mode;
 		obj.data = data;
-		log('setSyncMode()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'setSyncMode()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -729,7 +748,7 @@ var Command = {
 		obj.id = id;
 		obj.data = nodeData;
 		obj.relData = relData;
-		log('createAndAdd()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'createAndAdd()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -748,7 +767,7 @@ var Command = {
 			nodeData.content = nodeData.name;
 		}
 		obj.data = nodeData;
-		log('create()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'create()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -761,7 +780,7 @@ var Command = {
 		var obj = {};
 		obj.command = 'CREATE_RELATIONSHIP';
 		obj.relData = relData;
-		log('createRelationship()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'createRelationship()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -778,7 +797,7 @@ var Command = {
 			nodeData.name = 'New Page ' + Math.floor(Math.random() * (999999 - 1));
 		}
 		obj.data = nodeData;
-		log('createSimplePage()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'createSimplePage()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -792,18 +811,17 @@ var Command = {
 	 * The server will broadcast CREATE and ADD notifications for each
 	 * node respective relationship created.
 	 */
-	importPage: function(code, address, name, timeout, publicVisible, authVisible) {
+	importPage: function(code, address, name, publicVisible, authVisible) {
 		var obj = {};
 		var data = {};
 		obj.command = 'IMPORT';
 		data.code = code;
 		data.address = address;
 		data.name = name;
-		data.timeout = parseInt(timeout);
 		data.publicVisible = publicVisible;
 		data.authVisible = authVisible;
 		obj.data = data;
-		log('importPage()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'importPage()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -818,14 +836,15 @@ var Command = {
 	patch: function(id, text1, text2, callback) {
 
 		// no null values allowed
-		if (!text1)
+		if (!text1) {
 			text1 = '';
-		if (!text2)
+		}
+		if (!text2) {
 			text2 = '';
+		}
 
 		var p = dmp.patch_make(text1, text2);
 		var strp = dmp.patch_toText(p);
-		log(strp, $.quoteString(strp));
 
 		var obj = {};
 		obj.command = 'PATCH';
@@ -833,7 +852,8 @@ var Command = {
 		var data = {};
 		data.patch = strp;
 		obj.data = data;
-		log('patch()', obj, callback);
+		_Logger.log(_LogType.WS[obj.command], strp, $.quoteString(strp));
+		_Logger.log(_LogType.WS[obj.command], 'patch()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -854,7 +874,7 @@ var Command = {
 		obj.data = nodeData;
 		obj.command = 'CLONE_PAGE';
 		obj.id = id;
-		log('clonePage()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'clonePage()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -878,7 +898,7 @@ var Command = {
 		data.chunk = chunk;
 		data.chunks = chunks;
 		obj.data = data;
-		log('chunk()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'chunk()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -894,10 +914,11 @@ var Command = {
 		data.name = file.name;
 		data.size = file.size;
 		data.parent = file.parent;
+		data.hasParent = file.hasParent;
 		data.parentId = file.parentId;
 		data.type = isImage(file.type) ? 'Image' : isVideo(file.type) ? 'VideoFile' : 'File';
 		obj.data = data;
-		log('createFile()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'createFile()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -912,7 +933,7 @@ var Command = {
 		data.name = name;
 		data.fileData = fileData;
 		obj.data = data;
-		log('upload()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'upload()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -930,7 +951,7 @@ var Command = {
 		var data = {};
 		data.targetId = targetId;
 		obj.data = data;
-		log('link()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'link()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -954,7 +975,7 @@ var Command = {
 		data.key = key;
 		data.recursive = recursive;
 		obj.data = data;
-		log('push()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'push()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -976,7 +997,7 @@ var Command = {
 		data.password = password;
 		data.key = key;
 		obj.data = data;
-		log('push_schema()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'push_schema()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -1000,7 +1021,7 @@ var Command = {
 		data.key = key;
 		data.recursive = recursive;
 		obj.data = data;
-		log('pull()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'pull()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -1023,7 +1044,7 @@ var Command = {
 		data.key = key;
 		data.type = type;
 		obj.data = data;
-		log('list_syncables()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'list_syncables()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -1038,7 +1059,7 @@ var Command = {
 		var obj = {};
 		obj.command = 'LIST_ACTIVE_ELEMENTS';
 		obj.id = pageId;
-		log('list_active_elements()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'list_active_elements()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -1058,7 +1079,7 @@ var Command = {
 		obj.sort = sort;
 		obj.order = order;
 		obj.data = data;
-		log('listComponents()', obj, callback);
+		_Logger.log(_LogType.WS[obj.command], 'listComponents()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -1078,7 +1099,7 @@ var Command = {
 		obj.sort = sort;
 		obj.order = order;
 		obj.data = data;
-		log('listUnattachedNodes()', obj, callback);
+		_Logger.log(_LogType.WS[obj.command], 'listUnattachedNodes()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -1089,10 +1110,10 @@ var Command = {
 	 *
 	 * No broadcast.
 	 */
-	deleteUnattachedNodes: function(callback) {
+	deleteUnattachedNodes: function() {
 		var obj = {};
 		obj.command = 'DELETE_UNATTACHED_NODES';
-		log('deleteUnattachedNodes()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'deleteUnattachedNodes()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -1105,21 +1126,22 @@ var Command = {
 		obj.command = 'LIST_SCHEMA_PROPERTIES';
 		obj.id      = id;
 		obj.data    = { view: view };
-		log('listSchemaProperties()', obj, callback);
+		_Logger.log(_LogType.WS[obj.command], 'listSchemaProperties()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
-	 * Send a LIST_SNAPSHOTS command to the server.
+	 * Send a SNAPSHOTS command to the server.
 	 *
-	 * The server will return a list of restorable
-	 * snapshots from the snapshot location configured
-	 * in the structr.conf.
+	 * The server will return a status object.
 	 */
-	snapshots: function(mode, name, callback) {
+	snapshots: function(mode, name, types, callback) {
 		var obj  = {};
 		obj.data = { mode: mode, name: name };
+		if (types && types.length) {
+			obj.data.types = types.join(',');
+		}
 		obj.command = 'SNAPSHOTS';
-		log('snapshots()', obj, callback);
+		//_Logger.log(_LogType.WS[obj.command], 'snapshots()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -1142,7 +1164,7 @@ var Command = {
             cursorPosition: cursorPosition
         };
 
-		log('autocomplete()', obj, callback);
+		_Logger.log(_LogType.WS[obj.command], 'autocomplete()', obj, callback);
 		return sendObj(obj, callback);
 	}
 };

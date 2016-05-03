@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -59,7 +59,7 @@ public class AutocompleteCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final Map<String, Object> data    = webSocketData.getNodeData();
 		final String id                   = webSocketData.getId();
@@ -84,7 +84,7 @@ public class AutocompleteCommand extends AbstractCommand {
 					result.addAll(hints);
 
 				} catch(FrameworkException fex) {
-					fex.printStackTrace();
+					logger.log(Level.WARNING, "", fex);
 				}
 
 			} else {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,9 +19,9 @@
 package org.structr.websocket.command;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.Principal;
-import org.structr.schema.action.Actions;
+import org.structr.rest.auth.AuthHelper;
+import org.structr.rest.auth.SessionHelper;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -39,7 +39,7 @@ public class LogoutCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) throws FrameworkException {
+	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
 		final Principal user = getWebSocket().getCurrentUser();
 
@@ -48,12 +48,13 @@ public class LogoutCommand extends AbstractCommand {
 			final String sessionId = webSocketData.getSessionId();
 			if (sessionId != null) {
 
-				AuthHelper.clearSession(sessionId);
-				user.removeSessionId(sessionId);
+				SessionHelper.clearSession(sessionId);
+
+				SessionHelper.invalidateSession(SessionHelper.getSessionBySessionId(sessionId));
 
 			}
 
-			Actions.call(Actions.NOTIFICATION_LOGOUT, user);
+			AuthHelper.sendLogoutNotification(user);
 
 			getWebSocket().setAuthenticated(null, null);
 

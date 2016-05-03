@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,7 +20,7 @@ package org.structr.core.graph;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.helpers.Predicate;
+import org.structr.api.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 
@@ -36,13 +36,11 @@ public abstract class BulkGraphOperation<T> {
 	public abstract void handleGraphObject(SecurityContext securityContext, T obj) throws FrameworkException;
 
 	public void handleThrowable(final SecurityContext securityContext, final Throwable t, final T currentObject) {
-		logger.log(Level.WARNING, "Exception in bulk graph operation.");
-		t.printStackTrace();
+		logger.log(Level.WARNING, "Exception in bulk graph operation.", t);
 	}
 
 	public void handleTransactionFailure(final SecurityContext securityContext, final Throwable t) {
-		logger.log(Level.WARNING, "Transaction failure in bulk graph operation.");
-		t.printStackTrace();
+		logger.log(Level.WARNING, "Transaction failure in bulk graph operation.", t);
 	}
 
 	public Predicate<Long> getCondition() {

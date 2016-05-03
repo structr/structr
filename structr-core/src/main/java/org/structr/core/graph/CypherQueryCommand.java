@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,8 +19,6 @@
 package org.structr.core.graph;
 
 import java.util.Collection;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -33,8 +31,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Result;
+import org.structr.api.DatabaseService;
+import org.structr.api.NativeResult;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.GenericProperty;
 
@@ -68,11 +68,11 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 	public List<GraphObject> execute(String query, Map<String, Object> parameters, boolean includeHiddenAndDeleted, boolean publicOnly) throws FrameworkException {
 
-		GraphDatabaseService graphDb    = (GraphDatabaseService) arguments.get("graphDb");
+		DatabaseService graphDb         = (DatabaseService) arguments.get("graphDb");
 		RelationshipFactory relFactory  = new RelationshipFactory(securityContext);
 		NodeFactory nodeFactory         = new NodeFactory(securityContext);
 		List<GraphObject> resultList    = new LinkedList<>();
-		Result result                   = null;
+		NativeResult result             = null;
 
 		if (parameters != null) {
 
@@ -92,26 +92,32 @@ public class CypherQueryCommand extends NodeServiceCommand {
 				Object value = entry.getValue();
 
 				final Object obj = handleObject(nodeFactory, relFactory, key, value, includeHiddenAndDeleted, publicOnly, 0);
-				if (obj instanceof GraphObject) {
+				if (obj != null) {
+					
+					if (obj instanceof GraphObject) {
 
-					resultList.add((GraphObject)obj);
+						resultList.add((GraphObject)obj);
 
-				} else if (obj instanceof Collection) {
+					} else if (obj instanceof Collection) {
 
-					for (final Object item : ((Collection)obj)) {
+						for (final Object item : ((Collection)obj)) {
 
-						if (item instanceof GraphObject) {
+							if (item instanceof GraphObject) {
 
-							resultList.add((GraphObject)item);
+								resultList.add((GraphObject)item);
 
-						} else {
+							} else {
 
-							logger.log(Level.WARNING, "Unable to handle Cypher query result object of type {0}, ignoring.", item.getClass().getName());
+								logger.log(Level.WARNING, "Unable to handle Cypher query result object of type {0}, ignoring.", item.getClass().getName());
+							}
 						}
+
+					} else {
+
+						logger.log(Level.WARNING, "Unable to handle Cypher query result object of type {0}, ignoring.", obj.getClass().getName());
 					}
 				}
 			}
-
 		}
 
 		return resultList;

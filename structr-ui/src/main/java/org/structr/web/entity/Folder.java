@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,7 +21,7 @@ package org.structr.web.entity;
 import java.util.List;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
-import org.neo4j.helpers.collection.Iterables;
+import org.structr.api.util.Iterables;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.info.CMISDocumentInfo;
 import org.structr.cmis.info.CMISFolderInfo;
@@ -36,10 +36,9 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
-import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
@@ -65,17 +64,14 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 	public static final Property<List<Folder>>   folders                 = new EndNodes<>("folders", Folders.class, new PropertySetNotion(id, name));
 	public static final Property<List<FileBase>> files                   = new EndNodes<>("files", Files.class, new PropertySetNotion(id, name));
 	public static final Property<List<Image>>    images                  = new EndNodes<>("images", Images.class, new PropertySetNotion(id, name));
-	public static final Property<Boolean>        isFolder                = new BooleanProperty("isFolder").defaultValue(true).readOnly();
+	public static final Property<Boolean>        isFolder                = new ConstantBooleanProperty("isFolder", true);
 	public static final Property<Boolean>        includeInFrontendExport = new BooleanProperty("includeInFrontendExport").cmis().indexed();
 	public static final Property<User>           homeFolderOfUser        = new StartNode<>("homeFolderOfUser", UserHomeDir.class);
 
 	public static final Property<Integer>        position                = new IntProperty("position").cmis().indexed();
 
-	public static final View defaultView = new View(Folder.class, PropertyView.Public, id, type, name, isFolder);
-
-	public static final View uiView = new View(Folder.class, PropertyView.Ui,
-		parent, folders, files, images, isFolder, includeInFrontendExport
-	);
+	public static final View publicView = new View(Folder.class, PropertyView.Public, id, type, name, owner, isFolder, folders, files, parentId);
+	public static final View uiView     = new View(Folder.class, PropertyView.Ui, parent, owner, folders, files, images, isFolder, includeInFrontendExport);
 
 	// register this type as an overridden builtin type
 	static {
@@ -87,9 +83,8 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 
 		boolean valid = true;
 
-		valid &= nonEmpty(AbstractNode.name, errorBuffer);
-		valid &= ValidationHelper.checkStringMatchesRegex(this, name, "[:_a-zA-Z0-9\\s\\-\\.öäüÖÄÜß]+", errorBuffer);
 		valid &= super.isValid(errorBuffer);
+		valid &= ValidationHelper.checkStringMatchesRegex(this, name, "[^\\/\\x00]+", errorBuffer);
 
 		return valid;
 	}
@@ -109,7 +104,22 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		if (super.onModification(securityContext, errorBuffer)) {
-			setProperty(hasParent, getProperty(parentId) != null);
+
+			synchronized (this) {
+
+				// save current security context
+				final SecurityContext previousSecurityContext = securityContext;
+
+				// replace with SU context
+				this.securityContext = SecurityContext.getSuperUserInstance();
+
+				// set property as super user
+				setProperty(hasParent, getProperty(parentId) != null);
+
+				// restore previous security context
+				this.securityContext = previousSecurityContext;
+			}
+
 			return true;
 		}
 

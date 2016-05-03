@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.schema.action;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -27,6 +28,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -36,7 +38,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-import org.structr.core.parser.Functions;
 import org.structr.core.property.DateProperty;
 import org.structr.schema.parser.DatePropertyParser;
 
@@ -52,6 +53,7 @@ public class ActionContext {
 	protected Map<String, String> headers     = new HashMap<>();
 	protected Map<String, Object> constants   = new HashMap<>();
 	protected Map<String, Object> tmpStore    = new HashMap<>();
+	protected Map<String, Date> timerStore    = new HashMap<>();
 	protected Map<Integer, Integer> counters  = new HashMap<>();
 	protected ErrorBuffer errorBuffer         = new ErrorBuffer();
 	protected StringBuilder outputBuffer      = new StringBuilder();
@@ -78,6 +80,7 @@ public class ActionContext {
 	public ActionContext(final ActionContext other) {
 
 		this.tmpStore        = other.tmpStore;
+		this.timerStore      = other.timerStore;
 		this.counters        = other.counters;
 		this.errorBuffer     = other.errorBuffer;
 		this.constants       = other.constants;
@@ -204,6 +207,14 @@ public class ActionContext {
 		return tmpStore;
 	}
 
+	public void addTimer(final String key) {
+		timerStore.put(key, new Date());
+	}
+
+	public Date getTimer(final String key) {
+		return timerStore.get(key);
+	}
+
 	public void addHeader(final String key, final String value) {
 		headers.put(key, value);
 	}
@@ -257,6 +268,44 @@ public class ActionContext {
 					case "request":
 						return securityContext.getRequest();
 
+					case "host":
+						return securityContext.getRequest().getServerName();
+
+					case "port":
+						return securityContext.getRequest().getServerPort();
+
+					case "pathInfo":
+					case "path_info":
+						return securityContext.getRequest().getPathInfo();
+
+					case "parameterMap":
+					case "parameter_map":
+						return securityContext.getRequest().getParameterMap();
+
+					case "remoteAddress":
+					case "remote_address":
+						final String remoteAddress = securityContext.getRequest().getHeader("X-FORWARDED-FOR");
+						if (remoteAddress == null) {
+							return securityContext.getRequest().getRemoteAddr();
+						}
+						return remoteAddress;
+
+					case "response":
+						if (securityContext != null) {
+							final HttpServletResponse response = securityContext.getResponse();
+							if (response != null) {
+
+								try {
+									// return output stream of HTTP response for streaming
+									return response.getOutputStream();
+
+								} catch (IOException ioex) {
+									logger.log(Level.WARNING, "", ioex);
+								}
+							}
+						}
+						return null;
+
 					case "now":
 						return DatePropertyParser.format(new Date(), DateProperty.DEFAULT_FORMAT);
 
@@ -264,6 +313,8 @@ public class ActionContext {
 						return securityContext.getUser(false);
 
 					case "element":
+						logger.log(Level.WARNING, "The \"element\" keyword is deprecated! Please use \"this\" instead. Used in {0}", entity.getProperty(GraphObject.id));
+
 					case "this":
 						return entity;
 
@@ -276,7 +327,7 @@ public class ActionContext {
 		}
 
 		if (value == null && defaultValue != null) {
-			return Functions.numberOrString(defaultValue);
+			return Function.numberOrString(defaultValue);
 		}
 
 		return value;
@@ -359,7 +410,7 @@ public class ActionContext {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return buf.toString();

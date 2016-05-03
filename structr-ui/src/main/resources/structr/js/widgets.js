@@ -1,22 +1,21 @@
 /*
- *  Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
- *  This file is part of Structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 var widgets, remoteWidgets, widgetsUrl = 'https://widgets.structr.org/structr/rest/widgets';
 var win = $(window);
 var widgetData = [], remoteWidgetData = [], remoteWidgetFilter;
@@ -33,7 +32,7 @@ var _Widgets = {
 	delete_widget_icon: 'icon/layout_delete.png',
 	init: function() {
 
-		Structr.initPager('Widget', 1, 25);
+		_Pager.initPager('widgets-widgets', 'Widget', 1, 25);
 
 	},
 	onload: function() {
@@ -42,7 +41,7 @@ var _Widgets = {
 
 		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Widgets');
 
-		log('onload');
+		_Logger.log(_LogType.WIDGETS, 'onload');
 
 		main.append('<div id="dropArea"><div class="fit-to-height" id="widgets"><h2>Local Widgets</h2><div id="widgets-content"></div></div><div class="fit-to-height" id="remoteWidgets"><h2>Remote Widgets</h2><input placeholder="Filter..." id="remoteWidgetsFilter"><div id="remoteWidgets-content"></div></div></div>');
 		widgets = $('#widgets-content');
@@ -83,7 +82,10 @@ var _Widgets = {
 			e.stopPropagation();
 			Command.create({'type': 'Widget'});
 		});
-		Structr.addPager(widgets, true, 'Widget');
+		var wPager = _Pager.addPager('widgets-widgets', widgets, true, 'Widget', 'public');
+		wPager.cleanupFunction = function() {
+			$('.node', wPager.el).remove();
+		};
 		Structr.resize();
 	},
 	refreshRemoteWidgets: function() {
@@ -246,7 +248,7 @@ var _Widgets = {
 	},
 	appendWidgetElement: function(widget, remote, el) {
 
-		log('Widgets.appendWidgetElement', widget, remote);
+		_Logger.log(_LogType.WIDGETS, 'Widgets.appendWidgetElement', widget, remote);
 
 		var icon = _Widgets.getIcon(widget);
 		var parent = _Widgets.getTreeParent(el ? el : (remote ? remoteWidgets : widgets), widget.treePath, remote ? '_remote' : '_local');
@@ -274,12 +276,15 @@ var _Widgets = {
 				Structr.dialog('Source code of ' + widget.name, function() {}, function() {});
 				var text = widget.source || '';
 				var div = dialogText.append('<div class="editor"></div>');
-				log(div);
+				_Logger.log(_LogType.WIDGETS, div);
 				var contentBox = $('.editor', dialogText);
 				editor = CodeMirror(contentBox.get(0), {
 					value: unescapeTags(text),
 					mode: 'text/html',
-					lineNumbers: true
+					lineNumbers: true,
+					indentUnit: 4,
+					tabSize:4,
+					indentWithTabs: true
 				});
 				editor.focus();
 				Structr.resize();
@@ -323,9 +328,9 @@ var _Widgets = {
 			$('.edit_icon', div).on('click', function(e) {
 				e.stopPropagation();
 				Structr.dialog('Edit widget "' + widget.name + '"', function() {
-					log('Widget source saved');
+					_Logger.log(_LogType.WIDGETS, 'Widget source saved');
 				}, function() {
-					log('cancelled');
+					_Logger.log(_LogType.WIDGETS, 'cancelled');
 				});
 				if (!widget.id) {
 					return false;
@@ -356,12 +361,15 @@ var _Widgets = {
 			return;
 		var text = entity.source || '';
 		var div = element.append('<div class="editor"></div>');
-		log(div);
+		_Logger.log(_LogType.WIDGETS, div);
 		var contentBox = $('.editor', element);
 		editor = CodeMirror(contentBox.get(0), {
 			value: unescapeTags(text),
 			mode: 'text/html',
-			lineNumbers: true
+			lineNumbers: true,
+			indentUnit: 4,
+			tabSize:4,
+			indentWithTabs: true
 		});
 		editor.focus();
 		Structr.resize();
@@ -407,7 +415,7 @@ var _Widgets = {
 
 			if (entity.srcUrl) {
 				var data = JSON.stringify({'source': newText});
-				log('update remote widget', entity.srcUrl, data);
+				_Logger.log(_LogType.WIDGETS, 'update remote widget', entity.srcUrl, data);
 				$.ajax({
 					//url: $('#widgetServerUrl').val(),
 					url: entity.srcUrl,
@@ -467,7 +475,7 @@ var _Widgets = {
 
 		if (hasChildren) {
 
-			log('appendExpandIcon hasChildren?', hasChildren, 'expand?', expand);
+			_Logger.log(_LogType.WIDGETS, 'appendExpandIcon hasChildren?', hasChildren, 'expand?', expand);
 
 			var typeIcon = $(el.children('.typeIcon').first());
 			var icon = $(el).children('.node').hasClass('hidden') ? Structr.expand_icon : Structr.expanded_icon;

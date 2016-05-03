@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,8 +18,6 @@
  */
 package org.structr.core.graph;
 
-import java.util.Collections;
-import org.neo4j.graphdb.Relationship;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -31,7 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.helpers.collection.LruMap;
+import org.structr.api.graph.Relationship;
+import org.structr.api.util.FixedSizeCache;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
@@ -48,8 +47,8 @@ import org.structr.core.app.StructrApp;
  */
 public class RelationshipFactory<T extends RelationshipInterface> extends Factory<Relationship, T> {
 
-	private static final Map<Long, Class> idTypeMap = Collections.synchronizedMap(new LruMap<Long, Class>(Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_REL_CACHE_SIZE), 10000)));
-	private static final Logger logger              = Logger.getLogger(RelationshipFactory.class.getName());
+	private static final FixedSizeCache<Long, Class> idTypeMap = new FixedSizeCache<>(Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_REL_CACHE_SIZE), 100000));
+	private static final Logger logger                         = Logger.getLogger(RelationshipFactory.class.getName());
 
 	// private Map<String, Class> nodeTypeCache = new ConcurrentHashMap<String, Class>();
 	public RelationshipFactory(final SecurityContext securityContext) {
@@ -69,10 +68,19 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 	}
 
 	@Override
-	public T instantiate(final Relationship relationship) throws FrameworkException {
+	public T instantiate(final Relationship relationship) {
+		return instantiate(relationship, null);
+	}
+
+	@Override
+	public T instantiate(final Relationship relationship, final Relationship pathSegment) {
+
+		if (relationship == null) {
+			return null;
+		}
 
 		if (TransactionCommand.isDeleted(relationship)) {
-			return (T) instantiateWithType(relationship, null, false);
+			return (T) instantiateWithType(relationship, null, null, false);
 		}
 
 		Class type = idTypeMap.get(relationship.getId());
@@ -85,11 +93,11 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 			}
 		}
 
-		return (T) instantiateWithType(relationship, type, false);
+		return (T) instantiateWithType(relationship, type, null, false);
 	}
 
 	@Override
-	public T instantiateWithType(final Relationship relationship, final Class<T> relClass, final boolean isCreation) throws FrameworkException {
+	public T instantiateWithType(final Relationship relationship, final Class<T> relClass, final Relationship pathSegment, final boolean isCreation) {
 
 		// cannot instantiate relationship without type
 		if (relClass == null) {
@@ -121,8 +129,13 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 			final String type = newRel.getProperty(GraphObject.type);
 			if (type == null || (type != null && !type.equals(relClass.getSimpleName()))) {
 
-				newRel.unlockReadOnlyPropertiesOnce();
-				newRel.setProperty(GraphObject.type, relClass.getSimpleName());
+				try {
+					newRel.unlockSystemPropertiesOnce();
+					newRel.setProperty(GraphObject.type, relClass.getSimpleName());
+
+				} catch (FrameworkException fex) {
+					logger.log(Level.WARNING, "", fex);
+				}
 			}
 		}
 
@@ -133,16 +146,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 
 	@Override
 	public T adapt(final Relationship relationship) {
-
-		try {
-			return instantiate(relationship);
-
-		} catch (FrameworkException fex) {
-
-			logger.log(Level.WARNING, "Unable to adapt relationship", fex);
-		}
-
-		return null;
+		return instantiate(relationship);
 	}
 
 	/**

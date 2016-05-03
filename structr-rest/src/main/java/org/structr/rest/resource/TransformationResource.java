@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,8 @@ import org.structr.core.Result;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
@@ -36,6 +38,8 @@ import org.structr.core.graph.NodeFactory;
  *
  */
 public class TransformationResource extends WrappingResource {
+
+	private static final Logger logger = Logger.getLogger(TransformationResource.class.getName());
 
 	private ViewTransformation transformation = null;
 	
@@ -65,7 +69,7 @@ public class TransformationResource extends WrappingResource {
 					result.setRawResultCount(result.size());
 
 				} catch(Throwable t) {
-					t.printStackTrace();
+					logger.log(Level.WARNING, "", t);
 				}
 
 				// apply paging later

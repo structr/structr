@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,7 @@ package org.structr.websocket.command;
 
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.dom.Template;
@@ -44,9 +45,9 @@ public class CreateComponentCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
-		String id                             = webSocketData.getId();
+		String id = webSocketData.getId();
 
 		if (id != null) {
 
@@ -72,6 +73,9 @@ public class CreateComponentCommand extends AbstractCommand {
 				}
 
 				node.setProperty(DOMNode.sharedComponent, clonedNode);
+				
+				TransactionCommand.registerNodeCallback(clonedNode, callback);
+				
 				
 			} catch (DOMException | FrameworkException ex) {
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,7 +30,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Principal;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalMethodException;
+import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotAllowedException;
 
 /**
@@ -40,7 +40,7 @@ import org.structr.rest.exception.NotAllowedException;
 public class MeResource extends TypedIdResource {
 
 	private static final Logger logger = Logger.getLogger(MeResource.class.getName());
-	
+
 	public MeResource() {
 		super(null);
 	}
@@ -55,7 +55,7 @@ public class MeResource extends TypedIdResource {
 		this.securityContext = securityContext;
 
 		if ("me".equalsIgnoreCase(part)) {
-			
+
 			this.typeResource = new TypeResource();
 			this.typeResource.setSecurityContext(securityContext);
 			this.typeResource.checkAndConfigure("user", securityContext, request);
@@ -87,18 +87,18 @@ public class MeResource extends TypedIdResource {
 
 		} else {
 
-			throw new NotAllowedException();
+			throw new NotAllowedException("No user");
 		}
 	}
 
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-		
+
 		if (typeResource != null) {
 			return typeResource.doPost(propertySet);
 		}
-		
-		throw new IllegalMethodException();
+
+		throw new IllegalPathException(getResourceSignature() + " can only be applied to a non-empty resource");
 	}
 
 	@Override

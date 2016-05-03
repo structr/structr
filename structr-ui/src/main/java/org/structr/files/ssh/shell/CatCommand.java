@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,8 @@ package org.structr.files.ssh.shell;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.codehaus.plexus.util.StringUtils;
 import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
@@ -37,6 +39,8 @@ import org.structr.web.entity.Folder;
  *
  */
 public class CatCommand extends NonInteractiveShellCommand {
+
+	private static final Logger logger = Logger.getLogger(CatCommand.class.getName());
 
 	@Override
 	public void execute(final StructrShellCommand parent) throws IOException {
@@ -59,7 +63,7 @@ public class CatCommand extends NonInteractiveShellCommand {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 	}
 
@@ -199,7 +203,7 @@ public class CatCommand extends NonInteractiveShellCommand {
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 			}
 
 

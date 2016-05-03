@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,8 +24,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
+import org.structr.api.graph.Node;
+import org.structr.api.Predicate;
+import org.structr.api.graph.PropertyContainer;
+import org.structr.api.graph.Relationship;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
@@ -59,6 +61,9 @@ public class SuperUser implements Principal, AccessControllable {
 
 	@Override
 	public void revoke(Permission permission, Principal obj) {}
+
+	@Override
+	public void unlockSystemPropertiesOnce() {}
 
 	@Override
 	public void unlockReadOnlyPropertiesOnce() {}
@@ -169,7 +174,7 @@ public class SuperUser implements Principal, AccessControllable {
 	}
 
 	@Override
-	public <T> T getProperty(PropertyKey<T> key, org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	public <T> T getProperty(PropertyKey<T> key, Predicate<GraphObject> predicate) {
 		return null;
 	}
 
@@ -202,7 +207,7 @@ public class SuperUser implements Principal, AccessControllable {
 
 	@Override
 	public String getUuid() {
-		return "00000000000000000000000000000000";
+		return Principal.SUPERUSER_ID;
 
 	}
 
@@ -434,7 +439,7 @@ public class SuperUser implements Principal, AccessControllable {
 
 	@Override
 	public String getPropertyWithVariableReplacement(ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
-		return null;
+		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
@@ -502,11 +507,11 @@ public class SuperUser implements Principal, AccessControllable {
 	}
 
 	@Override
-	public void setRelationshipPathSegment(final RelationshipInterface pathElement) {
+	public void setRawPathSegment(final Relationship rawSegment) {
 	}
 
 	@Override
-	public RelationshipInterface getRelationshipPathSegment() {
+	public Relationship getRawPathSegment() {
 		return null;
 	}
 
@@ -524,4 +529,5 @@ public class SuperUser implements Principal, AccessControllable {
 	public PermissionResolutionMask getPermissionResolutionMask() {
 		return null;
 	}
+
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -112,7 +112,7 @@ public class RelatedNodePropertyMapper<T extends NodeInterface> extends Property
 
 					} catch (FrameworkException fex) {
 
-						fex.printStackTrace();
+						logger.log(Level.WARNING, "", fex);
 					}
 					
 				} else {

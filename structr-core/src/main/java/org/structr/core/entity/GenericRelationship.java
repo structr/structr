@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,7 +24,7 @@ package org.structr.core.entity;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import org.neo4j.graphdb.Relationship;
+import org.structr.api.graph.Relationship;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.PropertyView;

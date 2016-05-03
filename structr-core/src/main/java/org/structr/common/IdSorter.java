@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,8 +22,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.helpers.collection.Iterables;
+import org.structr.api.util.Iterables;
+import org.structr.api.graph.Relationship;
 
 /**
  *

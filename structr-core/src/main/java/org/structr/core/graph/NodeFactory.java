@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,18 +18,18 @@
  */
 package org.structr.core.graph;
 
-import org.neo4j.graphdb.Node;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 
 
 import java.util.*;
-import org.neo4j.gis.spatial.indexprovider.SpatialRecordHits;
-import org.neo4j.graphdb.index.IndexHits;
-import org.neo4j.helpers.collection.LruMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 import org.structr.common.AccessControllable;
-import org.structr.core.Result;
+import org.structr.api.util.FixedSizeCache;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.GenericNode;
@@ -47,7 +47,9 @@ import org.structr.core.entity.relationship.NodeHasLocation;
  */
 public class NodeFactory<T extends NodeInterface & AccessControllable> extends Factory<Node, T> {
 
-	private static final Map<Long, Class> idTypeMap = Collections.synchronizedMap(new LruMap<Long, Class>(Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_NODE_CACHE_SIZE), 10000)));
+	private static final Logger logger = Logger.getLogger(NodeFactory.class.getName());
+
+	private static final FixedSizeCache<Long, Class> idTypeMap = new FixedSizeCache<>(Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_NODE_CACHE_SIZE), 100000));
 
 	public NodeFactory(final SecurityContext securityContext) {
 		super(securityContext);
@@ -66,10 +68,19 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 	}
 
 	@Override
-	public T instantiate(final Node node) throws FrameworkException {
+	public T instantiate(final Node node) {
+		return instantiate(node, null);
+	}
+
+	@Override
+	public T instantiate(final Node node, final Relationship pathSegment) {
+
+		if (node == null) {
+			return null;
+		}
 
 		if (TransactionCommand.isDeleted(node)) {
-			return (T)instantiateWithType(node, null, false);
+			return (T)instantiateWithType(node, null, pathSegment, false);
 		}
 
 		Class type = idTypeMap.get(node.getId());
@@ -82,11 +93,11 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 			}
 		}
 
-		return (T) instantiateWithType(node, type, false);
+		return (T) instantiateWithType(node, type, pathSegment, false);
 	}
 
 	@Override
-	public T instantiateWithType(final Node node, final Class<T> nodeClass, boolean isCreation) throws FrameworkException {
+	public T instantiateWithType(final Node node, final Class<T> nodeClass, final Relationship pathSegment, boolean isCreation) {
 
 		// cannot instantiate node without type
 		if (nodeClass == null) {
@@ -108,6 +119,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 		}
 
 		newNode.init(factoryProfile.getSecurityContext(), node, nodeClass, isCreation);
+		newNode.setRawPathSegment(pathSegment);
 		newNode.onNodeInstantiation();
 
 		// check access
@@ -129,16 +141,6 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 	}
 
 	@Override
-	public Result instantiate(final IndexHits<Node> input) throws FrameworkException {
-
-		if (input != null && input instanceof SpatialRecordHits) {
-			return resultFromSpatialRecords((SpatialRecordHits) input);
-		}
-
-		return super.instantiate(input);
-	}
-
-	@Override
 	public T instantiateDummy(final Node entity, final String entityType) throws FrameworkException {
 
 		Map<String, Class<? extends NodeInterface>> entities = StructrApp.getConfiguration().getNodeEntities();
@@ -152,7 +154,10 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 				newNode = nodeClass.newInstance();
 				newNode.init(factoryProfile.getSecurityContext(), entity, nodeClass, false);
 
-			} catch (InstantiationException|IllegalAccessException itex) { itex.printStackTrace(); }
+			} catch (InstantiationException|IllegalAccessException itex) {
+
+				logger.log(Level.WARNING, "", itex);
+			}
 
 		}
 
@@ -162,67 +167,6 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 
 	public static void invalidateCache() {
 		idTypeMap.clear();
-	}
-
-	private Result resultFromSpatialRecords(final SpatialRecordHits spatialRecordHits) throws FrameworkException {
-
-		final int pageSize                    = factoryProfile.getPageSize();
-		final SecurityContext securityContext = factoryProfile.getSecurityContext();
-		final boolean includeDeletedAndHidden = factoryProfile.includeDeletedAndHidden();
-		final boolean publicOnly              = factoryProfile.publicOnly();
-		List<T> nodes                         = new LinkedList<>();
-		int size                              = spatialRecordHits.size();
-		int position                          = 0;
-		int count                             = 0;
-		int offset                            = 0;
-
-		try (final SpatialRecordHits closeable = spatialRecordHits) {
-
-			for (Node node : closeable) {
-
-				Node realNode = node;
-				if (realNode != null) {
-
-					// FIXME: type cast is not good here...
-					T n = instantiate(realNode);
-
-					nodes.add(n);
-
-					// Check is done in createNodeWithType already, so we don't have to do it again
-					if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
-
-						List<T> nodesAt = (List<T>)getNodesAt(n);
-
-						size += nodesAt.size();
-
-						for (T nodeAt : nodesAt) {
-
-							if (nodeAt != null && securityContext.isReadable(nodeAt, includeDeletedAndHidden, publicOnly)) {
-
-								if (++position > offset) {
-
-									// stop if we got enough nodes
-									if (++count > pageSize) {
-
-										return new Result(nodes, size, true, false);
-									}
-
-									nodes.add((T)nodeAt);
-								}
-
-							}
-
-						}
-
-					}
-
-				}
-
-			}
-		}
-
-		return new Result(nodes, size, true, false);
-
 	}
 
 	/**

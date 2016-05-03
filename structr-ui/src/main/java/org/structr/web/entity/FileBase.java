@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,9 +24,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
@@ -49,58 +47,53 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
-import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.GenericProperty;
+import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.files.cmis.config.StructrFileActions;
 import org.structr.files.text.FulltextIndexingTask;
-import org.structr.files.text.FulltextTokenizer;
 import org.structr.schema.action.JavaScriptSource;
+import org.structr.util.LogMessageSupplier;
+import org.structr.web.common.DownloadHelper;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
+import static org.structr.web.entity.Indexable.extractedContent;
 import org.structr.web.entity.relation.Folders;
 
 /**
  *
  *
  */
-public class FileBase extends AbstractFile implements Linkable, JavaScriptSource, CMISInfo, CMISDocumentInfo {
+public class FileBase extends AbstractFile implements Indexable, Linkable, JavaScriptSource, CMISInfo, CMISDocumentInfo {
 
 	private static final Logger logger = Logger.getLogger(FileBase.class.getName());
 
-	public static final Property<String> indexedContent          = new StringProperty("indexedContent").indexed(NodeService.NodeIndex.fulltext);
-	public static final Property<String> extractedContent        = new StringProperty("extractedContent");
-	public static final Property<String> indexedWords            = new StringProperty("indexedWords");
-	public static final Property<String> contentType             = new StringProperty("contentType").indexedWhenEmpty();
-	public static final Property<String> relativeFilePath        = new StringProperty("relativeFilePath").readOnly();
-	public static final Property<Long> size                      = new LongProperty("size").indexed().readOnly();
+	public static final Property<String> relativeFilePath        = new StringProperty("relativeFilePath").systemInternal();
+	public static final Property<Long> size                      = new LongProperty("size").indexed().systemInternal();
 	public static final Property<String> url                     = new StringProperty("url");
-	public static final Property<Long> checksum                  = new LongProperty("checksum").indexed().unvalidated().readOnly();
+	public static final Property<Long> checksum                  = new LongProperty("checksum").indexed().unvalidated().systemInternal();
 	public static final Property<Integer> cacheForSeconds        = new IntProperty("cacheForSeconds").cmis();
-	public static final Property<Integer> version                = new IntProperty("version").indexed().readOnly();
-	public static final Property<Boolean> isFile                 = new BooleanProperty("isFile").defaultValue(true).readOnly();
+	public static final Property<Integer> version                = new IntProperty("version").indexed().systemInternal();
+	public static final Property<Boolean> isFile                 = new ConstantBooleanProperty("isFile", true);
 
-	public static final View publicView = new View(FileBase.class, PropertyView.Public, type, name, contentType, size, url, owner, path, isFile);
-	public static final View uiView = new View(FileBase.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, isFile, hasParent, extractedContent, indexedWords);
+	public static final View publicView = new View(FileBase.class, PropertyView.Public, type, name, contentType, size, url, owner, path, isFile, visibleToPublicUsers, visibleToAuthenticatedUsers);
+	//public static final View uiView = new View(FileBase.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, isFile, hasParent, extractedContent, indexedWords);
+	public static final View uiView = new View(FileBase.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum,
+		version, cacheForSeconds, owner, isFile, hasParent, extractedContent);
 
 	@Override
 	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		if (super.onCreation(securityContext, errorBuffer)) {
 
-			setProperty(hasParent, getProperty(parentId) != null);
-
-			if ("true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_ENABLED, "false"))) {
+			if ("true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_ENABLED, "false")) && !getProperty(AbstractFile.hasParent)) {
 
 				final Folder workingOrHomeDir = getCurrentWorkingDir();
 				if (workingOrHomeDir != null && getProperty(AbstractFile.parent) == null) {
@@ -108,6 +101,8 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 					setProperty(AbstractFile.parent, workingOrHomeDir);
 				}
 			}
+
+			setProperty(hasParent, getProperty(parentId) != null);
 
 			return true;
 		}
@@ -120,7 +115,21 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 
 		if (super.onModification(securityContext, errorBuffer)) {
 
-			setProperty(hasParent, getProperty(parentId) != null);
+			synchronized (this) {
+
+				// save current security context
+				final SecurityContext previousSecurityContext = securityContext;
+
+				// replace with SU context
+				this.securityContext = SecurityContext.getSuperUserInstance();
+
+				// set property as super user
+				setProperty(hasParent, getProperty(parentId) != null);
+
+				// restore previous security context
+				this.securityContext = previousSecurityContext;
+			}
+
 			return true;
 		}
 
@@ -134,7 +143,7 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 		final String filePath = getDirectoryPath(uuid) + "/" + uuid;
 
 		try {
-			unlockReadOnlyPropertiesOnce();
+			unlockSystemPropertiesOnce();
 			setProperty(relativeFilePath, filePath);
 
 		} catch (Throwable t) {
@@ -195,15 +204,15 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 				return;
 			}
 
-			unlockReadOnlyPropertiesOnce();
+			unlockSystemPropertiesOnce();
 			setProperty(checksum, FileHelper.getChecksum(FileBase.this));
 
-			unlockReadOnlyPropertiesOnce();
+			unlockSystemPropertiesOnce();
 			setProperty(version, 0);
 
 			long fileSize = FileHelper.getSize(FileBase.this);
 			if (fileSize > 0) {
-				unlockReadOnlyPropertiesOnce();
+				unlockSystemPropertiesOnce();
 				setProperty(size, fileSize);
 			}
 
@@ -221,182 +230,16 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 	}
 
 	@Export
+	@Override
 	public GraphObject getSearchContext(final String searchTerm, final int contextLength) {
 
 		final String text = getProperty(extractedContent);
 		if (text != null) {
 
-			final String[] searchParts         = searchTerm.split("[\\s]+");
-			final GenericProperty contextKey   = new GenericProperty("context");
-			final GraphObjectMap contextObject = new GraphObjectMap();
-			final Set<String> contextValues    = new LinkedHashSet<>();
-
-			for (final String searchString : searchParts) {
-
-				final String lowerCaseSearchString = searchString.toLowerCase();
-				final String lowerCaseText         = text.toLowerCase();
-				final StringBuilder wordBuffer     = new StringBuilder();
-				final StringBuilder lineBuffer     = new StringBuilder();
-				final int textLength               = text.length();
-
-				/*
-				 * we take an average word length of 8 characters, multiply
-				 * it by the desired prefix and suffix word count, add 20%
-				 * and try to extract up to prefixLength words.
-				 */
-
-				// modify these parameters to tune prefix and suffix word extraction
-				// loop variables
-				int newlineCount = 0;
-				int wordCount    = 0;	// wordCount starts at 1 because we include the matching word
-				int pos          = -1;
-
-				do {
-
-					// find next occurrence
-					pos = lowerCaseText.indexOf(lowerCaseSearchString, pos + 1);
-					if (pos > 0) {
-
-						lineBuffer.setLength(0);
-						wordBuffer.setLength(0);
-
-						wordCount    = 0;
-						newlineCount = 0;
-
-						// fetch context words before search hit
-						for (int i=pos; i>=0; i--) {
-
-							final char c = text.charAt(i);
-
-							if (!Character.isAlphabetic(c) && !Character.isDigit(c) && !FulltextTokenizer.SpecialChars.contains(c)) {
-
-								wordCount += flushWordBuffer(lineBuffer, wordBuffer, true);
-
-								// store character in buffer
-								wordBuffer.insert(0, c);
-
-								if (c == '\n') {
-
-									// increase newline count
-									newlineCount++;
-
-								} else {
-
-									// reset newline count
-									newlineCount = 0;
-								}
-
-								// paragraph boundary reached
-								if (newlineCount > 1) {
-									break;
-								}
-
-								// stop if we collected half of the desired word count
-								if (wordCount > contextLength / 2) {
-									break;
-								}
-
-
-							} else {
-
-								// store character in buffer
-								wordBuffer.insert(0, c);
-
-								// reset newline count
-								newlineCount = 0;
-							}
-						}
-
-						wordCount += flushWordBuffer(lineBuffer, wordBuffer, true);
-
-						wordBuffer.setLength(0);
-
-						// fetch context words after search hit
-						for (int i=pos+1; i<textLength; i++) {
-
-							final char c = text.charAt(i);
-
-							if (!Character.isAlphabetic(c) && !Character.isDigit(c) && !FulltextTokenizer.SpecialChars.contains(c)) {
-
-								wordCount += flushWordBuffer(lineBuffer, wordBuffer, false);
-
-								// store character in buffer
-								wordBuffer.append(c);
-
-								if (c == '\n') {
-
-									// increase newline count
-									newlineCount++;
-
-								} else {
-
-									// reset newline count
-									newlineCount = 0;
-								}
-
-								// paragraph boundary reached
-								if (newlineCount > 1) {
-									break;
-								}
-
-								// stop if we collected enough words
-								if (wordCount > contextLength) {
-									break;
-								}
-
-							} else {
-
-								// store character in buffer
-								wordBuffer.append(c);
-
-								// reset newline count
-								newlineCount = 0;
-							}
-						}
-
-						wordCount += flushWordBuffer(lineBuffer, wordBuffer, false);
-
-						// replace single newlines with space
-						contextValues.add(lineBuffer.toString().trim());
-					}
-
-				} while (pos >= 0);
-			}
-
-			contextObject.put(contextKey, contextValues);
-
-			return contextObject;
+			return DownloadHelper.getContextObject(searchTerm, text, contextLength);
 		}
 
 		return null;
-	}
-
-	private int flushWordBuffer(final StringBuilder lineBuffer, final StringBuilder wordBuffer, final boolean prepend) {
-
-		int wordCount = 0;
-
-		if (wordBuffer.length() > 0) {
-
-			final String word = wordBuffer.toString().replaceAll("[\\n\\t]+", " ");
-			if (StringUtils.isNotBlank(word)) {
-
-				if (prepend) {
-
-					lineBuffer.insert(0, word);
-
-				} else {
-
-					lineBuffer.append(word);
-				}
-
-				// increase word count
-				wordCount = 1;
-			}
-
-			wordBuffer.setLength(0);
-		}
-
-		return wordCount;
 	}
 
 	public void notifyUploadCompletion() {
@@ -415,12 +258,14 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 
 	}
 
+	@Override
 	public String getContentType() {
 
 		return getProperty(FileBase.contentType);
 
 	}
 
+	@Override
 	public Long getSize() {
 
 		return getProperty(size);
@@ -451,7 +296,7 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 
 		final Integer _version = getProperty(FileBase.version);
 
-		unlockReadOnlyPropertiesOnce();
+		unlockSystemPropertiesOnce();
 		if (_version == null) {
 
 			setProperty(FileBase.version, 1);
@@ -462,6 +307,7 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 		}
 	}
 
+	@Override
 	public InputStream getInputStream() {
 
 		final String path = getRelativeFilePath();
@@ -533,10 +379,10 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 
 							final String _contentType = FileHelper.getContentMimeType(FileBase.this);
 
-							unlockReadOnlyPropertiesOnce();
+							unlockSystemPropertiesOnce();
 							setProperty(checksum, FileHelper.getChecksum(FileBase.this));
 
-							unlockReadOnlyPropertiesOnce();
+							unlockSystemPropertiesOnce();
 							setProperty(size, FileHelper.getSize(FileBase.this));
 							setProperty(contentType, _contentType);
 
@@ -566,8 +412,7 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 
 			} catch (FileNotFoundException e) {
 
-				e.printStackTrace();
-				logger.log(Level.SEVERE, "File not found: {0}", new Object[]{path});
+				logger.log(Level.SEVERE, e, LogMessageSupplier.create("File not found: {0}", path));
 			}
 
 		}
@@ -610,6 +455,34 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 		return workingOrHomeDir;
 	}
 
+	private int flushWordBuffer(final StringBuilder lineBuffer, final StringBuilder wordBuffer, final boolean prepend) {
+
+		int wordCount = 0;
+
+		if (wordBuffer.length() > 0) {
+
+			final String word = wordBuffer.toString().replaceAll("[\\n\\t]+", " ");
+			if (StringUtils.isNotBlank(word)) {
+
+				if (prepend) {
+
+					lineBuffer.insert(0, word);
+
+				} else {
+
+					lineBuffer.append(word);
+				}
+
+				// increase word count
+				wordCount = 1;
+			}
+
+			wordBuffer.setLength(0);
+		}
+
+		return wordCount;
+	}
+
 	// ----- interface Syncable -----
 	@Override
 	public List<GraphObject> getSyncData() throws FrameworkException {
@@ -632,7 +505,7 @@ public class FileBase extends AbstractFile implements Linkable, JavaScriptSource
 			return IOUtils.toString(is);
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.log(Level.WARNING, "", ioex);
 		}
 
 		return null;

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -52,14 +52,14 @@ public class DeleteUnattachedNodesCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) throws FrameworkException {
+	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final App app = StructrApp.getInstance(securityContext);
 
 		final List<AbstractNode> filteredResults = new LinkedList<>();
 		
-		try (final Tx tx = app.tx()) {
+		try (final Tx tx = app.tx(false, false, false)) {
 
 			// Get all top nodes, use method from list command
 			final List<AbstractNode> topNodes = ListUnattachedNodesCommand.getUnattachedNodes(app, securityContext, webSocketData);

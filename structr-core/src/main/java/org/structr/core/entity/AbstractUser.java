@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,11 +25,10 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
+import org.structr.api.Predicate;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import static org.structr.core.auth.AuthHelper.getHash;
-import static org.structr.core.auth.AuthHelper.getSimpleHash;
-import static org.structr.core.entity.Principal.password;
+import org.structr.core.auth.HashHelper;
 import org.structr.core.entity.relationship.Groups;
 import org.structr.core.property.PropertyKey;
 
@@ -44,7 +43,7 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 
 	private static final Logger logger = Logger.getLogger(AbstractUser.class.getName());
 	private Boolean cachedIsAdminFlag  = null;
-	private static final Object HIDDEN = "****** HIDDEN ******";
+	public static final Object HIDDEN = "****** HIDDEN ******";
 
 	@Override
 	public void addSessionId(final String sessionId) {
@@ -137,17 +136,7 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 		final String encryptedPasswordFromDatabase = getEncryptedPassword();
 		if (encryptedPasswordFromDatabase != null) {
 
-			final String salt = getSalt();
-			String encryptedPasswordToCheck = null;
-
-			if (salt != null) {
-
-				encryptedPasswordToCheck = getHash(password, salt);
-
-			} else {
-
-				encryptedPasswordToCheck = getSimpleHash(password);
-			}
+			final String encryptedPasswordToCheck = HashHelper.getHash(password, getSalt());
 
 			if (encryptedPasswordFromDatabase.equals(encryptedPasswordToCheck)) {
 				return true;
@@ -206,13 +195,13 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 
 	/**
 	 * Intentionally return a special value indicating that the real value is not being disclosed.
-	 * 
+	 *
 	 * @param key
 	 * @param predicate
 	 * @return null for password
 	 */
 	@Override
-	public <T> T getProperty(final PropertyKey<T> key, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	public <T> T getProperty(final PropertyKey<T> key, final Predicate<GraphObject> predicate) {
 
 		if (password.equals(key) || salt.equals(key)) {
 

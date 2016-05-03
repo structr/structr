@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -40,7 +40,6 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
-import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.MailTemplate;
@@ -50,6 +49,7 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.service.HttpService;
@@ -101,16 +101,12 @@ public class RegistrationResource extends Resource {
 
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
-
-		throw new NotAllowedException();
-
+		throw new NotAllowedException("GET not allowed on " + getResourceSignature());
 	}
 
 	@Override
 	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
-
-		throw new NotAllowedException();
-
+		throw new NotAllowedException("PUT not allowed on " + getResourceSignature());
 	}
 
 	@Override
@@ -190,9 +186,7 @@ public class RegistrationResource extends Resource {
 
 	@Override
 	public RestMethodResult doOptions() throws FrameworkException {
-
-		throw new NotAllowedException();
-
+		throw new NotAllowedException("OPTIONS not allowed on " + getResourceSignature());
 	}
 
 	@Override
@@ -413,14 +407,14 @@ public class RegistrationResource extends Resource {
 				user = new NodeFactory<Principal>(securityContext).instantiate(user.getNode());
 
 				// convert to user
-				user.unlockReadOnlyPropertiesOnce();
+				user.unlockSystemPropertiesOnce();
 				user.setProperty(AbstractNode.type, User.class.getSimpleName());
 				user.setProperty(User.confirmationKey, confKey);
 
 			} else if (autoCreate) {
 
 				final App app = StructrApp.getInstance(securityContext);
-				
+
 				// Clear properties set by us from the user-defined props
 				propertySet.remove(credentialKey.jsonName());
 				propertySet.remove(User.confirmationKey.jsonName());
@@ -431,21 +425,21 @@ public class RegistrationResource extends Resource {
 				// eMail is mandatory and necessary
 				final String customAttributesString = User.eMail.jsonName() + "," + Services.getInstance().getConfigurationValue(CUSTOM_ATTRIBUTES);
 				final List<String> customAttributes = Arrays.asList(customAttributesString.split("[ ,]+"));
-				
+
 				final Set<PropertyKey> propsToRemove = new HashSet<>();
 				for (final PropertyKey key : props.keySet()) {
 					if (!customAttributes.contains(key.jsonName())) {
 						propsToRemove.add(key);
 					}
 				}
-				
+
 				for (final PropertyKey propToRemove : propsToRemove) {
 					props.remove(propToRemove);
 				}
 
 				props.put(credentialKey, credentialValue);
 				props.put(User.confirmationKey, confKey);
-				
+
 //				// Remove security-relevant properties
 //				props.remove(Principal.isAdmin);
 //				props.remove(Principal.ownedNodes);

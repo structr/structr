@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,7 +27,7 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
-import org.neo4j.graphdb.Direction;
+import org.structr.api.graph.Direction;
 import org.structr.core.IterableAdapter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
@@ -50,7 +50,7 @@ public class ChildrenCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final RelationshipFactory factory = new RelationshipFactory(this.getWebSocket().getSecurityContext());
 		final AbstractNode node           = getNode(webSocketData.getId());
@@ -60,7 +60,7 @@ public class ChildrenCommand extends AbstractCommand {
 			return;
 		}
 
-		final Iterable<RelationshipInterface> rels = new IterableAdapter<>(node.getNode().getRelationships(RelType.CONTAINS, Direction.OUTGOING), factory);
+		final Iterable<RelationshipInterface> rels = new IterableAdapter<>(node.getNode().getRelationships(Direction.OUTGOING, RelType.CONTAINS), factory);
 		final List<GraphObject> result             = new LinkedList();
 
 		for (RelationshipInterface rel : rels) {

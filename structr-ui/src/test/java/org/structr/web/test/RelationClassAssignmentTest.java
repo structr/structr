@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -90,7 +90,7 @@ public class RelationClassAssignmentTest extends StructrUiTest {
 			
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");

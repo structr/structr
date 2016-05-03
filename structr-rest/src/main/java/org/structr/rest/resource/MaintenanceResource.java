@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -39,6 +39,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.Tx;
+import org.structr.rest.exception.IllegalPathException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -52,11 +53,8 @@ public class MaintenanceResource extends Resource {
 
 	private static final Logger logger = Logger.getLogger(MaintenanceResource.class.getName());
 
-	//~--- fields ---------------------------------------------------------
-
-	private Class taskOrCommand = null;
-
-	//~--- methods --------------------------------------------------------
+	private String taskOrCommandName = null;
+	private Class taskOrCommand      = null;
 
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
@@ -68,12 +66,12 @@ public class MaintenanceResource extends Resource {
 
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
-		throw new NotAllowedException();
+		throw new NotAllowedException("GET not allowed on " + getResourceSignature());
 	}
 
 	@Override
 	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
-		throw new NotAllowedException();
+		throw new NotAllowedException("PUT not allowed on " + getResourceSignature());
 	}
 
 	@Override
@@ -124,20 +122,19 @@ public class MaintenanceResource extends Resource {
 
 			} else {
 
-				throw new NotFoundException();
+				if (taskOrCommandName != null) {
 
+					throw new NotFoundException("No such task or command: " + this.taskOrCommandName);
+
+				} else {
+
+					throw new IllegalPathException("Maintenance resource needs parameter");
+				}
 			}
 
 		} else {
 
-			// loggin disabled because of possible NotInTransactionException
-//			logger.log(Level.INFO, "SecurityContext is {0}, user is {1}", new Object[] { (securityContext != null)
-//				? "non-null"
-//				: "null", ((securityContext != null) && (securityContext.getUser(true) != null))
-//					  ? securityContext.getUser(true).getProperty(AbstractNode.name)
-//					  : "null" });
-
-			throw new NotAllowedException();
+			throw new NotAllowedException("Use of the maintenance endpoint is restricted to admin users");
 
 		}
 	}
@@ -147,7 +144,10 @@ public class MaintenanceResource extends Resource {
 
 		if (next instanceof MaintenanceParameterResource) {
 
-			this.taskOrCommand = ((MaintenanceParameterResource) next).getMaintenanceCommand();
+			final MaintenanceParameterResource param = ((MaintenanceParameterResource) next);
+			this.taskOrCommandName = param.getUriPart();
+
+			this.taskOrCommand = param.getMaintenanceCommand();
 
 			return this;
 

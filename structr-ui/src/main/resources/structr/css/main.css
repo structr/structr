@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2010-2015 Structr GmbH
+/**
+ * Copyright (C) 2010-2016 Structr GmbH
  *
- *  This file is part of Structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 @charset "UTF-8";
 /** Defaults */
 
@@ -111,11 +110,33 @@ input[type="checkbox"] {
     left: 32px;
 }
 
-#header .structr-version {
+#header .structr-instance-info {
     float: right;
     color: #fff;
-    font-size: 8.5px;
-    margin: 38px 12px 0 0;
+    margin-right: 12px;
+}
+
+#header .structr-instance {
+	height: 27px;
+	margin-top: 12px;
+	font-size: 20px;
+}
+
+#header .structr-instance-stage {
+	margin-left:10px;
+}
+
+#header .structr-instance-stage:not(:empty)::before {
+	content:"(";
+}
+
+#header .structr-instance-stage:not(:empty)::after {
+	content:")";
+}
+
+#header .structr-version {
+	font-size: 8.5px;
+	text-align: right;
 }
 
 #header .structr-version a,
@@ -226,7 +247,7 @@ img.disabled {
 .slideOutRight {
     float: left;
     border: none;
-    width: 374px;
+    width: 400px;
     padding: 6px;
 }
 
@@ -378,7 +399,7 @@ img.disabled {
 }
 
 .slideOutLeft {
-    left: -386px;
+    left: -412px;
     border-bottom-right-radius: 3px;
     border-top-right-radius: 3px;
     border-right: 1px solid #a5a5a5 ! important;
@@ -528,14 +549,14 @@ ul#previewTabs {
     height: 25px;
 }
 
-.data-tabs, .data-tabs ul, #tabs, #tabs ul, .files-tabs ul {
+.data-tabs, .data-tabs ul, #tabs, #tabs ul, .files-tabs ul, .dialogHeaderWrapper ul, .dialogText .schema-details ul {
     background: none;
     border: none;
     padding: 0;
     margin: 0;
 }
 
-#previewTabs > li, #tabs > ul > li, .compTab, .data-tabs > ul > li, .files-tabs > ul > li {
+#previewTabs > li, #tabs > ul > li, .compTab, .data-tabs > ul > li, .files-tabs > ul > li, .dialogHeaderWrapper > ul > li {
     vertical-align: middle;
     line-height: 1.5em;
     border-radius: 3px;
@@ -555,7 +576,15 @@ ul#previewTabs {
     height: 22px;
 }
 
-#previewTabs > li, #tabs > ul > li, .data-tabs > ul > li, .files-tabs > ul > li {
+#previewTabs > li.page  {
+    padding: 3px 26px 0 26px ! important;
+}
+
+#previewTabs > li.page:hover  {
+    padding: 3px 6px 0 6px ! important;
+}
+
+#previewTabs > li, #tabs > ul > li, .data-tabs > ul > li, .files-tabs > ul > li, .dialogHeaderWrapper > ul > li {
     position: relative;
     z-index: 1;
 }
@@ -578,7 +607,7 @@ ul#previewTabs {
     margin: 6px 0 0 0;
 }
 
-.data-tabs > ul > li, #tabs > ul > li, .files-tabs > ul > li {
+.data-tabs > ul > li, #tabs > ul > li, .files-tabs > ul > li, .dialogHeaderWrapper > ul > li {
     font-size: 1em;
 }
 
@@ -610,7 +639,7 @@ ul#previewTabs {
     background-image: none;
 }
 
-#previewTabs li.active, #tabs li.active, .compTab.active, .data-tabs li.active, .files-tabs li.active {
+#previewTabs li.active, #tabs li.active, .compTab.active, .data-tabs li.active, .files-tabs li.active, .dialogHeaderWrapper li.active {
     color: #333 ! important;
     background-color: #81ce25;
     background-image: none;
@@ -827,7 +856,7 @@ span.id {
     margin-right: 3px ! important;
 }
 
-.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .link_icon, .add_form_icon, .data_icon, .unarchive_icon, .push_icon, .show_active_icon {
+.edit_ui_properties_icon, .edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .link_icon, .add_form_icon, .data_icon, .unarchive_icon, .push_icon, .show_active_icon, .collapse_children_icon, add_child_icon {
     display: none;
     cursor: pointer;
     height: 16px;
@@ -835,6 +864,16 @@ span.id {
     margin-left: 4px ! important;
     vertical-align: top;
     /*float: right;*/
+    position: absolute;
+}
+
+.add_child_icon {
+    display: none;
+    cursor: pointer;
+    height: 16px;
+    width: 16px;
+    margin-left: 24px ! important;
+    vertical-align: top;
     position: absolute;
 }
 
@@ -848,7 +887,7 @@ span.id {
     position: absolute;
 }
 
-.edit_icon, .edit_file_icon {
+.edit_icon, .edit_file_icon, .collapse_children_icon {
     right: 64px;
 }
 
@@ -877,6 +916,10 @@ span.id {
 }
 
 li.page .delete_icon {
+    right: -20px;
+}
+
+li.page .edit_ui_properties_icon {
     right: -20px;
 }
 
@@ -924,7 +967,7 @@ img.button {
 }
 
 .nodeHover {
-    z-index: 2;
+    /*z-index: 2;*/
 }
 
 .nodeSelected {
@@ -952,6 +995,25 @@ img.button {
 #schema-graph .node {
     padding: 6px;
     margin: 0 ! important;
+}
+
+#schema-graph.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+#schema-graph .node.selected {
+    border-color: #ca0;
+    background-color: #f1cd2e !important;
+}
+
+#schema-graph .label.rel-type.selected {
+    border-color: #ca0;
+    background-color: #f1cd2e !important;
 }
 
 button {
@@ -1062,7 +1124,7 @@ button img {
     margin: 10px 0 0 12px;
 }
 
-.dialogText, .dialogMeta {
+.dialogHeaderWrapper, .dialogText, .dialogMeta {
     text-align: left;
     font-size: 9.5pt;
 }
@@ -1165,7 +1227,7 @@ button img {
     border: 1px solid #666;
 }
 
-#files h1, #images h1 {
+#filesystem-main h1, #images h1 {
     color: #333;
     font-size: 16px;
     font-weight: bold;
@@ -1175,10 +1237,10 @@ button img {
 
 }
 
-#files .selected, #files .selected:hover {
+#filesystem-main .selected, #filesystem-main .selected:hover {
     color: #333 ! important;
-    border: 1px solid #a5a5a5;
-    background-color: #81ce25;
+    border: 1px solid #a5a5a5 ! important;
+    background-color: #81ce25 ! important;
 }
 
 .node-helper {
@@ -1359,6 +1421,15 @@ button.enabled, button.active {
     background-color: #e5e5e5;
 }
 
+.pager input.filter[type="text"][data-attribute="name"] {
+    width: 60px;
+}
+
+.pager > div {
+    display: inline;
+    white-space: nowrap;
+}
+
 button.disabled {
     filter: alpha(opacity=60);
     -khtml-opacity: 0.6;
@@ -1446,7 +1517,7 @@ button.disabled {
 
 input.auto-refresh {
     vertical-align: middle;
-    float: right;
+    float: left;
     margin-right: 0;
 }
 
@@ -1475,7 +1546,7 @@ button.add_property {
     margin: 8px 12px 4px 12px;
 }
 
-#connector-style, #node-type-selector {
+#connector-style, #node-type-selector, #rel-type-selector {
     color: #222;
     padding: 1px 2px 3px 4px;
     vertical-align: middle;
@@ -1490,7 +1561,7 @@ button.add_property {
     margin: 0 8px 4px 12px;
 }
 
-#node-type-selector {
+#node-type-selector, #rel-type-selector {
     margin: 0 8px 4px 0;
 }
 
@@ -1553,6 +1624,7 @@ button.add_property {
 .property-dbname,
 .property-format,
 .property-code,
+.property-comment,
 .property-attrs,
 .property-default,
 .localization-locale,
@@ -1569,6 +1641,7 @@ button.add_property {
 .schema.expanded .property-dbname,
 .schema.expanded .property-format,
 .schema.expanded .property-code,
+.schema.expanded .property-comment,
 .schema.expanded .property-attrs,
 .schema.expanded .property-default,
 #relationship-label {
@@ -1598,6 +1671,7 @@ button.add_property {
 .schema-details .property-format:hover,
 .schema-details .property-default:hover,
 .schema-details .property-code:hover,
+.schema-details .property-comment:hover,
 .schema-details .localization-locale:hover,
 .schema-details .localization-name:hover {
     cursor: text;
@@ -1618,6 +1692,10 @@ button.add_property {
 .schema .new-name {
     font-size: 1.3em;
     margin: -2px 0 -2px 0;
+}
+
+.schema-details .remote-schema-node:hover {
+    cursor: pointer;
 }
 
 .schema.compact .new-name {
@@ -2378,6 +2456,11 @@ td#cascading-options, td#propagation-options {
   font-weight: normal;
 }
 
+#file-tree .nodeHover {
+    border: none;
+    background-color: #eff8e3 ! important;
+}
+
 #file-tree-container {
   display: table-cell;
   vertical-align: top;
@@ -2468,6 +2551,12 @@ table.dataTable thead th, table.dataTable thead td {
   padding: 8px;
   padding-left: 0px;
   text-align: left;
+}
+
+#files-table tr.thumbnail,
+#files-table tr.thumbnail .file,
+#files-table tr.thumbnail i.fa-file-image-o {
+  color: #a0a0a0;
 }
 
 i.fa {
@@ -2612,4 +2701,103 @@ i.fa.ps {
     position: absolute;
     top: 12px;
     right: 36px;
+}
+
+.breadcrumb-entry {
+	cursor: pointer;
+}
+
+.class-id-attrs {
+	pointer-events: none;
+}
+
+/**
+ * Settings for insert shortcut menu
+ */
+
+
+/**
+ * Settings for insert shortcut menu
+ */
+#menu-area {
+    position: relative;
+}
+
+#add-child-dialog {
+    padding: 0;
+    top: 1px;
+    left: 0px;
+    background-color: #fff;
+    border-top: 1px solid #ccc;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    z-index: 99999;
+    position: absolute;
+}
+
+#add-child-dialog ul {
+    list-style-type: none;
+    margin: 0;
+    padding:0;
+    width: 160px;
+    z-index: 99999;
+    position: relative;
+}
+
+#add-child-dialog li {
+    cursor: pointer;
+    margin: 0px;
+    padding: 5px 8px;
+    color: #000;
+    background-color: #fff;
+    z-index: 99999;
+    position: relative;
+}
+
+#add-child-dialog li i {
+    font-size: 8pt;
+    line-height: 18px;
+    color: #999;
+    z-index: 99999;
+}
+
+#add-child-dialog li:hover {
+    background-color: #81ce25;
+    color: #000;
+    z-index: 99999;
+}
+
+#add-child-dialog ul ul {
+    position: absolute;
+    list-style-type: none;
+    padding: 0;
+    background-color: #fff;
+    z-index: 99999;
+    border: 1px solid #ccc;
+}
+
+#add-child-dialog hr {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    height: 1px;
+    border: none;
+    color: #eee;
+    background-color: #ccc;
+}
+
+#add-child-dialog ul.right ul.right {
+    right: 160px;
+}
+
+#add-child-dialog ul.left ul.left {
+    left: 160px;
+}
+
+#add-child-dialog ul.top ul.top {
+    top: -1px;
+}
+
+#add-child-dialog ul.bottom ul.bottom {
+    bottom: -1px;
 }

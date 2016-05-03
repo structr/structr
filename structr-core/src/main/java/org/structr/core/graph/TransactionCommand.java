@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,13 +23,14 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.logging.Level;
-import org.neo4j.graphdb.GraphDatabaseService;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
+import org.structr.api.DatabaseService;
+import org.structr.api.NotInTransactionException;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.StructrTransactionListener;
@@ -68,8 +69,8 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 	public TransactionCommand beginTx() {
 
-		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		TransactionReference tx            = transactions.get();
+		final DatabaseService graphDb = (DatabaseService)arguments.get("graphDb");
+		TransactionReference tx       = transactions.get();
 
 		if (tx == null) {
 
@@ -107,14 +108,14 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 				if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
 
 					tx.failure();
-					throw new FrameworkException(422, errorBuffer);
+					throw new FrameworkException(422, "Unable to commit transaction, validation failed", errorBuffer);
 				}
 
 				// 1.5: execute validatable post-transaction action
 				if (!modificationQueue.doPostProcessing(securityContext, errorBuffer)) {
 
 					tx.failure();
-					throw new FrameworkException(422, errorBuffer);
+					throw new FrameworkException(422, "Unable to commit transaction, transaction post processing failed", errorBuffer);
 				}
 			}
 
@@ -132,14 +133,14 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 				tx.failure();
 
 				// create error
-				throw new FrameworkException(422, errorBuffer);
+				throw new FrameworkException(422, "Unable to commit transaction, validation failed", errorBuffer);
 			}
 
 			try {
 				tx.success();
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 		}
 	}
@@ -167,7 +168,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 					tx.close();
 
 				} catch (Throwable t) {
-					t.printStackTrace();
+					logger.log(Level.WARNING, "", t);
 
 				} finally {
 
@@ -386,7 +387,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 	public static boolean isDeleted(final Node node) {
 
 		if (!inTransaction()) {
-			throw new IllegalStateException("Not in transaction.");
+			throw new NotInTransactionException("Not in transaction.");
 		}
 
 		final ModificationQueue queue = queues.get();
@@ -400,7 +401,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 	public static boolean isDeleted(final Relationship rel) {
 
 		if (!inTransaction()) {
-			throw new IllegalStateException("Not in transaction.");
+			throw new NotInTransactionException("Not in transaction.");
 		}
 
 		final ModificationQueue queue = queues.get();
@@ -409,6 +410,50 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 		}
 
 		return false;
+	}
+
+	public static void registerNodeCallback(final NodeInterface node, final String callbackId) {
+		
+		TransactionCommand command = currentCommand.get();
+		if (command != null) {
+
+			ModificationQueue modificationQueue = command.getModificationQueue();
+			if (modificationQueue != null) {
+
+				modificationQueue.registerNodeCallback(node, callbackId);
+
+			} else {
+
+				logger.log(Level.SEVERE, "Got empty changeSet from command!");
+			}
+
+		} else {
+
+			logger.log(Level.SEVERE, "Unable to register node callback");
+		}
+		
+	}
+	
+	public static void registerRelCallback(final RelationshipInterface rel, final String callbackId) {
+		
+		TransactionCommand command = currentCommand.get();
+		if (command != null) {
+
+			ModificationQueue modificationQueue = command.getModificationQueue();
+			if (modificationQueue != null) {
+
+				modificationQueue.registerRelCallback(rel, callbackId);
+
+			} else {
+
+				logger.log(Level.SEVERE, "Got empty changeSet from command!");
+			}
+
+		} else {
+
+			logger.log(Level.SEVERE, "Unable to register relationship callback");
+		}
+		
 	}
 
 	// ----- private methods -----

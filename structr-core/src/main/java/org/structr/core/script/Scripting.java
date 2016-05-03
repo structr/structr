@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,12 +19,13 @@
 package org.structr.core.script;
 
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.mozilla.javascript.Context;
+import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
 import org.structr.common.error.FrameworkException;
@@ -41,6 +42,8 @@ import org.structr.schema.parser.DatePropertyParser;
  */
 public class Scripting {
 
+	private static final Logger logger = Logger.getLogger(Scripting.class.getName());
+
 	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue) throws FrameworkException {
 
 		if (rawValue == null) {
@@ -56,7 +59,7 @@ public class Scripting {
 
 			if (!actionContext.returnRawValue()) {
 
-				final Map<String, String> replacements = new LinkedHashMap<>();
+				final List<Tuple> replacements = new LinkedList<>();
 
 				for (final String expression : extractScripts(value)) {
 
@@ -65,7 +68,7 @@ public class Scripting {
 
 					if (partValue != null) {
 
-						replacements.put(expression, partValue);
+						replacements.add(new Tuple(expression, partValue));
 
 					} else {
 
@@ -74,18 +77,16 @@ public class Scripting {
 						// and avoid something like ... selected="" ... which is interpreted as selected==true by
 						// all browsers
 						if (!value.equals(expression)) {
-							replacements.put(expression, "");
+							replacements.add(new Tuple(expression, ""));
 						}
 					}
 				}
 
 				// apply replacements
-				for (final Map.Entry<String, String> entry : replacements.entrySet()) {
+				for (final Tuple tuple : replacements) {
 
-					final String group = entry.getKey();
-					final String replacement = entry.getValue();
-
-					value = value.replace(group, replacement);
+					// only replace a single occurrence at a time!
+					value = StringUtils.replaceOnce(value, tuple.key, tuple.value);
 				}
 			}
 
@@ -148,7 +149,7 @@ public class Scripting {
 
 		final String entityName        = entity != null ? entity.getProperty(AbstractNode.name) : null;
 		final String entityDescription = entity != null ? ( StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + entity.getUuid() : "anonymous";
-		final Context scriptingContext = Context.enter();
+		final Context scriptingContext = new ContextFactory().enterContext();
 
 		try {
 
@@ -203,7 +204,7 @@ public class Scripting {
 		} catch (final Throwable t) {
 
 			// if any other kind of Throwable is encountered throw a new FrameworkException and be done with it
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 			throw new FrameworkException(422, t.getMessage());
 
 		} finally {
@@ -312,4 +313,15 @@ public class Scripting {
 
 	}
 
+	// ----- nested classes -----
+	private static class Tuple {
+
+		public String key = null;
+		public String value = null;
+
+		public Tuple(final String key, final String value) {
+			this.key = key;
+			this.value = value;
+		}
+	}
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.ExportSet;
 import org.structr.common.error.FrameworkException;
@@ -38,6 +40,8 @@ import org.structr.core.graph.SyncCommand;
  */
 public class PullNodeRequestContainer extends Message {
 
+	private static final Logger logger = Logger.getLogger(PullNodeRequestContainer.class.getName());
+	
 	private boolean recursive             = false;
 	private String rootNodeId             = null;
 	private String key                    = null;
@@ -98,7 +102,7 @@ public class PullNodeRequestContainer extends Message {
 			}
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 	}
 

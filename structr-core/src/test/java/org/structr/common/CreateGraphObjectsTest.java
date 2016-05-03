@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,7 +25,8 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.graphdb.RelationshipType;
+import org.structr.api.NotInTransactionException;
+import org.structr.api.graph.RelationshipType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
@@ -78,7 +79,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 				// Create node out of transaction => should give a NotInTransactionException
 				app.create(TestOne.class);
 				fail("Should have raised an org.neo4j.graphdb.NotInTransactionException");
-			} catch (org.neo4j.graphdb.NotInTransactionException e) {
+			} catch (NotInTransactionException e) {
 			}
 
 			try {
@@ -86,7 +87,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 				// Try to create node without parameters => should fail
 				app.create(TestOne.class);
 				fail("Should have raised an org.neo4j.graphdb.NotInTransactionException");
-			} catch (org.neo4j.graphdb.NotInTransactionException e) {}
+			} catch (NotInTransactionException e) {}
 
 			AbstractNode node = null;
 
@@ -278,7 +279,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 			logger.log(Level.SEVERE, ex.toString());
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 
 			fail("Unexpected exception");
 		}
@@ -331,7 +332,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 		} catch (Throwable ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");

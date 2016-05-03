@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -78,7 +78,7 @@ public class DeleteNodeCommand extends AbstractCommand {
 				}
 
 			} catch (FrameworkException ex) {
-				ex.printStackTrace();
+				logger.log(Level.WARNING, "", ex);
 			}
 
 			if (Boolean.TRUE.equals(recursive)) {

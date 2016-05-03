@@ -1,22 +1,21 @@
 /*
- *  Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
- *  This file is part of Structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 var StructrModel = {
 	objects: {},
 	callbacks: [],
@@ -55,11 +54,14 @@ var StructrModel = {
 	 */
 	create: function(data, refId, append) {
 
-		log("StructrModel.create", data);
-		if (!data) return;
+		_Logger.log(_LogType.MODEL, "StructrModel.create", data);
+
+		if (!data || !data.id) {
+			return;
+		}
 
 		var keys = Object.keys(data);
-		
+
 		if (keys.length === 1 && keys[0] === 'id') {
 			Command.get(data.id, function(data) {
 				return StructrModel.createFromData(data, refId, append);
@@ -71,9 +73,13 @@ var StructrModel = {
 
 	},
 	createFromData: function(data, refId, append) {
-		
+
+		if (!data || !data.id) {
+			return;
+		}
+
 		var obj;
-		
+
 		if (data.isPage) {
 
 			obj = new StructrPage(data);
@@ -127,7 +133,7 @@ var StructrModel = {
 				if (el.parent().prop('id') === 'elementsArea') {
 					el.remove();
 				} else {
-					log('obj exists');
+					_Logger.log(_LogType.MODEL, 'obj exists');
 					return obj;
 				}
 			}
@@ -139,12 +145,14 @@ var StructrModel = {
 		}
 
 		return obj;
-		
+
 	},
 	/**
 	 * Append and check expand status
 	 */
 	append: function(obj, refId) {
+
+		if (!obj) return;
 
 		if (obj.content) {
 			// only show the first 40 characters for content elements
@@ -162,7 +170,7 @@ var StructrModel = {
 	 */
 	expand: function(element, obj) {
 
-		log('StructrModel.expand', element, obj);
+		_Logger.log(_LogType.MODEL, 'StructrModel.expand', element, obj);
 
 		if (element) {
 
@@ -174,11 +182,11 @@ var StructrModel = {
 
 			if (parent && parent.hasClass('node') && parent.children('.node') && parent.children('.node').length) {
 
-				log('parent of last appended object has children');
+				_Logger.log(_LogType.MODEL, 'parent of last appended object has children');
 
 				var ent = Structr.entityFromElement(parent);
 				_Entities.ensureExpanded(parent);
-				log('entity', ent);
+				_Logger.log(_LogType.MODEL, 'entity', ent);
 				_Entities.appendExpandIcon(parent, ent, true, true);
 
 			}
@@ -191,6 +199,8 @@ var StructrModel = {
 	 * activate the tab to the left before removing it.
 	 */
 	del: function(id) {
+
+		if (!id) return;
 
 		var node = Structr.node(id);
 		if (node) {
@@ -223,12 +233,17 @@ var StructrModel = {
 	 * and will trigger a UI refresh.
 	 **/
 	update: function(data) {
+
+		if (!data || !data.id) {
+			return;
+		}
+
 		var obj = StructrModel.obj(data.id);
 
 		if (obj && data.modifiedProperties && data.modifiedProperties.length) {
 
 			$.each(data.modifiedProperties, function(i, key) {
-				log('update model', key, data.data[key]);
+				_Logger.log(_LogType.MODEL, 'update model', key, data.data[key]);
 				obj[key] = data.data[key];
 				//console.log('object ', obj, 'updated with key', key, '=', obj[key]);
 				//StructrModel.refreshKey(obj.id, key);
@@ -242,7 +257,7 @@ var StructrModel = {
 
 	},
 	updateKey: function(id, key, value) {
-		log('StructrModel.updateKey', id, key, value);
+		_Logger.log(_LogType.MODEL, 'StructrModel.updateKey', id, key, value);
 		var obj = StructrModel.obj(id);
 
 		if (obj) {
@@ -271,9 +286,9 @@ var StructrModel = {
 
 		//for (var key in data.data) {
 		var inputElement = $('td.' + key + '_ input', element);
-		log(inputElement);
+		_Logger.log(_LogType.MODEL, inputElement);
 		var newValue = obj[key];
-		log(key, newValue, typeof newValue);
+		_Logger.log(_LogType.MODEL, key, newValue, typeof newValue);
 
 		var attrElement = element.children('.' + key + '_');
 
@@ -291,7 +306,7 @@ var StructrModel = {
 				if (attrElement && tag === 'select') {
 					attrElement.val(newValue);
 				} else {
-					log(key, newValue);
+					_Logger.log(_LogType.MODEL, key, newValue);
 					if (key === 'name') {
 						attrElement.attr('title', newValue).html(fitStringToWidth(newValue, w));
 					}
@@ -303,7 +318,7 @@ var StructrModel = {
 
 				if (key === 'content') {
 
-					log(attrElement.text(), newValue);
+					_Logger.log(_LogType.MODEL, attrElement.text(), newValue);
 
 					attrElement.text(newValue);
 
@@ -317,7 +332,7 @@ var StructrModel = {
 			}
 		}
 
-		log(key, Structr.getClass(element));
+		_Logger.log(_LogType.MODEL, key, Structr.getClass(element));
 
 		if (key === 'name') {
 
@@ -330,16 +345,16 @@ var StructrModel = {
 
 				tabNameElement.attr('title', newValue).html(fitStringToWidth(newValue, w));
 
-				log('Model: Reload iframe', id, newValue);
+				_Logger.log(_LogType.MODEL, 'Model: Reload iframe', id, newValue);
 				_Pages.reloadIframe(id);
 
 			} else if (Structr.getClass(element) === 'folder') {
-				
+
 				_Filesystem.refreshTree();
-			
+
 			}
 		}
-		
+
 
 	},
 	/**
@@ -349,7 +364,7 @@ var StructrModel = {
 	refresh: function(id) {
 
 		var obj = StructrModel.obj(id);
-		log('Model refresh, updated object', obj);
+		_Logger.log(_LogType.MODEL, 'Model refresh, updated object', obj);
 
 		if (obj) {
 			var element = Structr.node(id);
@@ -365,7 +380,7 @@ var StructrModel = {
 			if (!element)
 				return;
 
-			log(obj, id, element);
+			_Logger.log(_LogType.MODEL, obj, id, element);
 
 			// update values with given key
 			$.each(Object.keys(obj), function(i, key) {
@@ -375,38 +390,49 @@ var StructrModel = {
 			// update HTML 'class' and 'id' attributes
 			if (isIn('_html_id', Object.keys(obj)) || isIn('_html_class', Object.keys(obj))) {
 
-				var classIdAttrsEl = $(element).children('.class-id-attrs');
+				var classIdAttrsEl = element.children('.class-id-attrs');
 				if (classIdAttrsEl.length) {
 					classIdAttrsEl.remove();
 				}
 
 				var classIdString = _Elements.classIdString(obj._html_id, obj._html_class);
-				var idEl = $(element).children('.id');
+				var idEl = element.children('.id');
 				if (idEl.length) {
-					$(element).children('.id').after(classIdString);
+					element.children('.id').after(classIdString);
 				}
 			}
 
 			// update icon
 			var icon = undefined;
-			if ($(element).hasClass('element')) {
-				var isComponent = obj.sharedComponent || (obj.syncedNodes && obj.syncedNodes.length);
-				var isActiveNode = obj.hideOnIndex || obj.hideOnDetail || obj.hideConditions || obj.showConditions || obj.dataKey;
-				icon = isActiveNode ? _Elements.icon_repeater : isComponent ? _Elements.icon_comp : _Elements.icon;
-			} else if ($(element).hasClass('file')) {
-				icon = _Files.getIcon(obj);
+			if (element.hasClass('element')) {
+
+				icon = _Elements.getElementIcon(obj);
+
+			} else if (element.hasClass('content')) {
+
+				icon = _Contents.getContentIcon(obj);
+
+			} else if (element.hasClass('file')) {
+
+				icon = _Filesystem.getIcon(obj);
+
+			} else if (element.hasClass('folder')) {
+
+				_Filesystem.refreshTree();
+
 			}
-			var iconEl = $(element).children('.typeIcon');
+
+			var iconEl = element.children('.typeIcon');
 			if (icon && iconEl.length) {
 				iconEl.attr('src', icon);
 			}
 
 			// check if key icon needs to be displayed (in case of nodes not visible to public/auth users)
 			var protected = !obj.visibleToPublicUsers || !obj.visibleToAuthenticatedUsers;
-			var keyIcon = $(element).children('.key_icon');
+			var keyIcon = element.children('.key_icon');
 			if (!keyIcon.length) {
 				// Images have a special subnode containing the icons
-				keyIcon = $('.icons', $(element)).children('.key_icon');
+				keyIcon = $('.icons', element).children('.key_icon');
 			}
 			if (protected) {
 				keyIcon.show();
@@ -426,7 +452,7 @@ var StructrModel = {
 						e.stopPropagation();
 						_Entities.makeNameEditable(element, 200);
 					});
-					
+
 					element.children('.name_').replaceWith('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>');
 					element.children('b.name_').on('click', function (e) {
 						e.stopPropagation();
@@ -453,7 +479,7 @@ var StructrModel = {
 	 */
 	save: function(id) {
 		var obj = StructrModel.obj(id);
-		log('StructrModel.save', obj);
+		_Logger.log(_LogType.MODEL, 'StructrModel.save', obj);
 
 		// Filter out object type data
 		var data = {};
@@ -472,12 +498,13 @@ var StructrModel = {
 
 	callCallback: function(callback, entity, resultSize) {
 		if (callback) {
-			log('Calling callback', callback, 'on entity', entity, resultSize);
+			_Logger.log(_LogType.MODEL, 'Calling callback', callback, 'on entity', entity, resultSize);
 			var callbackFunction = StructrModel.callbacks[callback];
 			if (callback && callbackFunction) {
-				log(callback, callbackFunction.toString());
+				_Logger.log(_LogType.MODEL, callback, callbackFunction.toString());
 				StructrModel.callbacks[callback](entity, resultSize);
 			}
+			StructrModel.clearCallback(callback);
 		}
 	},
 
@@ -514,8 +541,10 @@ StructrFolder.prototype.setProperty = function(key, value, recursive, callback) 
 StructrFolder.prototype.remove = function() {
 
 	var folder = this;
-	var parentFolder = StructrModel.obj(folder.parent.id);
-	var parentFolderEl = Structr.node(parentFolder.id);
+	if (folder.parent) {
+		var parentFolder = StructrModel.obj(folder.parent.id);
+		var parentFolderEl = Structr.node(parentFolder.id);
+	}
 
 	if (!parentFolderEl)
 		return;
@@ -595,9 +624,6 @@ StructrFile.prototype.remove = function() {
 	} else {
 		fileEl.remove();
 	}
-
-	_Files.appendFileElement(this);
-
 };
 
 StructrFile.prototype.append = function() {
@@ -611,7 +637,7 @@ StructrFile.prototype.append = function() {
 			parentFolder.files.push(file);
 		}
 	}
-	//StructrModel.expand(_Files.appendFileElement(this, parentFolder), this);
+	//StructrModel.expand(_Filesystem.appendFileElement(this, parentFolder), this);
 };
 
 
@@ -658,7 +684,7 @@ StructrImage.prototype.remove = function() {
 		fileEl.remove();
 	}
 
-	_Files.appendFileElement(this);
+	//_Filesystem.appendFileElement(this);
 };
 
 StructrImage.prototype.append = function(refNode) {
@@ -670,7 +696,7 @@ StructrImage.prototype.append = function(refNode) {
 	if (images && images.length) {
 		StructrModel.expand(_Images.appendImageElement(this, parentFolder), this);
 	} else {
-		StructrModel.expand(_Files.appendFileElement(this, parentFolder || refNode), this);
+		_Filesystem.appendFileOrFolderRow(this);
 	}
 };
 
@@ -867,7 +893,7 @@ StructrElement.prototype.remove = function() {
 		element.remove();
 	}
 
-	log(this, element, parent, Structr.containsNodes(parent));
+	_Logger.log(_LogType.MODEL, this, element, parent, Structr.containsNodes(parent));
 
 	if (element && parent && !Structr.containsNodes(parent)) {
 		_Entities.removeExpandIcon(parent);
@@ -891,6 +917,26 @@ StructrElement.prototype.exists = function() {
 	return !isMasterComponent && Structr.node(obj.id);
 };
 
+StructrElement.prototype.isActiveNode = function() {
+	return this.hideOnIndex || this.hideOnDetail || this.hideConditions || this.showConditions || this.dataKey
+		//String attributes
+		|| this["data-structr-action"]
+		|| this["data-structr-attr"]
+		|| this["data-structr-attributes"]
+		|| this["data-structr-custom-options-query"]
+		|| this["data-structr-edit-class"]
+		|| this["data-structr-hide"]
+		|| this["data-structr-id"]
+		|| this["data-structr-name"]
+		|| this["data-structr-options-key"]
+		|| this["data-structr-raw-value"]
+		|| this["data-structr-return"]
+		|| this["data-structr-type"]
+		//Boolean attributes
+		|| this["data-structr-append-id"]==true
+		|| this["data-structr-confirm"]==true
+		|| this["data-structr-reload"]==true;
+};
 
 /**************************************
  * Structr Content
@@ -960,7 +1006,7 @@ StructrContent.prototype.append = function(refNode) {
 	if (!div)
 		return;
 
-	log('appendContentElement div', div);
+	_Logger.log(_LogType.MODEL, 'appendContentElement div', div);
 
 	StructrModel.expand(div, this);
 
@@ -985,6 +1031,10 @@ StructrContent.prototype.append = function(refNode) {
 StructrContent.prototype.exists = function() {
 
 	return Structr.node(this.id);
+};
+
+StructrContent.prototype.isActiveNode = function() {
+	return this.hideOnIndex || this.hideOnDetail || this.hideConditions || this.showConditions || this.dataKey;
 };
 
 /**************************************

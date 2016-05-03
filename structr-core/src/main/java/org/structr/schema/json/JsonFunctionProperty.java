@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,7 +30,9 @@ public interface JsonFunctionProperty extends JsonStringProperty {
 	public JsonFunctionProperty setWriteFunction(final String writeFunction);
 	public String getWriteFunction();
 
+	@Override
 	public JsonFunctionProperty setContentType(final String contentType);
+	@Override
 	public String getContentType();
 
 }

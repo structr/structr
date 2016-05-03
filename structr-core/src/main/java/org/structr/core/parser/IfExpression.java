@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,9 +29,7 @@ import org.structr.schema.action.ActionContext;
 
 public class IfExpression extends Expression {
 
-	private Expression condition       = null;
-	private Expression falseExpression = null;
-	private Expression trueExpression  = null;
+	public static final String ERROR_MESSAGE_IF = "Usage: ${if(condition, trueValue, falseValue)}. Example: ${if(empty(this.name), this.nickName, this.name)}";
 
 	public IfExpression() {
 		super("if");
@@ -55,40 +53,28 @@ public class IfExpression extends Expression {
 	@Override
 	public void add(final Expression expression) throws FrameworkException {
 
-		// first expression is the if condition
-		if (this.condition == null) {
-
-			this.condition = expression;
-
-		} else if (this.trueExpression == null) {
-
-			this.trueExpression = expression;
-
-		} else if (this.falseExpression == null) {
-
-			this.falseExpression = expression;
-
-		} else {
-
+		if (expressions.size() == 3) {
 			throw new FrameworkException(422, "Invalid if() expression in builtin function: too many parameters.");
 		}
 
-		expression.parent = this;
-		expression.level  = this.level + 1;
+		super.add(expression);
+
 	}
 
 	@Override
 	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
 
-
-		if (condition == null) {
-			return Functions.ERROR_MESSAGE_IF;
+		if (expressions.isEmpty()) {
+			return ERROR_MESSAGE_IF;
 		}
+
+		final Expression condition = expressions.get(0);
 
 		if (isTrue(condition.evaluate(ctx, entity))) {
 
-			if (trueExpression != null) {
+			if (expressions.size() > 1) {
 
+				final Expression trueExpression = expressions.get(1);
 				return trueExpression.evaluate(ctx, entity);
 
 			} else {
@@ -98,8 +84,9 @@ public class IfExpression extends Expression {
 
 		} else {
 
-			if (falseExpression != null) {
+			if (expressions.size() > 2) {
 
+				final Expression falseExpression = expressions.get(2);
 				return falseExpression.evaluate(ctx, entity);
 
 			} else {

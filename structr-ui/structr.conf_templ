@@ -66,7 +66,6 @@ neo4j.server.port = 7474
 base.path = .
 database.path = ./db
 files.path = ./files
-log.database.path = ./logDb.dat
 tmp.path = /tmp
 
 # Configuration class providing custom schema classes
@@ -75,9 +74,6 @@ configuration.provider = org.structr.module.JarConfigurationProvider
 # Configure services to automatically run at start-up
 configured.services = NodeService AgentService CronService SchemaService LogService HttpService FtpService CloudService Neo4jService SSHService
 
-# Support migration from 0.8.x and earlier versions
-#NodeService.migration = true
-
 # Superuser username and password
 # You have to set a superuser username and password in order to use
 # administration and maintenance tools
@@ -85,8 +81,10 @@ configured.services = NodeService AgentService CronService SchemaService LogServ
 superuser.username = superadmin
 superuser.password = 
 
-# Indent JSON
+# Indentation
+html.indentation = true
 json.indentation = true
+ws.indentation = true
 
 # Use lenient serialization, e.g. allow to serialize NaN, -Infinity, Infinity instead of just returning null
 # Please note: As long as Javascript doesn't support NaN etc., most of the UI will be broken
@@ -99,6 +97,8 @@ neo4j.shell.port = 1337
 # E-Mail settings: Set host and port of an MTA Structr will use to send e-mails
 smtp.host = localhost
 smtp.port = 25
+#smtp.user =
+#smtp.password =
 smtp.tls.enabled = true
 smtp.tls.required = false
 
@@ -347,3 +347,39 @@ oauth.facebook.return_uri = /
 #geocoding.provider=
 #geocoding.language=
 #geocoding.apikey=
+
+
+#############################################################################
+# Configuration for scheduled tasks (cron jobs)
+#############################################################################
+#
+# The cron job configuration is a single line starting with "CronService tasks = ", followed by
+# a list of tasks defined by its full class name followed by a cron expression in the following format:
+#
+# <full-qualified class name>.cronExpression = <seconds> <minutes> <hours> <days> <months> <days of week>
+#
+# Supported unit values are:
+# x      at exact value of a unit (second, minute, hour etc.)
+# *      every second, minute, ...
+# */n    every nth value of a unit
+# x-y    range from x to y
+
+# Examples:
+#
+# Run every 30 minutes                                                      0   0,30  *   *    *    *
+# Run every day at 4:00                                                     0    0    4   *    *    *
+# Run each hour on Mondays during the first 10 days in April and October    0    0    *  1-10 4,10  1 
+
+#CronService.tasks = \
+#org.structr.examples.UpdateTask \
+#org.structr.examples.UpdateTask.cronExpression = 0 0 * * * * \
+#org.structr.examples.CleanupTask \
+#org.structr.examples.CleanupTask.cronExpression = 0 0 4 * * * \
+
+
+# Enable/disable uniqueness constraint for files/folders
+# application.filesystem.unique.paths = false
+
+# The instance name and stage configuration entries will be displayed in the top right corner of structr-ui
+# application.instance.name =
+# application.instance.stage =

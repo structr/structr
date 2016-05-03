@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -149,7 +149,7 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> imp
 				T obj = result.get(0);
 				//if(!type.getSimpleName().equals(node.getType())) {
 				if (!type.isAssignableFrom(obj.getClass())) {
-					throw new FrameworkException(422, new TypeToken(obj.getClass(), propertyKey, type.getSimpleName()));
+					throw new FrameworkException(422, "Node type mismatch", new TypeToken(obj.getClass(), propertyKey, type.getSimpleName()));
 				}
 				return obj;
 		}
@@ -161,7 +161,7 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> imp
 			attributes.put(propertyKey,       convertedSource);
 			attributes.put(AbstractNode.type, type.getSimpleName());
 
-			throw new FrameworkException(404, new PropertiesNotFoundToken(type.getSimpleName(), null, attributes));
+			throw new FrameworkException(404, "No node found for given properties", new PropertiesNotFoundToken(type.getSimpleName(), null, attributes));
 		}
 
 		return null;

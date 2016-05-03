@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,9 +22,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.helpers.collection.Iterables;
-import org.neo4j.tooling.GlobalGraphOperations;
+import org.structr.api.DatabaseService;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -43,6 +42,7 @@ import org.structr.web.entity.dom.relationship.DOMSiblings;
 import org.structr.web.entity.html.relation.ResourceLink;
 import org.structr.web.entity.relation.PageLink;
 import org.structr.web.entity.relation.Sync;
+import static org.structr.core.graph.NodeServiceCommand.bulkGraphOperation;
 
 /**
  * Migrate UI relationships of the pre-0.9 scheme to the new scheme
@@ -62,12 +62,12 @@ public class BulkMigrateRelationships extends NodeServiceCommand implements Main
 	@Override
 	public void execute(final Map<String, Object> map) throws FrameworkException {
 
-		final GraphDatabaseService graphDb   = (GraphDatabaseService)arguments.get("graphDb");
+		final DatabaseService graphDb        = (DatabaseService)arguments.get("graphDb");
 		final RelationshipFactory relFactory = new RelationshipFactory(securityContext);
 
 		if (graphDb != null) {
 
-			final Iterator<AbstractRelationship> relIterator = Iterables.map(relFactory, relFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships())).iterator();
+			final Iterator<AbstractRelationship> relIterator = Iterables.map(relFactory, relFactory.instantiate(graphDb.getAllRelationships())).iterator();
 
 			final long counter = bulkGraphOperation(securityContext, relIterator, 1000, "MigrateRelationships", new BulkGraphOperation<AbstractRelationship>() {
 
@@ -86,7 +86,7 @@ public class BulkMigrateRelationships extends NodeServiceCommand implements Main
 							String relType   = rel.getType();
 
 							rel.getRelationship().removeProperty("combinedType");
-							rel.unlockReadOnlyPropertiesOnce();
+							rel.unlockSystemPropertiesOnce();
 
 							if ("CONTAINS".equals(relType)) {
 

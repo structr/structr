@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,8 @@ package org.structr.csv.test;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import com.jayway.restassured.internal.RestAssuredResponseImpl;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.servlet.CsvServlet;
@@ -31,7 +33,10 @@ import org.structr.rest.servlet.CsvServlet;
  */
 public class CsvTest extends StructrCsvTest {
 
+	private static final Logger logger = Logger.getLogger(CsvTest.class.getName());
+
 	public void test01InitServlet() {
+
 		try {
 			final HttpServiceServlet servlet = (HttpServiceServlet) Class.forName(CsvServlet.class.getName()).newInstance();
 
@@ -40,7 +45,7 @@ public class CsvTest extends StructrCsvTest {
 			assertTrue(servlet instanceof CsvServlet);
 
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexcepted exception");
 		}
 

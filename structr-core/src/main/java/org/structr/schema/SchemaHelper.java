@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,9 +29,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javatools.parsers.PlingStemmer;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.graphdb.PropertyContainer;
+import org.structr.api.NotFoundException;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.common.CaseHelper;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PermissionPropagation;
@@ -90,6 +93,8 @@ import org.structr.schema.parser.Validator;
  *
  */
 public class SchemaHelper {
+
+	private static final Logger logger = Logger.getLogger(SchemaHelper.class.getName());
 
 	private static final String WORD_SEPARATOR = "_";
 
@@ -269,7 +274,13 @@ public class SchemaHelper {
 
 		try {
 
-			for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
+			final App app = StructrApp.getInstance();
+
+			final List<SchemaNode> existingSchemaNodes = app.nodeQuery(SchemaNode.class).getAsList();
+
+			cleanUnusedDynamicGrants(existingSchemaNodes);
+
+			for (final SchemaNode schemaNode : existingSchemaNodes) {
 
 				createDynamicGrants(schemaNode.getResourceSignature());
 
@@ -284,11 +295,49 @@ public class SchemaHelper {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 		return SchemaService.reloadSchema(errorBuffer);
 
+	}
+
+	public static void cleanUnusedDynamicGrants(final List<SchemaNode> existingSchemaNodes) {
+
+		try {
+
+			final List<DynamicResourceAccess> existingDynamicGrants  = StructrApp.getInstance().nodeQuery(DynamicResourceAccess.class).getAsList();
+
+			for (final DynamicResourceAccess grant : existingDynamicGrants) {
+
+				String sig;
+				try {
+					sig = grant.getResourceSignature();
+
+				} catch (NotFoundException nfe) {
+					logger.log(Level.FINE, "Unable to get signature from grant");
+					continue;
+				}
+
+				boolean exists = false;
+
+				for (final SchemaNode schemaNode : existingSchemaNodes) {
+
+					if (schemaNode.getResourceSignature().equals(sig)) {
+						exists = true;
+						break;
+					}
+				}
+
+				if (!exists) {
+					removeDynamicGrants(sig);
+				}
+			}
+
+		} catch (Throwable t) {
+
+			logger.log(Level.WARNING, "", t);
+		}
 	}
 
 	public static List<DynamicResourceAccess> createDynamicGrants(final String signature) {
@@ -300,6 +349,7 @@ public class SchemaHelper {
 		try {
 
 			ResourceAccess grant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
+
 			if (grant == null) {
 
 				// create new grant
@@ -307,12 +357,19 @@ public class SchemaHelper {
 					new NodeAttribute(DynamicResourceAccess.signature, signature),
 					new NodeAttribute(DynamicResourceAccess.flags, initialFlagsValue)
 				));
+			}
 
+			ResourceAccess schemaGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, "_schema/" + signature).getFirst();
+			if (schemaGrant == null) {
 				// create additional grant for the _schema resource
 				grants.add(app.create(DynamicResourceAccess.class,
 					new NodeAttribute(DynamicResourceAccess.signature, "_schema/" + signature),
 					new NodeAttribute(DynamicResourceAccess.flags, initialFlagsValue)
 				));
+			}
+
+			ResourceAccess uiViewGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature + "/_Ui").getFirst();
+			if (uiViewGrant == null) {
 
 				// create additional grant for the Ui view
 				grants.add(app.create(DynamicResourceAccess.class,
@@ -323,7 +380,7 @@ public class SchemaHelper {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 		return grants;
@@ -342,7 +399,7 @@ public class SchemaHelper {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 	}
 
@@ -373,7 +430,7 @@ public class SchemaHelper {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 	}
@@ -421,7 +478,7 @@ public class SchemaHelper {
 
 							} catch (FrameworkException ex) {
 
-								ex.printStackTrace();
+								logger.log(Level.WARNING, "", ex);
 							}
 						}
 
@@ -956,7 +1013,7 @@ public class SchemaHelper {
 		}
 		map.put("format", property.format());
 		map.put("readOnly", property.isReadOnly());
-		map.put("system", property.isUnvalidated());
+		map.put("system", property.isSystemInternal());
 		map.put("indexed", property.isIndexed());
 		map.put("indexedWhenEmpty", property.isIndexedWhenEmpty());
 		map.put("unique", property.isUnique());
@@ -1017,11 +1074,11 @@ public class SchemaHelper {
 			return parserClass.getConstructor(ErrorBuffer.class, String.class, PropertyDefinition.class).newInstance(errorBuffer, className, propertyDefinition);
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 		errorBuffer.add(new InvalidPropertySchemaToken(SchemaProperty.class.getSimpleName(), propertyName, "invalid_property_definition", "Unknow value type " + source + ", options are " + Arrays.asList(Type.values()) + "."));
-		throw new FrameworkException(422, errorBuffer);
+		throw new FrameworkException(422, "Invalid property definition for property " + propertyDefinition.getPropertyName(), errorBuffer);
 	}
 
 	private static boolean hasRestClasses() {

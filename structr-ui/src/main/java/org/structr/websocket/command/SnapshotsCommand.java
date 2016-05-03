@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,9 +18,15 @@
  */
 package org.structr.websocket.command;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import org.structr.common.SecurityContext;
 import org.structr.websocket.message.WebSocketMessage;
 import org.structr.websocket.StructrWebSocket;
@@ -29,6 +35,8 @@ import org.structr.websocket.message.MessageBuilder;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
+import org.apache.chemistry.opencmis.commons.impl.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
@@ -56,14 +64,22 @@ public class SnapshotsCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final App app                         = StructrApp.getInstance(securityContext);
 		final Map<String, Object> data        = webSocketData.getNodeData();
 		final String mode                     = (String)data.get("mode");
 		final String name                     = (String)data.get("name");
-
+		final String typesString              = (String) data.get("types");
+		
+		final List<String> types;
+		if (typesString != null) {
+			types = Arrays.asList(StringUtils.split(typesString, ","));
+		} else {
+			types = null;
+		}
+		
 		if (mode != null) {
 
 			final List<GraphObject> result = new LinkedList<>();
@@ -71,6 +87,7 @@ public class SnapshotsCommand extends AbstractCommand {
 			switch (mode) {
 
 				case "list":
+					
 					final List<String> snapshots = SnapshotCommand.listSnapshots();
 					if (snapshots != null) {
 
@@ -79,24 +96,43 @@ public class SnapshotsCommand extends AbstractCommand {
 						snapshotContainer.put(snapshotsProperty, snapshots);
 						result.add(snapshotContainer);
 
-						// set full result list
-						webSocketData.setResult(result);
-						webSocketData.setRawResultCount(1);
-						getWebSocket().send(webSocketData, true);
 					}
 					break;
 
+				case "get":
+					
+					final Path snapshotFile = Paths.get(SnapshotCommand.getBasePath() + name);
+					
+					if (Files.exists(snapshotFile)) {
+						
+						try {
+							final String content = new String(Files.readAllBytes(snapshotFile));
+							
+							// Send content directly
+							getWebSocket().send(MessageBuilder.finished().callback(callback).data("schemaJson", content).build(), true);
+							return;
+							
+							
+						} catch (IOException ex) {
+							Logger.getLogger(SnapshotsCommand.class.getName()).log(Level.SEVERE, null, ex);
+						}
+						
+					}
+					
+					break;
+
 				default:
+					
 					final GraphObjectMap msg = new GraphObjectMap();
 					result.add(msg);
 
 					try {
 
-						app.command(SnapshotCommand.class).execute(mode, name);
+						app.command(SnapshotCommand.class).execute(mode, name, types);
 						msg.put(statusProperty, "success");
 
 					} catch (Throwable t) {
-						t.printStackTrace();
+						logger.log(Level.WARNING, "", t);
 						msg.put(statusProperty, t.getMessage());
 					}
 			}
@@ -108,7 +144,7 @@ public class SnapshotsCommand extends AbstractCommand {
 
 		} else {
 
-			getWebSocket().send(MessageBuilder.status().code(422).message("Mode must be one of list, export, restore.").build(), true);
+			getWebSocket().send(MessageBuilder.status().code(422).message("Mode must be one of list, export, add or restore.").build(), true);
 		}
 	}
 

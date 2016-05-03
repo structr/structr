@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,11 +21,11 @@ package org.structr.websocket.command;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
+import org.structr.rest.auth.SessionHelper;
 import org.structr.schema.action.Actions;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -48,7 +48,7 @@ public class LoginCommand extends AbstractCommand {
 
 	//~--- methods --------------------------------------------------------
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final String username = (String) webSocketData.getNodeData().get("username");
 		final String password = (String) webSocketData.getNodeData().get("password");
@@ -76,7 +76,7 @@ public class LoginCommand extends AbstractCommand {
 					Actions.call(Actions.NOTIFICATION_LOGIN, user);
 
 					// Clear possible existing sessions
-					AuthHelper.clearSession(sessionId);
+					SessionHelper.clearSession(sessionId);
 
 					user.addSessionId(sessionId);
 

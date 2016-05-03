@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -63,7 +63,25 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 			if (source instanceof JsonInput) {
 
 				final JsonInput properties = (JsonInput) source;
-				final PropertyMap map      = PropertyMap.inputTypeToJavaType(securityContext, type, properties.getAttributes());
+				Class<T> concreteType = type;
+
+				if (concreteType != null && concreteType.isInterface()) {
+
+					// try to identify concrete type from input set
+					// (creation wouldn't work otherwise anyway)
+					if (properties.containsKey(NodeInterface.type.jsonName())) {
+
+						final String typeFromInput = properties.get(NodeInterface.type.jsonName()).toString();
+						concreteType = StructrApp.getConfiguration().getNodeEntityClass(typeFromInput);
+
+						// reset type on failed check
+						if (concreteType == null) {
+							concreteType = type;
+						}
+					}
+				}
+
+				final PropertyMap map      = PropertyMap.inputTypeToJavaType(securityContext, concreteType, properties.getAttributes());
 				T relatedNode              = null;
 
 				// If property map contains the uuid, search only for uuid
@@ -72,7 +90,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 					relatedNode = (T) app.getNodeById(map.get(GraphObject.id));
 
 					if (relatedNode != null && !type.isAssignableFrom(relatedNode.getClass())) {
-						throw new FrameworkException(422, new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
+						throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
 					}
 
 				} else {
@@ -167,7 +185,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 				final GraphObject obj = app.getNodeById(source.toString());
 
 				if (obj != null && !type.isAssignableFrom(obj.getClass())) {
-					throw new FrameworkException(422, new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
+					throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
 				}
 
 				return (T) obj;

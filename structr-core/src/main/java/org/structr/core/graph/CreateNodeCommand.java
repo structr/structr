@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,7 +31,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.GraphDatabaseService;
+import org.structr.api.DatabaseService;
 import org.structr.common.Permission;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -79,9 +79,9 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 	public T execute(PropertyMap attributes) throws FrameworkException {
 
-		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		final Principal user               = securityContext.getUser(false);
-		T node	                           = null;
+		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
+		final Principal user          = securityContext.getUser(false);
+		T node	                      = null;
 
 		if (graphDb != null) {
 
@@ -93,11 +93,11 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			final boolean isCreation         = true;
 
 			// Create node with type
-			node = (T) nodeFactory.instantiateWithType(graphDb.createNode(), nodeType, isCreation);
+			node = (T) nodeFactory.instantiateWithType(graphDb.createNode(), nodeType, null, isCreation);
 			if (node != null) {
 
 				// very first action: set UUID
-				node.unlockReadOnlyPropertiesOnce();
+				node.unlockSystemPropertiesOnce();
 				node.setProperty(GraphObject.id, getNextUuid());
 
 				TransactionCommand.nodeCreated(user, node);
@@ -112,31 +112,31 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 					Security securityRel = app.create(user, (NodeInterface)node, Security.class);
 					securityRel.setAllowed(Permission.allPermissions);
 
-					node.unlockReadOnlyPropertiesOnce();
+					node.unlockSystemPropertiesOnce();
 					node.setProperty(AbstractNode.createdBy, user.getProperty(GraphObject.id));
 				}
 
 				// set type
 				if (nodeType != null) {
 
-					node.unlockReadOnlyPropertiesOnce();
+					node.unlockSystemPropertiesOnce();
 					node.setProperty(GraphObject.type, nodeType.getSimpleName());
 				}
 
 				// set created date
-				node.unlockReadOnlyPropertiesOnce();
+				node.unlockSystemPropertiesOnce();
 				node.setProperty(AbstractNode.createdDate, now);
 
 				// set last modified date
-				node.unlockReadOnlyPropertiesOnce();
+				node.unlockSystemPropertiesOnce();
 				node.setProperty(AbstractNode.lastModifiedDate, now);
 
 				for (Entry<PropertyKey, Object> attr : properties.entrySet()) {
 
 					final Object value = attr.getValue();
 					PropertyKey key = attr.getKey();
-					if (key.isReadOnly()) {
-						node.unlockReadOnlyPropertiesOnce();
+					if (key.isSystemInternal()) {
+						node.unlockSystemPropertiesOnce();
 					}
 					node.setProperty(key, value);
 

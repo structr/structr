@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -88,7 +89,7 @@ public class RelatedNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
-	public Integer getSortType() {
+	public SortType getSortType() {
 		return targetKey.getSortType();
 	}
 }

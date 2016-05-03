@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,14 +18,14 @@
  */
 package org.structr.core.entity;
 
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.helpers.Predicate;
+import org.structr.api.graph.Node;
+import org.structr.api.Predicate;
+import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.search.SearchCommand;
 
 /**
  *
@@ -53,19 +53,16 @@ public class OtherNodeTypeFilter implements Predicate<Relationship> {
 	@Override
 	public boolean accept(final Relationship item) {
 
-		try {
-			final NodeInterface otherNode = nodeFactory.instantiate(item.getOtherNode(thisNode));
+		final NodeInterface otherNode = nodeFactory.instantiate(item.getOtherNode(thisNode), item);
 
-			// check predicate if exists
-			if (otherNode != null && (nodePredicate == null || nodePredicate.accept(otherNode))) {
+		// check predicate if exists
+		if (otherNode != null && (nodePredicate == null || nodePredicate.accept(otherNode))) {
 
-				final Class otherNodeType = otherNode.getClass();
+			final Class otherNodeType = otherNode.getClass();
 
-				return desiredType.isAssignableFrom(otherNodeType);
-			}
+			final boolean desiredTypeIsAssignableFromOtherNodeType = SearchCommand.getAllSubtypesAsStringSet(desiredType.getSimpleName()).contains(otherNodeType.getSimpleName());
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			return desiredTypeIsAssignableFromOtherNodeType;
 		}
 
 		return false;

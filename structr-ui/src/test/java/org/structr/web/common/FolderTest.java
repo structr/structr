@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,6 +31,8 @@ import org.structr.web.entity.Folder;
  */
 public class FolderTest extends StructrTest {
 	
+	private static final Logger logger = Logger.getLogger(FolderTest.class.getName());
+
 	public void testCreateFolder() {
 		
 		try (final Tx tx = app.tx()) {
@@ -66,4 +68,91 @@ public class FolderTest extends StructrTest {
 		
 	}
 
+	public void testAllowedCharacters() {
+		
+		try (final Tx tx = app.tx()) {
+			
+			app.create(Folder.class, "/a/b");
+						
+			tx.success();
+			
+			fail("Folder with non-allowed characters were created.");
+			
+		} catch (FrameworkException ex) {
+			logger.log(Level.WARNING, "", ex);
+		}
+		
+		try (final Tx tx = app.tx()) {
+			
+			app.create(Folder.class, "a/b");
+						
+			tx.success();
+			
+			fail("Folder with non-allowed characters were created.");
+			
+		} catch (FrameworkException ex) {
+			logger.log(Level.WARNING, "", ex);
+		}
+
+		try (final Tx tx = app.tx()) {
+			
+			app.create(Folder.class, "/");
+						
+			tx.success();
+			
+			fail("Folder with non-allowed characters were created.");
+			
+		} catch (FrameworkException ex) {
+			logger.log(Level.WARNING, "", ex);
+		}
+
+		try (final Tx tx = app.tx()) {
+			
+			app.create(Folder.class, "c/");
+						
+			tx.success();
+			
+			fail("Folder with non-allowed characters were created.");
+			
+		} catch (FrameworkException ex) {
+			logger.log(Level.WARNING, "", ex);
+		}
+
+		try (final Tx tx = app.tx()) {
+			
+			app.create(Folder.class, "abc\0");
+						
+			tx.success();
+			
+			fail("Folder with non-allowed characters were created.");
+			
+		} catch (FrameworkException ex) {
+			logger.log(Level.WARNING, "", ex);
+		}
+
+		try (final Tx tx = app.tx()) {
+			
+			app.create(Folder.class, "\0abc");
+						
+			tx.success();
+			
+			fail("Folder with non-allowed characters were created.");
+			
+		} catch (FrameworkException ex) {
+			logger.log(Level.WARNING, "", ex);
+		}
+		
+		try (final Tx tx = app.tx()) {
+			
+			app.create(Folder.class, "a\0bc");
+						
+			tx.success();
+			
+			fail("Folder with non-allowed characters were created.");
+			
+		} catch (FrameworkException ex) {
+			logger.log(Level.WARNING, "", ex);
+		}
+	}
+	
 }

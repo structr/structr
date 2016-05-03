@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,6 +28,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import com.google.gson.JsonSyntaxException;
 
 
 //~--- JDK imports ------------------------------------------------------------
@@ -41,6 +42,7 @@ import java.lang.reflect.Type;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.structr.core.IJsonInput;
@@ -65,7 +67,7 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 			return (IJsonInput)type.getClass().newInstance();
 
 		} catch (InstantiationException | IllegalAccessException e) {
-			e.printStackTrace();
+			logger.log(Level.WARNING, "", e);
 		}
 
 		return null;
@@ -98,6 +100,12 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 				wrapper = deserialize(elem, context);
 				jsonInput.add(wrapper);
 			}
+
+		} else {
+
+			// when we arrive here, the input element was
+			// not one of the expected types => error
+			throw new JsonSyntaxException("Invalid JSON, expecting object or array");
 		}
 
 		return jsonInput;
@@ -170,6 +178,12 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 					wrapper.add(elem.toString(), deserialize(elem, context));
 				}
 			}
+
+		} else {
+
+			// when we arrive here, the input element was
+			// not one of the expected types => error
+			throw new JsonSyntaxException("Invalid JSON, expecting object or array");
 		}
 
 		return wrapper;

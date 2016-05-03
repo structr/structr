@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,6 +31,8 @@ import org.structr.websocket.StructrWebSocket;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.SchemaHelper;
@@ -44,6 +46,8 @@ import org.structr.web.entity.relation.FileChildren;
  */
 public class ListFilesCommand extends AbstractCommand {
 
+	private static final Logger logger = Logger.getLogger(ListFilesCommand.class.getName());
+	
 	static {
 
 		StructrWebSocket.addCommand(ListFilesCommand.class);
@@ -51,7 +55,7 @@ public class ListFilesCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 		
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
@@ -105,7 +109,7 @@ public class ListFilesCommand extends AbstractCommand {
 			
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 		}
 

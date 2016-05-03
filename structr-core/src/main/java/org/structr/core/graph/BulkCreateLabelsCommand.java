@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,30 +18,31 @@
  */
 package org.structr.core.graph;
 
+import java.util.Collections;
 import java.util.Iterator;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.tooling.GlobalGraphOperations;
+import java.util.LinkedHashSet;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.helpers.collection.Iterables;
+import org.structr.api.DatabaseService;
+import org.structr.api.graph.Label;
+import org.structr.api.graph.Node;
+import org.structr.api.util.Iterables;
 import org.structr.common.StructrAndSpatialPredicate;
-import org.structr.core.GraphObject;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.search.SearchCommand;
 
 //~--- classes ----------------------------------------------------------------
 /**
- * Rebuild index for nodes or relationships of given type.
- *
- * Use 'type' argument for node type, and 'relType' for relationship type.
- *
- *
+ * Create labels for all nodes of the given type.
  */
-public class BulkCreateLabelsCommand extends NodeServiceCommand implements MaintenanceCommand {
+public class BulkCreateLabelsCommand extends NodeServiceCommand implements MaintenanceCommand, TransactionPostProcess {
 
 	private static final Logger logger = Logger.getLogger(BulkCreateLabelsCommand.class.getName());
 
@@ -49,21 +50,20 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
 
-		final String entityType = (String) attributes.get("type");
-		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
+		final String entityType                = (String) attributes.get("type");
+		final DatabaseService graphDb          = (DatabaseService) arguments.get("graphDb");
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-		final NodeFactory nodeFactory = new NodeFactory(superUserContext);
+		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
 
 		Iterator<AbstractNode> nodeIterator = null;
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			nodeIterator = Iterables.filter(new TypePredicate<>(entityType), Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllNodes()))).iterator();
+			nodeIterator = Iterables.filter(new TypePredicate<>(entityType), Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getAllNodes()))).iterator();
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "Exception while creating all nodes iterator.");
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "Exception while creating all nodes iterator.", fex);
 		}
 
 		if (entityType == null) {
@@ -75,29 +75,48 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 			logger.log(Level.INFO, "Starting creation of labels for all nodes of type {0}", entityType);
 		}
 
-		final long count = NodeServiceCommand.bulkGraphOperation(securityContext, nodeIterator, 1000, "CreateLabels", new BulkGraphOperation<AbstractNode>() {
+		final long count = NodeServiceCommand.bulkGraphOperation(securityContext, nodeIterator, 10000, "CreateLabels", new BulkGraphOperation<AbstractNode>() {
 
 			@Override
 			public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
-				final String type = node.getProperty(GraphObject.type);
-				if (type != null) {
+				final Set<Label> intersection = new LinkedHashSet<>();
+				final Set<Label> toRemove     = new LinkedHashSet<>();
+				final Set<Label> toAdd        = new LinkedHashSet<>();
+				final Node dbNode             = node.getNode();
 
-					try {
+				// collect labels that are already present on a node
+				for (final Label label : dbNode.getLabels()) {
+					toRemove.add(label);
+				}
 
-						// Since the setProperty method of the TypeProperty
-						// overrides the default setProperty behaviour, we
-						// do not need to set a different type value first.
+				// collect new labels
+				for (final Class supertype : SearchCommand.typeAndAllSupertypes(node.getClass())) {
 
-						node.unlockReadOnlyPropertiesOnce();
-						GraphObject.type.setProperty(securityContext, node, type);
+					final String supertypeName = supertype.getName();
 
-					} catch (FrameworkException fex) {
-						// ignore
+					if (supertypeName.startsWith("org.structr.") || supertypeName.startsWith("com.structr.")) {
+						toAdd.add(graphDb.forName(Label.class, supertype.getSimpleName()));
 					}
 				}
-				node.updateInIndex();
 
+				// calculate intersection
+				intersection.addAll(toAdd);
+				intersection.retainAll(toRemove);
+
+				// calculate differences
+				toAdd.removeAll(intersection);
+				toRemove.removeAll(intersection);
+
+				// remove difference
+				for (final Label remove : toRemove) {
+					dbNode.removeLabel(remove);
+				}
+
+				// add difference
+				for (final Label add : toAdd) {
+					dbNode.addLabel(add);
+				}
 			}
 
 			@Override
@@ -117,5 +136,14 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 	@Override
 	public boolean requiresEnclosingTransaction() {
 		return false;
+	}
+
+	// ----- interface TransactionPostProcess -----
+	@Override
+	public boolean execute(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+		execute(Collections.EMPTY_MAP);
+
+		return true;
 	}
 }

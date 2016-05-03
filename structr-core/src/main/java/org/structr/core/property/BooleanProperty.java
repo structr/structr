@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -63,27 +64,31 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	}
 
 	@Override
-	public Integer getSortType() {
-		return null;
+	public SortType getSortType() {
+		return SortType.Default;
 	}
 
 	@Override
-	public PropertyConverter<Boolean, ?> databaseConverter(SecurityContext securityContext) {
+	public PropertyConverter<Boolean, ?> databaseConverter(final SecurityContext securityContext) {
 		return databaseConverter(securityContext, null);
 	}
 
 	@Override
-	public PropertyConverter<Boolean, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<Boolean, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
+		this.securityContext = securityContext;
+		this.entity          = entity;
 		return new DatabaseConverter(securityContext);
 	}
 
 	@Override
-	public PropertyConverter<?, Boolean> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Boolean> inputConverter(final SecurityContext securityContext) {
 		return new InputConverter(securityContext);
 	}
 
 	@Override
-	public Object fixDatabaseProperty(Object value) {
+	public Object fixDatabaseProperty(final Object value) {
+
+		final Boolean fixedValue;
 
 		if (value != null) {
 
@@ -93,7 +98,19 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 
 			if (value instanceof String) {
 
-				return TRUE_VALUES.contains(value.toString().toLowerCase());
+				fixedValue = TRUE_VALUES.contains(value.toString().toLowerCase());
+
+				if (entity != null) {
+
+					try {
+						setProperty(securityContext, entity, fixedValue);
+
+					} catch (FrameworkException fex) {
+						logger.log(Level.SEVERE, "Cound not set fixed property {0} on graph object {1}", new Object[]{fixedValue, entity});
+					}
+				}
+
+				return fixedValue;
 			}
 		}
 
@@ -109,7 +126,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	// ----- nested classes -----
 	protected class DatabaseConverter extends PropertyConverter<Boolean, Object> {
 
-		public DatabaseConverter(SecurityContext securityContext) {
+		public DatabaseConverter(final SecurityContext securityContext) {
 			super(securityContext);
 		}
 
@@ -133,7 +150,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 		}
 
 		@Override
-		public Boolean convert(Boolean source) {
+		public Boolean convert(final Boolean source) {
 
 			if (source != null) {
 				return source;
@@ -145,12 +162,12 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 
 	protected class InputConverter extends PropertyConverter<Object, Boolean> {
 
-		public InputConverter(SecurityContext securityContext) {
+		public InputConverter(final SecurityContext securityContext) {
 			super(securityContext);
 		}
 
 		@Override
-		public Object revert(Boolean source) throws FrameworkException {
+		public Object revert(final Boolean source) throws FrameworkException {
 
 			if (source != null) {
 				return source;
@@ -160,7 +177,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 		}
 
 		@Override
-		public Boolean convert(Object source) {
+		public Boolean convert(final Object source) {
 
 			boolean returnValue = false;
 

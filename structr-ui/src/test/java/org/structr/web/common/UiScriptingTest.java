@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,6 +29,8 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.AsyncContext;
 import javax.servlet.DispatcherType;
 import javax.servlet.RequestDispatcher;
@@ -60,6 +62,8 @@ import org.structr.web.entity.dom.Page;
  *
  */
 public class UiScriptingTest extends StructrUiTest {
+
+	private static final Logger logger = Logger.getLogger(UiScriptingTest.class.getName());
 
 	public void testScripting() {
 
@@ -130,7 +134,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 			fail("Unexpected exception.");
 		}
 	}

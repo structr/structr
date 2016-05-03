@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,8 +23,9 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.search.BooleanClause;
-import org.neo4j.helpers.Predicate;
+import org.structr.api.search.Occurrence;
+import org.structr.api.Predicate;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -84,7 +85,7 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 			this.relation  = relationClass.newInstance();
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 		this.notion    = notion;
@@ -102,8 +103,8 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	}
 
 	@Override
-	public Integer getSortType() {
-		return null;
+	public SortType getSortType() {
+		return SortType.Default;
 	}
 
 	@Override
@@ -127,7 +128,7 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	}
 
 	@Override
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		OneEndpoint<T> endpoint  = relation.getTarget();
 
@@ -202,11 +203,6 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 		// no indexing
 	}
 
-	@Override
-	public Object getValueForEmptyFields() {
-		return null;
-	}
-
 	// ----- interface RelationProperty -----
 	@Override
 	public Notion getNotion() {
@@ -224,7 +220,7 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, T searchValue, boolean exactMatch, final Query query) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, T searchValue, boolean exactMatch, final Query query) {
 
 		final Predicate<GraphObject> predicate    = query != null ? query.toPredicate() : null;
 		final SourceSearchAttribute attr          = new SourceSearchAttribute(occur);
@@ -237,7 +233,7 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 
 				switch (occur) {
 
-					case MUST:
+					case REQUIRED:
 
 						if (!alreadyAdded) {
 
@@ -254,11 +250,11 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 
 						break;
 
-					case SHOULD:
+					case OPTIONAL:
 						intersectionResult.addAll(getRelatedNodesReverse(securityContext, searchValue, declaringClass, predicate));
 						break;
 
-					case MUST_NOT:
+					case FORBIDDEN:
 						break;
 				}
 

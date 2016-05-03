@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -40,13 +41,16 @@ import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.index.Index;
-import org.neo4j.helpers.collection.LruMap;
+import org.structr.api.DatabaseService;
+import org.structr.api.graph.Direction;
+import org.structr.api.index.Index;
+import org.structr.api.NativeResult;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Path;
+import org.structr.api.Predicate;
+import org.structr.api.graph.PropertyContainer;
+import org.structr.api.graph.Relationship;
+import org.structr.api.graph.RelationshipType;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.common.CMISExtensionsData;
 import org.structr.cmis.common.StructrItemActions;
@@ -57,6 +61,8 @@ import org.structr.cmis.info.CMISPolicyInfo;
 import org.structr.cmis.info.CMISRelationshipInfo;
 import org.structr.cmis.info.CMISSecondaryInfo;
 import org.structr.common.AccessControllable;
+import org.structr.common.AccessPathCache;
+import org.structr.api.util.FixedSizeCache;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.IdSorter;
 import org.structr.common.Permission;
@@ -68,6 +74,7 @@ import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.InternalSystemPropertyToken;
 import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.GraphObject;
@@ -83,11 +90,12 @@ import org.structr.core.graph.NodeRelationshipStatisticsCommand;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.parser.Functions;
+import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -98,7 +106,7 @@ import org.structr.schema.action.ActionContext;
  */
 public abstract class AbstractNode implements NodeInterface, AccessControllable, CMISInfo, CMISItemInfo {
 
-	private static final Map<String, Object> relationshipTemplateInstanceCache = new LruMap<>(1000);
+	private static final FixedSizeCache<String, Object> relationshipTemplateInstanceCache = new FixedSizeCache<>(1000);
 	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
 
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type);
@@ -107,15 +115,17 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		id, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate
 	);
 
-	private RelationshipInterface relationshipPathSegment     = null;
+	public boolean internalSystemPropertiesUnlocked = false;
+
 	private PermissionResolutionMask permissionResolutionMask = null;
-	private boolean readOnlyPropertiesUnlocked = false;
-	private boolean isCreation                 = false;
+	private Relationship rawPathSegment                       = null;
+
+	private boolean readOnlyPropertiesUnlocked       = false;
+	private boolean isCreation                       = false;
 
 
 	protected SecurityContext securityContext = null;
 	protected Principal cachedOwnerNode       = null;
-	protected String cachedUuid               = null;
 	protected Class entityType                = null;
 	protected Node dbNode                     = null;
 
@@ -244,9 +254,20 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	 */
 	@Override
 	public void unlockReadOnlyPropertiesOnce() {
-
 		this.readOnlyPropertiesUnlocked = true;
+	}
 
+	/**
+	 * Can be used to permit the setting of a system property once. The
+	 * lock will be restored automatically after the next setProperty
+	 * operation. This method exists to prevent automatic set methods from
+	 * setting a system property while allowing a manual set method to
+	 * override this default behaviour.
+	 */
+	@Override
+	public void unlockSystemPropertiesOnce() {
+		this.internalSystemPropertiesUnlocked = true;
+		unlockReadOnlyPropertiesOnce();
 	}
 
 	@Override
@@ -274,10 +295,26 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 					// permit write operation once and
 					// lock read-only properties again
-					readOnlyPropertiesUnlocked = false;
+					internalSystemPropertiesUnlocked = false;
 				} else {
 
-					throw new FrameworkException(404, new ReadOnlyPropertyToken(getType(), key));
+					throw new FrameworkException(404, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getType(), key));
+				}
+
+			}
+
+			// check for system properties - cannot be overriden with super-user rights
+			if (key.isSystemInternal()) {
+
+				// allow super user to set read-only properties
+				if (internalSystemPropertiesUnlocked) {
+
+					// permit write operation once and
+					// lock read-only properties again
+					internalSystemPropertiesUnlocked = false;
+				} else {
+
+					throw new FrameworkException(404, "Property " + key.jsonName() + " is read-only", new InternalSystemPropertyToken(getType(), key));
 				}
 
 			}
@@ -344,13 +381,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	@Override
 	public String getUuid() {
-
-		if (cachedUuid == null) {
-			cachedUuid = getProperty(GraphObject.id);
-		}
-
-		return cachedUuid;
-
+		return getProperty(GraphObject.id);
 	}
 
 	public Long getNodeId() {
@@ -461,11 +492,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
-	public <T> T getProperty(final PropertyKey<T> key, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	public <T> T getProperty(final PropertyKey<T> key, final Predicate<GraphObject> predicate) {
 		return getProperty(key, true, predicate);
 	}
 
-	private <T> T getProperty(final PropertyKey<T> key, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	private <T> T getProperty(final PropertyKey<T> key, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		// early null check, this should not happen...
 		if (key == null || key.dbName() == null) {
@@ -532,13 +563,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 				} catch (Throwable t) {
 
-					t.printStackTrace();
-
 					logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[]{
 						key.dbName(),
 						getClass().getSimpleName(),
 						t.getMessage()
 					});
+
+					logger.log(Level.WARNING, "", t);
 				}
 			}
 
@@ -610,7 +641,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		final Direction direction = template.getDirectionForType(entityType);
 		final RelationshipType relType = template;
 
-		return new IterableAdapter<>(dbNode.getRelationships(relType, direction), factory);
+		return new IterableAdapter<>(dbNode.getRelationships(direction, relType), factory);
 	}
 
 	@Override
@@ -693,7 +724,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	 * @param dir
 	 * @return number of relationships
 	 */
-	public Map<RelationshipType, Long> getRelationshipInfo(final Direction dir) throws FrameworkException {
+	public Map<String, Long> getRelationshipInfo(final Direction dir) throws FrameworkException {
 		return StructrApp.getInstance(securityContext).command(NodeRelationshipStatisticsCommand.class).execute(this, dir);
 	}
 
@@ -775,16 +806,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	// ----- interface AccessControllable -----
-	private String indent(final String str, final int length) {
-
-		final StringBuilder buf = new StringBuilder("    ");
-
-		buf.append(StringUtils.leftPad("", length+1));
-		buf.append(str);
-
-		return buf.toString();
-	}
-
 	@Override
 	public boolean isGranted(final Permission permission, final SecurityContext context) {
 
@@ -876,135 +897,303 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		return false;
 	}
 
-	/**
+	private boolean hasEffectivePermissions(final Principal principal, final Permission permission) {
 
-	/**
-	 * Recursively traverses the graph, starting from the accessing user, to find
-	 * the effective permissions for this entity along the path of OWNS, SECURITY
-	 * and domain relationships with the PermissionPropagation marker interface.
-	 *
-	 * @param startNode
-	 * @param permission
-	 * @return
-	 */
-	private boolean hasEffectivePermissions(final NodeInterface startNode, final Permission permission) {
+		final boolean doLog = securityContext.hasParameter("debugLoggingEnabled");
 
-		final PermissionResolutionMask mask = new PermissionResolutionMask();
+		// don't check relationship propagation if there are no propagating relationships
+		if (SchemaRelationshipNode.getPropagatingRelationshipTypes().isEmpty()) {
+			return false;
+		}
 
-		if (hasEffectivePermissions(startNode, permission, mask, new HashSet<>())) {
+		if (doLog) {
+			System.out.println("\n#######################################################\nResolving " + permission.name() + " for user " + principal.getName() + " to " + this.getType() + " (" + this.getUuid() + ")");
+		}
 
-			// store permission resolution mask in this node
-			this.permissionResolutionMask = mask;
-			return true;
+		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
+		final RelationshipFactory relFactory   = new RelationshipFactory(superUserContext);
+		PermissionResolutionMask mask          = AccessPathCache.get(principal, this);
+
+		// current path segment has precedence over path based permission resolution mask
+		if (rawPathSegment != null) {
+
+			final boolean result = checkPathSegment(principal, permission, relFactory);
+
+			if (doLog) {
+
+				if (result) {
+
+					System.out.println("        " + permission.name() + " ALLOWED by path segment " + rawPathSegment.getType());
+
+				} else {
+
+					System.out.println("        " + permission.name() + " DENIED by path segment " + rawPathSegment.getType());
+				}
+			}
+
+			if (result) {
+				return true;
+			}
+		}
+
+		// use cached result only when it was already checked for the given permission
+		if (mask != null && mask.alreadyChecked(permission)) {
+
+			final boolean result = mask.allowsPermission(permission);
+
+			if (doLog) {
+				if (result) {
+
+					System.out.println("        " + permission.name() + " ALLOWED by cached mask " + mask);
+
+				} else {
+
+					System.out.println("        " + permission.name() + " DENIED by cached mask " + mask);
+				}
+			}
+
+			return result;
+		}
+
+		try {
+
+			if (mask == null) {
+
+				// store only a single mask for every node
+				mask = new PermissionResolutionMask();
+				AccessPathCache.put(principal, this, mask);
+
+				if (doLog) {
+					System.out.println("        Storing initial mask: " + mask);
+				}
+			}
+
+			// store all check attempts in the cache
+			mask.setChecked(permission);
+
+			final DatabaseService db         = StructrApp.getInstance().getDatabaseService();
+			final String relTypes            = getPermissionPropagationRelTypes();
+			final Map<String, Object> params = new HashMap<>();
+			final long principalId           = principal.getId();
+
+			params.put("id1", principalId);
+			params.put("id2", this.getId());
+
+			// FIXME: make fixed path length of 8 configurable
+			for (int i=1; i<10; i++) {
+
+				final String query        = "MATCH n, m, p = allShortestPaths(n-[" + relTypes + "*.." + i + "]-m) WHERE id(n) = {id1} AND id(m) = {id2} RETURN p";
+				final NativeResult result = db.execute(query, params);
+
+				while (result.hasNext()) {
+
+					final Map<String, Object> row = result.next();
+					final Path path               = (Path)row.get("p");
+					Node previousNode             = null;
+					boolean arrived               = true;
+
+					for (final PropertyContainer container : path) {
+
+						if (container instanceof Node) {
+
+							// store previous node to determine relationship direction
+							previousNode = (Node)container;
+							AccessPathCache.update(principal, this, previousNode);
+
+						} else {
+
+							final Relationship rel        = (Relationship)container;
+							final RelationshipInterface r = relFactory.instantiate(rel);
+
+							if (r instanceof PermissionPropagation) {
+
+								// update cache with relationship type
+								AccessPathCache.update(principal, this, rel);
+
+								final PermissionPropagation propagation                     = (PermissionPropagation)r;
+								final long startNodeId                                      = rel.getStartNode().getId();
+								final long thisId                                           = previousNode.getId();
+								final SchemaRelationshipNode.Direction relDirection         = thisId == startNodeId ? SchemaRelationshipNode.Direction.Out : SchemaRelationshipNode.Direction.In;
+								final SchemaRelationshipNode.Direction propagationDirection = propagation.getPropagationDirection();
+
+								// check propagation direction
+								if (!propagationDirection.equals(SchemaRelationshipNode.Direction.Both)) {
+
+									if (propagationDirection.equals(SchemaRelationshipNode.Direction.None)) {
+
+										mask.clear();
+										arrived = false;
+										break;
+									}
+
+									if (!relDirection.equals(propagationDirection)) {
+
+										mask.clear();
+										arrived = false;
+										break;
+									}
+								}
+
+								applyCurrentStep(propagation, mask);
+
+								// break early
+								if (!mask.allowsPermission(permission)) {
+
+									if (doLog) {
+										System.out.println("        " + permission.name() + " DENIED by " + path);
+									}
+
+									arrived = false;
+									break;
+								}
+
+							} else {
+
+								if (doLog) {
+									System.out.println("        " + permission.name() + " DENIED by " + path);
+								}
+
+								arrived = false;
+								break;
+							}
+						}
+					}
+
+
+					if (arrived && mask.allowsPermission(permission)) {
+
+						if (doLog) {
+							System.out.println("        " + permission.name() + " ALLOWED by " + path);
+							System.out.println("        Storing mask from path: " + mask);
+						}
+
+						AccessPathCache.put(principal, this, mask);
+
+						return true;
+					}
+				}
+			}
+
+		} catch (Throwable t) {
+			logger.log(Level.WARNING, "", t);
+		}
+
+		mask.setPermission(permission, false);
+		AccessPathCache.put(principal, this, mask);
+
+		if (doLog) {
+			System.out.println("        Storing mask from unsuccessful path: " + mask);
 		}
 
 		return false;
 	}
 
-	/**
-	 * Recursively traverses the graph, starting from the accessing user, to find
-	 * the effective permissions for this entity along the path of OWNS, SECURITY
-	 * and domain relationships with the PermissionPropagation marker interface.
-	 *
-	 * @param startNode
-	 * @param permission
-	 * @param effectivePermissions
-	 * @param visitedIds
-	 * @return
-	 */
-	private boolean hasEffectivePermissions(final NodeInterface startNode, final Permission permission, final PermissionResolutionMask mask, final Set<Long> visitedIds) {
+	private boolean checkPathSegment(final Principal principal, final Permission permission, final RelationshipFactory relFactory) {
 
-		// examine all relationships
-		for (final AbstractRelationship relationship : startNode.getRelationshipsAsSuperUser()) {
+		final boolean doLog = securityContext.hasParameter("debugLoggingEnabled");
+		final RelationshipInterface r = relFactory.instantiate(rawPathSegment);
+		if (r instanceof PermissionPropagation) {
 
-			final long relationshipId = relationship.getId();
+			final PermissionPropagation propagation                     = (PermissionPropagation)r;
+			final long startNodeId                                      = rawPathSegment.getStartNode().getId();
+			final long thisId                                           = getId();
+			final SchemaRelationshipNode.Direction relDirection         = thisId == startNodeId ? SchemaRelationshipNode.Direction.In : SchemaRelationshipNode.Direction.Out;
+			final SchemaRelationshipNode.Direction propagationDirection = propagation.getPropagationDirection();
+			final PermissionResolutionMask mask                         = new PermissionResolutionMask();
 
-			if (relationship != null && relationship instanceof PermissionPropagation && !visitedIds.contains(relationshipId)) {
+			// check propagation direction
+			if (!propagationDirection.equals(SchemaRelationshipNode.Direction.Both)) {
 
-				// prevent the recursive code from traversing over this relationship again
-				visitedIds.add(relationshipId);
-
-				final PermissionPropagation propagation                     = (PermissionPropagation)relationship;
-				final NodeInterface otherNode                               = relationship.getOtherNode(startNode);
-				final Relationship dbRelationship                           = relationship.getRelationship();
-				final long startNodeId                                      = dbRelationship.getStartNode().getId();
-				final long thisId                                           = startNode.getId();
-				final SchemaRelationshipNode.Direction relDirection         = thisId == startNodeId ? SchemaRelationshipNode.Direction.Out : SchemaRelationshipNode.Direction.In;
-				final SchemaRelationshipNode.Direction propagationDirection = propagation.getPropagationDirection();
-
-				// check propagation direction
-				if (!propagationDirection.equals(SchemaRelationshipNode.Direction.Both)) {
-
-					if (propagationDirection.equals(SchemaRelationshipNode.Direction.None)) {
-						continue;
-					}
-
-					if (!relDirection.equals(propagationDirection)) {
-						continue;
-					}
+				if (propagationDirection.equals(SchemaRelationshipNode.Direction.None)) {
+					return false;
 				}
 
-				// copy mask before altering it in order to be
-				// able to restore it when the next step is a dead end
-				final PermissionResolutionMask backup = mask.copy();
+				if (!relDirection.equals(propagationDirection)) {
+					return false;
+				}
+			}
 
-				// let this relationship modify the effective permissions
-				applyCurrentStep(propagation, mask);
+			// we can safely assume here that we arrived at this node with
+			// the read permission, because otherwise the node would not
+			// have been visible.
+			mask.setPermission(Permission.read, true);
 
-				// stop this path early if the effective permissions are empty
-				if (mask.isEmpty()) {
-					continue;
+			// apply current
+			applyCurrentStep(propagation, mask);
+
+			if (mask.allowsPermission(permission)) {
+
+				mask.setChecked(permission);
+				AccessPathCache.put(principal, this, mask);
+
+				if (doLog) {
+					System.out.println("Storing mask from path segment: " + mask);
 				}
 
-				// finish this path segment when the destination node is reached
-				if (otherNode.getId() == getId()) {
-
-					// examine effective permissions
-					if (mask.allowsPermission(permission)) {
-						return true;
-					}
-
-					// don't traverse further
-					continue;
-				}
-
-				// go deeper, but only if the desired permission is not already there
-				if (hasEffectivePermissions(otherNode, permission, mask, visitedIds)) {
-					return true;
-				}
-
-				// restore mask so that an invalid step does not alter it
-				mask.restore(backup);
+				return true;
 			}
 		}
 
-		// worst case: we examined the whole subgraph.. :(
 		return false;
 	}
 
 	private void applyCurrentStep(final PermissionPropagation rel, PermissionResolutionMask mask) {
 
+		final boolean doLog = securityContext.hasParameter("debugLoggingEnabled");
+
 		switch (rel.getReadPropagation()) {
-			case Add:    mask.addRead(); break;
-			case Remove: mask.removeRead(); break;
+			case Add:
+				mask.addRead();
+				if (doLog) { System.out.println("                add read"); }
+				break;
+
+			case Remove:
+				mask.removeRead();
+				if (doLog) { System.out.println("                remove read"); }
+				break;
+
 			default: break;
 		}
 
 		switch (rel.getWritePropagation()) {
-			case Add:    mask.addWrite(); break;
-			case Remove: mask.removeWrite(); break;
+			case Add:
+				mask.addWrite();
+				if (doLog) { System.out.println("                add write"); }
+				break;
+
+			case Remove:
+				mask.removeWrite();
+				if (doLog) { System.out.println("                remove write"); }
+				break;
+
 			default: break;
 		}
 
 		switch (rel.getDeletePropagation()) {
-			case Add:    mask.addDelete(); break;
-			case Remove: mask.removeDelete(); break;
+			case Add:
+				mask.addDelete();
+				if (doLog) { System.out.println("                add delete"); }
+				break;
+
+			case Remove:
+				mask.removeDelete();
+				if (doLog) { System.out.println("                remove delete"); }
+				break;
+
 			default: break;
 		}
 
 		switch (rel.getAccessControlPropagation()) {
-			case Add:    mask.addAccessControl(); break;
-			case Remove: mask.removeAccessControl(); break;
+			case Add:
+				mask.addAccessControl();
+				if (doLog) { System.out.println("                add accessControl"); }
+				break;
+
+			case Remove:
+				mask.removeAccessControl();
+				if (doLog) { System.out.println("                remove accessControl"); }
+				break;
+
 			default: break;
 		}
 
@@ -1194,32 +1383,29 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	@Override
 	public <T> Object setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
 
-		try {
+		// allow setting of ID without permissions
+		if (!key.equals(GraphObject.id)) {
 
-			// allow setting of ID without permissions
-			if (!key.equals(GraphObject.id)) {
+			if (!isGranted(Permission.write, securityContext)) {
 
-				if (!isGranted(Permission.write, securityContext)) {
-					throw new FrameworkException(403, "Modification not permitted.");
-				}
+				internalSystemPropertiesUnlocked = false;
+				readOnlyPropertiesUnlocked       = false;
+
+				throw new FrameworkException(403, "Modification not permitted.");
 			}
+		}
 
-			T oldValue = getProperty(key);
+		T oldValue = getProperty(key);
 
-			// no old value exists  OR  old value exists and is NOT equal => set property
-			if ( ((oldValue == null) && (value != null)) || ((oldValue != null) && !oldValue.equals(value)) ) {
+		// no old value exists  OR  old value exists and is NOT equal => set property
+		if ( ((oldValue == null) && (value != null)) || ((oldValue != null) && (!oldValue.equals(value)) || (key instanceof FunctionProperty)) ) {
 
-				return setPropertyInternal(key, value);
-
-			}
-
-		} finally {
-
-			// unconditionally lock read-only properties after every write (attempt) to avoid security problems
-			// since we made "unlock_readonly_properties_once" available through scripting
-			this.readOnlyPropertiesUnlocked = false;
+			return setPropertyInternal(key, value);
 
 		}
+
+		internalSystemPropertiesUnlocked = false;
+		readOnlyPropertiesUnlocked       = false;
 
 		return null;
 	}
@@ -1230,22 +1416,39 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 			logger.log(Level.SEVERE, "Tried to set property with null key (action was denied)");
 
-			throw new FrameworkException(422, new NullArgumentToken(getClass().getSimpleName(), base));
+			throw new FrameworkException(422, "Tried to set property with null key (action was denied)", new NullArgumentToken(getClass().getSimpleName(), base));
 
 		}
 
-		// check for read-only properties
-		if (key.isReadOnly() || (key.isWriteOnce() && (dbNode != null) && dbNode.hasProperty(key.dbName()))) {
+		try {
+			if (dbNode != null && dbNode.hasProperty(key.dbName())) {
 
-			if (!readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
+				// check for system properties
+				if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
 
-				throw new FrameworkException(422, new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
+					throw new FrameworkException(422, "Property " + key.jsonName() + " is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key));
+
+				}
+
+				// check for read-only properties
+				if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
+
+					throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
+
+				}
 
 			}
 
+			return key.setProperty(securityContext, this, value);
+
+		} finally {
+
+			// unconditionally lock read-only properties after every write (attempt) to avoid security problems
+			// since we made "unlock_readonly_properties_once" available through scripting
+			internalSystemPropertiesUnlocked = false;
+			readOnlyPropertiesUnlocked       = false;
 		}
 
-		return key.setProperty(securityContext, this, value);
 	}
 
 	@Override
@@ -1259,6 +1462,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			}
 		}
 	}
+
 
 	@Override
 	public void updateInIndex() {
@@ -1309,7 +1513,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				// TODO: throw meaningful exception here,
 				// should be a RuntimeException that indicates
 				// wrong use of Relationships etc.
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 		}
 
@@ -1330,7 +1534,14 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				return getOwnerNode();
 
 			case "_path":
-				return relationshipPathSegment;
+				if (rawPathSegment != null) {
+
+					return new RelationshipFactory<>(securityContext).adapt(rawPathSegment);
+
+				} else {
+
+					return null;
+				}
 
 			default:
 
@@ -1346,7 +1557,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 					return value;
 				}
 
-				return Functions.numberOrString(defaultValue);
+				return Function.numberOrString(defaultValue);
 		}
 	}
 
@@ -1378,9 +1589,9 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 				} else {
 
-					t.printStackTrace();
-
 					logger.log(Level.FINE, "Unable to invoke method {0}: {1}", new Object[]{methodName, t.getMessage()});
+					logger.log(Level.WARNING, "", t);
+
 				}
 			}
 		}
@@ -1527,13 +1738,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
-	public void setRelationshipPathSegment(final RelationshipInterface pathSegment) {
-		this.relationshipPathSegment = pathSegment;
+	public void setRawPathSegment(final Relationship rawPathSegment) {
+		this.rawPathSegment = rawPathSegment;
 	}
 
 	@Override
-	public RelationshipInterface getRelationshipPathSegment() {
-		return relationshipPathSegment;
+	public Relationship getRawPathSegment() {
+		return rawPathSegment;
 	}
 
 	public void revokeAll() throws FrameworkException {
@@ -1552,6 +1763,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	@Override
 	public PermissionResolutionMask getPermissionResolutionMask() {
 		return permissionResolutionMask;
+	}
+
+	private String getPermissionPropagationRelTypes() {
+		return ":" + StringUtils.join(SchemaRelationshipNode.getPropagatingRelationshipTypes(), "|");
 	}
 
 	// ----- Cloud synchronization and replication -----

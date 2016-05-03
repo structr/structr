@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,7 +23,6 @@ import java.util.List;
 
 /**
 *
-* @author Dennis Laske
 */
 public class JsonSingleInput implements IJsonInput {
 

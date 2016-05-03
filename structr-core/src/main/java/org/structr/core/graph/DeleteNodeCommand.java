@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,10 +29,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.NotFoundException;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.util.LogMessageSupplier;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -68,6 +68,8 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 		} catch (java.lang.IllegalStateException ise) {
 			logger.log(Level.WARNING, "Trying to delete a node which is already deleted", ise.getMessage());
 			return null;
+		} catch (org.structr.api.NotFoundException nfex) {
+			// exception can be ignored, node is already deleted
 		}
 
 		deletedNodes.add(node);
@@ -129,18 +131,13 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 			// deletion callback, must not prevent node deletion!
 			node.onNodeDeletion();
 
-			try {
-				// Delete any relationship (this is PASSIVE DELETION)
-				for (AbstractRelationship r : node.getRelationships()) {
+			// Delete any relationship (this is PASSIVE DELETION)
+			for (AbstractRelationship r : node.getRelationships()) {
 
-					if (r != null) {
+				if (r != null) {
 
-						app.delete(r);
-					}
+					app.delete(r);
 				}
-
-			} catch (NotFoundException nfex) {
-				// ignore, we cannot do anything about it..
 			}
 
 			// remove node from index
@@ -169,7 +166,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Exception while deleting node: {0}", t);
+			logger.log(Level.WARNING, t, LogMessageSupplier.create("Exception while deleting node: {0}", node));
 
 		}
 

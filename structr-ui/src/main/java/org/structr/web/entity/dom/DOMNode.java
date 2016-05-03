@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,97 +18,67 @@
  */
 package org.structr.web.entity.dom;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
-import org.apache.commons.httpclient.auth.AuthScope;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.HeadMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
-import org.apache.commons.httpclient.params.HttpClientParams;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.Relationship;
+import org.structr.api.DatabaseService;
+import org.structr.api.Predicate;
+import org.structr.api.graph.Direction;
+import org.structr.api.graph.Relationship;
+import org.structr.api.graph.RelationshipType;
+import org.structr.api.search.SortType;
+import org.structr.common.Filter;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import static org.structr.core.GraphObject.id;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.Predicate;
-import org.structr.core.Result;
-import org.structr.core.StaticValue;
-import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.parser.Functions;
-import static org.structr.core.parser.Functions.ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE;
-import static org.structr.core.parser.Functions.ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS;
-import static org.structr.core.parser.Functions.arrayHasMinLengthAndAllElementsNotNull;
+import org.structr.core.property.AbstractReadOnlyProperty;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
+import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.GenericProperty;
-import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
-import org.structr.rest.logging.entity.LogEvent;
-import org.structr.rest.serialization.StreamingJsonWriter;
-import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
+import org.structr.function.*;
 import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
-import org.structr.web.common.microformat.MicroformatParser;
 import org.structr.web.datasource.CypherGraphDataSource;
 import org.structr.web.datasource.FunctionDataSource;
 import org.structr.web.datasource.IdRequestParameterGraphDataSource;
 import org.structr.web.datasource.NodeGraphDataSource;
 import org.structr.web.datasource.RestDataSource;
 import org.structr.web.datasource.XPathGraphDataSource;
-import org.structr.web.entity.FileBase;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Renderable;
-import static org.structr.web.entity.dom.DOMNode.dataKey;
-import static org.structr.web.entity.dom.DOMNode.ownerDocument;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.dom.relationship.DOMSiblings;
 import org.structr.web.entity.relation.PageLink;
@@ -131,45 +101,20 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	private static final Logger logger = Logger.getLogger(DOMNode.class.getName());
 
 	// ----- error messages for DOMExceptions -----
-	protected static final String NO_MODIFICATION_ALLOWED_MESSAGE = "Permission denied.";
-	protected static final String INVALID_ACCESS_ERR_MESSAGE = "Permission denied.";
-	protected static final String INDEX_SIZE_ERR_MESSAGE = "Index out of range.";
-	protected static final String CANNOT_SPLIT_TEXT_WITHOUT_PARENT = "Cannot split text element without parent and/or owner document.";
-	protected static final String WRONG_DOCUMENT_ERR_MESSAGE = "Node does not belong to this document.";
+	protected static final String NO_MODIFICATION_ALLOWED_MESSAGE         = "Permission denied.";
+	protected static final String INVALID_ACCESS_ERR_MESSAGE              = "Permission denied.";
+	protected static final String INDEX_SIZE_ERR_MESSAGE                  = "Index out of range.";
+	protected static final String CANNOT_SPLIT_TEXT_WITHOUT_PARENT        = "Cannot split text element without parent and/or owner document.";
+	protected static final String WRONG_DOCUMENT_ERR_MESSAGE              = "Node does not belong to this document.";
 	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_SAME_NODE = "A node cannot accept itself as a child.";
-	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_ANCESTOR = "A node cannot accept its own ancestor as child.";
-	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_DOCUMENT = "A document may only have one html element.";
-	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT = "A document may only accept an html element as its document element.";
-	protected static final String NOT_SUPPORTED_ERR_MESSAGE = "Node type not supported.";
-	protected static final String NOT_FOUND_ERR_MESSAGE = "Node is not a child.";
-	protected static final String NOT_SUPPORTED_ERR_MESSAGE_IMPORT_DOC = "Document nodes cannot be imported into another document.";
-	protected static final String NOT_SUPPORTED_ERR_MESSAGE_ADOPT_DOC = "Document nodes cannot be adopted by another document.";
-	protected static final String NOT_SUPPORTED_ERR_MESSAGE_RENAME = "Renaming of nodes is not supported by this implementation.";
-
-	// ----- usage messages for DOMNode functions -----
-	public static final String ERROR_MESSAGE_MD5 = "";
-	public static final String ERROR_MESSAGE_RENDER     = "Usage: ${render(node)} or ${render(nodes)}. Example: ${render(get(this, \"children\"))}";
-	public static final String ERROR_MESSAGE_RENDER_JS  = "Usage: ${{Structr.render(node)}} or ${{Structr.render(nodes)}}. Example: ${{Structr.render(Structr.get('this').children)}}";
-	public static final String ERROR_MESSAGE_INCLUDE    = "Usage: ${include(name)}. Example: ${include(\"Main Template\")}";
-	public static final String ERROR_MESSAGE_INCLUDE_JS = "Usage: ${{Structr.include(name)}}. Example: ${{Structr.include(\"Main Template\")}}";
-	public static final String ERROR_MESSAGE_STRIP_HTML    = "Usage: ${strip_html(html)}. Example: ${strip_html(\"<p>foo</p>\")}";
-	public static final String ERROR_MESSAGE_STRIP_HTML_JS = "Usage: ${{Structr.strip_html(html)}}. Example: ${{Structr.strip_html(\"<p>foo</p>\")}}";
-	public static final String ERROR_MESSAGE_POST    = "Usage: ${POST(URL, body [, contentType, charset])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:Test}', 'application/json', 'utf-8')}";;
-	public static final String ERROR_MESSAGE_POST_JS = "Usage: ${{Structr.POST(URL, body [, contentType, charset])}}. Example: ${{Structr.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'utf-8')}}";;
-	public static final String ERROR_MESSAGE_GET    = "Usage: ${GET(URL[, contentType[, selector]])}. Example: ${GET('http://structr.org', 'text/html')}";
-	public static final String ERROR_MESSAGE_GET_JS = "Usage: ${{Structr.GET(URL[, contentType[, selector]])}}. Example: ${{Structr.HEAD('http://structr.org', 'text/html')}}";
-	public static final String ERROR_MESSAGE_HEAD   = "Usage: ${HEAD(URL[, username, password])}. Example: ${HEAD('http://structr.org', 'foo', 'bar')}";
-	public static final String ERROR_MESSAGE_HEAD_JS = "Usage: ${{Structr.HEAD(URL[, username, password]])}}. Example: ${{Structr.HEAD('http://structr.org', 'foo', 'bar')}}";
-	public static final String ERROR_MESSAGE_PARSE    = "Usage: ${parse(URL, selector)}. Example: ${parse('http://structr.org', 'li.data')}";
-	public static final String ERROR_MESSAGE_PARSE_JS = "Usage: ${{Structr.parse(URL, selector)}}. Example: ${{Structr.parse('http://structr.org', 'li.data')}}";
-	public static final String ERROR_MESSAGE_TO_JSON    = "Usage: ${to_json(obj [, view])}. Example: ${to_json(this)}";
-	public static final String ERROR_MESSAGE_TO_JSON_JS = "Usage: ${{Structr.to_json(obj [, view])}}. Example: ${{Structr.to_json(Structr.get('this'))}}";
-	public static final String ERROR_MESSAGE_FROM_JSON    = "Usage: ${from_json(src)}. Example: ${from_json('{name:test}')}";
-	public static final String ERROR_MESSAGE_FROM_JSON_JS = "Usage: ${{Structr.from_json(src)}}. Example: ${{Structr.from_json('{name:test}')}}";
-	public static final String ERROR_MESSAGE_ADD_HEADER    = "Usage: ${add_header(field, value)}. Example: ${add_header('X-User', 'johndoe')}";
-	public static final String ERROR_MESSAGE_ADD_HEADER_JS = "Usage: ${{Structr.add_header(field, value)}}. Example: ${{Structr.add_header('X-User', 'johndoe')}}";
-	public static final String ERROR_MESSAGE_IS_LOCALE = "Usage: ${is_locale(locales...)}";
-	public static final String ERROR_MESSAGE_IS_LOCALE_JS = "Usage: ${{Structr.isLocale(locales...}}. Example ${{Structr.isLocale('de_DE', 'de_AT', 'de_CH')}}";
+	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_ANCESTOR  = "A node cannot accept its own ancestor as child.";
+	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_DOCUMENT  = "A document may only have one html element.";
+	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT   = "A document may only accept an html element as its document element.";
+	protected static final String NOT_SUPPORTED_ERR_MESSAGE               = "Node type not supported.";
+	protected static final String NOT_FOUND_ERR_MESSAGE                   = "Node is not a child.";
+	protected static final String NOT_SUPPORTED_ERR_MESSAGE_IMPORT_DOC    = "Document nodes cannot be imported into another document.";
+	protected static final String NOT_SUPPORTED_ERR_MESSAGE_ADOPT_DOC     = "Document nodes cannot be adopted by another document.";
+	protected static final String NOT_SUPPORTED_ERR_MESSAGE_RENAME        = "Renaming of nodes is not supported by this implementation.";
 
 	private static final List<GraphDataSource<List<GraphObject>>> listSources = new LinkedList<>();
 	private Page cachedOwnerDocument;
@@ -184,822 +129,63 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		listSources.add(new CypherGraphDataSource());
 		listSources.add(new XPathGraphDataSource());
 	}
-	public static final Property<String> dataKey          = new StringProperty("dataKey").indexed();
-	public static final Property<String> cypherQuery      = new StringProperty("cypherQuery");
-	public static final Property<String> xpathQuery       = new StringProperty("xpathQuery");
-	public static final Property<String> restQuery        = new StringProperty("restQuery");
-	public static final Property<String> functionQuery    = new StringProperty("functionQuery");
-	public static final Property<Boolean> renderDetails   = new BooleanProperty("renderDetails");
-
+	public static final Property<String> dataKey = new StringProperty("dataKey").indexed();
+	public static final Property<String> cypherQuery = new StringProperty("cypherQuery");
+	public static final Property<String> xpathQuery = new StringProperty("xpathQuery");
+	public static final Property<String> restQuery = new StringProperty("restQuery");
+	public static final Property<String> functionQuery = new StringProperty("functionQuery");
+	public static final Property<Boolean> renderDetails = new BooleanProperty("renderDetails");
 
 	public static final Property<List<DOMNode>> syncedNodes = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id));
-	public static final Property<DOMNode> sharedComponent   = new StartNode("sharedComponent", Sync.class, new PropertyNotion(id));
+	public static final Property<DOMNode> sharedComponent = new StartNode("sharedComponent", Sync.class, new PropertyNotion(id));
 
-	public static final Property<Boolean> hideOnIndex   = new BooleanProperty("hideOnIndex").indexed();
-	public static final Property<Boolean> hideOnDetail  = new BooleanProperty("hideOnDetail").indexed();
+	public static final Property<Boolean> hideOnIndex = new BooleanProperty("hideOnIndex").indexed();
+	public static final Property<Boolean> hideOnDetail = new BooleanProperty("hideOnDetail").indexed();
 	public static final Property<String> showForLocales = new StringProperty("showForLocales").indexed();
 	public static final Property<String> hideForLocales = new StringProperty("hideForLocales").indexed();
 	public static final Property<String> showConditions = new StringProperty("showConditions").indexed();
 	public static final Property<String> hideConditions = new StringProperty("hideConditions").indexed();
 
-	public static final Property<DOMNode> parent           = new StartNode<>("parent", DOMChildren.class);
-	public static final Property<String> parentId          = new EntityIdProperty("parentId", parent);
-	public static final Property<List<DOMNode>> children   = new EndNodes<>("children", DOMChildren.class);
+	public static final Property<DOMNode> parent = new StartNode<>("parent", DOMChildren.class);
+	public static final Property<String> parentId = new EntityIdProperty("parentId", parent);
+	public static final Property<List<DOMNode>> children = new EndNodes<>("children", DOMChildren.class);
 	public static final Property<List<String>> childrenIds = new CollectionIdProperty("childrenIds", children);
-	public static final Property<DOMNode> previousSibling  = new StartNode<>("previousSibling", DOMSiblings.class);
-	public static final Property<DOMNode> nextSibling      = new EndNode<>("nextSibling", DOMSiblings.class);
-	public static final Property<String> nextSiblingId     = new EntityIdProperty("nextSiblingId", nextSibling);
-
+	public static final Property<DOMNode> previousSibling = new StartNode<>("previousSibling", DOMSiblings.class);
+	public static final Property<DOMNode> nextSibling = new EndNode<>("nextSibling", DOMSiblings.class);
+	public static final Property<String> nextSiblingId = new EntityIdProperty("nextSiblingId", nextSibling);
 
 	public static final Property<Page> ownerDocument = new EndNode<>("ownerDocument", PageLink.class);
-	public static final Property<String> pageId      = new EntityIdProperty("pageId", ownerDocument);
-	public static final Property<Boolean> isDOMNode  = new BooleanProperty("isDOMNode").defaultValue(true).readOnly();
+	public static final Property<String> pageId = new EntityIdProperty("pageId", ownerDocument);
+	public static final Property<Boolean> isDOMNode = new ConstantBooleanProperty("isDOMNode", true);
 
 	public static final Property<String> dataStructrIdProperty = new StringProperty("data-structr-id");
 	public static final Property<String> dataHashProperty = new StringProperty("data-structr-hash");
 
+	public static final Property<List<String>> mostUsedTagsProperty = new MostUsedTagsProperty("mostUsedTags");
+
 	static {
 
 		// extend set of builtin functions
-		Functions.functions.put("render", new Function<Object, Object>() {
-
-			@Override
-			public String getName() {
-				return "render()";
-			}
-
-			@Override
-			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
-
-				if (sources != null && sources.length == 1) {
-
-					RenderContext innerCtx = new RenderContext((RenderContext) ctx);
-
-					if (sources[0] instanceof DOMNode) {
-
-						((DOMNode) sources[0]).render(innerCtx, 0);
-
-					} else if (sources[0] instanceof Collection) {
-
-						for (final Object obj : (Collection) sources[0]) {
-
-							if (obj instanceof DOMNode) {
-								((DOMNode) obj).render(innerCtx, 0);
-							}
-
-						}
-
-					}
-
-					return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
-				}
-
-				return usage(ctx.isJavaScriptContext());
-			}
-
-			@Override
-			public String usage(boolean inJavaScriptContext) {
-				return (inJavaScriptContext ? ERROR_MESSAGE_RENDER_JS : ERROR_MESSAGE_RENDER);
-			}
-
-			@Override
-			public String shortDescription() {
-				return "Renders the children of the current node";
-			}
-		});
-
-		/**
-		 * Convenience method to render named nodes.
-		 * If more than one node is found, an error message is returned that informs the user that this
-		 * is not allowed and can result in unexpected behavior (instead of including the node).
-		 */
-		Functions.functions.put("include", new Function<Object, Object>() {
-
-			@Override
-			public String getName() {
-				return "include()";
-			}
-
-			@Override
-			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
-
-				if (Functions.arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String) {
-
-					final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
-					final App app                         = StructrApp.getInstance(securityContext);
-					final RenderContext innerCtx          = new RenderContext((RenderContext) ctx);
-					final List<DOMNode> nodeList          = app.nodeQuery(DOMNode.class).andName((String) sources[0]).getAsList();
-
-					DOMNode node = null;
-
-					/**
-					 * Nodes can be included via their name property
-					 * These nodes MUST:
-					 * 1. be unique in name
-					 * 2. NOT be in the trash => have an ownerDocument AND a parent   (public users are not allowed to see the __ShadowDocument__ ==> this check must either be made in a superuser-context OR the __ShadowDocument could be made public?)
-					 *
-					 * These nodes can be:
-					 * 1. somewhere in the pages tree
-					 * 2. in the shared components
-					 * 3. both  ==> causes a problem because we now have multiple nodes with the same name (one shared component and multiple linking instances of that component)
-					 *
-					 * INFOS:
-					 *
-					 * - If a DOMNode has "syncedNodes" it MUST BE a shared component
-					 * - If a DOMNodes "sharedComponent" is set it MUST BE AN INSTANCE of a shared component      => Can we safely ignore these? I THINK SO!
-					 */
-
-					for (final DOMNode n : nodeList) {
-
-						// Ignore nodes in trash
-						if (n.getProperty(DOMNode.parent) == null && n.getOwnerDocumentAsSuperUser() == null) {
-							continue;
-						}
-
-						// IGNORE everything that REFERENCES a shared component!
-						if (n.getProperty(DOMNode.sharedComponent) == null) {
-
-							// the DOMNode is either a shared component OR a named node in the pages tree
-							if (node == null) {
-
-								node = n;
-
-							} else {
-
-								// ERROR: we have found multiple DOMNodes with the same name
-								// TODO: Do we need to remove the nodes from the nodeList which can be ignored? (references to a shared component)
-								return "Ambiguous node name \"" + ((String) sources[0]) + "\" (nodes found: " + StringUtils.join(nodeList, ", ") + ")";
-
-							}
-
-						}
-
-					}
-
-
-					if (node != null) {
-
-						node.render(innerCtx, 0);
-
-					} else {
-
-						final FileBase file = app.nodeQuery(FileBase.class).andName((String) sources[0]).getFirst();
-
-						if (file != null) {
-
-							final String name = file.getProperty(NodeInterface.name);
-							final String contentType = file.getProperty(FileBase.contentType);
-							final String charset = StringUtils.substringAfterLast(contentType, "charset=");
-							final String extension = StringUtils.substringAfterLast(name, ".");
-
-							if (contentType == null || StringUtils.isBlank(extension)) {
-
-								return "No valid file type detected. Please make sure " + name + " has a valid content type set or file extension.";
-
-							}
-
-							if (contentType.startsWith("text/css")) {
-
-								return "<link href=\"" + file.getPath() + "\" rel=\"stylesheet\">";
-
-							} else if (contentType.contains("/javascript")) {
-
-								return "<script src=\"" + file.getPath() + "\"></script>";
-
-							} else if (contentType.startsWith("image/svg")) {
-
-								try {
-									final byte[] buffer = new byte[file.getSize().intValue()];
-									IOUtils.read(file.getInputStream(), buffer);
-									return StringUtils.toEncodedString(buffer, Charset.forName(charset));
-								} catch (IOException ex) {
-									logger.log(Level.SEVERE, null, ex);
-								}
-
-								return "<img alt=\"" + name + "\" src=\"" + file.getPath() + "\">";
-
-							} else if (contentType.startsWith("image/")) {
-
-								return "<img alt=\"" + name + "\" src=\"" + file.getPath() + "\">";
-
-							} else {
-
-								return "Don't know how to render content type or extension of  " + name + ".";
-
-							}
-
-						}
-
-					}
-
-					return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
-				}
-
-				return usage(ctx.isJavaScriptContext());
-			}
-			@Override
-			public String usage(boolean inJavaScriptContext) {
-				return (inJavaScriptContext ? ERROR_MESSAGE_INCLUDE_JS : ERROR_MESSAGE_INCLUDE);
-			}
-
-			@Override
-			public String shortDescription() {
-				return "Includes the content of the node with the given name";
-			}
-		});
-
-		Functions.functions.put("strip_html", new Function<Object, Object>() {
-
-			@Override
-			public String getName() {
-				return "strip_html()";
-			}
-
-			@Override
-			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
-
-				return (Functions.arrayHasMinLengthAndAllElementsNotNull(sources, 1))
-					? sources[0].toString().replaceAll("\\<.*?>","")
-					: "";
-
-			}
-
-			@Override
-			public String usage(boolean inJavaScriptContext) {
-				return (inJavaScriptContext ? ERROR_MESSAGE_STRIP_HTML_JS : ERROR_MESSAGE_STRIP_HTML);
-			}
-
-			@Override
-			public String shortDescription() {
-				return "";
-			}
-
-		});
-
-		Functions.functions.put("POST", new Function<Object, Object>() {
-
-			@Override
-			public String getName() {
-				return "POST()";
-			}
-
-			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
-
-				if (Functions.arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
-
-					final String uri    = sources[0].toString();
-					final String body   = sources[1].toString();
-					String contentType  = "application/json";
-					String charset      = "utf-8";
-
-					// override default content type
-					if (sources.length >= 3 && sources[2] != null) {
-						contentType = sources[2].toString();
-					}
-
-					// override default content type
-					if (sources.length >= 4 && sources[3] != null) {
-						charset = sources[3].toString();
-					}
-
-					final HttpClientParams params = new HttpClientParams(HttpClientParams.getDefaultParams());
-					final HttpClient client       = new HttpClient(params);
-					final PostMethod postMethod   = new PostMethod(uri);
-
-					// add request headers from context
-					for (final Entry<String, String> header : ctx.getHeaders().entrySet()) {
-						postMethod.addRequestHeader(header.getKey(), header.getValue());
-					}
-
-					try {
-
-						postMethod.setRequestEntity(new StringRequestEntity(body, contentType, charset));
-
-						final int statusCode      = client.executeMethod(postMethod);
-						final String responseBody = postMethod.getResponseBodyAsString();
-
-						final GraphObjectMap response = new GraphObjectMap();
-
-						if ("application/json".equals(contentType)) {
-
-							response.setProperty(new StringProperty("body"), Functions.functions.get("from_json").apply(ctx, entity, new Object[] { responseBody }));
-
-						} else {
-
-							response.setProperty(new StringProperty("body"), responseBody);
-
-						}
-
-						response.setProperty(new IntProperty("status"), statusCode);
-						response.setProperty(new StringProperty("headers"), extractHeaders(postMethod.getResponseHeaders()));
-
-						return response;
-
-					} catch (IOException ioex) {
-						ioex.printStackTrace();
-					}
-
-				} else {
-
-					return usage(ctx.isJavaScriptContext());
-				}
-
-				return null;
-			}
-
-			@Override
-			public String usage(boolean inJavaScriptContext) {
-				return (inJavaScriptContext ? ERROR_MESSAGE_POST_JS : ERROR_MESSAGE_POST);
-			}
-
-			@Override
-			public String shortDescription() {
-				return "Sends an HTTP POST request to the given URL and returns the response body";
-			}
-		});
-
-		Functions.functions.put("GET", new Function<Object, Object>() {
-
-			@Override
-			public String getName() {
-				return "GET()";
-			}
-
-			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
-
-				if (sources != null && sources.length > 0) {
-
-					try {
-
-						String address = sources[0].toString();
-						String contentType = null;
-						String username    = null;
-						String password    = null;
-
-						if (sources.length > 1) {
-							contentType = sources[1].toString();
-						}
-
-						if (sources.length > 2) {
-							username = sources[2].toString();
-						}
-
-						if (sources.length > 3) {
-							password = sources[3].toString();
-						}
-
-						//long t0 = System.currentTimeMillis();
-						if ("text/html".equals(contentType)) {
-
-							final Connection connection = Jsoup.connect(address);
-
-							// add request headers from context
-							for (final Entry<String, String> header : ctx.getHeaders().entrySet()) {
-								connection.header(header.getKey(), header.getValue());
-							}
-
-							if (sources.length > 2) {
-
-								return connection.get().select(sources[2].toString()).html();
-
-							} else {
-
-								return connection.get().html();
-							}
-
-						} else {
-
-							return getFromUrl(ctx, address, username, password);
-						}
-
-					} catch (Throwable t) {
-						t.printStackTrace();
-					}
-
-					return "";
-				}
-
-				return usage(ctx.isJavaScriptContext());
-			}
-
-			@Override
-			public String usage(boolean inJavaScriptContext) {
-				return (inJavaScriptContext ? ERROR_MESSAGE_GET_JS : ERROR_MESSAGE_GET);
-			}
-
-			@Override
-			public String shortDescription() {
-				return "Sends an HTTP GET request to the given URL and returns the response headers and body";
-			}
-		});
-
-		Functions.functions.put("HEAD", new Function<Object, Object>() {
-
-			@Override
-			public String getName() {
-				return "HEAD()";
-			}
-
-			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
-
-				if (sources != null && sources.length > 0) {
-
-					try {
-
-						String address = sources[0].toString();
-						String username    = null;
-						String password    = null;
-
-						if (sources.length > 1) {
-							username = sources[1].toString();
-						}
-
-						if (sources.length > 2) {
-							password = sources[2].toString();
-						}
-
-						return headFromUrl(ctx, address, username, password);
-
-					} catch (Throwable t) {
-						t.printStackTrace();
-					}
-
-					return "";
-				}
-
-				return usage(ctx.isJavaScriptContext());
-			}
-
-			@Override
-			public String usage(boolean inJavaScriptContext) {
-				return (inJavaScriptContext ? ERROR_MESSAGE_HEAD_JS : ERROR_MESSAGE_HEAD);
-			}
-
-			@Override
-			public String shortDescription() {
-				return "Sends an HTTP HEAD request to the given URL and returns the response headers";
-			}
-		});
-
-		Functions.functions.put("parse", new Function<Object, Object>() {
-
-			@Override
-			public String getName() {
-				return "parse()";
-			}
-
-			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
-
-				if (sources != null && sources.length > 1) {
-
-					try {
-
-						final String source                     = sources[0].toString();
-						final String selector                   = sources[1].toString();
-						final List<Map<String, Object>> objects = new MicroformatParser().parse(source, selector);
-						final List<GraphObjectMap> elements     = new LinkedList<>();
-
-						for (final Map<String, Object> map : objects) {
-
-							final GraphObjectMap obj = new GraphObjectMap();
-							elements.add(obj);
-
-							Functions.recursivelyConvertMapToGraphObjectMap(obj, map, 0);
-						}
-
-						return elements;
-
-					} catch (Throwable t) {
-						t.printStackTrace();
-					}
-
-					return "";
-				}
-
-				return usage(ctx.isJavaScriptContext());
-			}
-
-			@Override
-			public String usage(boolean inJavaScriptContext) {
-				return (inJavaScriptContext ? ERROR_MESSAGE_PARSE_JS : ERROR_MESSAGE_PARSE);
-			}
-
-			@Override
-			public String shortDescription() {
-				return "Parses the given string and returns an object";
-			}
-		});
-
-		Functions.functions.put("to_json", new Function<Object, Object>() {
-
-			@Override
-			public String getName() {
-				return "to_json()";
-			}
-
-			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
-
-				if (sources != null && sources.length > 0) {
-
-					final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
-
-					if (sources[0] instanceof GraphObject) {
-
-						try {
-
-							final Value<String> view = new StaticValue<>("public");
-							if (sources.length > 1) {
-
-								view.set(securityContext, sources[1].toString());
-							}
-
-							int outputDepth = 3;
-							if (sources.length > 2) {
-
-								if (sources[2] instanceof Number) {
-									outputDepth = ((Number)sources[2]).intValue();
-								}
-							}
-
-							final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth);
-							final StringWriter writer              = new StringWriter();
-
-							jsonStreamer.streamSingle(securityContext, writer, (GraphObject)sources[0]);
-
-							return writer.getBuffer().toString();
-
-						} catch (Throwable t) {
-							t.printStackTrace();
-						}
-
-					} else if (sources[0] instanceof List) {
-
-						try {
-
-							final Value<String> view = new StaticValue<>("public");
-							if (sources.length > 1) {
-
-								view.set(securityContext, sources[1].toString());
-							}
-
-							int outputDepth = 3;
-							if (sources.length > 2) {
-
-								if (sources[2] instanceof Number) {
-									outputDepth = ((Number)sources[2]).intValue();
-								}
-							}
-
-							final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth);
-							final StringWriter writer              = new StringWriter();
-							final List list                        = (List)sources[0];
-
-							jsonStreamer.stream(securityContext, writer, new Result(list, list.size(), true, false), null);
-
-							return writer.getBuffer().toString();
-
-						} catch (Throwable t) {
-							t.printStackTrace();
-						}
-
-					}
-
-					return "";
-				}
-
-				return usage(ctx.isJavaScriptContext());
-			}
-
-			@Override
-			public String usage(boolean inJavaScriptContext) {
-				return (inJavaScriptContext ? ERROR_MESSAGE_TO_JSON_JS : ERROR_MESSAGE_TO_JSON);
-			}
-
-			@Override
-			public String shortDescription() {
-				return "Serializes the given entity to JSON";
-			}
-		});
-
-		Functions.functions.put("from_json", new Function<Object, Object>() {
-
-			@Override
-			public String getName() {
-				return "from_json()";
-			}
-
-			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
-
-				if (sources != null && sources.length > 0) {
-
-					try {
-
-						final String source                     = sources[0].toString();
-						final Gson gson                         = new GsonBuilder().create();
-						List<Map<String, Object>> objects       = new LinkedList<>();
-
-						if (StringUtils.startsWith(source, "[")) {
-
-							final List<Map<String, Object>> list = gson.fromJson(source, new TypeToken<List<Map<String, Object>>>() {}.getType());
-							final List<GraphObjectMap> elements  = new LinkedList<>();
-
-							if (list != null) {
-
-								objects.addAll(list);
-							}
-
-							for (final Map<String, Object> src : objects) {
-
-								final GraphObjectMap destination = new GraphObjectMap();
-								elements.add(destination);
-
-								Functions.recursivelyConvertMapToGraphObjectMap(destination, src, 0);
-							}
-
-							return elements;
-
-						} else if (StringUtils.startsWith(source, "{")) {
-
-							final Map<String, Object> value  = gson.fromJson(source, new TypeToken<Map<String, Object>>() {}.getType());
-							final GraphObjectMap destination = new GraphObjectMap();
-
-							if (value != null) {
-
-								Functions.recursivelyConvertMapToGraphObjectMap(destination, value, 0);
-							}
-
-							return destination;
-						}
-
-					} catch (Throwable t) {
-						t.printStackTrace();
-					}
-
-					return "";
-				}
-
-				return usage(ctx.isJavaScriptContext());
-			}
-
-			@Override
-			public String usage(boolean inJavaScriptContext) {
-				return (inJavaScriptContext ? ERROR_MESSAGE_FROM_JSON_JS : ERROR_MESSAGE_FROM_JSON);
-			}
-
-			@Override
-			public String shortDescription() {
-				return "Parses the given JSON string and returns an object";
-			}
-		});
-
-		Functions.functions.put("add_header", new Function<Object, Object>() {
-
-			@Override
-			public String getName() {
-				return "add_header()";
-			}
-
-			@Override
-			public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
-
-				if (sources != null && sources.length == 2) {
-
-					final String name  = sources[0].toString();
-					final String value = sources[1].toString();
-
-					ctx.addHeader(name, value);
-
-					return "";
-				}
-
-				return usage(ctx.isJavaScriptContext());
-			}
-
-			@Override
-			public String usage(boolean inJavaScriptContext) {
-				return (inJavaScriptContext ? ERROR_MESSAGE_ADD_HEADER_JS : ERROR_MESSAGE_ADD_HEADER);
-			}
-
-			@Override
-			public String shortDescription() {
-				return "Adds the given header field and value to the next request";
-			}
-		});
-
-		Functions.functions.put("log_event", new Function<Object, Object>() {
-
-			@Override
-			public String getName() {
-				return "log_event()";
-			}
-
-			@Override
-			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
-
-				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
-
-					final String action  = sources[0].toString();
-					final String message = sources[1].toString();
-
-					final LogEvent logEvent = StructrApp.getInstance().create(LogEvent.class,
-						new NodeAttribute(LogEvent.actionProperty, action),
-						new NodeAttribute(LogEvent.messageProperty, message),
-						new NodeAttribute(LogEvent.timestampProperty, new Date())
-					);
-
-					switch (sources.length) {
-
-						case 4:
-							final String object = sources[3].toString();
-							logEvent.setProperty(LogEvent.objectProperty, object);
-							// no break, next case should be included
-
-						case 3:
-							final String subject = sources[2].toString();
-							logEvent.setProperty(LogEvent.subjectProperty, subject);
-							break;
-					}
-
-					return logEvent;
-
-				} else if (sources.length == 1 && sources[0] instanceof Map) {
-
-					// support javascript objects here
-					final Map map        = (Map)sources[0];
-					final String action  = DOMNode.objectToString(map.get("action"));
-					final String message = DOMNode.objectToString(map.get("message"));
-					final String subject = DOMNode.objectToString(map.get("subject"));
-					final String object  = DOMNode.objectToString(map.get("object"));
-
-					return StructrApp.getInstance().create(LogEvent.class,
-						new NodeAttribute(LogEvent.actionProperty, action),
-						new NodeAttribute(LogEvent.messageProperty, message),
-						new NodeAttribute(LogEvent.timestampProperty, new Date()),
-						new NodeAttribute(LogEvent.subjectProperty, subject),
-						new NodeAttribute(LogEvent.objectProperty, object)
-					);
-				}
-
-				return "";
-			}
-
-			@Override
-			public String usage(boolean inJavaScriptContext) {
-				return (inJavaScriptContext ? ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS : ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE);
-			}
-
-			@Override
-			public String shortDescription() {
-				return "Logs an event to the Structr log";
-			}
-		});
-
-		Functions.functions.put("is_locale", new Function<Object, Object>() {
-
-			@Override
-			public String getName() {
-				return "is_locale()";
-			}
-
-			@Override
-			public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
-
-				final Locale locale = ctx.getLocale();
-				if (locale != null) {
-
-					final String localeString = locale.toString();
-					if (sources != null && sources.length > 0) {
-
-						final int len = sources.length;
-						for (int i=0; i<len; i++) {
-
-							if (sources[i] != null && localeString.equals(sources[i].toString())) {
-								return true;
-							}
-						}
-					}
-				}
-
-				return false;
-			}
-
-			@Override
-			public String usage(boolean inJavaScriptContext) {
-				return (inJavaScriptContext ? ERROR_MESSAGE_IS_LOCALE_JS : ERROR_MESSAGE_IS_LOCALE);
-			}
-
-			@Override
-			public String shortDescription() {
-				return "Returns true if the current user locale is equal to the given argument";
-			}
-		});
-
+		Functions.functions.put("render", new RenderFunction());
+		Functions.functions.put("include", new IncludeFunction());
+		Functions.functions.put("strip_html", new StripHtmlFunction());
+		Functions.functions.put("POST", new PostFunction());
+		Functions.functions.put("GET", new GetFunction());
+		Functions.functions.put("HEAD", new HeadFunction());
+		Functions.functions.put("parse", new ParseFunction());
+		Functions.functions.put("to_json", new ToJsonFunction());
+		Functions.functions.put("from_json", new FromJsonFunction());
+		Functions.functions.put("from_csv", new FromCsvFunction());
+		Functions.functions.put("from_xml", new FromXmlFunction());
+		Functions.functions.put("add_header", new AddHeaderFunction());
+		Functions.functions.put("set_response_header", new SetResponseHeaderFunction());
+		Functions.functions.put("get_request_header", new GetRequestHeaderFunction());
+		Functions.functions.put("log_event", new LogEventFunction());
+		Functions.functions.put("is_locale", new IsLocaleFunction());
+		Functions.functions.put("create_jar_file", new CreateJarFileFunction());
+		Functions.functions.put("jar_entry", new JarEntryFunction());
+		Functions.functions.put("set_details_object", new SetDetailsObjectFunction());
+		Functions.functions.put("escape_html", new EscapeHtmlFunction());
 	}
 
 	public abstract boolean isSynced();
@@ -1026,15 +212,13 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	}
 
 	/**
-	 * This method will be called by the DOM logic when this node gets a new
-	 * child. Override this method if you need to set properties on the
-	 * child depending on its type etc.
+	 * This method will be called by the DOM logic when this node gets a new child. Override this method if you need to set properties on the child depending on its type etc.
 	 *
 	 * @param newChild
 	 */
 	protected void handleNewChild(Node newChild) {
 
-		final Page page = (Page) getOwnerDocument();
+		final Page page = (Page)getOwnerDocument();
 
 		for (final DOMNode child : getAllChildNodes()) {
 
@@ -1043,7 +227,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				child.setProperty(ownerDocument, page);
 
 			} catch (FrameworkException ex) {
-				ex.printStackTrace();
+				logger.log(Level.WARNING, "", ex);
 			}
 
 		}
@@ -1061,12 +245,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	}
 
 	// ----- public methods -----
-//	@Override
-//	public String toString() {
-//
-//		return getClass().getSimpleName() + " [" + getUuid() + "] (" + getTextContent() + ", " + treeGetChildPosition(this) + ")";
-//	}
-
 	public List<DOMChildren> getChildRelationships() {
 		return treeGetChildRelationships();
 	}
@@ -1078,7 +256,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		DOMNode currentNode = this;
 		while (currentNode.getParentNode() != null) {
 
-			DOMNode parentNode = (DOMNode) currentNode.getParentNode();
+			DOMNode parentNode = (DOMNode)currentNode.getParentNode();
 
 			path = "/" + parentNode.treeGetChildPosition(currentNode) + path;
 
@@ -1132,7 +310,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			return;
 		}
 
-		final EditMode editMode  = renderContext.getEditMode(securityContext.getUser(false));
+		final EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
 
 		if (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
 
@@ -1163,7 +341,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 					if (listData.isEmpty() && currentDataNode != null) {
 
-					// There are two alternative ways of retrieving sub elements:
+						// There are two alternative ways of retrieving sub elements:
 						// First try to get generic properties,
 						// if that fails, try to create a propertyKey for the subKey
 						final Object elements = currentDataNode.getProperty(new GenericProperty(subKey));
@@ -1174,11 +352,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 							if (elements instanceof Iterable) {
 
-								for (Object o : (Iterable) elements) {
+								for (Object o : (Iterable)elements) {
 
 									if (o instanceof GraphObject) {
 
-										GraphObject graphObject = (GraphObject) o;
+										GraphObject graphObject = (GraphObject)o;
 										renderContext.putDataObject(subKey, graphObject);
 										renderContent(renderContext, depth);
 
@@ -1199,11 +377,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 									if (value instanceof Iterable) {
 
-										for (final Object o : ((Iterable) value)) {
+										for (final Object o : ((Iterable)value)) {
 
 											if (o instanceof GraphObject) {
 
-												renderContext.putDataObject(subKey, (GraphObject) o);
+												renderContext.putDataObject(subKey, (GraphObject)o);
 												renderContent(renderContext, depth);
 
 											}
@@ -1243,7 +421,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			if (node instanceof Template) {
 
-				final Template template = (Template) node;
+				final Template template = (Template)node;
 
 				Document doc = template.getOwnerDocument();
 
@@ -1253,13 +431,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				}
 
 				if (doc != null && (page == null || doc.equals(page))) {
-
-//					try {
-//						template.setProperty(DOMNode.ownerDocument, (Page) doc);
-//
-//					} catch (FrameworkException ex) {
-//						ex.printStackTrace();
-//					}
 
 					return template;
 
@@ -1273,7 +444,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 					if (doc != null && (page == null || doc.equals(page))) {
 
-						return (Template) syncedNode;
+						return (Template)syncedNode;
 
 					}
 
@@ -1281,7 +452,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			}
 
-			node = (DOMNode) node.getParentNode();
+			node = (DOMNode)node.getParentNode();
 
 		}
 
@@ -1297,10 +468,10 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			if (node instanceof Page) {
 
-				return (Page) node;
+				return (Page)node;
 			}
 
-			node = (DOMNode) node.getParentNode();
+			node = (DOMNode)node.getParentNode();
 
 		}
 
@@ -1308,7 +479,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	}
 
 	// ----- private methods -----
-
 	/**
 	 * Get all ancestors of this node
 	 *
@@ -1329,9 +499,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	}
 
-
 	// ----- protected methods -----
-
 	protected void setDataRoot(final RenderContext renderContext, final AbstractNode node, final String dataKey) {
 		// an outgoing RENDER_NODE relationship points to the data node where rendering starts
 		for (RenderNode rel : node.getOutgoingRelationships(RenderNode.class)) {
@@ -1363,12 +531,14 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	}
 
 	protected void migrateSyncRels() {
+
 		try {
 
-			org.neo4j.graphdb.Node n = getNode();
+			final DatabaseService db     = StructrApp.getInstance().getDatabaseService();
+			org.structr.api.graph.Node n = getNode();
 
-			Iterable<Relationship> incomingSyncRels = n.getRelationships(DynamicRelationshipType.withName("SYNC"), Direction.INCOMING);
-			Iterable<Relationship> outgoingSyncRels = n.getRelationships(DynamicRelationshipType.withName("SYNC"), Direction.OUTGOING);
+			Iterable<Relationship> incomingSyncRels = n.getRelationships(Direction.INCOMING, db.forName(RelationshipType.class, "SYNC"));
+			Iterable<Relationship> outgoingSyncRels = n.getRelationships(Direction.OUTGOING, db.forName(RelationshipType.class, "SYNC"));
 
 			if (getOwnerDocument() instanceof ShadowDocument) {
 
@@ -1385,7 +555,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				for (Relationship r : incomingSyncRels) {
 
-					DOMElement possibleSharedComp = StructrApp.getInstance().get(DOMElement.class, (String) r.getStartNode().getProperty("id"));
+					DOMElement possibleSharedComp = StructrApp.getInstance().get(DOMElement.class, (String)r.getStartNode().getProperty("id"));
 
 					if (!(possibleSharedComp.getOwnerDocument() instanceof ShadowDocument)) {
 
@@ -1416,7 +586,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			} catch (FrameworkException fex) {
 
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 
 				logger.log(Level.WARNING, "Could not retrieve data from graph data source {0}: {1}", new Object[]{source, fex});
 			}
@@ -1428,8 +598,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	/**
 	 * Increase version of the page.
 	 *
-	 * A {@link Page} is a {@link DOMNode} as well, so we have to check
-	 * 'this' as well.
+	 * A {@link Page} is a {@link DOMNode} as well, so we have to check 'this' as well.
 	 *
 	 * @throws FrameworkException
 	 */
@@ -1439,7 +608,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		if (this instanceof Page) {
 
-			page = (Page) this;
+			page = (Page)this;
 
 		} else {
 
@@ -1454,9 +623,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			final List<Node> ancestors = getAncestors();
 			if (!ancestors.isEmpty()) {
 
-				final DOMNode rootNode = (DOMNode) ancestors.get(ancestors.size() - 1);
+				final DOMNode rootNode = (DOMNode)ancestors.get(ancestors.size() - 1);
 				if (rootNode instanceof Page) {
-					page = (Page) rootNode;
+					page = (Page)rootNode;
 				} else {
 					rootNode.increasePageVersion();
 				}
@@ -1474,7 +643,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		if (page != null) {
 
-			page.unlockReadOnlyPropertiesOnce();
 			page.increaseVersion();
 
 		}
@@ -1552,14 +720,13 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			if (otherDoc == null) {
 
-				((DOMNode) otherNode).doAdopt((Page) doc);
+				((DOMNode)otherNode).doAdopt((Page)doc);
 
 			}
 		}
 	}
 
 	protected void checkWriteAccess() throws DOMException {
-
 
 		if (!isGranted(Permission.write, securityContext)) {
 
@@ -1576,13 +743,17 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		throw new DOMException(DOMException.INVALID_ACCESS_ERR, INVALID_ACCESS_ERR_MESSAGE);
 	}
 
-	protected String indent(final int depth) {
+	protected String indent(final int depth, final RenderContext renderContext) {
+
+		if (!renderContext.shouldIndentHtml()) {
+			return "";
+		}
 
 		StringBuilder indent = new StringBuilder("\n");
 
 		for (int d = 0; d < depth; d++) {
 
-			indent.append("  ");
+			indent.append("	");
 
 		}
 
@@ -1590,8 +761,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	}
 
 	/**
-	 * Decide whether this node should be displayed for the given conditions
-	 * string.
+	 * Decide whether this node should be displayed for the given conditions string.
 	 *
 	 * @param renderContext
 	 * @return true if node should be displayed
@@ -1635,8 +805,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	}
 
 	/**
-	 * Decide whether this node should be displayed for the given locale
-	 * settings.
+	 * Decide whether this node should be displayed for the given locale settings.
 	 *
 	 * @param renderContext
 	 * @return true if node should be displayed
@@ -1673,21 +842,23 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	}
 
-	protected String escapeForHtml(final String raw) {
-
+	public static String escapeForHtml(final String raw) {
 		return StringUtils.replaceEach(raw, new String[]{"&", "<", ">"}, new String[]{"&amp;", "&lt;", "&gt;"});
 
 	}
 
-	protected String escapeForHtmlAttributes(final String raw) {
-
+	public static String escapeForHtmlAttributes(final String raw) {
 		return StringUtils.replaceEach(raw, new String[]{"&", "<", ">", "\"", "'"}, new String[]{"&amp;", "&lt;", "&gt;", "&quot;", "&#39;"});
-
 	}
 
 	protected void collectNodesByPredicate(Node startNode, DOMNodeList results, Predicate<Node> predicate, int depth, boolean stopOnFirstHit) {
 
-		if (predicate.evaluate(securityContext, startNode)) {
+
+		if (predicate instanceof Filter) {
+			((Filter)predicate).setSecurityContext(securityContext);
+		}
+
+		if (predicate.accept(startNode)) {
 
 			results.add(startNode);
 
@@ -1730,7 +901,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	@Override
 	public Node getParentNode() {
 		// FIXME: type cast correct here?
-		return (Node) getProperty(parent);
+		return (Node)getProperty(parent);
 	}
 
 	@Override
@@ -1790,7 +961,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			// the document fragment, so we must first remove
 			// the node from the document fragment and then
 			// add it to the new parent.
-			final DocumentFragment fragment = (DocumentFragment) newChild;
+			final DocumentFragment fragment = (DocumentFragment)newChild;
 			Node currentChild = fragment.getFirstChild();
 
 			while (currentChild != null) {
@@ -1819,7 +990,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			try {
 
 				// do actual tree insertion here
-				treeInsertBefore((DOMNode) newChild, (DOMNode) refChild);
+				treeInsertBefore((DOMNode)newChild, (DOMNode)refChild);
 
 			} catch (FrameworkException frex) {
 
@@ -1860,7 +1031,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			// the node from the document fragment and then
 			// add it to the new parent.
 			// replace indirectly using insertBefore and remove
-			final DocumentFragment fragment = (DocumentFragment) newChild;
+			final DocumentFragment fragment = (DocumentFragment)newChild;
 			Node currentChild = fragment.getFirstChild();
 
 			while (currentChild != null) {
@@ -1891,7 +1062,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			try {
 				// replace directly
-				treeReplaceChild((DOMNode) newChild, (DOMNode) oldChild);
+				treeReplaceChild((DOMNode)newChild, (DOMNode)oldChild);
 
 			} catch (FrameworkException frex) {
 
@@ -1921,7 +1092,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		try {
 
-			treeRemoveChild((DOMNode) node);
+			treeRemoveChild((DOMNode)node);
 
 		} catch (FrameworkException fex) {
 
@@ -1949,7 +1120,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				// the node from the document fragment and then
 				// add it to the new parent.
 				// replace indirectly using insertBefore and remove
-				final DocumentFragment fragment = (DocumentFragment) newChild;
+				final DocumentFragment fragment = (DocumentFragment)newChild;
 				Node currentChild = fragment.getFirstChild();
 
 				while (currentChild != null) {
@@ -1975,7 +1146,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					_parent.removeChild(newChild);
 				}
 
-				treeAppendChild((DOMNode) newChild);
+				treeAppendChild((DOMNode)newChild);
 
 				// allow parent to set properties in new child
 				handleNewChild(newChild);
@@ -2015,6 +1186,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
 					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
 					&& !key.equals(DOMElement.syncedNodes)
+					&& !key.equals(DOMNode.mostUsedTagsProperty)
 					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
 
 					properties.put(key, getProperty(key));
@@ -2032,6 +1204,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
 					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
 					&& !key.equals(DOMElement.syncedNodes)
+					&& !key.equals(DOMNode.mostUsedTagsProperty)
 					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
 
 					properties.put(key, getProperty(key));
@@ -2040,7 +1213,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			if (this instanceof LinkSource) {
 
-				final LinkSource linkSourceElement = (LinkSource) this;
+				final LinkSource linkSourceElement = (LinkSource)this;
 
 				properties.put(LinkSource.linkable, linkSourceElement.getProperty(LinkSource.linkable));
 
@@ -2096,7 +1269,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		if (node != null && node instanceof DOMNode) {
 
-			String otherId = ((DOMNode) node).getProperty(GraphObject.id);
+			String otherId = ((DOMNode)node).getProperty(GraphObject.id);
 			String ourId = getProperty(GraphObject.id);
 
 			if (ourId != null && otherId != null && ourId.equals(otherId)) {
@@ -2229,67 +1402,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	}
 
 	// ----- static methods -----
-	private static GraphObjectMap headFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password) throws IOException, FrameworkException {
-
-		final HttpClientParams params = new HttpClientParams(HttpClientParams.getDefaultParams());
-		final HttpClient client       = new HttpClient(params);
-		final HeadMethod headMethod   = new HeadMethod(requestUrl);
-
-		if (username != null && password != null) {
-
-			Credentials defaultcreds = new UsernamePasswordCredentials(username, password);
-			client.getState().setCredentials(AuthScope.ANY, defaultcreds);
-			client.getParams().setAuthenticationPreemptive(true);
-
-			headMethod.setDoAuthentication(true);
-		}
-
-		headMethod.addRequestHeader("Connection", "close");
-		// Don't follow redirects automatically, return status code 302 etc. instead
-		headMethod.setFollowRedirects(false);
-
-		// add request headers from context
-		for (final Entry<String, String> header : ctx.getHeaders().entrySet()) {
-			headMethod.addRequestHeader(header.getKey(), header.getValue());
-		}
-
-		client.executeMethod(headMethod);
-
-		final GraphObjectMap response = new GraphObjectMap();
-		response.setProperty(new IntProperty("status"), headMethod.getStatusCode());
-		response.setProperty(new StringProperty("headers"), extractHeaders(headMethod.getResponseHeaders()));
-
-		return response;
-
-	}
-
-	private static String getFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password) throws IOException {
-
-		final HttpClientParams params = new HttpClientParams(HttpClientParams.getDefaultParams());
-		final HttpClient client       = new HttpClient(params);
-		final GetMethod getMethod     = new GetMethod(requestUrl);
-
-		if (username != null && password != null) {
-
-			Credentials defaultcreds = new UsernamePasswordCredentials(username, password);
-			client.getState().setCredentials(AuthScope.ANY, defaultcreds);
-			client.getParams().setAuthenticationPreemptive(true);
-
-			getMethod.setDoAuthentication(true);
-		}
-
-		getMethod.addRequestHeader("Connection", "close");
-
-		// add request headers from context
-		for (final Entry<String, String> header : ctx.getHeaders().entrySet()) {
-			getMethod.addRequestHeader(header.getKey(), header.getValue());
-		}
-
-		client.executeMethod(getMethod);
-
-		return getMethod.getResponseBodyAsString();
-
-	}
 
 	public static Set<DOMNode> getAllChildNodes(final DOMNode node) {
 
@@ -2308,7 +1420,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			if (n instanceof DOMNode) {
 
-				DOMNode domNode = (DOMNode) n;
+				DOMNode domNode = (DOMNode)n;
 
 				if (!allChildNodes.contains(domNode)) {
 
@@ -2327,8 +1439,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	}
 
 	/**
-	 * Recursively clone given node, all its direct children and connect the cloned
-	 * child nodes to the clone parent node.
+	 * Recursively clone given node, all its direct children and connect the cloned child nodes to the clone parent node.
 	 *
 	 * @param securityContext
 	 * @param nodeToClone
@@ -2336,13 +1447,13 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 */
 	public static DOMNode cloneAndAppendChildren(final SecurityContext securityContext, final DOMNode nodeToClone) {
 
-		final DOMNode newNode = (DOMNode) nodeToClone.cloneNode(false);
+		final DOMNode newNode = (DOMNode)nodeToClone.cloneNode(false);
 
-		final List<DOMNode> childrenToClone = (List<DOMNode>) nodeToClone.getChildNodes();
+		final List<DOMNode> childrenToClone = (List<DOMNode>)nodeToClone.getChildNodes();
 
 		for (final DOMNode childNodeToClone : childrenToClone) {
 
-			final DOMNode newChildNode = (DOMNode) cloneAndAppendChildren(securityContext, childNodeToClone);
+			final DOMNode newChildNode = (DOMNode)cloneAndAppendChildren(securityContext, childNodeToClone);
 			newNode.appendChild(newChildNode);
 
 		}
@@ -2394,13 +1505,13 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	// ----- nested classes -----
 	protected static class TextCollector implements Predicate<Node> {
 
-		private StringBuilder textBuffer = new StringBuilder(200);
+		private final StringBuilder textBuffer = new StringBuilder(200);
 
 		@Override
-		public boolean evaluate(SecurityContext securityContext, Node... obj) {
+		public boolean accept(final Node obj) {
 
-			if (obj[0] instanceof Text) {
-				textBuffer.append(((Text) obj[0]).getTextContent());
+			if (obj instanceof Text) {
+				textBuffer.append(((Text)obj).getTextContent());
 			}
 
 			return false;
@@ -2420,11 +1531,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 
 		@Override
-		public boolean evaluate(SecurityContext securityContext, Node... obj) {
+		public boolean accept(Node obj) {
 
-			if (obj[0] instanceof DOMElement) {
+			if (obj instanceof DOMElement) {
 
-				DOMElement elem = (DOMElement) obj[0];
+				DOMElement elem = (DOMElement)obj;
 
 				if (tagName.equals(elem.getProperty(DOMElement.tag))) {
 					return true;
@@ -2446,8 +1557,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	}
 
 	/**
-	 * Returns the owner document of this DOMNode, following an OUTGOING "PAGE"
-	 * relationship.
+	 * Returns the owner document of this DOMNode, following an OUTGOING "PAGE" relationship.
 	 *
 	 * @return the owner node of this node
 	 */
@@ -2464,5 +1574,110 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 
 		return cachedOwnerDocument;
+	}
+
+	private Map<String, Integer> cachedMostUsedTagNames = null;
+
+	public synchronized Map<String, Integer> getMostUsedElementNames() {
+
+		if (cachedMostUsedTagNames == null) {
+
+			cachedMostUsedTagNames = new LinkedHashMap<>();
+
+			getMostUsedElementNames(cachedMostUsedTagNames, this, 0);
+		}
+
+		return cachedMostUsedTagNames;
+	}
+
+	private void getMostUsedElementNames(final Map<String, Integer> mostUsedElements, final DOMNode parent, final int depth) {
+
+		for (final DOMNode node : parent.getProperty(DOMNode.children)) {
+
+			final String tag = node.getProperty(DOMElement.tag);
+
+			if (tag != null && !Page.nonBodyTags.contains(tag)) {
+
+				final Integer value = cachedMostUsedTagNames.get(tag);
+				if (value == null) {
+					cachedMostUsedTagNames.put(tag, 1);
+				} else {
+					cachedMostUsedTagNames.put(tag, value + 1);
+				}
+			}
+
+			getMostUsedElementNames(mostUsedElements, node, depth + 1);
+		}
+	}
+
+	// nested classes
+	private static class MostUsedTagsProperty extends AbstractReadOnlyProperty<List<String>> {
+
+		public MostUsedTagsProperty(final String name) {
+			super(name);
+		}
+
+		@Override
+		public Class valueType() {
+			return List.class;
+		}
+
+		@Override
+		public Class relatedType() {
+			return null;
+		}
+
+		@Override
+		public List<String> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+			return getProperty(securityContext, obj, applyConverter, null);
+		}
+
+		@Override
+		public List<String> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, Predicate<GraphObject> predicate) {
+
+			final List<String> recentNodes = new LinkedList<>();
+
+			if (obj instanceof DOMNode) {
+
+				DOMNode node                        = (DOMNode)obj;
+				final Map<String, Integer> mostUsed = node.getMostUsedElementNames();
+				final List<Entry<String, Integer>> list = new LinkedList<>(mostUsed.entrySet());
+
+				Collections.sort(list, new Comparator<Entry<String, Integer>>() {
+
+					@Override
+					public int compare(final Entry<String, Integer> o1, final Entry<String, Integer> o2) {
+
+						final Integer v1 = o1.getValue();
+						final Integer v2 = o2.getValue();
+
+						return v2.compareTo(v1);
+					}
+
+				});
+
+				for (final Entry<String, Integer> entry : list) {
+
+					recentNodes.add(entry.getKey());
+
+					if (recentNodes.size() > 4) {
+						break;
+					}
+				}
+			}
+
+			return recentNodes;
+
+		}
+
+		@Override
+		public boolean isCollection() {
+			return true;
+		}
+
+		@Override
+		public SortType getSortType() {
+			return SortType.Default;
+		}
 	}
 }

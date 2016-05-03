@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,6 +24,8 @@ import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
@@ -37,6 +39,8 @@ import org.structr.rest.entity.TestUser;
  *
  */
 public class AccessControlTest extends StructrRestTest {
+
+	private static final Logger logger = Logger.getLogger(AccessControlTest.class.getName());
 
 	@Override
 	protected void setUp() throws Exception {
@@ -85,7 +89,7 @@ public class AccessControlTest extends StructrRestTest {
 			tx.success();
 			
 		} catch (FrameworkException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail(ex.getMessage());
 		}
 
@@ -131,9 +135,89 @@ public class AccessControlTest extends StructrRestTest {
 			tx.success();
 			
 		} catch (FrameworkException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail(ex.getMessage());
 		}
+		
+		// Check as user1 with pageSize=1
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.header("X-User", "user2")
+				.header("X-Password", "user2")
+			.expect()
+				.statusCode(200)
+				.body("result",                    hasSize(1))
+				.body("result_count",              equalTo(3))
+
+			.when()
+				.get("/test_ones?sort=name&pageSize=1&page=1");
+		
+	}
+
+	/**
+	 * Paging with soft-deleted nodes
+	 */
+	public void test02PagingWithSoftDeletedNodes() {
+		
+		
+		List<TestOne> testOnes = new LinkedList<>();
+		
+		// Create two User and ten TestOne nodes
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			createEntityAsSuperUser("/resource_access", "{'signature': 'TestOne', 'flags': 4095}");
+			
+			List<TestUser> users = createTestNodes(TestUser.class, 2);
+			
+			users.get(0).setProperty(TestUser.name, "user1");
+			users.get(0).setProperty(TestUser.password, "user1");
+			
+			users.get(1).setProperty(TestUser.name, "user2");
+			users.get(1).setProperty(TestUser.password, "user2");
+			users.get(1).setProperty(TestUser.isAdmin, true);
+			
+			testOnes = createTestNodes(TestOne.class, 3);
+			
+			int i=0;
+			
+			// First test user is owner
+			for (TestOne t: testOnes) {
+				i++;
+				t.setProperty(TestOne.name, "t-one-" + i);
+				t.setProperty(TestOne.owner, users.get(0));
+				t.setProperty(TestOne.visibleToAuthenticatedUsers, true);
+			}
+
+			// "soft delete" first node
+			testOnes.get(0).setProperty(TestOne.name, "deleted");
+			testOnes.get(0).setProperty(TestOne.deleted, true);
+			//testOnes.get(0).setProperty(TestOne.hidden, true);
+			
+			tx.success();
+			
+		} catch (FrameworkException ex) {
+			logger.log(Level.WARNING, "", ex);
+			fail(ex.getMessage());
+		}
+		
+		// Check as user1 with pageSize=1
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.header("X-User", "user2")
+				.header("X-Password", "user2")
+			.expect()
+				.statusCode(200)
+				.body("result",                    hasSize(1))
+				.body("result_count",              equalTo(3))
+
+			.when()
+				.get("/test_ones?sort=name&pageSize=1&page=1");
 		
 		// Check as user1 with pageSize=1
 		RestAssured
@@ -149,8 +233,7 @@ public class AccessControlTest extends StructrRestTest {
 				.body("result_count",              equalTo(2))
 
 			.when()
-				.get("/test_ones?sort=name&pageSize=1&page=1");
-		
+				.get("/test_ones?deleted=false&sort=name&pageSize=1&page=1");
 	}
 
 

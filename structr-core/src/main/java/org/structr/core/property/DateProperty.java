@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,19 +21,13 @@ package org.structr.core.property;
 import java.util.Date;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.SortField;
-import org.apache.lucene.util.NumericUtils;
-import org.neo4j.index.lucene.ValueContext;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DateFormatToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.search.DateSearchAttribute;
-import org.structr.core.graph.search.SearchAttribute;
 import org.structr.schema.parser.DatePropertyParser;
 
 /**
@@ -45,7 +39,6 @@ import org.structr.schema.parser.DatePropertyParser;
  */
 public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
-	public static final String DATE_EMPTY_FIELD_VALUE = NumericUtils.longToPrefixCoded(Long.MIN_VALUE);
 	public static final String DEFAULT_FORMAT         = "yyyy-MM-dd'T'HH:mm:ssZ";
 
 	public DateProperty(final String name) {
@@ -79,8 +72,8 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 	}
 
 	@Override
-	public Integer getSortType() {
-		return SortField.LONG;
+	public SortType getSortType() {
+		return SortType.Long;
 	}
 
 	@Override
@@ -176,7 +169,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 					return result;
 				}
 
-				throw new FrameworkException(422, new DateFormatToken(declaringClass.getSimpleName(), DateProperty.this));
+				throw new FrameworkException(422, "Cannot parse input for property " + jsonName(), new DateFormatToken(declaringClass.getSimpleName(), DateProperty.this));
 
 			}
 
@@ -190,25 +183,6 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 			return DatePropertyParser.format(source, format);
 		}
 
-	}
-
-	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, Date searchValue, boolean exactMatch, Query query) {
-		return new DateSearchAttribute(this, searchValue, occur, exactMatch);
-	}
-
-	@Override
-	public void index(GraphObject entity, Object value) {
-		// In case of default value, we need to convert it to Long
-		if (value != null && value instanceof Date) {
-			value = ((Date) value).getTime();
-		}
-		super.index(entity, value != null ? ValueContext.numeric((Number)value) : value);
-	}
-
-	@Override
-	public String getValueForEmptyFields() {
-		return DATE_EMPTY_FIELD_VALUE;
 	}
 
 	// ----- CMIS support -----

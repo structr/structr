@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import org.structr.core.graph.NodeService;
 import org.structr.core.validator.GlobalPropertyUniquenessValidator;
 import org.structr.core.validator.SimpleRegexValidator;
 
@@ -33,13 +32,11 @@ public class UuidProperty extends StringProperty {
 		super("id", new GlobalPropertyUniquenessValidator(), new SimpleRegexValidator("[a-fA-F0-9]{32}"));
 
 		indexed();
+		systemInternal();
 		readOnly();
 		writeOnce();
 		unique(true);
 		notNull(true);
 
-		// add uuid indices
-		relationshipIndices.add(NodeService.RelationshipIndex.rel_uuid);
-		nodeIndices.add(NodeService.NodeIndex.uuid);
 	}
 }

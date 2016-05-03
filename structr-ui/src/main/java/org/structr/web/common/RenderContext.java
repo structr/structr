@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,7 +20,7 @@ package org.structr.web.common;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.logging.Logger;
+import java.util.Stack;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -28,13 +28,15 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
+import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.parser.Functions;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.ResourceProvider;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.relation.ResourceLink;
@@ -47,10 +49,8 @@ import org.structr.web.entity.html.relation.ResourceLink;
  */
 public class RenderContext extends ActionContext {
 
-	private static final Logger logger = Logger.getLogger(RenderContext.class.getName());
-
 	private final Map<String, GraphObject> dataObjects = new LinkedHashMap<>();
-	private final long renderStartTime                 = System.currentTimeMillis();
+	private final Stack<SecurityContext> scStack       = new Stack<>();
 	private EditMode editMode                          = EditMode.NONE;
 	private AsyncBuffer buffer                         = new AsyncBuffer();
 	private int depth                                  = 0;
@@ -67,6 +67,7 @@ public class RenderContext extends ActionContext {
 	private ResourceProvider resourceProvider          = null;
 	private Result result                              = null;
 	private boolean anyChildNodeCreatesNewLine         = false;
+	private boolean indentHtml                         = true;
 
 	public enum EditMode {
 
@@ -76,6 +77,8 @@ public class RenderContext extends ActionContext {
 
 	public RenderContext(final SecurityContext securityContext) {
 		super(securityContext);
+
+		readConfigParameters();
 	}
 
 	/**
@@ -103,6 +106,7 @@ public class RenderContext extends ActionContext {
 		this.result = other.result;
 		this.anyChildNodeCreatesNewLine = other.anyChildNodeCreatesNewLine;
 		this.locale = other.locale;
+		this.indentHtml = other.indentHtml;
 
 	}
 
@@ -114,6 +118,8 @@ public class RenderContext extends ActionContext {
 		this.response = response;
 
 		this.editMode = editMode;
+
+		readConfigParameters();
 
 	}
 
@@ -167,6 +173,26 @@ public class RenderContext extends ActionContext {
 
 	public void setRelatedProperty(final PropertyKey relatedProperty) {
 		this.relatedProperty = relatedProperty;
+	}
+
+	/**
+	 * Pushes the current security context on the stack of security
+	 * contexts and installs the given security context until a call
+	 * to {@link popSecurityContext} is made.
+	 *
+	 * @param securityContext
+	 */
+	public void pushSecurityContext(final SecurityContext securityContext) {
+
+		scStack.push(this.securityContext);
+		this.securityContext = securityContext;
+	}
+
+	public void popSecurityContext() {
+
+		if (!scStack.isEmpty()) {
+			this.securityContext = scStack.pop();
+		}
 	}
 
 	/**
@@ -330,10 +356,6 @@ public class RenderContext extends ActionContext {
 		return ((EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)));
 	}
 
-	public boolean hasTimeout(final long timeout) {
-		return System.currentTimeMillis() > (renderStartTime + timeout);
-	}
-
 	@Override
 	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue) throws FrameworkException {
 
@@ -377,7 +399,7 @@ public class RenderContext extends ActionContext {
 
 						} else if (defaultValue != null) {
 
-							return Functions.numberOrString(defaultValue);
+							return Function.numberOrString(defaultValue);
 						}
 						break;
 
@@ -422,15 +444,6 @@ public class RenderContext extends ActionContext {
 							}
 						}
 						break;
-
-					case "host":
-						return securityContext.getRequest().getServerName();
-
-					case "port":
-						return securityContext.getRequest().getServerPort();
-
-					case "path_info":
-						return securityContext.getRequest().getPathInfo();
 
 					case "result_count":
 					case "result_size":
@@ -485,5 +498,18 @@ public class RenderContext extends ActionContext {
 		}
 
 		return value;
+	}
+
+	private void readConfigParameters () {
+
+		try {
+			indentHtml = Boolean.parseBoolean(StructrApp.getConfigurationValue(Services.HTML_INDENTATION, "true"));
+
+		} catch(Throwable t) {}
+
+	}
+
+	public boolean shouldIndentHtml() {
+		return indentHtml;
 	}
 }

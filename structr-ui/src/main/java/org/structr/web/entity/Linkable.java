@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,8 +23,10 @@ import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNodes;
+import org.structr.core.property.StringProperty;
 import org.structr.web.entity.html.relation.ResourceLink;
 
 //~--- interfaces -------------------------------------------------------------
@@ -36,8 +38,10 @@ import org.structr.web.entity.html.relation.ResourceLink;
 public interface Linkable extends NodeInterface {
 
 	public static final Property<List<LinkSource>> linkingElements = new StartNodes<>("linkingElements", ResourceLink.class, new PropertyNotion(GraphObject.id));
+	public static final Property<Boolean> enableBasicAuth          = new BooleanProperty("enableBasicAuth").defaultValue(false).indexed();
+	public static final Property<String> basicAuthRealm            = new StringProperty("basicAuthRealm");
 
-	public static final org.structr.common.View uiView = new org.structr.common.View(Linkable.class, PropertyView.Ui, linkingElements);
+	public static final org.structr.common.View uiView = new org.structr.common.View(Linkable.class, PropertyView.Ui, linkingElements, enableBasicAuth, basicAuthRealm);
 
 	public String getPath();
 }

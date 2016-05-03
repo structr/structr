@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,8 @@ package org.structr.schema.importer;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.fail;
@@ -31,6 +33,8 @@ import org.junit.Test;
  *
  */
 public class LazyFileBasedLongCollectionTest {
+
+	private static final Logger logger = Logger.getLogger(LazyFileBasedLongCollectionTest.class.getName());
 
 	@Test
 	public void testCollection() {
@@ -52,7 +56,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception.");
 		}
 
@@ -76,7 +80,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -98,7 +102,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -116,7 +120,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -131,7 +135,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -160,7 +164,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -189,7 +193,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -214,7 +218,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -242,7 +246,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -262,7 +266,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception.");
 		}
 	}

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,6 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.AbstractFile;
 
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.relation.FileChildren;
 import org.structr.web.entity.relation.Folders;
@@ -46,7 +47,7 @@ public class AppendFileCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		String id                    = webSocketData.getId();
 		Map<String, Object> nodeData = webSocketData.getNodeData();
@@ -64,11 +65,21 @@ public class AppendFileCommand extends AbstractCommand {
 		// check for parent ID
 		if (parentId == null) {
 
-			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot add node without parentId").build(), true);
+			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot append node without parentId").build(), true);
 
 			return;
 
 		}
+		
+		// never append to self
+		if (parentId.equals(id)) {
+
+			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot append node as its own child.").build(), true);
+
+			return;
+
+		}
+		
 
 		// check if parent node with given ID exists
 		AbstractNode parentNode = getNode(parentId);
@@ -95,10 +106,11 @@ public class AppendFileCommand extends AbstractCommand {
 					if (currentParent != null) {
 						
 						currentParent.treeRemoveChild(file);
-						
 					}
 					
 					folder.treeAppendChild(file);
+					
+					TransactionCommand.registerNodeCallback(file, callback);
 					
 				} catch (FrameworkException ex) {
 					logger.log(Level.SEVERE, null, ex);

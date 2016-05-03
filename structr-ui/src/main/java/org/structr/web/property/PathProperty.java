@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,8 @@
  */
 package org.structr.web.property;
 
-import org.apache.lucene.search.SortField;
+import org.structr.api.Predicate;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.property.AbstractReadOnlyProperty;
@@ -60,7 +61,7 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 	}
 
 	@Override
-	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 		return FileHelper.getFolderPath((AbstractFile) obj);
 	}
 
@@ -70,7 +71,7 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 	}
 
 	@Override
-	public Integer getSortType() {
-		return SortField.STRING;
+	public SortType getSortType() {
+		return SortType.Integer;
 	}
 }

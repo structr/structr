@@ -1,22 +1,21 @@
 /*
- *  Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
- *  This file is part of Structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 var defaultType, defaultView, defaultSort, defaultOrder, defaultPage, defaultPageSize;
 var searchField;
 var defaultCollectionPageSize = 10;
@@ -42,24 +41,6 @@ if (browser) {
 		main = $('#main');
 
 		Structr.registerModule('crud', _Crud);
-		Structr.classes.push('crud');
-
-		//console.log(_Crud.type);
-
-		if (!_Crud.type) {
-			_Crud.restoreType();
-			//console.log(_Crud.type);
-		}
-
-		if (!_Crud.type) {
-			_Crud.type = urlParam('type');
-			//console.log(_Crud.type);
-		}
-
-		if (!_Crud.type) {
-			_Crud.type = defaultType;
-			//console.log(_Crud.type);
-		}
 
 		_Crud.resize();
 
@@ -70,273 +51,15 @@ if (browser) {
 }
 
 var _Crud = {
-	schemaLoading: false,
-	schemaLoaded: false,
-	//allTypes : [],
+	types: {},
+	keys: {},
+	getProperties: function(type, callback) {
 
-	types: [], //'Page', 'User', 'Group', 'Folder', 'File', 'Image', 'Content' ],
-	badTypes: [],
-	views: ['public', 'ui'],
-	schema: [],
-	keys: [],
-	type: null,
-	pageCount: null,
-	view: [],
-	sort: [],
-	order: [],
-	page: [],
-	pageSize: [],
-	init: function() {
-
-		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Search"><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
-		main.append('<div id="resourceTabs">'
-			+ '<div id="resourceTabsSettings"></div>'
-			+ '<ul id="resourceTabsMenu"><li class="last hidden">'
-			+ '<input type="checkbox" id="resourceTabsAutoHideCheckbox"><label for="resourceTabsAutoHideCheckbox"> Show selected tabs only</label>'
-			+ ' <span id="resourceTabsSelectAllWrapper"><input type="checkbox" id="resourceTabsSelectAll"><label for="resourceTabsSelectAll"> Select all</label></span>'
-			+ '</li></ul>'
-	        + '</div>');
-
-		if (Structr.getAutoHideInactiveTabs()) {
-			$('#resourceTabsAutoHideCheckbox').prop('checked', true);
-			Structr.doHideSelectAllCheckbox();
-		}
-		$('#resourceTabsAutoHideCheckbox').change(function () {
-			var checked = $(this).prop('checked');
-			Structr.setAutoHideInactiveTabs(checked);
-			Structr.setHideInactiveTabs(checked);
-		});
-
-		$('#resourceTabsSelectAll').change(function () {
-			($(this).prop('checked') ? Structr.doSelectAllTabs() : Structr.doDeselectAllTabs());
-		});
-
-		Structr.ensureIsAdmin($('#resourceTabs'), function() {
-
-			_Crud.schemaLoading = false;
-			_Crud.schemaLoaded = false;
-			_Crud.schema = [];
-			_Crud.keys = [];
-
-			_Crud.loadSchema(function() {
-				if (browser) {
-					_Crud.initTabs();
-				}
-				Structr.determineSelectAllCheckboxState();
-				_Crud.resize();
-				Structr.unblockMenu();
-			});
-
-			searchField = $('.search', main);
-			searchField.focus();
-
-			searchField.keyup(function(e) {
-				var searchString = $(this).val();
-				if (searchString && searchString.length && e.keyCode === 13) {
-
-					$('.clearSearchIcon').show().on('click', function() {
-						_Crud.clearSearch(main);
-					});
-
-					_Crud.search(searchString, main, null, function(e, node) {
-						e.preventDefault();
-						_Crud.showDetails(node, false, node.type);
-						return false;
-					});
-
-					$('#resourceTabs', main).remove();
-					$('#resourceBox', main).remove();
-
-				} else if (e.keyCode === 27 || searchString === '') {
-
-					_Crud.clearSearch(main);
-
-				}
-
-			});
-
-		});
-
-	},
-	onload: function() {
-
-		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Data');
-
-		Structr.registerModule('crud', _Crud);
-		Structr.classes.push('crud');
-
-		// check for single edit mode
-		var id = urlParam('id');
-		if (id) {
-			//console.log('edit mode, editing ', id);
-			_Crud.loadSchema(function() {
-				_Crud.crudRead(null, id, function(node) {
-					//console.log(node, _Crud.view[node.type]);
-					_Crud.showDetails(node, node.type);
-				});
-			});
-
-		} else {
-			_Crud.init();
-		}
-
-		$(window).off('resize');
-		$(window).on('resize', function() {
-			_Crud.resize();
-		});
-		hiddenTabs = JSON.parse(LSWrapper.getItem(crudHiddenTabsKey)) || hiddenTabs;
-		//console.log('########## Hidden tabs ##############', hiddenTabs);
-
-	},
-	initTabs: function() {
-
-		$.each(_Crud.types, function(t, type) {
-			if (_Crud.badTypes.indexOf(type) === -1) {
-				_Crud.addTab(type);
-			}
-		});
-
-		$('#resourceTabsMenu input[type="checkbox"]').on('click', function(e) {
-			e.stopPropagation();
-			//e.preventDefault();
-
-			var inp = $(this);
-
-			var key = inp.parent().find('span').text();
-
-			if (!inp.is(':checked')) {
-				hiddenTabs.push(key);
-			} else {
-				if (hiddenTabs.indexOf(key) > -1) {
-					hiddenTabs.splice(hiddenTabs.indexOf(key), 1);
-				}
-			}
-			 LSWrapper.setItem(crudHiddenTabsKey, JSON.stringify(hiddenTabs));
-
-			 Structr.determineSelectAllCheckboxState();
-		});
-
-		$('#resourceTabs').tabs({
-			activate: function(event, ui) {
-				_Crud.clearList(_Crud.type);
-				var newType = ui.newPanel[0].id;
-				//console.log('deactivated', _Crud.type, 'activated', newType);
-				var typeNode = $('#' + _Crud.type);
-				var pagerNode = $('.pager', typeNode);
-				_Crud.deActivatePagerElements(pagerNode);
-				_Crud.activateList(newType);
-				typeNode = $('#' + newType);
-				pagerNode = $('.pager', typeNode);
-				_Crud.activatePagerElements(newType, pagerNode);
-				_Crud.type = newType;
-				_Crud.updateUrl(newType);
-			}
-		});
-	},
-	isSchemaLoaded: function() {
-		var all = true;
-		if (!_Crud.schemaLoaded) {
-			//console.log('schema not loaded completely, checking all types ...');
-			$.each(_Crud.types, function(t, type) {
-				//console.log('checking type ' + type, (_Crud.schema[type] && _Crud.schema[type] != null));
-				all = all && ((_Crud.badTypes.indexOf(type) !== -1) || (_Crud.schema[type] !== undefined && _Crud.schema[type] !== null));
-			});
-		}
-		_Crud.schemaLoaded = all;
-		return _Crud.schemaLoaded;
-	},
-	updateUrl: function(type) {
-		//console.log('updateUrl', type, _Crud.pageSize[type], _Crud.page[type]);
-
-		if (type) {
-			_Crud.storeType();
-			_Crud.storePagerData();
-			//window.history.pushState('', '', _Crud.sortAndPagingParameters(_Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]) + '&view=' + _Crud.view[type] + '&type=' + type + '#crud');
-			window.location.hash = 'crud';
-
-			if (Structr.getAutoHideInactiveTabs() || Structr.getHideInactiveTabs()) {
-				Structr.doHideInactiveTabs();
-			}
-		}
-		searchField.focus();
-
-	},
-	/**
-	 * Read the schema from the _schema REST resource and call 'callback'
-	 * after the complete schema is loaded.
-	 */
-	loadSchema: function(callback) {
-
-		// Avoid duplicate loading of schema
-		if (_Crud.schemaLoading) {
-			return;
-		}
-		_Crud.schemaLoading = true;
-
-		_Crud.loadAccessibleResources(function() {
-			$.each(_Crud.types, function(t, type) {
-				//console.log('Loading type definition for ' + type + '...');
-				if (!type || type.startsWith('_')) {
-					return;
-				}
-				_Crud.loadTypeDefinition(type, callback);
-			});
-		});
-
-	},
-	loadAccessibleResources: function(callback) {
-		//var url = rootUrl + 'resource_access/ui';
-		var url = rootUrl + 'resource_access';
+		var url = rootUrl + '_schema/' + type + '/ui';
 		$.ajax({
 			url: url,
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8',
-			//async: false,
-			success: function(data) {
-				if (!data)
-					return;
-
-				//console.log(data);
-				var types = [];
-				_Crud.types.length = 0;
-				_Crud.badTypes = [];
-				$.each(data.result, function(i, res) {
-					var type = getTypeFromResourceSignature(res.signature);
-					//console.log(res);
-					if (type && !(type.startsWith('_')) && !isIn(type, _Crud.types)) {
-						_Crud.types.push(type);
-						//console.log(type, res.position);
-						types.push({'type': type, 'position': res.position});
-					}
-				});
-				//console.log(types);
-				types.sort(function(a, b) {
-					return a.position - b.position;
-				});
-				_Crud.types.length = 0;
-				$.each(types, function(i, typeObj) {
-					_Crud.types.push(typeObj.type);
-				});
-
-				_Crud.types.sort();
-
-				if (callback) {
-					callback();
-				}
-
-			}
-		});
-	},
-	loadTypeDefinition: function(type, callback) {
-
-		//_Crud.schema[type] = [];
-
-		var url = rootUrl + '_schema/' + type;
-		$.ajax({
-			url: url,
-			dataType: 'json',
-			contentType: 'application/json; charset=utf-8',
-			//async: false,
 			statusCode: {
 				200: function(data) {
 
@@ -346,34 +69,18 @@ var _Crud = {
 						// console.log("ERROR: loading Schema " + type);
 						new MessageBuilder().warning("Failed loading Schema for '" + type + "' - check your resource access grants.").show();
 
-						// NOT removing the type from the _Types.types array as that would lead to skipped types
-						_Crud.badTypes.push(type);
-
-						if (_Crud.isSchemaLoaded()) {
-							//console.log('Schema loaded successfully');
-							if (callback) {
-								callback();
-							}
-						}
 					} else {
 
-						$.each(data.result, function(i, res) {
-							//console.log(res);
-
-							_Crud.determinePagerData(type);
-
-							_Crud.schema[type] = res;
-							//console.log('Type definition for ' + type + ' loaded', _Crud.schema[type]);
-							//console.log('schema loaded?', _Crud.isSchemaLoaded());
-
-							if (_Crud.isSchemaLoaded()) {
-								//console.log('Schema loaded successfully');
-								if (callback) {
-									callback();
-								}
-							}
-
+						var properties = {};
+						data.result.forEach(function(prop) {
+							properties[prop.jsonName] = prop;
 						});
+
+						_Crud.keys[type] = properties;
+
+						if (callback) {
+							callback(type, properties);
+						}
 					}
 				},
 				400: function(data) {
@@ -397,16 +104,342 @@ var _Crud = {
 				}
 			},
 			error:function () {
-				// NOT removing the type from the _Types.types array as that would lead to skipped types
-				_Crud.badTypes.push(type);
+				console.log("ERROR: loading Schema " + type);
 			}
 
 		});
+
 	},
-	getPropertyType: function(type, key) {
-		if (_Crud.schema[type]) {
-			return _Crud.schema[type].views.ui[key].type;
+	type: null,
+	pageCount: null,
+	view: {},
+	sort: {},
+	order: {},
+	page: {},
+	pageSize: {},
+	filteredNodeTypes: [],
+	displayCustomTypes: true,
+	displayCoreTypes: false,
+	displayHtmlTypes: false,
+	displayUiTypes: false,
+	displayLogTypes: false,
+	displayOtherTypes: false,
+	init: function() {
+
+		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Search"><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
+		main.append('<div id="resourceTabs">'
+			+ '<div id="resourceTabsSettings"></div>'
+			+ '<ul id="resourceTabsMenu"><li class="last hidden">'
+			+ '<input type="checkbox" id="resourceTabsAutoHideCheckbox"><label for="resourceTabsAutoHideCheckbox"> Show selected tabs only</label>'
+			+ ' <span id="resourceTabsSelectAllWrapper"><input type="checkbox" id="resourceTabsSelectAll"><label for="resourceTabsSelectAll"> Select all</label></span>'
+	        + ' <span id="resourceTabsToggleCustomWrapper"><input type="checkbox" id="resourceTabsToggleCustom"><label for="resourceTabsToggleCustom"> Custom types</label></span>'
+	        + ' <span id="resourceTabsToggleCoreWrapper"><input type="checkbox" id="resourceTabsToggleCore"><label for="resourceTabsToggleCore"> Core types</label></span>'
+	        + ' <span id="resourceTabsToggleHtmlWrapper"><input type="checkbox" id="resourceTabsToggleHtml"><label for="resourceTabsToggleHtml"> HTML types</label></span>'
+	        + ' <span id="resourceTabsToggleUiWrapper"><input type="checkbox" id="resourceTabsToggleUi"><label for="resourceTabsToggleUi"> UI types</label></span>'
+	        + ' <span id="resourceTabsToggleLogWrapper"><input type="checkbox" id="resourceTabsToggleLog"><label for="resourceTabsToggleLog"> Log types</label></span>'
+	        + ' <span id="resourceTabsToggleOtherWrapper"><input type="checkbox" id="resourceTabsToggleOther"><label for="resourceTabsToggleOther"> Other types</label></span>'
+			+ '</li></ul>'
+	        + '</div>');
+
+		if (Structr.getAutoHideInactiveTabs()) {
+			$('#resourceTabsAutoHideCheckbox').prop('checked', true);
+			Structr.doHideSelectAllCheckbox();
+			$('#resourceTabsMenu li.last span').hide();
 		}
+		$('#resourceTabsAutoHideCheckbox').change(function () {
+			var checked = $(this).prop('checked');
+			Structr.setAutoHideInactiveTabs(checked);
+			Structr.setHideInactiveTabs(checked);
+			if (checked) {
+				$('#resourceTabsMenu li.last span').hide();
+			} else {
+				$('#resourceTabsMenu li.last span').show();
+			}
+		});
+
+		$('#resourceTabsSelectAll').change(function () {
+			($(this).prop('checked') ? Structr.doSelectAllTabs() : Structr.doDeselectAllTabs());
+			$('#resourceTabsToggleCustom').prop('checked', true);
+			$('#resourceTabsToggleCore').prop('checked', true);
+			$('#resourceTabsToggleHtml').prop('checked', true);
+			$('#resourceTabsToggleUi').prop('checked', true);
+			$('#resourceTabsToggleLog').prop('checked', true);
+			$('#resourceTabsToggleOther').prop('checked', true);
+		});
+
+		$('#resourceTabsToggleCustom').change(function () {
+			_Crud.displayCustomTypes = $(this).prop('checked');
+			_Crud.filterTabs();
+		});
+
+		$('#resourceTabsToggleCore').change(function () {
+			_Crud.displayCoreTypes = $(this).prop('checked');
+			_Crud.filterTabs();
+		});
+
+		$('#resourceTabsToggleHtml').change(function () {
+			_Crud.displayHtmlTypes = $(this).prop('checked');
+			_Crud.filterTabs();
+		});
+
+		$('#resourceTabsToggleUi').change(function () {
+			_Crud.displayUiTypes = $(this).prop('checked');
+			_Crud.filterTabs();
+		});
+
+		$('#resourceTabsToggleLog').change(function () {
+			_Crud.displayLogTypes = $(this).prop('checked');
+			_Crud.filterTabs();
+		});
+
+		$('#resourceTabsToggleOther').change(function () {
+			_Crud.displayOtherTypes = $(this).prop('checked');
+			_Crud.filterTabs();
+		});
+
+		Structr.ensureIsAdmin($('#resourceTabs'), function() {
+
+			_Crud.schemaLoading = false;
+			_Crud.schemaLoaded = false;
+			_Crud.keys = {};
+
+			_Crud.loadSchema(function() {
+				if (browser) {
+					_Crud.initTabs();
+				}
+				Structr.determineSelectAllCheckboxState();
+				_Crud.resize();
+				Structr.unblockMenu();
+				$('a[href="#' + _Crud.type + '"]').click();
+			});
+
+			searchField = $('.search', main);
+			searchField.focus();
+
+			searchField.keyup(function(e) {
+				var searchString = $(this).val();
+				if (searchString && searchString.length && e.keyCode === 13) {
+
+					$('.clearSearchIcon').show().on('click', function() {
+						_Crud.clearSearch(main);
+					});
+
+					_Crud.search(searchString, main, null, function(e, node) {
+						e.preventDefault();
+						_Crud.showDetails(node, false, node.type);
+						return false;
+					});
+
+					$('#resourceTabs', main).hide();
+					$('#resourceBox', main).hide();
+
+				} else if (e.keyCode === 27 || searchString === '') {
+
+					_Crud.clearSearch(main);
+
+				}
+
+			});
+
+		});
+
+	},
+	onload: function() {
+
+		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Data');
+
+		if (!_Crud.type) {
+			_Crud.restoreType();
+			//console.log(_Crud.type);
+		}
+
+		if (!_Crud.type) {
+			_Crud.type = urlParam('type');
+			//console.log(_Crud.type);
+		}
+
+		if (!_Crud.type) {
+			_Crud.type = defaultType;
+			//console.log(_Crud.type);
+		}
+
+		// check for single edit mode
+		var id = urlParam('id');
+		if (id) {
+			//console.log('edit mode, editing ', id);
+			_Crud.loadSchema(function() {
+				_Crud.crudRead(null, id, function(node) {
+					//console.log(node, _Crud.view[node.type]);
+					_Crud.showDetails(node, node.type);
+				});
+			});
+
+		} else {
+			_Crud.init();
+		}
+
+		$(window).off('resize');
+		$(window).on('resize', function() {
+			_Crud.resize();
+		});
+		hiddenTabs = JSON.parse(LSWrapper.getItem(crudHiddenTabsKey)) || hiddenTabs;
+		_Logger.log(_LogType.CRUD, '########## Hidden tabs ##############', hiddenTabs);
+
+	},
+	initTabs: function() {
+
+		Object.keys(_Crud.types).sort().forEach(function(type) {
+			//console.log('Init tab for type', type);
+			_Crud.addTab(_Crud.types[type]);
+		});
+
+		$('#resourceTabsMenu li:not(.last) input[type="checkbox"]').on('click', function(e) {
+			e.stopPropagation();
+			//e.preventDefault();
+
+			var inp = $(this);
+
+			var key = inp.parent().find('span').text();
+
+			if (!inp.is(':checked')) {
+				hiddenTabs.push(key);
+			} else {
+				if (hiddenTabs.indexOf(key) > -1) {
+					hiddenTabs.splice(hiddenTabs.indexOf(key), 1);
+				}
+			}
+			 LSWrapper.setItem(crudHiddenTabsKey, JSON.stringify(hiddenTabs));
+
+			 Structr.determineSelectAllCheckboxState();
+		});
+
+		$('#resourceTabs').tabs({
+			active: true,
+			activate: function(event, ui) {
+
+				var newType = ui.newPanel[0].id;
+				_Crud.getProperties(newType, function(type, properties) {
+
+					fastRemoveAllChildren($('#' + type)[0]);
+					//console.log('deactivated', _Crud.type, 'activated', newType);
+
+					_Crud.determinePagerData(type);
+
+					var typeNode = $('#' + type);
+					var pagerNode = _Crud.addPager(type, typeNode);
+					typeNode.append('<table><thead></thead><tbody></tbody></table>');
+					var table = $('table', typeNode);
+					$('thead', table).append('<tr></tr>');
+					var tableHeaderRow = $('tr:first-child', table);
+
+					_Crud.filterKeys(type, Object.keys(properties)).forEach(function(key) {
+						var prop = properties[key];
+						tableHeaderRow.append('<th class="___' + prop.jsonName + '">' + _Crud.formatKey(prop.jsonName) + '</th>');
+					});
+					tableHeaderRow.append('<th class="___action_header">Actions</th>');
+
+					typeNode.append('<div class="infoFooter">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
+					typeNode.append('<button id="create' + type + '"><img src="icon/add.png"> Create new ' + type + '</button>');
+					typeNode.append('<button id="export' + type + '"><img src="icon/database_table.png"> Export as CSV</button>');
+
+					$('#create' + type, typeNode).on('click', function() {
+						_Crud.crudCreate(type);
+					});
+					$('#export' + type, typeNode).on('click', function() {
+						_Crud.crudExport(type);
+					});
+
+					//_Crud.activateList(type, properties);
+					//_Crud.activatePagerElements(type, pagerNode);
+
+
+					var pagerNode = $('.pager', typeNode);
+					_Crud.deActivatePagerElements(pagerNode);
+					_Crud.activateList(type, properties);
+					typeNode = $('#' + type);
+					pagerNode = $('.pager', typeNode);
+					_Crud.activatePagerElements(type, pagerNode);
+					_Crud.updateUrl(type);
+				});
+
+			}
+		});
+	},
+	filterTabs: function() {
+
+		Command.getSchemaInfo(function(nodes) {
+
+			nodes.sort(function(a, b) {
+				var aName = a.name.toLowerCase();
+				var bName = b.name.toLowerCase();
+				return aName < bName ? -1 : aName > bName ? 1 : 0;
+			});
+
+			nodes.forEach(function(node) {
+
+				var hide = false;
+
+				if (!_Crud.displayCustomTypes && node.className.startsWith('org.structr.dynamic')) hide = true;
+				if (!hide && !_Crud.displayCoreTypes   && node.className.startsWith('org.structr.core.entity')) hide = true;
+				if (!hide && !_Crud.displayHtmlTypes   && node.className.startsWith('org.structr.web.entity.html')) hide = true;
+				if (!hide && !_Crud.displayUiTypes     && node.className.startsWith('org.structr.web.entity') && !(_Crud.displayHtmlTypes && node.className.startsWith('org.structr.web.entity.html'))) hide = true;
+				if (!hide && !_Crud.displayLogTypes    && node.className.startsWith('org.structr.rest.logging.entity')) hide = true;
+				if (!hide && !_Crud.displayOtherTypes  && node.className.startsWith('org.structr.xmpp')) hide = true;
+
+				//console.log(hide, node.type);
+				if (hide) {
+					//_Crud.filteredNodeTypes.push(node.type);
+					$('#resourceTabsMenu li:not(.last) a[href="#' + node.type + '"] input[type="checkbox"]:checked').click();
+					return;
+				} else {
+					//_Crud.filteredNodeTypes.splice(_Crud.filteredNodeTypes.indexOf(node.type), 1);
+					$('#resourceTabsMenu li:not(.last) a[href="#' + node.type + '"] input[type="checkbox"]:not(:checked)').click();
+				}
+
+			});
+
+		});
+
+	},
+	updateUrl: function(type) {
+		//console.log('updateUrl', type, _Crud.pageSize[type], _Crud.page[type]);
+
+		if (type) {
+			_Crud.type = type;
+			_Crud.storeType();
+			_Crud.storePagerData();
+			//window.history.pushState('', '', _Crud.sortAndPagingParameters(_Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]) + '&view=' + _Crud.view[type] + '&type=' + type + '#crud');
+			window.location.hash = 'crud';
+
+			if (Structr.getAutoHideInactiveTabs() || Structr.getHideInactiveTabs()) {
+				Structr.doHideInactiveTabs();
+			}
+		}
+		searchField.focus();
+
+	},
+	/**
+	 * Read the schema from the _schema REST resource and call 'callback'
+	 * after the schema is loaded.
+	 */
+	loadSchema: function(callback) {
+
+		$.ajax({
+			url: rootUrl + '_schema',
+			dataType: 'json',
+			contentType: 'application/json; charset=utf-8',
+			statusCode: {
+				200: function(data) {
+					data.result.forEach(function(typeObj) {
+						_Crud.types[typeObj.type] = typeObj;
+					});
+
+					if (callback) {
+						callback();
+					}
+				}
+			}
+		});
 	},
 	determinePagerData: function(type) {
 
@@ -432,117 +465,48 @@ var _Crud = {
 			_Crud.page[type] = defaultPage;
 		}
 	},
-	addTab: function(type) {
-		var res = _Crud.schema[type];
+	addTab: function(typeObj) {
+		var type = typeObj.type;
 		var hidden = hiddenTabs.indexOf(type) > -1;
 		$('#resourceTabsMenu li.last').before('<li' + (hidden ? ' class="hidden"' : '') + '><a href="#' + type + '"><span>' + _Crud.formatKey(type) + '</span><input type="checkbox"' + (!hidden ? ' checked="checked"' : '') + '></a></li>');
-		$('#resourceTabs').append('<div class="resourceBox" id="' + type + '" data-url="' + res.url + '"></div>');
-		var typeNode = $('#' + type);
-		var pagerNode = _Crud.addPager(type, typeNode);
-		typeNode.append('<table></table>');
-		var table = $('table', typeNode);
-		table.append('<tr></tr>');
-		var tableHeader = $('tr:first-child', table);
-		var view = res.views[_Crud.view[type]];
-		if (view) {
-			var k = Object.keys(view);
-			if (k && k.length) {
-				_Crud.keys[type] = k;
-				$.each(_Crud.filterKeys(type, _Crud.keys[type]), function(k, key) {
-					tableHeader.append('<th class="__' + key + '">' + _Crud.formatKey(key) + '</th>');
-				});
-				tableHeader.append('<th class="___action_header">Actions</th>');
-			}
-		}
-		typeNode.append('<div class="infoFooter">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
-		typeNode.append('<button id="create' + type + '"><img src="icon/add.png"> Create new ' + type + '</button>');
-		typeNode.append('<button id="export' + type + '"><img src="icon/database_table.png"> Export as CSV</button>');
-
-		$('#create' + type, typeNode).on('click', function() {
-			_Crud.crudCreate(type, res.url.substring(1));
-		});
-		$('#export' + type, typeNode).on('click', function() {
-			_Crud.crudExport(type);
-		});
-
-		if (type === _Crud.type) {
-			_Crud.activateList(_Crud.type);
-			_Crud.activatePagerElements(_Crud.type, pagerNode);
-		}
-
+		$('#resourceTabs').append('<div class="resourceBox" id="' + type + '" data-url="' + typeObj.url + '"></div>');
 		$('#resourceTabsMenu li.last').removeClass('hidden');
-
 		_Crud.resize();
-
-
-	},
-	/**
-	 * Return the REST endpoint for the given type
-	 */
-	restType: function(type) {
-		var typeDef = _Crud.schema[type];
-		return typeDef ? typeDef.url.substring(1) : type.toUnderscore();
 	},
 	/**
 	 * Return true if the combination of the given property key
 	 * and the given type is a collection
 	 */
 	isCollection: function(key, type) {
-		var typeDef = _Crud.schema[type];
-		if (typeDef) {
-			var view = typeDef.views[_Crud.view[type]];
-			return (view && view[key] && view[key].isCollection);
-		}
-		return false;
+		return (key && type && _Crud.keys[type] && _Crud.keys[type][key] && _Crud.keys[type][key].isCollection);
 	},
 	/**
 	 * Return true if the combination of the given property key
 	 * and the given type is an Enum
 	 */
 	isEnum: function(key, type) {
-		var typeDef = _Crud.schema[type];
-		if (typeDef) {
-			var view = typeDef.views[_Crud.view[type]];
-			return (view && view[key] && view[key].className === 'org.structr.core.property.EnumProperty');
-		}
-		return false;
+		return (key && type && _Crud.keys[type] && _Crud.keys[type][key] && _Crud.keys[type][key].className === 'org.structr.core.property.EnumProperty');
 	},
 	/**
 	 * Return true if the combination of the given property key
 	 * and the given type is a read-only property
 	 */
 	readOnly: function(key, type) {
-		var typeDef = _Crud.schema[type];
-		if (typeDef) {
-			var view = typeDef.views[_Crud.view[type]];
-			return (view && view[key] && view[key].readOnly);
-		}
-		return false;
+		return (key && type && _Crud.keys[type] && _Crud.keys[type][key] && _Crud.keys[type][key].readOnly);
 	},
 	/**
 	 * Return the related type of the given property key
 	 * of the given type
 	 */
 	relatedType: function(key, type) {
-		var typeDef = _Crud.schema[type];
-		if (typeDef) {
-			var view = typeDef.views[_Crud.view[type]];
-			return (view && view[key] ? view[key].relatedType : null);
-		}
+		return (key && type && _Crud.keys[type] && _Crud.keys[type][key] && _Crud.keys[type][key].relatedType);
 	},
 	/**
 	 * Return the format information stored about the given property key
 	 */
 	getFormat: function(key, type) {
-		var typeDef = _Crud.schema[type];
-		if (typeDef) {
-			var view = typeDef.views[_Crud.view[type]];
-			var format;
-			if (view && view[key]) {
-				format = view[key].format;
-			}
-			return format;
-		}
+		var typeDef = _Crud.keys[type][key];
+		return typeDef.format;
 	},
 	/**
 	 * Append a pager for the given type to the given DOM element.
@@ -592,26 +556,24 @@ var _Crud = {
 		}
 	},
 	setCollectionPageSize: function(type, key, value) {
-		LSWrapper.setItem(crudPagerDataKey + '_collectionPageSize_' + type + '.__' + key, value);
+		LSWrapper.setItem(crudPagerDataKey + '_collectionPageSize_' + type + '.___' + key, value);
 	},
 	getCollectionPageSize: function(type, key) {
-		return LSWrapper.getItem(crudPagerDataKey + '_collectionPageSize_' + type + '.__' + key);
+		return LSWrapper.getItem(crudPagerDataKey + '_collectionPageSize_' + type + '.___' + key);
 	},
 	setCollectionPage: function(type, key, value) {
-		LSWrapper.setItem(crudPagerDataKey + '_collectionPage_' + type + '.__' + key, value);
+		LSWrapper.setItem(crudPagerDataKey + '_collectionPage_' + type + '.___' + key, value);
 	},
 	getCollectionPage: function(type, key) {
-		return LSWrapper.getItem(crudPagerDataKey + '_collectionPage_' + type + '.__' + key);
+		return LSWrapper.getItem(crudPagerDataKey + '_collectionPage_' + type + '.___' + key);
 	},
 	replaceSortHeader: function(type) {
-		var table = _Crud.getTable(type);
+		var table = $('#' + type + ' table');
 		var newOrder = (_Crud.order[type] && _Crud.order[type] === 'desc' ? 'asc' : 'desc');
-		var res = _Crud.schema[type];
-		var view = res.views[_Crud.view[type]];
 		$('th', table).each(function(i, t) {
 			var th = $(t);
-			var key = th.attr('class').substring(2);
-			if (key === "_action_header") {
+			var key = th.attr('class').substring(3);
+			if (key === "action_header") {
 
 				th.empty();
 				th.append('Actions <img style="margin-left: 4px" src="icon/application_view_detail.png" alt="Configure columns" title="Configure columns">');
@@ -634,7 +596,7 @@ var _Crud = {
 						filteredKeys = JSON.parse(filterSource);
 					}
 
-					$.each(_Crud.keys[type], function(k, key) {
+					Object.keys(_Crud.keys[type]).forEach(function(key) {
 
 						var checkboxKey = 'column-' + type + '-' + key + '-visible';
 						var hidden = filteredKeys.hasOwnProperty(key) && filteredKeys[key] === 0;
@@ -661,31 +623,29 @@ var _Crud = {
 			} else if (key !== 'Actions') {
 				$('a', th).off('click');
 				th.empty();
-				if (view[key]) {
-					var sortKey = view[key].jsonName;
-					th.append(
-						'<img src="icon/cross_small_grey.png" alt="Hide this column" title="Hide this column">'
-						+ '<a href="' + _Crud.sortAndPagingParameters(type, sortKey, newOrder, _Crud.pageSize[type], _Crud.page[type]) + '#' + type + '">' + _Crud.formatKey(key) + '</a>');
+				var sortKey = key;
+				th.append(
+					'<img src="icon/cross_small_grey.png" alt="Hide this column" title="Hide this column">'
+					+ '<a href="' + _Crud.sortAndPagingParameters(type, sortKey, newOrder, _Crud.pageSize[type], _Crud.page[type]) + '#' + type + '">' + _Crud.formatKey(key) + '</a>');
 
-					if (_Crud.isCollection(key, type)) {
-						_Crud.appendPerCollectionPager(th, type, key);
-					}
-
-					$('a', th).on('click', function(event) {
-						event.preventDefault();
-						_Crud.sort[type] = key;
-						_Crud.order[type] = (_Crud.order[type] && _Crud.order[type] === 'desc' ? 'asc' : 'desc');
-						_Crud.activateList(type);
-						_Crud.updateUrl(type);
-						return false;
-					});
-					$('img', th).on('click', function(event) {
-
-						event.preventDefault();
-						_Crud.toggleColumn(type, key);
-						return false;
-					});
+				if (_Crud.isCollection(key, type)) {
+					_Crud.appendPerCollectionPager(th, type, key);
 				}
+
+				$('a', th).on('click', function(event) {
+					event.preventDefault();
+					_Crud.sort[type] = key;
+					_Crud.order[type] = (_Crud.order[type] && _Crud.order[type] === 'desc' ? 'asc' : 'desc');
+					_Crud.refreshList(type);
+					//_Crud.updateUrl(type);
+					return false;
+				});
+				$('img', th).on('click', function(event) {
+
+					event.preventDefault();
+					_Crud.toggleColumn(type, key);
+					return false;
+				});
 			}
 		});
 	},
@@ -699,7 +659,7 @@ var _Crud = {
 				if (callback) {
 					callback();
 				} else {
-					document.location.reload();
+					_Crud.refreshList(type);
 				}
 			}
 		});
@@ -712,65 +672,122 @@ var _Crud = {
 					if (callback) {
 						callback();
 					} else {
-						document.location.reload();
+						_Crud.refreshList(type);
 					}
 				}
 			}
 		});
+	},
+	updateCellPager: function(el, id, type, key, page, pageSize) {
+		//console.log('updateCellPager', id, el, type, key, page, pageSize);
+		$.ajax({
+			url: rootUrl + type + '/' + id + '/' + key + '?page=' + page + '&pageSize=' + pageSize,
+			contentType: 'application/json; charset=UTF-8',
+			dataType: 'json',
+			statusCode: {
+				200: function(data) {
 
-		var oldPage = parseInt(_Crud.getCollectionPage(type, key) || 1);
-		el.append('<div class="collection-cell"></div>');
-		el.append('<div class="cell-pager"></div>');
-		$('.cell-pager', el).append('<button class="prev disabled" disabled>&lt;</button>');
-		if (oldPage > 1) {
-			$('.cell-pager .prev', el).removeClass('disabled').prop('disabled', '');
-		}
-		$('.cell-pager', el).append('<input type="text" size="1" class="collection-page" value="' + oldPage + '">');
+					//var resultCount = data.result_count;
+					var pageCount   = data.page_count;
 
-		$('.collection-page', $('.cell-pager', el)).on('blur', function() {
-			var newPage = $(this).val();
-			if (newPage !== _Crud.getCollectionPage(type, key)) {
-				_Crud.setCollectionPage(type, key, newPage);
-				if (callback) {
-					callback();
-				} else {
-					document.location.reload();
-				}
-			}
-		});
+					//console.log('page count', pageCount, 'page', page, 'pageSize', pageSize);
 
-		$('.collection-page', $('.cell-pager', el)).on('keypress', function(e) {
-			if (e.keyCode === 13) {
-				var newPage = $(this).val();
-				if (newPage !== _Crud.getCollectionPage(type, key)) {
-					_Crud.setCollectionPage(type, key, newPage);
-					if (callback) {
-						callback();
+					$('.cell-pager .collection-page', el).val(page);
+					$('.cell-pager .page-count', el).val(pageCount);
+
+					if (page > 1) {
+						$('.cell-pager .prev', el).removeClass('disabled').prop('disabled', '');
 					} else {
-						document.location.reload();
+						$('.cell-pager .prev', el).addClass('disabled').prop('disabled', 'disabled');
 					}
+					if (page < pageCount) {
+						$('.cell-pager .next', el).removeClass('disabled').prop('disabled', '');
+					} else {
+						$('.cell-pager .next', el).addClass('disabled').prop('disabled', 'disabled');
+					}
+
+					el.children('.node').remove();
+
+					data.result.forEach(function(obj) {
+						_Crud.getAndAppendNode(type, id, key, obj, el);
+					});
+
 				}
 			}
+
 		});
+	},
+	appendCellPager: function(el, id, type, key) {
 
-		$('.cell-pager', el).append('<button class="next">&gt;</button>');
+		// console.log('appendCellPager', id, el, type, key);
 
-		$('.prev', el).on('click', function() {
-			_Crud.setCollectionPage(type, key, Math.max(1, oldPage - 1));
-			if (callback) {
-				callback();
-			} else {
-				document.location.reload();
+		var pageSize = _Crud.getCollectionPageSize(type, key) || defaultCollectionPageSize;
+
+		$.ajax({
+			url: rootUrl + type + '/' + id + '/' + key + '?pageSize=' + pageSize,
+			contentType: 'application/json; charset=UTF-8',
+			dataType: 'json',
+			statusCode: {
+				200: function(data) {
+
+					var resultCount = data.result_count;
+					var pageCount   = data.page_count;
+
+					//console.log('result count', resultCount, 'page count', pageCount, 'page', page, 'pageSize', pageSize);
+
+					//var oldPage = parseInt(_Crud.getCollectionPage(type, key) || 1);
+					var page = 1;
+
+					if (!resultCount || !pageCount || pageCount === 1) return;
+
+					//el.append('<div class="collection-cell"></div>');
+					el.prepend('<div class="cell-pager"></div>');
+					$('.cell-pager', el).append('<button class="prev disabled" disabled>&lt;</button>');
+					if (page > 1) {
+						$('.cell-pager .prev', el).removeClass('disabled').prop('disabled', '');
+					}
+					$('.cell-pager', el).append('<input type="text" size="1" class="collection-page" value="' + page + '">');
+
+					$('.collection-page', $('.cell-pager', el)).on('blur', function() {
+						var newPage = $(this).val();
+						_Crud.updateCellPager(el, id, type, key, newPage, pageSize);
+					});
+
+					$('.collection-page', $('.cell-pager', el)).on('keypress', function(e) {
+						if (e.keyCode === 13) {
+							var newPage = $(this).val();
+							_Crud.updateCellPager(el, id, type, key, newPage, pageSize);
+						}
+					});
+
+					$('.cell-pager', el).append('<button class="next disabled" disabled>&gt;</button>');
+					if (page < pageCount) {
+						$('.cell-pager .next', el).removeClass('disabled').prop('disabled', '');
+					}
+
+					$('.prev', el).on('click', function() {
+						var page = $('.cell-pager .collection-page', el).val();
+						var newPage = Math.max(1, page - 1);
+						_Crud.updateCellPager(el, id, type, key, newPage, pageSize);
+					});
+
+					$('.next', el).on('click', function() {
+						var page = $('.cell-pager .collection-page', el).val();
+						var newPage = parseInt(page) + 1;
+						_Crud.updateCellPager(el, id, type, key, newPage, pageSize);
+					});
+
+					$('.cell-pager', el).append(' of <input type="text" size="1" readonly class="readonly page-count" value="' + pageCount + '">');
+
+				}
+
+			},
+			error:function(jqXHR, textStatus, errorThrown) {
+				_Logger.log(_LogType.CRUD, 'appendCellPager', id, el, type, key);
+				_Logger.log(_LogType.CRUD, 'Property: ', _Crud.keys[type][key]);
+				_Logger.log(_LogType.CRUD, 'Error: ', textStatus, errorThrown, jqXHR.responseJSON);
 			}
-		});
 
-		$('.next', el).on('click', function() {
-			_Crud.setCollectionPage(type, key, oldPage + 1);
-			if (callback) {
-				callback();
-			} else {
-				document.location.reload();
-			}
 		});
 
 	},
@@ -790,25 +807,22 @@ var _Crud = {
 
 		return params;
 	},
-	activateList: function(type) {
-		//console.log('activateList', type);
-		var url = rootUrl + _Crud.restType(type) + '/' + _Crud.view[type] + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
-		_Crud.list(type, url);
-		document.location.hash = type;
+	refreshList: function(type, properties) {
+		_Crud.clearList(type);
+		_Crud.activateList(type, properties);
+	},
+	activateList: function(type, properties) {
+		properties = properties || _Crud.keys[type];
+		var url = rootUrl + type + '/ui' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
+		_Crud.list(type, properties, url);
+		//document.location.hash = type;
 	},
 	clearList: function(type) {
-		//console.log('clearList', type);
-		var table = _Crud.getTable(type);
-		var headerRow = '<thead><tr>' + $($('tr:first-child', table)[0]).html() + '</tr></thead>';
-		//console.log(headerRow);
-		fastRemoveAllChildren(table[0]);
-		table.append(headerRow);
+		var  div = $('#' + type + ' table tbody');
+		fastRemoveAllChildren(div[0]);
 	},
-	list: function(type, url) {
-		var table = _Crud.getTable(type);
-		//console.log('list', type, url, table);
-		table.append('<tr></tr>');
-		_Crud.clearList(type);
+	list: function(type, properties, url) {
+		//_Crud.clearList(type);
 
 		$.ajax({
 			headers: {
@@ -819,12 +833,12 @@ var _Crud = {
 			contentType: 'application/json; charset=utf-8',
 			//async: false,
 			success: function(data) {
-				//console.log(data);
-				if (!data)
+				if (!data) {
 					return;
-				$.each(data.result, function(i, item) {
+				}
+				data.result.forEach(function(item) {
 					//console.log('calling appendRow', type, item);
-					_Crud.appendRow(type, item);
+					_Crud.appendRow(type, properties, item);
 				});
 				_Crud.updatePager(type, data.query_time, data.serialization_time, data.page_size, data.page, data.page_count);
 				_Crud.replaceSortHeader(type);
@@ -832,23 +846,23 @@ var _Crud = {
 			error: function(a, b, c) {
 				console.log(a, b, c, type, url);
 				// something went really wrong, probably a network issue, so reload the whole page
-				window.setTimeout(function() {
-					location.reload();
-				}, 1000);
+//				window.setTimeout(function() {
+//					location.reload();
+//				}, 1000);
 			}
 		});
 	},
 	ranges: function(type) {
 		var ranges = '';
-		var keys = _Crud.keys[type];
+		var keys = type && _Crud.keys[type] && Object.keys(_Crud.keys[type]);
 		if (!keys) {
-			var typeDef = _Crud.schema[type];
+			var typeDef = _Crud.type[type];
 			if (typeDef) {
 				keys = Object.keys(typeDef.views[_Crud.view[type]]);
 			}
 		}
 		if (keys) {
-			$.each(keys, function(i, key) {
+			keys.forEach(function(key) {
 				if ( _Crud.isCollection(key, type)) {
 					var page = _Crud.getCollectionPage(type, key) || 1;
 					var pageSize = _Crud.getCollectionPageSize(type, key) || defaultCollectionPageSize;
@@ -861,8 +875,8 @@ var _Crud = {
 		}
 	},
 	crudExport: function(type) {
-		var url = rootUrl + '/' + $('#' + type).attr('data-url') + '/' + _Crud.view[type] + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
-		//console.log(b);
+		var url = rootUrl + '/' + $('#' + type).attr('data-url') + '/ui' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
+
 		_Crud.dialog('Export ' + type + ' list as CSV', function() {
 		}, function() {
 		});
@@ -876,11 +890,16 @@ var _Crud = {
 			exportArea.select();
 		});
 
-		if (_Crud.keys[type]) {
-			//console.log(type);
-			$.each(_Crud.keys[type], function(k, key) {
+		$('.closeButton', $('#dialogBox')).on('click', function() {
+			$('#copyToClipboard', dialogBtn).remove();
+		});
+
+		var keys = Object.keys(_Crud.keys[type]);
+
+		if (keys) {
+			$.each(keys, function(k, key) {
 				exportArea.append('"' + key + '"');
-				if (k < _Crud.keys[type].length - 1) {
+				if (k < keys.length - 1) {
 					exportArea.append(',');
 				}
 			});
@@ -894,7 +913,7 @@ var _Crud = {
 			success: function(data) {
 				if (!data)
 					return;
-				$.each(data.result, function(i, item) {
+				data.result.forEach(function(item) {
 					_Crud.appendRowAsCSV(type, item, exportArea);
 				});
 			}
@@ -930,21 +949,22 @@ var _Crud = {
 		_Crud.updateUrl(type);
 	},
 	activatePagerElements: function(type, pagerNode) {
-		//console.log('activatePagerElements', type);
-		//        var typeNode = $('#' + type);
+
 		$('.page', pagerNode).on('keypress', function(e) {
 			if (e.keyCode === 13) {
 				_Crud.page[type] = $(this).val();
-				_Crud.activateList(type);
+				_Crud.refreshList(type);
 			}
 		});
 
 		$('.pageSize', pagerNode).on('keypress', function(e) {
 			if (e.keyCode === 13) {
+				// calculate which page we should be on after the pagesize changed
+				var oldFirstObject = ((_Crud.page[type] -1 ) * _Crud.pageSize[type]) + 1;
+				var newPage = Math.ceil(oldFirstObject / $(this).val());
 				_Crud.pageSize[type] = $(this).val();
-				// set page no to 1
-				_Crud.page[type] = 1;
-				_Crud.activateList(type);
+				_Crud.page[type] = newPage;
+				_Crud.refreshList(type);
 			}
 		});
 
@@ -955,7 +975,7 @@ var _Crud = {
 			pageRight.removeAttr('disabled').removeClass('disabled');
 			if (_Crud.page[type] > 1) {
 				_Crud.page[type]--;
-				_Crud.activateList(type);
+				_Crud.refreshList(type);
 			}
 		});
 
@@ -963,14 +983,12 @@ var _Crud = {
 			pageLeft.removeAttr('disabled').removeClass('disabled');
 			if (_Crud.page[type] < _Crud.pageCount) {
 				_Crud.page[type]++;
-				_Crud.activateList(type);
+				_Crud.refreshList(type);
 			}
 		});
 
 	},
 	deActivatePagerElements: function(pagerNode) {
-		//console.log('deActivatePagerElements', type);
-		//        var typeNode = $('#' + type);
 
 		$('.page', pagerNode).off('keypress');
 		$('.pageSize', pagerNode).off('keypress');
@@ -997,15 +1015,9 @@ var _Crud = {
 			}
 		});
 	},
-	getTable: function(type) {
-		var typeNode = $('#' + type);
-		//typeNode.append('<table></table>');
-		var table = $('table', typeNode);
-		return table;
-	},
 	crudEdit: function(id, type) {
 		var t = type || _Crud.type;
-		//console.log(t);
+
 		$.ajax({
 			url: rootUrl + id + (_Crud.view[t] ? '/' + _Crud.view[t] : ''),
 			type: 'GET',
@@ -1027,7 +1039,8 @@ var _Crud = {
 		});
 	},
 	crudCreate: function(type, url, json, onSuccess, onError) {
-		//console.log('crudCreate', type, url, json);
+
+		url = url || type;
 		$.ajax({
 			url: rootUrl + url,
 			type: 'POST',
@@ -1040,18 +1053,15 @@ var _Crud = {
 					if (onSuccess) {
 						onSuccess();
 					} else {
-						//                        var location = xhr.getResponseHeader('location');
-						//                        var id = location.substring(location.lastIndexOf('/') + 1);
-						//                        _Crud.crudRead(type, id);
 						$.unblockUI({
 							fadeOut: 25
 						});
-						_Crud.activateList(type);
-						//document.location.reload();
+						_Crud.refreshList(type);
 					}
 					if (dialogCloseButton) {
 						dialogCloseButton.remove();
 					}
+					$('#saveProperties').remove();
 				},
 				400: function(data, status, xhr) {
 					_Crud.error('Bad request: ' + data.responseText, true);
@@ -1083,13 +1093,11 @@ var _Crud = {
 		if (onError) {
 			onError();
 		} else {
-			//console.log(data, status, xhr);
 
 			if (!dialogBox.is(':visible')) {
 				_Crud.showCreate(null, type);
 			}
 			var resp = JSON.parse(data.responseText);
-			//console.log(resp);
 
 			$('.props input', dialogBox).css({
 				backgroundColor: '#fff',
@@ -1134,7 +1142,6 @@ var _Crud = {
 	},
 	crudRefresh: function(id, key, oldValue) {
 		var url = rootUrl + id + '/' + _Crud.view[_Crud.type];
-		//console.log('crudRefresh', id, key, url);
 
 		$.ajax({
 			url: url,
@@ -1145,7 +1152,7 @@ var _Crud = {
 			success: function(data) {
 				if (!data)
 					return;
-				//console.log('refresh', id, key, data.result[key], data.result.type);
+
 				if (key) {
 					_Crud.refreshCell(id, key, data.result[key], data.result.type, oldValue);
 				} else {
@@ -1164,14 +1171,12 @@ var _Crud = {
 			success: function(data) {
 				if (!data)
 					return;
-				//console.log('reset', id, key, data.result[key]);
+
 				_Crud.resetCell(id, key, data.result[key]);
 			}
 		});
 	},
 	crudUpdateObj: function(id, json, onSuccess, onError) {
-		//console.log('crudUpdateObj URL:', rootUrl + id);
-		//console.log('crudUpdateObj JSON:', json);
 		$.ajax({
 			url: rootUrl + id,
 			data: json,
@@ -1248,8 +1253,6 @@ var _Crud = {
 		} else {
 			obj[key] = null;
 		}
-
-		//console.log('crudUpdate          ', url, json);
 
 		$.ajax({
 			url: url,
@@ -1442,36 +1445,33 @@ var _Crud = {
 	},
 	cells: function(id, key) {
 		var row = _Crud.row(id);
-		var cellInMainTable = $('.__' + key, row);
+		var cellInMainTable = $('.___' + key, row);
 
 		var cellInDetailsTable;
 		var table = $('#details_' + id);
 		if (table) {
-			cellInDetailsTable = $('.__' + key, table);
+			cellInDetailsTable = $('.___' + key, table);
 		}
 
-		if (cellInMainTable && !cellInDetailsTable) {
+		if (cellInMainTable && cellInMainTable.length && !(cellInDetailsTable && cellInDetailsTable.length)) {
 			return [cellInMainTable];
 		}
 
-		if (cellInDetailsTable && !cellInMainTable) {
+		if (cellInDetailsTable && cellInDetailsTable.length && !(cellInMainTable && cellInMainTable.length)) {
 			return [cellInDetailsTable];
 		}
 
 		return [cellInMainTable, cellInDetailsTable];
 	},
 	resetCell: function(id, key, oldValue) {
-		//console.log('resetCell', id, key, oldValue);
 		var cells = _Crud.cells(id, key);
 
 		$.each(cells, function(i, cell) {
 			cell.empty();
 			_Crud.populateCell(id, key, _Crud.type, oldValue, cell);
-			//blinkRed(cell);
 		});
 	},
 	refreshCell: function(id, key, newValue, type, oldValue) {
-		//console.log('refreshCell', id, key, newValue, type, oldValue);
 		var cells = _Crud.cells(id, key);
 		$.each(cells, function(i, cell) {
 			cell.empty();
@@ -1482,14 +1482,13 @@ var _Crud = {
 		});
 	},
 	refreshRow: function(id, item, type) {
-		//console.log('refreshCell', id, key, newValue);
 		var row = _Crud.row(id);
 		row.empty();
-		_Crud.populateRow(id, item, type);
+		_Crud.populateRow(id, item, type, _Crud.keys[type]);
 	},
 	activateTextInputField: function(el, id, key, propertyType) {
 		var oldValue = el.text();
-		el.off('mouseup');
+		el.off('click');
 		var w = el.width(), h = el.height();
 		var input;
 		if (propertyType === 'String') {
@@ -1502,7 +1501,7 @@ var _Crud = {
 			input = $('input', el);
 		}
 		input.val(oldValue);
-		input.off('mouseup');
+		input.off('click');
 		input.focus();
 		input.on('blur', function() {
 			var newValue = input.val();
@@ -1514,20 +1513,18 @@ var _Crud = {
 	row: function(id) {
 		return $('tr._' + id);
 	},
-	appendRow: function(type, item) {
-		//console.log('appendRow', type, item);
+	appendRow: function(type, properties, item) {
 		var id = item['id'];
-		var table = _Crud.getTable(type);
-		table.append('<tr class="_' + id + '"></tr>');
-		_Crud.populateRow(id, item, type);
+		var tbody = $('#' + type + ' table tbody');
+		tbody.append('<tr class="_' + id + '"></tr>');
+		_Crud.populateRow(id, item, type, properties);
 	},
-	populateRow: function(id, item, type) {
-		//console.log('populateRow', id, item, type, _Crud.keys[type]);
+	populateRow: function(id, item, type, properties) {
 		var row = _Crud.row(id);
-		if (_Crud.keys[type]) {
-			$.each(_Crud.filterKeys(type, _Crud.keys[type]), function(k, key) {
+		if (properties) {
+			_Crud.filterKeys(type, Object.keys(properties)).forEach(function(key) {
 				//console.log('populateRow for key', key, row);
-				row.append('<td class="__' + key + '"></td>');
+				row.append('<td class="___' + key + '"></td>');
 				var cells = _Crud.cells(id, key);
 				$.each(cells, function(i, cell) {
 					_Crud.populateCell(id, key, type, item[key], cell);
@@ -1536,12 +1533,12 @@ var _Crud = {
 			row.append('<td class="actions"><a title="Edit" class="edit"><img alt="Edit Icon" src="icon/pencil.png"></a><a title="Delete" class="delete"><img alt="Delete Icon" src="icon/cross.png"></a><a title="Access Control" class="security"><img alt="Access Control Icon" src="icon/key.png"></a></td>');
 			_Crud.resize();
 
-			$('.actions .edit', row).on('mouseup', function(event) {
+			$('.actions .edit', row).on('click', function(event) {
 				event.preventDefault();
 				_Crud.crudEdit(id);
 				return false;
 			});
-			$('.actions .delete', row).on('mouseup', function(event) {
+			$('.actions .delete', row).on('click', function(event) {
 				event.preventDefault();
 				var c = confirm('Are you sure to delete ' + type + ' ' + id + ' ?');
 				if (c === true) {
@@ -1557,7 +1554,7 @@ var _Crud = {
 		var relatedType = _Crud.relatedType(key, type);
 		var readOnly = _Crud.readOnly(key, type);
 		var simpleType;
-		var isSourceOrTarget = _Crud.schema[type].isRel && (key === 'sourceId' || key === 'targetId');
+		var isSourceOrTarget = _Crud.types[type].isRel && (key === 'sourceId' || key === 'targetId');
 
 		if (readOnly) {
 			cell.addClass('readonly');
@@ -1565,7 +1562,11 @@ var _Crud = {
 
 		if (!isSourceOrTarget && !relatedType) {
 
-			var propertyType = _Crud.getPropertyType(type, key);
+			if (!_Crud.keys[type]) {
+				return;
+			}
+
+			var propertyType = _Crud.keys[type][key].type;
 
 			if (propertyType === 'Boolean') {
 				cell.append('<input name="' + key + '" ' + (readOnly ? 'class="readonly" readonly disabled ' : '') + 'type="checkbox" ' + (value ? 'checked="checked"' : '') + '>');
@@ -1581,7 +1582,7 @@ var _Crud = {
 				cell.html(nvl(formatValue(value), '<img alt="Show calendar" title="Show calendar" src="icon/calendar.png">'));
 				if (!readOnly) {
 					var dateTimePickerFormat = getDateTimePickerFormat(_Crud.getFormat(key, type));
-					cell.on('mouseup', function(event) {
+					cell.on('click', function(event) {
 						event.preventDefault();
 						var self = $(this);
 						var oldValue = self.text();
@@ -1620,14 +1621,14 @@ var _Crud = {
 							});
 							input.datepicker('show');
 						}
-						self.off('mouseup');
+						self.off('click');
 					});
 				}
 			} else if (isEnum) {
 				var format = _Crud.getFormat(key, type);
 				cell.text(nvl(formatValue(value), ''));
 				if (!readOnly) {
-					cell.on('mouseup', function(event) {
+					cell.on('click', function(event) {
 						event.preventDefault();
 						_Crud.appendEnumSelect(cell, id, key, format);
 					});
@@ -1663,7 +1664,7 @@ var _Crud = {
 			} else {
 				cell.text(nvl(formatValue(value), ''));
 				if (!readOnly) {
-					cell.on('mouseup', function(event) {
+					cell.on('click', function(event) {
 						event.preventDefault();
 						var self = $(this);
 						_Crud.activateTextInputField(self, id, key, propertyType);
@@ -1679,7 +1680,7 @@ var _Crud = {
 			simpleType = lastPart(relatedType, '.');
 
 			if (value && value.length) {
-				$.each(value, function(v, relatedId) {
+				value.forEach(function(relatedId) {
 					_Crud.getAndAppendNode(type, id, key, relatedId, cell);
 				});
 			}
@@ -1691,6 +1692,12 @@ var _Crud = {
 				});
 				_Crud.displaySearch(type, id, key, simpleType, dialogText);
 			});
+
+			if (_Crud.keys[type][key] && _Crud.keys[type][key].className.indexOf('CollectionIdProperty') === -1 && _Crud.keys[type][key].className.indexOf("CollectionNotionProperty") === -1) {
+
+				_Crud.appendCellPager(cell, id, type, key);
+
+			}
 
 		} else {
 
@@ -1715,7 +1722,7 @@ var _Crud = {
 
 		if (!isSourceOrTarget && !readOnly && !relatedType && propertyType !== 'Boolean' && propertyType !== 'String[]') {
 			cell.append('<img class="crud-clear-value" alt="Clear value" title="Clear value" src="icon/cross_small_grey.png">');
-			$('.crud-clear-value', cell).on('mouseup', function(e) {
+			$('.crud-clear-value', cell).on('click', function(e) {
 				e.preventDefault();
 				_Crud.crudRemoveProperty(id, key);
 				return false;
@@ -1726,7 +1733,7 @@ var _Crud = {
 		//searchField.focus();
 	},
 	appendEnumSelect: function(cell, id, key, format) {
-		cell.off('mouseup');
+		cell.off('click');
 		var input;
 		var oldValue = cell.text();
 		cell.empty().append('<select name="' + key + '">');
@@ -1752,17 +1759,36 @@ var _Crud = {
 	},
 	getAndAppendNode: function(parentType, parentId, key, obj, cell) {
 		//console.log(parentType, parentId, key, obj, cell);
-		if (!obj)
+		if (!obj) {
 			return;
+		}
 		var id;
 		if ((typeof obj) === 'object') {
 			id = obj.id;
-		} else {
+		} else if (isUUID(obj)) {
 			id = obj;
+		} else {
+			// search object by name
+			var type = _Crud.keys[parentType][key].relatedType.split('.').pop();
+
+			$.ajax({
+				url: rootUrl + type + '?name=' + obj,
+				type: 'GET',
+				dataType: 'json',
+				contentType: 'application/json; charset=utf-8;',
+				//async: false,
+				success: function(data) {
+					if (data.result.length > 0) {
+						_Crud.getAndAppendNode(parentType, parentId, key, data.result[0], cell);
+					}
+				}
+			});
+
+			return;
 		}
 
 		$.ajax({
-			url: rootUrl + id + '/' + _Crud.view[parentType],
+			url: rootUrl + id + '/ui',
 			type: 'GET',
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8;',
@@ -1780,7 +1806,10 @@ var _Crud = {
 
 				cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.isImage? 'image ' : '') + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80));
 				var nodeEl = $('#_' + node.id, cell);
-				var isSourceOrTarget = _Crud.schema[parentType].isRel && (key === 'sourceId' || key === 'targetId');
+
+				//console.log('Schema types', _Crud.types);
+
+				var isSourceOrTarget = _Crud.types[parentType].isRel && (key === 'sourceId' || key === 'targetId');
 				if (!isSourceOrTarget) {
 					nodeEl.append('<img class="remove" src="icon/cross_small_grey.png"></div>');
 				}
@@ -1840,9 +1869,8 @@ var _Crud = {
 		if (_Crud.clearSearchResults(el)) {
 			$('.clearSearchIcon').hide().off('click');
 			$('.search').val('');
-			main.append('<div id="resourceTabs"><ul id="resourceTabsMenu"></ul></div>');
-			_Crud.initTabs();
-			_Crud.updateUrl(_Crud.type);
+			$('#resourceTabs', main).show();
+			$('#resourceBox', main).show();
 		}
 	},
 	clearSearchResults: function(el) {
@@ -1869,7 +1897,6 @@ var _Crud = {
 
 		_Crud.resize();
 		//$('.search').select();
-		var view = _Crud.view[_Crud.type];
 
 		//var types = type ? [ type ] : _Crud.types;
 		var types;
@@ -1888,7 +1915,7 @@ var _Crud = {
 			searchString = typeAndValue[1];
 			//console.log('filter search type', types, attr, searchString);
 		} else {
-			types = type ? [type] : _Crud.types;
+			types = type ? [type] : Object.keys(_Crud.types);
 			if (searchString.match(/[0-9a-f]{32}/)) {
 				attr = 'uuid'; // UUID
 				//types = ['']; // will be ignored anyway
@@ -1896,15 +1923,13 @@ var _Crud = {
 			}
 		}
 
-
-
-		$.each(types, function(t, type) {
+		types.forEach(function(type) {
 			var url, searchPart;
 			if (attr === 'uuid') {
-				url = rootUrl + _Crud.restType(type) + '/' + searchString;
+				url = rootUrl + type + '/' + searchString;
 			} else {
 				searchPart = searchString === '*' || searchString === '' ? '' : '&' + attr + '=' + encodeURIComponent(searchString) + '&loose=1';
-				url = rootUrl + _Crud.restType(type) + '/' + view + _Crud.sortAndPagingParameters(type, 'name', 'asc', 1000, 1) + searchPart;
+				url = rootUrl + type + '/ui' + _Crud.sortAndPagingParameters(type, 'name', 'asc', 1000, 1) + searchPart;
 			}
 
 			searchResults.append('<div id="placeholderFor' + type + '" class="searchResultGroup resourceBox"><img class="loader" src="img/ajax-loader.gif">Searching for "' + searchString + '" in ' + type + '</div>');
@@ -2031,7 +2056,7 @@ var _Crud = {
 					return false;
 				});
 
-			} else if (e.keyCode === 27 || searchString === '') {
+			} else if (e.keyCode === 27) {
 
 				if (!searchString || searchString === '') {
 					dialogCancelButton.click();
@@ -2041,6 +2066,8 @@ var _Crud = {
 					$('.clearSearchIcon').hide().off('click');
 					search.val('');
 					search.focus();
+				} else {
+					search.val('');
 				}
 
 			}
@@ -2051,9 +2078,7 @@ var _Crud = {
 	},
 	removeRelatedObject: function(obj, key, relatedObj, callback) {
 		var type = obj.type;
-		var view = _Crud.view[_Crud.type];
-		var urlType = _Crud.restType(type); //$('#' + type).attr('data-url').substring(1);
-		var url = rootUrl + urlType + '/' + obj.id + '/' + view;
+		var url = rootUrl + type + '/' + obj.id + '/ui';
 		if (_Crud.isCollection(key, type)) {
 			$.ajax({
 				url: url,
@@ -2083,9 +2108,7 @@ var _Crud = {
 		}
 	},
 	addRelatedObject: function(type, id, key, relatedObj, callback) {
-		var view = _Crud.view[_Crud.type];
-		var urlType = _Crud.restType(type); //$('#' + type).attr('data-url').substring(1);
-		var url = rootUrl + urlType + '/' + id + '/' + view;
+		var url = rootUrl + type + '/' + id + '/ui';
 		if (_Crud.isCollection(key, type)) {
 			$.ajax({
 				url: url,
@@ -2114,8 +2137,7 @@ var _Crud = {
 		}
 	},
 	removeStringFromArray: function(type, id, key, obj, pos, callback) {
-		var view = _Crud.view[_Crud.type];
-		var url = rootUrl + '/' + id + '/' + view;
+		var url = rootUrl + '/' + id + '/ui';
 		$.ajax({
 			url: url,
 			type: 'GET',
@@ -2154,8 +2176,7 @@ var _Crud = {
 		});
 	},
 	addStringToArray: function(type, id, key, obj, callback) {
-		var view = _Crud.view[_Crud.type];
-		var url = rootUrl + '/' + id + '/' + view;
+		var url = rootUrl + '/' + id + '/ui';
 		$.ajax({
 			url: url,
 			type: 'GET',
@@ -2182,7 +2203,7 @@ var _Crud = {
 	},
 	extractIds: function(result) {
 		var objects = [];
-		$.each(result, function(i, obj) {
+		result.forEach(function(obj) {
 			// value can be an ID string or an object
 			if (typeof obj === 'object') {
 				objects.push({'id': obj.id});
@@ -2193,11 +2214,12 @@ var _Crud = {
 		return objects;
 	},
 	appendRowAsCSV: function(type, item, textArea) {
-		if (_Crud.keys[type]) {
+		var keys = Object.keys(_Crud.keys[type]);
+		if (keys) {
 			//console.log(type);
-			$.each(_Crud.keys[type], function(k, key) {
+			$.each(keys, function(k, key) {
 				textArea.append('"' + nvl(item[key], '') + '"');
-				if (k < _Crud.keys[type].length - 1) {
+				if (k < keys.length - 1) {
 					textArea.append(',');
 				}
 			});
@@ -2208,13 +2230,16 @@ var _Crud = {
 
 		if (browser) {
 
+			dialogHead.empty();
 			dialogText.empty();
 			dialogMsg.empty();
 			dialogMeta.empty();
 			//dialogBtn.empty();
 
-			if (text)
+			if (text) {
 				dialogTitle.html(text);
+			}
+			
 			if (callbackCancel) {
 				dialogCancelButton.off('click');
 				dialogCancelButton.on('click', function(e) {
@@ -2373,10 +2398,10 @@ var _Crud = {
 					return;
 				var node = data.result;
 
-				var typeDef = _Crud.schema[type];
+				var typeDef = _Crud.keys[type];
 
 				if (!typeDef) {
-					_Crud.loadTypeDefinition(type, function() {
+					_Crud.getProperties(type, function() {
 						_Crud.showDetails(n, type);
 						return;
 					});
@@ -2386,17 +2411,22 @@ var _Crud = {
 
 				var table = $('table', dialogText);
 
-				var keys = _Crud.keys[type];
-				if (!keys) {
-					keys = Object.keys(typeDef.views[_Crud.view[type]]);
+				var keys;
+				if (_Crud.keys[type]) {
+					keys = Object.keys(_Crud.keys[type]);
 				}
+
+//				if (!keys) {
+//					keys = Object.keys(typeDef.views[_Crud.view[type]]);
+//				}
+
 				if (!keys) {
 					keys = Object.keys(node);
 				}
 
 				$.each(keys, function(i, key) {
-					table.append('<tr><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="__value __' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
-					var cell = $('.__' + key, table);
+					table.append('<tr><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="__value ___' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
+					var cell = $('.___' + key, table);
 					if (_Crud.isCollection(key, type)) {
 						_Crud.appendPerCollectionPager(cell.prev('td'), type, key, function() {
 							_Crud.showDetails(n, typeParam);
@@ -2426,7 +2456,7 @@ var _Crud = {
 			});
 			return;
 		}
-		var typeDef = _Crud.schema[type];
+		var typeDef = _Crud.types[type]; console.log(typeDef);
 
 		if (!dialogBox.is(':visible')) {
 			if (node) {
@@ -2447,12 +2477,9 @@ var _Crud = {
 
 		var table = $('table', dialogText);
 
-		var keys = _Crud.keys[type];
-		if (!keys) {
-			keys = Object.keys(typeDef.views[_Crud.view[type]]);
-		}
+		var keys = Object.keys(_Crud.keys[type]);
 
-		$.each(keys, function(i, key) {
+		keys.forEach(function(key) {
 			var readOnly = _Crud.readOnly(key, type);
 			var isCollection = _Crud.isCollection(key, type);
 			var relatedType = _Crud.relatedType(key, type);
@@ -2460,8 +2487,8 @@ var _Crud = {
 				return;
 			}
 
-			table.append('<tr><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="value __' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
-			var cell = $('.__' + key, table);
+			table.append('<tr><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="__value ___' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
+			var cell = $('.___' + key, table);
 			if (node && node.id) {
 				//console.log(node.id, key, type, node[key], cell);
 				_Crud.populateCell(node.id, key, node.type, node[key], cell);
@@ -2470,16 +2497,18 @@ var _Crud = {
 			}
 		});
 
-		dialogCloseButton = $('.save', $('#dialogBox'));
-		if (!(dialogCloseButton.length)) {
+		var dialogSaveButton = $('.save', $('#dialogBox'));
+		if (!(dialogSaveButton.length)) {
 			dialogBox.append('<button class="save" id="saveProperties">Save</button>');
-			dialogCloseButton = $('.save', $('#dialogBox'));
-			dialogCloseButton.on('click', function() {
-				var form = $('#entityForm');
-				var json = JSON.stringify(_Crud.serializeObject(form));
-				_Crud.crudCreate(type, typeDef.url, json);
-			});
+			dialogSaveButton = $('.save', $('#dialogBox'));
 		}
+
+		dialogSaveButton.off('click');
+		dialogSaveButton.on('click', function() {
+			var form = $('#entityForm');
+			var json = JSON.stringify(_Crud.serializeObject(form));
+			_Crud.crudCreate(type, typeDef.url.substring(1), json);
+		});
 
 		if (node && node.isImage) {
 			dialogText.prepend('<div class="img"><div class="wrap"><img class="thumbnailZoom" src="/' + node.id + '"></div></div>');
@@ -2520,14 +2549,15 @@ var _Crud = {
 			}
 			LSWrapper.setItem(crudHiddenColumnsKey + type, JSON.stringify(filteredKeys));
 		}
-
-		return $.grep(sourceArray, function(key) {
-			return filteredKeys.hasOwnProperty(key) && filteredKeys[key] === 0;
-		}, true);
+		var result = sourceArray.filter(function(key) {
+			return !(filteredKeys.hasOwnProperty(key) && filteredKeys[key] === 0);
+		});
+		//console.log(type, sourceArray, result);
+		return result;
 	},
 	toggleColumn: function(type, key) {
 
-		var table = _Crud.getTable(type);
+		var table = $('#' + type + ' table');
 		var filterSource = LSWrapper.getItem(crudHiddenColumnsKey + type);
 		var filteredKeys = {};
 		if (filterSource) {
@@ -2546,8 +2576,8 @@ var _Crud = {
 			filteredKeys[key] = 0;
 
 			// remove column(s) from table
-			$('th.__' + key, table).remove();
-			$('td.__' + key, table).each(function(i, t) {
+			$('th.___' + key, table).remove();
+			$('td.___' + key, table).each(function(i, t) {
 				t.remove();
 			});
 		}

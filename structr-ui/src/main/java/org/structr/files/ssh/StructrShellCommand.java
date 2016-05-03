@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -124,7 +124,7 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 			}
 
 		} else {
@@ -171,7 +171,7 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 				term.print("Welcome to ");
 				term.setBold(true);
 				term.print("Structr");
-				term.print(" 1.1");
+				term.print(" 2.0");
 				term.setBold(false);
 				term.println();
 
@@ -267,7 +267,7 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return buf.toString();
@@ -343,7 +343,7 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 				return clazz.newInstance();
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 		}
 

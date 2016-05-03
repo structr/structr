@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,8 @@
  */
 package org.structr.core.graph;
 
-import org.neo4j.graphdb.Node;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -87,7 +88,6 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationship(final Class<R> type);
 	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<R> getOutgoingRelationships(final Class<R> type);
 
-
-	public void setRelationshipPathSegment(final RelationshipInterface pathElement);
-	public RelationshipInterface getRelationshipPathSegment();
+	public void setRawPathSegment(final Relationship pathSegment);
+	public Relationship getRawPathSegment();
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -34,7 +36,7 @@ import org.structr.core.app.StructrApp;
 import static org.structr.core.graph.NodeInterface.name;
 import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.DoubleProperty;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
@@ -62,6 +64,8 @@ import org.structr.web.entity.relation.VideoFileHasPosterImage;
  */
 public class VideoFile extends File {
 
+	private static final Logger logger = Logger.getLogger(VideoFile.class.getName());
+
 	// register this type as an overridden builtin type
 	static {
 
@@ -71,7 +75,7 @@ public class VideoFile extends File {
 	public static final Property<List<VideoFile>> convertedVideos = new EndNodes<>("convertedVideos", VideoFileHasConvertedVideoFile.class);
 	public static final Property<VideoFile> originalVideo         = new StartNode<>("originalVideo", VideoFileHasConvertedVideoFile.class);
 	public static final Property<Image> posterImage               = new EndNode<>("posterImage", VideoFileHasPosterImage.class);
-	public static final Property<Boolean> isVideo                 = new BooleanProperty("isVideo").defaultValue(true).readOnly();
+	public static final Property<Boolean> isVideo                 = new ConstantBooleanProperty("isVideo", true);
 	public static final Property<String>  videoCodecName          = new StringProperty("videoCodecName").cmis();
 	public static final Property<String>  videoCodec              = new StringProperty("videoCodec").cmis();
 	public static final Property<String>  pixelFormat             = new StringProperty("pixelFormat").cmis();
@@ -125,7 +129,7 @@ public class VideoFile extends File {
 			}
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return null;
@@ -211,7 +215,7 @@ public class VideoFile extends File {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 	}
 

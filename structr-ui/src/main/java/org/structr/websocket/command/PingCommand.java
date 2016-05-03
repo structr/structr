@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,9 +20,9 @@ package org.structr.websocket.command;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
+import org.structr.rest.auth.AuthHelper;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -55,8 +55,9 @@ public class PingCommand extends AbstractCommand {
 		final Principal currentUser = AuthHelper.getPrincipalForSessionId(sessionId);
 
 		if (currentUser != null) {
-
+			
 			getWebSocket().send(MessageBuilder.status()
+				.callback(webSocketData.getCallback())
 				.data("username", currentUser.getProperty(AbstractNode.name))
 				.data("isAdmin", currentUser.getProperty(Principal.isAdmin))
 				.code(100).build(), true);

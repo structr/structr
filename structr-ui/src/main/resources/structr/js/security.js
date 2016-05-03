@@ -1,22 +1,21 @@
 /*
- *  Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
- *  This file is part of Structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 var groups, users, resourceAccesses;
 var securityTabKey = 'structrSecurityTab_' + port;
 
@@ -30,9 +29,9 @@ $(document).ready(function() {
 var _Security = {
 
 	init : function() {
-		Structr.initPager('User', 1, 25, 'name', 'asc');
-		Structr.initPager('Group', 1, 25, 'name', 'asc');
-		Structr.initPager('ResourceAccess', 1, 25, 'signature', 'asc');
+		_Pager.initPager('users',           'User', 1, 25, 'name', 'asc');
+		_Pager.initPager('groups',          'Group', 1, 25, 'name', 'asc');
+		_Pager.initPager('resource-access', 'ResourceAccess', 1, 25, 'signature', 'asc');
 	},
 
 	onload : function() {
@@ -40,7 +39,7 @@ var _Security = {
 
 		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Users and Groups');
 		//Structr.activateMenuEntry('usersAndGroups');
-		log('onload');
+		_Logger.log(_LogType.SECURTIY, 'onload');
 
 		main.append('<div id="securityTabs"><ul id="securityTabsMenu"><li><a id="usersAndGroups_" href="#usersAndGroups"><span>Users and Groups</span></a></li><li><a id="resourceAccess_" href="#resourceAccess"><span>Resource Access Grants</span></a></li></ul><div id="usersAndGroups"></div><div id="resourceAccess"></div></div>');
 
@@ -92,10 +91,19 @@ var _Security = {
 
 		Structr.ensureIsAdmin(resourceAccesses, function() {
 
-			Structr.addPager(resourceAccesses, true, 'ResourceAccess');
+			var raPager = _Pager.addPager('resource-access', resourceAccesses, true, 'ResourceAccess', 'public');
+
+			// set specialized cleanup function
+			raPager.cleanupFunction = function () {
+				$('#resourceAccesses table tbody tr').remove();
+			};
+
 			resourceAccesses.append('<table id="resourceAccessesTable"><thead><tr><th></th><th colspan="6" class="center">Authenticated users</th><th colspan="6" class="center">Non-authenticated (public) users</th><th colspan="3"></th></tr><tr><th>Signature</th><th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th>'
-					+ '<th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th><th>Bitmask</th><th>Del</th></tr></thead></table>');
+					+ '<th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th><th>Bitmask</th><th>Del</th></tr><tr><th><input type="text" class="filter" data-attribute="signature"></th><th colspan="15"></th></tr></thead></table>');
 			resourceAccesses.append('Signature: <input class="" type="text" size="20" id="resource-signature"> <button class="add_grant_icon button"><img title="Add Resource Grant" alt="Add Grant" src="icon/key_add.png"> Add Grant</button>');
+
+			raPager.activateFilterElements(resourceAccesses);
+
 			$('.add_grant_icon', main).on('click', function (e) {
 				e.stopPropagation();
 				var inp = $('#resource-signature');
@@ -117,7 +125,10 @@ var _Security = {
 			e.stopPropagation();
 			return Command.create({'type':'Group'});
 		});
-		Structr.addPager(groups, true, 'Group');
+		var grpPager = _Pager.addPager('groups', groups, true, 'Group', 'public');
+		grpPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
+		grpPager.activateFilterElements();
+
 	},
 
 	refreshUsers : function() {
@@ -127,21 +138,23 @@ var _Security = {
 			e.stopPropagation();
 			return Command.create({'type':'User'});
 		});
-		Structr.addPager(users, true, 'User');
+		var usrPager = _Pager.addPager('users', users, true, 'User', 'public');
+		usrPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></th></div>');
+		usrPager.activateFilterElements();
 	},
 
 	deleteUser : function(button, user) {
-		log('deleteUser ' + user);
+		_Logger.log(_LogType.SECURTIY, 'deleteUser ' + user);
 		_Entities.deleteNode(button, user);
 	},
 
 	deleteGroup : function(button, group) {
-		log('deleteGroup ' + group);
+		_Logger.log(_LogType.SECURTIY, 'deleteGroup ' + group);
 		_Entities.deleteNode(button, group);
 	},
 
 	deleteResourceAccess : function(button, resourceAccess) {
-		log('deleteResourceAccess ' + resourceAccess);
+		_Logger.log(_LogType.SECURTIY, 'deleteResourceAccess ' + resourceAccess);
 		_Entities.deleteNode(button, resourceAccess);
 	},
 
@@ -262,7 +275,7 @@ var _Security = {
 		}
 
 		var hasChildren = group.members && group.members.length;
-		log('appendGroupElement', group, hasChildren);
+		_Logger.log(_LogType.SECURTIY, 'appendGroupElement', group, hasChildren);
 		groups.append('<div id="id_' + group.id + '" class="node group">'
 			+ '<img class="typeIcon" src="icon/group.png">'
 			+ '<b title="' + group.name + '" class="name_">' + group.name + '</b> <span class="id">' + group.id + '</span>'
@@ -303,110 +316,126 @@ var _Security = {
 	},
 
 	appendUserElement : function(user, group) {
-		log('appendUserElement', user);
+		_Logger.log(_LogType.SECURTIY, 'appendUserElement', user);
 
 		if (!users || !users.is(':visible')) {
 			return;
 		}
 
-		var delIcon;
-		var div = Structr.node(user.id);
-
-		if (user.groups && user.groups.length) {
-
-			var group = user.groups[0];
-
-			var groupId = group.id;
-
-			if (!isExpanded(groupId)) {
-				return;
+		if (user.groups && user.groups.length > 0) {
+			for (i=0; i < user.groups.length; i++) {
+				var groupElement = Structr.node(user.groups[i].id);
+				if (groupElement) {
+					// at least one of the users groups is visible
+					return _Security.appendUserToGroup(user, user.groups[i], groupElement);
+				}
 			}
-
-			var newDelIcon = '<img title="Remove user \'' + user.name + '\' from group \'' + group.name + '\'" '
-				+ 'alt="Remove user ' + user.name + ' from group \'' + group.name + '\'" class="delete_icon button" src="icon/user_delete.png">';
-
-			var parent = Structr.node(groupId);
-
-			log('parent, div', parent, div);
-
-			if (div && div.length) {
-				parent.append(div.css({
-					top: 0,
-					left: 0
-				}));
-				delIcon = $('.delete_icon', div);
-				delIcon.replaceWith(newDelIcon);
-
-				log('################ disable delete icon');
-
-			} else {
-
-				log('### new user, appending to ', parent);
-
-				parent.append('<div id="id_' + user.id + '" class="node user">'
-					+ '<img class="typeIcon" src="icon/user.png">'
-					//				+ ' <b class="realName">' + user.realName + '</b> [<span class="id">' + user.id + '</span>]'
-					+ ' <b title="' + user.name + '" class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'
-					+ '</div>');
-				div = Structr.node(user.id);
-				div.append(newDelIcon);
-
-			}
-			delIcon = $('.delete_icon', div);
-			delIcon.on('click', function(e) {
-				e.stopPropagation();
-				Command.removeSourceFromTarget(user.id, groupId);
-			});
-
-			// disable delete icon on parent
-			disable($('.delete_icon', parent)[0]);
-
-			div.removeClass('ui-state-disabled').removeClass('ui-draggable-disabled').removeClass('ui-draggable');
-
-		} else {
-
-			users.append('<div id="id_' + user.id + '" class="node user">'
-				+ '<img class="typeIcon" src="icon/user.png">'
-				//				+ ' <b class="realName">' + user.realName + '</b> [' + user.id + ']'
-				+ ' <b title="' + user.name + '" class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'
-				+ '</div>');
-			div = Structr.node(user.id);
-			if (!div || !div.length) return;
-
-			newDelIcon = '<img title="Delete user \'' + user.name + '\'" '
-			+ 'alt="Delete user \'' + user.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
-			delIcon = $('.delete_icon', div);
-
-			if (delIcon && delIcon.length) {
-				delIcon.replaceWith(newDelIcon);
-			} else {
-				div.append(newDelIcon);
-				delIcon = $('.delete_icon', div);
-			}
-
-			delIcon.on('click', function(e) {
-				e.stopPropagation();
-				_Security.deleteUser(this, user);
-			});
-
-			div.draggable({
-				revert: 'invalid',
-				helper: 'clone',
-				//containment: '#main',
-				stack: '.node',
-				appendTo: '#main',
-				zIndex: 99
-//                stop : function(e,ui) {
-//                    $('#pages_').droppable('enable').removeClass('nodeHover');
-//                }
-			});
-
 		}
+
+		// none of the users groups is visible (or user has no groups)
+		return _Security.appendUserToUserList(user);
+	},
+	appendUserToUserList: function (user) {
+		users.append(_Security.getUserElementMarkup(user));
+
+		var name = _Security.getUserName(user);
+		var div = Structr.node(user.id);
+		if (!div || !div.length) return;
+
+
+		var newDelIcon = '<img title="Delete user \'' + name + '\'" alt="Delete user \'' + name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+		var delIcon = $('.delete_icon', div);
+
+		if (delIcon && delIcon.length) {
+			delIcon.replaceWith(newDelIcon);
+		} else {
+			div.append(newDelIcon);
+			delIcon = $('.delete_icon', div);
+		}
+
+		delIcon.on('click', function(e) {
+			e.stopPropagation();
+			_Security.deleteUser(this, user);
+		});
+
+		div.draggable({
+			revert: 'invalid',
+			helper: 'clone',
+			//containment: '#main',
+			stack: '.node',
+			appendTo: '#main',
+			zIndex: 99
+//			stop : function(e,ui) {
+//				$('#pages_').droppable('enable').removeClass('nodeHover');
+//			}
+		});
+
 		_Entities.appendEditPropertiesIcon(div, user);
 		_Entities.setMouseOver(div);
 
 		return div;
+	},
+	appendUserToGroup: function (user, group, parent) {
+		var delIcon;
+		var div = Structr.node(user.id);
+		var group = user.groups[0];
 
+		var groupId = group.id;
+
+		if (!isExpanded(groupId)) {
+			return;
+		}
+
+		var newDelIcon = '<img title="Remove user \'' + user.name + '\' from group \'' + group.name + '\'" alt="Remove user ' + user.name + ' from group \'' + group.name + '\'" class="delete_icon button" src="icon/user_delete.png">';
+
+		_Logger.log(_LogType.SECURTIY, 'parent, div', parent, div);
+
+		if (div && div.length) {
+			parent.append(div.css({
+				top: 0,
+				left: 0
+			}));
+			delIcon = $('.delete_icon', div);
+			delIcon.replaceWith(newDelIcon);
+
+			_Logger.log(_LogType.SECURTIY, '################ disable delete icon');
+
+		} else {
+
+			_Logger.log(_LogType.SECURTIY, '### new user, appending to ', parent);
+
+			if (parent) {
+				parent.append(_Security.getUserElementMarkup(user));
+				div = Structr.node(user.id);
+				div.append(newDelIcon);
+			} else {
+				// group is not visible
+				div = _Security.appendUserToUserList(user);
+			}
+
+		}
+		delIcon = $('.delete_icon', div);
+		delIcon.on('click', function(e) {
+			e.stopPropagation();
+			Command.removeSourceFromTarget(user.id, groupId);
+		});
+
+		// disable delete icon on parent
+		disable($('.delete_icon', parent)[0]);
+
+		div.removeClass('ui-state-disabled').removeClass('ui-draggable-disabled').removeClass('ui-draggable');
+
+		_Entities.appendEditPropertiesIcon(div, user);
+		_Entities.setMouseOver(div);
+
+		return div;
+	},
+	getUserElementMarkup:function (user) {
+		var name = _Security.getUserName(user);
+		return '<div id="id_' + user.id + '" class="node user">'
+			+ '<img class="typeIcon" src="icon/user.png">'
+			+ ' <b title="' + name + '" class="name_">' + name + '</b> <span class="id">' + user.id + '</span>'
+			+ '</div>';
 	},
 	resize: function() {
 
@@ -440,5 +469,8 @@ var _Security = {
 		$('.searchResults').css({
 			height: h - 103 + 'px'
 		});
+	},
+	getUserName: function(user) {
+		return name = user.name ? user.name : user.eMail ? '[' + user.eMail + ']' : '[unnamed]';
 	}
 };

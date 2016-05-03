@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -56,7 +56,7 @@ public class SetPermissionCommand extends AbstractCommand {
 
 	//~--- methods --------------------------------------------------------
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		AbstractNode obj = getNode(webSocketData.getId());
 		boolean rec = (Boolean) webSocketData.getNodeData().get("recursive");
@@ -100,7 +100,7 @@ public class SetPermissionCommand extends AbstractCommand {
 				tx.success();
 
 			} catch (FrameworkException ex) {
-				ex.printStackTrace();
+				logger.log(Level.WARNING, "", ex);
 			}
 
 			try {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -101,6 +101,7 @@ public interface JsonSchema {
 
 	public JsonObjectType addType(final String name) throws URISyntaxException;
 	public JsonType getType(final String name);
+	public void removeType(final String name) throws URISyntaxException;
 
 	public void createDatabaseSchema(final App app) throws FrameworkException;
 

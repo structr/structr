@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,8 @@ package org.structr.files.ssh.shell;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -31,11 +33,11 @@ import org.structr.web.entity.Folder;
 
 /**
  *
- *
+ * See also http://invisible-island.net/xterm/ctlseqs/ctlseqs.html
  */
 public class LsCommand extends NonInteractiveShellCommand {
 
-	// http://invisible-island.net/xterm/ctlseqs/ctlseqs.html
+	private static final Logger logger = Logger.getLogger(LsCommand.class.getName());
 
 	@Override
 	public void execute(final StructrShellCommand parent) throws IOException {
@@ -58,7 +60,7 @@ public class LsCommand extends NonInteractiveShellCommand {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -92,7 +92,8 @@ public class RelationshipNodeResource extends WrappingResource {
 
 		}
 
-		throw new IllegalPathException();
+		throw new IllegalPathException(getResourceSignature() + " can only be applied to a non-empty resource");
+
 	}
 
 	@Override
@@ -101,7 +102,7 @@ public class RelationshipNodeResource extends WrappingResource {
 			return wrappedResource.doPost(propertySet);
 		}
 
-		throw new IllegalPathException();
+		throw new IllegalPathException(getResourceSignature() + " can only be applied to a non-empty resource");
 	}
 
 	@Override

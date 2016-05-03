@@ -1,22 +1,21 @@
 /*
- *  Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
- *  This file is part of Structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 var propertyDefinitions, dynamicTypes = [];
 var typesTypeKey = 'structrTypesType_' + port;
 var hiddenTypesTabs = [];
@@ -125,11 +124,11 @@ var _Types = {
 		$('#resourceTabsMenu input[type="checkbox"]').on('click', function(e) {
 			e.stopPropagation();
 			//e.preventDefault();
-			
+
 			var inp = $(this);
 
 			var key = inp.parent().find('span').text();
-			
+
 			if (!inp.is(':checked')) {
 				hiddenTypesTabs.push(key);
 			} else {
@@ -137,7 +136,7 @@ var _Types = {
 					hiddenTypesTabs.splice(hiddenTypesTabs.indexOf(key), 1);
 				}
 			}
-			
+
 			 LSWrapper.setItem(typesHiddenTabsKey, JSON.stringify(hiddenTypesTabs));
 
 			 Structr.determineSelectAllCheckboxState();
@@ -248,7 +247,7 @@ var _Types = {
 				200: function(data) {
 
 					// no schema entry found?
-					if (data.result_count === 0){
+					if (data.result_count === 0) {
 
 						// console.log("ERROR: loading Schema " + type);
 						new MessageBuilder().warning("Failed loading Schema for '" + type + "' - check your resource access grants.").show();
@@ -363,7 +362,7 @@ var _Types = {
 		}
 
 		_Types.resize();
-		
+
 		$('#resourceTabsMenu li.last').removeClass('hidden');
 
 	},

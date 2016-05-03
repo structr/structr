@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,8 @@
 package org.structr.web.entity.dom;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
 import org.jsoup.Jsoup;
@@ -43,6 +45,8 @@ import org.structr.web.entity.relation.RenderNode;
  *
  */
 public class RenderDataTest extends DOMTest {
+
+	private static final Logger logger = Logger.getLogger(RenderDataTest.class.getName());
 
 	public void testRenderFolderTree() {
 
@@ -169,7 +173,7 @@ public class RenderDataTest extends DOMTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 		}
 
@@ -197,7 +201,7 @@ public class RenderDataTest extends DOMTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("unexpected exception");
 		}
 	}
@@ -277,7 +281,7 @@ public class RenderDataTest extends DOMTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 		}
 
@@ -301,7 +305,7 @@ public class RenderDataTest extends DOMTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("unexpected exception");
 		}
 

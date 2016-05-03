@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,7 +35,7 @@ public interface JsonType extends Comparable<JsonType> {
 	public String getName();
 	public JsonType setName(final String name);
 
-	public JsonType addMethod(final String name, final String source);
+	public JsonType addMethod(final String name, final String source, final String comment);
 	public JsonType setExtends(final JsonType superType);
 	public JsonType setExtends(final URI externalReference);
 	public URI getExtends();
@@ -44,7 +44,7 @@ public interface JsonType extends Comparable<JsonType> {
 	public Set<String> getRequiredProperties();
 	public Set<String> getViewNames();
 	public Set<String> getViewPropertyNames(final String viewName);
-	public Map<String, String> getMethods();
+	public Map<String, Map<String, String>> getMethods();
 
 	public JsonType addViewProperty(final String viewName, final String propertyName);
 

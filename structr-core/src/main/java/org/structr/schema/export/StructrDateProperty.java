@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -39,7 +39,7 @@ public class StructrDateProperty extends StructrStringProperty implements JsonDa
 
 		super(parent, name);
 
-		setFormat("date-time");
+		setFormat(JsonSchema.FORMAT_DATE_TIME);
 	}
 
 	// ----- public methods -----

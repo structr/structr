@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,11 +30,11 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.search.BooleanClause;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.index.Index;
-import org.neo4j.helpers.Predicate;
+import org.structr.api.index.Index;
+import org.structr.api.graph.Node;
+import org.structr.api.search.Occurrence;
+import org.structr.api.Predicate;
+import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -65,6 +65,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected Class<? extends GraphObject> declaringClass  = null;
 	protected T defaultValue                               = null;
 	protected boolean readOnly                             = false;
+	protected boolean systemInternal                       = false;
 	protected boolean writeOnce                            = false;
 	protected boolean unvalidated                          = false;
 	protected boolean indexed                              = false;
@@ -100,8 +101,8 @@ public abstract class Property<T> implements PropertyKey<T> {
 		this.dbName = dbName;
 	}
 
+	@Override
 	public abstract Object fixDatabaseProperty(final Object value);
-	public abstract Object getValueForEmptyFields();
 
 	/**
 	 * Use this method to mark a property as being unvalidated. This
@@ -122,6 +123,16 @@ public abstract class Property<T> implements PropertyKey<T> {
 	 */
 	public Property<T> readOnly() {
 		this.readOnly = true;
+		return this;
+	}
+
+	/**
+	 * Use this method to mark a property as being system-internal.
+	 *
+	 * @return the Property to satisfy the builder pattern
+	 */
+	public Property<T> systemInternal() {
+		this.systemInternal = true;
 		return this;
 	}
 
@@ -183,16 +194,6 @@ public abstract class Property<T> implements PropertyKey<T> {
 		this.searchable = true;
 
 		nodeIndices.add(nodeIndex);
-
-		return this;
-	}
-
-	@Override
-	public Property<T> indexedCaseInsensitive() {
-
-		indexed();
-
-		nodeIndices.add(NodeIndex.caseInsensitive);
 
 		return this;
 	}
@@ -377,7 +378,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	public String readFunction() {
 		return readFunction;
 	}
-	
+
 	@Override
 	public Property<T> readFunction(final String readFunction) {
 		this.readFunction = readFunction;
@@ -394,7 +395,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		this.writeFunction = writeFunction;
 		return this;
 	}
-	
+
 	@Override
 	public int hashCode() {
 
@@ -436,6 +437,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return readOnly;
 	}
 
+	@Override
+	public boolean isSystemInternal() {
+		return systemInternal;
+	}
+	
 	@Override
 	public boolean isWriteOnce() {
 		return writeOnce;
@@ -494,22 +500,14 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 						index.remove(dbNode, dbName);
 
-						if (value != null && !StringUtils.isBlank(value.toString())) {
-								index.add(dbNode, dbName, value);
-
-						} else if (isIndexedWhenEmpty()) {
-
-							value = getValueForEmptyFields();
-							if (value != null) {
-
-								index.add(dbNode, dbName, value);
-							}
+						if (value != null || isIndexedWhenEmpty()) {
+							index.add(dbNode, dbName, value, valueType());
 						}
 
 					} catch (Throwable t) {
 
 						logger.log(Level.INFO, "Unable to index property with dbName {0} and value {1} of type {2} on {3}: {4}", new Object[] { dbName, value, this.getClass().getSimpleName(), entity, t } );
-						t.printStackTrace();
+						logger.log(Level.WARNING, "", t);
 					}
 				}
 			}
@@ -529,17 +527,8 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 						index.remove(dbRel, dbName);
 
-						if (value != null && !StringUtils.isBlank(value.toString())) {
-
-							index.add(dbRel, dbName, value);
-
-						} else if (isIndexedWhenEmpty()) {
-
-							value = getValueForEmptyFields();
-							if (value != null) {
-
-								index.add(dbRel, dbName, value);
-							}
+						if (value != null || isIndexedWhenEmpty()) {
+							index.add(dbRel, dbName, value, valueType());
 						}
 
 					} catch (Throwable t) {
@@ -552,7 +541,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final BooleanClause.Occur occur, final T searchValue, final boolean exactMatch, final Query query) {
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final T searchValue, final boolean exactMatch, final Query query) {
 		return new PropertySearchAttribute(this, searchValue, occur, exactMatch);
 	}
 

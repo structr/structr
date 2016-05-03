@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,6 +29,7 @@ public abstract class ErrorToken {
 	private String type     = null;
 	private Object detail   = null;
 	private String token    = null;
+	private Object value    = null;
 
 	public ErrorToken(final String type, final String property, final String token, final Object detail) {
 
@@ -52,6 +53,14 @@ public abstract class ErrorToken {
 
 	public Object getDetail() {
 		return detail;
+	}
+
+	public Object getValue() {
+		return value;
+	}
+
+	public void setValue(final Object value) {
+		this.value = value;
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -44,6 +44,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.TestOne;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
@@ -85,7 +86,7 @@ public class SortingTest extends StructrTest {
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
 			try (final Tx tx = app.tx()) {
-				
+
 				int i = offset;
 				String name;
 
@@ -100,12 +101,12 @@ public class SortingTest extends StructrTest {
 					node.setProperty(AbstractNode.name, name);
 
 				}
-				
+
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				Result result = app.nodeQuery(type).getResult();
 
 				assertEquals(number, result.size());
@@ -131,6 +132,8 @@ public class SortingTest extends StructrTest {
 					assertEquals(expectedName, gotName);
 
 				}
+
+				tx.success();
 			}
 
 		} catch (FrameworkException ex) {
@@ -154,7 +157,7 @@ public class SortingTest extends StructrTest {
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
 			try (final Tx tx = app.tx()) {
-				
+
 				int i = offset;
 				String name;
 
@@ -167,11 +170,12 @@ public class SortingTest extends StructrTest {
 					node.setProperty(AbstractNode.name, name);
 
 				}
+
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				Result result = app.nodeQuery(type).getResult();
 
 				assertEquals(number, result.size());
@@ -183,11 +187,6 @@ public class SortingTest extends StructrTest {
 
 				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
-	//                      for (GraphObject obj : result.getResults()) {
-	//                              
-	//                              System.out.println(obj.getProperty(AbstractNode.name));
-	//                              
-	//                      }
 				logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
 				assertTrue(result.getRawResultCount() == number);
 				logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), Math.min(number, pageSize) });
@@ -202,6 +201,8 @@ public class SortingTest extends StructrTest {
 					assertEquals(Integer.toString(expectedNumber), gotName);
 
 				}
+
+				tx.success();
 			}
 
 		} catch (FrameworkException ex) {
@@ -225,7 +226,7 @@ public class SortingTest extends StructrTest {
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
 			try (final Tx tx = app.tx()) {
-				
+
 				int i = offset;
 				String name;
 
@@ -247,7 +248,7 @@ public class SortingTest extends StructrTest {
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				Result result = app.nodeQuery(type).getResult();
 
 				assertEquals(number, result.size());
@@ -259,10 +260,6 @@ public class SortingTest extends StructrTest {
 
 				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
-	//                      for (GraphObject obj : result.getResults()) {
-	//
-	//                              System.out.println(obj.getProperty(AbstractNode.name) + ", " + obj.getProperty(TestOne.Key.aDate.name()));
-	//                      }
 				logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
 				assertTrue(result.getRawResultCount() == number);
 				logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
@@ -277,6 +274,8 @@ public class SortingTest extends StructrTest {
 					assertEquals(expectedName, gotName);
 
 				}
+
+				tx.success();
 			}
 
 		} catch (FrameworkException ex) {
@@ -300,7 +299,7 @@ public class SortingTest extends StructrTest {
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
 			try (final Tx tx = app.tx()) {
-				
+
 				int i = offset;
 				String name;
 
@@ -319,7 +318,7 @@ public class SortingTest extends StructrTest {
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				Result result = app.nodeQuery(type).getResult();
 
 				assertEquals(number, result.size());
@@ -345,6 +344,8 @@ public class SortingTest extends StructrTest {
 					assertEquals(Integer.toString(expectedNumber), gotName);
 
 				}
+
+				tx.success();
 			}
 
 		} catch (FrameworkException ex) {
@@ -369,7 +370,7 @@ public class SortingTest extends StructrTest {
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
 			try (final Tx tx = app.tx()) {
-				
+
 				int i = offset;
 
 				for (NodeInterface node : nodes) {
@@ -383,7 +384,7 @@ public class SortingTest extends StructrTest {
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				Result result = app.nodeQuery(type).getResult();
 
 				assertEquals(number, result.size());
@@ -395,10 +396,6 @@ public class SortingTest extends StructrTest {
 
 				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
-	//                      for (GraphObject obj : result.getResults()) {
-	//
-	//                              System.out.println(obj.getProperty(AbstractNode.name) + ": " + obj.getProperty(key));
-	//                      }
 				logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
 				assertTrue(result.getRawResultCount() == number);
 				logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
@@ -413,6 +410,8 @@ public class SortingTest extends StructrTest {
 					assertEquals(expectedNumber, gotNumber);
 
 				}
+
+				tx.success();
 			}
 
 		} catch (FrameworkException ex) {
@@ -439,7 +438,7 @@ public class SortingTest extends StructrTest {
 			String name;
 
 			try (final Tx tx = app.tx()) {
-				
+
 				for (NodeInterface node : nodes) {
 
 					name = Integer.toString(i);
@@ -465,7 +464,7 @@ public class SortingTest extends StructrTest {
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				Result result = app.nodeQuery(type).getResult();
 
 				assertEquals(number, result.size());
@@ -491,6 +490,88 @@ public class SortingTest extends StructrTest {
 					assertEquals(expectedName, gotName);
 
 				}
+
+				tx.success();
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+
+	public void test07SortByIntWithNullValues() {
+
+		try {
+
+			final List<TestOne> nodes = this.createTestNodes(TestOne.class, 10);
+			try (final Tx tx = app.tx()) {
+
+				int i = 0;
+
+				for (NodeInterface node : nodes) {
+
+					node.setProperty(AbstractNode.name, Integer.toString(i));
+					if (i < 7) {
+						node.setProperty(TestOne.anInt, i);
+					}
+
+					i++;
+				}
+				tx.success();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				boolean sortDesc    = false;
+
+				final List<TestOne> result = app.nodeQuery(TestOne.class).sort(TestOne.anInt).order(sortDesc).getAsList();
+
+				// check that the sorting is stable, i.e. the position of nodes
+				// with equal values (and null) is not modified by sorting
+
+				final Iterator<TestOne> nameIterator = result.iterator();
+				while (nameIterator.hasNext()) {
+
+					// nulls first
+					assertEquals("Invalid sort result with mixed values (null vs. int)", "7", nameIterator.next().getProperty(TestOne.name));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", "8", nameIterator.next().getProperty(TestOne.name));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", "9", nameIterator.next().getProperty(TestOne.name));
+
+					// other values after that
+					assertEquals("Invalid sort result with mixed values (null vs. int)", "0", nameIterator.next().getProperty(TestOne.name));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", "1", nameIterator.next().getProperty(TestOne.name));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", "2", nameIterator.next().getProperty(TestOne.name));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", "3", nameIterator.next().getProperty(TestOne.name));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", "4", nameIterator.next().getProperty(TestOne.name));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", "5", nameIterator.next().getProperty(TestOne.name));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", "6", nameIterator.next().getProperty(TestOne.name));
+				}
+
+
+				// check that the sorting is "nulls first" as documented
+				final Iterator<TestOne> intIterator = result.iterator();
+				while (intIterator.hasNext()) {
+
+					// nulls first
+					assertEquals("Invalid sort result with mixed values (null vs. int)", null, intIterator.next().getProperty(TestOne.anInt));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", null, intIterator.next().getProperty(TestOne.anInt));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", null, intIterator.next().getProperty(TestOne.anInt));
+
+					// other values after that
+					assertEquals("Invalid sort result with mixed values (null vs. int)", 0, (int)intIterator.next().getProperty(TestOne.anInt));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", 1, (int)intIterator.next().getProperty(TestOne.anInt));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", 2, (int)intIterator.next().getProperty(TestOne.anInt));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", 3, (int)intIterator.next().getProperty(TestOne.anInt));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", 4, (int)intIterator.next().getProperty(TestOne.anInt));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", 5, (int)intIterator.next().getProperty(TestOne.anInt));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", 6, (int)intIterator.next().getProperty(TestOne.anInt));
+				}
+
+				tx.success();
 			}
 
 		} catch (FrameworkException ex) {

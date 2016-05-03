@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -39,7 +39,7 @@ public class GetLocalStorageCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
@@ -51,8 +51,7 @@ public class GetLocalStorageCommand extends AbstractCommand {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, t.toString());
-			t.printStackTrace();
+			logger.log(Level.WARNING, "Error retrieving localstorage", t);
 
 			// send exception
 			getWebSocket().send(MessageBuilder.status().code(422).message(t.toString()).build(), true);

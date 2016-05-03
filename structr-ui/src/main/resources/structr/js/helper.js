@@ -1,22 +1,21 @@
 /*
- *  Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
- *  This file is part of Structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 function lastPart(id, separator) {
 	if (!separator) {
 		separator = '_';
@@ -164,7 +163,7 @@ function cleanText(input) {
 	//console.log(output);
 	return output;
 
-//    if (debug) console.log(input);
+//    _Logger.consoleLog(input);
 //    var output = '';
 //    $(input).each(function(i, line) {
 //        var cleaned = $(line).text();
@@ -182,6 +181,11 @@ function cleanText(input) {
 function expandNewline(text) {
 	var output = text.replace(/\\\\n/g, '<br>');
 	return output;
+}
+
+var uuidRegexp = new RegExp('[a-fA-F0-9]{32}');
+function isUUID (str) {
+	return (str.length === 32 && uuidRegexp.test(str));
 }
 
 function shorten(uuid) {
@@ -461,7 +465,7 @@ function getElementDisplayName(entity) {
 		return '(blank name)';
 	}
 	return entity.name;
-} 
+}
 
 jQuery.isBlank = function (obj) {
 	if (!obj || $.trim(obj) === "") return true;
@@ -474,30 +478,25 @@ jQuery.isBlank = function (obj) {
 /**
  * thin wrapper for localStorage with a success-check and error display
  */
+
+var localStorageObject = {};
+
 var LSWrapper = {
 
 	setItem: function(key, value) {
-		try {
-			localStorage.setItem(key, value);
-			return true;
-		} catch (e) {
-			// show error
-			new MessageBuilder().error("<div>The browser localStorage is full - this hinders structr-ui from working as intended.<br><a href='http://www.html5rocks.com/en/tutorials/offline/quota-research/'>You may want to read more about this topic.</a><br><br></div>").specialInteractionButton("Delete localStorage (server- and client-side)", function () { _Dashboard.clearLocalStorageOnServer(); LSWrapper.clear(); }, "I'll handle it myself").show();
-			throw(e);
-			return false;
-		}
+		localStorageObject[key] = value;
 	},
-	
+
 	getItem: function (key) {
-		return localStorage.getItem(key);
+		return localStorageObject[key] || null;
 	},
-	
+
 	removeItem: function (key) {
-		return localStorage.removeItem(key);
+		delete localStorageObject[key];
 	},
-	
+
 	clear: function () {
-		localStorage.clear();
+		localStorageObject = {};
 	}
 
 };
@@ -506,6 +505,217 @@ function fastRemoveAllChildren(el) {
 	if (!el) return;
 	var child;
 	while ((child = el.firstChild)) {
-	  el.removeChild(child);
-	}	
+		el.removeChild(child);
+	}
 }
+
+/**
+ * static list of all logtypes
+ */
+var _LogType = {
+	CONTENTS:   "CONTENTS",
+	CRUD:       "CRUD",
+	DND:        "DND",
+	ELEMENTS:   "ELEMENTS",
+	ENTITIES:   "ENTITIES",
+	FILES:      "FILES",
+	FILESYSTEM: "FILESYSTEM",
+	GRAPH:      "GRAPH",
+	INIT:       "INIT",
+	MODEL:      "MODEL",
+	PAGER:      "PAGER",
+	PAGES:      "PAGES",
+	SCHEMA:     "SCHEMA",
+	SECURTIY:   "SECURTIY",
+	WEBSOCKET:  "WS",
+	WIDGETS:    "WIDGETS",
+	WS: {
+		ADD:                        "WS.ADD",
+		APPEND_CHILD:               "WS.APPEND_CHILD",
+		APPEND_FILE:                "WS.APPEND_FILE",
+		APPEND_USER:                "WS.APPEND_USER",
+		APPEND_WIDGET:              "WS.APPEND_WIDGET",
+		AUTOCOMPLETE:               "WS.AUTOCOMPLETE",
+		CHILDREN:                   "WS.CHILDREN",
+		CHUNK:                      "WS.CHUNK",
+		CLONE_COMPONENT:            "WS.CLONE_COMPONENT",
+		CLONE_NODE:                 "WS.CLONE_NODE",
+		CLONE_PAGE:                 "WS.CLONE_PAGE",
+		CREATE:                     "WS.CREATE",
+		CREATE_AND_APPEND_DOM_NODE: "WS.CREATE_AND_APPEND_DOM_NODE",
+		CREATE_COMPONENT:           "WS.CREATE_COMPONENT",
+		CREATE_DOM_NODE:            "WS.CREATE_DOM_NODE",
+		CREATE_LOCAL_WIDGET:        "WS.CREATE_LOCAL_WIDGET",
+		CREATE_RELATIONSHIP:        "WS.CREATE_RELATIONSHIP",
+		CREATE_SIMPLE_PAGE:         "WS.CREATE_SIMPLE_PAGE",
+		DELETE:                     "WS.DELETE",
+		DELETE_RELATIONSHIP:        "WS.DELETE_RELATIONSHIP",
+		DELETE_UNATTACHED_NODES:    "WS.DELETE_UNATTACHED_NODES",
+		DOM_NODE_CHILDREN:          "WS.DOM_NODE_CHILDREN",
+		GET:                        "WS.GET",
+		GET_BY_TYPE:                "WS.GET_BY_TYPE",
+		GET_LOCAL_STORAGE:          "WS.GET_LOCAL_STORAGE",
+		GET_PROPERTY:               "WS.GET_PROPERTY",
+		GET_RELATIONSHIP:           "WS.GET_RELATIONSHIP",
+		GET_SCHEMA_INFO:            "WS.GET_SCHEMA_INFO",
+		GET_TYPE_INFO:              "WS.GET_TYPE_INFO",
+		IMPORT:                     "WS.IMPORT",
+		INSERT_BEFORE:              "WS.INSERT_BEFORE",
+		LINK:                       "WS.LINK",
+		LIST:                       "WS.LIST",
+		LIST_ACTIVE_ELEMENTS:       "WS.LIST_ACTIVE_ELEMENTS",
+		LIST_COMPONENTS:            "WS.LIST_COMPONENTS",
+		LIST_SCHEMA_PROPERTIES:     "WS.LIST_SCHEMA_PROPERTIES",
+		LIST_SYNCABLES:             "WS.LIST_SYNCABLES",
+		LIST_UNATTACHED_NODES:      "WS.LIST_UNATTACHED_NODES",
+		LOGIN:                      "WS.LOGIN",
+		LOGOUT:                     "WS.LOGOUT",
+		PATCH:                      "WS.PATCH",
+		PING:                       "WS.PING",
+		PULL:                       "WS.PULL",
+		PUSH:                       "WS.PUSH",
+		PUSH_SCHEMA:                "WS.PUSH_SCHEMA",
+		QUERY:                      "WS.QUERY",
+		REMOVE:                     "WS.REMOVE",
+		REMOVE_FROM_COLLECTION:     "WS.REMOVE_FROM_COLLECTION",
+		REPLACE_WIDGET:             "WS.REPLACE_WIDGET",
+		SAVE_LOCAL_STORAGE:         "WS.SAVE_LOCAL_STORAGE",
+		SAVE_NODE:                  "WS.SAVE_NODE",
+		SEARCH:                     "WS.SEARCH",
+		SET_PERMISSION:             "WS.SET_PERMISSION",
+		SNAPSHOTS:                  "WS.SNAPSHOTS",
+		STATUS:                     "WS.STATUS",
+		SYNC_MODE:                  "WS.SYNC_MODE",
+		UNARCHIVE:                  "WS.UNARCHIVE",
+		UPDATE:                     "WS.UPDATE",
+		UPLOAD:                     "WS.UPLOAD",
+		WRAP_CONTENT:               "WS.WRAP_CONTENT"
+	}
+};
+/**
+ * The Logger object
+ * After an implementation of the log-method is chosen we dont need to re-evalute the debug parameter.
+ * Also we can change the implementation on-the-fly if we need to.
+ */
+var _Logger = {
+	subscriptions: [],
+	ignored: ["WS.STATUS", "WS.PING"],
+
+	/**
+	 * Initializes the logger
+	 * The caller would normally use the URL parameter 'debug' as a parameter.
+	 */
+	initLogger: function (mode, subscriptions) {
+		footer.hide();
+
+		switch (mode) {
+			case 'true':
+			case '1':
+			case 'page':
+				_Logger.log = _Logger.htmlLog;
+				footer.show();
+				break;
+
+			case 'console':
+			case '2':
+				_Logger.log = _Logger.consoleLog;
+				break;
+
+			default:
+				_Logger.log = function () {};
+		}
+
+		this.subscriptions = [];
+		if (subscriptions) {
+			if (typeof subscriptions === "string") {
+				this.subscriptions = subscriptions.split(',');
+			} else if (Array.prototype.isPrototypeOf(subscriptions)) {
+				this.subscriptions = subscriptions;
+			} else {
+				console.log("Unknown subscription initialization! " + subscriptions);
+				console.log("Subscribing to every log type.");
+				this.subscriptions = this.getAllLogTypes();
+			}
+		} else {
+			this.subscriptions = this.getAllLogTypes();
+		}
+	},
+
+	/**
+	 * The log function (needs to be initialized in order for logging to work)
+	 * default implementation does nothing
+	 */
+	log: function () {},
+
+	/**
+	 * Sends all arguments to console.log
+	 */
+	consoleLog: function () {
+		if (this.subscribed(Array.prototype.slice.call(arguments, 0, 1)[0])) {
+			console.log(Array.prototype.slice.call(arguments));
+		}
+	},
+
+	/**
+	 * Logs all arguments to the log area in the footer
+	 */
+	htmlLog: function () {
+		if (this.subscribed(Array.prototype.slice.call(arguments, 0, 1)[0])) {
+			var msg = Array.prototype.slice.call(arguments).join(' ');
+			var div = $('#log', footer);
+			div.append(msg + '<br>');
+			footer.scrollTop(div.height());
+		}
+	},
+
+
+	subscribe: function (type) {
+		if (this.subscriptions.indexOf(type) === -1) {
+			this.subscriptions.push(type);
+		}
+	},
+
+	unsubscribe: function (type) {
+		var pos = this.subscriptions.indexOf(type);
+		if (pos !== -1) {
+			this.subscriptions.splice(pos, 1);
+		}
+	},
+
+	ignore: function (type) {
+		if (this.ignored.indexOf(type) === -1) {
+			this.ignored.push(type);
+		}
+	},
+
+	unignore: function (type) {
+		var pos = this.ignored.indexOf(type);
+		if (pos !== -1) {
+			this.ignored.splice(pos, 1);
+		}
+	},
+
+	/**
+	 * decide whether we allow the event to be shown to the user
+	 * only if it is not in the ignore liste AND in the subscription list we return true
+	 */
+	subscribed: function (type) {
+		if (type) {
+			return (this.ignored.indexOf(type) === -1) && (this.subscriptions.indexOf(type) !== -1 || this.subscriptions.indexOf(type.split('.')[0]) !== -1);
+		} else {
+			console.error("undefined log type - this should not happen!");
+			return true;
+		}
+	},
+
+	getAllLogTypes: function() {
+		var logtypes = [];
+		Object.keys(_LogType).forEach(function(key) {
+			if (typeof _LogType[key] === "string") {
+				logtypes.push(_LogType[key]);
+			}
+		});
+
+		return logtypes;
+	}
+};

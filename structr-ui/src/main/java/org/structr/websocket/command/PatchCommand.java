@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -32,6 +32,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
@@ -51,7 +52,7 @@ public class PatchCommand extends AbstractCommand {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final AbstractNode node        = getNode(webSocketData.getId());
 		Map<String, Object> properties = webSocketData.getNodeData();
@@ -66,6 +67,8 @@ public class PatchCommand extends AbstractCommand {
 
 			try {
 				node.setProperty(Content.content, results[0].toString());
+				
+				TransactionCommand.registerNodeCallback(node, callback);
 				
 			} catch (Throwable t) {
 

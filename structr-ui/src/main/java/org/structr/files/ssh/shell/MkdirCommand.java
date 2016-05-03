@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,8 @@
 package org.structr.files.ssh.shell;
 
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -34,6 +36,8 @@ import org.structr.web.entity.Folder;
  *
  */
 public class MkdirCommand extends CdCommand {
+
+	private static final Logger logger = Logger.getLogger(MkdirCommand.class.getName());
 
 	private String target = null;
 
@@ -70,7 +74,7 @@ public class MkdirCommand extends CdCommand {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 	}
 

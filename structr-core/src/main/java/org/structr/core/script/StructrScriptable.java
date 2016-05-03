@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -45,11 +46,14 @@ import org.structr.common.CaseHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.parser.Functions;
+import org.structr.core.parser.function.GrantFunction;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.Function;
@@ -90,7 +94,7 @@ public class StructrScriptable extends ScriptableObject {
 				@Override
 				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable scope, final Scriptable thisObject, final Object[] parameters) {
 
-					if (parameters.length > 0 && parameters[0] != null) {
+					if (parameters.length == 1 && parameters[0] != null) {
 
 						try {
 
@@ -99,6 +103,29 @@ public class StructrScriptable extends ScriptableObject {
 						} catch (FrameworkException ex) {
 							exception = ex;
 						}
+
+					} else if (parameters.length > 1) {
+
+						// execute builtin get function
+						final Function<Object, Object> function = Functions.functions.get("get");
+						try {
+
+							final Object[] unwrappedParameters = new Object[parameters.length];
+							int i                              = 0;
+
+							// unwrap JS objects
+							for (final Object param : parameters) {
+								unwrappedParameters[i++] = unwrap(param);
+							}
+
+							return wrap(context, scope, null, function.apply(actionContext, entity, unwrappedParameters));
+
+						} catch (FrameworkException fex) {
+							exception = fex;
+						}
+
+						return null;
+
 					}
 
 					return null;
@@ -208,7 +235,7 @@ public class StructrScriptable extends ScriptableObject {
 						}
 
 					} catch (FrameworkException fex) {
-						fex.printStackTrace();
+						logger.log(Level.WARNING, "", fex);
 					}
 
 					return null;
@@ -285,6 +312,11 @@ public class StructrScriptable extends ScriptableObject {
 			return ((Enum)value).name();
 		}
 
+		if (value instanceof Map && !(value instanceof GraphObjectMap) && !(value instanceof PropertyMap)) {
+
+			return new MapWrapper((Map)value);
+		}
+
 		if (value instanceof Date) {
 
 			return context.newObject(scope, "Date", new Object[] {((Date)value).getTime()});
@@ -324,6 +356,16 @@ public class StructrScriptable extends ScriptableObject {
 
 				return list;
 
+			} else if (source instanceof StructrArray) {
+
+				final List list = new ArrayList();
+				for (final Object obj : ((StructrArray)source).toArray()) {
+
+					list.add(unwrap(obj));
+				}
+
+				return list;
+
 			} else if (source.getClass().getName().equals("org.mozilla.javascript.NativeDate")) {
 
 				// FIXME: this is one of the worst ways I've ever resorted to in order
@@ -341,7 +383,7 @@ public class StructrScriptable extends ScriptableObject {
 					return new Date(value.longValue());
 
 				} catch (Throwable t) {
-					t.printStackTrace();
+					logger.log(Level.WARNING, "", t);
 				}
 
 			} else {
@@ -687,7 +729,7 @@ public class StructrScriptable extends ScriptableObject {
 
 							try {
 
-								final Function grant = Functions.functions.get("grant");
+								final GrantFunction grant = new GrantFunction();
 								if (grant != null) {
 
 									if (parameters.length >= 2 && parameters[0] != null && parameters[1] != null) {
@@ -759,6 +801,85 @@ public class StructrScriptable extends ScriptableObject {
 			return null;
 		}
 
+	}
+
+	public class MapWrapper extends ScriptableObject implements Map {
+
+		private Map<String, Object> map = null;
+
+		public MapWrapper(final Map<String, Object> map) {
+			this.map = map;
+		}
+
+		@Override
+		public String toString() {
+			return map.toString();
+		}
+
+		@Override
+		public String getClassName() {
+			return "Map";
+		}
+
+		@Override
+		public Object get(String name, Scriptable start) {
+			return map.get(name);
+		}
+
+		@Override
+		public Object[] getIds() {
+			return map.keySet().toArray();
+		}
+
+		@Override
+		public Object getDefaultValue(Class<?> hint) {
+			return map.toString();
+		}
+
+		@Override
+		public boolean containsKey(Object key) {
+			return map.containsKey(key);
+		}
+
+		@Override
+		public boolean containsValue(Object value) {
+			return map.containsValue(value);
+		}
+
+		@Override
+		public Object put(Object key, Object value) {
+			return map.put(null, value);
+		}
+
+		@Override
+		public Object remove(Object key) {
+			return map.remove(key);
+		}
+
+		@Override
+		public void putAll(Map m) {
+			map.putAll(m);
+		}
+
+		@Override
+		public void clear() {
+			map.clear();
+		}
+
+		@Override
+		public Set keySet() {
+			return map.keySet();
+		}
+
+		@Override
+		public Collection values() {
+			return map.values();
+		}
+
+		@Override
+		public Set entrySet() {
+			return map.entrySet();
+		}
 	}
 
 	public interface JsDateWrap {

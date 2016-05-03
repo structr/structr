@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,7 +21,8 @@ package org.structr.core;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import org.neo4j.graphdb.PropertyContainer;
+import org.structr.api.Predicate;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.PermissionResolutionMask;
 import org.structr.common.SecurityContext;
@@ -53,11 +54,11 @@ public interface GraphObject {
 	public static final Property<String>  type                        = new TypeProperty();
 	public static final Property<String>  id                          = new UuidProperty();
 
-	public static final Property<Date>    createdDate                 = new ISO8601DateProperty("createdDate").indexed().unvalidated().readOnly().writeOnce();
+	public static final Property<Date>    createdDate                 = new ISO8601DateProperty("createdDate").systemInternal().indexed().unvalidated().writeOnce();
 	public static final Property<String>  createdBy                   = new StringProperty("createdBy").readOnly().writeOnce().unvalidated();
 
-	public static final Property<Date>    lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").internalSystemProperty().passivelyIndexed().unvalidated().readOnly();
-	public static final Property<String>  lastModifiedBy              = new StringProperty("lastModifiedBy").internalSystemProperty().unvalidated();
+	public static final Property<Date>    lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").systemInternal().passivelyIndexed().unvalidated();
+	public static final Property<String>  lastModifiedBy              = new StringProperty("lastModifiedBy").systemInternal().unvalidated();
 
 	public static final Property<Boolean> visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers").passivelyIndexed();
 	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed();
@@ -146,7 +147,7 @@ public interface GraphObject {
 	 * @param filter the filter to apply to all properties
 	 * @return the converted, validated, transformed property value
 	 */
-	public <T> T getProperty(final PropertyKey<T> propertyKey, final org.neo4j.helpers.Predicate<GraphObject> filter);
+	public <T> T getProperty(final PropertyKey<T> propertyKey, final Predicate<GraphObject> filter);
 
 	/**
 	 * Returns the property value for the given key as a Comparable
@@ -189,12 +190,18 @@ public interface GraphObject {
 	public String getDefaultSortOrder();
 
 	/**
+	 * Unlock all system properties in this entity for a single <code>setProperty</code>
+	 * call.
+	 */
+	public void unlockSystemPropertiesOnce();
+
+	/**
 	 * Unlock all read-only properties in this entity for a single <code>setProperty</code>
 	 * call.
 	 */
 	public void unlockReadOnlyPropertiesOnce();
 
-
+	
 	public boolean isValid(ErrorBuffer errorBuffer);
 
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,12 +23,16 @@ import org.structr.cloud.message.Message;
 import java.io.IOException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  *
  */
 public class Sender extends Thread {
+
+	private static final Logger logger = Logger.getLogger(Sender.class.getName());
 
 	private final BlockingQueue<Message> outputQueue = new ArrayBlockingQueue<>(10000);
 	private DataOutputStream outputStream            = null;
@@ -48,7 +52,7 @@ public class Sender extends Thread {
 			outputStream.flush();
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.log(Level.WARNING, "", ioex);
 		}
 	}
 
@@ -86,7 +90,7 @@ public class Sender extends Thread {
 			outputQueue.put(message);
 
 		} catch (InterruptedException iex) {
-			iex.printStackTrace();
+			logger.log(Level.WARNING, "", iex);
 		}
 	}
 }

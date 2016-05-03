@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,7 +24,8 @@ import org.structr.core.GraphObject;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import org.apache.lucene.search.SortField;
+import org.structr.api.Predicate;
+import org.structr.api.search.SortType;
 
 /**
  *
@@ -52,8 +53,8 @@ public class IntegerSumProperty extends AbstractReadOnlyProperty<Integer> {
 	}
 
 	@Override
-	public Integer getSortType() {
-		return SortField.INT;
+	public SortType getSortType() {
+		return SortType.Integer;
 	}
 
 	@Override
@@ -62,7 +63,7 @@ public class IntegerSumProperty extends AbstractReadOnlyProperty<Integer> {
 	}
 
 	@Override
-	public Integer getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	public Integer getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		int sum = 0;
 

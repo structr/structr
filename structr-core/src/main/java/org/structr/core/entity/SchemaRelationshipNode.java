@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,12 +27,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.helpers.Predicate;
-import org.neo4j.helpers.collection.Iterables;
+import org.structr.api.util.Iterables;
+import org.structr.api.Predicate;
 import org.structr.common.CaseHelper;
 import org.structr.common.PermissionPropagation;
 import org.structr.common.PropertyView;
@@ -72,6 +73,7 @@ import org.structr.schema.parser.Validator;
 public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 	private static final Logger logger                              = Logger.getLogger(SchemaRelationshipNode.class.getName());
+	private static final Set<String> propagatingRelTypes            = new TreeSet<>();
 	private static final Pattern ValidKeyPattern                    = Pattern.compile("[a-zA-Z_]+");
 
 	public static final Property<SchemaNode> sourceNode             = new StartNode<>("sourceNode", SchemaRelationshipSourceNode.class);
@@ -128,6 +130,20 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	);
 
 	private final Set<String> dynamicViews = new LinkedHashSet<>();
+
+
+	public static void registerPropagatingRelationshipType(final String type) {
+		propagatingRelTypes.add(type);
+	}
+
+	public static void clearPropagatingRelationshipTypes() {
+		propagatingRelTypes.clear();
+	}
+
+	public static Set<String> getPropagatingRelationshipTypes() {
+		return propagatingRelTypes;
+	}
+
 
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
@@ -197,11 +213,24 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	}
 
 	@Override
+	public void onNodeDeletion() {
+
+		try {
+
+			removeSourceAndTargetJsonNames();
+
+		} catch (Throwable t) {
+
+			// this method must not prevent
+			// the deletion of a node
+			t.printStackTrace();
+		}
+	}
+
+	@Override
 	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 
 		if (super.onDeletion(securityContext, errorBuffer, properties)) {
-
-			removeSourceAndTargetJsonNames(properties);
 
 			// register transaction post processing that recreates the schema information
 			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
@@ -367,7 +396,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return propertyName;
@@ -478,6 +507,10 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		}
 
 		src.append(" {\n\n");
+
+		if (!Direction.None.equals(getProperty(permissionPropagation))) {
+			src.append("\tstatic {\n\t\tSchemaRelationshipNode.registerPropagatingRelationshipType(\"").append(getRelationshipType()).append("\");\n\t}\n\n");
+		}
 
 		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, errorBuffer));
 		src.append(SchemaHelper.extractViews(this, viewProperties, errorBuffer));
@@ -852,6 +885,9 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		syncables.add(getSourceNode());
 		syncables.add(getTargetNode());
 
+		syncables.add(getIncomingRelationship(SchemaRelationshipSourceNode.class));
+		syncables.add(getOutgoingRelationship(SchemaRelationshipTargetNode.class));
+
 		return syncables;
 	}
 
@@ -1022,12 +1058,12 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		}
 	}
 
-	private void removeSourceAndTargetJsonNames(PropertyMap properties) throws FrameworkException {
+	private void removeSourceAndTargetJsonNames() throws FrameworkException {
 
 		final SchemaNode _sourceNode         = getProperty(sourceNode);
 		final SchemaNode _targetNode         = getProperty(targetNode);
-		final String _currentSourceJsonName  = (properties.get(sourceJsonName) != null) ? properties.get(sourceJsonName) : properties.get(previousSourceJsonName);
-		final String _currentTargetJsonName  = (properties.get(targetJsonName) != null) ? properties.get(targetJsonName) : properties.get(previousTargetJsonName);
+		final String _currentSourceJsonName  = ((getProperty(sourceJsonName) != null) ? getProperty(sourceJsonName) : getPropertyName(getSchemaNodeTargetType(), new LinkedHashSet<>(), false));
+		final String _currentTargetJsonName  = ((getProperty(targetJsonName) != null) ? getProperty(targetJsonName) : getPropertyName(getSchemaNodeSourceType(), new LinkedHashSet<>(), true));
 
 		if (_sourceNode != null) {
 

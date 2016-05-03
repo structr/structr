@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -110,7 +110,7 @@ public class PagingTest extends StructrTest {
 
               } catch (FrameworkException ex) {
 
-		      ex.printStackTrace();
+		      logger.log(Level.WARNING, "", ex);
 
                       logger.log(Level.SEVERE, ex.toString());
                       fail("Unexpected exception");
@@ -137,8 +137,7 @@ public class PagingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-
-				int i                           = offset;
+				int i = offset;
 				for (NodeInterface node : nodes) {
 
 					// System.out.println("Node ID: " + node.getNodeId());
@@ -175,7 +174,7 @@ public class PagingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
@@ -194,7 +193,7 @@ public class PagingTest extends StructrTest {
 
 		final Result result = query.getResult();
 
-		logger.log(Level.INFO, "Raw result size: {0}, expected: {1} (page size: {2}, page: {3})", new Object[] { result.getRawResultCount(), number, pageSize, page });
+		logger.log(Level.INFO, "===================================================\nRaw result size: {0}, expected: {1} (page size: {2}, page: {3})", new Object[] { result.getRawResultCount(), number, pageSize, page });
 		assertTrue(result.getRawResultCount() == ((pageSize == 0 || page == 0) ? 0 : number));
 
 		long expectedResultCount = (pageSize == 0 || page == 0)

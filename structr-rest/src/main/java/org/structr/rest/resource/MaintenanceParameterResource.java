@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -36,18 +36,20 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.Command;
+import org.structr.api.service.Command;
 import org.structr.agent.Task;
 import org.structr.core.graph.BulkChangeNodePropertyKeyCommand;
 import org.structr.core.graph.BulkCreateLabelsCommand;
 import org.structr.core.graph.BulkDeleteSoftDeletedNodesCommand;
 import org.structr.core.graph.BulkRebuildIndexCommand;
 import org.structr.core.graph.BulkSetUuidCommand;
+import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.SyncCommand;
 import org.structr.schema.SchemaHelper;
 import org.structr.rest.maintenance.SnapshotCommand;
 import org.structr.schema.importer.GraphGistImporter;
 import org.structr.schema.importer.RDFImporter;
+import org.structr.schema.importer.SchemaJsonImporter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -65,6 +67,7 @@ public class MaintenanceParameterResource extends Resource {
 
 		maintenanceCommandMap.put("importGist", GraphGistImporter.class);
 		maintenanceCommandMap.put("importRdf", RDFImporter.class);
+		maintenanceCommandMap.put("importSchemaJson", SchemaJsonImporter.class);
 		maintenanceCommandMap.put("rebuildIndex", BulkRebuildIndexCommand.class);
 		maintenanceCommandMap.put("rebuildIndexForType", BulkRebuildIndexCommand.class);
 		maintenanceCommandMap.put("createLabels", BulkCreateLabelsCommand.class);
@@ -78,6 +81,7 @@ public class MaintenanceParameterResource extends Resource {
 		maintenanceCommandMap.put("setUuid", BulkSetUuidCommand.class);
 		maintenanceCommandMap.put("sync", SyncCommand.class);
 		maintenanceCommandMap.put("snapshot", SnapshotCommand.class);
+		maintenanceCommandMap.put("flushCaches", FlushCachesCommand.class);
 
 	}
 
@@ -105,17 +109,17 @@ public class MaintenanceParameterResource extends Resource {
 
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
-		throw new NotAllowedException();
+		throw new NotAllowedException("GET not allowed, use POST to run maintenance commands");
 	}
 
 	@Override
 	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
-		throw new NotAllowedException();
+		throw new NotAllowedException("PUT not allowed, use POST to run maintenance commands");
 	}
 
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-		throw new NotAllowedException();
+		throw new NotAllowedException("POST not allowed here, this should not happen. Please report the URL that led to this error message to team@structr.com. Thank you!");
 	}
 
 	@Override

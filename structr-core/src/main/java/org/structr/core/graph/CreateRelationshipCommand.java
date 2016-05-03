@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,8 +18,6 @@
  */
 package org.structr.core.graph;
 
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Transformation;
@@ -29,7 +27,10 @@ import org.structr.core.entity.AbstractRelationship;
 
 import java.util.Date;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
@@ -71,23 +72,23 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 		if (newRel != null) {
 
-			newRel.unlockReadOnlyPropertiesOnce();
+			newRel.unlockSystemPropertiesOnce();
 			newRel.setProperty(GraphObject.type, relType.getSimpleName());
 
 			// set UUID
-			newRel.unlockReadOnlyPropertiesOnce();
+			newRel.unlockSystemPropertiesOnce();
 			newRel.setProperty(GraphObject.id, getNextUuid());
 
 			// set created date
-			newRel.unlockReadOnlyPropertiesOnce();
+			newRel.unlockSystemPropertiesOnce();
 			newRel.setProperty(AbstractRelationship.createdDate, now);
 
 			// set last modified date
-			newRel.unlockReadOnlyPropertiesOnce();
+			newRel.unlockSystemPropertiesOnce();
 			newRel.setProperty(AbstractRelationship.lastModifiedDate, now);
 
 			// Try to get the cascading delete flag from the domain specific relationship type
-			newRel.unlockReadOnlyPropertiesOnce();
+			newRel.unlockSystemPropertiesOnce();
 			newRel.setProperty(AbstractRelationship.cascadeDelete, factory.instantiate(rel).getCascadingDeleteFlag());
 
 			// notify transaction handler
@@ -101,7 +102,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 					// on creation, writing of read-only properties should be possible
 					if (key.isReadOnly() || key.isWriteOnce()) {
-						newRel.unlockReadOnlyPropertiesOnce();
+						newRel.unlockSystemPropertiesOnce();
 					}
 
 					newRel.setProperty(entry.getKey(), entry.getValue());
@@ -131,7 +132,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 			return type.newInstance();
 
 		} catch(Throwable t) {
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 		return null;

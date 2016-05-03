@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,15 +19,15 @@
 package org.structr.files.text;
 
 import org.structr.agent.AbstractTask;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.Indexable;
 
 /**
  *
  *
  */
-public class FulltextIndexingTask extends AbstractTask<FileBase> {
+public class FulltextIndexingTask extends AbstractTask<Indexable> {
 
-	public FulltextIndexingTask(final FileBase file) {
+	public FulltextIndexingTask(final Indexable file) {
 		super(FulltextIndexingAgent.TASK_NAME, null, file);
 	}
 }

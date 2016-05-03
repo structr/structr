@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -51,7 +51,7 @@ public class IdsOnlyResource extends ViewFilterResource {
 			return wrappedResource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
 		}
 
-		throw new IllegalPathException();
+		throw new IllegalPathException("GET not allowed on " + getResourceSignature());
 	}
 
 	@Override
@@ -60,7 +60,8 @@ public class IdsOnlyResource extends ViewFilterResource {
 		if (wrappedResource != null) {
 			return wrappedResource.doPost(propertySet);
 		}
-		throw new IllegalPathException();
+
+		throw new IllegalPathException("POST not allowed on " + getResourceSignature());
 	}
 
 	@Override
@@ -68,15 +69,18 @@ public class IdsOnlyResource extends ViewFilterResource {
 		if (wrappedResource != null) {
 			return wrappedResource.doPut(propertySet);
 		}
-		throw new IllegalPathException();
+
+		throw new IllegalPathException("PUT not allowed on " + getResourceSignature());
 	}
 
 	@Override
 	public RestMethodResult doDelete() throws FrameworkException {
+
 		if (wrappedResource != null) {
 			return wrappedResource.doDelete();
 		}
-		throw new IllegalPathException();
+
+		throw new IllegalPathException("DELETE not allowed on " + getResourceSignature());
 	}
 
 	@Override

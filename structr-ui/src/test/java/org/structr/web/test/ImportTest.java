@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,8 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
@@ -36,7 +38,9 @@ import org.structr.web.common.StructrUiTest;
  */
 public class ImportTest extends StructrUiTest {
 
-	public void testImportAndSchemaAnaylzer() {
+	private static final Logger logger = Logger.getLogger(ImportTest.class.getName());
+
+	public void testImportAndSchemaAnalyzer() {
 
 		final String source =
 			"== Test setup\n" +
@@ -77,7 +81,7 @@ public class ImportTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 			fail("Unexpected exception.");
 		}
 

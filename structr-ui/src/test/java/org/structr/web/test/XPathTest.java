@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,8 @@
  */
 package org.structr.web.test;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -34,6 +36,8 @@ import org.w3c.dom.DOMException;
  *
  */
 public class XPathTest extends StructrUiTest {
+
+	private static final Logger logger = Logger.getLogger(XPathTest.class.getName());
 
 	public void testSimpleXPath() {
 
@@ -89,13 +93,13 @@ public class XPathTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 
 		} catch (XPathExpressionException xpeex) {
 
-			xpeex.printStackTrace();
+			logger.log(Level.WARNING, "", xpeex);
 
 			fail("Unexpected exception");
 
@@ -164,13 +168,13 @@ public class XPathTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 
 		} catch (XPathExpressionException xpeex) {
 
-			xpeex.printStackTrace();
+			logger.log(Level.WARNING, "", xpeex);
 
 			fail("Unexpected exception");
 

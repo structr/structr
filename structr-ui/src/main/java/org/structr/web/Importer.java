@@ -1,15 +1,20 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * Structr is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
- * General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License along with Structr. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web;
 
@@ -36,6 +41,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.FileUtils;
@@ -60,13 +66,18 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.dynamic.File;
+import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.importer.GraphGistImporter;
+import org.structr.schema.importer.SchemaJsonImporter;
+import org.structr.util.LogMessageSupplier;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.diff.CreateOperation;
@@ -93,20 +104,24 @@ import org.structr.web.entity.dom.Page;
  */
 public class Importer {
 
-	private static final String[] hrefElements = new String[]{"link"};
-	private static final String[] ignoreElementNames = new String[]{"#declaration", "#doctype"};
-	private static final String[] srcElements = new String[]{"img", "script", "audio", "video", "input", "source", "track"};
 	private static final Logger logger = Logger.getLogger(Importer.class.getName());
+
+	private static final String[] hrefElements       = new String[]{"link"};
+	private static final String[] ignoreElementNames = new String[]{"#declaration", "#doctype"};
+	private static final String[] srcElements        = new String[]{"img", "script", "audio", "video", "input", "source", "track"};
+
 	private static final Map<String, String> contentTypeForExtension = new HashMap<>();
 
 	private static App app;
+	private static ConfigurationProvider config;
 
-	private final static String DATA_META_PREFIX = "data-structr-meta-";
+	private final static String DATA_STRUCTR_PREFIX = "data-structr-";
+	private final static String DATA_META_PREFIX    = "data-structr-meta-";
 
 	static {
 
 		contentTypeForExtension.put("css", "text/css");
-		contentTypeForExtension.put("js", "text/javascript");
+		contentTypeForExtension.put("js",  "text/javascript");
 		contentTypeForExtension.put("xml", "text/xml");
 		contentTypeForExtension.put("php", "application/x-php");
 
@@ -122,14 +137,27 @@ public class Importer {
 	private String address;
 	private String code;
 
-	public Importer(final SecurityContext securityContext, final String code, final String address, final String name, final int timeout, final boolean publicVisible, final boolean authVisible) {
+	/**
+	 * Construct an instance of the importer to either read the given code, or download code from the given address.
+	 *
+	 * The importer will create a page with the given name. Visibility can be controlled by publicVisible and authVisible.
+	 *
+	 * @param securityContext
+	 * @param code
+	 * @param address
+	 * @param name
+	 * @param publicVisible
+	 * @param authVisible
+	 */
+	public Importer(final SecurityContext securityContext, final String code, final String address, final String name, final boolean publicVisible, final boolean authVisible) {
 
-		this.code = code;
-		this.address = address;
-		this.name = name;
+		this.code            = code;
+		this.address         = address;
+		this.name            = name;
 		this.securityContext = securityContext;
-		this.publicVisible = publicVisible;
-		this.authVisible = authVisible;
+		this.publicVisible   = publicVisible;
+		this.authVisible     = authVisible;
+		this.config          = StructrApp.getConfiguration();
 
 		if (address != null && !address.endsWith("/") && !address.endsWith(".html")) {
 			this.address = this.address.concat("/");
@@ -140,10 +168,23 @@ public class Importer {
 		app = StructrApp.getInstance(securityContext);
 	}
 
+	/**
+	 * Parse the code previously read by {@link Importer#readPage()} and treat it as complete page.
+	 *
+	 * @return
+	 * @throws FrameworkException
+	 */
 	public boolean parse() throws FrameworkException {
 		return parse(false);
 	}
 
+	/**
+	 * Parse the code previously read by {@link Importer#readPage()} and treat it as page fragment.
+	 *
+	 * @param fragment
+	 * @return
+	 * @throws FrameworkException
+	 */
 	public boolean parse(final boolean fragment) throws FrameworkException {
 
 		init();
@@ -196,7 +237,7 @@ public class Importer {
 
 			} catch (IOException ioe) {
 
-				ioe.printStackTrace();
+				logger.log(Level.WARNING, "", ioe);
 
 				throw new FrameworkException(500, "Error while parsing content from " + address);
 
@@ -247,6 +288,16 @@ public class Importer {
 	}
 
 	// ----- public static methods -----
+	public static HttpClient getHttpClient() {
+
+		final HttpClient client = new HttpClient();
+
+		client.getParams().setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
+		client.getParams().setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);
+
+		return client;
+	}
+
 	public static Page parsePageFromSource(final SecurityContext securityContext, final String source, final String name) throws FrameworkException {
 
 		return parsePageFromSource(securityContext, source, name, false);
@@ -254,7 +305,7 @@ public class Importer {
 
 	public static Page parsePageFromSource(final SecurityContext securityContext, final String source, final String name, final boolean removeHashAttribute) throws FrameworkException {
 
-		final Importer importer = new Importer(securityContext, source, null, "source", 0, false, false);
+		final Importer importer = new Importer(securityContext, source, null, "source", false, false);
 		final App localAppCtx = StructrApp.getInstance(securityContext);
 		Page page = null;
 
@@ -289,12 +340,12 @@ public class Importer {
 		}
 
 		final List<InvertibleModificationOperation> changeSet = new LinkedList<>();
-		final Map<String, DOMNode> indexMappedExistingNodes = new LinkedHashMap<>();
-		final Map<String, DOMNode> hashMappedExistingNodes = new LinkedHashMap<>();
-		final Map<DOMNode, Integer> depthMappedExistingNodes = new LinkedHashMap<>();
-		final Map<String, DOMNode> indexMappedNewNodes = new LinkedHashMap<>();
-		final Map<String, DOMNode> hashMappedNewNodes = new LinkedHashMap<>();
-		final Map<DOMNode, Integer> depthMappedNewNodes = new LinkedHashMap<>();
+		final Map<String, DOMNode>                  indexMappedExistingNodes = new LinkedHashMap<>();
+		final Map<String, DOMNode>                  hashMappedExistingNodes  = new LinkedHashMap<>();
+		final Map<DOMNode, Integer>                 depthMappedExistingNodes = new LinkedHashMap<>();
+		final Map<String, DOMNode>                  indexMappedNewNodes      = new LinkedHashMap<>();
+		final Map<String, DOMNode>                  hashMappedNewNodes       = new LinkedHashMap<>();
+		final Map<DOMNode, Integer>                 depthMappedNewNodes      = new LinkedHashMap<>();
 
 		InvertibleModificationOperation.collectNodes(sourceNode, indexMappedExistingNodes, hashMappedExistingNodes, depthMappedExistingNodes);
 		InvertibleModificationOperation.collectNodes(modifiedNode, indexMappedNewNodes, hashMappedNewNodes, depthMappedNewNodes);
@@ -451,7 +502,7 @@ public class Importer {
 
 			if (node instanceof Element) {
 
-				Element el = ((Element)node);
+				Element el = ((Element) node);
 				Set<String> classes = el.classNames();
 
 				for (String cls : classes) {
@@ -463,7 +514,7 @@ public class Importer {
 
 				String downloadAddressAttr = (ArrayUtils.contains(srcElements, tag)
 					? "src" : ArrayUtils.contains(hrefElements, tag)
-						? "href" : null);
+					? "href" : null);
 
 				if (downloadAddressAttr != null && StringUtils.isNotBlank(node.attr(downloadAddressAttr))) {
 
@@ -485,7 +536,7 @@ public class Importer {
 			if (/*type.equals("#data") || */type.equals("#comment")) {
 
 				tag = "";
-				comment = ((Comment)node).getData();
+				comment = ((Comment) node).getData();
 
 				// Don't add content node for whitespace
 				if (StringUtils.isBlank(comment)) {
@@ -499,7 +550,7 @@ public class Importer {
 			} else if (type.equals("#data")) {
 
 				tag = "";
-				content = ((DataNode)node).getWholeData();
+				content = ((DataNode) node).getWholeData();
 
 				// Don't add content node for whitespace
 				if (StringUtils.isBlank(content)) {
@@ -508,17 +559,19 @@ public class Importer {
 				}
 
 			} else // Text-only nodes: Trim the text and put it into the "content" field
-			if (type.equals("#text")) {
+			{
+				if (type.equals("#text")) {
 
 //                              type    = "Content";
-				tag = "";
-				//content = ((TextNode) node).getWholeText();
-				content = ((TextNode)node).text();
+					tag = "";
+					//content = ((TextNode) node).getWholeText();
+					content = ((TextNode) node).text();
 
-				// Add content node for whitespace within <p> elements only
-				if (!("p".equals(startNode.nodeName().toLowerCase())) && StringUtils.isWhitespace(content)) {
+					// Add content node for whitespace within <p> elements only
+					if (!("p".equals(startNode.nodeName().toLowerCase())) && StringUtils.isWhitespace(content)) {
 
-					continue;
+						continue;
+					}
 				}
 			}
 
@@ -530,17 +583,17 @@ public class Importer {
 				// create comment or content node
 				if (!StringUtils.isBlank(comment)) {
 
-					newNode = (DOMNode)page.createComment(comment);
+					newNode = (DOMNode) page.createComment(comment);
 					newNode.setProperty(org.structr.web.entity.dom.Comment.contentType, "text/html");
 
 				} else {
 
-					newNode = (Content)page.createTextNode(content);
+					newNode = (Content) page.createTextNode(content);
 				}
 
 			} else {
 
-				newNode = (org.structr.web.entity.dom.DOMElement)page.createElement(tag);
+				newNode = (org.structr.web.entity.dom.DOMElement) page.createElement(tag);
 			}
 
 			if (newNode != null) {
@@ -569,27 +622,13 @@ public class Importer {
 
 					final String key = nodeAttr.getKey();
 
-					// Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
-					if (!key.equals("text")) {
+					if (!key.equals("text")) { // Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
 
-						// convert data-* attributes to local camel case properties on the node,
-						// but don't convert data-structr-* attributes as they are internal
+						final String value = nodeAttr.getValue();
+
 						if (key.startsWith("data-")) {
-							String value = nodeAttr.getValue();
 
-							if (!key.startsWith(DATA_META_PREFIX)) {
-
-								if (value != null) {
-									if (value.equalsIgnoreCase("true")) {
-										newNode.setProperty(new BooleanProperty(key), true);
-									} else if (value.equalsIgnoreCase("false")) {
-										newNode.setProperty(new BooleanProperty(key), false);
-									} else {
-										newNode.setProperty(new StringProperty(key), nodeAttr.getValue());
-									}
-								}
-
-							} else {
+							if (key.startsWith(DATA_META_PREFIX)) { // convert data-structr-meta-* attributes to local camel case properties on the node,
 
 								int l = DATA_META_PREFIX.length();
 
@@ -606,16 +645,31 @@ public class Importer {
 									}
 								}
 
+							} else
+							if (key.startsWith(DATA_STRUCTR_PREFIX)) { // don't convert data-structr-* attributes as they are internal
+
+								PropertyKey propertyKey = config.getPropertyKeyForJSONName(newNode.getClass(), key);
+
+								if (propertyKey != null) {
+
+									final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
+									if (value != null && inputConverter != null) {
+
+										newNode.setProperty(propertyKey, propertyKey.inputConverter(securityContext).convert(value));
+									} else {
+
+										newNode.setProperty(propertyKey, value);
+									}
+								}
 							}
 
-						} else {
 
-							final String value = nodeAttr.getValue();
+						} else {
 
 							boolean notBlank = StringUtils.isNotBlank(value);
 							boolean isAnchor = notBlank && value.startsWith("#");
 							boolean isLocal = notBlank && !value.startsWith("http");
-							boolean isActive = notBlank && (value.startsWith("${") || value.startsWith("/${"));
+							boolean isActive = notBlank && value.contains("${");
 							boolean isStructrLib = notBlank && value.startsWith("/structr/js/");
 
 							if ("link".equals(tag) && "href".equals(key) && isLocal && !isActive) {
@@ -638,10 +692,28 @@ public class Importer {
 
 				final StringProperty typeKey = new StringProperty(PropertyView.Html.concat("type"));
 
-				if ("script".equals(tag) && newNode.getProperty(typeKey) == null) {
+				if ("script".equals(tag)) {
 
-					// Set default type of script tag to "text/javascript" to ensure inline JS gets imported properly
-					newNode.setProperty(typeKey, "text/javascript");
+					final String contentType = newNode.getProperty(typeKey);
+
+					if (contentType == null) {
+
+						// Set default type of script tag to "text/javascript" to ensure inline JS gets imported properly
+						newNode.setProperty(typeKey, "text/javascript");
+
+					} else if (contentType.equals("application/schema+json")) {
+
+						for (final Node scriptContentNode : node.childNodes()) {
+
+							final String source = scriptContentNode.toString();
+
+							// Import schema JSON
+							SchemaJsonImporter.importSchemaJson(source);
+
+						}
+
+
+					}
 				}
 
 				parent.appendChild(newNode);
@@ -696,8 +768,7 @@ public class Importer {
 
 			}
 
-			logger.log(Level.WARNING, "Unable to download from {0} {1}", new Object[]{originalUrl, downloadAddress});
-			ioe.printStackTrace();
+			logger.log(Level.WARNING, ioe, LogMessageSupplier.create("Unable to download from {0} {1}", new Object[]{originalUrl, downloadAddress}));
 
 			try {
 				// Try alternative baseUrl with trailing "/"
@@ -717,12 +788,10 @@ public class Importer {
 				copyURLToFile(downloadUrl.toString(), fileOnDisk);
 
 			} catch (MalformedURLException ex) {
-				ex.printStackTrace();
-				logger.log(Level.SEVERE, "Could not resolve address {0}", address.concat("/"));
+				logger.log(Level.SEVERE, ex, LogMessageSupplier.create("Could not resolve address {0}", address.concat("/")));
 				return null;
 			} catch (IOException ex) {
-				ex.printStackTrace();
-				logger.log(Level.WARNING, "Unable to download from {0}", address.concat("/"));
+				logger.log(Level.WARNING, ex, LogMessageSupplier.create("Unable to download from {0}", address.concat("/")));
 				return null;
 			}
 
@@ -804,6 +873,11 @@ public class Importer {
 
 						processCssFileNode(fileNode, downloadUrl);
 					}
+
+					if (!fileNode.validatePath(securityContext, null)) {
+						fileNode.setProperty(AbstractNode.name, fileName.concat("_").concat(FileHelper.getDateString()));
+					}
+
 				}
 
 				return fileNode;
@@ -890,12 +964,12 @@ public class Importer {
 	private void copyURLToFile(final String uri, final java.io.File fileOnDisk) throws IOException {
 
 		final HttpClient client = getHttpClient();
-		final HttpMethod get = new GetMethod(uri);
+		final HttpMethod get = new GetMethod();
+		get.setURI(new URI(uri, false));
 
 		get.addRequestHeader("User-Agent", "curl/7.35.0");
 
 		logger.log(Level.INFO, "Downloading from {0}", uri);
-		get.setFollowRedirects(true);
 
 		final int statusCode = client.executeMethod(get);
 
@@ -912,17 +986,8 @@ public class Importer {
 		} else {
 
 			System.out.println("response body: " + new String(get.getResponseBody(), "utf-8"));
-			logger.log(Level.WARNING, "Unable to create file {0}: status code was {1}", new Object[] { uri, statusCode } );
+			logger.log(Level.WARNING, "Unable to create file {0}: status code was {1}", new Object[]{uri, statusCode});
 		}
 	}
 
-	private HttpClient getHttpClient() {
-
-		final HttpClient client = new HttpClient();
-
-		client.getParams().setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
-		client.getParams().setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);
-
-		return client;
-	}
 }

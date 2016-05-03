@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,8 +30,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.util.LogMessageSupplier;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -40,7 +41,7 @@ import org.structr.core.graph.Tx;
  *
  *
  */
-public abstract class Agent<T extends AbstractNode> extends Thread implements StatusInfo {
+public abstract class Agent<T extends NodeInterface> extends Thread implements StatusInfo {
 
 	public static final String AVERAGE_EXECUTION_TIME = "average_execution_time";
 	public static final String EXECUTION_STATUS       = "execution_status";
@@ -101,8 +102,7 @@ public abstract class Agent<T extends AbstractNode> extends Thread implements St
 
 							// someone killed us or the task processing failed..
 							// Log this!!
-							logger.log(Level.SEVERE, "Processing task {0} failed. Maybe someone killed us?", currentTask.getType());
-							t.printStackTrace();
+							logger.log(Level.SEVERE, t, LogMessageSupplier.create("Processing task {0} failed. Maybe someone killed us?", currentTask.getType()));
 						}
 
 					} else {
@@ -115,8 +115,7 @@ public abstract class Agent<T extends AbstractNode> extends Thread implements St
 
 							// someone killed us or the task processing failed..
 							// Log this!!
-							logger.log(Level.SEVERE, "Processing task {0} failed. Maybe someone killed us?", currentTask.getType());
-							t.printStackTrace();
+							logger.log(Level.SEVERE, t, LogMessageSupplier.create("Processing task {0} failed. Maybe someone killed us?", currentTask.getType()));
 						}
 					}
 				}

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,13 +20,15 @@ package org.structr.core.property;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.helpers.Predicate;
+import org.structr.api.Predicate;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.util.LogMessageSupplier;
 
 /**
  *
@@ -67,9 +69,8 @@ public class FunctionProperty<T> extends Property<T> {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Exception while evaluating read function in Function property '{0}'.", jsonName());
+			logger.log(Level.WARNING, t, LogMessageSupplier.create("Exception while evaluating read function in Function property \"{0}\"", jsonName()));
 
-			t.printStackTrace();
 		}
 
 		return null;
@@ -81,8 +82,8 @@ public class FunctionProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public Integer getSortType() {
-		return null; // use string search
+	public SortType getSortType() {
+		return SortType.Default;
 	}
 
 	@Override
@@ -93,11 +94,6 @@ public class FunctionProperty<T> extends Property<T> {
 	@Override
 	public Object fixDatabaseProperty(Object value) {
 		return value;
-	}
-
-	@Override
-	public Object getValueForEmptyFields() {
-		return null;
 	}
 
 	@Override
@@ -132,11 +128,17 @@ public class FunctionProperty<T> extends Property<T> {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Exception while evaluating write function in Function property '{0}'.", new Object[] { jsonName() });
+			logger.log(Level.WARNING, t, LogMessageSupplier.create("Exception while evaluating write function in Function property \"{0}\"", jsonName()));
 
-			t.printStackTrace();
 		}
 
 		return null;
 	}
+
+	@Override
+	public Property<T> format(final String format) {
+		this.readFunction = format;
+		return this;
+	}
+
 }

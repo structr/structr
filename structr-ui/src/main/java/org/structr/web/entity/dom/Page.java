@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,15 +23,19 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.ftplet.FtpFile;
+import org.structr.api.Predicate;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
@@ -39,7 +43,6 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
-import org.structr.core.Predicate;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -50,6 +53,7 @@ import org.structr.core.graph.NodeAttribute;
 import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
@@ -101,7 +105,8 @@ import org.w3c.dom.Text;
  */
 public class Page extends DOMNode implements Linkable, Document, DOMImplementation, FtpFile {
 
-	private static final Logger logger = Logger.getLogger(Page.class.getName());
+	public static final Set<String> nonBodyTags = new HashSet<>(Arrays.asList(new String[] { "html", "head", "body", "meta", "link" } ));
+	private static final Logger logger          = Logger.getLogger(Page.class.getName());
 
 	public static final Property<Integer> version = new IntProperty("version").indexed().readOnly();
 	public static final Property<Integer> position = new IntProperty("position").indexed();
@@ -109,20 +114,25 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
 	public static final Property<String> showOnErrorCodes = new StringProperty("showOnErrorCodes").indexed();
 	public static final Property<List<DOMNode>> elements = new StartNodes<>("elements", PageLink.class);
-	public static final Property<Boolean> isPage = new BooleanProperty("isPage").defaultValue(true).readOnly();
+	public static final Property<Boolean> isPage = new ConstantBooleanProperty("isPage", true);
 	public static final Property<Boolean> dontCache = new BooleanProperty("dontCache").defaultValue(false);
+
+	// if enabled, prevents asynchronous page rendering; enable this flag when using the stream() builtin method
+	public static final Property<Boolean> pageCreatesRawData = new BooleanProperty("pageCreatesRawData").defaultValue(false);
+
+
         public static final Property<String> path = new StringProperty("path").indexed();
 	public static final Property<Site> site = new StartNode<>("site", Pages.class, new UiNotion()).indexedWhenEmpty();
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(Page.class, PropertyView.Public,
-		path, children, linkingElements, contentType, owner, cacheForSeconds, version, showOnErrorCodes, isPage, site, dontCache
+		path, children, linkingElements, contentType, owner, cacheForSeconds, version, showOnErrorCodes, isPage, site, dontCache, pageCreatesRawData, enableBasicAuth, basicAuthRealm
 	);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Page.class, PropertyView.Ui,
-		path, children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes, isPage, site, dontCache
+		path, children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes, isPage, site, dontCache, pageCreatesRawData, enableBasicAuth, basicAuthRealm
 	);
 
-	private Html5DocumentType docTypeNode = null;
+	private Html5DocumentType docTypeNode               = null;
 
 	// register this type as an overridden builtin type
 	static {
@@ -143,19 +153,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public void updateFromNode(final DOMNode newNode) throws FrameworkException {
 		// do nothing
 	}
-
-//	@Override
-//	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
-//
-//		if (properties.containsKey(NodeInterface.name)) {
-//
-//			final String newName = properties.get(NodeInterface.name);
-//			if (newName != null) {
-//
-//				setProperty(NodeInterface.name, newName);
-//			}
-//		}
-//	}
 
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
@@ -236,7 +233,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 			} catch (DOMException dex) {
 
-				dex.printStackTrace();
+				logger.log(Level.WARNING, "", dex);
 
 				throw new FrameworkException(422, dex.getMessage());
 			}
@@ -343,7 +340,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 				child.setProperty(ownerDocument, this);
 
 			} catch (FrameworkException ex) {
-				ex.printStackTrace();
+				logger.log(Level.WARNING, "", ex);
 			}
 
 		}
@@ -369,7 +366,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		} catch (FrameworkException fex) {
 
 			// FIXME: what to do with the exception here?
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return null;
@@ -396,7 +393,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		} catch (FrameworkException fex) {
 
 			// FIXME: what to do with the exception here?
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return null;
@@ -422,7 +419,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		} catch (FrameworkException fex) {
 
 			// FIXME: what to do with the exception here?
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return null;
@@ -447,7 +444,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		} catch (FrameworkException fex) {
 
 			// FIXME: what to do with the exception here?
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return null;
@@ -668,11 +665,11 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		collectNodesByPredicate(this, results, new Predicate<Node>() {
 
 			@Override
-			public boolean evaluate(SecurityContext securityContext, Node... obj) {
+			public boolean accept(Node obj) {
 
-				if (obj[0] instanceof DOMElement) {
+				if (obj instanceof DOMElement) {
 
-					DOMElement elem = (DOMElement) obj[0];
+					DOMElement elem = (DOMElement) obj;
 
 					if (id.equals(elem.getProperty(DOMElement._id))) {
 						return true;
@@ -833,11 +830,11 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		collectNodesByPredicate(this, results, new Predicate<Node>() {
 
 			@Override
-			public boolean evaluate(SecurityContext securityContext, Node... obj) {
+			public boolean accept(Node obj) {
 
-				if (obj[0] instanceof DOMElement) {
+				if (obj instanceof DOMElement) {
 
-					DOMElement elem = (DOMElement) obj[0];
+					DOMElement elem = (DOMElement) obj;
 
 					if (tagName.equals(elem.getProperty(DOMElement.tag))) {
 						return true;
@@ -907,7 +904,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			tx.success();
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 	}
 
@@ -915,7 +912,9 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	@Override
 	public String getAbsolutePath() {
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			return getPath();
+			final String path = getPath();
+			tx.success();
+			return path;
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error in getPath() of abstract ftp file", fex);
 		}
@@ -1183,7 +1182,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 					tx.success();
 
 				} catch (FrameworkException fex) {
-					fex.printStackTrace();
+					logger.log(Level.WARNING, "", fex);
 				}
 
 				super.flush();
@@ -1205,7 +1204,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		return bis;

@@ -1,22 +1,21 @@
 /*
- *  Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
- *  This file is part of Structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 var dashboard;
 var aboutMe, meObj;
 
@@ -54,7 +53,7 @@ var _Dashboard = {
 		});
 		_Dashboard.checkAdmin();
 		
-		aboutMe.append('<button id="clear-local-storage-on-server">Clear UI configuration on server</button>');
+		aboutMe.append('<button id="clear-local-storage-on-server">Reset stored UI settings</button>');
 		$('#clear-local-storage-on-server').on('click', function() {
 			_Dashboard.clearLocalStorageOnServer();
 		});
@@ -71,7 +70,7 @@ var _Dashboard = {
 		myFiles.append('<div class="dashboard-info">Your most edited <a class="internal-link" href="javascript:void(0)">files</a> are:</div>');
 		Command.getByType('File', 5, 1, 'version', 'desc', null, false, function(files) {
 			files.forEach(function(f) {
-				myFiles.append('<div class="dashboard-info"><a href="/' + f.name + '" target="_blank"><img class="icon" src="' + _Files.getIcon(f) + '"></a> <a href="/' + f.id + '" target="_blank">' + _Dashboard.displayName(f) + '</a>' + _Dashboard.displayVersion(f) + '</div>');
+				myFiles.append('<div class="dashboard-info"><a href="/' + f.name + '" target="_blank"><i class="fa ' + _Filesystem.getIcon(f) + '"></i></a> <a href="/' + f.id + '" target="_blank">' + _Dashboard.displayName(f) + '</a>' + _Dashboard.displayVersion(f) + '</div>');
 			});
 		});
 
@@ -116,11 +115,13 @@ var _Dashboard = {
 			Command.rest("/me/ui", function (result) {
 				Command.setProperty(result[0].id, 'localStorage', null, false, function() {
 					blinkGreen($('#clear-local-storage-on-server'));
+					localStorageObject = {};
 				});
 			});
 		} else {
 			Command.setProperty(meObj.id, 'localStorage', null, false, function() {
 				blinkGreen($('#clear-local-storage-on-server'));
+				localStorageObject = {};
 			});
 		}
 	}

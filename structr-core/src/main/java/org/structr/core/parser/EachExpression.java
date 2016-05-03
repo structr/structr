@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,6 +29,8 @@ import org.structr.schema.action.ActionContext;
  */
 
 public class EachExpression extends Expression {
+
+	public static final String ERROR_MESSAGE_EACH = "Usage: ${each(collection, expression)}. Example: ${each(this.children, \"set(this, \"email\", lower(get(this.email))))\")}";
 
 	private Expression listExpression = null;
 	private Expression eachExpression = null;
@@ -77,7 +79,7 @@ public class EachExpression extends Expression {
 	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
 
 		if (listExpression == null) {
-			return Functions.ERROR_MESSAGE_EACH;
+			return ERROR_MESSAGE_EACH;
 		}
 
 		final Object listSource = listExpression.evaluate(ctx, entity);

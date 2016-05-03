@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,12 +25,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.helpers.Predicate;
-import org.neo4j.helpers.collection.Iterables;
+import org.structr.api.graph.Direction;
+import org.structr.api.util.Iterables;
+import org.structr.api.graph.Node;
+import org.structr.api.Predicate;
+import org.structr.api.graph.Relationship;
+import org.structr.api.graph.RelationshipType;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -97,15 +97,15 @@ public abstract class AbstractEndpoint {
 
 		return null;
 	}
-	
+
 	/**
 	 * Sort relationships by their Neo4j object graph id.
-	 * 
+	 *
 	 * @param rels
-	 * @return 
+	 * @return
 	 */
 	protected List<Relationship> sort(final Iterable<Relationship> rels) {
-		
+
 		List<Relationship> eagerList = new LinkedList<>();
 
 		for (final Relationship r : rels) {
@@ -123,6 +123,6 @@ public abstract class AbstractEndpoint {
 		});
 
 		return eagerList;
-		
+
 	}
 }

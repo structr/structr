@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -212,17 +212,24 @@ public class GraphObjectGSONAdapter {
 
 				if (converter != null) {
 
-					return serializeRoot(converter.revert(value), localPropertyView, depth);
+					try {
+						return serializeRoot(converter.revert(value), localPropertyView, depth);
+
+					} catch (ClassCastException cce) {
+
+						// try to fix the database property
+						value = key.fixDatabaseProperty(value);
+
+						return serializeRoot(converter.revert(value), localPropertyView, depth);
+
+					}
 
 				} else {
 
 					return serializeRoot(value, localPropertyView, depth);
 				}
 
-			} catch(Throwable t) {
-
-				// CHM: remove debug code later
-				t.printStackTrace();
+			} catch (Throwable t) {
 
 				logger.log(Level.WARNING, "Exception while serializing property {0} ({1}) of entity {2} (value {3}) : {4}", new Object[] {
 					key.jsonName(),

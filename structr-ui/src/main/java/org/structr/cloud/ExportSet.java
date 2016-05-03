@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -42,7 +42,7 @@ public class ExportSet {
 
 		if (data.isNode()) {
 
-			System.out.println("adding " + data.getSyncNode());
+			//System.out.println("adding " + data.getSyncNode());
 
 			if (nodes.add(data.getSyncNode())) {
 
@@ -59,7 +59,7 @@ public class ExportSet {
 
 		} else {
 
-			System.out.println("adding " + data.getSyncRelationship());
+			//System.out.println("adding " + data.getSyncRelationship());
 
 			if (relationships.add(data.getSyncRelationship())) {
 

@@ -6,13 +6,13 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>2.0-SNAPSHOT</version>
+        <version>2.0.2-SNAPSHOT</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-ui</artifactId>
     <packaging>jar</packaging>
-    <version>2.0-SNAPSHOT</version>
+    <version>2.0.2-SNAPSHOT</version>
     <name>Structr UI</name>
     <description>Structr is an open source framework based on the popular Neo4j graph database.</description>
     <developers>
@@ -30,18 +30,9 @@
     <properties>
         <netbeans.hint.license>structr-agpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <neo4j.version>2.2.6</neo4j.version>
         <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
     </properties>
     <repositories>
-        <repository>
-            <id>neo4j-releases</id>
-            <url>http://m2.neo4j.org/content/repositories/releases</url>
-        </repository>
-        <repository>
-            <id>neo4j-snapshots</id>
-            <url>http://m2.neo4j.org/content/repositories/snapshots</url>
-        </repository>
         <repository>
             <id>google-diff-patch-match</id>
             <name>google-diff-patch-match</name>
@@ -62,6 +53,22 @@
                     <groupId>commons-codec</groupId>
                     <artifactId>commons-codec</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.ow2.asm</groupId>
+                    <artifactId>asm-commons</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.ow2.asm</groupId>
+                    <artifactId>asm</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>log4j-over-slf4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>bouncycastle</groupId>
+                    <artifactId>bcprov-jdk16</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -73,32 +80,16 @@
             <optional>false</optional>
         </dependency>
         <dependency>
-            <groupId>org.neo4j.app</groupId>
-            <artifactId>neo4j-server</artifactId>
-            <version>${neo4j.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-io</groupId>
-                    <artifactId>commons-io</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-io</groupId>
-                    <artifactId>commons-io</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.eclipse.jetty</groupId>
-                    <artifactId>jetty-webapp</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>asm</groupId>
-                    <artifactId>asm</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>diff_match_patch</groupId>
             <artifactId>diff_match_patch</artifactId>
             <version>current</version>
+        </dependency>
+	<dependency>
+            <groupId>com.jayway.restassured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <version>2.7.0</version>
+            <scope>test</scope>
+            <optional>false</optional>
         </dependency>
         <dependency>
             <groupId>org.pegdown</groupId>
@@ -146,6 +137,10 @@
                     <groupId>commons-codec</groupId>
                     <artifactId>commons-codec</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -157,11 +152,23 @@
             <groupId>org.apache.ftpserver</groupId>
             <artifactId>ftpserver-core</artifactId>
             <version>1.0.6</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.asciidoctor</groupId>
             <artifactId>asciidoctor-java-integration</artifactId>
             <version>0.1.4</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.beust</groupId>
+                    <artifactId>jcommander</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.mortennobel</groupId>
@@ -177,6 +184,10 @@
                     <artifactId>xercesImpl</artifactId>
                     <groupId>xerces</groupId>
                 </exclusion>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -187,6 +198,10 @@
                 <exclusion>
                     <groupId>commons-codec</groupId>
                     <artifactId>commons-codec</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -251,37 +266,136 @@
             <version>1.10</version>
             <exclusions>
                 <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-core</artifactId>
+                </exclusion>
+                <exclusion>
                     <groupId>org.opengis</groupId>
                     <artifactId>geoapi</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.ow2.asm</groupId>
+                    <artifactId>asm-debug-all</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-codec</groupId>
+                    <artifactId>commons-codec</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.jsoup</groupId>
+                    <artifactId>jsoup</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.beust</groupId>
+                    <artifactId>jcommander</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.healthmarketscience.jackcess</groupId>
+                    <artifactId>jackcess-encrypt</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>com.rometools</groupId>
+            <artifactId>rome-fetcher</artifactId>
+            <version>1.5.1</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.sshd</groupId>
             <artifactId>sshd-core</artifactId>
-            <version>0.14.0</version>
+            <version>1.2.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.chemistry.opencmis</groupId>
             <artifactId>chemistry-opencmis-client-bindings</artifactId>
             <version>0.13.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-parsers</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.chemistry.opencmis</groupId>
             <artifactId>chemistry-opencmis-bridge</artifactId>
             <version>0.13.0</version>
             <classifier>classes</classifier>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.chemistry.opencmis</groupId>
             <artifactId>chemistry-opencmis-server-fileshare</artifactId>
             <version>0.13.0</version>
             <classifier>classes</classifier>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.chemistry.opencmis</groupId>
             <artifactId>chemistry-opencmis-test-tools</artifactId>
             <version>0.13.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-io</groupId>
+                    <artifactId>commons-io</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-parsers</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
     <build>
@@ -527,7 +641,7 @@
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <version>2.6</version>
+                <version>2.11</version>
                 <configuration>
                     <header>header.txt</header>
                     <includes>
@@ -539,6 +653,13 @@
                         <exclude>src/**/*.sh</exclude>
                         <exclude>src/main/resources/**/*.html</exclude>
                         <exclude>src/main/resources/**/*.xml</exclude>
+                        <exclude>src/main/resources/**/*.xsl*</exclude>
+                        <exclude>src/main/resources/**/*.eot</exclude>
+                        <exclude>src/main/resources/**/*.woff</exclude>
+                        <exclude>src/main/resources/**/*.woff2</exclude>
+                        <exclude>src/main/resources/**/*.ttf</exclude>
+                        <exclude>src/main/resources/**/*.otf</exclude>
+                        <exclude>src/main/resources/**/*.svg</exclude>
                         <exclude>src/main/resources/bin/**</exclude>
                         <exclude>src/main/resources/mime.types</exclude>
                         <exclude>src/main/resources/structr/codemirror/**</exclude>
@@ -549,14 +670,14 @@
                         <exclude>src/main/deb/**</exclude>
                     </excludes>
                     <properties>
-                        <year>2015</year>
+                        <year>2016</year>
                         <owner>Structr GmbH</owner>
                     </properties>
                 </configuration>
                 <executions>
                     <execution>
                         <goals>
-                            <goal>format</goal>
+                            <goal>check</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -654,22 +775,22 @@
             <name>GNU Affero General Public License, Version 3</name>
             <url>http://www.gnu.org/licenses/agpl-3.0-standalone.html</url>
             <comments>
-                Copyright (C) 2010-2015 Structr GmbH, structr &lt;structr@structr.org&gt;
+                Copyright (C) 2010-2016 Structr GmbH
 
                 This file is part of Structr &lt;http://structr.org&gt;.
 
-                structr is free software: you can redistribute it and/or modify
+                Structr is free software: you can redistribute it and/or modify
                 it under the terms of the GNU Affero General Public License as
                 published by the Free Software Foundation, either version 3 of the
                 License, or (at your option) any later version.
 
-                structr is distributed in the hope that it will be useful,
+                Structr is distributed in the hope that it will be useful,
                 but WITHOUT ANY WARRANTY; without even the implied warranty of
                 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
                 GNU Affero General Public License for more details.
 
                 You should have received a copy of the GNU Affero General Public License
-                along with structr.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+                along with Structr.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
             </comments>
         </license>
     </licenses>

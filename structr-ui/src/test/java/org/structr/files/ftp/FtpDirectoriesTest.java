@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -60,7 +60,7 @@ public class FtpDirectoriesTest extends FtpTest {
 			tx.success();
 			
 		} catch (IOException | FrameworkException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 
@@ -78,7 +78,7 @@ public class FtpDirectoriesTest extends FtpTest {
 			tx.success();
 			
 		} catch (IOException | FrameworkException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 
@@ -96,7 +96,7 @@ public class FtpDirectoriesTest extends FtpTest {
 			tx.success();
 			
 		} catch (IOException | FrameworkException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 	}
@@ -122,7 +122,7 @@ public class FtpDirectoriesTest extends FtpTest {
 			tx.success();
 			
 		} catch (IOException | FrameworkException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 
@@ -141,7 +141,7 @@ public class FtpDirectoriesTest extends FtpTest {
 			tx.success();
 			
 		} catch (IOException | FrameworkException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 
@@ -159,7 +159,7 @@ public class FtpDirectoriesTest extends FtpTest {
 			tx.success();
 			
 		} catch (IOException | FrameworkException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 	}
@@ -182,7 +182,7 @@ public class FtpDirectoriesTest extends FtpTest {
 			tx.success();
 			
 		} catch (IOException | FrameworkException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 			
@@ -200,7 +200,7 @@ public class FtpDirectoriesTest extends FtpTest {
 			tx.success();
 			
 		} catch (IOException | FrameworkException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 	}
@@ -242,7 +242,7 @@ public class FtpDirectoriesTest extends FtpTest {
 			tx.success();
 			
 		} catch (IOException | FrameworkException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 	}

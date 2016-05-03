@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -74,7 +74,10 @@ public class CreateOperation extends InvertibleModificationOperation {
 
 			if (parent != null && !parent.isSynced()) {
 
-				sourcePage.adoptNode(newNode);
+				if (sourcePage != null) {
+					sourcePage.adoptNode(newNode);
+				}
+				
 				parent.insertBefore(newNode, sibling);
 
 				// make existing node known to other operations

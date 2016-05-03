@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,7 +20,9 @@ package org.structr.web.entity.dom;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.java.textilej.parser.MarkupParser;
@@ -39,8 +41,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
-import org.structr.core.graph.search.SearchCommand;
-import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
@@ -70,7 +71,7 @@ public class Content extends DOMNode implements Text {
 	private static final Logger logger                                                   = Logger.getLogger(Content.class.getName());
 	public static final Property<String> contentType                                     = new StringProperty("contentType").indexed();
 	public static final Property<String> content                                         = new StringProperty("content").indexed();
-	public static final Property<Boolean> isContent                                      = new BooleanProperty("isContent").defaultValue(true).readOnly();
+	public static final Property<Boolean> isContent                                      = new ConstantBooleanProperty("isContent", true);
 
 	private static final Map<String, Adapter<String, String>> contentConverters          = new LinkedHashMap<>();
 
@@ -301,7 +302,7 @@ public class Content extends DOMNode implements Text {
 			String value = getProperty(Content.content);
 			if (value != null) {
 
-				return SearchCommand.escapeForLucene(value);
+				return escape(value);
 			}
 
 		}
@@ -417,7 +418,8 @@ public class Content extends DOMNode implements Text {
 		} catch (Throwable t) {
 
 			// catch exception to prevent ugly status 500 error pages in frontend.
-			t.printStackTrace();
+			logger.log(Level.SEVERE, "", t);
+			
 		}
 
 	}
@@ -804,5 +806,49 @@ public class Content extends DOMNode implements Text {
 
 			return Factory.create();
 		}
+	}
+
+	private static final Set<Character> SPECIAL_CHARS = new LinkedHashSet<>();
+
+	static {
+
+		SPECIAL_CHARS.add('\\');
+		SPECIAL_CHARS.add('+');
+		SPECIAL_CHARS.add('-');
+		SPECIAL_CHARS.add('!');
+		SPECIAL_CHARS.add('(');
+		SPECIAL_CHARS.add(')');
+		SPECIAL_CHARS.add(':');
+		SPECIAL_CHARS.add('^');
+		SPECIAL_CHARS.add('[');
+		SPECIAL_CHARS.add(']');
+		SPECIAL_CHARS.add('"');
+		SPECIAL_CHARS.add('{');
+		SPECIAL_CHARS.add('}');
+		SPECIAL_CHARS.add('~');
+		SPECIAL_CHARS.add('*');
+		SPECIAL_CHARS.add('?');
+		SPECIAL_CHARS.add('|');
+		SPECIAL_CHARS.add('&');
+		SPECIAL_CHARS.add(';');
+	}
+
+	private String escape(String input) {
+
+		StringBuilder output = new StringBuilder();
+
+		for (int i = 0; i < input.length(); i++) {
+
+			char c = input.charAt(i);
+
+			if (SPECIAL_CHARS.contains(c) || Character.isWhitespace(c)) {
+
+				output.append('\\');
+			}
+
+			output.append(c);
+		}
+
+		return output.toString();
 	}
 }

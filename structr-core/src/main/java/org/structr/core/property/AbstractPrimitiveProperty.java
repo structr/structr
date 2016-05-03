@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,8 +20,8 @@ package org.structr.core.property;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.helpers.Predicate;
+import org.structr.api.Predicate;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -43,9 +43,10 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 	private static final Logger logger = Logger.getLogger(AbstractPrimitiveProperty.class.getName());
 
-	public static final String STRING_EMPTY_FIELD_VALUE		= new String(new byte[] { 0 } );
-
 	private boolean internalSystemProperty = false;
+	protected GraphObject entity;
+	protected SecurityContext securityContext;
+
 
 	public AbstractPrimitiveProperty(final String name) {
 		super(name);
@@ -90,13 +91,12 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 				} catch (Throwable t) {
 
-					t.printStackTrace();
-
 					logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
 						dbName(),
 						getClass().getSimpleName(),
 						t
 					});
+					logger.log(Level.WARNING, "", t);
 
 				}
 			}
@@ -134,11 +134,14 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 				throw new FrameworkException(500, "setProperty outside of transaction.");
 			}
 
-			// notify only non-system properties
-			if (!unvalidated) {
+			boolean internalSystemPropertiesUnlocked = false;
 
-				// collect modified properties
-				if (obj instanceof AbstractNode) {
+			// notify only non-system properties
+
+			// collect modified properties
+			if (obj instanceof AbstractNode) {
+
+				if (!unvalidated) {
 
 					TransactionCommand.nodeModified(
 						securityContext.getCachedUser(),
@@ -147,8 +150,12 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 						propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null,
 						value
 					);
+				}
+				internalSystemPropertiesUnlocked = ((AbstractNode) obj).internalSystemPropertiesUnlocked;
 
-				} else if (obj instanceof AbstractRelationship) {
+			} else if (obj instanceof AbstractRelationship) {
+
+				if (!unvalidated) {
 
 					TransactionCommand.relationshipModified(
 						securityContext.getCachedUser(),
@@ -158,6 +165,8 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 						value
 					);
 				}
+
+				internalSystemPropertiesUnlocked = ((AbstractRelationship) obj).internalSystemPropertiesUnlocked;
 			}
 
 			// catch all sorts of errors and wrap them in a FrameworkException
@@ -170,13 +179,13 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 				} else {
 
-					if (!internalSystemProperty) {
+					if (!internalSystemProperty || internalSystemPropertiesUnlocked) {
 
 						propertyContainer.setProperty(dbName(), convertedValue);
 
 					} else {
 
-						logger.log(Level.FINE, "Tried to set internal system property (action was denied).");
+						logger.log(Level.WARNING, "Tried to set internal system property {0} to {1}. Action was denied.", new Object[]{dbName(), convertedValue});
 
 					}
 				}
@@ -186,7 +195,10 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 			} catch (Throwable t) {
 
 				// throw FrameworkException with the given cause
-				throw new FrameworkException(500, t);
+				final FrameworkException fex = new FrameworkException(500, "Unable to set property " + jsonName() + " on entity with ID " + obj.getUuid() + ": " + t.toString());
+				fex.initCause(t);
+
+				throw fex;
 			}
 
 			if (isIndexed()) {
@@ -212,17 +224,6 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	@Override
 	public boolean isCollection() {
 		return false;
-	}
-
-	@Override
-	public String getValueForEmptyFields() {
-		return STRING_EMPTY_FIELD_VALUE;
-	}
-
-	public AbstractPrimitiveProperty<T> internalSystemProperty() {
-
-		this.internalSystemProperty = true;
-		return this;
 	}
 
 	// ----- private methods -----
@@ -257,7 +258,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 		} catch (Throwable t) {
 
 			// fail without throwing an exception here
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 	}
 }

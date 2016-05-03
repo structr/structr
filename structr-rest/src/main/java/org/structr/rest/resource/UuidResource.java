@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -57,7 +57,7 @@ public class UuidResource extends FilterableResource {
 
 		}
 
-		throw new NotFoundException();
+		throw new NotFoundException("Entity with ID " + getUuid() + " not found");
 	}
 
 	@Override
@@ -78,7 +78,7 @@ public class UuidResource extends FilterableResource {
 		// as this will not do what the user expects to do.
 		if (next instanceof TypeResource) {
 
-			throw new IllegalPathException();
+			throw new IllegalPathException("Cannot resolve URL path, no type resource expected here");
 		}
 
 		return super.tryCombineWith(next);
@@ -95,7 +95,7 @@ public class UuidResource extends FilterableResource {
 		}
 
 		if (entity == null) {
-			throw new NotFoundException();
+			throw new NotFoundException("Entity with ID " + uuid + " not found");
 		}
 
 		return entity;

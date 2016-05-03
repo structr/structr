@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.module;
 
+import org.structr.api.service.Service;
 import org.structr.agent.Agent;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -65,6 +66,7 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
+import org.structr.util.LogMessageSupplier;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -343,7 +345,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	 * @param relType
 	 * @return classes
 	 */
-	private List<Class<? extends RelationshipInterface>> getRelationClassCanditatesForRelType(final String relType) {
+	private List<Class<? extends RelationshipInterface>> getRelationClassCandidatesForRelType(final String relType) {
 
 		List<Class<? extends RelationshipInterface>> candidates = new ArrayList();
 
@@ -386,7 +388,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		Class sourceType = getNodeEntityClass(sourceTypeName);
 		Class targetType = getNodeEntityClass(targetTypeName);
 
-		for (final Class candidate : getRelationClassCanditatesForRelType(relType)) {
+		for (final Class candidate : getRelationClassCandidatesForRelType(relType)) {
 
 			Relation rel = instantiate(candidate);
 
@@ -521,9 +523,9 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			nodeEntityPackages.remove(fqcn);
 			relationshipPackages.remove(fqcn);
 
-			globalPropertyViewMap.remove(simpleName);
-			globalClassDBNamePropertyMap.remove(simpleName);
-			globalClassJSNamePropertyMap.remove(simpleName);
+			globalPropertyViewMap.remove(fqcn);
+			globalClassDBNamePropertyMap.remove(fqcn);
+			globalClassJSNamePropertyMap.remove(fqcn);
 
 			interfaceMap.remove(oldType);
 
@@ -546,19 +548,19 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		// moved here from scanEntity, no reason to have this in a separate
 		// method requiring two different calls instead of one
 		String simpleName = type.getSimpleName();
-		String fullName   = type.getName();
+		String fqcn       = type.getName();
 
 		if (AbstractNode.class.isAssignableFrom(type)) {
 			nodeEntityClassCache.put(simpleName, type);
-			nodeEntityPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
-			globalPropertyViewMap.remove(type.getName());
+			nodeEntityPackages.add(fqcn.substring(0, fqcn.lastIndexOf(".")));
+			globalPropertyViewMap.remove(fqcn);
 		}
 
 		if (AbstractRelationship.class.isAssignableFrom(type)) {
 
 			relationshipEntityClassCache.put(simpleName, type);
-			relationshipPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
-			globalPropertyViewMap.remove(type.getName());
+			relationshipPackages.add(fqcn.substring(0, fqcn.lastIndexOf(".")));
+			globalPropertyViewMap.remove(fqcn);
 		}
 
 		for (Class interfaceClass : type.getInterfaces()) {
@@ -580,14 +582,14 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		try {
 
-			Map<Field, PropertyKey> allProperties = getFieldValuesOfType(PropertyKey.class, type);
-			Map<Field, View> views = getFieldValuesOfType(View.class, type);
+			final Map<Field, PropertyKey> allProperties = getFieldValuesOfType(PropertyKey.class, type);
+			final Map<Field, View> views = getFieldValuesOfType(View.class, type);
 
-			for (Map.Entry<Field, PropertyKey> entry : allProperties.entrySet()) {
+			for (final Map.Entry<Field, PropertyKey> entry : allProperties.entrySet()) {
 
-				PropertyKey propertyKey = entry.getValue();
-				Field field = entry.getKey();
-				Class declaringClass = field.getDeclaringClass();
+				final PropertyKey propertyKey = entry.getValue();
+				final Field field = entry.getKey();
+				final Class declaringClass = field.getDeclaringClass();
 
 				if (declaringClass != null) {
 
@@ -601,8 +603,8 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 			for (Map.Entry<Field, View> entry : views.entrySet()) {
 
-				Field field = entry.getKey();
-				View view = entry.getValue();
+				final Field field = entry.getKey();
+				final View view = entry.getValue();
 
 				for (PropertyKey propertyKey : view.properties()) {
 
@@ -613,14 +615,13 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			}
 
 		} catch (Throwable t) {
-			logger.log(Level.SEVERE, "Unable to register type {0}: {1}", new Object[]{type, t.getMessage()});
-			t.printStackTrace();
+			logger.log(Level.SEVERE, t, LogMessageSupplier.create("Unable to register type {0}: {1}", new Object[]{type, t.getMessage()}));
 		}
 
-		Map<String, Method> typeMethods = exportedMethodMap.get(type.getName());
+		Map<String, Method> typeMethods = exportedMethodMap.get(fqcn);
 		if (typeMethods == null) {
 			typeMethods = new HashMap<>();
-			exportedMethodMap.put(type.getName(), typeMethods);
+			exportedMethodMap.put(fqcn, typeMethods);
 		}
 
 		typeMethods.putAll(getAnnotatedMethods(type, Export.class));
@@ -861,6 +862,13 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
+	public void registerPropertySet(final Class type, final String propertyView, final String propertyName) {
+
+		this.registerPropertySet(type, propertyView, this.getPropertyKeyForJSONName(type, propertyName));
+
+	}
+
+	@Override
 	public PropertyKey getPropertyKeyForDatabaseName(Class type, String dbName) {
 		return getPropertyKeyForDatabaseName(type, dbName, true);
 	}
@@ -1022,8 +1030,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		} catch (IOException ioex) {
 
-			logger.log(Level.WARNING, "Error loading module {0}: {1}", new Object[]{resourceName, ioex});
-			ioex.printStackTrace();
+			logger.log(Level.WARNING, ioex, LogMessageSupplier.create("Error loading module {0}: {1}", new Object[]{resourceName, ioex.getMessage()}));
 
 		}
 
@@ -1168,7 +1175,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 				} catch (Throwable t) {
 					// ignore
-					t.printStackTrace();
+					logger.log(Level.WARNING, "", t);
 				}
 
 			}
@@ -1185,7 +1192,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		} catch (Throwable t) {
 			// ignore
-			//t.printStackTrace();
+			//logger.log(Level.WARNING, "", t);
 		}
 
 		return null;

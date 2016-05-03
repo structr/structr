@@ -6,13 +6,13 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>2.0-SNAPSHOT</version>
+        <version>2.0.2-SNAPSHOT</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-rest</artifactId>
     <packaging>jar</packaging>
-    <version>2.0-SNAPSHOT</version>
+    <version>2.0.2-SNAPSHOT</version>
     <name>Structr REST</name>
     <description>Structr is an open source framework based on the popular Neo4j graph database.</description>
     <developers>
@@ -84,7 +84,7 @@
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <version>2.6</version>
+                <version>2.11</version>
                 <configuration>
                     <header>header.txt</header>
                     <includes>
@@ -94,16 +94,17 @@
                         <exclude>**/README</exclude>
                         <exclude>src/**/.directory</exclude>
                         <exclude>src/**/*.properties</exclude>
+                        <exclude>src/main/resources/*.js</exclude>
                     </excludes>
                     <properties>
-                        <year>2015</year>
+                        <year>2016</year>
                         <owner>Structr GmbH</owner>
                     </properties>
                 </configuration>
                 <executions>
                     <execution>
                         <goals>
-                            <goal>format</goal>
+                            <goal>check</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -168,8 +169,8 @@
         <dependency>
             <groupId>com.jayway.restassured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>2.3.1</version>
-            <scope>compile</scope>
+            <version>2.7.0</version>
+            <scope>test</scope>
             <optional>false</optional>
         </dependency>
         <dependency>
@@ -199,9 +200,9 @@
             <version>4.0.4</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.chemistry.opencmis</groupId>
-            <artifactId>chemistry-opencmis-server-bindings</artifactId>
-            <version>0.13.0</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>log4j-over-slf4j</artifactId>
+            <version>1.7.4</version>
         </dependency>
     </dependencies>
     <licenses>
@@ -209,22 +210,22 @@
             <name>GNU General Public License, Version 3</name>
             <url>http://www.gnu.org/licenses/gpl-3.0-standalone.html</url>
             <comments>
-                Copyright (C) 2010-2015 Structr GmbH &lt;structr@structr.org&gt;
+                Copyright (C) 2010-2016 Structr GmbH
 
                 This file is part of Structr &lt;http://structr.org&gt;.
 
-                structr is free software: you can redistribute it and/or modify
+                Structr is free software: you can redistribute it and/or modify
                 it under the terms of the GNU General Public License as published by
                 the Free Software Foundation, either version 3 of the License, or
                 (at your option) any later version.
 
-                structr is distributed in the hope that it will be useful,
+                Structr is distributed in the hope that it will be useful,
                 but WITHOUT ANY WARRANTY; without even the implied warranty of
                 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
                 GNU General Public License for more details.
 
                 You should have received a copy of the GNU General Public License
-                along with structr.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+                along with Structr.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
             </comments>
         </license>
     </licenses>

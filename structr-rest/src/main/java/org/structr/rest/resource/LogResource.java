@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -246,7 +246,7 @@ public class LogResource extends Resource {
 					collectFilesAndStore(context, new File(filesPath + SUBJECTS).toPath(), 0);
 
 				} catch (FrameworkException fex) {
-					fex.printStackTrace();
+					logger.log(Level.WARNING, "", fex);
 				}
 
 				return new RestMethodResult(200);
@@ -283,30 +283,6 @@ public class LogResource extends Resource {
 
 				return result;
 
-
-//
-//				try {
-//
-//					final StringBuilder data = new StringBuilder();
-//					data.append(System.currentTimeMillis());
-//					data.append(",");
-//					data.append(action);
-//					data.append(",");
-//					data.append(message);
-//					data.append("\n");
-//
-//					// write data and create link
-//					final Path actualPath = write(filesPath + SUBJECTS, mergeIds(subjectId, objectId), data.toString());
-//					link(filesPath + OBJECTS, mergeIds(objectId, subjectId), actualPath);
-//
-//					return new RestMethodResult(200);
-//
-//				} catch (IOException ioex) {
-//
-//					ioex.printStackTrace();
-//					throw new FrameworkException(500, ioex.getMessage());
-//				}
-
 			} else {
 
 				final ErrorBuffer errorBuffer = new ErrorBuffer();
@@ -323,7 +299,7 @@ public class LogResource extends Resource {
 					errorBuffer.add(new EmptyPropertyToken("LogFile", actionProperty));
 				}
 
-				throw new FrameworkException(422, errorBuffer);
+				throw new FrameworkException(422, "Log entry must consist of at least subjectId, objectId and action", errorBuffer);
 			}
 		}
 
@@ -333,17 +309,17 @@ public class LogResource extends Resource {
 
 	@Override
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
-		throw new IllegalMethodException();
+		throw new IllegalMethodException("PUT not allowed on " + getResourceSignature());
 	}
 
 	@Override
 	public RestMethodResult doDelete() throws FrameworkException {
-		throw new IllegalMethodException();
+		throw new IllegalMethodException("DELETE not allowed on " + getResourceSignature());
 	}
 
 	@Override
 	public RestMethodResult doHead() throws FrameworkException {
-		throw new IllegalMethodException();
+		throw new IllegalMethodException("HEAD not allowed on " + getResourceSignature());
 	}
 
 	@Override
@@ -389,7 +365,7 @@ public class LogResource extends Resource {
 			}
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.log(Level.WARNING, "", ioex);
 		}
 	}
 
@@ -664,7 +640,7 @@ public class LogResource extends Resource {
 			return format.parse(format.format(timestamp)).getTime();
 
 		} catch (ParseException pex) {
-			pex.printStackTrace();
+			logger.log(Level.WARNING, "", pex);
 		}
 
 		return 0L;
@@ -696,7 +672,7 @@ public class LogResource extends Resource {
 			return max;
 
 		} catch (ParseException pex) {
-			pex.printStackTrace();
+			logger.log(Level.WARNING, "", pex);
 		}
 
 		return max;
@@ -1213,7 +1189,7 @@ public class LogResource extends Resource {
 
 							} catch (ParseException pex) {
 
-								pex.printStackTrace();
+								logger.log(Level.WARNING, "", pex);
 							}
 						}
 					}

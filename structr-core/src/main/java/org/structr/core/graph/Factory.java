@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,16 +18,24 @@
  */
 package org.structr.core.graph;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.function.Function;
-
-import org.neo4j.graphdb.index.IndexHits;
-import org.neo4j.helpers.collection.PagingIterator;
+import org.structr.api.NotFoundException;
+import org.structr.api.QueryResult;
+import org.structr.api.graph.Relationship;
 import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -38,17 +46,12 @@ import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.SchemaHelper;
 
-/**
- *
- *
- */
-
 public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>, Function<S, T> {
 
 	private static final Logger logger = Logger.getLogger(Factory.class.getName());
-
-	public static final int DEFAULT_PAGE_SIZE	= Integer.MAX_VALUE;
-	public static final int DEFAULT_PAGE		= 1;
+	public static final ExecutorService service = Executors.newCachedThreadPool();
+	public static final int DEFAULT_PAGE_SIZE = Integer.MAX_VALUE;
+	public static final int DEFAULT_PAGE      = 1;
 
 	/**
 	 * This limit is the number of objects up to which the overall count
@@ -83,12 +86,10 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		factoryProfile = new FactoryProfile(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page, offsetId);
 	}
 
-	public abstract T instantiate(final S obj) throws FrameworkException;
-
-	public abstract T instantiateWithType(final S obj, final Class<T> type, boolean isCreation) throws FrameworkException;
-
+	public abstract T instantiate(final S obj);
+	public abstract T instantiate(final S obj, final Relationship pathSegment);
+	public abstract T instantiateWithType(final S obj, final Class<T> type, final Relationship pathSegment, boolean isCreation) throws FrameworkException;
 	public abstract T instantiate(final S obj, final boolean includeDeletedAndHidden, final boolean publicOnly) throws FrameworkException;
-
 	public abstract T instantiateDummy(final S entity, final String entityType) throws FrameworkException;
 
 	/**
@@ -117,12 +118,12 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	 * @return result
 	 * @throws org.structr.common.error.FrameworkException
 	 */
-	public Result instantiate(final IndexHits<S> input) throws FrameworkException {
+	public Result instantiate(final QueryResult<S> input) throws FrameworkException {
 
 
 		if (input != null) {
 
-			try (final IndexHits<S> closeable = input) {
+			try (final QueryResult<S> closeable = input) {
 
 				if (factoryProfile.getOffsetId() != null) {
 
@@ -169,16 +170,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 	@Override
 	public T adapt(S s) {
-
-		try {
-			return instantiate(s);
-
-		} catch (FrameworkException fex) {
-
-			logger.log(Level.WARNING, "Unable to adapt", fex);
-		}
-
-		return null;
+		return instantiate(s);
 	}
 
 	@Override
@@ -191,20 +183,20 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	}
 
 	// <editor-fold defaultstate="collapsed" desc="private methods">
-	protected List<S> read(final Iterable<S> it) {
+	protected List<S> read(final Iterable<S> iterable) {
 
-		List<S> nodes = new LinkedList();
+		final List<S> nodes  = new LinkedList();
+		final Iterator<S> it = iterable.iterator();
 
-		while (it.iterator().hasNext()) {
-
-			nodes.add(it.iterator().next());
+		while (it.hasNext()) {
+			nodes.add(it.next());
 		}
 
 		return nodes;
 
 	}
 
-	protected Result resultWithOffsetId(final IndexHits<S> input) throws FrameworkException {
+	protected Result resultWithOffsetId(final QueryResult<S> input) throws FrameworkException {
 
 		int size                 = input.size();
 		final int pageSize       = Math.min(size, factoryProfile.getPageSize());
@@ -215,18 +207,18 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		int count                = 0;
 		int offset               = 0;
 
-		try (final IndexHits<S> closeable = input) {
+		try (final QueryResult<S> closeable = input) {
 
 			// We have an offsetId, so first we need to
 			// find the node with this uuid to get the offset
+			final Iterator<S> iterator = closeable.iterator();
 			List<T> nodesUpToOffset = new LinkedList();
 			int i                   = 0;
 			boolean gotOffset        = false;
 
-			for (S node : closeable) {
+			while (iterator.hasNext()) {
 
-				T n = instantiate(node);
-
+				T n = instantiate(iterator.next());
 				if (n == null) {
 
 					continue;
@@ -258,7 +250,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 			if (!nodesUpToOffset.isEmpty() && !gotOffset) {
 
-				throw new FrameworkException(404, new IdNotFoundToken("offsetId", offsetId));
+				throw new FrameworkException(404, "Node with ID " + offsetId + " not found", new IdNotFoundToken("offsetId", offsetId));
 			}
 
 			if (offset < 0) {
@@ -290,9 +282,9 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 			// If we get here, the result was not complete, so we need to iterate
 			// through the index result (input) to get more items.
-			for (S node : closeable) {
+			while (iterator.hasNext()) {
 
-				T n = instantiate(node);
+				T n = instantiate(iterator.next());
 				if (n != null) {
 
 					if (++position > offset) {
@@ -315,7 +307,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 	}
 
-	protected Result resultWithoutOffsetId(final IndexHits<S> input) throws FrameworkException {
+	protected Result resultWithoutOffsetId(final QueryResult<S> input) throws FrameworkException {
 
 		final int pageSize = factoryProfile.getPageSize();
 		final int page     = factoryProfile.getPage();
@@ -323,15 +315,15 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 		if (page < 0) {
 
-			List<S> rawNodes = read(input);
-			int size         = rawNodes.size();
+			final List<S> rawNodes = read(input);
+			final int size         = rawNodes.size();
 
 			fromIndex = Math.max(0, size + (page * pageSize));
 
 			final List<T> nodes = new LinkedList<>();
 			int toIndex         = Math.min(size, fromIndex + pageSize);
 
-			for (S n : rawNodes.subList(fromIndex, toIndex)) {
+			for (final S n : rawNodes.subList(fromIndex, toIndex)) {
 
 				nodes.add(instantiate(n));
 			}
@@ -342,119 +334,239 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 		} else {
 
-			// FIXME: IndexHits#size() may be inaccurate!
 			int size = input.size();
 
-			SecurityContext securityContext = factoryProfile.getSecurityContext();
-
-			// In case of superuser or in public context, don't check the overall result count
-			// (SearchCommand adds visibleToPublicUsers: true in case of an anonymous user)
-			boolean dontCheckCount  = securityContext.isSuperUser() || securityContext.getUser(false) == null;
-
-			if(dontCheckCount){
-				fromIndex = pageSize == Integer.MAX_VALUE ? 0 : (page - 1);//* pageSize;
-			} else {
-				fromIndex = pageSize == Integer.MAX_VALUE ? 0 : (page - 1) * pageSize;
-			}
-			//fromIndex = (page - 1) * pageSize;
+			fromIndex = pageSize == Integer.MAX_VALUE ? 0 : (page - 1) * pageSize;
 
 			// The overall count may be inaccurate
-			return page(input, size, fromIndex, pageSize, dontCheckCount);
+			return page(input, size, fromIndex, pageSize);
 		}
-
 	}
 
-	protected Result page(final IndexHits<S> input, final int overallResultCount, final int offset, final int pageSize, boolean dontCheckCount) throws FrameworkException {
+	protected Result page(final QueryResult<S> input, final int overallResultCount, final int offset, final int pageSize) throws FrameworkException {
 
-		final List<T> nodes = new LinkedList<>();
-		int position	    = 0;
-		int count	    = 0;
-		int overallCount    = 0;
-		boolean pageFull    = false;
+		final SecurityContext securityContext      = factoryProfile.getSecurityContext();
 
-		if(dontCheckCount){
+		final AtomicBoolean keepRunning    = new AtomicBoolean(true);
+		final AtomicInteger overallCount   = new AtomicInteger();
+		final AtomicInteger processedItems = new AtomicInteger();
 
-			overallCount = input.size();
+		final List<Item<T>> nodes          = new LinkedList<>();
+		final List<Item<S>> failed         = new LinkedList<>();
 
-			PagingIterator<S> neoResult = new PagingIterator<>(input.iterator(), pageSize) ;
+		try (final QueryResult<S> closeable = input) {
 
-			try {
-				neoResult.page(offset);
+			final boolean preventFullCount             = securityContext.ignoreResultCount();
+			final ConcurrentLinkedQueue<Item<S>> queue = new ConcurrentLinkedQueue<>();
+			final List<Future> futures                 = new LinkedList<>();
+			int threadCount                            = 1;
+			int rawCount                               = 0;
 
-			} catch (NoSuchElementException nex) {
-
-				// do not throw an exception when a page beyond the
-				// number of elements is returned,
-				// return empty result instead
-				return new Result(nodes, overallCount, true, false);
+			// fill queue with data and count elements
+			for (final S item : closeable) {
+				queue.add(new Item<>(rawCount++, item));
 			}
 
-			Iterator<S> resultPage = neoResult.nextPage();
+			if (rawCount < 100) {
 
-			while ( resultPage.hasNext()) {
+				// do not use multithreading
+				final InstantiationWorker worker = new InstantiationWorker(securityContext, queue, failed, nodes, offset, pageSize, preventFullCount);
+				worker.setProcessedItems(processedItems);
+				worker.setOverallCount(overallCount);
+				worker.setKeepRunning(keepRunning);
 
-				final S s = resultPage.next();
-				final T t = (T) instantiate(s);
+				worker.doRun();
 
-				if(t != null){
+			} else {
 
-					nodes.add(t);
+
+				final double t0 = System.nanoTime();
+				threadCount     = 8;
+
+				// submit workers, use multithreading
+				for (int i=0; i<threadCount; i++) {
+
+					final InstantiationWorker worker = new InstantiationWorker(securityContext, queue, failed, nodes, offset, pageSize, preventFullCount);
+					worker.setProcessedItems(processedItems);
+					worker.setOverallCount(overallCount);
+					worker.setKeepRunning(keepRunning);
+
+					// first worker logs
+					worker.pleaseLog(i == 0);
+
+					futures.add(service.submit(worker));
 				}
-			}
 
-		} else {
+				// wait for result..
+				for (final Future future : futures) {
 
-			try (final IndexHits<S> closeable = input) {
+					try {
 
-				for (S s : closeable) {
+						future.get();
 
-					T n = instantiate(s);
+					} catch (InterruptedException | ExecutionException iex) {
 
-					if (n != null) {
-
-						overallCount++;
-
-						if (++position > offset) {
-
-							// stop if we got enough nodes
-							// and we are above the limit
-							if (++count > pageSize) {
-
-								pageFull = true;
-
-								if (dontCheckCount) {
-									overallCount = overallResultCount;
-									break;
-								}
-
-							}
-
-							if (!pageFull) {
-
-								nodes.add(n);
-
-							}
-
-							if (pageFull && (overallCount >= RESULT_COUNT_ACCURATE_LIMIT)) {
-
-								// The overall count may be inaccurate
-								return new Result(nodes, overallResultCount, true, false);
-
-							}
+						if (!iex.getMessage().contains("org.neo4j.kernel.api.exceptions.EntityNotFoundException")) {
+							logger.log(Level.WARNING, "", iex);
 						}
 					}
+				}
 
+				final double t1 = System.nanoTime();
+				if (t1-t0 > 1000000000) {
+					logger.log(Level.INFO, "Instantiated {0} out of {1} elements in {2} s using {3} threads.", new Object[] { nodes.size(), rawCount, (t1-t0) / 1000000000.0, threadCount } );
 				}
 			}
+
 		}
 
-		// We've run completely through the iterator,
-		// so the overall count from here is accurate.
-		return new Result(nodes, overallCount, true, false);
+		// manually instantiate entities which couldn't be found due to tx isolation
+		failed.stream().forEach((item) -> {
+			nodes.add(new Item<>(item.index, (T) instantiate((S) item.item)));
+		});
 
+		// keep initial sort order
+		Collections.sort(nodes);
+
+		final int size = nodes.size();
+		final int from = Math.min(offset, size);
+		final int to   = Math.min(offset+pageSize, size);
+		final List<T> output = new LinkedList<>();
+
+		nodes.subList(from, to).stream().forEach((item) -> {
+			output.add(item.item);
+		});
+
+		// The overall count may be inaccurate
+		return new Result(output, overallCount.get(), true, false);
 	}
 
 	//~--- inner classes --------------------------------------------------
+
+	private class InstantiationWorker implements Runnable {
+
+		private final SecurityContext securityContext;
+		private final Queue<Item<S>> source;
+		private final List<Item<T>> nodes;
+		private final List<Item<S>> failed;
+
+		private AtomicInteger processedItems = null;
+		private AtomicInteger overallCount   = null;
+		private AtomicBoolean keepRunning    = null;
+		private boolean dontCheckCount       = false;
+		private boolean doLogOutput          = false;
+		private int pageSize                 = 0;
+		private int offset                   = 0;
+
+		public InstantiationWorker(final SecurityContext securityContext, final Queue<Item<S>> source, final List<Item<S>> failed, final List<Item<T>> nodes, final int offset, final int pageSize, final boolean dontCheckCount) {
+
+			this.securityContext = securityContext;
+			this.offset          = offset;
+			this.source          = source;
+			this.dontCheckCount  = dontCheckCount;
+			this.pageSize        = pageSize;
+			this.nodes           = nodes;
+			this.failed          = failed;
+		}
+
+		@Override
+		public void run() {
+
+			try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
+				// transaction is only needed if we are running multiple threads
+				doRun();
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				logger.log(Level.WARNING, "", fex);
+			}
+		}
+
+		private void doRun() {
+
+			final long t0 = System.currentTimeMillis();
+			long t1       = t0;
+			Item<S> item;
+
+			do {
+
+				item = source.poll();
+				if (item != null) {
+
+					processedItems.incrementAndGet();
+
+					T n = null;
+
+					try {
+						n = instantiate(item.item);
+
+					} catch (NotFoundException nfe) {
+
+						synchronized(failed) {
+							failed.add(item);
+						}
+					}
+
+					if (n != null) {
+
+						overallCount.incrementAndGet();
+
+						// synchronize access to the target list
+						synchronized (nodes) {
+							nodes.add(new Item<>(item.index, n));
+						}
+
+						// stop evaluation of new nodes if count is not required
+						if (dontCheckCount && overallCount.get() > offset + pageSize) {
+							keepRunning.set(false);
+						}
+					}
+				}
+
+				// log output if desired
+				if (doLogOutput && System.currentTimeMillis() - t1 > 2000) {
+
+					t1 = System.currentTimeMillis();
+					logger.log(Level.INFO, "Parallel instantiation: checked {0} nodes so far", processedItems.get());
+				}
+
+			} while (item != null && keepRunning.get());
+		}
+
+		public void setKeepRunning(final AtomicBoolean keepRunning) {
+			this.keepRunning = keepRunning;
+		}
+
+		public void setProcessedItems(AtomicInteger processedItems) {
+			this.processedItems = processedItems;
+		}
+
+		public void setOverallCount(final AtomicInteger overallCount) {
+			this.overallCount = overallCount;
+		}
+
+		public void pleaseLog(final boolean doLogOutput) {
+			this.doLogOutput = doLogOutput;
+		}
+	}
+
+	private class Item<X> implements Comparable<Item<X>> {
+
+		public int index = 0;
+		public X item    = null;
+
+		public Item(final int index, final X item) {
+			this.index = index;
+			this.item  = item;
+		}
+
+		@Override
+		public int compareTo(final Item<X> o) {
+			return Integer.valueOf(index).compareTo(o.index);
+		}
+	}
 
 	protected class FactoryProfile {
 

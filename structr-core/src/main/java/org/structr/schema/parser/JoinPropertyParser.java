@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,8 @@ package org.structr.schema.parser;
 import java.io.IOException;
 import java.io.StreamTokenizer;
 import java.io.StringReader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.JoinProperty;
@@ -33,6 +35,8 @@ import org.structr.schema.SchemaHelper.Type;
  *
  */
 public class JoinPropertyParser extends PropertySourceGenerator {
+
+	private static final Logger logger = Logger.getLogger(JoinPropertyParser.class.getName());
 
 	private String parameters   = "";
 
@@ -116,7 +120,7 @@ public class JoinPropertyParser extends PropertySourceGenerator {
 			} while (type != StreamTokenizer.TT_EOF);
 
 		} catch (IOException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 		}
 
 		parameters = buf.toString();

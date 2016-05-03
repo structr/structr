@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,7 @@ import java.util.List;
 import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Locale;
@@ -32,14 +33,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.jetty.util.ConcurrentHashSet;
-import org.neo4j.helpers.Predicate;
 import org.structr.common.PermissionResolutionMask;
 import org.structr.common.PropertyView;
+import org.structr.common.QueryRange;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.Value;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
@@ -52,13 +55,18 @@ import org.structr.core.property.PropertyMap;
 public abstract class StreamingWriter {
 
 	private static final Logger logger                   = Logger.getLogger(StreamingWriter.class.getName());
-	private static final long MAX_SERIALIZATION_TIME     = TimeUnit.SECONDS.toMillis(30);
+	private static final long MAX_SERIALIZATION_TIME     = TimeUnit.SECONDS.toMillis(300);
 	private static final Set<PropertyKey> idNameOnly     = new LinkedHashSet<>();
+	private static final Set<PropertyKey> structrGraph   = new LinkedHashSet<>();
 
 	static {
 
 		idNameOnly.add(GraphObject.id);
 		idNameOnly.add(AbstractNode.name);
+
+		structrGraph.add(GraphObject.id);
+		structrGraph.add(AbstractNode.type);
+		structrGraph.add(AbstractNode.name);
 	}
 
 	private final Map<String, Serializer> serializerCache = new LinkedHashMap<>();
@@ -103,7 +111,7 @@ public abstract class StreamingWriter {
 		try {
 			this.reduceRedundancy = Boolean.valueOf(Services.getInstance().getConfigurationValue(Services.JSON_REDUNDANCY_REDUCTION, "false"));
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "Unable to parse value for {0} from configuration file, invalid value.", Services.JSON_REDUNDANCY_REDUCTION);
+			logger.log(Level.WARNING, "Unable to parse value for {0}: {1}", new Object[] { Services.JSON_REDUNDANCY_REDUCTION, t.getMessage() } );
 		}
 
 		//this.writer = new StructrWriter(writer);
@@ -116,7 +124,7 @@ public abstract class StreamingWriter {
 		final String view       = propertyView.get(securityContext);
 
 		if (indent) {
-			writer.setIndent("   ");
+			writer.setIndent("	");
 		}
 
 		writer.beginDocument(null, view);
@@ -132,7 +140,7 @@ public abstract class StreamingWriter {
 		RestWriter writer = getRestWriter(securityContext, output);
 
 		if (indent) {
-			writer.setIndent("   ");
+			writer.setIndent("	");
 		}
 
 		// result fields in alphabetical order
@@ -174,30 +182,72 @@ public abstract class StreamingWriter {
 
 		if (results != null) {
 
-			if (results.isEmpty()) {
+			if (results.isEmpty() && result.isPrimitiveArray()) {
+
+				writer.name(resultKeyName).nullValue();
+
+			} else if (results.isEmpty() && !result.isPrimitiveArray()) {
 
 				writer.name(resultKeyName).beginArray().endArray();
 
 			} else if (result.isPrimitiveArray()) {
 
-				writer.name(resultKeyName).beginArray();
+				writer.name(resultKeyName);
 
-				for (GraphObject graphObject : results) {
+				if (results.size() > 1) {
+					writer.beginArray();
+				}
 
-					Object value = graphObject.getProperty(GraphObject.id);	// FIXME: UUID key hard-coded, use variable in Result here!
-					if (value != null) {
+				for (final Object object : results) {
 
-						writer.value(value.toString());
+					if (object != null) {
+
+						if (object instanceof GraphObject) {
+
+							// keep track of serialization time
+							long startTime            = System.currentTimeMillis();
+							String localPropertyView  = propertyView.get(null);
+
+							GraphObject obj = (GraphObject)object;
+							Iterator<PropertyKey> keyIt = obj.getPropertyKeys(localPropertyView).iterator();
+
+							while (keyIt.hasNext()) {
+
+								PropertyKey k = keyIt.next();
+								Object value = obj.getProperty(k);
+								root.serializeProperty(writer, k, value, localPropertyView, 0);
+
+							}
+
+							// check for timeout
+							if (System.currentTimeMillis() > startTime + MAX_SERIALIZATION_TIME) {
+
+								logger.log(Level.SEVERE, "JSON serialization of {0} with {1} results took more than {2} ms, aborted. Please review output view size or adjust timeout.", new Object[] { securityContext.getCompoundRequestURI(), results.size(), MAX_SERIALIZATION_TIME } );
+
+								// TODO: create some output indicating that streaming was interrupted
+								break;
+							}
+
+						} else {
+
+							writer.value(object.toString());
+						}
 					}
 				}
 
-				writer.endArray();
+				if (results.size() > 1) {
 
+					writer.endArray();
+
+				}
 
 			} else {
 
-				if (results.size() > 1 && !result.isCollection()){
+				// result is an attribute called via REST API
+				if (results.size() > 1 && !result.isCollection()) {
+
 					throw new IllegalStateException(result.getClass().getSimpleName() + " is not a collection resource, but result set has size " + results.size());
+
 				}
 
 				// keep track of serialization time
@@ -216,7 +266,7 @@ public abstract class StreamingWriter {
 						// check for timeout
 						if (System.currentTimeMillis() > startTime + MAX_SERIALIZATION_TIME) {
 
-							logger.log(Level.SEVERE, "JSON serialization took more than {0} ms, aborted. Please review output view size or adjust timeout.", MAX_SERIALIZATION_TIME);
+							logger.log(Level.SEVERE, "JSON serialization of {0} with {1} results took more than {2} ms, aborted. Please review output view size or adjust timeout.", new Object[] { securityContext.getRequest().getRequestURI().concat( (securityContext.getRequest().getQueryString() == null) ? "" : "?".concat(securityContext.getRequest().getQueryString()) ), results.size(), MAX_SERIALIZATION_TIME } );
 
 							// TODO: create some output indicating that streaming was interrupted
 							break;
@@ -390,9 +440,6 @@ public abstract class StreamingWriter {
 
 			} catch(Throwable t) {
 
-				// CHM: remove debug code later
-				t.printStackTrace();
-
 				logger.log(Level.WARNING, "Exception while serializing property {0} ({1}) of entity {2} (value {3}) : {4}", new Object[] {
 					key.jsonName(),
 					key.getClass(),
@@ -435,20 +482,37 @@ public abstract class StreamingWriter {
 						keys = idNameOnly;
 					}
 
-					for (PropertyKey key : keys) {
+					for (final PropertyKey key : keys) {
 
 						if (permissionResolutionMask == null || permissionResolutionMask.allowsProperty(key)) {
 
-							final Predicate predicate  = writer.getSecurityContext().getRange(key.jsonName());
-							final Object value         = source.getProperty(key, predicate);
-							final PropertyKey localKey = key;
+							final QueryRange range = writer.getSecurityContext().getRange(key.jsonName());
+							if (range != null) {
+								// Reset count for each key
+								range.resetCount();
+							}
 
+							// special handling for the internal _graph view: replace name with
+							// the name property from the ui view, in case it was overwritten
+							PropertyKey localKey = key;
+
+							if (View.INTERNAL_GRAPH_VIEW.equals(localPropertyView)) {
+
+								if (AbstractNode.name.equals(localKey)) {
+
+									// replace key
+									localKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(source.getClass(), AbstractNode.name.jsonName(), false);
+								}
+							}
+
+
+							final Object value = source.getProperty(localKey, range);
 							if (value != null) {
 
 								if (!(reduceRedundancy && visitedObjects.contains(value.hashCode()))) {
 
-									writer.name(localKey.jsonName());
-									serializeProperty(writer, key, value, localPropertyView, depth+1);
+									writer.name(key.jsonName());
+									serializeProperty(writer, localKey, value, localPropertyView, depth+1);
 								}
 
 							} else {

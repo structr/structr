@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,10 +18,8 @@
  */
 package org.structr.core.graph.search;
 
-import org.apache.lucene.index.Term;
-import org.apache.lucene.search.BooleanClause.Occur;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
+import org.structr.api.search.ExactQuery;
+import org.structr.api.search.Occurrence;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 
@@ -31,11 +29,11 @@ import org.structr.core.entity.AbstractNode;
  */
 public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAttribute<String> {
 
-	public TypeSearchAttribute(Class<S> type, Occur occur, boolean isExactMatch) {
+	public TypeSearchAttribute(Class<S> type, Occurrence occur, boolean isExactMatch) {
 		this(type.getSimpleName(), occur, isExactMatch);
 	}
 
-	public TypeSearchAttribute(String type, Occur occur, boolean isExactMatch) {
+	public TypeSearchAttribute(String type, Occurrence occur, boolean isExactMatch) {
 		super(AbstractNode.type, type, occur, isExactMatch);
 	}
 
@@ -45,17 +43,7 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 	}
 
 	@Override
-	public Query getQuery() {
-
-		String value = getStringValue();
-		if (isExactMatch()) {
-
-			return new TermQuery(new Term(getKey().dbName(), value));
-
-		} else {
-
-			return new TermQuery(new Term(getKey().dbName(), value.toLowerCase()));
-		}
+	public Class getQueryType() {
+		return ExactQuery.class;
 	}
-
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,6 +28,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -64,9 +65,9 @@ import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.structr.common.PropertyView;
-import org.structr.common.StructrConf;
-import org.structr.core.Command;
-import org.structr.core.RunnableService;
+import org.structr.api.service.Command;
+import org.structr.api.service.RunnableService;
+import org.structr.api.service.StructrServices;
 import org.structr.core.Services;
 import org.structr.core.auth.SuperUserAuthenticator;
 import org.structr.rest.DefaultResourceProvider;
@@ -112,6 +113,7 @@ public class HttpService implements RunnableService {
 	private int httpPort           = 8082;
 	private int maxIdleTime        = 30000;
 	private int requestHeaderSize  = 8192;
+	private HashSessionManager hashSessionManager = null;
 
 	private HttpConfiguration httpConfig;
 	private HttpConfiguration httpsConfig;
@@ -157,9 +159,9 @@ public class HttpService implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final Services services, final StructrConf additionalConfig) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+	public void initialize(final StructrServices services, final Properties additionalConfig) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
 
-		final StructrConf finalConfig = new StructrConf();
+		final Properties finalConfig = new Properties();
 
 		// Default configuration
 		finalConfig.setProperty(APPLICATION_TITLE, "structr server");
@@ -179,7 +181,7 @@ public class HttpService implements RunnableService {
 		finalConfig.setProperty("JsonRestServlet.defaultview", PropertyView.Public);
 		finalConfig.setProperty("JsonRestServlet.outputdepth", "3");
 
-		Services.mergeConfiguration(finalConfig, additionalConfig);
+		StructrServices.mergeConfiguration(finalConfig, additionalConfig);
 
 		final String mainClassName = (String) finalConfig.get(MAIN_CLASS);
 
@@ -284,17 +286,17 @@ public class HttpService implements RunnableService {
 
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
-		final HashSessionManager sessionManager = new HashSessionManager();
+		hashSessionManager = new HashSessionManager();
 		try {
-			sessionManager.setStoreDirectory(new File(baseDir + "/sessions"));
+			hashSessionManager.setStoreDirectory(new File(baseDir + "/sessions"));
 		} catch (IOException ex) {
 			logger.log(Level.WARNING, "Could not set custom session manager with session store directory {0}/sessions", baseDir);
 		}
 
-		servletContext.getSessionHandler().setSessionManager(sessionManager);
+		servletContext.getSessionHandler().setSessionManager(hashSessionManager);
 
 		if (enableRewriteFilter) {
 
@@ -310,7 +312,7 @@ public class HttpService implements RunnableService {
 			gzipFilter.setInitParameter("bufferSize", "32768");
 			gzipFilter.setInitParameter("minGzipSize", "256");
 			gzipFilter.setInitParameter("deflateCompressionLevel", "9");
-			gzipFilter.setInitParameter("methods", "GET,POST");
+			gzipFilter.setInitParameter("methods", "GET,POST,PUT,HEAD,DELETE");
 			servletContext.addFilter(gzipFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC));
 
 		}
@@ -375,6 +377,7 @@ public class HttpService implements RunnableService {
 			}
 
 			final RequestLogImpl requestLog = new RequestLogImpl();
+			requestLog.setName("REQUESTLOG");
 			requestLogHandler.setRequestLog(requestLog);
 
 			final HandlerCollection handlers = new HandlerCollection();
@@ -514,8 +517,12 @@ public class HttpService implements RunnableService {
 		return resourceProviders;
 	}
 
+	public HashSessionManager getHashSessionManager() {
+		return hashSessionManager;
+	}
+
 	// ----- private methods -----
-	private List<ContextHandler> collectResourceHandlers(final StructrConf properties) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	private List<ContextHandler> collectResourceHandlers(final Properties properties) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final List<ContextHandler> resourceHandlers = new LinkedList<>();
 		final String resourceHandlerList            = properties.getProperty(RESOURCE_HANDLERS, "");
@@ -580,7 +587,7 @@ public class HttpService implements RunnableService {
 		return resourceHandlers;
 	}
 
-	private Map<String, ServletHolder> collectServlets(final StructrConf properties) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	private Map<String, ServletHolder> collectServlets(final Properties properties) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final Map<String, ServletHolder> servlets = new LinkedHashMap<>();
 		final String servletNameList              = properties.getProperty(SERVLETS, "");

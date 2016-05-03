@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,6 +29,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Result;
+import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
@@ -65,25 +67,25 @@ public class EnvResource extends Resource {
 		List<GraphObjectMap> resultList = new LinkedList<>();
 
 		GraphObjectMap info = new GraphObjectMap();
-		
+
 		final String classPath = System.getProperty("java.class.path");
 
 		final Pattern outerPattern = Pattern.compile("(structr-.+?(?=.jar))");
 		Matcher outerMatcher = outerPattern.matcher(classPath);
-		
+
 		Map<String, Map<String, String>> modules = new HashMap<>();
-		
+
 		while (outerMatcher.find()) {
-			
+
 			final String g = outerMatcher.group();
 
 			final Pattern innerPattern = Pattern.compile("(structr-core|structr-rest|structr-ui)-([^-]*(?:-SNAPSHOT){0,1})-{0,1}(?:([0-9]{0,12})\\.{0,1}([0-9a-f]{0,5})).*");
 			final Matcher innerMatcher = innerPattern.matcher(g);
-			
+
 			final Map<String, String> module = new HashMap<>();
-			
+
 			if (innerMatcher.matches()) {
-			
+
 				module.put("version", innerMatcher.group(2));
 				module.put("date", innerMatcher.group(3));
 				module.put("build", innerMatcher.group(4));
@@ -94,8 +96,12 @@ public class EnvResource extends Resource {
 		}
 
 		info.setProperty(new GenericProperty("modules"), modules);
-		
+
 		info.setProperty(new StringProperty("classPath"), classPath);
+
+		info.setProperty(new StringProperty("instanceName"), StructrApp.getConfigurationValue(Services.APPLICATION_INSTANCE_NAME, ""));
+
+		info.setProperty(new StringProperty("instanceStage"), StructrApp.getConfigurationValue(Services.APPLICATION_INSTANCE_STAGE, ""));
 
 		resultList.add(info);
 
@@ -104,13 +110,12 @@ public class EnvResource extends Resource {
 
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-		throw new IllegalMethodException();
+		throw new IllegalMethodException("POST not allowed on " + getResourceSignature());
 	}
 
 	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
-
-		throw new IllegalPathException();
+		throw new IllegalPathException(getResourceSignature() + " has no subresources");
 	}
 
 	@Override

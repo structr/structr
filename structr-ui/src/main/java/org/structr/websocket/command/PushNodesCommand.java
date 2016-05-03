@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,8 @@
 package org.structr.websocket.command;
 
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.cloud.CloudService;
 import org.structr.cloud.HostInfo;
 import org.structr.cloud.WebsocketProgressListener;
@@ -40,13 +42,15 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class PushNodesCommand extends AbstractCommand {
 
+	private static final Logger logger = Logger.getLogger(PushNodesCommand.class.getName());
+	
 	static {
 
 		StructrWebSocket.addCommand(PushNodesCommand.class);
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final Map<String, Object> properties = webSocketData.getNodeData();
 		final String sourceId                = webSocketData.getId();
@@ -75,7 +79,7 @@ public class PushNodesCommand extends AbstractCommand {
 						webSocket.getSecurityContext(),
 						new PushTransmission(root, recursive),
 						new HostInfo(username, password, host, port.intValue()),
-						new WebsocketProgressListener(getWebSocket(), key)
+						new WebsocketProgressListener(getWebSocket(), key, callback)
 					);
 
 				} else {
@@ -87,7 +91,7 @@ public class PushNodesCommand extends AbstractCommand {
 
 			} catch (FrameworkException fex) {
 
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 
 				getWebSocket().send(MessageBuilder.status().code(400).message(fex.getMessage()).build(), true);
 			}

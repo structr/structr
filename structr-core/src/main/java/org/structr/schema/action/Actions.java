@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -88,7 +88,7 @@ public class Actions {
 
 		// check for errors raised by scripting
 		if (context.hasError()) {
-			throw new FrameworkException(422, context.getErrorBuffer());
+			throw new FrameworkException(422, "Server-side scripting error", context.getErrorBuffer());
 		}
 
 		return result;

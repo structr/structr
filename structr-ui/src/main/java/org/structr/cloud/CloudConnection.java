@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -145,7 +145,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 				super.start();
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 		}
 	}
@@ -195,7 +195,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 				}
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 		}
 
@@ -227,7 +227,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 			socket.close();
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 	}
 
@@ -251,7 +251,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 				Thread.sleep(10);
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 		}
 	}
@@ -280,7 +280,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 				Thread.sleep(10);
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 		}
 	}
@@ -296,7 +296,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 				Thread.sleep(10);
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 		}
 
@@ -312,7 +312,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 			encrypter.init(Cipher.ENCRYPT_MODE, skeySpec);
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 	}
 
@@ -506,7 +506,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 				// do not catch specific exception only, we need to be able to shut
 				// down the connection gracefully, so we must make sure not to be
 				// interrupted here
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 		} else {
 
@@ -529,7 +529,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 				// do not catch specific exception only, we need to be able to shut
 				// down the connection gracefully, so we must make sure not to be
 				// interrupted here
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 
 			tx = null;
@@ -545,7 +545,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 			return app.nodeQuery(User.class).andName(userName).getFirst();
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 		return null;
@@ -596,7 +596,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 				// do not catch specific exception only, we need to be able to shut
 				// down the connection gracefully, so we must make sure not to be
 				// interrupted here
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 
 			count++;

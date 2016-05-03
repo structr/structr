@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,10 +21,6 @@ package org.structr.core.graph;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.core.entity.AbstractNode;
 
@@ -32,6 +28,9 @@ import org.structr.core.entity.AbstractNode;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.api.graph.Direction;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
@@ -47,32 +46,32 @@ public class NodeRelationshipStatisticsCommand extends NodeServiceCommand {
 
 	//~--- methods --------------------------------------------------------
 
-	public Map<RelationshipType, Long> execute(AbstractNode sNode) throws FrameworkException {
+	public Map<String, Long> execute(final AbstractNode sNode) throws FrameworkException {
 		return execute(sNode, null);
 	}
-	
-	public Map<RelationshipType, Long> execute(AbstractNode sNode, Direction dir) throws FrameworkException {
 
-		Map<RelationshipType, Long> statistics = new LinkedHashMap<>();
-		Iterable<Relationship> rels;
-		Node node                              = sNode.getNode();
+	public Map<String, Long> execute(AbstractNode sNode, Direction dir) throws FrameworkException {
+
+		final Map<String, Long> statistics = new LinkedHashMap<>();
+		final Node node                    = sNode.getNode();
+		Iterable<Relationship> rels        = null;
 
 		if (dir != null) {
-			
+
 			rels = node.getRelationships(dir);
-			
+
 		} else {
-			
+
 			rels = node.getRelationships();
 		}
 
 		try {
 
 			// use temporary map to avoid frequent construction of Long values when increasing..
-			Map<RelationshipType, LongValueHolder> values = new LinkedHashMap<>();
+			Map<String, LongValueHolder> values = new LinkedHashMap<>();
 			for (Relationship r : rels) {
 
-				RelationshipType relType = r.getType();
+				final String relType = r.getType().name();
 				LongValueHolder count = values.get(relType);
 				if(count == null) {
 					count = new LongValueHolder();
@@ -82,8 +81,8 @@ public class NodeRelationshipStatisticsCommand extends NodeServiceCommand {
 			}
 
 			// create results from temporary map
-			for(Entry<RelationshipType, LongValueHolder> entry : values.entrySet()) {
-				RelationshipType key = entry.getKey();
+			for(Entry<String, LongValueHolder> entry : values.entrySet()) {
+				final String key = entry.getKey();
 				LongValueHolder value = entry.getValue();
 				statistics.put(key, value.getValue());
 			}
@@ -97,7 +96,7 @@ public class NodeRelationshipStatisticsCommand extends NodeServiceCommand {
 	}
 
 	private static class LongValueHolder {
-		
+
 		private long value = 0;
 
 		public long getValue() {

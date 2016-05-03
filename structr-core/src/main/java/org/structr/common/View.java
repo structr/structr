@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,7 +30,7 @@ import org.structr.core.GraphObject;
  */
 public class View {
 
-	public static final String INTERNAL_GRAPH_VIEW = "_structr_graph";
+	public static final String INTERNAL_GRAPH_VIEW = "_graph";
 
 	private Property[] properties = null;
 	private String name = null;

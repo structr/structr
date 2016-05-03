@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,14 +35,116 @@ public class PermissionResolutionMask {
 	private final int WRITE                           = 0x00000002;
 	private final int DELETE                          = 0x00000004;
 	private final int ACCESS_CONTROL                  = 0x00000008;
-	private int value                                 = 0;
+	private int checked                               = 0;	// bitmask, encodes the permissions for which this mask was checked
+	private int value                                 = 0;  // bitmask, encodes the permissions of this mask
 
 	public PermissionResolutionMask() {}
 
 	public PermissionResolutionMask(final PermissionResolutionMask toCopy) {
 
 		removedProperties.addAll(toCopy.removedProperties);
-		this.value = toCopy.value;
+		this.value   = toCopy.value;
+		this.checked = toCopy.checked;
+	}
+
+	@Override
+	public String toString() {
+		return "mask: " + Integer.toBinaryString(value) + ", checked: " + Integer.toBinaryString(checked);
+	}
+
+	public boolean alreadyChecked(final Permission permission) {
+
+		if (Permission.read.equals(permission)) {
+			return (checked & READ) != 0;
+		}
+
+		if (Permission.write.equals(permission)) {
+			return (checked & WRITE) != 0;
+		}
+
+		if (Permission.delete.equals(permission)) {
+			return (checked & DELETE) != 0;
+		}
+
+		if (Permission.accessControl.equals(permission)) {
+			return (checked & ACCESS_CONTROL) != 0;
+		}
+
+		return false;
+	}
+
+	public boolean setChecked(final Permission permission) {
+
+		if (Permission.read.equals(permission)) {
+			checked |= READ;
+		}
+
+		if (Permission.write.equals(permission)) {
+			checked |= WRITE;
+		}
+
+		if (Permission.delete.equals(permission)) {
+			checked |= DELETE;
+		}
+
+		if (Permission.accessControl.equals(permission)) {
+			checked |= ACCESS_CONTROL;
+		}
+
+		return false;
+	}
+
+	public boolean setPermission(final Permission permission, final boolean isAllowed) {
+
+		if (Permission.read.equals(permission)) {
+
+			if (isAllowed) {
+
+				value |= READ;
+
+			} else {
+
+				value &= ~READ;
+			}
+		}
+
+		if (Permission.write.equals(permission)) {
+
+			if (isAllowed) {
+
+				value |= WRITE;
+
+			} else {
+
+				value &= ~WRITE;
+			}
+		}
+
+		if (Permission.delete.equals(permission)) {
+
+			if (isAllowed) {
+
+				value |= DELETE;
+
+			} else {
+
+				value &= ~DELETE;
+			}
+		}
+
+		if (Permission.accessControl.equals(permission)) {
+
+			if (isAllowed) {
+
+				value |= ACCESS_CONTROL;
+
+			} else {
+
+				value &= ~ACCESS_CONTROL;
+			}
+		}
+
+		return false;
 	}
 
 	public boolean allowsPermission(final Permission permission) {
@@ -64,6 +166,10 @@ public class PermissionResolutionMask {
 		}
 
 		return false;
+	}
+
+	public void clear() {
+		value = 0;
 	}
 
 	public boolean allowsProperty(final PropertyKey key) {
@@ -91,10 +197,11 @@ public class PermissionResolutionMask {
 
 	public void addRead() {
 		value |= READ;
+
 	}
 
 	public void removeRead() {
-		value ^= READ;
+		value &= ~READ;
 	}
 
 	public void addWrite() {
@@ -102,7 +209,7 @@ public class PermissionResolutionMask {
 	}
 
 	public void removeWrite() {
-		value ^= WRITE;
+		value &= ~WRITE;
 	}
 
 	public void addDelete() {
@@ -110,7 +217,7 @@ public class PermissionResolutionMask {
 	}
 
 	public void removeDelete() {
-		value ^= DELETE;
+		value &= ~DELETE;
 	}
 
 	public void addAccessControl() {
@@ -118,7 +225,7 @@ public class PermissionResolutionMask {
 	}
 
 	public void removeAccessControl() {
-		value ^= ACCESS_CONTROL;
+		value &= ~ACCESS_CONTROL;
 	}
 
 	public void handleProperties(final String delta) {

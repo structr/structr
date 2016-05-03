@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -39,6 +39,8 @@ import org.structr.core.graph.SyncCommand;
  *
  */
 public class LazyFileBasedLongCollection implements Collection<Long>, Closeable {
+
+	private static final Logger logger = Logger.getLogger(LazyFileBasedLongCollection.class.getName());
 
 	private DataOutputStream dos = null;
 	private File file            = null;
@@ -140,7 +142,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 			SyncCommand.serialize(dos, e);
 
 		} catch (IOException ex) {
-			Logger.getLogger(LazyFileBasedLongCollection.class.getName()).log(Level.SEVERE, null, ex);
+			logger.log(Level.SEVERE, null, ex);
 		}
 
 		return true;
@@ -170,7 +172,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 			}
 
 		} catch (IOException ex) {
-			Logger.getLogger(LazyFileBasedLongCollection.class.getName()).log(Level.SEVERE, null, ex);
+			logger.log(Level.SEVERE, null, ex);
 		}
 
 		return true;
@@ -207,7 +209,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 			}
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.log(Level.WARNING, "", ioex);
 		}
 
 		try {
@@ -215,7 +217,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 			dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file, append)));
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.log(Level.WARNING, "", ioex);
 		}
 	}
 
@@ -232,7 +234,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 
 			} catch (IOException ioex) {
 
-				ioex.printStackTrace();
+				logger.log(Level.WARNING, "", ioex);
 			}
 		}
 
@@ -271,7 +273,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 				dis.close();
 
 			} catch (IOException ioex) {
-				ioex.printStackTrace();
+				logger.log(Level.WARNING, "", ioex);
 			}
 		}
 

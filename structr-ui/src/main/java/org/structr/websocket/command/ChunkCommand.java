@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -54,7 +54,7 @@ public class ChunkCommand extends AbstractCommand {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
@@ -99,10 +99,10 @@ public class ChunkCommand extends AbstractCommand {
 				final long checksum = FileHelper.getChecksum(file);
 				final long size     = FileHelper.getSize(file);
 
-				file.unlockReadOnlyPropertiesOnce();
+				file.unlockSystemPropertiesOnce();
 				file.setProperty(File.checksum, checksum);
 
-				file.unlockReadOnlyPropertiesOnce();
+				file.unlockSystemPropertiesOnce();
 				file.setProperty(File.size, size);
 
 				file.increaseVersion();

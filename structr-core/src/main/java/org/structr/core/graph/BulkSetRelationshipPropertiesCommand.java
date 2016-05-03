@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,26 +18,22 @@
  */
 package org.structr.core.graph;
 
+//~--- classes ----------------------------------------------------------------
+
 import java.util.Iterator;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.tooling.GlobalGraphOperations;
-
-import org.structr.common.error.FrameworkException;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.helpers.collection.Iterables;
+import org.structr.api.DatabaseService;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaHelper;
 
-//~--- classes ----------------------------------------------------------------
 
 /**
  * Sets the properties found in the property set on all relationships matching the type.
@@ -54,7 +50,7 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 	@Override
 	public void execute(final Map<String, Object> properties) throws FrameworkException {
 
-		final GraphDatabaseService graphDb            = (GraphDatabaseService) arguments.get("graphDb");
+		final DatabaseService graphDb            = (DatabaseService) arguments.get("graphDb");
 		final RelationshipFactory relationshipFactory = new RelationshipFactory(securityContext);
 
 		if (graphDb != null) {
@@ -76,7 +72,7 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 
-					relIterator = Iterables.map(relationshipFactory, GlobalGraphOperations.at(graphDb).getAllRelationships()).iterator();
+					relIterator = Iterables.map(relationshipFactory, graphDb.getAllRelationships()).iterator();
 					tx.success();
 				}
 			}

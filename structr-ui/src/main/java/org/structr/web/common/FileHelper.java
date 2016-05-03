@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -80,7 +84,7 @@ public class FileHelper {
 
 		if (existingFile != null) {
 
-			existingFile.unlockReadOnlyPropertiesOnce();
+			existingFile.unlockSystemPropertiesOnce();
 			existingFile.setProperty(AbstractNode.type, fileType == null ? org.structr.dynamic.File.class.getSimpleName() : fileType.getSimpleName());
 
 			existingFile = getFileByUuid(securityContext, uuid);
@@ -212,13 +216,13 @@ public class FileHelper {
 
 		file.setProperty(org.structr.dynamic.File.contentType, contentType != null ? contentType : getContentMimeType(file));
 
-		file.unlockReadOnlyPropertiesOnce();
+		file.unlockSystemPropertiesOnce();
 		file.setProperty(org.structr.dynamic.File.checksum, FileHelper.getChecksum(file));
 
-		file.unlockReadOnlyPropertiesOnce();
+		file.unlockSystemPropertiesOnce();
 		file.setProperty(org.structr.dynamic.File.size, FileHelper.getSize(file));
 
-		file.unlockReadOnlyPropertiesOnce();
+		file.unlockSystemPropertiesOnce();
 		file.setProperty(org.structr.dynamic.File.version, 1);
 
 	}
@@ -235,11 +239,11 @@ public class FileHelper {
 		file.setProperty(org.structr.dynamic.File.contentType, getContentMimeType(file));
 
 		// checksum is read-only
-		file.unlockReadOnlyPropertiesOnce();
+		file.unlockSystemPropertiesOnce();
 		file.setProperty(org.structr.dynamic.File.checksum, FileHelper.getChecksum(file));
 
 		// size is read-only
-		file.unlockReadOnlyPropertiesOnce();
+		file.unlockSystemPropertiesOnce();
 		file.setProperty(org.structr.dynamic.File.size, FileHelper.getSize(file));
 
 	}
@@ -338,11 +342,11 @@ public class FileHelper {
 			final String newUuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
 			id = newUuid;
 
-			fileNode.unlockReadOnlyPropertiesOnce();
+			fileNode.unlockSystemPropertiesOnce();
 			fileNode.setProperty(GraphObject.id, newUuid);
 		}
 
-		fileNode.unlockReadOnlyPropertiesOnce();
+		fileNode.unlockSystemPropertiesOnce();
 		fileNode.setProperty(org.structr.dynamic.File.relativeFilePath, org.structr.dynamic.File.getDirectoryPath(id) + "/" + id);
 
 		final String filesPath = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
@@ -357,6 +361,15 @@ public class FileHelper {
 	}
 
 	//~--- get methods ----------------------------------------------------
+
+	public static File getFile(final org.structr.web.entity.FileBase file) {
+		return new java.io.File(getFilePath(file.getRelativeFilePath()));
+	}
+
+	public static Path getPath(final org.structr.web.entity.FileBase file) {
+		return Paths.get(getFilePath(file.getRelativeFilePath()));
+	}
+
 	/**
 	 * Return mime type of given file
 	 *
@@ -404,7 +417,7 @@ public class FileHelper {
 			}
 
 		} catch (MagicParseException | MagicMatchNotFoundException | MagicException ignore) {
-			// mex.printStackTrace();
+			// mlogger.log(Level.WARNING, "", ex);
 		}
 
 
@@ -703,5 +716,7 @@ public class FileHelper {
 
 	}
 
-
+	public static String getDateString() {
+		return new SimpleDateFormat("yyyy-MM-dd-HHmmss").format(new Date());
+	}
 }

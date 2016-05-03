@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,8 +18,7 @@
  */
 package org.structr.core.graph.search;
 
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.Query;
+import org.structr.api.search.Occurrence;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 
@@ -39,17 +38,12 @@ public class NotBlankSearchAttribute<T> extends EmptySearchAttribute<T> {
 	}
 
 	@Override
-	public Query getQuery() {
-		return null;
-	}
-
-	@Override
 	public boolean includeInResult(GraphObject entity) {
 
-		BooleanClause.Occur occur = getOccur();
-		T nodeValue               = entity.getProperty(getKey());
+		Occurrence occur = getOccurrence();
+		T nodeValue      = entity.getProperty(getKey());
 
-		if (occur.equals(BooleanClause.Occur.MUST_NOT)) {
+		if (occur.equals(Occurrence.FORBIDDEN)) {
 
 			// reverse
 			return nodeValue == null;

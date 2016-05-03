@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,8 @@ import java.net.HttpCookie;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static junit.framework.TestCase.fail;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
@@ -32,7 +34,7 @@ import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.parser.Functions;
+import org.structr.core.parser.function.GetFunction;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
@@ -54,6 +56,8 @@ import org.w3c.dom.NodeList;
 
 
 public class RenderContextTest extends StructrUiTest {
+
+	private static final Logger logger = Logger.getLogger(RenderContextTest.class.getName());
 
 	public void testVariableReplacementInDynamicTypes() {
 
@@ -82,7 +86,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 		}
@@ -108,7 +112,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 		}
@@ -128,7 +132,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 		}
@@ -143,7 +147,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 		}
@@ -168,7 +172,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 		}
@@ -185,7 +189,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 		}
@@ -206,7 +210,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 		}
@@ -261,7 +265,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 		}
@@ -294,7 +298,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 		}
@@ -324,7 +328,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 		}
@@ -478,7 +482,7 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals("Invalid replacement result", a.getUuid(), Scripting.replaceVariables(ctx, a, "${get(find('A'), 'id')}"));
 
 			// this test finds multiple <p> elements => error
-			assertEquals("Invalid replacement result", Functions.ERROR_MESSAGE_GET_ENTITY, Scripting.replaceVariables(ctx, a, "${get(find('P'), 'id')}"));
+			assertEquals("Invalid replacement result", GetFunction.ERROR_MESSAGE_GET_ENTITY, Scripting.replaceVariables(ctx, a, "${get(find('P'), 'id')}"));
 
 			// more complex replacement
 			//assertEquals("Invalid replacement result", "", a.replaceVariables(ctx, securityContext, "${get(find('P'), 'id')}"));
@@ -507,7 +511,7 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals("tester2", Scripting.replaceVariables(tester2Context, p2, "${me.name}"));
 
 			// allow unauthenticated GET on /pages
-			grant("Page/_Ui", 16, false);
+			grant("Page/_Ui", 16, true);
 
 			// test GET REST access
 			assertEquals("Invalid GET notation result", page.getName(), Scripting.replaceVariables(ctx, p1, "${from_json(GET('http://localhost:" + httpPort + "/structr/rest/pages/ui')).result[0].name}"));
@@ -515,12 +519,15 @@ public class RenderContextTest extends StructrUiTest {
 			grant("Folder", 64, true);
 			grant("_login", 64, false);
 
-			assertEquals("Invalid POST result", "201",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:Test}').status}"));
-			assertEquals("Invalid POST result", "1.0",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:Test}').body.result_count}"));
-			assertEquals("Invalid POST result", "application/json; charset=utf-8", Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:Test}').headers.Content-Type}"));
+			assertEquals("Invalid POST result", "201",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:status}').status}"));
+			assertEquals("Invalid POST result", "1.0",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:result_count}').body.result_count}"));
+			assertEquals("Invalid POST result", "application/json; charset=utf-8;", Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:content-type}').headers.Content-Type}"));
 
 			// test POST with invalid name containing curly braces to provoke 422
-			assertEquals("Invalid POST result", "422",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:\"Test{{{}}{}{}{}\"}').status}"));
+			assertEquals("Invalid POST result", "422",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:\"ShouldFail/xyz\"}').status}"));
+
+			// test that duplicate folder names are not allowed
+			assertEquals("Invalid POST result", "422",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:status}').status}"));
 
 			// test login and sessions
 			final String sessionIdCookie = Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/login', '{name:admin,password:admin}').headers.Set-Cookie}");
@@ -535,11 +542,16 @@ public class RenderContextTest extends StructrUiTest {
 			final String localeString = ctx.getLocale().toString();
 			assertEquals("Invalid locale result", localeString, Scripting.replaceVariables(ctx, page, "${locale}"));
 
+			// set new details object
+			final TestOne detailsDataObject2 = app.create(TestOne.class, "TestOne");
+			Scripting.replaceVariables(ctx, p1, "${set_details_object(first(find('TestOne', 'id', '" + detailsDataObject2.getUuid() + "')))}");
+			assertEquals("${current.id} should resolve to new details object", detailsDataObject2.getUuid(), Scripting.replaceVariables(ctx, p1, "${current.id}"));
+			
 			tx.success();
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 		}
@@ -568,7 +580,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 			fail("Unexpected exception.");
 		}
 	}

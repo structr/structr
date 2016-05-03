@@ -1,22 +1,21 @@
 /*
- *  Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
- *  This file is part of Structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 var animating = false;
 var timeout   = 0;
 var expanded  = {};
@@ -58,7 +57,7 @@ function nodeHovered(node) {
   var hoverMap = {};
   $('#graph-info').append('<span>Loading...</span>');
   $.ajax({
-    url: '/structr/rest/' + node.data.node.id + '/out/_structr_graph' + (domainOnly ? '?domainOnly=true' : ''),
+    url: '/structr/rest/' + node.data.node.id + '/out/_graph' + (domainOnly ? '?domainOnly=true' : ''),
     contentType: 'application/json',
     method: 'GET',
     statusCode: {
@@ -73,7 +72,7 @@ function nodeHovered(node) {
           }
         });
         $.ajax({
-          url: '/structr/rest/' + node.data.node.id + '/in/_structr_graph' + (domainOnly ? '?domainOnly=true' : ''),
+          url: '/structr/rest/' + node.data.node.id + '/in/_graph' + (domainOnly ? '?domainOnly=true' : ''),
           contentType: 'application/json',
           method: 'GET',
           statusCode: {
@@ -174,7 +173,7 @@ function expandNode(node, type) {
     edges: expanded[id] ? expanded[id].edges : []
   };
   $.ajax({
-    url: '/structr/rest/' + node.data.node.id + '/out/_structr_graph' + (domainOnly ? '?domainOnly=true' : ''),
+    url: '/structr/rest/' + node.data.node.id + '/out/_graph' + (domainOnly ? '?domainOnly=true' : ''),
     contentType: 'application/json',
     method: 'GET',
     statusCode: {
@@ -191,7 +190,7 @@ function expandNode(node, type) {
     }
   });
   $.ajax({
-    url: '/structr/rest/' + node.data.node.id + '/in/_structr_graph' + (domainOnly ? '?domainOnly=true' : ''),
+    url: '/structr/rest/' + node.data.node.id + '/in/_graph' + (domainOnly ? '?domainOnly=true' : ''),
     contentType: 'application/json',
     method: 'GET',
     statusCode: {

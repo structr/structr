@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,7 +28,6 @@ import org.structr.core.Result;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
-import org.structr.dynamic.File;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
@@ -58,7 +57,7 @@ public class ListCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final Map<String, Object> nodeData    = webSocketData.getNodeData();
@@ -90,11 +89,8 @@ public class ListCommand extends AbstractCommand {
 				query.and(FileBase.hasParent, false);
 			}
 
-			if (FileBase.class.isAssignableFrom(type)) {
-
-				// inverted as isThumbnail is not necessarily present in all objects inheriting from FileBase
-				query.not().and(Image.isThumbnail, true);
-			}
+			// inverted as isThumbnail is not necessarily present in all objects inheriting from FileBase
+			query.not().and(Image.isThumbnail, true);
 
 		}
 

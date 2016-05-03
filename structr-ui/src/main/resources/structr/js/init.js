@@ -1,24 +1,22 @@
 /*
- *  Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
- *  This file is part of Structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 var header, main, footer;
-var debug = false;
 var sessionId, user;
 var lastMenuEntry, activeTab, menuBlocked;
 var dmp;
@@ -26,12 +24,13 @@ var editorCursor, hintsJustClosed;
 var dialog, isMax = false;
 var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, saveAndClose, loginButton, loginBox, dialogCloseButton;
 var dialogId;
-var page = {}, pageSize = {}, sortKey = {}, sortOrder = {};
+var pagerType = {}, page = {}, pageSize = {}, sortKey = {}, sortOrder = {}, pagerFilters = {};
 var dialogMaximizedKey = 'structrDialogMaximized_' + port;
 var expandedIdsKey = 'structrTreeExpandedIds_' + port;
 var lastMenuEntryKey = 'structrLastMenuEntry_' + port;
 var pagerDataKey = 'structrPagerData_' + port + '_';
 var autoRefreshDisabledKey = 'structrAutoRefreshDisabled_' + port;
+var detailsObjectId = 'structrDetailsObjectId_' + port;
 var dialogDataKey = 'structrDialogData_' + port;
 var dialogHtmlKey = 'structrDialogHtml_' + port;
 var pushConfigKey = 'structrPushConfigKey_' + port;
@@ -39,34 +38,28 @@ var scrollInfoKey = 'structrScrollInfoKey_' + port;
 var hideInactiveTabsKey = 'structrHideInactiveTabs_' + port;
 var autoHideInactiveTabsKey = 'structrAutoHideInactiveTabs_' + port;
 
-
 var altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
 
 $(function() {
-
-	if (urlParam('debug')) {
-		debug = true;
-	}
 
 	header = $('#header');
 	main = $('#main');
 	footer = $('#footer');
 	loginBox = $('#login');
 
-	if (debug) {
-		footer.show();
-	}
+	_Logger.initLogger(urlParam('debug'), urlParam('events'));
 
-	dialogBox = $('#dialogBox');
-	dialog = $('.dialogText', dialogBox);
-	dialogMsg = $('.dialogMsg', dialogBox);
-	dialogBtn = $('.dialogBtn', dialogBox);
-	dialogTitle = $('.dialogTitle', dialogBox);
-	dialogMeta = $('.dialogMeta', dialogBox);
-	dialogText = $('.dialogText', dialogBox);
+	dialogBox          = $('#dialogBox');
+	dialog             = $('.dialogText', dialogBox);
+	dialogText         = $('.dialogText', dialogBox);
+	dialogHead         = $('.dialogHeaderWrapper', dialogBox);
+	dialogMsg          = $('.dialogMsg', dialogBox);
+	dialogBtn          = $('.dialogBtn', dialogBox);
+	dialogTitle        = $('.dialogTitle', dialogBox);
+	dialogMeta         = $('.dialogMeta', dialogBox);
 	dialogCancelButton = $('.closeButton');
-	dialogSaveButton = $('.save', dialogBox);
-	loginButton = $('#loginButton');
+	dialogSaveButton   = $('.save', dialogBox);
+	loginButton        = $('#loginButton');
 
 	$('#import_json').on('click', function(e) {
 		e.stopPropagation();
@@ -88,58 +81,10 @@ $(function() {
 		Structr.doLogout();
 	});
 
-	$('#dashboard_').on('click', function(e) {
-		Structr.activateModule(e, 'dashboard');
-	});
-
-	$('#graph_').on('click', function(e) {
-		Structr.activateModule(e, 'graph');
-	});
-
-	$('#pages_').on('click', function(e) {
-		Structr.activateModule(e, 'pages');
-		_Pages.resize();
-	});
-
-	$('#widgets_').on('click', function(e) {
-		Structr.activateModule(e, 'widgets');
-		Structr.resize();
-	});
-
-	$('#types_').on('click', function(e) {
-		Structr.activateModule(e, 'types');
-	});
-
-	$('#schema_').on('click', function(e) {
-		Structr.activateModule(e, 'schema');
-	});
-
-	$('#elements_').on('click', function(e) {
-		Structr.activateModule(e, 'elements');
-	});
-
-	$('#contents_').on('click', function(e) {
-		Structr.activateModule(e, 'contents');
-	});
-
-	$('#crud_').on('click', function(e) {
-		Structr.activateModule(e, 'crud');
-	});
-
-	$('#files_').on('click', function(e) {
-		Structr.activateModule(e, 'files');
-	});
-
-	$('#filesystem_').on('click', function(e) {
-		Structr.activateModule(e, 'filesystem');
-	});
-
-	$('#images_').on('click', function(e) {
-		Structr.activateModule(e, 'images');
-	});
-
-	$('#security_').on('click', function(e) {
-		Structr.activateModule(e, 'security');
+	$('[data-activate-module]').on('click', function(e) {
+		var module = $(this).data('activateModule');
+		_Logger.log(_LogType.INIT, 'Activating module ' + module);
+		Structr.activateModule(e, module);
 	});
 
 	Structr.connect();
@@ -240,6 +185,7 @@ var Structr = {
 	add_icon: 'icon/add.png',
 	delete_icon: 'icon/delete.png',
 	edit_icon: 'icon/pencil.png',
+	edit_ui_properties_icon: 'icon/wrench.png',
 	expand_icon: 'icon/tree_arrow_right.png',
 	expanded_icon: 'icon/tree_arrow_down.png',
 	link_icon: 'icon/link.png',
@@ -249,30 +195,31 @@ var Structr = {
 	autoHideInactiveTabs: undefined,
 
 	reconnect: function() {
-		log('deactivated ping');
+		_Logger.log(_LogType.INIT, 'deactivated ping');
 		Structr.stopPing();
-		log('activating reconnect loop');
+		_Logger.log(_LogType.INIT, 'activating reconnect loop');
 		Structr.stopReconnect();
 		reconn = window.setInterval(function() {
 			wsConnect();
 		}, 1000);
 		wsConnect();
-		log('activated reconnect loop', reconn);
+		_Logger.log(_LogType.INIT, 'activated reconnect loop', reconn);
 	},
 	stopReconnect: function() {
 		if (reconn) {
 			window.clearInterval(reconn);
 			reconn = undefined;
+			user = undefined;
 		}
 	},
 	init: function() {
-		log('###################### Initialize UI ####################');
+		_Logger.log(_LogType.INIT, '###################### Initialize UI ####################');
 		$('#errorText').empty();
-		log('user', user);
+		_Logger.log(_LogType.INIT, 'user', user);
 		Structr.ping();
 		Structr.startPing();
 		Structr.expanded = JSON.parse(LSWrapper.getItem(expandedIdsKey));
-		log('######## Expanded IDs after reload ##########', Structr.expanded);
+		_Logger.log(_LogType.INIT, '######## Expanded IDs after reload ##########', Structr.expanded);
 	},
 	ping: function(callback) {
 
@@ -283,31 +230,36 @@ var Structr = {
 		sessionId = Structr.getSessionId();
 
 		if (sessionId) {
-			log('sending ping');
-			sendObj({command: 'PING', sessionId: sessionId}, callback);
+			Command.ping(callback);
 		}
 	},
 	refreshUi: function() {
 		showLoadingSpinner();
 
-		if (user) {
-			LSWrapper.setItem(userKey, user);
-		}
 		Structr.clearMain();
-		$('#logout_').html('Logout <span class="username">' + user + '</span>');
 		Structr.loadInitialModule();
 		Structr.startPing();
-		var dialogData = JSON.parse(LSWrapper.getItem(dialogDataKey));
-		//console.log('Dialog data after init', dialogData);
-		if (dialogData) {
-			Structr.restoreDialog(dialogData);
+		if (!dialogText.text().length) {
+			LSWrapper.removeItem(dialogDataKey);
+		} else {
+			var dialogData = JSON.parse(LSWrapper.getItem(dialogDataKey));
+			//console.log('Dialog data after init', dialogData, dialogText.text().length);
+			if (dialogData) {
+				Structr.restoreDialog(dialogData);
+			}
 		}
 		hideLoadingSpinner();
 	},
+	updateUsername:function(name) {
+		if (name !== user) {
+			user = name;
+			$('#logout_').html('Logout <span class="username">' + name + '</span>');
+		}
+	},
 	startPing: function() {
-		log('Starting PING');
+		_Logger.log(_LogType.INIT, 'Starting PING');
 		Structr.stopPing();
-		log('ping', ping);
+		_Logger.log(_LogType.INIT, 'ping', ping);
 		if (!ping) {
 			ping = window.setInterval(function() {
 				Structr.ping();
@@ -324,7 +276,7 @@ var Structr = {
 		return $.cookie('JSESSIONID');
 	},
 	connect: function() {
-		log('connect');
+		_Logger.log(_LogType.INIT, 'connect');
 		sessionId = Structr.getSessionId();
 		if (!sessionId) {
 			$.get('/').always(function() {
@@ -363,32 +315,12 @@ var Structr = {
 	},
 	doLogin: function(username, password) {
 		$.ajax('/structr/rest/_env').always(function() {
-			log('doLogin ' + username + ' with ' + password);
-			var obj = {};
-			obj.command = 'LOGIN';
-			obj.sessionId = Structr.getSessionId();
-			var data = {};
-			data.username = username;
-			data.password = password;
-			obj.data = data;
-			if (sendObj(obj)) {
-				user = username;
-				return true;
-			}
-			return false;
+			return Command.login(username, password);
 		});
 	},
 	doLogout: function(text) {
 		Structr.saveLocalStorage();
-		log('doLogout ' + user);
-		var obj = {};
-		obj.command = 'LOGOUT';
-		obj.sessionId = Structr.getSessionId();
-		var data = {};
-		data.username = user;
-		obj.data = data;
-		if (sendObj(obj)) {
-			LSWrapper.removeItem(userKey);
+		if (Command.logout(user)) {
 			$.cookie('JSESSIONID', null);
 			sessionId.length = 0;
 			Structr.clearMain();
@@ -399,25 +331,30 @@ var Structr = {
 		return false;
 	},
 	loadInitialModule: function(isLogin) {
-		var browserUrl = window.location.href;
-		var anchor = getAnchorFromUrl(browserUrl);
-		lastMenuEntry = ((!isLogin && anchor && anchor !== 'logout') ? anchor : LSWrapper.getItem(lastMenuEntryKey));
-		if (!lastMenuEntry) {
-			lastMenuEntry = LSWrapper.getItem(lastMenuEntryKey) || 'dashboard';
-		} else {
-			log('Last menu entry found: ' + lastMenuEntry);
-		}
-		log('lastMenuEntry', lastMenuEntry);
-		Structr.activateMenuEntry(lastMenuEntry);
-		log(Structr.modules);
-		var module = Structr.modules[lastMenuEntry];
-		if (module) {
-			//module.init();
-			module.onload();
-			if (module.resize)
-				module.resize();
-		}
-		Structr.updateVersionInfo();
+
+		Structr.restoreLocalStorage(function() {
+
+			var browserUrl = window.location.href;
+			var anchor = getAnchorFromUrl(browserUrl);
+			lastMenuEntry = ((!isLogin && anchor && anchor !== 'logout') ? anchor : LSWrapper.getItem(lastMenuEntryKey));
+			if (!lastMenuEntry) {
+				lastMenuEntry = LSWrapper.getItem(lastMenuEntryKey) || 'dashboard';
+			} else {
+				_Logger.log(_LogType.INIT, 'Last menu entry found: ' + lastMenuEntry);
+			}
+			_Logger.log(_LogType.INIT, 'lastMenuEntry', lastMenuEntry);
+			Structr.activateMenuEntry(lastMenuEntry);
+			_Logger.log(_LogType.INIT, Structr.modules);
+			var module = Structr.modules[lastMenuEntry];
+			if (module) {
+				//module.init();
+				module.onload();
+				if (module.resize)
+					module.resize();
+			}
+			Structr.updateVersionInfo();
+		});
+
 	},
 	clearMain: function() {
 		var newDroppables = new Array();
@@ -437,14 +374,19 @@ var Structr = {
 		if (text) {
 			$('#confirmation .confirmationText').html(text);
 		}
+		var $yesButton = $('#confirmation .yesButton');
+		var $noButton = $('#confirmation .noButton');
+
 		if (yesCallback) {
-			$('#confirmation .yesButton').on('click', function(e) {
+			$yesButton.on('click', function(e) {
 				e.stopPropagation();
 				yesCallback();
-				$(this).off('click');
+				$yesButton.off('click');
+				$noButton.off('click');
 			});
 		}
-		$('#confirmation .noButton').on('click', function(e) {
+
+		$noButton.on('click', function(e) {
 			e.stopPropagation();
 			$.unblockUI({
 				fadeOut: 25
@@ -452,6 +394,8 @@ var Structr = {
 			if (noCallback) {
 				noCallback();
 			}
+			$yesButton.off('click');
+			$noButton.off('click');
 		});
 		$.blockUI.defaults.overlayCSS.opacity = .6;
 		$.blockUI.defaults.applyPlatformOpacityRules = false;
@@ -467,13 +411,15 @@ var Structr = {
 
 	},
 	saveLocalStorage: function() {
+		_Logger.log(_LogType.INIT, "Saving localstorage");
 		Command.saveLocalStorage();
 	},
 	restoreLocalStorage: function(callback) {
+		_Logger.log(_LogType.INIT, "Restoring localstorage");
 		Command.getLocalStorage(callback);
 	},
 	restoreDialog: function(dialogData) {
-		log('restoreDialog', dialogData, dialogBox);
+		_Logger.log(_LogType.INIT, 'restoreDialog', dialogData, dialogBox);
 		$.blockUI.defaults.overlayCSS.opacity = .6;
 		$.blockUI.defaults.applyPlatformOpacityRules = false;
 
@@ -518,6 +464,7 @@ var Structr = {
 
 		if (browser) {
 
+			dialogHead.empty();
 			dialogText.empty();
 			dialogMsg.empty();
 			dialogMeta.empty();
@@ -594,7 +541,7 @@ var Structr = {
 
 			Structr.resize();
 
-			log('Open dialog', dialog, text, dw, dh, t, l, callbackOk, callbackCancel);
+			_Logger.log(_LogType.INIT, 'Open dialog', dialog, text, dw, dh, t, l, callbackOk, callbackCancel);
 			var dialogData = {'text': text, 'top': t, 'left': l, 'width': dw, 'height': dh};
 			LSWrapper.setItem(dialogDataKey, JSON.stringify(dialogData));
 
@@ -615,7 +562,9 @@ var Structr = {
 		var horizontalOffset = 98;
 
 		var bw = (dw - 28) + 'px';
-		var bh = (dh - horizontalOffset) + 'px';
+
+		var dialogHeaderHeight = $('#dialogBox .dialogTextWrapper').offset().top - $('#dialogBox .dialogHeaderWrapper').offset().top;
+		var bh = (dh - horizontalOffset - dialogHeaderHeight) + 'px';
 
 		$('#dialogBox .dialogTextWrapper').css({
 			width: bw,
@@ -643,19 +592,21 @@ var Structr = {
 	},
 	resize: function(callback) {
 
-		// Calculate dimensions of dialog
-		Structr.setSize($(window).width(), $(window).height(), Math.min(900, $(window).width() - 24), Math.min(600, $(window).height() - 24));
-
-		$('#minimizeDialog').hide();
-		$('#maximizeDialog').show().on('click', function() {
-			Structr.maximize();
-		});
-
 		//LSWrapper.removeItem(dialogMaximizedKey);
 		isMax = LSWrapper.getItem(dialogMaximizedKey);
 
 		if (isMax) {
 			Structr.maximize();
+		} else {
+
+			// Calculate dimensions of dialog
+			Structr.setSize($(window).width(), $(window).height(), Math.min(900, $(window).width() - 24), Math.min(600, $(window).height() - 24));
+
+			$('#minimizeDialog').hide();
+			$('#maximizeDialog').show().off('click').on('click', function() {
+				Structr.maximize();
+			});
+
 		}
 
 		if (callback) {
@@ -670,7 +621,7 @@ var Structr = {
 
 		isMax = true;
 		$('#maximizeDialog').hide();
-		$('#minimizeDialog').show().on('click', function() {
+		$('#minimizeDialog').show().off('click').on('click', function() {
 			isMax = false;
 			LSWrapper.removeItem(dialogMaximizedKey);
 			Structr.resize();
@@ -690,7 +641,7 @@ var Structr = {
 	},
 	errorFromResponse: function(response, url) {
 		var errorText = '';
-        
+
 		if (response.errors && response.errors.length) {
 
 			$.each(response.errors, function(i, err) {
@@ -809,10 +760,10 @@ var Structr = {
 	},
 	registerModule: function(name, module) {
 		Structr.modules[name] = module;
-		log('Module ' + name + ' registered');
+		_Logger.log(_LogType.INIT, 'Module ' + name + ' registered');
 	},
 	containsNodes: function(element) {
-		log(element, Structr.numberOfNodes(element), Structr.numberOfNodes(element) > 0);
+		_Logger.log(_LogType.INIT, element, Structr.numberOfNodes(element), Structr.numberOfNodes(element) > 0);
 		return (element && Structr.numberOfNodes(element) && Structr.numberOfNodes(element) > 0);
 	},
 	numberOfNodes: function(element, excludeId) {
@@ -821,17 +772,17 @@ var Structr = {
 			childNodes = childNodes.not('.' + excludeId + '_');
 		}
 		var n = childNodes.length;
-		log('children', $(element).children('.node'));
-		log('number of nodes in element', element, n);
+		_Logger.log(_LogType.INIT, 'children', $(element).children('.node'));
+		_Logger.log(_LogType.INIT, 'number of nodes in element', element, n);
 		return n;
 	},
 	findParent: function(parentId, componentId, pageId, defaultElement) {
 		var parent = Structr.node(parentId, null, componentId, pageId);
-		log('findParent', parentId, componentId, pageId, defaultElement, parent);
-		log('findParent: parent element from Structr.node: ', parent);
+		_Logger.log(_LogType.INIT, 'findParent', parentId, componentId, pageId, defaultElement, parent);
+		_Logger.log(_LogType.INIT, 'findParent: parent element from Structr.node: ', parent);
 		if (!parent)
 			parent = defaultElement;
-		log('findParent: final parent element: ', parent);
+		_Logger.log(_LogType.INIT, 'findParent: final parent element: ', parent);
 		return parent;
 	},
 	parent: function(id) {
@@ -849,18 +800,18 @@ var Structr = {
 	},
 	getClass: function(el) {
 		var c;
-		log(Structr.classes);
+		_Logger.log(_LogType.INIT, Structr.classes);
 		$(Structr.classes).each(function(i, cls) {
-			log('testing class', cls);
+			_Logger.log(_LogType.INIT, 'testing class', cls);
 			if (el && el.hasClass(cls)) {
 				c = cls;
-				log('found class', cls);
+				_Logger.log(_LogType.INIT, 'found class', cls);
 			}
 		});
 		return c;
 	},
 	entityFromElement: function(element) {
-		log(element);
+		_Logger.log(_LogType.INIT, element);
 
 		var entity = {};
 		entity.id = Structr.getId($(element));
@@ -883,161 +834,12 @@ var Structr = {
 
 		return entity;
 	},
-	initPager: function(type, p, ps, sort, order) {
-		var pagerData = LSWrapper.getItem(pagerDataKey + type);
-		if (!pagerData) {
-			page[type] = parseInt(p);
-			pageSize[type] = parseInt(ps);
-			sortKey[type] = sort;
-			sortOrder[type] = order;
-			Structr.storePagerData(type, p, ps, sort, order);
-		} else {
-			Structr.restorePagerData(type, p, ps, sort, order);
-		}
-	},
-	updatePager: function(type, el) {
-		if (!type)
-			return;
-
-		var pager = (el && el.length) ? $('.pager' + type, el) : $('.pager' + type);
-		if (pager.length) {
-
-			var pageLeft = $('.pageLeft', pager);
-			var pageRight = $('.pageRight', pager);
-			var pageNo = $('.page', pager);
-
-			if (page[type] === 1) {
-				pageLeft.attr('disabled', 'disabled').addClass('disabled');
-			} else {
-				pageLeft.removeAttr('disabled', 'disabled').removeClass('disabled');
-			}
-
-			if (pageCount[type] === 1 || (page[type] === pageCount[type])) {
-				pageRight.attr('disabled', 'disabled').addClass('disabled');
-			} else {
-				pageRight.removeAttr('disabled', 'disabled').removeClass('disabled');
-			}
-
-			if (pageCount[type] === 1) {
-				pageNo.attr('disabled', 'disabled').addClass('disabled');
-			} else {
-				pageNo.removeAttr('disabled', 'disabled').removeClass('disabled');
-			}
-
-			Structr.storePagerData(type, page[type], pageSize[type], sortKey[type], sortOrder[type]);
-		}
-	},
-	storePagerData: function(type, page, pageSize, sort, order) {
-		if (page && pageSize && sort && order) {
-			LSWrapper.setItem(pagerDataKey + type, page + ',' + pageSize + ',' + sort + ',' + order);
-		}
-	},
-	restorePagerData: function(type) {
-		var pagerData = LSWrapper.getItem(pagerDataKey + type);
-		if (pagerData) {
-			var pagerData = pagerData.split(',');
-			page[type] = parseInt(pagerData[0]);
-			pageSize[type] = parseInt(pagerData[1]);
-			if (pagerData.length > 2) {
-				sortKey[type] = pagerData[2];
-				sortOrder[type] = pagerData[3];
-			}
-		}
-		log(page[type], pageSize[type], sortKey[type], sortOrder[type]);
-	},
-	/**
-	 * Append a pager for the given type to the given DOM element.
-	 *
-	 * This pager calls Command#list (WebSocket call) after being loaded
-	 * and binds Command#list to all actions.
-	 *
-	 * If the optional callback function is given, it will be executed
-	 * instead of the default action.
-	 */
-	addPager: function(el, rootOnly, type, callback) {
-		log('addPager', type, pageSize[type], page[type], sortKey[type], sortOrder[type]);
-		if (!callback) {
-			callback = function(entities) {
-				entities.forEach(function(entity) {
-					StructrModel.create(entity);
-				});
-			};
-		}
-
-		var isPagesEl = (el === pages);
-
-		el.append('<div class="pager pager' + type + '" style="clear: both"><button class="pageLeft">&lt; Prev</button>'
-				+ ' <input class="page" type="text" size="3" value="' + page[type] + '"><button class="pageRight">Next &gt;</button>'
-				+ ' of <input class="readonly pageCount" readonly="readonly" size="3">'
-				+ ' Items: <input class="pageSize" type="text" size="3" value="' + pageSize[type] + '"></div>');
-
-		var pager = $('.pager' + type, el);
-
-		var pageLeft = $('.pageLeft', pager);
-		var pageRight = $('.pageRight', pager);
-		var pageForm = $('.page', pager);
-		var pageSizeForm = $('.pageSize', pager);
-
-		pageSizeForm.on('keypress', function(e) {
-			if (e.keyCode === 13) {
-				pageSize[type] = $(this).val();
-				pageCount[type] = Math.max(1, Math.ceil(rawResultCount[type] / pageSize[type]));
-				page[type] = 1;
-				$('.page', pager).val(page[type]);
-				$('.pageSize', pager).val(pageSize[type]);
-				$('.pageCount', pager).val(pageCount[type]);
-				$('.node', el).remove();
-				$('#resourceAccesses table tbody tr').remove();
-				if (isPagesEl)
-					_Pages.clearPreviews();
-				Command.list(type, rootOnly, pageSize[type], page[type], sortKey[type], sortOrder[type], null, callback);
-			}
-		});
-
-		pageForm.on('keypress', function(e) {
-			if (e.keyCode === 13) {
-				page[type] = $(this).val();
-				$('.page', pager).val(page[type]);
-				$('.node', el).remove();
-				$('#resourceAccesses table tbody tr').remove();
-				if (isPagesEl)
-					_Pages.clearPreviews();
-				Command.list(type, rootOnly, pageSize[type], page[type], sortKey[type], sortOrder[type], null, callback);
-			}
-		});
-
-		pageLeft.on('click', function(e) {
-			e.stopPropagation();
-			pageRight.removeAttr('disabled').removeClass('disabled');
-			page[type]--;
-			$('.page', pager).val(page[type]);
-			$('.node', el).remove();
-			$('#resourceAccesses table tbody tr').remove();
-			if (isPagesEl) {
-				_Pages.clearPreviews();
-			}
-			Command.list(type, rootOnly, pageSize[type], page[type], sortKey[type], sortOrder[type], null, callback);
-		});
-
-		pageRight.on('click', function() {
-			pageLeft.removeAttr('disabled').removeClass('disabled');
-			page[type]++;
-			$('.page', pager).val(page[type]);
-			$('.node', el).remove();
-			$('#resourceAccesses table tbody tr').remove();
-			if (isPagesEl) {
-				_Pages.clearPreviews();
-			}
-			Command.list(type, rootOnly, pageSize[type], page[type], sortKey[type], sortOrder[type], null, callback);
-		});
-		return Command.list(type, rootOnly, pageSize[type], page[type], sortKey[type], sortOrder[type], null, callback);
-	},
 	makePagesMenuDroppable: function() {
 
 		try {
 			$('#pages_').droppable('destroy');
 		} catch (err) {
-			log('exception:', err.toString());
+			_Logger.log(_LogType.INIT, 'exception:', err.toString());
 		}
 
 		$('#pages_').droppable({
@@ -1049,17 +851,13 @@ var Structr = {
 
 				e.stopPropagation();
 				$('a#pages_').droppable('disable');
-				log('over is off');
+				_Logger.log(_LogType.INIT, 'over is off');
 
 				Structr.activateMenuEntry('pages');
 				window.location.href = '/structr/#pages';
 
 				if (filesystemMain && filesystemMain.length)
 					filesystemMain.hide();
-				if (files && files.length)
-					files.hide();
-				if (folders && folders.length)
-					folders.hide();
 				if (widgets && widgets.length)
 					widgets.hide();
 
@@ -1224,41 +1022,45 @@ var Structr = {
 			fastRemoveAllChildren(syncables[0]);
 			syncables.append('<tr><th>Name</th><th>Size</th><th>Last Modified</th><th>Type</th><th>Recursive</th><th>Actions</th></tr>');
 
-			Command.listSyncables(host, port, username, password, key, type, function(syncable) {
+			Command.listSyncables(host, port, username, password, key, type, function(result) {
 
-				syncables.append(
-						'<tr>'
-						+ '<td>' + syncable.name + '</td>'
-						+ '<td>' + (syncable.size ? syncable.size : "-") + '</td>'
-						+ '<td>' + (syncable.lastModifiedDate ? syncable.lastModifiedDate : "-") + '</td>'
-						+ '<td>' + syncable.type + '</td>'
-						+ '<td><input type="checkbox" id="recursive-' + syncable.id + '"></td>'
-						+ '<td><button id="pull-' + syncable.id + '"></td>'
-						+ '</tr>'
-						);
+				result.forEach(function(syncable) {
 
-				var syncButton = $('#pull-' + syncable.id, dialog);
+					syncables.append(
+							'<tr>'
+							+ '<td>' + syncable.name + '</td>'
+							+ '<td>' + (syncable.size ? syncable.size : "-") + '</td>'
+							+ '<td>' + (syncable.lastModifiedDate ? syncable.lastModifiedDate : "-") + '</td>'
+							+ '<td>' + syncable.type + '</td>'
+							+ '<td><input type="checkbox" id="recursive-' + syncable.id + '"></td>'
+							+ '<td><button id="pull-' + syncable.id + '"></td>'
+							+ '</tr>'
+							);
 
-				if (syncable.isSynchronized) {
-					syncButton.empty();
-					syncButton.append('<img src="icon/arrow_refresh.png" title="Update" alt="Update"> Update');
-				} else {
-					syncButton.empty();
-					syncButton.append('<img src="icon/page_white_put.png" title="Import" alt="Import"> Import');
-				}
+					var syncButton = $('#pull-' + syncable.id, dialog);
 
-				syncButton.on('click', function() {
-
-					syncButton.empty();
-					syncButton.append('Importing..');
-
-					var recursive = $('#recursive-' + syncable.id, syncables).prop('checked');
-					Command.pull(syncable.id, host, port, username, password, 'key-' + syncable.id, recursive, function() {
-						// update table cell..
+					if (syncable.isSynchronized) {
 						syncButton.empty();
 						syncButton.append('<img src="icon/arrow_refresh.png" title="Update" alt="Update"> Update');
+					} else {
+						syncButton.empty();
+						syncButton.append('<img src="icon/page_white_put.png" title="Import" alt="Import"> Import');
+					}
+
+					syncButton.on('click', function() {
+
+						syncButton.empty();
+						syncButton.append('Importing..');
+
+						var recursive = $('#recursive-' + syncable.id, syncables).prop('checked');
+						Command.pull(syncable.id, host, port, username, password, 'key-' + syncable.id, recursive, function() {
+							// update table cell..
+							syncButton.empty();
+							syncButton.append('<img src="icon/arrow_refresh.png" title="Update" alt="Update"> Update');
+						});
 					});
 				});
+
 			});
 		});
 
@@ -1285,6 +1087,10 @@ var Structr = {
 	updateVersionInfo: function() {
 		$.get(rootUrl + '_env', function(envInfo) {
 			if (envInfo && envInfo.result) {
+
+				$('#header .structr-instance-name').text(envInfo.result.instanceName);
+				$('#header .structr-instance-stage').text(envInfo.result.instanceStage);
+
 				var ui = envInfo.result.modules['structr-ui'];
 				if (ui !== null) {
 
@@ -1297,8 +1103,12 @@ var Structr = {
 					} else {
 						versionLink = 'http://repo1.maven.org/maven2/org/structr/structr-ui/' + version;
 					}
-					$('.structr-version').html('<a target="_blank" href="' + versionLink + '">' + version + '</a> build <a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a> (' + date + ')');
-
+					var versionInfo = '<a target="_blank" href="' + versionLink + '">' + version + '</a>';
+					if (build && date) {
+						versionInfo += ' build <a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a> (' + date + ')';
+					}
+					
+					$('.structr-version').html(versionInfo);
 				}
 			}
 		});
@@ -1307,7 +1117,7 @@ var Structr = {
 		if (this.autoHideInactiveTabs) {
 			return this.autoHideInactiveTabs;
 		} else {
-			this.autoHideInactiveTabs = (LSWrapper.getItem(autoHideInactiveTabsKey) === "true");
+			this.autoHideInactiveTabs = (LSWrapper.getItem(autoHideInactiveTabsKey));
 			if (!this.autoHideInactiveTabs) {
 				this.setAutoHideInactiveTabs(false);
 			}
@@ -1317,7 +1127,6 @@ var Structr = {
 	setAutoHideInactiveTabs: function (val) {
 		this.autoHideInactiveTabs = val;
 		LSWrapper.setItem(autoHideInactiveTabsKey, val);
-
 		if (val) {
 			this.doHideInactiveTabs();
 			this.doHideSelectAllCheckbox();
@@ -1327,7 +1136,7 @@ var Structr = {
 		if (this.hideInactiveTabs) {
 			return this.hideInactiveTabs;
 		} else {
-			this.hideInactiveTabs = (LSWrapper.getItem(hideInactiveTabsKey) === "true");
+			this.hideInactiveTabs = (LSWrapper.getItem(hideInactiveTabsKey));
 			if (!this.hideInactiveTabs) {
 				this.setHideInactiveTabs(false);
 			}
@@ -1373,12 +1182,23 @@ var Structr = {
 	doDeselectAllTabs: function () {
 		$('#resourceTabsMenu li:not(.last) input[type="checkbox"]:checked').click();
 	},
+	doSelectTabs: function (types) {
+		types.forEach(function(type) {
+			$('#resourceTabsMenu li:not(.last) a[href="#' + type + '"] input[type="checkbox"]:not(:checked)').click();
+		});
+	},
+	doDeselectTabs: function (types) {
+		types.forEach(function(type) {
+			$('#resourceTabsMenu li:not(.last) a[href="#' + type + '"] input[type="checkbox"]:checked').click();
+		});
+	},
 	getId: function(element) {
 		return Structr.getIdFromPrefixIdString($(element).prop('id'), 'id_') || undefined;
 	},
 	getIdFromPrefixIdString: function(idString, prefix) {
-		if (!idString || !idString.startsWith(prefix))
+		if (!idString || !idString.startsWith(prefix)) {
 			return false;
+		}
 		return idString.substring(prefix.length);
 	},
 	getComponentId: function(element) {
@@ -1562,7 +1382,7 @@ function isVideo(contentType) {
 }
 
 function addExpandedNode(id) {
-	log('addExpandedNode', id);
+	_Logger.log(_LogType.INIT, 'addExpandedNode', id);
 
 	if (!id)
 		return;
@@ -1579,7 +1399,7 @@ function addExpandedNode(id) {
 }
 
 function removeExpandedNode(id) {
-	log('removeExpandedNode', id);
+	_Logger.log(_LogType.INIT, 'removeExpandedNode', id);
 
 	if (!id)
 		return;
@@ -1589,14 +1409,14 @@ function removeExpandedNode(id) {
 }
 
 function isExpanded(id) {
-	log('id, getExpanded()[id]', id, getExpanded()[id]);
+	_Logger.log(_LogType.INIT, 'id, getExpanded()[id]', id, getExpanded()[id]);
 
 	if (!id)
 		return false;
 
 	var isExpanded = getExpanded()[id] === true ? true : false;
 
-	log(isExpanded);
+	_Logger.log(_LogType.INIT, isExpanded);
 
 	return isExpanded;
 }
@@ -1674,11 +1494,13 @@ function setPosition(parentId, nodeUrl, pos) {
 var keyEventBlocked = true;
 var keyEventTimeout;
 
-$(window).unload(function() {
-	log('########################################### unload #####################################################');
-	// Remove dialog data in case of page reload
-	LSWrapper.removeItem(dialogDataKey);
-	Structr.saveLocalStorage();
+$(window).on('beforeunload', function(event) {
+	if (event.target === document) {
+		_Logger.log(_LogType.INIT, '########################################### unload #####################################################');
+		// Remove dialog data in case of page reload
+		LSWrapper.removeItem(dialogDataKey);
+		Structr.saveLocalStorage();
+	}
 });
 
 function showLoadingSpinner() {

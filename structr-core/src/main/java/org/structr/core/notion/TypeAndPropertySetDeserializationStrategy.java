@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -133,6 +133,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 			}
 
 			// just check for existance
+			String errorMessage = null;
 			final int size = result.size();
 			switch (size) {
 
@@ -148,6 +149,8 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 						}
 					}
 
+					errorMessage = "No node found for the given properties and auto-creation not enabled";
+
 					break;
 
 				case 1:
@@ -155,13 +158,14 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 
 				default:
 
-					logger.log(Level.SEVERE, "Found {0} nodes for given type and properties, property set is ambiguous!\n"
+					errorMessage = "Found " + size + " nodes for given type and properties, property set is ambiguous";
+					logger.log(Level.SEVERE, ""
 						+ "This is often due to wrong modeling, or you should consider creating a uniquness constraint for " + type.getName(), size);
 
 					break;
 			}
 
-			throw new FrameworkException(404, new PropertiesNotFoundToken(type.getSimpleName(), null, attributes));
+			throw new FrameworkException(404, errorMessage, new PropertiesNotFoundToken(type.getSimpleName(), null, attributes));
 		}
 
 		return null;
@@ -172,7 +176,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 		final GraphObject obj = result.get(0);
 
 		if (!type.isAssignableFrom(obj.getClass())) {
-			throw new FrameworkException(422, new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
+			throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
 		}
 
 		return result.get(0);

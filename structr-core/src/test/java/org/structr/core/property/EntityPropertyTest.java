@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,9 +19,8 @@
 package org.structr.core.property;
 
 import java.util.List;
-
-
-
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.converter.PropertyConverter;
@@ -35,6 +34,8 @@ import org.structr.core.graph.Tx;
  *
  */
 public class EntityPropertyTest extends StructrTest {
+
+	private static final Logger logger = Logger.getLogger(EntityPropertyTest.class.getName());
 
 	public void testOneToOne() throws Exception {
 
@@ -55,7 +56,7 @@ public class EntityPropertyTest extends StructrTest {
 
 			} catch (FrameworkException fex) {
 
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 
 				fail("Unable to create test nodes");
 			}
@@ -83,7 +84,7 @@ public class EntityPropertyTest extends StructrTest {
 
 			} catch (FrameworkException fex) {
 
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 
 				fail("Unable to link test nodes");
 			}
@@ -105,7 +106,7 @@ public class EntityPropertyTest extends StructrTest {
 
 			} catch (FrameworkException fex) {
 
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 
 				fail("Unable to link test nodes");
 			}
@@ -145,7 +146,7 @@ public class EntityPropertyTest extends StructrTest {
 
 			} catch (FrameworkException fex) {
 
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 
 				fail("Unable to create test nodes");
 			}
@@ -171,7 +172,7 @@ public class EntityPropertyTest extends StructrTest {
 
 			} catch (FrameworkException fex) {
 
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 
 				fail("Unable to link test nodes");
 			}
@@ -193,7 +194,7 @@ public class EntityPropertyTest extends StructrTest {
 
 			} catch (FrameworkException fex) {
 
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 
 				fail("Unable to link test nodes");
 			}

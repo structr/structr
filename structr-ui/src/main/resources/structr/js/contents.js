@@ -1,35 +1,36 @@
 /*
- *  Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
- *  This file is part of Structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 var lineWrappingKey = 'structrEditorLineWrapping_' + port;
 var contents, editor, contentType, currentEntity;
 
 var _Contents = {
 	icon: 'icon/page_white.png',
+	active_content_icon: 'icon/page_yellow.png',
 	comment_icon: 'icon/comment.png',
 	comp_icon: 'icon/page_yellow.png',
 	comp_templ_icon: 'icon/layout_yellow.png',
 	template_icon: 'icon/layout_content.png',
+	active_template_icon: 'icon/layout_yellow.png',
 	add_icon: 'icon/page_white_add.png',
 	delete_icon: 'icon/page_white_delete.png',
 	appendContentElement: function(entity, refNode, refNodeIsParent) {
-		log('Contents.appendContentElement', entity, refNode);
+		_Logger.log(_LogType.CONTENTS, 'Contents.appendContentElement', entity, refNode);
 
 		var parent;
 
@@ -43,15 +44,13 @@ var _Contents = {
 		if (!parent)
 			return false;
 
-		var isActiveNode = entity.hideOnIndex || entity.hideOnDetail || entity.hideConditions || entity.showConditions || entity.dataKey;
+		var isActiveNode = entity.isActiveNode();
 		var isTemplate = (entity.type === 'Template');
 
 		var name = entity.name;
 		var displayName = getElementDisplayName(entity);
 
-		var isComment = (entity.type === 'Comment');
-		var isComponent = entity.sharedComponent || (entity.syncedNodes && entity.syncedNodes.length);
-		var icon = isComment ? _Contents.comment_icon : ((isTemplate && isComponent) ? _Contents.comp_templ_icon : (isTemplate ? _Contents.template_icon : (isComponent ? _Contents.comp_icon : _Contents.icon)));
+		var icon = _Contents.getContentIcon(entity);
 		var html = '<div id="id_' + entity.id + '" class="node content ' + (isActiveNode ? ' activeNode' : 'staticNode') + '">'
 				+ '<img class="typeIcon" src="' + icon + '">'
 				+ (name ? ('<b title="' + displayName + '" class="tag_ name_">' + fitStringToWidth(displayName, 200) + '</b>') : ('<div class="content_">' + escapeTags(entity.content) + '</div>'))
@@ -107,11 +106,19 @@ var _Contents = {
 
 		return div;
 	},
+	getContentIcon:function(content) {
+		var isComment = (content.type === 'Comment');
+		var isTemplate = (content.type === 'Template');
+		var isComponent = content.sharedComponent || (content.syncedNodes && content.syncedNodes.length);
+		var isActiveNode = content.isActiveNode();
+
+		return isComment ? _Contents.comment_icon : ((isTemplate && isComponent) ? _Contents.comp_templ_icon : (isTemplate ? (isActiveNode ? _Contents.active_template_icon : _Contents.template_icon) : (isComponent ? _Contents.comp_icon : (isActiveNode ? _Contents.active_content_icon : _Contents.icon))));
+	},
 	openEditContentDialog: function(btn, entity) {
 		Structr.dialog('Edit content of ' + (entity.name ? entity.name : entity.id), function() {
-			log('content saved');
+			_Logger.log(_LogType.CONTENTS, 'content saved');
 		}, function() {
-			log('cancelled');
+			_Logger.log(_LogType.CONTENTS, 'cancelled');
 		});
 		Command.getProperty(entity.id, 'content', function(text) {
             currentEntity = entity;
@@ -131,7 +138,7 @@ var _Contents = {
 					   }
 				   }
 				}
-				
+
 			});
       }, 100);
       return CodeMirror.Pass;
@@ -158,7 +165,7 @@ var _Contents = {
 			return;
 		}
 		var div = element.append('<div class="editor"></div>');
-		log(div);
+		_Logger.log(_LogType.CONTENTS, div);
 		var contentBox = $('.editor', element);
 		contentType = contentType ? contentType : entity.contentType;
 		var text1, text2;
@@ -171,10 +178,13 @@ var _Contents = {
 			mode: contentType,
 			lineNumbers: true,
 			lineWrapping: lineWrapping,
-            extraKeys: {
-               "'.'":        _Contents.autoComplete,
-               "Ctrl-Space": _Contents.autoComplete
-            }
+			extraKeys: {
+				"'.'":        _Contents.autoComplete,
+				"Ctrl-Space": _Contents.autoComplete
+			},
+			indentUnit: 4,
+			tabSize:4,
+			indentWithTabs: true
         });
 
 		Structr.resize();
@@ -285,7 +295,7 @@ var _Contents = {
 			}
 
 			$('#chars').text(editor.getValue().length);
-			$('#words').text(editor.getValue().match(/\S+/g).length);
+			$('#words').text(editor.getValue().match(/\S+/g) !== null ? editor.getValue().match(/\S+/g).length : 0);
 		});
 
 		var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
@@ -301,8 +311,6 @@ var _Contents = {
 		dialogSaveButton.on('click', function(e) {
 			e.stopPropagation();
 
-			//var contentNode = Structr.node(entity.id)[0];
-
 			text1 = text;
 			text2 = editor.getValue();
 
@@ -311,11 +319,10 @@ var _Contents = {
 			if (!text2)
 				text2 = '';
 
-			if (debug) {
-				console.log('Element', contentNode);
-				console.log('text1', text1);
-				console.log('text2', text2);
-			}
+//			var contentNode = Structr.node(entity.id)[0];
+//			_Logger.consoleLog('Element', contentNode);
+//			_Logger.consoleLog('text1', text1);
+//			_Logger.consoleLog('text2', text2);
 
 			if (text1 === text2) {
 				return;
@@ -336,7 +343,7 @@ var _Contents = {
 
 		//_Entities.appendBooleanSwitch(dialogMeta, entity, 'editable', 'Editable', 'If enabled, data fields in this content element are editable in edit mode.');
 
-		var values = ['text/plain', 'text/html', 'text/css', 'text/javascript', 'text/markdown', 'text/textile', 'text/mediawiki', 'text/tracwiki', 'text/confluence', 'text/asciidoc'];
+		var values = ['text/plain', 'text/html', 'text/xml', 'text/css', 'text/javascript', 'text/markdown', 'text/textile', 'text/mediawiki', 'text/tracwiki', 'text/confluence', 'text/asciidoc'];
 
 		dialogMeta.append('<label for="contentTypeSelect">Content-Type:</label> <select class="contentType_" id="contentTypeSelect"></select>');
 		var select = $('#contentTypeSelect', dialogMeta);
@@ -366,7 +373,7 @@ var _Contents = {
 		});
 
 		dialogMeta.append('<span class="editor-info">Characters: <span id="chars">' + editor.getValue().length + '</span></span>');
-		dialogMeta.append('<span class="editor-info">Words: <span id="chars">' + editor.getValue().match(/\S+/g).length + '</span></span>');
+		dialogMeta.append('<span class="editor-info">Words: <span id="words">' + (editor.getValue().match(/\S+/g) !== null ? editor.getValue().match(/\S+/g).length : 0) + '</span></span>');
 
 		editor.id = entity.id;
 

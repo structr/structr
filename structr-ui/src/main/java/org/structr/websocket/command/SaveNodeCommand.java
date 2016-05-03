@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,6 +26,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.Importer;
 import org.structr.web.diff.InvertibleModificationOperation;
 import org.structr.web.entity.dom.DOMNode;
@@ -49,7 +50,7 @@ public class SaveNodeCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final String nodeId = webSocketData.getId();
 		final Map<String, Object> nodeData = webSocketData.getNodeData();
@@ -60,21 +61,23 @@ public class SaveNodeCommand extends AbstractCommand {
 		Page modifiedNode = null;
 
 		DOMNode sourceNode = (DOMNode) getNode(nodeId);
-		
+
 		if (sourceNode != null) {
+
+			TransactionCommand.registerNodeCallback(sourceNode, callback);
 
 			try {
 
 				// parse page from modified source
 				modifiedNode = Importer.parsePageFromSource(securityContext, modifiedHtml, "__SaveNodeCommand_Temporary_Page__");
 
-				
+
 				DOMNode targetNode = modifiedNode;
-				
+
 				if (!(sourceNode instanceof Page)) {
-					
+
 					targetNode = (DOMNode) modifiedNode.getFirstChild().getNextSibling().getFirstChild().getNextSibling().getFirstChild();
-					
+
 				}
 
 				final List<InvertibleModificationOperation> changeSet = Importer.diffNodes(sourceNode, targetNode);
@@ -89,8 +92,7 @@ public class SaveNodeCommand extends AbstractCommand {
 
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, t.toString());
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 
 				// send exception
 				getWebSocket().send(MessageBuilder.status().code(422).message(t.toString()).build(), true);
@@ -102,7 +104,7 @@ public class SaveNodeCommand extends AbstractCommand {
 
 			} catch (FrameworkException ex) {
 
-				ex.printStackTrace();
+				logger.log(Level.WARNING, "", ex);
 			}
 
 		} else {

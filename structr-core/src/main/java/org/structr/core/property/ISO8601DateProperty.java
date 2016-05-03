@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -120,7 +120,7 @@ public class ISO8601DateProperty extends DateProperty {
 
 				} else {
 
-					throw new FrameworkException(422, new DateFormatToken(declaringClass.getSimpleName(), ISO8601DateProperty.this));
+					throw new FrameworkException(422, "Cannot parse input for property " + jsonName(), new DateFormatToken(declaringClass.getSimpleName(), ISO8601DateProperty.this));
 
 				}
 

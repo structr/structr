@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,12 +24,11 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.collections.map.LRUMap;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.helpers.collection.Iterables;
+import org.structr.api.util.Iterables;
 import org.structr.common.CaseHelper;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -71,7 +70,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	private static final Logger logger = Logger.getLogger(DOMElement.class.getName());
 	private static final int HtmlPrefixLength = PropertyView.Html.length();
 
-	public static final long RENDER_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
 	private static final String STRUCTR_ACTION_PROPERTY = "data-structr-action";
 
 	private static final Map<String, HtmlProperty> htmlProperties = new LRUMap(1000);	// use LURMap here to avoid infinite growing
@@ -176,7 +174,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final org.structr.common.View uiView = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, pageId, path, parent, children, childrenIds, owner,
 		restQuery, cypherQuery, xpathQuery, functionQuery, partialUpdateKey, dataKey, syncedNodes, sharedComponent, isDOMNode,
 		renderDetails, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions,
-		_reload, _confirm, _action, _attributes, _attr, _fieldName, _hide, _rawValue, _class, _id
+		_reload, _confirm, _action, _attributes, _attr, _fieldName, _hide, _rawValue, _class, _id, mostUsedTagsProperty
 	);
 
 	public static final org.structr.common.View htmlView = new org.structr.common.View(DOMElement.class, PropertyView.Html, _accesskey, _class, _contenteditable, _contextmenu, _dir,
@@ -195,42 +193,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		// two elements can not have the same content
 		return false;
 	}
-
-//	@Override
-//	public Node cloneNode(final boolean deep) {
-//
-//		if (deep) {
-//
-//			throw new UnsupportedOperationException("cloneNode with deep=true is not supported yet.");
-//
-//		} else {
-//
-//			Node node = super.cloneNode(deep);
-//
-//			for (Iterator<PropertyKey> it = getPropertyKeys(htmlView.name()).iterator(); it.hasNext();) {
-//
-//				PropertyKey key = it.next();
-//
-//				// omit system properties (except type), parent/children and page relationships
-//				if (key.equals(GraphObject.type) || (!key.isUnvalidated()
-//					&& !key.equals(GraphObject.id)
-//					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
-//					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
-//					&& !key.equals(DOMElement.syncedNodes)
-//					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
-//
-//					try {
-//						((DOMNode) node).setProperty(key, getProperty(key));
-//					} catch (FrameworkException ex) {
-//						logger.log(Level.WARNING, "Could not set property " + key + " while cloning DOMElement " + this, ex);
-//					}
-//				}
-//			}
-//			return node;
-//
-//		}
-//
-//	}
 
 	@Override
 	public void updateFromNode(final DOMNode newNode) throws FrameworkException {
@@ -319,10 +281,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	@Override
 	public void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
 
-		if (renderContext.hasTimeout(RENDER_TIMEOUT)) {
-			return;
-		}
-
 		if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(renderContext)) {
 			return;
 		}
@@ -341,7 +299,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		if (depth > 0 && !avoidWhitespace()) {
 
-			out.append(indent(depth));
+			out.append(indent(depth, renderContext));
 
 		}
 
@@ -388,7 +346,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 				out.append("Error while rendering node ").append(getUuid()).append(": ").append(t.getMessage());
 
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 
 			}
 
@@ -398,7 +356,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				// only insert a newline + indentation before the closing tag if any child-element used a newline
 				if (anyChildNodeCreatesNewLine) {
 
-					out.append(indent(depth));
+					out.append(indent(depth, renderContext));
 
 				}
 
@@ -948,17 +906,17 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		if (!(EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) && !renderContext.appLibRendered() && getProperty(new StringProperty(STRUCTR_ACTION_PROPERTY)) != null) {
 
 			out
-				.append(indent(depth))
+				.append(indent(depth, renderContext))
 				.append("<script>if (!window.jQuery) { document.write('<script src=\"/structr/js/lib/jquery-1.11.1.min.js\"><\\/script>'); }</script>")
-				.append(indent(depth))
+				.append(indent(depth, renderContext))
 				.append("<script>if (!window.jQuery.ui) { document.write('<script src=\"/structr/js/lib/jquery-ui-1.11.0.custom.min.js\"><\\/script>'); }</script>")
-				.append(indent(depth))
+				.append(indent(depth, renderContext))
 				.append("<script>if (!window.jQuery.ui.timepicker) { document.write('<script src=\"/structr/js/lib/jquery-ui-timepicker-addon.min.js\"><\\/script>'); }</script>")
-				.append(indent(depth))
+				.append(indent(depth, renderContext))
 				.append("<script>if (!window.StructrApp) { document.write('<script src=\"/structr/js/structr-app.js\"><\\/script>'); }</script>")
-				.append(indent(depth))
+				.append(indent(depth, renderContext))
 				.append("<script>if (!window.moment) { document.write('<script src=\"/structr/js/lib/moment.min.js\"><\\/script>'); }</script>")
-				.append(indent(depth))
+				.append(indent(depth, renderContext))
 				.append("<link rel=\"stylesheet\" type=\"text/css\" href=\"/structr/css/lib/jquery-ui-1.10.3.custom.min.css\">");
 
 			renderContext.setAppLibRendered(true);

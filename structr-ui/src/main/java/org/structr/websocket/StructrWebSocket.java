@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,11 +34,12 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.dynamic.File;
+import org.structr.rest.auth.AuthHelper;
+import org.structr.rest.auth.SessionHelper;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.User;
 import org.structr.websocket.command.AbstractCommand;
@@ -60,7 +61,6 @@ public class StructrWebSocket implements WebSocketListener {
 	private static final Map<String, Class> commandSet = new LinkedHashMap<>();
 
 	//~--- fields ---------------------------------------------------------
-	private String callback                        = null;
 	private Session session                        = null;
 	private Gson gson                              = null;
 	private HttpServletRequest request             = null;
@@ -148,8 +148,6 @@ public class StructrWebSocket implements WebSocketListener {
 
 		final App app = StructrApp.getInstance(securityContext);
 
-		this.callback = webSocketData.getCallback();
-
 		final String command = webSocketData.getCommand();
 		final Class type = commandSet.get(command);
 
@@ -189,6 +187,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 				abstractCommand.setWebSocket(this);
 				abstractCommand.setSession(session);
+				abstractCommand.setCallback(webSocketData.getCallback());
 
 				// The below blocks allow a websocket command to manage its own
 				// transactions in case of bulk processing commands etc.
@@ -202,7 +201,7 @@ public class StructrWebSocket implements WebSocketListener {
 						webSocketData.setSessionValid(isAuthenticated());
 
 						abstractCommand.processMessage(webSocketData);
-
+						
 						// commit transaction
 						tx.success();
 					}
@@ -248,7 +247,7 @@ public class StructrWebSocket implements WebSocketListener {
 					tx.success();
 
 				} catch (FrameworkException fex) {
-					fex.printStackTrace();
+					logger.log(Level.WARNING, "", fex);
 				}
 
 				return;
@@ -278,7 +277,7 @@ public class StructrWebSocket implements WebSocketListener {
 			tx.success();
 
 		} catch (FrameworkException t) {
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 
@@ -290,10 +289,6 @@ public class StructrWebSocket implements WebSocketListener {
 
 			message.setSessionId(null);
 		}
-
-		// set callback
-		message.setCallback(callback);
-
 
 		if ("LOGIN".equals(message.getCommand()) && !isAuthenticated) {
 
@@ -390,7 +385,28 @@ public class StructrWebSocket implements WebSocketListener {
 
 		if (user != null) {
 
-			this.setAuthenticated(sessionId, user);
+			try {
+
+				final boolean sessionValid = ! SessionHelper.isSessionTimedOut(SessionHelper.getSessionBySessionId(sessionId));
+
+				if (sessionValid) {
+					this.setAuthenticated(sessionId, user);
+				} else {
+
+					logger.log(Level.WARNING, "Session {0} timed out - last accessed by {1}", new Object[]{sessionId, user});
+
+					SessionHelper.clearSession(sessionId);
+
+					SessionHelper.invalidateSession(SessionHelper.getSessionBySessionId(sessionId));
+
+					AuthHelper.sendLogoutNotification(user);
+
+				}
+
+			} catch (FrameworkException ex) {
+				logger.log(Level.WARNING, "FXE", ex);
+			}
+
 		}
 
 	}
@@ -433,16 +449,6 @@ public class StructrWebSocket implements WebSocketListener {
 
 		return securityContext;
 
-	}
-
-	public String getCallback() {
-
-		return callback;
-
-	}
-
-	public void setCallback(final String callback) {
-		this.callback = callback;
 	}
 
 	public String getPagePath() {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
+import org.structr.util.LogMessageSupplier;
 import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
@@ -90,9 +91,7 @@ public class XPathGraphDataSource implements GraphDataSource<List<GraphObject>> 
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
-
-			logger.log(Level.WARNING, "Unable to execute xpath query: {0}", t.getMessage());
+			logger.log(Level.WARNING, t, LogMessageSupplier.create("Unable to execute xpath query: {0}", t.getMessage()));
 		}
 
 		return Collections.EMPTY_LIST;

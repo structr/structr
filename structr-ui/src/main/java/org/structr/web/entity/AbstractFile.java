@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,9 +21,13 @@ package org.structr.web.entity;
 
 import java.util.List;
 import org.structr.common.PropertyView;
-import org.structr.common.ValidationHelper;
+import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UniqueToken;
+import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
@@ -57,9 +61,59 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 	public static final View defaultView = new View(AbstractFile.class, PropertyView.Public, path);
 	public static final View uiView      = new View(AbstractFile.class, PropertyView.Ui, path);
 
+	private static boolean validatePathUniqueness = false;
+
+	static {
+
+		try { validatePathUniqueness = Boolean.valueOf(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_UNIQUE_PATHS, "true")); } catch (Throwable t) {}
+	}
+
+	@Override
+	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		final boolean valid = validatePath(securityContext, errorBuffer);
+		return valid && super.onCreation(securityContext, errorBuffer);
+	}
+
+	@Override
+	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		final boolean valid = validatePath(securityContext, errorBuffer);
+		return valid && super.onModification(securityContext, errorBuffer);
+	}
+
+	public boolean validatePath(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		if (validatePathUniqueness) {
+
+			final String filePath = getProperty(path);
+			if (filePath != null) {
+
+				final List<AbstractFile> files = StructrApp.getInstance().nodeQuery(AbstractFile.class).and(path, filePath).getAsList();
+				for (final AbstractFile file : files) {
+
+					if (!file.getUuid().equals(getUuid())) {
+
+						if (errorBuffer != null) {
+
+							final UniqueToken token = new UniqueToken(AbstractFile.class.getSimpleName(), path, file.getUuid());
+							token.setValue(filePath);
+
+							errorBuffer.add(token);
+						}
+
+						return false;
+					}
+				}
+			}
+		}
+
+		return true;
+	}
+
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
-		return (super.isValid(errorBuffer) && !ValidationHelper.checkStringNotBlank(this, name, errorBuffer));
+		return (super.isValid(errorBuffer) && nonEmpty(AbstractFile.name, errorBuffer));
 	}
 
 	@Override

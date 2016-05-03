@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -48,7 +48,6 @@ import org.structr.rest.resource.ViewFilterResource;
 /**
  * Helper class for parsing and optimizing the resource path
  *
- *  @author Axel Morgner
  */
 public class ResourceHelper {
 
@@ -73,7 +72,7 @@ public class ResourceHelper {
 		// intercept empty path and send 204 No Content
 		if (StringUtils.isBlank(path)) {
 
-			throw new NoResultsException();
+			throw new NoResultsException("No content");
 		}
 
 		// 1.: split request path into URI parts
@@ -158,7 +157,7 @@ public class ResourceHelper {
 
 				if (!found) {
 
-					throw new NotFoundException();
+					throw new NotFoundException("Cannot resolve URL path");
 				}
 
 			}
@@ -171,11 +170,16 @@ public class ResourceHelper {
 	/**
 	 * Optimize the resource chain by trying to combine two resources to a new one
 	 *
-	 * @param resourceChain
+	 * @param securityContext
+	 * @param request
+	 * @param resourceMap
+	 * @param propertyView
 	 * @return finalResource
 	 * @throws FrameworkException
 	 */
-	public static Resource optimizeNestedResourceChain(final List<Resource> resourceChain) throws FrameworkException {
+	public static Resource optimizeNestedResourceChain(final SecurityContext securityContext, final HttpServletRequest request, final Map<Pattern, Class<? extends Resource>> resourceMap, final Value<String> propertyView) throws FrameworkException {
+
+		final List<Resource> resourceChain = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView);
 
 		ViewFilterResource view = null;
 		int num                 = resourceChain.size();
@@ -246,9 +250,13 @@ public class ResourceHelper {
 
 			return finalResource;
 
+		} else {
+
+			logger.log(Level.WARNING, "Resource chain evaluation for path {0} resulted in {1} entries, returning status code 400.", new Object[] { request.getPathInfo(), resourceChain.size() });
+
 		}
 
-		throw new IllegalPathException();
+		throw new IllegalPathException("Cannot resolve URL path");
 
 	}
 

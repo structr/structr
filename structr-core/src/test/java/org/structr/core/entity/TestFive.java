@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,8 @@
  */
 package org.structr.core.entity;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
@@ -35,6 +37,8 @@ import org.structr.core.graph.Tx;
  */
 public class TestFive extends AbstractNode {
 	
+	private static final Logger logger = Logger.getLogger(TestFive.class.getName());
+
 	public static final Property<Integer> intProperty                  = new IntProperty("integerProperty").indexed();
 	public static final Property<Integer> modifiedInBeforeCreation     = new IntProperty("modifiedInBeforeCreation").defaultValue(0).indexed().unvalidated();
 	public static final Property<Integer> modifiedInBeforeModification = new IntProperty("modifiedInBeforeModification").defaultValue(0).indexed().unvalidated();
@@ -77,7 +81,7 @@ public class TestFive extends AbstractNode {
 			
 		} catch (Throwable t) {
 			
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 	}
 
@@ -94,7 +98,7 @@ public class TestFive extends AbstractNode {
 			
 		} catch (Throwable t) {
 			
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 	}
 	

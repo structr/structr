@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -65,7 +65,7 @@ public class UnarchiveCommand extends AbstractCommand {
 
 	//~--- methods --------------------------------------------------------
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final Set<String> supportedByArchiveStreamFactory = new HashSet<>(Arrays.asList(new String[]{
 			ArchiveStreamFactory.AR,
@@ -110,7 +110,7 @@ public class UnarchiveCommand extends AbstractCommand {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 
 			String msg = t.toString();
 

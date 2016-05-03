@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,7 +34,10 @@ import org.structr.core.entity.TestTwo;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.api.NotFoundException;
+import org.structr.api.NotInTransactionException;
 import org.structr.core.Result;
+import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.SixOneOneToOne;
 import org.structr.core.entity.TestSix;
 import org.structr.core.entity.TestTen;
@@ -76,7 +79,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 		try {
 
 			final PropertyMap props = new PropertyMap();
-			final String type       = "UnknownTestType";
+			final String type       = "GenericNode";
 			final String name       = "GenericNode-name";
 			NodeInterface node      = null;
 			String uuid             = null;
@@ -86,7 +89,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				node = app.create(NodeInterface.class, props);
+				node = app.create(GenericNode.class, props);
 				tx.success();
 			}
 
@@ -112,7 +115,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
@@ -145,7 +148,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 				rel.getRelationship().delete();
 
 				fail("Should have raised an org.neo4j.graphdb.NotInTransactionException");
-			} catch (org.neo4j.graphdb.NotInTransactionException e) {}
+			} catch (NotInTransactionException e) {}
 
 			// Relationship still there
 			assertNotNull(rel);
@@ -161,13 +164,13 @@ public class DeleteGraphObjectsTest extends StructrTest {
 				String uuid = rel.getUuid();
 				fail("Deleted entity should have thrown an exception on access.");
 
-			} catch (IllegalStateException iex) {
+			} catch (NotFoundException iex) {
 			}
 
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
@@ -217,7 +220,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
@@ -269,7 +272,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
@@ -334,7 +337,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
@@ -399,7 +402,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
@@ -482,7 +485,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
@@ -566,7 +569,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");

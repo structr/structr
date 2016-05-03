@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,23 +19,18 @@
 package org.structr.web.common;
 
 import java.util.Map;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeService;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.SyncCommand;
 import org.structr.core.graph.Tx;
 import org.structr.dynamic.File;
 import org.structr.rest.resource.MaintenanceParameterResource;
+
 public class DumpDatabaseCommand extends NodeServiceCommand implements MaintenanceCommand {
 
 	static {
@@ -48,12 +43,8 @@ public class DumpDatabaseCommand extends NodeServiceCommand implements Maintenan
 
 		try {
 
-			final GraphDatabaseService graphDb = Services.getInstance().getService(NodeService.class).getGraphDb();
-			final GlobalGraphOperations ggop  = GlobalGraphOperations.at(graphDb);
-			final Iterable<Relationship> rels = ggop.getAllRelationships();
-			final Iterable<Node> nodes        = ggop.getAllNodes();
-			final App app                     = StructrApp.getInstance();
-			final String fileName             = (String)attributes.get("name");
+			final App app         = StructrApp.getInstance();
+			final String fileName = (String)attributes.get("name");
 
 			if (fileName == null || fileName.isEmpty()) {
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,6 +33,8 @@ import org.structr.core.graph.Tx;
  */
 public class CallbackTest extends StructrTest {
 	
+	private static final Logger logger = Logger.getLogger(CallbackTest.class.getName());
+
 	public void testCallbacksWithSuperUserContext() {
 		
 		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
@@ -54,7 +56,7 @@ public class CallbackTest extends StructrTest {
 			
 		} catch (FrameworkException fex) {
 			
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 	}
 	
@@ -164,7 +166,7 @@ public class CallbackTest extends StructrTest {
 			
 		} catch (Throwable t) {
 			
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 
 		assertNotNull("Entity should have been created", entity);
@@ -190,7 +192,7 @@ public class CallbackTest extends StructrTest {
 			tx.success();
 			
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.log(Level.WARNING, "", t);
 		}
 		
 		try (final Tx tx = app.tx()) {

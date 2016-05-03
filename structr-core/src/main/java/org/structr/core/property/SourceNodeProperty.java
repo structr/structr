@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,12 +18,14 @@
  */
 package org.structr.core.property;
 
-import org.neo4j.graphdb.Relationship;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.structr.api.Predicate;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 
@@ -32,6 +34,8 @@ import org.structr.core.graph.RelationshipInterface;
  *
  */
 public class SourceNodeProperty extends Property<NodeInterface> {
+
+	private static final Logger logger = Logger.getLogger(SourceNodeProperty.class.getName());
 
 	public SourceNodeProperty(final String name) {
 		super(name);
@@ -49,18 +53,11 @@ public class SourceNodeProperty extends Property<NodeInterface> {
 	}
 
 	@Override
-	public NodeInterface getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	public NodeInterface getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		if (obj instanceof RelationshipInterface) {
 
-			try {
-				final Relationship relationship = ((RelationshipInterface)obj).getRelationship();
-				return new NodeFactory<>(securityContext).instantiate(relationship.getStartNode());
-
-			} catch (Throwable t) {
-
-				t.printStackTrace();
-			}
+			return ((RelationshipInterface)obj).getSourceNode();
 		}
 
 		return null;
@@ -76,7 +73,7 @@ public class SourceNodeProperty extends Property<NodeInterface> {
 
 			} catch (Throwable t) {
 
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 		}
 
@@ -89,17 +86,12 @@ public class SourceNodeProperty extends Property<NodeInterface> {
 	}
 
 	@Override
-	public Integer getSortType() {
-		return null;
+	public SortType getSortType() {
+		return SortType.Default;
 	}
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
-		return null;
-	}
-
-	@Override
-	public Object getValueForEmptyFields() {
 		return null;
 	}
 

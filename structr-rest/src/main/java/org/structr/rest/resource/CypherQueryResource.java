@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -63,7 +63,7 @@ public class CypherQueryResource extends Resource {
 		// Admins only
 		if (!securityContext.isSuperUser()) {
 
-			throw new NotAllowedException();
+			throw new NotAllowedException("Use of the cypher endpoint is restricted to admin users");
 
 		}
 
@@ -78,9 +78,9 @@ public class CypherQueryResource extends Resource {
 				return new Result(resultList, resultList.size(), true, false);
 			}
 
-		} catch (org.neo4j.graphdb.NotFoundException nfe) {
+		} catch (org.structr.api.NotFoundException nfe) {
 
-			throw new NotFoundException();
+			throw new NotFoundException("Entity not found for the given query");
 		}
 
 		return new Result(Collections.EMPTY_LIST, 0, false, false);
@@ -92,7 +92,7 @@ public class CypherQueryResource extends Resource {
 		// Admins only
 		if (!securityContext.isSuperUser()) {
 
-			throw new NotAllowedException();
+			throw new NotAllowedException("Use of the cypher endpoint is restricted to admin users");
 
 		}
 
@@ -115,47 +115,34 @@ public class CypherQueryResource extends Resource {
 
 			return result;
 
-		} catch (org.neo4j.graphdb.NotFoundException nfe) {
+		} catch (org.structr.api.NotFoundException nfe) {
 
-			throw new NotFoundException();
+			throw new NotFoundException("Entity not found for the given query");
 		}
 	}
 
 	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
-
 		return null;
-
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getUriPart() {
-
 		return "cypher";
-
 	}
 
 	@Override
 	public Class getEntityClass() {
-
 		return null;
-
 	}
 
 	@Override
 	public String getResourceSignature() {
-
 		return "cypher";
-
 	}
 
 	@Override
 	public boolean isCollectionResource() throws FrameworkException {
-
 		return true;
-
 	}
-
 }

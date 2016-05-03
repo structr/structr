@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,6 +31,9 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -48,13 +51,16 @@ import org.structr.schema.json.JsonSchema;
  */
 public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCommand {
 
+	private static final Logger logger = Logger.getLogger(SnapshotCommand.class.getName());
+
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
 
-		final String mode = (String)attributes.get("mode");
-		final String name = (String)attributes.get("name");
+		final String       mode  = (String) attributes.get("mode");
+		final String       name  = (String) attributes.get("name");
+		final List<String> types = (List<String>) attributes.get("types");
 
-		execute(mode, name);
+		execute(mode, name, types);
 	}
 
 	@Override
@@ -63,17 +69,25 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 	}
 
 	public void execute(final String mode, final String name) throws FrameworkException {
+		execute(mode, name, null);
+	}
+
+	public void execute(final String mode, final String name, final List<String> types) throws FrameworkException {
 
 		if (mode != null) {
 
 			switch (mode) {
 
 				case "export":
-					createSnapshot(name);
+					createSnapshot(name, types);
 					break;
 
 				case "restore":
 					restoreSnapshot(name);
+					break;
+
+				case "add":
+					addSnapshot(name);
 					break;
 
 				case "delete":
@@ -81,7 +95,7 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 					break;
 
 				default:
-					throw new FrameworkException(422, "Invalid mode supplied, valid values are export and restore.");
+					throw new FrameworkException(422, "Invalid mode supplied, valid values are export, restore, add or delete.");
 			}
 
 		} else {
@@ -92,7 +106,7 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 	}
 
 	// ----- private methods -----
-	private void createSnapshot(final String name) throws FrameworkException {
+	private void createSnapshot(final String name, final List<String> types) throws FrameworkException {
 
 		// we want to create a sorted, human-readble, diffable representation of the schema
 		final App app = StructrApp.getInstance();
@@ -103,7 +117,7 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 			final File snapshotFile = locateFile(name, true);
 			try (final Writer writer = new FileWriter(snapshotFile)) {
 
-				final JsonSchema schema = StructrSchema.createFromDatabase(app);
+				final JsonSchema schema = StructrSchema.createFromDatabase(app, types);
 
 				writer.append(schema.toString());
 				writer.append("\n");    // useful newline
@@ -114,13 +128,12 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 			tx.success();
 
 		} catch (IOException | URISyntaxException ioex) {
-			ioex.printStackTrace();
+			logger.log(Level.WARNING, "", ioex);
 		}
 	}
 
 	private void restoreSnapshot(final String fileName) throws FrameworkException {
 
-		// we want to create a sorted, human-readble, diffable representation of the schema
 		final App app = StructrApp.getInstance();
 
 		// isolate write output
@@ -147,7 +160,39 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 			tx.success();
 
 		} catch (IOException | URISyntaxException ioex) {
-			ioex.printStackTrace();
+			logger.log(Level.WARNING, "", ioex);
+		}
+	}
+
+	private void addSnapshot(final String fileName) throws FrameworkException {
+
+		final App app = StructrApp.getInstance();
+
+		// isolate write output
+		try (final Tx tx = app.tx()) {
+
+			if (fileName != null) {
+
+				final File snapshotFile = locateFile(fileName, false);
+				try (final Reader reader = new FileReader(snapshotFile)) {
+
+					final JsonSchema schema = StructrSchema.createFromSource(reader);
+					StructrSchema.extendDatabaseSchema(app, schema);
+
+				} catch (InvalidSchemaException iex) {
+
+					throw new FrameworkException(422, iex.getMessage());
+				}
+
+			} else {
+
+				throw new FrameworkException(422, "Please supply schema name to import.");
+			}
+
+			tx.success();
+
+		} catch (IOException | URISyntaxException ioex) {
+			logger.log(Level.WARNING, "", ioex);
 		}
 	}
 
@@ -186,7 +231,7 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 	public static File locateFile(final String name, final boolean addTimestamp) throws FrameworkException {
 
 		String fileName = name;
-		if (fileName == null) {
+		if (StringUtils.isBlank(fileName)) {
 
 			// create default value
 			fileName = "schema.json";

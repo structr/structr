@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,7 +22,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.lucene.search.BooleanClause;
+import org.structr.api.search.Occurrence;
+import org.structr.api.Predicate;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -144,7 +146,7 @@ public class ReferenceGroup extends Property<PropertyMap> implements PropertyGro
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, PropertyMap searchValues, boolean exactMatch, final Query query) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, PropertyMap searchValues, boolean exactMatch, final Query query) {
 
 		SearchAttributeGroup group = new SearchAttributeGroup(occur);
 
@@ -153,7 +155,7 @@ public class ReferenceGroup extends Property<PropertyMap> implements PropertyGro
 			Object value = searchValues.get(new GenericProperty(key.jsonName()));
 			if (value != null) {
 
-				group.add(new PropertySearchAttribute(key, value.toString(), BooleanClause.Occur.MUST, exactMatch));
+				group.add(new PropertySearchAttribute(key, value.toString(), Occurrence.REQUIRED, exactMatch));
 			}
 		}
 
@@ -225,13 +227,13 @@ public class ReferenceGroup extends Property<PropertyMap> implements PropertyGro
 	}
 
 	@Override
-	public PropertyMap getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+	public PropertyMap getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 		return getGroupedProperties(securityContext, obj);
 	}
 
 	@Override
 	public Object setProperty(SecurityContext securityContext, GraphObject obj, PropertyMap value) throws FrameworkException {
-		
+
 		setGroupedProperties(securityContext, value, obj);
 		return null;
 	}
@@ -247,8 +249,8 @@ public class ReferenceGroup extends Property<PropertyMap> implements PropertyGro
 	}
 
 	@Override
-	public Integer getSortType() {
-		return null;
+	public SortType getSortType() {
+		return SortType.Default;
 	}
 
 	@Override
@@ -277,10 +279,4 @@ public class ReferenceGroup extends Property<PropertyMap> implements PropertyGro
 			key.extractSearchableAttribute(securityContext, request, query);
 		}
 	}
-
-	@Override
-	public Object getValueForEmptyFields() {
-		return null;
-	}
-
 }

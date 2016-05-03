@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -32,8 +32,8 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.dynamic.File;
 import org.structr.schema.SchemaHelper;
+import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Image;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -60,12 +60,13 @@ public class QueryCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final Map<String, Object> nodeData    = webSocketData.getNodeData();
 		final String rawType                  = (String)nodeData.get("type");
 		final String properties               = (String)nodeData.get("properties");
+		final Boolean exact                   = (Boolean)nodeData.get("exact");
 		final Class type                      = SchemaHelper.getEntityClassForRawType(rawType);
 
 		if (type == null) {
@@ -87,7 +88,6 @@ public class QueryCommand extends AbstractCommand {
 			.page(page)
 			.pageSize(pageSize);
 
-
 		if (properties != null) {
 
 			try {
@@ -100,6 +100,10 @@ public class QueryCommand extends AbstractCommand {
 					query.and(entry.getKey(), entry.getValue());
 				}
 
+				if (exact != null && exact == false) {
+					query.exact(false);
+				}
+
 			} catch (FrameworkException fex) {
 
 				logger.log(Level.WARNING, "Exception occured", fex);
@@ -107,17 +111,6 @@ public class QueryCommand extends AbstractCommand {
 
 				return;
 			}
-		}
-
-		// for image lists, suppress thumbnails
-		if (type.equals(Image.class)) {
-
-			query.and(Image.isThumbnail, false);
-		}
-
-		if (type.equals(File.class)) {
-
-			query.not().and(Image.isThumbnail, true);
 		}
 
 		try {

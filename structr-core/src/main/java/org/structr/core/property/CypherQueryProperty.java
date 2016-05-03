@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,7 +21,10 @@ package org.structr.core.property;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.neo4j.helpers.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.structr.api.Predicate;
+import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -35,6 +38,8 @@ import org.structr.schema.action.ActionContext;
  *
  */
 public class CypherQueryProperty extends AbstractReadOnlyProperty<List<GraphObject>> {
+
+	private static final Logger logger = Logger.getLogger(CypherQueryProperty.class.getName());
 
 	public CypherQueryProperty(final String name, final String cypherQuery) {
 
@@ -74,7 +79,7 @@ public class CypherQueryProperty extends AbstractReadOnlyProperty<List<GraphObje
 				return StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(query, parameters);
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 		}
 
@@ -87,7 +92,7 @@ public class CypherQueryProperty extends AbstractReadOnlyProperty<List<GraphObje
 	}
 
 	@Override
-	public Integer getSortType() {
-		return null; // use string sorting
+	public SortType getSortType() {
+		return SortType.Default;
 	}
 }

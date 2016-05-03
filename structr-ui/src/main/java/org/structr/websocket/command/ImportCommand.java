@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -53,21 +53,20 @@ public class ImportCommand extends AbstractCommand {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		Map<String, Object> properties        = webSocketData.getNodeData();
+		final Map<String, Object> properties  = webSocketData.getNodeData();
 		final String code                     = (String) properties.get("code");
 		final String address                  = (String) properties.get("address");
 		final String name                     = (String) properties.get("name");
-		final int timeout                     = ((Long) properties.get("timeout")).intValue();
 		final boolean publicVisible           = (Boolean) properties.get("publicVisible");
 		final boolean authVisible             = (Boolean) properties.get("authVisible");
 		
 		try {
 
-			Importer pageImporter = new Importer(securityContext, code, address, name, timeout, publicVisible, authVisible);
-			boolean parseOk       = pageImporter.parse();
+			final Importer pageImporter = new Importer(securityContext, code, address, name, publicVisible, authVisible);
+			final boolean parseOk       = pageImporter.parse();
 
 			if (parseOk) {
 

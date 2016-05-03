@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,8 @@ package org.structr.cloud.message;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.crypto.Cipher;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudService;
@@ -36,6 +38,8 @@ import org.structr.core.graph.SyncCommand;
 
 public class AuthenticationRequest extends Message {
 
+	private static final Logger logger = Logger.getLogger(AuthenticationRequest.class.getName());
+	
 	private String userName     = null;
 	private String salt         = null;
 	private int keyLength       = 128;
@@ -91,7 +95,7 @@ public class AuthenticationRequest extends Message {
 				serverConnection.send(new AuthenticationResponse(userName, user.getEncryptedPassword(), salt, keyLength));
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.log(Level.WARNING, "", t);
 			}
 
 		} else {

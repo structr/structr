@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -211,7 +211,7 @@ public class PropertyViewTest extends StructrUiTest {
 
 	}
 
-	public void testPropertyViewsAndResultSetLayout() {
+	public void testPropertyViewsAndResultSetLayoutWeb() {
 
 		final String username = "tester";
 		final String password = "test";

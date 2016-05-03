@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.NotFoundException;
+import org.structr.api.NotFoundException;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudService;
 import org.structr.cloud.CloudTransmission;

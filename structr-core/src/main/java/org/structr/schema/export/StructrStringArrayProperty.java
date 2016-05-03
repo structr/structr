@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,11 +19,13 @@
 package org.structr.schema.export;
 
 import java.util.Map;
+import java.util.TreeMap;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.schema.SchemaHelper.Type;
+import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonStringArrayProperty;
 
 /**
@@ -42,13 +44,15 @@ public class StructrStringArrayProperty extends StructrPropertyDefinition implem
 	}
 
 	@Override
-	void deserialize(final Map<String, Object> source) {
-		super.deserialize(source);
-	}
+	Map<String, Object> serialize() {
 
-	@Override
-	void deserialize(final SchemaProperty property) {
-		super.deserialize(property);
+		final Map<String, Object> map   = super.serialize();
+		final Map<String, Object> items = new TreeMap<>();
+
+		map.put(JsonSchema.KEY_ITEMS, items);
+		items.put(JsonSchema.KEY_TYPE, "string");
+
+		return map;
 	}
 
 	@Override

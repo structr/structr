@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,8 @@
  */
 package org.structr.web.entity.dom;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
@@ -37,6 +39,8 @@ import org.w3c.dom.NodeList;
  *
  */
 public class PageTest extends StructrUiTest {
+
+	private static final Logger logger = Logger.getLogger(PageTest.class.getName());
 
 	public void testGetElementsByTagName() {
 
@@ -261,7 +265,7 @@ public class PageTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 		}
 
@@ -276,7 +280,7 @@ public class PageTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 		}
 	}

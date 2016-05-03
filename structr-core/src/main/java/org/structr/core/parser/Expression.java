@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -53,6 +53,14 @@ public abstract class Expression {
 		expression.level  = this.level + 1;
 
 		this.expressions.add(expression);
+	}
+
+	public void replacePrevious(final Expression newExpression) throws FrameworkException {
+		
+		if (hasPrevious()) {
+			expressions.remove(expressions.size() - 1);
+			this.add(newExpression);
+		}
 	}
 
 	public Expression getParent() {

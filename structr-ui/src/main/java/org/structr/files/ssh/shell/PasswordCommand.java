@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,8 @@
 package org.structr.files.ssh.shell;
 
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -32,9 +34,10 @@ import org.structr.web.entity.User;
  */
 public class PasswordCommand extends InteractiveShellCommand {
 
+	private static final Logger logger = Logger.getLogger(PasswordCommand.class.getName());
+
 	private String firstPassword  = null;
 	private String secondPassword = null;
-
 
 	@Override
 	public void execute(final StructrShellCommand parent) throws IOException {
@@ -49,7 +52,7 @@ public class PasswordCommand extends InteractiveShellCommand {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 	}
 
@@ -65,7 +68,7 @@ public class PasswordCommand extends InteractiveShellCommand {
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 			}
 
 		} else if (secondPassword == null) {

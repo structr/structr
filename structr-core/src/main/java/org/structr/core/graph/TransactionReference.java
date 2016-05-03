@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,9 +18,7 @@
  */
 package org.structr.core.graph;
 
-import org.neo4j.graphdb.Lock;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Transaction;
+import org.structr.api.Transaction;
 import org.structr.core.TransactionSource;
 
 /**
@@ -80,11 +78,6 @@ public class TransactionReference implements Transaction {
 	}
 
 	@Override
-	public void finish() {
-		close();
-	}
-
-	@Override
 	public void close() {
 
 		// only finish transaction if we are at root level
@@ -97,20 +90,5 @@ public class TransactionReference implements Transaction {
 
 			tx.close();
 		}
-	}
-
-	@Override
-	public Lock acquireWriteLock(PropertyContainer entity) {
-		return tx.acquireWriteLock(entity);
-	}
-
-	@Override
-	public Lock acquireReadLock(PropertyContainer entity) {
-		return tx.acquireReadLock(entity);
-	}
-
-	@Override
-	public void terminate() {
-		tx.terminate();
 	}
 }

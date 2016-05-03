@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,8 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
+import org.structr.api.graph.Label;
+import org.structr.api.graph.Node;
 
 /**
  *
@@ -106,13 +106,13 @@ public class NodeInfo {
 			labelStrings.add(label.name());
 		}
 		//Collections.sort(labelStrings);
-		types.add(StringUtils.join(labelStrings, ""));
+		addType(StringUtils.join(labelStrings, ""));
 
 		// second try: type attribute
 		if (node.hasProperty("type")) {
 
 			final String type = node.getProperty("type").toString();
-			types.add(type.replaceAll("[\\W]+", ""));
+			addType(type.replaceAll("[\\W]+", ""));
 		}
 
 		// deactivate relationship type nodes for now..
@@ -155,5 +155,13 @@ public class NodeInfo {
 
 			types.add(buf.toString());
 		}
+	}
+
+	private void addType (final String type) {
+
+		if (type != null && !type.equals("")) {
+			types.add(type);
+		}
+
 	}
 }

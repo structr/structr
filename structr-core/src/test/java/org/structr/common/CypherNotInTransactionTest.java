@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,9 +21,10 @@ package org.structr.common;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Result;
+import org.structr.api.DatabaseService;
+import org.structr.api.NativeResult;
+import org.structr.api.NotFoundException;
+import org.structr.api.graph.Relationship;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.SixOneOneToOne;
@@ -65,11 +66,11 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 			assertNotNull(rel);
 
-			GraphDatabaseService graphDb      = graphDbCommand.execute();
+			DatabaseService graphDb = graphDbCommand.execute();
 
 			try (final Tx tx = app.tx()) {
 
-				Result result                     = graphDb.execute("start n = node(*) match (n)<-[r:ONE_TO_ONE]-() return r");
+				NativeResult<Relationship> result = graphDb.execute("start n = node(*) match (n)<-[r:ONE_TO_ONE]-() return r");
 				final Iterator<Relationship> rels = result.columnAs("r");
 
 				assertTrue(rels.hasNext());
@@ -81,9 +82,12 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				String uuid = rel.getUuid();
-				assertNull("UUID of deleted relationship should be null", uuid);
-			} catch (IllegalStateException iex) {
+				rel.getUuid();
+				fail("Accessing a deleted relationship should thow an exception.");
+
+				tx.success();
+
+			} catch (NotFoundException iex) {
 			}
 
 		} catch (FrameworkException ex) {
@@ -122,10 +126,13 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				String uuid = rel.getUuid();
-				assertNull("UUID of deleted relationship should be null", uuid);
-			} catch (IllegalStateException iex) {
+				rel.getUuid();
+				fail("Accessing a deleted relationship should thow an exception.");
 
+				tx.success();
+
+			} catch (NotFoundException nfex) {
+				assertNotNull(nfex.getMessage());
 			}
 
 		} catch (FrameworkException ex) {
@@ -160,6 +167,8 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 				GraphObject  searchRes = app.getNodeById(testSix.getUuid());
 				assertNotNull(searchRes);
+
+				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
@@ -171,9 +180,57 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				String uuid = rel.getUuid();
-				assertNull("UUID of deleted relationship should be null", uuid);
-			} catch (IllegalStateException iex) {
+				rel.getUuid();
+				fail("Accessing a deleted relationship should thow an exception.");
+
+				tx.success();
+
+			} catch (NotFoundException nfex) {
+				assertNotNull(nfex.getMessage());
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+
+	public void test05RollbackDelete() {
+
+		try {
+
+			final TestOne testOne = createTestNode(TestOne.class);
+			final TestSix testSix = createTestNode(TestSix.class);
+			String relId          = null;
+			SixOneOneToOne rel    = null;
+
+			assertNotNull(testOne);
+			assertNotNull(testSix);
+
+			try (final Tx tx = app.tx()) {
+
+				rel   = app.create(testSix, testOne, SixOneOneToOne.class);
+				relId = rel.getUuid();
+				tx.success();
+			}
+
+			assertNotNull(rel);
+
+			try (final Tx tx = app.tx()) {
+
+				// do not commit transaction
+				testOne.getRelationships().iterator().next().getRelationship().delete();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("UUID of relationship should be readable after rollback", relId, rel.getUuid());
+				tx.success();
+
+			} catch (NotFoundException iex) {
 
 			}
 

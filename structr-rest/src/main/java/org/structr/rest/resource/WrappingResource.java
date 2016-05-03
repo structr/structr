@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -49,7 +49,7 @@ public abstract class WrappingResource extends Resource {
 
 		}
 
-		throw new IllegalPathException();
+		throw new IllegalPathException("PUT not allowed on " + getResourceSignature());
 	}
 
 	protected void wrapResource(Resource wrappedResource) {
@@ -108,6 +108,6 @@ public abstract class WrappingResource extends Resource {
 
 		}
 
-		throw new IllegalPathException();
+		throw new IllegalPathException("Unable to determine type of wrapped resource, this should not happen. Please report the URL that led to this error to team@structr.com. Thank you!");
 	}
 }

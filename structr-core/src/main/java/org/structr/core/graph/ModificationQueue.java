@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,9 +29,9 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
+import org.structr.api.graph.RelationshipType;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -51,7 +51,7 @@ public class ModificationQueue {
 
 	private static final Logger logger = Logger.getLogger(ModificationQueue.class.getName());
 
-	private final boolean auditLogEnabled                                                   = "true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_SECURITY_AUDITLOG_ENABLED, "false"));
+	private final boolean auditLogEnabled                                                   = "true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_CHANGELOG_ENABLED, "false"));
 	private final ConcurrentSkipListMap<String, GraphObjectModificationState> modifications = new ConcurrentSkipListMap<>();
 	private final Collection<ModificationEvent> modificationEvents                          = new ArrayDeque<>(1000);
 	private final Map<String, TransactionPostProcess> postProcesses                         = new LinkedHashMap<>();
@@ -158,15 +158,15 @@ public class ModificationQueue {
 						if (obj != null) {
 
 							final String existingLog = obj.getProperty(GraphObject.structrChangeLog);
-							final String newLog      = ev.getAuditLog();
+							final String newLog      = ev.getChangeLog();
 							final String newValue    = existingLog != null ? existingLog + newLog : newLog;
 
-							obj.unlockReadOnlyPropertiesOnce();
+							obj.unlockSystemPropertiesOnce();
 							obj.setProperty(GraphObject.structrChangeLog, newValue);
 						}
 
 					} catch (Throwable t) {
-						t.printStackTrace();
+						logger.log(Level.WARNING, "", t);
 					}
 				}
 			}
@@ -320,6 +320,14 @@ public class ModificationQueue {
 		}
 
 		return false;
+	}
+
+	public void registerNodeCallback(final NodeInterface node, final String callbackId) {
+		getState(node).setCallbackId(callbackId);
+	}
+
+	public void registerRelCallback(final RelationshipInterface rel, final String callbackId) {
+		getState(rel).setCallbackId(callbackId);
 	}
 
 	// ----- private methods -----

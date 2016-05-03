@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,12 +18,12 @@
  */
 package org.structr.web.test;
 
-import org.structr.common.SecurityContext;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.structr.api.Predicate;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Predicate;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.web.common.DOMTest;
 import org.w3c.dom.Document;
@@ -35,6 +35,8 @@ import org.w3c.dom.Node;
  *
  */
 public class PerformanceTest extends DOMTest {
+
+	private static final Logger logger = Logger.getLogger(PerformanceTest.class.getName());
 
 	public void testSiblingPerformance() {
 
@@ -63,9 +65,9 @@ public class PerformanceTest extends DOMTest {
 				}, new Predicate<Long>() {
 
 					@Override
-					public boolean evaluate(SecurityContext securityContext, Long... obj) {
+					public boolean accept(Long obj) {
 
-						return obj[0].longValue() > 100;
+						return obj.longValue() > 100;
 					}
 
 				});
@@ -89,10 +91,10 @@ public class PerformanceTest extends DOMTest {
 			assertTrue("Iteration of 100 nodes via getNextSibling should not take longer than 50ms, took " + duration + "!", duration < 50);
 
 			tx.success();
-			
+
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 
 			fail("Unexpected exception");
 
@@ -107,24 +109,24 @@ public class PerformanceTest extends DOMTest {
 	 int num = 1000;
 
 	 long t0 = System.currentTimeMillis();
-			
+
 	 for (int i=0; i<num; i++) {
 	 createTestNodes(Folder.class, 1, false);
 	 }
-			
+
 	 long t1 = System.currentTimeMillis();
-			
+
 	 for (int i=0; i<num; i++) {
 	 createTestNodes(Folder.class, 1, true);
 	 }
-			
+
 	 long t2 = System.currentTimeMillis();
 
 	 System.out.println("Forced:   " + (t1-t0) + " ms");
 	 System.out.println("Unforced: " + (t2-t1) + " ms");
-			
+
 	 } catch (Throwable t) {
-			
+
 	 fail("Unexpected exception: " + t.getMessage());
 	 }
 	 }

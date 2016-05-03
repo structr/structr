@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,7 +22,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Node;
+import org.structr.api.graph.Node;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -110,7 +110,7 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 									} catch (Throwable t) {
 
 										// log exceptions of other types
-										t.printStackTrace();
+										logger.log(Level.WARNING, "", t);
 									}
 								}
 							}

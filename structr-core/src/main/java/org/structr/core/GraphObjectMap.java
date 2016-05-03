@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,8 +18,13 @@
  */
 package org.structr.core;
 
-import java.util.*;
-import org.neo4j.graphdb.PropertyContainer;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.structr.api.Predicate;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.PermissionResolutionMask;
 import org.structr.core.property.PropertyKey;
@@ -60,7 +65,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public <T> T getProperty(final PropertyKey<T> propertyKey, org.neo4j.helpers.Predicate<GraphObject> filter) {
+	public <T> T getProperty(final PropertyKey<T> propertyKey, Predicate<GraphObject> filter) {
 		return (T)properties.get(propertyKey);
 	}
 
@@ -97,6 +102,10 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public void unlockReadOnlyPropertiesOnce() {
+	}
+
+	@Override
+	public void unlockSystemPropertiesOnce() {
 	}
 
 	@Override

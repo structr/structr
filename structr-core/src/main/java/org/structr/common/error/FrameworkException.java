@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -37,43 +37,30 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class FrameworkException extends Exception {
 
-	private ErrorBuffer errorBuffer = null;
-	private String message          = null;
-	private int status              = HttpServletResponse.SC_OK;
-
-	//~--- constructors ---------------------------------------------------
-
-	public FrameworkException(int status, ErrorBuffer errorBuffer) {
-
-		this.errorBuffer = errorBuffer;
-		this.status      = status;
-		this.message     = toString();
-	}
+	private final ErrorBuffer errorBuffer = new ErrorBuffer();
+	private String message                = null;
+	private int status                    = HttpServletResponse.SC_OK;
 
 	public FrameworkException(final int status, final String message) {
+		this(status, message, (ErrorToken)null);
+	}
+
+	public FrameworkException(final int status, final String message, final ErrorBuffer errorBuffer) {
+		this(status, message, (ErrorToken)null);
+
+		// copy error tokens
+		this.errorBuffer.getErrorTokens().addAll(errorBuffer.getErrorTokens());
+	}
+
+	public FrameworkException(final int status, final String message, final ErrorToken errorToken) {
 
 		this.status  = status;
 		this.message = message;
 
+		if (errorToken != null) {
+			this.errorBuffer.add(errorToken);
+		}
 	}
-
-	public FrameworkException(final int status, final ErrorToken errorToken) {
-
-		this.errorBuffer = new ErrorBuffer();
-		this.errorBuffer.add(errorToken);
-
-		this.status  = status;
-		this.message = toString();
-	}
-
-	public FrameworkException(final int status, final Throwable cause) {
-
-		super(cause);
-
-		this.status = status;
-	}
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public String toString() {
@@ -108,11 +95,7 @@ public class FrameworkException extends Exception {
 		JsonArray errors     = new JsonArray();
 
 		container.add("code", new JsonPrimitive(getStatus()));
-
-		// add message if exists
-		if (getMessage() != null) {
-			container.add("message", new JsonPrimitive(getMessage()));
-		}
+		container.add("message", new JsonPrimitive(getMessage()));
 
 		// add errors if there are any
 		if (errorBuffer != null) {
@@ -124,7 +107,10 @@ public class FrameworkException extends Exception {
 				token.add("type",     getStringOrNull(errorToken.getType()));
 				token.add("property", getStringOrNull(errorToken.getProperty()));
 				token.add("token",    getStringOrNull(errorToken.getToken()));
-				token.add("detail",   getObjectOrNull(errorToken.getDetail()));
+
+				// optional
+				addIfNonNull(token, "detail", getObjectOrNull(errorToken.getDetail()));
+				addIfNonNull(token, "value",  getObjectOrNull(errorToken.getValue()));
 
 				errors.add(token);
 			}
@@ -133,51 +119,7 @@ public class FrameworkException extends Exception {
 		}
 
 		return container;
-
 	}
-
-	/*
-
-	new structure of an error result:
-
-	{
-	  "code": 422,
-	  "errors": [
-	    {
-	      "type": "Folder",
-	      "property": "name",
-	      "token": "must_not_be_empty",
-	      "detail": null
-	    },
-	    {
-	      "type": "Folder",
-	      "property": "name",
-	      "token": "must_match",
-	      "detail": "[:_a-zA-Z0-9\\s\\-\\.öäüÖÄÜß]+"
-	    },
-	    {
-	      "type": "Folder",
-	      "property": "name",
-	      "token": "must_not_be_empty",
-	      "detail": null
-	    }
-	  ]
-	}
-
-	{
-	  "code": 422,
-	  "errors": [
-	    {
-	      "type": "Folder",
-	      "property": null,
-	      "token": "already_taken",
-	      "detail": "732f69c4bea64d5d8b04250734e18948"
-	    }
-	  ]
-	}
-
-
-	*/
 
 	public ErrorBuffer getErrorBuffer() {
 		return errorBuffer;
@@ -194,6 +136,15 @@ public class FrameworkException extends Exception {
 
 
 	// ----- private methods -----
+	private void addIfNonNull(final JsonObject obj, final String key, final JsonElement value) {
+
+		if (value != null && !JsonNull.INSTANCE.equals(value)) {
+
+			obj.add(key, value);
+		}
+	}
+
+
 	private JsonElement getStringOrNull(final String source) {
 
 		if (source != null) {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,8 +30,10 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -58,7 +60,7 @@ public class UpdateCommand extends AbstractCommand {
 
 	//~--- methods --------------------------------------------------------
 	@Override
-	public void processMessage(WebSocketMessage webSocketData) throws FrameworkException {
+	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
 		final App app          = StructrApp.getInstance(getWebSocket().getSecurityContext());
 		final Boolean recValue = (Boolean) webSocketData.getNodeData().get("recursive");
@@ -147,6 +149,16 @@ public class UpdateCommand extends AbstractCommand {
 			Object value = entry.getValue();
 
 			obj.setProperty(key, value);
+			
+		}
+
+		if (obj instanceof NodeInterface) {
+
+			TransactionCommand.registerNodeCallback((NodeInterface) obj, callback);
+
+		} else if (obj instanceof RelationshipInterface) {
+
+			TransactionCommand.registerRelCallback((RelationshipInterface) obj, callback);
 		}
 	}
 

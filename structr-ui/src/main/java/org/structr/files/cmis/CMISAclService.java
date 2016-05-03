@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,8 @@
 package org.structr.files.cmis;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
@@ -45,6 +47,8 @@ import org.structr.core.graph.Tx;
  */
 public class CMISAclService extends AbstractStructrCmisService implements AclService {
 
+	private static final Logger logger = Logger.getLogger(CMISAclService.class.getName());
+
 	public CMISAclService(final StructrCMISService parentService, final SecurityContext securityContext) {
 		super(parentService, securityContext);
 	}
@@ -65,7 +69,7 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		throw new CmisObjectNotFoundException("Object with ID " + objectId + " does not exist");
@@ -113,7 +117,7 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 			return CMISObjectWrapper.wrap(obj, null, false);
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		throw new CmisObjectNotFoundException("Object with ID " + objectId + " does not exist");
@@ -155,7 +159,7 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 			return CMISObjectWrapper.wrap(obj, null, false);
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 
 		throw new CmisObjectNotFoundException("Object with ID " + objectId + " does not exist");

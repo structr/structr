@@ -11,7 +11,7 @@
     <groupId>org.structr</groupId>
     <artifactId>structr</artifactId>
     <packaging>pom</packaging>
-    <version>2.0-SNAPSHOT</version>
+    <version>2.0.2-SNAPSHOT</version>
     <name>Structr</name>
     <url>http://structr.org</url>
     <description>Structr is an open source framework based on the popular Neo4j graph database.</description>
@@ -33,14 +33,13 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
-        <structr.version>2.0-SNAPSHOT</structr.version>
     </properties>
 
     <modules>
         <module>structr-core</module>
         <module>structr-rest</module>
         <module>structr-ui</module>
-        <module>structr-archetype</module>
+        <module>structr-db-driver-api</module>
     </modules>
 
     <build>
@@ -57,17 +56,31 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>com.mycila.maven-license-plugin</groupId>
-                <artifactId>maven-license-plugin</artifactId>
-                <version>1.10.b1</version>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>2.11</version>
                 <configuration>
                     <header>header.txt</header>
-                    <strictCheck>true</strictCheck>
-                    <failIfMissing>false</failIfMissing>
                     <includes>
-                        <include>**/*.java</include>
+                        <include>src/**</include>
                     </includes>
+                    <excludes>
+                        <exclude>**/README</exclude>
+                        <exclude>src/**/.directory</exclude>
+                        <exclude>src/**/*.properties</exclude>
+                    </excludes>
+                    <properties>
+                        <year>2016</year>
+                        <owner>Structr GmbH</owner>
+                    </properties>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -131,7 +144,7 @@
             <name>GNU General Public License, Version 3</name>
             <url>http://www.gnu.org/licenses/gpl-3.0-standalone.html</url>
             <comments>
-                Copyright (C) 2010-2015 Structr GmbH, structr &lt;structr@structr.org&gt;
+                Copyright (C) 2010-2016 Structr GmbH
 
                 This file is part of Structr &lt;http://structr.org&gt;.
 
@@ -153,7 +166,7 @@
             <name>GNU Affero General Public License, Version 3</name>
             <url>http://www.gnu.org/licenses/agpl-3.0-standalone.html</url>
             <comments>
-                Copyright (C) 2010-2015 Structr GmbH, structr &lt;structr@structr.org&gt;
+                Copyright (C) 2010-2016 Structr GmbH
 
                 This file is part of Structr &lt;http://structr.org&gt;.
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -47,6 +47,7 @@ import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.muc.DiscussionHistory;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
+import org.structr.api.service.InitializationCallback;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -80,7 +81,7 @@ public class XMPPContext {
 
 	static {
 
-		Services.getInstance().registerInitializationCallback(new Services.InitializationCallback() {
+		Services.getInstance().registerInitializationCallback(new InitializationCallback() {
 
 			@Override
 			public void initializationDone() {
@@ -102,7 +103,7 @@ public class XMPPContext {
 					tx.success();
 
 				} catch (Throwable t) {
-					t.printStackTrace();
+					logger.log(Level.WARNING, "", t);
 				}
 			}
 		});
@@ -129,7 +130,7 @@ public class XMPPContext {
 
 		} catch (IOException | SmackException | XMPPException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 		}
 	}
 
@@ -413,7 +414,7 @@ public class XMPPContext {
 
 			} catch (Exception ex) {
 
-				ex.printStackTrace();
+				logger.log(Level.WARNING, "", ex);
 			}
 		}
 

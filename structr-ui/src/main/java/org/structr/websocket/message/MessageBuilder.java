@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -85,6 +85,13 @@ public class MessageBuilder {
 
 	public MessageBuilder message(String message) {
 		data.setMessage(message);
+		return this;
+	}
+
+	public MessageBuilder callback(String callback) {
+		if (callback != null) {
+			data.setCallback(callback);
+		}
 		return this;
 	}
 

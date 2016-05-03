@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,22 +19,17 @@
 package org.structr.core.auth.exception;
 
 import javax.servlet.http.HttpServletResponse;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 
 /**
  * Thrown when a protected resource is accessed. In the REST server, this
  * exception causes the HTTP status code 401 to be returned .
- * 
+ *
  *
  */
 public class UnauthorizedException extends FrameworkException {
 
-	public UnauthorizedException() {
-		super(HttpServletResponse.SC_UNAUTHORIZED, new ErrorBuffer());
-	}
-	
-	public UnauthorizedException(final String msg) {
-		super(HttpServletResponse.SC_UNAUTHORIZED, msg);
+	public UnauthorizedException(final String message) {
+		super(HttpServletResponse.SC_UNAUTHORIZED, message);
 	}
 }

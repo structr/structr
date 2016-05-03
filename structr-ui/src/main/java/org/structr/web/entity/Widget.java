@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,7 +30,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ValueToken;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -53,7 +53,7 @@ public class Widget extends AbstractNode implements Taggable {
 	public static final Property<String>      description = new StringProperty("description").cmis();
 	public static final Property<String>      treePath    = new StringProperty("treePath").cmis().indexed();
 	public static final Property<List<Image>> pictures    = new EndNodes<>("pictures", ImageWidget.class, new UiNotion());
-	public static final Property<Boolean>     isWidget    = new BooleanProperty("isWidget").defaultValue(true).readOnly();
+	public static final Property<Boolean>     isWidget    = new ConstantBooleanProperty("isWidget", true);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Widget.class, PropertyView.Ui,
 		type, name, source, description, pictures, tags, treePath, isWidget
@@ -119,7 +119,7 @@ public class Widget extends AbstractNode implements Taggable {
 
 		if (!errorBuffer.hasError()) {
 
-			Importer importer = new Importer(securityContext, _source, baseUrl, null, 1, false, false);
+			Importer importer = new Importer(securityContext, _source, baseUrl, null, false, false);
 
 			importer.parse(true);
 			importer.createChildNodes(parent, page, true);
@@ -127,7 +127,7 @@ public class Widget extends AbstractNode implements Taggable {
 		} else {
 
 			// report error to ui
-			throw new FrameworkException(422, errorBuffer);
+			throw new FrameworkException(422, "Unable to import the given source code", errorBuffer);
 		}
 	}
 

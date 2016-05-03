@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,8 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -50,6 +52,8 @@ import org.structr.schema.parser.PropertyDefinition;
  *
  */
 public class SchemaProperty extends SchemaReloadingNode implements PropertyDefinition {
+
+	private static final Logger logger = Logger.getLogger(SchemaProperty.class.getName());
 
 	public static final Property<AbstractSchemaNode> schemaNode                   = new StartNode<>("schemaNode", SchemaNodeProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
 	public static final Property<List<SchemaView>>   schemaViews                  = new StartNodes<>("schemaViews", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
@@ -377,7 +381,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 			} catch (FrameworkException fex) {
 
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 			}
 		}
 
@@ -394,7 +398,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 			} catch (FrameworkException fex) {
 
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 			}
 		}
 
@@ -411,7 +415,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 			} catch (FrameworkException fex) {
 
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 			}
 		}
 
@@ -428,7 +432,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 			} catch (FrameworkException fex) {
 
-				fex.printStackTrace();
+				logger.log(Level.WARNING, "", fex);
 			}
 		}
 

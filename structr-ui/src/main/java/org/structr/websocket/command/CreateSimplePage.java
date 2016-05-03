@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,6 +28,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
@@ -57,11 +58,11 @@ public class CreateSimplePage extends AbstractCommand {
 
 		try {
 
-			Page.createSimplePage(securityContext, pageName);
+			final Page page = Page.createSimplePage(securityContext, pageName);
+
+			TransactionCommand.registerNodeCallback(page, callback);
 
 		} catch (FrameworkException fex) {
-
-			fex.printStackTrace();
 
 			logger.log(Level.WARNING, "Could not create node.", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.toString()).build(), true);

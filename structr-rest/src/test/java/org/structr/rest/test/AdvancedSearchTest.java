@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,8 @@ import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
 import org.structr.rest.common.StructrRestTest;
@@ -44,6 +46,8 @@ import org.structr.rest.entity.TestUser;
  *
  */
 public class AdvancedSearchTest extends StructrRestTest {
+
+	private static final Logger logger = Logger.getLogger(AdvancedSearchTest.class.getName());
 
 	public void testGraphBasedIndexingSearchOnNotionProperties() {
 
@@ -544,8 +548,8 @@ public class AdvancedSearchTest extends StructrRestTest {
 			.when()
 				.get(concat("/test_nines"));
 
-		// test geocoding, expected result is a list of 3 objects
-		// test05, test06 and test07
+		// test geocoding, expected result is a list of 2 objects
+		// test01 and test02
 		RestAssured
 
 			.given()
@@ -777,7 +781,7 @@ public class AdvancedSearchTest extends StructrRestTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 
 		}
@@ -790,6 +794,7 @@ public class AdvancedSearchTest extends StructrRestTest {
 			final List<TestUser> users       = createTestNodes(TestUser.class, 3);
 			final List<TestThree> testThrees = new LinkedList<>();
 			final Random random              = new Random();
+			String uuid                      = null;
 			int count                        = 0;
 
 			try (final Tx tx = app.tx()) {
@@ -807,6 +812,8 @@ public class AdvancedSearchTest extends StructrRestTest {
 					}
 				}
 
+				uuid = users.get(0).getUuid();
+				
 				tx.success();
 			}
 
@@ -834,13 +841,13 @@ public class AdvancedSearchTest extends StructrRestTest {
 					.statusCode(200)
 
 				.when()
-					.get(concat("/test_threes?sort=createdDate&owner=" + users.get(0).getUuid()  + "&enumProperty=" + TestEnum.Status1));
+					.get(concat("/test_threes?sort=createdDate&owner=" + uuid  + "&enumProperty=" + TestEnum.Status1));
 
 
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 
 		}
@@ -1056,7 +1063,7 @@ public class AdvancedSearchTest extends StructrRestTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception");
 
 		}

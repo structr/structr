@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -320,8 +320,6 @@ public class AdvancedPagingTest extends PagingTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
-
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -410,7 +408,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 			fail("Unexpected exception");
 		}
 
@@ -516,11 +514,11 @@ public class AdvancedPagingTest extends PagingTest {
 		}
 	}
 
-	public void testPagingWithHiddenOrDeletedElements() {
+	public void test08PagingWithHiddenOrDeletedElements() {
 
 		try {
 
-			// create 20 nodes
+			// create 10 nodes
 			createTestNodes(TestOne.class, 10);
 
 		} catch (FrameworkException fex) {
@@ -550,7 +548,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Result<TestOne> result = app.nodeQuery(TestOne.class).getResult();
+			final Result<TestOne> result = app.nodeQuery(TestOne.class).includeDeletedAndHidden(false).getResult();
 
 			assertEquals("Result count should not include deleted or hidden nodes", 7, (int)result.getRawResultCount());
 			assertEquals("Actual result size should be equal to result count", 7, (int)result.getResults().size());

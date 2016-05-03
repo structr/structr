@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,7 +21,7 @@ package org.structr.common;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import org.neo4j.graphdb.PropertyContainer;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,16 +29,18 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.StructrConf;
+import org.structr.common.AccessPathCache;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
-import org.structr.core.Service;
-import org.structr.core.Services;
+import org.structr.api.service.Command;
+import org.structr.api.service.InitializationCallback;
+import org.structr.api.service.Service;
+import org.structr.api.service.StructrServices;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaNode;
@@ -64,9 +66,9 @@ public class SchemaService implements Service {
 	}
 
 	@Override
-	public void initialize(final Services services, final StructrConf config) {
+	public void initialize(final StructrServices services, final Properties config) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
-		services.registerInitializationCallback(new Services.InitializationCallback() {
+		services.registerInitializationCallback(new InitializationCallback() {
 
 			@Override
 			public void initializationDone() {
@@ -128,6 +130,9 @@ public class SchemaService implements Service {
 					// this is a very critical section :)
 					synchronized (SchemaService.class) {
 
+						// clear propagating relationship cache (test)
+						SchemaRelationshipNode.clearPropagatingRelationshipTypes();
+
 						// compile all classes at once and register
 						Map<String, Class> newTypes = nodeExtender.compile(errorBuffer);
 
@@ -151,6 +156,7 @@ public class SchemaService implements Service {
 					SearchCommand.clearInheritanceMap();
 					NodeFactory.invalidateCache();
 					RelationshipFactory.invalidateCache();
+					AccessPathCache.invalidate();
 
 					success = !errorBuffer.hasError();
 
@@ -164,7 +170,6 @@ public class SchemaService implements Service {
 				} catch (Throwable t) {
 
 					logger.log(Level.SEVERE, "Unable to compile dynamic schema.", t);
-					t.printStackTrace();
 
 					success = false;
 				}
@@ -216,7 +221,7 @@ public class SchemaService implements Service {
 			}
 
 			schemaNode.setProperty(SchemaNode.extendsClass, fqcn);
-			schemaNode.unlockReadOnlyPropertiesOnce();
+			schemaNode.unlockSystemPropertiesOnce();
 			schemaNode.setProperty(SchemaNode.isBuiltinType, true);
 		}
 	}
@@ -253,7 +258,7 @@ public class SchemaService implements Service {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.log(Level.WARNING, "", fex);
 		}
 	}
 

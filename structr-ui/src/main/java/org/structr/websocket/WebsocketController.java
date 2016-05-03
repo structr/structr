@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,7 +31,7 @@ import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.eclipse.jetty.util.URIUtil;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketException;
-import org.neo4j.graphdb.RelationshipType;
+import org.structr.api.graph.RelationshipType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -99,8 +99,6 @@ public class WebsocketController implements StructrTransactionListener {
 			}
 
 			Session session = socket.getSession();
-
-			webSocketData.setCallback(socket.getCallback());
 
 			if (session != null && socket.isAuthenticated()) {
 
@@ -205,20 +203,22 @@ public class WebsocketController implements StructrTransactionListener {
 			tx.success();
 
 		} catch (FrameworkException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "", ex);
 		}
 	}
 
 	// ----- private methods -----
 	private WebSocketMessage getMessageForEvent(final SecurityContext securityContext, final ModificationEvent modificationEvent) throws FrameworkException {
 
+		final String callbackId = modificationEvent.getCallbackId();
+		
 		if (modificationEvent.isNode()) {
 
 			final NodeInterface node = (NodeInterface) modificationEvent.getGraphObject();
 
 			if (modificationEvent.isDeleted()) {
 
-				final WebSocketMessage message = createMessage("DELETE");
+				final WebSocketMessage message = createMessage("DELETE", callbackId);
 
 				message.setId(modificationEvent.getRemovedProperties().get(GraphObject.id));
 
@@ -227,7 +227,7 @@ public class WebsocketController implements StructrTransactionListener {
 
 			if (modificationEvent.isCreated()) {
 
-				final WebSocketMessage message = createMessage("CREATE");
+				final WebSocketMessage message = createMessage("CREATE", callbackId);
 
 				message.setGraphObject(node);
 				message.setResult(Arrays.asList(new GraphObject[]{node}));
@@ -237,7 +237,7 @@ public class WebsocketController implements StructrTransactionListener {
 
 			if (modificationEvent.isModified()) {
 
-				final WebSocketMessage message = createMessage("UPDATE");
+				final WebSocketMessage message = createMessage("UPDATE", callbackId);
 
 				message.setGraphObject(node);
 				message.setResult(Arrays.asList(new GraphObject[]{node}));
@@ -255,60 +255,68 @@ public class WebsocketController implements StructrTransactionListener {
 			final RelationshipInterface relationship = (RelationshipInterface) modificationEvent.getGraphObject();
 			final RelationshipType relType = modificationEvent.getRelationshipType();
 
-			// only interested in CONTAINS relationships
-			if (!("CONTAINS".equals(relType.name()))) {
-				return null;
-			}
+			// special treatment of CONTAINS relationships
+			if ("CONTAINS".equals(relType.name())) {
 
-			if (modificationEvent.isDeleted()) { // && "CONTAINS".equals(relType.name())) {
+				if (modificationEvent.isDeleted()) {
 
-				final WebSocketMessage message = createMessage("REMOVE_CHILD");
+					final WebSocketMessage message = createMessage("REMOVE_CHILD", callbackId);
 
-				message.setNodeData("parentId", relationship.getSourceNodeId());
-				message.setId(relationship.getTargetNodeId());
+					message.setNodeData("parentId", relationship.getSourceNodeId());
+					message.setId(relationship.getTargetNodeId());
 
-				return message;
-			}
-
-			if (modificationEvent.isCreated()) {
-
-				final WebSocketMessage message = new WebSocketMessage();
-				final NodeInterface startNode = relationship.getSourceNode();
-				final NodeInterface endNode = relationship.getTargetNode();
-
-				message.setResult(Arrays.asList(new GraphObject[]{endNode}));
-				message.setId(endNode.getUuid());
-				message.setNodeData("parentId", startNode.getUuid());
-
-				message.setCommand("APPEND_CHILD");
-
-				if (endNode instanceof DOMNode) {
-
-					org.w3c.dom.Node refNode = ((DOMNode) endNode).getNextSibling();
-					if (refNode != null) {
-
-						message.setCommand("INSERT_BEFORE");
-						message.setNodeData("refId", ((AbstractNode) refNode).getUuid());
-					}
-
-				} else if (endNode instanceof User) {
-
-					message.setCommand("APPEND_USER");
-					message.setNodeData("refId", startNode.getUuid());
+					return message;
 				}
 
-				return message;
+				if (modificationEvent.isCreated()) {
+
+					final WebSocketMessage message = new WebSocketMessage();
+					final NodeInterface startNode = relationship.getSourceNode();
+					final NodeInterface endNode = relationship.getTargetNode();
+
+					message.setResult(Arrays.asList(new GraphObject[]{endNode}));
+					message.setId(endNode.getUuid());
+					message.setNodeData("parentId", startNode.getUuid());
+
+					message.setCommand("APPEND_CHILD");
+
+					if (endNode instanceof DOMNode) {
+
+						org.w3c.dom.Node refNode = ((DOMNode) endNode).getNextSibling();
+						if (refNode != null) {
+
+							message.setCommand("INSERT_BEFORE");
+							message.setNodeData("refId", ((AbstractNode) refNode).getUuid());
+						}
+
+					} else if (endNode instanceof User) {
+
+						message.setCommand("APPEND_USER");
+						message.setNodeData("refId", startNode.getUuid());
+					}
+
+					return message;
+				}
 			}
 
+			if (modificationEvent.isDeleted()) {
+				
+				final WebSocketMessage message = createMessage("DELETE", callbackId);
+				message.setId(modificationEvent.getRemovedProperties().get(GraphObject.id));
+				
+				return message;
+			}
+			
 			if (modificationEvent.isModified()) {
 
-				final WebSocketMessage message = createMessage("UPDATE");
+				final WebSocketMessage message = createMessage("UPDATE", callbackId);
 
-				message.setGraphObject(relationship);
-				message.setId(relationship.getUuid());
 				message.getModifiedProperties().addAll(modificationEvent.getModifiedProperties().keySet());
 				message.getRemovedProperties().addAll(modificationEvent.getRemovedProperties().keySet());
 				message.setNodeData(modificationEvent.getData(securityContext));
+
+				message.setGraphObject(relationship);
+				message.setId(relationship.getUuid());
 
 				final PropertyMap relProperties = relationship.getProperties();
 				final NodeInterface startNode = relationship.getSourceNode();
@@ -329,11 +337,14 @@ public class WebsocketController implements StructrTransactionListener {
 		return null;
 	}
 
-	private WebSocketMessage createMessage(final String command) {
+	private WebSocketMessage createMessage(final String command, final String callbackId) {
 
 		final WebSocketMessage newMessage = new WebSocketMessage();
 
 		newMessage.setCommand(command);
+		if (callbackId != null) {
+			newMessage.setCallback(callbackId);
+		}
 
 		return newMessage;
 	}

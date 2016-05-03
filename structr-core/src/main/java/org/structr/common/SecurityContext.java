@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,9 +18,7 @@
  */
 package org.structr.common;
 
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -32,10 +30,10 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.helpers.collection.LruMap;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.auth.Authenticator;
@@ -57,18 +55,20 @@ public class SecurityContext {
 	public static final String LOCALE_KEY = "locale";
 
 	private static final Logger logger                   = Logger.getLogger(SecurityContext.class.getName());
-	private static final Map<String, Long> resourceFlags = new LruMap<>(10000);
+	private static final Map<String, Long> resourceFlags = new ConcurrentHashMap<>();
 	private static final Pattern customViewPattern       = Pattern.compile(".*properties=([a-zA-Z_,]+)");
 	private boolean doTransactionNotifications           = true;
 	private boolean dontModifyAccessTime                 = false;
+	private boolean ignoreResultCount                    = false;
 
 	//~--- fields ---------------------------------------------------------
 	private final Map<String, QueryRange> ranges = new ConcurrentHashMap<>();
-	private final Map<String, Object> attrs      = Collections.synchronizedMap(new LinkedHashMap<String, Object>());
+	private final Map<String, Object> attrs      = new ConcurrentHashMap<>();
 	private AccessMode accessMode                = AccessMode.Frontend;
 	private Authenticator authenticator          = null;
 	private Principal cachedUser                 = null;
 	private HttpServletRequest request           = null;
+	private HttpServletResponse response         = null;
 	private Set<String> customView               = null;
 	private String cachedUserName                = null;
 	private String cachedUserId                  = null;
@@ -110,14 +110,13 @@ public class SecurityContext {
 
 		if (request != null) {
 
-			try {
+			if ("disabled".equals(request.getHeader("Structr-Websocket-Broadcast"))) {
+				this.doTransactionNotifications = false;
+			}
 
-				if ("disabled".equals(request.getHeader("Structr-Websocket-Broadcast"))) {
-					this.doTransactionNotifications = false;
-				}
-
-			} catch (Throwable t) {}
-
+			if (request.getParameter("ignoreResultCount") != null) {
+				this.ignoreResultCount = true;
+			}
 		}
 	}
 
@@ -200,7 +199,7 @@ public class SecurityContext {
 
 									} catch (Throwable t) {
 
-										t.printStackTrace();
+										logger.log(Level.WARNING, "", t);
 									}
 								}
 							}
@@ -254,7 +253,6 @@ public class SecurityContext {
 
 	}
 
-	//~--- get methods ----------------------------------------------------
 	public static SecurityContext getSuperUserInstance(HttpServletRequest request) {
 		return new SuperUserSecurityContext(request);
 	}
@@ -295,6 +293,12 @@ public class SecurityContext {
 	public HttpServletRequest getRequest() {
 
 		return request;
+
+	}
+
+	public HttpServletResponse getResponse() {
+
+		return response;
 
 	}
 
@@ -369,6 +373,10 @@ public class SecurityContext {
 
 		return accessMode;
 
+	}
+
+	public boolean hasParameter(final String name) {
+		return request != null && request.getParameter(name) != null;
 	}
 
 	public StringBuilder getBaseURI() {
@@ -573,11 +581,12 @@ public class SecurityContext {
 
 	}
 
-	//~--- set methods ----------------------------------------------------
 	public void setRequest(HttpServletRequest request) {
-
 		this.request = request;
+	}
 
+	public void setResponse(HttpServletResponse response) {
+		this.response = response;
 	}
 
 	public static void setResourceFlag(final String resource, long flag) {
@@ -692,6 +701,25 @@ public class SecurityContext {
 		return locale;
 	}
 
+	public String getCompoundRequestURI() {
+
+		if (request != null) {
+
+			if (request.getQueryString() != null) {
+
+				return request.getRequestURI().concat("?").concat(request.getQueryString());
+
+			} else {
+
+				return request.getRequestURI();
+
+			}
+
+		}
+
+		return "[No request available]";
+	}
+
 	public boolean isDoTransactionNotifications() {
 		return doTransactionNotifications;
 	}
@@ -706,6 +734,14 @@ public class SecurityContext {
 
 	public void preventModificationOfAccessTime() {
 		dontModifyAccessTime = true;
+	}
+
+	public void ignoreResultCount(final boolean doIgnore) {
+		this.ignoreResultCount = doIgnore;
+	}
+
+	public boolean ignoreResultCount() {
+		return ignoreResultCount;
 	}
 
 	// ----- nested classes -----
@@ -736,7 +772,7 @@ public class SecurityContext {
 
 		@Override
 		public String getCachedUserId() {
-			return "00000000000000000000000000000000";
+			return Principal.SUPERUSER_ID;
 		}
 
 		@Override

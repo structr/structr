@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2015 Structr GmbH
+ * Copyright (C) 2010-2016 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,7 @@ package org.structr.rest.resource;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
@@ -96,7 +97,7 @@ public class SchemaResource extends Resource {
 
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-		throw new IllegalMethodException();
+		throw new IllegalMethodException("POST not allowed on " + getResourceSignature());
 	}
 
 	@Override
@@ -110,7 +111,15 @@ public class SchemaResource extends Resource {
 
 		}
 
-		throw new IllegalPathException();
+		if (next != null) {
+
+			logger.log(Level.WARNING, "Trying to combine SchemaResource with {0}.", next.getClass().getName());
+
+		} else {
+
+			logger.log(Level.WARNING, "Trying to combine SchemaResource with null.");
+		}
+		throw new IllegalPathException("Illegal path, /" + getResourceSignature() + " must be followed by a type resource");
 	}
 
 	@Override
