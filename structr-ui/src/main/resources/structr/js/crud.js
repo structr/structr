@@ -341,6 +341,7 @@ var _Crud = {
 					typeNode.append('<div class="infoFooter">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
 					typeNode.append('<button id="create' + type + '"><img src="icon/add.png"> Create new ' + type + '</button>');
 					typeNode.append('<button id="export' + type + '"><img src="icon/database_table.png"> Export as CSV</button>');
+					typeNode.append('<button id="import' + type + '"><img src="icon/database_add.png"> Import CSV</button>');
 
 					$('#create' + type, typeNode).on('click', function() {
 						_Crud.crudCreate(type);
@@ -349,9 +350,9 @@ var _Crud = {
 						_Crud.crudExport(type);
 					});
 
-					//_Crud.activateList(type, properties);
-					//_Crud.activatePagerElements(type, pagerNode);
-
+					$('#import' + type, typeNode).on('click', function() {
+						_Crud.crudImport(type);
+					});
 
 					var pagerNode = $('.pager', typeNode);
 					_Crud.deActivatePagerElements(pagerNode);
@@ -918,6 +919,43 @@ var _Crud = {
 				});
 			}
 		});
+	},
+	crudImport: function(type) {
+		
+		var url = csvRootUrl + $('#' + type).attr('data-url');
+
+		_Crud.dialog('Import CSV data for type ' + type + '', function() {
+		}, function() {
+		});
+		dialogText.append('<textarea class="importArea"></textarea>');
+		var importArea = $('.importArea', dialogText);
+		
+		window.setTimeout(function() {
+			importArea.focus();
+		}, 200);
+
+		dialogBtn.append('<button id="startImport">Start Import</button>');
+
+		$('#startImport', dialogBtn).on('click', function() {
+			
+			$.ajax({
+				url: url,
+				dataType: 'json',
+				contentType: 'text/csv; charset=utf-8',
+				method: 'POST',
+				data: importArea.val().split('\n').map($.trim).filter(function(line) { return line !== '' }).join('\n'),
+				success: function(data) {
+					//console.log(data);
+					_Crud.refreshList(type);
+				}
+			});
+			
+		});
+
+		$('.closeButton', $('#dialogBox')).on('click', function() {
+			$('#startImport', dialogBtn).remove();
+		});
+
 	},
 	updatePager: function(type, qt, st, ps, p, pc) {
 		var typeNode = $('#' + type);

@@ -31,6 +31,7 @@ var order = 'asc';
 var footer = $('#footer');
 
 var rootUrl = '/structr/rest/';
+var csvRootUrl = '/structr/csv/';
 var viewRootUrl = '/';
 var wsRoot = '/structr/ws';
 var port = document.location.port;

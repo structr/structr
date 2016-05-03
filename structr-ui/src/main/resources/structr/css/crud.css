@@ -142,10 +142,11 @@ input.readonly {
     text-align: right;
 }
 
-.exportArea {
+.exportArea, .importArea {
     border: none;
-    width: 770px;
-    height: 590px;
+    margin: 0 0 0 4px;
+    width: 862px ! important;
+    height: 470px;
     overflow: auto;
 }
 

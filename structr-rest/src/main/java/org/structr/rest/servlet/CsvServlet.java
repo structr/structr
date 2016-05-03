@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.structr.rest.servlet;
 
 import au.com.bytecode.opencsv.CSVParser;
@@ -23,8 +24,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.text.DecimalFormat;
@@ -42,6 +42,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.kernel.DeadlockDetectedException;
 import org.structr.common.PagingHelper;
@@ -293,6 +294,9 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
 
+			// get reader before initalizing security context
+			final String input = IOUtils.toString(request.getReader());
+
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 				authenticator = config.getAuthenticator();
@@ -307,7 +311,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
-					resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView)), propertyView);
+					resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView), propertyView);
 					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 					tx.success();
 				}
@@ -320,7 +324,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 						try (final Tx tx = app.tx()) {
 
-							for (JsonInput propertySet : this.cleanAndParseCSV(request.getInputStream())) {
+							for (final JsonInput propertySet : cleanAndParseCSV(input)) {
 
 								results.add(resource.doPost(convertPropertySetToMap(propertySet)));
 							}
@@ -336,7 +340,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 						try {
 
-							for (JsonInput propertySet : this.cleanAndParseCSV(request.getInputStream())) {
+							for (final JsonInput propertySet : cleanAndParseCSV(input)) {
 
 								results.add(resource.doPost(convertPropertySetToMap(propertySet)));
 							}
@@ -540,9 +544,9 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 	}
 
-	private Iterable<JsonInput> cleanAndParseCSV(final InputStream input) throws FrameworkException, IOException {
+	private Iterable<JsonInput> cleanAndParseCSV(final String input) throws FrameworkException, IOException {
 
-		final BufferedReader reader  = new BufferedReader(new InputStreamReader(input));
+		final BufferedReader reader  = new BufferedReader(new StringReader(input));
 		final String headerLine      = reader.readLine();
 		final CSVParser parser       = new CSVParser();
 		final String[] propertyNames = parser.parseLine(headerLine);
