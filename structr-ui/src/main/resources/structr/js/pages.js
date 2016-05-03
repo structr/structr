@@ -389,9 +389,8 @@ var _Pages = {
 
 		var tab = $('#show_' + entity.id, previews);
 
-		tab.append('<img class="typeIcon" src="icon/page.png"> <b title="' + entity.name + '" class="name_">' + fitStringToWidth(entity.name, 200) + '</b>');
-		tab.append('<input title="Auto-refresh page on changes" alt="Auto-refresh page on changes" class="auto-refresh" type="checkbox"' + (LSWrapper.getItem(autoRefreshDisabledKey + entity.id) ? '' : ' checked="checked"') + '>');
-		tab.append('<img title="Delete page \'' + entity.name + '\'" alt="Delete page \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
+		tab.append('<b title="' + entity.name + '" class="name_">' + fitStringToWidth(entity.name, 200) + '</b>');
+		tab.append('<img title="Edit page settings of ' + entity.name + '" alt="Edit page settings of ' + entity.name + '" class="edit_ui_properties_icon button" src="' + Structr.edit_ui_properties_icon + '">');
 		tab.append('<img class="view_icon button" title="View ' + entity.name + ' in new window" alt="View ' + entity.name + ' in new window" src="icon/eye.png">');
 
 		$('.view_icon', tab).on('click', function(e) {
@@ -402,28 +401,54 @@ var _Pages = {
 			window.open(viewRootUrl + link);
 		});
 
-		var deleteIcon = $('.delete_icon', tab);
-		deleteIcon.hide();
-		deleteIcon.on('click', function(e) {
+		var editUiPropertiesIcon = $('.edit_ui_properties_icon', tab);
+		editUiPropertiesIcon.hide();
+		editUiPropertiesIcon.on('click', function(e) {
 			e.stopPropagation();
-			_Entities.deleteNode(this, entity);
+
+			Structr.dialog('Edit Preview Settings of ' + entity.name, function() {
+				return true;
+			}, function() {
+				return true;
+			});
+
+			dialog.empty();
+			dialogMsg.empty();
+			
+			dialog.append('<p>With these settings you can influence the behaviour of the page previews only. They are not persisted on the Page object but only stored in the UI settings.</p>');
+			
+
+			dialog.append('<table class="props">'
+					//+ '<tr><td><label for="name">Name</label></td><td><input id="_name" name="name" size="20"></td></tr>'
+					+ '<tr><td><label for="details-object-id">UUID of details object to append to preview URL</label></td><td><input id="_details-object-id" name="details-object-id" size="30" value="' + (LSWrapper.getItem(detailsObjectId + entity.id) ?  LSWrapper.getItem(detailsObjectId + entity.id) : '') + '"></td></tr>'
+					+ '<tr><td><label for="auto-refresh">Automatic refresh</label></td><td><input title="Auto-refresh page on changes" alt="Auto-refresh page on changes" class="auto-refresh" type="checkbox"' + (LSWrapper.getItem(autoRefreshDisabledKey + entity.id) ? '' : ' checked="checked"') + '></td></tr>'
+					+ '</table>');
+
+			$('#_details-object-id').on('blur', function() {
+				var inp = $(this);
+				LSWrapper.setItem(detailsObjectId + entity.id, inp.val());
+			});
+
+			$('.auto-refresh', dialog).on('click', function(e) {
+				e.stopPropagation();
+				var key = autoRefreshDisabledKey + entity.id;
+				var autoRefreshDisabled = LSWrapper.getItem(key) === '1';
+				if (autoRefreshDisabled) {
+					LSWrapper.removeItem(key);
+				} else {
+					LSWrapper.setItem(key, '1');
+				}
+			});
+
 		});
-		deleteIcon.on('mouseover', function(e) {
+
+		editUiPropertiesIcon.on('mouseover', function(e) {
 			var self = $(this);
 			self.show();
-
 		});
 
-		$('.auto-refresh', tab).on('click', function(e) {
-			e.stopPropagation();
-			var key = autoRefreshDisabledKey + entity.id;
-			var autoRefreshDisabled = LSWrapper.getItem(key) === '1';
-			if (autoRefreshDisabled) {
-				LSWrapper.removeItem(key);
-			} else {
-				LSWrapper.setItem(key, '1');
-			}
-		});
+
+
 
 		return tab;
 	},
@@ -515,7 +540,8 @@ var _Pages = {
 		var iframe = $('#preview_' + id);
 		Command.get(id, function(obj) {
 			pageVersion[id] = obj.version;
-			iframe.prop('src', viewRootUrl + obj.name + '?edit=2');
+			var url = viewRootUrl + obj.name + (LSWrapper.getItem(detailsObjectId + id) ? '/' + LSWrapper.getItem(detailsObjectId + id) : '') + '?edit=2';
+			iframe.prop('src', url);
 			_Logger.log(_LogType.PAGES, 'iframe', id, 'activated');
 			iframe.parent().show();
 			_Pages.resize();

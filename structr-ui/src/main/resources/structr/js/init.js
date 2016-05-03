@@ -30,6 +30,7 @@ var expandedIdsKey = 'structrTreeExpandedIds_' + port;
 var lastMenuEntryKey = 'structrLastMenuEntry_' + port;
 var pagerDataKey = 'structrPagerData_' + port + '_';
 var autoRefreshDisabledKey = 'structrAutoRefreshDisabled_' + port;
+var detailsObjectId = 'structrDetailsObjectId_' + port;
 var dialogDataKey = 'structrDialogData_' + port;
 var dialogHtmlKey = 'structrDialogHtml_' + port;
 var pushConfigKey = 'structrPushConfigKey_' + port;
@@ -184,6 +185,7 @@ var Structr = {
 	add_icon: 'icon/add.png',
 	delete_icon: 'icon/delete.png',
 	edit_icon: 'icon/pencil.png',
+	edit_ui_properties_icon: 'icon/wrench.png',
 	expand_icon: 'icon/tree_arrow_right.png',
 	expanded_icon: 'icon/tree_arrow_down.png',
 	link_icon: 'icon/link.png',
