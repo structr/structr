@@ -30,7 +30,6 @@
     <properties>
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <structr.version>2.0.1-SNAPSHOT</structr.version>
     </properties>
 
     <dependencies>
