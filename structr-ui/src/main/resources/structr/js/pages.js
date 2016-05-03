@@ -420,13 +420,34 @@ var _Pages = {
 
 			dialog.append('<table class="props">'
 					//+ '<tr><td><label for="name">Name</label></td><td><input id="_name" name="name" size="20"></td></tr>'
-					+ '<tr><td><label for="details-object-id">UUID of details object to append to preview URL</label></td><td><input id="_details-object-id" name="details-object-id" size="30" value="' + (LSWrapper.getItem(detailsObjectId + entity.id) ?  LSWrapper.getItem(detailsObjectId + entity.id) : '') + '"></td></tr>'
+					+ '<tr><td><label for="details-object-id">UUID of details object to append to preview URL</label></td><td><input id="_details-object-id" name="details-object-id" size="30" value="' + (LSWrapper.getItem(detailsObjectId + entity.id) ?  LSWrapper.getItem(detailsObjectId + entity.id) : '') + '"> <img id="clear-details-object-id" src="icon/cross_small_grey.png"></td></tr>'
 					+ '<tr><td><label for="auto-refresh">Automatic refresh</label></td><td><input title="Auto-refresh page on changes" alt="Auto-refresh page on changes" class="auto-refresh" type="checkbox"' + (LSWrapper.getItem(autoRefreshDisabledKey + entity.id) ? '' : ' checked="checked"') + '></td></tr>'
 					+ '</table>');
 
+			var detailsObjectIdInput = $('#_details-object-id');
+
+			window.setTimeout(function() {
+				detailsObjectIdInput.select().focus();
+			}, 200);
+			
+			$('#clear-details-object-id').on('click', function() {
+				detailsObjectIdInput.val('');
+				var oldVal = LSWrapper.getItem(detailsObjectId + entity.id) || null;
+				if (oldVal) {
+					blinkGreen(detailsObjectIdInput);
+					LSWrapper.removeItem(detailsObjectId + entity.id);
+					detailsObjectIdInput.focus();
+				}
+			});
+
 			$('#_details-object-id').on('blur', function() {
 				var inp = $(this);
-				LSWrapper.setItem(detailsObjectId + entity.id, inp.val());
+				var oldVal = LSWrapper.getItem(detailsObjectId + entity.id) || null;
+				var newVal = inp.val() || null;
+				if (newVal !== oldVal) {
+					LSWrapper.setItem(detailsObjectId + entity.id, newVal);
+					blinkGreen(detailsObjectIdInput);
+				}
 			});
 
 			$('.auto-refresh', dialog).on('click', function(e) {
@@ -438,6 +459,7 @@ var _Pages = {
 				} else {
 					LSWrapper.setItem(key, '1');
 				}
+				blinkGreen($('.auto-refresh', dialog).parent());
 			});
 
 		});
