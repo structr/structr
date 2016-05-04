@@ -475,7 +475,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 												if (finished.get()) {
 
 													async.complete();
-													
+
 													// don't overwrite 404 code from error page
 													if (response.getStatus() != HttpServletResponse.SC_NOT_FOUND) {
 														response.setStatus(HttpServletResponse.SC_OK);
@@ -524,13 +524,11 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "", fex);
 				logger.log(Level.SEVERE, "Exception while processing request", fex);
 			}
 
 		} catch (IOException | FrameworkException t) {
 
-			logger.log(Level.WARNING, "", t);
 			logger.log(Level.SEVERE, "Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
@@ -805,13 +803,11 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				tx.success();
 
 			} catch (Throwable fex) {
-				logger.log(Level.WARNING, "", fex);
 				logger.log(Level.SEVERE, "Exception while processing request", fex);
 			}
 
 		} catch (FrameworkException t) {
 
-			logger.log(Level.WARNING, "", t);
 			logger.log(Level.SEVERE, "Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
@@ -835,7 +831,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (FrameworkException t) {
 
-			logger.log(Level.WARNING, "", t);
 			logger.log(Level.SEVERE, "Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
@@ -1015,9 +1010,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		}
 
 		for (Page page : pages) {
-			
+
 			if (securityContext.isVisible(page) && page.getProperty(Page.position) != null && ((EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page)) || (page.getProperty(Page.enableBasicAuth) && page.getProperty(Page.visibleToAuthenticatedUsers)))) {
-				
+
 				return page;
 			}
 		}

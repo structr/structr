@@ -22,6 +22,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -359,6 +361,15 @@ public class FileHelper {
 	}
 
 	//~--- get methods ----------------------------------------------------
+
+	public static File getFile(final org.structr.web.entity.FileBase file) {
+		return new java.io.File(getFilePath(file.getRelativeFilePath()));
+	}
+
+	public static Path getPath(final org.structr.web.entity.FileBase file) {
+		return Paths.get(getFilePath(file.getRelativeFilePath()));
+	}
+
 	/**
 	 * Return mime type of given file
 	 *

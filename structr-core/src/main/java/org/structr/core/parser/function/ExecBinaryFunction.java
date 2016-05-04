@@ -76,7 +76,7 @@ public class ExecBinaryFunction extends Function<Object, Object> {
 
 				} catch (InterruptedException | ExecutionException iex) {
 
-					logException(iex, sources);
+					logException(entity, iex, sources);
 
 				} finally {
 
@@ -90,7 +90,7 @@ public class ExecBinaryFunction extends Function<Object, Object> {
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 		}
 

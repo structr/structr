@@ -105,8 +105,11 @@ public class FileHelperTest extends StructrUiTest {
 			// disabled because jmimemagic v0.1.2 does not properly detect image/tiff cross-OS
 			// testMap.put("image/tiff",               toMap(new Pair("test09", IOUtils.toByteArray(FileHelperTest.class.getResourceAsStream("/test/test.tiff")))));
 
-			testMap.put("image/bmp",                toMap(new Pair("test10", IOUtils.toByteArray(FileHelperTest.class.getResourceAsStream("/test/test.bmp")))));
-			testMap.put("image/vnd.microsoft.icon", toMap(new Pair("test11", IOUtils.toByteArray(FileHelperTest.class.getResourceAsStream("/test/test.ico")))));
+			// disabled because jmimemagic v0.1.2 does not properly detect image/bmp cross-OS
+			// testMap.put("image/bmp",                toMap(new Pair("test10", IOUtils.toByteArray(FileHelperTest.class.getResourceAsStream("/test/test.bmp")))));
+
+			// disabled because jmimemagic v0.1.2 does not properly detect image/vnd.microsoft.icon cross-OS
+			// testMap.put("image/vnd.microsoft.icon", toMap(new Pair("test11", IOUtils.toByteArray(FileHelperTest.class.getResourceAsStream("/test/test.ico")))));
 
 		} catch (IOException ioex) {
 			fail("Unexpected exception.");

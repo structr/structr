@@ -63,8 +63,7 @@ public class ClearDatabase extends NodeServiceCommand {
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "Exception while creating all nodes iterator.");
-				logger.log(Level.WARNING, "", fex);
+				logger.log(Level.WARNING, "Exception while creating all nodes iterator.", fex);
 			}
 
 			final long deletedNodes = bulkGraphOperation(securityContext, nodeIterator, 1000, "ClearDatabase", new BulkGraphOperation<AbstractNode>() {

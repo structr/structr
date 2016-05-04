@@ -66,7 +66,6 @@ neo4j.server.port = 7474
 base.path = .
 database.path = ./db
 files.path = ./files
-log.database.path = ./logDb.dat
 tmp.path = /tmp
 
 # Configuration class providing custom schema classes
@@ -74,9 +73,6 @@ configuration.provider = org.structr.module.JarConfigurationProvider
 
 # Configure services to automatically run at start-up
 configured.services = NodeService AgentService CronService SchemaService LogService HttpService FtpService CloudService Neo4jService SSHService
-
-# Support migration from 0.8.x and earlier versions
-#NodeService.migration = true
 
 # Superuser username and password
 # You have to set a superuser username and password in order to use

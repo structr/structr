@@ -18,7 +18,6 @@
  */
 package org.structr.core.parser.function;
 
-import java.util.logging.Level;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -56,15 +55,15 @@ public class AbbrFunction extends Function<Object, Object> {
 
 			} catch (NumberFormatException nfe) {
 
-				logException(nfe, sources);
+				logException(nfe, "{0}: NumberFormatException in element \"{1}\". Can not parse \"{2}\" as Integer. Returning original string. Parameters: {3}", new Object[] {getName(), entity, sources[1], getParametersAsString(sources) });
 
-				return nfe.getMessage();
+				return sources[0];
 
 			}
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 		}
 

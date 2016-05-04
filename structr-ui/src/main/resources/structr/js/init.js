@@ -30,6 +30,7 @@ var expandedIdsKey = 'structrTreeExpandedIds_' + port;
 var lastMenuEntryKey = 'structrLastMenuEntry_' + port;
 var pagerDataKey = 'structrPagerData_' + port + '_';
 var autoRefreshDisabledKey = 'structrAutoRefreshDisabled_' + port;
+var detailsObjectId = 'structrDetailsObjectId_' + port;
 var dialogDataKey = 'structrDialogData_' + port;
 var dialogHtmlKey = 'structrDialogHtml_' + port;
 var pushConfigKey = 'structrPushConfigKey_' + port;
@@ -185,6 +186,7 @@ var Structr = {
 	add_icon: 'icon/add.png',
 	delete_icon: 'icon/delete.png',
 	edit_icon: 'icon/pencil.png',
+	edit_ui_properties_icon: 'icon/wrench.png',
 	expand_icon: 'icon/tree_arrow_right.png',
 	expanded_icon: 'icon/tree_arrow_down.png',
 	link_icon: 'icon/link.png',
@@ -1105,8 +1107,12 @@ var Structr = {
 					} else {
 						versionLink = 'http://repo1.maven.org/maven2/org/structr/structr-ui/' + version;
 					}
-					$('.structr-version').html('<a target="_blank" href="' + versionLink + '">' + version + '</a> build <a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a> (' + date + ')');
-
+					var versionInfo = '<a target="_blank" href="' + versionLink + '">' + version + '</a>';
+					if (build && date) {
+						versionInfo += ' build <a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a> (' + date + ')';
+					}
+					
+					$('.structr-version').html(versionInfo);
 				}
 
 				Structr.activeModules = envInfo.result.modules;

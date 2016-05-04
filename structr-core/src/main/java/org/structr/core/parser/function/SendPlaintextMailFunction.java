@@ -58,13 +58,13 @@ public class SendPlaintextMailFunction extends Function<Object, Object> {
 
 			} catch (EmailException eex) {
 
-				logException(eex, "{0}: Exception for parameters: {1}", new Object[] { getName(), getParametersAsString(sources) });
+				logException(entity, eex, sources);
 
 			}
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 		}
 

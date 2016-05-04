@@ -154,7 +154,10 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 				newNode = nodeClass.newInstance();
 				newNode.init(factoryProfile.getSecurityContext(), entity, nodeClass, false);
 
-			} catch (InstantiationException|IllegalAccessException itex) { logger.log(Level.WARNING, "", itex); }
+			} catch (InstantiationException|IllegalAccessException itex) {
+
+				logger.log(Level.WARNING, "", itex);
+			}
 
 		}
 

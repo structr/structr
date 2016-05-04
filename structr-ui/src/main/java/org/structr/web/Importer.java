@@ -77,6 +77,7 @@ import org.structr.dynamic.File;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.importer.GraphGistImporter;
 import org.structr.schema.importer.SchemaJsonImporter;
+import org.structr.util.LogMessageSupplier;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.diff.CreateOperation;
@@ -767,8 +768,7 @@ public class Importer {
 
 			}
 
-			logger.log(Level.WARNING, "Unable to download from {0} {1}", new Object[]{originalUrl, downloadAddress});
-			logger.log(Level.WARNING, "", ioe);
+			logger.log(Level.WARNING, ioe, LogMessageSupplier.create("Unable to download from {0} {1}", new Object[]{originalUrl, downloadAddress}));
 
 			try {
 				// Try alternative baseUrl with trailing "/"
@@ -788,12 +788,10 @@ public class Importer {
 				copyURLToFile(downloadUrl.toString(), fileOnDisk);
 
 			} catch (MalformedURLException ex) {
-				logger.log(Level.WARNING, "", ex);
-				logger.log(Level.SEVERE, "Could not resolve address {0}", address.concat("/"));
+				logger.log(Level.SEVERE, ex, LogMessageSupplier.create("Could not resolve address {0}", address.concat("/")));
 				return null;
 			} catch (IOException ex) {
-				logger.log(Level.WARNING, "", ex);
-				logger.log(Level.WARNING, "Unable to download from {0}", address.concat("/"));
+				logger.log(Level.WARNING, ex, LogMessageSupplier.create("Unable to download from {0}", address.concat("/")));
 				return null;
 			}
 

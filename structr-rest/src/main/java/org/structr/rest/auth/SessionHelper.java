@@ -125,7 +125,7 @@ public class SessionHelper {
 		} catch (FrameworkException fex) {
 
 			logger.log(Level.WARNING, "Error while removing sessionId " + sessionId + " from all principals", fex);
-			logger.log(Level.WARNING, "", fex);
+
 		}
 
 	}

@@ -57,7 +57,7 @@ public class GetRequestHeaderFunction extends UiFunction {
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 		}
 

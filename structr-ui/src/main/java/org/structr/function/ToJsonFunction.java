@@ -44,7 +44,7 @@ public class ToJsonFunction extends UiFunction {
 	@Override
 	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
 
-		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 3)) {
+		if (sources != null && sources.length >= 1 && sources.length <= 3) {
 
 			final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
 
@@ -75,7 +75,7 @@ public class ToJsonFunction extends UiFunction {
 
 				} catch (Throwable t) {
 
-					logException(t, "{0}: Exception for parameter: {1}", new Object[] { getName(), getParametersAsString(sources) });
+					logException(entity, t, sources);
 
 				}
 
@@ -107,7 +107,7 @@ public class ToJsonFunction extends UiFunction {
 
 				} catch (Throwable t) {
 
-					logException(t, "{0}: Exception for parameter: {1}", new Object[] { getName(), getParametersAsString(sources) });
+					logException(entity, t, sources);
 
 				}
 
@@ -117,10 +117,11 @@ public class ToJsonFunction extends UiFunction {
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 		}
+
+		return usage(ctx.isJavaScriptContext());
 
 	}
 

@@ -214,14 +214,14 @@ public class GraphObjectGSONAdapter {
 
 					try {
 						return serializeRoot(converter.revert(value), localPropertyView, depth);
-						
+
 					} catch (ClassCastException cce) {
-						
+
 						// try to fix the database property
 						value = key.fixDatabaseProperty(value);
-						
+
 						return serializeRoot(converter.revert(value), localPropertyView, depth);
-						
+
 					}
 
 				} else {
@@ -230,9 +230,6 @@ public class GraphObjectGSONAdapter {
 				}
 
 			} catch (Throwable t) {
-
-				// CHM: remove debug code later
-				logger.log(Level.WARNING, "", t);
 
 				logger.log(Level.WARNING, "Exception while serializing property {0} ({1}) of entity {2} (value {3}) : {4}", new Object[] {
 					key.jsonName(),

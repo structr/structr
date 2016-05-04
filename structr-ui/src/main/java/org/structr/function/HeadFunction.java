@@ -37,7 +37,7 @@ public class HeadFunction extends UiFunction {
 	@Override
 	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
 
-		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 3)) {
+		if (sources != null && sources.length >= 1 && sources.length <= 3) {
 
 			try {
 
@@ -56,7 +56,7 @@ public class HeadFunction extends UiFunction {
 
 			} catch (Throwable t) {
 
-				logException(t, "{0}: Exception for parameter: {1}", new Object[] { getName(), getParametersAsString(sources) });
+				logException(entity, t, sources);
 
 			}
 
@@ -64,7 +64,7 @@ public class HeadFunction extends UiFunction {
 
 		} else {
 
-			logParameterError(sources, ctx.isJavaScriptContext());
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 		}
 

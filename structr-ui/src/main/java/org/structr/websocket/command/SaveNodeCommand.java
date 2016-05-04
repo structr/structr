@@ -61,9 +61,9 @@ public class SaveNodeCommand extends AbstractCommand {
 		Page modifiedNode = null;
 
 		DOMNode sourceNode = (DOMNode) getNode(nodeId);
-		
+
 		if (sourceNode != null) {
-			
+
 			TransactionCommand.registerNodeCallback(sourceNode, callback);
 
 			try {
@@ -71,13 +71,13 @@ public class SaveNodeCommand extends AbstractCommand {
 				// parse page from modified source
 				modifiedNode = Importer.parsePageFromSource(securityContext, modifiedHtml, "__SaveNodeCommand_Temporary_Page__");
 
-				
+
 				DOMNode targetNode = modifiedNode;
-				
+
 				if (!(sourceNode instanceof Page)) {
-					
+
 					targetNode = (DOMNode) modifiedNode.getFirstChild().getNextSibling().getFirstChild().getNextSibling().getFirstChild();
-					
+
 				}
 
 				final List<InvertibleModificationOperation> changeSet = Importer.diffNodes(sourceNode, targetNode);
@@ -92,7 +92,6 @@ public class SaveNodeCommand extends AbstractCommand {
 
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, t.toString());
 				logger.log(Level.WARNING, "", t);
 
 				// send exception

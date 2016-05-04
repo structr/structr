@@ -91,13 +91,12 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 				} catch (Throwable t) {
 
-					logger.log(Level.WARNING, "", t);
-
 					logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
 						dbName(),
 						getClass().getSimpleName(),
 						t
 					});
+					logger.log(Level.WARNING, "", t);
 
 				}
 			}
@@ -136,7 +135,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 			}
 
 			boolean internalSystemPropertiesUnlocked = false;
-			
+
 			// notify only non-system properties
 
 			// collect modified properties

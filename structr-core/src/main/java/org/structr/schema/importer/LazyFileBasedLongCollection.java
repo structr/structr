@@ -142,7 +142,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 			SyncCommand.serialize(dos, e);
 
 		} catch (IOException ex) {
-			Logger.getLogger(LazyFileBasedLongCollection.class.getName()).log(Level.SEVERE, null, ex);
+			logger.log(Level.SEVERE, null, ex);
 		}
 
 		return true;
@@ -172,7 +172,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 			}
 
 		} catch (IOException ex) {
-			Logger.getLogger(LazyFileBasedLongCollection.class.getName()).log(Level.SEVERE, null, ex);
+			logger.log(Level.SEVERE, null, ex);
 		}
 
 		return true;

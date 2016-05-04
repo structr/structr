@@ -71,7 +71,7 @@ var _Entities = {
 		});
 
 		dialog.append('<div><input type="radio" name="syncMode" value="none"><label for="unidir">None</label></div>');
-		dialog.append('<div><input type="radio" name="syncMode" value="unidir"><label for="unidir">Uni-directional (master/slave)</label></div>');
+		dialog.append('<div><input type="radio" name="syncMode" value="unidir"><label for="unidir">Uni-directional (primary/secondary)</label></div>');
 		dialog.append('<div><input type="radio" name="syncMode" value="bidir"><label for="unidir">Bi-directional</label></div>');
 
 		$('input[name=syncMode]:radio', dialog).on('change', function() {

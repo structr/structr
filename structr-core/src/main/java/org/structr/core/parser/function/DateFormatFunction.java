@@ -21,8 +21,6 @@ package org.structr.core.parser.function;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.mozilla.javascript.ScriptableObject;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -45,6 +43,11 @@ public class DateFormatFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
+		if (sources == null || sources.length != 2 || sources[1] == null) {
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
+		}
+
 		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
 			Date date = null;
@@ -58,7 +61,7 @@ public class DateFormatFunction extends Function<Object, Object> {
 				date = new Date(((Number)sources[0]).longValue());
 
 			} else if (sources[0] instanceof ScriptableObject) {
-
+				// FIXME: This was empty - what is it here for?
 			} else {
 
 				try {
@@ -68,7 +71,7 @@ public class DateFormatFunction extends Function<Object, Object> {
 
 				} catch (ParseException ex) {
 
-					logException(ex, sources);
+					logException(entity, ex, sources);
 
 				}
 
@@ -76,15 +79,9 @@ public class DateFormatFunction extends Function<Object, Object> {
 
 			// format with given pattern
 			return new SimpleDateFormat(sources[1].toString()).format(date);
-
-		} else {
-
-			logParameterError(sources, ctx.isJavaScriptContext());
-
-			return usage(ctx.isJavaScriptContext());
-
 		}
 
+		return "";
 	}
 
 	@Override

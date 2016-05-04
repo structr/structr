@@ -70,8 +70,8 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 
 	public static final Property<Integer>        position                = new IntProperty("position").cmis().indexed();
 
-	public static final View publicView = new View(Folder.class, PropertyView.Public, id, type, name, isFolder, folders, files, parentId);
-	public static final View uiView     = new View(Folder.class, PropertyView.Ui, parent, folders, files, images, isFolder, includeInFrontendExport);
+	public static final View publicView = new View(Folder.class, PropertyView.Public, id, type, name, owner, isFolder, folders, files, parentId);
+	public static final View uiView     = new View(Folder.class, PropertyView.Ui, parent, owner, folders, files, images, isFolder, includeInFrontendExport);
 
 	// register this type as an overridden builtin type
 	static {

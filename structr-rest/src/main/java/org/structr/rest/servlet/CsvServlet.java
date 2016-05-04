@@ -16,30 +16,40 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.structr.rest.servlet;
 
+import au.com.bytecode.opencsv.CSVParser;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.neo4j.kernel.DeadlockDetectedException;
 import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.JsonInput;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.Value;
@@ -49,6 +59,7 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.rest.RestMethodResult;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
@@ -77,6 +88,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 	private String defaultPropertyView;
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
+	private ThreadLocalGson gson                  = null;
 
 
 	//~--- methods --------------------------------------------------------
@@ -95,6 +107,8 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 		// initialize variables
 		this.propertyView        = new ThreadLocalPropertyView();
 		this.defaultPropertyView = config.getDefaultPropertyView();
+		this.gson                = new ThreadLocalGson(propertyView, config.getOutputNestingDepth());
+
 	}
 
 	@Override
@@ -262,6 +276,189 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 	}
 
+	@Override
+	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+
+		//System.out.println(IOUtils.toString(request.getInputStream()));
+
+
+		final List<RestMethodResult> results = new LinkedList<>();
+		final SecurityContext securityContext;
+		final Authenticator authenticator;
+		final Resource resource;
+
+		try {
+
+			// first thing to do!
+			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
+			response.setContentType("application/json; charset=utf-8");
+
+			// get reader before initalizing security context
+			final String input = IOUtils.toString(request.getReader());
+
+			// isolate request authentication in a transaction
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				authenticator = config.getAuthenticator();
+				securityContext = authenticator.initializeAndExamineRequest(request, response);
+				tx.success();
+			}
+
+			final App app = StructrApp.getInstance(securityContext);
+
+			if (securityContext != null) {
+
+				// isolate resource authentication
+				try (final Tx tx = app.tx()) {
+
+					resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView), propertyView);
+					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
+					tx.success();
+				}
+
+				// isolate doPost
+				boolean retry = true;
+				while (retry) {
+
+					if (resource.createPostTransaction()) {
+
+						try (final Tx tx = app.tx()) {
+
+							for (final JsonInput propertySet : cleanAndParseCSV(input)) {
+
+								results.add(resource.doPost(convertPropertySetToMap(propertySet)));
+							}
+
+							tx.success();
+							retry = false;
+
+						} catch (DeadlockDetectedException ddex) {
+							retry = true;
+						}
+
+					} else {
+
+						try {
+
+							for (final JsonInput propertySet : cleanAndParseCSV(input)) {
+
+								results.add(resource.doPost(convertPropertySetToMap(propertySet)));
+							}
+
+							retry = false;
+
+						} catch (DeadlockDetectedException ddex) {
+							retry = true;
+						}
+					}
+				}
+
+				// set default value for property view
+				propertyView.set(securityContext, config.getDefaultPropertyView());
+
+				// isolate write output
+				try (final Tx tx = app.tx()) {
+
+					if (!results.isEmpty()) {
+
+						final RestMethodResult result = results.get(0);
+						final int resultCount         = results.size();
+
+						if (result != null) {
+
+							if (resultCount > 1) {
+
+								for (final RestMethodResult r : results) {
+
+									final GraphObject objectCreated = r.getContent().get(0);
+									if (!result.getContent().contains(objectCreated)) {
+
+										result.addContent(objectCreated);
+									}
+
+								}
+
+								// remove Location header if more than one object was
+								// written because it may only contain a single URL
+								result.addHeader("Location", null);
+							}
+
+							result.commitResponse(gson.get(), response);
+						}
+
+					}
+
+					tx.success();
+				}
+
+			} else {
+
+				// isolate write output
+				try (final Tx tx = app.tx()) {
+
+					new RestMethodResult(HttpServletResponse.SC_FORBIDDEN).commitResponse(gson.get(), response);
+					tx.success();
+				}
+
+			}
+
+		} catch (FrameworkException frameworkException) {
+
+			// set status & write JSON output
+			response.setStatus(frameworkException.getStatus());
+			gson.get().toJson(frameworkException, response.getWriter());
+			response.getWriter().println();
+
+		} catch (JsonSyntaxException jsex) {
+
+			logger.log(Level.WARNING, "POST: Invalid JSON syntax", jsex.getMessage());
+
+			int code = HttpServletResponse.SC_BAD_REQUEST;
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in POST: " + jsex.getMessage()));
+
+		} catch (JsonParseException jpex) {
+
+			logger.log(Level.WARNING, "Unable to parse JSON string", jpex.getMessage());
+
+			int code = HttpServletResponse.SC_BAD_REQUEST;
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonParseException in POST: " + jpex.getMessage()));
+
+		} catch (UnsupportedOperationException uoe) {
+
+			logger.log(Level.WARNING, "POST not supported");
+
+			int code = HttpServletResponse.SC_BAD_REQUEST;
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "POST not supported: " + uoe.getMessage()));
+
+		} catch (Throwable t) {
+
+			logger.log(Level.WARNING, "Exception in POST", t);
+
+			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in POST: " + t.getMessage()));
+
+		} finally {
+
+			try {
+				//response.getWriter().flush();
+				response.getWriter().close();
+
+			} catch (Throwable t) {
+
+				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
+			}
+
+		}
+	}
+
 	private static String escapeForCsv(final Object value) {
 
 		String result = StringUtils.replace(value.toString(), "\"", "\\\"");
@@ -292,15 +489,16 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 	 */
 	public static void writeCsv(final Result result, final Writer out, final String propertyView) throws IOException {
 
-		List<GraphObject> list = result.getResults();
-		boolean headerWritten = false;
+		final List<GraphObject> list = result.getResults();
+		final StringBuilder row      = new StringBuilder();
+		boolean headerWritten        = false;
 
-		for (GraphObject obj : list) {
+		for (final GraphObject obj : list) {
 
 			// Write column headers
 			if (!headerWritten) {
 
-				StringBuilder row = new StringBuilder();
+				row.setLength(0);
 
 				for (PropertyKey key : obj.getPropertyKeys(propertyView)) {
 
@@ -324,7 +522,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 			}
 
-			StringBuilder row = new StringBuilder();
+			row.setLength(0);
 
 			for (PropertyKey key : obj.getPropertyKeys(propertyView)) {
 
@@ -346,6 +544,78 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 	}
 
+	private Iterable<JsonInput> cleanAndParseCSV(final String input) throws FrameworkException, IOException {
+
+		final BufferedReader reader  = new BufferedReader(new StringReader(input));
+		final String headerLine      = reader.readLine();
+		final CSVParser parser       = new CSVParser();
+		final String[] propertyNames = parser.parseLine(headerLine);
+
+		return new Iterable<JsonInput>() {
+
+			@Override
+			public Iterator<JsonInput> iterator() {
+
+				return new Iterator<JsonInput>() {
+
+					String line = null;
+
+					@Override
+					public boolean hasNext() {
+
+						try {
+
+							line = reader.readLine();
+
+							return StringUtils.isNotBlank(line);
+
+						} catch (IOException ioex) {
+							ioex.printStackTrace();
+						}
+
+						return false;
+					}
+
+					@Override
+					public JsonInput next() {
+
+						try {
+
+							if (StringUtils.isNotBlank(line)) {
+
+								final JsonInput jsonInput = new JsonInput();
+								final String[] columns    = parser.parseLine(line);
+								final int len             = columns.length;
+
+								for (int i=0; i<len; i++) {
+
+									final String key = propertyNames[i];
+									jsonInput.add(key, columns[i]);
+								}
+
+								return jsonInput;
+							}
+
+						} catch (IOException ioex) {
+							ioex.printStackTrace();
+						}
+
+						return null;
+					}
+
+				};
+			}
+		};
+	}
+
+	private Map<String, Object> convertPropertySetToMap(JsonInput propertySet) {
+
+		if (propertySet != null) {
+			return propertySet.getAttributes();
+		}
+
+		return new LinkedHashMap<>();
+	}
 	// <editor-fold defaultstate="collapsed" desc="nested classes">
 	private class ThreadLocalPropertyView extends ThreadLocal<String> implements Value<String> {
 

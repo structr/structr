@@ -26,7 +26,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,6 +52,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeService;
 import org.structr.module.JarConfigurationProvider;
 import org.structr.schema.ConfigurationProvider;
+import org.structr.util.LogMessageSupplier;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -242,9 +245,7 @@ public class Services implements StructrServices {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "", t);
-
-			logger.log(Level.SEVERE, "Exception while creating command " + commandType.getName(), t);
+			logger.log(Level.SEVERE, t, LogMessageSupplier.create("Exception while creating command {0}", commandType.getName()));
 		}
 
 		return (command);
@@ -336,8 +337,7 @@ public class Services implements StructrServices {
 
 					} catch (Throwable t) {
 
-						logger.log(Level.WARNING, "Exception while registering service {0}: {1}", new Object[] { serviceClassName, t });
-						logger.log(Level.WARNING, "", t);
+						logger.log(Level.WARNING, t, LogMessageSupplier.create("Exception while registering service {0}", serviceClassName));
 					}
 				}
 		}
@@ -384,7 +384,8 @@ public class Services implements StructrServices {
 			permissionsForOwnerlessNodes.add(Permission.read);
 		}
 
-		logger.log(Level.INFO, "Initialization complete");
+		// Don't use logger here because start/stop scripts rely on this line.
+		System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.ms").format(new Date()) + "  ---------------- Initialization complete ----------------");
 
 		initializationDone = true;
 	}
@@ -489,9 +490,7 @@ public class Services implements StructrServices {
 
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "", t);
-
-				logger.log(Level.SEVERE, "Unable to instantiate schema provider of type {0}: {1}", new Object[] { configurationClass, t.getMessage() });
+				logger.log(Level.SEVERE, t, LogMessageSupplier.create("Unable to instantiate schema provider of type {0}", configurationClass));
 			}
 		}
 
@@ -561,18 +560,16 @@ public class Services implements StructrServices {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "", t);
-
 			if (service.isVital()) {
 
-				logger.log(Level.SEVERE, "Vital service {0} failed to start: {1}. Aborting", new Object[] { service.getClass().getSimpleName(), t.getMessage() } );
+				logger.log(Level.SEVERE, t, LogMessageSupplier.create("Vital service {0} failed to start. Aborting", service.getClass().getSimpleName()));
 
 				// hard(est) exit
 				System.exit(1);
 
 			} else {
 
-				logger.log(Level.SEVERE, "Service {0} failed to start: {1}.", new Object[] { service.getClass().getSimpleName(), t.getMessage() } );
+				logger.log(Level.SEVERE, t, LogMessageSupplier.create("Service {0} failed to start", service.getClass().getSimpleName()));
 			}
 		}
 

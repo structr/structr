@@ -47,14 +47,13 @@ public class UpdateFeedTask<T extends DataFeed> implements Task<T> {
 
 	@Override
 	public List<T> getNodes() {
-		
+
 		try {
 			return (List<T>) StructrApp.getInstance().get(DataFeed.class);
 		} catch (FrameworkException ex) {
-			Logger.getLogger(UpdateFeedTask.class.getName()).log(Level.SEVERE, null, ex);
-			logger.log(Level.WARNING, "", ex);
+			logger.log(Level.SEVERE, "", ex);
 		}
-		
+
 		return Collections.EMPTY_LIST;
 	}
 
@@ -92,5 +91,5 @@ public class UpdateFeedTask<T extends DataFeed> implements Task<T> {
 	public Object getStatusProperty(String key) {
 		return null;
 	}
-	
+
 }

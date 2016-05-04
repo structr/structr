@@ -51,8 +51,7 @@ public class GetLocalStorageCommand extends AbstractCommand {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, t.toString());
-			logger.log(Level.WARNING, "", t);
+			logger.log(Level.WARNING, "Error retrieving localstorage", t);
 
 			// send exception
 			getWebSocket().send(MessageBuilder.status().code(422).message(t.toString()).build(), true);

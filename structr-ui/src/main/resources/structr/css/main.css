@@ -576,6 +576,14 @@ ul#previewTabs {
     height: 22px;
 }
 
+#previewTabs > li.page  {
+    padding: 3px 26px 0 26px ! important;
+}
+
+#previewTabs > li.page:hover  {
+    padding: 3px 6px 0 6px ! important;
+}
+
 #previewTabs > li, #tabs > ul > li, .data-tabs > ul > li, .files-tabs > ul > li, .dialogHeaderWrapper > ul > li {
     position: relative;
     z-index: 1;
@@ -848,7 +856,7 @@ span.id {
     margin-right: 3px ! important;
 }
 
-.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .link_icon, .add_form_icon, .data_icon, .unarchive_icon, .push_icon, .show_active_icon, .collapse_children_icon, add_child_icon {
+.edit_ui_properties_icon, .edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .link_icon, .add_form_icon, .data_icon, .unarchive_icon, .push_icon, .show_active_icon, .collapse_children_icon, add_child_icon {
     display: none;
     cursor: pointer;
     height: 16px;
@@ -908,6 +916,10 @@ span.id {
 }
 
 li.page .delete_icon {
+    right: -20px;
+}
+
+li.page .edit_ui_properties_icon {
     right: -20px;
 }
 
@@ -1505,7 +1517,7 @@ button.disabled {
 
 input.auto-refresh {
     vertical-align: middle;
-    float: right;
+    float: left;
     margin-right: 0;
 }
 
