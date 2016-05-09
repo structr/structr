@@ -312,13 +312,13 @@ oauth.google.user_details_resource_uri = https://www.googleapis.com/oauth2/v3/us
 oauth.google.error_uri = /login
 oauth.google.return_uri = /
 
-# See: https://developers.facebook.com/docs/reference/dialogs/oauth/
+# See: https://developers.facebook.com/docs/facebook-login/
 oauth.facebook.authorization_location = https://www.facebook.com/dialog/oauth
 oauth.facebook.token_location = https://graph.facebook.com/oauth/access_token
 oauth.facebook.client_id = 
 oauth.facebook.client_secret = 
 oauth.facebook.redirect_uri = /oauth/facebook/auth
-oauth.facebook.user_details_resource_uri = https://graph.facebook.com/me
+oauth.facebook.user_details_resource_uri = https://graph.facebook.com/me?fields=id,name,email
 oauth.facebook.error_uri = /login
 oauth.facebook.return_uri = /
 
