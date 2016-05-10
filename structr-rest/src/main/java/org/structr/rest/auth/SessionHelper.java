@@ -18,6 +18,7 @@
  */
 package org.structr.rest.auth;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
@@ -59,7 +60,7 @@ public class SessionHelper {
 
 			if (now > lastAccessed + Services.getGlobalSessionTimeout() * 1000) {
 
-				logger.log(Level.INFO, "Session {0} timed out, last accessed at {1}", new Object[]{session, lastAccessed});
+				logger.log(Level.INFO, "Session {0} timed out, last accessed at {1}", new Object[]{session, Instant.ofEpochMilli(lastAccessed).toString()});
 				return true;
 			}
 
