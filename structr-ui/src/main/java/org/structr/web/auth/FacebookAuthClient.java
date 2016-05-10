@@ -43,7 +43,7 @@ public class FacebookAuthClient extends StructrOAuthClient {
 	@Override
 	public ResponseFormat getResponseFormat() {
 		
-		return ResponseFormat.urlEncoded;
+		return ResponseFormat.json;
 		
 	}
 
