@@ -1071,6 +1071,8 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 						final StructrModule structrModule = (StructrModule)clazz.newInstance();
 						modules.put(structrModule.getName(), structrModule);
 
+						logger.log(Level.INFO, "Activating module {0}", structrModule.getName());
+
 					} catch (Throwable t) {
 						logger.log(Level.WARNING, "Unable to instantiate module " + clazz.getName(), t);
 					}
