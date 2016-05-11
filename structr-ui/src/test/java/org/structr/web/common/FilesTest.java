@@ -20,10 +20,14 @@ package org.structr.web.common;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.asciidoctor.internal.IOUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.dynamic.File;
+import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 
@@ -84,6 +88,37 @@ public class FilesTest extends StructrTest {
 		} catch (FrameworkException ex) {
 			Logger.getLogger(FilesTest.class.getName()).log(Level.SEVERE, null, ex);
 		}
+	}
+
+	public void testCreateBase64File() {
+
+		final String base64Data = "data:text/plain;base64,RGllcyBpc3QgZWluIFRlc3Q=";
+		final String plaintext  = "Dies ist ein Test";
+		File file               = null;
+
+		try (final Tx tx = app.tx()) {
+
+			file = app.create(File.class,
+				new NodeAttribute<>(AbstractNode.name, "test.txt"),
+				new NodeAttribute<>(FileBase.base64Data, base64Data)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			Logger.getLogger(FilesTest.class.getName()).log(Level.SEVERE, null, ex);
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("Invalid base64 encoded file content creation result", plaintext, IOUtils.readFull(file.getInputStream()));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			Logger.getLogger(FilesTest.class.getName()).log(Level.SEVERE, null, ex);
+		}
+
 	}
 
 }

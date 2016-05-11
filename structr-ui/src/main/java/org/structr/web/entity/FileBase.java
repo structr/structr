@@ -66,6 +66,7 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import static org.structr.web.entity.Indexable.extractedContent;
 import org.structr.web.entity.relation.Folders;
+import org.structr.web.property.FileDataProperty;
 
 /**
  *
@@ -81,12 +82,16 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	public static final Property<Long> checksum                  = new LongProperty("checksum").indexed().unvalidated().systemInternal();
 	public static final Property<Integer> cacheForSeconds        = new IntProperty("cacheForSeconds").cmis();
 	public static final Property<Integer> version                = new IntProperty("version").indexed().systemInternal();
+	public static final Property<String> base64Data              = new FileDataProperty<>("base64Data");
 	public static final Property<Boolean> isFile                 = new ConstantBooleanProperty("isFile", true);
 
-	public static final View publicView = new View(FileBase.class, PropertyView.Public, type, name, contentType, size, url, owner, path, isFile, visibleToPublicUsers, visibleToAuthenticatedUsers);
-	//public static final View uiView = new View(FileBase.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, isFile, hasParent, extractedContent, indexedWords);
-	public static final View uiView = new View(FileBase.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum,
-		version, cacheForSeconds, owner, isFile, hasParent, extractedContent);
+	public static final View publicView = new View(FileBase.class, PropertyView.Public,
+		type, name, size, url, owner, path, isFile, visibleToPublicUsers, visibleToAuthenticatedUsers
+	);
+
+	public static final View uiView = new View(FileBase.class, PropertyView.Ui,
+		type, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, isFile, hasParent
+	);
 
 	@Override
 	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {

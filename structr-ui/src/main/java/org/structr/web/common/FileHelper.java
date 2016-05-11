@@ -209,7 +209,7 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static void setFileData(final org.structr.dynamic.File file, final byte[] fileData, final String contentType)
+	public static void setFileData(final FileBase file, final byte[] fileData, final String contentType)
 		throws FrameworkException, IOException {
 
 		FileHelper.writeToFile(file, fileData);
@@ -249,11 +249,15 @@ public class FileHelper {
 	}
 
 	//~--- get methods ----------------------------------------------------
-	public static String getBase64String(final org.structr.dynamic.File file) {
+	public static String getBase64String(final FileBase file) {
 
 		try {
 
-			return Base64.encodeToString(IOUtils.toByteArray(file.getInputStream()), false);
+			final InputStream is = file.getInputStream();
+			if (is != null) {
+
+				return Base64.encodeToString(IOUtils.toByteArray(is), false);
+			}
 
 		} catch (IOException ex) {
 			logger.log(Level.SEVERE, "Could not get base64 string from file ", ex);
@@ -334,7 +338,7 @@ public class FileHelper {
 	 * @throws IOException
 	 * @return the file on disk
 	 */
-	public static File writeToFile(final org.structr.dynamic.File fileNode, final byte[] data) throws FrameworkException, IOException {
+	public static File writeToFile(final FileBase fileNode, final byte[] data) throws FrameworkException, IOException {
 
 		String id = fileNode.getProperty(GraphObject.id);
 		if (id == null) {
@@ -347,7 +351,7 @@ public class FileHelper {
 		}
 
 		fileNode.unlockSystemPropertiesOnce();
-		fileNode.setProperty(org.structr.dynamic.File.relativeFilePath, org.structr.dynamic.File.getDirectoryPath(id) + "/" + id);
+		fileNode.setProperty(FileBase.relativeFilePath, FileBase.getDirectoryPath(id) + "/" + id);
 
 		final String filesPath = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
 
@@ -362,11 +366,11 @@ public class FileHelper {
 
 	//~--- get methods ----------------------------------------------------
 
-	public static File getFile(final org.structr.web.entity.FileBase file) {
+	public static File getFile(final FileBase file) {
 		return new java.io.File(getFilePath(file.getRelativeFilePath()));
 	}
 
-	public static Path getPath(final org.structr.web.entity.FileBase file) {
+	public static Path getPath(final FileBase file) {
 		return Paths.get(getFilePath(file.getRelativeFilePath()));
 	}
 
@@ -377,7 +381,7 @@ public class FileHelper {
 	 * @return content type
 	 * @throws java.io.IOException
 	 */
-	public static String getContentMimeType(final org.structr.web.entity.FileBase file) throws IOException {
+	public static String getContentMimeType(final FileBase file) throws IOException {
 		return getContentMimeType(file.getFileOnDisk(), file.getProperty(AbstractNode.name));
 	}
 
