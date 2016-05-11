@@ -168,6 +168,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		// extend set of builtin functions
 		Functions.functions.put("render", new RenderFunction());
 		Functions.functions.put("include", new IncludeFunction());
+		Functions.functions.put("get_content", new GetContentFunction());
 		Functions.functions.put("strip_html", new StripHtmlFunction());
 		Functions.functions.put("POST", new PostFunction());
 		Functions.functions.put("GET", new GetFunction());
