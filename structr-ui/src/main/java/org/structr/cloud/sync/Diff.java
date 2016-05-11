@@ -32,7 +32,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.SyncCommand;
-import org.structr.dynamic.File;
+import org.structr.web.entity.FileBase;
 
 /**
  *
@@ -66,9 +66,9 @@ public class Diff extends Message {
 				// entity needs to be updated
 				if (entityToBeCompared.isNode()) {
 
-					if (entityToBeCompared instanceof File) {
+					if (entityToBeCompared instanceof FileBase) {
 
-						PushTransmission.sendFile(serverConnection, (File)entityToBeCompared, CloudService.CHUNK_SIZE);
+						PushTransmission.sendFile(serverConnection, (FileBase)entityToBeCompared, CloudService.CHUNK_SIZE);
 
 					} else {
 

@@ -36,7 +36,7 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.dynamic.File;
+import org.structr.web.entity.FileBase;
 
 /**
  *
@@ -62,9 +62,9 @@ public class UpdateTransmission implements CloudTransmission {
 
 			final NodeInterface node = nodeFactory.instantiate(neo4jNode);
 
-			if (node instanceof File) {
+			if (node instanceof FileBase) {
 
-				PushTransmission.sendFile(client, (File)node, CloudService.CHUNK_SIZE);
+				PushTransmission.sendFile(client, (FileBase)node, CloudService.CHUNK_SIZE);
 
 			} else {
 

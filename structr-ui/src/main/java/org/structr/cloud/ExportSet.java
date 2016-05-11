@@ -25,6 +25,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.dynamic.File;
+import org.structr.web.entity.FileBase;
 
 /**
  *
@@ -48,7 +49,7 @@ public class ExportSet {
 
 				size++;
 
-				if (data.getSyncNode() instanceof File) {
+				if (data.getSyncNode() instanceof FileBase) {
 
 					size += (((File)data.getSyncNode()).getSize().intValue() / CloudService.CHUNK_SIZE) + 2;
 				}

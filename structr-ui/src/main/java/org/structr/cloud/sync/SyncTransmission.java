@@ -40,7 +40,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
-import org.structr.dynamic.File;
+import org.structr.web.entity.FileBase;
 
 /**
  *
@@ -88,9 +88,9 @@ public class SyncTransmission implements CloudTransmission {
 
 						if (graphObject.isNode()) {
 
-							if (graphObject instanceof File) {
+							if (graphObject instanceof FileBase) {
 
-								sendFile(client, (File)graphObject, CloudService.CHUNK_SIZE);
+								sendFile(client, (FileBase)graphObject, CloudService.CHUNK_SIZE);
 
 							} else {
 
@@ -136,7 +136,7 @@ public class SyncTransmission implements CloudTransmission {
 	 * @throws org.structr.common.error.FrameworkException
 	 * @throws java.io.IOException
 	 */
-	public static void sendFile(final CloudConnection client, final File file, final int chunkSize) throws FrameworkException, IOException {
+	public static void sendFile(final CloudConnection client, final FileBase file, final int chunkSize) throws FrameworkException, IOException {
 
 		// send file container first
 		FileNodeDataContainer container = new FileNodeDataContainer(file);

@@ -35,6 +35,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.dynamic.File;
+import org.structr.web.entity.FileBase;
 
 /**
  *
@@ -71,7 +72,7 @@ public class PushTransmission implements CloudTransmission {
 		final Set<NodeInterface> nodes = exportSet.getNodes();
 		for (final NodeInterface n : nodes) {
 
-			if (n instanceof File) {
+			if (n instanceof FileBase) {
 				sendFile(client, (File)n, CloudService.CHUNK_SIZE);
 
 			} else {
@@ -110,7 +111,7 @@ public class PushTransmission implements CloudTransmission {
 	 * @throws org.structr.common.error.FrameworkException
 	 * @throws java.io.IOException
 	 */
-	public static void sendFile(final CloudConnection client, final File file, final int chunkSize) throws FrameworkException, IOException {
+	public static void sendFile(final CloudConnection client, final FileBase file, final int chunkSize) throws FrameworkException, IOException {
 
 		// send file container first
 		FileNodeDataContainer container = new FileNodeDataContainer(file);

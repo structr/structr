@@ -26,7 +26,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.SyncCommand;
-import org.structr.dynamic.File;
+import org.structr.web.entity.FileBase;
 
 /**
  *
@@ -58,8 +58,8 @@ public class SyncableInfo {
 				this.lastModified = node.getLastModifiedDate().getTime();
 				this.node         = true;
 
-				if (node instanceof File) {
-					this.size = ((File)node).getSize();
+				if (node instanceof FileBase) {
+					this.size = ((FileBase)node).getSize();
 				}
 
 			} else {

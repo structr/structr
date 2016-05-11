@@ -33,7 +33,7 @@ import java.util.logging.Logger;
 import org.structr.cloud.CloudConnection;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.SyncCommand;
-import org.structr.dynamic.File;
+import org.structr.web.entity.FileBase;
 
 /**
  * Transport data container for file nodes
@@ -52,7 +52,7 @@ public class FileNodeDataContainer extends NodeDataContainer {
 		super();
 	}
 
-	public FileNodeDataContainer(final File fileNode) throws FrameworkException {
+	public FileNodeDataContainer(final FileBase fileNode) throws FrameworkException {
 
 		super(fileNode, 0);
 
@@ -196,7 +196,7 @@ public class FileNodeDataContainer extends NodeDataContainer {
 	 * @param chunkSize the desired chunk size
 	 * @return an Iterable that generates FileNodeChunks
 	 */
-	public static Iterable<FileNodeChunk> getChunks(final File fileNode, final int chunkSize) {
+	public static Iterable<FileNodeChunk> getChunks(final FileBase fileNode, final int chunkSize) {
 
 		return (new Iterable<FileNodeChunk>() {
 
@@ -215,12 +215,12 @@ public class FileNodeDataContainer extends NodeDataContainer {
 	private static class ChunkIterator implements Iterator<FileNodeChunk> {
 
 		private InputStream inputStream = null;
-		private File fileNode = null;
+		private FileBase fileNode = null;
 		private int sequenceNumber = 0;
 		private long fileSize = 0;
 		private int chunkSize = 0;
 
-		public ChunkIterator(File fileNode, int chunkSize) {
+		public ChunkIterator(FileBase fileNode, int chunkSize) {
 
 			this.fileNode = fileNode;
 			this.fileSize = fileNode.getSize();

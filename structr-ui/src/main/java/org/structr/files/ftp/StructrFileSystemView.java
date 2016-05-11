@@ -31,10 +31,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractUser;
 import org.structr.core.graph.Tx;
-import org.structr.dynamic.File;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.Page;
 
@@ -80,7 +80,7 @@ public class StructrFileSystemView implements FileSystemView {
 			AbstractFile structrWorkingDir = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), workingDir);
 			tx.success();
 
-			if (structrWorkingDir == null || structrWorkingDir instanceof File) {
+			if (structrWorkingDir == null || structrWorkingDir instanceof FileBase) {
 				return new StructrFtpFolder(null);
 			}
 
@@ -158,7 +158,7 @@ public class StructrFileSystemView implements FileSystemView {
 					return new StructrFtpFolder((Folder) file);
 				} else {
 					tx.success();
-					return new StructrFtpFile((File) file);
+					return new StructrFtpFile((FileBase) file);
 				}
 			}
 

@@ -29,6 +29,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.SyncCommand;
 import org.structr.dynamic.File;
+import org.structr.web.entity.FileBase;
 
 /**
  * Encapsulates a pull request for a node
@@ -58,7 +59,7 @@ public class PullNode extends NodeDataContainer {
 			final List<NodeInterface> nodes = (List<NodeInterface>)value;
 			final NodeInterface node        = nodes.get(nodeIndex);
 
-			if (node instanceof File) {
+			if (node instanceof FileBase) {
 
 				PushTransmission.sendFile(serverConnection, (File)node, CloudService.CHUNK_SIZE);
 
