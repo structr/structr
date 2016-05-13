@@ -36,7 +36,7 @@
         <repository>
             <id>google-diff-patch-match</id>
             <name>google-diff-patch-match</name>
-            <url>http://google-diff-match-patch.googlecode.com/svn/trunk/maven/</url>
+            <url>https://raw.githubusercontent.com/lqc/google-diff-match-patch/master/maven/</url>
         </repository>
         <repository>
             <id>jodd</id>
