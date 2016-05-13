@@ -103,13 +103,6 @@ public class SchemaService implements Service {
 					for (final SchemaNode schemaNode : schemaNodes) {
 
 						nodeExtender.addClass(schemaNode.getClassName(), schemaNode.getSource(errorBuffer));
-
-						final String auxSource = schemaNode.getAuxiliarySource();
-						if (auxSource != null) {
-
-							nodeExtender.addClass("_" + schemaNode.getClassName() + "Helper", auxSource);
-						}
-
 						dynamicViews.addAll(schemaNode.getViews());
 					}
 
@@ -117,13 +110,6 @@ public class SchemaService implements Service {
 					for (final SchemaRelationshipNode schemaRelationship : StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class).getAsList()) {
 
 						nodeExtender.addClass(schemaRelationship.getClassName(), schemaRelationship.getSource(errorBuffer));
-
-						final String auxSource = schemaRelationship.getAuxiliarySource();
-						if (auxSource != null) {
-
-							nodeExtender.addClass("_" + schemaRelationship.getClassName() + "Helper", auxSource);
-						}
-
 						dynamicViews.addAll(schemaRelationship.getViews());
 					}
 

@@ -582,49 +582,6 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		return dynamicViews;
 	}
 
-	@Override
-	public String getAuxiliarySource() throws FrameworkException {
-
-		final Set<String> existingPropertyNames = new LinkedHashSet<>();
-		final String sourceNodeType             = getSchemaNodeSourceType();
-		final String targetNodeType             = getSchemaNodeTargetType();
-		final StringBuilder src                 = new StringBuilder();
-		final String _className                 = getClassName();
-		final Class baseType                    = AbstractRelationship.class;
-
-		if (!"File".equals(sourceNodeType) && !"File".equals(targetNodeType)) {
-			return null;
-		}
-
-		src.append("package org.structr.dynamic;\n\n");
-
-		SchemaHelper.formatImportStatements(src, baseType);
-
-		src.append("public class _").append(_className).append("Helper {\n\n");
-
-		src.append("\n\tstatic {\n\n");
-		src.append("\t\tfinal PropertyKey outKey = ");
-		src.append(getPropertySource(getPropertyName(sourceNodeType, existingPropertyNames, true), true, true));
-		src.append(";\n");
-		src.append("\t\toutKey.setDeclaringClass(").append(sourceNodeType).append(".class);\n\n");
-		src.append("\t\tfinal PropertyKey inKey = ");
-		src.append(getPropertySource(getPropertyName(targetNodeType, existingPropertyNames, false), false, true));
-		src.append(";\n");
-		src.append("\t\tinKey.setDeclaringClass(").append(targetNodeType).append(".class);\n\n");
-		src.append("\t\tStructrApp.getConfiguration().registerDynamicProperty(");
-		src.append(sourceNodeType).append(".class, outKey);\n");
-		src.append("\t\tStructrApp.getConfiguration().registerDynamicProperty(");
-		src.append(targetNodeType).append(".class, inKey);\n\n");
-		src.append("\t\tStructrApp.getConfiguration().registerPropertySet(").append(sourceNodeType).append(".class, PropertyView.Ui, outKey);\n");
-		src.append("\t\tStructrApp.getConfiguration().registerPropertySet(").append(targetNodeType).append(".class, PropertyView.Ui, inKey);\n");
-		src.append("\t}\n");
-		src.append("}\n");
-
-		return src.toString();
-
-//		return null;
-	}
-
 	// ----- public methods -----
 	public String getSchemaNodeSourceType() {
 
