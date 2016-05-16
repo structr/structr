@@ -40,6 +40,9 @@ import static org.structr.web.test.ResourceAccessTest.createResourceAccess;
 public abstract class FrontendTest extends StructrUiTest {
 
 	private static final Logger logger = Logger.getLogger(FrontendTest.class.getName());
+	
+	public static final String ADMIN_USERNAME = "admin";
+	public static final String ADMIN_PASSWORD = "admin";
 
 	//~--- methods --------------------------------------------------------
 	protected int run(final String testName) {
@@ -117,8 +120,8 @@ public abstract class FrontendTest extends StructrUiTest {
 
 		final PropertyMap properties = new PropertyMap();
 
-		properties.put(User.name, "admin");
-		properties.put(User.password, "admin");
+		properties.put(User.name, ADMIN_USERNAME);
+		properties.put(User.password, ADMIN_PASSWORD);
 		properties.put(User.isAdmin, true);
 		properties.put(User.backendUser, true);
 
