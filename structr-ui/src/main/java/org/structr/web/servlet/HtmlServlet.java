@@ -852,21 +852,21 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 */
 	private Page notFound(final HttpServletResponse response, final SecurityContext securityContext) throws IOException, FrameworkException {
 
-		final Page errorPage = StructrApp.getInstance(securityContext).nodeQuery(Page.class).and(Page.showOnErrorCodes, "404", false).getFirst();
+		final List<Page> errorPages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).and(Page.showOnErrorCodes, "404", false).getAsList();
 
-		if (errorPage != null) {
+		for (final Page errorPage : errorPages) {
+			
+			if (isVisibleForSite(securityContext.getRequest(), errorPage)) {
 
-			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-			return errorPage;
-
-		} else {
-
-			response.sendError(HttpServletResponse.SC_NOT_FOUND);
-
+				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+				return errorPage;
+			}
+			
 		}
+		
+		response.sendError(HttpServletResponse.SC_NOT_FOUND);
 
 		return null;
-
 	}
 
 	/**
