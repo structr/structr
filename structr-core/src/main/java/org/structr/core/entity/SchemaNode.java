@@ -429,6 +429,96 @@ public class SchemaNode extends AbstractSchemaNode {
 		return null;
 	}
 
+	@Override
+	public String getAuxiliarySource() throws FrameworkException {
+
+		// only File needs to return auxiliary code!
+		if (!"File".equals(getClassName())) {
+			return null;
+		}
+
+		final Map<Actions.Type, List<ActionEntry>> saveActions = new EnumMap<>(Actions.Type.class);
+		final Map<String, Set<String>> viewProperties          = new LinkedHashMap<>();
+		final Set<String> propertyNames                        = new LinkedHashSet<>();
+		final Set<Validator> validators                        = new LinkedHashSet<>();
+		final Set<String> enums                                = new LinkedHashSet<>();
+		final String _className                                = getProperty(name);
+		final ErrorBuffer dummyErrorBuffer                     = new ErrorBuffer();
+
+		// extract properties
+		final String propertyDefinitions = SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, dummyErrorBuffer);
+		final String viewDefinitions     = SchemaHelper.extractViews(this, viewProperties, dummyErrorBuffer);
+		final String methodDefinitions   = SchemaHelper.extractMethods(this, saveActions);
+
+		if (!propertyNames.isEmpty() || !viewProperties.isEmpty() || validators.isEmpty() || !saveActions.isEmpty()) {
+
+			final StringBuilder src = new StringBuilder();
+
+			src.append("package org.structr.dynamic;\n\n");
+
+			SchemaHelper.formatImportStatements(src, AbstractNode.class);
+
+			src.append("public class _").append(_className).append("Helper {\n");
+
+			// output possible enum definitions
+			for (final String enumDefition : enums) {
+				src.append(enumDefition);
+			}
+
+			// formatting is important :)
+			if (!enums.isEmpty()) {
+				src.append("\n");
+			}
+
+			if (!propertyNames.isEmpty()) {
+
+				src.append("\n");
+
+				src.append(propertyDefinitions);
+				src.append(viewDefinitions);
+				src.append(methodDefinitions);
+
+				src.append("\n\tstatic {\n\n");
+
+				for (final String name : propertyNames) {
+
+					final String propertyName = name + "Property";
+
+					src.append("\t\t").append(propertyName).append(".setDeclaringClass(").append(_className).append(".class);\n\n");
+					src.append("\t\tStructrApp.getConfiguration().registerDynamicProperty(").append(_className).append(".class, ").append(propertyName).append(");\n");
+					src.append("\t\tStructrApp.getConfiguration().registerPropertySet(").append(_className).append(".class, PropertyView.Ui, ").append(propertyName).append(");\n\n");
+
+				}
+
+				// Code for custom Views on "File" type
+				for (final String viewName : viewProperties.keySet()) {
+
+					for (String propertyName : viewProperties.get(viewName)) {
+
+						if (propertyName.endsWith("Property")) {
+							propertyName = propertyName.substring(0, propertyName.length() - 8);
+						}
+
+						src.append("\t\tStructrApp.getConfiguration().registerPropertySet(").append(_className).append(".class, \"").append(viewName).append("\", \"").append(propertyName).append("\");\n\n");
+
+					}
+
+				}
+
+				src.append("\t}\n\n");
+			}
+
+			SchemaHelper.formatDynamicValidators(src, validators);
+			SchemaHelper.formatDynamicSaveActions(src, saveActions);
+
+			src.append("}\n");
+
+			return src.toString();
+		}
+
+		return null;
+	}
+
 	// ----- private methods -----
 	private void addPropertyNameToViews(final String propertyName, final Map<String, Set<String>> viewProperties) {
 		//SchemaHelper.addPropertyToView(PropertyView.Public, propertyName, viewProperties);
