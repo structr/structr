@@ -234,17 +234,17 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static void updateMetadata(final org.structr.dynamic.File file) throws FrameworkException, IOException {
+	public static void updateMetadata(final FileBase file) throws FrameworkException, IOException {
 
-		file.setProperty(org.structr.dynamic.File.contentType, getContentMimeType(file));
+		file.setProperty(FileBase.contentType, getContentMimeType(file));
 
 		// checksum is read-only
 		file.unlockSystemPropertiesOnce();
-		file.setProperty(org.structr.dynamic.File.checksum, FileHelper.getChecksum(file));
+		file.setProperty(FileBase.checksum, FileHelper.getChecksum(file));
 
 		// size is read-only
 		file.unlockSystemPropertiesOnce();
-		file.setProperty(org.structr.dynamic.File.size, FileHelper.getSize(file));
+		file.setProperty(FileBase.size, FileHelper.getSize(file));
 
 	}
 

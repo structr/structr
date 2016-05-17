@@ -61,6 +61,7 @@ import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.GenericProperty;
+import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -162,6 +163,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	public static final Property<String> dataHashProperty = new StringProperty("data-structr-hash");
 
 	public static final Property<List<String>> mostUsedTagsProperty = new MostUsedTagsProperty("mostUsedTags");
+	public static final Property<Integer> domSortPosition = new IntProperty("domSortPosition");
 
 	static {
 

@@ -358,6 +358,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		String name = getProperty(AbstractNode.name);
 		if (name == null) {
+			
 			name = getNodeId().toString();
 		}
 
