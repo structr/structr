@@ -44,9 +44,6 @@ public abstract class FrontendTest extends StructrUiTest {
 	public static final String ADMIN_USERNAME = "admin";
 	public static final String ADMIN_PASSWORD = "admin";
 
-	public static final String ADMIN_USERNAME = "admin";
-	public static final String ADMIN_PASSWORD = "admin";
-
 	//~--- methods --------------------------------------------------------
 	protected int run(final String testName) {
 
