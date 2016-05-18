@@ -36,6 +36,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.dynamic.File;
 import org.structr.web.common.RenderContext;
+import org.structr.web.entity.FileBase;
 import org.structr.web.entity.User;
 import org.structr.web.entity.relation.RenderNode;
 
@@ -77,19 +78,19 @@ public class RenderDataTest extends DOMTest {
 			Folder folderF = folders.get(6);
 			folderF.setProperty(AbstractNode.name, "folderF");
 
-			File file1 = files.get(0);
+			FileBase file1 = files.get(0);
 			file1.setProperty(AbstractNode.name, "file1");
-			File file2 = files.get(1);
+			FileBase file2 = files.get(1);
 			file2.setProperty(AbstractNode.name, "file2");
-			File file3 = files.get(2);
+			FileBase file3 = files.get(2);
 			file3.setProperty(AbstractNode.name, "file3");
-			File file4 = files.get(3);
+			FileBase file4 = files.get(3);
 			file4.setProperty(AbstractNode.name, "file4");
-			File file5 = files.get(4);
+			FileBase file5 = files.get(4);
 			file5.setProperty(AbstractNode.name, "file5");
-			File file6 = files.get(5);
+			FileBase file6 = files.get(5);
 			file6.setProperty(AbstractNode.name, "file6");
-			File file7 = files.get(6);
+			FileBase file7 = files.get(6);
 			file7.setProperty(AbstractNode.name, "file7");
 
 			rootNode.treeAppendChild(folderA);
@@ -230,17 +231,17 @@ public class RenderDataTest extends DOMTest {
 
 			assertEquals(6, files.size());
 
-			File nodeA = files.get(0);
+			FileBase nodeA = files.get(0);
 			nodeA.setProperty(AbstractNode.name, "fileA");
-			File nodeB = files.get(1);
+			FileBase nodeB = files.get(1);
 			nodeB.setProperty(AbstractNode.name, "fileB");
-			File nodeC = files.get(2);
+			FileBase nodeC = files.get(2);
 			nodeC.setProperty(AbstractNode.name, "fileC");
-			File nodeD = files.get(3);
+			FileBase nodeD = files.get(3);
 			nodeD.setProperty(AbstractNode.name, "fileD");
-			File nodeE = files.get(4);
+			FileBase nodeE = files.get(4);
 			nodeE.setProperty(AbstractNode.name, "fileE");
-			File nodeF = files.get(5);
+			FileBase nodeF = files.get(5);
 			nodeF.setProperty(AbstractNode.name, "fileF");
 
 			// create dom tree

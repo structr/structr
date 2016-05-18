@@ -40,11 +40,12 @@ import static org.structr.web.test.ResourceAccessTest.createResourceAccess;
 public abstract class FrontendTest extends StructrUiTest {
 
 	private static final Logger logger = Logger.getLogger(FrontendTest.class.getName());
+	
+	public static final String ADMIN_USERNAME = "admin";
+	public static final String ADMIN_PASSWORD = "admin";
 
 	//~--- methods --------------------------------------------------------
 	protected int run(final String testName) {
-
-
 
 		try (final Tx tx = app.tx()) {
 
@@ -113,18 +114,20 @@ public abstract class FrontendTest extends StructrUiTest {
 		}
 	}
 
-	protected void createAdminUser() throws FrameworkException {
+	protected User createAdminUser() throws FrameworkException {
 
 		final PropertyMap properties = new PropertyMap();
 
-		properties.put(User.name, "admin");
-		properties.put(User.password, "admin");
+		properties.put(User.name, ADMIN_USERNAME);
+		properties.put(User.password, ADMIN_PASSWORD);
 		properties.put(User.isAdmin, true);
 		properties.put(User.backendUser, true);
 
+		User user = null;
+		
 		try (final Tx tx = app.tx()) {
 
-			User user = app.create(User.class, properties);
+			user = app.create(User.class, properties);
 			//user.setProperty(User.password, "admin");
 			tx.success();
 
@@ -132,6 +135,8 @@ public abstract class FrontendTest extends StructrUiTest {
 
 			logger.log(Level.WARNING, "", t);
 		}
+
+		return user;
 
 	}
 

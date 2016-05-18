@@ -898,10 +898,10 @@ public class Importer {
 
 	}
 
-	private File createFileNode(final String uuid, final String name, final String contentType, final long size, final long checksum) throws FrameworkException {
+	private FileBase createFileNode(final String uuid, final String name, final String contentType, final long size, final long checksum) throws FrameworkException {
 
 		String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
-		File fileNode = app.create(File.class,
+		FileBase fileNode = app.create(File.class,
 			new NodeAttribute(GraphObject.id, uuid),
 			new NodeAttribute(AbstractNode.name, name),
 			new NodeAttribute(File.relativeFilePath, relativeFilePath),

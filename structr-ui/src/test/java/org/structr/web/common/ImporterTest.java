@@ -26,6 +26,7 @@ import org.structr.common.PathHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.graph.Tx;
+import org.structr.dynamic.File;
 import org.structr.web.Importer;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.dom.Page;
@@ -396,7 +397,7 @@ public class ImporterTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final String filename = PathHelper.getName(expectedPath);
-			file = app.nodeQuery(FileBase.class).andName(filename).getFirst();
+			file = app.nodeQuery(File.class).andName(filename).getFirst();
 
 			assertNotNull(filename + " file not found", file);
 			assertEquals("Wrong path of " + filename + " file", (String) file.getProperty(FileBase.path), expectedPath);
@@ -413,7 +414,7 @@ public class ImporterTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final String filename = PathHelper.getName(expectedPath);
-			file = app.nodeQuery(FileBase.class).andName(filename).getFirst();
+			file = app.nodeQuery(File.class).andName(filename).getFirst();
 
 			assertNull("File " + filename + " found", file);
 

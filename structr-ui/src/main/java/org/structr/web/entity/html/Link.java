@@ -77,7 +77,7 @@ public class Link extends LinkSource {
 //		
 //		Linkable target = getProperty(linkable);
 //		
-//		if (target instanceof File) {
+//		if (target instanceof FileBase) {
 //			
 //			File file = (File) target;
 //			
