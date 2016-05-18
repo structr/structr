@@ -32,7 +32,6 @@ import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-import org.structr.dynamic.File;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
@@ -117,10 +116,10 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 					}
 
-					Result<File> files = app.nodeQuery(File.class).getResult();
+					Result<FileBase> files = app.nodeQuery(FileBase.class).getResult();
 					logger.log(Level.INFO, "{0} files found", files.size());
 
-					for (File f : files.getResults()) {
+					for (FileBase f : files.getResults()) {
 
 						if (f.getProperty(AbstractFile.parent) != null) {
 							continue;

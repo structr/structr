@@ -37,6 +37,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 
@@ -77,12 +78,12 @@ public abstract class FtpTest extends StructrUiTest {
 		return dir;
 	}
 
-	protected File createFTPFile(final String path, final String name) throws FrameworkException {
+	protected FileBase createFTPFile(final String path, final String name) throws FrameworkException {
 		PropertyMap props = new PropertyMap();
 		props.put(File.name, name);
 		props.put(File.size, 0L);
 		props.put(File.owner, ftpUser);
-		File file = (File) createTestNodes(File.class, 1, props).get(0);
+		FileBase file = (FileBase) createTestNodes(File.class, 1, props).get(0);
 
 		if (StringUtils.isNotBlank(path)) {
 			AbstractFile parent = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), path);

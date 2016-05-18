@@ -78,7 +78,7 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static <T extends org.structr.dynamic.File> T transformFile(final SecurityContext securityContext, final String uuid, final Class<T> fileType) throws FrameworkException, IOException {
+	public static <T extends org.structr.web.entity.FileBase> T transformFile(final SecurityContext securityContext, final String uuid, final Class<T> fileType) throws FrameworkException, IOException {
 
 		AbstractFile existingFile = getFileByUuid(securityContext, uuid);
 
@@ -109,7 +109,7 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static <T extends org.structr.dynamic.File> T createFileBase64(final SecurityContext securityContext, final String rawData, final Class<T> t) throws FrameworkException, IOException {
+	public static <T extends org.structr.web.entity.FileBase> T createFileBase64(final SecurityContext securityContext, final String rawData, final Class<T> t) throws FrameworkException, IOException {
 
 		Base64URIData uriData = new Base64URIData(rawData);
 
@@ -130,7 +130,7 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static <T extends org.structr.dynamic.File> T createFile(final SecurityContext securityContext, final InputStream fileStream, final String contentType, final Class<T> fileType, final String name)
+	public static <T extends org.structr.web.entity.FileBase> T createFile(final SecurityContext securityContext, final InputStream fileStream, final String contentType, final Class<T> fileType, final String name)
 		throws FrameworkException, IOException {
 
 		final byte[] data = IOUtils.toByteArray(fileStream);
@@ -151,7 +151,7 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static <T extends org.structr.dynamic.File> T createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<T> t, final String name)
+	public static <T extends org.structr.web.entity.FileBase> T createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<T> t, final String name)
 		throws FrameworkException, IOException {
 
 		PropertyMap props = new PropertyMap();
@@ -177,7 +177,7 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static <T extends org.structr.dynamic.File> T createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<T> t)
+	public static <T extends org.structr.web.entity.FileBase> T createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<T> t)
 		throws FrameworkException, IOException {
 
 		return createFile(securityContext, fileData, contentType, t, null);
@@ -214,16 +214,16 @@ public class FileHelper {
 
 		FileHelper.writeToFile(file, fileData);
 
-		file.setProperty(org.structr.dynamic.File.contentType, contentType != null ? contentType : getContentMimeType(file));
+		file.setProperty(FileBase.contentType, contentType != null ? contentType : getContentMimeType(file));
 
 		file.unlockSystemPropertiesOnce();
-		file.setProperty(org.structr.dynamic.File.checksum, FileHelper.getChecksum(file));
+		file.setProperty(FileBase.checksum, FileHelper.getChecksum(file));
 
 		file.unlockSystemPropertiesOnce();
-		file.setProperty(org.structr.dynamic.File.size, FileHelper.getSize(file));
+		file.setProperty(FileBase.size, FileHelper.getSize(file));
 
 		file.unlockSystemPropertiesOnce();
-		file.setProperty(org.structr.dynamic.File.version, 1);
+		file.setProperty(FileBase.version, 1);
 
 	}
 
@@ -234,17 +234,17 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static void updateMetadata(final org.structr.dynamic.File file) throws FrameworkException, IOException {
+	public static void updateMetadata(final FileBase file) throws FrameworkException, IOException {
 
-		file.setProperty(org.structr.dynamic.File.contentType, getContentMimeType(file));
+		file.setProperty(FileBase.contentType, getContentMimeType(file));
 
 		// checksum is read-only
 		file.unlockSystemPropertiesOnce();
-		file.setProperty(org.structr.dynamic.File.checksum, FileHelper.getChecksum(file));
+		file.setProperty(FileBase.checksum, FileHelper.getChecksum(file));
 
 		// size is read-only
 		file.unlockSystemPropertiesOnce();
-		file.setProperty(org.structr.dynamic.File.size, FileHelper.getSize(file));
+		file.setProperty(FileBase.size, FileHelper.getSize(file));
 
 	}
 
