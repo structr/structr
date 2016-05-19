@@ -28,6 +28,7 @@ import org.apache.commons.io.IOUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.dynamic.File;
+import org.structr.web.entity.FileBase;
 
 /**
  *
@@ -61,7 +62,7 @@ public class FileHelperTest extends StructrUiTest {
 					final byte[] content  = fileEntry.getValue();
 
 					try {
-						final File file = FileHelper.createFile(securityContext, content, null, File.class, fileName);
+						final FileBase file = FileHelper.createFile(securityContext, content, null, File.class, fileName);
 						assertEquals("MIME type detection failed", mimeType, file.getContentType());
 
 					} catch (IOException ioex) {
@@ -127,7 +128,7 @@ public class FileHelperTest extends StructrUiTest {
 					final byte[] content  = fileEntry.getValue();
 
 					try {
-						final File file = FileHelper.createFile(securityContext, content, null, File.class, fileName);
+						final FileBase file = FileHelper.createFile(securityContext, content, null, File.class, fileName);
 						assertEquals("MIME type detection failed for " + fileName, mimeType, file.getContentType());
 
 					} catch (IOException ioex) {

@@ -30,9 +30,9 @@ import java.util.logging.Logger;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.dynamic.File;
 import org.structr.util.Base64;
 import org.structr.web.common.FileHelper;
+import org.structr.web.entity.FileBase;
 import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
@@ -82,7 +82,7 @@ public class ChunkCommand extends AbstractCommand {
 
 			}
 
-			final File file = (File) getNode(uuid);
+			final FileBase file = (FileBase) getNode(uuid);
 
 			if (!file.isGranted(Permission.write, securityContext)) {
 
@@ -100,10 +100,10 @@ public class ChunkCommand extends AbstractCommand {
 				final long size     = FileHelper.getSize(file);
 
 				file.unlockSystemPropertiesOnce();
-				file.setProperty(File.checksum, checksum);
+				file.setProperty(FileBase.checksum, checksum);
 
 				file.unlockSystemPropertiesOnce();
-				file.setProperty(File.size, size);
+				file.setProperty(FileBase.size, size);
 
 				file.increaseVersion();
 

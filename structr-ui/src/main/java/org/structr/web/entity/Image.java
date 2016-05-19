@@ -52,7 +52,7 @@ import org.structr.web.property.ThumbnailProperty;
  *
  *
  */
-public class Image extends File {
+public class Image extends org.structr.dynamic.File {
 
 	// register this type as an overridden builtin type
 	static {

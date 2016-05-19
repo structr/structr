@@ -96,8 +96,8 @@ public class UiSyncCommandTest extends StructrUiTest {
 		final String fileName = super.basePath + "/exportTest.zip";
 		Page testPage         = null;
 		Head head             = null;
-		File textFile         = null;
-		File jsFile           = null;
+		FileBase textFile     = null;
+		FileBase jsFile       = null;
 
 		try (final Tx tx = app.tx()) {
 

@@ -899,8 +899,10 @@ public class SchemaHelper {
 				switch (type) {
 
 					case Custom:
-						throw new UnsupportedOperationException("Active save actions are not supported for overridable types.");
-
+						// active actions are exported stored functions
+						// that can be called by POSTing on the entity
+						//formatDynamicActiveActions(src, actionList);
+						break;
 					default:
 						// passive actions are actions that are executed
 						// automtatically on creation / modification etc.

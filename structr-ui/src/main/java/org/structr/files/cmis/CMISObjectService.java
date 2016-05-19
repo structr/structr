@@ -88,8 +88,8 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 	public String createDocument(final String repositoryId, final Properties properties, final String folderId, final ContentStream contentStream, final VersioningState versioningState, final List<String> policies, final Acl addAces, final Acl removeAces, final ExtensionsData extension) {
 
 		final App app = StructrApp.getInstance(securityContext);
-		File newFile  = null;
-		String uuid   = null;
+		FileBase newFile  = null;
+		String uuid       = null;
 
 		try (final Tx tx = app.tx()) {
 

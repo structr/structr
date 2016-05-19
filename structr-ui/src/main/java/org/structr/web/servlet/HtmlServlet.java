@@ -85,6 +85,7 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
+import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.Site;
 import org.structr.web.entity.User;
@@ -259,7 +260,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				if (rootElement == null) { // No page found
 
 					// Look for a file
-					final File file = findFile(securityContext, request, path);
+					final FileBase file = findFile(securityContext, request, path);
 					if (file != null) {
 
 						streamFile(securityContext, file, request, response, edit);
@@ -328,7 +329,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 								securityContext = authResult.getSecurityContext();
 								renderContext.pushSecurityContext(securityContext);
 
-							} else if (result instanceof File) {
+							} else if (result instanceof FileBase) {
 
 								streamFile(authResult.getSecurityContext(), (File)result, request, response, EditMode.NONE);
 								tx.success();
@@ -622,7 +623,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				if (rootElement == null) { // No page found
 
 					// Look for a file
-					File file = findFile(securityContext, request, path);
+					FileBase file = findFile(securityContext, request, path);
 					if (file != null) {
 
 						//streamFile(securityContext, file, request, response, edit);
@@ -692,7 +693,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 								rootElement = (DOMNode)result;
 								renderContext.pushSecurityContext(authResult.getSecurityContext());
 
-							} else if (result instanceof File) {
+							} else if (result instanceof FileBase) {
 
 								//streamFile(authResult.getSecurityContext(), (File)result, request, response, EditMode.NONE);
 								tx.success();
@@ -851,21 +852,21 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 */
 	private Page notFound(final HttpServletResponse response, final SecurityContext securityContext) throws IOException, FrameworkException {
 
-		final Page errorPage = StructrApp.getInstance(securityContext).nodeQuery(Page.class).and(Page.showOnErrorCodes, "404", false).getFirst();
+		final List<Page> errorPages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).and(Page.showOnErrorCodes, "404", false).getAsList();
 
-		if (errorPage != null) {
+		for (final Page errorPage : errorPages) {
+			
+			if (isVisibleForSite(securityContext.getRequest(), errorPage)) {
 
-			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-			return errorPage;
-
-		} else {
-
-			response.sendError(HttpServletResponse.SC_NOT_FOUND);
-
+				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+				return errorPage;
+			}
+			
 		}
+		
+		response.sendError(HttpServletResponse.SC_NOT_FOUND);
 
 		return null;
-
 	}
 
 	/**
@@ -937,7 +938,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 * @return file
 	 * @throws FrameworkException
 	 */
-	private File findFile(final SecurityContext securityContext, final HttpServletRequest request, final String path) throws FrameworkException {
+	private FileBase findFile(final SecurityContext securityContext, final HttpServletRequest request, final String path) throws FrameworkException {
 
 		List<Linkable> entryPoints = findPossibleEntryPoints(securityContext, request, path);
 
@@ -952,8 +953,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		for (Linkable node : entryPoints) {
 
-			if (node instanceof File && (path.equals(node.getPath()) || node.getUuid().equals(PathHelper.getName(path)))) {
-				return (File) node;
+			if (node instanceof FileBase && (path.equals(node.getPath()) || node.getUuid().equals(PathHelper.getName(path)))) {
+				return (FileBase) node;
 			}
 		}
 
@@ -1329,7 +1330,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		return notModified;
 	}
 
-	private void streamFile(SecurityContext securityContext, final File file, HttpServletRequest request, HttpServletResponse response, final EditMode edit) throws IOException {
+	private void streamFile(SecurityContext securityContext, final FileBase file, HttpServletRequest request, HttpServletResponse response, final EditMode edit) throws IOException {
 
 		if (!securityContext.isVisible(file)) {
 

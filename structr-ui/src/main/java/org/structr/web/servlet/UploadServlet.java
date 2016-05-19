@@ -58,6 +58,7 @@ import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
+import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Image;
 
 //~--- classes ----------------------------------------------------------------
@@ -226,7 +227,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 						final String name = item.getName().replaceAll("\\\\", "/");
 
-						final org.structr.dynamic.File newFile = FileHelper.createFile(securityContext, IOUtils.toByteArray(item.getInputStream()), contentType, cls);
+						final FileBase newFile = FileHelper.createFile(securityContext, IOUtils.toByteArray(item.getInputStream()), contentType, cls);
 						newFile.setProperty(AbstractNode.name, PathHelper.getName(name));
 
 						PropertyMap additionalProperties = PropertyMap.inputTypeToJavaType(securityContext, cls, params);
