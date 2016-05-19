@@ -34,11 +34,6 @@
     </properties>
     <repositories>
         <repository>
-            <id>google-diff-patch-match</id>
-            <name>google-diff-patch-match</name>
-            <url>http://google-diff-match-patch.googlecode.com/svn/trunk/maven/</url>
-        </repository>
-        <repository>
             <id>jodd</id>
             <url>http://repo1.maven.org/maven2/org/jodd/</url>
         </repository>
@@ -80,11 +75,11 @@
             <optional>false</optional>
         </dependency>
         <dependency>
-            <groupId>diff_match_patch</groupId>
-            <artifactId>diff_match_patch</artifactId>
-            <version>current</version>
-        </dependency>
-	<dependency>
+            <groupId>org.bitbucket.cowwoc</groupId>
+            <artifactId>diff-match-patch</artifactId>
+            <version>1.1</version>
+        </dependency>        
+        <dependency>
             <groupId>com.jayway.restassured</groupId>
             <artifactId>rest-assured</artifactId>
             <version>2.7.0</version>

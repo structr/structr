@@ -18,8 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import name.fraser.neil.plaintext.diff_match_patch;
-import name.fraser.neil.plaintext.diff_match_patch.Patch;
 
 import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.dom.Content;
@@ -32,6 +30,8 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.bitbucket.cowwoc.diffmatchpatch.DiffMatchPatch;
+import org.bitbucket.cowwoc.diffmatchpatch.DiffMatchPatch.Patch;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.websocket.StructrWebSocket;
 
@@ -60,10 +60,10 @@ public class PatchCommand extends AbstractCommand {
 
 		if (node != null) {
 
-			diff_match_patch dmp      = new diff_match_patch();
+			DiffMatchPatch dmp      = new DiffMatchPatch();
 			String oldText            = node.getProperty(Content.content);
-			LinkedList<Patch> patches = (LinkedList<Patch>) dmp.patch_fromText(patch);
-			final Object[] results    = dmp.patch_apply(patches, oldText);
+			LinkedList<Patch> patches = (LinkedList<Patch>) dmp.patchFromText(patch);
+			final Object[] results    = dmp.patchApply(patches, oldText);
 
 			try {
 				node.setProperty(Content.content, results[0].toString());
