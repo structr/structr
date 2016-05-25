@@ -671,6 +671,8 @@ var _Pages = {
 
 		var hasChildren = entity.children && entity.children.length;
 
+		if (!pages) return;
+
 		pages.append('<div id="id_' + entity.id + '" class="node page"></div>');
 		var div = Structr.node(entity.id);
 
@@ -842,69 +844,9 @@ var _Pages = {
 					}
 				});
 
-				doc.find('*').each(function(i, element) {
-
-					getComments(element).forEach(function(c) {
-
-						var inner = $(getNonCommentSiblings(c.node));
-						$(c.node).replaceWith('<div data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, false) + '"></div>');
-						var el = $(element).children('[data-structr-id="' + c.id + '"]');
-						el.append(inner);
-
-						$(el).on({
-							mouseover: function(e) {
-								e.stopPropagation();
-								var self = $(this);
-								self.addClass('structr-editable-area');
-								_Pages.highlight(self.attr('data-structr-id'));
-							},
-							mouseout: function(e) {
-								e.stopPropagation();
-								var self = $(this);
-								self.removeClass('structr-editable-area');
-								_Pages.unhighlight(self.attr('data-structr-id'));
-							},
-							click: function(e) {
-								e.stopPropagation();
-								e.preventDefault();
-								var self = $(this);
-
-								if (contentSourceId) {
-									// click on same element again?
-									if (self.attr('data-structr-id') === contentSourceId) {
-										return;
-									}
-								}
-								contentSourceId = self.attr('data-structr-id');
-
-								if (self.hasClass('structr-editable-area-active')) {
-									return false;
-								}
-								self.removeClass('structr-editable-area').addClass('structr-editable-area-active').prop('contenteditable', true).focus();
-
-								// Store old text in global var and attribute
-								textBeforeEditing = self.text();
-
-								var srcText = expandNewline(self.attr('data-structr-raw-content'));
-
-								// Replace only if it differs (e.g. for variables)
-								if (srcText !== textBeforeEditing) {
-									self.html(srcText);
-									textBeforeEditing = srcText;
-								}
-								_Pages.expandTreeNode(contentSourceId);
-								return false;
-							},
-							blur: function(e) {
-								e.stopPropagation();
-								_Pages.saveInlineElement(this);
-							}
-						});
-
-					});
-
-				});
 			} catch (e) {}
+
+			_Pages.activateComments(doc);
 
 		});
 
@@ -913,16 +855,87 @@ var _Pages = {
 		return div;
 
 	},
-	saveInlineElement: function(el) {
+	activateComments: function(doc, callback) {
+
+		doc.find('*').each(function(i, element) {
+
+			getComments(element).forEach(function(c) {
+
+				var inner = $(getNonCommentSiblings(c.node));
+				$(c.node).replaceWith('<div data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, false) + '"></div>');
+				var el = $(element).children('[data-structr-id="' + c.id + '"]');
+				el.append(inner);
+
+				$(el).on({
+					mouseover: function(e) {
+						e.stopPropagation();
+						var self = $(this);
+						self.addClass('structr-editable-area');
+						_Pages.highlight(self.attr('data-structr-id'));
+					},
+					mouseout: function(e) {
+						e.stopPropagation();
+						var self = $(this);
+						self.removeClass('structr-editable-area');
+						_Pages.unhighlight(self.attr('data-structr-id'));
+					},
+					click: function(e) {
+						e.stopPropagation();
+						e.preventDefault();
+						var self = $(this);
+
+						if (contentSourceId) {
+							// click on same element again?
+							if (self.attr('data-structr-id') === contentSourceId) {
+								return;
+							}
+						}
+						contentSourceId = self.attr('data-structr-id');
+
+						if (self.hasClass('structr-editable-area-active')) {
+							return false;
+						}
+						self.removeClass('structr-editable-area').addClass('structr-editable-area-active').prop('contenteditable', true).focus();
+
+						// Store old text in global var and attribute
+						textBeforeEditing = self.text();
+
+						var srcText = expandNewline(self.attr('data-structr-raw-content'));
+
+						// Replace only if it differs (e.g. for variables)
+						if (srcText !== textBeforeEditing) {
+							self.html(srcText);
+							textBeforeEditing = srcText;
+						}
+						_Pages.expandTreeNode(contentSourceId);
+						return false;
+					},
+					blur: function(e) {
+						e.stopPropagation();
+						_Pages.saveInlineElement(this, callback);
+					}
+				});
+
+			});
+
+		});
+
+	},
+	saveInlineElement: function(el, callback) {
 		var self = $(el);
 		contentSourceId = self.attr('data-structr-id');
 		var text = unescapeTags(cleanText(self.html()));
-		Command.setProperty(contentSourceId, 'content', text, false);
 		self.attr('contenteditable', false);
 		self.removeClass('structr-editable-area-active').removeClass('structr-editable-area');
+		Command.setProperty(contentSourceId, 'content', text, false, function(obj) {
+			if (contentSourceId === obj.id) {
+				if (callback) {
+					callback();
+				}
+				contentSourceId = null;
+			}
+		});
 		_Pages.loadIframe(activeTab);
-		contentSourceId = null;
-
 	},
 	findDroppablesInIframe: function(iframeDocument, id) {
 		var droppables = iframeDocument.find('[data-structr-id]');
