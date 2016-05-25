@@ -1831,7 +1831,7 @@ var _Crud = {
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8;',
 			headers: {
-				Accept: 'application/json; charset=utf-8; properties=id,name,type,isThumbnail,isImage,tnSmall'
+				Accept: 'application/json; charset=utf-8; properties=id,name,type,contentType,isThumbnail,isImage,tnSmall,tnMid'
 			},
 			//async: false,
 			success: function(data) {
@@ -1859,7 +1859,8 @@ var _Crud = {
 						nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
 					} else if (node.tnSmall) {
 						nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.tnSmall.id + '"></div>');
-
+					} else if (node.contentType === 'image/svg+xml') {
+						nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
 					}
 
 					$('.thumbnail', nodeEl).on('click', function(e) {
@@ -1869,11 +1870,11 @@ var _Crud = {
 						return false;
 					});
 
-					if (node.tnMid) {
+					if (node.tnMid || node.contentType === 'image/svg+xml') {
 						$('.thumbnail', nodeEl).on('mouseenter', function(e) {
 							e.stopPropagation();
 							$('.thumbnailZoom').remove();
-							nodeEl.parent().append('<img class="thumbnailZoom" src="/' + node.tnMid.id + '">');
+							nodeEl.parent().append('<img class="thumbnailZoom" src="/' + (node.tnMid ? node.tnMid.id : node.id) + '">');
 							var tnZoom = $($('.thumbnailZoom', nodeEl.parent())[0]);
 							tnZoom.css({
 								top: (nodeEl.position().top) + 'px',
