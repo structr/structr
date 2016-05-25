@@ -48,6 +48,11 @@ public class RenderFunction extends Function<Object, Object> {
 
 			RenderContext innerCtx = new RenderContext((RenderContext)ctx);
 
+			if (sources[0] == null) {
+				
+				return "";
+			}
+			
 			if (sources[0] instanceof DOMNode) {
 
 				((DOMNode)sources[0]).render(innerCtx, 0);
