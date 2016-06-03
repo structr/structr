@@ -249,7 +249,7 @@ public class SchemaService implements Service {
 			for (final SchemaNode schemaNode : schemaNodes) {
 
 				final int relCount = schemaNode.getProperty(SchemaNode.relatedFrom).size() + schemaNode.getProperty(SchemaNode.relatedTo).size();
-				final int level    = recursiveGetHierarchyLevel(map, alreadyCalculated, schemaNode);
+				final int level    = recursiveGetHierarchyLevel(map, alreadyCalculated, schemaNode, 0);
 
 				schemaNode.setProperty(SchemaNode.hierarchyLevel, level);
 				schemaNode.setProperty(SchemaNode.relCount, relCount);
@@ -262,7 +262,12 @@ public class SchemaService implements Service {
 		}
 	}
 
-	private static int recursiveGetHierarchyLevel(final Map<String, SchemaNode> map, final Set<String> alreadyCalculated, final SchemaNode schemaNode) {
+	private static int recursiveGetHierarchyLevel(final Map<String, SchemaNode> map, final Set<String> alreadyCalculated, final SchemaNode schemaNode, final int depth) {
+
+		// stop at level 20
+		if (depth > 20) {
+			return 20;
+		}
 
 		String superclass = schemaNode.getProperty(SchemaNode.extendsClass);
 		if (superclass == null) {
@@ -278,7 +283,7 @@ public class SchemaService implements Service {
 			final SchemaNode superSchemaNode = map.get(superclass);
 			if (superSchemaNode != null) {
 
-				return recursiveGetHierarchyLevel(map, alreadyCalculated, superSchemaNode) + 1;
+				return recursiveGetHierarchyLevel(map, alreadyCalculated, superSchemaNode, depth + 1) + 1;
 			}
 		}
 

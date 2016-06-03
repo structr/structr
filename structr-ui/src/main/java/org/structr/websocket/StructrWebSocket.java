@@ -37,7 +37,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
-import org.structr.dynamic.File;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.web.entity.FileBase;
@@ -343,7 +342,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		try {
 
-			File file = (File) StructrApp.getInstance(securityContext).getNodeById(uuid);
+			FileBase file = (FileBase) StructrApp.getInstance(securityContext).getNodeById(uuid);
 
 			if (file != null) {
 

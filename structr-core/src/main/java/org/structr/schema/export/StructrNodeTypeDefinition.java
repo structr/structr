@@ -190,6 +190,14 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 
 	@Override
 	SchemaNode createSchemaNode(App app) throws FrameworkException {
+
+		// re-use existing schema nodes here!
+		final SchemaNode existingNode = app.nodeQuery(SchemaNode.class).andName(getName()).getFirst();
+		if (existingNode != null) {
+
+			return existingNode;
+		}
+
 		return app.create(SchemaNode.class, getName());
 	}
 
