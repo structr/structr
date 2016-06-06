@@ -293,7 +293,7 @@ public class SuperUser implements Principal, AccessControllable {
 	}
 
 	@Override
-	public void onNodeInstantiation() {
+	public void onNodeInstantiation(final boolean isCreation) {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 

@@ -120,7 +120,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 
 		newNode.init(factoryProfile.getSecurityContext(), node, nodeClass, isCreation);
 		newNode.setRawPathSegment(pathSegment);
-		newNode.onNodeInstantiation();
+		newNode.onNodeInstantiation(isCreation);
 
 		// check access
 		if (isCreation || securityContext.isReadable(newNode, factoryProfile.includeDeletedAndHidden(), factoryProfile.publicOnly())) {
