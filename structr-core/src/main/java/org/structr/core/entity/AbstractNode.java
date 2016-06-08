@@ -143,7 +143,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
-	public void onNodeInstantiation() {
+	public void onNodeInstantiation(final boolean isCreation) {
 	}
 
 	@Override
@@ -358,7 +358,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		String name = getProperty(AbstractNode.name);
 		if (name == null) {
-			
+
 			name = getNodeId().toString();
 		}
 

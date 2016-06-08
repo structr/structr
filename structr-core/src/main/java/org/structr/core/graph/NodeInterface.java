@@ -63,7 +63,7 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 	public void init(final SecurityContext securityContext, final Node dbNode, final Class type, final boolean isCreation);
 
 	public void onNodeCreation();
-	public void onNodeInstantiation();
+	public void onNodeInstantiation(final boolean isCreation);
 	public void onNodeDeletion();
 
 	public Node getNode();
