@@ -276,7 +276,7 @@ public class Image extends org.structr.dynamic.File {
 						final Thumbnails thumbnailRelationship = app.create(originalImage, thumbnail, Thumbnails.class);
 
 						// Thumbnails always have to be removed along with origin image
-						thumbnailRelationship.setProperty(AbstractRelationship.cascadeDelete, Relation.SOURCE_TO_TARGET);
+						//thumbnailRelationship.setProperty(AbstractRelationship.cascadeDelete, Relation.SOURCE_TO_TARGET);
 
 						// Add to cache list
 						// thumbnailRelationships.add(thumbnailRelationship);
