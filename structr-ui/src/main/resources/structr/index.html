@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<title id="title">Structr</title>
-		<!-- structr UI is released under the <a href="agplv3.html">AGPLv3</a>-->
+		<!-- Structr is released under the <a href="agplv3.html">AGPLv3</a>-->
 		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
 		<meta name="viewport" content="width=1024, user-scalable=yes" />
 		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/jquery-ui-1.10.3.custom.min.css" >
@@ -15,9 +15,12 @@
 		<link rel="stylesheet" href="codemirror/addon/dialog/dialog.css">
 		<link rel="stylesheet" href="codemirror/addon/hint/show-hint.css">
 		<link rel="stylesheet" href="codemirror/addon/search/matchesonscrollbar.css">
+                <link rel="stylesheet" href="trumbowyg/ui/trumbowyg.min.css">
 		<link rel="stylesheet" type="text/css" media="screen" href="css/main.css" >
 		<link rel="stylesheet" type="text/css" media="screen" href="css/crud.css" >
 		<link rel="stylesheet" type="text/css" media="screen" href="css/graph_editor.css" >
+                <link rel="stylesheet" type="text/css" media="screen" href="css/app-builder.css" >
+                <link rel="stylesheet" type="text/css" media="screen" href="css/contents.css" >
 		<link rel="icon" href="favicon.ico" type="image/x-icon">
 		<script src="js/lib/jquery-1.11.1.min.js"></script>
 		<script src="js/lib/jquery-ui-1.11.0.custom.min.js"></script>
@@ -72,6 +75,10 @@
 		<script src="codemirror/addon/search/matchesonscrollbar.js"></script>
 		<script src="codemirror/addon/dialog/dialog.js"></script>
 		<script src="codemirror/addon/hint/show-hint.js"></script>
+                
+                <script src="trumbowyg/trumbowyg.min.js"></script>
+                
+                
 		<script src="js/helper.js"></script>
 		<script src="js/pager.js"></script>
 		<script src="js/dragndrop.js"></script>
@@ -90,6 +97,7 @@
 		<script src="js/filesystem.js"></script>
 		<script src="js/images.js"></script>
 		<script src="js/dashboard.js"></script>
+                <script src="js/app-builder.js"></script>
 		<!--
 		<script src="js/layout.js"></script>
 		<script src="js/ge/ge_lib.js"></script>
@@ -116,7 +124,9 @@
 				<ul>
 					<li><a id="dashboard_" href="#dashboard" data-activate-module="dashboard">Dashboard</a></li>
 					<li><a id="graph_" href="#graph" data-activate-module="graph">Graph</a></li>
+					<li><a id="contents_" href="#contents" data-activate-module="contents">Contents</a></li>
 					<li><a id="pages_" href="#pages" data-activate-module="pages">Pages</a></li>
+					<li><a id="app-builder_" href="#app-builder" data-activate-module="app-builder">App Builder</a></li>
 					<li><a id="widgets_" href="#widgets" data-activate-module="widgets">Widgets</a></li>
 					<!--<li><a id="files_" href="#files" data-activate-module="files">Files</a></li>-->
 					<li><a id="filesystem_" href="#filesystem" data-activate-module="filesystem">Filesystem</a></li>

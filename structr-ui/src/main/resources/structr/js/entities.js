@@ -597,17 +597,9 @@ var _Entities = {
 											}
 										});
 									} else if (isDate && !isReadOnly) {
-										if (!res[key] || res[key] === 'null') {
-											res[key] = '';
-										}
-										cell.append('<input class="dateField" name="' + key + '" type="text" value="' + res[key] + '">');
-										var dateField = $(props.find('.dateField'));
-										var dateTimePickerFormat = getDateTimePickerFormat(typeInfo[key].format);
-										dateField.datetimepicker({
-											dateFormat: dateTimePickerFormat.dateFormat,
-											timeFormat: dateTimePickerFormat.timeFormat,
-											separator: dateTimePickerFormat.separator
-										});
+										
+										_Entities.appendDatePicker(cell, res, key, typeInfo[key].format);
+										
 									} else if (isRelated && res[key] && (res[key].constructor === Object || res[key].constructor === Array)) {
 										if (res[key] && res[key].constructor === Object) {
 											_Entities.appendRelatedNode(cell, props, id, key, res[key], function(nodeEl) {
@@ -698,6 +690,19 @@ var _Entities = {
 			}
 		});
 
+	},
+	appendDatePicker: function(el, entity, key, format) {
+		if (!entity[key] || entity[key] === 'null') {
+			entity[key] = '';
+		}
+		el.append('<input class="dateField" name="' + key + '" type="text" value="' + entity[key] + '">');
+		var dateField = $(el.find('.dateField'));
+		var dateTimePickerFormat = getDateTimePickerFormat(format);
+		dateField.datetimepicker({
+			dateFormat: dateTimePickerFormat.dateFormat,
+			timeFormat: dateTimePickerFormat.timeFormat,
+			separator: dateTimePickerFormat.separator
+		});
 	},
 	appendRelatedNode: function(cell, props, id, key, node, onDelete) {
 		var displayName = _Crud.displayName(node);

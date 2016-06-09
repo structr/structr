@@ -20,7 +20,7 @@ var header, main, footer;
 var sessionId, user;
 var lastMenuEntry, activeTab, menuBlocked;
 var dmp;
-var editorCursor, hintsJustClosed;
+var editorCursor, ignoreKeyUp;
 var dialog, isMax = false;
 var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, saveAndClose, loginButton, loginBox, dialogCloseButton;
 var dialogId;
@@ -114,11 +114,12 @@ $(function() {
 			cmdKey = false;
 
 		if (e.keyCode === 27) {
-			if (hintsJustClosed) {
-				hintsJustClosed = false;
+			if (ignoreKeyUp) {
+				ignoreKeyUp = false;
 				return false;
 			}
 			if (dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
+				ignoreKeyUp = true;
 				var saveBeforeExit = confirm('Save changes?');
 				if (saveBeforeExit) {
 					dialogSaveButton.click();
@@ -135,9 +136,11 @@ $(function() {
 						return false;
 					}, 1000);
 				}
-			}
-			if (dialogCancelButton.length && dialogCancelButton.is(':visible') && !dialogCancelButton.prop('disabled')) {
+				return false;
+			} else if (dialogCancelButton.length && dialogCancelButton.is(':visible') && !dialogCancelButton.prop('disabled')) {
 				dialogCancelButton.click();
+				ignoreKeyUp = false;
+				return false;
 			}
 		}
 		return false;
@@ -376,19 +379,19 @@ var Structr = {
 		if (text) {
 			$('#confirmation .confirmationText').html(text);
 		}
-		var $yesButton = $('#confirmation .yesButton');
-		var $noButton = $('#confirmation .noButton');
+		var yesButton = $('#confirmation .yesButton');
+		var noButton = $('#confirmation .noButton');
 
 		if (yesCallback) {
-			$yesButton.on('click', function(e) {
+			yesButton.on('click', function(e) {
 				e.stopPropagation();
 				yesCallback();
-				$yesButton.off('click');
-				$noButton.off('click');
+				yesButton.off('click');
+				noButton.off('click');
 			});
 		}
 
-		$noButton.on('click', function(e) {
+		noButton.on('click', function(e) {
 			e.stopPropagation();
 			$.unblockUI({
 				fadeOut: 25
@@ -396,8 +399,8 @@ var Structr = {
 			if (noCallback) {
 				noCallback();
 			}
-			$yesButton.off('click');
-			$noButton.off('click');
+			yesButton.off('click');
+			noButton.off('click');
 		});
 		$.blockUI.defaults.overlayCSS.opacity = .6;
 		$.blockUI.defaults.applyPlatformOpacityRules = false;

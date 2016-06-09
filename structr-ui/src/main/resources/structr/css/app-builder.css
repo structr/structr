@@ -1,0 +1,272 @@
+/**
+ * Copyright (C) 2010-2016 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+#app-builder {
+    width: 100%;
+}
+
+#pages-area {
+    position: relative;
+    /*border-radius: .6em;*/
+    margin: 2em 0 0 2em;
+    padding: 1em;
+    /*background-color: #fff;*/
+    float: left;
+    /*border: .1em solid #ccc;*/
+}
+
+#widgets-area {
+    /*border-radius: .6em;*/
+    margin: 2em;
+    float: left;
+    /*background-color: #fff;*/
+}
+
+#pages-area .page-tn {
+    width: 24em;
+    /*margin: 1em;*/
+    position: absolute;
+}
+
+#pages-area .page-tn.zoomed {
+    width: 100%;
+    top: 0 ! important;
+    left: 0 ! important;
+    /*transition: top .1s, left .1s;*/
+}
+
+#pages-area .page-tn .page-preview {
+    width: 100%;
+    border: .1em solid #aaa;
+    height: 24em;
+    background-color: #fff;
+    box-shadow: #ccc 0 .25em 1em;
+    opacity: 1;
+}
+
+#pages-area .page-tn.zoomed .page-preview {
+    width: 100%;
+    height: 100%;
+}
+
+#pages-area .page-tn .page-preview:hover {
+    /*border: .1em solid #bbb;*/
+    opacity: .8;
+}
+
+#pages-area .page-tn.zoomed .page-preview:hover {
+    /*border: .1em solid #aaa;*/
+    opacity: 1;
+}
+
+#pages-area iframe.preview {
+    border: none;
+    height: 100%;
+    width: 100%;
+    /*border: .1em solid #bbb;*/
+    background-color: #fff;
+    /*box-shadow: #ccc 0 .25em 1em;*/
+}
+#pages-area .page-tn .page-preview iframe.preview {
+    height: 400%;
+    width: 400%;
+    zoom: 0.25;
+    -moz-transform: scale(0.25);
+    -moz-transform-origin: 0 0;
+    -o-transform: scale(0.25);
+    -o-transform-origin: 0 0;
+    -webkit-transform: scale(0.25);
+    -webkit-transform-origin: 0 0;
+}
+
+#pages-area .page-tn.zoomed .page-preview iframe.preview {
+    height: 100%;
+    width: 100%;
+    zoom: 1;
+    -moz-transform: scale(1);
+    -o-transform: scale(1);
+    -webkit-transform: scale(1);
+    /*transition: zoom .1s, -moz-transform .1s, -o-transform .1s, -webkit-transform .1s;*/
+}
+
+#pages-area .page-tn .page-name,
+#widgets-area .widget-preview .widget-name {
+    width: 100%;
+    text-align: center;
+    line-height: 3em;
+    color: #000;
+    display: block;
+    font-size: 1.5em;
+}
+
+#widgets-area .widget-preview .widget-name {
+    font-size: 1.2em;
+}
+
+#pages-area .page-tn:hover .page-name {
+    opacity: .8;
+}
+
+#pages-area .page-tn.zoomed .page-name {
+    display: none;
+}
+
+.widget-preview {
+    margin: 0 2em 2em 0;
+    float: left;
+    overflow: hidden;
+    padding: 1em 1em 0 1em;
+    border: .1em solid #ccc;
+    box-shadow: 0 0 .5em #eee;
+    background-color: #fff;
+}
+
+.widget-preview:hover {
+    border: .1em solid #bbb;
+    box-shadow: 0 0 .5em #bbb;
+}
+
+.widget-preview iframe {
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    overflow: hidden;
+}
+
+#pages-area .page-tn.zoomed #zoom-out {
+    display: none;
+    position: absolute;
+    top: .5em;
+    right: .5em;
+    color: #555;
+    width: 1em;
+    height: 1em;
+    font-size: 2em;
+    line-height: 1em;
+    border: 1px solid #aaa;
+    background: #ccc;
+    border-radius: .2em;
+    padding: 0;
+    margin: 0;
+    text-align: center;
+    text-shadow: 0 1px 0 #fff;
+}
+
+#pages-area .page-tn.zoomed:hover #zoom-out {
+    display: block ! important;
+}
+
+#pages-area .page-tn.zoomed:hover #zoom-out:hover {
+    color: #aaa;
+}
+
+/***********************************/
+/* Small icons on page thumbnails  */
+/***********************************/
+
+#pages-area .page-tn .icon {
+    position: absolute;
+    bottom: 5em;
+    display: none;
+}
+
+#pages-area .page-tn:hover .icon {
+    display: block;
+    cursor: pointer;
+}
+
+#pages-area .page-tn.zoomed .icon,
+#pages-area .page-tn.zoomed:hover .icon {
+    display: none;
+}
+
+#pages-area .page-tn .clone-page {
+    left: 1em;
+}
+
+#pages-area .page-tn .delete-page {
+    left: 3em;
+}
+
+/***********************************/
+
+.widget-tabs {
+    /*overflow: auto;*/
+}
+
+.widget-tabs, .widget-tabs ul {
+    background: none;
+    border: none;
+}
+
+.ui-tabs, .ui-tabs-nav {
+    padding: 0 ! important;
+}
+
+.ui-tabs-panel {
+    height: 100%;
+    background-color: #fff ! important;
+    border: .1em solid #aaa ! important;
+/*    border-right: .1em solid #aaa ! important;
+    border-bottom: .1em solid #aaa ! important;
+    border-left: .1em solid #aaa ! important;*/
+    border-radius: 0 ! important;
+}
+
+#add-page-area i {
+    font-size: 6em;
+    color: #ccc;
+    width: 4em;
+    height: 4em;
+    display: block;
+    margin-top: 1.5em;
+}
+
+#add-page-area {
+    height: 24em;
+    width: 24em;
+    text-align: center;
+    border: 1px solid #a5a5a5;
+    background-color: #eee;
+}
+
+#add-page-area:hover {
+    background-color: #f3f3f3;
+}
+
+#add-page-area:hover i {
+    color: #aaa;
+}
+
+.widget-lib {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.widget-lib iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.ui-tabs-panel .elementGroup {
+    clear: both;
+    overflow: hidden;
+}
