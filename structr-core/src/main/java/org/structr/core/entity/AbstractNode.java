@@ -1499,6 +1499,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		}
 	}
 
+	public static void clearRelationshipTemplateInstanceCache() {
+		relationshipTemplateInstanceCache.clear();
+	}
+	
 	public static <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R getRelationshipForType(final Class<R> type) {
 
 		R instance = (R) relationshipTemplateInstanceCache.get(type.getName());

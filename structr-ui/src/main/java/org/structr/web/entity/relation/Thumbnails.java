@@ -46,4 +46,9 @@ public class Thumbnails extends OneToMany<Image, Image> {
 	public boolean isInternal() {
 		return true;
 	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+		return SOURCE_TO_TARGET;
+	}
 }

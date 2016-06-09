@@ -37,6 +37,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import static org.structr.core.entity.AbstractNode.getRelationshipForType;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
@@ -244,6 +245,8 @@ public class TypeResource extends SortableResource {
 					throw new FrameworkException(422, "Source node ID and target node ID of relationsips must be set", errorBuffer);
 				}
 
+				template.ensureCardinality(securityContext, sourceNode, targetNode);
+				
 				newRelationship = app.create(sourceNode, targetNode, entityClass, properties);
 
 				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
