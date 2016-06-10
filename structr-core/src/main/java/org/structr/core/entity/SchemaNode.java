@@ -18,6 +18,7 @@
  */
 package org.structr.core.entity;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
@@ -55,6 +56,7 @@ import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.core.validator.TypeUniquenessValidator;
+import org.structr.module.StructrModule;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.action.Actions;
@@ -76,6 +78,7 @@ public class SchemaNode extends AbstractSchemaNode {
 	public static final Property<Boolean>                      isBuiltinType    = new BooleanProperty("isBuiltinType").readOnly().indexed();
 	public static final Property<Integer>                      hierarchyLevel   = new IntProperty("hierarchyLevel").indexed();
 	public static final Property<Integer>                      relCount         = new IntProperty("relCount").indexed();
+	public static final Property<Boolean>                      shared           = new BooleanProperty("shared").indexed();
 
 	static {
 
@@ -128,6 +131,7 @@ public class SchemaNode extends AbstractSchemaNode {
 	@Override
 	public String getSource(final ErrorBuffer errorBuffer) throws FrameworkException {
 
+		final Collection<StructrModule> modules                = StructrApp.getConfiguration().getModules().values();
 		final App app                                          = StructrApp.getInstance(securityContext);
 		final Map<Actions.Type, List<ActionEntry>> saveActions = new EnumMap<>(Actions.Type.class);
 		final Map<String, Set<String>> viewProperties          = new LinkedHashMap<>();
@@ -139,14 +143,20 @@ public class SchemaNode extends AbstractSchemaNode {
 		final Class baseType                                   = AbstractNode.class;
 		final String _className                                = getProperty(name);
 		final String _extendsClass                             = getProperty(extendsClass);
+		final String superClass                                = _extendsClass != null ? _extendsClass : baseType.getSimpleName();
 
 		src.append("package org.structr.dynamic;\n\n");
 
-		SchemaHelper.formatImportStatements(src, baseType);
+		SchemaHelper.formatImportStatements(this, src, baseType);
 
-		String superClass = _extendsClass != null ? _extendsClass : baseType.getSimpleName();
+		src.append("public class ");
+		src.append(_className);
+		src.append(" extends ");
+		src.append(superClass);
 
-		src.append("public class ").append(_className).append(" extends ").append(superClass).append(" {\n\n");
+		SchemaHelper.formatInterfacesFromModules(src, this);
+
+		src.append(" {\n\n");
 
 		// migrate schema relationships
 		for (final SchemaRelationship outRel : getOutgoingRelationships(SchemaRelationship.class)) {
@@ -261,7 +271,17 @@ public class SchemaNode extends AbstractSchemaNode {
 		}
 
 		SchemaHelper.formatValidators(src, validators);
-		SchemaHelper.formatSaveActions(src, saveActions);
+		SchemaHelper.formatSaveActions(this, src, saveActions);
+
+		// insert source code from module
+		for (final StructrModule module : modules) {
+
+			src.append("\n\n// ----- dynamic code inserted by ");
+			src.append(module.getName());
+			src.append(" -----\n");
+
+			module.insertSourceCode(this, src);
+		}
 
 		src.append("}\n");
 
@@ -456,7 +476,7 @@ public class SchemaNode extends AbstractSchemaNode {
 
 			src.append("package org.structr.dynamic;\n\n");
 
-			SchemaHelper.formatImportStatements(src, AbstractNode.class);
+			SchemaHelper.formatImportStatements(this, src, AbstractNode.class);
 
 			src.append("public class _").append(_className).append("Helper {\n");
 
@@ -518,6 +538,8 @@ public class SchemaNode extends AbstractSchemaNode {
 
 		return null;
 	}
+
+
 
 	// ----- private methods -----
 	private void addPropertyNameToViews(final String propertyName, final Map<String, Set<String>> viewProperties) {
