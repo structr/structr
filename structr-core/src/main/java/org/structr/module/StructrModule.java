@@ -19,6 +19,8 @@
 package org.structr.module;
 
 import java.util.Set;
+import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.schema.action.Actions;
 
 /**
  */
@@ -46,4 +48,10 @@ public interface StructrModule {
 	 * @return a set of feature names or null
 	 */
 	Set<String> getFeatures();
+
+
+	void insertImportStatements(final AbstractSchemaNode schemaNode, final StringBuilder buf);
+	void insertSourceCode(final AbstractSchemaNode schemaNode, final StringBuilder buf);
+	void insertSaveAction(final AbstractSchemaNode schemaNode, final StringBuilder buf, final Actions.Type type);
+	Set<String> getInterfacesForType(final AbstractSchemaNode schemaNode);
 }

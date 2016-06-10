@@ -479,7 +479,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		src.append("package org.structr.dynamic;\n\n");
 
-		SchemaHelper.formatImportStatements(src, baseType);
+		SchemaHelper.formatImportStatements(this, src, baseType);
 
 		src.append("public class ").append(_className).append(" extends ").append(getBaseType());
 
@@ -566,7 +566,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		src.append("\t}\n\n");
 
 		SchemaHelper.formatValidators(src, validators);
-		SchemaHelper.formatSaveActions(src, actions);
+		SchemaHelper.formatSaveActions(this, src, actions);
 
 		formatRelationshipFlags(src);
 
@@ -598,7 +598,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		src.append("package org.structr.dynamic;\n\n");
 
-		SchemaHelper.formatImportStatements(src, baseType);
+		SchemaHelper.formatImportStatements(this, src, baseType);
 
 		src.append("public class _").append(_className).append("Helper {\n\n");
 
