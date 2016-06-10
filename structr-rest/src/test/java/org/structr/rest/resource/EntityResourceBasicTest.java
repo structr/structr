@@ -16,10 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.test;
+package org.structr.rest.resource;
 
-import static org.hamcrest.Matchers.*;
 import com.jayway.restassured.RestAssured;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.lessThan;
 import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.entity.TestObject;
 
@@ -27,43 +28,25 @@ import org.structr.rest.entity.TestObject;
  *
  *
  */
-public class CollectionResourceBasicTest extends StructrRestTest {
-	
+public class EntityResourceBasicTest extends StructrRestTest {
+
 	/**
-	 * Test the correct response for a non-existing resource.
+	 * Test the correct response for a non-existing entity
 	 */
 	public void test000NotFoundError() {
 
 		// provoke 404 error with GET on non-existing resource
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 			.expect()
 				.statusCode(404)
 			.when()
-				.get("/nonexisting_resource");
-		    
-	}
-	
-	/**
-	 * Test the correct response for an empty (existing) resource.
-	 */
-	public void test001EmptyResource() {
+				.get("/test_objects/abc123def456abc123def456abc123de");
 
-		// check for empty response
-		RestAssured
-		    
-			.given()
-				.contentType("application/json; charset=UTF-8")
-			.expect()
-				.statusCode(200)
-				.body("result_count",       equalTo(0))
-			.when()
-				.get("/test_objects");
-		    
 	}
-	
+
 	/**
 	 * Test the creation of a single unnamed entity.
 	 */
@@ -71,7 +54,7 @@ public class CollectionResourceBasicTest extends StructrRestTest {
 
 		// create empty object
 		String location = RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 			.expect()
@@ -79,34 +62,38 @@ public class CollectionResourceBasicTest extends StructrRestTest {
 			.when()
 				.post("/test_objects")
 				.getHeader("Location");
-				
+
 		// POST must return a Location header
 		assertNotNull(location);
-		
+
 		String uuid = getUuidFromLocation(location);
-				
+
 		// POST must create a UUID
 		assertNotNull(uuid);
 		assertFalse(uuid.isEmpty());
 		assertTrue(uuid.matches("[a-f0-9]{32}"));
-		
+
 		// check for exactly one object
 		Object name = RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 			.expect()
 				.statusCode(200)
 				.body("result_count",       equalTo(1))
-				.body("result[0].id",       equalTo(uuid))
+				.body("query_time",         lessThan("0.1"))
+				.body("serialization_time", lessThan("0.02"))
+				.body("result.id",          equalTo(uuid))
 			.when()
-				.get("/test_objects")
-				.jsonPath().get("result[0].name");
-		    
+				.get("/test_objects/" + uuid)
+				.jsonPath().get("result.name");
+
+		System.out.println("name (should be null): " + name);
+
 		// name must be null
 		assertNull(name);
 	}
-	
+
 	/**
 	 * Test the creation of a single entity with generated UUID and
 	 * given name. This method also tests the contents of the JSON
@@ -116,7 +103,7 @@ public class CollectionResourceBasicTest extends StructrRestTest {
 
 		// create named object
 		String location = RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.body(" { \"name\" : \"test\" } ")
@@ -125,12 +112,12 @@ public class CollectionResourceBasicTest extends StructrRestTest {
 			.when()
 				.post("/test_objects")
 				.getHeader("Location");
-		    
+
 		// POST must return a Location header
 		assertNotNull(location);
-		
+
 		String uuid = getUuidFromLocation(location);
-				
+
 		// POST must create a UUID
 		assertNotNull(uuid);
 		assertFalse(uuid.isEmpty());
@@ -138,16 +125,17 @@ public class CollectionResourceBasicTest extends StructrRestTest {
 
 		// check for exactly one object
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 			.expect()
 				.statusCode(200)
-				.body("result_count",       equalTo(1))
-				.body("result[0]",          isEntity(TestObject.class))
+				.body("result_count",		equalTo(1))
+				.body("query_time",		lessThan("0.5"))
+				.body("serialization_time",	lessThan("0.05"))
+				.body("result",			isEntity(TestObject.class))
 			.when()
-				.get("/test_objects");
-		    
-	}
+				.get("/test_objects/" + uuid);
 
+	}
 }

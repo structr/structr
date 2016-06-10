@@ -243,7 +243,7 @@ var _Graph = {
 				if (shiftKey && d < 200) {
 
 					var draggedNodeSchemaNode = schemaNodes[node.type];
-					//console.log('shift and in radius', n, node, sourceSchemaNode);
+					//console.log('shift and in radius', n, node, draggedNodeSchemaNode);
 
 					if (!draggedNodeSchemaNode) {
 
@@ -388,10 +388,10 @@ var _Graph = {
 
 			//console.log('dragend', removedRel);
 
-			if (removedRel) {
-				Command.deleteRelationship(removedRel);
-				removedRel = undefined;
-			}
+//			if (removedRel) {
+//				Command.deleteRelationship(removedRel);
+//				removedRel = undefined;
+//			}
 
 			engine.graph.edges().forEach(function(edge) {
 
