@@ -19,8 +19,6 @@
 package org.structr.web.entity.relation;
 
 import org.structr.core.entity.ManyToMany;
-import org.structr.core.property.ConstantBooleanProperty;
-import org.structr.core.property.Property;
 import org.structr.web.entity.ContentContainer;
 import org.structr.web.entity.ContentItem;
 
@@ -30,8 +28,6 @@ import org.structr.web.entity.ContentItem;
  */
 public class ContainerContentItems extends ManyToMany<ContentContainer, ContentItem> {
 
-	public static final Property<Boolean>        isContentContainer                = new ConstantBooleanProperty("isContentContainer", true);
-	
 	@Override
 	public Class<ContentContainer> getSourceType() {
 		return ContentContainer.class;

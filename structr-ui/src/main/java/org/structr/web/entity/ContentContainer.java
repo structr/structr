@@ -29,18 +29,22 @@ import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
-import static org.structr.web.entity.ContentItem.containers;
+import org.structr.core.property.StartNode;
+import org.structr.web.entity.relation.ContainerContentContainer;
 import org.structr.web.entity.relation.ContainerContentItems;
+import org.structr.web.property.ContentPathProperty;
 
 /**
  * Base class for all content containers.
  */
-public abstract class ContentContainer extends AbstractNode{
+public abstract class ContentContainer extends AbstractNode {
 
 	public static final Property<List<ContentItem>>   items              = new EndNodes<>("items", ContainerContentItems.class);
+	public static final Property<ContentContainer>    parent             = new StartNode<>("parent", ContainerContentContainer.class);
 	public static final Property<Boolean>             isContentContainer = new ConstantBooleanProperty("isContentContainer", true);
+	public static final Property<String>              path               = new ContentPathProperty("path").indexed().readOnly();
 	
-	public static final View publicView = new View(Folder.class, PropertyView.Public, id, type, name, owner, containers, items, isContentContainer);
-	public static final View uiView     = new View(Folder.class, PropertyView.Ui, id, type, name, owner, containers, items, isContentContainer);
+	public static final View publicView = new View(Folder.class, PropertyView.Public, id, type, name, path, owner, items, isContentContainer);
+	public static final View uiView     = new View(Folder.class, PropertyView.Ui, id, type, name, path, owner, items, isContentContainer);
 	
 }

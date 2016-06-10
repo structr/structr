@@ -25,7 +25,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNodes;
-import org.structr.core.property.StringProperty;
 import org.structr.web.entity.relation.ContainerContentItems;
 
 /**

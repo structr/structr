@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var main, filesystemMain, fileTree, folderContents;
+var main, filesystemMain, contentTree, folderContents;
 var fileList;
 var chunkSize = 1024 * 64;
 var sizeLimit = 1024 * 1024 * 1024;
@@ -24,8 +24,9 @@ var win = $(window);
 var selectedElements = [];
 var activeFileId, fileContents = {};
 var counter = 0;
-var currentWorkingDir;
-var folderPageSize = 10000, folderPage = 1;
+var currentContentContainer;
+var containerPageSize = 10000, containerPage = 1;
+var currentContantContainerKey = 'structrCurrentContentContainer_' + port;
 
 $(document).ready(function() {
 
@@ -82,8 +83,8 @@ var _Contents = {
 		var windowHeight = win.height();
 		var headerOffsetHeight = 100;
 
-		if (fileTree) {
-			fileTree.css({
+		if (contentTree) {
+			contentTree.css({
 				width: Math.max(180, Math.min(windowWidth / 3, 360)) + 'px',
 				height: windowHeight - headerOffsetHeight + 'px'
 			});
@@ -107,7 +108,7 @@ var _Contents = {
 		main.append('<div id="contents-main"><div class="fit-to-height" id="file-tree-container"><div id="file-tree"></div></div><div class="fit-to-height" id="folder-contents-container"><div id="folder-contents"></div></div>');
 		filesystemMain = $('#contents-main');
 
-		fileTree = $('#file-tree');
+		contentTree = $('#file-tree');
 		folderContents = $('#folder-contents');
 
 //		$('#folder-contents-container').prepend(
@@ -132,8 +133,8 @@ var _Contents = {
 			var sel = $(this);
 			var type = sel.val();
 			if (type) {
-				Command.create({ type: type, size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
-					_Contents.appendFileOrFolderRow(f);
+				Command.create({ type: type, size: 0, parentId: currentContentContainer ? currentContentContainer.id : null }, function(f) {
+					_Contents.appendItemOrContainerRow(f);
 					itemTypesSelector.prop('selectedIndex', 0);
 				});
 			}
@@ -155,8 +156,8 @@ var _Contents = {
 			var sel = $(this);
 			var type = sel.val();
 			if (type) {
-				Command.create({ type: type, parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
-					_Contents.appendFileOrFolderRow(f);
+				Command.create({ type: type, parentId: currentContentContainer ? currentContentContainer.id : null }, function(f) {
+					_Contents.appendItemOrContainerRow(f);
 					_Contents.refreshTree();
 					containerTypesSelector.prop('selectedIndex', 0);
 				});
@@ -167,27 +168,27 @@ var _Contents = {
 		$.jstree.defaults.dnd.inside_pos        = 'last';
 		$.jstree.defaults.dnd.large_drop_target = true;
 
-		fileTree.on('ready.jstree', function() {
+		contentTree.on('ready.jstree', function() {
 			var rootEl = $('#root > .jstree-wholerow');
 			_Dragndrop.makeDroppable(rootEl);
 		});
 
 		_Contents.loadAndSetWorkingDir(function() {
 			_Contents.initTree();
-			if (!currentWorkingDir) {
-				_Contents.displayFolderContents('root', null, '/');
+			if (!currentContentContainer) {
+				_Contents.displayContainerContents('root', null, '/');
 			}
 
 		});
 
-		fileTree.on('select_node.jstree', function(evt, data) {
+		contentTree.on('select_node.jstree', function(evt, data) {
 
 			if (data.node.id === 'root') {
-				_Contents.deepOpen(currentWorkingDir, []);
+				_Contents.deepOpen(currentContentContainer, []);
 			}
 
 			_Contents.setWorkingDirectory(data.node.id);
-			_Contents.displayFolderContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
+			_Contents.displayContainerContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
 
 		});
 
@@ -216,24 +217,24 @@ var _Contents = {
 	open: function(dirs) {
 		if (!dirs.length) return;
 		var d = dirs.shift();
-		fileTree.jstree('deselect_node', d.id);
-		fileTree.jstree('open_node', d.id, function() {
-			if (currentWorkingDir) {
-				fileTree.jstree('select_node', currentWorkingDir.id);
+		contentTree.jstree('deselect_node', d.id);
+		contentTree.jstree('open_node', d.id, function() {
+			if (currentContentContainer) {
+				contentTree.jstree('select_node', currentContentContainer.id);
 			}
 			_Contents.open(dirs);
 		});
 
 	},
 	refreshTree: function() {
-		fileTree.jstree('refresh');
+		contentTree.jstree('refresh');
 		window.setTimeout(function() {
 			var rootEl = $('#root > .jstree-wholerow');
 			_Dragndrop.makeDroppable(rootEl);
 		}, 500);
 	},
 	initTree: function() {
-		fileTree.jstree({
+		contentTree.jstree({
 			'plugins': ["themes", "dnd", "search", "state", "types", "wholerow"],
 			'core': {
 				'animation': 0,
@@ -245,7 +246,7 @@ var _Contents = {
 
 						case '#':
 
-							Command.list('ContentContainer', true, folderPageSize, folderPage, 'name', 'asc', null, function(folders) {
+							Command.list('ContentContainer', true, containerPageSize, containerPage, 'name', 'asc', null, function(folders) {
 
 								var children = [];
 								var list = [];
@@ -315,23 +316,16 @@ var _Contents = {
 		$('#folder-contents').children().show();
 	},
 	loadAndSetWorkingDir: function(callback) {
-		Command.rest("/me/ui", function (result) {
-			var me = result[0];
-			if (me.workingDirectory) {
-				currentWorkingDir = me.workingDirectory;
-			} else {
-				currentWorkingDir = null;
-			}
-
-			callback();
-		});
+		
+		currentContentContainer = LSWrapper.getItem(currentContantContainerKey);
+		callback();
 
 	},
 	load: function(id, callback) {
 
 		if (!id) {
 
-			Command.list('ContentContainer', true, folderPageSize, folderPage, 'name', 'asc', null, function(folders) {
+			Command.list('ContentContainer', true, containerPageSize, containerPage, 'name', 'asc', null, function(folders) {
 
 				var list = [];
 
@@ -359,7 +353,7 @@ var _Contents = {
 
 		} else {
 
-			Command.query('ContentContainer', folderPageSize, folderPage, 'name', 'asc', {parent: id}, function(folders) {
+			Command.query('ContentContainer', containerPageSize, containerPage, 'name', 'asc', {parent: id}, function(folders) {
 
 				var list = [];
 
@@ -389,22 +383,17 @@ var _Contents = {
 	},
 	setWorkingDirectory: function(id) {
 
-		if (id === 'root') {
-			currentWorkingDir = null;
-		} else {
-			currentWorkingDir = { 'id': id };
-		}
-		var data = JSON.stringify({'workingDirectory': currentWorkingDir});
 
-		$.ajax({
-			url: rootUrl + 'me',
-			dataType: 'json',
-			contentType: 'application/json; UTF-8',
-			type: 'PUT',
-			data: data
-		});
+		if (id === 'root') {
+			currentContentContainer = null;
+		} else {
+			currentContentContainer = { 'id': id };
+		}
+
+		LSWrapper.setItem(currentContantContainerKey, currentContentContainer);
 	},
-	displayFolderContents: function(id, parentId, nodePath, parents) {
+	displayContainerContents: function(id, parentId, nodePath, parents) {
+		
 		var content = $('#folder-contents');
 		fastRemoveAllChildren(content[0]);
 		var path = '';
@@ -420,37 +409,34 @@ var _Contents = {
 
 		var handleChildren = function(children) {
 			if (children && children.length) {
-				children.forEach(_Contents.appendFileOrFolderRow);
+				children.forEach(_Contents.appendItemOrContainerRow);
 			}
 		};
 
 		if (id === 'root') {
 			Command.list('ContentContainer', true, 1000, 1, 'name', 'asc', null, handleChildren);
 		} else {
-			Command.query('ContentContainer', 1000, 1, 'name', 'asc', {parentId: id}, handleChildren, true, 'ui');
+			Command.query('ContentContainer', 1000, 1, 'name', 'asc', {containers: id}, handleChildren, true, 'ui');
 		}
 
 
 		_Pager.initPager('contents-items', 'ContentItem', 1, 25, 'name', 'asc');
 		page['ContentItem'] = 1;
-//		_Pager.initFilters('contents-items', 'ContentItem', {
-//			parentId: ((parentId === '#') ? '' : id),
-//			hasParent: (parentId !== '#')
-//		});
+		_Pager.initFilters('contents-items', 'ContentItem', id === 'root' ? {} : { containers: [id] });
 
-		var filesPager = _Pager.addPager('contents-items', content, false, 'ContentItem', 'ui', handleChildren);
+		var itemsPager = _Pager.addPager('contents-items', content, false, 'ContentItem', 'ui', handleChildren);
 
-		filesPager.cleanupFunction = function () {
-			var toRemove = $('.node.file', filesPager.el).closest('tr');
+		itemsPager.cleanupFunction = function () {
+			var toRemove = $('.node.file', itemsPager.el).closest('tr');
 			toRemove.each(function(i, elem) {
 				fastRemoveAllChildren(elem);
 			});
 		};
 
-		filesPager.pager.append('Filter: <input type="text" class="filter" data-attribute="name">');
-		filesPager.pager.append('<input type="text" class="filter" data-attribute="parentId" value="' + ((parentId === '#') ? '' : id) + '" hidden>');
-		filesPager.pager.append('<input type="checkbox" class="filter" data-attribute="hasParent" ' + ((parentId === '#') ? '' : 'checked') + ' hidden>');
-		filesPager.activateFilterElements();
+		itemsPager.pager.append('Filter: <input type="text" class="filter" data-attribute="name">');
+		itemsPager.pager.append('<input type="text" class="filter" data-attribute="parentId" value="' + ((parentId === '#') ? '' : id) + '" hidden>');
+		itemsPager.pager.append('<input type="checkbox" class="filter" data-attribute="hasParent" ' + ((parentId === '#') ? '' : 'checked') + ' hidden>');
+		itemsPager.activateFilterElements();
 
 		content.append(
 				'<h2>' + path + '</h2>'
@@ -476,23 +462,23 @@ var _Contents = {
 
 
 	},
-	appendFileOrFolderRow: function(d) {
+	appendItemOrContainerRow: function(d) {
 
-		// add folder/file to global model
+		// add container/item to global model
 		StructrModel.createFromData(d, null, false);
 
 		var tableBody = $('#files-table-body');
 
 		$('#row' + d.id, tableBody).remove();
 
-		var files = d.files || [];
-		var folders = d.folders || [];
-		var size = d.isFolder ? folders.length + files.length : (d.size ? d.size : '-');
+		var items = d.items || [];
+		var containers = d.containers || [];
+		var size = d.isContentContainer ? containers.length + items.length : (d.size ? d.size : '-');
 
 		var rowId = 'row' + d.id;
 		tableBody.append('<tr id="' + rowId + '"' + (d.isThumbnail ? ' class="thumbnail"' : '') + '></tr>');
 		var row = $('#' + rowId);
-		var icon = d.isFolder ? 'fa-folder-o' : _Contents.getIcon(d);
+		var icon = d.isContentContainer ? 'fa-folder-o' : _Contents.getIcon(d);
 
 
 		if (d.isContentContainer) {
@@ -517,14 +503,14 @@ var _Contents = {
 		row.append('<td>' + (d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '') + '</td>');
 
 		// Change working dir by click on folder icon
-		$('#id_' + d.id + '.folder').parent().prev().on('click', function(e) {
+		$('#id_' + d.id + '.container').parent().prev().on('click', function(e) {
 
 			e.preventDefault();
 			e.stopPropagation();
 
 			if (d.parentId) {
 
-				fileTree.jstree('open_node', $('#' + d.parentId), function() {
+				contentTree.jstree('open_node', $('#' + d.parentId), function() {
 
 					if (d.name === '..') {
 						$('#' + d.parentId + '_anchor').click();
@@ -553,11 +539,11 @@ var _Contents = {
 
 		_Entities.appendAccessControlIcon(div, d);
 		var delIcon = div.children('.delete_icon');
-		if (d.isFolder) {
+		if (d.isContentContainer) {
 
 			// ********** Containers **********
 
-			var newDelIcon = '<img title="Delete folder \'' + d.name + '\'" alt="Delete folder \'' + d.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+			var newDelIcon = '<img title="Delete container \'' + d.name + '\'" alt="Delete container \'' + d.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
 			if (delIcon && delIcon.length) {
 				delIcon.replaceWith(newDelIcon);
 			} else {
@@ -571,7 +557,7 @@ var _Contents = {
 			});
 
 			div.droppable({
-				accept: '.folder, .file, .image',
+				accept: '.container, .item',
 				greedy: true,
 				hoverClass: 'nodeHover',
 				tolerance: 'pointer',
@@ -581,30 +567,44 @@ var _Contents = {
 					e.stopPropagation();
 
 					var self = $(this);
-					var fileId = Structr.getId(ui.draggable);
-					var folderId = Structr.getId(self);
-					_Logger.log(_LogType.CONTENTS, 'fileId, folderId', fileId, folderId);
-					if (!(fileId === folderId)) {
+					var itemId = Structr.getId(ui.draggable);
+					var containerId = Structr.getId(self);
+					_Logger.log(_LogType.CONTENTS, 'itemId, containerId', itemId, containerId);
+					
+					if (!(itemId === containerId)) {
 						var nodeData = {};
-						nodeData.id = fileId;
+						nodeData.id = itemId;
 						//addExpandedNode(folderId);
 
 						//selectedElements = $('.node.selected');
-						if (selectedElements.length > 1) {
-
-							$.each(selectedElements, function(i, fileEl) {
-								var fileId = Structr.getId(fileEl);
-								Command.setProperty(fileId, 'parentId', folderId, false, function() {
-									$(ui.draggable).remove();
+//						if (selectedElements.length > 1) {
+//
+//							$.each(selectedElements, function(i, fileEl) {
+//								var itemId = Structr.getId(fileEl);
+//								Command.setProperty(itemId, 'parentId', containerId, false, function() {
+//									$(ui.draggable).remove();
+//								});
+//
+//							});
+//							selectedElements.length = 0;
+//						} else {
+							var containerIds = [];
+							Command.getProperty(itemId, 'containers', function(containers) {
+								
+								console.log(containers);
+								
+								containers.forEach(function(container) {
+									containerIds.push(container.id);
 								});
-
+//								
+//								// add new container id
+//								containerIds.push(containerId);
+//								
+//								Command.setProperty(itemId, 'containers', containerIds, false, function() {
+//									$(ui.draggable).remove();
+//								});
 							});
-							selectedElements.length = 0;
-						} else {
-							Command.setProperty(fileId, 'parentId', folderId, false, function() {
-								$(ui.draggable).remove();
-							});
-						}
+//						}
 
 						_Contents.refreshTree();
 					}
@@ -732,7 +732,7 @@ var _Contents = {
 
 						} else {
 							$('#prop-' + prop.id).append('<div class="value-container"><input value="' + (oldVal || '') + '">');
-							$('#prop-' + prop.id + ' .value-container').on('keyup', function(e) {
+							$('#prop-' + prop.id + ' .value-container input').on('keyup', function(e) {
 								if (e.keyCode !== 27) {
 									Command.get(entity.id, function(newEntity) {
 										_Contents.checkValueHasChanged(newEntity[prop.name], $('#prop-' + prop.id + ' .value-container input').val() || null, [dialogSaveButton, saveAndClose]);
@@ -740,14 +740,23 @@ var _Contents = {
 								}
 							});
 						}
+						
 					} else if (prop.propertyType === 'Date') {
 						$.get(rootUrl + '_schema/' + entity.type + '/ui', function(data) {
 							
 							var typeInfo = data.result.filter(function(obj) { return obj.jsonName === prop.name; })[0];
 							
-							console.log(typeInfo);
+							//console.log(typeInfo.format);
 							$('#prop-' + prop.id).append('<div class="value-container"></div>');
 							_Entities.appendDatePicker($('#prop-' + prop.id + ' .value-container'), entity, prop.name, typeInfo.format);
+							
+							$('#prop-' + prop.id + ' .value-container input').on('change', function(e) {
+								if (e.keyCode !== 27) {
+									Command.get(entity.id, function(newEntity) {
+										_Contents.checkValueHasChanged(newEntity[prop.name], $('#prop-' + prop.id + ' .value-container input').val() || null, [dialogSaveButton, saveAndClose]);
+									});
+								}
+							});
 						});
 						
 					}
@@ -770,7 +779,7 @@ var _Contents = {
 						var newVal;
 						var oldVal = entity[prop.name];
 						
-						if (prop.propertyType === 'String') {
+						if (prop.propertyType === 'String' || prop.propertyType === 'Date') {
 
 							if (prop.contentType && prop.contentType === 'text/html') {
 								newVal = $('#prop-' + prop.id + ' .edit-area').trumbowyg('html') || null;

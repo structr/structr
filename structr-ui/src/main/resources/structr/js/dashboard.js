@@ -66,6 +66,14 @@ var _Dashboard = {
 			});
 		});
 
+		var myContent = _Dashboard.appendBox('My Content', 'my-content');
+		myContent.append('<div class="dashboard-info">Your most edited <a class="internal-link" href="javascript:void(0)">contents</a> are:</div>');
+		Command.getByType('ContentItem', 5, 1, 'version', 'desc', null, false, function(items) {
+			items.forEach(function(i) {
+				myFiles.append('<div class="dashboard-info"><a href="/' + i.name + '" target="_blank"><i class="fa ' + _Filesystem.getIcon(i) + '"></i></a> <a href="/' + i.id + '" target="_blank">' + _Dashboard.displayName(i) + '</a>' + _Dashboard.displayVersion(i) + '</div>');
+			});
+		});
+
 		var myFiles = _Dashboard.appendBox('My Files', 'my-files');
 		myFiles.append('<div class="dashboard-info">Your most edited <a class="internal-link" href="javascript:void(0)">files</a> are:</div>');
 		Command.getByType('File', 5, 1, 'version', 'desc', null, false, function(files) {

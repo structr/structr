@@ -707,7 +707,9 @@ ul#previewTabs {
 .file .id,
 .folder .id,
 .image .id,
-.image-folder .id {
+.image-folder .id,
+.container .id,
+.item .id {
     display: none;
 }
 
@@ -761,7 +763,7 @@ span.id {
     cursor: pointer;
 }
 
-.page, .widget, .user, .group, .folder, .file, #images .image, .resourceAccess,
+.page, .widget, .user, .group, .folder, .file, .container, .item, #images .image, .resourceAccess,
 .ver-scrollable > .node {
     margin: 4px 0;
     padding-right: 4px;
@@ -771,7 +773,7 @@ span.id {
     margin-left: 16px ! important;
 }
 
-.group .user, .folder .file, .folder .folder {
+.group .user, .folder .file, .folder .folder, .container .item {
     margin: 4px 0 4px 11px;
 }
 
