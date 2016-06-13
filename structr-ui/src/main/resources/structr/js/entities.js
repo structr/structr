@@ -558,21 +558,29 @@ var _Entities = {
 
 								var type = typeInfo[key].type;
 
-								var isHidden   = isIn(key, _Entities.hiddenAttrs);
-								var isReadOnly = isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly);
-								var isSystem   = typeInfo[key].system;
-
+								var isHidden     = isIn(key, _Entities.hiddenAttrs);
+								var isReadOnly   = isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly);
+								var isSystem     = typeInfo[key].system;
+								var isBoolean    = false;
+								var isDate       = false;
+								var isPassword   = false;
+								var isRelated    = false;
+								var isCollection = false;
+								
 								if (type) {
-									var isBoolean = (type === 'Boolean'); //typeInfo[key].className === 'org.structr.core.property.BooleanProperty'; //isIn(key, _Entities.booleanAttrs);
-									var isDate = (type === 'Date'); //typeInfo[key].className === 'org.structr.core.property.ISO8601DateProperty'; //isIn(key, _Entities.dateAttrs);
-									var isPassword = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
+									isBoolean = (type === 'Boolean'); //typeInfo[key].className === 'org.structr.core.property.BooleanProperty'; //isIn(key, _Entities.booleanAttrs);
+									isDate = (type === 'Date'); //typeInfo[key].className === 'org.structr.core.property.ISO8601DateProperty'; //isIn(key, _Entities.dateAttrs);
+									isPassword = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
 
-									var isRelated = typeInfo[key].relatedType;
+									isRelated = typeInfo[key].relatedType;
+									
+									if (isRelated) {
+										isCollection = typeInfo[key].isCollection;
+									}
 								}
 
 								if (!key.startsWith('_html_') && !isHidden) {
-
-									if (isBoolean) {
+ 									if (isBoolean) {
 										cell.removeClass('value').append('<input type="checkbox" class="' + key + '_">');
 										var checkbox = $(props.find('input[type="checkbox"].' + key + '_'));
 										Command.getProperty(id, key, function(val) {
@@ -600,50 +608,76 @@ var _Entities = {
 										
 										_Entities.appendDatePicker(cell, res, key, typeInfo[key].format);
 										
-									} else if (isRelated && res[key] && (res[key].constructor === Object || res[key].constructor === Array)) {
-										if (res[key] && res[key].constructor === Object) {
-											_Entities.appendRelatedNode(cell, props, id, key, res[key], function(nodeEl) {
-												$('.remove', nodeEl).on('click', function(e) {
-													e.preventDefault();
-													_Entities.setProperty(id, key, null, false, function(newVal) {
-														if (!newVal) {
-															blinkGreen(cell);
-															dialogMsg.html('<div class="infoBox success">Related node "' + displayName + '" was removed from property "' + key + '".</div>');
-															$('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
-															cell.empty();
-														} else {
-															blinkRed(cell);
-														}
-													});
-													return false;
-												});
+									} else if (isRelated) {
 
-											});
-										} else if (res[key] && res[key].constructor === Array) {
-											res[key].forEach(function(node) {console.log(typeInfo[key])
-												_Entities.appendRelatedNode(cell, props, id, key, node, function(nodeEl) {
-													$('.remove', nodeEl).on('click', function(e) {
-														e.preventDefault();
-														Command.removeFromCollection(id, key, node.id, function() {
-															nodeEl.remove();
-															blinkGreen(cell);
+										if (res[key]) {
+													
+											if (!isCollection) {
+
+												var nodeId = res[key].id || res[key];
+
+												Command.get(nodeId, function(node) {
+													
+													_Entities.appendRelatedNode(cell, props, id, key, node, function(nodeEl) {
+
+														$('.remove', nodeEl).on('click', function(e) {
+															e.preventDefault();
+															_Entities.setProperty(id, key, null, false, function(newVal) {
+																if (!newVal) {
+																	blinkGreen(cell);
+																	dialogMsg.html('<div class="infoBox success">Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".</div>');
+																	$('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+																	cell.empty();
+																} else {
+																	blinkRed(cell);
+																}
+															});
+															return false;
 														});
-														return false;
+
 													});
+												
 												});
-											});
-											
-//											cell.append('<img class="add" src="icon/add_grey.png">');
-//											$('.add', cell).on('click', function() {
-//												Structr.dialog('Add ' + typeInfo[key].type, function() {
-//												}, function() {
-//												});
-//												_Entities.displaySearch(type, id, key, typeInfo[key].type, dialogText);
-//											});
 
+											} else {
 
-											
+												res[key].forEach(function(obj) {
+
+													var nodeId = obj.id || obj;
+
+													Command.get(nodeId, function(node) {
+
+														_Entities.appendRelatedNode(cell, props, id, key, node, function(nodeEl) {
+															$('.remove', nodeEl).on('click', function(e) {
+																e.preventDefault();
+																Command.removeFromCollection(id, key, node.id, function() {
+																	var nodeEl = $('._' + node.id, cell);
+																	nodeEl.remove();
+																	blinkGreen(cell);
+																	dialogMsg.html('<div class="infoBox success">Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".</div>');
+																	$('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+																});
+																return false;
+															});
+														});
+													});
+
+												});
+
+											}
 										}
+											
+										cell.append('<img class="add" src="icon/add_grey.png">');
+										$('.add', cell).on('click', function() {
+											Structr.dialog('Add ' + typeInfo[key].type, function() {
+											}, function() {
+												window.setTimeout(function() {
+													_Entities.showProperties(entity);
+												}, 250);
+											});
+											_Entities.displaySearch(id, key, typeInfo[key].type, dialogText, isCollection);
+										});
+										
 									} else {
 										cell.append(formatValueInputField(key, res[key], isPassword, isReadOnly));
 									}
@@ -702,7 +736,8 @@ var _Entities = {
 		});
 
 	},
-	displaySearch: function(parentType, id, key, type, el) {
+	displaySearch: function(id, key, type, el, isCollection) {
+
 		el.append('<div class="searchBox searchBoxDialog"><input class="search" name="search" size="20" placeholder="Search"><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
 		var searchBox = $('.searchBoxDialog', el);
 		var search = $('.search', searchBox);
@@ -722,11 +757,36 @@ var _Entities = {
 						search.focus();
 					}
 				});
-				// (type, pageSize, page, sort, order, properties, includeDeletedAndHidden, callback)
-				Command.getByType(type, 1000, 1, 'name', 'asc', null, false, function(node) {
-					
-					console.log(node);
-					
+
+				el.append('<div class="result-box"></div>');
+				
+				var box = $('.result-box', el);
+
+				Command.getByType(type, 1000, 1, 'name', 'asc', null, false, function(nodes) {
+					nodes.forEach(function(node) {
+						var displayName = node.title || node.name || node.id;
+						box.append('<div title="' + displayName + '" " class="_' + node.id + ' node element">' + fitStringToWidth(displayName, 120) + '</div>');
+						$('._' + node.id, box).on('click', function() {
+							
+							if (isCollection) {
+							
+								_Entities.addToCollection(id, node.id, key, function() {
+									if (lastMenuEntry === 'contents') {
+										_Contents.refreshTree();
+									}
+									if (lastMenuEntry === 'filesystem') {
+										_Filesystem.refreshTree();
+									}
+								});
+								
+							} else {
+								Command.setProperty(id, key, node.id, false, function() {
+									dialogCancelButton.click();
+								});
+							}
+							
+						});
+					});
 				});
 
 			} else if (e.keyCode === 27) {
@@ -749,6 +809,48 @@ var _Entities = {
 
 		});
 	},
+	clearSearch: function(el) {
+		if (_Entities.clearSearchResults(el)) {
+			$('.clearSearchIcon').hide().off('click');
+			$('.search').val('');
+			$('#resourceTabs', main).show();
+			$('#resourceBox', main).show();
+		}
+	},
+	clearSearchResults: function(el) {
+		var searchResults = $('.searchResults', el);
+		if (searchResults.length) {
+			searchResults.remove();
+			$('.searchResultsTitle').remove();
+			return true;
+		}
+		return false;
+	},
+	addToCollection: function(itemId, newItemId, key, callback) {
+		var collectionIds = [];
+		Command.get(itemId, function(obj) {
+				//var keyInfo = typeInfo.filter(function(item) { return item.jsonName === key; })[0];
+			var collection = obj[key];
+			if (collection && collection.length) {
+				collection.forEach(function(collectionItem) {
+
+					if (collectionItem.id) {
+						// object or ObjectNotion/UiNotion
+						collectionIds.push(collectionItem.id);
+					} else {
+						// in case of PropertyNotion or the like
+						collectionIds.push(collectionItem);
+					}
+				});
+			}
+			collectionIds.push(newItemId);
+			Command.setProperty(itemId, key, collectionIds, false, function() {
+				if (callback) {
+					callback();
+				}
+			});
+		});
+	},
 	appendDatePicker: function(el, entity, key, format) {
 		if (!entity[key] || entity[key] === 'null') {
 			entity[key] = '';
@@ -764,8 +866,8 @@ var _Entities = {
 	},
 	appendRelatedNode: function(cell, props, id, key, node, onDelete) {
 		var displayName = _Crud.displayName(node);
-		cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
-		var nodeEl = $('#_' + node.id, cell);
+		cell.append('<div title="' + displayName + '" class="_' + node.id + ' node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
+		var nodeEl = $('._' + node.id, cell);
 
 		nodeEl.on('click', function(e) {
 			e.preventDefault();
