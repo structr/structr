@@ -368,7 +368,7 @@ var _Crud = {
 	},
 	filterTabs: function() {
 
-		Command.getSchemaInfo(function(nodes) {
+		Command.getSchemaInfo(null, function(nodes) {
 
 			nodes.sort(function(a, b) {
 				var aName = a.name.toLowerCase();
@@ -2062,7 +2062,7 @@ var _Crud = {
 			//displayName = $(node.content).text().substring(0, 100);
 			displayName = escapeTags(node.content.substring(0, 100));
 		} else {
-			displayName = node.name ? node.name : node.id;
+			displayName = node.name || node.id || node;
 		}
 		return displayName;
 	},

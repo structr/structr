@@ -132,10 +132,13 @@ var Command = {
 	/**
 	 * Send a single GET_SCHEMA_INFO command to the server.
 	 *
-	 * The server will return a schema overviewall relevant properties.
+	 * The server will return a schema overview with all relevant properties.
 	 */
-	getSchemaInfo: function(callback) {
+	getSchemaInfo: function(type, callback) {
 		var obj = {};
+		var data = {};
+		data.type = type;
+		obj.data = data;
 		obj.command = 'GET_SCHEMA_INFO';
 		_Logger.log(_LogType.WS[obj.command], 'getSchemaInfo()', obj, callback);
 		return sendObj(obj, callback);

@@ -1054,7 +1054,7 @@ var _Graph = {
 		fastRemoveAllChildren(nodeTypesBox[0]);
 
 		// getByType: function(type, pageSize, page, sort, order, properties, includeDeletedAndHidden, callback) {
-		Command.getSchemaInfo(function(nodes) {
+		Command.getSchemaInfo(null, function(nodes) {
 
 			nodes.sort(function(a, b) {
 				var aName = a.name.toLowerCase();
