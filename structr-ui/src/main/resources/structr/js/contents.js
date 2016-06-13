@@ -16,13 +16,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var main, filesystemMain, contentTree, folderContents;
-var fileList;
-var chunkSize = 1024 * 64;
-var sizeLimit = 1024 * 1024 * 1024;
+var main, contentsMain, contentTree, contentsContents;
 var win = $(window);
 var selectedElements = [];
-var activeFileId, fileContents = {};
 var counter = 0;
 var currentContentContainer;
 var containerPageSize = 10000, containerPage = 1;
@@ -90,8 +86,8 @@ var _Contents = {
 			});
 		}
 
-		if (folderContents) {
-			folderContents.css({
+		if (contentsContents) {
+			contentsContents.css({
 				width: windowWidth - 400 - 64 + 'px',
 				height: windowHeight - headerOffsetHeight - 55 + 'px'
 			});
@@ -105,18 +101,13 @@ var _Contents = {
 
 		$('#main-help a').attr('href', 'https://support.structr.com/knowledge-graph');
 
-		main.append('<div id="contents-main"><div class="fit-to-height" id="file-tree-container"><div id="file-tree"></div></div><div class="fit-to-height" id="folder-contents-container"><div id="folder-contents"></div></div>');
-		filesystemMain = $('#contents-main');
+		main.append('<div id="contents-main"><div class="fit-to-height" id="content-tree-container"><div id="contents-tree"></div></div><div class="fit-to-height" id="contents-contents-container"><div id="contents-contents"></div></div>');
+		contentsMain = $('#contents-main');
 
-		contentTree = $('#file-tree');
-		folderContents = $('#folder-contents');
+		contentTree = $('#contents-tree');
+		contentsContents = $('#contents-contents');
 
-//		$('#folder-contents-container').prepend(
-//				'<button class="add_file_icon button"><img title="Add File" alt="Add File" src="' + _Contents.add_file_icon + '"> Add File</button>'
-//				+ '<button class="pull_file_icon button module-dependend" data-module="structr-cloud-module"><img title="Sync Files" alt="Sync Files" src="' + _Contents.pull_file_icon + '"> Sync Files</button>'
-//				);
-
-		$('#folder-contents-container').prepend(' <select id="add-content-item"><option value="">Add Content Item</option></select>');
+		$('#contents-contents-container').prepend(' <select id="add-content-item"><option value="">Add Content Item</option></select>');
 		
 		var itemTypesSelector = $('#add-content-item', main);
 		// query: function(type, pageSize, page, sort, order, properties, callback, exact, view) {
@@ -140,7 +131,7 @@ var _Contents = {
 			}
 		});
 
-		$('#folder-contents-container').prepend('<select id="add-content-container"><option value="">Add Content Container</option></select>');
+		$('#contents-contents-container').prepend('<select id="add-content-container"><option value="">Add Content Container</option></select>');
 		
 		var containerTypesSelector = $('#add-content-container', main);
 		Command.query('SchemaNode', 1000, 1, 'name', 'asc', { extendsClass: 'org.structr.web.entity.ContentContainer' }, function(schemaNodes) {
@@ -171,14 +162,14 @@ var _Contents = {
 		contentTree.on('ready.jstree', function() {
 			var rootEl = $('#root > .jstree-wholerow');
 			_Dragndrop.makeDroppable(rootEl);
-		});
-
-		_Contents.loadAndSetWorkingDir(function() {
-			_Contents.initTree();
-			if (!currentContentContainer) {
-				_Contents.displayContainerContents('root', null, '/');
-			}
-
+			_Contents.loadAndSetWorkingDir(function() {
+				if (currentContentContainer) {
+					_Contents.deepOpen(currentContentContainer);
+				}
+				window.setTimeout(function() {
+					contentTree.jstree('select_node', currentContentContainer ? currentContentContainer.id : 'root');
+				}, 100);
+			});
 		});
 
 		contentTree.on('select_node.jstree', function(evt, data) {
@@ -192,6 +183,8 @@ var _Contents = {
 
 		});
 
+		_Contents.initTree();
+
 		win.off('resize');
 		win.resize(function() {
 			_Contents.resize();
@@ -203,6 +196,7 @@ var _Contents = {
 
 	},
 	deepOpen: function(d, dirs) {
+		dirs = dirs || [];
 		if (d && d.id) {
 			dirs.unshift(d);
 			Command.get(d.id, function(dir) {
@@ -219,14 +213,13 @@ var _Contents = {
 		var d = dirs.shift();
 		contentTree.jstree('deselect_node', d.id);
 		contentTree.jstree('open_node', d.id, function() {
-			if (currentContentContainer) {
-				contentTree.jstree('select_node', currentContentContainer.id);
-			}
+			contentTree.jstree('select_node', currentContentContainer ? currentContentContainer.id : 'root');
 			_Contents.open(dirs);
 		});
 
 	},
 	refreshTree: function() {
+		//$.jstree.destroy();
 		contentTree.jstree('refresh');
 		window.setTimeout(function() {
 			var rootEl = $('#root > .jstree-wholerow');
@@ -234,6 +227,7 @@ var _Contents = {
 		}, 500);
 	},
 	initTree: function() {
+		//$.jstree.destroy();
 		contentTree.jstree({
 			'plugins': ["themes", "dnd", "search", "state", "types", "wholerow"],
 			'core': {
@@ -295,8 +289,7 @@ var _Contents = {
 		fastRemoveAllChildren($('#contents-main', main));
 	},
 	fulltextSearch: function(searchString) {
-		var content = $('#folder-contents');
-		content.children().hide();
+		contentsContents.children().hide();
 
 		var url;
 		if (searchString.contains(' ')) {
@@ -313,7 +306,7 @@ var _Contents = {
 	clearSearch: function() {
 		$('.search', main).val('');
 		$('#search-results').remove();
-		$('#folder-contents').children().show();
+		contentsContents.children().show();
 	},
 	loadAndSetWorkingDir: function(callback) {
 		
@@ -343,7 +336,7 @@ var _Contents = {
 
 				window.setTimeout(function() {
 					list.forEach(function(obj) {
-						var el = $('#file-tree #' + obj.id + ' > .jstree-wholerow');
+						var el = $('#' + obj.id + ' > .jstree-wholerow', contentTree);
 						StructrModel.create({id: obj.id});
 						_Dragndrop.makeDroppable(el);
 					});
@@ -371,7 +364,7 @@ var _Contents = {
 
 				window.setTimeout(function() {
 					list.forEach(function(obj) {
-						var el = $('#file-tree #' + obj.id + ' > .jstree-wholerow');
+						var el = $('#' + obj.id + ' > .jstree-wholerow', contentTree);
 						StructrModel.create({id: obj.id});
 						_Dragndrop.makeDroppable(el);
 					});
@@ -394,8 +387,7 @@ var _Contents = {
 	},
 	displayContainerContents: function(id, parentId, nodePath, parents) {
 		
-		var content = $('#folder-contents');
-		fastRemoveAllChildren(content[0]);
+		fastRemoveAllChildren(contentsContents[0]);
 		var path = '';
 		if (parents) {
 			parents = [].concat(parents).reverse().slice(1);
@@ -424,10 +416,10 @@ var _Contents = {
 		page['ContentItem'] = 1;
 		_Pager.initFilters('contents-items', 'ContentItem', id === 'root' ? {} : { containers: [id] });
 
-		var itemsPager = _Pager.addPager('contents-items', content, false, 'ContentItem', 'ui', handleChildren);
+		var itemsPager = _Pager.addPager('contents-items', contentsContents, false, 'ContentItem', 'ui', handleChildren);
 
 		itemsPager.cleanupFunction = function () {
-			var toRemove = $('.node.file', itemsPager.el).closest('tr');
+			var toRemove = $('.node.item', itemsPager.el).closest('tr');
 			toRemove.each(function(i, elem) {
 				fastRemoveAllChildren(elem);
 			});
@@ -438,7 +430,7 @@ var _Contents = {
 		itemsPager.pager.append('<input type="checkbox" class="filter" data-attribute="hasParent" ' + ((parentId === '#') ? '' : 'checked') + ' hidden>');
 		itemsPager.activateFilterElements();
 
-		content.append(
+		contentsContents.append(
 				'<h2>' + path + '</h2>'
 				+ '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Title/Name</th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
 				+ '<tbody id="files-table-body">'
@@ -588,30 +580,12 @@ var _Contents = {
 //							});
 //							selectedElements.length = 0;
 //						} else {
-							var containerIds = [];
-							Command.get(itemId, function(item) {
-								
-								//console.log(item);
-								
-								var containers = item.containers;
-								
-								if (containers && containers.length) {
-									containers.forEach(function(container) {
-										containerIds.push({id: container.id});
-									});
-								}
-								
-								// add new container id
-								containerIds.push({id: containerId});
-								
-								//console.log(containerIds);
-								Command.setProperty(itemId, 'containers', containerIds, false, function() {
-									$(ui.draggable).remove();
-								});
-							});
-//						}
 
-						_Contents.refreshTree();
+						_Entities.addToCollection(itemId, containerId, 'containers', function() {
+							$(ui.draggable).remove();
+							_Contents.refreshTree();
+						});
+
 					}
 
 					return false;
@@ -858,7 +832,7 @@ var _Contents = {
 		var searchString = $('.search', main).val();
 		var container = $('#search-results');
 		content.on('scroll', function() {
-			window.history.pushState('', '', '#filesystem');
+			window.history.pushState('', '', '#contents');
 
 		});
 
@@ -873,7 +847,7 @@ var _Contents = {
 
 					if (!data.result || data.result.length === 0) {
 						container.append('<h1>No results for "' + searchString + '"</h1>');
-						container.append('<h2>Press ESC or click <a href="#filesystem" class="clear-results">here to clear</a> empty result list.</h2>');
+						container.append('<h2>Press ESC or click <a href="#contents" class="clear-results">here to clear</a> empty result list.</h2>');
 						$('.clear-results', container).on('click', function() {
 							_Contents.clearSearch();
 						});
@@ -924,7 +898,7 @@ var _Contents = {
 
 									$('.go-to-top', div).on('click', function() {
 										content.scrollTop(0);
-										window.history.pushState('', '', '#filesystem');
+										window.history.pushState('', '', '#contents');
 									});
 
 									$.each(data.result.context, function(i, contextString) {
@@ -950,14 +924,5 @@ var _Contents = {
 	},
 	getIcon: function(file) {
 		return (file.isContentContainer ? 'fa-folder-o' : 'fa-file-o');
-	},
-	updateTextFile: function(file, text) {
-		var chunks = Math.ceil(text.length / chunkSize);
-		for (var c = 0; c < chunks; c++) {
-			var start = c * chunkSize;
-			var end = (c + 1) * chunkSize;
-			var chunk = utf8_to_b64(text.substring(start, end));
-			Command.chunk(file.id, c, chunkSize, chunk, chunks);
-		}
 	}
 };

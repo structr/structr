@@ -1053,7 +1053,7 @@ button img {
 .dialog {
     display: none;
     font-size: 11pt;
-    padding: 4px 0px 6px 12px;
+    padding: 4px 12px 6px 12px;
     border-radius: 3px;
     border: 1px solid #999;
     background-color: #f3f3f3;
@@ -2463,7 +2463,7 @@ td#cascading-options, td#propagation-options {
     background-color: #eff8e3 ! important;
 }
 
-#file-tree-container {
+#file-tree-container, #content-tree-container {
   display: table-cell;
   vertical-align: top;
   padding: 12px;
@@ -2471,7 +2471,7 @@ td#cascading-options, td#propagation-options {
   padding-top: 12px;
 }
 
-#file-tree {
+#file-tree, #contents-tree {
   padding-top: 8px;
   width: 400px;
   min-width: 400px;
@@ -2482,13 +2482,19 @@ td#cascading-options, td#propagation-options {
   border: 1px solid #a5a5a5;
 }
 
-#folder-contents-container {
+#folder-contents-container, #contents-contents-container {
   display: table-cell;
   vertical-align: top;
   padding: 12px;
 }
 
-#folder-contents {
+#folder-contents-container select, #contents-contents-container select {
+    
+  padding: 3px;
+    
+}
+
+#folder-contents, #contents-contents {
   vertical-align: top;
   background-color: #fff;
   border-radius: 3px;
@@ -2499,22 +2505,22 @@ td#cascading-options, td#propagation-options {
   font-size: 9pt;
 }
 
-#folder-contents h1 {
+#folder-contents h1, #contents-contents h1 {
   margin: 0px;
 }
 
-#folder-contents table {
+#folder-contents table, #contents-contents table {
   margin: 0px;
   font-size: 9pt;
   font-family: sans-serif;
   width: 100%;
 }
 
-#folder-contents td.file-type {
+#folder-contents td.file-type, #contents-contents td.file-type {
     width: 24px;
 }
 
-#folder-contents table th {
+#folder-contents table th, #contents-contents table th {
   text-align: left;
   padding-left: 8px;
 }
@@ -2802,4 +2808,37 @@ i.fa.ps {
 
 #add-child-dialog ul.bottom ul.bottom {
     bottom: -1px;
+}
+
+.result-box {
+    position: absolute;
+    top: 48px;
+    left: 0;
+    right: 12px;
+    border-radius: 3px;
+    padding: 12px;
+    clear: both;
+    overflow: hidden;
+    border: 1px solid #999 ! important;
+    background: #fff ! important;
+    font-family: 'Open Sans', Arial, Helvetica, Sans-serif ! important;
+    font-size: 9pt;
+}
+
+.result-box .node {
+    color: #333;
+    line-height: 1.7em;
+    border-radius: 3px;
+    border: 1px solid #a5a5a5;
+    padding: 2px 5px;
+    margin: 2px 2px 3px 1px;
+    background-color: #eee;
+    float: left;
+}
+
+.result-box .node:hover {
+    color: #555;
+    border: 1px solid #bbb;
+    background-color: #f5f5f5;
+    cursor: pointer;
 }
