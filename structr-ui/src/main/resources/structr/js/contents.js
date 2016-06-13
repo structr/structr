@@ -589,20 +589,25 @@ var _Contents = {
 //							selectedElements.length = 0;
 //						} else {
 							var containerIds = [];
-							Command.getProperty(itemId, 'containers', function(containers) {
+							Command.get(itemId, function(item) {
 								
-								console.log(containers);
+								//console.log(item);
 								
-								containers.forEach(function(container) {
-									containerIds.push(container.id);
+								var containers = item.containers;
+								
+								if (containers && containers.length) {
+									containers.forEach(function(container) {
+										containerIds.push({id: container.id});
+									});
+								}
+								
+								// add new container id
+								containerIds.push({id: containerId});
+								
+								//console.log(containerIds);
+								Command.setProperty(itemId, 'containers', containerIds, false, function() {
+									$(ui.draggable).remove();
 								});
-//								
-//								// add new container id
-//								containerIds.push(containerId);
-//								
-//								Command.setProperty(itemId, 'containers', containerIds, false, function() {
-//									$(ui.draggable).remove();
-//								});
 							});
 //						}
 
