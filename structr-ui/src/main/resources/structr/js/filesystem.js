@@ -143,14 +143,14 @@ var _Filesystem = {
 		fileTree.on('ready.jstree', function() {
 			var rootEl = $('#root > .jstree-wholerow');
 			_Dragndrop.makeDroppable(rootEl);
-		});
-
-		_Filesystem.loadAndSetWorkingDir(function() {
-			_Filesystem.initTree();
-			if (!currentWorkingDir) {
-				_Filesystem.displayFolderContents('root', null, '/');
-			}
-
+			_Filesystem.loadAndSetWorkingDir(function() {
+				if (currentWorkingDir) {
+					_Filesystem.deepOpen(currentWorkingDir);
+				}
+				window.setTimeout(function() {
+					fileTree.jstree('select_node', currentWorkingDir ? currentWorkingDir.id : 'root');
+				}, 100);
+			});
 		});
 
 		fileTree.on('select_node.jstree', function(evt, data) {
@@ -163,6 +163,8 @@ var _Filesystem = {
 			_Filesystem.displayFolderContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
 
 		});
+
+		_Filesystem.initTree();
 
 		_Filesystem.activateUpload();
 
@@ -177,6 +179,7 @@ var _Filesystem = {
 
 	},
 	deepOpen: function(d, dirs) {
+		dirs = dirs || [];
 		if (d && d.id) {
 			dirs.unshift(d);
 			Command.get(d.id, function(dir) {
@@ -193,14 +196,13 @@ var _Filesystem = {
 		var d = dirs.shift();
 		fileTree.jstree('deselect_node', d.id);
 		fileTree.jstree('open_node', d.id, function() {
-			if (currentWorkingDir) {
-				fileTree.jstree('select_node', currentWorkingDir.id);
-			}
+			fileTree.jstree('select_node', currentWorkingDir ? currentWorkingDir.id : 'root');
 			_Filesystem.open(dirs);
 		});
 
 	},
 	refreshTree: function() {
+		//$.jstree.destroy();
 		fileTree.jstree('refresh');
 		window.setTimeout(function() {
 			var rootEl = $('#root > .jstree-wholerow');
@@ -208,6 +210,7 @@ var _Filesystem = {
 		}, 500);
 	},
 	initTree: function() {
+		//$.jstree.destroy();
 		fileTree.jstree({
 			'plugins': ["themes", "dnd", "search", "state", "types", "wholerow"],
 			'core': {
