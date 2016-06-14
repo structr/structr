@@ -31,7 +31,7 @@ import org.mozilla.javascript.Undefined;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.parser.Functions;
+import org.structr.core.function.Functions;
 import org.structr.core.property.DateProperty;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.parser.DatePropertyParser;

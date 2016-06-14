@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.function;
+package org.structr.web.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;

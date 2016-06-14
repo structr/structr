@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.function;
+package org.structr.web.function;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;

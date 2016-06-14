@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.parser.function;
+package org.structr.core.function;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;

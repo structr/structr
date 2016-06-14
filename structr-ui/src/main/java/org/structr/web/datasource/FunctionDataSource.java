@@ -22,7 +22,7 @@ import java.util.List;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.parser.Functions;
+import org.structr.core.function.Functions;
 import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;

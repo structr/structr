@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.function;
+package org.structr.web.function;
 
 import java.io.IOException;
 import java.util.Map;
@@ -36,7 +36,7 @@ import static org.structr.web.entity.dom.DOMNode.extractHeaders;
 /**
  *
  */
-public class PostFunction extends Function<Object, Object> {
+public class HttpPostFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_POST    = "Usage: ${POST(URL, body [, contentType, charset])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:Test}', 'application/json', 'utf-8')}";
 	public static final String ERROR_MESSAGE_POST_JS = "Usage: ${{Structr.POST(URL, body [, contentType, charset])}}. Example: ${{Structr.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'utf-8')}}";

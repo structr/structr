@@ -18,6 +18,7 @@
  */
 package org.structr.web.entity.dom;
 
+import org.structr.core.function.HttpGetFunction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -52,7 +53,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
-import org.structr.core.parser.Functions;
+import org.structr.core.function.Functions;
 import org.structr.core.property.AbstractReadOnlyProperty;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
@@ -68,7 +69,23 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
-import org.structr.function.*;
+import org.structr.web.function.AddHeaderFunction;
+import org.structr.web.function.EscapeHtmlFunction;
+import org.structr.web.function.FromJsonFunction;
+import org.structr.web.function.FromXmlFunction;
+import org.structr.web.function.GetContentFunction;
+import org.structr.web.function.GetRequestHeaderFunction;
+import org.structr.web.function.HttpHeadFunction;
+import org.structr.web.function.IncludeFunction;
+import org.structr.web.function.IsLocaleFunction;
+import org.structr.web.function.LogEventFunction;
+import org.structr.web.function.ParseFunction;
+import org.structr.web.function.HttpPostFunction;
+import org.structr.web.function.RenderFunction;
+import org.structr.web.function.SetDetailsObjectFunction;
+import org.structr.web.function.SetResponseHeaderFunction;
+import org.structr.web.function.StripHtmlFunction;
+import org.structr.web.function.ToJsonFunction;
 import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
@@ -85,6 +102,8 @@ import org.structr.web.entity.dom.relationship.DOMSiblings;
 import org.structr.web.entity.relation.PageLink;
 import org.structr.web.entity.relation.RenderNode;
 import org.structr.web.entity.relation.Sync;
+import org.structr.web.function.SendHtmlMailFunction;
+import org.structr.web.function.SendPlaintextMailFunction;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -168,24 +187,27 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	static {
 
 		// extend set of builtin functions
-		Functions.functions.put("render", new RenderFunction());
-		Functions.functions.put("include", new IncludeFunction());
-		Functions.functions.put("get_content", new GetContentFunction());
-		Functions.functions.put("strip_html", new StripHtmlFunction());
-		Functions.functions.put("POST", new PostFunction());
-		Functions.functions.put("GET", new GetFunction());
-		Functions.functions.put("HEAD", new HeadFunction());
-		Functions.functions.put("parse", new ParseFunction());
-		Functions.functions.put("to_json", new ToJsonFunction());
+		Functions.functions.put("add_header", new AddHeaderFunction());
+		Functions.functions.put("escape_html", new EscapeHtmlFunction());
 		Functions.functions.put("from_json", new FromJsonFunction());
 		Functions.functions.put("from_xml", new FromXmlFunction());
-		Functions.functions.put("add_header", new AddHeaderFunction());
-		Functions.functions.put("set_response_header", new SetResponseHeaderFunction());
+		Functions.functions.put("get_content", new GetContentFunction());
 		Functions.functions.put("get_request_header", new GetRequestHeaderFunction());
-		Functions.functions.put("log_event", new LogEventFunction());
+		Functions.functions.put("GET", new HttpGetFunction());
+		Functions.functions.put("HEAD", new HttpHeadFunction());
+		Functions.functions.put("POST", new HttpPostFunction());
+		Functions.functions.put("include", new IncludeFunction());
 		Functions.functions.put("is_locale", new IsLocaleFunction());
+		Functions.functions.put("log_event", new LogEventFunction());
+		Functions.functions.put("log_event", new LogEventFunction());
+		Functions.functions.put("parse", new ParseFunction());
+		Functions.functions.put("render", new RenderFunction());
+		Functions.functions.put("send_html_mail", new SendHtmlMailFunction());
+		Functions.functions.put("send_plaintext_mail", new SendPlaintextMailFunction());
+		Functions.functions.put("set_response_header", new SetResponseHeaderFunction());
 		Functions.functions.put("set_details_object", new SetDetailsObjectFunction());
-		Functions.functions.put("escape_html", new EscapeHtmlFunction());
+		Functions.functions.put("to_json", new ToJsonFunction());
+		Functions.functions.put("strip_html", new StripHtmlFunction());
 	}
 
 	public abstract boolean isSynced();

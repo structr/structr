@@ -44,8 +44,8 @@ import org.structr.core.entity.TestThree;
 import org.structr.core.entity.TestTwo;
 import org.structr.core.entity.TestUser;
 import org.structr.core.graph.Tx;
-import org.structr.core.parser.function.DateFormatFunction;
-import org.structr.core.parser.function.NumberFormatFunction;
+import org.structr.core.function.DateFormatFunction;
+import org.structr.core.function.NumberFormatFunction;
 import org.structr.core.script.Scripting;
 
 /**

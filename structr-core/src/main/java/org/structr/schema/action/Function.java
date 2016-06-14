@@ -40,7 +40,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
-import org.structr.core.parser.Functions;
+import org.structr.core.function.Functions;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.parser.DatePropertyParser;

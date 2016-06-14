@@ -29,7 +29,7 @@ import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.parser.Functions;
+import org.structr.core.function.Functions;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.compiler.CharSequenceJavaFileObject;
 import org.structr.schema.compiler.ClassFileManager;

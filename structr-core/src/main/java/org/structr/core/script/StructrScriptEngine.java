@@ -32,7 +32,7 @@ import javax.script.ScriptException;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.parser.Functions;
+import org.structr.core.function.Functions;
 import org.structr.schema.action.ActionContext;
 
 /**

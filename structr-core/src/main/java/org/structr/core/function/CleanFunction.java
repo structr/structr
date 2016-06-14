@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.parser.function;
+package org.structr.core.function;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -24,7 +24,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import static org.structr.core.parser.Functions.cleanString;
+import static org.structr.core.function.Functions.cleanString;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 

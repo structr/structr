@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.parser.function;
+package org.structr.core.function;
 
 import java.util.List;
 import java.util.Map;
@@ -34,7 +34,7 @@ import org.structr.schema.action.Function;
 /**
  *
  */
-public class GetFunction extends Function<Object, Object> {
+public class HttpGetFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_GET        = "Usage: ${get(entity, propertyKey)}. Example: ${get(this, \"children\")}";
 	public static final String ERROR_MESSAGE_GET_ENTITY = "Cannot evaluate first argument to entity, must be entity or single element list of entities.";

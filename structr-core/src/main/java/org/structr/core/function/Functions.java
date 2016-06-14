@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.parser;
+package org.structr.core.function;
 
 import java.io.IOException;
 import java.io.StreamTokenizer;
@@ -27,7 +27,19 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.parser.function.*;
+import org.structr.core.parser.ArrayExpression;
+import org.structr.core.parser.CacheExpression;
+import org.structr.core.parser.ConstantExpression;
+import org.structr.core.parser.EachExpression;
+import org.structr.core.parser.Expression;
+import org.structr.core.parser.FilterExpression;
+import org.structr.core.parser.FunctionExpression;
+import org.structr.core.parser.FunctionValueExpression;
+import org.structr.core.parser.GroupExpression;
+import org.structr.core.parser.IfExpression;
+import org.structr.core.parser.NullExpression;
+import org.structr.core.parser.RootExpression;
+import org.structr.core.parser.ValueExpression;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -291,7 +303,7 @@ public class Functions {
 		functions.put("not", new NotFunction());
 		functions.put("and", new AndFunction());
 		functions.put("or", new OrFunction());
-		functions.put("get", new GetFunction());
+		functions.put("get", new HttpGetFunction());
 		functions.put("get_or_null", new GetOrNullFunction());
 		functions.put("size", new SizeFunction());
 		functions.put("first", new FirstFunction());
@@ -318,8 +330,6 @@ public class Functions {
 		functions.put("xml", new XmlFunction());
 		functions.put("xpath", new XPathFunction());
 		functions.put("set", new SetFunction());
-		functions.put("send_plaintext_mail", new SendPlaintextMailFunction());
-		functions.put("send_html_mail", new SendHtmlMailFunction());
 		functions.put("geocode", new GeocodeFunction());
 		functions.put("find", new FindFunction());
 		functions.put("search", new SearchFunction());

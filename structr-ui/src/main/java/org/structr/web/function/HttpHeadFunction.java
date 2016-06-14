@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.function;
+package org.structr.web.function;
 
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
@@ -24,7 +24,7 @@ import org.structr.schema.action.ActionContext;
 /**
  *
  */
-public class HeadFunction extends UiFunction {
+public class HttpHeadFunction extends UiFunction {
 
 	public static final String ERROR_MESSAGE_HEAD    = "Usage: ${HEAD(URL[, username, password])}. Example: ${HEAD('http://structr.org', 'foo', 'bar')}";
 	public static final String ERROR_MESSAGE_HEAD_JS = "Usage: ${{Structr.HEAD(URL[, username, password]])}}. Example: ${{Structr.HEAD('http://structr.org', 'foo', 'bar')}}";
