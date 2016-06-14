@@ -1068,10 +1068,14 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 					try {
 
 						// we need to make sure that a module is initialized exactly once
-						final StructrModule structrModule = (StructrModule)clazz.newInstance();
-						modules.put(structrModule.getName(), structrModule);
-
-						logger.log(Level.INFO, "Activating module {0}", structrModule.getName());
+						final StructrModule structrModule = (StructrModule) clazz.newInstance();
+						final String moduleName = structrModule.getName();
+						
+						if (!modules.containsKey(moduleName)) {
+						
+							modules.put(structrModule.getName(), structrModule);
+							logger.log(Level.INFO, "Activating module {0}", structrModule.getName());
+						}
 
 					} catch (Throwable t) {
 						logger.log(Level.WARNING, "Unable to instantiate module " + clazz.getName(), t);
