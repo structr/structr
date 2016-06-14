@@ -303,7 +303,7 @@ public class Functions {
 		functions.put("not", new NotFunction());
 		functions.put("and", new AndFunction());
 		functions.put("or", new OrFunction());
-		functions.put("get", new HttpGetFunction());
+		functions.put("get", new GetFunction());
 		functions.put("get_or_null", new GetOrNullFunction());
 		functions.put("size", new SizeFunction());
 		functions.put("first", new FirstFunction());

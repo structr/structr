@@ -18,7 +18,6 @@
  */
 package org.structr.web.entity.dom;
 
-import org.structr.core.function.HttpGetFunction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -102,6 +101,7 @@ import org.structr.web.entity.dom.relationship.DOMSiblings;
 import org.structr.web.entity.relation.PageLink;
 import org.structr.web.entity.relation.RenderNode;
 import org.structr.web.entity.relation.Sync;
+import org.structr.web.function.HttpGetFunction;
 import org.structr.web.function.SendHtmlMailFunction;
 import org.structr.web.function.SendPlaintextMailFunction;
 import org.w3c.dom.DOMException;

@@ -27,7 +27,7 @@ import org.structr.schema.action.ActionContext;
 /**
  *
  */
-public class GetFunction extends UiFunction {
+public class HttpGetFunction extends UiFunction {
 
 	public static final String ERROR_MESSAGE_GET    = "Usage: ${GET(URL[, contentType[, selector]])}. Example: ${GET('http://structr.org', 'text/html')}";
 	public static final String ERROR_MESSAGE_GET_JS = "Usage: ${{Structr.GET(URL[, contentType[, selector]])}}. Example: ${{Structr.HEAD('http://structr.org', 'text/html')}}";
