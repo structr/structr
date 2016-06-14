@@ -1220,7 +1220,7 @@ var Structr = {
 		$('.module-dependend').each(function(idx, el) {
 
 			$el = $(el);
-			if (! Structr.isModulePresent($el.data('module'))) {
+			if (! Structr.isModulePresent($el.data('structr-module'))) {
 				$el.hide();
 			}
 

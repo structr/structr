@@ -371,7 +371,7 @@ var _Pages = {
 
 		});
 
-		$('#import_page', previewTabs).after('<li id="pull_page" title="Sync page from remote instance" class="button module-dependend" data-module="structr-cloud-module"><img class="pull_page_button icon" src="icon/pull_page.png"></li>');
+		$('#import_page', previewTabs).after('<li id="pull_page" title="Sync page from remote instance" class="button module-dependend" data-structr-module="cloud"><img class="pull_page_button icon" src="icon/pull_page.png"></li>');
 		$('#pull_page', previewTabs).on('click', function(e) {
 			e.stopPropagation();
 			Structr.pullDialog('Page');

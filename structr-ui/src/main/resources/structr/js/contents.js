@@ -48,7 +48,7 @@ var _Contents = {
 
 		main = $('#main');
 
-		main.append('<div class="searchBox module-dependend" data-module="structr-text-search-module"><input class="search" name="search" placeholder="Search..."><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
+		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
 
 		searchField = $('.search', main);
 		searchField.focus();
@@ -293,12 +293,12 @@ var _Contents = {
 
 		var url;
 		if (searchString.contains(' ')) {
-			url = rootUrl + 'files/ui?loose=1';
+			url = rootUrl + 'ContentItem/ui?loose=1';
 			searchString.split(' ').forEach(function(str, i) {
-				url = url + '&indexedWords=' + str;
+				url = url + '&name=' + str;
 			});
 		} else {
-			url = rootUrl + 'files/ui?indexedWords=' + searchString;
+			url = rootUrl + 'ContentItem/ui?name=' + searchString;
 		}
 
 		_Contents.displaySearchResultsForURL(url);
@@ -825,13 +825,12 @@ var _Contents = {
 	},
 	displaySearchResultsForURL: function(url) {
 
-		var content = $('#folder-contents');
 		$('#search-results').remove();
-		content.append('<div id="search-results"></div>');
+		contentsContents.append('<div id="search-results"></div>');
 
 		var searchString = $('.search', main).val();
 		var container = $('#search-results');
-		content.on('scroll', function() {
+		contentsContents.on('scroll', function() {
 			window.history.pushState('', '', '#contents');
 
 		});

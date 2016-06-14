@@ -51,7 +51,7 @@ var _Filesystem = {
 
 		main = $('#main');
 
-		main.append('<div class="searchBox module-dependend" data-module="structr-text-search-module"><input class="search" name="search" placeholder="Search..."><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
+		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
 
 		searchField = $('.search', main);
 		searchField.focus();
@@ -112,7 +112,7 @@ var _Filesystem = {
 
 		$('#folder-contents-container').prepend(
 				'<button class="add_file_icon button"><img title="Add File" alt="Add File" src="' + _Filesystem.add_file_icon + '"> Add File</button>'
-				+ '<button class="pull_file_icon button module-dependend" data-module="structr-cloud-module"><img title="Sync Files" alt="Sync Files" src="' + _Filesystem.pull_file_icon + '"> Sync Files</button>'
+				+ '<button class="pull_file_icon button module-dependend" data-structr-module="cloud"><img title="Sync Files" alt="Sync Files" src="' + _Filesystem.pull_file_icon + '"> Sync Files</button>'
 				);
 
 		$('.add_file_icon', main).on('click', function(e) {
