@@ -422,7 +422,7 @@ public class StructrApp implements App {
 	public FulltextIndexer getFulltextIndexer(final Object... params) {
 
 		final Map<String, StructrModule> modules = StructrApp.getConfiguration().getModules();
-		final StructrModule module               = modules.get("fulltext-indexer");
+		final StructrModule module               = modules.get("text-search");
 
 		if (module != null && module instanceof FulltextIndexer) {
 			return (FulltextIndexer)module;
