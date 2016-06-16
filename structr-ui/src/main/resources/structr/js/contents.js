@@ -124,7 +124,8 @@ var _Contents = {
 			var sel = $(this);
 			var type = sel.val();
 			if (type) {
-				Command.create({ type: type, size: 0, parentId: currentContentContainer ? currentContentContainer.id : null }, function(f) {
+				var containers = (currentContentContainer ? [ { id : currentContentContainer.id } ] : null);
+				Command.create({ type: type, size: 0, containers: containers }, function(f) {
 					_Contents.appendItemOrContainerRow(f);
 					itemTypesSelector.prop('selectedIndex', 0);
 				});
@@ -147,7 +148,7 @@ var _Contents = {
 			var sel = $(this);
 			var type = sel.val();
 			if (type) {
-				Command.create({ type: type, parentId: currentContentContainer ? currentContentContainer.id : null }, function(f) {
+				Command.create({ type: type, parent: currentContentContainer ? currentContentContainer.id : null }, function(f) {
 					_Contents.appendItemOrContainerRow(f);
 					_Contents.refreshTree();
 					containerTypesSelector.prop('selectedIndex', 0);
@@ -262,7 +263,7 @@ var _Contents = {
 									children.push({
 										id: d.id,
 										text: d.name ? d.name : '[unnamed]',
-										children: d.isContentContainer && d.items.length > 0,
+										children: d.isContentContainer && d.childContainers.length > 0,
 										icon: 'fa fa-folder-o'
 									});
 								});
@@ -326,7 +327,7 @@ var _Contents = {
 					list.push({
 						id: d.id,
 						text:  d.name ? d.name : '[unnamed]',
-						children: d.isContentContainer && d.items.length > 0,
+						children: d.isContentContainer && d.childContainers.length > 0,
 						icon: 'fa fa-folder-o',
 						path: d.path
 					});
@@ -354,7 +355,7 @@ var _Contents = {
 					list.push({
 						id: d.id,
 						text:  d.name ? d.name : '[unnamed]',
-						children: d.isContentContainer && d.items.length > 0,
+						children: d.isContentContainer && d.childContainers.length > 0,
 						icon: 'fa fa-folder-o',
 						path: d.path
 					});
@@ -408,7 +409,7 @@ var _Contents = {
 		if (id === 'root') {
 			Command.list('ContentContainer', true, 1000, 1, 'name', 'asc', null, handleChildren);
 		} else {
-			Command.query('ContentContainer', 1000, 1, 'name', 'asc', {containers: id}, handleChildren, true, 'ui');
+			Command.query('ContentContainer', 1000, 1, 'name', 'asc', {parent: id}, handleChildren, true, 'ui');
 		}
 
 
@@ -432,7 +433,7 @@ var _Contents = {
 
 		contentsContents.append(
 				'<h2>' + path + '</h2>'
-				+ '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Title/Name</th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
+				+ '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
 				+ '<tbody id="files-table-body">'
 				+ ((id !== 'root') ? '<tr id="parent-file-link"><td class="file-type"><i class="fa fa-folder-o"></i></td><td><a href="#">..</a></td><td></td><td></td><td></td></tr>' : '')
 				+ '</tbody></table>'
@@ -472,18 +473,17 @@ var _Contents = {
 		var row = $('#' + rowId);
 		var icon = d.isContentContainer ? 'fa-folder-o' : _Contents.getIcon(d);
 
-
 		if (d.isContentContainer) {
 			row.append('<td class="file-type"><i class="fa ' + icon + '"></i></td>');
 			row.append('<td><div id="id_' + d.id + '" data-structr_type="folder" class="node container"><b title="' + d.name + '" class="name_">' + fitStringToWidth(d.name, 200) + '</b> <span class="id">' + d.id + '</span></div></td>');
 		} else {
-			row.append('<td class="file-type"><a href="' + d.path + '" target="_blank"><i class="fa ' + icon + '"></i></a></td>');
+			row.append('<td class="file-type"><a href="javascript:void(0)"><i class="fa ' + icon + '"></i></a></td>');
 			//row.append('<td class="item-title"><b>' + (d.title ? fitStringToWidth(d.title, 200) : '[no title]') + '</b></td>');
-			if (d.title) {
-				row.append('<td class="item-title"><div id="id_' + d.id + '" data-structr_type="item" class="node item"><b title="' +  d.title + '" class="title_">' + fitStringToWidth(d.title, 200) + '</b></td>');
-			} else {
-				row.append('<td><div id="id_' + d.id + '" data-structr_type="item" class="node item"><b title="' +  (d.name ? d.name : '[unnamed]') + '" class="name_">' + (d.name ? fitStringToWidth(d.name, 200) : '[unnamed]') + '</b></td>');
-			}
+			row.append('<td><div id="id_' + d.id + '" data-structr_type="item" class="node item"><b title="' +  (d.name ? d.name : '[unnamed]') + '" class="name_">' + (d.name ? fitStringToWidth(d.name, 200) : '[unnamed]') + '</b></td>');
+			$('.file-type', row).on('click', function() {
+				_Contents.editItem(d);
+			});
+
 		}
 
 		$('.item-title b', row).on('click', function() {

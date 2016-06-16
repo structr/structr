@@ -827,6 +827,15 @@ var _Entities = {
 		return false;
 	},
 	addToCollection: function(itemId, newItemId, key, callback) {
+		_Entities.extendCollection(itemId, newItemId, key, function(collectionIds) {
+			Command.setProperty(itemId, key, collectionIds, false, function() {
+				if (callback) {
+					callback();
+				}
+			});
+		});
+	},
+	extendCollection: function(itemId, newItemId, key, callback) {
 		var collectionIds = [];
 		Command.get(itemId, function(obj) {
 				//var keyInfo = typeInfo.filter(function(item) { return item.jsonName === key; })[0];
@@ -844,11 +853,7 @@ var _Entities = {
 				});
 			}
 			collectionIds.push(newItemId);
-			Command.setProperty(itemId, key, collectionIds, false, function() {
-				if (callback) {
-					callback();
-				}
-			});
+			callback(collectionIds);
 		});
 	},
 	appendDatePicker: function(el, entity, key, format) {
