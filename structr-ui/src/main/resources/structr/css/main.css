@@ -1606,6 +1606,36 @@ button.add_property {
     padding: .6em;
 }
 
+#schema-graph .rel-type-name {
+	padding: 0 10px;
+}
+
+#schema-graph .source-multiplicity {
+	border-right: 1px solid #aaa;
+	padding: 8px 12px 8px 5px;
+}
+
+#schema-graph .target-multiplicity {
+	border-left: 1px solid #aaa;
+	padding: 8px 5px 8px 12px;
+}
+
+#schema-graph .target-multiplicity.hover {
+	border-right: 1px solid #aaa;
+	padding: 8px 12px 8px 12px;
+	margin-right: 4px;
+}
+
+#schema-graph .source-mult-input {
+	width: 16px;
+	margin-right: 6px;
+}
+
+#schema-graph .target-mult-input {
+	width: 16px;
+	margin-left: 6px;
+}
+
 #schema-graph .label .icon {
     margin: -3px 2px;
     display: none;

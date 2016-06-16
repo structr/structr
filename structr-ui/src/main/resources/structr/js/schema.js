@@ -591,84 +591,71 @@ var _Schema = {
                         paintStyle: { lineWidth: 5, strokeStyle: res.permissionPropagation !== 'None' ? "#ffad25" : "#81ce25" },
 						overlays: [
 							["Label", {
-									cssClass: "label multiplicity",
-									label: res.sourceMultiplicity ? res.sourceMultiplicity : '*',
-									location: .15 + offset,
-									id: "sourceMultiplicity",
-									events: {
-										"click": function(label, evt) {
-											evt.preventDefault();
-											var overlay = rels[res.id].getOverlay('sourceMultiplicity');
-											if (!(overlay.getLabel().substring(0, 1) === '<')) {
-												overlay.setLabel('<input class="source-mult-label" type="text" size="15" id="id_' + res.id + '_sourceMultiplicity" value="' + overlay.label + '">');
-												$('.source-mult-label').focus().on('blur', function() {
-													var label = ($(this).val() || '').trim();
-													if (label === '*' || label === '1') {
-														_Schema.setRelationshipProperty(res, 'sourceMultiplicity', label, function () {
-															overlay.setLabel(label);
-														}, function (data) {
-															Structr.errorFromResponse(data.responseJSON);
-														});
-													} else {
-														Structr.error('Multiplicity can only be 1 or *.', function () {});
-													}
-												});
-											}
-										}
-									}
-								}
-							],
-							["Label", {
 									cssClass: "label rel-type",
-									label: '<div id="rel_' + res.id + '" data-name="' + res.name + '" data-source-type="' + nodes[sId].name + '" data-target-type="' + nodes[tId].name + '">' + (res.relationshipType === initialRelType ? '&nbsp;' : res.relationshipType)
+									label: '<span id="rel_' + res.id + '" data-name="' + res.name + '" data-source-type="' + nodes[sId].name + '" data-target-type="' + nodes[tId].name + '">'
+											+ '<span class="source-multiplicity">' + (res.sourceMultiplicity ? res.sourceMultiplicity : '*') + '</span>'
+											+ '<span class="rel-type-name">' + (res.relationshipType === initialRelType ? '&nbsp;' : res.relationshipType) + '</span>'
+											+ '<span class="target-multiplicity">' + (res.targetMultiplicity ? res.targetMultiplicity : '*') + '</span>'
 											+ ' <img title="Edit schema relationship" alt="Edit schema relationship" class="edit icon" src="icon/pencil.png">'
-											+ ' <img title="Remove schema relationship" alt="Remove schema relationship" class="remove icon" src="icon/delete.png"></div>',
+											+ ' <img title="Remove schema relationship" alt="Remove schema relationship" class="remove icon" src="icon/delete.png">'
+											+ '</span>',
 									location: .5 + offset,
 									id: "label",
 									events: {
-										"click": function(label, evt) {
+										click: function(overlay, evt) {
 											evt.preventDefault();
-											var overlay = rels[res.id].getOverlay('label');
-											var l = $(overlay.getLabel()).text().trim();
-											if ((overlay.getLabel().substring(0, 6) !== '<input')) {
-												overlay.setLabel('<input class="relationship-label" type="text" size="15" id="id_' + res.id + '_relationshipType" value="' + l + '">');
-												$('.relationship-label').focus().on('blur', function() {
-													var label = ($(this).val() || '').trim();
-													_Schema.setRelationshipProperty(res, 'relationshipType', label, function () {
-														overlay.setLabel(label);
-													}, function (data) {
-														Structr.errorFromResponse(data.responseJSON);
-														_Schema.reload();
-													});
-												});
-											}
-										}
-									}
-								}
-							],
-							["Label", {
-									cssClass: "label multiplicity",
-									label: res.targetMultiplicity ? res.targetMultiplicity : '*',
-									location: .85 - offset,
-									id: "targetMultiplicity",
-									events: {
-										"click": function(label, evt) {
-											evt.preventDefault();
-											var overlay = rels[res.id].getOverlay('targetMultiplicity');
-											if (!(overlay.getLabel().substring(0, 1) === '<')) {
-												overlay.setLabel('<input class="target-mult-label" type="text" size="15" id="id_' + res.id + '_targetMultiplicity" value="' + overlay.label + '">');
-												$('.target-mult-label').focus().on('blur', function() {
-													var label = ($(this).val() || '').trim();
-													if (label === '*' || label === '1') {
-														_Schema.setRelationshipProperty(res, 'targetMultiplicity', label, function () {
-															overlay.setLabel(label);
-														}, function (data) {
+
+											if (overlay.getLabel().substring(0, 6) !== '<input') {
+
+												overlay.setLabel(
+														'<input class="source-mult-input" type="text" size="15" id="id_' + res.id + '_sourceMultiplicity" value="' + (res.sourceMultiplicity ? res.sourceMultiplicity : '*') + '">'
+														+ '<input class="rel-type-input" type="text" size="15" id="id_' + res.id + '_relationshipType" value="' + (res.relationshipType === initialRelType ? '&nbsp;' : res.relationshipType) + '">'
+														+ '<input class="target-mult-input" type="text" size="15" id="id_' + res.id + '_targetMultiplicity" value="' + (res.targetMultiplicity ? res.targetMultiplicity : '*') + '">'
+														+ ' <img title="Save changes" alt="Save changes" class="save icon" src="icon/tick.png">'
+														+ ' <img title="Discard changes" alt="Discard changes" class="discard icon" src="icon/cross.png">'
+												);
+
+												var saveEditedRelationship = function (relationship, $element) {
+
+													var newRelData = {
+														sourceMultiplicity: $('.source-mult-input', $element).val(),
+														relationshipType: $('.rel-type-input', $element).val(),
+														targetMultiplicity: $('.target-mult-input', $element).val()
+													};
+
+													if ((newRelData.sourceMultiplicity !== '*' && newRelData.sourceMultiplicity !== '1') || (newRelData.targetMultiplicity !== '*' && newRelData.targetMultiplicity !== '1')) {
+
+														Structr.error('Multiplicity can only be 1 or *.');
+
+													} else if (newRelData.relationshipType.match(/^[\w]+$/) === null) {
+
+														Structr.error('RelType must use only alphanumeric characters and underscores.');
+
+													} else {
+														_Schema.editRelationship(relationship, newRelData, undefined, function (data) {
 															Structr.errorFromResponse(data.responseJSON);
 														});
-													} else {
-														Structr.error('Multiplicity can only be 1 or *.', function () {});
+													}
+
+												};
+
+												$('input', overlay.getElement()).first().focus();
+												$('input', overlay.getElement()).keypress(function(e) {
+													if (e.keyCode === 13) {
+														e.preventDefault();
+														saveEditedRelationship(res, overlay.getElement());
 													}
 												});
+
+												$('.save', overlay.getElement()).on('click', function () {
+													saveEditedRelationship(res, overlay.getElement());
+												});
+
+												$('.discard', overlay.getElement()).on('click', function () {
+													_Schema.reload();
+												});
+
+												$('.icon', overlay.getElement()).show();
 											}
 										}
 									}
@@ -681,11 +668,13 @@ var _Schema = {
 					$('#rel_' + res.id).parent().on('mouseover', function(e) {
 						//e.stopPropagation();
 						$('#rel_' + res.id + ' .icon').show();
+						$('#rel_' + res.id + ' .target-multiplicity').addClass('hover');
 					});
 
 					$('#rel_' + res.id).parent().on('mouseout', function(e) {
 						//e.stopPropagation();
 						$('#rel_' + res.id + ' .icon').hide();
+						$('#rel_' + res.id + ' .target-multiplicity').removeClass('hover');
 					});
 
 					$('#rel_' + res.id + ' .edit').on('click', function(e) {
@@ -2306,6 +2295,9 @@ var _Schema = {
 	setRelationshipProperty: function(entity, key, value, onSuccess, onError) {
 		var data = {};
 		data[key] = cleanText(value);
+		_Schema.editRelationship(entity, data, onSuccess, onError);
+	},
+	editRelationship: function(entity, newData, onSuccess, onError) {
 		$.ajax({
 			url: rootUrl + 'schema_relationship_nodes/' + entity.id,
 			type: 'GET',
@@ -2313,14 +2305,19 @@ var _Schema = {
 			statusCode: {
 				200: function(existingData) {
 
-					if (existingData.result[key] !== value) {
+					var changed = Object.keys(newData).some(function (key) {
+						return (existingData.result[key] !== newData[key])
+					});
+
+					if (changed) {
+						console.log('changed');
 
 						$.ajax({
 							url: rootUrl + 'schema_relationship_nodes/' + entity.id,
 							type: 'PUT',
 							dataType: 'json',
 							contentType: 'application/json; charset=utf-8',
-							data: JSON.stringify(data),
+							data: JSON.stringify(newData),
 							statusCode: {
 								200: function(data, textStatus, jqXHR) {
 									if (onSuccess) {
@@ -2329,7 +2326,6 @@ var _Schema = {
 									_Schema.reload();
 								},
 								422: function(data) {
-									//Structr.errorFromResponse(data.responseJSON);
 									if (onError) {
 										onError(data);
 									}
