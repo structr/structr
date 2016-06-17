@@ -559,7 +559,6 @@ var _Schema = {
 			contentType: 'application/json; charset=utf-8',
 			success: function(data) {
 
-				var sId, tId;
 				var relCnt = {};
 				$.each(data.result, function(i, res) {
 
@@ -574,31 +573,21 @@ var _Schema = {
 					stub   = 30 + 80 * relCnt[relIndex];
 					offset =     0.1 * relCnt[relIndex];
 
-					sId = res.sourceId;
-					tId = res.targetId;
-
-					if (!(nodes[sId] && nodes[tId])) {
+					if (!(nodes[res.sourceId] && nodes[res.targetId])) {
 						return;
 					}
 
 					rels[res.id] = instance.connect({
-						source: nodes[sId + '_bottom'],
-						target: nodes[tId + '_top'],
+						source: nodes[res.sourceId + '_bottom'],
+						target: nodes[res.targetId + '_top'],
 						deleteEndpointsOnDetach: false,
 						scope: res.id,
-						//parameters: {'id': res.id},
 						connector: [connectorStyle, {curviness: 200, cornerRadius: radius, stub: [stub, 30], gap: 6, alwaysRespectStubs: true }],
-                        paintStyle: { lineWidth: 5, strokeStyle: res.permissionPropagation !== 'None' ? "#ffad25" : "#81ce25" },
+						paintStyle: { lineWidth: 5, strokeStyle: res.permissionPropagation !== 'None' ? "#ffad25" : "#81ce25" },
 						overlays: [
 							["Label", {
 									cssClass: "label rel-type",
-									label: '<span id="rel_' + res.id + '" data-name="' + res.name + '" data-source-type="' + nodes[sId].name + '" data-target-type="' + nodes[tId].name + '">'
-											+ '<span class="source-multiplicity">' + (res.sourceMultiplicity ? res.sourceMultiplicity : '*') + '</span>'
-											+ '<span class="rel-type-name">' + (res.relationshipType === initialRelType ? '&nbsp;' : res.relationshipType) + '</span>'
-											+ '<span class="target-multiplicity">' + (res.targetMultiplicity ? res.targetMultiplicity : '*') + '</span>'
-											+ ' <img title="Edit schema relationship" alt="Edit schema relationship" class="edit icon" src="icon/pencil.png">'
-											+ ' <img title="Remove schema relationship" alt="Remove schema relationship" class="remove icon" src="icon/delete.png">'
-											+ '</span>',
+									label: _Schema.getRelationshipOverlayHtml(res, false),
 									location: .5 + offset,
 									id: "label",
 									events: {
@@ -607,13 +596,7 @@ var _Schema = {
 
 											if (overlay.getLabel().substring(0, 6) !== '<input') {
 
-												overlay.setLabel(
-														'<input class="source-mult-input" type="text" size="15" id="id_' + res.id + '_sourceMultiplicity" value="' + (res.sourceMultiplicity ? res.sourceMultiplicity : '*') + '">'
-														+ '<input class="rel-type-input" type="text" size="15" id="id_' + res.id + '_relationshipType" value="' + (res.relationshipType === initialRelType ? '&nbsp;' : res.relationshipType) + '">'
-														+ '<input class="target-mult-input" type="text" size="15" id="id_' + res.id + '_targetMultiplicity" value="' + (res.targetMultiplicity ? res.targetMultiplicity : '*') + '">'
-														+ ' <img title="Save changes" alt="Save changes" class="save icon" src="icon/tick.png">'
-														+ ' <img title="Discard changes" alt="Discard changes" class="discard icon" src="icon/cross.png">'
-												);
+												overlay.setLabel(_Schema.getRelationshipOverlayHtml(res, true));
 
 												var saveEditedRelationship = function (relationship, $element) {
 
@@ -632,6 +615,7 @@ var _Schema = {
 														Structr.error('RelType must use only alphanumeric characters and underscores.');
 
 													} else {
+														$('input', overlay.getElement()).attr('disabled', 'disabled');
 														_Schema.editRelationship(relationship, newRelData, undefined, function (data) {
 															Structr.errorFromResponse(data.responseJSON);
 														});
@@ -652,7 +636,8 @@ var _Schema = {
 												});
 
 												$('.discard', overlay.getElement()).on('click', function () {
-													_Schema.reload();
+													overlay.setLabel(_Schema.getRelationshipOverlayHtml(res, false));
+													_Schema.registerRelationshipOverlayButtonHandlers(res);
 												});
 
 												$('.icon', overlay.getElement()).show();
@@ -677,23 +662,7 @@ var _Schema = {
 						$('#rel_' + res.id + ' .target-multiplicity').removeClass('hover');
 					});
 
-					$('#rel_' + res.id + ' .edit').on('click', function(e) {
-						e.stopPropagation();
-
-						_Schema.openEditDialog(res.id);
-					});
-
-					$('#rel_' + res.id + ' .remove').on('click', function(e) {
-						e.stopPropagation();
-						Structr.confirmation('<h3>Delete schema relationship \'' + res.relationshipType + '\'?</h3>', function() {
-							$.unblockUI({
-								fadeOut: 25
-							});
-							_Schema.detach(res.id);
-							_Schema.reload();
-						});
-						return false;
-					});
+					_Schema.registerRelationshipOverlayButtonHandlers(res);
 				});
 
 
@@ -702,6 +671,42 @@ var _Schema = {
 				}
 
 			}
+		});
+	},
+	getRelationshipOverlayHtml: function(rel, editMode) {
+		if (editMode === true) {
+			return '<input class="source-mult-input" type="text" size="15" id="id_' + rel.id + '_sourceMultiplicity" value="' + (rel.sourceMultiplicity ? rel.sourceMultiplicity : '*') + '">'
+					+ '<input class="rel-type-input" type="text" size="15" id="id_' + rel.id + '_relationshipType" value="' + (rel.relationshipType === initialRelType ? '&nbsp;' : rel.relationshipType) + '">'
+					+ '<input class="target-mult-input" type="text" size="15" id="id_' + rel.id + '_targetMultiplicity" value="' + (rel.targetMultiplicity ? rel.targetMultiplicity : '*') + '">'
+					+ ' <img title="Save changes" alt="Save changes" class="save icon" src="icon/tick.png">'
+					+ ' <img title="Discard changes" alt="Discard changes" class="discard icon" src="icon/cross.png">';
+		} else {
+			return '<span id="rel_' + rel.id + '" data-name="' + rel.name + '" data-source-type="' + nodes[rel.sourceId].name + '" data-target-type="' + nodes[rel.targetId].name + '">'
+					+ '<span class="source-multiplicity">' + (rel.sourceMultiplicity ? rel.sourceMultiplicity : '*') + '</span>'
+					+ '<span class="rel-type-name">' + (rel.relationshipType === initialRelType ? '&nbsp;' : rel.relationshipType) + '</span>'
+					+ '<span class="target-multiplicity">' + (rel.targetMultiplicity ? rel.targetMultiplicity : '*') + '</span>'
+					+ ' <img title="Edit schema relationship" alt="Edit schema relationship" class="edit icon" src="icon/pencil.png">'
+					+ ' <img title="Remove schema relationship" alt="Remove schema relationship" class="remove icon" src="icon/delete.png">'
+					+ '</span>';
+		}
+	},
+	registerRelationshipOverlayButtonHandlers: function (rel) {
+		$('#rel_' + rel.id + ' .edit').on('click', function(e) {
+			e.stopPropagation();
+
+			_Schema.openEditDialog(rel.id);
+		});
+
+		$('#rel_' + rel.id + ' .remove').on('click', function(e) {
+			e.stopPropagation();
+			Structr.confirmation('<h3>Delete schema relationship \'' + rel.relationshipType + '\'?</h3>', function() {
+				$.unblockUI({
+					fadeOut: 25
+				});
+				_Schema.detach(rel.id);
+				_Schema.reload();
+			});
+			return false;
 		});
 	},
 	loadNode: function(entity, headEl, contentEl, targetView) {
@@ -2310,7 +2315,6 @@ var _Schema = {
 					});
 
 					if (changed) {
-						console.log('changed');
 
 						$.ajax({
 							url: rootUrl + 'schema_relationship_nodes/' + entity.id,
