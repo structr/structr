@@ -46,11 +46,14 @@ var _Schema = {
 		if (reload) {
 			return;
 		}
+		var x = window.scrollX;
+		var y = window.scrollY;
 		reload = true;
 		_Schema.storePositions();
 		main.empty();
-		_Schema.init();
+		_Schema.init({x: x, y: y});
 		_Schema.resize();
+
 	},
 	storePositions: function() {
 		$.each($('#schema-graph .node'), function(i, n) {
@@ -66,7 +69,7 @@ var _Schema = {
 		var n = JSON.parse(LSWrapper.getItem(type + localStorageSuffix + 'node-position'));
 		return n ? n.position : undefined;
 	},
-	init: function() {
+	init: function(scrollPosition) {
 
 		_Schema.schemaLoading = false;
 		_Schema.schemaLoaded = false;
@@ -237,6 +240,9 @@ var _Schema = {
 					var showSchemaOverlays = LSWrapper.getItem(showSchemaOverlaysKey) === null ? true : LSWrapper.getItem(showSchemaOverlaysKey);
 					_Schema.updateOverlayVisibility(showSchemaOverlays);
 
+					if (scrollPosition) {
+						window.scrollTo(scrollPosition.x, scrollPosition.y);
+					}
 				});
 
 			});
