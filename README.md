@@ -1,6 +1,6 @@
 # The Structr Project
 
-[![Build Status](http://ci.structr.org:59398/buildStatus/icon?job=Structr&style=plastic)](http://ci.structr.org:59398/job/Structr)
+[![Build Status](http://ci.structr.org:59398/job/Structr/badge/icon)](http://ci.structr.org:59398/job/Structr)
 
 Structr (pronounce it like 'structure') is a powerful application platform for **Enterprise Master Data Management**, **Product Data Management**, **Enterprise Content Management** and more.
 
