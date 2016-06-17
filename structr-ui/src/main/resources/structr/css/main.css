@@ -1051,12 +1051,12 @@ button img {
 }
 
 .dialog {
-    display: none;
-    font-size: 11pt;
-    padding: 4px 12px 6px 12px;
-    border-radius: 3px;
-    border: 1px solid #999;
-    background-color: #f3f3f3;
+	display: none;
+	font-size: 11pt;
+	padding: 4px 12px 6px 12px;
+	border-radius: 3px;
+	border: 1px solid #999;
+	background-color: #f3f3f3;
 }
 
 #dialogBox #minimizeDialog {
@@ -2834,38 +2834,38 @@ i.fa.ps {
 }
 
 #add-child-dialog ul.bottom ul.bottom {
-    bottom: -1px;
+	bottom: -1px;
 }
 
 .result-box {
-    position: absolute;
-    top: 48px;
-    left: 0;
-    right: 12px;
-    border-radius: 3px;
-    padding: 12px;
-    clear: both;
-    overflow: hidden;
-    border: 1px solid #999 ! important;
-    background: #fff ! important;
-    font-family: 'Open Sans', Arial, Helvetica, Sans-serif ! important;
-    font-size: 9pt;
+	position: absolute;
+	top: 48px;
+	left: 0;
+	right: 12px;
+	border-radius: 3px;
+	padding: 12px;
+	clear: both;
+	overflow: hidden;
+	border: 1px solid #999 ! important;
+	background: #fff ! important;
+	font-family: 'Open Sans', Arial, Helvetica, Sans-serif ! important;
+	font-size: 9pt;
 }
 
 .result-box .node {
-    color: #333;
-    line-height: 1.7em;
-    border-radius: 3px;
-    border: 1px solid #a5a5a5;
-    padding: 2px 5px;
-    margin: 2px 2px 3px 1px;
-    background-color: #eee;
-    float: left;
+	color: #333;
+	line-height: 1.7em;
+	border-radius: 3px;
+	border: 1px solid #a5a5a5;
+	padding: 2px 5px;
+	margin: 2px 2px 3px 1px;
+	background-color: #eee;
+	float: left;
 }
 
 .result-box .node:hover {
-    color: #555;
-    border: 1px solid #bbb;
-    background-color: #f5f5f5;
-    cursor: pointer;
+	color: #555;
+	border: 1px solid #bbb;
+	background-color: #f5f5f5;
+	cursor: pointer;
 }
