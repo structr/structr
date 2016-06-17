@@ -17,14 +17,14 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var win = $(window);
-var graphBrowser, mode, colors = [], c = 0;
+var engine, mode, colors = [], color = 0;
 var nodeIds = [], relIds = [], removedRel;
 var activeTabRightGraphKey = 'structrActiveTabRightGraph_' + port;
 var activeTabLeftGraphKey = 'structrActiveTabLeftGraph_' + port;
 var activeTabLeftGraph, activeTabRightGraph;
 var queriesSlideout, displaySlideout, filtersSlideout, nodesSlideout, relationshipsSlideout, graph;
 var savedQueriesKey = 'structrSavedQueries_' + port;
-var relTypes = {}, nodeTypes = {}, color = {}, relColors = {}, hasDragged, hasDoubleClicked, clickTimeout, doubleClickTime = 250, refreshTimeout;
+var relTypes = {}, nodeTypes = {}, nodeColors = {}, relColors = {}, hasDragged, hasDoubleClicked, clickTimeout, doubleClickTime = 250, refreshTimeout;
 var filteredNodeTypes = [], hiddenNodeTypes = [], hiddenRelTypes = []; //['OWNS', 'SECURITY'];
 var edgeType = 'curvedArrow';
 var schemaNodes = {}, schemaRelationships = {}, schemaNodesById = {};
@@ -60,8 +60,7 @@ $(document).ready(function() {
 		tmpX = e.clientX;
 		tmpY = e.clientY;
 	});
-        
-        
+
 });
 
 var _Graph = {
@@ -126,29 +125,51 @@ var _Graph = {
 		var max = 255, min = 0;
 
 		for (i = 50; i < 999; i++) {
-			var col = 'rgb(' + (Math.floor((max - min) * Math.random()) + min) + ',' + (Math.floor((max - min) * Math.random()) + min) + ',' + (Math.floor((max - min) * Math.random()) + min) + ')';
-			colors.push(col);
+			var color = 'rgb(' + (Math.floor((max - min) * Math.random()) + min) + ',' + (Math.floor((max - min) * Math.random()) + min) + ',' + (Math.floor((max - min) * Math.random()) + min) + ')';
+			colors.push(color);
 		}
 
 		_Graph.updateNodeTypes();
-                
-                var graphBrowserSettings = {            
-                    graphContainer: 'graph-canvas',
-                    moduleSettings: {
-                           //'exporter': {'onSuccess': control.cleanUpAfterGraphExport, 'onError': control.error},
-                           //'importer': {'onSuccess': control.cleanUpAfterGraphImport, 'onError': control.error},
-                           //'newNodePicker': {'onFinished': control.cleanupAfterNewNodesPicked, 'onChooseNodes': control.onChooseNodes}, 
-                           'nodeExpander': {container: 'graph-info', newNodesSize: 20, newNodesSize: 20, margins: {top: -20, left: 10}, edgeType: "curvedArrow", onNodesAdded: _Graph.onNodesAdded},
-                           'selectionTools': {'container': 'graph-canvas'},
-                           'relationshipEditor' : {incommingRelationsKey: 'shift', outgoingRelationsKey: 'ctrl', deleteEvent: 'doubleClickEdge', onDeleteRelation: undefined},
-                           'currentNodeTypes': {},
-                           'nodeFilter': {}
-                    },
-                    sigmaSettings: {
+
+		sigma.renderers.def = sigma.renderers.canvas;
+
+		if (engine) {
+			_Logger.log(_LogType.GRAPH, 'sigma engine already exists', engine);
+			//_Graph.scheduleRefreshEngine();
+			//_Graph.clearGraph();
+			//engine.refresh();
+			engine = undefined;
+		}
+		engine = new sigma({
+			container: 'graph-canvas',
+//			settings: {
+//				immutable: false,
+//				//scalingMode: 'outside',
+//				//autoRescale: false,
+//				//batchEdgesDrawing: true,
+//				minNodeSize: 20,
+//				maxNodeSize: 20,
+//				borderSize: 4,
+//				defaultNodeBorderColor: '#a5a5a5',
+//				singleHover: true,
+//				doubleClickEnabled: false, // catch doubleClick event, see https://github.com/jacomyal/sigma.js/commit/1453afbf0d08fb5a64a88df3c3b941a2894a713b
+//
+//				minEdgeSize: 4,
+//				maxEdgeSize: 4,
+//				enableEdgeHovering: true,
+//				edgeHoverColor: 'default',
+//				edgeHoverSizeRatio: 1.3,
+//				edgeHoverExtremities: true,
+//				defaultEdgeHoverColor: '#888',
+//				//edgeLabelSize: 'proportional',
+//				minArrowSize: 12
+//					//sideMargin: 1,
+//			},
+			settings : {
 				font: 'Open Sans',
 				immutable: false,
 				minNodeSize: 4,
-				maxNodeSize: 10,
+				maxNodeSize: 16,
 				borderSize: 4,
 				defaultNodeBorderColor: '#a5a5a5',
 				singleHover: true,
@@ -167,14 +188,245 @@ var _Graph = {
 				labelSizeRatio: 1,
 				//sideMargin: 100
 			}
-                }
-                graphBrowser = new GraphBrowser(graphBrowserSettings);	
-                graphBrowser.start();
-                
-                graphBrowser.bindEvent('clickNode', _Graph.handleClickNodeEvent);
-                graphBrowser.bindEvent('doubleClickNode', _Graph.handleDoubleClickNodeEvent);
-                graphBrowser.bindEvent('drag', _Graph.handleDragNodeEvent);
-                graphBrowser.bindEvent('startdrag', _Graph.handleStartDragNodeEvent);
+		});
+
+		engine.bind('doubleClickNode', function(e) {
+			window.clearTimeout(clickTimeout);
+			hasDoubleClicked = true;
+			_Graph.loadRelationships(e.data.node.id);
+			engine.renderers[0].dispatchEvent('outNode', {node: e.data.node});
+			return false;
+		});
+
+		engine.bind('clickNode', function(e) {
+
+			_Logger.log(_LogType.GRAPH, 'clickNode');
+
+			if (hasDoubleClicked) {
+				_Logger.log(_LogType.GRAPH, 'double clicked, returning');
+				return false;
+			}
+
+			var node = e.data.node;
+
+			if (hasDragged) {
+				hasDragged = false;
+				return false;
+			}
+
+			clickTimeout = window.setTimeout(function() {
+				if (!hasDoubleClicked && !hasDragged) {
+					_Entities.showProperties(node);
+					engine.renderers[0].dispatchEvent('outNode', {node: node});
+					window.clearTimeout(clickTimeout);
+				}
+			}, doubleClickTime);
+			window.setTimeout(function() {
+				hasDoubleClicked = false;
+			}, doubleClickTime + 10);
+
+		});
+
+		var dragListener = new sigma.plugins.dragNodes(engine, engine.renderers[0]);
+		dragListener.bind('startdrag', function() {
+			hasDragged = false;
+		});
+		dragListener.bind('drag', function(e) {
+			hasDragged = true;
+			var node = e.data.node;
+
+			engine.graph.nodes().forEach(function(n) {
+				if (n === node) {
+					return;
+				}
+				var d = _Graph.distance(node, n);
+				if (shiftKey && d < 200) {
+
+					var draggedNodeSchemaNode = schemaNodes[node.type];
+					//console.log('shift and in radius', n, node, draggedNodeSchemaNode);
+
+					if (!draggedNodeSchemaNode) {
+
+						console.log("Unknown type " + node.type);
+						return;
+					}
+
+					if (draggedNodeSchemaNode.relatedTo) {
+
+						// outgoing schema rels
+						draggedNodeSchemaNode.relatedTo.forEach(function(toRel) {
+
+							var edgeId = node.id + '-[:' + toRel.id + ']->' + n.id;
+
+							if (toRel.allTargetTypesPossible || (toRel.possibleTargetTypes && toRel.possibleTargetTypes.contains(n.type)) && !engine.graph.edges(edgeId)) {
+
+								//console.log('toRel, target multi', toRel.targetMultiplicity, toRel);
+
+								if (toRel.sourceMultiplicity === '1') {
+									engine.graph.edges().forEach(function(edge) {
+										//console.log(edge, n, node, toRel);
+										if (edge.target === n.id && edge.relType === toRel.relationshipType) {
+											edge.hidden = true;
+											edge.removed = true;
+											//console.log('outgoing rel found, will be removed', edge);
+											removedRel = edge.id;
+										}
+									});
+								}
+
+								if (toRel.targetMultiplicity === '1') {
+									engine.graph.edges().forEach(function(edge) {
+										//console.log(edge, n, node, toRel);
+										if (edge.source === node.id && edge.relType === toRel.relationshipType) {
+											edge.hidden = true;
+											edge.removed = true;
+											//console.log('outgoing rel found, will be removed', edge);
+											removedRel = edge.id;
+										}
+									});
+								}
+
+								engine.graph.addEdge({
+									id: edgeId,
+									label: toRel.relationshipType,
+									source: node.id,
+									target: n.id,
+									size: 40,
+									color: '#81ce25',
+									type: 'curvedArrow',
+									added: true,
+									replaced: removedRel,
+									relType: toRel.relationshipType
+								});
+
+							}
+						});
+					}
+
+					if (draggedNodeSchemaNode.relatedFrom) {
+
+						// incoming schema rels
+						draggedNodeSchemaNode.relatedFrom.forEach(function(fromRel) {
+
+							var edgeId = node.id + '<-[:' + fromRel.id + ']-' + n.id;
+
+							//console.log('possible source type:', possibleSourceType, 'edge exists?', edgeId, engine.graph.edges(edgeId));
+
+							if (fromRel.allSourceTypesPossible || (fromRel.possibleSourceTypes && fromRel.possibleSourceTypes.contains(n.type)) && !engine.graph.edges(edgeId)) {
+
+								//console.log('fromRel source multi', fromRel.sourceMultiplicity, fromRel);
+
+								if (fromRel.sourceMultiplicity === '1') {
+
+									// loop over all edges if they fit the schema rel
+									engine.graph.edges().forEach(function(edge) {
+										//console.log(edge, n, node, fromRel);
+										//if (edge.source === n.id && edge.relType === fromRel.relationshipType) {
+										if (edge.target === node.id && edge.relType === fromRel.relationshipType) {
+											edge.hidden = true;
+											edge.removed = true;
+											//console.log('outgoing rel found, will be removed', edge);
+											removedRel = edge.id;
+										}
+									});
+								}
+
+								if (fromRel.targetMultiplicity === '1') {
+
+									// loop over all edges if they fit the schema rel
+									engine.graph.edges().forEach(function(edge) {
+										//console.log(edge, n, node, fromRel);
+										//if (edge.source === n.id && edge.relType === fromRel.relationshipType) {
+										if (edge.source === n.id && edge.relType === fromRel.relationshipType) {
+											edge.hidden = true;
+											edge.removed = true;
+											//console.log('outgoing rel found, will be removed', edge);
+											removedRel = edge.id;
+										}
+									});
+								}
+
+								engine.graph.addEdge({
+									id: edgeId,
+									label: fromRel.relationshipType,
+									source: n.id,
+									target: node.id,
+									size: 40,
+									color: '#81ce25',
+									type: 'curvedArrow',
+									added: true,
+									replaced: removedRel,
+									relType: fromRel.relationshipType
+								});
+							}
+						});
+					}
+					_Graph.scheduleRefreshEngine();
+
+				} else {
+
+					engine.graph.edges().forEach(function(edge) {
+
+						if ((edge.source === node.id && edge.target === n.id) || (edge.source === n.id && edge.target === node.id)) {
+
+							if (edge.added) {
+								var replaced = edge.replaced;
+								_Logger.log(_LogType.GRAPH, 'edge replaced ', replaced);
+								engine.graph.dropEdge(edge.id);
+								if (replaced && engine.graph.edges(replaced)) {
+									engine.graph.edges(replaced).hidden = false;
+									removedRel = undefined;
+								}
+							}
+						}
+					});
+				}
+			});
+
+		});
+		dragListener.bind('dragend', function(e) {
+
+			//console.log('dragend', removedRel);
+
+//			if (removedRel) {
+//				Command.deleteRelationship(removedRel);
+//				removedRel = undefined;
+//			}
+
+			engine.graph.edges().forEach(function(edge) {
+
+
+				if (edge.added) {
+					// Create new relationship
+					var relData = {
+						sourceId: edge.source,
+						targetId: edge.target,
+						relType: edge.relType
+					};
+					Command.createRelationship(relData, function(rel) {
+
+						//console.log('created new rel', rel.id, 'to replace', edge.id);
+						var ref = edge.id;
+
+						edge.color = defaultRelColor;
+						edge.id = rel.id;
+						edge.added = false;
+						_Graph.scheduleRefreshEngine();
+
+						engine.graph.dropEdge(ref);
+
+						//console.log('reference still valid', engine.graph.edges(ref));
+					});
+				}
+			});
+		});
+
+		engine.bind('clickEdge', function(e) {
+			hasDoubleClicked = false;
+			_Entities.showProperties(e.data.edge);
+			engine.renderers[0].dispatchEvent('outEdge', {edge: e.data.edge});
+		});
+
 	},
 	onload: function() {
 
@@ -236,10 +488,6 @@ var _Graph = {
 			displayOtherTypes = !displayOtherTypes;
 			_Graph.updateNodeTypes();
 		});
-                
-                $('#display').append(
-                        '<div><button id="fruchterman-controlElement">Fruchterman Layout</button></div>'
-                    );
 
 		graph = $('#graph-canvas');
 
@@ -261,6 +509,7 @@ var _Graph = {
 
 					Command.get(obj.id, function(node) {
 						_Graph.drawNode(node);
+						_Graph.refreshEngine();
 					});
 
 				});
@@ -283,6 +532,7 @@ var _Graph = {
 
 		$('.slideOut').on('mouseout', function() {
 			running = true;
+			//_Graph.scheduleRefreshEngine();
 			return true;
 		});
 
@@ -483,9 +733,11 @@ var _Graph = {
 		rels.forEach(function (entity) {
 			StructrModel.createSearchResult(entity);
 		});
-                
-                graphBrowser.dataChanged();
-                _Graph.updateRelationshipTypes();
+
+		if (engine) {
+			_Graph.resize();
+			_Graph.scheduleRefreshEngine();
+		}
 
 	},
 	saveQuery: function(query, type, params) {
@@ -566,22 +818,92 @@ var _Graph = {
 		colors = [];
 		relTypes = {};
 		nodeTypes = {};
-		//color = {};
+		//nodeColors = {};
 		//relColors = {};
 		nodeIds = [];
 		relIds = [];
 		hiddenNodeTypes = [];
 		hiddenRelTypes = [];
-		graphBrowser.reset();
-                _Graph.updateRelationshipTypes();
+		engine.graph.clear();
+		engine.refresh();
+		//engine = undefined;
 	},
 	unload: function() {
 		//console.log('unload graph');
-		graphBrowser.reset();
+		_Graph.clearGraph();
+	},
+	loadRelationships: function(nodeId) {
+		if (nodeId) {
+			$.ajax({
+				url: rootUrl + nodeId + '/out?pageSize=' + maxRels,
+				dataType: "json",
+				//async: false,
+				success: function(data) {
+					if (!data || data.length === 0 || !data.result || !data.result.length) {
+						return;
+					}
+					var results = data.result;
+					var count = 0, i = 0;
+					while (i < results.length && count < maxRels) {
+						var r = results[i++];
+						if (relIds.indexOf(r.id) === -1) {
+							_Graph.loadRelationship(r);
+						}
+					}
+					_Graph.scheduleRefreshEngine();
+				}
+			});
+
+			$.ajax({
+				url: rootUrl + nodeId + '/in?pageSize=' + maxRels,
+				dataType: "json",
+				//async: false,
+				success: function(data) {
+					if (!data || data.length === 0 || !data.result || !data.result.length) {
+						return;
+					}
+					var results = data.result;
+					var count = 0, i = 0;
+					while (i < results.length && count < maxRels) {
+						var r = results[i++];
+						if (relIds.indexOf(r.id) === -1) {
+							_Graph.loadRelationship(r);
+						}
+					}
+
+					_Graph.scheduleRefreshEngine();
+				}
+			});
+		}
+	},
+	loadNode: function(nodeId, callback) {
+		//console.log('loadNode', nodeId, callback);
+		if (nodeId) {
+			if (isIn(nodeId, nodeIds)) {
+				if (callback) {
+					callback();
+				}
+			} else {
+				Command.get(nodeId, function(n) {
+					_Graph.drawNode(n);
+					if (callback) {
+						callback();
+					}
+				});
+			}
+		}
+	},
+	loadRelationship: function(rel) {
+		//console.log('loadRelationship', rel);
+		_Graph.loadNode(rel.sourceId, function() {
+			_Graph.loadNode(rel.targetId, function() {
+				_Graph.drawRel(rel);
+			});
+		});
 	},
 	findRelationships: function(sourceId, targedId, relType) {
 		var edges = [];
-		graphBrowser.getSigma().graph.edges().forEach(function(edge) {
+		engine.graph.edges().forEach(function(edge) {
 			if (edge.source === sourceId && edge.target === targedId && (!relType || edge.relType === relType)) {
 				edges.push(edge);
 			}
@@ -595,21 +917,31 @@ var _Graph = {
 		nodeIds.push(node.id);
 		_Graph.setNodeColor(node);
 		//console.log('drawing node', node, nodeTypes[node.type], isIn(node.type, hiddenNodeTypes));
-		graphBrowser.addNode({
+		engine.graph.addNode({
 			id: node.id || node.name,
 			label: (node.name || node.tag || node.id.substring(0, 5) + '…') + ':' + node.type,
 			x: x || Math.random(10),
 			y: y || Math.random(10),
 			size: 20,
-			color: color[node.type],
-			nodeType: node.type,
+			color: nodeColors[node.type],
+			type: node.type,
 			name: node.name,
 			hidden: isIn(node.type, hiddenNodeTypes)
 		});
+		//_Graph.scheduleRefreshEngine();
 		//_Graph.updateNodeTypes();
 	},
 	drawRel: function(r) {
-		graphBrowser.addEdge({
+		if (isIn(r.id, relIds) || (!isIn(r.sourceId, nodeIds) || !isIn(r.targetId, nodeIds)) ) {
+			return;
+		}
+		relIds.push(r.id);
+		_Graph.setRelationshipColor(r);
+		//var existingEdges = _Graph.findRelationships(r.sourceId, r.targetId, r.relType);
+		var existingEdges = _Graph.findRelationships(r.sourceId, r.targetId);
+		var c = existingEdges.length * 15;
+		//console.log('Found existing edges:', r, existingEdges, c);
+		engine.graph.addEdge({
 			id: r.id,
 			label: r.relType,
 			source: r.sourceId,
@@ -617,13 +949,36 @@ var _Graph = {
 			size: 40,
 			color: defaultRelColor,
 			type: edgeType,
-			relType: r.type,
-                        relName: r.relType,
-			hidden: isIn(r.relType, hiddenRelTypes)
+			relType: r.relType,
+			hidden: isIn(r.relType, hiddenRelTypes),
+			count: c
 		});
+		_Graph.scheduleRefreshEngine();
 		_Graph.updateRelationshipTypes();
 	},
+	updateNode: function(node, obj) {
+		if (!node) {
+			node = engine.graph.nodes(obj.id);
+		}
+		if (obj.name) {
+			node.name = obj.name;
+		}
+		if (obj.id) {
+			node.id = obj.id;
+		}
+		if (obj.tag) {
+			node.tag = obj.tag;
+		}
+		node.label = (node.name || node.tag || node.id.substring(0, 5) + '…') + ':' + node.type;
+		if (obj.type) {
+			node.type = obj.type;
+		}
+
+		_Graph.scheduleRefreshEngine();
+
+	},
 	resize: function() {
+
 		Structr.resize();
 
 		var windowHeight = win.height();
@@ -657,6 +1012,10 @@ var _Graph = {
 			top: nodeTypes.position().top + boxHeight + distance,
 			height: boxHeight
 		});
+
+		if (engine) {
+			_Graph.scheduleRefreshEngine();
+		}
 
 	},
 	loadTypeDefinition: function(type, callback) {
@@ -739,12 +1098,12 @@ var _Graph = {
 
 				var nodeType = node.name;
 
-				if (!isIn(nodeType, Object.keys(color))) {
-					color[nodeType] = colors[c++];
+				if (!isIn(nodeType, Object.keys(nodeColors))) {
+					nodeColors[nodeType] = colors[color++];
 				}
 
-				//Object.keys(color).forEach(function (nodeType) {
-				nodeTypesBox.append('<div id="node-type-' + nodeType + '" class="node-type" data-node-type="' + nodeType + '"><input type="checkbox" class="toggle-type" checked="checked"> <div class="circle" style="background-color: ' + color[nodeType] + '"></div>' + nodeType + '</div>');
+				//Object.keys(nodeColors).forEach(function (nodeType) {
+				nodeTypesBox.append('<div id="node-type-' + nodeType + '" class="node-type" data-node-type="' + nodeType + '"><input type="checkbox" class="toggle-type" checked="checked"> <div class="circle" style="background-color: ' + nodeColors[nodeType] + '"></div>' + nodeType + '</div>');
 				var nt = $('#node-type-' + nodeType, nodeTypesBox);
 
 				if (isIn(nodeType, hiddenNodeTypes)) {
@@ -759,9 +1118,9 @@ var _Graph = {
 				}).on('click', function() {
 					// TODO: Query
 				}).on('mouseover', function() {
-					graphBrowser.highlightNodeType(nodeType);
+					_Graph.highlightNodeType(nodeType);
 				}).on('mouseout', function() {
-					graphBrowser.unhighlightNodeType(nodeType);
+					_Graph.unhighlightNodeType(nodeType);
 				}).draggable({
 					helper: 'clone'
 				});
@@ -769,11 +1128,15 @@ var _Graph = {
 				$('.toggle-type', nt).on('click', function() {
 					var n = $(this);
 					if (n.attr('data-hidden')) {
-						graphBrowser.hideNodeType(nodeType, false);
-                                                n.removeAttr('data-hidden', 1);
+						_Graph.showNodeType(nodeType, function() {
+							n.removeAttr('data-hidden', 1);
+							//n.removeClass('hidden-node-type');
+						});
 					} else {
-						graphBrowser.hideNodeType(nodeType, true);
-						n.attr('data-hidden', 1);
+						_Graph.hideNodeType(nodeType, function() {
+							n.attr('data-hidden', 1);
+							//n.addClass('hidden-node-type');
+						});
 					}
 				});
 
@@ -783,21 +1146,87 @@ var _Graph = {
 		});
 
 	},
-	filterNodeTypes: function(types) {
-                graphBrowser.clearFilterNodeTypes();
+	filterNodeTypes: function(types, callback) {
 		types.forEach(function(type) {
-                    graphBrowser.addNodeTypeToFilter(type);
+			engine.graph.nodes().forEach(function(node) {
+				if (node.type === type) {
+					//console.log(type, node.type, node);
+					engine.graph.dropNode(node.id);
+					//try { engine.graph.dropNode(node); } catch(x) {}
+				}
+			});
 		});
-                graphBrowser.filterGraph();
+		_Graph.refreshEngine();
+		if (callback) {
+			callback();
+		}
+		//console.log(hiddenNodeTypes);
 	},
-	
+	hideNodeType: function(type, callback) {
+		engine.graph.nodes().forEach(function(node) {
+			if (node.type === type) {
+				node.hidden = true;
+			}
+		});
+		hiddenNodeTypes.push(type);
+		_Graph.refreshEngine();
+		if (callback) {
+			callback();
+		}
+		//console.log(hiddenNodeTypes);
+	},
+	showNodeTypes: function(types, callback) {
+		types.forEach(function(type) {
+			engine.graph.nodes().forEach(function(node) {
+				if (node.type === type) {
+					node.hidden = false;
+				}
+			});
+			hiddenNodeTypes.splice(hiddenNodeTypes.indexOf(type), 1);
+		});
+		_Graph.refreshEngine();
+		if (callback) {
+			callback();
+		}
+		//console.log(hiddenNodeTypes);
+	},
+	showNodeType: function(type, callback) {
+		engine.graph.nodes().forEach(function(node) {
+			if (node.type === type) {
+				node.hidden = false;
+			}
+		});
+		hiddenNodeTypes.splice(hiddenNodeTypes.indexOf(type), 1);
+		_Graph.refreshEngine();
+		if (callback) {
+			callback();
+		}
+		//console.log(hiddenNodeTypes);
+	},
+	highlightNodeType: function(type) {
+		engine.graph.nodes().forEach(function(node) {
+			if (node.type === type) {
+				node.oldColor = node.color;
+				node.color = colorLuminance(node.color, -.2);
+			}
+		});
+		//_Graph.scheduleRefreshEngine();
+	},
+	unhighlightNodeType: function(type) {
+		engine.graph.nodes().forEach(function(node) {
+			if (node.type === type) {
+				node.color = node.oldColor;
+			}
+		});
+		//_Graph.scheduleRefreshEngine();
+	},
 	setNodeColor: function(node) {
-		if (!isIn(node.type, Object.keys(color))) {
+		if (!isIn(node.type, Object.keys(nodeColors))) {
 			node.color = colors[color++];
 			//console.log(typeDef.type, typeDef.color, color);
-			color[node.type] = node.color;
+			nodeColors[node.type] = node.color;
 		} else {
-			node.color = color[node.type];
+			node.color = nodeColors[node.type];
 		}
 	},
 	setRelationshipColor: function(rel) {
@@ -814,8 +1243,7 @@ var _Graph = {
 		var relTypesBox = $('#relationship-types');
 		relTypesBox.empty();
 		//console.log(relColors);
-                var relTypes = graphBrowser.getCurrentRelTypes();
-		$.each(relTypes, function(i, relType){
+		Object.keys(relColors).forEach(function(relType) {
 			relTypesBox.append('<div id="rel-type-' + relType + '">' + relType + '</div>');
 			var rt = $('#rel-type-' + relType, relTypesBox);
 			if (isIn(relType, hiddenRelTypes)) {
@@ -829,76 +1257,152 @@ var _Graph = {
 			}).on('click', function() {
 				var n = $(this);
 				if (n.attr('data-hidden')) {
-					graphBrowser.hideRelType(relType, false)
-					n.removeAttr('data-hidden', 1);
-					n.removeClass('hidden-node-type');
+					_Graph.showRelType(relType, function() {
+						n.removeAttr('data-hidden', 1);
+						n.removeClass('hidden-node-type');
+					});
 				} else {
-					graphBrowser.hideRelType(relType, true) 
-					n.attr('data-hidden', 1);
-					n.addClass('hidden-node-type');
+					_Graph.hideRelType(relType, function() {
+						n.attr('data-hidden', 1);
+						n.addClass('hidden-node-type');
+					});
 				}
 			}).on('mouseover', function() {
-				graphBrowser.highlightRelType(relType);
+				_Graph.highlightRelationshipType(relType);
 			}).on('mouseout', function() {
-				graphBrowser.unhighlightRelType(relType);
+				_Graph.unhighlightRelationshipType(relType);
 			});
 		});
 
 	},
-	
+	highlightRelationshipType: function(type) {
+		engine.graph.edges().forEach(function(edge) {
+			if (edge.relType === type) {
+				edge.oldColor = edge.color;
+				edge.color = colorLuminance(edge.color, -.2);
+			}
+		});
+		//_Graph.scheduleRefreshEngine();
+	},
+	unhighlightRelationshipType: function(type) {
+		engine.graph.edges().forEach(function(edge) {
+			if (edge.relType === type) {
+				edge.color = edge.oldColor;
+			}
+		});
+		//_Graph.scheduleRefreshEngine();
+	},
+	hideRelType: function(type, callback) {
+		engine.graph.edges().forEach(function(edge) {
+			if (edge.relType === type) {
+				edge.hidden = true;
+			}
+		});
+		hiddenRelTypes.push(type);
+		_Graph.scheduleRefreshEngine();
+		if (callback) {
+			callback();
+		}
+	},
+	showRelType: function(type, callback) {
+		engine.graph.edges().forEach(function(edge) {
+			if (edge.relType === type) {
+				edge.hidden = false;
+			}
+		});
+		hiddenRelTypes.splice(hiddenRelTypes.indexOf('type'), 1);
+		_Graph.scheduleRefreshEngine();
+		if (callback) {
+			callback();
+		}
+	},
 	appendCypherParameter: function(el, key, value) {
 		el.append('<div><img class="remove-cypher-parameter" src="icon/delete.png"> <input name="cyphername[]" type="text" placeholder="name" size="10" value="' + (key || '') + '"> <input name="cyphervalue[]" type="text" placeholder="value" size="10" value="' + (value || '') + '"></div>');
 		$('.remove-cypher-parameter', el).on('click', function() {
 			$(this).parent().remove();
 		});
 	},
-        
-        onNodesAdded: function(){
-            _Graph.updateRelationshipTypes();            
-        },
-        
-        handleDragNodeEvent: function(){
-             hasDragged = true;
-        },
-        
-        handleStartDragNodeEvent: function(){
-             hasDragged = false;
-        },
-        
-        handleDoubleClickNodeEvent: function(clickedNode){
-            var node = clickedNode.data.node;            
-            window.clearTimeout(clickTimeout);
-            hasDoubleClicked = true;
-            return false;
-        },
-        
-        handleClickNodeEvent: function(clickedNode){
-            var node = clickedNode.data.node;
-            
-            if (hasDoubleClicked) {
-                _Logger.log(_LogType.GRAPH, 'double clicked, returning');
-                return false;
-            }
-            
-            if (hasDragged) {
-                hasDragged = false;
-                return false;
-            }
-            
-            _Logger.log(_LogType.GRAPH, 'clickNode');
-            
-            clickTimeout = window.setTimeout(function() {
-                _Entities.showProperties(node);
-                //engine.renderers[0].dispatchEvent('outNode', {node: node});
-                window.clearTimeout(clickTimeout);
-                    
-            }, doubleClickTime);
-            window.setTimeout(function() {
-                hasDoubleClicked = false;
-            }, doubleClickTime + 10);
-        }
+	scheduleRefreshEngine: function() {
+		window.clearTimeout(refreshTimeout);
+		refreshTimeout = window.setTimeout(_Graph.refreshEngine, 100);
+	},
+	refreshEngine: function() {
+		hasDoubleClicked = false;
+		hasDragged = false;
+		engine.refresh();
+	},
+	distance: function(n1, n2) {
+		var x1 = parseInt(n1['renderer1:x']);
+		var y1 = parseInt(n1['renderer1:y']);
+		var x2 = parseInt(n2['renderer1:x']);
+		var y2 = parseInt(n2['renderer1:y']);
+		var d = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+		//console.log(x1,y2, x2,y2, d);
+		return d;
+	}
 };
 
 function getRandomInt(min, max) {
 	return Math.floor(Math.random() * (max - min)) + min;
+}
+
+function colorLuminance(hex, lum) {
+
+	hex = String(hex).replace(/[^0-9a-f]/gi, '');
+	lum = lum || 0;
+	if (hex.length < 6) {
+		hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+	}
+
+	// convert to decimal
+	var r = convertToDec(hex.substr(0, 2)), g = convertToDec(hex.substr(2, 2)), b = convertToDec(hex.substr(4, 2));
+
+	// desaturate
+	var rgb = desaturate(r, g, b, .5);
+
+	// change luminosity
+
+	var newHex = "#", c, i;
+	for (i = 0; i < 3; i++) {
+		c = rgb[i];
+		c = Math.round(Math.min(Math.max(0, c + (c * lum)), 255)).toString(16);
+		newHex += ("00" + c).substr(c.length);
+	}
+	return newHex;
+}
+
+function convertToDec(hex) {
+	return parseInt(hex, 16);
+}
+
+function desaturate(r, g, b, k) {
+	var intensity = 0.3 * r + 0.59 * g + 0.11 * b;
+	r = Math.floor(intensity * k + r * (1 - k));
+	g = Math.floor(intensity * k + g * (1 - k));
+	b = Math.floor(intensity * k + b * (1 - k));
+	return [r, g, b];
+}
+
+function doLayout(num) {
+  running = true;
+  restartLayout(num);
+}
+
+function restartLayout(num) {
+  window.setTimeout(function() {
+    animating = true;
+    sigma.layouts.fruchtermanReingold.start(engine, {
+      autoArea: false,
+      area: 1000000000,
+      gravity: 0,
+      speed: 0.1,
+      iterations: 1000
+    });
+    animating = false;
+    if (count++ < num) {
+      restartLayout(num);
+    } else {
+      count = 0;
+    }
+  }, 20);
 }
