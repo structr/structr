@@ -841,28 +841,28 @@ var _Schema = {
 		var headContentDiv = $('#' + id + '_head');
 
 		headContentDiv.append('<b>' + entity.relationshipType + '</b>');
-        headContentDiv.append('<table id="relationship-options"><tr><td id="cascading-options"></td><td id="propagation-options"></td></tr></table>');
+		headContentDiv.append('<table id="relationship-options"><tr><td id="cascading-options"></td><td id="propagation-options"></td></tr></table>');
 
-        var relationshipOptions = $('#cascading-options');
-    	relationshipOptions.append('<h3>Cascading Delete</h3>');
-        relationshipOptions.append('<p>Direction of automatic removal of related nodes when a node is deleted</p>');
-        relationshipOptions.append('<select id="cascading-delete-selector"><option value="0">NONE</option><option value="1">SOURCE_TO_TARGET</option><option value="2">TARGET_TO_SOURCE</option><option value="3">ALWAYS</option><option value="4">CONSTRAINT_BASED</option></select>');
+		var relationshipOptions = $('#cascading-options');
+		relationshipOptions.append('<h3>Cascading Delete</h3>');
+		relationshipOptions.append('<p>Direction of automatic removal of related nodes when a node is deleted</p>');
+		relationshipOptions.append('<select id="cascading-delete-selector"><option value="0">NONE</option><option value="1">SOURCE_TO_TARGET</option><option value="2">TARGET_TO_SOURCE</option><option value="3">ALWAYS</option><option value="4">CONSTRAINT_BASED</option></select>');
 
 		relationshipOptions.append('<h3>Automatic Creation of Related Nodes</h3>');
-        relationshipOptions.append('<p>Direction of automatic creation of related nodes when a node is created</p>');
-        relationshipOptions.append('<select id="autocreate-selector"><option value="0">NONE</option><option value="1">SOURCE_TO_TARGET</option><option value="2">TARGET_TO_SOURCE</option><option value="3">ALWAYS</option></select>');
+		relationshipOptions.append('<p>Direction of automatic creation of related nodes when a node is created</p>');
+		relationshipOptions.append('<select id="autocreate-selector"><option value="0">NONE</option><option value="1">SOURCE_TO_TARGET</option><option value="2">TARGET_TO_SOURCE</option><option value="3">ALWAYS</option></select>');
 
-        var propagationOptions = $('#propagation-options');
-    	propagationOptions.append('<h3>Permission Resolution</h3>');
-    	propagationOptions.append('<select id="propagation-selector"><option value="None">NONE</option><option value="Out">SOURCE_TO_TARGET</option><option value="In">TARGET_TO_SOURCE</option><option value="Both">ALWAYS</option></select>');
-        propagationOptions.append('<table style="margin: 12px 0 0 0;"><tr id="propagation-table"></tr></table>');
-        propagationOptions.append('<p style="margin-top:12px">Hidden properties</p><textarea id="masked-properties" />');
+		var propagationOptions = $('#propagation-options');
+		propagationOptions.append('<h3>Permission Resolution</h3>');
+		propagationOptions.append('<select id="propagation-selector"><option value="None">NONE</option><option value="Out">SOURCE_TO_TARGET</option><option value="In">TARGET_TO_SOURCE</option><option value="Both">ALWAYS</option></select>');
+		propagationOptions.append('<table style="margin: 12px 0 0 0;"><tr id="propagation-table"></tr></table>');
+		propagationOptions.append('<p style="margin-top:12px">Hidden properties</p><textarea id="masked-properties" />');
 
-        var propagationTable = $('#propagation-table');
-        propagationTable.append('<td class="selector"><p>Read</p><select id="read-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
-        propagationTable.append('<td class="selector"><p>Write</p><select id="write-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
-        propagationTable.append('<td class="selector"><p>Delete</p><select id="delete-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
-        propagationTable.append('<td class="selector"><p>AccessControl</p><select id="access-control-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
+		var propagationTable = $('#propagation-table');
+		propagationTable.append('<td class="selector"><p>Read</p><select id="read-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
+		propagationTable.append('<td class="selector"><p>Write</p><select id="write-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
+		propagationTable.append('<td class="selector"><p>Delete</p><select id="delete-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
+		propagationTable.append('<td class="selector"><p>AccessControl</p><select id="access-control-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
 
 		headContentDiv.append('<div id="tabs" style="margin-top:20px;"><ul></ul></div>');
 		var mainTabs = $('#tabs', headContentDiv);
@@ -894,7 +894,7 @@ var _Schema = {
 			$('#write-selector').val(data.result.writePropagation || 'Remove');
 			$('#delete-selector').val(data.result.deletePropagation || 'Remove');
 			$('#access-control-selector').val(data.result.accessControlPropagation || 'Remove');
-            $('#masked-properties').val(data.result.propertyMask);
+			$('#masked-properties').val(data.result.propertyMask);
 		});
 
 		$('#cascading-delete-selector').on('change', function() {
@@ -919,9 +919,9 @@ var _Schema = {
 			});
 		});
 
-        $('#selector-feedback').on('click', function(e) {
-            $('#propagation-selector').click();
-        });
+		$('#selector-feedback').on('click', function(e) {
+			$('#propagation-selector').click();
+		});
 
 		$('#propagation-selector').on('change', function() {
 			var inp = $(this);
@@ -1021,7 +1021,7 @@ var _Schema = {
 						isBuiltinProperty: true,
 						notNull: prop.notNull,
 						unique: prop.unique,
-                        indexed: prop.indexed
+						indexed: prop.indexed
 					};
 
 					_Schema.appendLocalProperty(propertiesTable, property);
@@ -1291,13 +1291,13 @@ var _Schema = {
 			});
 		}
 
-//        $('#main').css({
-//            height: ($(window).height() - $('#main').offset().top)
-//        });
+//		$('#main').css({
+//			height: ($(window).height() - $('#main').offset().top)
+//		});
 
 		$('body').css({
 			position: 'relative'
-//            background: '#fff'
+//			background: '#fff'
 		});
 
 		$('html').css({
@@ -1485,7 +1485,7 @@ var _Schema = {
 			indentUnit: 4,
 			tabSize:4,
 			indentWithTabs: true
-        });
+		});
 
 		Structr.resize();
 
@@ -2573,7 +2573,7 @@ var _Schema = {
 					// include schema relationship if both source and target type are selected
 					if (types.indexOf(sourceType) !== -1 && types.indexOf(targetType) !== -1) {
 						types.push($el.children('div').attr('data-name'));
-				    }
+					}
 				});
 			}
 
