@@ -46,11 +46,14 @@ var _Schema = {
 		if (reload) {
 			return;
 		}
+		var x = window.scrollX;
+		var y = window.scrollY;
 		reload = true;
 		_Schema.storePositions();
 		main.empty();
-		_Schema.init();
+		_Schema.init({x: x, y: y});
 		_Schema.resize();
+
 	},
 	storePositions: function() {
 		$.each($('#schema-graph .node'), function(i, n) {
@@ -66,7 +69,7 @@ var _Schema = {
 		var n = JSON.parse(LSWrapper.getItem(type + localStorageSuffix + 'node-position'));
 		return n ? n.position : undefined;
 	},
-	init: function() {
+	init: function(scrollPosition) {
 
 		_Schema.schemaLoading = false;
 		_Schema.schemaLoaded = false;
@@ -237,6 +240,9 @@ var _Schema = {
 					var showSchemaOverlays = LSWrapper.getItem(showSchemaOverlaysKey) === null ? true : LSWrapper.getItem(showSchemaOverlaysKey);
 					_Schema.updateOverlayVisibility(showSchemaOverlays);
 
+					if (scrollPosition) {
+						window.scrollTo(scrollPosition.x, scrollPosition.y);
+					}
 				});
 
 			});
@@ -562,7 +568,6 @@ var _Schema = {
 			contentType: 'application/json; charset=utf-8',
 			success: function(data) {
 
-				var sId, tId;
 				var relCnt = {};
 				$.each(data.result, function(i, res) {
 
@@ -577,101 +582,74 @@ var _Schema = {
 					stub   = 30 + 80 * relCnt[relIndex];
 					offset =     0.1 * relCnt[relIndex];
 
-					sId = res.sourceId;
-					tId = res.targetId;
-
-					if (!(nodes[sId] && nodes[tId])) {
+					if (!(nodes[res.sourceId] && nodes[res.targetId])) {
 						return;
 					}
 
 					rels[res.id] = instance.connect({
-						source: nodes[sId + '_bottom'],
-						target: nodes[tId + '_top'],
+						source: nodes[res.sourceId + '_bottom'],
+						target: nodes[res.targetId + '_top'],
 						deleteEndpointsOnDetach: false,
 						scope: res.id,
-						//parameters: {'id': res.id},
 						connector: [connectorStyle, {curviness: 200, cornerRadius: radius, stub: [stub, 30], gap: 6, alwaysRespectStubs: true }],
-                        paintStyle: { lineWidth: 5, strokeStyle: res.permissionPropagation !== 'None' ? "#ffad25" : "#81ce25" },
+						paintStyle: { lineWidth: 5, strokeStyle: res.permissionPropagation !== 'None' ? "#ffad25" : "#81ce25" },
 						overlays: [
 							["Label", {
-									cssClass: "label multiplicity",
-									label: res.sourceMultiplicity ? res.sourceMultiplicity : '*',
-									location: .15 + offset,
-									id: "sourceMultiplicity",
-									events: {
-										"click": function(label, evt) {
-											evt.preventDefault();
-											var overlay = rels[res.id].getOverlay('sourceMultiplicity');
-											if (!(overlay.getLabel().substring(0, 1) === '<')) {
-												overlay.setLabel('<input class="source-mult-label" type="text" size="15" id="id_' + res.id + '_sourceMultiplicity" value="' + overlay.label + '">');
-												$('.source-mult-label').focus().on('blur', function() {
-													var label = ($(this).val() || '').trim();
-													if (label === '*' || label === '1') {
-														_Schema.setRelationshipProperty(res, 'sourceMultiplicity', label, function () {
-															overlay.setLabel(label);
-														}, function (data) {
-															Structr.errorFromResponse(data.responseJSON);
-														});
-													} else {
-														Structr.error('Multiplicity can only be 1 or *.', function () {});
-													}
-												});
-											}
-										}
-									}
-								}
-							],
-							["Label", {
 									cssClass: "label rel-type",
-									label: '<div id="rel_' + res.id + '" data-name="' + res.name + '" data-source-type="' + nodes[sId].name + '" data-target-type="' + nodes[tId].name + '">' + (res.relationshipType === initialRelType ? '&nbsp;' : res.relationshipType)
-											+ ' <img title="Edit schema relationship" alt="Edit schema relationship" class="edit icon" src="icon/pencil.png">'
-											+ ' <img title="Remove schema relationship" alt="Remove schema relationship" class="remove icon" src="icon/delete.png"></div>',
+									label: _Schema.getRelationshipOverlayHtml(res, false),
 									location: .5 + offset,
 									id: "label",
 									events: {
-										"click": function(label, evt) {
+										click: function(overlay, evt) {
 											evt.preventDefault();
-											var overlay = rels[res.id].getOverlay('label');
-											var l = $(overlay.getLabel()).text().trim();
-											if ((overlay.getLabel().substring(0, 6) !== '<input')) {
-												overlay.setLabel('<input class="relationship-label" type="text" size="15" id="id_' + res.id + '_relationshipType" value="' + l + '">');
-												$('.relationship-label').focus().on('blur', function() {
-													var label = ($(this).val() || '').trim();
-													_Schema.setRelationshipProperty(res, 'relationshipType', label, function () {
-														overlay.setLabel(label);
-													}, function (data) {
-														Structr.errorFromResponse(data.responseJSON);
-														_Schema.reload();
-													});
-												});
-											}
-										}
-									}
-								}
-							],
-							["Label", {
-									cssClass: "label multiplicity",
-									label: res.targetMultiplicity ? res.targetMultiplicity : '*',
-									location: .85 - offset,
-									id: "targetMultiplicity",
-									events: {
-										"click": function(label, evt) {
-											evt.preventDefault();
-											var overlay = rels[res.id].getOverlay('targetMultiplicity');
-											if (!(overlay.getLabel().substring(0, 1) === '<')) {
-												overlay.setLabel('<input class="target-mult-label" type="text" size="15" id="id_' + res.id + '_targetMultiplicity" value="' + overlay.label + '">');
-												$('.target-mult-label').focus().on('blur', function() {
-													var label = ($(this).val() || '').trim();
-													if (label === '*' || label === '1') {
-														_Schema.setRelationshipProperty(res, 'targetMultiplicity', label, function () {
-															overlay.setLabel(label);
-														}, function (data) {
+
+											if (overlay.getLabel().substring(0, 6) !== '<input') {
+
+												overlay.setLabel(_Schema.getRelationshipOverlayHtml(res, true));
+
+												var saveEditedRelationship = function (relationship, $element) {
+
+													var newRelData = {
+														sourceMultiplicity: $('.source-mult-input', $element).val(),
+														relationshipType: $('.rel-type-input', $element).val(),
+														targetMultiplicity: $('.target-mult-input', $element).val()
+													};
+
+													if ((newRelData.sourceMultiplicity !== '*' && newRelData.sourceMultiplicity !== '1') || (newRelData.targetMultiplicity !== '*' && newRelData.targetMultiplicity !== '1')) {
+
+														Structr.error('Multiplicity can only be 1 or *.');
+
+													} else if (newRelData.relationshipType.match(/^[\w]+$/) === null) {
+
+														Structr.error('RelType must use only alphanumeric characters and underscores.');
+
+													} else {
+														$('input', overlay.getElement()).attr('disabled', 'disabled');
+														_Schema.editRelationship(relationship, newRelData, undefined, function (data) {
 															Structr.errorFromResponse(data.responseJSON);
 														});
-													} else {
-														Structr.error('Multiplicity can only be 1 or *.', function () {});
+													}
+
+												};
+
+												$('input', overlay.getElement()).first().focus();
+												$('input', overlay.getElement()).keypress(function(e) {
+													if (e.keyCode === 13) {
+														e.preventDefault();
+														saveEditedRelationship(res, overlay.getElement());
 													}
 												});
+
+												$('.save', overlay.getElement()).on('click', function () {
+													saveEditedRelationship(res, overlay.getElement());
+												});
+
+												$('.discard', overlay.getElement()).on('click', function () {
+													overlay.setLabel(_Schema.getRelationshipOverlayHtml(res, false));
+													_Schema.registerRelationshipOverlayButtonHandlers(res);
+												});
+
+												$('.icon', overlay.getElement()).show();
 											}
 										}
 									}
@@ -684,30 +662,16 @@ var _Schema = {
 					$('#rel_' + res.id).parent().on('mouseover', function(e) {
 						//e.stopPropagation();
 						$('#rel_' + res.id + ' .icon').show();
+						$('#rel_' + res.id + ' .target-multiplicity').addClass('hover');
 					});
 
 					$('#rel_' + res.id).parent().on('mouseout', function(e) {
 						//e.stopPropagation();
 						$('#rel_' + res.id + ' .icon').hide();
+						$('#rel_' + res.id + ' .target-multiplicity').removeClass('hover');
 					});
 
-					$('#rel_' + res.id + ' .edit').on('click', function(e) {
-						e.stopPropagation();
-
-						_Schema.openEditDialog(res.id);
-					});
-
-					$('#rel_' + res.id + ' .remove').on('click', function(e) {
-						e.stopPropagation();
-						Structr.confirmation('<h3>Delete schema relationship \'' + res.relationshipType + '\'?</h3>', function() {
-							$.unblockUI({
-								fadeOut: 25
-							});
-							_Schema.detach(res.id);
-							_Schema.reload();
-						});
-						return false;
-					});
+					_Schema.registerRelationshipOverlayButtonHandlers(res);
 				});
 
 
@@ -716,6 +680,42 @@ var _Schema = {
 				}
 
 			}
+		});
+	},
+	getRelationshipOverlayHtml: function(rel, editMode) {
+		if (editMode === true) {
+			return '<input class="source-mult-input" type="text" size="15" id="id_' + rel.id + '_sourceMultiplicity" value="' + (rel.sourceMultiplicity ? rel.sourceMultiplicity : '*') + '">'
+					+ '<input class="rel-type-input" type="text" size="15" id="id_' + rel.id + '_relationshipType" value="' + (rel.relationshipType === initialRelType ? '&nbsp;' : rel.relationshipType) + '">'
+					+ '<input class="target-mult-input" type="text" size="15" id="id_' + rel.id + '_targetMultiplicity" value="' + (rel.targetMultiplicity ? rel.targetMultiplicity : '*') + '">'
+					+ ' <img title="Save changes" alt="Save changes" class="save icon" src="icon/tick.png">'
+					+ ' <img title="Discard changes" alt="Discard changes" class="discard icon" src="icon/cross.png">';
+		} else {
+			return '<span id="rel_' + rel.id + '" data-name="' + rel.name + '" data-source-type="' + nodes[rel.sourceId].name + '" data-target-type="' + nodes[rel.targetId].name + '">'
+					+ '<span class="source-multiplicity">' + (rel.sourceMultiplicity ? rel.sourceMultiplicity : '*') + '</span>'
+					+ '<span class="rel-type-name">' + (rel.relationshipType === initialRelType ? '&nbsp;' : rel.relationshipType) + '</span>'
+					+ '<span class="target-multiplicity">' + (rel.targetMultiplicity ? rel.targetMultiplicity : '*') + '</span>'
+					+ ' <img title="Edit schema relationship" alt="Edit schema relationship" class="edit icon" src="icon/pencil.png">'
+					+ ' <img title="Remove schema relationship" alt="Remove schema relationship" class="remove icon" src="icon/delete.png">'
+					+ '</span>';
+		}
+	},
+	registerRelationshipOverlayButtonHandlers: function (rel) {
+		$('#rel_' + rel.id + ' .edit').on('click', function(e) {
+			e.stopPropagation();
+
+			_Schema.openEditDialog(rel.id);
+		});
+
+		$('#rel_' + rel.id + ' .remove').on('click', function(e) {
+			e.stopPropagation();
+			Structr.confirmation('<h3>Delete schema relationship \'' + rel.relationshipType + '\'?</h3>', function() {
+				$.unblockUI({
+					fadeOut: 25
+				});
+				_Schema.detach(rel.id);
+				_Schema.reload();
+			});
+			return false;
 		});
 	},
 	loadNode: function(entity, headEl, contentEl, targetView) {
@@ -850,28 +850,28 @@ var _Schema = {
 		var headContentDiv = $('#' + id + '_head');
 
 		headContentDiv.append('<b>' + entity.relationshipType + '</b>');
-        headContentDiv.append('<table id="relationship-options"><tr><td id="cascading-options"></td><td id="propagation-options"></td></tr></table>');
+		headContentDiv.append('<table id="relationship-options"><tr><td id="cascading-options"></td><td id="propagation-options"></td></tr></table>');
 
-        var relationshipOptions = $('#cascading-options');
-    	relationshipOptions.append('<h3>Cascading Delete</h3>');
-        relationshipOptions.append('<p>Direction of automatic removal of related nodes when a node is deleted</p>');
-        relationshipOptions.append('<select id="cascading-delete-selector"><option value="0">NONE</option><option value="1">SOURCE_TO_TARGET</option><option value="2">TARGET_TO_SOURCE</option><option value="3">ALWAYS</option><option value="4">CONSTRAINT_BASED</option></select>');
+		var relationshipOptions = $('#cascading-options');
+		relationshipOptions.append('<h3>Cascading Delete</h3>');
+		relationshipOptions.append('<p>Direction of automatic removal of related nodes when a node is deleted</p>');
+		relationshipOptions.append('<select id="cascading-delete-selector"><option value="0">NONE</option><option value="1">SOURCE_TO_TARGET</option><option value="2">TARGET_TO_SOURCE</option><option value="3">ALWAYS</option><option value="4">CONSTRAINT_BASED</option></select>');
 
 		relationshipOptions.append('<h3>Automatic Creation of Related Nodes</h3>');
-        relationshipOptions.append('<p>Direction of automatic creation of related nodes when a node is created</p>');
-        relationshipOptions.append('<select id="autocreate-selector"><option value="0">NONE</option><option value="1">SOURCE_TO_TARGET</option><option value="2">TARGET_TO_SOURCE</option><option value="3">ALWAYS</option></select>');
+		relationshipOptions.append('<p>Direction of automatic creation of related nodes when a node is created</p>');
+		relationshipOptions.append('<select id="autocreate-selector"><option value="0">NONE</option><option value="1">SOURCE_TO_TARGET</option><option value="2">TARGET_TO_SOURCE</option><option value="3">ALWAYS</option></select>');
 
-        var propagationOptions = $('#propagation-options');
-    	propagationOptions.append('<h3>Permission Resolution</h3>');
-    	propagationOptions.append('<select id="propagation-selector"><option value="None">NONE</option><option value="Out">SOURCE_TO_TARGET</option><option value="In">TARGET_TO_SOURCE</option><option value="Both">ALWAYS</option></select>');
-        propagationOptions.append('<table style="margin: 12px 0 0 0;"><tr id="propagation-table"></tr></table>');
-        propagationOptions.append('<p style="margin-top:12px">Hidden properties</p><textarea id="masked-properties" />');
+		var propagationOptions = $('#propagation-options');
+		propagationOptions.append('<h3>Permission Resolution</h3>');
+		propagationOptions.append('<select id="propagation-selector"><option value="None">NONE</option><option value="Out">SOURCE_TO_TARGET</option><option value="In">TARGET_TO_SOURCE</option><option value="Both">ALWAYS</option></select>');
+		propagationOptions.append('<table style="margin: 12px 0 0 0;"><tr id="propagation-table"></tr></table>');
+		propagationOptions.append('<p style="margin-top:12px">Hidden properties</p><textarea id="masked-properties" />');
 
-        var propagationTable = $('#propagation-table');
-        propagationTable.append('<td class="selector"><p>Read</p><select id="read-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
-        propagationTable.append('<td class="selector"><p>Write</p><select id="write-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
-        propagationTable.append('<td class="selector"><p>Delete</p><select id="delete-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
-        propagationTable.append('<td class="selector"><p>AccessControl</p><select id="access-control-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
+		var propagationTable = $('#propagation-table');
+		propagationTable.append('<td class="selector"><p>Read</p><select id="read-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
+		propagationTable.append('<td class="selector"><p>Write</p><select id="write-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
+		propagationTable.append('<td class="selector"><p>Delete</p><select id="delete-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
+		propagationTable.append('<td class="selector"><p>AccessControl</p><select id="access-control-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
 
 		headContentDiv.append('<div id="tabs" style="margin-top:20px;"><ul></ul></div>');
 		var mainTabs = $('#tabs', headContentDiv);
@@ -903,7 +903,7 @@ var _Schema = {
 			$('#write-selector').val(data.result.writePropagation || 'Remove');
 			$('#delete-selector').val(data.result.deletePropagation || 'Remove');
 			$('#access-control-selector').val(data.result.accessControlPropagation || 'Remove');
-            $('#masked-properties').val(data.result.propertyMask);
+			$('#masked-properties').val(data.result.propertyMask);
 		});
 
 		$('#cascading-delete-selector').on('change', function() {
@@ -928,9 +928,9 @@ var _Schema = {
 			});
 		});
 
-        $('#selector-feedback').on('click', function(e) {
-            $('#propagation-selector').click();
-        });
+		$('#selector-feedback').on('click', function(e) {
+			$('#propagation-selector').click();
+		});
 
 		$('#propagation-selector').on('change', function() {
 			var inp = $(this);
@@ -1030,7 +1030,7 @@ var _Schema = {
 						isBuiltinProperty: true,
 						notNull: prop.notNull,
 						unique: prop.unique,
-                        indexed: prop.indexed
+						indexed: prop.indexed
 					};
 
 					_Schema.appendLocalProperty(propertiesTable, property);
@@ -1300,13 +1300,13 @@ var _Schema = {
 			});
 		}
 
-//        $('#main').css({
-//            height: ($(window).height() - $('#main').offset().top)
-//        });
+//		$('#main').css({
+//			height: ($(window).height() - $('#main').offset().top)
+//		});
 
 		$('body').css({
 			position: 'relative'
-//            background: '#fff'
+//			background: '#fff'
 		});
 
 		$('html').css({
@@ -1494,7 +1494,7 @@ var _Schema = {
 			indentUnit: 4,
 			tabSize:4,
 			indentWithTabs: true
-        });
+		});
 
 		Structr.resize();
 
@@ -2309,6 +2309,9 @@ var _Schema = {
 	setRelationshipProperty: function(entity, key, value, onSuccess, onError) {
 		var data = {};
 		data[key] = cleanText(value);
+		_Schema.editRelationship(entity, data, onSuccess, onError);
+	},
+	editRelationship: function(entity, newData, onSuccess, onError) {
 		$.ajax({
 			url: rootUrl + 'schema_relationship_nodes/' + entity.id,
 			type: 'GET',
@@ -2316,14 +2319,18 @@ var _Schema = {
 			statusCode: {
 				200: function(existingData) {
 
-					if (existingData.result[key] !== value) {
+					var changed = Object.keys(newData).some(function (key) {
+						return (existingData.result[key] !== newData[key])
+					});
+
+					if (changed) {
 
 						$.ajax({
 							url: rootUrl + 'schema_relationship_nodes/' + entity.id,
 							type: 'PUT',
 							dataType: 'json',
 							contentType: 'application/json; charset=utf-8',
-							data: JSON.stringify(data),
+							data: JSON.stringify(newData),
 							statusCode: {
 								200: function(data, textStatus, jqXHR) {
 									if (onSuccess) {
@@ -2332,7 +2339,6 @@ var _Schema = {
 									_Schema.reload();
 								},
 								422: function(data) {
-									//Structr.errorFromResponse(data.responseJSON);
 									if (onError) {
 										onError(data);
 									}
@@ -2576,7 +2582,7 @@ var _Schema = {
 					// include schema relationship if both source and target type are selected
 					if (types.indexOf(sourceType) !== -1 && types.indexOf(targetType) !== -1) {
 						types.push($el.children('div').attr('data-name'));
-				    }
+					}
 				});
 			}
 
