@@ -2080,10 +2080,6 @@ var _Schema = {
 									_Schema.confirmRemoveSchemaEntity(view, 'Delete view', function() { _Schema.openEditDialog(view.schemaNode.id, 'views'); } );
 								});
 
-								$('.' + name + ' .view.property-attrs').on('change', function() {
-									_Schema.saveView(view, entity);
-								});
-
 								_Schema.bindEvents(view);
 							}
 						}
