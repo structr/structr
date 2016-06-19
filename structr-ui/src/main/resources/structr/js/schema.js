@@ -1027,8 +1027,8 @@ var _Schema = {
 					+ '<td><input class="indexed" type="checkbox"></td>'
 					+ '<td><input class="property-default" size="10" type="text"></td>'
 					+ '<td>'
-					+ '<img alt="Accept" title="Save changes" class="create-icon create-property" src="icon/accept.png">'
-					+ '<img alt="Cancel" title="Cancel" class="remove-icon remove-property" src="icon/cancel.png">'
+					+ '<img alt="Accept" title="Save changes" class="create-icon create-property" src="icon/tick.png">'
+					+ '<img alt="Cancel" title="Discard changes" class="remove-icon remove-property" src="icon/cross.png">'
 					+ '</td></div>');
 
 			$('.' + rowClass + ' .remove-property', propertiesTable).on('click', function() {
@@ -1059,8 +1059,8 @@ var _Schema = {
 		$('.add-view', el).on('click', function() {
 			viewsTable.append('<tr class="new"><td style="width:20%;"><input size="15" type="text" class="view property-name" placeholder="Enter view name"></td>'
 					+ '<td class="' + newSelectClass + '"></td><td>'
-					+ '<img alt="Accept" title="Save changes" class="create-icon create-view" src="icon/accept.png">'
-					+ '<img alt="Cancel" title="Cancel" class="remove-icon remove-view" src="icon/cancel.png">'
+					+ '<img alt="Accept" title="Save changes" class="create-icon create-view" src="icon/tick.png">'
+					+ '<img alt="Cancel" title="Discard changes" class="remove-icon remove-view" src="icon/cross.png">'
 					+ '</td>'
 					+ '</div');
 
@@ -1094,8 +1094,8 @@ var _Schema = {
 			actionsTable.append('<tr class="new"><td style="vertical-align:top;"><input size="15" type="text" class="action property-name" placeholder="Enter method name"></td>'
 					+ '<td><textarea rows="4" class="action property-code" placeholder="Enter Code"></textarea></td><td><textarea rows="4" class="action property-comment" placeholder="Enter comment"></textarea></td>'
 					+ '<td>'
-					+ '<img alt="Accept" title="Save changes" class="create-icon create-action" src="icon/accept.png">'
-					+ '<img alt="Cancel" title="Cancel" class="remove-icon remove-action" src="icon/cancel.png">'
+					+ '<img alt="Accept" title="Save changes" class="create-icon create-action" src="icon/tick.png">'
+					+ '<img alt="Cancel" title="Discard changes" class="remove-icon remove-action" src="icon/cross.png">'
 					+ '</td>'
 					+ '</div>');
 
@@ -1698,8 +1698,8 @@ var _Schema = {
 				+ escapeForHtmlAttributes(method.source) + '</textarea></td><td><textarea rows="4" class="property-comment action">'
 				+ escapeForHtmlAttributes(method.comment || '') + '</textarea></td>'
 				+ '<td>'
-				+ '<img alt="Accept" title="Save changes" class="create-icon save-action hidden" src="icon/accept.png">'
-				+ '<img alt="Cancel" title="Cancel" class="remove-icon cancel-action hidden" src="icon/cancel.png">'
+				+ '<img alt="Accept" title="Save changes" class="create-icon save-action hidden" src="icon/tick.png">'
+				+ '<img alt="Cancel" title="Discard changes" class="remove-icon cancel-action hidden" src="icon/cross.png">'
 				+ '<img alt="Remove" title="Remove method" class="remove-icon remove-action" src="icon/delete.png">'
 				+ '</td></tr>');
 
@@ -1749,8 +1749,8 @@ var _Schema = {
 
 		el.append('<tr class="' + view.name + '"><td style="width:20%;"><input size="15" type="text" class="property-name view" value="' + escapeForHtmlAttributes(view.name) + '">'
 				+ '</td><td id="' + selectId + '"></td><td>'
-				+ '<img alt="Save" title="Save changes" class="create-icon save-view hidden" src="icon/accept.png">'
-				+ '<img alt="Cancel" title="Cancel" class="remove-icon cancel-view hidden" src="icon/cancel.png">'
+				+ '<img alt="Save" title="Save changes" class="create-icon save-view hidden" src="icon/tick.png">'
+				+ '<img alt="Cancel" title="Discard changes" class="remove-icon cancel-view hidden" src="icon/cross.png">'
 				+ (view.isBuiltinView ? '<img alt="Reset" title="Reset view" class="remove-icon reset-view" src="icon/arrow_undo.png">' : '<img alt="Remove" title="Remove view" class="remove-icon remove-view" src="icon/delete.png">')
 				+ '</td></tr>');
 
