@@ -799,6 +799,10 @@ var _Schema = {
 			_Schema.appendRemoteProperties(c, entity);
 		});
 
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'builtin', 'Inherited Attributes', targetView === 'builtin', function (c) {
+			_Schema.appendBuiltinProperties(c, entity);
+		});
+
 		if (!entity.isBuiltinType) {
 
 			headContentDiv.children('b').on('click', function() {
@@ -1012,32 +1016,6 @@ var _Schema = {
 		$.each(entity.schemaProperties, function(i, prop) {
 			_Schema.appendLocalProperty(propertiesTable, prop);
 		});
-
-		// 2. Display builtin schema properties
-		Command.listSchemaProperties(entity.id, 'ui', function(data) {
-
-			// sort by name
-			_Schema.sort(data);
-
-			$.each(data, function(i, prop) {
-
-				if (!prop.isDynamic) {
-
-					var property = {
-						name: prop.name,
-						dbName: '',
-						propertyType: prop.propertyType,
-						isBuiltinProperty: true,
-						notNull: prop.notNull,
-						unique: prop.unique,
-						indexed: prop.indexed
-					};
-
-					_Schema.appendLocalProperty(propertiesTable, property);
-				}
-			});
-		});
-
 		$('.add-local-attribute', el).on('click', function() {
 			var rowClass = 'new' + (_Schema.cnt++);
 			propertiesTable.append('<tr class="' + rowClass + '"><td><input size="15" type="text" class="property-name" placeholder="Enter JSON name" autofocus></td>'
@@ -1048,7 +1026,9 @@ var _Schema = {
 					+ '<td><input class="unique" type="checkbox"></td>'
 					+ '<td><input class="indexed" type="checkbox"></td>'
 					+ '<td><input class="property-default" size="10" type="text"></td>'
-					+ '<td><img alt="Remove" class="remove-icon remove-property" src="icon/delete.png">'
+					+ '<td>'
+					+ '<img alt="Accept" title="Save changes" class="create-icon create-property" src="icon/accept.png">'
+					+ '<img alt="Cancel" title="Cancel" class="remove-icon remove-property" src="icon/cancel.png">'
 					+ '</td></div>');
 
 			$('.' + rowClass + ' .remove-property', propertiesTable).on('click', function() {
@@ -1056,30 +1036,11 @@ var _Schema = {
 				self.closest('tr').remove();
 			});
 
-			$('.' + rowClass + ' .property-name', propertiesTable).focus().on('blur', function() {
-				_Schema.collectAndSaveNewLocalProperty(rowClass, propertiesTable, entity);
-			});
-
-			$('.' + rowClass + ' .property-type', propertiesTable).on('change', function() {
-				_Schema.collectAndSaveNewLocalProperty(rowClass, propertiesTable, entity);
-			});
-
-			$('.' + rowClass + ' .property-format', propertiesTable).on('blur', function() {
-				_Schema.collectAndSaveNewLocalProperty(rowClass, propertiesTable, entity);
-			});
-
-			$('.' + rowClass + ' .not-null', propertiesTable).on('change', function() {
-				_Schema.collectAndSaveNewLocalProperty(rowClass, propertiesTable, entity);
-			});
-
-			$('.' + rowClass + ' .unique', propertiesTable).on('change', function() {
-				_Schema.collectAndSaveNewLocalProperty(rowClass, propertiesTable, entity);
-			});
-
-			$('.' + rowClass + ' .indexed', propertiesTable).on('change', function() {
+			$('.' + rowClass + ' .create-property', propertiesTable).on('click', function() {
 				_Schema.collectAndSaveNewLocalProperty(rowClass, propertiesTable, entity);
 			});
 		});
+
 	},
 	appendViews: function(el, resource, entity) {
 
@@ -1097,12 +1058,15 @@ var _Schema = {
 
 		$('.add-view', el).on('click', function() {
 			viewsTable.append('<tr class="new"><td style="width:20%;"><input size="15" type="text" class="view property-name" placeholder="Enter view name"></td>'
-					+ '<td class="' + newSelectClass + '"></td><td>' + ('<img alt="Remove" class="remove-icon remove-view" src="icon/delete.png">') + '</td>'
+					+ '<td class="' + newSelectClass + '"></td><td>'
+					+ '<img alt="Accept" title="Save changes" class="create-icon create-view" src="icon/accept.png">'
+					+ '<img alt="Cancel" title="Cancel" class="remove-icon remove-view" src="icon/cancel.png">'
+					+ '</td>'
 					+ '</div');
 
 			_Schema.appendViewSelectionElement('.' + newSelectClass, {name: 'new'}, resource, entity);
 
-			$('.new .property-attrs.view', el).on('change', function() {
+			$('.new .create-view', el).on('click', function() {
 				_Schema.createView(el, entity);
 			});
 
@@ -1126,12 +1090,16 @@ var _Schema = {
 		});
 
 		$('.add-action-attribute', el).on('click', function() {
+
 			actionsTable.append('<tr class="new"><td style="vertical-align:top;"><input size="15" type="text" class="action property-name" placeholder="Enter method name"></td>'
 					+ '<td><textarea rows="4" class="action property-code" placeholder="Enter Code"></textarea></td><td><textarea rows="4" class="action property-comment" placeholder="Enter comment"></textarea></td>'
-					+ '<td><img alt="Remove" class="remove-icon remove-action" src="icon/delete.png"></td>'
+					+ '<td>'
+					+ '<img alt="Accept" title="Save changes" class="create-icon create-action" src="icon/accept.png">'
+					+ '<img alt="Cancel" title="Cancel" class="remove-icon remove-action" src="icon/cancel.png">'
+					+ '</td>'
 					+ '</div>');
 
-			$('.new .property-code.action', el).on('blur', function() {
+			$('.new .create-action', el).on('click', function() {
 				_Schema.createMethod(el, entity);
 			});
 
@@ -1177,6 +1145,40 @@ var _Schema = {
 				});
 
 			}
+		});
+
+	},
+	appendBuiltinProperties: function(el, entity) {
+
+		el.append('<table class="builtin schema-props"><thead><th>Declaring Class</th><th>JSON Name</th><th>Type</th><th>Notnull</th><th>Uniq.</th><th>Idx</th></thead></table>');
+
+		var propertiesTable = $('.builtin.schema-props', el);
+
+		_Schema.sort(entity.schemaProperties);
+
+		Command.listSchemaProperties(entity.id, 'ui', function(data) {
+
+			// sort by name
+			_Schema.sort(data, "declaringClass", "name");
+
+			$.each(data, function(i, prop) {
+
+				if (!prop.isDynamic) {
+
+					var property = {
+						name: prop.name,
+						dbName: '',
+						propertyType: prop.propertyType,
+						isBuiltinProperty: true,
+						notNull: prop.notNull,
+						unique: prop.unique,
+						indexed: prop.indexed,
+						declaringClass: prop.declaringClass
+					};
+
+					_Schema.appendBuiltinProperty(propertiesTable, property);
+				}
+			});
 		});
 
 	},
@@ -1233,6 +1235,7 @@ var _Schema = {
 								row.removeClass(rowClass).addClass('local').addClass(name);
 								row = $('.local.' + name, el);
 
+								$('.create-property', row).remove();
 								$('.remove-property', row).off('click');
 
 								$('.remove-property', row).on('click', function() {
@@ -1329,6 +1332,26 @@ var _Schema = {
 				+ '<input type="text" size="10" class="property-default" value="' + escapeForHtmlAttributes(property.defaultValue) + '">' + '</td><td>'
 				+ (property.isBuiltinProperty ? '' : '<img alt="Remove" class="remove-icon remove-property" src="icon/delete.png">')
 				+ '</td></tr>');
+
+		_Schema.bindEvents(property);
+
+		if (property.isBuiltinProperty) {
+			_Schema.disable(property);
+		}
+
+	},
+	appendBuiltinProperty: function(el, property) {
+
+		var key = property.name;
+
+		el.append('<tr class="' + key + '">'
+				+ '<td>' + escapeForHtmlAttributes(property.declaringClass) + '</td>'
+				+ '<td>' + escapeForHtmlAttributes(property.name) + '</td>'
+				+ '<td>' + property.propertyType + '</td>'
+				+ '<td>' + '<input class="not-null" type="checkbox" readonly="readonly"' + (property.notNull ? ' checked="checked"' : '') + '></td>'
+				+ '<td>' + '<input class="unique" type="checkbox" readonly="readonly"' + (property.unique ? ' checked="checked"' : '') + '</td>'
+				+ '<td>' + '<input class="indexed" type="checkbox" readonly="readonly"' + (property.indexed ? ' checked="checked"' : '')+ '</td>'
+				+ '</tr>');
 
 		_Schema.bindEvents(property);
 
@@ -1673,18 +1696,46 @@ var _Schema = {
 		el.append('<tr class="' + key + '"><td style="vertical-align:top;"><input size="15" type="text" class="property-name action" value="'
 				+ escapeForHtmlAttributes(method.name) + '"></td><td><textarea rows="4" class="property-code action">'
 				+ escapeForHtmlAttributes(method.source) + '</textarea></td><td><textarea rows="4" class="property-comment action">'
-				+ escapeForHtmlAttributes(method.comment || '') + '</textarea></td><td><img alt="Remove" title="Remove view" class="remove-icon remove-action" src="icon/delete.png"></td></tr>');
+				+ escapeForHtmlAttributes(method.comment || '') + '</textarea></td>'
+				+ '<td>'
+				+ '<img alt="Accept" title="Save changes" class="create-icon save-action hidden" src="icon/accept.png">'
+				+ '<img alt="Cancel" title="Cancel" class="remove-icon cancel-action hidden" src="icon/cancel.png">'
+				+ '<img alt="Remove" title="Remove method" class="remove-icon remove-action" src="icon/delete.png">'
+				+ '</td></tr>');
 
-		$('.' + key + ' .property-name.action').on('blur', function() {
+		var activate = function() {
+
+			var tr = $(this).parents('tr');
+			$('.save-action', tr).removeClass('hidden');
+			$('.cancel-action', tr).removeClass('hidden');
+			$('.remove-action', tr).addClass('hidden');
+		}
+
+		$('.' + key + ' .property-name.action').on('change', activate);
+		$('.' + key + ' .property-name.action').on('keyup', activate);
+
+		$('.' + key + ' .property-code.action').on('change', activate);
+		$('.' + key + ' .property-code.action').on('keyup', activate);
+
+		$('.' + key + ' .property-comment.action').on('change', activate);
+		$('.' + key + ' .property-comment.action').on('keyup', activate);
+
+		$('.' + key + ' .save-action').on('click', function() {
 			_Schema.saveMethod(method);
 		});
 
-		$('.' + key + ' .property-code.action').on('blur', function() {
-			_Schema.saveMethod(method);
-		});
+		$('.' + key + ' .cancel-action').on('click', function() {
 
-		$('.' + key + ' .property-comment.action').on('blur', function() {
-			_Schema.saveMethod(method);
+			var tr = $(this).parents('tr');
+
+			// restore previous values
+			$('.action.property-name', tr).val(method.name);
+			$('.action.property-code', tr).val(method.source);
+			$('.action.property-comment', tr).val(method.comment);
+
+			$('.save-action', tr).addClass('hidden');
+			$('.cancel-action', tr).addClass('hidden');
+			$('.remove-action', tr).removeClass('hidden');
 		});
 
 		$('.' + key + ' .remove-action').on('click', function() {
@@ -1698,17 +1749,39 @@ var _Schema = {
 
 		el.append('<tr class="' + view.name + '"><td style="width:20%;"><input size="15" type="text" class="property-name view" value="' + escapeForHtmlAttributes(view.name) + '">'
 				+ '</td><td id="' + selectId + '"></td><td>'
-				+ (view.isBuiltinView ? '<img alt="Reset" title="Reset view" class="remove-icon reset-view" src="icon/arrow_undo.png">' : '<img alt="Remove" class="remove-icon remove-view" src="icon/delete.png">')
+				+ '<img alt="Save" title="Save changes" class="create-icon save-view hidden" src="icon/accept.png">'
+				+ '<img alt="Cancel" title="Cancel" class="remove-icon cancel-view hidden" src="icon/cancel.png">'
+				+ (view.isBuiltinView ? '<img alt="Reset" title="Reset view" class="remove-icon reset-view" src="icon/arrow_undo.png">' : '<img alt="Remove" title="Remove view" class="remove-icon remove-view" src="icon/delete.png">')
 				+ '</td></tr>');
 
 		_Schema.appendViewSelectionElement('#' + selectId, view, resource, entity);
 
-		$('.' + key + ' .property-attrs.view').on('blur', function() {
+		$('.' + key + ' .save-view').on('click', function() {
 			_Schema.saveView(view, entity);
 		});
 
-		$('.' + key + ' .property-name.view').on('blur', function() {
-			_Schema.saveView(view, entity);
+		$('.' + key + ' .cancel-view').on('click', function() {
+
+			var tr = $(this).parents('tr');
+			var select = $('select', tr);
+
+			// restore previous values
+			$('.view.property-name', tr).val(view.name);
+
+			// reset properties to previous state
+			Command.listSchemaProperties(entity.id, view.name, function(data) {
+
+				data.forEach(function(prop) {
+
+					$('option[value="' + prop.name + '"]', select).prop('selected', prop.isSelected).trigger('chosen:updated');
+				});
+			});
+
+			$('.save-view', tr).addClass('hidden');
+			$('.cancel-view', tr).addClass('hidden');
+			$('.remove-view', tr).removeClass('hidden');
+
+			select.trigger('chosen:updated');
 		});
 
 		$('.' + key + ' .remove-view').on('click', function() {
@@ -1729,7 +1802,11 @@ var _Schema = {
 		if (view && view.id) {
 
 			viewSelectElem.on('change', function() {
-				_Schema.saveView(view, schemaEntity);
+
+				var tr = $(this).parents('tr');
+				$('.save-view', tr).removeClass('hidden');
+				$('.cancel-view', tr).removeClass('hidden');
+				$('.remove-view', tr).addClass('hidden');
 			});
 
 			Command.listSchemaProperties(schemaEntity.id, view.name, function(data) {
@@ -1865,6 +1942,7 @@ var _Schema = {
 								row.removeClass('new').addClass('action').addClass(name);
 								row = $('.action.' + name, el);
 
+								$('.create-action', row).remove();
 								$('.remove-action', row).off('click');
 
 								$('.remove-action', row).on('click', function() {
@@ -1928,10 +2006,15 @@ var _Schema = {
 				method.source  = obj.source;
 				method.comment = obj.comment;
 
-				// update row class so that consequent changes can be applied
+				// update row class so that subsequent changes can be applied
 				$('.' + key).removeClass(key).addClass(method.name);
 
 				_Schema.bindEvents(method);
+
+				// restore button state before removing key
+				$('.' + method.name + ' .save-action').addClass('hidden');
+				$('.' + method.name + ' .cancel-action').addClass('hidden');
+				$('.' + method.name + ' .remove-action').removeClass('hidden');
 
 			}, function(data) {
 
@@ -2054,6 +2137,11 @@ var _Schema = {
 				$('.' + key).removeClass(key).addClass(view.name);
 
 				_Schema.bindEvents(view);
+
+				// restore button state before removing key
+				$('.' + view.name + ' .save-view').addClass('hidden');
+				$('.' + view.name + ' .cancel-view').addClass('hidden');
+				$('.' + view.name + ' .remove-view').removeClass('hidden');
 
 			}, function(data) {
 
@@ -3020,12 +3108,19 @@ var _Schema = {
 		instance.setZoom(zoom);
 		_Schema.resize();
 	},
-	sort: function(collection, sortKey) {
+	sort: function(collection, sortKey, secondarySortKey) {
 		if (!sortKey) {
 			sortKey = "name";
 		}
 		collection.sort(function(a, b) {
-			return ((a[sortKey] > b[sortKey]) ? 1 : ((a[sortKey] < b[sortKey]) ? -1 : 0));
+
+			var equal = ((a[sortKey] > b[sortKey]) ? 1 : ((a[sortKey] < b[sortKey]) ? -1 : 0));
+			if (equal === 0 && secondarySortKey) {
+
+				equal = ((a[secondarySortKey] > b[secondarySortKey]) ? 1 : ((a[secondarySortKey] < b[secondarySortKey]) ? -1 : 0));
+			}
+
+			return equal;
 		});
 	},
 	updateOverlayVisibility: function(show) {

@@ -1809,7 +1809,9 @@ button.add_property {
 
 .schema-details .add-icon:hover,
 .schema .toggle-view:hover,
-.schema-details .remove-icon:hover {
+.schema-details .remove-icon:hover,
+.schema-details .create-icon:hover,
+.schema-details .edit-icon:hover {
 	opacity: .6;
 	cursor: pointer;
 }
