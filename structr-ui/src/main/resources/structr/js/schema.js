@@ -922,6 +922,8 @@ var _Schema = {
 			e.preventDefault();
 
 			$('#relationship-options select, #relationship-options textarea').attr('disabled', false);
+			$('#relationship-options select, #relationship-options textarea').css('color', '');
+			$('#relationship-options select, #relationship-options textarea').css('background-color', '');
 			editButton.hide();
 			saveButton.show();
 			cancelButton.show();
