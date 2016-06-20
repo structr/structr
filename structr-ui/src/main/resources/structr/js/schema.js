@@ -852,30 +852,32 @@ var _Schema = {
 		var id = '___' + entity.id;
 		headEl.append('<div id="' + id + '_head" class="schema-details"></div>');
 		var headContentDiv = $('#' + id + '_head');
-
 		headContentDiv.append('<b>' + entity.relationshipType + '</b>');
 		headContentDiv.append('<table id="relationship-options"><tr><td id="cascading-options"></td><td id="propagation-options"></td></tr></table>');
+		headContentDiv.append('<button id="edit-rel-options-button"><img class="edit icon" src="icon/pencil.png"> Edit relationship options</button>');
+		headContentDiv.append('<button id="save-rel-options-button"><img class="save icon" src="icon/tick.png"> Save changes</button>');
+		headContentDiv.append('<button id="cancel-rel-options-button"><img src="icon/cross.png"> Discard changes</button>');
 
 		var relationshipOptions = $('#cascading-options');
 		relationshipOptions.append('<h3>Cascading Delete</h3>');
 		relationshipOptions.append('<p>Direction of automatic removal of related nodes when a node is deleted</p>');
-		relationshipOptions.append('<select id="cascading-delete-selector"><option value="0">NONE</option><option value="1">SOURCE_TO_TARGET</option><option value="2">TARGET_TO_SOURCE</option><option value="3">ALWAYS</option><option value="4">CONSTRAINT_BASED</option></select>');
+		relationshipOptions.append('<select disabled id="cascading-delete-selector" data-attr-name="cascadingDeleteFlag"><option value="0">NONE</option><option value="1">SOURCE_TO_TARGET</option><option value="2">TARGET_TO_SOURCE</option><option value="3">ALWAYS</option><option value="4">CONSTRAINT_BASED</option></select>');
 
 		relationshipOptions.append('<h3>Automatic Creation of Related Nodes</h3>');
 		relationshipOptions.append('<p>Direction of automatic creation of related nodes when a node is created</p>');
-		relationshipOptions.append('<select id="autocreate-selector"><option value="0">NONE</option><option value="1">SOURCE_TO_TARGET</option><option value="2">TARGET_TO_SOURCE</option><option value="3">ALWAYS</option></select>');
+		relationshipOptions.append('<select disabled id="autocreate-selector" data-attr-name="autocreationFlag"><option value="0">NONE</option><option value="1">SOURCE_TO_TARGET</option><option value="2">TARGET_TO_SOURCE</option><option value="3">ALWAYS</option></select>');
 
 		var propagationOptions = $('#propagation-options');
 		propagationOptions.append('<h3>Permission Resolution</h3>');
-		propagationOptions.append('<select id="propagation-selector"><option value="None">NONE</option><option value="Out">SOURCE_TO_TARGET</option><option value="In">TARGET_TO_SOURCE</option><option value="Both">ALWAYS</option></select>');
+		propagationOptions.append('<select disabled id="propagation-selector" data-attr-name="permissionPropagation"><option value="None">NONE</option><option value="Out">SOURCE_TO_TARGET</option><option value="In">TARGET_TO_SOURCE</option><option value="Both">ALWAYS</option></select>');
 		propagationOptions.append('<table style="margin: 12px 0 0 0;"><tr id="propagation-table"></tr></table>');
-		propagationOptions.append('<p style="margin-top:12px">Hidden properties</p><textarea id="masked-properties" />');
+		propagationOptions.append('<p style="margin-top:12px">Hidden properties</p><textarea disabled id="masked-properties" data-attr-name="propertyMask" />');
 
 		var propagationTable = $('#propagation-table');
-		propagationTable.append('<td class="selector"><p>Read</p><select id="read-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
-		propagationTable.append('<td class="selector"><p>Write</p><select id="write-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
-		propagationTable.append('<td class="selector"><p>Delete</p><select id="delete-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
-		propagationTable.append('<td class="selector"><p>AccessControl</p><select id="access-control-selector"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
+		propagationTable.append('<td class="selector"><p>Read</p><select disabled id="read-selector" data-attr-name="readPropagation"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
+		propagationTable.append('<td class="selector"><p>Write</p><select disabled id="write-selector" data-attr-name="writePropagation"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
+		propagationTable.append('<td class="selector"><p>Delete</p><select disabled id="delete-selector" data-attr-name="deletePropagation"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
+		propagationTable.append('<td class="selector"><p>AccessControl</p><select disabled id="access-control-selector" data-attr-name="accessControlPropagation"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
 
 		headContentDiv.append('<div id="tabs" style="margin-top:20px;"><ul></ul></div>');
 		var mainTabs = $('#tabs', headContentDiv);
@@ -899,107 +901,80 @@ var _Schema = {
 			_Schema.makeAttrEditable(headContentDiv, 'relationshipType', true);
 		});
 
-		$.get(rootUrl + entity.id, function(data) {
-			$('#cascading-delete-selector').val(data.result.cascadingDeleteFlag || 0);
-			$('#autocreate-selector').val(data.result.autocreationFlag || 0);
-			$('#propagation-selector').val(data.result.permissionPropagation || None);
-			$('#read-selector').val(data.result.readPropagation || 'Remove');
-			$('#write-selector').val(data.result.writePropagation || 'Remove');
-			$('#delete-selector').val(data.result.deletePropagation || 'Remove');
-			$('#access-control-selector').val(data.result.accessControlPropagation || 'Remove');
-			$('#masked-properties').val(data.result.propertyMask);
+		var selectRelationshipOptions = function (rel) {
+			$('#cascading-delete-selector').val(rel.cascadingDeleteFlag || 0);
+			$('#autocreate-selector').val(rel.autocreationFlag || 0);
+			$('#propagation-selector').val(rel.permissionPropagation || 'None');
+			$('#read-selector').val(rel.readPropagation || 'Remove');
+			$('#write-selector').val(rel.writePropagation || 'Remove');
+			$('#delete-selector').val(rel.deletePropagation || 'Remove');
+			$('#access-control-selector').val(rel.accessControlPropagation || 'Remove');
+			$('#masked-properties').val(rel.propertyMask);
+		};
+
+		selectRelationshipOptions(entity);
+
+		var editButton = $('#edit-rel-options-button');
+		var saveButton = $('#save-rel-options-button').hide();
+		var cancelButton = $('#cancel-rel-options-button').hide();
+
+		editButton.on('click', function (e) {
+			e.preventDefault();
+
+			$('#relationship-options select, #relationship-options textarea').attr('disabled', false);
+			editButton.hide();
+			saveButton.show();
+			cancelButton.show();
 		});
 
-		$('#cascading-delete-selector').on('change', function() {
-			var inp = $(this);
-			_Schema.setRelationshipProperty(entity, 'cascadingDeleteFlag', parseInt(inp.val()),
-			function() {
-				blinkGreen(inp);
-			},
-			function() {
-				blinkRed(inp);
+		saveButton.on('click', function (e) {
+
+			var newData = {
+				cascadingDeleteFlag: parseInt($('#cascading-delete-selector').val()),
+				autocreationFlag: parseInt($('#autocreate-selector').val()),
+				permissionPropagation: $('#propagation-selector').val(),
+				readPropagation: $('#read-selector').val(),
+				writePropagation: $('#write-selector').val(),
+				deletePropagation: $('#delete-selector').val(),
+				accessControlPropagation: $('#access-control-selector').val(),
+				propertyMask: $('#masked-properties').val()
+			};
+
+			Object.keys(newData).forEach(function (key) {
+				if ( (entity[key] === newData[key]) || (key === 'cascadingDeleteFlag' && !(entity[key]) && newData[key] === 0) ||
+					(key === 'autocreationFlag' && !(entity[key]) && newData[key] === 0) || (key === 'propertyMask' && !(entity[key]) && newData[key].trim() === '') ) {
+					delete newData[key];
+				}
 			});
+
+			if (Object.keys(newData).length > 0) {
+				_Schema.editRelationship(entity, newData, function () {
+					Object.keys(newData).forEach(function (attribute) {
+						blinkGreen($('#relationship-options [data-attr-name=' + attribute + ']'));
+						entity[attribute] = newData[attribute];
+					});
+				}, function () {
+					Object.keys(newData).forEach(function (attribute) {
+						blinkRed($('#relationship-options [data-attr-name=' + attribute + ']'));
+					});
+				});
+			}
+
+			$('#relationship-options select, #relationship-options textarea').attr('disabled', true);
+
+			editButton.show();
+			saveButton.hide();
+			cancelButton.hide();
 		});
 
-		$('#autocreate-selector').on('change', function() {
-			var inp = $(this);
-			_Schema.setRelationshipProperty(entity, 'autocreationFlag', parseInt(inp.val()),
-			function() {
-				blinkGreen(inp);
-			},
-			function() {
-				blinkRed(inp);
-			});
-		});
+		cancelButton.on('click', function (e) {
 
-		$('#selector-feedback').on('click', function(e) {
-			$('#propagation-selector').click();
-		});
+			selectRelationshipOptions(entity);
+			$('#relationship-options select, #relationship-options textarea').attr('disabled', true);
 
-		$('#propagation-selector').on('change', function() {
-			var inp = $(this);
-			_Schema.setRelationshipProperty(entity, 'permissionPropagation', inp.val(),
-			function() {
-				blinkGreen($('#selector-feedback'));
-			},
-			function() {
-				blinkRed($('#selector-feedback'));
-			});
-		});
-
-		$('#read-selector').on('change', function() {
-			var inp = $(this);
-			_Schema.setRelationshipProperty(entity, 'readPropagation', inp.val(),
-			function() {
-				blinkGreen(inp);
-			},
-			function() {
-				blinkRed(inp);
-			});
-		});
-
-		$('#write-selector').on('change', function() {
-			var inp = $(this);
-			_Schema.setRelationshipProperty(entity, 'writePropagation', inp.val(),
-			function() {
-				blinkGreen(inp);
-			},
-			function() {
-				blinkRed(inp);
-			});
-		});
-
-		$('#delete-selector').on('change', function() {
-			var inp = $(this);
-			_Schema.setRelationshipProperty(entity, 'deletePropagation', inp.val(),
-			function() {
-				blinkGreen(inp);
-			},
-			function() {
-				blinkRed(inp);
-			});
-		});
-
-		$('#access-control-selector').on('change', function() {
-			var inp = $(this);
-			_Schema.setRelationshipProperty(entity, 'accessControlPropagation', inp.val(),
-			function() {
-				blinkGreen(inp);
-			},
-			function() {
-				blinkRed(inp);
-			});
-		});
-
-		$('#masked-properties').on('blur', function() {
-			var inp = $(this);
-			_Schema.setRelationshipProperty(entity, 'propertyMask', inp.val(),
-			function() {
-				blinkGreen(inp);
-			},
-			function() {
-				blinkRed(inp);
-			});
+			editButton.show();
+			saveButton.hide();
+			cancelButton.hide();
 		});
 
 		Structr.resize();
