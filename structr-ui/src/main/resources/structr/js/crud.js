@@ -886,12 +886,15 @@ var _Crud = {
 
 		dialogBtn.append('<button id="copyToClipboard">Copy to Clipboard</button>');
 
-		$('#copyToClipboard', dialogBtn).on('click', function() {
-			exportArea.focus();
-			exportArea.select();
+		var clipboard = new Clipboard('#copyToClipboard', {
+			target: function () {
+				new MessageBuilder().success('Copied to clipboard').show();
+				return $('.exportArea', dialogText)[0];
+			}
 		});
 
 		$('.closeButton', $('#dialogBox')).on('click', function() {
+			clipboard.destroy();
 			$('#copyToClipboard', dialogBtn).remove();
 		});
 
@@ -921,7 +924,7 @@ var _Crud = {
 		});
 	},
 	crudImport: function(type) {
-		
+
 		var url = csvRootUrl + $('#' + type).attr('data-url');
 
 		_Crud.dialog('Import CSV data for type ' + type + '', function() {
@@ -929,7 +932,7 @@ var _Crud = {
 		});
 		dialogText.append('<textarea class="importArea"></textarea>');
 		var importArea = $('.importArea', dialogText);
-		
+
 		window.setTimeout(function() {
 			importArea.focus();
 		}, 200);
@@ -937,7 +940,7 @@ var _Crud = {
 		dialogBtn.append('<button id="startImport">Start Import</button>');
 
 		$('#startImport', dialogBtn).on('click', function() {
-			
+
 			$.ajax({
 				url: url,
 				dataType: 'json',
@@ -949,7 +952,7 @@ var _Crud = {
 					_Crud.refreshList(type);
 				}
 			});
-			
+
 		});
 
 		$('.closeButton', $('#dialogBox')).on('click', function() {
@@ -2278,7 +2281,7 @@ var _Crud = {
 			if (text) {
 				dialogTitle.html(text);
 			}
-			
+
 			if (callbackCancel) {
 				dialogCancelButton.off('click');
 				dialogCancelButton.on('click', function(e) {
