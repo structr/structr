@@ -104,20 +104,43 @@ var _Security = {
 
 			raPager.activateFilterElements(resourceAccesses);
 
-			$('.add_grant_icon', main).on('click', function (e) {
-				e.stopPropagation();
-				var inp = $('#resource-signature');
-				var sig = inp.val();
-				if (sig) {
-					return Command.create({type: 'ResourceAccess', signature: sig, flags: 0});
-				} else {
-					blinkRed(inp);
+			$('.add_grant_icon', resourceAccesses).on('click', function (e) {
+				_Security.addResourceGrant(e);
+			});
+			
+			$('#resource-signature', resourceAccesses).on('keyup', function (e) {
+				if (e.keyCode === 13) {
+					_Security.addResourceGrant(e);
 				}
 			});
+			
 			_Security.resize();
 		});
 	},
 
+	addResourceGrant: function(e) {
+		e.stopPropagation();
+		var inp = $('#resource-signature');
+		inp.prop('disabled', 'disabled').addClass('disabled').addClass('read-only');
+		$('.add_grant_icon', resourceAccesses).prop('disabled', 'disabled').addClass('disabled').addClass('read-only');
+		var sig = inp.val();
+		if (sig) {
+			Command.create({type: 'ResourceAccess', signature: sig, flags: 0}, function() {
+				$('.add_grant_icon', resourceAccesses).removeProp('disabled').removeClass('disabled').removeClass('readonly');
+				inp.removeProp('disabled').removeClass('disabled').removeClass('readonly');
+				inp.focus();
+			});
+		} else {
+			$('.add_grant_icon', resourceAccesses).removeProp('disabled').removeClass('disabled').removeClass('readonly');
+			inp.removeProp('disabled').removeClass('disabled').removeClass('readonly');
+			blinkRed(inp);
+		}
+		window.setTimeout(function() {
+			$('.add_grant_icon', resourceAccesses).removeProp('disabled').removeClass('disabled').removeClass('readonly');
+			inp.removeProp('disabled').removeClass('disabled').removeClass('readonly');
+		}, 250);
+	},
+	
 	refreshGroups : function() {
 		groups.empty();
 		groups.append('<button class="add_group_icon button"><img title="Add Group" alt="Add Group" src="icon/group_add.png"> Add Group</button>');
