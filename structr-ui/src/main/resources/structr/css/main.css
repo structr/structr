@@ -1548,7 +1548,7 @@ button.add_property {
 	margin: 8px 12px 4px 12px;
 }
 
-#connector-style, #node-type-selector, #rel-type-selector {
+#connector-style, #node-type-selector, #rel-type-selector, #saved-layout-selector {
 	color: #222;
 	padding: 1px 2px 3px 4px;
 	vertical-align: middle;
@@ -1563,8 +1563,13 @@ button.add_property {
 	margin: 0 8px 4px 12px;
 }
 
-#node-type-selector, #rel-type-selector {
+#node-type-selector, #rel-type-selector, #saved-layout-selector {
 	margin: 0 8px 4px 0;
+}
+
+#save-layout-filename {
+	padding: 3px 2px 2px 4px;
+	margin-right: 8px;
 }
 
 #expand-all, #compact-all {
@@ -1762,12 +1767,8 @@ button.add_property {
 	margin: 0 0 4px 12px;
 }
 
-#admin-tools-table td {
+#admin-tools-table td, #layout-tools-table td {
 	padding: 0 1em 1em 0;
-}
-
-#admin-tools-table td:first-child {
-	text-align: left;
 }
 
 #schema-options-table th {

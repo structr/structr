@@ -2684,9 +2684,7 @@ var _Schema = {
 		return false;
 	},
 	openAdminTools: function() {
-		Structr.dialog('Admin Tools', function() {
-		}, function() {
-		});
+		Structr.dialog('Admin Tools', function() {}, function() {});
 
 		dialogText.append('<table id="admin-tools-table"></table>');
 		var toolsTable = $('#admin-tools-table');
@@ -2694,94 +2692,6 @@ var _Schema = {
 		toolsTable.append('<tr><td><button id="clear-schema"><img src="icon/delete.png"> Clear Schema</button></td><td><label for"clear-schema">Delete all schema nodes and relationships of dynamic schema</label></td></tr>');
 		toolsTable.append('<tr><td><select id="node-type-selector"><option selected value="">-- Select Node Type --</option><option disabled>──────────</option><option value="allNodes">All Node Types</option><option disabled>──────────</option></select><button id="add-node-uuids">Add UUIDs</button></td><td><label for"setUuid">Add UUIDs to all nodes of the selected type</label></td></tr>');
 		toolsTable.append('<tr><td><select id="rel-type-selector"><option selected value="">-- Select Relationship Type --</option><option disabled>──────────</option><option value="allRels">All Relationship Types</option><option disabled>──────────</option></select><button id="add-rel-uuids">Add UUIDs</button></td><td><label for"setUuid">Add UUIDs to all relationships of the selected type</label></td></tr>');
-
-		toolsTable.append('<tr><td><button id="save-layout"><img src="icon/database.png"> Save Schema Layout</button></td><td><label for"save-layout">Save current positions to backend.</label></td></tr>');
-		toolsTable.append('<tr><td><button id="export-layout">Export Schema Layout</button></td><td><label for"export-layout">Export current schema positions as a JSON string</label></td></tr>');
-		toolsTable.append('<tr id="schema-layout-export-row"><td></td><td><textarea id="schema-layout-export-textarea"></textarea><button class="btn" id="copy-schema-layout-export" data-clipboard-target="#schema-layout-export-textarea" data-clipboard-action="cut">Copy</button></td></tr>');
-		toolsTable.append('<tr><td><button id="import-layout">Import Schema Layout</button></td><td><label for"import-layout">Read schema positions from JSON string</label></td></tr>');
-		toolsTable.append('<tr id="schema-layout-import-row"><td></td><td><textarea id="schema-layout-import-textarea"></textarea><button class="btn" id="import-schema-layout-export">Import</button></td></tr>');
-
-		$('#save-layout', toolsTable).click(function() {
-			Structr.saveLocalStorage();
-		});
-
-		$('#schema-layout-export-row').hide();
-		$('#schema-layout-import-row').hide();
-
-		new Clipboard('#copy-schema-layout-export', {
-			target: function () {
-				window.setTimeout(function () {
-					$('#schema-layout-export-row').hide();
-				}, 1000);
-				return document.getElementById('schema-layout-export-textarea');
-			}
-		});
-
-		$('#export-layout', toolsTable).click(function() {
-			var url = rootUrl + 'schema_nodes';
-			$.ajax({
-				url: url,
-				dataType: 'json',
-				contentType: 'application/json; charset=utf-8',
-				success: function(data) {
-					var res = {};
-					data.result.forEach(function (entity, idx) {
-						var pos = _Schema.getPosition(entity.name);
-						if (pos) {
-							res[entity.name] = {position: pos};
-						}
-					});
-					$('#schema-layout-export-textarea').val(JSON.stringify(res));
-					$('#schema-layout-export-row').show();
-				}
-			});
-
-		});
-
-		$('#import-layout', toolsTable).click(function() {
-			$('#schema-layout-import-row').show();
-		});
-
-		$('#import-schema-layout-export').click(function () {
-
-			var jsonString = $('#schema-layout-import-textarea').val();
-			var obj;
-
-			try {
-				obj = JSON.parse(jsonString);
-			} catch (e) {
-				alert ("Unreadable JSON - please make sure you are using JSON exported from this dialog!");
-			}
-
-			if (obj) {
-				Object.keys(obj).forEach(function (type) {
-					LSWrapper.setItem(type + localStorageSuffix + 'node-position', JSON.stringify(obj[type]));
-				});
-
-				$('#schema-graph .node').each(function(i, n) {
-					var node = $(n);
-					var type = node.text();
-
-					if (obj[type]) {
-						node.css('top', obj[type].position.top);
-						node.css('left', obj[type].position.left);
-					}
-				});
-
-				Structr.saveLocalStorage();
-
-				instance.repaintEverything();
-
-				$('#schema-layout-import-textarea').val('Import successful - imported ' + Object.keys(obj).length + ' positions.');
-
-				window.setTimeout(function () {
-					$('#schema-layout-import-row').hide();
-					$('#schema-layout-import-textarea').val('');
-				}, 2000);
-
-			}
-
-		});
 
 		$('#rebuild-index').on('click', function(e) {
 			var btn = $(this);
@@ -2851,17 +2761,9 @@ var _Schema = {
 		});
 
 		var nodeTypeSelector = $('#node-type-selector');
-		var relTypeSelector = $('#rel-type-selector');
-
 		Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name', function(nodes) {
 			nodes.forEach(function(node) {
 				nodeTypeSelector.append('<option>' + node.name + '</option>');
-			});
-		});
-
-		Command.list('SchemaRelationshipNode', true, 1000, 1, 'relationshipType', 'asc', 'id,relationshipType', function(rels) {
-			rels.forEach(function(rel) {
-				relTypeSelector.append('<option>' + rel.relationshipType + '</option>');
 			});
 		});
 
@@ -2903,6 +2805,13 @@ var _Schema = {
 			});
 		});
 
+		var relTypeSelector = $('#rel-type-selector');
+		Command.list('SchemaRelationshipNode', true, 1000, 1, 'relationshipType', 'asc', 'id,relationshipType', function(rels) {
+			rels.forEach(function(rel) {
+				relTypeSelector.append('<option>' + rel.relationshipType + '</option>');
+			});
+		});
+
 		$('#add-rel-uuids').on('click', function(e) {
 			var btn = $(this);
 			var text = btn.text();
@@ -2940,6 +2849,141 @@ var _Schema = {
 				}
 			});
 		});
+
+		dialogText.append('<h2 class="dialogTitle">Layout Tools</h2>');
+		dialogText.append('<table id="layout-tools-table"></table>');
+		var layoutsTable = $('#layout-tools-table');
+		layoutsTable.append('<tr><td><button id="save-layout-to-database"><img src="icon/database.png"> Save Schema Layout</button></td><td><label for"save-layout">Save current positions to backend (for your user account only)</label></td></tr>');
+		layoutsTable.append('<tr><td><input id="save-layout-filename" placeholder="Enter name for layout"><button id="save-layout-file">Save Layout</button></td><td><label for"export-layout">Save current positions to backend (for every user to load)</label></td></tr>');
+		layoutsTable.append('<tr><td><select id="saved-layout-selector"></select><button id="apply-layout"><img src="icon/wand.png"> Apply</button><button id="delete-layout"><img src="icon/delete.png"> Delete</button></td><td><label for"import-layout">Load or delete stored layouts.</label></td></tr>');
+
+		var layoutSelector = $('#saved-layout-selector');
+
+		$('#save-layout-to-database', layoutsTable).click(function() {
+			Structr.saveLocalStorage();
+		});
+
+		$('#save-layout-file', layoutsTable).click(function() {
+			var fileName = $('#save-layout-filename').val().replaceAll(/[^\w_\-\. ]+/, '-');
+
+			if (fileName && fileName.length) {
+
+				var url = rootUrl + 'schema_nodes';
+				$.ajax({
+					url: url,
+					dataType: 'json',
+					contentType: 'application/json; charset=utf-8',
+					success: function(data) {
+						var res = {};
+						data.result.forEach(function (entity, idx) {
+							var pos = _Schema.getPosition(entity.name);
+							if (pos) {
+								res[entity.name] = {position: pos};
+							}
+						});
+
+						Command.layouts('add', fileName, JSON.stringify(res), function() {
+							refresh();
+							$('#save-layout-filename').val('');
+
+							blinkGreen(layoutSelector);
+						});
+					}
+				});
+
+			} else {
+				Structr.error('Schema layout name is required.');
+			}
+		});
+
+		$('#apply-layout').click(function () {
+
+			var selectedLayout = layoutSelector.val();
+
+			if (selectedLayout && selectedLayout.length) {
+
+				Command.layouts('get', selectedLayout, null, function(result) {
+
+					var obj;
+
+					try {
+						obj = JSON.parse(result.schemaLayout);
+					} catch (e) {
+						alert ("Unreadable JSON - please make sure you are using JSON exported from this dialog!");
+					}
+
+					if (obj) {
+						Object.keys(obj).forEach(function (type) {
+							LSWrapper.setItem(type + localStorageSuffix + 'node-position', JSON.stringify(obj[type]));
+						});
+
+						$('#schema-graph .node').each(function(i, n) {
+							var node = $(n);
+							var type = node.text();
+
+							if (obj[type]) {
+								node.css('top', obj[type].position.top);
+								node.css('left', obj[type].position.left);
+							}
+						});
+
+						Structr.saveLocalStorage();
+
+						instance.repaintEverything();
+
+						$('#schema-layout-import-textarea').val('Import successful - imported ' + Object.keys(obj).length + ' positions.');
+
+						window.setTimeout(function () {
+							$('#schema-layout-import-row').hide();
+							$('#schema-layout-import-textarea').val('');
+						}, 2000);
+
+					}
+
+				});
+
+			} else {
+				Structr.error('Please select a schema to load.');
+			}
+
+		});
+
+		$('#delete-layout', layoutsTable).click(function() {
+
+			var selectedLayout = layoutSelector.val();
+
+			if (selectedLayout && selectedLayout.length) {
+
+				Command.layouts('delete', selectedLayout, null, function() {
+					refresh();
+					blinkGreen(layoutSelector);
+				});
+
+			} else {
+				Structr.error('Please select a schema to delete.');
+			}
+
+		});
+
+		var refresh = function () {
+
+			Command.layouts('list', '', null, function(result) {
+
+				layoutSelector.empty();
+				layoutSelector.append('<option selected value="" disabled>-- Select Layout --</option>');
+
+				result.forEach(function(data) {
+
+					data.layouts.forEach(function(layoutFile) {
+						layoutSelector.append('<option>' + layoutFile.slice(0, -5) + '</option>');
+					});
+
+				});
+
+			});
+
+		};
+		refresh();
 
 	},
 	openSchemaDisplayOptions: function() {
