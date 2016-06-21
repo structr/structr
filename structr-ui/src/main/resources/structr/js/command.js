@@ -1169,5 +1169,19 @@ var Command = {
 
 		_Logger.log(_LogType.WS[obj.command], 'autocomplete()', obj, callback);
 		return sendObj(obj, callback);
+	},
+	/**
+	 * Send a SNAPSHOTS command to the server.
+	 *
+	 * The server will return a status object.
+	 */
+	layouts: function(mode, name, schemaLayout, callback) {
+		var obj  = {};
+		obj.data = { mode: mode, name: name };
+		if (schemaLayout && schemaLayout.length) {
+			obj.data.schemaLayout = schemaLayout;
+		}
+		obj.command = 'LAYOUTS';
+		return sendObj(obj, callback);
 	}
 };

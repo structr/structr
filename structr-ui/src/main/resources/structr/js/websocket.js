@@ -343,6 +343,12 @@ function wsConnect() {
 
 				StructrModel.callCallback(data.callback, result);
 
+			} else if (command.startsWith('LAYOUTS')) { /*********************** LIST_LAYOUTS ************************/
+
+				_Logger.log(_LogType.WS[command], result, data);
+
+				StructrModel.callCallback(data.callback, result);
+
 			} else if (command.startsWith('LIST')) { /*********************** LIST ************************/
 
 				_Logger.log(_LogType.WS[command], result, data);
