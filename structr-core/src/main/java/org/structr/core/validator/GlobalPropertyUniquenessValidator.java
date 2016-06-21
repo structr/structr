@@ -18,6 +18,8 @@
  */
 package org.structr.core.validator;
 
+import java.util.List;
+import java.util.logging.Level;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
@@ -58,37 +60,34 @@ public class GlobalPropertyUniquenessValidator<T> implements PropertyValidator<T
 
 		if (key != null && value != null) {
 
-			String id			= null;
-			GraphObject existingNode	= null;
+			String id                 = null;
+			List<AbstractNode> result = null;
+			boolean nodeExists        = false;
+
 
 			try {
 
-				// UUID is globally unique
-				if (key.equals(GraphObject.id)) {
-
-					//return true; // trust uniqueness
-					existingNode = StructrApp.getInstance().getNodeById(value.toString());
-
-				} else {
-
-					existingNode = StructrApp.getInstance().nodeQuery(AbstractNode.class).and(key, value).getFirst();
-				}
+				result = StructrApp.getInstance().nodeQuery(AbstractNode.class).and(key, value).getAsList();
+				nodeExists = !result.isEmpty();
 
 			} catch (FrameworkException fex) {
 
+				Logger.getLogger(GlobalPropertyUniquenessValidator.class.getName()).log(Level.WARNING, "Unable to fetch list of nodes for uniqueness check", fex);
 				// handle error
 			}
 
-			if (existingNode != null) {
+			if (nodeExists) {
 
-				GraphObject foundNode = existingNode;
-				if (foundNode.getId() != object.getId()) {
+				for (final AbstractNode foundNode : result) {
 
-					id = foundNode.getUuid();
+					if (foundNode.getId() != object.getId()) {
 
-					errorBuffer.add(new UniqueToken(object.getType(), key, id));
+						id = foundNode.getUuid();
 
-					return false;
+						errorBuffer.add(new UniqueToken(object.getType(), key, id));
+
+						return false;
+					}
 				}
 			}
 		}

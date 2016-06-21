@@ -94,14 +94,16 @@ public class TypeUniquenessValidator<T> implements PropertyValidator<T> {
 
 			if (nodeExists) {
 
-				AbstractNode foundNode = result.get(0);
-				if (foundNode.getId() != object.getId()) {
+				for (final AbstractNode foundNode : result.getResults()) {
 
-					id = ((AbstractNode) result.get(0)).getUuid();
+					if (foundNode.getId() != object.getId()) {
 
-					errorBuffer.add(new UniqueToken(object.getType(), key, id));
+						id = foundNode.getUuid();
 
-					return false;
+						errorBuffer.add(new UniqueToken(object.getType(), key, id));
+
+						return false;
+					}
 				}
 			}
 		}
