@@ -525,6 +525,8 @@ var _Crud = {
 		el.append('<div class="pager" style="clear: both"><button class="pageLeft">&lt; Prev</button>'
 				+ ' Page <input class="page" type="text" size="3" value="' + _Crud.page[type] + '"><button class="pageRight">Next &gt;</button> of <input class="readonly pageCount" readonly="readonly" size="3" value="' + nvl(_Crud.pageCount, 0) + '">'
 				+ ' Page Size: <input class="pageSize" type="text" size="3" value="' + _Crud.pageSize[type] + '"></div>');
+		
+		el.append('<div class="resource-link"><a target="_blank" href="' + rootUrl + type + '">/' + type + '</a></div>');
 
 		return $('.pager', el);
 

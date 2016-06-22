@@ -426,3 +426,18 @@ img.loader {
     display: inline-block;
     clear: both;
 }
+
+.resourceBox .pager {
+	float: left;
+	margin-top: -2px;
+	margin-bottom: 8px;
+}
+
+.resource-link {
+	text-align: right;
+	width: 200px;
+	height: 24px;
+	padding-top: 3px;
+	display: block;
+	float: right;
+}
