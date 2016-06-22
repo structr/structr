@@ -350,33 +350,15 @@ function getTypeFromResourceSignature(signature) {
 
 function blinkGreen(element) {
 
-	if (!element || !element.length) {
-		return;
-	}
-
-	var fg = element.prop('data-fg-color'), oldFg = fg || element.css('color');
-	var bg = element.prop('data-bg-color'), oldBg = bg || element.css('backgroundColor');
-
-	if (!fg) {
-		element.prop('data-fg-color', oldFg);
-	}
-
-	if (!bg) {
-		element.prop('data-bg-color', oldBg);
-	}
-
-	$(element).animate({
-		color: '#6db813',
-		backgroundColor: '#81ce25'
-	}, 50, function() {
-		$(this).animate({
-			color: oldFg,
-			backgroundColor: oldBg
-		}, 1000);
-	});
+	blink(element, '#6db813', '#81ce25');
 }
 
 function blinkRed(element) {
+
+	blink(element, '#a00', '#faa');
+}
+
+function blink (element, color, bgColor) {
 
 	if (!element || !element.length) {
 		return;
@@ -394,8 +376,8 @@ function blinkRed(element) {
 	}
 
 	element.animate({
-		color: '#a00',
-		backgroundColor: '#faa'
+		color: color,
+		backgroundColor: bgColor
 	}, 50, function() {
 		$(this).animate({
 			color: oldFg,
