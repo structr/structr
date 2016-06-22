@@ -138,7 +138,7 @@ var _Graph = {
                            //'exporter': {'onSuccess': control.cleanUpAfterGraphExport, 'onError': control.error},
                            //'importer': {'onSuccess': control.cleanUpAfterGraphImport, 'onError': control.error},
                            //'newNodePicker': {'onFinished': control.cleanupAfterNewNodesPicked, 'onChooseNodes': control.onChooseNodes}, 
-                           'nodeExpander': {container: 'graph-info', newNodesSize: 20, newNodesSize: 20, margins: {top: -20, left: 10}, edgeType: "curvedArrow", onNodesAdded: _Graph.onNodesAdded},
+                           'nodeExpander': {container: 'graph-info', newNodesSize: 20, newNodesSize: 20, margins: {top: 28, left: 10}, edgeType: "curvedArrow", onNodesAdded: _Graph.onNodesAdded},
                            'selectionTools': {'container': 'graph-canvas'},
                            'relationshipEditor' : {incommingRelationsKey: 'shift', outgoingRelationsKey: 'ctrl', deleteEvent: 'doubleClickEdge', onDeleteRelation: undefined},
                            'currentNodeTypes': {},
@@ -184,7 +184,7 @@ var _Graph = {
 		activeTabRightGraph = LSWrapper.getItem(activeTabLeftGraphKey);
 
 		main.prepend(
-			'<div id="graph-box"><div id="queries" class="slideOut slideOutLeft"><div class="compTab" id="queriesTab">Queries</div><div><button id="clear-graph">Clear Graph</button></div></div>'
+			'<div id="graph-box"><div id="graph-info"></div><div id="queries" class="slideOut slideOutLeft"><div class="compTab" id="queriesTab">Queries</div><div><button id="clear-graph">Clear Graph</button></div></div>'
 			+ '<div id="display" class="slideOut slideOutLeft"><div class="compTab" id="displayTab">Display Options</div></div>'
 			+ '<div id="filters" class="slideOut slideOutLeft"><div class="compTab" id="filtersTab">Filters</div><div id="nodeFilters"><h3>Node Filters</h3></div><div id="relFilters"><h3>Relationship Filters</h3></div></div>'
 			+ '<div class="canvas" id="graph-canvas"></div>'
@@ -238,7 +238,26 @@ var _Graph = {
 		});
                 
                 $('#display').append(
-                        '<div><button id="fruchterman-controlElement">Fruchterman Layout</button></div>'
+                        '<div id="graphDisplayTab">' +
+                            '<div id="graphLayouts">' +
+                                '<h3>Layouts</h3>' + 
+                                '<button id="fruchterman-controlElement">Fruchterman Layout</button>' + 
+                            '</div>' +
+                            '<div id="graphSelectionTools">' +
+                                '<h3>Selection Tools</h3>' + 
+                                '<div class="">' +
+                                    '<table id="selectionToolsTable" class="table responsive">' +
+                                        '<thead><tr>' +
+                                            '<th>Group</th>' + 
+                                            '<th>Fixed</th>' +
+                                            '<th>Hidden</th>' +
+                                        '</tr></thead>' +
+                                        '<tbody id="selectiontools-selectionTable-groupSelectionItems">' +
+                                        '<tbody>' +
+                                    '</table>' + 
+                                '</div>' +
+                            '</div>' +
+                        '</div>'
                     );
 
 		graph = $('#graph-canvas');
@@ -595,21 +614,27 @@ var _Graph = {
 		nodeIds.push(node.id);
 		_Graph.setNodeColor(node);
 		//console.log('drawing node', node, nodeTypes[node.type], isIn(node.type, hiddenNodeTypes));
-		graphBrowser.addNode({
-			id: node.id || node.name,
-			label: (node.name || node.tag || node.id.substring(0, 5) + '…') + ':' + node.type,
-			x: x || Math.random(10),
-			y: y || Math.random(10),
-			size: 20,
-			color: color[node.type],
-			nodeType: node.type,
-			name: node.name,
-			hidden: isIn(node.type, hiddenNodeTypes)
-		});
-		//_Graph.updateNodeTypes();
+                                try{
+                                    graphBrowser.addNode({
+                                            id: node.id || node.name,
+                                            label: (node.name || node.tag || node.id.substring(0, 5) + '…') ,
+                                            x: x || Math.random(10),
+                                            y: y || Math.random(10),
+                                            size: 20,
+                                            color: color[node.type],
+                                            nodeType: node.type,
+                                            name: node.name,
+                                            hidden: isIn(node.type, hiddenNodeTypes)
+                                    });
+                                }
+                                catch (error){
+                                       _Logger.log(_LogType.GRAPH, 'Node: ' + n.id + 'already in the graph');
+                                }
+                        //_Graph.updateNodeTypes();
 	},
 	drawRel: function(r) {
-		graphBrowser.addEdge({
+                        try{
+                            graphBrowser.addEdge({
 			id: r.id,
 			label: r.relType,
 			source: r.sourceId,
@@ -618,10 +643,15 @@ var _Graph = {
 			color: defaultRelColor,
 			type: edgeType,
 			relType: r.type,
-                        relName: r.relType,
+                                                relName: r.relType,
 			hidden: isIn(r.relType, hiddenRelTypes)
 		});
 		_Graph.updateRelationshipTypes();
+                        }
+                        catch(error){
+                             _Logger.log(_LogType.GRAPH, 'Edge: ' + r.id + 'already in the graph');
+                        }
+		
 	},
 	resize: function() {
 		Structr.resize();

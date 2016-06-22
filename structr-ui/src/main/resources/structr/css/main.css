@@ -2433,6 +2433,38 @@ td#cascading-options, td#propagation-options {
     max-width: 480px;
 }
 
+#fruchterman-controlElement{
+    float: none ! important;
+    display: block;
+}
+
+#graphDisplayTab{
+    margin: 8px 8px 0 30px;
+}
+
+#graph-info{
+  background: none;
+  top: 0;
+  text-align: center;
+  height: 28px;
+  position: relative;
+}
+
+.nodeExpander-infobutton{
+ 	color: white ! important;
+}
+
+.nodeExpander-expandbutton {
+  	-webkit-border-radius: 40px;
+  	-moz-border-radius: 40px;  
+  	border-radius: 40px;
+  	min-width: 30px;
+  	min-height: 30px;
+  	text-align: center;
+  	font-size: 9pt;
+  	color: white ! important;
+}
+
 /*
  * Filesystem
  */

@@ -27,17 +27,7 @@
 		for(var o in _callbackMethods.api){
 			self[o] = _callbackMethods.api[o];
 		}
-	};
-
-	GraphBrowser.prototype.addNode = function(node) {
-		_s.graph.addNode(node);
-		_controller.ModuleControl.refreshSigma(false, false);
-	};
-
-	GraphBrowser.prototype.addEdge = function(edge) {
-		_s.graph.addEdge(edge);
-		_controller.ModuleControl.refreshSigma(false, false);
-	};
+	};	
 
 	GraphBrowser.prototype.doLayout = function(layout, options){
 		if(typeof layout === 'string'){
@@ -58,6 +48,7 @@
 	GraphBrowser.prototype.expandNode = function(id){
 		_controller.ModuleControl.expandNode(id);
 	};
+
 	GraphBrowser.prototype.getSigma = function(){
 		return _s;
 	};

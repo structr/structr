@@ -222,17 +222,8 @@ var StructrModel = {
 			_Pages.reloadPreviews();
 		}
 
-		if (engine) {
-			
-			if (engine.graph.nodes(id)) {
-				try { engine.graph.dropNode(id); } catch (e) {}
-			}
-			
-			if (engine.graph.edges(id)) {
-				try { engine.graph.dropEdge(id); } catch (e) {}
-			}
-			
-			engine.refresh();
+		if (graphBrowser) {	
+                                            try { graphBrowser.graph.dropElement(id); } catch (e) {}
 		}
 
 	},
@@ -379,12 +370,8 @@ var StructrModel = {
 		if (obj) {
 			var element = Structr.node(id);
 
-			if (engine) {
-				// Graph display is active
-				var node = engine.graph.nodes(obj.id);
-				if (node) {
-					_Graph.updateNode(node, obj);
-				}
+			if (graphBrowser) {
+                                                            graphBrowser.updateNode(id, obj, ['name', 'tag'], {label: 'name'});
 			}
 
 			if (!element)

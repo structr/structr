@@ -99,8 +99,8 @@ var animating = animating || undefined;
 			}
 			var handler;
 			var noKey = _shiftKey || _altKey || _ctrlKey;
-			for(handler in _keyupHandlers){
-				_keyupHandlers[handler]({shiftKey: _shiftKey, ctrlKey: _ctrlKey, altKey: _altKey, noKey: !noKey});
+			for(var i = 0; i < _keyupHandlers.length; i++){
+				_keyupHandlers[i]({shiftKey: _shiftKey, ctrlKey: _ctrlKey, altKey: _altKey, noKey: !noKey});
 			}
 		});
 
@@ -122,8 +122,8 @@ var animating = animating || undefined;
 			}
 			var handler;
 			var noKey = _shiftKey || _altKey || _ctrlKey;
-			for(handler in _keydownHandlers){
-				_keydownHandlers[handler]({shiftKey: _shiftKey, ctrlKey: _ctrlKey, altKey: _altKey, noKey: !noKey});
+			for(var i = 0; i < _keydownHandlers.length; i++){
+				_keydownHandlers[i]({shiftKey: _shiftKey, ctrlKey: _ctrlKey, altKey: _altKey, noKey: !noKey});
 			}
 		});
 
@@ -139,6 +139,13 @@ var animating = animating || undefined;
 
 		_callbacks.api.bindEvent = self.bindEvent.bind(self);
 		_callbacks.api.unbindEvent = self.unbindEvent.bind(self);
+		_callbacks.api.addNode = self.addNode.bind(self);
+		_callbacks.api.addEdge = self.addEdge.bind(self);
+		_callbacks.api.dropNode = self.dropNode.bind(self);
+		_callbacks.api.dropEdge = self.dropEdge.bind(self);
+		_callbacks.api.dropElement = self.dropElement.bind(self);
+		_callbacks.api.updateNode = self.updateNode.bind(self);
+		_callbacks.api.updateEdge = self.updateEdge.bind(self);
 
 		return _s;
 	};
@@ -187,6 +194,145 @@ var animating = animating || undefined;
 			_s.bind(event, handler);
 		//_callbacks.refreshSigma();
 	};
+
+	Graphbrowser.Control.SigmaControl.prototype.addNode = function(node) {
+		if(typeof node === 'string'){
+			_s.graph.addNode({id:node, label: "", color: _s.settings('defaultNodeColor'), size: _s.settings('defaultNodeSize')});
+		}
+		else{
+			_s.graph.addNode(node);
+		}
+		_s.refresh();
+	};
+
+	Graphbrowser.Control.SigmaControl.prototype.addEdge = function(edge, source, target) {
+		if(source !== undefined && target !== undefined && (typeof edge === "string")){
+			_s.graph.addEdge({id: edge, source: source, target: target, color: _s.settings('defaultEdgeColor'), size: _s.settings('defaultEdgeSize')})
+		}
+		else if(typeof edge === 'object'){
+			_s.graph.addEdge(edge);
+		}
+		_s.refresh();
+
+	};
+
+	Graphbrowser.Control.SigmaControl.prototype.dropNode = function(node) {
+		if(typeof node === "string"){
+			if(_s.graph.nodes(node)){
+				_s.graph.dropNode(node);
+			}
+		}
+		else{
+			if(_s.graph.nodes(node.id)){
+				_s.graph.dropNode(node.id);
+			}
+		}
+
+		_s.refresh();
+	};
+
+	Graphbrowser.Control.SigmaControl.prototype.dropEdge = function(node) {
+		if(typeof edge === "string"){
+			if(_s.graph.edges(edge)){
+				_s.graph.dropEdge(edge);
+			}
+		}
+		else{
+			if(_s.graph.edges(edge.id)){
+				_s.graph.dropEdge(edge.id);
+			}
+		}
+
+		_s.refresh();
+	};
+
+	Graphbrowser.Control.SigmaControl.prototype.dropElement = function(element) {
+		if(_s.graph.nodes(element)){
+			_s.graph.dropNode(element);
+		}
+
+		else if(_s.graph.edges(element)){
+			_s.graph.dropEdge(element);
+		}
+
+		_s.refresh();
+	};
+
+	Graphbrowser.Control.SigmaControl.prototype.updateNode = function(node, obj, fields, map) {
+		var gNode = _s.graph.nodes(node);
+
+		if(gNode === undefined)
+			return;
+
+		if(obj.id)
+			gNode.id = obj.id;
+		if(obj.label)
+			gNode.label = obj.label;
+		if(obj.color)
+			gNode.color = obj.color;
+		if(obj.size)
+			gNode.size = obj.size;
+		if(obj.nodeType)
+			gNode.nodeType = obj.nodeType;
+		if(obj.x)
+			gNode.x = obj.x;
+		if(obj.y)
+			gNode.y = obj.y;
+
+		if($.isArray(fields)){
+			for(var i = 0; i < fields.length; i++){
+				gNode[fields[i]] = obj[fields[i]];
+			}
+		}
+
+		if(typeof map === 'object'){
+			for(var mapPair in map){
+				gNode[mapPair] = gNode[map[mapPair]];
+			}
+		}
+		_s.refresh({skipIndexation: false});
+	};
+
+	Graphbrowser.Control.SigmaControl.prototype.updateEdge = function(edge, obj, fields, map) {
+		var gEdge = _s.graph.edges(edge);
+
+		if(gEdge === undefined)
+			return;
+
+		if(obj.id)
+			gEdge.id = obj.id;
+		if(obj.source)
+			gEdge.source = obj.source;
+		if(obj.target)
+			gEdge.target = obj.target;
+		if(obj.size)
+			gEdge.size = obj.size;
+		if(obj.type)
+			gEdge.type = obj.type;
+		if(obj.relType)
+			gEdge.relType = obj.relType;
+		if(obj.relName)
+			gEdge.relName = obj.relName;
+		if(obj.color)
+			gEdge.color = obj.color;
+		if(obj.label)
+			gEdge.label = obj.label;
+
+		if($.isArray(fields)){
+			for(var i = 0; i < fields.length; i++){
+				gEdge[fields[i]] = obj[fields[i]];
+			}
+		}
+
+		if(typeof map === 'object'){
+			for(var mapPair in map){
+				gEdge[mapPair] = gNode[map[mapPair]];
+			}
+		}
+		_s.refresh({skipIndexation: false});
+	};
+
+
 }).call(window);
 
 
