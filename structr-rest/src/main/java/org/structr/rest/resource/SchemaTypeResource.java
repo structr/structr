@@ -49,11 +49,11 @@ import org.structr.schema.SchemaHelper;
  */
 public class SchemaTypeResource extends Resource {
 
-	protected Class entityClass = null;
-	private static String           rawType = null;
+	protected Class entityClass          = null;
+	private static String        rawType = null;
 	protected HttpServletRequest request = null;
-	protected TypeResource typeResource = null;
-	private static           String propertyView = null;
+	protected TypeResource typeResource  = null;
+	private   String propertyView        = null;
 
 	//~--- methods --------------------------------------------------------
 	public SchemaTypeResource(SecurityContext securityContext, TypeResource typeResource) {
@@ -72,7 +72,7 @@ public class SchemaTypeResource extends Resource {
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 		Class type = typeResource.getEntityClass();
-		return getSchemaTypeResult(securityContext, type);
+		return getSchemaTypeResult(securityContext, type, propertyView);
 
 	}
 
@@ -127,7 +127,7 @@ public class SchemaTypeResource extends Resource {
 
 	}
 
-	private static Map<String, Object> getPropertiesForView(final SecurityContext securityContext, final Class type) throws FrameworkException {
+	private static Map<String, Object> getPropertiesForView(final SecurityContext securityContext, final Class type, final String propertyView) throws FrameworkException {
 
 		final Set<PropertyKey> properties = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, propertyView));
 		final Map<String, Object> propertyConverterMap = new LinkedHashMap<>();
@@ -141,7 +141,7 @@ public class SchemaTypeResource extends Resource {
 	}
 	
 	// ----- public static methods -----
-	public static Result getSchemaTypeResult(final SecurityContext securityContext, final Class type) throws FrameworkException {
+	public static Result getSchemaTypeResult(final SecurityContext securityContext, final Class type, final String propertyView) throws FrameworkException {
 	
 		List<GraphObjectMap> resultList = new LinkedList<>();
 
@@ -151,7 +151,7 @@ public class SchemaTypeResource extends Resource {
 
 			if (propertyView != null) {
 
-				for (final Map.Entry<String, Object> entry : getPropertiesForView(securityContext, type).entrySet()) {
+				for (final Map.Entry<String, Object> entry : getPropertiesForView(securityContext, type, propertyView).entrySet()) {
 
 					final GraphObjectMap property = new GraphObjectMap();
 
@@ -183,11 +183,11 @@ public class SchemaTypeResource extends Resource {
 				Map<String, Map<String, Object>> views = new TreeMap();
 				schema.setProperty(new GenericProperty("views"), views);
 
-				for (String view : propertyViews) {
+				for (final String view : propertyViews) {
 
 					if (!View.INTERNAL_GRAPH_VIEW.equals(view)) {
 
-						views.put(view, getPropertiesForView(securityContext, type));
+						views.put(view, getPropertiesForView(securityContext, type, view));
 					}
 				}
 			}

@@ -20,6 +20,7 @@ package org.structr.websocket.command;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.rest.resource.SchemaResource;
@@ -55,7 +56,7 @@ public class GetSchemaInfoCommand extends AbstractCommand {
 				
 				final Class typeClass = StructrApp.getConfiguration().getNodeEntityClass(type);
 				
-				webSocketData.setResult(SchemaTypeResource.getSchemaTypeResult(getWebSocket().getSecurityContext(), typeClass).getResults());
+				webSocketData.setResult(SchemaTypeResource.getSchemaTypeResult(getWebSocket().getSecurityContext(), typeClass, PropertyView.Ui).getResults());
 				
 			} else {
 
