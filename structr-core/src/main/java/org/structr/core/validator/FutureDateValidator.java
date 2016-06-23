@@ -18,7 +18,6 @@
  */
 package org.structr.core.validator;
 
-import java.util.Date;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.core.property.PropertyKey;
@@ -48,7 +47,7 @@ public class FutureDateValidator implements PropertyValidator {
 
 			if(value instanceof Long) {
 
-				if(((Long)value).longValue() < new Date().getTime()) {
+				if(((Long)value) < System.currentTimeMillis()) {
 
 					errorBuffer.add(new FutureDateToken(object.getType(), key));
 					return false;

@@ -40,13 +40,9 @@ public interface Indexable extends NodeInterface {
 	public static final Property<String> extractedContent = new StringProperty("extractedContent");
 	public static final Property<String[]> indexedWords   = new ArrayProperty("indexedWords", String.class).indexed(NodeService.NodeIndex.keyword);
 
-	/* CHM 16.06.2016: do not expose these fields in public view as they contain lots of data..
-	
 	public static final org.structr.common.View publicView = new org.structr.common.View(Indexable.class, PropertyView.Public,
-
-		contentType, extractedContent, indexedWords
+		contentType
 	);
-	*/
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Indexable.class, PropertyView.Ui,
 		contentType, extractedContent, indexedWords
