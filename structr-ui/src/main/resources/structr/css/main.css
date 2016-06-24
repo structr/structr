@@ -2443,26 +2443,53 @@ td#cascading-options, td#propagation-options {
 }
 
 #graph-info{
-  background: none;
-  top: 0;
-  text-align: center;
-  height: 28px;
-  position: relative;
+    background: none;
+    top: 0;
+    text-align: center;
+    height: 28px;
+    position: relative;
 }
 
-.nodeExpander-infobutton{
- 	color: white ! important;
+
+
+.nodeExpander-infobutton {
+    color: white ! important;
 }
 
 .nodeExpander-expandbutton {
-  	-webkit-border-radius: 40px;
-  	-moz-border-radius: 40px;  
-  	border-radius: 40px;
-  	min-width: 30px;
-  	min-height: 30px;
-  	text-align: center;
-  	font-size: 9pt;
-  	color: white ! important;
+    -webkit-border-radius: 40px;
+    -moz-border-radius: 40px;  
+    border-radius: 40px;
+    min-width: 30px;
+    min-height: 30px;
+    text-align: center;
+    font-size: 9pt;
+    color: white ! important;
+}
+
+#graphSelectionTools {
+    margin-top: 15pt;
+}
+
+#selectionToolsTableContainer{
+    max-height: 300pt;
+    overflow-y: auto;
+}
+
+.graphtable {
+    margin-top: 10pt;    
+    width: 100%;
+}
+
+.graphtable > thead {   
+    border-bottom: double black;
+}
+
+.graphtable > tbody > tr > td{
+    border-bottom: 1px solid black;
+    padding-top:  5pt;
+    padding-bottom: 5pt;
+    vertical-align: central;
 }
 
 /*

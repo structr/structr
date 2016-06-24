@@ -31,6 +31,7 @@ var schemaNodes = {}, schemaRelationships = {}, schemaNodesById = {};
 var displayHtmlTypes = false, displayCustomTypes = true, displayCoreTypes = false, displayUiTypes = false, displayLogTypes = false, displayOtherTypes = false;
 var maxRels = 100, defaultNodeColor = '#a5a5a5', defaultRelColor = '#cccccc';
 var tmpX, tmpY;
+var selectionTable;
 var forceAtlas2Config = {
 	gravity: 1,
 	strongGravityMode: true,
@@ -143,7 +144,7 @@ var _Graph = {
                            'relationshipEditor' : {incommingRelationsKey: 'shift', outgoingRelationsKey: 'ctrl', deleteEvent: 'doubleClickEdge', onDeleteRelation: undefined},
                            'currentNodeTypes': {},
                            'nodeFilter': {}
-                    },
+                    }/*,
                     sigmaSettings: {
 				font: 'Open Sans',
 				immutable: false,
@@ -166,7 +167,7 @@ var _Graph = {
 				labelSize: 'proportional',
 				labelSizeRatio: 1,
 				//sideMargin: 100
-			}
+			}*/
                 }
                 graphBrowser = new GraphBrowser(graphBrowserSettings);	
                 graphBrowser.start();
@@ -245,9 +246,11 @@ var _Graph = {
                             '</div>' +
                             '<div id="graphSelectionTools">' +
                                 '<h3>Selection Tools</h3>' + 
-                                '<div class="">' +
-                                    '<table id="selectionToolsTable" class="table responsive">' +
-                                        '<thead><tr>' +
+                                '<button id="newSelectionGroup">New Selection</button>' + 
+                                '<button id="selectionLasso">Lasso</button>' + 
+                                '<div id="selectionToolsTableContainer">' +
+                                    '<table id="selectionToolsTable" class="graphtable responsive">' +
+                                        '<thead id="selectionToolsTableHead"><tr>' +
                                             '<th>Group</th>' + 
                                             '<th>Fixed</th>' +
                                             '<th>Hidden</th>' +
@@ -255,11 +258,71 @@ var _Graph = {
                                         '<tbody id="selectiontools-selectionTable-groupSelectionItems">' +
                                         '<tbody>' +
                                     '</table>' + 
-                                '</div>' +
+                                '</div>' +                                
                             '</div>' +
                         '</div>'
                     );
+        
+                $('#selectionLasso').on('click', function(){
+                    if(graphBrowser.selectionToolsActive)
+                        return;
+                    graphBrowser.activateSelectionLasso(true);
 
+                });
+        
+                $('#newSelectionGroup').on('click', function(){
+                    var newId = graphBrowser.createSelectionGroup();
+                    $('#selectiontools-selectionTable-groupSelectionItems').append(
+                        '<tr>' +
+                            '<td><input type="checkbox" name="selectedGroup[]" value="selected.' + newId + '">' + newId + '</td>' +
+                            '<td style="text-align: center;"><input type="checkbox" name="Fixed[]" value="fixed.' + newId + '"></td>' +
+                            '<td style="text-align: center;"><input type="checkbox" name="Hidden[]" value="hidden.' + newId + '"></td>' +
+                        '</tr>'    
+                    );
+                    $("input[name='selectedGroup[]']").trigger('click');
+                    $("input[value='selected." + newId + "']").prop('checked', true);
+                });
+                
+                $(document).on('click', "input[name='selectedGroup[]']",  function() {
+                    var self = $(this);
+
+                    if(self.is(':checked')){
+                       $("input[name='selectedGroup[]']").prop("checked", false);
+                       self.prop("checked", true);
+                       var val = self.val().split('.');
+                       graphBrowser.activateSelectionTools();
+                       graphBrowser.activateSelectionGroup(val[1]);
+                    }
+                    else {
+                        graphBrowser.deactivateSelectionTools();
+                        self.prop("checked", false);
+                    }
+                });
+                    
+                $(document).on('click', "input[name='Hidden[]']",  function() {
+                    var self = $(this);
+                    var val = self.val().split('.');
+
+                    if(self.is(':checked')){
+                        graphBrowser.hideSelectionGroup(val[1], true);
+                    }
+                    else {
+                         graphBrowser.hideSelectionGroup(val[1], false);
+                    }
+                });
+                
+                $(document).on('click', "input[name='Fixed[]']",  function() {
+                    var self = $(this);
+                    var val = self.val().split('.');
+
+                    if(self.is(':checked')){
+                        graphBrowser.fixateSelectionGroup(val[1], true);
+                    }
+                    else {
+                         graphBrowser.fixateSelectionGroup(val[1], false);
+                    }
+                });
+                
 		graph = $('#graph-canvas');
 
 		$(document.body).on('selectstart', function(e) {
@@ -292,7 +355,7 @@ var _Graph = {
 		nodesSlideout = $('#nodes');
 		relationshipsSlideout = $('#relationships');
 
-		lsw = queriesSlideout.width() + 12;
+		//lsw = queriesSlideout.width() + 12;
 		rsw = nodesSlideout.width() + 12;
 
 		$('.slideOut').on('mouseover', function() {
@@ -306,6 +369,12 @@ var _Graph = {
 		});
 
 		$('#queriesTab').on('click', function() {
+                        if ($(this).hasClass('noclick')) {
+				$(this).removeClass('noclick');
+				return;
+			}
+                        lsw = queriesSlideout.width() + 12;
+                        
 			if (Math.abs(queriesSlideout.position().left + lsw) <= 3) {
 				Structr.closeLeftSlideOuts([displaySlideout, filtersSlideout], activeTabLeftGraphKey);
 				Structr.openLeftSlideOut(queriesSlideout, this, activeTabLeftGraphKey);
@@ -315,6 +384,11 @@ var _Graph = {
 		});
 
 		$('#displayTab').on('click', function() {
+                        if ($(this).hasClass('noclick')) {
+				$(this).removeClass('noclick');
+				return;
+			}
+                        lsw = displaySlideout.width() + 12;
 			if (Math.abs(displaySlideout.position().left + lsw) <= 3) {
 				Structr.closeLeftSlideOuts([queriesSlideout, filtersSlideout], activeTabLeftGraphKey);
 				Structr.openLeftSlideOut(displaySlideout, this, activeTabLeftGraphKey, function() {
@@ -326,6 +400,11 @@ var _Graph = {
 		});
 
 		$('#filtersTab').on('click', function() {
+                        if ($(this).hasClass('noclick')) {
+				$(this).removeClass('noclick');
+				return;
+			}
+                        lsw = filtersSlideout.width() + 12;
 			if (Math.abs(filtersSlideout.position().left + lsw) <= 3) {
 				Structr.closeLeftSlideOuts([queriesSlideout, displaySlideout], activeTabLeftGraphKey);
 				Structr.openLeftSlideOut(filtersSlideout, this, activeTabLeftGraphKey, function() {
@@ -458,7 +537,8 @@ var _Graph = {
 		win.resize(function() {
 			_Graph.resize();
 		});
-
+                
+                $('#newSelectionGroup').trigger('click');
 		Structr.unblockMenu(100);
 
 	},
@@ -618,8 +698,8 @@ var _Graph = {
                                     graphBrowser.addNode({
                                             id: node.id || node.name,
                                             label: (node.name || node.tag || node.id.substring(0, 5) + '…') ,
-                                            x: x || Math.random(10),
-                                            y: y || Math.random(10),
+                                            x: x || Math.random(10) * 100,
+                                            y: y || Math.random(10) * 100,
                                             size: 20,
                                             color: color[node.type],
                                             nodeType: node.type,

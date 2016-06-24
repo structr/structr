@@ -9,7 +9,7 @@ var animating = animating || undefined;
 	var _s, _callbacks, _currentActiveSelection;
 	var _hasDragged = false;
 	var _timeout = 0;
-	var _activeStateSelections = [];
+	var _activeStateSelections = {};
 
 	Graphbrowser.Modules.SelectionTools = function(sigmaInstance, callbacks){
 		var self = this;
@@ -32,12 +32,15 @@ var animating = animating || undefined;
 		_callbacks.api.fixateSelectionGroup = self.fixateSelectionGroup.bind(self);
 		_callbacks.api.clearSelectionGroup = self.clearSelectionGroup.bind(self);
 		_callbacks.api.activateSelectionLasso = self.activateSelectionLasso.bind(self);
-		_callbacks.api.deactivateSelectionTools = self.deactivateSelectionTools(self);
-		_callbacks.api.activateSelectionTools = self.activate(self);
+		_callbacks.api.deactivateSelectionTools = self.deactivateSelectionTools.bind(self);
+		_callbacks.api.activateSelectionTools = self.activate.bind(self);
+		_callbacks.api.selectionToolsActive = self.isActive;
 	};
 
 	Graphbrowser.Modules.SelectionTools.prototype.activate = function() {
 		var self = this;
+		if(self.isActive)
+			return;
 		self.isActive = true;
 
 		_s.renderers[0].bind('render', function(e) {
@@ -51,10 +54,10 @@ var animating = animating || undefined;
 			_timeout = setTimeout(function() {				
 				
 				if(_activeStateSelections[_currentActiveSelection].hidden){
-					self.onHideSelectionGroup(_currentActiveSelection);
+					self.hideSelectionGroup(_currentActiveSelection, false);
 				}
 				if(_activeStateSelections[_currentActiveSelection].fixed){
-					self.setSelectionFixed(_currentActiveSelection);
+					self.fixateSelectionGroup(_currentActiveSelection, false);
 				}
 
 				if(event.data.length <= 0)
@@ -62,8 +65,9 @@ var animating = animating || undefined;
 
 				_activeStateSelections[_currentActiveSelection].nodes = event.data;
 				
-				self.toggleLasso();
-				_s.refresh({skipIndexation: true});
+				self.activateSelectionLasso(false);
+				//_s.refresh({skipIndexation: true});
+				self.updateActiveState();
 				_timeout = 0;
 			}, 10);
 		});
@@ -74,30 +78,35 @@ var animating = animating || undefined;
 
 	Graphbrowser.Modules.SelectionTools.prototype.createSelectionGroup = function() {
 		var newId = (parseInt(Math.random() * (5000 - 1))).toString(); 
-		_activeStateSelections.push({id: newId, nodes: [], hidden: false, fixed: false});
-		
+		_activeStateSelections[newId] = {id: newId, nodes: [], hidden: false, fixed: false};
+		_currentActiveSelection = newId;
 		return newId;	
 	};
 
 	Graphbrowser.Modules.SelectionTools.prototype.hideSelectionGroup = function(groupId, status) {	
 		if(status === undefined)
-			status = !_activeStateSelections[groupId].hidden;
-		_activeStateSelections[groupId].hidden = status;
-		_callbacks.hideNodes(_activeStateSelections[groupId].nodes, status);
+			return;
+
+		if(_activeStateSelections[groupId].hidden !== status){
+			_activeStateSelections[groupId].hidden = status;
+			_callbacks.hideNodes(_activeStateSelections[groupId].nodes, status);
+		}		
 	};
 
 	Graphbrowser.Modules.SelectionTools.prototype.fixateSelectionGroup = function(groupId, status) {	
 		if(status === undefined)
-			status = !_activeStateSelections[groupId].fixed;
-		_activeStateSelections[groupId].fixed = status;
-		$.each(_activeStateSelections[groupId].nodes, function(i, node){
-			$.each(_s.graph.nodes(), function(key, gnode){
-				if(node.id === gnode.id){
-					gnode.fixed = _activeStateSelections[groupId].fixed;
-					node.fixed = _activeStateSelections[groupId].fixed;
-				}
-			});	
-		});
+			return;
+		if(_activeStateSelections[groupId].fixed !== status){
+			_activeStateSelections[groupId].fixed = status;
+			$.each(_activeStateSelections[groupId].nodes, function(i, node){
+				$.each(_s.graph.nodes(), function(key, gnode){
+					if(node.id === gnode.id){
+						gnode.fixed = _activeStateSelections[groupId].fixed;
+						node.fixed = _activeStateSelections[groupId].fixed;
+					}
+				});	
+			});
+		}
 	};
 
 	Graphbrowser.Modules.SelectionTools.prototype.clearSelectionGroup = function(groupId) {	
@@ -121,23 +130,20 @@ var animating = animating || undefined;
 			return;
 		}
 		_currentActiveSelection = groupId;
-
 		self.updateActiveState();
 	};
 
-	Graphbrowser.Modules.SelectionTools.prototype.updateActiveState = function(data) {
-		if(!self.isActive)
+	Graphbrowser.Modules.SelectionTools.prototype.updateActiveState = function() {
+		var self = this;
+
+		if(!self.isActive && _activeStateSelections[_currentActiveSelection].nodes === undefined)
 			return;
 
-		if(_activeStateSelections[_currentActiveSelection].nodes === undefined){
-			return;
-		}
-
+		_callbacks.sigmaPlugins.activeState.dropNodes();
 		var an = [];
 		$.each(_activeStateSelections[_currentActiveSelection].nodes, function(i, node) {
 			an.push(node.id);
-		});
-		_callbacks.sigmaPlugins.activeState.dropNodes();
+		});		
 		_callbacks.sigmaPlugins.activeState.addNodes(an);
 		_s.refresh({skipIndexation: true});
 	};
