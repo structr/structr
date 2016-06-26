@@ -523,6 +523,7 @@ var _Schema = {
 						},
 						stop: function() {
 							_Schema.storePositions();
+							_Schema.updateSelectedNodes();
 							_Schema.resize();
 						}
 					});
