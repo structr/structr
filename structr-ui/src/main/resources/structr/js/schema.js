@@ -254,12 +254,12 @@ var _Schema = {
 		});
 
 	},
-	selectRel: function ($rel) {
+	selectRel: function (rel) {
 		_Schema.clearSelection();
 
-		selectedRel = $rel;
+		selectedRel = rel;
 		selectedRel.css({zIndex: ++maxZ});
-		selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({zIndex: ++maxZ, borderColor:relHighlightColor});
+		selectedRel.next('._jsPlumb_overlay').css({zIndex: ++maxZ, borderColor:relHighlightColor});
 		pathElements = selectedRel.find('path');
 		pathElements.css({stroke: relHighlightColor});
 		$(pathElements[1]).css({fill: relHighlightColor});
@@ -271,7 +271,7 @@ var _Schema = {
 
 		// deselect selected Relationship
 		if (selectedRel) {
-			selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({borderColor:''});
+			selectedRel.next('._jsPlumb_overlay').css({borderColor:''});
 			pathElements = selectedRel.find('path');
 			pathElements.css('stroke', '');
 			$(pathElements[1]).css('fill', '');
@@ -603,17 +603,21 @@ var _Schema = {
 									events: {
 										click: function(overlay, evt) {
 											evt.preventDefault();
-
+											
+											var targetEl = $(evt.target);
+											
+											var focusOnClass = targetEl.hasClass('source-multiplicity') ? 'source-mult-input' : (targetEl.hasClass('target-multiplicity') ? 'target-mult-input' : 'rel-type-input');
+											
 											if (overlay.getLabel().substring(0, 6) !== '<input') {
 
 												overlay.setLabel(_Schema.getRelationshipOverlayHtml(res, true));
 
-												var saveEditedRelationship = function (relationship, $element) {
+												var saveEditedRelationship = function(relationship, el) {
 
 													var newRelData = {
-														sourceMultiplicity: $('.source-mult-input', $element).val(),
-														relationshipType: $('.rel-type-input', $element).val(),
-														targetMultiplicity: $('.target-mult-input', $element).val()
+														sourceMultiplicity: $('.source-mult-input', el).val(),
+														relationshipType: $('.rel-type-input', el).val(),
+														targetMultiplicity: $('.target-mult-input', el).val()
 													};
 
 													if ((newRelData.sourceMultiplicity !== '*' && newRelData.sourceMultiplicity !== '1') || (newRelData.targetMultiplicity !== '*' && newRelData.targetMultiplicity !== '1')) {
@@ -633,7 +637,7 @@ var _Schema = {
 
 												};
 
-												$('input', overlay.getElement()).first().focus();
+												$('.' + focusOnClass, overlay.getElement()).first().focus();
 												$('input', overlay.getElement()).keypress(function(e) {
 													if (e.keyCode === 13) {
 														e.preventDefault();
@@ -641,11 +645,11 @@ var _Schema = {
 													}
 												});
 
-												$('.save', overlay.getElement()).on('click', function () {
+												$('.save', overlay.getElement()).on('click', function() {
 													saveEditedRelationship(res, overlay.getElement());
 												});
 
-												$('.discard', overlay.getElement()).on('click', function () {
+												$('.discard', overlay.getElement()).on('click', function() {
 													overlay.setLabel(_Schema.getRelationshipOverlayHtml(res, false));
 													_Schema.registerRelationshipOverlayButtonHandlers(res);
 												});
