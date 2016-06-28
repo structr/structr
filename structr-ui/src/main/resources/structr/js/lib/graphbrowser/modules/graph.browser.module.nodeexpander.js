@@ -313,8 +313,19 @@ var animating = animating || undefined;
 		var sourceNode = result.sourceNode;
 		var targetNode = result.targetNode;
 		var angle = Math.random()* Math.PI * 2;
-		var newX = x + (Math.cos(angle) * 200);
-		var newY = y + (Math.sin(angle) * 200);
+		var ratio = _s.camera.ratio;
+		var newX = 0;
+        var newY = 0;
+        
+        if(ratio > 1){
+            newX = x + (Math.cos(angle) * (Math.abs(x) / (2*ratio)));
+            newY = y + (Math.sin(angle) * (Math.abs(y) / (2*ratio)));
+        }
+        
+        if(ratio <= 1){
+            newX = x + (Math.cos(angle) * (Math.abs(x) / (1/ratio)));
+            newY = y + (Math.sin(angle) * (Math.abs(y) / (1/ratio)));
+        }
 		var size = _newNodeSize;
 
 		nodes.push({id: targetNode.id, label: targetNode.name, size: size, x: newX, y: newY, color: color[targetNode.type], nodeType: targetNode.type});
@@ -325,8 +336,19 @@ var animating = animating || undefined;
 		var sourceNode = result.sourceNode;
 		var targetNode = result.targetNode;
 		var angle = Math.random()* Math.PI * 2;
-		var newX = x + (Math.cos(angle) * 200);
-		var newY = y + (Math.sin(angle) * 200);
+		var ratio = _s.camera.ratio;
+		var newX = 0;
+		var newY = 0;
+        
+        if(ratio > 1){
+            newX = x + (Math.cos(angle) * (Math.abs(x) / (2*ratio)));
+            newY = y + (Math.sin(angle) * (Math.abs(y) / (2*ratio)));
+        }
+        
+        if(ratio <= 1){
+            newX = x + (Math.cos(angle) * (Math.abs(x) / (1/ratio)));
+            newY = y + (Math.sin(angle) * (Math.abs(y) / (1/ratio)));
+        }
 		var size = _newNodeSize;
 
 		nodes.push({id: sourceNode.id, label: sourceNode.name, size: size, x: newX, y: newY, color: color[sourceNode.type], nodeType: sourceNode.type});

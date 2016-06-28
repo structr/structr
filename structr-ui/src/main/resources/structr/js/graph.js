@@ -30,7 +30,7 @@ var edgeType = 'curvedArrow';
 var schemaNodes = {}, schemaRelationships = {}, schemaNodesById = {};
 var displayHtmlTypes = false, displayCustomTypes = true, displayCoreTypes = false, displayUiTypes = false, displayLogTypes = false, displayOtherTypes = false;
 var maxRels = 100, defaultNodeColor = '#a5a5a5', defaultRelColor = '#cccccc';
-var tmpX, tmpY;
+var tmpX, tmpY, nodeLabelsHidden = false, edgeLabelsHidden  = false;
 var selectionTable;
 var forceAtlas2Config = {
 	gravity: 1,
@@ -144,30 +144,33 @@ var _Graph = {
                            'relationshipEditor' : {incommingRelationsKey: 'shift', outgoingRelationsKey: 'ctrl', deleteEvent: 'doubleClickEdge', onDeleteRelation: undefined},
                            'currentNodeTypes': {},
                            'nodeFilter': {}
-                    }/*,
+                    },
                     sigmaSettings: {
-				font: 'Open Sans',
-				immutable: false,
-				minNodeSize: 4,
-				maxNodeSize: 10,
-				borderSize: 4,
-				defaultNodeBorderColor: '#a5a5a5',
-				singleHover: true,
-				doubleClickEnabled: false,
-				minEdgeSize: 4,
-				maxEdgeSize: 4,
-				enableEdgeHovering: true,
-				edgeHoverColor: 'default',
-				edgeHoverSizeRatio: 1.3,
-				edgeHoverExtremities: true,
-				defaultEdgeColor: '#999',
-				defaultEdgeHoverColor: '#888',
-				minArrowSize: 12,
-				//maxArrowSize: 12,
-				labelSize: 'proportional',
-				labelSizeRatio: 1,
-				//sideMargin: 100
-			}*/
+			immutable: false,
+			minNodeSize: 1,
+			maxNodeSize: 10,
+                                                        labelThreshold: 0,
+			borderSize: 4,
+			defaultNodeBorderColor: '#a5a5a5',
+			singleHover: true,
+			doubleClickEnabled: false,
+			minEdgeSize: 4,
+			maxEdgeSize: 4,
+			enableEdgeHovering: true,
+			edgeHoverColor: 'default',
+			edgeHoverSizeRatio: 1.3,
+			edgeHoverExtremities: true,
+			defaultEdgeColor: '#999',
+			defaultEdgeHoverColor: '#81ce25',
+                                                        defaultEdgeLabelActiveColor: '#81ce25',
+			minArrowSize: 4,
+			maxArrowSize: 8,
+			labelSize: 'proportional',
+			labelSizeRatio: 1,
+			labelAlignment: 'right',
+			nodeHaloColor: 'rgba(236, 81, 72, 0.2)',
+			nodeHaloSize: 20,
+			}
                 }
                 graphBrowser = new GraphBrowser(graphBrowserSettings);	
                 graphBrowser.start();
@@ -176,6 +179,7 @@ var _Graph = {
                 graphBrowser.bindEvent('doubleClickNode', _Graph.handleDoubleClickNodeEvent);
                 graphBrowser.bindEvent('drag', _Graph.handleDragNodeEvent);
                 graphBrowser.bindEvent('startdrag', _Graph.handleStartDragNodeEvent);
+                graphBrowser.bindEvent('clickEdge', _Graph.handleClickEdgeEvent)
 	},
 	onload: function() {
 
@@ -186,7 +190,7 @@ var _Graph = {
 
 		main.prepend(
 			'<div id="graph-box"><div id="graph-info"></div><div id="queries" class="slideOut slideOutLeft"><div class="compTab" id="queriesTab">Queries</div><div><button id="clear-graph">Clear Graph</button></div></div>'
-			+ '<div id="display" class="slideOut slideOutLeft"><div class="compTab" id="displayTab">Display Options</div></div>'
+			+ '<div id="display" class="slideOut slideOutLeft"><div class="compTab" id="displayTab">Control Options</div></div>'
 			+ '<div id="filters" class="slideOut slideOutLeft"><div class="compTab" id="filtersTab">Filters</div><div id="nodeFilters"><h3>Node Filters</h3></div><div id="relFilters"><h3>Relationship Filters</h3></div></div>'
 			+ '<div class="canvas" id="graph-canvas"></div>'
 			+ '<div id="node-types" class="graph-object-types"></div>'
@@ -238,90 +242,123 @@ var _Graph = {
 			_Graph.updateNodeTypes();
 		});
                 
-                $('#display').append(
-                        '<div id="graphDisplayTab">' +
-                            '<div id="graphLayouts">' +
-                                '<h3>Layouts</h3>' + 
-                                '<button id="fruchterman-controlElement">Fruchterman Layout</button>' + 
-                            '</div>' +
-                            '<div id="graphSelectionTools">' +
-                                '<h3>Selection Tools</h3>' + 
-                                '<button id="newSelectionGroup">New Selection</button>' + 
-                                '<button id="selectionLasso">Lasso</button>' + 
-                                '<div id="selectionToolsTableContainer">' +
-                                    '<table id="selectionToolsTable" class="graphtable responsive">' +
-                                        '<thead id="selectionToolsTableHead"><tr>' +
-                                            '<th>Group</th>' + 
-                                            '<th>Fixed</th>' +
-                                            '<th>Hidden</th>' +
-                                        '</tr></thead>' +
-                                        '<tbody id="selectiontools-selectionTable-groupSelectionItems">' +
-                                        '<tbody>' +
-                                    '</table>' + 
-                                '</div>' +                                
-                            '</div>' +
-                        '</div>'
-                    );
-        
-                $('#selectionLasso').on('click', function(){
-                    if(graphBrowser.selectionToolsActive)
-                        return;
-                    graphBrowser.activateSelectionLasso(true);
+                                    $('#display').append(
+                                            '<div id="graphDisplayTab">' +
+                                                '<div id="displayOptions">' +
+                                                    '<h3>Display Options</h3>' + 
+                                                    '<button id="toggleNodeLabels">Hide node labels</button>' + 
+                                                    '<button id="toggleEdgeLabels">Hide edge labels</button>' + 
+                                                '</div>' +
+                                                '<div id="graphLayouts">' +
+                                                    '<h3>Layouts</h3>' + 
+                                                    '<button id="fruchterman-controlElement">Fruchterman Layout</button>' + 
+                                                '</div>' +
+                                                '<div id="graphSelectionTools">' +
+                                                    '<h3>Selection Tools</h3>' + 
+                                                    '<button id="newSelectionGroup">New Selection</button>' + 
+                                                    '<button id="selectionLasso">Lasso</button>' + 
+                                                    '<div id="selectionToolsTableContainer">' +
+                                                        '<table id="selectionToolsTable" class="graphtable responsive">' +
+                                                            '<thead id="selectionToolsTableHead"><tr>' +
+                                                                '<th>Group</th>' + 
+                                                                '<th>Fixed</th>' +
+                                                                '<th>Hidden</th>' +
+                                                            '</tr></thead>' +
+                                                            '<tbody id="selectiontools-selectionTable-groupSelectionItems">' +
+                                                            '<tbody>' +
+                                                        '</table>' + 
+                                                    '</div>' +                                
+                                                '</div>' +
+                                            '</div>'
+                                        );
+                                        
+                                        
+                                     
+                                     $('#toggleNodeLabels').on('click', function(){
+                                         if(!nodeLabelsHidden){
+                                             $(this).text('Show node labels');
+                                             graphBrowser.changeSigmaSetting('drawLabels', false)
+                                             nodeLabelsHidden = true;
+                                         }
+                                         else{
+                                             $(this).text('Hide node labels');
+                                             graphBrowser.changeSigmaSetting('drawLabels', true)
+                                             nodeLabelsHidden = false;
+                                         }
+                                     });
+                                     
+                                      $('#toggleEdgeLabels').on('click', function(){
+                                         if(!edgeLabelsHidden){
+                                             $(this).text('Show edge labels');
+                                             graphBrowser.changeSigmaSetting('drawEdgeLabels', false)
+                                             edgeLabelsHidden = true;
+                                         }
+                                         else{
+                                             $(this).text('Hide edge labels');
+                                             graphBrowser.changeSigmaSetting('drawEdgeLabels', true)
+                                             edgeLabelsHidden = false;
+                                         }
+                                     });
+                                      
+                                    $('#selectionLasso').on('click', function(){
+                                        if(graphBrowser.selectionToolsActive)
+                                            return;
+                                        graphBrowser.activateSelectionLasso(true);
 
-                });
-        
-                $('#newSelectionGroup').on('click', function(){
-                    var newId = graphBrowser.createSelectionGroup();
-                    $('#selectiontools-selectionTable-groupSelectionItems').append(
-                        '<tr>' +
-                            '<td><input type="checkbox" name="selectedGroup[]" value="selected.' + newId + '">' + newId + '</td>' +
-                            '<td style="text-align: center;"><input type="checkbox" name="Fixed[]" value="fixed.' + newId + '"></td>' +
-                            '<td style="text-align: center;"><input type="checkbox" name="Hidden[]" value="hidden.' + newId + '"></td>' +
-                        '</tr>'    
-                    );
-                    $("input[name='selectedGroup[]']").trigger('click');
-                    $("input[value='selected." + newId + "']").prop('checked', true);
-                });
-                
-                $(document).on('click', "input[name='selectedGroup[]']",  function() {
-                    var self = $(this);
+                                    });
 
-                    if(self.is(':checked')){
-                       $("input[name='selectedGroup[]']").prop("checked", false);
-                       self.prop("checked", true);
-                       var val = self.val().split('.');
-                       graphBrowser.activateSelectionTools();
-                       graphBrowser.activateSelectionGroup(val[1]);
-                    }
-                    else {
-                        graphBrowser.deactivateSelectionTools();
-                        self.prop("checked", false);
-                    }
-                });
-                    
-                $(document).on('click', "input[name='Hidden[]']",  function() {
-                    var self = $(this);
-                    var val = self.val().split('.');
+                                    $('#newSelectionGroup').on('click', function(){
+                                        var newId = graphBrowser.createSelectionGroup();
+                                        $('#selectiontools-selectionTable-groupSelectionItems').append(
+                                            '<tr>' +
+                                                '<td><input type="checkbox" name="selectedGroup[]" value="selected.' + newId + '">' + newId + '</td>' +
+                                                '<td style="text-align: center;"><input type="checkbox" name="Fixed[]" value="fixed.' + newId + '"></td>' +
+                                                '<td style="text-align: center;"><input type="checkbox" name="Hidden[]" value="hidden.' + newId + '"></td>' +
+                                            '</tr>'    
+                                        );
+                                        $("input[name='selectedGroup[]']").trigger('click');
+                                        $("input[value='selected." + newId + "']").prop('checked', true);
+                                    });
 
-                    if(self.is(':checked')){
-                        graphBrowser.hideSelectionGroup(val[1], true);
-                    }
-                    else {
-                         graphBrowser.hideSelectionGroup(val[1], false);
-                    }
-                });
-                
-                $(document).on('click', "input[name='Fixed[]']",  function() {
-                    var self = $(this);
-                    var val = self.val().split('.');
+                                    $(document).on('click', "input[name='selectedGroup[]']",  function() {
+                                        var self = $(this);
 
-                    if(self.is(':checked')){
-                        graphBrowser.fixateSelectionGroup(val[1], true);
-                    }
-                    else {
-                         graphBrowser.fixateSelectionGroup(val[1], false);
-                    }
-                });
+                                        if(self.is(':checked')){
+                                           $("input[name='selectedGroup[]']").prop("checked", false);
+                                           self.prop("checked", true);
+                                           var val = self.val().split('.');
+                                           graphBrowser.activateSelectionTools();
+                                           graphBrowser.activateSelectionGroup(val[1]);
+                                        }
+                                        else {
+                                            graphBrowser.deactivateSelectionTools();
+                                            self.prop("checked", false);
+                                        }
+                                    });
+
+                                    $(document).on('click', "input[name='Hidden[]']",  function() {
+                                        var self = $(this);
+                                        var val = self.val().split('.');
+
+                                        if(self.is(':checked')){
+                                            graphBrowser.hideSelectionGroup(val[1], true);
+                                        }
+                                        else {
+                                             graphBrowser.hideSelectionGroup(val[1], false);
+                                        }
+                                    });
+
+                                    $(document).on('click', "input[name='Fixed[]']",  function() {
+                                        var self = $(this);
+                                        var val = self.val().split('.');
+
+                                        if(self.is(':checked')){
+                                            graphBrowser.fixateSelectionGroup(val[1], true);
+                                        }
+                                        else {
+                                             graphBrowser.fixateSelectionGroup(val[1], false);
+                                        }
+                                    });
                 
 		graph = $('#graph-canvas');
 
@@ -695,11 +732,25 @@ var _Graph = {
 		_Graph.setNodeColor(node);
 		//console.log('drawing node', node, nodeTypes[node.type], isIn(node.type, hiddenNodeTypes));
                                 try{
+                                    var ratio = graphBrowser.getCameraRatio();
+                                    var newX = Math.random(10) * (10);
+                                    var newY = Math.random(10) * (10);
+                                    
+                                    if(ratio > 1){
+                                        newX = Math.random(10) * (10 * ratio);
+                                        newY = Math.random(10) * (10 * ratio);
+                                    }
+                                    
+                                    if(ratio < 1){
+                                        newX = Math.random(10) * (ratio);
+                                        newY = Math.random(10) * (ratio);
+                                    }
+                                    
                                     graphBrowser.addNode({
                                             id: node.id || node.name,
                                             label: (node.name || node.tag || node.id.substring(0, 5) + '…') ,
-                                            x: x || Math.random(10) * 100,
-                                            y: y || Math.random(10) * 100,
+                                            x: x || newX,
+                                            y: y || newY,
                                             size: 20,
                                             color: color[node.type],
                                             nodeType: node.type,
@@ -708,7 +759,7 @@ var _Graph = {
                                     });
                                 }
                                 catch (error){
-                                       _Logger.log(_LogType.GRAPH, 'Node: ' + n.id + 'already in the graph');
+                                       _Logger.log(_LogType.GRAPH, 'Node: ' + node.id + 'already in the graph');
                                 }
                         //_Graph.updateNodeTypes();
 	},
@@ -1006,7 +1057,13 @@ var _Graph = {
             window.setTimeout(function() {
                 hasDoubleClicked = false;
             }, doubleClickTime + 10);
-        }
+        },
+         
+         handleClickEdgeEvent: function(clickedEdge){
+             var edge = clickedEdge.data.edge;
+             hasDoubleClicked = false;
+             _Entities.showProperties(edge);
+         }
 };
 
 function getRandomInt(min, max) {

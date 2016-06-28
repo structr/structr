@@ -146,6 +146,8 @@ var animating = animating || undefined;
 		_callbacks.api.dropElement = self.dropElement.bind(self);
 		_callbacks.api.updateNode = self.updateNode.bind(self);
 		_callbacks.api.updateEdge = self.updateEdge.bind(self);
+		_callbacks.api.getCameraRatio = self.getCameraRatio.bind(self);
+		_callbacks.api.changeSigmaSetting = self.changeSigmaSetting.bind(self);
 
 		return _s;
 	};
@@ -332,7 +334,15 @@ var animating = animating || undefined;
 		_s.refresh({skipIndexation: false});
 	};
 
+	Graphbrowser.Control.SigmaControl.prototype.getCameraRatio = function() {
+		return _s.camera.ratio;
+	};
+
+	Graphbrowser.Control.SigmaControl.prototype.changeSigmaSetting = function(setting, value) {
+		if(typeof setting !== 'string')
+			return;
+		_s.settings(setting, value);
+		_s.refresh({skipIndexation: true});
+	};
 
 }).call(window);
-
-
