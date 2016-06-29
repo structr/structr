@@ -54,6 +54,7 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 	public static final Property<List<SchemaMethod>>   schemaMethods    = new EndNodes<>("schemaMethods", SchemaNodeMethod.class);
 	public static final Property<List<SchemaView>>     schemaViews      = new EndNodes<>("schemaViews", SchemaNodeView.class);
 	public static final Property<String>               icon             = new StringProperty("icon");
+	public static final Property<String>               description      = new StringProperty("description");
 	public static final Set<String> hiddenPropertyNames                 = new LinkedHashSet<>();
 
 	public static final View defaultView = new View(AbstractSchemaNode.class, PropertyView.Public,
@@ -61,15 +62,15 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 	);
 
 	public static final View uiView = new View(AbstractSchemaNode.class, PropertyView.Ui,
-		name, schemaProperties, schemaViews, schemaMethods, icon
+		name, schemaProperties, schemaViews, schemaMethods, icon, description
 	);
 
 	public static final View schemaView = new View(AbstractSchemaNode.class, "schema",
-		id, type, name, schemaProperties, schemaViews, schemaMethods, icon
+		id, type, name, schemaProperties, schemaViews, schemaMethods, icon, description
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",
-		id, type, name, icon
+		id, type, name, icon, description
 	);
 
 	static {
