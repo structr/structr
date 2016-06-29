@@ -259,7 +259,7 @@ var _Schema = {
 
 		selectedRel = rel;
 		selectedRel.css({zIndex: ++maxZ});
-		selectedRel.next('._jsPlumb_overlay').css({zIndex: ++maxZ, borderColor:relHighlightColor});
+		selectedRel.next('._jsPlumb_overlay').css({zIndex: ++maxZ, borderColor: relHighlightColor, background: 'rgba(255, 255, 255, 1)'});
 		pathElements = selectedRel.find('path');
 		pathElements.css({stroke: relHighlightColor});
 		$(pathElements[1]).css({fill: relHighlightColor});
@@ -271,7 +271,7 @@ var _Schema = {
 
 		// deselect selected Relationship
 		if (selectedRel) {
-			selectedRel.next('._jsPlumb_overlay').css({borderColor:''});
+			selectedRel.next('._jsPlumb_overlay').css({borderColor:'', background: 'rgba(255, 255, 255, .8)'});
 			pathElements = selectedRel.find('path');
 			pathElements.css('stroke', '');
 			$(pathElements[1]).css('fill', '');
