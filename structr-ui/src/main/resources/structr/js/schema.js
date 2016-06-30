@@ -30,6 +30,8 @@ var mouseUpCoords = {x:0, y:0};
 var selectBox, nodeDragStartpoint;
 var selectedNodes = [];
 var showSchemaOverlaysKey = 'structrShowSchemaOverlays_' + port;
+var schemaContainer;
+var inheritanceTree, inheritanceSlideout, inheritanceSlideoutOpen = false;
 
 $(document).ready(function() {
 
@@ -60,8 +62,8 @@ var _Schema = {
 			var node = $(n);
 			var type = node.text();
 			var obj = {position: node.position()};
-			obj.position.left /= zoomLevel;
-			obj.position.top = (obj.position.top - canvas.offset().top) / zoomLevel;
+			obj.position.left = (obj.position.left - canvas.offset().left) / zoomLevel;
+			obj.position.top  = (obj.position.top  - canvas.offset().top)  / zoomLevel;
 			LSWrapper.setItem(type + localStorageSuffix + 'node-position', JSON.stringify(obj));
 		});
 	},
@@ -71,19 +73,21 @@ var _Schema = {
 	},
 	init: function(scrollPosition) {
 
+		_Schema.loadClassTree();
+
 		_Schema.schemaLoading = false;
 		_Schema.schemaLoaded = false;
 		_Schema.schema = [];
 		_Schema.keys = [];
 
-		main.append('<div class="schema-input-container"></div>');
+		schemaContainer.append('<div class="schema-input-container"></div>');
 
-		var schemaContainer = $('.schema-input-container');
+		var schemaInputContainer = $('.schema-input-container');
 
-		Structr.ensureIsAdmin(schemaContainer, function() {
+		Structr.ensureIsAdmin(schemaInputContainer, function() {
 
-			schemaContainer.append('<div class="input-and-button"><input class="schema-input" id="type-name" type="text" size="10" placeholder="New type"><button id="create-type" class="btn"><img src="icon/add.png"> Add</button></div>');
-			schemaContainer.append('<div class="input-and-button"><input class="schema-input" id="ggist-url" type="text" size="20" placeholder="Enter GraphGist URL"><button id="gg-import" class="btn">Start Import</button></div>');
+			schemaInputContainer.append('<div class="input-and-button"><input class="schema-input" id="type-name" type="text" size="10" placeholder="New type"><button id="create-type" class="btn"><img src="icon/add.png"> Add</button></div>');
+			schemaInputContainer.append('<div class="input-and-button"><input class="schema-input" id="ggist-url" type="text" size="20" placeholder="Enter GraphGist URL"><button id="gg-import" class="btn">Start Import</button></div>');
 			$('#gg-import').on('click', function(e) {
 				var btn = $(this);
 				var text = btn.text();
@@ -94,7 +98,7 @@ var _Schema = {
 
 			var styles = ['Flowchart', 'Bezier', 'StateMachine', 'Straight'];
 
-			schemaContainer.append('<select id="connector-style"></select>');
+			schemaInputContainer.append('<select id="connector-style"></select>');
 			$.each(styles, function(i, style) {
 				$('#connector-style').append('<option value="' + style + '" ' + (style === connectorStyle ? 'selected="selected"' : '') + '>' + style + '</option>');
 			});
@@ -105,7 +109,7 @@ var _Schema = {
 				_Schema.reload();
 			});
 
-			schemaContainer.append('<div id="zoom-slider" style="display:inline-block; width:100px; margin-left:10px"></div>');
+			schemaInputContainer.append('<div id="zoom-slider" style="display:inline-block; width:100px; margin-left:10px"></div>');
 			$( "#zoom-slider" ).slider({
 				min:0.25,
 				max:1,
@@ -123,27 +127,27 @@ var _Schema = {
 				}
 			});
 
-			schemaContainer.append('<button class="btn" id="admin-tools"><img src="icon/wrench.png"> Tools</button>');
+			schemaInputContainer.append('<button class="btn" id="admin-tools"><img src="icon/wrench.png"> Tools</button>');
 			$('#admin-tools').on('click', function() {
 				_Schema.openAdminTools();
 			});
 
-			schemaContainer.append('<button class="btn module-dependend" data-structr-module="cloud" id="sync-schema"><img src="icon/page_white_get.png"> Sync schema</button>');
+			schemaInputContainer.append('<button class="btn module-dependend" data-structr-module="cloud" id="sync-schema"><img src="icon/page_white_get.png"> Sync schema</button>');
 			$('#sync-schema').on('click', function() {
 				_Schema.syncSchemaDialog();
 			});
 
-			schemaContainer.append('<button class="btn" id="show-snapshots"><img src="icon/database.png"> Snapshots</button>');
+			schemaInputContainer.append('<button class="btn" id="show-snapshots"><img src="icon/database.png"> Snapshots</button>');
 			$('#show-snapshots').on('click', function() {
 				_Schema.snapshotsDialog();
 			});
 
-			schemaContainer.append('<button class="btn" id="schema-display-options"><img src="icon/pencil.png"> Display Options</button>');
+			schemaInputContainer.append('<button class="btn" id="schema-display-options"><img src="icon/pencil.png"> Display Options</button>');
 			$('#schema-display-options').on('click', function() {
 				_Schema.openSchemaDisplayOptions();
 			});
 
-			schemaContainer.append('<input type="checkbox" id="schema-show-overlays" name="schema-show-overlays" style="margin-left:10px"><label for="schema-show-overlays"> Show relationship labels</label>');
+			schemaInputContainer.append('<input type="checkbox" id="schema-show-overlays" name="schema-show-overlays" style="margin-left:10px"><label for="schema-show-overlays"> Show relationship labels</label>');
 			$('#schema-show-overlays').on('change', function() {
 				_Schema.updateOverlayVisibility($(this).prop('checked'));
 			});
@@ -164,7 +168,7 @@ var _Schema = {
 			});
 
 			jsPlumb.ready(function() {
-				main.append('<div class="canvas" id="schema-graph"></div>');
+				schemaContainer.append('<div class="canvas" id="schema-graph"></div>');
 
 				canvas = $('#schema-graph');
 
@@ -360,6 +364,39 @@ var _Schema = {
 		);
 	},
 	onload: function() {
+		main.append(
+			'<div id="inheritance-tree" class="slideOut slideOutLeft"><div class="compTab" id="inheritanceTab">Inheritance Tree</div>Search: <input type="text" id="search-classes"><div id="inheritance-tree-container" class="ver-scrollable"></div></div>'
+			+ '<div id="schema-container"></div>'
+		);
+		schemaContainer = $('#schema-container');
+		inheritanceSlideout = $('#inheritance-tree');
+		inheritanceTree = $('#inheritance-tree-container');
+
+		var updateCanvasTranslation = function () {
+			canvas.css('transform', _Schema.getSchemaCSSTransform());
+		};
+
+		$('#inheritanceTab').on('click', function() {
+			if ($(this).hasClass('noclick')) {
+				$(this).removeClass('noclick');
+				return;
+			}
+
+			if (Math.abs(inheritanceSlideout.position().left + inheritanceSlideout.width() + 12) <= 3) {
+				inheritanceSlideoutOpen = true;
+				Structr.openLeftSlideOut(inheritanceSlideout, $("#inheritanceTab"), activeTabLeftKey, undefined, updateCanvasTranslation);
+				canvas.css('transform', _Schema.getSchemaCSSTransform());
+
+			} else {
+				inheritanceSlideoutOpen = false;
+				Structr.closeLeftSlideOuts([inheritanceSlideout], activeTabLeftKey);
+				canvas.css('transform', _Schema.getSchemaCSSTransform());
+
+			}
+
+			_Schema.resize();
+		});
+
 		_Schema.init();
 		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Schema');
 
@@ -3116,7 +3153,7 @@ var _Schema = {
 		instance = instance || jsPlumb;
 		el = el || instance.getContainer();
 		var p = [ "webkit", "moz", "ms", "o" ],
-			s = "scale(" + zoom + ")",
+			s = _Schema.getSchemaCSSTransform(),
 			oString = (transformOrigin[0] * 100) + "% " + (transformOrigin[1] * 100) + "%";
 
 		for (var i = 0; i < p.length; i++) {
@@ -3129,6 +3166,15 @@ var _Schema = {
 
 		instance.setZoom(zoom);
 		_Schema.resize();
+	},
+	getSchemaCSSTransform: function () {
+	 return _Schema.getSchemaCSSScale() + ' ' + _Schema.getSchemaCSSTranslate();
+	},
+	getSchemaCSSScale: function () {
+		return 'scale(' + zoomLevel + ')';
+	},
+	getSchemaCSSTranslate: function () {
+		return 'translate(' + (inheritanceSlideoutOpen ? inheritanceSlideout.width() / zoomLevel : '0') + 'px)';
 	},
 	sort: function(collection, sortKey, secondarySortKey) {
 		if (!sortKey) {
@@ -3153,6 +3199,110 @@ var _Schema = {
 		} else {
 			$('.rel-type, .multiplicity').hide();
 		}
+	},
+	loadClassTree: function () {
+		var classTree = {};
+		var tmpHierarchy = {};
+		var idToClass = {};
+
+		var insertClassInClassTree = function (classObj, tree) {
+			var classes = Object.keys(tree);
+
+			var position = classes.indexOf(classObj.parent);
+			if (position !== -1) {
+
+				if (classTree[classObj.name]) {
+					tree[classes[position]][classObj.name] = classTree[classObj.name];
+					delete(classTree[classObj.name]);
+				} else {
+					tree[classes[position]][classObj.name] = {};
+				}
+
+				return true;
+
+			} else {
+				var done = false;
+				classes.forEach(function (className) {
+					if (!done) {
+						done = insertClassInClassTree(classObj, tree[className]);
+					}
+				});
+				return done;
+			}
+
+		};
+
+		var printClassTree = function ($elem, classTree) {
+			var classes = Object.keys(classTree).sort();
+
+			if (classes.length > 0) {
+
+				var $newUl = $('<ul></ul>').appendTo($elem);
+
+				classes.forEach(function (classname) {
+
+					var $newLi = $('<li data-jstree=\'{"opened":true}\' data-id="id_' + idToClass[classname] + '">' + classname + '</li>').appendTo($newUl);
+					printClassTree($newLi, classTree[classname]);
+
+				});
+
+			}
+
+		};
+
+		$.get(rootUrl + 'SchemaNode?sort=hierarchyLevel&order=asc', function (data) {
+			schemaNodes = data.result;
+			schemaNodes.forEach(function (schemaNode) {
+
+				if (!schemaNode.isBuiltinType) {
+
+					var classObj = {
+						name: schemaNode.name,
+						parent: (schemaNode.extendsClass === null ? 'AbstractNode' : schemaNode.extendsClass.slice(schemaNode.extendsClass.lastIndexOf('.')+1))
+					};
+
+					idToClass[classObj.name] = schemaNode.id;
+
+					var inserted = insertClassInClassTree(classObj, tmpHierarchy);
+
+					if (!inserted) {
+						var insertedTmp = insertClassInClassTree(classObj, classTree);
+
+						if (!insertedTmp) {
+							if (classTree[classObj.name]) {
+								classTree[classObj.parent] = {};
+								classTree[classObj.parent][classObj.name] = classTree[classObj.name];
+								delete(classTree[classObj.name]);
+							} else {
+								classTree[classObj.parent] = {};
+								classTree[classObj.parent][classObj.name] = {};
+							}
+
+						}
+					}
+				}
+
+			});
+
+			$.jstree.destroy();
+			printClassTree(inheritanceTree, classTree);
+			inheritanceTree.jstree({
+				plugins: ["search"]
+			}).on('changed.jstree', function (e, data) {
+				var $node = $('#' + data.node.data.id);
+				if ($node.length > 0) {
+					$('.selected').removeClass('selected');
+					$node.addClass('selected');
+					selectedElements = [$node];
+				}
+			});
+
+			$('#search-classes').keyup(function () {
+				var query = $('#search-classes').val();
+				inheritanceTree.jstree(true).search(query);
+			});
+
+		});
 	}
 };
 
