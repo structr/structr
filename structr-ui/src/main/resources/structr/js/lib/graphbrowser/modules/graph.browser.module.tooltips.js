@@ -4,7 +4,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 (function() {
 	'use strict';
 
-	var _s, _callbacks, _tooltip, _show, _hide, _cssClass, _cssId, _position, _page, _onShow, _onError;
+	var _s, _callbacks, _tooltip, _show, _hide, _cssClass, _cssId, _position, _page, _onShow, _onError, _nodeRenderer;
 
 	Graphbrowser.Modules.Toolstips = function (sigmaInstance, callbacks){
 		var self = this;
@@ -13,7 +13,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		_callbacks = callbacks;
 	};
 
-	Graphbrowser.Modules.Toolstips.prototype.types = ["sigmaEventHandler"];
+	Graphbrowser.Modules.Toolstips.prototype.types = [];
 
 	Graphbrowser.Modules.Toolstips.prototype.init = function(settings){
 		var self = this;
@@ -24,36 +24,50 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 			settings.hide !== undefined ? _hide = settings.hide : _hide = 'clickStage';
 			settings.cssClass !== undefined ? _cssClass = settings.cssClass : _cssClass = 'tooltip-container';
 			settings.position !== undefined ? _position = settings.position : _position = 'bottom';
-			(settings.onShow !== undefined && typeof settings.onShow === 'function') ? _onShow = settings.onShow : _onShow  = undefined;			
+			(settings.onShow !== undefined && typeof settings.onShow === 'function') ? _onShow = settings.onShow : _onShow  = undefined;
 			(settings.onError !== undefined && typeof settings.onError === 'function') ? _onError = settings.onError : _onError = undefined;
-			settings.page !== undefined ? _page = settings.page : console.log('"Graph-Browser-Tooltips: No page specified."');
-		}		
+			settings.page !== undefined ? _page = settings.page : _page = undefined;
+			(settings.nodeRenderer !== undefined && typeof settings.nodeRenderer === 'function') ? _nodeRenderer = settings.nodeRenderer : _nodeRenderer = undefined;
+		}
 		else
 			throw new Error('"Graph-Browser-Tooltips: No settings found."');
-		
+
+		_callbacks.api.closeTooltip = self.closeTooltip.bind(self);
+
 		var config = {
 			node: {
 				show: _show,
 				hide: _hide,
-				cssClass: 'tooltip-container',
-				position: _position,				
+				position: _position,
+				template: '<div id="tooltip-container" class="' + _cssClass + '"></div>',
 				renderer: function(node, template) {
-					return '<div id="tooltip-container" class="' + _cssClass + '"></div>';
+					if(_nodeRenderer)
+						return _nodeRenderer(node);
+					else{
+						self.loadStructrPageContent(node);
+						return "";
+					}
 				}
 			}
 		};
 
-		_callbacks.sigmaCtrl.bindSigmaEvent(_show, self.handleSigmaEvent);
 		_tooltip = sigma.plugins.tooltips(_s, _s.renderers[0], config);
 	};
 
-	Graphbrowser.Modules.Toolstips.prototype.handleSigmaEvent = function(event, node){
+	Graphbrowser.Modules.Toolstips.prototype.closeTooltip = function(){
+		_tooltip.close();
+	};
+
+	Graphbrowser.Modules.Toolstips.prototype.loadStructrPageContent = function(eventNode){
 		var self = this;
-		_callbacks.conn.getStructrPage(_page, node.id, self.onContentLoaded, _onError);
+		if(_page)
+			_callbacks.conn.getStructrPage(_page, eventNode.data.node.id, self.onContentLoaded, _onError);
+		else if(_nodeRenderer)
+			self.onContentLoaded(_nodeRenderer(eventNode.data.node), eventNode.data.node.id);
 	};
 
 	Graphbrowser.Modules.Toolstips.prototype.onContentLoaded = function(content, nodeId){
-		$('#tooltip-container').append(content);	
+		$('#tooltip-container').append(content);
 
 		$(document).on('click', '#tooltip-btnCloseTooltip-' + nodeId,  function() {
 			_tooltip.close();

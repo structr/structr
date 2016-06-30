@@ -2483,15 +2483,13 @@ td#cascading-options, td#propagation-options {
     position: relative;
 }
 
-
-
 .nodeExpander-infobutton {
     color: white ! important;
 }
 
 .nodeExpander-expandbutton {
     -webkit-border-radius: 40px;
-    -moz-border-radius: 40px;  
+    -moz-border-radius: 40px;
     border-radius: 40px;
     min-width: 30px;
     min-height: 30px;
@@ -2510,11 +2508,11 @@ td#cascading-options, td#propagation-options {
 }
 
 .graphtable {
-    margin-top: 10pt;    
+    margin-top: 10pt;
     width: 100%;
 }
 
-.graphtable > thead {   
+.graphtable > thead {
     border-bottom: double black;
 }
 
@@ -2523,6 +2521,36 @@ td#cascading-options, td#propagation-options {
     padding-top:  5pt;
     padding-bottom: 5pt;
     vertical-align: central;
+}
+
+.nodeTooltip{
+    background: #fafafa;
+    z-index: 99999;
+}
+
+.nodeTooltipHeader{
+    overflow: auto;
+}
+
+.nodeTooltipTitle{
+    /*color: #979898 ! important;*/
+    color: white ! important;
+    font-size: 11pt;
+    margin-right: 5pt;
+    margin: 2pt 20pt 4pt 2pt;
+}
+
+.closeNodeTooltipBtn{
+    position: absolute;
+    right: 2pt;
+    top: 3pt;
+    padding: 2pt 2pt 2pt 2pt;
+    cursor: pointer;
+}
+
+.nodeTooltipBody{
+    padding: 2pt 2pt 2pt 2pt;
+    background: #fafafa;
 }
 
 /*

@@ -35,6 +35,7 @@ var animating = animating || undefined;
 		_callbacks.api.deactivateSelectionTools = self.deactivateSelectionTools.bind(self);
 		_callbacks.api.activateSelectionTools = self.activate.bind(self);
 		_callbacks.api.selectionToolsActive = self.isActive;
+		_callbacks.api.dropSelection = self.dropSelection.bind(self);
 	};
 
 	Graphbrowser.Modules.SelectionTools.prototype.activate = function() {
@@ -51,8 +52,8 @@ var animating = animating || undefined;
 
 		_callbacks.sigmaPlugins.lasso.bind('selectedNodes', function (event) {
 			window.clearTimeout(_timeout);
-			_timeout = setTimeout(function() {				
-				
+			_timeout = setTimeout(function() {
+
 				if(_activeStateSelections[_currentActiveSelection].hidden){
 					self.hideSelectionGroup(_currentActiveSelection, false);
 				}
@@ -64,7 +65,7 @@ var animating = animating || undefined;
 					return;
 
 				_activeStateSelections[_currentActiveSelection].nodes = event.data;
-				
+
 				self.activateSelectionLasso(false);
 				//_s.refresh({skipIndexation: true});
 				self.updateActiveState();
@@ -77,23 +78,23 @@ var animating = animating || undefined;
 	};
 
 	Graphbrowser.Modules.SelectionTools.prototype.createSelectionGroup = function() {
-		var newId = (parseInt(Math.random() * (5000 - 1))).toString(); 
+		var newId = (parseInt(Math.random() * (5000 - 1))).toString();
 		_activeStateSelections[newId] = {id: newId, nodes: [], hidden: false, fixed: false};
 		_currentActiveSelection = newId;
-		return newId;	
+		return newId;
 	};
 
-	Graphbrowser.Modules.SelectionTools.prototype.hideSelectionGroup = function(groupId, status) {	
+	Graphbrowser.Modules.SelectionTools.prototype.hideSelectionGroup = function(groupId, status) {
 		if(status === undefined)
 			return;
 
 		if(_activeStateSelections[groupId].hidden !== status){
 			_activeStateSelections[groupId].hidden = status;
 			_callbacks.hideNodes(_activeStateSelections[groupId].nodes, status);
-		}		
+		}
 	};
 
-	Graphbrowser.Modules.SelectionTools.prototype.fixateSelectionGroup = function(groupId, status) {	
+	Graphbrowser.Modules.SelectionTools.prototype.fixateSelectionGroup = function(groupId, status) {
 		if(status === undefined)
 			return;
 		if(_activeStateSelections[groupId].fixed !== status){
@@ -104,21 +105,21 @@ var animating = animating || undefined;
 						gnode.fixed = _activeStateSelections[groupId].fixed;
 						node.fixed = _activeStateSelections[groupId].fixed;
 					}
-				});	
+				});
 			});
 		}
 	};
 
-	Graphbrowser.Modules.SelectionTools.prototype.clearSelectionGroup = function(groupId) {	
+	Graphbrowser.Modules.SelectionTools.prototype.clearSelectionGroup = function(groupId) {
 		var self = this;
 		self.onHideSelectionGroup(groupId, false);
 		self.setSelectionFixed(groupId, false);
-		_callbacks.sigmaPlugins.activeState.dropNodes();	
+		_callbacks.sigmaPlugins.activeState.dropNodes();
 		_activeStateSelections[groupId].nodes = undefined;
 		_s.refresh({skipIndexation: true})
 	};
 
-	Graphbrowser.Modules.SelectionTools.prototype.deleteSelectionGroup = function(groupId) {	
+	Graphbrowser.Modules.SelectionTools.prototype.deleteSelectionGroup = function(groupId) {
 		var self = this;
 		self.clearSelectionGroup();
 		_activeStateSelections.splice(_activeStateSelections.indexof(groupId), 1);
@@ -143,7 +144,7 @@ var animating = animating || undefined;
 		var an = [];
 		$.each(_activeStateSelections[_currentActiveSelection].nodes, function(i, node) {
 			an.push(node.id);
-		});		
+		});
 		_callbacks.sigmaPlugins.activeState.addNodes(an);
 		_s.refresh({skipIndexation: true});
 	};
@@ -188,6 +189,31 @@ var animating = animating || undefined;
 		_callbacks.refreshSigma(true);
 	};
 
+	Graphbrowser.Modules.SelectionTools.prototype.dropSelection = function(groupId){
+		var nodes = _activeStateSelections[groupId].nodes;
+
+		if (nodes !== undefined && nodes.length > 0) {
+			_callbacks.sigmaPlugins.activeState.dropNodes();
+			$.each(nodes, function(i, node){
+				if(_s.graph.nodes(node.id))
+					_s.graph.dropNode(node.id);
+			});
+			_s.refresh();
+
+			$.each(_activeStateSelections, function(i, selection){
+				var ids = [];
+				$.each(selection.nodes, function(i, node){
+					if(!_s.graph.nodes(node.id))
+						ids.push(node.id);
+				});
+
+				$.each(ids, function(i, id){
+					selection.nodes.splice(selection.nodes.indexOf(id), 1);
+				});
+			});
+		}
+	};
+
 	Graphbrowser.Modules.SelectionTools.prototype.onRestore = function() {
 		var self = this;
 		_activeStateSelections = [];
@@ -197,5 +223,5 @@ var animating = animating || undefined;
 			self.updateActiveState();
 		}
 	};
-	
+
 }).call(window);

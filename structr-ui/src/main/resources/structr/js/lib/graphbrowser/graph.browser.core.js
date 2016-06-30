@@ -15,8 +15,8 @@
 		if(conf.moduleSettings === undefined)
 			throw new Error("Graph-Browser: Settings for Graph-Browser-Modules are missing!");
 		_callbackMethods.api = _callbackMethods.api || {};
-		if(conf)		
-		_controller.sigmaControl = new Graphbrowser.Control.SigmaControl(_callbackMethods, conf.sigmaSettings, conf.graphContainer);
+		if(conf)
+		_controller.sigmaControl = new Graphbrowser.Control.SigmaControl(_callbackMethods, conf);
 		_s = _controller.sigmaControl.init();
 		_controller.connectionControl = new Graphbrowser.Control.ConnectionControl(_callbackMethods);
 		_controller.connectionControl.init();
@@ -27,7 +27,9 @@
 		for(var o in _callbackMethods.api){
 			self[o] = _callbackMethods.api[o];
 		}
-	};	
+	};
+
+
 
 	GraphBrowser.prototype.doLayout = function(layout, options){
 		if(typeof layout === 'string'){
@@ -42,7 +44,7 @@
 	GraphBrowser.prototype.start = function(settings){
 		_controller.ModuleControl.start(settings);
 		_controller.ModuleControl.refreshSigma(false, false);
-		
+
 	};
 
 	GraphBrowser.prototype.expandNode = function(id){
@@ -64,10 +66,10 @@
 					else{
 						if(nodes.indexOf(node.id) < 0){
 							_s.graph.dropNode(node);
-						}		
+						}
 					}
 				});
-		}	
+		}
 		else{
 			if(typeof nodes === 'string')
 				_s.graph.dropNode(nodes);
@@ -75,7 +77,7 @@
 				$.each(_s.graph.nodes(), function(i, node){
 					if(nodes.indexOf(node.id) >= 0){
 						_s.graph.dropNode(node);
-					}					
+					}
 				});
 			}
 		}

@@ -6,56 +6,60 @@ var animating = animating || undefined;
 (function() {
 	'use strict';
 
-	var _s , _callbacks, _sigmaSettings, _sigmaContainer, _dragListener, _activeState, _lasso, _keyboard, _select;
+	var _s , _callbacks, _sigmaSettings, _sigmaContainer, _lassoSettings, _dragListener, _activeState, _lasso, _keyboard, _select;
 	var _hasDragged = false, _shiftKey = false, _ctrlKey = false, _altKey = false;
 	var _keyupHandlers = [],  _keydownHandlers = [];
 
-	Graphbrowser.Control.SigmaControl = function(callbacks, sigmaSettings, sigmaContainer){
+	Graphbrowser.Control.SigmaControl = function(callbacks, conf){
 		var self = this;
 		self.name = 'SigmaControl';
 		_callbacks = callbacks;
-		_sigmaSettings = sigmaSettings;
-		_sigmaContainer = sigmaContainer;
+		conf.sigmaSettings !== undefined ?
+			_sigmaSettings = conf.sigmaSettings :
+			_sigmaSettings = {
+				immutable: false,
+				minNodeSize: 1,
+				maxNodeSize: 10,
+				borderSize: 4,
+				defaultNodeBorderColor: '#a5a5a5',
+				singleHover: true,
+				doubleClickEnabled: false,
+				minEdgeSize: 4,
+				maxEdgeSize: 4,
+				enableEdgeHovering: true,
+				edgeHoverColor: 'default',
+				edgeHoverSizeRatio: 1.3,
+				edgeHoverExtremities: true,
+				defaultEdgeColor: '#999',
+				defaultEdgeHoverColor: '#888',
+				minArrowSize: 4,
+				maxArrowSize: 8,
+				labelSize: 'proportional',
+				labelSizeRatio: 1,
+				labelAlignment: 'right',
+				nodeHaloColor: 'rgba(236, 81, 72, 0.2)',
+				nodeHaloSize: 20
+			};
+		(conf.graphContainer !== undefined && typeof conf.graphContainer === 'string') ?
+			_sigmaContainer = conf.graphContainer : _sigmaContainer = "graph-container";
+
+		conf.lassoSettings !== undefined ? _lassoSettings = conf.lassoSettings :
+			_lassoSettings = {
+				'strokeStyle': 'rgb(236, 81, 72)',
+				'lineWidth': 2,
+				'fillWhileDrawing': true,
+				'fillStyle': 'rgba(236, 81, 72, 0.2)',
+				'cursor': 'crosshair'
+			}
 	};
 
 	Graphbrowser.Control.SigmaControl.prototype.init = function() {
 		var self = this;
-		var sigmaContainer, sigmaSettings;
-
-		_sigmaContainer && typeof _sigmaContainer === 'string' ? 
-			sigmaContainer = _sigmaContainer :
-				sigmaContainer = "graph-container";
-
-		_sigmaSettings !== undefined ? sigmaSettings = _sigmaSettings : 
-		sigmaSettings = {
-			immutable: false,
-			minNodeSize: 1,
-			maxNodeSize: 10,
-			borderSize: 4,
-			defaultNodeBorderColor: '#a5a5a5',
-			singleHover: true,
-			doubleClickEnabled: false,
-			minEdgeSize: 4,
-			maxEdgeSize: 4,
-			enableEdgeHovering: true,
-			edgeHoverColor: 'default',
-			edgeHoverSizeRatio: 1.3,
-			edgeHoverExtremities: true,
-			defaultEdgeColor: '#999',
-			defaultEdgeHoverColor: '#888',
-			minArrowSize: 4,
-			maxArrowSize: 8,
-			labelSize: 'proportional',
-			labelSizeRatio: 1,
-			labelAlignment: 'right',
-			nodeHaloColor: 'rgba(236, 81, 72, 0.2)',
-			nodeHaloSize: 20,
-		};
 
 		sigma.renderers.def = sigma.renderers.canvas;
 		_s = new sigma({
-			container: sigmaContainer,
-			settings: sigmaSettings
+			container: _sigmaContainer,
+			settings: _sigmaSettings
 		});
 
 		_activeState = sigma.plugins.activeState(_s);
@@ -64,16 +68,10 @@ var animating = animating || undefined;
 
 		_select = sigma.plugins.select(_s, _activeState);
 		_select.bindKeyboard(_keyboard);
-		
+
 		_dragListener = new sigma.plugins.dragNodes(_s, _s.renderers[0], _activeState);
 
-		_lasso = new sigma.plugins.lasso(_s, _s.renderers[0], {
-			'strokeStyle': 'rgb(236, 81, 72)',
-			'lineWidth': 2,
-			'fillWhileDrawing': true,
-			'fillStyle': 'rgba(236, 81, 72, 0.2)',
-			'cursor': 'crosshair'
-		});
+		_lasso = new sigma.plugins.lasso(_s, _s.renderers[0], _lassoSettings);
 
 		_select.bindLasso(_lasso);
 
@@ -116,7 +114,7 @@ var animating = animating || undefined;
 				case 17:
 					_ctrlKey = true;
 					break;
-				case 18:	
+				case 18:
 					_altKey = true;
 					break;
 			}

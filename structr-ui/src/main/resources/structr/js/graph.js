@@ -134,11 +134,13 @@ var _Graph = {
         var graphBrowserSettings = {
             graphContainer: 'graph-canvas',
             moduleSettings: {
+                'tooltips' : {cssClass: 'graphBrowserTooltips', nodeRenderer: _Graph.renderNodeTooltip},
                 'nodeExpander': {container: 'graph-info', newNodesSize: 20, newNodesSize: 20, margins: {top: 28, left: 10}, edgeType: "curvedArrow", onNodesAdded: _Graph.onNodesAdded},
                 'selectionTools': {'container': 'graph-canvas'},
                 'relationshipEditor' : {incommingRelationsKey: 'shift', outgoingRelationsKey: 'ctrl', deleteEvent: 'doubleClickEdge', onDeleteRelation: undefined},
                 'currentNodeTypes': {},
                 'nodeFilter': {}
+
             },
             sigmaSettings: {
                 immutable: false,
@@ -158,15 +160,24 @@ var _Graph = {
                 defaultEdgeColor: '#999',
                 defaultEdgeHoverColor: '#81ce25',
                 defaultEdgeLabelActiveColor: '#81ce25',
+                defaultEdgeActiveColor: '#81ce25',
                 minArrowSize: 4,
                 maxArrowSize: 8,
                 labelSize: 'proportional',
                 labelSizeRatio: 1,
                 labelAlignment: 'right',
                 nodeHaloColor: 'rgba(236, 81, 72, 0.2)',
-                nodeHaloSize: 20,
+                nodeHaloSize: 20
+            },
+            lassoSettings: {
+                'strokeStyle': 'rgb(129, 206, 37)',
+                'lineWidth': 5,
+                'fillWhileDrawing': true,
+                'fillStyle': 'rgba(129, 206, 37, 0.2)',
+                'cursor': 'crosshair'
             }
         }
+
         graphBrowser = new GraphBrowser(graphBrowserSettings);
         graphBrowser.start();
 
@@ -259,6 +270,7 @@ var _Graph = {
                                 '<th>Group</th>' +
                                 '<th>Fixed</th>' +
                                 '<th>Hidden</th>' +
+                                '<th>Drop</th>' +
                             '</tr></thead>' +
                             '<tbody id="selectiontools-selectionTable-groupSelectionItems">' +
                             '<tbody>' +
@@ -307,10 +319,16 @@ var _Graph = {
                     '<td><input type="checkbox" name="selectedGroup[]" value="selected.' + newId + '">' + newId + '</td>' +
                     '<td style="text-align: center;"><input type="checkbox" name="Fixed[]" value="fixed.' + newId + '"></td>' +
                     '<td style="text-align: center;"><input type="checkbox" name="Hidden[]" value="hidden.' + newId + '"></td>' +
+                    '<td style="text-align: center;"><button class="selectionTableRemoveBtn" value="' + newId + '">Drop</button></td>' +
                 '</tr>'
             );
             $("input[name='selectedGroup[]']").trigger('click');
             $("input[value='selected." + newId + "']").prop('checked', true);
+        });
+
+        $(document).on('click', ".selectionTableRemoveBtn", function(){
+            var val = $(this).val();
+            graphBrowser.dropSelection(val);
         });
 
         $(document).on('click', "input[name='selectedGroup[]']",  function() {
@@ -349,8 +367,39 @@ var _Graph = {
                 graphBrowser.fixateSelectionGroup(val[1], true);
             }
             else {
-                    graphBrowser.fixateSelectionGroup(val[1], false);
+                graphBrowser.fixateSelectionGroup(val[1], false);
             }
+        });
+
+        $(document).on('click', '#closeNodeTooltip', function(){
+            graphBrowser.closeTooltip();
+        });
+
+        $(document).on('click', '#tooltipBtnProps', function(){
+            var id = $(this).attr("value");
+            _Entities.showProperties({id: id});
+            graphBrowser.closeTooltip();
+        });
+
+        $(document).on('click', '#tooltipBtnHide', function(){
+            var id = $(this).attr("value");
+            graphBrowser.closeTooltip();
+            graphBrowser.hideNode(id, true);
+        });
+
+        $(document).on('click', '#tooltipBtnDrop', function(){
+            var id = $(this).attr("value");
+            graphBrowser.closeTooltip();
+            graphBrowser.dropNode(id);
+        });
+
+        $(document).on('click', '#tooltipBtnDel', function(){
+            self = $(this);
+            var id = self.attr("value");
+            Command.get(id, function (entity) {
+                _Entities.deleteNode($(this), entity, false, graphBrowser.dropNode);
+            });
+            graphBrowser.closeTooltip();
         });
 
         graph = $('#graph-canvas');
@@ -368,11 +417,11 @@ var _Graph = {
                 var y = ui.offset.top;
                 //console.log('Creating node of type', nodeType, x, y);
                 Command.create({
-                        type: nodeType
+                    type: nodeType
                 }, function(obj) {
-                        Command.get(obj.id, function(node) {
-                                _Graph.drawNode(node);
-                        });
+                    Command.get(obj.id, function(node) {
+                        _Graph.drawNode(node);
+                    });
                 });
             }
         });
@@ -710,25 +759,25 @@ var _Graph = {
     },
 
     drawNode: function(node, x, y) {
-            if (isIn(node.id, nodeIds) || isIn(node.type, filteredNodeTypes)) {
-                return;
-            }
-            nodeIds.push(node.id);
-            _Graph.setNodeColor(node);
-            //console.log('drawing node', node, nodeTypes[node.type], isIn(node.type, hiddenNodeTypes));
+        if (isIn(node.id, nodeIds) || isIn(node.type, filteredNodeTypes)) {
+            return;
+        }
+        nodeIds.push(node.id);
+        _Graph.setNodeColor(node);
+        //console.log('drawing node', node, nodeTypes[node.type], isIn(node.type, hiddenNodeTypes));
         try{
             var ratio = graphBrowser.getCameraRatio();
-            var newX = Math.random(10) * (10);
-            var newY = Math.random(10) * (10);
+            var newX = 0;
+            var newY = 0;
 
             if(ratio > 1){
-                newX = Math.random(10) * (10 * ratio);
-                newY = Math.random(10) * (10 * ratio);
+                newX = (Math.random(100) / (2*ratio));
+                newY = (Math.random(100) / (2*ratio));
             }
 
-            if(ratio < 1){
-                newX = Math.random(10) * (ratio);
-                newY = Math.random(10) * (ratio);
+            if(ratio <= 1){
+                newX = (Math.random(100) / (1/ratio));
+                newY = (Math.random(100) / (1/ratio));
             }
 
             graphBrowser.addNode({
@@ -1048,6 +1097,25 @@ var _Graph = {
     var edge = clickedEdge.data.edge;
         hasDoubleClicked = false;
         _Entities.showProperties(edge);
+    },
+
+    renderNodeTooltip: function(node){
+        var tooltip =
+            "<div class='nodeTooltip'>" +
+                "<div id='nodeTooltipHeader" + node.id + "' class='nodeTooltipHeader' style='background: " + color[node.nodeType] + "'>" +
+                        "<p class='nodeTooltipTitle'>" + node.label + "</p>" +
+                        "<img class='closeNodeTooltipBtn' id='closeNodeTooltip' src='icon/cross_small_grey.png'>" +
+                "</div>" +
+                "<div id='nodeTooltipBody" + node.id + "' class='nodeTooltipBody'>" +
+                    "<div><button id='tooltipBtnProps' value='" + node.id + "'>Properties</button>" +
+                    "<button id='tooltipBtnDrop' value='" + node.id + "'>Drop</button>" +
+                    "<button id='tooltipBtnDel' value='" + node.id + "'>Delete</button></div>" +
+                    //"<button id='tooltipBtnHide' value='" + node.id + "'>Hide</button></div>" +
+                "</div>"
+            "</div>";
+
+        graphBrowser.hideExpandButtons();
+        return tooltip;
     }
 };
 

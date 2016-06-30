@@ -29,7 +29,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 				_filterType = 'blacklist';
 			}
 
-			settings.filterOnStart !== undefined ? _filterOnStart = settings.filterOnStart : _filterOnStart = true;	
+			settings.filterOnStart !== undefined ? _filterOnStart = settings.filterOnStart : _filterOnStart = true;
 			settings.filterNodeTypes !== undefined ? _filterNodeTypes = settings.filterNodeTypes : _filterNodeTypes = [];
 		}
 		else {
@@ -46,6 +46,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		_callbacks.api.clearFilterNodeTypes = self.clearFilterNodeTypes.bind(self);
 		_callbacks.api.filterGraph = self.filterGraph.bind(self);
 		_callbacks.api.hideNodes = self.hideNodes.bind(self);
+		_callbacks.api.hideNode = self.hideNode.bind(self);
 		_callbacks.api.hideNodeType = self.hideNodeType.bind(self);
 		_callbacks.api.hideRelType = self.hideRelType.bind(self);
 		_callbacks.api.hideRels = self.hideRels.bind(self);
@@ -76,11 +77,11 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 								if(el.sourceNode.type === filterType2)
 									stay = true;
 							});
-							return stay;						
+							return stay;
 						}
 						else
 							return true;
-					}		
+					}
 				});
 			});
 		}
@@ -103,11 +104,11 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 								if(el.targetNode.type === filterType2)
 									stay = true;
 							});
-							return stay;							
+							return stay;
 						}
 						else
 							return true;
-					}				
+					}
 				});
 			});
 		}
@@ -125,7 +126,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		if(filterType !== undefined){
 				if(filterType === "whitelist" || filterType === "blacklist")
 					_filterType = filterType;
-		}		
+		}
 	};
 
 	Graphbrowser.Modules.NodeFilter.prototype.removeNodeTypeFromFilter = function(nodeType){
@@ -139,7 +140,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 	Graphbrowser.Modules.NodeFilter.prototype.hideNodeType = function(nodeType, status){
 
-		if(status){							
+		if(status){
 			_hiddenNodeTypes[nodeType] = status;
 		}
 		else{
@@ -158,10 +159,10 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 				}
 				else{
 					node.hidden = _hiddenNodeTypes[nodeType];
-				}						
+				}
 			}
 		});
-		
+
 		_s.refresh({skipIndexation: true});
 	};
 
@@ -175,18 +176,18 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 					}
 					_hiddenNodes[nodeToHide.id] = {};
 					_hiddenNodes[nodeToHide.id].hidden = status;
-					nodeInGraph.hidden = status;	
-					return false;		
+					nodeInGraph.hidden = status;
+					return false;
 				}
-			});		
+			});
 		});
-		
+
 		_s.refresh({skipIndexation: true});
 	};
 
 	Graphbrowser.Modules.NodeFilter.prototype.hideRelType = function(relName, status){
 
-		if(status){							
+		if(status){
 			_hiddenRelTypes[relName] = status;
 		}
 		else{
@@ -205,10 +206,10 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 				}
 				else{
 					edge.hidden = _hiddenRelTypes[relName];
-				}						
+				}
 			}
 		});
-		
+
 		_s.refresh({skipIndexation: true});
 	};
 
@@ -221,12 +222,12 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 					}
 					_hiddenRels[edgeToHide.id] = {};
 					_hiddenRels[edgeToHide.id].hidden = status;
-					edgeInGraph.hidden = status;	
-					return false;		
+					edgeInGraph.hidden = status;
+					return false;
 				}
-			});		
+			});
 		});
-		
+
 		_s.refresh({skipIndexation: true});
 	};
 
@@ -252,13 +253,22 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 					if(del){
 						ids.push(node.id);
 					}
-				}				
-			});			
+				}
+			});
 		});
 		$.each(ids, function(i, id){
 			_s.graph.dropNode(id);
 		});
 		_callbacks.refreshSigma(false, true);
+	};
+
+	Graphbrowser.Modules.NodeFilter.prototype.hideNode = function(id, status){
+		var node = _s.graph.nodes(id);
+
+		if(node){
+			node.hidden = status;
+			_s.refresh({skipIndexation: true});
+		}
 	};
 
 	Graphbrowser.Modules.NodeFilter.prototype.start = function(){

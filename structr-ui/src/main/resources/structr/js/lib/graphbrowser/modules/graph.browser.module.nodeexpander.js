@@ -53,7 +53,7 @@ var animating = animating || undefined;
 		}
 		else
 			throw new Error("Graph-Browser-NodeExpander: No settings found!");
-		
+
 		if(_infoContainer.charAt(0) !== '#')
 			_infoContainer = '#' + _infoContainer;
 
@@ -63,7 +63,8 @@ var animating = animating || undefined;
 
 		_callbacks.api.expandNode = self.expandNode.bind(self);
 		_callbacks.api.collapseNode = self.collapseNode.bind(self);
-		
+		_callbacks.api.hideExpandButtons = self.hideExpandButtons.bind(self);
+
 	};
 
 	Graphbrowser.Modules.NodeExpander.prototype.handleClickNodeEvent = function(clickedNode){
@@ -103,7 +104,7 @@ var animating = animating || undefined;
 	Graphbrowser.Modules.NodeExpander.prototype.handleOverNodeEvent = function(node){
 		var self = this;
 
-		_active = true;	
+		_active = true;
 		_currentEvent = 'overNode';
 		_hoverMap = {};
 		_newNodes = [];
@@ -237,14 +238,14 @@ var animating = animating || undefined;
 				var edges = _expanded[id].edges;
 				var nodes = _expanded[id].nodes;
 				$.each(edges, function(i, e) {
-					try { 
-						_s.graph.dropEdge(e); 
+					try {
+						_s.graph.dropEdge(e);
 					} catch(x) {}
 				});
 				$.each(nodes, function(i, n) {
 					self.collapseNode(_s.graph.nodes(n));
-					try { 
-						_s.graph.dropNode(n); 
+					try {
+						_s.graph.dropNode(n);
 					} catch(x) {}
 				});
 				_expanded[id].state = 'collapsed';
@@ -307,7 +308,7 @@ var animating = animating || undefined;
 		_newNodes = $.extend(_newNodes, nodes);
 		_newEdges = $.extend(_newEdges, edges);
 		_callbacks.pickNodes(_newNodes, self.onNodesSelected.bind(self), current.id, current.label);
-	}; 
+	};
 
 	Graphbrowser.Modules.NodeExpander.prototype.addOutNode = function (nodes, edges, result, x, y) {
 		var sourceNode = result.sourceNode;
@@ -316,12 +317,12 @@ var animating = animating || undefined;
 		var ratio = _s.camera.ratio;
 		var newX = 0;
         var newY = 0;
-        
+
         if(ratio > 1){
             newX = x + (Math.cos(angle) * (Math.abs(x) / (2*ratio)));
             newY = y + (Math.sin(angle) * (Math.abs(y) / (2*ratio)));
         }
-        
+
         if(ratio <= 1){
             newX = x + (Math.cos(angle) * (Math.abs(x) / (1/ratio)));
             newY = y + (Math.sin(angle) * (Math.abs(y) / (1/ratio)));
@@ -339,12 +340,12 @@ var animating = animating || undefined;
 		var ratio = _s.camera.ratio;
 		var newX = 0;
 		var newY = 0;
-        
+
         if(ratio > 1){
             newX = x + (Math.cos(angle) * (Math.abs(x) / (2*ratio)));
             newY = y + (Math.sin(angle) * (Math.abs(y) / (2*ratio)));
         }
-        
+
         if(ratio <= 1){
             newX = x + (Math.cos(angle) * (Math.abs(x) / (1/ratio)));
             newY = y + (Math.sin(angle) * (Math.abs(y) / (1/ratio)));
@@ -355,7 +356,7 @@ var animating = animating || undefined;
 		edges.push({id: result.id, source: sourceNode.id, target: targetNode.id, size: _newEdgesSize, relType: result.type, label: result.relType, type: _edgeType, color: '#999'});
 	};
 
-	Graphbrowser.Modules.NodeExpander.prototype.addEdge = function (result){  
+	Graphbrowser.Modules.NodeExpander.prototype.addEdge = function (result){
 		var sourceNode = result.sourceNode;
 		var targetNode = result.targetNode;
 		var id = result.id;
@@ -390,7 +391,7 @@ var animating = animating || undefined;
 		_newNodes = [];
 		_newEdges = [];
 
-		_callbacks.dataChanged(self.name);  
+		_callbacks.dataChanged(self.name);
 
 		if(_onNodesAdded !== undefined && typeof _onNodesAdded === 'function')
 			_onNodesAdded();
@@ -409,7 +410,7 @@ var animating = animating || undefined;
 
 		if(!_expanded){
 			_expanded = {};
-		}		
+		}
 	};
 
 	Graphbrowser.Modules.NodeExpander.prototype.onDataChanged = function(changeType){
@@ -419,8 +420,8 @@ var animating = animating || undefined;
 		}
 		if(changeType === self.name ){
 			var exp = jQuery.extend({}, _expanded);
-			_undoStack.push(exp);	
-		}	
+			_undoStack.push(exp);
+		}
 	};
 
 	Graphbrowser.Modules.NodeExpander.prototype.onSave = function(){
@@ -441,14 +442,18 @@ var animating = animating || undefined;
 	};
 
 	Graphbrowser.Modules.NodeExpander.prototype.expandNode = function(id){
-		var self = this; 
+		var self = this;
 		var node = _s.graph.nodes(id);
 		_showHoverInfo = false;
-		
+
 		var inNodes = _callbacks.conn.getNodes(node, 'in', self.onNewInNodesLoaded.bind(self));
 		var outNodes = _callbacks.conn.getNodes(node, 'out', self.onNewOutNodesLoaded.bind(self));
 		window.setTimeout(function(){
 			self.onExpandNode(node);
 		}, 20);
+	};
+
+	Graphbrowser.Modules.NodeExpander.prototype.hideExpandButtons = function(){
+		$(_infoContainer).empty();
 	};
 }).call(this);
