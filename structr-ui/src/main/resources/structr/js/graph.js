@@ -391,13 +391,19 @@ var _Graph = {
             var id = $(this).attr("value");
             graphBrowser.closeTooltip();
             graphBrowser.dropNode(id);
+            graphBrowser.dataChanged();
+            _Graph.updateRelationshipTypes();
         });
 
         $(document).on('click', '#tooltipBtnDel', function(){
             self = $(this);
             var id = self.attr("value");
             Command.get(id, function (entity) {
-                _Entities.deleteNode($(this), entity, false, graphBrowser.dropNode);
+                _Entities.deleteNode($(this), entity, false, function(entity){
+                    graphBrowser.dropNode(entity);
+                    graphBrowser.dataChanged();
+                    _Graph.updateRelationshipTypes();
+                });
             });
             graphBrowser.closeTooltip();
         });
