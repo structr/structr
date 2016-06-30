@@ -19,7 +19,6 @@
 package org.structr.core.function;
 
 import java.util.Arrays;
-import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
@@ -28,13 +27,13 @@ import org.structr.schema.action.Function;
 /**
  *
  */
-public class SplitFunction extends Function<Object, Object> {
+public class SplitRegexFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_SPLIT = "Usage: ${split(value)}. Example: ${split(this.commaSeparatedItems)}";
+	public static final String ERROR_MESSAGE_SPLIT_REGEX = "Usage: ${split_regex(value)}. Example: ${split_regex('foo|bar', '|')}";
 
 	@Override
 	public String getName() {
-		return "split()";
+		return "split_regex()";
 	}
 
 	@Override
@@ -47,11 +46,9 @@ public class SplitFunction extends Function<Object, Object> {
 
 			if (sources.length >= 2) {
 				splitExpr = sources[1].toString();
-				return Arrays.asList(StringUtils.split(toSplit, splitExpr));
-			} else {
-				
-				return Arrays.asList(toSplit.split(splitExpr));
 			}
+			
+			return Arrays.asList(toSplit.split(splitExpr));
 
 		} else {
 
@@ -64,12 +61,12 @@ public class SplitFunction extends Function<Object, Object> {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_SPLIT;
+		return ERROR_MESSAGE_SPLIT_REGEX;
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Splits the given string";
+		return "Splits the given string by given regex";
 	}
 
 

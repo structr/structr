@@ -242,8 +242,32 @@ public class ActionContextTest extends StructrTest {
 			// split
 			assertEquals("Invalid split() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one,two,three\"))}"));
 			assertEquals("Invalid split() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one;two;three\"))}"));
+			assertEquals("Invalid split() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one two three\"))}"));
+			assertEquals("Invalid split() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one	two	three\"))}"));
 			assertEquals("Invalid split() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one;two;three\", \";\"))}"));
+			assertEquals("Invalid split() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one,two,three\", \",\"))}"));
+			assertEquals("Invalid split() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one.two.three\", \".\"))}"));
+			assertEquals("Invalid split() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one two three\", \" \"))}"));
+			assertEquals("Invalid split() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one+two+three\", \"+\"))}"));
+			assertEquals("Invalid split() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one|two|three\", \"|\"))}"));
+			assertEquals("Invalid split() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one::two::three\", \"::\"))}"));
+			assertEquals("Invalid split() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one-two-three\", \"-\"))}"));
 			assertEquals("Invalid split() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${split(this.alwaysNull)}"));
+
+			// split_regex
+			assertEquals("Invalid split_regex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one,two,three\"))}"));
+			assertEquals("Invalid split_regex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one;two;three\"))}"));
+			assertEquals("Invalid split_regex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one two three\"))}"));
+			assertEquals("Invalid split_regex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one	two	three\"))}"));
+			assertEquals("Invalid split_regex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one;two;three\", \";\"))}"));
+			assertEquals("Invalid split_regex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one,two,three\", \",\"))}"));
+			assertEquals("Invalid split_regex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one.two.three\", \"\\.\"))}"));
+			assertEquals("Invalid split_regex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one two three\", \" \"))}"));
+			assertEquals("Invalid split_regex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one+two+three\", \"+\"))}"));
+			assertEquals("Invalid split_regex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one|two|three\", \"|\"))}"));
+			assertEquals("Invalid split_regex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one::two::three\", \"::\"))}"));
+			assertEquals("Invalid split_regex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one-two-three\", \"-\"))}"));
+			assertEquals("Invalid split_regex() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${split(this.alwaysNull)}"));
 
 			// abbr
 			assertEquals("Invalid abbr() result", "oneStringt…", Scripting.replaceVariables(ctx, testOne, "${abbr(concat(\"one\", this.aString, \"three\"), 10)}"));
