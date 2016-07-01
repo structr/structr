@@ -640,11 +640,11 @@ var _Schema = {
 									events: {
 										click: function(overlay, evt) {
 											evt.preventDefault();
-											
+
 											var targetEl = $(evt.target);
-											
+
 											var focusOnClass = targetEl.hasClass('source-multiplicity') ? 'source-mult-input' : (targetEl.hasClass('target-multiplicity') ? 'target-mult-input' : 'rel-type-input');
-											
+
 											if (overlay.getLabel().substring(0, 6) !== '<input') {
 
 												overlay.setLabel(_Schema.getRelationshipOverlayHtml(res, true));
@@ -3287,6 +3287,12 @@ var _Schema = {
 			$.jstree.destroy();
 			printClassTree(inheritanceTree, classTree);
 			inheritanceTree.jstree({
+				core: {
+					multiple: false,
+					themes: {
+						dots: false
+					}
+				},
 				plugins: ["search"]
 			}).on('changed.jstree', function (e, data) {
 				var $node = $('#' + data.node.data.id);
@@ -3297,9 +3303,14 @@ var _Schema = {
 				}
 			});
 
-			$('#search-classes').keyup(function () {
-				var query = $('#search-classes').val();
-				inheritanceTree.jstree(true).search(query);
+			$('#search-classes').keyup(function (e) {
+				if (e.which === 27) {
+					$('#search-classes').val('');
+					inheritanceTree.jstree(true).clear_search();
+				} else {
+					var query = $('#search-classes').val();
+					inheritanceTree.jstree(true).search(query, true, true);
+				}
 			});
 
 		});
