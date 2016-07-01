@@ -999,7 +999,7 @@ img.button {
 	margin: 0 ! important;
 }
 
-#schema-graph.noselect {
+#schema-graph.noselect, .graphNoSelect {
 	-webkit-touch-callout: none;
 	-webkit-user-select: none;
 	-khtml-user-select: none;
@@ -2390,7 +2390,6 @@ input.bitmask {
 	bottom: 12px;
 }
 
-
 #info-area {
 	z-index: 9999;
 	position: absolute;
@@ -2507,7 +2506,7 @@ td#cascading-options, td#propagation-options {
     overflow-y: auto;
 }
 
-.graphtable {
+.graphtable{
     margin-top: 10pt;
     width: 100%;
 }
@@ -2523,13 +2522,23 @@ td#cascading-options, td#propagation-options {
     vertical-align: central;
 }
 
-.nodeTooltip{
+.graphTooltip{
+    margin-top: 10pt;
     background: #fafafa;
     z-index: 99999;
+    border: solid #cccccc 2px;
+    border-radius: 2px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
 }
 
-.nodeTooltipHeader{
-    overflow: auto;
+.tooltipHeader{
+    padding-top: 2pt;
+    height: 16pt;
+    background-color: #cccccc;
+}
+
+.tooltipContent{
+    border: solid #bfbfbf 1px;
 }
 
 .nodeTooltipTitle{
@@ -2540,17 +2549,74 @@ td#cascading-options, td#propagation-options {
     margin: 2pt 20pt 4pt 2pt;
 }
 
-.closeNodeTooltipBtn{
+.closeTooltipBtn{
     position: absolute;
     right: 2pt;
-    top: 3pt;
+    top: 12pt;
     padding: 2pt 2pt 2pt 2pt;
     cursor: pointer;
 }
 
-.nodeTooltipBody{
-    padding: 2pt 2pt 2pt 2pt;
+.tooltipBody{
+    padding: 2pt 4pt;
     background: #fafafa;
+}
+
+.tooltipFooter{
+    padding: 2pt 4pt;
+    background: #fafafa;
+}
+
+.graphTooltipSelectable{
+    margin-left: 6pt;
+    color: black ! important;
+    -webkit-touch-callout: all;
+    -webkit-user-select: all;
+    -khtml-user-select: all;
+    -moz-user-select: all;
+    -ms-user-select: all;
+    user-select: all;
+    font-size: 9pt;
+}
+
+.tooltipTitle{
+    margin-top: 12pt;
+    margin-right: 4pt;
+    margin-left: 4pt;
+    font-size: 9pt;
+    display: inline;
+}
+
+.tooltipText{
+    color: black ! important;
+    font-size: 11pt;
+    display: inline;
+}
+
+.tooltipArrowUp {
+    left: 50%;
+    top: -10pt;
+    margin-left: -10pt;
+    border-top-width: 0;
+    border-width: 10pt;
+    position: absolute;
+    display: block;
+    width: 0;
+    height: 0;
+    border-color: transparent;
+    border-style: solid;
+    border-bottom-color: #cccccc;
+}
+
+.tooltipTable{
+    width: 100%;
+    vertical-align: central;
+}
+
+.tooltipTableLabel{
+    color: black ! important;
+    font-size: 9pt;
+    padding-right: 4pt;
 }
 
 /*

@@ -330,7 +330,7 @@ var animating = animating || undefined;
 		var size = _newNodeSize;
 
 		nodes.push({id: targetNode.id, label: targetNode.name, size: size, x: newX, y: newY, color: color[targetNode.type], nodeType: targetNode.type});
-		edges.push({id: result.id, source: sourceNode.id, target: targetNode.id, size: _newEdgesSize, relType: result.type, label: result.relType, type: _edgeType, color: '#999'});
+		edges.push({id: result.id, source: sourceNode.id, target: targetNode.id, size: _newEdgesSize, relType: result.type, label: result.relType, type: _edgeType, color: _s.settings('defaultEdgeColor')});
 	};
 
 	Graphbrowser.Modules.NodeExpander.prototype.addInNode = function(nodes, edges, result, x, y) {
@@ -353,14 +353,14 @@ var animating = animating || undefined;
 		var size = _newNodeSize;
 
 		nodes.push({id: sourceNode.id, label: sourceNode.name, size: size, x: newX, y: newY, color: color[sourceNode.type], nodeType: sourceNode.type});
-		edges.push({id: result.id, source: sourceNode.id, target: targetNode.id, size: _newEdgesSize, relType: result.type, label: result.relType, type: _edgeType, color: '#999'});
+		edges.push({id: result.id, source: sourceNode.id, target: targetNode.id, size: _newEdgesSize, relType: result.type, label: result.relType, type: _edgeType, color: _s.settings('defaultEdgeColor')});
 	};
 
 	Graphbrowser.Modules.NodeExpander.prototype.addEdge = function (result){
 		var sourceNode = result.sourceNode;
 		var targetNode = result.targetNode;
 		var id = result.id;
-		edges[result.id]     = {id: result.id, source: sourceNode.id, target: targetNode.id, size: _newEdgesSize, relType: result.type, label: result.relType, type: _edgeType, color: '#999'};
+		edges[result.id]     = {id: result.id, source: sourceNode.id, target: targetNode.id, size: _newEdgesSize, relType: result.type, label: result.relType, type: _edgeType, color: _s.settings('defaultEdgeColor')};
 	};
 
 	Graphbrowser.Modules.NodeExpander.prototype.addNodesToGraph = function(current, nodes, edges){

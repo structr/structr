@@ -145,6 +145,8 @@ var animating = animating || undefined;
 		_callbacks.api.updateNode = self.updateNode.bind(self);
 		_callbacks.api.updateEdge = self.updateEdge.bind(self);
 		_callbacks.api.getCameraRatio = self.getCameraRatio.bind(self);
+		_callbacks.api.getNode = self.getNode.bind(self);
+		_callbacks.api.getEdge = self.getEdge.bind(self);
 		_callbacks.api.changeSigmaSetting = self.changeSigmaSetting.bind(self);
 
 		return _s;
@@ -231,7 +233,7 @@ var animating = animating || undefined;
 		_s.refresh();
 	};
 
-	Graphbrowser.Control.SigmaControl.prototype.dropEdge = function(node) {
+	Graphbrowser.Control.SigmaControl.prototype.dropEdge = function(edge) {
 		if(typeof edge === "string"){
 			if(_s.graph.edges(edge)){
 				_s.graph.dropEdge(edge);
@@ -334,6 +336,36 @@ var animating = animating || undefined;
 
 	Graphbrowser.Control.SigmaControl.prototype.getCameraRatio = function() {
 		return _s.camera.ratio;
+	};
+
+	Graphbrowser.Control.SigmaControl.prototype.getNode = function(node) {
+		if(typeof node === "string"){
+			var n = _s.graph.nodes(node);
+			if(n){
+				return n;
+			}
+		}
+		else{
+			var n = _s.graph.nodes(node.id);
+			if(n){
+				return n;
+			}
+		}
+	};
+
+	Graphbrowser.Control.SigmaControl.prototype.getEdge = function(edge) {
+		if(typeof edge === "string"){
+			var e = _s.graph.edges(edge);
+			if(e){
+				return e;
+			}
+		}
+		else{
+			var e = _s.graph.edges(edge.id);
+			if(e){
+				return e;
+			}
+		}
 	};
 
 	Graphbrowser.Control.SigmaControl.prototype.changeSigmaSetting = function(setting, value) {

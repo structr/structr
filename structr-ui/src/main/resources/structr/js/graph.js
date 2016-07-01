@@ -134,13 +134,21 @@ var _Graph = {
         var graphBrowserSettings = {
             graphContainer: 'graph-canvas',
             moduleSettings: {
-                'tooltips' : {cssClass: 'graphBrowserTooltips', nodeRenderer: _Graph.renderNodeTooltip},
+                'tooltips' : {
+                    node : {
+                        cssClass: 'graphBrowserTooltips',
+                        renderer: _Graph.renderNodeTooltip
+                    },
+                    edge : {
+                        cssClass: 'graphBrowserTooltips',
+                        renderer: _Graph.renderEdgeTooltip
+                    }
+                },
                 'nodeExpander': {container: 'graph-info', newNodesSize: 20, newNodesSize: 20, margins: {top: 28, left: 10}, edgeType: "curvedArrow", onNodesAdded: _Graph.onNodesAdded},
                 'selectionTools': {'container': 'graph-canvas'},
                 'relationshipEditor' : {incommingRelationsKey: 'shift', outgoingRelationsKey: 'ctrl', deleteEvent: 'doubleClickEdge', onDeleteRelation: undefined},
                 'currentNodeTypes': {},
                 'nodeFilter': {}
-
             },
             sigmaSettings: {
                 immutable: false,
@@ -157,7 +165,7 @@ var _Graph = {
                 edgeHoverColor: 'default',
                 edgeHoverSizeRatio: 1.3,
                 edgeHoverExtremities: true,
-                defaultEdgeColor: '#999',
+                defaultEdgeColor: '#cccccc',
                 defaultEdgeHoverColor: '#81ce25',
                 defaultEdgeLabelActiveColor: '#81ce25',
                 defaultEdgeActiveColor: '#81ce25',
@@ -196,7 +204,7 @@ var _Graph = {
         activeTabRightGraph = LSWrapper.getItem(activeTabLeftGraphKey);
 
         main.prepend(
-            '<div id="graph-box"><div id="graph-info"></div><div id="queries" class="slideOut slideOutLeft"><div class="compTab" id="queriesTab">Queries</div><div><button id="clear-graph">Clear Graph</button></div></div>'
+            '<div id="graph-box" class="graphNoSelect"><div id="graph-info"></div><div id="queries" class="slideOut slideOutLeft"><div class="compTab" id="queriesTab">Queries</div><div><button id="clear-graph">Clear Graph</button></div></div>'
             + '<div id="display" class="slideOut slideOutLeft"><div class="compTab" id="displayTab">Control Options</div></div>'
             + '<div id="filters" class="slideOut slideOutLeft"><div class="compTab" id="filtersTab">Filters</div><div id="nodeFilters"><h3>Node Filters</h3></div><div id="relFilters"><h3>Relationship Filters</h3></div></div>'
             + '<div class="canvas" id="graph-canvas"></div>'
@@ -270,7 +278,7 @@ var _Graph = {
                                 '<th>Group</th>' +
                                 '<th>Fixed</th>' +
                                 '<th>Hidden</th>' +
-                                '<th>Drop</th>' +
+                                '<th>Remove</th>' +
                             '</tr></thead>' +
                             '<tbody id="selectiontools-selectionTable-groupSelectionItems">' +
                             '<tbody>' +
@@ -319,7 +327,7 @@ var _Graph = {
                     '<td><input type="checkbox" name="selectedGroup[]" value="selected.' + newId + '">' + newId + '</td>' +
                     '<td style="text-align: center;"><input type="checkbox" name="Fixed[]" value="fixed.' + newId + '"></td>' +
                     '<td style="text-align: center;"><input type="checkbox" name="Hidden[]" value="hidden.' + newId + '"></td>' +
-                    '<td style="text-align: center;"><button class="selectionTableRemoveBtn" value="' + newId + '">Drop</button></td>' +
+                    '<td style="text-align: center;"><button class="selectionTableRemoveBtn" value="' + newId + '">Remove</button></td>' +
                 '</tr>'
             );
             $("input[name='selectedGroup[]']").trigger('click');
@@ -371,7 +379,7 @@ var _Graph = {
             }
         });
 
-        $(document).on('click', '#closeNodeTooltip', function(){
+        $(document).on('click', '#closeTooltip', function(){
             graphBrowser.closeTooltip();
         });
 
@@ -399,21 +407,26 @@ var _Graph = {
             self = $(this);
             var id = self.attr("value");
             Command.get(id, function (entity) {
-                _Entities.deleteNode($(this), entity, false, function(entity){
-                    graphBrowser.dropNode(entity);
-                    graphBrowser.dataChanged();
-                    _Graph.updateRelationshipTypes();
-                });
+                if(graphBrowser.getNode(entity.id)){
+                    _Entities.deleteNode($(this), entity, false, function(entity){
+                        graphBrowser.dropNode(entity);
+                        graphBrowser.dataChanged();
+                        _Graph.updateRelationshipTypes();
+                    });
+                }
+                else{
+                    _Entities.deleteEdge($(this), entity, false, function(entity){
+                        if(graphBrowser.getEdge(entity))
+                            graphBrowser.dropEdge(entity);
+                        graphBrowser.dataChanged();
+                        _Graph.updateRelationshipTypes();
+                    });
+                }
             });
             graphBrowser.closeTooltip();
         });
 
         graph = $('#graph-canvas');
-
-        $(document.body).on('selectstart', function(e) {
-            e.preventDefault();
-            return false;
-        });
 
         graph.droppable({
             accept: '.node-type',
@@ -1107,20 +1120,62 @@ var _Graph = {
 
     renderNodeTooltip: function(node){
         var tooltip =
-            "<div class='nodeTooltip'>" +
-                "<div id='nodeTooltipHeader" + node.id + "' class='nodeTooltipHeader' style='background: " + color[node.nodeType] + "'>" +
-                        "<p class='nodeTooltipTitle'>" + node.label + "</p>" +
-                        "<img class='closeNodeTooltipBtn' id='closeNodeTooltip' src='icon/cross_small_grey.png'>" +
+            "<div class='tooltipArrowUp'></div>" +
+            "<div class='graphTooltip'>" +
+                "<div class='tooltipHeader'>" +
+                    "<img class='closeTooltipBtn' id='closeTooltip' src='icon/cross_small_grey.png'>" +
+                    "<p class='tooltipTitle'>" + node.label + "</p>" +
                 "</div>" +
-                "<div id='nodeTooltipBody" + node.id + "' class='nodeTooltipBody'>" +
-                    "<div><button id='tooltipBtnProps' value='" + node.id + "'>Properties</button>" +
-                    "<button id='tooltipBtnDrop' value='" + node.id + "'>Drop</button>" +
-                    "<button id='tooltipBtnDel' value='" + node.id + "'>Delete</button></div>" +
-                    //"<button id='tooltipBtnHide' value='" + node.id + "'>Hide</button></div>" +
-                "</div>"
+                "<div class='tooltipContent' style='border-top: solid " + color[node.nodeType] + " 4px;'>" +
+                    "<div class='tooltipBody'>" +
+                         "<table class='tooltipTable'>" +
+                            "<tbody>" +
+                                "<tr>" +
+                                    "<td class='tooltipTableLabel'>Id: </td><td class='graphTooltipSelectable'>" + node.id + "</td>" +
+                                "</tr><tr>" +
+                                    "<td class='tooltipTableLabel'>Type: </td><td class='graphTooltipSelectable'>" + node.nodeType + "</td>" +
+                                "</tr>" +
+                            "</tbody>" +
+                        "</table>" +
+                    "</div>" +
+                    "<div id='tooltipFooter" + node.id + "' class='tooltipFooter'>" +
+                        "<div><button id='tooltipBtnProps' value='" + node.id + "'>Properties</button>" +
+                        "<button id='tooltipBtnDrop' value='" + node.id + "'>Remove</button>" +
+                        "<button id='tooltipBtnDel' value='" + node.id + "'>Delete</button></div>" +
+                    "</div>" +
+                "</div>" +
             "</div>";
-
         graphBrowser.hideExpandButtons();
+        return tooltip;
+    },
+    renderEdgeTooltip: function(edge){
+        var tooltip =
+            "<div class='tooltipArrowUp'></div>" +
+            "<div class='graphTooltip'>" +
+                "<div class='tooltipHeader'>" +
+                    "<p class='tooltipTitle'>" + edge.label + "</p>" +
+                    "<img class='closeTooltipBtn' id='closeTooltip' src='icon/cross_small_grey.png'>" +
+                "</div>" +
+                "<div class='tooltipBody'>" +
+                    "<table class='tooltipTable'>" +
+                        "<tbody>" +
+                            "<tr>" +
+                                "<td class='tooltipTableLabel'>Id: </td><td class='graphTooltipSelectable'>" + edge.id + "</td>" +
+                            "</tr><tr>" +
+                                "<td class='tooltipTableLabel'>relType: </td><td class='graphTooltipSelectable'>" + edge.relType + "</td>" +
+                            "</tr><tr>" +
+                                "<td class='tooltipTableLabel'>Source: </td><td class='graphTooltipSelectable'>" + edge.source + "</td>" +
+                            "</tr><tr>" +
+                                "<td class='tooltipTableLabel'>Target: </td><td class='graphTooltipSelectable edgeTableEl'>" + edge.target + "</td>" +
+                            "</tr>" +
+                        "</tbody>" +
+                    "</table>" +
+                "</div>" +
+                "<div id='edgeTooltipFooter' class='tooltipFooter'>" +
+                    "<div><button id='tooltipBtnProps' value='" + edge.id + "'>Properties</button>" +
+                    "<button id='tooltipBtnDel' value='" + edge.id + "'>Delete</button></div>" +
+                "</div>" +
+            "</div>";
         return tooltip;
     }
 };
