@@ -376,6 +376,7 @@ var _Schema = {
 			canvas.css('transform', _Schema.getSchemaCSSTransform());
 		};
 
+		inheritanceSlideoutOpen = false;
 		$('#inheritanceTab').on('click', function() {
 			if ($(this).hasClass('noclick')) {
 				$(this).removeClass('noclick');
