@@ -67,7 +67,7 @@ var animating = animating || undefined;
 				_activeStateSelections[_currentActiveSelection].nodes = event.data;
 
 				self.activateSelectionLasso(false);
-				//_s.refresh({skipIndexation: true});
+				_s.refresh({skipIndexation: true});
 				self.updateActiveState();
 				_timeout = 0;
 			}, 10);
