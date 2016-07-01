@@ -303,7 +303,8 @@ img.disabled {
 	transform: rotate(90deg);
 }
 
-#pagesTab {
+#pagesTab,
+#inheritanceTab {
 	right: -72px;
 	width: 100px;
 	top: 60px;
@@ -384,6 +385,10 @@ img.disabled {
 	z-index: 2;
 	top: 93px;
 	background-color: #fafafa;
+}
+
+#inheritance-tree.slideOut {
+	top: 101px;
 }
 
 .ver-scrollable > .node {
