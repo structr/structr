@@ -52,7 +52,7 @@ var _Schema = {
 		var y = window.scrollY;
 		reload = true;
 		_Schema.storePositions();
-		main.empty();
+		schemaContainer.empty();
 		_Schema.init({x: x, y: y});
 		_Schema.resize();
 
