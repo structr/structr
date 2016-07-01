@@ -44,8 +44,6 @@ public class IsEntityFunction extends Function<Object, Object> {
 
 		} else {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
-
 			return false;
 
 		}
