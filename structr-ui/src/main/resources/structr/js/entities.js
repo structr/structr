@@ -63,6 +63,22 @@ var _Entities = {
 				}
 			});
 	},
+        deleteEdge: function(button, entity, rec, callback) {
+		buttonClicked = button;
+		if (isDisabled(button))
+			return;
+
+		Structr.confirmation('<p>Delete Relationship</p><p>(' + entity.sourceId + ')-[' + entity.type + ']->(' + entity.targetId + ')' + (rec ? ' recursively' : '') + '?</p>',
+			function() {
+				Command.deleteRelationship(entity.id, rec);
+				$.unblockUI({
+					fadeOut: 25
+				});
+				if (callback) {
+					callback(entity);
+				}
+			});
+	},
 	showSyncDialog: function(source, target) {
 		Structr.dialog('Sync between ' + source.id + ' and ' + target.id, function() {
 			return true;
@@ -566,14 +582,14 @@ var _Entities = {
 								var isPassword   = false;
 								var isRelated    = false;
 								var isCollection = false;
-								
+
 								if (type) {
 									isBoolean = (type === 'Boolean'); //typeInfo[key].className === 'org.structr.core.property.BooleanProperty'; //isIn(key, _Entities.booleanAttrs);
 									isDate = (type === 'Date'); //typeInfo[key].className === 'org.structr.core.property.ISO8601DateProperty'; //isIn(key, _Entities.dateAttrs);
 									isPassword = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
 
 									isRelated = typeInfo[key].relatedType;
-									
+
 									if (isRelated) {
 										isCollection = typeInfo[key].isCollection;
 									}
@@ -605,19 +621,19 @@ var _Entities = {
 											}
 										});
 									} else if (isDate && !isReadOnly) {
-										
+
 										_Entities.appendDatePicker(cell, res, key, typeInfo[key].format);
-										
+
 									} else if (isRelated) {
 
 										if (res[key]) {
-													
+
 											if (!isCollection) {
 
 												var nodeId = res[key].id || res[key];
 
 												Command.get(nodeId, function(node) {
-													
+
 													_Entities.appendRelatedNode(cell, props, id, key, node, function(nodeEl) {
 
 														$('.remove', nodeEl).on('click', function(e) {
@@ -636,7 +652,7 @@ var _Entities = {
 														});
 
 													});
-												
+
 												});
 
 											} else {
@@ -666,7 +682,7 @@ var _Entities = {
 
 											}
 										}
-											
+
 										cell.append('<img class="add" src="icon/add_grey.png">');
 										$('.add', cell).on('click', function() {
 											Structr.dialog('Add ' + typeInfo[key].type, function() {
@@ -677,7 +693,7 @@ var _Entities = {
 											});
 											_Entities.displaySearch(id, key, typeInfo[key].type, dialogText, isCollection);
 										});
-										
+
 									} else {
 										cell.append(formatValueInputField(key, res[key], isPassword, isReadOnly));
 									}
@@ -759,7 +775,7 @@ var _Entities = {
 				});
 
 				el.append('<div class="result-box"></div>');
-				
+
 				var box = $('.result-box', el);
 
 				Command.getByType(type, 1000, 1, 'name', 'asc', null, false, function(nodes) {
@@ -767,9 +783,9 @@ var _Entities = {
 						var displayName = node.title || node.name || node.id;
 						box.append('<div title="' + displayName + '" " class="_' + node.id + ' node element">' + fitStringToWidth(displayName, 120) + '</div>');
 						$('._' + node.id, box).on('click', function() {
-							
+
 							if (isCollection) {
-							
+
 								_Entities.addToCollection(id, node.id, key, function() {
 									if (lastMenuEntry === 'contents') {
 										_Contents.refreshTree();
@@ -778,13 +794,13 @@ var _Entities = {
 										_Filesystem.refreshTree();
 									}
 								});
-								
+
 							} else {
 								Command.setProperty(id, key, node.id, false, function() {
 									dialogCancelButton.click();
 								});
 							}
-							
+
 						});
 					});
 				});
