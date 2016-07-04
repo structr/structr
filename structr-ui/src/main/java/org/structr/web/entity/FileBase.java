@@ -179,7 +179,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Exception while trying to delete file {0}: {1}", new Object[]{filePath, t});
+			logger.log(Level.FINE, "Exception while trying to delete file {0}: {1}", new Object[]{filePath, t});
 
 		}
 
