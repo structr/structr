@@ -391,6 +391,19 @@ img.disabled {
 	top: 101px;
 }
 
+#inheritance-tree img {
+	display: none;
+}
+
+#inheritance-tree a.jstree-hovered img {
+	display: inline-block;
+	padding-top: 3px;
+}
+
+#inheritance-tree .jstree-anchor {
+	width: 100%;
+}
+
 .ver-scrollable > .node {
 	width: 360px;
 }
@@ -896,6 +909,10 @@ span.id {
 
 .edit_icon, .edit_file_icon, .collapse_children_icon {
 	right: 64px;
+}
+
+#inheritance-tree .edit_icon {
+	right: 44px;
 }
 
 .page > .edit_props_icon {

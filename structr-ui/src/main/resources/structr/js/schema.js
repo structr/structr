@@ -52,7 +52,7 @@ var _Schema = {
 		var y = window.scrollY;
 		reload = true;
 		_Schema.storePositions();
-		main.empty();
+		schemaContainer.empty();
 		_Schema.init({x: x, y: y});
 		_Schema.resize();
 
@@ -3204,7 +3204,7 @@ var _Schema = {
 	loadClassTree: function () {
 		var classTree = {};
 		var tmpHierarchy = {};
-		var idToClass = {};
+		var classnameToId = {};
 
 		var insertClassInClassTree = function (classObj, tree) {
 			var classes = Object.keys(tree);
@@ -3242,7 +3242,10 @@ var _Schema = {
 
 				classes.forEach(function (classname) {
 
-					var $newLi = $('<li data-jstree=\'{"opened":true}\' data-id="id_' + idToClass[classname] + '">' + classname + '</li>').appendTo($newUl);
+					var icons = (classname != 'AbstractNode' ? '<img class="delete_icon icon delete" src="icon/delete.png"><img class="edit_icon icon edit" src="icon/pencil.png">' : '');
+					var classId = (classname != 'AbstractNode' ? ' data-id="' + classnameToId[classname] + '"' : '');
+
+					var $newLi = $('<li data-jstree=\'{"opened":true}\'' + classId + '>' + classname + icons + '</li>').appendTo($newUl);
 					printClassTree($newLi, classTree[classname]);
 
 				});
@@ -3262,7 +3265,7 @@ var _Schema = {
 						parent: (schemaNode.extendsClass === null ? 'AbstractNode' : schemaNode.extendsClass.slice(schemaNode.extendsClass.lastIndexOf('.')+1))
 					};
 
-					idToClass[classObj.name] = schemaNode.id;
+					classnameToId[classObj.name] = schemaNode.id;
 
 					var inserted = insertClassInClassTree(classObj, tmpHierarchy);
 
@@ -3296,7 +3299,7 @@ var _Schema = {
 				},
 				plugins: ["search"]
 			}).on('changed.jstree', function (e, data) {
-				var $node = $('#' + data.node.data.id);
+				var $node = $('#id_' + data.node.data.id);
 				if ($node.length > 0) {
 					$('.selected').removeClass('selected');
 					$node.addClass('selected');
@@ -3312,8 +3315,34 @@ var _Schema = {
 					var query = $('#search-classes').val();
 					inheritanceTree.jstree(true).search(query, true, true);
 				}
+
+				_Schema.enableEditFunctionsInClassTree();
 			});
 
+			_Schema.enableEditFunctionsInClassTree();
+		});
+	},
+	enableEditFunctionsInClassTree: function() {
+		$('img.edit_icon', inheritanceTree).off('click');
+		$('img.edit_icon', inheritanceTree).on('click', function (e) {
+			var nodeId = $(this).closest('li').data('id');
+			if (nodeId) {
+				_Schema.openEditDialog(nodeId);
+			}
+		});
+
+		$('img.delete_icon', inheritanceTree).off('click');
+		$('img.delete_icon', inheritanceTree).on('click', function (e) {
+			var nodeId = $(this).closest('li').data('id');
+			if (nodeId) {
+				Structr.confirmation(
+					'<h3>Delete schema node \'' + $(this).closest('a').text() + '\'?</h3><p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed.</p>',
+					function() {
+						$.unblockUI({ fadeOut: 25 });
+						_Schema.deleteNode(nodeId);
+					}
+				);
+			}
 		});
 	}
 };
