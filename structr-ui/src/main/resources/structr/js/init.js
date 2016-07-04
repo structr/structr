@@ -911,9 +911,8 @@ var Structr = {
 		s.animate({left: '+=' + sw + 'px'}, {duration: 100}).zIndex(1);
 		LSWrapper.setItem(activeTabKey, t.prop('id'));
 		if (callback) {
-			callback();
+			callback({sw: sw});
 		}
-		_Pages.resize(sw, 0);
 		t.draggable({
 			axis: 'x',
 			start: function(e, ui) {
@@ -929,10 +928,9 @@ var Structr = {
 				var oldLsw = sw;
 				sw = w + 12;
 				$('.node.page', slideout).width(w - 13);
-				_Pages.resize(sw - oldLsw, 0);
 
 				if (dragCallback) {
-					dragCallback();
+					dragCallback({sw: (sw - oldLsw)});
 				}
 			},
 			stop: function(e, ui) {

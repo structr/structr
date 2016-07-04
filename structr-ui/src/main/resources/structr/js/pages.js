@@ -164,8 +164,9 @@ var _Pages = {
 			var asw = activeElementsSlideout.width() + 12;
 			if (Math.abs(activeElementsSlideout.position().left + asw) <= 3) {
 				Structr.closeLeftSlideOuts([pagesSlideout, dataBindingSlideout], activeTabLeftKey);
-				Structr.openLeftSlideOut(activeElementsSlideout, this, activeTabLeftKey, function() {
+				Structr.openLeftSlideOut(activeElementsSlideout, this, activeTabLeftKey, function(params) {
 					_Pages.refreshActiveElements();
+					_Pages.resize(params.sw, 0);
 				});
 			} else {
 				Structr.closeLeftSlideOuts([activeElementsSlideout], activeTabLeftKey);
@@ -180,8 +181,9 @@ var _Pages = {
 			var dsw = dataBindingSlideout.width() + 12;
 			if (Math.abs(dataBindingSlideout.position().left + dsw) <= 3) {
 				Structr.closeLeftSlideOuts([pagesSlideout, activeElementsSlideout], activeTabLeftKey);
-				Structr.openLeftSlideOut(dataBindingSlideout, this, activeTabLeftKey, function() {
+				Structr.openLeftSlideOut(dataBindingSlideout, this, activeTabLeftKey, function(params) {
 					_Pages.reloadDataBindingWizard();
+					_Pages.resize(params.sw, 0);
 				});
 			} else {
 				Structr.closeLeftSlideOuts([dataBindingSlideout], activeTabLeftKey);
@@ -415,9 +417,9 @@ var _Pages = {
 
 			dialog.empty();
 			dialogMsg.empty();
-			
+
 			dialog.append('<p>With these settings you can influence the behaviour of the page previews only. They are not persisted on the Page object but only stored in the UI settings.</p>');
-			
+
 
 			dialog.append('<table class="props">'
 					//+ '<tr><td><label for="name">Name</label></td><td><input id="_name" name="name" size="20"></td></tr>'
@@ -430,7 +432,7 @@ var _Pages = {
 			window.setTimeout(function() {
 				detailsObjectIdInput.select().focus();
 			}, 200);
-			
+
 			$('#clear-details-object-id').on('click', function() {
 				detailsObjectIdInput.val('');
 				var oldVal = LSWrapper.getItem(detailsObjectId + entity.id) || null;
@@ -1202,9 +1204,12 @@ var _Pages = {
 	},
 	pagesTabStateChangeCallback: function () {
 		var psw = pagesSlideout.width() + 12;
+		var callback = function (params) {
+			_Pages.resize(params.sw, 0);
+		};
 		if (Math.abs(pagesSlideout.position().left + psw) <= 3) {
 			Structr.closeLeftSlideOuts([activeElementsSlideout, dataBindingSlideout], activeTabLeftKey);
-			Structr.openLeftSlideOut(pagesSlideout, $("#pagesTab"), activeTabLeftKey);
+			Structr.openLeftSlideOut(pagesSlideout, $("#pagesTab"), activeTabLeftKey, callback, callback);
 		} else {
 			Structr.closeLeftSlideOuts([pagesSlideout], activeTabLeftKey);
 		}

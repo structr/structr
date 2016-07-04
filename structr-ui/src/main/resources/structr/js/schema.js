@@ -372,8 +372,15 @@ var _Schema = {
 		inheritanceSlideout = $('#inheritance-tree');
 		inheritanceTree = $('#inheritance-tree-container');
 
+		var adjustSlideoutHeight = function () {
+			var windowHeight = win.height();
+			$('.ver-scrollable').css({
+				height: (windowHeight - inheritanceTree.offset().top) + 'px'
+			});
+		}
 		var updateCanvasTranslation = function () {
 			canvas.css('transform', _Schema.getSchemaCSSTransform());
+			adjustSlideoutHeight();
 		};
 
 		inheritanceSlideoutOpen = false;
@@ -385,7 +392,7 @@ var _Schema = {
 
 			if (Math.abs(inheritanceSlideout.position().left + inheritanceSlideout.width() + 12) <= 3) {
 				inheritanceSlideoutOpen = true;
-				Structr.openLeftSlideOut(inheritanceSlideout, $("#inheritanceTab"), activeTabLeftKey, undefined, updateCanvasTranslation);
+				Structr.openLeftSlideOut(inheritanceSlideout, $("#inheritanceTab"), activeTabLeftKey, adjustSlideoutHeight, updateCanvasTranslation);
 				canvas.css('transform', _Schema.getSchemaCSSTransform());
 
 			} else {
@@ -1302,34 +1309,38 @@ var _Schema = {
 
 		Structr.resize();
 
-		var zoom = (instance ? instance.getZoom() : 1);
-
-		var headerHeight = $('#header').outerHeight() + $('.schema-input-container').outerHeight() + 14;
-
-		var canvasSize = {
-			w: ($(window).width()) / zoom,
-			h: ($(window).height() - headerHeight) / zoom
-		};
-		$('.node').each(function(i, elem) {
-			$elem = $(elem);
-			canvasSize.w = Math.max(canvasSize.w, (($elem.position().left + $elem.width()) / zoom));
-			canvasSize.h = Math.max(canvasSize.h, (($elem.position().top + $elem.height() - headerHeight) / zoom));
-		});
-
 		if (canvas) {
+
+			var zoom = (instance ? instance.getZoom() : 1);
+
+			var canvasPosition = canvas.position();
+
+			var canvasSize = {
+				w: ($(window).width() - canvasPosition.left),
+				h: ($(window).height() - canvasPosition.top)
+			};
+			$('.node').each(function(i, elem) {
+				$elem = $(elem);
+				canvasSize.w = Math.max(canvasSize.w, (($elem.position().left - canvasPosition.left) / zoom + $elem.width()));
+				canvasSize.h = Math.max(canvasSize.h, (($elem.position().top  - canvasPosition.top)  / zoom + $elem.height()));
+			});
+
+			if (canvasSize.w * zoom - canvasPosition.left < $(window).width()) {
+				canvasSize.w = ($(window).width() - canvasPosition.left) / zoom;
+			}
+
+			if (canvasSize.h * zoom < $(window).height() - canvasPosition.top) {
+				canvasSize.h = ($(window).height() - canvasPosition.top) / zoom;
+			}
+
 			canvas.css({
 				width: canvasSize.w + 'px',
 				height: canvasSize.h + 'px'
 			});
 		}
 
-//		$('#main').css({
-//			height: ($(window).height() - $('#main').offset().top)
-//		});
-
 		$('body').css({
 			position: 'relative'
-//			background: '#fff'
 		});
 
 		$('html').css({
