@@ -280,6 +280,7 @@ img.disabled {
 	transform-style: preserve-3d;
 	-webkit-transform-style: preserve-3d;
 	background-color: #e3e3e3;
+	text-align: center;
 }
 
 .slideOut .compTab:hover {
@@ -402,6 +403,19 @@ img.disabled {
 
 #inheritance-tree .jstree-anchor {
 	width: 100%;
+}
+
+#inheritance-tree .edit_icon, #inheritance-tree .delete_icon {
+	float:right;
+	position: relative;
+}
+
+#inheritance-tree .edit_icon {
+	right: 24px;
+}
+
+#inheritance-tree-container {
+	overflow-x: hidden;
 }
 
 .ver-scrollable > .node {
@@ -909,10 +923,6 @@ span.id {
 
 .edit_icon, .edit_file_icon, .collapse_children_icon {
 	right: 64px;
-}
-
-#inheritance-tree .edit_icon {
-	right: 44px;
 }
 
 .page > .edit_props_icon {
