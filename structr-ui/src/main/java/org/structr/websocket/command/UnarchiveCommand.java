@@ -41,6 +41,7 @@ import org.structr.dynamic.File;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 import org.structr.websocket.StructrWebSocket;
@@ -83,11 +84,11 @@ public class UnarchiveCommand extends AbstractCommand {
 		try {
 
 			final String id = (String) webSocketData.getId();
-			final File file;
+			final FileBase file;
 
 			try (final Tx tx = app.tx()) {
 
-				file = app.get(File.class, id);
+				file = app.get(FileBase.class, id);
 
 				if (file == null) {
 					getWebSocket().send(MessageBuilder.status().code(400).message("File not found: ".concat(id)).build(), true);
@@ -204,7 +205,7 @@ public class UnarchiveCommand extends AbstractCommand {
 
 	}
 
-	private void unarchive(final SecurityContext securityContext, final File file) throws ArchiveException, IOException, FrameworkException {
+	private void unarchive(final SecurityContext securityContext, final FileBase file) throws ArchiveException, IOException, FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
 		final InputStream is;
