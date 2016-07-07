@@ -137,7 +137,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		// (some query types seem to allow no MUST occurs)
 		for (Iterator<SearchAttribute> it = rootGroup.getSearchAttributes().iterator(); it.hasNext();) {
 
-			SearchAttribute attr = it.next();
+			final SearchAttribute attr = it.next();
 
 			if (attr instanceof SearchAttributeGroup) {
 
@@ -226,9 +226,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		if (intermediateResult != null && (hasEmptySearchFields || hasGraphSources || hasSpatialSource)) {
 
 			// sorted result set
-			Set<GraphObject> intermediateResultSet = new LinkedHashSet<>(intermediateResult.getResults());
-			List<GraphObject> finalResult          = new ArrayList<>();
-			int resultCount                        = 0;
+			final Set<GraphObject> intermediateResultSet = new LinkedHashSet<>(intermediateResult.getResults());
+			final List<GraphObject> finalResult          = new ArrayList<>();
+			int resultCount                              = 0;
 
 			// We need to find out whether there was a source for any of the possible sets that we want to merge.
 			// If there was only a single source, the final result is the result of that source. If there are
@@ -251,7 +251,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			}
 
 			// Filter intermediate result
-			for (GraphObject obj : intermediateResultSet) {
+			for (final GraphObject obj : intermediateResultSet) {
 
 				boolean addToResult = true;
 
@@ -284,8 +284,8 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	private Set<GraphObject> mergeSources(List<SourceSearchAttribute> sources) {
 
-		Set<GraphObject> mergedResult = new LinkedHashSet<>();
-		boolean alreadyAdded          = false;
+		final Set<GraphObject> mergedResult = new LinkedHashSet<>();
+		boolean alreadyAdded                = false;
 
 		for (Iterator<SourceSearchAttribute> it = sources.iterator(); it.hasNext();) {
 
@@ -617,7 +617,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public <P> org.structr.core.app.Query<T> or(final PropertyMap attributes) {
 
-		for (Map.Entry<PropertyKey, Object> entry : attributes.entrySet()) {
+		for (final Map.Entry<PropertyKey, Object> entry : attributes.entrySet()) {
 
 			final PropertyKey key = entry.getKey();
 			final Object value = entry.getValue();
@@ -683,7 +683,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public org.structr.core.app.Query<T> parent() {
 
 		// one level up
-		SearchAttributeGroup parent = currentGroup.getParent();
+		final SearchAttributeGroup parent = currentGroup.getParent();
 		if (parent != null) {
 
 			currentGroup = parent;
