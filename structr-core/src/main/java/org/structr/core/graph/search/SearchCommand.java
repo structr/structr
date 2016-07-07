@@ -128,14 +128,14 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		}
 
 		// At this point, all search attributes are ready
-		List<SourceSearchAttribute> sources    = new ArrayList<>();
-		boolean hasEmptySearchFields           = false;
-		boolean allExactMatch                  = true;
-		Result intermediateResult              = null;
+		final List<SourceSearchAttribute> sources    = new ArrayList<>();
+		boolean hasEmptySearchFields                 = false;
+		boolean allExactMatch                        = true;
+		Result intermediateResult                    = null;
 
 		// check for optional-only queries
 		// (some query types seem to allow no MUST occurs)
-		for (Iterator<SearchAttribute> it = rootGroup.getSearchAttributes().iterator(); it.hasNext();) {
+		for (final Iterator<SearchAttribute> it = rootGroup.getSearchAttributes().iterator(); it.hasNext();) {
 
 			final SearchAttribute attr = it.next();
 
@@ -287,7 +287,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		final Set<GraphObject> mergedResult = new LinkedHashSet<>();
 		boolean alreadyAdded                = false;
 
-		for (Iterator<SourceSearchAttribute> it = sources.iterator(); it.hasNext();) {
+		for (final Iterator<SourceSearchAttribute> it = sources.iterator(); it.hasNext();) {
 
 			SourceSearchAttribute attr = it.next();
 
@@ -748,7 +748,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			allSubtypes.add(type);
 
 			// scan all node entities for subtypes
-			for (Map.Entry<String, Class<? extends NodeInterface>> entity : nodeEntities.entrySet()) {
+			for (final Map.Entry<String, Class<? extends NodeInterface>> entity : nodeEntities.entrySet()) {
 
 				final Class entityType     = entity.getValue();
 				final Set<Class> ancestors = typeAndAllSupertypes(entityType);
@@ -766,7 +766,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			}
 
 			// scan all relationship entities for subtypes
-			for (Map.Entry<String, Class<? extends RelationshipInterface>> entity : relEntities.entrySet()) {
+			for (final Map.Entry<String, Class<? extends RelationshipInterface>> entity : relEntities.entrySet()) {
 
 				final Class entityType     = entity.getValue();
 				final Set<Class> ancestors = typeAndAllSupertypes(entityType);
@@ -864,7 +864,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 			boolean result = true;
 
-			for (Predicate<GraphObject> predicate : predicates) {
+			for (final Predicate<GraphObject> predicate : predicates) {
 
 				result &= predicate.accept(obj);
 			}
