@@ -101,9 +101,12 @@ import org.structr.web.entity.dom.relationship.DOMSiblings;
 import org.structr.web.entity.relation.PageLink;
 import org.structr.web.entity.relation.RenderNode;
 import org.structr.web.entity.relation.Sync;
+import org.structr.web.function.GetSessionAttributeFunction;
 import org.structr.web.function.HttpGetFunction;
+import org.structr.web.function.RemoveSessionAttributeFunction;
 import org.structr.web.function.SendHtmlMailFunction;
 import org.structr.web.function.SendPlaintextMailFunction;
+import org.structr.web.function.SetSessionAttributeFunction;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -208,6 +211,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		Functions.functions.put("set_details_object", new SetDetailsObjectFunction());
 		Functions.functions.put("to_json", new ToJsonFunction());
 		Functions.functions.put("strip_html", new StripHtmlFunction());
+		Functions.functions.put("set_session_attribute", new SetSessionAttributeFunction());
+		Functions.functions.put("get_session_attribute", new GetSessionAttributeFunction());
+		Functions.functions.put("get_session_attribute", new RemoveSessionAttributeFunction());
 	}
 
 	public abstract boolean isSynced();
