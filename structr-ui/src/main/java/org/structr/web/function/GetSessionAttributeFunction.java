@@ -22,6 +22,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
+import static org.structr.web.function.SetSessionAttributeFunction.SESSION_ATTRIBUTE_PREFIX;
 
 /**
  *
@@ -41,7 +42,7 @@ public class GetSessionAttributeFunction extends Function<Object, Object> {
 
 		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 
-			return ctx.getSecurityContext().getSession().getAttribute(sources[0].toString());
+			return ctx.getSecurityContext().getSession().getAttribute(SESSION_ATTRIBUTE_PREFIX.concat(sources[0].toString()));
 
 		} else {
 
