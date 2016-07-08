@@ -30,7 +30,7 @@ public class SetSessionAttributeFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_SET_SESSION_ATTRIBUTE    = "Usage: ${set_session_attribute(key, value)}. Example: ${set_session_attribute(\"do_no_track\", true)}";
 	public static final String ERROR_MESSAGE_SET_SESSION_ATTRIBUTE_JS = "Usage: ${{Structr.set_session_attribute(key, value)}}. Example: ${{Structr.set_session_attribute(\"do_not_track\", true)}}";
-	public static final String SESSION_ATTRIBUTE_PREFIX = "usr_";
+	public static final String SESSION_ATTRIBUTE_PREFIX = "user.";
 
 	@Override
 	public String getName() {
