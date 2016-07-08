@@ -280,6 +280,7 @@ img.disabled {
 	transform-style: preserve-3d;
 	-webkit-transform-style: preserve-3d;
 	background-color: #e3e3e3;
+	text-align: center;
 }
 
 .slideOut .compTab:hover {
@@ -389,6 +390,32 @@ img.disabled {
 
 #inheritance-tree.slideOut {
 	top: 101px;
+}
+
+#inheritance-tree img {
+	display: none;
+}
+
+#inheritance-tree a.jstree-hovered img {
+	display: inline-block;
+	padding-top: 3px;
+}
+
+#inheritance-tree .jstree-anchor {
+	width: 100%;
+}
+
+#inheritance-tree .edit_icon, #inheritance-tree .delete_icon {
+	float:right;
+	position: relative;
+}
+
+#inheritance-tree .edit_icon {
+	right: 24px;
+}
+
+#inheritance-tree-container {
+	overflow-x: hidden;
 }
 
 .ver-scrollable > .node {
@@ -1618,36 +1645,6 @@ button.add_property {
 	padding: .6em;
 }
 
-#schema-graph .rel-type-name {
-	padding: 0 10px;
-}
-
-#schema-graph .source-multiplicity {
-	border-right: 1px solid #aaa;
-	padding: 8px 12px 8px 5px;
-}
-
-#schema-graph .target-multiplicity {
-	border-left: 1px solid #aaa;
-	padding: 8px 5px 8px 12px;
-}
-
-#schema-graph .target-multiplicity.hover {
-	border-right: 1px solid #aaa;
-	padding: 8px 12px 8px 12px;
-	margin-right: 4px;
-}
-
-#schema-graph .source-mult-input {
-	width: 16px;
-	margin-right: 6px;
-}
-
-#schema-graph .target-mult-input {
-	width: 16px;
-	margin-left: 6px;
-}
-
 #schema-graph .label .icon {
 	margin: -3px 2px;
 	display: none;
@@ -2430,6 +2427,26 @@ input.bitmask {
 
 table#relationship-options {
 	table-layout: fixed;
+}
+
+#relationship-options #basic-options {
+	text-align: center;
+	padding: 10px 0px 20px 0px;
+}
+
+#relationship-options #basic-options .relationship-emphasis {
+	font-size: 1.4em;
+	font-weight: bold;
+}
+
+#relationship-options #basic-options select, #basic-options input {
+	margin: 0 10px;
+}
+
+#relationship-options #basic-options input[disabled] {
+	color: graytext;
+	border: 1px solid #ccc;
+	background-color: #f3f3f3;
 }
 
 td#cascading-options, td#propagation-options {
