@@ -27,6 +27,11 @@ import org.structr.schema.action.Actions;
 public interface StructrModule {
 
 	/**
+	 * Called when the module is loaded.
+	 */
+	void onLoad();
+
+	/**
 	 * Returns the name of this module, with an optional version number.
 	 *
 	 * @return the name of this module
