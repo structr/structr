@@ -22,7 +22,7 @@ var selectedElements = [];
 var counter = 0;
 var currentContentContainer;
 var containerPageSize = 10000, containerPage = 1;
-var currentContantContainerKey = 'structrCurrentContentContainer_' + port;
+var currentContentContainerKey = 'structrCurrentContentContainer_' + port;
 
 $(document).ready(function() {
 
@@ -311,7 +311,7 @@ var _Contents = {
 	},
 	loadAndSetWorkingDir: function(callback) {
 		
-		currentContentContainer = LSWrapper.getItem(currentContantContainerKey);
+		currentContentContainer = LSWrapper.getItem(currentContentContainerKey);
 		callback();
 
 	},
@@ -384,7 +384,7 @@ var _Contents = {
 			currentContentContainer = { 'id': id };
 		}
 
-		LSWrapper.setItem(currentContantContainerKey, currentContentContainer);
+		LSWrapper.setItem(currentContentContainerKey, currentContentContainer);
 	},
 	displayContainerContents: function(id, parentId, nodePath, parents) {
 		
