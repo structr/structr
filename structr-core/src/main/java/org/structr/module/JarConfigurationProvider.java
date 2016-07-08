@@ -1070,11 +1070,13 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 						// we need to make sure that a module is initialized exactly once
 						final StructrModule structrModule = (StructrModule) clazz.newInstance();
 						final String moduleName = structrModule.getName();
-						
+
 						if (!modules.containsKey(moduleName)) {
-						
-							modules.put(structrModule.getName(), structrModule);
-							logger.log(Level.INFO, "Activating module {0}", structrModule.getName());
+
+							modules.put(moduleName, structrModule);
+							logger.log(Level.INFO, "Activating module {0}", moduleName);
+
+							structrModule.onLoad();
 						}
 
 					} catch (Throwable t) {

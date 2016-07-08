@@ -438,18 +438,19 @@ var Command = {
 	/**
 	 * Send an UNARCHIVE command to the server.
 	 *
-	 * The server will unarchive the file with the given id
-	 * and create files for each archive entry.
+	 * The server will unarchive the file with the given id in the folder
+	 * with the given parent folder id and create files for each archive entry.
 	 *
 	 */
-	unarchive: function(id) {
+	unarchive: function(id, parentFolderId, callback) {
 		var obj = {};
 		obj.command = 'UNARCHIVE';
 		obj.id = id;
 		var data = {};
+		data.parentFolderId = parentFolderId;
 		obj.data = data;
 		_Logger.log(_LogType.WS[obj.command], 'unarchive()', obj);
-		return sendObj(obj);
+		return sendObj(obj, callback);
 	},
 	/**
 	 * Send an APPEND_USER command to the server.

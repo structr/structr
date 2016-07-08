@@ -695,7 +695,7 @@ var _Filesystem = {
 				div.append('<img class="unarchive_icon button" src="icon/compress.png">');
 				div.children('.unarchive_icon').on('click', function() {
 					_Logger.log(_LogType.FILESYSTEM, 'unarchive', d.id);
-					Command.unarchive(d.id);
+					Command.unarchive(d.id, currentWorkingDir.id);
 				});
 			}
 

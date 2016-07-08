@@ -18,13 +18,26 @@
  */
 package org.structr.web.property;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.api.Predicate;
+import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
+import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.Query;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SourceSearchAttribute;
 import org.structr.core.property.AbstractReadOnlyProperty;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.Linkable;
 
 /**
@@ -35,6 +48,8 @@ import org.structr.web.entity.Linkable;
  *
  */
 public class PathProperty extends AbstractReadOnlyProperty<String> {
+	
+	private static final Logger logger = Logger.getLogger(PathProperty.class.getName());
 
 	public PathProperty(String name) {
 		super(name);
@@ -74,4 +89,63 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 	public SortType getSortType() {
 		return SortType.Integer;
 	}
+	
+	@Override
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final String searchValue, final boolean exactMatch, final Query query) {
+		
+		final String[]             parts = PathHelper.getParts(searchValue);
+		final App                    app = StructrApp.getInstance(securityContext);
+		final SourceSearchAttribute attr = new SourceSearchAttribute(occur);
+		final Set<GraphObject>    result = new LinkedHashSet<>();
+		
+		Folder parentFolder = null;
+		
+		for (final String part : parts) {
+			
+			try {
+				
+				logger.log(Level.FINE, "PathProperty path part: {0} (parent folder path: {1})", new Object[] { part, parentFolder == null ? "/" : parentFolder.getPath() });
+
+				final Query<AbstractFile> q = app.nodeQuery(AbstractFile.class).and(AbstractFile.name, part);
+				
+				if (parentFolder != null) {
+
+					q.and(AbstractFile.parent, parentFolder);
+				}
+				
+				for (final AbstractFile fileOrFolder : q.getAsList()) {
+					
+					final String currentPath = (parentFolder != null ? FileHelper.getFolderPath(parentFolder) : "") + PathHelper.PATH_SEP + part;
+
+					if (fileOrFolder != null && FileHelper.getFolderPath(fileOrFolder).equals(currentPath)) {
+
+						if (fileOrFolder instanceof Folder) {
+
+							parentFolder = (Folder) fileOrFolder;
+
+						} else {
+
+							result.add(fileOrFolder);
+						}
+					}
+				}
+				
+				
+			} catch (FrameworkException ex) {
+				
+				logger.log(Level.SEVERE, null, ex);
+			}
+			
+		}
+		
+		if (result.isEmpty() && parentFolder != null && FileHelper.getFolderPath(parentFolder).equals(searchValue)) {
+			
+			result.add(parentFolder);
+		}
+
+		attr.setResult(result);
+		
+		return attr;
+	}
+	
 }
