@@ -79,11 +79,13 @@ public class UnarchiveCommand extends AbstractCommand {
 		}));
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final App app                         = StructrApp.getInstance(securityContext);
+		final App app = StructrApp.getInstance(securityContext);
 
 		try {
 
 			final String id = (String) webSocketData.getId();
+			final String parentFolderId = (String) webSocketData.getNodeData().get("parentFolderId");
+
 			final FileBase file;
 
 			try (final Tx tx = app.tx()) {
@@ -106,8 +108,7 @@ public class UnarchiveCommand extends AbstractCommand {
 			}
 
 			// no transaction here since this is a bulk command
-			unarchive(securityContext, file);
-
+			unarchive(securityContext, file, parentFolderId);
 
 		} catch (Throwable t) {
 
@@ -122,7 +123,8 @@ public class UnarchiveCommand extends AbstractCommand {
 
 				tx.success();
 
-			} catch (FrameworkException ignore) {}
+			} catch (FrameworkException ignore) {
+			}
 
 		}
 	}
@@ -132,108 +134,49 @@ public class UnarchiveCommand extends AbstractCommand {
 		return false;
 	}
 
-	/**
-	 * Return the folder node which corresponds with the parent path.
-	 *
-	 * @param path
-	 */
-	private Folder createOrGetParentFolder(final SecurityContext securityContext, final String path) throws FrameworkException {
-
-		final String[] parts = PathHelper.getParts(path);
-
-		// string is empty or a single file in root dir
-		if (parts == null || parts.length == 1) {
-			return null;
-		}
-
-		// Find root folder
-		final App app = StructrApp.getInstance(securityContext);
-		Folder folder = null;
-		for (final Folder possibleRootFolder : app.nodeQuery(Folder.class).andName(parts[0])) {
-
-			if (possibleRootFolder.getProperty(AbstractFile.parent) == null) {
-				folder = possibleRootFolder;
-				break;
-			}
-
-		}
-
-		if (folder == null) {
-
-			// Root folder doesn't exist, so create it and all child folders
-			folder = app.create(Folder.class, parts[0]);
-			logger.log(Level.INFO, "Created root folder {0}", new Object[]{parts[0]});
-
-			for (int i = 1; i < parts.length - 1; i++) {
-				Folder childFolder = app.create(Folder.class, parts[i]);
-				childFolder.setProperty(AbstractFile.parent, folder);
-				logger.log(Level.INFO, "Created {0} {1} with path {2}", new Object[]{childFolder.getType(), childFolder, FileHelper.getFolderPath(childFolder)});
-				folder = childFolder;
-			}
-
-			return folder;
-
-		}
-
-		// Root folder exists, so walk over children and search for next path part
-		for (int i = 1; i < parts.length - 1; i++) {
-
-			Folder subFolder = null;
-
-			for (AbstractFile child : folder.getProperty(Folder.children)) {
-
-				if (child instanceof Folder && child.getName().equals(parts[i])) {
-					subFolder = (Folder) child;
-					break;
-				}
-
-			}
-
-			if (subFolder == null) {
-
-				// sub folder doesn't exist, so create it and all child folders
-				subFolder = app.create(Folder.class, parts[i]);
-				subFolder.setProperty(AbstractFile.parent, folder);
-				logger.log(Level.INFO, "Created {0} {1} with path {2}", new Object[]{subFolder.getType(), subFolder, FileHelper.getFolderPath(subFolder)});
-
-			}
-
-			folder = subFolder;
-		}
-
-		return folder;
-
-	}
-
-	private void unarchive(final SecurityContext securityContext, final FileBase file) throws ArchiveException, IOException, FrameworkException {
+	private void unarchive(final SecurityContext securityContext, final FileBase file, final String parentFolderId) throws ArchiveException, IOException, FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
 		final InputStream is;
 
+		Folder existingParentFolder = null;
+
 		try (final Tx tx = app.tx()) {
+
+			// search for existing parent folder
+			existingParentFolder = app.get(Folder.class, parentFolderId);
+			String parentFolderName = null;
+
+			String msgString = "Unarchiving file {0}";
+			if (existingParentFolder != null) {
+
+				parentFolderName = existingParentFolder.getName();
+				msgString += " into existing folder {1}.";
+			}
 
 			final String fileName = file.getName();
 
-			logger.log(Level.INFO, "Unarchiving file {0}", fileName);
+			logger.log(Level.INFO, msgString, new Object[]{fileName, parentFolderName});
 
 			is = file.getInputStream();
 			tx.success();
-
 
 			if (is == null) {
 
 				getWebSocket().send(MessageBuilder.status().code(400).message("Could not get input stream from file ".concat(fileName)).build(), true);
 				return;
 			}
+
+			tx.success();
 		}
 
 		final ArchiveInputStream in = new ArchiveStreamFactory().createArchiveInputStream(new BufferedInputStream(is));
-		ArchiveEntry entry          = in.getNextEntry();
-		int overallCount            = 0;
+		ArchiveEntry entry = in.getNextEntry();
+		int overallCount = 0;
 
 		while (entry != null) {
 
-			try (final Tx tx = app.tx()) {
+			try (final Tx tx = app.tx(true, true, false)) { // don't send notifications for bulk commands
 
 				int count = 0;
 
@@ -242,50 +185,50 @@ public class UnarchiveCommand extends AbstractCommand {
 					final String entryPath = "/" + PathHelper.clean(entry.getName());
 					logger.log(Level.INFO, "Entry path: {0}", entryPath);
 
-					final AbstractFile f = FileHelper.getFileByAbsolutePath(securityContext, entryPath);
-					if (f == null) {
-
-						final Folder parentFolder = createOrGetParentFolder(securityContext, entryPath);
-						final String name         = PathHelper.getName(entry.getName());
-
-						if (StringUtils.isNotEmpty(name) && (parentFolder == null || !(FileHelper.getFolderPath(parentFolder).equals(entryPath)))) {
-
-							AbstractFile fileOrFolder = null;
-
-							if (entry.isDirectory()) {
-
-								fileOrFolder = app.create(Folder.class, name);
-
-							} else {
-
-								fileOrFolder = ImageHelper.isImageType(name)
+					if (entry.isDirectory()) {
+						
+						final String folderPath = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + entryPath;
+						final Folder newFolder = FileHelper.createFolderPath(securityContext, folderPath);
+						
+						logger.log(Level.INFO, "Created folder {0} with path {1}", new Object[]{newFolder, FileHelper.getFolderPath(newFolder)});
+						
+					} else {
+						
+						final String filePath = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + entryPath;
+						
+						final String name = PathHelper.getName(entryPath);
+						
+						AbstractFile newFile = ImageHelper.isImageType(name)
 									? ImageHelper.createImage(securityContext, in, null, Image.class, name, false)
 									: FileHelper.createFile(securityContext, in, null, File.class, name);
-							}
-
-							if (parentFolder != null) {
-								fileOrFolder.setProperty(AbstractFile.parent, parentFolder);
-							}
-
-							logger.log(Level.INFO, "Created {0} {1} with path {2}", new Object[]{fileOrFolder.getType(), fileOrFolder, FileHelper.getFolderPath(fileOrFolder)});
-
-							// create thumbnails while importing data
-							if (fileOrFolder instanceof Image) {
-								fileOrFolder.getProperty(Image.tnMid);
-								fileOrFolder.getProperty(Image.tnSmall);
-							}
-
+						
+						final String folderPath = StringUtils.substringBeforeLast(filePath, PathHelper.PATH_SEP);
+						final Folder parentFolder = FileHelper.createFolderPath(securityContext, folderPath);
+						
+						if (parentFolder != null) {
+							newFile.setProperty(AbstractFile.parent, parentFolder);
 						}
+													// create thumbnails while importing data
+//						if (newFile instanceof Image) {
+//							newFile.getProperty(Image.tnMid);
+//							newFile.getProperty(Image.tnSmall);
+//						}
+
+						logger.log(Level.INFO, "Created {0} file {1} with path {2}", new Object[]{newFile.getType(), newFile, FileHelper.getFolderPath(newFile)});
+						
 					}
+						
 
 					entry = in.getNextEntry();
 
 					overallCount++;
 				}
-
-				logger.log(Level.INFO, "Committing transaction after {0} files..", overallCount);
+					
+				logger.log(Level.INFO, "Committing transaction after {0} files.", overallCount);
 
 				tx.success();
+
+				logger.log(Level.INFO, "Unarchived {0} files.", overallCount);
 			}
 
 		}
