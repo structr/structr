@@ -120,6 +120,7 @@ public class UnarchiveCommand extends AbstractCommand {
 
 				// return error message
 				getWebSocket().send(MessageBuilder.status().code(400).message("Could not unarchive file: ".concat((msg != null) ? msg : "")).build(), true);
+				getWebSocket().send(MessageBuilder.finished().callback(callback).data("success", false).build(), true);
 
 				tx.success();
 
@@ -186,25 +187,25 @@ public class UnarchiveCommand extends AbstractCommand {
 					logger.log(Level.INFO, "Entry path: {0}", entryPath);
 
 					if (entry.isDirectory()) {
-						
+
 						final String folderPath = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + entryPath;
 						final Folder newFolder = FileHelper.createFolderPath(securityContext, folderPath);
-						
+
 						logger.log(Level.INFO, "Created folder {0} with path {1}", new Object[]{newFolder, FileHelper.getFolderPath(newFolder)});
-						
+
 					} else {
-						
+
 						final String filePath = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + entryPath;
-						
+
 						final String name = PathHelper.getName(entryPath);
-						
+
 						AbstractFile newFile = ImageHelper.isImageType(name)
 									? ImageHelper.createImage(securityContext, in, null, Image.class, name, false)
 									: FileHelper.createFile(securityContext, in, null, File.class, name);
-						
+
 						final String folderPath = StringUtils.substringBeforeLast(filePath, PathHelper.PATH_SEP);
 						final Folder parentFolder = FileHelper.createFolderPath(securityContext, folderPath);
-						
+
 						if (parentFolder != null) {
 							newFile.setProperty(AbstractFile.parent, parentFolder);
 						}
@@ -215,18 +216,20 @@ public class UnarchiveCommand extends AbstractCommand {
 //						}
 
 						logger.log(Level.INFO, "Created {0} file {1} with path {2}", new Object[]{newFile.getType(), newFile, FileHelper.getFolderPath(newFile)});
-						
+
 					}
-						
+
 
 					entry = in.getNextEntry();
 
 					overallCount++;
 				}
-					
+
 				logger.log(Level.INFO, "Committing transaction after {0} files.", overallCount);
 
 				tx.success();
+
+				getWebSocket().send(MessageBuilder.finished().callback(callback).data("success", true).build(), true);
 
 				logger.log(Level.INFO, "Unarchived {0} files.", overallCount);
 			}
