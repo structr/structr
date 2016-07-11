@@ -18,7 +18,7 @@
  */
 var StructrModel = {
 	objects: {},
-	callbacks: [],
+	callbacks: {},
 	obj: function(id) {
 		return StructrModel.objects[id];
 	},
@@ -223,15 +223,15 @@ var StructrModel = {
 		}
 
 		if (engine) {
-			
+
 			if (engine.graph.nodes(id)) {
 				try { engine.graph.dropNode(id); } catch (e) {}
 			}
-			
+
 			if (engine.graph.edges(id)) {
 				try { engine.graph.dropEdge(id); } catch (e) {}
 			}
-			
+
 			engine.refresh();
 		}
 
