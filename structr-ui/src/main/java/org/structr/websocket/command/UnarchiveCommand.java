@@ -142,6 +142,8 @@ public class UnarchiveCommand extends AbstractCommand {
 
 		Folder existingParentFolder = null;
 
+		final String fileName = file.getName();
+
 		try (final Tx tx = app.tx()) {
 
 			// search for existing parent folder
@@ -154,8 +156,6 @@ public class UnarchiveCommand extends AbstractCommand {
 				parentFolderName = existingParentFolder.getName();
 				msgString += " into existing folder {1}.";
 			}
-
-			final String fileName = file.getName();
 
 			logger.log(Level.INFO, msgString, new Object[]{fileName, parentFolderName});
 
@@ -229,12 +229,12 @@ public class UnarchiveCommand extends AbstractCommand {
 
 				tx.success();
 
-				getWebSocket().send(MessageBuilder.finished().callback(callback).data("success", true).build(), true);
-
 				logger.log(Level.INFO, "Unarchived {0} files.", overallCount);
 			}
 
 		}
+
+		getWebSocket().send(MessageBuilder.finished().callback(callback).data("success", true).data("filename", fileName).build(), true);
 
 		in.close();
 
