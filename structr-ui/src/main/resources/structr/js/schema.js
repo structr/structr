@@ -885,7 +885,7 @@ var _Schema = {
 		var selectRelationshipOptions = function (rel) {
 			$('#source-type-name').text(nodes[rel.sourceId].name);
 			$('#source-multiplicity-selector').val(rel.sourceMultiplicity || '*');
-			$('#relationship-type-name').val(rel.relationshipType === initialRelType ? '&nbsp;' : rel.relationshipType);
+			$('#relationship-type-name').val(rel.relationshipType === initialRelType ? '' : rel.relationshipType);
 			$('#target-multiplicity-selector').val(rel.targetMultiplicity || '*');
 			$('#target-type-name').text(nodes[rel.targetId].name);
 
@@ -922,7 +922,6 @@ var _Schema = {
 				sourceMultiplicity: $('#source-multiplicity-selector').val(),
 				relationshipType: $('#relationship-type-name').val(),
 				targetMultiplicity: $('#target-multiplicity-selector').val(),
-
 				cascadingDeleteFlag: parseInt($('#cascading-delete-selector').val()),
 				autocreationFlag: parseInt($('#autocreate-selector').val()),
 				permissionPropagation: $('#propagation-selector').val(),
@@ -934,8 +933,14 @@ var _Schema = {
 			};
 
 			Object.keys(newData).forEach(function (key) {
-				if ( (entity[key] === newData[key]) || (key === 'cascadingDeleteFlag' && !(entity[key]) && newData[key] === 0) ||
-					(key === 'autocreationFlag' && !(entity[key]) && newData[key] === 0) || (key === 'propertyMask' && !(entity[key]) && newData[key].trim() === '') ) {
+				if (key === 'relationshipType' && newData[key].trim() === '') {
+					newData[key] = initialRelType;
+				}
+				if ( (entity[key] === newData[key])
+						|| (key === 'cascadingDeleteFlag' && !(entity[key]) && newData[key] === 0)
+						|| (key === 'autocreationFlag' && !(entity[key]) && newData[key] === 0)
+						|| (key === 'propertyMask' && !(entity[key]) && newData[key].trim() === '')
+				) {
 					delete newData[key];
 				}
 			});
