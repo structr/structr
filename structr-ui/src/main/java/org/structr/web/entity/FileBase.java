@@ -24,7 +24,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -359,11 +358,11 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 		return null;
 	}
 
-	public OutputStream getOutputStream() {
-		return getOutputStream(true);
+	public FileOutputStream getOutputStream() {
+		return getOutputStream(true, false);
 	}
 
-	public OutputStream getOutputStream(final boolean notifyIndexerAfterClosing) {
+	public FileOutputStream getOutputStream(final boolean notifyIndexerAfterClosing, final boolean append) {
 
 		final String path = getRelativeFilePath();
 		if (path != null) {
@@ -376,7 +375,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 				fileOnDisk.getParentFile().mkdirs();
 
 				// Return file output stream and save checksum and size after closing
-				final FileOutputStream fos = new FileOutputStream(fileOnDisk) {
+				final FileOutputStream fos = new FileOutputStream(fileOnDisk, append) {
 
 					private boolean closed = false;
 
