@@ -184,18 +184,18 @@ input[type="checkbox"] {
 	padding: 0;
 	margin: 0;
 	float: left;
+	overflow: hidden;
 }
 
 .menu ul li {
 	display: inline;
-	margin: 0 1em;
+	margin: 0 10px;
 }
 
 .menu a {
 	text-decoration: none;
-	font-size: 1.2em;
+	font-weight: bold;
 	color: #fff;
-        text-transform: uppercase;
 }
 
 .menu .inactive {
@@ -204,19 +204,17 @@ input[type="checkbox"] {
 
 .menu a:hover {
 	text-decoration: none;
-	color: #81ce25 ! important;
+	font-weight: bold;
+	color: #81ce25;
 }
 
 .menu .active {
-	color: #000 ! important;
+	color: #333 ! important;
 	padding: 3px 6px 4px 6px;
+	border: 1px solid #333;
 	border-radius: 3px;
 	background-color: #81ce25;
 	cursor: default;
-}
-
-.menu .active:hover {
-        color: #fff ! important;
 }
 
 .menu ul li a.disabled {
