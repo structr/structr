@@ -42,7 +42,11 @@ public class ConfigFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
+		try {
+			if (!arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
+				
+				return null;
+			}
 
 			final String configKey = sources[0].toString();
 
@@ -56,13 +60,12 @@ public class ConfigFunction extends Function<Object, Object> {
 
 			return StructrApp.getConfigurationValue(configKey, defaultValue);
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 
 		}
-
-		return "";
 
 	}
 

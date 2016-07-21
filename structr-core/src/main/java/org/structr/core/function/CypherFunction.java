@@ -42,7 +42,11 @@ public class CypherFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+		try {
+			if (!arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+				
+				return null;
+			}
 
 			final Map<String, Object> params = new LinkedHashMap<>();
 			final String query = sources[0].toString();
@@ -54,13 +58,12 @@ public class CypherFunction extends Function<Object, Object> {
 
 			return StructrApp.getInstance(ctx.getSecurityContext()).cypher(query, params);
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 
 		}
-
-		return "";
 	}
 
 

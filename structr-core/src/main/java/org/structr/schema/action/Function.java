@@ -108,11 +108,20 @@ public abstract class Function<S, T> extends Hint {
 	 * @param array
 	 * @param minLength If null, don't do length check
 	 * @return true if array has min length and all elements are not null
+	 * @throws IllegalArgumentException in case of wrong number of parameters
 	 */
-	protected boolean arrayHasMinLengthAndAllElementsNotNull(final Object[] array, final Integer minLength) {
+	protected boolean arrayHasMinLengthAndAllElementsNotNull(final Object[] array, final Integer minLength) throws IllegalArgumentException  {
 
-		if (array != null && minLength != null && array.length >= minLength) {
-
+		if (array == null) {
+			return false;
+		}
+		
+		if (minLength != null) {
+			
+			if (array.length < minLength) {
+				throw new IllegalArgumentException();
+			}
+			
 			for (final Object element : array) {
 
 				if (element == null) {
@@ -134,23 +143,28 @@ public abstract class Function<S, T> extends Hint {
 	 * @param minLength
 	 * @param maxLength
 	 * @return true if array has min length and all elements are not null
+	 * @throws IllegalArgumentException in case of wrong number of parameters
 	 */
-	protected boolean arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(final Object[] array, final int minLength, final int maxLength) {
+	protected boolean arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(final Object[] array, final int minLength, final int maxLength) throws IllegalArgumentException {
 
-		if (array != null && array.length >= minLength && array.length <= maxLength) {
-
-			for (final Object element : array) {
-
-				if (element == null) {
-					return false;
-				}
-
-			}
-
-			return true;
+		if (array == null) {
+			return false;
 		}
 
-		return false;
+		if (array.length < minLength || array.length > maxLength) {
+			
+			throw new IllegalArgumentException();
+			
+		}
+
+		for (final Object element : array) {
+
+			if (element == null) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -159,8 +173,7 @@ public abstract class Function<S, T> extends Hint {
 	 * @param array
 	 * @param length
 	 * @return true if array has exact length and all elements are not null
-	 * 
-	 * @throws IllegalArgumentException if an array is given but has not the expected length
+	 * @throws IllegalArgumentException in case of wrong number of parameters
 	 */
 	protected boolean arrayHasLengthAndAllElementsNotNull(final Object[] array, final int length) throws IllegalArgumentException {
 

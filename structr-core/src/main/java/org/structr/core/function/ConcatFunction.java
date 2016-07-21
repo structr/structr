@@ -44,27 +44,41 @@ public class ConcatFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 		final List list = new ArrayList();
-		for (final Object source : sources) {
+		
+		try {
+			if (sources == null) {
+				throw new IllegalArgumentException();
+			}
 
-			// collection can contain nulls..
-			if (source != null) {
+			for (final Object source : sources) {
 
-				if (source instanceof Collection) {
+				// collection can contain nulls..
+				if (source != null) {
 
-					list.addAll((Collection)source);
+					if (source instanceof Collection) {
 
-				} else if (source.getClass().isArray()) {
+						list.addAll((Collection)source);
 
-					list.addAll(Arrays.asList((Object[])source));
+					} else if (source.getClass().isArray()) {
 
-				} else {
+						list.addAll(Arrays.asList((Object[])source));
 
-					list.add(source);
+					} else {
+
+						list.add(source);
+					}
 				}
 			}
-		}
 
-		return StringUtils.join(list, "");
+			return StringUtils.join(list, "");
+			
+		} catch (final IllegalArgumentException e) {
+
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
+
+		}
+		
 	}
 
 

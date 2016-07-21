@@ -41,7 +41,7 @@ public class CeilFunction extends Function<Object, Object> {
 		try {
 			if (!arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 
-				return "";
+				return null;
 			}
 
 			return (int)Math.ceil(Double.parseDouble(sources[0].toString()));

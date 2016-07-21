@@ -39,6 +39,13 @@ public class EmptyFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
+		
+		if (sources == null) {
+
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
+		}
+		
 		if (sources.length == 0 || sources[0] == null || StringUtils.isEmpty(sources[0].toString())) {
 
 			return true;
