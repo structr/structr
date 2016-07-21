@@ -211,7 +211,6 @@ input[type="checkbox"] {
 .menu .active {
 	color: #333 ! important;
 	padding: 3px 6px 4px 6px;
-	border: 1px solid #333;
 	border-radius: 3px;
 	background-color: #81ce25;
 	cursor: default;
