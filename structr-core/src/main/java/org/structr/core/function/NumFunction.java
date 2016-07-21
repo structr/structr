@@ -38,7 +38,11 @@ public class NumFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+		try {
+			if (!arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+				
+				return null;
+			}
 
 			try {
 				return getDoubleOrNull(sources[0]);
@@ -46,16 +50,16 @@ public class NumFunction extends Function<Object, Object> {
 			} catch (Throwable t) {
 
 				logException(entity, t, sources);
+				return null;
 
 			}
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 
 		}
-
-		return "";
 	}
 
 

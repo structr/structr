@@ -67,7 +67,7 @@ public class MultFunction extends Function<Object, Object> {
 		} else {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
-
+			return usage(ctx.isJavaScriptContext());
 		}
 
 		return result;

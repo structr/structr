@@ -40,17 +40,25 @@ public class InstantiateFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+		try {
+			if (!arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+				
+				return null;
+			}
+			
+			if (!(sources[0] instanceof Node)) {
+				
+				throw new IllegalArgumentException();
+			}
 
 			return new NodeFactory<>(ctx.getSecurityContext()).instantiate((Node)sources[0]);
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 
 		}
-
-		return "";
 	}
 
 

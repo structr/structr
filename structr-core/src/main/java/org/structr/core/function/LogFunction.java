@@ -43,8 +43,11 @@ public class LogFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (sources != null) {
-
+		try {
+			if (sources == null) {
+				throw new IllegalArgumentException();
+			}
+			
 			final StringBuilder buf = new StringBuilder();
 			for (final Object obj : sources) {
 
@@ -52,9 +55,14 @@ public class LogFunction extends Function<Object, Object> {
 			}
 
 			logger.log(Level.INFO, buf.toString());
-		}
+			return "";
 
-		return "";
+		} catch (final IllegalArgumentException e) {
+
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
+
+		}
 	}
 
 	@Override

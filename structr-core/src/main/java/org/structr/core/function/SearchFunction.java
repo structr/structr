@@ -130,9 +130,11 @@ public class SearchFunction extends Function<Object, Object> {
 
 			// return search results
 			return x;
+			
+		} else {
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 		}
-
-		return "";
 	}
 
 
