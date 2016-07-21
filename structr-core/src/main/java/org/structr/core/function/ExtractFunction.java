@@ -44,51 +44,55 @@ public class ExtractFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+		try {
+			if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 
-			// no property key given, maybe we should extract a list of lists?
-			if (sources[0] instanceof Collection) {
+				// no property key given, maybe we should extract a list of lists?
+				if (sources[0] instanceof Collection) {
 
-				final List extraction = new LinkedList();
+					final List extraction = new LinkedList();
 
-				for (final Object obj : (Collection)sources[0]) {
+					for (final Object obj : (Collection)sources[0]) {
 
-					if (obj instanceof Collection) {
+						if (obj instanceof Collection) {
 
-						extraction.addAll((Collection)obj);
-					}
-				}
-
-				return extraction;
-			}
-
-		} else if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
-
-			if (sources[0] instanceof Collection && sources[1] instanceof String) {
-
-				final ConfigurationProvider config = StructrApp.getConfiguration();
-				final List extraction = new LinkedList();
-				final String keyName = (String)sources[1];
-
-				for (final Object obj : (Collection)sources[0]) {
-
-					if (obj instanceof GraphObject) {
-
-						final PropertyKey key = config.getPropertyKeyForJSONName(obj.getClass(), keyName);
-						final Object value = ((GraphObject)obj).getProperty(key);
-						if (value != null) {
-
-							extraction.add(value);
+							extraction.addAll((Collection)obj);
 						}
 					}
+
+					return extraction;
 				}
 
-				return extraction;
+			} else if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+
+				if (sources[0] instanceof Collection && sources[1] instanceof String) {
+
+					final ConfigurationProvider config = StructrApp.getConfiguration();
+					final List extraction = new LinkedList();
+					final String keyName = (String)sources[1];
+
+					for (final Object obj : (Collection)sources[0]) {
+
+						if (obj instanceof GraphObject) {
+
+							final PropertyKey key = config.getPropertyKeyForJSONName(obj.getClass(), keyName);
+							final Object value = ((GraphObject)obj).getProperty(key);
+							if (value != null) {
+
+								extraction.add(value);
+							}
+						}
+					}
+
+					return extraction;
+				}
 			}
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
+
+			return usage(ctx.isJavaScriptContext());
 
 		}
 

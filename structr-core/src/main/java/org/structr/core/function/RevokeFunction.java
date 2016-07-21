@@ -44,7 +44,12 @@ public class RevokeFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 3)) {
+		try {
+		
+			if (!arrayHasLengthAndAllElementsNotNull(sources, 3)) {
+				
+				return null;
+			}
 
 			if (sources[0] instanceof Principal) {
 
@@ -95,7 +100,7 @@ public class RevokeFunction extends Function<Object, Object> {
 				return "Error: first argument is not of type Principal.";
 			}
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
 

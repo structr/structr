@@ -41,7 +41,11 @@ public class IntSumFunction extends Function<Object, Object> {
 
 		int result = 0;
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+		try {
+			if (!arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+				
+				return null;
+			}
 
 			if (sources[0] instanceof Collection) {
 
@@ -51,9 +55,11 @@ public class IntSumFunction extends Function<Object, Object> {
 				}
 			}
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
+
+			return usage(ctx.isJavaScriptContext());
 
 		}
 

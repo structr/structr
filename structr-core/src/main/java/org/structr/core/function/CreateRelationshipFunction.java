@@ -42,7 +42,11 @@ public class CreateRelationshipFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 3)) {
+		try {
+			if (!arrayHasLengthAndAllElementsNotNull(sources, 3)) {
+				
+				return "";
+			}
 
 			final Object source = sources[0];
 			final Object target = sources[1];
@@ -74,13 +78,14 @@ public class CreateRelationshipFunction extends Function<Object, Object> {
 				return "Error: Unknown relationship type";
 			}
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
+			return usage(ctx.isJavaScriptContext());
+
 		}
 
-		return "";
 	}
 
 

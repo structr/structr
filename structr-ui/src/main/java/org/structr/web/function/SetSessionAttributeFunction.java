@@ -40,13 +40,20 @@ public class SetSessionAttributeFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+		try {
+			
+			if (!arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+				
+				return null;
+			}
 
 			ctx.getSecurityContext().getSession().setAttribute(SESSION_ATTRIBUTE_PREFIX.concat(sources[0].toString()), sources[1]);
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
+
+			return usage(ctx.isJavaScriptContext());
 
 		}
 

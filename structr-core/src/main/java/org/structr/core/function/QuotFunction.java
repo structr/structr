@@ -38,37 +38,44 @@ public class QuotFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+		try {
+		
+			if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+			
+				try {
 
-			try {
+					return Double.parseDouble(sources[0].toString()) / Double.parseDouble(sources[1].toString());
 
-				return Double.parseDouble(sources[0].toString()) / Double.parseDouble(sources[1].toString());
+				} catch (NumberFormatException nfe) {
 
-			} catch (NumberFormatException nfe) {
+					logException(nfe, "{0}: NumberFormatException in element \"{1}\" for parameters: {2}", new Object[] { getName(), entity, getParametersAsString(sources) });
+					return nfe.getMessage();
 
-				logException(nfe, "{0}: NumberFormatException in element \"{1}\" for parameters: {2}", new Object[] { getName(), entity, getParametersAsString(sources) });
-				return nfe.getMessage();
+				}
 
+			} else if (sources.length > 0 && sources[0] != null) {
+
+				try {
+
+					return Double.parseDouble(sources[0].toString());
+
+				} catch (NumberFormatException nfe) {
+
+					logException(nfe, "{0}: NumberFormatException in element \"{1}\" for parameters: {2}", new Object[] { getName(), entity, getParametersAsString(sources) });
+					return nfe.getMessage();
+				}
+				
 			}
 
-		} else if (sources.length > 0 && sources[0] != null) {
-
-			try {
-
-				return Double.parseDouble(sources[0].toString());
-
-			} catch (NumberFormatException nfe) {
-
-				logException(nfe, "{0}: NumberFormatException in element \"{1}\" for parameters: {2}", new Object[] { getName(), entity, getParametersAsString(sources) });
-				return nfe.getMessage();
-			}
-
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
-			return "";
+
+			return usage(ctx.isJavaScriptContext());
 
 		}
+		
+		return null;
 
 	}
 

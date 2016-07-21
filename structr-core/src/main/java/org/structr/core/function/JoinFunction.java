@@ -40,7 +40,11 @@ public class JoinFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+		try {
+			if (!arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+				
+				return "";
+			}
 
 			if (sources[0] instanceof Collection) {
 
@@ -52,9 +56,11 @@ public class JoinFunction extends Function<Object, Object> {
 				return StringUtils.join((Object[])sources[0], sources[1].toString());
 			}
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
+
+			return usage(ctx.isJavaScriptContext());
 
 		}
 

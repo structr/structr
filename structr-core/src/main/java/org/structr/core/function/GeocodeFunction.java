@@ -44,7 +44,11 @@ public class GeocodeFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 3)) {
+		try {
+			if (!arrayHasLengthAndAllElementsNotNull(sources, 3)) {
+				
+				return "";
+			}
 
 			final Gson gson = new GsonBuilder().create();
 			final String street = sources[0].toString();
@@ -62,9 +66,11 @@ public class GeocodeFunction extends Function<Object, Object> {
 				return serialize(gson, map);
 			}
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
+
+			return usage(ctx.isJavaScriptContext());
 
 		}
 

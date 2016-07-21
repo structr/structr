@@ -159,23 +159,27 @@ public abstract class Function<S, T> extends Hint {
 	 * @param array
 	 * @param length
 	 * @return true if array has exact length and all elements are not null
+	 * 
+	 * @throws IllegalArgumentException if an array is given but has not the expected length
 	 */
-	protected boolean arrayHasLengthAndAllElementsNotNull(final Object[] array, final int length) {
+	protected boolean arrayHasLengthAndAllElementsNotNull(final Object[] array, final int length) throws IllegalArgumentException {
 
-		if (array != null && array.length == length) {
-
-			for (final Object element : array) {
-
-				if (element == null) {
-					return false;
-				}
-
-			}
-
-			return true;
+		if (array == null) {
+			return false;
+		}
+		
+		if (array.length != length) {
+			throw new IllegalArgumentException();
 		}
 
-		return false;
+		for (final Object element : array) {
+
+			if (element == null) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	protected Double getDoubleOrNull(final Object obj) {

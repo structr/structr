@@ -53,7 +53,12 @@ public class IncludeFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String) {
+		try {
+			
+			if (!(arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String)) {
+				
+				return null;
+			}
 
 			final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
 			final App app = StructrApp.getInstance(securityContext);
@@ -165,13 +170,13 @@ public class IncludeFunction extends Function<Object, Object> {
 
 			return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
-		}
+			return usage(ctx.isJavaScriptContext());
 
-		return usage(ctx.isJavaScriptContext());
+		}
 	}
 
 	@Override

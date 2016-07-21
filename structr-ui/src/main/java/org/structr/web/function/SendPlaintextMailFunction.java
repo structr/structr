@@ -43,7 +43,12 @@ public class SendPlaintextMailFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 6)) {
+		try {
+			
+			if (!arrayHasLengthAndAllElementsNotNull(sources, 6)) {
+				
+				return null;
+			}
 
 			final String from = sources[0].toString();
 			final String fromName = sources[1].toString();
@@ -62,9 +67,11 @@ public class SendPlaintextMailFunction extends Function<Object, Object> {
 
 			}
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
+
+			return usage(ctx.isJavaScriptContext());
 
 		}
 

@@ -40,16 +40,24 @@ public class RemoveSessionAttributeFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+		try {
+			
+			if (!arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+				
+				return null;
+			}
 
 			ctx.getSecurityContext().getSession().removeAttribute(SESSION_ATTRIBUTE_PREFIX.concat(sources[0].toString()));
+			
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
-		}
+			return usage(ctx.isJavaScriptContext());
 
+		}
+		
 		return "";
 
 	}

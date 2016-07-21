@@ -38,16 +38,21 @@ public class IsEntityFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
-
+		try {
+			if (!arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+				
+				return false;
+			}
+			
 			return (sources[0] instanceof GraphObject);
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
-			return false;
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
+
+			return usage(ctx.isJavaScriptContext());
 
 		}
-
 	}
 
 
