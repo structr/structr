@@ -45,7 +45,13 @@ public class ExtractFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 		try {
-			if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+			
+			if (sources == null) {
+				throw new IllegalArgumentException();
+			}
+			
+			
+			if (sources.length == 1) {
 
 				// no property key given, maybe we should extract a list of lists?
 				if (sources[0] instanceof Collection) {
@@ -63,8 +69,15 @@ public class ExtractFunction extends Function<Object, Object> {
 					return extraction;
 				}
 
-			} else if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+			}
+			
+			
+			if (sources.length == 2) {
 
+				if (sources[0] == null) {
+					return null;
+				}
+				
 				if (sources[0] instanceof Collection && sources[1] instanceof String) {
 
 					final ConfigurationProvider config = StructrApp.getConfiguration();
