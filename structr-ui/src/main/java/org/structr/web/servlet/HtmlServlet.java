@@ -260,8 +260,17 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				if (rootElement == null) { // No page found
 
-					// Look for a file
-					final FileBase file = findFile(securityContext, request, path);
+					// In case of a file, try to find a file with the query string in the filename
+					final String queryString = request.getQueryString();
+					
+					// Look for a file, first include the query string
+					FileBase file = findFile(securityContext, request, path + (queryString != null ? "?" + queryString : ""));
+					
+					// If no file with query string in the file name found, try without query string
+					if (file == null) {
+						file = findFile(securityContext, request, path);
+					}
+					
 					if (file != null) {
 
 						streamFile(securityContext, file, request, response, edit);
