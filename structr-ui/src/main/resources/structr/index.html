@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<title id="title">Structr</title>
-		<!-- structr UI is released under the <a href="agplv3.html">AGPLv3</a>-->
+		<!-- Structr is released under the <a href="agplv3.html">AGPLv3</a>-->
 		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
 		<meta name="viewport" content="width=1024, user-scalable=yes" />
 		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/jquery-ui-1.10.3.custom.min.css" >
@@ -15,9 +15,12 @@
 		<link rel="stylesheet" href="codemirror/addon/dialog/dialog.css">
 		<link rel="stylesheet" href="codemirror/addon/hint/show-hint.css">
 		<link rel="stylesheet" href="codemirror/addon/search/matchesonscrollbar.css">
+                <link rel="stylesheet" href="trumbowyg/ui/trumbowyg.min.css">
 		<link rel="stylesheet" type="text/css" media="screen" href="css/main.css" >
 		<link rel="stylesheet" type="text/css" media="screen" href="css/crud.css" >
 		<link rel="stylesheet" type="text/css" media="screen" href="css/graph_editor.css" >
+                <link rel="stylesheet" type="text/css" media="screen" href="css/app-builder.css" >
+                <link rel="stylesheet" type="text/css" media="screen" href="css/contents.css" >
 		<link rel="icon" href="favicon.ico" type="image/x-icon">
 		<script src="js/lib/jquery-1.11.1.min.js"></script>
 		<script src="js/lib/jquery-ui-1.11.0.custom.min.js"></script>
@@ -72,6 +75,10 @@
 		<script src="codemirror/addon/search/matchesonscrollbar.js"></script>
 		<script src="codemirror/addon/dialog/dialog.js"></script>
 		<script src="codemirror/addon/hint/show-hint.js"></script>
+                
+                <script src="trumbowyg/trumbowyg.min.js"></script>
+                
+                
 		<script src="js/helper.js"></script>
 		<script src="js/pager.js"></script>
 		<script src="js/dragndrop.js"></script>
@@ -80,23 +87,14 @@
 		<script src="js/entities.js"></script>
 		<script src="js/crud.js"></script>
 		<script src="js/security.js"></script>
-		<script src="js/types.js"></script>
 		<script src="js/schema.js"></script>
 		<script src="js/pages.js"></script>
 		<script src="js/widgets.js"></script>
 		<script src="js/elements.js"></script>
 		<script src="js/contents.js"></script>
-		<!--<script src="js/files.js"></script>-->
 		<script src="js/filesystem.js"></script>
 		<script src="js/images.js"></script>
 		<script src="js/dashboard.js"></script>
-		<!--
-		<script src="js/layout.js"></script>
-		<script src="js/ge/ge_lib.js"></script>
-		<script src="js/ge/ge_obj.js"></script>
-		<script src="js/ge/graph_editor.js"></script>
-		<script src="js/ge/engine.js"></script>
-		-->
 		<script src="js/graph.js"></script>
 		<script src="js/init.js"></script>
 		<script src="js/model.js"></script>
@@ -116,14 +114,13 @@
 				<ul>
 					<li><a id="dashboard_" href="#dashboard" data-activate-module="dashboard">Dashboard</a></li>
 					<li><a id="graph_" href="#graph" data-activate-module="graph">Graph</a></li>
+					<li><a id="contents_" href="#contents" data-activate-module="contents">Contents</a></li>
 					<li><a id="pages_" href="#pages" data-activate-module="pages">Pages</a></li>
 					<li><a id="widgets_" href="#widgets" data-activate-module="widgets">Widgets</a></li>
-					<!--<li><a id="files_" href="#files" data-activate-module="files">Files</a></li>-->
 					<li><a id="filesystem_" href="#filesystem" data-activate-module="filesystem">Filesystem</a></li>
 					<li><a id="images_" href="#images" data-activate-module="images">Images</a></li>
 					<li><a id="security_" href="#security" data-activate-module="security">Security</a></li>
 					<li><a id="schema_" href="#schema" data-activate-module="schema">Schema</a></li>
-					<li><a id="types_" href="#types" data-activate-module="types">Types</a></li>
 					<li><a id="crud_" href="#crud" data-activate-module="crud">Data</a></li>
 					<li><a id="logout_" href="#">Login</a></li>
 				</ul>

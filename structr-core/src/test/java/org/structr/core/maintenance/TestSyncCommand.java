@@ -117,6 +117,39 @@ public class TestSyncCommand extends StructrTest {
 		}
 	}
 
+	public void testSyncCommandBasicExportImportSmallBatchSize() {
+
+		try {
+			// create test nodes
+			createTestNodes(TestOne.class, 100);
+
+			// test export
+			app.command(SyncCommand.class).execute(toMap("mode", "export", "file", EXPORT_FILENAME));
+
+			final Path exportFile = Paths.get(EXPORT_FILENAME);
+
+ 			assertTrue("Export file doesn't exist!", Files.exists(exportFile));
+
+			// stop existing and start new database
+			this.tearDown();
+			this.setUp();
+
+			// test import
+			app.command(SyncCommand.class).execute(toMap("mode", "import", "file", EXPORT_FILENAME, "batchSize", 20L));
+
+			try (final Tx tx = app.tx()) {
+				assertEquals(100, app.nodeQuery(TestOne.class).getResult().size());
+			}
+
+			// clean-up after test
+			Files.delete(exportFile);
+
+		} catch (Exception ex) {
+			logger.log(Level.WARNING, "", ex);
+			fail("Unexpected exception.");
+		}
+	}
+
 	public void testSyncCommandInheritance() {
 
 		try {

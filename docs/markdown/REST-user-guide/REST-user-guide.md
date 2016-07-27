@@ -1,1 +1,0 @@
-This document provides a minimalistic overview of the REST paradigm in general, and the Structr REST backend. REST is an acronym for *Representational State Transfer*, which essentially means you use HTTP methods (GET, POST, PUT, DELETE) together with a human-readable data exchange format (JSON in this case) to manage server-side data on HTTP URLs.

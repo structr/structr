@@ -45,7 +45,7 @@ public class FolderTest extends StructrTest {
 			tx.success();
 			
 		} catch (FrameworkException ex) {
-			Logger.getLogger(FolderTest.class.getName()).log(Level.SEVERE, null, ex);
+			logger.log(Level.SEVERE, null, ex);
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -63,7 +63,7 @@ public class FolderTest extends StructrTest {
 			assertEquals(FileHelper.getFolderPath(c), "/a/b/c");
 						
 		} catch (FrameworkException ex) {
-			Logger.getLogger(FolderTest.class.getName()).log(Level.SEVERE, null, ex);
+			logger.log(Level.SEVERE, null, ex);
 		}
 		
 	}

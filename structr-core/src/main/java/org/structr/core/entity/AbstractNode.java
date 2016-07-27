@@ -123,7 +123,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	private boolean readOnlyPropertiesUnlocked       = false;
 	private boolean isCreation                       = false;
 
-
+	protected String cachedUuid               = null;
 	protected SecurityContext securityContext = null;
 	protected Principal cachedOwnerNode       = null;
 	protected Class entityType                = null;
@@ -143,7 +143,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
-	public void onNodeInstantiation() {
+	public void onNodeInstantiation(final boolean isCreation) {
+		this.cachedUuid = getProperty(GraphObject.id);
 	}
 
 	@Override
@@ -358,6 +359,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		String name = getProperty(AbstractNode.name);
 		if (name == null) {
+
 			name = getNodeId().toString();
 		}
 
@@ -381,7 +383,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	@Override
 	public String getUuid() {
-		return getProperty(GraphObject.id);
+		
+		if (cachedUuid == null) {
+			cachedUuid = getProperty(GraphObject.id);
+		}
+		
+		return cachedUuid;
 	}
 
 	public Long getNodeId() {
@@ -1498,6 +1505,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		}
 	}
 
+	public static void clearRelationshipTemplateInstanceCache() {
+		relationshipTemplateInstanceCache.clear();
+	}
+	
 	public static <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R getRelationshipForType(final Class<R> type) {
 
 		R instance = (R) relationshipTemplateInstanceCache.get(type.getName());

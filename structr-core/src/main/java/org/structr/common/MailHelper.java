@@ -25,6 +25,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.Email;
+import org.apache.commons.mail.EmailAttachment;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
 import org.apache.commons.mail.SimpleEmail;
@@ -49,9 +50,8 @@ public abstract class MailHelper {
 	public MailHelper() {}
 
 	//~--- methods --------------------------------------------------------
-
 	public static String sendHtmlMail(final String from, final String fromName, final String to, final String toName, final String cc, final String bcc, final String bounce, final String subject,
-					final String htmlContent, final String textContent)
+					final String htmlContent, final String textContent, final EmailAttachment... attachments)
 		throws EmailException {
 
 		HtmlEmail mail = new HtmlEmail();
@@ -59,6 +59,13 @@ public abstract class MailHelper {
 		setup(mail, to, toName, from, fromName, cc, bcc, bounce, subject);
 		mail.setHtmlMsg(htmlContent);
 		mail.setTextMsg(textContent);
+
+		if (attachments != null) {
+			
+			for (final EmailAttachment attachment : attachments) {
+				mail.attach(attachment);
+			}
+		}
 
 		return mail.send();
 	}

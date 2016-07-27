@@ -44,12 +44,12 @@ import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
-import org.apache.http.client.params.ClientPNames;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Comment;
@@ -62,6 +62,7 @@ import org.structr.common.CaseHelper;
 import org.structr.common.PathHelper;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
@@ -293,7 +294,7 @@ public class Importer {
 		final HttpClient client = new HttpClient();
 
 		client.getParams().setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
-		client.getParams().setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);
+		client.getParams().setParameter(HttpClientParams.ALLOW_CIRCULAR_REDIRECTS, true);
 
 		return client;
 	}
@@ -309,7 +310,7 @@ public class Importer {
 		final App localAppCtx = StructrApp.getInstance(securityContext);
 		Page page = null;
 
-		try (final Tx tx = localAppCtx.tx()) {
+		try (final Tx tx = localAppCtx.tx(true, false, false)) {
 
 			page = localAppCtx.create(Page.class, new NodeAttribute<>(Page.name, name));
 
@@ -728,10 +729,10 @@ public class Importer {
 	}
 
 	/**
-	 * Check whether a file with given name and checksum already exists
+	 * Check whether a file with given path and checksum already exists
 	 */
-	private FileBase fileExists(final String name, final long checksum) throws FrameworkException {
-		return app.nodeQuery(FileBase.class).andName(name).and(File.checksum, checksum).getFirst();
+	private FileBase fileExists(final String path, final long checksum) throws FrameworkException {
+		return app.nodeQuery(FileBase.class).and(FileBase.path, path).and(File.checksum, checksum).getFirst();
 	}
 
 	private Linkable downloadFile(String downloadAddress, final URL base) {
@@ -740,7 +741,6 @@ public class Importer {
 		String contentType;
 
 		// Create temporary file with new uuid
-		// FIXME: This is much too dangerous!
 		final String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
 		final String filePath = FileHelper.getFilePath(relativeFilePath);
 		final java.io.File fileOnDisk = new java.io.File(filePath);
@@ -799,7 +799,7 @@ public class Importer {
 
 		}
 
-		downloadAddress = StringUtils.substringBefore(downloadAddress, "?");
+		//downloadAddress = StringUtils.substringBefore(downloadAddress, "?");
 		final String fileName = PathHelper.getName(downloadAddress);
 
 		if (StringUtils.isBlank(fileName)) {
@@ -823,7 +823,6 @@ public class Importer {
 			return null;
 		}
 
-		String httpPrefix = "http://";
 
 		logger.log(Level.INFO, "Download URL: {0}, address: {1}, cleaned address: {2}, filename: {3}",
 			new Object[]{downloadUrl, address, StringUtils.substringBeforeLast(address, "/"), fileName});
@@ -833,9 +832,23 @@ public class Importer {
 			relativePath = downloadAddress;
 		}
 
-		final String path = StringUtils.substringBefore(((downloadAddress.contains(httpPrefix))
-			? StringUtils.substringAfter(downloadAddress, "http://")
-			: relativePath), fileName);
+		final String path;
+		final String httpPrefix  = "http://";
+		final String httpsPrefix = "https://";
+		
+		if (downloadAddress.startsWith(httpsPrefix)) {
+
+			path = StringUtils.substringBefore((StringUtils.substringAfter(downloadAddress, httpsPrefix)), fileName);
+			
+		} else if (downloadAddress.startsWith(httpPrefix)) {
+			
+			path = StringUtils.substringBefore((StringUtils.substringAfter(downloadAddress, httpPrefix)), fileName);
+			
+		} else {
+			
+			path = StringUtils.substringBefore(relativePath, fileName);
+		}
+		
 
 		logger.log(Level.INFO, "Relative path: {0}, final path: {1}", new Object[]{relativePath, path});
 
@@ -848,36 +861,22 @@ public class Importer {
 
 		try {
 
-			FileBase fileNode = fileExists(fileName, checksum);
+			final String fullPath = path + fileName;
+			
+			FileBase fileNode = fileExists(fullPath, checksum);
 			if (fileNode == null) {
 
 				if (ImageHelper.isImageType(fileName)) {
 
-					fileNode = createImageNode(uuid, fileName, ct, size, checksum);
+					fileNode = createImageNode(uuid, fullPath, ct, size, checksum);
 				} else {
 
-					fileNode = createFileNode(uuid, fileName, ct, size, checksum);
+					fileNode = createFileNode(uuid, fullPath, ct, size, checksum);
 				}
+				
+				if (contentType.equals("text/css")) {
 
-				if (fileNode != null) {
-
-					Folder parent = FileHelper.createFolderPath(securityContext, path);
-
-					if (parent != null) {
-
-						fileNode.setProperty(File.parent, parent);
-
-					}
-
-					if (contentType.equals("text/css")) {
-
-						processCssFileNode(fileNode, downloadUrl);
-					}
-
-					if (!fileNode.validatePath(securityContext, null)) {
-						fileNode.setProperty(AbstractNode.name, fileName.concat("_").concat(FileHelper.getDateString()));
-					}
-
+					processCssFileNode(fileNode, downloadUrl);
 				}
 
 				return fileNode;
@@ -888,9 +887,9 @@ public class Importer {
 				return fileNode;
 			}
 
-		} catch (FrameworkException | IOException fex) {
+		} catch (final FrameworkException | IOException ex) {
 
-			logger.log(Level.WARNING, "Could not create file node.", fex);
+			logger.log(Level.WARNING, "Could not create file node.", ex);
 
 		}
 
@@ -898,10 +897,16 @@ public class Importer {
 
 	}
 
-	private FileBase createFileNode(final String uuid, final String name, final String contentType, final long size, final long checksum) throws FrameworkException {
+	private FileBase createFileNode(final String uuid, final String path, final String contentType, final long size, final long checksum) throws FrameworkException {
+		return createFileNode(uuid, path, contentType, size, checksum, null);
+	}
+	
+	private FileBase createFileNode(final String uuid, final String path, final String contentType, final long size, final long checksum, final Class fileClass) throws FrameworkException {
 
-		String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
-		FileBase fileNode = app.create(File.class,
+		final String name = PathHelper.getName(path);
+		final String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
+
+		final FileBase fileNode = app.create(fileClass != null ? fileClass : File.class,
 			new NodeAttribute(GraphObject.id, uuid),
 			new NodeAttribute(AbstractNode.name, name),
 			new NodeAttribute(File.relativeFilePath, relativeFilePath),
@@ -912,24 +917,25 @@ public class Importer {
 			new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
 			new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
 
+		final Folder parentFolder = FileHelper.createFolderPath(securityContext, PathHelper.getFolderPath(path));
+		fileNode.setProperty(FileBase.parent, parentFolder);
+		
+		if (!fileNode.validatePath(securityContext, new ErrorBuffer())) {
+			
+			final String newName = name.concat("_").concat(FileHelper.getDateString());
+			
+			logger.log(Level.WARNING, "File {0} already exists, renaming to {1}", new Object[] { path, newName });
+			
+			fileNode.setProperty(AbstractNode.name, newName);
+		}
+
 		return fileNode;
 
 	}
 
-	private Image createImageNode(final String uuid, final String name, final String contentType, final long size, final long checksum) throws FrameworkException {
+	private Image createImageNode(final String uuid, final String path, final String contentType, final long size, final long checksum) throws FrameworkException {
 
-		String relativeFilePath = Image.getDirectoryPath(uuid) + "/" + uuid;
-		Image imageNode = app.create(Image.class,
-			new NodeAttribute(GraphObject.id, uuid),
-			new NodeAttribute(AbstractNode.name, name),
-			new NodeAttribute(File.relativeFilePath, relativeFilePath),
-			new NodeAttribute(File.contentType, contentType),
-			new NodeAttribute(File.size, size),
-			new NodeAttribute(File.checksum, checksum),
-			new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
-			new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
-
-		return imageNode;
+		return (Image) createFileNode(uuid, path, contentType, size, checksum, Image.class);
 
 	}
 
@@ -986,7 +992,7 @@ public class Importer {
 		} else {
 
 			System.out.println("response body: " + new String(get.getResponseBody(), "utf-8"));
-			logger.log(Level.WARNING, "Unable to create file {0}: status code was {1}", new Object[]{uri, statusCode});
+			logger.log(Level.WARNING, "Unable to create file from URI {0}: status code was {1}", new Object[]{uri, statusCode});
 		}
 	}
 

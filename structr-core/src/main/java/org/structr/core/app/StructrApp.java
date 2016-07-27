@@ -37,6 +37,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.api.service.Command;
 import org.structr.core.GraphObject;
 import org.structr.api.service.Service;
+import org.structr.common.fulltext.DummyFulltextIndexer;
+import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
@@ -57,6 +59,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.module.StructrModule;
 import org.structr.schema.ConfigurationProvider;
 
 /**
@@ -413,6 +416,19 @@ public class StructrApp implements App {
 			System.out.println("instance id: " + instanceId);
 			return instanceId;
 		}
+	}
+
+	@Override
+	public FulltextIndexer getFulltextIndexer(final Object... params) {
+
+		final Map<String, StructrModule> modules = StructrApp.getConfiguration().getModules();
+		final StructrModule module               = modules.get("text-search");
+
+		if (module != null && module instanceof FulltextIndexer) {
+			return (FulltextIndexer)module;
+		}
+
+		return new DummyFulltextIndexer();
 	}
 
 	// ----- public static methods ----

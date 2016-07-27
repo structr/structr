@@ -49,11 +49,11 @@ import org.structr.schema.SchemaHelper;
  */
 public class SchemaTypeResource extends Resource {
 
-	protected Class entityClass = null;
-	protected String rawType = null;
+	protected Class entityClass          = null;
+	private static String        rawType = null;
 	protected HttpServletRequest request = null;
-	protected TypeResource typeResource = null;
-	private String propertyView = null;
+	protected TypeResource typeResource  = null;
+	private   String propertyView        = null;
 
 	//~--- methods --------------------------------------------------------
 	public SchemaTypeResource(SecurityContext securityContext, TypeResource typeResource) {
@@ -71,58 +71,8 @@ public class SchemaTypeResource extends Resource {
 
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
-
-		List<GraphObjectMap> resultList = new LinkedList<>();
-
-		// create & add schema information
 		Class type = typeResource.getEntityClass();
-		if (type != null) {
-
-			if (propertyView != null) {
-
-				for (final Map.Entry<String, Object> entry : getPropertiesForView(type, propertyView).entrySet()) {
-
-					final GraphObjectMap property = new GraphObjectMap();
-
-					for (final Map.Entry<String, Object> prop : ((Map<String, Object>) entry.getValue()).entrySet()) {
-
-						property.setProperty(new GenericProperty(prop.getKey()), prop.getValue());
-					}
-
-					resultList.add(property);
-				}
-
-			} else {
-
-				final GraphObjectMap schema = new GraphObjectMap();
-
-				resultList.add(schema);
-
-				String url = "/".concat(rawType);
-
-				schema.setProperty(new StringProperty("url"), url);
-				schema.setProperty(new StringProperty("type"), type.getSimpleName());
-				schema.setProperty(new StringProperty("className"), type.getName());
-				schema.setProperty(new BooleanProperty("isRel"), AbstractRelationship.class.isAssignableFrom(type));
-				schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
-
-				Set<String> propertyViews = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertyViews());
-
-				// list property sets for all views
-				Map<String, Map<String, Object>> views = new TreeMap();
-				schema.setProperty(new GenericProperty("views"), views);
-
-				for (String view : propertyViews) {
-
-					if (!View.INTERNAL_GRAPH_VIEW.equals(view)) {
-
-						views.put(view, getPropertiesForView(type, view));
-					}
-				}
-			}
-		}
-
-		return new Result(resultList, resultList.size(), false, false);
+		return getSchemaTypeResult(securityContext, type, propertyView);
 
 	}
 
@@ -177,9 +127,9 @@ public class SchemaTypeResource extends Resource {
 
 	}
 
-	private Map<String, Object> getPropertiesForView(final Class type, final String view) throws FrameworkException {
+	private static Map<String, Object> getPropertiesForView(final SecurityContext securityContext, final Class type, final String propertyView) throws FrameworkException {
 
-		final Set<PropertyKey> properties = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, view));
+		final Set<PropertyKey> properties = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, propertyView));
 		final Map<String, Object> propertyConverterMap = new LinkedHashMap<>();
 
 		for (PropertyKey property : properties) {
@@ -189,4 +139,61 @@ public class SchemaTypeResource extends Resource {
 
 		return propertyConverterMap;
 	}
+	
+	// ----- public static methods -----
+	public static Result getSchemaTypeResult(final SecurityContext securityContext, final Class type, final String propertyView) throws FrameworkException {
+	
+		List<GraphObjectMap> resultList = new LinkedList<>();
+
+		// create & add schema information
+		
+		if (type != null) {
+
+			if (propertyView != null) {
+
+				for (final Map.Entry<String, Object> entry : getPropertiesForView(securityContext, type, propertyView).entrySet()) {
+
+					final GraphObjectMap property = new GraphObjectMap();
+
+					for (final Map.Entry<String, Object> prop : ((Map<String, Object>) entry.getValue()).entrySet()) {
+
+						property.setProperty(new GenericProperty(prop.getKey()), prop.getValue());
+					}
+
+					resultList.add(property);
+				}
+
+			} else {
+
+				final GraphObjectMap schema = new GraphObjectMap();
+
+				resultList.add(schema);
+
+				String url = "/".concat(rawType);
+
+				schema.setProperty(new StringProperty("url"), url);
+				schema.setProperty(new StringProperty("type"), type.getSimpleName());
+				schema.setProperty(new StringProperty("className"), type.getName());
+				schema.setProperty(new BooleanProperty("isRel"), AbstractRelationship.class.isAssignableFrom(type));
+				schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
+
+				Set<String> propertyViews = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertyViewsForType(type));
+
+				// list property sets for all views
+				Map<String, Map<String, Object>> views = new TreeMap();
+				schema.setProperty(new GenericProperty("views"), views);
+
+				for (final String view : propertyViews) {
+
+					if (!View.INTERNAL_GRAPH_VIEW.equals(view)) {
+
+						views.put(view, getPropertiesForView(securityContext, type, view));
+					}
+				}
+			}
+		}
+
+		return new Result(resultList, resultList.size(), false, false);
+	}
+	
 }

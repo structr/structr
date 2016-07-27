@@ -60,7 +60,6 @@ import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Image;
-import org.structr.web.entity.VideoFile;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -201,13 +200,30 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 							type = (String) params.get(NodeInterface.type.jsonName());
 						}
 
-						final Class cls = type != null
-							? SchemaHelper.getEntityClassForRawType(type)
-							: (isImage
-								? Image.class
-								: (isVideo
-									? VideoFile.class
-									: org.structr.dynamic.File.class));
+						Class cls = null;
+						if (type != null) {
+
+							cls = SchemaHelper.getEntityClassForRawType(type);
+
+						} else {
+
+							if (isImage) {
+
+								cls = Image.class;
+
+							} else if (isVideo) {
+
+								cls = SchemaHelper.getEntityClassForRawType("VideoFile");
+								if (cls == null) {
+
+									logger.log(Level.WARNING, "Unable to create entity of type VideoFile, class is not defined.");
+								}
+
+							} else {
+
+								cls = org.structr.dynamic.File.class;
+							}
+						}
 
 						final String name = item.getName().replaceAll("\\\\", "/");
 
@@ -243,6 +259,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 			tx.success();
 
 		} catch (FrameworkException | IOException | FileUploadException t) {
+
 
 			logger.log(Level.SEVERE, "Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);

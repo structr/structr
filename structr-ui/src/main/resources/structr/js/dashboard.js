@@ -39,6 +39,7 @@ var _Dashboard = {
 
 		aboutMe = _Dashboard.appendBox('About Me', 'about-me');
 		aboutMe.append('<div class="dashboard-info">You are currently logged in as <b>' + me.username + '<b>.</div>');
+		aboutMe.append('<div class="dashboard-info admin red"></div>');
 		aboutMe.append('<table class="props"></table>');
 		$.get(rootUrl + '/me/ui', function(data) {
 			meObj = data.result;
@@ -63,6 +64,25 @@ var _Dashboard = {
 		Command.getByType('Page', 5, 1, 'version', 'desc', null, false, function(pages) {
 			pages.forEach(function(p) {
 				myPages.append('<div class="dashboard-info"><a href="/' + p.name + '" target="_blank"><img class="icon" src="icon/page.png"></a> <a href="/' + p.name + '" target="_blank">' + _Dashboard.displayName(p) + '</a>' + _Dashboard.displayVersion(p) + '</div>');
+			});
+		});
+
+		var myContents = _Dashboard.appendBox('My Contents', 'my-content');
+		myContents.append('<div class="dashboard-info">Your most edited <a class="internal-link" href="javascript:void(0)">contents</a> are:</div>');
+		Command.getByType('ContentItem', 5, 1, 'version', 'desc', null, false, function(items) {
+			items.forEach(function(i) {
+				myContents.append('<div class="dashboard-info"><a href="/' + i.name + '" target="_blank"><i class="fa ' + _Contents.getIcon(i) + '"></i></a> <a class="contents-link" id="open-' + i.id + '" href="javascript:void(0)">' + _Dashboard.displayName(i) + '</a>' + _Dashboard.displayVersion(i) + '</div>');
+			});
+			
+			$('.contents-link', myContents).on('click', function(e) {
+				e.preventDefault();
+				var id = $(this).prop('id').slice(5);
+				window.setTimeout(function() {
+					Command.get(id, function(entity) {
+						_Contents.editItem(entity);
+					});
+				}, 250);
+				$('#contents_').click();
 			});
 		});
 
@@ -100,7 +120,7 @@ var _Dashboard = {
 	},
 	checkAdmin: function() {
 		if (me.isAdmin && aboutMe && aboutMe.length && aboutMe.find('admin').length === 0) {
-			aboutMe.append('<div class="dashboard-info admin red">You have admin rights.</div>');
+			$('.dashboard-info.admin', aboutMe).text('You have admin rights.');
 		}
 	},
 	displayVersion: function(obj) {

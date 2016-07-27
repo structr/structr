@@ -132,10 +132,13 @@ var Command = {
 	/**
 	 * Send a single GET_SCHEMA_INFO command to the server.
 	 *
-	 * The server will return a schema overviewall relevant properties.
+	 * The server will return a schema overview with all relevant properties.
 	 */
-	getSchemaInfo: function(callback) {
+	getSchemaInfo: function(type, callback) {
 		var obj = {};
+		var data = {};
+		data.type = type;
+		obj.data = data;
 		obj.command = 'GET_SCHEMA_INFO';
 		_Logger.log(_LogType.WS[obj.command], 'getSchemaInfo()', obj, callback);
 		return sendObj(obj, callback);
@@ -435,18 +438,19 @@ var Command = {
 	/**
 	 * Send an UNARCHIVE command to the server.
 	 *
-	 * The server will unarchive the file with the given id
-	 * and create files for each archive entry.
+	 * The server will unarchive the file with the given id in the folder
+	 * with the given parent folder id and create files for each archive entry.
 	 *
 	 */
-	unarchive: function(id) {
+	unarchive: function(id, parentFolderId, callback) {
 		var obj = {};
 		obj.command = 'UNARCHIVE';
 		obj.id = id;
 		var data = {};
+		data.parentFolderId = parentFolderId;
 		obj.data = data;
 		_Logger.log(_LogType.WS[obj.command], 'unarchive()', obj);
-		return sendObj(obj);
+		return sendObj(obj, callback);
 	},
 	/**
 	 * Send an APPEND_USER command to the server.
@@ -1165,6 +1169,20 @@ var Command = {
         };
 
 		_Logger.log(_LogType.WS[obj.command], 'autocomplete()', obj, callback);
+		return sendObj(obj, callback);
+	},
+	/**
+	 * Send a SNAPSHOTS command to the server.
+	 *
+	 * The server will return a status object.
+	 */
+	layouts: function(mode, name, schemaLayout, callback) {
+		var obj  = {};
+		obj.data = { mode: mode, name: name };
+		if (schemaLayout && schemaLayout.length) {
+			obj.data.schemaLayout = schemaLayout;
+		}
+		obj.command = 'LAYOUTS';
 		return sendObj(obj, callback);
 	}
 };

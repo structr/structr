@@ -1,1 +1,0 @@
-Structr has an integrated user self-registration process, allowing new users to sign-up with their e-mail address. This process is divided in the following three steps.

@@ -37,6 +37,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import static org.structr.core.entity.AbstractNode.getRelationshipForType;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
@@ -49,10 +50,10 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.common.ResultTransformer;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.servlet.JsonRestServlet;
-import org.structr.rest.transform.VirtualType;
 import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
@@ -70,7 +71,7 @@ public class TypeResource extends SortableResource {
 	private static final Logger logger = Logger.getLogger(TypeResource.class.getName());
 
 	protected Class<? extends SearchCommand> searchCommandType = null;
-	protected VirtualType virtualType                          = null;
+	protected ResultTransformer virtualType                    = null;
 	protected Class entityClass                                = null;
 	protected String rawType                                   = null;
 	protected HttpServletRequest request                       = null;
@@ -88,20 +89,8 @@ public class TypeResource extends SortableResource {
 
 		if (rawType != null) {
 
-			virtualType = app.nodeQuery(VirtualType.class).andName(rawType).sort(VirtualType.position).getFirst();
-			if (virtualType != null) {
-
-				final String sourceType = virtualType.getProperty(VirtualType.sourceType);
-				if (sourceType != null) {
-
-					// modify raw type to source type of virtual type
-					rawType = sourceType;
-
-				} else {
-
-					throw new FrameworkException(500, "Invalid virtual type " + rawType + ", missing value for sourceType");
-				}
-			}
+			// check if this resource representes a virtual type
+			checkVirtualType(app);
 
 			final boolean inexactSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
 
@@ -256,6 +245,8 @@ public class TypeResource extends SortableResource {
 					throw new FrameworkException(422, "Source node ID and target node ID of relationsips must be set", errorBuffer);
 				}
 
+				template.ensureCardinality(securityContext, sourceNode, targetNode);
+				
 				newRelationship = app.create(sourceNode, targetNode, entityClass, properties);
 
 				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
@@ -417,5 +408,29 @@ public class TypeResource extends SortableResource {
                 }
 
 		return null;
+	}
+
+	private void checkVirtualType(final App app) throws FrameworkException {
+
+		final Class<? extends AbstractNode> virtualTypeClass = StructrApp.getConfiguration().getNodeEntityClass("VirtualType");
+		if (virtualTypeClass != null) {
+
+			final PropertyKey<Integer> positionProperty  = StructrApp.getConfiguration().getPropertyKeyForJSONName(virtualTypeClass, "position");
+
+			virtualType = (ResultTransformer)app.nodeQuery(virtualTypeClass).andName(rawType).sort(positionProperty).getFirst();
+			if (virtualType != null) {
+
+				final String sourceType = virtualType.getSourceType();
+				if (sourceType != null) {
+
+					// modify raw type to source type of virtual type
+					rawType = sourceType;
+
+				} else {
+
+					throw new FrameworkException(500, "Invalid virtual type " + rawType + ", missing value for sourceType");
+				}
+			}
+		}
 	}
 }

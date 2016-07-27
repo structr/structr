@@ -51,7 +51,7 @@ var _Filesystem = {
 
 		main = $('#main');
 
-		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Search..."><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
+		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
 
 		searchField = $('.search', main);
 		searchField.focus();
@@ -112,7 +112,7 @@ var _Filesystem = {
 
 		$('#folder-contents-container').prepend(
 				'<button class="add_file_icon button"><img title="Add File" alt="Add File" src="' + _Filesystem.add_file_icon + '"> Add File</button>'
-				+ '<button class="pull_file_icon button"><img title="Sync Files" alt="Sync Files" src="' + _Filesystem.pull_file_icon + '"> Sync Files</button>'
+				+ '<button class="pull_file_icon button module-dependend" data-structr-module="cloud"><img title="Sync Files" alt="Sync Files" src="' + _Filesystem.pull_file_icon + '"> Sync Files</button>'
 				);
 
 		$('.add_file_icon', main).on('click', function(e) {
@@ -143,14 +143,14 @@ var _Filesystem = {
 		fileTree.on('ready.jstree', function() {
 			var rootEl = $('#root > .jstree-wholerow');
 			_Dragndrop.makeDroppable(rootEl);
-		});
-
-		_Filesystem.loadAndSetWorkingDir(function() {
-			_Filesystem.initTree();
-			if (!currentWorkingDir) {
-				_Filesystem.displayFolderContents('root', null, '/');
-			}
-
+			_Filesystem.loadAndSetWorkingDir(function() {
+				if (currentWorkingDir) {
+					_Filesystem.deepOpen(currentWorkingDir);
+				}
+				window.setTimeout(function() {
+					fileTree.jstree('select_node', currentWorkingDir ? currentWorkingDir.id : 'root');
+				}, 100);
+			});
 		});
 
 		fileTree.on('select_node.jstree', function(evt, data) {
@@ -163,6 +163,8 @@ var _Filesystem = {
 			_Filesystem.displayFolderContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
 
 		});
+
+		_Filesystem.initTree();
 
 		_Filesystem.activateUpload();
 
@@ -177,6 +179,7 @@ var _Filesystem = {
 
 	},
 	deepOpen: function(d, dirs) {
+		dirs = dirs || [];
 		if (d && d.id) {
 			dirs.unshift(d);
 			Command.get(d.id, function(dir) {
@@ -193,14 +196,13 @@ var _Filesystem = {
 		var d = dirs.shift();
 		fileTree.jstree('deselect_node', d.id);
 		fileTree.jstree('open_node', d.id, function() {
-			if (currentWorkingDir) {
-				fileTree.jstree('select_node', currentWorkingDir.id);
-			}
+			fileTree.jstree('select_node', currentWorkingDir ? currentWorkingDir.id : 'root');
 			_Filesystem.open(dirs);
 		});
 
 	},
 	refreshTree: function() {
+		//$.jstree.destroy();
 		fileTree.jstree('refresh');
 		window.setTimeout(function() {
 			var rootEl = $('#root > .jstree-wholerow');
@@ -208,6 +210,7 @@ var _Filesystem = {
 		}, 500);
 	},
 	initTree: function() {
+		//$.jstree.destroy();
 		fileTree.jstree({
 			'plugins': ["themes", "dnd", "search", "state", "types", "wholerow"],
 			'core': {
@@ -620,11 +623,13 @@ var _Filesystem = {
 
 			// ********** Folders **********
 
-			div.append('<img title="Sync folder \'' + d.name + '\' to remote instance" alt="Sync folder \'' + d.name + '\' to remote instance" class="push_icon button" src="icon/page_white_get.png">');
-			div.children('.push_icon').on('click', function() {
-				Structr.pushDialog(d.id, true);
-				return false;
-			});
+			if (Structr.isModulePresent('structr-cloud-module')) {
+				div.append('<img title="Sync folder \'' + d.name + '\' to remote instance" alt="Sync folder \'' + d.name + '\' to remote instance" class="push_icon button" src="icon/page_white_get.png">');
+				div.children('.push_icon').on('click', function() {
+					Structr.pushDialog(d.id, true);
+					return false;
+				});
+			}
 
 			var newDelIcon = '<img title="Delete folder \'' + d.name + '\'" alt="Delete folder \'' + d.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
 			if (delIcon && delIcon.length) {
@@ -690,15 +695,57 @@ var _Filesystem = {
 				div.append('<img class="unarchive_icon button" src="icon/compress.png">');
 				div.children('.unarchive_icon').on('click', function() {
 					_Logger.log(_LogType.FILESYSTEM, 'unarchive', d.id);
-					Command.unarchive(d.id);
+
+					$('#tempInfoBox .infoHeading, #tempInfoBox .infoMsg').empty();
+					$('#tempInfoBox .closeButton').hide();
+					Structr.loaderIcon($('#tempInfoBox .infoMsg'), { marginBottom: '-6px' });
+					$('#tempInfoBox .infoMsg').append(' Unpacking Archive - please stand by...');
+					$('#tempInfoBox .infoMsg').append('<p>Extraction will run in the background.<br>You can safely close this popup and work during this operation.<br>You will be notified when the extraction has finished.</p>');
+
+					$.blockUI.defaults.overlayCSS.opacity = .6;
+					$.blockUI.defaults.applyPlatformOpacityRules = false;
+					$.blockUI({
+						message: $('#tempInfoBox'),
+						css: {
+							border: 'none',
+							backgroundColor: 'transparent'
+						}
+					});
+
+					var closed = false;
+					window.setTimeout(function() {
+						$('#tempInfoBox .closeButton').show().on('click', function () {
+							closed = true;
+							$.unblockUI({
+								fadeOut: 25
+							});
+						});
+					}, 500);
+
+					Command.unarchive(d.id, currentWorkingDir ? currentWorkingDir.id : undefined, function (data) {
+						if (data.success === true) {
+							_Filesystem.refreshTree();
+							var message = "Extraction of '" + data.filename + "' finished successfully. ";
+							if (closed) {
+								new MessageBuilder().success(message).requiresConfirmation("Close").show();
+							} else {
+								$('#tempInfoBox .infoMsg').html('<img src="icon/accept.png"> ' + message);
+							}
+
+						} else {
+							$('#tempInfoBox .infoMsg').html('<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAIsSURBVDjLpVNLSJQBEP7+h6uu62vLVAJDW1KQTMrINQ1vPQzq1GOpa9EppGOHLh0kCEKL7JBEhVCHihAsESyJiE4FWShGRmauu7KYiv6Pma+DGoFrBQ7MzGFmPr5vmDFIYj1mr1WYfrHPovA9VVOqbC7e/1rS9ZlrAVDYHig5WB0oPtBI0TNrUiC5yhP9jeF4X8NPcWfopoY48XT39PjjXeF0vWkZqOjd7LJYrmGasHPCCJbHwhS9/F8M4s8baid764Xi0Ilfp5voorpJfn2wwx/r3l77TwZUvR+qajXVn8PnvocYfXYH6k2ioOaCpaIdf11ivDcayyiMVudsOYqFb60gARJYHG9DbqQFmSVNjaO3K2NpAeK90ZCqtgcrjkP9aUCXp0moetDFEeRXnYCKXhm+uTW0CkBFu4JlxzZkFlbASz4CQGQVBFeEwZm8geyiMuRVntzsL3oXV+YMkvjRsydC1U+lhwZsWXgHb+oWVAEzIwvzyVlk5igsi7DymmHlHsFQR50rjl+981Jy1Fw6Gu0ObTtnU+cgs28AKgDiy+Awpj5OACBAhZ/qh2HOo6i+NeA73jUAML4/qWux8mt6NjW1w599CS9xb0mSEqQBEDAtwqALUmBaG5FV3oYPnTHMjAwetlWksyByaukxQg2wQ9FlccaK/OXA3/uAEUDp3rNIDQ1ctSk6kHh1/jRFoaL4M4snEMeD73gQx4M4PsT1IZ5AfYH68tZY7zv/ApRMY9mnuVMvAAAAAElFTkSuQmCC"> Extraction failed');
+						}
+					});
 				});
 			}
 
-			div.append('<img title="Sync file \'' + d.name + '\' to remote instance" alt="Sync file \'' + d.name + '\' to remote instance" class="push_icon button" src="icon/page_white_get.png">');
-			div.children('.push_icon').on('click', function() {
-				Structr.pushDialog(d.id, false);
-				return false;
-			});
+			if (Structr.isModulePresent('structr-cloud-module')) {
+				div.append('<img title="Sync file \'' + d.name + '\' to remote instance" alt="Sync file \'' + d.name + '\' to remote instance" class="push_icon button" src="icon/page_white_get.png">');
+				div.children('.push_icon').on('click', function() {
+					Structr.pushDialog(d.id, false);
+					return false;
+				});
+			}
 
 			div.children('.typeIcon').on('click', function(e) {
 				e.stopPropagation();

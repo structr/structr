@@ -1,0 +1,94 @@
+/**
+ * Copyright (C) 2010-2016 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.core.function;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import org.apache.commons.io.IOUtils;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
+
+/**
+ *
+ */
+public class AppendFunction extends Function<Object, Object> {
+
+	public static final String ERROR_MESSAGE_APPEND = "Usage: ${append(filename, value)}. Example: ${append(\"test.txt\", this.name)}";
+
+	@Override
+	public String getName() {
+		return "append()";
+	}
+
+	@Override
+	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+
+		if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+
+			try {
+
+				final String sandboxFilename = getSandboxFileName(sources[0].toString());
+
+				if (sandboxFilename != null) {
+
+					final File file = new File(sandboxFilename);
+
+					try (final Writer writer = new OutputStreamWriter(new FileOutputStream(file, true))) {
+
+						for (int i = 1; i < sources.length; i++) {
+							IOUtils.write(sources[i].toString(), writer);
+						}
+
+						writer.flush();
+					}
+
+				}
+
+			} catch (IOException ioex) {
+
+				logException(entity, ioex, sources);
+
+			}
+
+		} else {
+
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
+
+		}
+
+		return "";
+	}
+
+
+	@Override
+	public String usage(boolean inJavaScriptContext) {
+		return ERROR_MESSAGE_APPEND;
+	}
+
+	@Override
+	public String shortDescription() {
+		return "Appends to the given file in the exchange directoy";
+	}
+
+}

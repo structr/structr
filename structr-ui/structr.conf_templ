@@ -283,7 +283,7 @@ oauth.github.user_details_resource_uri = https://api.github.com/user/emails
 oauth.github.error_uri = /login
 oauth.github.return_uri = /
 
-# See https://dev.twitter.com/docs/auth/oauth
+# See https://dev.twitter.com/oauth and https://apps.twitter.com/
 oauth.twitter.authorization_location = https://api.twitter.com/oauth/authorize
 oauth.twitter.token_location = https://api.twitter.com/oauth/access_token
 oauth.twitter.client_id = 

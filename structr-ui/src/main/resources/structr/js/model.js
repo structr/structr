@@ -18,7 +18,7 @@
  */
 var StructrModel = {
 	objects: {},
-	callbacks: [],
+	callbacks: {},
 	obj: function(id) {
 		return StructrModel.objects[id];
 	},
@@ -221,7 +221,17 @@ var StructrModel = {
 
 			_Pages.reloadPreviews();
 		}
+
 		if (engine) {
+
+			if (engine.graph.nodes(id)) {
+				try { engine.graph.dropNode(id); } catch (e) {}
+			}
+
+			if (engine.graph.edges(id)) {
+				try { engine.graph.dropEdge(id); } catch (e) {}
+			}
+
 			engine.refresh();
 		}
 
@@ -410,7 +420,7 @@ var StructrModel = {
 
 			} else if (element.hasClass('content')) {
 
-				icon = _Contents.getContentIcon(obj);
+				icon = _Elements.getContentIcon(obj);
 
 			} else if (element.hasClass('file')) {
 
@@ -1002,7 +1012,7 @@ StructrContent.prototype.append = function(refNode) {
 		parent = Structr.node(parentId);
 	}
 
-	var div = _Contents.appendContentElement(this, refNode);
+	var div = _Elements.appendContentElement(this, refNode);
 	if (!div)
 		return;
 
@@ -1017,7 +1027,7 @@ StructrContent.prototype.append = function(refNode) {
 		});
 
 		$('.delete_icon', div).replaceWith('<img title="Remove content element from parent ' + parentId + '" '
-				+ 'alt="Remove content element from parent ' + parentId + '" class="delete_icon button" src="' + _Contents.delete_icon + '">');
+				+ 'alt="Remove content element from parent ' + parentId + '" class="delete_icon button" src="' + _Elements.delete_content_icon + '">');
 		$('.delete_icon', div).on('click', function(e) {
 			e.stopPropagation();
 			Command.removeChild(id);

@@ -27,6 +27,7 @@ import org.structr.core.GraphObject;
 import org.structr.api.service.Service;
 import org.structr.agent.Task;
 import org.structr.api.DatabaseService;
+import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeAttribute;
@@ -79,6 +80,8 @@ public interface App extends Closeable {
 
 	public void processTasks(final Task... tasks);
 	public <T extends Command & MaintenanceCommand> void maintenance(final Class<T> commandClass, final Map<String, Object> propertySet) throws FrameworkException;
+
+	public FulltextIndexer getFulltextIndexer(final Object... params);
 
 	public List<GraphObject> cypher(final String cypherQuery, final Map<String, Object> parameters) throws FrameworkException;
 

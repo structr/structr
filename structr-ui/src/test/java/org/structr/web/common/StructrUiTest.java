@@ -51,7 +51,6 @@ import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyMap;
-import org.structr.files.ftp.FtpService;
 import org.structr.module.JarConfigurationProvider;
 import org.structr.rest.service.HttpService;
 import org.structr.rest.servlet.JsonRestServlet;
@@ -128,7 +127,7 @@ public abstract class StructrUiTest extends TestCase {
 		config.setProperty(Services.TESTING, "true");
 
 		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
-		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService FtpService HttpService SchemaService");
+		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService HttpService SchemaService");
 		config.setProperty(Services.TMP_PATH, "/tmp/");
 		config.setProperty(Services.BASE_PATH, basePath);
 		config.setProperty(Structr.DATABASE_PATH, basePath + "/db");
@@ -138,8 +137,6 @@ public abstract class StructrUiTest extends TestCase {
 		config.setProperty(Services.UDP_PORT, (System.getProperty("udpPort") != null ? System.getProperty("udpPort") : "13466"));
 		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
 		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
-
-		config.setProperty(FtpService.APPLICATION_FTP_PORT, Integer.toString(ftpPort));
 
 		// configure servlets
 		config.setProperty(HttpService.APPLICATION_TITLE, "structr unit test app" + timestamp);
@@ -539,4 +536,53 @@ public abstract class StructrUiTest extends TestCase {
 			this.value = value;
 		}
 	}
+
+	protected String createEntity(String resource, String... body) {
+
+		StringBuilder buf = new StringBuilder();
+
+		for (String part : body) {
+			buf.append(part);
+		}
+
+		return getUuidFromLocation(
+			RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.body(buf.toString())
+			.expect().statusCode(201).when().post(resource).getHeader("Location"));
+	}
+
+	protected String createEntityAsSuperUser(String resource, String... body) {
+
+		StringBuilder buf = new StringBuilder();
+
+		for (String part : body) {
+			buf.append(part);
+		}
+
+		final Properties config = Services.getBaseConfiguration();
+
+		return getUuidFromLocation(
+			RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.header("X-User", config.getProperty(Services.SUPERUSER_USERNAME))
+				.header("X-Password", config.getProperty(Services.SUPERUSER_PASSWORD))
+				
+			.body(buf.toString())
+				.expect().statusCode(201)
+			.when().post(resource).getHeader("Location"));
+	}
+
 }

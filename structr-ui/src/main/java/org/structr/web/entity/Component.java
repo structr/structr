@@ -76,7 +76,7 @@ public class Component extends DOMElement {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public void onNodeInstantiation() {
+	public void onNodeInstantiation(final boolean isCreation) {
 		// collectProperties(this, getProperty(AbstractNode.uuid), 0, null);
 	}
 

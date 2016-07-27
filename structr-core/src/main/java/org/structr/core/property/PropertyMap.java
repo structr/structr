@@ -334,7 +334,7 @@ public class PropertyMap {
 							Object propertyValue = converter.convert(value);
 							resultMap.put(propertyKey, propertyValue);
 
-						} catch(ClassCastException cce) {
+						} catch (ClassCastException cce) {
 
 							throw new FrameworkException(422, "Invalid JSON input for key " + propertyKey.jsonName() + ", expected a JSON " + propertyKey.typeName() + ".");
 						}

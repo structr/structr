@@ -20,7 +20,7 @@ var header, main, footer;
 var sessionId, user;
 var lastMenuEntry, activeTab, menuBlocked;
 var dmp;
-var editorCursor, hintsJustClosed;
+var editorCursor, ignoreKeyUp;
 var dialog, isMax = false;
 var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, saveAndClose, loginButton, loginBox, dialogCloseButton;
 var dialogId;
@@ -114,11 +114,12 @@ $(function() {
 			cmdKey = false;
 
 		if (e.keyCode === 27) {
-			if (hintsJustClosed) {
-				hintsJustClosed = false;
+			if (ignoreKeyUp) {
+				ignoreKeyUp = false;
 				return false;
 			}
 			if (dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
+				ignoreKeyUp = true;
 				var saveBeforeExit = confirm('Save changes?');
 				if (saveBeforeExit) {
 					dialogSaveButton.click();
@@ -135,9 +136,11 @@ $(function() {
 						return false;
 					}, 1000);
 				}
-			}
-			if (dialogCancelButton.length && dialogCancelButton.is(':visible') && !dialogCancelButton.prop('disabled')) {
+				return false;
+			} else if (dialogCancelButton.length && dialogCancelButton.is(':visible') && !dialogCancelButton.prop('disabled')) {
 				dialogCancelButton.click();
+				ignoreKeyUp = false;
+				return false;
 			}
 		}
 		return false;
@@ -180,6 +183,7 @@ $(function() {
 
 var Structr = {
 	modules: {},
+	activeModules: {},
 	classes: [],
 	expanded: {},
 	add_icon: 'icon/add.png',
@@ -349,6 +353,7 @@ var Structr = {
 			if (module) {
 				//module.init();
 				module.onload();
+				Structr.adaptUiToPresentModules();
 				if (module.resize)
 					module.resize();
 			}
@@ -374,19 +379,19 @@ var Structr = {
 		if (text) {
 			$('#confirmation .confirmationText').html(text);
 		}
-		var $yesButton = $('#confirmation .yesButton');
-		var $noButton = $('#confirmation .noButton');
+		var yesButton = $('#confirmation .yesButton');
+		var noButton = $('#confirmation .noButton');
 
 		if (yesCallback) {
-			$yesButton.on('click', function(e) {
+			yesButton.on('click', function(e) {
 				e.stopPropagation();
 				yesCallback();
-				$yesButton.off('click');
-				$noButton.off('click');
+				yesButton.off('click');
+				noButton.off('click');
 			});
 		}
 
-		$noButton.on('click', function(e) {
+		noButton.on('click', function(e) {
 			e.stopPropagation();
 			$.unblockUI({
 				fadeOut: 25
@@ -394,8 +399,8 @@ var Structr = {
 			if (noCallback) {
 				noCallback();
 			}
-			$yesButton.off('click');
-			$noButton.off('click');
+			yesButton.off('click');
+			noButton.off('click');
 		});
 		$.blockUI.defaults.overlayCSS.opacity = .6;
 		$.blockUI.defaults.applyPlatformOpacityRules = false;
@@ -739,6 +744,7 @@ var Structr = {
 			Structr.clearMain();
 			Structr.activateMenuEntry(name);
 			Structr.modules[name].onload();
+			Structr.adaptUiToPresentModules();
 		}
 	},
 	activateMenuEntry: function(name) {
@@ -863,6 +869,7 @@ var Structr = {
 
 //                _Pages.init();
 				Structr.modules['pages'].onload();
+				Structr.adaptUiToPresentModules();
 				_Pages.resize();
 				$('a#pages_').removeClass('nodeHover').droppable('enable');
 			}
@@ -896,7 +903,7 @@ var Structr = {
 		}
 		LSWrapper.removeItem(activeTabKey);
 	},
-	openLeftSlideOut: function(slideout, tab, activeTabKey, callback) {
+	openLeftSlideOut: function(slideout, tab, activeTabKey, callback, dragCallback) {
 		var s = $(slideout);
 		var t = $(tab);
 		t.addClass('active');
@@ -904,9 +911,8 @@ var Structr = {
 		s.animate({left: '+=' + sw + 'px'}, {duration: 100}).zIndex(1);
 		LSWrapper.setItem(activeTabKey, t.prop('id'));
 		if (callback) {
-			callback();
+			callback({sw: sw});
 		}
-		_Pages.resize(sw, 0);
 		t.draggable({
 			axis: 'x',
 			start: function(e, ui) {
@@ -922,7 +928,10 @@ var Structr = {
 				var oldLsw = sw;
 				sw = w + 12;
 				$('.node.page', slideout).width(w - 13);
-				_Pages.resize(sw - oldLsw, 0);
+
+				if (dragCallback) {
+					dragCallback({sw: (sw - oldLsw)});
+				}
 			},
 			stop: function(e, ui) {
 				LSWrapper.setItem(leftSlideoutWidthKey, slideout.width());
@@ -1091,7 +1100,7 @@ var Structr = {
 				$('#header .structr-instance-name').text(envInfo.result.instanceName);
 				$('#header .structr-instance-stage').text(envInfo.result.instanceStage);
 
-				var ui = envInfo.result.modules['structr-ui'];
+				var ui = envInfo.result.components['structr-ui'];
 				if (ui !== null) {
 
 					var version = ui.version;
@@ -1107,9 +1116,11 @@ var Structr = {
 					if (build && date) {
 						versionInfo += ' build <a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a> (' + date + ')';
 					}
-					
+
 					$('.structr-version').html(versionInfo);
 				}
+
+				Structr.activeModules = envInfo.result.modules;
 			}
 		});
 	},
@@ -1206,6 +1217,19 @@ var Structr = {
 	},
 	getActiveElementId: function(element) {
 		return Structr.getIdFromPrefixIdString($(element).prop('id'), 'active_') || undefined;
+	},
+	adaptUiToPresentModules: function() {
+		$('.module-dependend').each(function(idx, el) {
+
+			$el = $(el);
+			if (! Structr.isModulePresent($el.data('structr-module'))) {
+				$el.hide();
+			}
+
+		});
+	},
+	isModulePresent:function(moduleName) {
+		return Structr.activeModules[moduleName] !== undefined;
 	}
 };
 

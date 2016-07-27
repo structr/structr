@@ -21,6 +21,7 @@ package org.structr.core.notion;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
@@ -85,9 +86,15 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 		}
 
 		if (source != null && type.isAssignableFrom(source.getClass())) {
-			return (T)source;
+			return (T) source;
 		}
 
+		if (source != null && source instanceof String && Pattern.matches("[a-fA-F0-9]{32}", (String) source)) {
+			
+			return (T) getTypedResult(new Result(StructrApp.getInstance(securityContext).getNodeById((String) source), false), type);
+			
+		}
+		
 		return null;
 	}
 

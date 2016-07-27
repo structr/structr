@@ -61,7 +61,7 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 	private static final Logger logger = Logger.getLogger(JsonInputGSONAdapter.class.getName());
 
 	@Override
-	public IJsonInput createInstance(Type type) {
+	public IJsonInput createInstance(final Type type) {
 
 		try {
 			return (IJsonInput)type.getClass().newInstance();
@@ -74,12 +74,12 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 	}
 
 	@Override
-	public JsonElement serialize(IJsonInput src, Type typeOfSrc, JsonSerializationContext context) {
+	public JsonElement serialize(final IJsonInput src, final Type typeOfSrc, final JsonSerializationContext context) {
 		return null;
 	}
 
 	@Override
-	public IJsonInput deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+	public IJsonInput deserialize(final JsonElement json, final Type typeOfT, final JsonDeserializationContext context) throws JsonParseException {
 
 		IJsonInput jsonInput = null;
 		JsonInput wrapper    = null;
@@ -90,12 +90,12 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 			wrapper   = deserialize(json, context);
 			jsonInput.add(wrapper);
 
-		} else if(json.isJsonArray()) {
+		} else if (json.isJsonArray()) {
 
 			jsonInput = new JsonSingleInput();
 
 			JsonArray array = json.getAsJsonArray();
-			for(JsonElement elem : array) {
+			for (final JsonElement elem : array) {
 
 				wrapper = deserialize(elem, context);
 				jsonInput.add(wrapper);
@@ -112,17 +112,17 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 	}
 
 
-	private JsonInput deserialize(JsonElement json, JsonDeserializationContext context) throws JsonParseException {
+	public static JsonInput deserialize(final JsonElement json, final JsonDeserializationContext context) throws JsonParseException {
 
-		JsonInput wrapper = new JsonInput();
+		final JsonInput wrapper = new JsonInput();
 		if (json.isJsonObject()) {
 
-			JsonObject obj = json.getAsJsonObject();
+			final JsonObject obj = json.getAsJsonObject();
 
-			for (Entry<String, JsonElement> entry : obj.entrySet()) {
+			for (final Entry<String, JsonElement> entry : obj.entrySet()) {
 
-				String key       = entry.getKey();
-				JsonElement elem = entry.getValue();
+				final String key       = entry.getKey();
+				final JsonElement elem = entry.getValue();
 
 				if (elem.isJsonNull()) {
 
@@ -137,7 +137,7 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 					final JsonArray array = elem.getAsJsonArray();
 					final List list       = new LinkedList();
 
-					for(JsonElement element : array) {
+					for (final JsonElement element : array) {
 
 						if (element.isJsonPrimitive()) {
 
@@ -160,10 +160,10 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 
 			}
 
-		} else if(json.isJsonArray()) {
+		} else if (json.isJsonArray()) {
 
-			JsonArray array = json.getAsJsonArray();
-			for(JsonElement elem : array) {
+			final JsonArray array = json.getAsJsonArray();
+			for (final JsonElement elem : array) {
 
 				if (elem.isJsonPrimitive()) {
 

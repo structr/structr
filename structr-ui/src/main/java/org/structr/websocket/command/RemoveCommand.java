@@ -53,7 +53,7 @@ public class RemoveCommand extends AbstractCommand {
 	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		String id = webSocketData.getId();
+		final String id = webSocketData.getId();
 
 		if (id != null) {
 

@@ -19,8 +19,11 @@
 package org.structr.schema;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -47,6 +50,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -68,6 +72,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.property.StringProperty;
+import org.structr.module.StructrModule;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.action.Actions;
 import org.structr.schema.parser.BooleanPropertyParser;
@@ -307,10 +312,19 @@ public class SchemaHelper {
 		try {
 
 			final List<DynamicResourceAccess> existingDynamicGrants  = StructrApp.getInstance().nodeQuery(DynamicResourceAccess.class).getAsList();
-
+			
+			final Set<String> existingSchemaNodeNames = new HashSet<>();
+			
+			for (final SchemaNode schemaNode : existingSchemaNodes) {
+				
+				existingSchemaNodeNames.add(schemaNode.getResourceSignature());
+			}
+			
 			for (final DynamicResourceAccess grant : existingDynamicGrants) {
 
-				String sig;
+				boolean foundAllParts = true;
+				
+				final String sig;
 				try {
 					sig = grant.getResourceSignature();
 
@@ -318,20 +332,32 @@ public class SchemaHelper {
 					logger.log(Level.FINE, "Unable to get signature from grant");
 					continue;
 				}
-
-				boolean exists = false;
-
-				for (final SchemaNode schemaNode : existingSchemaNodes) {
-
-					if (schemaNode.getResourceSignature().equals(sig)) {
-						exists = true;
-						break;
+				
+				// Try to find schema nodes for all parts of the grant signature
+				final String[] parts = StringUtils.split(sig, "/");
+				
+				if (parts != null) {
+					
+					
+					for (final String sigPart : parts) {
+						
+						if ("/".equals(sigPart) || sigPart.startsWith("_")) {
+							continue;
+						}
+						
+						// If one of the signature parts doesn't have an equivalent existing schema node, remove it
+						foundAllParts &= existingSchemaNodeNames.contains(sigPart);
 					}
 				}
 
-				if (!exists) {
+				if (!foundAllParts) {
+					
+					logger.log(Level.INFO, "Did not find all parts of signature, will be removed: {0}, ", new Object[]{ sig });
+					
 					removeDynamicGrants(sig);
 				}
+				
+
 			}
 
 		} catch (Throwable t) {
@@ -351,31 +377,41 @@ public class SchemaHelper {
 			ResourceAccess grant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
 
 			if (grant == null) {
-
+				
 				// create new grant
 				grants.add(app.create(DynamicResourceAccess.class,
 					new NodeAttribute(DynamicResourceAccess.signature, signature),
 					new NodeAttribute(DynamicResourceAccess.flags, initialFlagsValue)
 				));
+
+				logger.log(Level.INFO, "New signature created: {0}", new Object[]{ (signature) });
 			}
 
-			ResourceAccess schemaGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, "_schema/" + signature).getFirst();
+			final String schemaSig = schemaResourceSignature(signature);
+			
+			ResourceAccess schemaGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, schemaSig).getFirst();
 			if (schemaGrant == null) {
 				// create additional grant for the _schema resource
 				grants.add(app.create(DynamicResourceAccess.class,
-					new NodeAttribute(DynamicResourceAccess.signature, "_schema/" + signature),
+					new NodeAttribute(DynamicResourceAccess.signature, schemaSig),
 					new NodeAttribute(DynamicResourceAccess.flags, initialFlagsValue)
 				));
+
+				logger.log(Level.INFO, "New signature created: {0}", new Object[]{ schemaSig });
 			}
 
-			ResourceAccess uiViewGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature + "/_Ui").getFirst();
+			final String uiSig = uiViewResourceSignature(signature);
+			
+			ResourceAccess uiViewGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, uiSig).getFirst();
 			if (uiViewGrant == null) {
 
 				// create additional grant for the Ui view
 				grants.add(app.create(DynamicResourceAccess.class,
-					new NodeAttribute(DynamicResourceAccess.signature, signature + "/_Ui"),
+					new NodeAttribute(DynamicResourceAccess.signature, uiSig),
 					new NodeAttribute(DynamicResourceAccess.flags, initialFlagsValue)
 				));
+
+				logger.log(Level.INFO, "New signature created: {0}", new Object[]{ uiSig });
 			}
 
 		} catch (Throwable t) {
@@ -783,7 +819,7 @@ public class SchemaHelper {
 
 	}
 
-	public static void formatImportStatements(final StringBuilder src, final Class baseType) {
+	public static void formatImportStatements(final AbstractSchemaNode schemaNode, final StringBuilder src, final Class baseType) {
 
 		src.append("import ").append(baseType.getName()).append(";\n");
 		src.append("import ").append(ConfigurationProvider.class.getName()).append(";\n");
@@ -791,17 +827,26 @@ public class SchemaHelper {
 		src.append("import ").append(PermissionPropagation.class.getName()).append(";\n");
 		src.append("import ").append(FrameworkException.class.getName()).append(";\n");
 		src.append("import ").append(DatePropertyParser.class.getName()).append(";\n");
+		src.append("import ").append(PropertyConverter.class.getName()).append(";\n");
 		src.append("import ").append(ValidationHelper.class.getName()).append(";\n");
 		src.append("import ").append(SecurityContext.class.getName()).append(";\n");
-		src.append("import ").append(GraphObject.class.getName()).append(";\n");
-		src.append("import ").append(Actions.class.getName()).append(";\n");
+		src.append("import ").append(LinkedHashSet.class.getName()).append(";\n");
 		src.append("import ").append(PropertyView.class.getName()).append(";\n");
+		src.append("import ").append(GraphObject.class.getName()).append(";\n");
 		src.append("import ").append(ErrorBuffer.class.getName()).append(";\n");
+		src.append("import ").append(StringUtils.class.getName()).append(";\n");
+		src.append("import ").append(Collections.class.getName()).append(";\n");
 		src.append("import ").append(StructrApp.class.getName()).append(";\n");
+		src.append("import ").append(LinkedList.class.getName()).append(";\n");
+		src.append("import ").append(Collection.class.getName()).append(";\n");
+		src.append("import ").append(Services.class.getName()).append(";\n");
+		src.append("import ").append(Actions.class.getName()).append(";\n");
+		src.append("import ").append(HashMap.class.getName()).append(";\n");
 		src.append("import ").append(Export.class.getName()).append(";\n");
 		src.append("import ").append(View.class.getName()).append(";\n");
 		src.append("import ").append(List.class.getName()).append(";\n");
 		src.append("import ").append(Map.class.getName()).append(";\n");
+		src.append("import ").append(Set.class.getName()).append(";\n");
 
 		if (hasRestClasses()) {
 			src.append("import org.structr.rest.RestMethodResult;\n");
@@ -814,9 +859,38 @@ public class SchemaHelper {
 			src.append("import org.structr.web.property.*;\n");
 		}
 
+		for (final StructrModule module : StructrApp.getConfiguration().getModules().values()) {
+			module.insertImportStatements(schemaNode, src);
+		}
+
 		src.append("import org.structr.core.notion.*;\n");
 		src.append("import org.structr.core.entity.*;\n\n");
 
+	}
+
+	public static void formatInterfacesFromModules(final StringBuilder src, final SchemaNode schemaNode) {
+
+		final Set<String> interfaces = new LinkedHashSet<>();
+		boolean firstInterface       = true;
+
+		// collect all interfaces that a module wants to add to the given type
+		for (final StructrModule module : StructrApp.getConfiguration().getModules().values()) {
+
+			final Set<String> moduleInterfacesForType = module.getInterfacesForType(schemaNode);
+			if (moduleInterfacesForType != null) {
+
+				interfaces.addAll(moduleInterfacesForType);
+			}
+		}
+
+		// add all interfaces dynamically
+		for (final String iface : interfaces) {
+
+			src.append(firstInterface ? " implements " : ", ");
+			src.append(iface);
+
+			firstInterface = false;
+		}
 	}
 
 	public static String cleanPropertyName(final String propertyName) {
@@ -857,7 +931,7 @@ public class SchemaHelper {
 		}
 	}
 
-	public static void formatSaveActions(final StringBuilder src, final Map<Actions.Type, List<ActionEntry>> saveActions) {
+	public static void formatSaveActions(final AbstractSchemaNode schemaNode, final StringBuilder src, final Map<Actions.Type, List<ActionEntry>> saveActions) {
 
 		// save actions..
 		for (final Map.Entry<Actions.Type, List<ActionEntry>> entry : saveActions.entrySet()) {
@@ -865,22 +939,19 @@ public class SchemaHelper {
 			final List<ActionEntry> actionList = entry.getValue();
 			final Actions.Type type = entry.getKey();
 
-			if (!actionList.isEmpty()) {
+			switch (type) {
 
-				switch (type) {
+				case Custom:
+					// active actions are exported stored functions
+					// that can be called by POSTing on the entity
+					formatActiveActions(src, actionList);
+					break;
 
-					case Custom:
-						// active actions are exported stored functions
-						// that can be called by POSTing on the entity
-						formatActiveActions(src, actionList);
-						break;
-
-					default:
-						// passive actions are actions that are executed
-						// automtatically on creation / modification etc.
-						formatPassiveSaveActions(src, type, actionList);
-						break;
-				}
+				default:
+					// passive actions are actions that are executed
+					// automtatically on creation / modification etc.
+					formatPassiveSaveActions(schemaNode, src, type, actionList);
+					break;
 			}
 		}
 
@@ -947,7 +1018,7 @@ public class SchemaHelper {
 
 	}
 
-	public static void formatPassiveSaveActions(final StringBuilder src, final Actions.Type type, final List<ActionEntry> actionList) {
+	public static void formatPassiveSaveActions(final AbstractSchemaNode schemaNode, final StringBuilder src, final Actions.Type type, final List<ActionEntry> actionList) {
 
 		src.append("\n\t@Override\n");
 		src.append("\tpublic boolean ");
@@ -960,6 +1031,10 @@ public class SchemaHelper {
 		src.append("(");
 		src.append(type.getParameters());
 		src.append(");\n\n");
+
+		for (final StructrModule module : StructrApp.getConfiguration().getModules().values()) {
+			module.insertSaveAction(schemaNode, src, type);
+		}
 
 		if (!actionList.isEmpty()) {
 
@@ -1113,6 +1188,21 @@ public class SchemaHelper {
 		return false;
 	}
 
+	public static boolean hasPeerToPeerService() {
+
+		try {
+
+			Class.forName("org.structr.net.SharedNodeInterface");
+
+			// success
+			return true;
+
+		} catch (Throwable t) {
+		}
+
+		return false;
+	}
+
 	private static class ReverseTypeComparator implements Comparator<Type> {
 
 		@Override
@@ -1120,4 +1210,13 @@ public class SchemaHelper {
 			return o2.name().compareTo(o1.name());
 		}
 	}
+	
+	private static String schemaResourceSignature(final String signature) {
+		return "_schema/" + signature;
+	}
+
+	private static String uiViewResourceSignature(final String signature) {
+		return signature + "/_Ui";
+	}
+
 }

@@ -29,6 +29,8 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import java.lang.reflect.Type;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
@@ -36,11 +38,13 @@ import java.util.logging.Logger;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.IJsonInput;
 import org.structr.core.StaticValue;
 import org.structr.core.Value;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.GraphObjectGSONAdapter;
 import org.structr.rest.JsonInputGSONAdapter;
+import static org.structr.rest.JsonInputGSONAdapter.fromPrimitive;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
@@ -370,29 +374,50 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 			if (nodeData != null) {
 
-				for (Entry<String, JsonElement> entry : nodeData.entrySet()) {
+				JsonInputGSONAdapter adapter = new JsonInputGSONAdapter();
+				
 
+				for (Entry<String, JsonElement> entry : nodeData.entrySet()) {
+					
 					final JsonElement obj = entry.getValue();
 					Object value          = null;
 
 					if (obj instanceof JsonPrimitive) {
 
-						value = JsonInputGSONAdapter.fromPrimitive(obj.getAsJsonPrimitive());
+						value = adapter.fromPrimitive(obj.getAsJsonPrimitive());
 
 					} else if (obj instanceof JsonObject) {
 
-						value = obj.toString();
+						value = adapter.deserialize(obj, typeOfT, context);
+
+					} else if (obj instanceof JsonArray) {
+
+						final JsonArray array = obj.getAsJsonArray();
+						final List list       = new LinkedList();
+
+						for (JsonElement element : array) {
+
+							if (element.isJsonPrimitive()) {
+
+								list.add(fromPrimitive((element.getAsJsonPrimitive())));
+
+							} else if (element.isJsonObject()) {
+
+								// create map of values
+								list.add(JsonInputGSONAdapter.deserialize(element, context));
+							}
+						}
+
+						value = list;
 
 					} else if (obj instanceof JsonNull) {
 
 						value = null;
 
-					} else if (value != null) {
+					} else if (obj != null) {
 
 						value = obj.getAsString();
 					}
-
-
 
 					webSocketData.setNodeData(entry.getKey(), value);
 				}

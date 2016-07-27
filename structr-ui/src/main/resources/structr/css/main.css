@@ -211,7 +211,6 @@ input[type="checkbox"] {
 .menu .active {
 	color: #333 ! important;
 	padding: 3px 6px 4px 6px;
-	border: 1px solid #333;
 	border-radius: 3px;
 	background-color: #81ce25;
 	cursor: default;
@@ -280,6 +279,7 @@ img.disabled {
 	transform-style: preserve-3d;
 	-webkit-transform-style: preserve-3d;
 	background-color: #e3e3e3;
+	text-align: center;
 }
 
 .slideOut .compTab:hover {
@@ -303,7 +303,8 @@ img.disabled {
 	transform: rotate(90deg);
 }
 
-#pagesTab {
+#pagesTab,
+#inheritanceTab {
 	right: -72px;
 	width: 100px;
 	top: 60px;
@@ -384,6 +385,36 @@ img.disabled {
 	z-index: 2;
 	top: 93px;
 	background-color: #fafafa;
+}
+
+#inheritance-tree.slideOut {
+	top: 101px;
+}
+
+#inheritance-tree img {
+	display: none;
+}
+
+#inheritance-tree a.jstree-hovered img {
+	display: inline-block;
+	padding-top: 3px;
+}
+
+#inheritance-tree .jstree-anchor {
+	width: 100%;
+}
+
+#inheritance-tree .edit_icon, #inheritance-tree .delete_icon {
+	float:right;
+	position: relative;
+}
+
+#inheritance-tree .edit_icon {
+	right: 24px;
+}
+
+#inheritance-tree-container {
+	overflow-x: hidden;
 }
 
 .ver-scrollable > .node {
@@ -707,7 +738,9 @@ ul#previewTabs {
 .file .id,
 .folder .id,
 .image .id,
-.image-folder .id {
+.image-folder .id,
+.container .id,
+.item .id {
 	display: none;
 }
 
@@ -761,7 +794,7 @@ span.id {
 	cursor: pointer;
 }
 
-.page, .widget, .user, .group, .folder, .file, #images .image, .resourceAccess,
+.page, .widget, .user, .group, .folder, .file, .container, .item, #images .image, .resourceAccess,
 .ver-scrollable > .node {
 	margin: 4px 0;
 	padding-right: 4px;
@@ -771,7 +804,7 @@ span.id {
 	margin-left: 16px ! important;
 }
 
-.group .user, .folder .file, .folder .folder {
+.group .user, .folder .file, .folder .folder, .container .item {
 	margin: 4px 0 4px 11px;
 }
 
@@ -1051,7 +1084,7 @@ button img {
 .dialog {
 	display: none;
 	font-size: 11pt;
-	padding: 4px 0px 6px 12px;
+	padding: 4px 12px 6px 12px;
 	border-radius: 3px;
 	border: 1px solid #999;
 	background-color: #f3f3f3;
@@ -1546,7 +1579,7 @@ button.add_property {
 	margin: 8px 12px 4px 12px;
 }
 
-#connector-style, #node-type-selector, #rel-type-selector {
+#connector-style, #node-type-selector, #rel-type-selector, #saved-layout-selector {
 	color: #222;
 	padding: 1px 2px 3px 4px;
 	vertical-align: middle;
@@ -1561,8 +1594,13 @@ button.add_property {
 	margin: 0 8px 4px 12px;
 }
 
-#node-type-selector, #rel-type-selector {
+#node-type-selector, #rel-type-selector, #saved-layout-selector {
 	margin: 0 8px 4px 0;
+}
+
+#save-layout-filename {
+	padding: 3px 2px 2px 4px;
+	margin-right: 8px;
 }
 
 #expand-all, #compact-all {
@@ -1604,36 +1642,6 @@ button.add_property {
 	min-width: 1em;
 	text-align: center;
 	padding: .6em;
-}
-
-#schema-graph .rel-type-name {
-	padding: 0 10px;
-}
-
-#schema-graph .source-multiplicity {
-	border-right: 1px solid #aaa;
-	padding: 8px 12px 8px 5px;
-}
-
-#schema-graph .target-multiplicity {
-	border-left: 1px solid #aaa;
-	padding: 8px 5px 8px 12px;
-}
-
-#schema-graph .target-multiplicity.hover {
-	border-right: 1px solid #aaa;
-	padding: 8px 12px 8px 12px;
-	margin-right: 4px;
-}
-
-#schema-graph .source-mult-input {
-	width: 16px;
-	margin-right: 6px;
-}
-
-#schema-graph .target-mult-input {
-	width: 16px;
-	margin-left: 6px;
 }
 
 #schema-graph .label .icon {
@@ -1760,12 +1768,8 @@ button.add_property {
 	margin: 0 0 4px 12px;
 }
 
-#admin-tools-table td {
+#admin-tools-table td, #layout-tools-table td {
 	padding: 0 1em 1em 0;
-}
-
-#admin-tools-table td:first-child {
-	text-align: left;
 }
 
 #schema-options-table th {
@@ -1807,7 +1811,9 @@ button.add_property {
 
 .schema-details .add-icon:hover,
 .schema .toggle-view:hover,
-.schema-details .remove-icon:hover {
+.schema-details .remove-icon:hover,
+.schema-details .create-icon:hover,
+.schema-details .edit-icon:hover {
 	opacity: .6;
 	cursor: pointer;
 }
@@ -2422,6 +2428,26 @@ table#relationship-options {
 	table-layout: fixed;
 }
 
+#relationship-options #basic-options {
+	text-align: center;
+	padding: 10px 0px 20px 0px;
+}
+
+#relationship-options #basic-options .relationship-emphasis {
+	font-size: 1.4em;
+	font-weight: bold;
+}
+
+#relationship-options #basic-options select, #basic-options input {
+	margin: 0 10px;
+}
+
+#relationship-options #basic-options input[disabled] {
+	color: graytext;
+	border: 1px solid #ccc;
+	background-color: #f3f3f3;
+}
+
 td#cascading-options, td#propagation-options {
 	vertical-align: top;
 	padding: 0px 36px 12px 0;
@@ -2491,7 +2517,7 @@ td#cascading-options, td#propagation-options {
 	background-color: #eff8e3 ! important;
 }
 
-#file-tree-container {
+#file-tree-container, #content-tree-container {
 	display: table-cell;
 	vertical-align: top;
 	padding: 12px;
@@ -2499,7 +2525,7 @@ td#cascading-options, td#propagation-options {
 	padding-top: 12px;
 }
 
-#file-tree {
+#file-tree, #contents-tree {
 	padding-top: 8px;
 	width: 400px;
 	min-width: 400px;
@@ -2510,13 +2536,17 @@ td#cascading-options, td#propagation-options {
 	border: 1px solid #a5a5a5;
 }
 
-#folder-contents-container {
+#folder-contents-container, #contents-contents-container {
 	display: table-cell;
 	vertical-align: top;
 	padding: 12px;
 }
 
-#folder-contents {
+#folder-contents-container select, #contents-contents-container select {
+	padding: 3px;
+}
+
+#folder-contents, #contents-contents {
 	vertical-align: top;
 	background-color: #fff;
 	border-radius: 3px;
@@ -2527,22 +2557,22 @@ td#cascading-options, td#propagation-options {
 	font-size: 9pt;
 }
 
-#folder-contents h1 {
+#folder-contents h1, #contents-contents h1 {
 	margin: 0px;
 }
 
-#folder-contents table {
+#folder-contents table, #contents-contents table {
 	margin: 0px;
 	font-size: 9pt;
 	font-family: sans-serif;
 	width: 100%;
 }
 
-#folder-contents td.file-type {
+#folder-contents td.file-type, #contents-contents td.file-type {
 	width: 24px;
 }
 
-#folder-contents table th {
+#folder-contents table th, #contents-contents table th {
 	text-align: left;
 	padding-left: 8px;
 }
@@ -2829,4 +2859,37 @@ i.fa.ps {
 
 #add-child-dialog ul.bottom ul.bottom {
 	bottom: -1px;
+}
+
+.result-box {
+	position: absolute;
+	top: 48px;
+	left: 0;
+	right: 12px;
+	border-radius: 3px;
+	padding: 12px;
+	clear: both;
+	overflow: hidden;
+	border: 1px solid #999 ! important;
+	background: #fff ! important;
+	font-family: 'Open Sans', Arial, Helvetica, Sans-serif ! important;
+	font-size: 9pt;
+}
+
+.result-box .node {
+	color: #333;
+	line-height: 1.7em;
+	border-radius: 3px;
+	border: 1px solid #a5a5a5;
+	padding: 2px 5px;
+	margin: 2px 2px 3px 1px;
+	background-color: #eee;
+	float: left;
+}
+
+.result-box .node:hover {
+	color: #555;
+	border: 1px solid #bbb;
+	background-color: #f5f5f5;
+	cursor: pointer;
 }

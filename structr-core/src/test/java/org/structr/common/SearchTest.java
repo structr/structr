@@ -48,6 +48,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 
@@ -389,4 +390,48 @@ public class SearchTest extends StructrTest {
 		}
 
 	}
-}
+	
+	public void test07NodeQueryByType() {
+
+		try  {
+
+			Class type                      = TestOne.class;
+			int number                      = 1000;
+			final List<NodeInterface> nodes = this.createTestNodes(type, number);
+
+			Collections.shuffle(nodes, new Random(System.nanoTime()));
+
+			try (final Tx tx = app.tx()) {
+
+				long t0 = System.currentTimeMillis();
+
+				Result<? extends GraphObject> result = app.nodeQuery(NodeInterface.class).getResult();
+				
+				long t1 = System.currentTimeMillis();
+				logger.log(Level.INFO, "Query with inexact type took {0} ms", t1-t0);
+				assertEquals(1012, result.size());
+				
+				result = app.nodeQuery(NodeInterface.class, true).getResult();
+				
+				long t2 = System.currentTimeMillis();
+				logger.log(Level.INFO, "Query with exact type took {0} ms", t2-t1);
+				assertEquals(1012, result.size());
+
+				// TODO: Implement app.nodeQuery() to return all nodes in the system as an alternative to the (slow) app.nodeQuery(NodeInterface.class)
+//				result = app.nodeQuery().getResult();
+//
+//				long t3 = System.currentTimeMillis();
+//				logger.log(Level.INFO, "Query without type took {0} ms", t3-t2);
+//				assertEquals(1012, result.size());
+
+				tx.success();
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}}

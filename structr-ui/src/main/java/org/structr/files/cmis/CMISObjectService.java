@@ -130,7 +130,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 						if (inputStream != null) {
 
 							// copy file and update metadata
-							try (final OutputStream outputStream = newFile.getOutputStream(false)) {
+							try (final OutputStream outputStream = newFile.getOutputStream(false, false)) {
 								IOUtils.copy(inputStream, outputStream);
 							}
 

@@ -84,8 +84,8 @@ public class Tx implements AutoCloseable {
 
 					modificationQueue.doOuterCallbacks(securityContext);
 
-					// notify listeners if desired
-					if ( (securityContext == null) ? doNotifications : securityContext.isDoTransactionNotifications() ) {
+					// notify listeners if desired, and allow this setting to be overriden locally AND remotely
+					if ( (securityContext == null) ? doNotifications : doNotifications && securityContext.isDoTransactionNotifications() ) {
 
 						final Collection<ModificationEvent> modificationEvents = modificationQueue.getModificationEvents();
 						for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {

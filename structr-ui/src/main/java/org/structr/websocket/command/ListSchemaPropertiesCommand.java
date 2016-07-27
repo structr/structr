@@ -29,8 +29,8 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
-import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -91,6 +91,7 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 
 						for (final PropertyKey key : allProperties) {
 
+							final String declaringClass   = key.getDeclaringClass() != null ? key.getDeclaringClass().getSimpleName() : "GraphObject";
 							final String propertyName     = key.jsonName();
 							final GraphObjectMap property = new GraphObjectMap();
 							final Class valueType         = key.valueType();
@@ -114,6 +115,7 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 							property.put(SchemaProperty.notNull, key.isNotNull());
 							property.put(SchemaProperty.unique, key.isUnique());
 							property.put(SchemaProperty.isDynamic, key.isDynamic());
+							property.put(SchemaProperty.declaringClass, declaringClass);
 
 							// store in result
 							result.add(property);

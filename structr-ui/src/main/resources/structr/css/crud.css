@@ -172,7 +172,7 @@ input.readonly {
 .props .node:hover {
     color: #555;
     border: 1px solid #bbb;
-    background-color: #fff;
+    background-color: #f5f5f5;
     cursor: pointer;
 }
 
@@ -425,4 +425,19 @@ img.loader {
     margin-left: 2px;
     display: inline-block;
     clear: both;
+}
+
+.resourceBox .pager {
+	float: left;
+	margin-top: -2px;
+	margin-bottom: 8px;
+}
+
+.resource-link {
+	text-align: right;
+	width: 200px;
+	height: 24px;
+	padding-top: 3px;
+	display: block;
+	float: right;
 }

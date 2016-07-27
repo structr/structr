@@ -450,18 +450,7 @@ public class Services implements StructrServices {
 	 * @param serviceClass the service class to register
 	 */
 	public void registerServiceClass(Class serviceClass) {
-
 		registeredServiceClasses.add(serviceClass);
-//
-//		// let service instance visit default configuration
-//		try {
-//
-//			serviceClass.newInstance();
-//			//service.modifyConfiguration(getBaseConfiguration());
-//
-//		} catch (Throwable t) {
-//			logger.log(Level.WARNING, "", t);
-//		}
 	}
 
 	public String getConfigurationValue(String key) {

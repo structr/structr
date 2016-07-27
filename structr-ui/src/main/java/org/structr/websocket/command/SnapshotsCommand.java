@@ -35,7 +35,6 @@ import org.structr.websocket.message.MessageBuilder;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
-import org.apache.chemistry.opencmis.commons.impl.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -48,7 +47,6 @@ import org.structr.rest.maintenance.SnapshotCommand;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Websocket command to retrieve DOM nodes which are not attached to a parent element
  *
  *
  */
@@ -72,14 +70,14 @@ public class SnapshotsCommand extends AbstractCommand {
 		final String mode                     = (String)data.get("mode");
 		final String name                     = (String)data.get("name");
 		final String typesString              = (String) data.get("types");
-		
+
 		final List<String> types;
 		if (typesString != null) {
 			types = Arrays.asList(StringUtils.split(typesString, ","));
 		} else {
 			types = null;
 		}
-		
+
 		if (mode != null) {
 
 			final List<GraphObject> result = new LinkedList<>();
@@ -87,7 +85,7 @@ public class SnapshotsCommand extends AbstractCommand {
 			switch (mode) {
 
 				case "list":
-					
+
 					final List<String> snapshots = SnapshotCommand.listSnapshots();
 					if (snapshots != null) {
 
@@ -100,29 +98,29 @@ public class SnapshotsCommand extends AbstractCommand {
 					break;
 
 				case "get":
-					
+
 					final Path snapshotFile = Paths.get(SnapshotCommand.getBasePath() + name);
-					
+
 					if (Files.exists(snapshotFile)) {
-						
+
 						try {
 							final String content = new String(Files.readAllBytes(snapshotFile));
-							
+
 							// Send content directly
 							getWebSocket().send(MessageBuilder.finished().callback(callback).data("schemaJson", content).build(), true);
 							return;
-							
-							
+
+
 						} catch (IOException ex) {
 							Logger.getLogger(SnapshotsCommand.class.getName()).log(Level.SEVERE, null, ex);
 						}
-						
+
 					}
-					
+
 					break;
 
 				default:
-					
+
 					final GraphObjectMap msg = new GraphObjectMap();
 					result.add(msg);
 

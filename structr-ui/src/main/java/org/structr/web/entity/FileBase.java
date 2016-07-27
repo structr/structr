@@ -18,12 +18,14 @@
  */
 package org.structr.web.entity;
 
+import org.structr.common.fulltext.Indexable;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,6 +47,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -58,13 +61,11 @@ import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.files.cmis.config.StructrFileActions;
-import org.structr.files.text.FulltextIndexingTask;
 import org.structr.schema.action.JavaScriptSource;
 import org.structr.util.LogMessageSupplier;
-import org.structr.web.common.DownloadHelper;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
-import static org.structr.web.entity.Indexable.extractedContent;
+import static org.structr.common.fulltext.Indexable.extractedContent;
 import org.structr.web.entity.relation.Folders;
 import org.structr.web.property.FileDataProperty;
 
@@ -179,7 +180,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Exception while trying to delete file {0}: {1}", new Object[]{filePath, t});
+			logger.log(Level.FINE, "Exception while trying to delete file {0}: {1}", new Object[]{filePath, t});
 
 		}
 
@@ -241,14 +242,23 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 		final String text = getProperty(extractedContent);
 		if (text != null) {
 
-			return DownloadHelper.getContextObject(searchTerm, text, contextLength);
+			final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
+			return indexer.getContextObject(searchTerm, text, contextLength);
 		}
 
 		return null;
 	}
 
 	public void notifyUploadCompletion() {
-		StructrApp.getInstance(securityContext).processTasks(new FulltextIndexingTask(this));
+
+		try {
+			final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
+			indexer.addToFulltextIndex(this);
+
+		} catch (FrameworkException fex) {
+
+			logger.log(Level.WARNING, "Unable to index " + this, fex);
+		}
 	}
 
 	public String getRelativeFilePath() {
@@ -350,11 +360,11 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 		return null;
 	}
 
-	public OutputStream getOutputStream() {
-		return getOutputStream(true);
+	public FileOutputStream getOutputStream() {
+		return getOutputStream(true, false);
 	}
 
-	public OutputStream getOutputStream(final boolean notifyIndexerAfterClosing) {
+	public FileOutputStream getOutputStream(final boolean notifyIndexerAfterClosing, final boolean append) {
 
 		final String path = getRelativeFilePath();
 		if (path != null) {
@@ -367,7 +377,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 				fileOnDisk.getParentFile().mkdirs();
 
 				// Return file output stream and save checksum and size after closing
-				final FileOutputStream fos = new FileOutputStream(fileOnDisk) {
+				final FileOutputStream fos = new FileOutputStream(fileOnDisk, append) {
 
 					private boolean closed = false;
 
@@ -432,6 +442,17 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 		if (path != null) {
 
 			return new java.io.File(FileHelper.getFilePath(path));
+		}
+
+		return null;
+	}
+
+	public Path getPathOnDisk() {
+
+		final String path = getRelativeFilePath();
+		if (path != null) {
+
+			return Paths.get(FileHelper.getFilePath(path));
 		}
 
 		return null;

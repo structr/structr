@@ -128,16 +128,16 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		}
 
 		// At this point, all search attributes are ready
-		List<SourceSearchAttribute> sources    = new ArrayList<>();
-		boolean hasEmptySearchFields           = false;
-		boolean allExactMatch                  = true;
-		Result intermediateResult              = null;
+		final List<SourceSearchAttribute> sources    = new ArrayList<>();
+		boolean hasEmptySearchFields                 = false;
+		boolean allExactMatch                        = true;
+		Result intermediateResult                    = null;
 
 		// check for optional-only queries
 		// (some query types seem to allow no MUST occurs)
-		for (Iterator<SearchAttribute> it = rootGroup.getSearchAttributes().iterator(); it.hasNext();) {
+		for (final Iterator<SearchAttribute> it = rootGroup.getSearchAttributes().iterator(); it.hasNext();) {
 
-			SearchAttribute attr = it.next();
+			final SearchAttribute attr = it.next();
 
 			if (attr instanceof SearchAttributeGroup) {
 
@@ -226,9 +226,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		if (intermediateResult != null && (hasEmptySearchFields || hasGraphSources || hasSpatialSource)) {
 
 			// sorted result set
-			Set<GraphObject> intermediateResultSet = new LinkedHashSet<>(intermediateResult.getResults());
-			List<GraphObject> finalResult          = new ArrayList<>();
-			int resultCount                        = 0;
+			final Set<GraphObject> intermediateResultSet = new LinkedHashSet<>(intermediateResult.getResults());
+			final List<GraphObject> finalResult          = new ArrayList<>();
+			int resultCount                              = 0;
 
 			// We need to find out whether there was a source for any of the possible sets that we want to merge.
 			// If there was only a single source, the final result is the result of that source. If there are
@@ -251,7 +251,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			}
 
 			// Filter intermediate result
-			for (GraphObject obj : intermediateResultSet) {
+			for (final GraphObject obj : intermediateResultSet) {
 
 				boolean addToResult = true;
 
@@ -284,10 +284,10 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	private Set<GraphObject> mergeSources(List<SourceSearchAttribute> sources) {
 
-		Set<GraphObject> mergedResult = new LinkedHashSet<>();
-		boolean alreadyAdded          = false;
+		final Set<GraphObject> mergedResult = new LinkedHashSet<>();
+		boolean alreadyAdded                = false;
 
-		for (Iterator<SourceSearchAttribute> it = sources.iterator(); it.hasNext();) {
+		for (final Iterator<SourceSearchAttribute> it = sources.iterator(); it.hasNext();) {
 
 			SourceSearchAttribute attr = it.next();
 
@@ -617,7 +617,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public <P> org.structr.core.app.Query<T> or(final PropertyMap attributes) {
 
-		for (Map.Entry<PropertyKey, Object> entry : attributes.entrySet()) {
+		for (final Map.Entry<PropertyKey, Object> entry : attributes.entrySet()) {
 
 			final PropertyKey key = entry.getKey();
 			final Object value = entry.getValue();
@@ -683,7 +683,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public org.structr.core.app.Query<T> parent() {
 
 		// one level up
-		SearchAttributeGroup parent = currentGroup.getParent();
+		final SearchAttributeGroup parent = currentGroup.getParent();
 		if (parent != null) {
 
 			currentGroup = parent;
@@ -748,7 +748,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			allSubtypes.add(type);
 
 			// scan all node entities for subtypes
-			for (Map.Entry<String, Class<? extends NodeInterface>> entity : nodeEntities.entrySet()) {
+			for (final Map.Entry<String, Class<? extends NodeInterface>> entity : nodeEntities.entrySet()) {
 
 				final Class entityType     = entity.getValue();
 				final Set<Class> ancestors = typeAndAllSupertypes(entityType);
@@ -766,7 +766,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			}
 
 			// scan all relationship entities for subtypes
-			for (Map.Entry<String, Class<? extends RelationshipInterface>> entity : relEntities.entrySet()) {
+			for (final Map.Entry<String, Class<? extends RelationshipInterface>> entity : relEntities.entrySet()) {
 
 				final Class entityType     = entity.getValue();
 				final Set<Class> ancestors = typeAndAllSupertypes(entityType);
@@ -864,7 +864,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 			boolean result = true;
 
-			for (Predicate<GraphObject> predicate : predicates) {
+			for (final Predicate<GraphObject> predicate : predicates) {
 
 				result &= predicate.accept(obj);
 			}

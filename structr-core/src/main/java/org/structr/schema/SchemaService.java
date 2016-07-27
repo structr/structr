@@ -43,6 +43,7 @@ import org.structr.api.service.Service;
 import org.structr.api.service.StructrServices;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeFactory;
@@ -152,16 +153,20 @@ public class SchemaService implements Service {
 						schemaNode.createBuiltInSchemaEntities(errorBuffer);
 					}
 
-					// prevent inheritance map from leaking
-					SearchCommand.clearInheritanceMap();
-					NodeFactory.invalidateCache();
-					RelationshipFactory.invalidateCache();
-					AccessPathCache.invalidate();
-
 					success = !errorBuffer.hasError();
 
 					// inject views in configuration provider
 					if (success) {
+
+						// prevent inheritance map from leaking
+						SearchCommand.clearInheritanceMap();
+						NodeFactory.invalidateCache();
+						RelationshipFactory.invalidateCache();
+						AccessPathCache.invalidate();
+
+						// clear relationship instance cache
+						AbstractNode.clearRelationshipTemplateInstanceCache();
+
 
 						config.registerDynamicViews(dynamicViews);
 						tx.success();

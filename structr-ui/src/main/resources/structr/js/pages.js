@@ -164,8 +164,9 @@ var _Pages = {
 			var asw = activeElementsSlideout.width() + 12;
 			if (Math.abs(activeElementsSlideout.position().left + asw) <= 3) {
 				Structr.closeLeftSlideOuts([pagesSlideout, dataBindingSlideout], activeTabLeftKey);
-				Structr.openLeftSlideOut(activeElementsSlideout, this, activeTabLeftKey, function() {
+				Structr.openLeftSlideOut(activeElementsSlideout, this, activeTabLeftKey, function(params) {
 					_Pages.refreshActiveElements();
+					_Pages.resize(params.sw, 0);
 				});
 			} else {
 				Structr.closeLeftSlideOuts([activeElementsSlideout], activeTabLeftKey);
@@ -180,8 +181,9 @@ var _Pages = {
 			var dsw = dataBindingSlideout.width() + 12;
 			if (Math.abs(dataBindingSlideout.position().left + dsw) <= 3) {
 				Structr.closeLeftSlideOuts([pagesSlideout, activeElementsSlideout], activeTabLeftKey);
-				Structr.openLeftSlideOut(dataBindingSlideout, this, activeTabLeftKey, function() {
+				Structr.openLeftSlideOut(dataBindingSlideout, this, activeTabLeftKey, function(params) {
 					_Pages.reloadDataBindingWizard();
+					_Pages.resize(params.sw, 0);
 				});
 			} else {
 				Structr.closeLeftSlideOuts([dataBindingSlideout], activeTabLeftKey);
@@ -371,7 +373,7 @@ var _Pages = {
 
 		});
 
-		$('#import_page', previewTabs).after('<li id="pull_page" title="Sync page from remote instance" class="button"><img class="pull_page_button icon" src="icon/pull_page.png"></li>');
+		$('#import_page', previewTabs).after('<li id="pull_page" title="Sync page from remote instance" class="button module-dependend" data-structr-module="cloud"><img class="pull_page_button icon" src="icon/pull_page.png"></li>');
 		$('#pull_page', previewTabs).on('click', function(e) {
 			e.stopPropagation();
 			Structr.pullDialog('Page');
@@ -415,9 +417,9 @@ var _Pages = {
 
 			dialog.empty();
 			dialogMsg.empty();
-			
+
 			dialog.append('<p>With these settings you can influence the behaviour of the page previews only. They are not persisted on the Page object but only stored in the UI settings.</p>');
-			
+
 
 			dialog.append('<table class="props">'
 					//+ '<tr><td><label for="name">Name</label></td><td><input id="_name" name="name" size="20"></td></tr>'
@@ -430,7 +432,7 @@ var _Pages = {
 			window.setTimeout(function() {
 				detailsObjectIdInput.select().focus();
 			}, 200);
-			
+
 			$('#clear-details-object-id').on('click', function() {
 				detailsObjectIdInput.val('');
 				var oldVal = LSWrapper.getItem(detailsObjectId + entity.id) || null;
@@ -671,6 +673,8 @@ var _Pages = {
 
 		var hasChildren = entity.children && entity.children.length;
 
+		if (!pages) return;
+
 		pages.append('<div id="id_' + entity.id + '" class="node page"></div>');
 		var div = Structr.node(entity.id);
 
@@ -842,69 +846,9 @@ var _Pages = {
 					}
 				});
 
-				doc.find('*').each(function(i, element) {
-
-					getComments(element).forEach(function(c) {
-
-						var inner = $(getNonCommentSiblings(c.node));
-						$(c.node).replaceWith('<div data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, false) + '"></div>');
-						var el = $(element).children('[data-structr-id="' + c.id + '"]');
-						el.append(inner);
-
-						$(el).on({
-							mouseover: function(e) {
-								e.stopPropagation();
-								var self = $(this);
-								self.addClass('structr-editable-area');
-								_Pages.highlight(self.attr('data-structr-id'));
-							},
-							mouseout: function(e) {
-								e.stopPropagation();
-								var self = $(this);
-								self.removeClass('structr-editable-area');
-								_Pages.unhighlight(self.attr('data-structr-id'));
-							},
-							click: function(e) {
-								e.stopPropagation();
-								e.preventDefault();
-								var self = $(this);
-
-								if (contentSourceId) {
-									// click on same element again?
-									if (self.attr('data-structr-id') === contentSourceId) {
-										return;
-									}
-								}
-								contentSourceId = self.attr('data-structr-id');
-
-								if (self.hasClass('structr-editable-area-active')) {
-									return false;
-								}
-								self.removeClass('structr-editable-area').addClass('structr-editable-area-active').prop('contenteditable', true).focus();
-
-								// Store old text in global var and attribute
-								textBeforeEditing = self.text();
-
-								var srcText = expandNewline(self.attr('data-structr-raw-content'));
-
-								// Replace only if it differs (e.g. for variables)
-								if (srcText !== textBeforeEditing) {
-									self.html(srcText);
-									textBeforeEditing = srcText;
-								}
-								_Pages.expandTreeNode(contentSourceId);
-								return false;
-							},
-							blur: function(e) {
-								e.stopPropagation();
-								_Pages.saveInlineElement(this);
-							}
-						});
-
-					});
-
-				});
 			} catch (e) {}
+
+			_Pages.activateComments(doc);
 
 		});
 
@@ -913,16 +857,87 @@ var _Pages = {
 		return div;
 
 	},
-	saveInlineElement: function(el) {
+	activateComments: function(doc, callback) {
+
+		doc.find('*').each(function(i, element) {
+
+			getComments(element).forEach(function(c) {
+
+				var inner = $(getNonCommentSiblings(c.node));
+				$(c.node).replaceWith('<div data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, false) + '"></div>');
+				var el = $(element).children('[data-structr-id="' + c.id + '"]');
+				el.append(inner);
+
+				$(el).on({
+					mouseover: function(e) {
+						e.stopPropagation();
+						var self = $(this);
+						self.addClass('structr-editable-area');
+						_Pages.highlight(self.attr('data-structr-id'));
+					},
+					mouseout: function(e) {
+						e.stopPropagation();
+						var self = $(this);
+						self.removeClass('structr-editable-area');
+						_Pages.unhighlight(self.attr('data-structr-id'));
+					},
+					click: function(e) {
+						e.stopPropagation();
+						e.preventDefault();
+						var self = $(this);
+
+						if (contentSourceId) {
+							// click on same element again?
+							if (self.attr('data-structr-id') === contentSourceId) {
+								return;
+							}
+						}
+						contentSourceId = self.attr('data-structr-id');
+
+						if (self.hasClass('structr-editable-area-active')) {
+							return false;
+						}
+						self.removeClass('structr-editable-area').addClass('structr-editable-area-active').prop('contenteditable', true).focus();
+
+						// Store old text in global var and attribute
+						textBeforeEditing = self.text();
+
+						var srcText = expandNewline(self.attr('data-structr-raw-content'));
+
+						// Replace only if it differs (e.g. for variables)
+						if (srcText !== textBeforeEditing) {
+							self.html(srcText);
+							textBeforeEditing = srcText;
+						}
+						_Pages.expandTreeNode(contentSourceId);
+						return false;
+					},
+					blur: function(e) {
+						e.stopPropagation();
+						_Pages.saveInlineElement(this, callback);
+					}
+				});
+
+			});
+
+		});
+
+	},
+	saveInlineElement: function(el, callback) {
 		var self = $(el);
 		contentSourceId = self.attr('data-structr-id');
 		var text = unescapeTags(cleanText(self.html()));
-		Command.setProperty(contentSourceId, 'content', text, false);
 		self.attr('contenteditable', false);
 		self.removeClass('structr-editable-area-active').removeClass('structr-editable-area');
+		Command.setProperty(contentSourceId, 'content', text, false, function(obj) {
+			if (contentSourceId === obj.id) {
+				if (callback) {
+					callback();
+				}
+				contentSourceId = null;
+			}
+		});
 		_Pages.loadIframe(activeTab);
-		contentSourceId = null;
-
 	},
 	findDroppablesInIframe: function(iframeDocument, id) {
 		var droppables = iframeDocument.find('[data-structr-id]');
@@ -1189,9 +1204,12 @@ var _Pages = {
 	},
 	pagesTabStateChangeCallback: function () {
 		var psw = pagesSlideout.width() + 12;
+		var callback = function (params) {
+			_Pages.resize(params.sw, 0);
+		};
 		if (Math.abs(pagesSlideout.position().left + psw) <= 3) {
 			Structr.closeLeftSlideOuts([activeElementsSlideout, dataBindingSlideout], activeTabLeftKey);
-			Structr.openLeftSlideOut(pagesSlideout, $("#pagesTab"), activeTabLeftKey);
+			Structr.openLeftSlideOut(pagesSlideout, $("#pagesTab"), activeTabLeftKey, callback, callback);
 		} else {
 			Structr.closeLeftSlideOuts([pagesSlideout], activeTabLeftKey);
 		}
