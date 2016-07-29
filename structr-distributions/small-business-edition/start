@@ -1,0 +1,147 @@
+#!/bin/bash
+
+NAME=$1
+HEAPSIZE=$2
+
+if [ -z $NAME ]; then
+        NAME="default"
+fi
+
+if [ -z $HEAPSIZE ]; then
+        HEAPSIZE=1
+fi
+
+BASE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+cd $BASE_DIR
+JAVA=`which java`
+LATEST=`ls target/structr-small-business-edition-*.jar | grep -v 'sources.jar' | grep -v 'javadoc.jar' | sort | tail -1`
+VERSION=${LATEST#target/structr-community-edition-};VERSION=${VERSION%%.jar}
+STRUCTR="-Djava.system.class.loader=org.structr.StructrClassLoader -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false -Duser.timezone=Europe/Berlin -Duser.country=US -Duser.language=en -Djava.util.logging.config.file=logging.properties.production -cp modules/*:target/lib/*:$LATEST org.structr.Server"
+STRUCTR_ARGS="-server -d64 -Xms${HEAPSIZE}g -Xmx${HEAPSIZE}g -XX:+UseNUMA -XX:+UseConcMarkSweepGC -Dinstance=$NAME"
+
+PIDFILE=$BASE_DIR/structr-$NAME.pid
+LOGS_DIR=$BASE_DIR/logs
+MODULES_DIR=$BASE_DIR/modules
+TARGET_LIB_DIR=$BASE_DIR/target/lib
+STATIC_RESOURCES_DIR=$BASE_DIR/structr
+SERVER_LOG=$BASE_DIR/logs/server.log
+
+if [ -f $PIDFILE ]; then
+
+    PID=`cat $PIDFILE`
+
+	echo
+	echo "        ERROR: Structr already running with pid $PID."
+	echo
+	echo "        Please stop any running instances before starting a"
+	echo "        new one. (Remove $PIDFILE if this message appears"
+	echo "        even if no server is running.)"
+	echo 
+	
+	exit 0
+	
+fi
+
+echo
+
+if [ ! -d $LOGS_DIR ]; then
+
+	echo "        Creating logs directory..."
+
+    mkdir $LOGS_DIR
+
+fi
+
+if [ ! -d $MODULES_DIR ]; then
+
+	echo "        Creating modules directory..."
+
+    mkdir $MODULES_DIR
+
+fi
+
+mv $TARGET_LIB_DIR/structr-*-module-*.jar $MODULES_DIR 2> /dev/null
+
+if [ ! -d STATIC_RESOURCES_DIR ]; then
+
+	echo "        Extracting main static resources..."
+    STRUCTR_UI_JAR=`find $TARGET_LIB_DIR -maxdepth 1 -name "structr-ui-*.jar" ! -name "*-sources.jar" ! -name "*-javadoc.jar"|sort|head -n 1`
+    jar -xf $STRUCTR_UI_JAR structr
+
+fi
+	
+if [ ! -f "structr.conf" ]; then
+
+	echo "        Creating structr.conf from template file..."
+
+    cat structr.conf_templ | sed 's/src\/main\/resources\///' > structr.conf
+
+fi
+
+if [ -d $MODULES_DIR ]; then
+
+	echo "        Found the following modules:"
+	echo
+	find $MODULES_DIR/ -name "*.jar" -printf "          %f\n"
+    echo
+
+    echo "        Extracting static resources from modules..."
+    
+    for jar in `find $MODULES_DIR -name structr-*.jar`;do jar xf "$jar" structr; done
+    for jar in `find $TARGET_LIB_DIR -name structr-*.jar`;do jar xf "$jar" structr; done
+
+fi
+
+echo ""
+
+STRUCTR_CONF=`find $BASE_DIR -name structr.conf`
+echo "        Starting Structr instance '$NAME' with config file"
+echo "        $STRUCTR_CONF"
+
+nohup $JAVA $STRUCTR_ARGS $STRUCTR > $SERVER_LOG 2>&1 &
+
+PID=$!
+
+( tail -q -n0 -F $SERVER_LOG 2>/dev/null & echo $! >tail.pid ) | sed -n '/Initialization complete/q0; /failed to start. Aborting/q1'
+
+RETURN_VALUE=$?	
+
+if [ $RETURN_VALUE != 0 ]; then
+    
+    echo
+	echo "        Structr instance '$NAME' could not be started."
+	cat $SERVER_LOG | sed -n -e '/failed to start. Aborting/,$p'
+
+else
+	
+	echo $PID >$PIDFILE
+
+	#tail -q -200 $SERVER_LOG 2> /dev/null | grep 'Starting'
+
+	# If your console font is rather slim, you can change the ascii art message to
+	# better fit the structr logo ;-) (you know, details matter...)
+
+	#echo "               _                          _         "
+	#echo "         ___  | |_   ___   _   _   ____  | |_   ___ "
+	#echo "        (  _| | __| |  _| | | | | |  __| | __| |  _|"
+	#echo "         \ \  | |_  | |   | |_| | | |__  | |_  | |  "
+	#echo "        |___) |___| |_|   |_____| |____| |___| |_|  "
+
+	echo "                _                          _         "
+	echo "         ___   | |_   ___   _   _   ____  | |_   ___ "
+	echo "        (  __| | __| |  _| | | | | |  __| | __| |  _|"
+	echo "         \ \   | |   | |   | | | | | |    | |   | |  "
+	echo "         _\ \  | |_  | |   | |_| | | |__  | |_  | |  "
+	echo "        |____) |___| |_|   |_____| |____| |___| |_|  "
+	echo
+	echo "        $VERSION"
+
+	echo
+	echo "        Structr instance '$NAME' started successfully (PID $!)"
+
+fi
+
+kill `cat tail.pid`
+rm tail.pid
+
+echo
