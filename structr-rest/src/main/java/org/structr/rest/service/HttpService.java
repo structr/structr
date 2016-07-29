@@ -119,19 +119,14 @@ public class HttpService implements RunnableService {
 	private HttpConfiguration httpsConfig;
 
 	@Override
-	public void startService() {
+	public void startService() throws Exception {
 
 		logger.log(Level.INFO, "Starting {0} (host={1}:{2}, maxIdleTime={3}, requestHeaderSize={4})", new Object[]{applicationName, host, String.valueOf(httpPort), String.valueOf(maxIdleTime), String.valueOf(requestHeaderSize)});
 		logger.log(Level.INFO, "Base path {0}", basePath);
 		logger.log(Level.INFO, "{0} started at http://{1}:{2}", new Object[]{applicationName, String.valueOf(host), String.valueOf(httpPort)});
 
-		try {
-			server.start();
+		server.start();
 
-		} catch (Exception ex) {
-
-			logger.log(Level.SEVERE, "Unable to start HTTP service: {0}", ex);
-		}
 
 		// The jsp directory is created by the container, but we don't need it
 		removeDir(basePath, "jsp");
