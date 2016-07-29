@@ -1,0 +1,158 @@
+/**
+ * Copyright (C) 2010-2016 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.files.ssh.filesystem.path.graph;
+
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.nio.file.CopyOption;
+import java.nio.file.DirectoryStream;
+import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.FileAttributeView;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.files.ssh.filesystem.StructrFilesystem;
+import org.structr.files.ssh.filesystem.StructrPath;
+
+/**
+ *
+ * @author Christian Morgner
+ */
+public class StructrNodePropertyPath extends StructrPath {
+
+	private static final Logger logger = Logger.getLogger(StructrNodePropertyPath.class.getName());
+
+	private PropertyKey key  = null;
+	private GraphObject node = null;
+
+	public StructrNodePropertyPath(final StructrFilesystem fs, final StructrPath parent, final GraphObject node, final PropertyKey property) {
+
+		super(fs, parent, property.jsonName());
+
+		this.node   = node;
+		this.key    = property;
+	}
+
+	@Override
+	public DirectoryStream<Path> getDirectoryStream(DirectoryStream.Filter<? super Path> filter) {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public FileChannel newFileChannel(Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
+
+		parent.enablePropertyFile(name);
+
+		if (options.contains(StandardOpenOption.WRITE)) {
+			StructrPropertyValueChannel.checkWriteAccess(key);
+		}
+
+		return new StructrPropertyValueChannel(fs.getSecurityContext(), node, key, true, false);
+	}
+
+	@Override
+	public <T extends BasicFileAttributes> T getAttributes(Class<T> type, LinkOption... options) throws IOException {
+
+		if (!parent.hasPropertyFile(name)) {
+			throw new NoSuchFileException(name);
+		}
+
+		return (T)new StructrPropertyValueAttributes(fs.getSecurityContext(), node, key);
+	}
+
+	@Override
+	public Map<String, Object> getAttributes(String attributes, LinkOption... options) throws IOException {
+
+		if (!parent.hasPropertyFile(name)) {
+			throw new NoSuchFileException(name);
+		}
+
+		return new StructrPropertyValueAttributes(fs.getSecurityContext(), node, key).toMap(attributes);
+	}
+
+	@Override
+	public <V extends FileAttributeView> V getFileAttributeView(final Class<V> type, final LinkOption... options) throws IOException {
+
+		if (!parent.hasPropertyFile(name)) {
+			throw new NoSuchFileException(name);
+		}
+
+		return (V)getAttributes((Class)null, options);
+	}
+
+	@Override
+	public void createDirectory(FileAttribute<?>... attrs) throws IOException {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void delete() throws IOException {
+
+		// no error, no modification (allows rm -rf of a page / node dir)
+		if (key.isSystemInternal() || key.isReadOnly() || key.isWriteOnce()) {
+			return;
+		}
+
+		try (final Tx tx = StructrApp.getInstance(fs.getSecurityContext()).tx()) {
+
+			node.setProperty(key, null);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to set property {0} to null: {1}", new Object[] { key.jsonName(), fex.getMessage() } );
+		}
+	}
+
+	@Override
+	public void copy(Path target, CopyOption... options) throws IOException {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void move(Path target, CopyOption... options) throws IOException {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void setAttribute(String attribute, Object value, LinkOption... options) throws IOException {
+	}
+
+	@Override
+	public boolean isSameFile(Path path2) throws IOException {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public StructrPath resolveStructrPath(String pathComponent) {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+}

@@ -1,0 +1,118 @@
+/**
+ * Copyright (C) 2010-2016 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.files.ssh.filesystem.path.graph;
+
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.CopyOption;
+import java.nio.file.DirectoryStream;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.LinkOption;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.FileAttributeView;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.structr.files.ssh.filesystem.StructrFilesystem;
+import org.structr.files.ssh.filesystem.StructrPath;
+import org.structr.files.ssh.filesystem.StructrRootAttributes;
+
+/**
+ *
+ * @author Christian Morgner
+ */
+public class StructrGraphPath extends StructrPath {
+
+	private static final Logger logger = Logger.getLogger(StructrGraphPath.class.getName());
+
+	public StructrGraphPath(StructrFilesystem fs, StructrPath parent) {
+		super(fs, parent, StructrPath.GRAPH_DIRECTORY);
+	}
+
+	@Override
+	public FileChannel newFileChannel(Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
+		throw new AccessDeniedException(toString());
+	}
+
+	@Override
+	public DirectoryStream<Path> getDirectoryStream(final DirectoryStream.Filter<? super Path> filter) {
+
+		logger.log(Level.INFO, "{0}", filter);
+
+		return null;
+	}
+
+	@Override
+	public void createDirectory(FileAttribute<?>... attrs) throws IOException {
+		throw new FileAlreadyExistsException(this.toString());
+	}
+
+	@Override
+	public void delete() throws IOException {
+		throw new AccessDeniedException(toString());
+	}
+
+	@Override
+	public StructrPath resolveStructrPath(final String pathComponent) {
+
+		logger.log(Level.INFO, "{0}", pathComponent);
+
+		return null;
+	}
+
+	@Override
+	public Map<String, Object> getAttributes(final String attributes, final LinkOption... options) {
+		return new StructrRootAttributes(StructrPath.GRAPH_DIRECTORY).toMap(attributes);
+	}
+
+	@Override
+	public <T extends BasicFileAttributes> T getAttributes(Class<T> type, LinkOption... options) {
+		return (T)new StructrRootAttributes(StructrPath.GRAPH_DIRECTORY);
+	}
+
+	@Override
+	public <V extends FileAttributeView> V getFileAttributeView(final Class<V> type, final LinkOption... options) throws IOException {
+		return (V)getAttributes((Class)null, options);
+	}
+
+	@Override
+	public void copy(final Path target, final CopyOption... options) throws IOException {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void move(final Path target, final CopyOption... options) throws IOException {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void setAttribute(final String attribute, final Object value, final LinkOption... options) throws IOException {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public boolean isSameFile(final Path path2) throws IOException {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+}
