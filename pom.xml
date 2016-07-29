@@ -39,7 +39,12 @@
         <module>structr-core</module>
         <module>structr-rest</module>
         <module>structr-ui</module>
+        <module>structr-net</module>
         <module>structr-db-driver-api</module>
+        <module>structr-modules</module>
+        <module>structr-distributions</module>
+        <module>structr-neo4j-driver</module>
+        <module>structr-neo4j-enterprise-driver</module>
     </modules>
 
     <build>
