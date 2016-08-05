@@ -22,7 +22,7 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.structr.net</groupId>
+            <groupId>org.structr</groupId>
             <artifactId>structr-net</artifactId>
             <version>0.3</version>
         </dependency>
