@@ -24,7 +24,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -179,7 +180,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Exception while trying to delete file {0}: {1}", new Object[]{filePath, t});
+			logger.log(Level.FINE, "Exception while trying to delete file {0}: {1}", new Object[]{filePath, t});
 
 		}
 
@@ -359,11 +360,11 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 		return null;
 	}
 
-	public OutputStream getOutputStream() {
-		return getOutputStream(true);
+	public FileOutputStream getOutputStream() {
+		return getOutputStream(true, false);
 	}
 
-	public OutputStream getOutputStream(final boolean notifyIndexerAfterClosing) {
+	public FileOutputStream getOutputStream(final boolean notifyIndexerAfterClosing, final boolean append) {
 
 		final String path = getRelativeFilePath();
 		if (path != null) {
@@ -376,7 +377,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 				fileOnDisk.getParentFile().mkdirs();
 
 				// Return file output stream and save checksum and size after closing
-				final FileOutputStream fos = new FileOutputStream(fileOnDisk) {
+				final FileOutputStream fos = new FileOutputStream(fileOnDisk, append) {
 
 					private boolean closed = false;
 
@@ -441,6 +442,17 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 		if (path != null) {
 
 			return new java.io.File(FileHelper.getFilePath(path));
+		}
+
+		return null;
+	}
+
+	public Path getPathOnDisk() {
+
+		final String path = getRelativeFilePath();
+		if (path != null) {
+
+			return Paths.get(FileHelper.getFilePath(path));
 		}
 
 		return null;

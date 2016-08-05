@@ -39,7 +39,12 @@ public class RintFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof Number) {
+		try {
+		
+			if (!(arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof Number)) {
+				
+				return null;
+			}
 
 			try {
 
@@ -51,9 +56,11 @@ public class RintFunction extends Function<Object, Object> {
 
 			}
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
+
+			return usage(ctx.isJavaScriptContext());
 
 		}
 

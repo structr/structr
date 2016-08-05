@@ -47,8 +47,12 @@ public class DateFormatFunction extends Function<Object, Object> {
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
-
-		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+		
+		try {
+			if (!arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+				
+				return "";
+			}
 
 			Date date = null;
 
@@ -79,9 +83,14 @@ public class DateFormatFunction extends Function<Object, Object> {
 
 			// format with given pattern
 			return new SimpleDateFormat(sources[1].toString()).format(date);
-		}
+			
+		} catch (final IllegalArgumentException e) {
 
-		return "";
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
+
+			return usage(ctx.isJavaScriptContext());
+
+		}
 	}
 
 	@Override

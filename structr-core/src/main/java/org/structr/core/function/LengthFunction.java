@@ -38,17 +38,21 @@ public class LengthFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+		try {
+			if (!arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+				
+				return null;
+			}
 
 			return sources[0].toString().length();
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
-		}
+			return usage(ctx.isJavaScriptContext());
 
-		return "";
+		}
 	}
 
 

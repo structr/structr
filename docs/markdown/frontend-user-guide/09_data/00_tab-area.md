@@ -1,1 +1,0 @@
-There's a tab for each data type in the Structr schema which is made visible to the UI. Clicking on a tab displays a pageable table with all nodes of this type.

@@ -50,7 +50,12 @@ public class TemplateFunction extends Function<Object, Object> {
 			return usage(ctx.isJavaScriptContext());
 		}
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 3) && sources[2] instanceof AbstractNode) {
+		try {
+		
+			if (!(arrayHasLengthAndAllElementsNotNull(sources, 3) && sources[2] instanceof AbstractNode)) {
+				
+				return null;
+			}
 
 			final App app = StructrApp.getInstance(entity != null ? entity.getSecurityContext() : ctx.getSecurityContext());
 			final String name = sources[0].toString();
@@ -73,9 +78,11 @@ public class TemplateFunction extends Function<Object, Object> {
 
 			}
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
+
+			return usage(ctx.isJavaScriptContext());
 
 		}
 

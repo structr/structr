@@ -39,7 +39,11 @@ public class GetRequestHeaderFunction extends UiFunction {
 	@Override
 	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+		try {
+			
+			if (!arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+				return null;
+			}
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
 			final String name = sources[0].toString();
@@ -55,13 +59,13 @@ public class GetRequestHeaderFunction extends UiFunction {
 
 			return "";
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
-		}
+			return usage(ctx.isJavaScriptContext());
 
-		return usage(ctx.isJavaScriptContext());
+		}
 	}
 
 	@Override

@@ -45,7 +45,12 @@ public class XmlFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String) {
+		try {
+		
+			if (!(arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String)) {
+				
+				return null;
+			}
 
 			try {
 
@@ -65,9 +70,11 @@ public class XmlFunction extends Function<Object, Object> {
 
 			}
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
+
+			return usage(ctx.isJavaScriptContext());
 
 		}
 

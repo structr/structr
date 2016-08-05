@@ -903,7 +903,7 @@ var Structr = {
 		}
 		LSWrapper.removeItem(activeTabKey);
 	},
-	openLeftSlideOut: function(slideout, tab, activeTabKey, callback) {
+	openLeftSlideOut: function(slideout, tab, activeTabKey, callback, dragCallback) {
 		var s = $(slideout);
 		var t = $(tab);
 		t.addClass('active');
@@ -911,9 +911,8 @@ var Structr = {
 		s.animate({left: '+=' + sw + 'px'}, {duration: 100}).zIndex(1);
 		LSWrapper.setItem(activeTabKey, t.prop('id'));
 		if (callback) {
-			callback();
+			callback({sw: sw});
 		}
-		_Pages.resize(sw, 0);
 		t.draggable({
 			axis: 'x',
 			start: function(e, ui) {
@@ -929,7 +928,10 @@ var Structr = {
 				var oldLsw = sw;
 				sw = w + 12;
 				$('.node.page', slideout).width(w - 13);
-				_Pages.resize(sw - oldLsw, 0);
+
+				if (dragCallback) {
+					dragCallback({sw: (sw - oldLsw)});
+				}
 			},
 			stop: function(e, ui) {
 				LSWrapper.setItem(leftSlideoutWidthKey, slideout.width());
@@ -1114,7 +1116,7 @@ var Structr = {
 					if (build && date) {
 						versionInfo += ' build <a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a> (' + date + ')';
 					}
-					
+
 					$('.structr-version').html(versionInfo);
 				}
 

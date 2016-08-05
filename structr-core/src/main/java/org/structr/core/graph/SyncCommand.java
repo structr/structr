@@ -657,6 +657,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				final List<Node> nodes        = new LinkedList<>();
 				long nodeCount                = 0;
 				long relCount                 = 0;
+				boolean skipProperties        = false;
 
 				do {
 
@@ -707,6 +708,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 								if (deletedNodes.contains(startNode.getId()) || deletedNodes.contains(endNode.getId())) {
 
 									System.out.println("NOT creating relationship between deleted nodes..");
+									skipProperties = true;
 
 								} else {
 
@@ -722,10 +724,15 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 							} else {
 
 								System.out.println("NOT creating relationship of type " + relTypeName + ", start: " + startId + ", end: " + endId);
+								skipProperties = true;
 							}
 
 						} else {
 
+							if (skipProperties) {
+								continue;
+							}
+							
 							// reset if not at the beginning of a line
 							dis.reset();
 

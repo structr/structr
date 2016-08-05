@@ -34,7 +34,7 @@ import org.structr.schema.action.Function;
  */
 public class KeysFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_KEYS = "Usage: ${keys(entity, viewName)}. Example: ${keys(this, \"ui\")}";
+	public static final String ERROR_MESSAGE_KEYS = "Usage: ${keys(entity [, viewName])}. Example: ${keys(this, \"ui\")}";
 
 	@Override
 	public String getName() {
@@ -44,32 +44,41 @@ public class KeysFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof GraphObject) {
+		try {
 
-			final Set<String> keys = new LinkedHashSet<>();
-			final GraphObject source = (GraphObject)sources[0];
-
-			for (final PropertyKey key : source.getPropertyKeys(sources[1].toString())) {
-				keys.add(key.jsonName());
+			if (sources == null) {
+				throw new IllegalArgumentException();
 			}
 
-			return new LinkedList<>(keys);
+			if (sources.length == 2 && sources[0] != null && sources[0] instanceof GraphObject && sources[1] != null) {
 
-		} else if (arrayHasMinLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof GraphObjectMap) {
+				final Set<String> keys = new LinkedHashSet<>();
+				final GraphObject source = (GraphObject) sources[0];
 
-			return new LinkedList<>(((GraphObjectMap)sources[0]).keySet());
+				for (final PropertyKey key : source.getPropertyKeys(sources[1].toString())) {
+					keys.add(key.jsonName());
+				}
 
-		} else if (arrayHasMinLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof Map) {
+				return new LinkedList<>(keys);
 
-			return new LinkedList<>(((Map)sources[0]).keySet());
+			} else if (sources.length == 1 && sources[0] != null && sources[0] instanceof GraphObjectMap) {
 
-		} else {
+				return new LinkedList<>(((GraphObjectMap) sources[0]).keySet());
+
+			} else if (sources.length == 1 && sources[0] != null && sources[0] instanceof Map) {
+
+				return new LinkedList<>(((Map)sources[0]).keySet());
+			} else {
+				
+				return null;
+			}
+
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 
 		}
-
-		return "";
 	}
 
 

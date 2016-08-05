@@ -1,0 +1,27 @@
+#!/bin/bash
+
+. bin/config
+
+if [ ! -e $PID_FILE ]; then
+
+	echo
+	echo "        No server running."
+	echo
+	
+	exit 0
+	
+fi
+
+SERVER_PID=`cat $PID_FILE`
+
+echo 
+echo -n "        Stopping structr server $DISPLAY_NAME: "
+
+kill $SERVER_PID
+
+rm $PID_FILE
+
+sleep 1
+
+echo "OK"
+echo

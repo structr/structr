@@ -56,21 +56,49 @@ public class ErrorFunction extends Function<Object, Object> {
 
 		}
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+		
+		try {
+			
+			if (sources == null) {
+				throw new IllegalArgumentException();
+			}
 
-			final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, sources[0].toString());
-			ctx.raiseError(422, new SemanticErrorToken(type, key, sources[1].toString()));
+			switch (sources.length) {
 
-		} else if (arrayHasLengthAndAllElementsNotNull(sources, 3)) {
+				case 1:
+					throw new IllegalArgumentException();
 
-			final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, sources[0].toString());
-			ctx.raiseError(422, new SemanticErrorToken(type, key, sources[1].toString(), sources[2]));
+				case 2:
+					{
+						arrayHasLengthAndAllElementsNotNull(sources, 2);
 
-		} else {
+						final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, sources[0].toString());
+						ctx.raiseError(422, new SemanticErrorToken(type, key, sources[1].toString()));
+						break;
+					}
+				case 3:
+					{
+						arrayHasLengthAndAllElementsNotNull(sources, 3);
 
+						final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, sources[0].toString());
+						ctx.raiseError(422, new SemanticErrorToken(type, key, sources[1].toString(), sources[2]));
+						break;
+					}
+				default:
+					logParameterError(entity, sources, ctx.isJavaScriptContext());
+					break;
+					
+				}
+			
+		} catch (final IllegalArgumentException e) {
+		
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
+			return usage(ctx.isJavaScriptContext());
+			
 		}
+		
+		
 
 		return null;
 	}

@@ -39,18 +39,21 @@ public class IsCollectionFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+		try {
+			if (!arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+				
+				return false;
+			}
 
 			return (sources[0] instanceof Collection);
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
-			return false;
+			return usage(ctx.isJavaScriptContext());
 
 		}
-
 	}
 
 

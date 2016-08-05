@@ -177,7 +177,7 @@ public class PathHelper {
 	}
 
 	/**
-	 * Return last part of path after separator or the path if no path separator was found.
+	 * Return last part of the given path after separator or the path if no path separator was found.
 	 * 
 	 * @param path
 	 * @return name
@@ -197,6 +197,27 @@ public class PathHelper {
 		}
 	}
 
+	/**
+	 * Return part of the given path before the last separator or the root path ("/") if no separator was found
+	 * 
+	 * @param path
+	 * @return name
+	 */
+	public static String getFolderPath(final String path) {
+		
+		String cleanedPath = clean(path);
+		
+		if (cleanedPath != null && cleanedPath.contains(PATH_SEP)) {
+
+			return PATH_SEP + StringUtils.substringBeforeLast(cleanedPath, PATH_SEP);
+
+		} else {
+
+			return PATH_SEP;
+
+		}
+	}
+	
 	/**
 	 * Return array of path parts.
 	 * 

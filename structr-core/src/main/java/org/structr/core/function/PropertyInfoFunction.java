@@ -39,7 +39,12 @@ public class PropertyInfoFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+		try {
+		
+			if (!arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+				
+				return null;
+			}
 
 			final ConfigurationProvider config = StructrApp.getConfiguration();
 			final String typeName = sources[0].toString();
@@ -70,11 +75,12 @@ public class PropertyInfoFunction extends Function<Object, Object> {
 				return "Unknown type " + typeName;
 			}
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
+
 		}
 	}
 

@@ -123,7 +123,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	private boolean readOnlyPropertiesUnlocked       = false;
 	private boolean isCreation                       = false;
 
-
+	protected String cachedUuid               = null;
 	protected SecurityContext securityContext = null;
 	protected Principal cachedOwnerNode       = null;
 	protected Class entityType                = null;
@@ -144,6 +144,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	@Override
 	public void onNodeInstantiation(final boolean isCreation) {
+		this.cachedUuid = getProperty(GraphObject.id);
 	}
 
 	@Override
@@ -382,7 +383,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	@Override
 	public String getUuid() {
-		return getProperty(GraphObject.id);
+		
+		if (cachedUuid == null) {
+			cachedUuid = getProperty(GraphObject.id);
+		}
+		
+		return cachedUuid;
 	}
 
 	public Long getNodeId() {

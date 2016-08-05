@@ -39,35 +39,35 @@ public class AbbrFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+		try {
+			if (!arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-			try {
-				int maxLength = Double.valueOf(sources[1].toString()).intValue();
-
-				if (sources[0].toString().length() > maxLength) {
-
-					return StringUtils.substringBeforeLast(StringUtils.substring(sources[0].toString(), 0, maxLength), " ").concat("…");
-
-				} else {
-
-					return sources[0];
-				}
-
-			} catch (NumberFormatException nfe) {
-
-				logException(nfe, "{0}: NumberFormatException in element \"{1}\". Can not parse \"{2}\" as Integer. Returning original string. Parameters: {3}", new Object[] {getName(), entity, sources[1], getParametersAsString(sources) });
-
-				return sources[0];
-
+				return "";
 			}
 
-		} else {
+			int maxLength = Double.valueOf(sources[1].toString()).intValue();
+
+			if (sources[0].toString().length() > maxLength) {
+
+				return StringUtils.substringBeforeLast(StringUtils.substring(sources[0].toString(), 0, maxLength), " ").concat("…");
+
+			} else {
+
+				return sources[0];
+			}
+
+		} catch (final NumberFormatException nfe) {
+
+			logException(nfe, "{0}: NumberFormatException in element \"{1}\". Can not parse \"{2}\" as Integer. Returning original string. Parameters: {3}", new Object[] {getName(), entity, sources[1], getParametersAsString(sources) });
+
+			return sources[0];
+
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
+			return usage(ctx.isJavaScriptContext());
 		}
-
-		return "";
 
 	}
 

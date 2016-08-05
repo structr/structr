@@ -1521,8 +1521,7 @@ var _Entities = {
 				e.stopPropagation();
 				_Entities.makeNameEditable(element, w);
 			});
-			Command.setProperty(Structr.getId(element), "name", newName);
-			_Pages.reloadPreviews();
+			_Entities.setNewName(element, newName);
 		});
 
 		input.keypress(function(e) {
@@ -1534,13 +1533,22 @@ var _Entities = {
 					e.stopPropagation();
 					_Entities.makeNameEditable(element, w);
 				});
-				Command.setProperty(Structr.getId(element), "name", newName);
-				_Pages.reloadPreviews();
+				_Entities.setNewName(element, newName);
 			}
 		});
-
-		//element.off('click');
-
+	},
+	setNewName: function(element, newName) {
+		var id = Structr.getId(element);
+		Command.setProperty(id, 'name', newName, false, function() {
+			if (lastMenuEntry === 'pages') {
+				_Pages.reloadPreviews();
+			} else if (lastMenuEntry === 'filesystem') {
+				var a = element.closest('td').prev().children('a').first();
+				Command.getProperty(id, 'path', function(newPath) {
+					a.attr('href', newPath);
+				});
+			}
+		});
 	},
 	handleActiveElement: function(entity) {
 

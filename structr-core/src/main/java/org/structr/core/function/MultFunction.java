@@ -43,6 +43,13 @@ public class MultFunction extends Function<Object, Object> {
 		if (sources != null) {
 
 			for (Object i : sources) {
+				
+				// Multiply with null results in null
+				if (i == null) {
+					
+					return null;
+					
+				}
 
 				try {
 
@@ -60,7 +67,7 @@ public class MultFunction extends Function<Object, Object> {
 		} else {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
-
+			return usage(ctx.isJavaScriptContext());
 		}
 
 		return result;

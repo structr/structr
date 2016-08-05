@@ -1,0 +1,50 @@
+/**
+ * Copyright (C) 2010-2016 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.neo4j.index.lucene.converter;
+
+import org.parboiled.common.StringUtils;
+import org.structr.api.search.TypeConverter;
+
+/**
+ *
+ */
+public class StringTypeConverter implements TypeConverter {
+
+	public static final String EMPTY_VALUE = new String(new byte[]{0});
+
+	@Override
+	public Object getReadValue(final Object value) {
+		return getWriteValue(value);
+	}
+
+	@Override
+	public Object getWriteValue(final Object value) {
+
+		if (value != null && StringUtils.isNotEmpty(value.toString())) {
+			return value.toString();
+		}
+
+		return EMPTY_VALUE;
+	}
+
+	@Override
+	public Object getInexactValue(final Object value) {
+		return getReadValue(value).toString().toLowerCase();
+	}
+}

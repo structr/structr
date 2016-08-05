@@ -1,0 +1,19 @@
+#!/bin/bash
+
+STRUCTR_CONF=`find ../../../.. -name structr.conf`
+
+PATH=$PATH:.
+
+HOST=`grep application.host $STRUCTR_CONF | awk '{ print $3 }' | tr -d [:cntrl:]`
+PORT=`grep application.http.port $STRUCTR_CONF | awk '{ print $3 }' | tr -d [:cntrl:]`
+REST_PATH=`grep application.rest.path $STRUCTR_CONF | awk '{ print $3 }' | tr -d [:cntrl:]`
+
+REST_URL=http://$HOST:$PORT$REST_PATH
+REST_USER=admin
+REST_PW=admin
+
+export PATH
+export REST_URL
+export REST_USER
+export REST_PW
+

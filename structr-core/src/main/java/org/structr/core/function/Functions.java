@@ -252,6 +252,7 @@ public class Functions {
 		functions.put("join", new JoinFunction());
 		functions.put("concat", new ConcatFunction());
 		functions.put("split", new SplitFunction());
+		functions.put("split_regex", new SplitRegexFunction());
 		functions.put("abbr", new AbbrFunction());
 		functions.put("capitalize", new CapitalizeFunction());
 		functions.put("titleize", new TitleizeFunction());

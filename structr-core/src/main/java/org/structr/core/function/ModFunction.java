@@ -38,27 +38,32 @@ public class ModFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+		try {
+		
+			if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-			try {
+				try {
 
-				return ((int)Double.parseDouble(sources[0].toString())) % ((int)Double.parseDouble(sources[1].toString()));
+					return ((int)Double.parseDouble(sources[0].toString())) % ((int)Double.parseDouble(sources[1].toString()));
 
-			} catch (NumberFormatException nfe) {
+				} catch (NumberFormatException nfe) {
 
-				logException(entity, nfe, sources);
+					logException(entity, nfe, sources);
 
-				return nfe.getMessage();
+					return nfe.getMessage();
 
+				}
 			}
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
 
 		}
+		
+		return null;
 
 	}
 

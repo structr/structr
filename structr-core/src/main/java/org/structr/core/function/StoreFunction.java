@@ -39,16 +39,18 @@ public class StoreFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (sources.length > 0 && sources[0] != null && sources[0] instanceof String) {
-
-			if (sources[1] != null) {
-
-				ctx.store(sources[0].toString(), sources[1]);
+		try {
+			
+			if (!arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+				
+				return null;
 			}
+
+			ctx.store(sources[0].toString(), sources[1]);
 
 			return "";
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
 

@@ -39,19 +39,44 @@ public class RoundFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+		String decimalPlaces = "0";
+
+		if (sources == null) {
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
+		}
+
+		if (sources.length == 1) {
+
+			if (sources[0] == null) {
+				return null;
+			}
 
 			if (StringUtils.isBlank(sources[0].toString())) {
 				return "";
 			}
 
+			final double f1 = Double.parseDouble(sources[0].toString());
+			return Math.round(f1);
+
+		}
+
+		if (sources.length == 2) {
+
+			if (sources[1] == null) {
+				logParameterError(entity, sources, ctx.isJavaScriptContext());
+				return usage(ctx.isJavaScriptContext());
+			}
+
+			decimalPlaces = sources[1].toString();
+
 			try {
 
-				Double f1 = Double.parseDouble(sources[0].toString());
-				double f2 = Math.pow(10, (Double.parseDouble(sources[1].toString())));
+				final double f1 = Double.parseDouble(sources[0].toString());
+				final double f2 = Math.pow(10, (Double.parseDouble(decimalPlaces)));
 				long r = Math.round(f1 * f2);
 
-				return (double)r / f2;
+				return (double) r / f2;
 
 			} catch (Throwable t) {
 
@@ -59,12 +84,11 @@ public class RoundFunction extends Function<Object, Object> {
 				return t.getMessage();
 
 			}
-
-		} else {
-
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
-			return "";
 		}
+		
+		logParameterError(entity, sources, ctx.isJavaScriptContext());
+		return usage(ctx.isJavaScriptContext());
+
 	}
 
 

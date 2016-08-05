@@ -510,47 +510,55 @@ public class FileHelper {
 	 */
 	public static AbstractFile getFileByAbsolutePath(final SecurityContext securityContext, final String absolutePath) {
 
-		String[] parts = PathHelper.getParts(absolutePath);
-
-		if (parts == null || parts.length == 0) {
-			return null;
+		try {
+			
+			return StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).and(AbstractFile.path, absolutePath).getFirst();
+			
+//		String[] parts = PathHelper.getParts(absolutePath);
+//
+//		if (parts == null || parts.length == 0) {
+//			return null;
+//		}
+//
+//		// Find root folder
+//		if (parts[0].length() == 0) {
+//			return null;
+//		}
+//
+//		AbstractFile currentFile = getFirstRootFileByName(securityContext, parts[0]);
+//		if (currentFile == null) {
+//			return null;
+//		}
+//
+//		for (int i = 1; i < parts.length; i++) {
+//
+//			List<AbstractFile> children = currentFile.getProperty(AbstractFile.children);
+//
+//			currentFile = null;
+//
+//			for (AbstractFile child : children) {
+//
+//				if (child.getProperty(AbstractFile.name).equals(parts[i])) {
+//
+//					// Child with matching name found
+//					currentFile = child;
+//					break;
+//				}
+//
+//			}
+//
+//			if (currentFile == null) {
+//				return null;
+//			}
+//
+//		}
+//
+//		return currentFile;
+		} catch (FrameworkException ex) {
+			logger.log(Level.WARNING, "File not found: {0}", new Object[] { absolutePath });
 		}
-
-		// Find root folder
-		if (parts[0].length() == 0) {
-			return null;
-		}
-
-		AbstractFile currentFile = getFirstRootFileByName(securityContext, parts[0]);
-		if (currentFile == null) {
-			return null;
-		}
-
-		for (int i = 1; i < parts.length; i++) {
-
-			List<AbstractFile> children = currentFile.getProperty(AbstractFile.children);
-
-			currentFile = null;
-
-			for (AbstractFile child : children) {
-
-				if (child.getProperty(AbstractFile.name).equals(parts[i])) {
-
-					// Child with matching name found
-					currentFile = child;
-					break;
-				}
-
-			}
-
-			if (currentFile == null) {
-				return null;
-			}
-
-		}
-
-		return currentFile;
-
+		
+		return null;
 	}
 
 	public static AbstractFile getFileByUuid(final SecurityContext securityContext, final String uuid) {
@@ -669,7 +677,7 @@ public class FileHelper {
 	 */
 	public static Folder createFolderPath(final SecurityContext securityContext, final String path) throws FrameworkException {
 
-		App app = StructrApp.getInstance(securityContext);
+		final App app = StructrApp.getInstance(securityContext);
 
 		if (path == null) {
 

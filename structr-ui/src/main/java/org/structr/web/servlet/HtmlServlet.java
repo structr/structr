@@ -85,6 +85,7 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
+import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.Site;
@@ -259,8 +260,17 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				if (rootElement == null) { // No page found
 
-					// Look for a file
-					final FileBase file = findFile(securityContext, request, path);
+					// In case of a file, try to find a file with the query string in the filename
+					final String queryString = request.getQueryString();
+					
+					// Look for a file, first include the query string
+					FileBase file = findFile(securityContext, request, path + (queryString != null ? "?" + queryString : ""));
+					
+					// If no file with query string in the file name found, try without query string
+					if (file == null) {
+						file = findFile(securityContext, request, path);
+					}
+					
 					if (file != null) {
 
 						streamFile(securityContext, file, request, response, edit);
@@ -1199,18 +1209,24 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 			logger.log(Level.FINE, "Requested path: {0}", path);
 
-			final Query query = StructrApp.getInstance(securityContext).nodeQuery();
+			final Query pageQuery = StructrApp.getInstance(securityContext).nodeQuery();
 
-			query.and(Page.path, path);
-			query.and().orType(Page.class).orTypes(File.class);
+			pageQuery.and(Page.path, path).andType(Page.class);
+			final Result pages = pageQuery.getResult();
 
-			// Searching for pages needs super user context anyway
-			Result results = query.getResult();
+			final Query fileQuery = StructrApp.getInstance(securityContext).nodeQuery();
+			fileQuery.and(AbstractFile.path, path).andTypes(File.class);
 
-			logger.log(Level.FINE, "{0} results", results.size());
-			request.setAttribute(POSSIBLE_ENTRY_POINTS_KEY, results.getResults());
+			final Result files = fileQuery.getResult();
+			
+			logger.log(Level.FINE, "Found {0} pages and {1} files/folders", new Object[] { pages.size(), files.size() });
+			
+			final List<Linkable> linkables = (List<Linkable>) pages.getResults();
+			linkables.addAll(files.getResults());
+			
+			request.setAttribute(POSSIBLE_ENTRY_POINTS_KEY, linkables);
 
-			return (List<Linkable>) results.getResults();
+			return linkables;
 		}
 
 		return Collections.EMPTY_LIST;

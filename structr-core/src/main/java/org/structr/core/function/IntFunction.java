@@ -38,7 +38,11 @@ public class IntFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+		try {
+			if (!arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+				
+				return null;
+			}
 
 			if (sources[0] instanceof Number) {
 				return ((Number)sources[0]).intValue();
@@ -53,13 +57,12 @@ public class IntFunction extends Function<Object, Object> {
 				return null;
 			}
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 
 		}
-
-		return "";
 	}
 
 

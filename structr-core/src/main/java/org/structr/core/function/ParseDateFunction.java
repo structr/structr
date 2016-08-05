@@ -47,7 +47,12 @@ public class ParseDateFunction extends Function<Object, Object> {
 			return usage(ctx.isJavaScriptContext());
 		}
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+		try {
+		
+			if (!arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+				
+				return null;
+			}
 
 			final String dateString = sources[0].toString();
 
@@ -67,9 +72,11 @@ public class ParseDateFunction extends Function<Object, Object> {
 
 			}
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
+
+			return usage(ctx.isJavaScriptContext());
 
 		}
 

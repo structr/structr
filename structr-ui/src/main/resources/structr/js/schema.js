@@ -30,6 +30,8 @@ var mouseUpCoords = {x:0, y:0};
 var selectBox, nodeDragStartpoint;
 var selectedNodes = [];
 var showSchemaOverlaysKey = 'structrShowSchemaOverlays_' + port;
+var schemaContainer;
+var inheritanceTree, inheritanceSlideout, inheritanceSlideoutOpen = false;
 
 $(document).ready(function() {
 
@@ -50,7 +52,7 @@ var _Schema = {
 		var y = window.scrollY;
 		reload = true;
 		_Schema.storePositions();
-		main.empty();
+		schemaContainer.empty();
 		_Schema.init({x: x, y: y});
 		_Schema.resize();
 
@@ -60,8 +62,8 @@ var _Schema = {
 			var node = $(n);
 			var type = node.text();
 			var obj = {position: node.position()};
-			obj.position.left /= zoomLevel;
-			obj.position.top = (obj.position.top - canvas.offset().top) / zoomLevel;
+			obj.position.left = (obj.position.left - canvas.offset().left) / zoomLevel;
+			obj.position.top  = (obj.position.top  - canvas.offset().top)  / zoomLevel;
 			LSWrapper.setItem(type + localStorageSuffix + 'node-position', JSON.stringify(obj));
 		});
 	},
@@ -71,19 +73,21 @@ var _Schema = {
 	},
 	init: function(scrollPosition) {
 
+		_Schema.loadClassTree();
+
 		_Schema.schemaLoading = false;
 		_Schema.schemaLoaded = false;
 		_Schema.schema = [];
 		_Schema.keys = [];
 
-		main.append('<div class="schema-input-container"></div>');
+		schemaContainer.append('<div class="schema-input-container"></div>');
 
-		var schemaContainer = $('.schema-input-container');
+		var schemaInputContainer = $('.schema-input-container');
 
-		Structr.ensureIsAdmin(schemaContainer, function() {
+		Structr.ensureIsAdmin(schemaInputContainer, function() {
 
-			schemaContainer.append('<div class="input-and-button"><input class="schema-input" id="type-name" type="text" size="10" placeholder="New type"><button id="create-type" class="btn"><img src="icon/add.png"> Add</button></div>');
-			schemaContainer.append('<div class="input-and-button"><input class="schema-input" id="ggist-url" type="text" size="20" placeholder="Enter GraphGist URL"><button id="gg-import" class="btn">Start Import</button></div>');
+			schemaInputContainer.append('<div class="input-and-button"><input class="schema-input" id="type-name" type="text" size="10" placeholder="New type"><button id="create-type" class="btn"><img src="icon/add.png"> Add</button></div>');
+			schemaInputContainer.append('<div class="input-and-button"><input class="schema-input" id="ggist-url" type="text" size="20" placeholder="Enter GraphGist URL"><button id="gg-import" class="btn">Start Import</button></div>');
 			$('#gg-import').on('click', function(e) {
 				var btn = $(this);
 				var text = btn.text();
@@ -94,7 +98,7 @@ var _Schema = {
 
 			var styles = ['Flowchart', 'Bezier', 'StateMachine', 'Straight'];
 
-			schemaContainer.append('<select id="connector-style"></select>');
+			schemaInputContainer.append('<select id="connector-style"></select>');
 			$.each(styles, function(i, style) {
 				$('#connector-style').append('<option value="' + style + '" ' + (style === connectorStyle ? 'selected="selected"' : '') + '>' + style + '</option>');
 			});
@@ -105,7 +109,7 @@ var _Schema = {
 				_Schema.reload();
 			});
 
-			schemaContainer.append('<div id="zoom-slider" style="display:inline-block; width:100px; margin-left:10px"></div>');
+			schemaInputContainer.append('<div id="zoom-slider" style="display:inline-block; width:100px; margin-left:10px"></div>');
 			$( "#zoom-slider" ).slider({
 				min:0.25,
 				max:1,
@@ -123,27 +127,27 @@ var _Schema = {
 				}
 			});
 
-			schemaContainer.append('<button class="btn" id="admin-tools"><img src="icon/wrench.png"> Tools</button>');
+			schemaInputContainer.append('<button class="btn" id="admin-tools"><img src="icon/wrench.png"> Tools</button>');
 			$('#admin-tools').on('click', function() {
 				_Schema.openAdminTools();
 			});
 
-			schemaContainer.append('<button class="btn module-dependend" data-structr-module="cloud" id="sync-schema"><img src="icon/page_white_get.png"> Sync schema</button>');
+			schemaInputContainer.append('<button class="btn module-dependend" data-structr-module="cloud" id="sync-schema"><img src="icon/page_white_get.png"> Sync schema</button>');
 			$('#sync-schema').on('click', function() {
 				_Schema.syncSchemaDialog();
 			});
 
-			schemaContainer.append('<button class="btn" id="show-snapshots"><img src="icon/database.png"> Snapshots</button>');
+			schemaInputContainer.append('<button class="btn" id="show-snapshots"><img src="icon/database.png"> Snapshots</button>');
 			$('#show-snapshots').on('click', function() {
 				_Schema.snapshotsDialog();
 			});
 
-			schemaContainer.append('<button class="btn" id="schema-display-options"><img src="icon/pencil.png"> Display Options</button>');
+			schemaInputContainer.append('<button class="btn" id="schema-display-options"><img src="icon/pencil.png"> Display Options</button>');
 			$('#schema-display-options').on('click', function() {
 				_Schema.openSchemaDisplayOptions();
 			});
 
-			schemaContainer.append('<input type="checkbox" id="schema-show-overlays" name="schema-show-overlays" style="margin-left:10px"><label for="schema-show-overlays"> Show relationship labels</label>');
+			schemaInputContainer.append('<input type="checkbox" id="schema-show-overlays" name="schema-show-overlays" style="margin-left:10px"><label for="schema-show-overlays"> Show relationship labels</label>');
 			$('#schema-show-overlays').on('change', function() {
 				_Schema.updateOverlayVisibility($(this).prop('checked'));
 			});
@@ -164,7 +168,7 @@ var _Schema = {
 			});
 
 			jsPlumb.ready(function() {
-				main.append('<div class="canvas" id="schema-graph"></div>');
+				schemaContainer.append('<div class="canvas" id="schema-graph"></div>');
 
 				canvas = $('#schema-graph');
 
@@ -254,12 +258,12 @@ var _Schema = {
 		});
 
 	},
-	selectRel: function ($rel) {
+	selectRel: function (rel) {
 		_Schema.clearSelection();
 
-		selectedRel = $rel;
+		selectedRel = rel;
 		selectedRel.css({zIndex: ++maxZ});
-		selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({zIndex: ++maxZ, borderColor:relHighlightColor});
+		selectedRel.next('._jsPlumb_overlay').css({zIndex: ++maxZ, borderColor: relHighlightColor, background: 'rgba(255, 255, 255, 1)'});
 		pathElements = selectedRel.find('path');
 		pathElements.css({stroke: relHighlightColor});
 		$(pathElements[1]).css({fill: relHighlightColor});
@@ -271,7 +275,7 @@ var _Schema = {
 
 		// deselect selected Relationship
 		if (selectedRel) {
-			selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({borderColor:''});
+			selectedRel.next('._jsPlumb_overlay').css({borderColor:'', background: 'rgba(255, 255, 255, .8)'});
 			pathElements = selectedRel.find('path');
 			pathElements.css('stroke', '');
 			$(pathElements[1]).css('fill', '');
@@ -360,6 +364,47 @@ var _Schema = {
 		);
 	},
 	onload: function() {
+		main.append(
+			'<div id="inheritance-tree" class="slideOut slideOutLeft"><div class="compTab" id="inheritanceTab">Inheritance Tree</div>Search: <input type="text" id="search-classes"><div id="inheritance-tree-container" class="ver-scrollable"></div></div>'
+			+ '<div id="schema-container"></div>'
+		);
+		schemaContainer = $('#schema-container');
+		inheritanceSlideout = $('#inheritance-tree');
+		inheritanceTree = $('#inheritance-tree-container');
+
+		var adjustSlideoutHeight = function () {
+			var windowHeight = win.height();
+			$('.ver-scrollable').css({
+				height: (windowHeight - inheritanceTree.offset().top) + 'px'
+			});
+		}
+		var updateCanvasTranslation = function () {
+			canvas.css('transform', _Schema.getSchemaCSSTransform());
+			adjustSlideoutHeight();
+		};
+
+		inheritanceSlideoutOpen = false;
+		$('#inheritanceTab').on('click', function() {
+			if ($(this).hasClass('noclick')) {
+				$(this).removeClass('noclick');
+				return;
+			}
+
+			if (Math.abs(inheritanceSlideout.position().left + inheritanceSlideout.width() + 12) <= 3) {
+				inheritanceSlideoutOpen = true;
+				Structr.openLeftSlideOut(inheritanceSlideout, $("#inheritanceTab"), activeTabLeftKey, adjustSlideoutHeight, updateCanvasTranslation);
+				canvas.css('transform', _Schema.getSchemaCSSTransform());
+
+			} else {
+				inheritanceSlideoutOpen = false;
+				Structr.closeLeftSlideOuts([inheritanceSlideout], activeTabLeftKey);
+				canvas.css('transform', _Schema.getSchemaCSSTransform());
+
+			}
+
+			_Schema.resize();
+		});
+
 		_Schema.init();
 		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Schema');
 
@@ -596,127 +641,59 @@ var _Schema = {
 						paintStyle: { lineWidth: 5, strokeStyle: res.permissionPropagation !== 'None' ? "#ffad25" : "#81ce25" },
 						overlays: [
 							["Label", {
+									cssClass: "label multiplicity",
+									label: res.sourceMultiplicity ? res.sourceMultiplicity : '*',
+									location: .2 + offset,
+									id: "sourceMultiplicity"
+								}
+							],
+							["Label", {
 									cssClass: "label rel-type",
-									label: _Schema.getRelationshipOverlayHtml(res, false),
+									label: '<div id="rel_' + res.id + '">' + (res.relationshipType === initialRelType ? '&nbsp;' : res.relationshipType)
+											+ ' <img title="Edit schema relationship" alt="Edit schema relationship" class="edit icon" src="icon/pencil.png">'
+											+ ' <img title="Remove schema relationship" alt="Remove schema relationship" class="remove icon" src="icon/delete.png"></div>',
 									location: .5 + offset,
-									id: "label",
-									events: {
-										click: function(overlay, evt) {
-											evt.preventDefault();
-
-											if (overlay.getLabel().substring(0, 6) !== '<input') {
-
-												overlay.setLabel(_Schema.getRelationshipOverlayHtml(res, true));
-
-												var saveEditedRelationship = function (relationship, $element) {
-
-													var newRelData = {
-														sourceMultiplicity: $('.source-mult-input', $element).val(),
-														relationshipType: $('.rel-type-input', $element).val(),
-														targetMultiplicity: $('.target-mult-input', $element).val()
-													};
-
-													if ((newRelData.sourceMultiplicity !== '*' && newRelData.sourceMultiplicity !== '1') || (newRelData.targetMultiplicity !== '*' && newRelData.targetMultiplicity !== '1')) {
-
-														Structr.error('Multiplicity can only be 1 or *.');
-
-													} else if (newRelData.relationshipType.match(/^[\w]+$/) === null) {
-
-														Structr.error('RelType must use only alphanumeric characters and underscores.');
-
-													} else {
-														$('input', overlay.getElement()).attr('disabled', 'disabled');
-														_Schema.editRelationship(relationship, newRelData, undefined, function (data) {
-															Structr.errorFromResponse(data.responseJSON);
-														});
-													}
-
-												};
-
-												$('input', overlay.getElement()).first().focus();
-												$('input', overlay.getElement()).keypress(function(e) {
-													if (e.keyCode === 13) {
-														e.preventDefault();
-														saveEditedRelationship(res, overlay.getElement());
-													}
-												});
-
-												$('.save', overlay.getElement()).on('click', function () {
-													saveEditedRelationship(res, overlay.getElement());
-												});
-
-												$('.discard', overlay.getElement()).on('click', function () {
-													overlay.setLabel(_Schema.getRelationshipOverlayHtml(res, false));
-													_Schema.registerRelationshipOverlayButtonHandlers(res);
-												});
-
-												$('.icon', overlay.getElement()).show();
-											}
-										}
-									}
+									id: "label"
+								}
+							],
+							["Label", {
+									cssClass: "label multiplicity",
+									label: res.targetMultiplicity ? res.targetMultiplicity : '*',
+									location: .8 - offset,
+									id: "targetMultiplicity"
 								}
 							]
-
 						]
 					});
 
-					$('#rel_' + res.id).parent().on('mouseover', function(e) {
-						//e.stopPropagation();
+					$('#rel_' + res.id).parent().on('mouseover', function() {
 						$('#rel_' + res.id + ' .icon').show();
 						$('#rel_' + res.id + ' .target-multiplicity').addClass('hover');
-					});
-
-					$('#rel_' + res.id).parent().on('mouseout', function(e) {
-						//e.stopPropagation();
+					}).on('mouseout', function() {
 						$('#rel_' + res.id + ' .icon').hide();
 						$('#rel_' + res.id + ' .target-multiplicity').removeClass('hover');
 					});
 
-					_Schema.registerRelationshipOverlayButtonHandlers(res);
-				});
+					$('#rel_' + res.id + ' .edit').on('click', function() {
+						_Schema.openEditDialog(res.id);
+					});
 
+					$('#rel_' + res.id + ' .remove').on('click', function() {
+						Structr.confirmation('<h3>Delete schema relationship \'' + res.relationshipType + '\'?</h3>', function() {
+							$.unblockUI({
+								fadeOut: 25
+							});
+							_Schema.detach(res.id);
+							_Schema.reload();
+						});
+						return false;
+					});
+				});
 
 				if (callback) {
 					callback();
 				}
-
 			}
-		});
-	},
-	getRelationshipOverlayHtml: function(rel, editMode) {
-		if (editMode === true) {
-			return '<input class="source-mult-input" type="text" size="15" id="id_' + rel.id + '_sourceMultiplicity" value="' + (rel.sourceMultiplicity ? rel.sourceMultiplicity : '*') + '">'
-					+ '<input class="rel-type-input" type="text" size="15" id="id_' + rel.id + '_relationshipType" value="' + (rel.relationshipType === initialRelType ? '&nbsp;' : rel.relationshipType) + '">'
-					+ '<input class="target-mult-input" type="text" size="15" id="id_' + rel.id + '_targetMultiplicity" value="' + (rel.targetMultiplicity ? rel.targetMultiplicity : '*') + '">'
-					+ ' <img title="Save changes" alt="Save changes" class="save icon" src="icon/tick.png">'
-					+ ' <img title="Discard changes" alt="Discard changes" class="discard icon" src="icon/cross.png">';
-		} else {
-			return '<span id="rel_' + rel.id + '" data-name="' + rel.name + '" data-source-type="' + nodes[rel.sourceId].name + '" data-target-type="' + nodes[rel.targetId].name + '">'
-					+ '<span class="source-multiplicity">' + (rel.sourceMultiplicity ? rel.sourceMultiplicity : '*') + '</span>'
-					+ '<span class="rel-type-name">' + (rel.relationshipType === initialRelType ? '&nbsp;' : rel.relationshipType) + '</span>'
-					+ '<span class="target-multiplicity">' + (rel.targetMultiplicity ? rel.targetMultiplicity : '*') + '</span>'
-					+ ' <img title="Edit schema relationship" alt="Edit schema relationship" class="edit icon" src="icon/pencil.png">'
-					+ ' <img title="Remove schema relationship" alt="Remove schema relationship" class="remove icon" src="icon/delete.png">'
-					+ '</span>';
-		}
-	},
-	registerRelationshipOverlayButtonHandlers: function (rel) {
-		$('#rel_' + rel.id + ' .edit').on('click', function(e) {
-			e.stopPropagation();
-
-			_Schema.openEditDialog(rel.id);
-		});
-
-		$('#rel_' + rel.id + ' .remove').on('click', function(e) {
-			e.stopPropagation();
-			Structr.confirmation('<h3>Delete schema relationship \'' + rel.relationshipType + '\'?</h3>', function() {
-				$.unblockUI({
-					fadeOut: 25
-				});
-				_Schema.detach(rel.id);
-				_Schema.reload();
-			});
-			return false;
 		});
 	},
 	loadNode: function(entity, headEl, contentEl, targetView) {
@@ -851,37 +828,44 @@ var _Schema = {
 	loadRelationship: function(entity, headEl, contentEl) {
 
 		var id = '___' + entity.id;
-		headEl.append('<div id="' + id + '_head" class="schema-details"></div>');
-		var headContentDiv = $('#' + id + '_head');
-		headContentDiv.append('<b>' + entity.relationshipType + '</b>');
-		headContentDiv.append('<table id="relationship-options"><tr><td id="cascading-options"></td><td id="propagation-options"></td></tr></table>');
-		headContentDiv.append('<button id="edit-rel-options-button"><img class="edit icon" src="icon/pencil.png"> Edit relationship options</button>');
-		headContentDiv.append('<button id="save-rel-options-button"><img class="save icon" src="icon/tick.png"> Save changes</button>');
-		headContentDiv.append('<button id="cancel-rel-options-button"><img src="icon/cross.png"> Discard changes</button>');
+		headEl.append('<div id="' + id + '_head" class="schema-details">'
+			+ '<table id="relationship-options"><tr><td colspan=2 id="basic-options"></td></tr><tr><td id="cascading-options"></td><td id="propagation-options"></td></tr></table>'
+			+ '<button id="edit-rel-options-button"><img class="edit icon" src="icon/pencil.png"> Edit relationship options</button>'
+			+ '<button id="save-rel-options-button"><img class="save icon" src="icon/tick.png"> Save changes</button>'
+			+ '<button id="cancel-rel-options-button"><img src="icon/cross.png"> Discard changes</button>'
+			+ '<div id="tabs" style="margin-top:20px;"><ul></ul></div>'
+			+ '</div>'
+		);
 
-		var relationshipOptions = $('#cascading-options');
-		relationshipOptions.append('<h3>Cascading Delete</h3>');
-		relationshipOptions.append('<p>Direction of automatic removal of related nodes when a node is deleted</p>');
-		relationshipOptions.append('<select disabled id="cascading-delete-selector" data-attr-name="cascadingDeleteFlag"><option value="0">NONE</option><option value="1">SOURCE_TO_TARGET</option><option value="2">TARGET_TO_SOURCE</option><option value="3">ALWAYS</option><option value="4">CONSTRAINT_BASED</option></select>');
+		$('#basic-options').append('<span class="relationship-emphasis"><span id="source-type-name"></span> &#8212;</span>'
+			+ '<select disabled id="source-multiplicity-selector" data-attr-name="sourceMultiplicity"><option value="1">1</option><option value="*">*</option></select>'
+			+ '<span class="relationship-emphasis">&#8212;[</span>'
+			+ '<input disabled id="relationship-type-name" data-attr-name="relationshipType">'
+			+ '<span class="relationship-emphasis">]&#8212;</span>'
+			+ '<select disabled id="target-multiplicity-selector" data-attr-name="targetMultiplicity"><option value="1">1</option><option value="*">*</option></select>'
+			+ '<span class="relationship-emphasis">&#8212;&#9658; <span id="target-type-name"></span></span>'
+		);
 
-		relationshipOptions.append('<h3>Automatic Creation of Related Nodes</h3>');
-		relationshipOptions.append('<p>Direction of automatic creation of related nodes when a node is created</p>');
-		relationshipOptions.append('<select disabled id="autocreate-selector" data-attr-name="autocreationFlag"><option value="0">NONE</option><option value="1">SOURCE_TO_TARGET</option><option value="2">TARGET_TO_SOURCE</option><option value="3">ALWAYS</option></select>');
+		$('#cascading-options').append('<h3>Cascading Delete</h3>'
+			+ '<p>Direction of automatic removal of related nodes when a node is deleted</p>'
+			+ '<select disabled id="cascading-delete-selector" data-attr-name="cascadingDeleteFlag"><option value="0">NONE</option><option value="1">SOURCE_TO_TARGET</option><option value="2">TARGET_TO_SOURCE</option><option value="3">ALWAYS</option><option value="4">CONSTRAINT_BASED</option></select>'
+			+ '<h3>Automatic Creation of Related Nodes</h3>'
+			+ '<p>Direction of automatic creation of related nodes when a node is created</p>'
+			+ '<select disabled id="autocreate-selector" data-attr-name="autocreationFlag"><option value="0">NONE</option><option value="1">SOURCE_TO_TARGET</option><option value="2">TARGET_TO_SOURCE</option><option value="3">ALWAYS</option></select>'
+		);
 
-		var propagationOptions = $('#propagation-options');
-		propagationOptions.append('<h3>Permission Resolution</h3>');
-		propagationOptions.append('<select disabled id="propagation-selector" data-attr-name="permissionPropagation"><option value="None">NONE</option><option value="Out">SOURCE_TO_TARGET</option><option value="In">TARGET_TO_SOURCE</option><option value="Both">ALWAYS</option></select>');
-		propagationOptions.append('<table style="margin: 12px 0 0 0;"><tr id="propagation-table"></tr></table>');
-		propagationOptions.append('<p style="margin-top:12px">Hidden properties</p><textarea disabled id="masked-properties" data-attr-name="propertyMask" />');
+		$('#propagation-options').append('<h3>Permission Resolution</h3>'
+			+ '<select disabled id="propagation-selector" data-attr-name="permissionPropagation"><option value="None">NONE</option><option value="Out">SOURCE_TO_TARGET</option><option value="In">TARGET_TO_SOURCE</option><option value="Both">ALWAYS</option></select>'
+			+ '<table style="margin: 12px 0 0 0;"><tr id="propagation-table">'
+			+ '<td class="selector"><p>Read</p><select disabled id="read-selector" data-attr-name="readPropagation"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>'
+			+ '<td class="selector"><p>Write</p><select disabled id="write-selector" data-attr-name="writePropagation"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>'
+			+ '<td class="selector"><p>Delete</p><select disabled id="delete-selector" data-attr-name="deletePropagation"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>'
+			+ '<td class="selector"><p>AccessControl</p><select disabled id="access-control-selector" data-attr-name="accessControlPropagation"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>'
+			+ '</tr></table>'
+			+ '<p style="margin-top:12px">Hidden properties</p><textarea disabled id="masked-properties" data-attr-name="propertyMask" />'
+		);
 
-		var propagationTable = $('#propagation-table');
-		propagationTable.append('<td class="selector"><p>Read</p><select disabled id="read-selector" data-attr-name="readPropagation"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
-		propagationTable.append('<td class="selector"><p>Write</p><select disabled id="write-selector" data-attr-name="writePropagation"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
-		propagationTable.append('<td class="selector"><p>Delete</p><select disabled id="delete-selector" data-attr-name="deletePropagation"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
-		propagationTable.append('<td class="selector"><p>AccessControl</p><select disabled id="access-control-selector" data-attr-name="accessControlPropagation"><option value="Add">Add</option><option value="Keep">Keep</option><option value="Remove">Remove</option></select></td>');
-
-		headContentDiv.append('<div id="tabs" style="margin-top:20px;"><ul></ul></div>');
-		var mainTabs = $('#tabs', headContentDiv);
+		var mainTabs = $('#' + id + '_head #tabs');
 
 		contentEl.append('<div id="' + id + '_content" class="schema-details"></div>');
 		var contentDiv = $('#' + id + '_content');
@@ -898,11 +882,13 @@ var _Schema = {
 			_Schema.appendMethods(c, entity);
 		});
 
-		headContentDiv.children('b').on('click', function() {
-			_Schema.makeAttrEditable(headContentDiv, 'relationshipType', true);
-		});
-
 		var selectRelationshipOptions = function (rel) {
+			$('#source-type-name').text(nodes[rel.sourceId].name);
+			$('#source-multiplicity-selector').val(rel.sourceMultiplicity || '*');
+			$('#relationship-type-name').val(rel.relationshipType === initialRelType ? '' : rel.relationshipType);
+			$('#target-multiplicity-selector').val(rel.targetMultiplicity || '*');
+			$('#target-type-name').text(nodes[rel.targetId].name);
+
 			$('#cascading-delete-selector').val(rel.cascadingDeleteFlag || 0);
 			$('#autocreate-selector').val(rel.autocreationFlag || 0);
 			$('#propagation-selector').val(rel.permissionPropagation || 'None');
@@ -922,9 +908,9 @@ var _Schema = {
 		editButton.on('click', function (e) {
 			e.preventDefault();
 
-			$('#relationship-options select, #relationship-options textarea').attr('disabled', false);
-			$('#relationship-options select, #relationship-options textarea').css('color', '');
-			$('#relationship-options select, #relationship-options textarea').css('background-color', '');
+			$('#relationship-options select, #relationship-options textarea, #relationship-options input').attr('disabled', false);
+			$('#relationship-options select, #relationship-options textarea, #relationship-options input').css('color', '');
+			$('#relationship-options select, #relationship-options textarea, #relationship-options input').css('background-color', '');
 			editButton.hide();
 			saveButton.show();
 			cancelButton.show();
@@ -933,6 +919,9 @@ var _Schema = {
 		saveButton.on('click', function (e) {
 
 			var newData = {
+				sourceMultiplicity: $('#source-multiplicity-selector').val(),
+				relationshipType: $('#relationship-type-name').val(),
+				targetMultiplicity: $('#target-multiplicity-selector').val(),
 				cascadingDeleteFlag: parseInt($('#cascading-delete-selector').val()),
 				autocreationFlag: parseInt($('#autocreate-selector').val()),
 				permissionPropagation: $('#propagation-selector').val(),
@@ -944,8 +933,14 @@ var _Schema = {
 			};
 
 			Object.keys(newData).forEach(function (key) {
-				if ( (entity[key] === newData[key]) || (key === 'cascadingDeleteFlag' && !(entity[key]) && newData[key] === 0) ||
-					(key === 'autocreationFlag' && !(entity[key]) && newData[key] === 0) || (key === 'propertyMask' && !(entity[key]) && newData[key].trim() === '') ) {
+				if (key === 'relationshipType' && newData[key].trim() === '') {
+					newData[key] = initialRelType;
+				}
+				if ( (entity[key] === newData[key])
+						|| (key === 'cascadingDeleteFlag' && !(entity[key]) && newData[key] === 0)
+						|| (key === 'autocreationFlag' && !(entity[key]) && newData[key] === 0)
+						|| (key === 'propertyMask' && !(entity[key]) && newData[key].trim() === '')
+				) {
 					delete newData[key];
 				}
 			});
@@ -963,7 +958,7 @@ var _Schema = {
 				});
 			}
 
-			$('#relationship-options select, #relationship-options textarea').attr('disabled', true);
+			$('#relationship-options select, #relationship-options textarea, #relationship-options input').attr('disabled', true);
 
 			editButton.show();
 			saveButton.hide();
@@ -973,7 +968,7 @@ var _Schema = {
 		cancelButton.on('click', function (e) {
 
 			selectRelationshipOptions(entity);
-			$('#relationship-options select, #relationship-options textarea').attr('disabled', true);
+			$('#relationship-options select, #relationship-options textarea, #relationship-options input').attr('disabled', true);
 
 			editButton.show();
 			saveButton.hide();
@@ -1260,34 +1255,38 @@ var _Schema = {
 
 		Structr.resize();
 
-		var zoom = (instance ? instance.getZoom() : 1);
-
-		var headerHeight = $('#header').outerHeight() + $('.schema-input-container').outerHeight() + 14;
-
-		var canvasSize = {
-			w: ($(window).width()) / zoom,
-			h: ($(window).height() - headerHeight) / zoom
-		};
-		$('.node').each(function(i, elem) {
-			$elem = $(elem);
-			canvasSize.w = Math.max(canvasSize.w, (($elem.position().left + $elem.width()) / zoom));
-			canvasSize.h = Math.max(canvasSize.h, (($elem.position().top + $elem.height() - headerHeight) / zoom));
-		});
-
 		if (canvas) {
+
+			var zoom = (instance ? instance.getZoom() : 1);
+
+			var canvasPosition = canvas.position();
+
+			var canvasSize = {
+				w: ($(window).width() - canvasPosition.left),
+				h: ($(window).height() - canvasPosition.top)
+			};
+			$('.node').each(function(i, elem) {
+				$elem = $(elem);
+				canvasSize.w = Math.max(canvasSize.w, (($elem.position().left - canvasPosition.left) / zoom + $elem.width()));
+				canvasSize.h = Math.max(canvasSize.h, (($elem.position().top  - canvasPosition.top)  / zoom + $elem.height()));
+			});
+
+			if (canvasSize.w * zoom - canvasPosition.left < $(window).width()) {
+				canvasSize.w = ($(window).width() - canvasPosition.left) / zoom;
+			}
+
+			if (canvasSize.h * zoom < $(window).height() - canvasPosition.top) {
+				canvasSize.h = ($(window).height() - canvasPosition.top) / zoom;
+			}
+
 			canvas.css({
 				width: canvasSize.w + 'px',
 				height: canvasSize.h + 'px'
 			});
 		}
 
-//		$('#main').css({
-//			height: ($(window).height() - $('#main').offset().top)
-//		});
-
 		$('body').css({
 			position: 'relative'
-//			background: '#fff'
 		});
 
 		$('html').css({
@@ -3112,7 +3111,7 @@ var _Schema = {
 		instance = instance || jsPlumb;
 		el = el || instance.getContainer();
 		var p = [ "webkit", "moz", "ms", "o" ],
-			s = "scale(" + zoom + ")",
+			s = _Schema.getSchemaCSSTransform(),
 			oString = (transformOrigin[0] * 100) + "% " + (transformOrigin[1] * 100) + "%";
 
 		for (var i = 0; i < p.length; i++) {
@@ -3125,6 +3124,15 @@ var _Schema = {
 
 		instance.setZoom(zoom);
 		_Schema.resize();
+	},
+	getSchemaCSSTransform: function () {
+	 return _Schema.getSchemaCSSScale() + ' ' + _Schema.getSchemaCSSTranslate();
+	},
+	getSchemaCSSScale: function () {
+		return 'scale(' + zoomLevel + ')';
+	},
+	getSchemaCSSTranslate: function () {
+		return 'translate(' + (inheritanceSlideoutOpen ? inheritanceSlideout.width() / zoomLevel : '0') + 'px)';
 	},
 	sort: function(collection, sortKey, secondarySortKey) {
 		if (!sortKey) {
@@ -3149,6 +3157,150 @@ var _Schema = {
 		} else {
 			$('.rel-type, .multiplicity').hide();
 		}
+	},
+	loadClassTree: function () {
+		var classTree = {};
+		var tmpHierarchy = {};
+		var classnameToId = {};
+
+		var insertClassInClassTree = function (classObj, tree) {
+			var classes = Object.keys(tree);
+
+			var position = classes.indexOf(classObj.parent);
+			if (position !== -1) {
+
+				if (classTree[classObj.name]) {
+					tree[classes[position]][classObj.name] = classTree[classObj.name];
+					delete(classTree[classObj.name]);
+				} else {
+					tree[classes[position]][classObj.name] = {};
+				}
+
+				return true;
+
+			} else {
+				var done = false;
+				classes.forEach(function (className) {
+					if (!done) {
+						done = insertClassInClassTree(classObj, tree[className]);
+					}
+				});
+				return done;
+			}
+
+		};
+
+		var printClassTree = function ($elem, classTree) {
+			var classes = Object.keys(classTree).sort();
+
+			if (classes.length > 0) {
+
+				var $newUl = $('<ul></ul>').appendTo($elem);
+
+				classes.forEach(function (classname) {
+
+					var icons = (classname != 'AbstractNode' ? '<img class="delete_icon icon delete" src="icon/delete.png"><img class="edit_icon icon edit" src="icon/pencil.png">' : '');
+					var classId = (classname != 'AbstractNode' ? ' data-id="' + classnameToId[classname] + '"' : '');
+
+					var $newLi = $('<li data-jstree=\'{"opened":true}\'' + classId + '>' + classname + icons + '</li>').appendTo($newUl);
+					printClassTree($newLi, classTree[classname]);
+
+				});
+
+			}
+
+		};
+
+		$.get(rootUrl + 'SchemaNode?sort=hierarchyLevel&order=asc', function (data) {
+			schemaNodes = data.result;
+			schemaNodes.forEach(function (schemaNode) {
+
+				if (!schemaNode.isBuiltinType) {
+
+					var classObj = {
+						name: schemaNode.name,
+						parent: (schemaNode.extendsClass === null ? 'AbstractNode' : schemaNode.extendsClass.slice(schemaNode.extendsClass.lastIndexOf('.')+1))
+					};
+
+					classnameToId[classObj.name] = schemaNode.id;
+
+					var inserted = insertClassInClassTree(classObj, tmpHierarchy);
+
+					if (!inserted) {
+						var insertedTmp = insertClassInClassTree(classObj, classTree);
+
+						if (!insertedTmp) {
+							if (classTree[classObj.name]) {
+								classTree[classObj.parent] = {};
+								classTree[classObj.parent][classObj.name] = classTree[classObj.name];
+								delete(classTree[classObj.name]);
+							} else {
+								classTree[classObj.parent] = {};
+								classTree[classObj.parent][classObj.name] = {};
+							}
+
+						}
+					}
+				}
+
+			});
+
+			$.jstree.destroy();
+			printClassTree(inheritanceTree, classTree);
+			inheritanceTree.jstree({
+				core: {
+					multiple: false,
+					themes: {
+						dots: false
+					}
+				},
+				plugins: ["search"]
+			}).on('changed.jstree', function (e, data) {
+				var $node = $('#id_' + data.node.data.id);
+				if ($node.length > 0) {
+					$('.selected').removeClass('selected');
+					$node.addClass('selected');
+					selectedElements = [$node];
+				}
+			});
+
+			$('#search-classes').keyup(function (e) {
+				if (e.which === 27) {
+					$('#search-classes').val('');
+					inheritanceTree.jstree(true).clear_search();
+				} else {
+					var query = $('#search-classes').val();
+					inheritanceTree.jstree(true).search(query, true, true);
+				}
+
+				_Schema.enableEditFunctionsInClassTree();
+			});
+
+			_Schema.enableEditFunctionsInClassTree();
+		});
+	},
+	enableEditFunctionsInClassTree: function() {
+		$('img.edit_icon', inheritanceTree).off('click');
+		$('img.edit_icon', inheritanceTree).on('click', function (e) {
+			var nodeId = $(this).closest('li').data('id');
+			if (nodeId) {
+				_Schema.openEditDialog(nodeId);
+			}
+		});
+
+		$('img.delete_icon', inheritanceTree).off('click');
+		$('img.delete_icon', inheritanceTree).on('click', function (e) {
+			var nodeId = $(this).closest('li').data('id');
+			if (nodeId) {
+				Structr.confirmation(
+					'<h3>Delete schema node \'' + $(this).closest('a').text() + '\'?</h3><p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed.</p>',
+					function() {
+						$.unblockUI({ fadeOut: 25 });
+						_Schema.deleteNode(nodeId);
+					}
+				);
+			}
+		});
 	}
 };
 

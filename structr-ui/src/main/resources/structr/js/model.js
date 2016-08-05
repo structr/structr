@@ -18,7 +18,7 @@
  */
 var StructrModel = {
 	objects: {},
-	callbacks: [],
+	callbacks: {},
 	obj: function(id) {
 		return StructrModel.objects[id];
 	},

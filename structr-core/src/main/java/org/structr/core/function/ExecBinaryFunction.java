@@ -48,7 +48,7 @@ public class ExecBinaryFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
 			final String scriptKey = sources[1].toString();
 			final String script    = StructrApp.getConfigurationValue(scriptKey);

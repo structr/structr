@@ -166,7 +166,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, t, LogMessageSupplier.create("Exception while deleting node: {0}", node));
+			logger.log(Level.FINE, t, LogMessageSupplier.create("Exception while deleting node: {0}", node));
 
 		}
 

@@ -95,7 +95,7 @@ public class CronService extends Thread implements RunnableService {
 
 	// ----- interface RunnableService -----
 	@Override
-	public void startService() {
+	public void startService() throws Exception {
 		this.doRun = true;
 		this.start();
 	}

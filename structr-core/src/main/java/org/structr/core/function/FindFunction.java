@@ -38,6 +38,8 @@ import org.structr.schema.action.Function;
 public class FindFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_FIND = "Usage: ${find(type, key, value)}. Example: ${find(\"User\", \"email\", \"tester@test.com\"}";
+	public static final String ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED = "Error in find(): no type specified.";
+	public static final String ERROR_MESSAGE_FIND_TYPE_NOT_FOUND = "Error in find(): type not found: ";
 
 	@Override
 	public String getName() {
@@ -47,7 +49,13 @@ public class FindFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (sources != null) {
+		
+		try {
+		
+			if (sources == null) {
+				
+				throw new IllegalArgumentException();
+			}
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
 			final ConfigurationProvider config = StructrApp.getConfiguration();
@@ -68,7 +76,7 @@ public class FindFunction extends Function<Object, Object> {
 				} else {
 
 					logger.log(Level.WARNING, "Error in find(): type \"{0}\" not found.", typeString);
-					return "Error in find(): type " + typeString + " not found.";
+					return ERROR_MESSAGE_FIND_TYPE_NOT_FOUND + typeString;
 
 				}
 			}
@@ -76,7 +84,7 @@ public class FindFunction extends Function<Object, Object> {
 			// exit gracefully instead of crashing..
 			if (type == null) {
 				logger.log(Level.WARNING, "Error in find(): no type specified. Parameters: {0}", getParametersAsString(sources));
-				return "Error in find(): no type specified.";
+				return ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED;
 			}
 
 			// experimental: disable result count, prevents instantiation
@@ -84,11 +92,21 @@ public class FindFunction extends Function<Object, Object> {
 			securityContext.ignoreResultCount(true);
 
 			// extension for native javascript objects
-			if (sources.length == 2 && sources[1] instanceof Map) {
+			if (sources.length == 2 && sources[0] != null && sources[1] instanceof Map) {
 
+				if (sources[0] == null || sources[1] == null) {
+					
+					throw new IllegalArgumentException();
+				}
+				
 				query.and(PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]));
 
 			} else if (sources.length == 2) {
+
+				if (sources[0] == null || sources[1] == null) {
+					
+					throw new IllegalArgumentException();
+				}
 
 				// special case: second parameter is a UUID
 				final PropertyKey key = config.getPropertyKeyForJSONName(type, "id");
@@ -117,6 +135,10 @@ public class FindFunction extends Function<Object, Object> {
 
 				for (Integer c = 1; c < parameter_count; c += 2) {
 
+					if (sources[c] == null) {
+						throw new IllegalArgumentException();
+					}
+					
 					final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
 
 					if (key != null) {
@@ -141,9 +163,14 @@ public class FindFunction extends Function<Object, Object> {
 			}
 
 			return query.getAsList();
-		}
+		
+		} catch (final IllegalArgumentException e) {
 
-		return "";
+			logParameterError(entity, sources, ctx.isJavaScriptContext());
+
+			return usage(ctx.isJavaScriptContext());
+
+		}
 	}
 
 	@Override

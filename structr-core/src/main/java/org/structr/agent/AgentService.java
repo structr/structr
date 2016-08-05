@@ -164,7 +164,7 @@ public class AgentService extends Thread implements RunnableService {
 	public void shutdown() {}
 
 	@Override
-	public void startService() {
+	public void startService() throws Exception {
 
 		run = true;
 		this.start();

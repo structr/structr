@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import java.util.Arrays;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
@@ -39,24 +40,30 @@ public class SplitFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
+		try {
+			if (!arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
+				
+				return null;
+			}
 
 			final String toSplit = sources[0].toString();
-			String splitExpr = "[,;]+";
+			String splitExpr = "[,;\\s]+";
 
 			if (sources.length >= 2) {
 				splitExpr = sources[1].toString();
+				return Arrays.asList(StringUtils.split(toSplit, splitExpr));
+			} else {
+				
+				return Arrays.asList(toSplit.split(splitExpr));
 			}
 
-			return Arrays.asList(toSplit.split(splitExpr));
-
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
-		}
+			return usage(ctx.isJavaScriptContext());
 
-		return "";
+		}
 	}
 
 

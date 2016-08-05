@@ -43,7 +43,11 @@ public class XPathFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof Document) {
+		try {
+			if (!(arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof Document)) {
+				
+				return null;
+			}
 
 			try {
 
@@ -53,16 +57,16 @@ public class XPathFunction extends Function<Object, Object> {
 			} catch (XPathExpressionException ioex) {
 
 				logException(entity, ioex, sources);
+				return null;
 
 			}
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
+			return usage(ctx.isJavaScriptContext());
 		}
-
-		return "";
 	}
 
 

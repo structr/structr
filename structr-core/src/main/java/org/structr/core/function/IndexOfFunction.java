@@ -38,20 +38,24 @@ public class IndexOfFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+		try {
+			if (!arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+				
+				return "";
+			}
 
 			final String source = sources[0].toString();
 			final String part = sources[1].toString();
 
 			return source.indexOf(part);
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
 
-		}
+			return usage(ctx.isJavaScriptContext());
 
-		return "";
+		}
 	}
 
 

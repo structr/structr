@@ -40,7 +40,11 @@ public class ContainsFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+		try {
+			if (!arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+
+				return false;
+			}
 
 			if (sources[0] instanceof String && sources[1] instanceof String) {
 
@@ -59,13 +63,16 @@ public class ContainsFunction extends Function<Object, Object> {
 				return ArrayUtils.contains((Object[])sources[0], sources[1]);
 			}
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			
+			return usage(ctx.isJavaScriptContext());
 
 		}
-
+		
 		return false;
+
 	}
 
 
