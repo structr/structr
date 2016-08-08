@@ -231,6 +231,7 @@ img.disabled {
 
 #pages,
 #dataBinding,
+#templates,
 #widgets,
 #remoteWidgets,
 #propertyDefinitions,
@@ -246,7 +247,7 @@ img.disabled {
 .slideOutRight {
 	float: left;
 	border: none;
-	width: 400px;
+	width: 399px;
 	padding: 6px;
 }
 
@@ -319,7 +320,13 @@ img.disabled {
 #dataBindingTab {
 	right: -61px;
 	width: 78px;
-	top: 296px;
+	top: 297px;
+}
+
+#templatesTab {
+	right: -54px;
+	width: 64px;
+	top: 394px;
 }
 
 #widgetsTab {
@@ -376,7 +383,7 @@ img.disabled {
 	top: 148px;
 }
 .slideOut {
-	min-height: 600px;
+	min-height: 800px;
 	background-color: #e5e5e5;
 	margin: 0;
 	border-top: 1px solid #a5a5a5 ! important;

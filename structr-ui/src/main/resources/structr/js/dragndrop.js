@@ -294,7 +294,7 @@ var _Dragndrop = {
 
 			} else if (tag.indexOf(':') !== -1) {
 				var type = tag.substring(1);
-				Command.setProperty(target.id, 'restQuery', pluralize(type.toLowerCase()));
+				Command.setProperty(target.id, 'restQuery', type);
 				Command.setProperty(target.id, 'dataKey', type.toLowerCase(), false, function() {
 					_Pages.reloadPreviews();
 				});

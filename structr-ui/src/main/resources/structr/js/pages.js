@@ -104,6 +104,11 @@ var _Pages = {
 				height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
 			});
 		}
+		
+		var leftSlideout = $('#' + activeTabLeft).closest('.slideOut');
+		leftSlideout.css({
+			height: windowHeight - headerOffsetHeight - 30 + 'px'
+		});
 
 	},
 	onload: function() {
@@ -123,6 +128,7 @@ var _Pages = {
 				'<div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div>'
 				+ '<div id="activeElements" class="slideOut slideOutLeft"><div class="compTab" id="activeElementsTab">Active Elements</div><div class="page inner"></div></div>'
 				+ '<div id="dataBinding" class="slideOut slideOutLeft"><div class="compTab" id="dataBindingTab">Data Binding</div></div>'
+				+ '<div id="templates" class="slideOut slideOutLeft"><div class="compTab" id="templatesTab">Templates</div></div>'
 				+ '<div id="previews"></div>'
 				+ '<div id="widgetsSlideout" class="slideOut slideOutRight"><div class="compTab" id="widgetsTab">Widgets</div></div>'
 				+ '<div id="palette" class="slideOut slideOutRight"><div class="compTab" id="paletteTab">HTML Palette</div></div>'
@@ -132,6 +138,7 @@ var _Pages = {
 		pagesSlideout = $('#pages');
 		activeElementsSlideout = $('#activeElements');
 		dataBindingSlideout = $('#dataBinding');
+		templatesSlideout = $('#templates');
 
 		previews = $('#previews');
 
@@ -163,7 +170,7 @@ var _Pages = {
 			}
 			var asw = activeElementsSlideout.width() + 12;
 			if (Math.abs(activeElementsSlideout.position().left + asw) <= 3) {
-				Structr.closeLeftSlideOuts([pagesSlideout, dataBindingSlideout], activeTabLeftKey);
+				Structr.closeLeftSlideOuts([pagesSlideout, dataBindingSlideout, templatesSlideout], activeTabLeftKey);
 				Structr.openLeftSlideOut(activeElementsSlideout, this, activeTabLeftKey, function(params) {
 					_Pages.refreshActiveElements();
 					_Pages.resize(params.sw, 0);
@@ -180,13 +187,30 @@ var _Pages = {
 			}
 			var dsw = dataBindingSlideout.width() + 12;
 			if (Math.abs(dataBindingSlideout.position().left + dsw) <= 3) {
-				Structr.closeLeftSlideOuts([pagesSlideout, activeElementsSlideout], activeTabLeftKey);
+				Structr.closeLeftSlideOuts([pagesSlideout, activeElementsSlideout, templatesSlideout], activeTabLeftKey);
 				Structr.openLeftSlideOut(dataBindingSlideout, this, activeTabLeftKey, function(params) {
 					_Pages.reloadDataBindingWizard();
 					_Pages.resize(params.sw, 0);
 				});
 			} else {
 				Structr.closeLeftSlideOuts([dataBindingSlideout], activeTabLeftKey);
+			}
+		});
+
+		$('#templatesTab').on('click', function() {
+			if ($(this).hasClass('noclick')) {
+				$(this).removeClass('noclick');
+				return;
+			}
+			var dsw = templatesSlideout.width() + 12;
+			if (Math.abs(templatesSlideout.position().left + dsw) <= 3) {
+				Structr.closeLeftSlideOuts([pagesSlideout, activeElementsSlideout, dataBindingSlideout], activeTabLeftKey);
+				Structr.openLeftSlideOut(templatesSlideout, this, activeTabLeftKey, function(params) {
+					//_Pages.reloadTemplatesWizard();
+					_Pages.resize(params.sw, 0);
+				});
+			} else {
+				Structr.closeLeftSlideOuts([templatesSlideout], activeTabLeftKey);
 			}
 		});
 
@@ -1008,12 +1032,13 @@ var _Pages = {
 
 		var entity = StructrModel.obj(id);
 
-		el.append('<div id="data-binding-tabs" class="data-tabs"><ul><li class="active" id="tab-binding-rest">REST Query</li><li id="tab-binding-cypher">Cypher Query</li><li id="tab-binding-xpath">XPath Query</li></ul>'
-				+ '<div id="content-tab-binding-rest"></div><div id="content-tab-binding-cypher"></div><div id="content-tab-binding-xpath"></div></div>');
+		el.append('<div id="data-binding-tabs" class="data-tabs"><ul><li class="active" id="tab-binding-rest">REST Query</li><li id="tab-binding-cypher">Cypher Query</li><li id="tab-binding-xpath">XPath Query</li><li id="tab-binding-function">Function Query</li></ul>'
+				+ '<div id="content-tab-binding-rest"></div><div id="content-tab-binding-cypher"></div><div id="content-tab-binding-xpath"></div><div id="content-tab-binding-function"></div></div>');
 
 		_Entities.appendTextarea($('#content-tab-binding-rest'), entity, 'restQuery', 'REST Query', '');
 		_Entities.appendTextarea($('#content-tab-binding-cypher'), entity, 'cypherQuery', 'Cypher Query', '');
 		_Entities.appendTextarea($('#content-tab-binding-xpath'), entity, 'xpathQuery', 'XPath Query', '');
+		_Entities.appendTextarea($('#content-tab-binding-function'), entity, 'functionQuery', 'Function Query', '');
 
 		_Entities.activateTabs(id, '#data-binding-tabs', '#content-tab-binding-rest');
 
@@ -1066,98 +1091,27 @@ var _Pages = {
 				zIndex: 99
 			});
 
-			$('#data-wizard-attributes').append('<h3>Custom Properties</h3><div class="custom"></div><div class="clear">&nbsp;</div><h3>System Properties</h3><div class="system"></div>');
+			$('#data-wizard-attributes').append('<h3>Properties</h3><div class="properties"></div>');
 
-			var subkey = 'name';
+			Command.getSchemaInfo(sourceSchemaNode.name, function(properties) {
 
-			var endNodes = [];
-
-			$.each(sourceSchemaNode.relatedTo, function(i, schemaRelationshipNode) {
-
-				if (isIn(schemaRelationshipNode.id, endNodes))
-					return;
-				endNodes.push(schemaRelationshipNode.id);
-
-				$.ajax({
-					url: rootUrl + 'schema_relationship_nodes?sourceId=' + id + '&targetId=' + schemaRelationshipNode.targetId,
-					type: 'GET',
-					contentType: 'application/json',
-					statusCode: {
-						200: function(data) {
-							$.each(data.result, function(i, r) {
-								_Schema.getPropertyName(sourceSchemaNode.name, r.relationshipType, schemaRelationshipNode.name, true, function(key, isCollection) {
-									$('#data-wizard-attributes .custom').append('<div class="draggable data-binding-attribute ' + key + '" collection="' + isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + key + '</div>');
-									$('#data-wizard-attributes .custom').children('.' + key).draggable({
-										iframeFix: true,
-										revert: 'invalid',
-										containment: 'body',
-										helper: 'clone',
-										appendTo: '#main',
-										stack: '.node',
-										zIndex: 99
-									}).on('click', function() {
-										//console.log('expand')
-									});
-								});
-							});
-						}
-					}
-				});
-			});
-
-			var startNodes = [];
-			$.each(sourceSchemaNode.relatedFrom, function(i, startNode) {
-
-				if (isIn(startNode.id, startNodes))
-					return;
-				startNodes.push(startNode.id);
-
-				$.ajax({
-					url: rootUrl + '/schema_relationships?sourceId=' + startNode.id + '&targetId=' + id,
-					type: 'GET',
-					contentType: 'application/json',
-					statusCode: {
-						200: function(data) {
-							$.each(data.result, function(i, r) {
-								_Schema.getPropertyName(sourceSchemaNode.name, r.relationshipType, startNode.name, false, function(key, isCollection) {
-									$('#data-wizard-attributes .custom').append('<div class="draggable data-binding-attribute ' + key + '" collection="' + isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + key + '</div>');
-									$('#data-wizard-attributes .custom').children('.draggable.' + key).draggable({
-										iframeFix: true,
-										revert: 'invalid',
-										containment: 'body',
-										helper: 'clone',
-										appendTo: '#main',
-										stack: '.node',
-										zIndex: 99
-									});
-								});
-							});
-						}
-					}
-				});
-			});
-
-			$.each(Object.keys(sourceSchemaNode), function(i, key) {
-				var type = 'system';
-				if (key.substring(0,1) === '_' && key.substring(0,2) !== '__') {
-
-					key = key.substring(1);
-					type = 'custom';
-
-				} else if (key === 'relatedTo' || key === 'relatedFrom') {
-					// do nothing
-					return;
-				}
-				var el = $('#data-wizard-attributes .' + type);
-				el.append('<div class="draggable data-binding-attribute ' + key + '">' + typeKey + '.' + key + '</div>');
-				el.children('.draggable.' + key).draggable({
-					iframeFix: true,
-					revert: 'invalid',
-					containment: 'body',
-					helper: 'clone',
-					appendTo: '#main',
-					stack: '.node',
-					zIndex: 99
+				properties.reverse().forEach(function(property) {
+					
+					var subkey = property.relatedType ? 'name' : '';
+					
+					$('#data-wizard-attributes .properties').append('<div class="draggable data-binding-attribute ' + property.jsonName + '" collection="' + property.isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + property.jsonName  + '</div>');
+					$('#data-wizard-attributes .properties').children('.' + property.jsonName).draggable({
+						iframeFix: true,
+						revert: 'invalid',
+						containment: 'body',
+						helper: 'clone',
+						appendTo: '#main',
+						stack: '.node',
+						zIndex: 99
+					}).on('click', function() {
+						//console.log('expand')
+					});
+					
 				});
 			});
 
@@ -1208,7 +1162,7 @@ var _Pages = {
 			_Pages.resize(params.sw, 0);
 		};
 		if (Math.abs(pagesSlideout.position().left + psw) <= 3) {
-			Structr.closeLeftSlideOuts([activeElementsSlideout, dataBindingSlideout], activeTabLeftKey);
+			Structr.closeLeftSlideOuts([activeElementsSlideout, dataBindingSlideout, templatesSlideout], activeTabLeftKey);
 			Structr.openLeftSlideOut(pagesSlideout, $("#pagesTab"), activeTabLeftKey, callback, callback);
 		} else {
 			Structr.closeLeftSlideOuts([pagesSlideout], activeTabLeftKey);
