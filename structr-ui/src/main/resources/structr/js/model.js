@@ -1000,8 +1000,9 @@ StructrContent.prototype.append = function(refNode) {
 	}
 
 	var div = _Elements.appendContentElement(this, refNode);
-	if (!div)
+	if (!div) {
 		return;
+	}
 
 	_Logger.log(_LogType.MODEL, 'appendContentElement div', div);
 

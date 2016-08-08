@@ -1196,7 +1196,7 @@ var _Elements = {
 			Command.cloneNode(entity.id, entity.parent.id, true);
 		});
 
-		div.append('<img title="Delete content \'' + entity.name + '\'" alt="Delete content \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_content_icon + '">');
+		div.append('<img title="Delete content \'' + entity.name + '\'" alt="Delete content \'' + entity.name + '\'" class="delete_icon button" src="' + _Elements.delete_content_icon + '">');
 		$('.delete_icon', div).on('click', function(e) {
 			e.stopPropagation();
 			_Entities.deleteNode(this, entity);

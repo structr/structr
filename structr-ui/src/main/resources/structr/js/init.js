@@ -1408,8 +1408,9 @@ function isVideo(contentType) {
 function addExpandedNode(id) {
 	_Logger.log(_LogType.INIT, 'addExpandedNode', id);
 
-	if (!id)
+	if (!id) {
 		return;
+	}
 
 	var alreadyStored = getExpanded()[id];
 
@@ -1425,8 +1426,9 @@ function addExpandedNode(id) {
 function removeExpandedNode(id) {
 	_Logger.log(_LogType.INIT, 'removeExpandedNode', id);
 
-	if (!id)
+	if (!id) {
 		return;
+	}
 
 	delete getExpanded()[id];
 	LSWrapper.setItem(expandedIdsKey, JSON.stringify(Structr.expanded));
