@@ -60,6 +60,7 @@ public class SchemaResource extends Resource {
 	private static final StringProperty typeProperty                     = new StringProperty("type");
 	private static final StringProperty nameProperty                     = new StringProperty("name");
 	private static final StringProperty classNameProperty                = new StringProperty("className");
+	private static final StringProperty extendsClassNameProperty         = new StringProperty("extendsClass");
 	private static final BooleanProperty isRelProperty                   = new BooleanProperty("isRel");
 	private static final LongProperty flagsProperty                      = new LongProperty("flags");
 	private static final GenericProperty relatedToProperty               = new GenericProperty("relatedTo");
@@ -162,6 +163,7 @@ public class SchemaResource extends Resource {
 				schema.setProperty(typeProperty, type.getSimpleName());
 				schema.setProperty(nameProperty, type.getSimpleName());
 				schema.setProperty(classNameProperty, type.getName());
+				schema.setProperty(extendsClassNameProperty, type.getSuperclass().getName());
 				schema.setProperty(isRelProperty, AbstractRelationship.class.isAssignableFrom(type));
 				schema.setProperty(flagsProperty, SecurityContext.getResourceFlags(rawType));
 
