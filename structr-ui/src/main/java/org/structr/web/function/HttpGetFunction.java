@@ -69,7 +69,7 @@ public class HttpGetFunction extends UiFunction {
 
 					if (sources.length > 2) {
 
-						return connection.get().select(sources[2].toString()).html();
+						return connection.get().select(sources[2].toString()).outerHtml();
 
 					} else {
 
