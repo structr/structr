@@ -144,7 +144,7 @@ var _Graph = {
                         renderer: _Graph.renderEdgeTooltip
                     }
                 },
-                'nodeExpander': {container: 'graph-info', newNodesSize: 20, newNodesSize: 20, margins: {top: 28, left: 10}, edgeType: "curvedArrow", onNodesAdded: _Graph.onNodesAdded},
+                'nodeExpander': {container: 'graph-info', newNodesSize: 20, newEdgeSize: 40, newNodeSize: 20, margins: {top: 28, left: 10}, edgeType: "curvedArrow", onNodesAdded: _Graph.onNodesAdded},
                 'selectionTools': {'container': 'graph-canvas'},
                 'relationshipEditor' : {incommingRelationsKey: 'shift', outgoingRelationsKey: 'ctrl', deleteEvent: 'doubleClickEdge', onDeleteRelation: undefined},
                 'currentNodeTypes': {},
@@ -159,16 +159,21 @@ var _Graph = {
                 defaultNodeBorderColor: '#a5a5a5',
                 singleHover: true,
                 doubleClickEnabled: false,
-                minEdgeSize: 4,
+                minEdgeSize: 1,
                 maxEdgeSize: 4,
+                newEdgeSize: 40,
                 enableEdgeHovering: true,
                 edgeHoverColor: 'default',
                 edgeHoverSizeRatio: 1.3,
                 edgeHoverExtremities: true,
+                autoCurveRatio: 1,
+                autoCurveSortByDirection: true,
                 defaultEdgeColor: '#cccccc',
                 defaultEdgeHoverColor: '#81ce25',
                 defaultEdgeLabelActiveColor: '#81ce25',
                 defaultEdgeActiveColor: '#81ce25',
+                defaultEdgeType: 'arrow',
+                newEdgeType: 'curvedArrow',
                 minArrowSize: 4,
                 maxArrowSize: 8,
                 labelSize: 'proportional',
@@ -287,6 +292,10 @@ var _Graph = {
                 '</div>' +
             '</div>'
         );
+
+        $('#fruchterman-controlElement').on('click', function() {
+            graphBrowser.doLayout('fruchtermanReingold', 1);
+        });
 
         $('#toggleNodeLabels').on('click', function(){
             if(!nodeLabelsHidden){
@@ -767,16 +776,6 @@ var _Graph = {
         graphBrowser.reset();
     },
 
-    findRelationships: function(sourceId, targedId, relType) {
-        var edges = [];
-        graphBrowser.getSigma().graph.edges().forEach(function(edge) {
-            if (edge.source === sourceId && edge.target === targedId && (!relType || edge.relType === relType)) {
-                edges.push(edge);
-            }
-        });
-        return edges;
-    },
-
     drawNode: function(node, x, y) {
         if (isIn(node.id, nodeIds) || isIn(node.type, filteredNodeTypes)) {
             return;
@@ -818,6 +817,10 @@ var _Graph = {
     },
 
     drawRel: function(r) {
+
+        var existingEdges = graphBrowser.findRelationships(r.sourceId, r.targetId);
+        var c = existingEdges.length * 15;
+
         try{
             graphBrowser.addEdge({
                 id: r.id,
@@ -829,7 +832,8 @@ var _Graph = {
                 type: edgeType,
                 relType: r.type,
                 relName: r.relType,
-                hidden: isIn(r.relType, hiddenRelTypes)
+                hidden: isIn(r.relType, hiddenRelTypes),
+                count: c
             });
             _Graph.updateRelationshipTypes();
         }
@@ -1079,6 +1083,7 @@ var _Graph = {
 
     handleStartDragNodeEvent: function(){
         hasDragged = false;
+        graphBrowser.hideExpandButtons();
     },
 
     handleDoubleClickNodeEvent: function(clickedNode){
