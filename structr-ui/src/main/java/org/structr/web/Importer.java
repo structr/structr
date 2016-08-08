@@ -218,7 +218,8 @@ public class Importer {
 				get.addRequestHeader("User-Agent", "curl/7.35.0");
 				get.addRequestHeader("Connection", "close");
 				get.getParams().setParameter("http.protocol.single-cookie-header", true);
-
+				get.getParams().setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY);
+				
 				get.setFollowRedirects(true);
 
 				client.executeMethod(get);
