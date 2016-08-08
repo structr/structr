@@ -82,15 +82,19 @@ var _Pager = {
 
 		return false;
 	},
-	addPager: function (id, el, rootOnly, type, view, callback) {
-		_Logger.log(_LogType.PAGER, 'add WS Pager', type, pageSize[id], page[id], sortKey[id], sortOrder[id]);
-		var pgr = new Pager(id, el, rootOnly, type, view, callback);
-		pgr.transportFunction = function() {
-			var filterAttrs = pgr.getNonEmptyFilterAttributes();
-			Command.query(pgr.type,  pageSize[id], page[id], sortKey[id], sortOrder[id], filterAttrs, pgr.internalCallback, false, view);
-		}
-		pgr.init();
-		return pgr;
+	addPager: function (id, el, rootOnly, type, view, callback, optionalTransportFunction) {
+		_Logger.log(_LogType.PAGER, 'add Pager', type, pageSize[id], page[id], sortKey[id], sortOrder[id]);
+		var pager = new Pager(id, el, rootOnly, type, view, callback);
+		pager.transportFunction = function() {
+			var filterAttrs = pager.getNonEmptyFilterAttributes();
+			if (typeof optionalTransportFunction === "function") {
+				optionalTransportFunction(id, pageSize[id], page[id], filterAttrs, pager.internalCallback);
+			} else {
+				Command.query(pager.type, pageSize[id], page[id], sortKey[id], sortOrder[id], filterAttrs, pager.internalCallback, false, view);
+			}
+		};
+		pager.init();
+		return pager;
 	}
 };
 
@@ -238,7 +242,7 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 	 * filters don't necessarily exist at the time the pager is created
 	 */
 	this.activateFilterElements = function (filterContainer) {
- 
+
 		// If filterContainer is given, set as filter element. Default is the pager container itself.
 		this.filterEl = filterContainer || pagerObj.pager;
 
@@ -309,5 +313,37 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 		});
 
 		return nonEmptyFilters;
+	};
+
+	/**
+	 *
+	 * @param {type} key The key to sort by
+	 */
+	this.setSortKey = function (key) {
+		if (sortKey[pagerObj.id] === key) {
+
+			// invert sort order
+			if (sortOrder[pagerObj.id] === "asc") {
+				sortOrder[pagerObj.id] = "desc";
+			} else {
+				sortOrder[pagerObj.id] = "asc";
+			}
+
+		} else {
+			sortKey[pagerObj.id] = key;
+			sortOrder[pagerObj.id] = "asc";
+		}
+
+		page[pagerObj.id] = 1;
+		pagerObj.updatePagerElements();
+		pagerObj.transportFunction();
+	};
+
+	/**
+	 * Refresh the currently displayed page
+	 */
+	this.refresh = function () {
+		pagerObj.updatePagerElements();
+		pagerObj.transportFunction();
 	};
 };

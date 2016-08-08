@@ -268,12 +268,16 @@ var Command = {
 	 * Send a Cypher query by SEARCH command to the server.
 	 *
 	 */
-	cypher: function(query, params, callback) {
+	cypher: function(query, params, callback, pageSize, page) {
 		var obj = {};
 		obj.command = 'SEARCH';
 		var data = {};
 		data.cypherQuery = query;
 		data.cypherParams = params;
+		if (pageSize && page) {
+			obj.pageSize = pageSize;
+			obj.page = page;
+		}
 		obj.data = data;
 		_Logger.log(_LogType.WS[obj.command], 'cypher()', obj);
 		return sendObj(obj, callback);

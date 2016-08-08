@@ -26,6 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
+import org.structr.core.validator.SimpleNonEmptyValueValidator;
 
 /**
  *
@@ -45,6 +46,13 @@ public class Localization extends AbstractNode {
 	public static final View uiView = new View(Localization.class, PropertyView.Ui,
 		domain, name, locale, localizedName, imported
 	);
+
+	static {
+
+		Localization.name.addValidator(new SimpleNonEmptyValueValidator(Localization.class));
+		Localization.locale.addValidator(new SimpleNonEmptyValueValidator(Localization.class));
+	}
+
 
 	@Override
 	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {

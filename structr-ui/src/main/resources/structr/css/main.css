@@ -137,6 +137,8 @@ input[type="checkbox"] {
 #header .structr-version {
 	font-size: 8.5px;
 	text-align: right;
+	line-height: 1em;
+	margin-top: 1em;
 }
 
 #header .structr-version a,
@@ -2900,3 +2902,59 @@ i.fa.ps {
 	background-color: #f5f5f5;
 	cursor: pointer;
 }
+
+
+/**
+ * L10N Styles
+ */
+#localizations-pager .pager input.filter[type="text"] {
+	width: 100px;
+	border: 1px solid #a5a5a5;
+	font-size: 9pt;
+}
+
+#localizations-table a {
+	text-decoration: underline;
+}
+
+#localizations-list, #localization-detail {
+	display: inline-block;
+	vertical-align: top;
+	padding: 10px;
+	max-height: calc(100vh - 120px);
+	overflow: auto;
+}
+
+#localizations-list {
+	width: 310px;
+	margin: 10px 5px 10px 10px;
+}
+
+#localization-detail {
+	max-width: calc(100vw - 400px);
+	margin: 10px 10px 10px 5px;
+}
+
+#localization-detail input.invalid {
+	border: 1px solid red;
+	background-color: #fee;
+}
+
+#localizations-table th {
+	text-align: left;
+}
+
+#localization-detail .edit:hover, #localization-detail .save:hover, #localization-detail .discard:hover, #localization-detail .discard:hover {
+	cursor: pointer;
+	opacity: 0.6;
+}
+
+#localization-detail-table .___locale {
+	width: 50px;
+}
+
+#localization-detail-table .placeholder {
+	color: grey;
+	font-style: italic;
+}
+
