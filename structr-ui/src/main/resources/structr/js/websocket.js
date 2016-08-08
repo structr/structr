@@ -304,7 +304,7 @@ function wsConnect() {
 
 				$('.pageCount', $('.pager' + type)).val(pageCount[type]);
 
-				StructrModel.callCallback(data.callback, result);
+				StructrModel.callCallback(data.callback, result, data.rawResultCount);
 
 			} else if (command.startsWith('LIST_UNATTACHED_NODES')) { /*********************** LIST_UNATTACHED_NODES ************************/
 

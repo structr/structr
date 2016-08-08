@@ -64,6 +64,9 @@ public class SearchCommand extends AbstractCommand {
 		final String paramString  = (String) webSocketData.getNodeData().get("cypherParams");
 		final String typeString   = (String) webSocketData.getNodeData().get("type");
 
+		final int pageSize             = webSocketData.getPageSize();
+		final int page                 = webSocketData.getPage();
+
 		Class type = null;
 		if (typeString != null) {
 			type = SchemaHelper.getEntityClassForRawType(typeString);
@@ -84,7 +87,15 @@ public class SearchCommand extends AbstractCommand {
 
 					final List<GraphObject> result = StructrApp.getInstance(securityContext).cypher(cypherQuery, obj);
 
-					webSocketData.setResult(result);
+					int resultCountBeforePaging = result.size();
+					webSocketData.setRawResultCount(resultCountBeforePaging);
+
+					if (page != 0 && pageSize != 0) {
+						webSocketData.setResult(result.subList((page-1) * pageSize, Math.min(page * pageSize, resultCountBeforePaging)));
+					} else {
+						webSocketData.setResult(result);
+					}
+
 					getWebSocket().send(webSocketData, true);
 
 					return;
