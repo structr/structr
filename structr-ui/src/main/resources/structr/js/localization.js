@@ -402,6 +402,10 @@ var _Localization = {
 			if (true === confirm('Really delete localizations "' + localization.localizedName + '" ?')) {
 				_Localization.deleteSingleLocalization(localization.id, function () {
 					$('#loc_' + localization.id, _Localization.localizationsDetailList).remove();
+
+					if ($('tr', _Localization.localizationsDetailList).length === 0) {
+						_Localization.keyAndDomainPager.refresh();
+					}
 				});
 			}
 		});
@@ -472,9 +476,8 @@ var _Localization = {
 					imported: $('.___imported', $tr).prop('checked')
 				};
 
-				if (_Localization.localizationDetailDomain.val().trim() !== "") {
-					newData.domain = _Localization.localizationDetailDomain.data('oldValue');
-				} else {
+				newData.domain = _Localization.localizationDetailDomain.data('oldValue') || _Localization.localizationDetailDomain.val();
+				if (newData.domain.trim() === "") {
 					newData.domain = null;
 				}
 
