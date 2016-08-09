@@ -20,13 +20,13 @@ package org.structr.core.entity;
 
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
-import org.structr.core.validator.SimpleNonEmptyValueValidator;
 
 /**
  *
@@ -36,7 +36,7 @@ public class Localization extends AbstractNode {
 
 	public static final Property<String>  localizedName = new StringProperty("localizedName").cmis().indexed();
 	public static final Property<String>  domain        = new StringProperty("domain").cmis().indexed();
-	public static final Property<String>  locale        = new StringProperty("locale").cmis().indexed();
+	public static final Property<String>  locale        = new StringProperty("locale").notNull().cmis().indexed();
 	public static final Property<Boolean> imported      = new BooleanProperty("imported").cmis().indexed();
 
 	public static final View defaultView = new View(Localization.class, PropertyView.Public,
@@ -47,19 +47,28 @@ public class Localization extends AbstractNode {
 		domain, name, locale, localizedName, imported
 	);
 
-	static {
-
-		Localization.name.addValidator(new SimpleNonEmptyValueValidator(Localization.class));
-		Localization.locale.addValidator(new SimpleNonEmptyValueValidator(Localization.class));
-	}
-
-
 	@Override
 	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
-		setProperty(visibleToPublicUsers, true);
-		setProperty(visibleToAuthenticatedUsers, true);
+		if (super.onCreation(securityContext, errorBuffer)) {
 
-		return true;
+			setProperty(visibleToPublicUsers, true);
+			setProperty(visibleToAuthenticatedUsers, true);
+
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
+
+			boolean error = !super.isValid(errorBuffer);
+
+			error |= ValidationHelper.checkPropertyNotNull(this, Localization.name, errorBuffer);
+			error |= ValidationHelper.checkPropertyNotNull(this, Localization.locale, errorBuffer);
+
+			return !error;
 	}
 }
