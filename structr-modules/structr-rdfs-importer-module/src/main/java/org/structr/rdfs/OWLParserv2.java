@@ -132,13 +132,14 @@ public class OWLParserv2 {
 		customKTypeMapping.put("KStringAttribute",    XML_SCHEMA_TYPE_STRING);
 		customKTypeMapping.put("KURLAttribute",       XML_SCHEMA_TYPE_URI);
 
-		try {
-
-			logger = new PrintWriter(new FileOutputStream("import-" + new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(System.currentTimeMillis()) + ".log", false));
-
-		} catch (FileNotFoundException fnfex) {
-			fnfex.printStackTrace();
-		}
+		// commented this out so that the import-<date> file will not be created every time structr starts with this module
+//		try {
+//
+//			logger = new PrintWriter(new FileOutputStream("import-" + new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(System.currentTimeMillis()) + ".log", false));
+//
+//		} catch (FileNotFoundException fnfex) {
+//			fnfex.printStackTrace();
+//		}
 
 	}
 
