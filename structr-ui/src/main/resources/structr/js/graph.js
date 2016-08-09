@@ -131,6 +131,10 @@ var _Graph = {
 
         _Graph.updateNodeTypes();
 
+        var canvasWidth = $('#graph-canvas').width();
+        var canvasHeight = canvasWidth / (16 / 9);
+
+        var editDistance = Math.sqrt(Math.pow(canvasWidth, 2) + Math.pow(canvasHeight, 2)) * 0.1;
         var graphBrowserSettings = {
             graphContainer: 'graph-canvas',
             moduleSettings: {
@@ -144,9 +148,22 @@ var _Graph = {
                         renderer: _Graph.renderEdgeTooltip
                     }
                 },
-                'nodeExpander': {container: 'graph-info', newNodesSize: 20, newEdgeSize: 40, newNodeSize: 20, margins: {top: 28, left: 10}, edgeType: "curvedArrow", onNodesAdded: _Graph.onNodesAdded},
+                'nodeExpander': {
+                    container: 'graph-info',
+                    newEdgeSize: 40,
+                    newNodeSize: 20,
+                    margins: {top: 28, left: 10},
+                    edgeType: "curvedArrow",
+                    onNodesAdded: _Graph.onNodesAdded
+                },
                 'selectionTools': {'container': 'graph-canvas'},
-                'relationshipEditor' : {incommingRelationsKey: 'shift', outgoingRelationsKey: 'ctrl', deleteEvent: 'doubleClickEdge', onDeleteRelation: undefined},
+                'relationshipEditor' : {
+                    incommingRelationsKey: 'shift',
+                    outgoingRelationsKey: 'ctrl',
+                    deleteEvent: 'doubleClickEdge',
+                    onDeleteRelation: undefined,
+                    maxDistance: editDistance
+                },
                 'currentNodeTypes': {},
                 'nodeFilter': {}
             },
