@@ -1563,7 +1563,7 @@ var animating = animating || undefined;
 (function() {
 	'use strict';
 
-	var _s, _callbacks, _infoContainer, _marginX, _marginY, _onAddNodes, _onNodesAdded, _onNodesRemoved, _currentEvent, _timeout, _nodesShape, _newNodeSize, _edgeType, _newEdgesSize;
+	var _s, _callbacks, _infoContainer, _marginX, _marginY, _onAddNodes, _onNodesAdded, _onNodesRemoved, _currentEvent, _timeout, _nodesShape, _newNodeSize, _edgeType, _newEdgeSize;
 
 	var _expanded = {};
 	var _hoverMap = {};
@@ -1594,8 +1594,8 @@ var animating = animating || undefined;
 			settings.onAddNodes !== undefined ? _onAddNodes = settings.onAddNodes : _onAddNodes = undefined;
 			settings.onNodesAdded !== undefined ? _onNodesAdded = settings.onNodesAdded : _onNodesAdded = undefined;
 			settings.onNodesRemoved !== undefined ? _onNodesRemoved = settings.onNodesRemoved : _onNodesRemoved = undefined;
-			settings.newNodesSize !== undefined ? _newNodeSize = settings.newNodesSize : _newNodeSize = 10;
-			settings.newEdgesSize !== undefined ? _newEdgesSize = settings.newEdgesSize : _newEdgesSize = 10;
+			settings.newNodeSize !== undefined ? _newNodeSize = settings.newNodeSize : _newNodeSize = 10;
+			settings.newEdgeSize !== undefined ? _newEdgeSize = settings.newEdgeSize : _newEdgeSize = 10;
 			settings.edgeType !== undefined ? _edgeType = settings.edgeType : _edgeType = "arrow";
 
 			if(settings.nodesShape !== undefined){
@@ -1916,7 +1916,7 @@ var animating = animating || undefined;
 			id: result.id,
 			source: sourceNode.id,
 			target: targetNode.id,
-			size: _newEdgesSize,
+			size: _newEdgeSize,
 			relType: result.type,
 			label: result.relType,
 			type: _edgeType,
@@ -1956,7 +1956,7 @@ var animating = animating || undefined;
 			id: result.id,
 			source: sourceNode.id,
 			target: targetNode.id,
-			size: _newEdgesSize,
+			size: _newEdgeSize,
 			relType: result.type,
 			label: result.relType,
 			type: _edgeType,
@@ -1972,7 +1972,7 @@ var animating = animating || undefined;
 			id: result.id,
 			source: sourceNode.id,
 			target: targetNode.id,
-			size: _newEdgesSize,
+			size: _newEdgeSize,
 			relType: result.type,
 			label: result.relType,
 			type: _edgeType,
@@ -2464,12 +2464,14 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 		if(!_pressedKeys.noKey && !_bound){
 			_bound = true;
+			_callbacks.sigmaCtrl.bindSigmaEvent('startdrag', _self.handleSigmaEvent);
 			_callbacks.sigmaCtrl.bindSigmaEvent('drag', _self.handleSigmaEvent);
 			_callbacks.sigmaCtrl.bindSigmaEvent('dragend', _self.handleSigmaEvent);
 		}
 
 		else{
 			_bound = false;
+			_callbacks.sigmaCtrl.unbindSigmaEvent('startdrag', _self.handleSigmaEvent);
 			_callbacks.sigmaCtrl.unbindSigmaEvent('drag', _self.handleSigmaEvent);
 			_callbacks.sigmaCtrl.unbindSigmaEvent('dragend', _self.handleSigmaEvent);
 			window.setTimeout(function(){
@@ -2482,6 +2484,8 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		if(!_self.active)
 			return;
 		switch(event.type){
+			case 'startdrag':
+				_worker.postMessage({msg: "updateGraphInfo", nodes: _s.graph.nodes() , edges: _s.graph.edges()});
 			case 'drag':
 				_worker.postMessage({msg: "handleDrag", dragedNode: event.data.node, keys: _pressedKeys});
 				break;
@@ -2514,7 +2518,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 				_self.unhideEdge(event.data.edge);
 				break;
 			case "debug":
-				//console.log(event.data.text);
+				console.log(event.data.text);
 				break;
 			default:
 				//console.log("Graph-Browser-RelationshipEditor: Unknown event");
@@ -2538,10 +2542,10 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 	Graphbrowser.Modules.RelationshipEditor.prototype.removeNewEdge = function(edge){
 		var replaced = edge.replaced;
 		var delEdge = _s.graph.edges(edge);
-		//console.log('Graph-Browser-RelationshipEditor: Drop edge: '+ edge);
+		console.log('Graph-Browser-RelationshipEditor: Drop edge: '+ edge);
 		if(delEdge)
-				if(!delEdge.lock)
-					_s.graph.dropEdge(edge);
+			if(!delEdge.lock)
+				_s.graph.dropEdge(edge);
 		if (replaced && _s.graph.edges(replaced) !== undefined){
 			_s.graph.edges(replaced).hidden = false;
 		}
@@ -2552,21 +2556,24 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 	Graphbrowser.Modules.RelationshipEditor.prototype.hideEdge = function(edgeId){
 		var edge = _s.graph.edges(edgeId);
-		//console.log("hide: " + edge.label + ":" + edge.id);
-		edge.hidden = true;
-		edge.removed = true;
-		sigma.canvas.edges.autoCurve(_s);
-		_s.refresh({skipIndexation: true});
+		if(!edge.hidden){
+			console.log("hide: " + edge.label + ":" + edge.id);
+			edge.hidden = true;
+			sigma.canvas.edges.autoCurve(_s);
+			_s.refresh({skipIndexation: true});
+			//_self.onDataChanged();
+		}
 	};
 
 	Graphbrowser.Modules.RelationshipEditor.prototype.unhideEdge = function(edgeId){
-		var edge = _s.graph.edges(edgeId);
-		//console.log("unhide: " + edge.label + ":" + edge.id);
-		edge.hidden = false;
-		edge.removed = false;
-		edge.replaced = undefined;
-		sigma.canvas.edges.autoCurve(_s);
-		_s.refresh({skipIndexation: true});
+		var edge = _s.graph.edges(edgeId) || {};
+		if(edge.hidden){
+			console.log("unhide: " + edge.label + ":" + edge.id);
+			edge.hidden = false;
+			sigma.canvas.edges.autoCurve(_s);
+			_s.refresh({skipIndexation: true});
+			//_self.onDataChanged();
+		}
 	};
 
 	Graphbrowser.Modules.RelationshipEditor.prototype.handleEdgeDeleteEvent = function(edge, del){
@@ -2590,10 +2597,8 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 	};
 
 	Graphbrowser.Modules.RelationshipEditor.prototype.handleDragend = function(node){
-		var t = 0;
 		$.each(_s.graph.edges(), function(n, edge){
-			if (edge.added) {
-				t++;
+			if(edge.added) {
 				edge.lock = true;
 				if(edge.replaced !== undefined){
 					_s.graph.dropEdge(edge.replaced);
@@ -2604,7 +2609,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 					_s.graph.dropEdge(edge.id);
 
 					temp.id = rel[0];
-					temp.color = '#999';
+					temp.color = _s.settings('defaultEdgeColor');
 					temp.size = _s.settings("newEdgeSize");
 					temp.type = _s.settings("newEdgeType");
 					temp.added = false;
@@ -2626,7 +2631,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		$.each(result, function(o, res){
 				_schemaInformation[res.type] = res;
 		});
-		//console.log(_schemaInformation);
+		console.log(_schemaInformation);
 		_worker.postMessage({msg: "init", settings: {schema: _schemaInformation, maxDistance: _maxDistance, nodes: _s.graph.nodes(), edges: _s.graph.edges()}});
 	};
 
@@ -2659,6 +2664,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		}
 		else
 			_s.graph.dropEdge(errorEdgeId);
+		_callbacks.eventEmitter[_s.id].dispatchEvent('dataChanged');
 	};
 
 }).call(window);
@@ -2685,9 +2691,21 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		function updateGraphInfo(nodes, edges, schema) {
 			_newNodes = nodes;
 			_newEdges = edges;
+
+			for(prevEdge in _previousEdges){
+				var remove = false;
+				for(var c = 0; c < _newEdges.length; c++){
+					if(_newEdges[c].added && _newEdges[c].id === prevEdge.id){
+						prevEdge.replaced = prevEdge.replaced;
+						continue;
+					}
+				}
+			}
 		}
 
 		function handleDrag(dragedNode, keys) {
+			_nodes = _newNodes || _nodes;
+			_edges = _newEdges || _edges;
 			var schemaInfo = _schema[dragedNode.nodeType];
 
 			for(var counter = 0; counter < _nodes.length; counter++){
@@ -2717,32 +2735,29 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 							if((toRel.allTargetTypesPossible === true || toRel.possibleTargetTypes.split(',').indexOf(_nodes[counter].nodeType) > -1)){
 								if(toRel.sourceMultiplicity === '1') {
 									for(var c1 = 0; c1 < _edges.length; c1++){
-										if (_edges[c1].target === _nodes[counter].id && _edges[c1].relType === toRel.type && !_edges[c1].added && !_edges[c1].removed) {
-											_edges[c1].hidden = true;
-											_edges[c1].removed = true;
+										if (_edges[c1].target === _nodes[counter].id && _edges[c1].relType === toRel.type && !_edges[c1].added && !_edges[c1].hidden) {
 											_removedRel = _edges[c1].id;
-											postMessage({msg: "hideEdge", edge: _edges[c1].id});
+											hideEdge(_edges[c1]);
+											continue;
 										}
 									}
 								}
 
 								if(toRel.targetMultiplicity === '1') {
 									for(var c2 = 0; c2 < _edges.length; c2++){
-										if (_edges[c2].source === dragedNode.id && _edges[c2].relType === toRel.type && !_edges[c2].added && !_edges[c2].removed) {
-											_edges[c2].hidden = true;
-											_edges[c2].removed = true;
+										if (_edges[c2].source === dragedNode.id && _edges[c2].relType === toRel.type && !_edges[c2].added && !_edges[c2].hidden) {
 											_removedRel = _edges[c2].id;
-											postMessage({msg: "hideEdge", edge: _edges[c2].id});
+											hideEdge(_edges[c2]);
+											continue;
 										}
 									}
 								}
 
-								if(_previousEdges[_nodes[counter].id] === undefined)
-									_previousEdges[_nodes[counter].id] = {};
-								if(_previousEdges[_nodes[counter].id].id === undefined)
-									_previousEdges[_nodes[counter].id].id = "";
+								_previousEdges[_nodes[counter].id] = _previousEdges[_nodes[counter].id] || {};
+								_previousEdges[_nodes[counter].id].id = _previousEdges[_nodes[counter].id].id || "";
 
 								if(_previousEdges[_nodes[counter].id].id !== newEdgeId){
+
 									var newEdge = {
 										id: newEdgeId,
 										label: toRel.relationshipType,
@@ -2757,7 +2772,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 									};
 
 									if(_previousEdges[_nodes[counter].id].replaced !== undefined && _removedRel === undefined)
-										postMessage({msg: "unhideEdge", edge: _previousEdges[_nodes[counter].id].replaced});
+										unhideEdge(_previousEdges[_nodes[counter].id].replaced);
 
 									postMessage({msg: "add", edge: newEdge, remove: _previousEdges[_nodes[counter].id].id});
 									_previousEdges[_nodes[counter].id].replaced = newEdge.replaced;
@@ -2786,32 +2801,29 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 							if ((fromRel.allSourceTypesPossible === true || fromRel.possibleSourceTypes.split(',').indexOf(_nodes[counter].nodeType) > -1)) {
 								if (fromRel.sourceMultiplicity === '1') {
 									for(var c1 = 0; c1 < _edges.length; c1++){
-										if (_edges[c1].target === dragedNode.id && _edges[c1].relType === fromRel.type && !_edges[c1].added && !_edges[c1].removed) {
-											_edges[c1].hidden = true;
-											_edges[c1].removed = true;
+										if (_edges[c1].target === dragedNode.id && _edges[c1].relType === fromRel.type && !_edges[c1].added && !_edges[c1].hidden) {
 											_removedRel = _edges[c1].id;
-											postMessage({msg: "hideEdge", edge: _edges[c1].id});
+											hideEdge(_edges[c1]);
+											continue;
 										}
 									}
 								}
 
 								if (fromRel.targetMultiplicity === '1') {
 									for(var c2 = 0; c2 < _edges.length; c2++){
-										if (_edges[c2].source === _nodes[counter].id && _edges[c2].relType === fromRel.type && !_edges[c2].added && !_edges[c2].removed) {
-											_edges[c2].hidden = true;
-											_edges[c2].removed = true;
+										if (_edges[c2].source === _nodes[counter].id && _edges[c2].relType === fromRel.type && !_edges[c2].added && !_edges[c2].hidden) {
 											_removedRel = _edges[c2].id;
-											postMessage({msg: "hideEdge", edge: _edges[c2].id});
+											hideEdge(_edges[c2]);
+											continue;
 										}
 									}
 								}
 
-								if(_previousEdges[_nodes[counter].id] === undefined)
-									_previousEdges[_nodes[counter].id] = {};
-								if(_previousEdges[_nodes[counter].id].id === undefined)
-									_previousEdges[_nodes[counter].id].id = "";
+								_previousEdges[_nodes[counter].id] = _previousEdges[_nodes[counter].id] || {};
+								_previousEdges[_nodes[counter].id].id = _previousEdges[_nodes[counter].id].id || "";
 
 								if(_previousEdges[_nodes[counter].id].id !== newEdgeId){
+
 									var newEdge = {
 										id: newEdgeId,
 										label: fromRel.relationshipType,
@@ -2825,8 +2837,8 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 										relType: fromRel.type
 									};
 
-									if(_previousEdges[_nodes[counter].id].replaced !== undefined)
-										postMessage({msg: "unhideEdge", edge: _previousEdges[_nodes[counter].id].replaced});
+									if(_previousEdges[_nodes[counter].id].replaced !== undefined && _removedRel === undefined)
+										unhideEdge(_previousEdges[_nodes[counter].id].replaced);
 
 									postMessage({msg: "add", edge: newEdge, remove: _previousEdges[_nodes[counter].id].id});
 									_previousEdges[_nodes[counter].id].replaced = newEdge.replaced;
@@ -2841,30 +2853,35 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 					for(var c3 = 0; c3 < _edges.length; c3++){
 						if ((_edges[c3].source === dragedNode.id && _edges[c3].target === _nodes[counter].id) || (_edges[c3].source === _nodes[counter].id && _edges[c3].target === dragedNode.id)){
 							if (_edges[c3].added){
-								if(_edges[c3].replaced !== undefined){
+								if(_edges[c3].replaced !== undefined && _previousEdges[_nodes[counter].id].replaced === _edges[c3].replaced){
 									for(var c4 = 0; c4 < _edges.length; c4++){
-										if(_edges[c4].id === _edges[c3].replaced){
-											_edges[c4].removed = false;
-											_edges[c3].hidden = false;
-											_edges[c3].replaced = undefined;
-											postMessage({msg: "unhideEdge", edge: _edges[c4].id});
+										if(_edges[c4].id === _edges[c3].replaced || _previousEdges[_nodes[counter].id].replaced === _edges[c4].id){
+											_previousEdges[_nodes[counter].id].replaced = undefined;
+											unhideEdge(_edges[c4]);
 										}
 									}
 								}
 								_previousEdges[_nodes[counter].id] = _previousEdges[_nodes[counter].id] || {};
 								_previousEdges[_nodes[counter].id].id = _previousEdges[_nodes[counter].id].id || "";
-
-								postMessage({msg: "removeNewEdge", edge: _edges[c3].id});
-								if(_previousEdges[_nodes[counter].id].id === _edges[c3].id)
-									_previousEdges[_nodes[counter].id].id = undefined;
+								if(!_edges[c3].dropped){
+									postMessage({msg: "removeNewEdge", edge: _edges[c3].id});
+									_edges[c3].dropped = true;
+									if(_previousEdges[_nodes[counter].id].id === _edges[c3].id){
+										_previousEdges[_nodes[counter].id].id = undefined;
+									}
+								}
 							}
 
 						}
 					}
 				}
 			}
-			_nodes = _newNodes || _nodes;
-			_edges = _newEdges || _edges;
+			if(_newNodes !== undefined && _newEdges !== undefined){
+				_edges = _newEdges;
+				_nodes = _newNodes;
+				_newNodes = undefined;
+				_newEdges = undefined;
+			}
 		};
 
 		function removeNewEdges(nodes, edges) {
@@ -2873,11 +2890,8 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 					if(edges[e].replaced !== undefined){
 						for(var c4 = 0; c4 < edges.length; c4++){
 							if(edges[c4].id === edges[e].replaced){
-								edges[c4].removed = false;
-								edges[e].hidden = false;
-								edges[e].replaced = undefined;
-								postMessage({msg: "unhideEdge", edge: edges[c4].id});
-								continue;
+								unhideEdge(_edges[c4]);
+								//continue;
 							}
 						}
 					}
@@ -2895,6 +2909,16 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 			var nodeDistance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 			return nodeDistance;
 		};
+
+		function hideEdge(edge){
+			edge.hidden = true;
+			postMessage({msg: "hideEdge", edge: edge.id});
+		};
+
+		function unhideEdge(edge){
+			edge.hidden = false;
+			postMessage({msg: "unhideEdge", edge: edge.id});
+		}
 
 
 		var listener = function(event){
