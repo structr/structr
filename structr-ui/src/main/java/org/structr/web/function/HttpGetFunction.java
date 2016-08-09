@@ -18,11 +18,16 @@
  */
 package org.structr.web.function;
 
-import java.util.Map;
-import org.jsoup.Connection;
+import java.io.InputStream;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.cookie.CookiePolicy;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.io.IOUtils;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
+import static org.structr.web.Importer.getHttpClient;
 
 /**
  *
@@ -60,20 +65,38 @@ public class HttpGetFunction extends UiFunction {
 				//long t0 = System.currentTimeMillis();
 				if ("text/html".equals(contentType)) {
 
-					final Connection connection = Jsoup.connect(address);
+					HttpClient client = getHttpClient();
 
-					// add request headers from context
-					for (final Map.Entry<String, String> header : ctx.getHeaders().entrySet()) {
-						connection.header(header.getKey(), header.getValue());
+					GetMethod get = new GetMethod(address);
+					get.addRequestHeader("User-Agent", "curl/7.35.0");
+					get.addRequestHeader("Connection", "close");
+					get.getParams().setParameter("http.protocol.single-cookie-header", true);
+					get.getParams().setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY);
+
+					get.setFollowRedirects(true);
+
+					client.executeMethod(get);
+
+					final InputStream response = get.getResponseBodyAsStream();
+
+					// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
+					String code = IOUtils.toString(response, "UTF-8");
+
+					System.out.println(code);
+
+					if (code.charAt(0) == 65279) {
+						code = code.substring(1);
 					}
+
+					final Document doc = Jsoup.parse(code);
 
 					if (sources.length > 2) {
 
-						return connection.get().select(sources[2].toString()).outerHtml();
+						return doc.select(sources[2].toString()).html();
 
 					} else {
 
-						return connection.get().html();
+						return doc.html();
 					}
 
 				} else {
