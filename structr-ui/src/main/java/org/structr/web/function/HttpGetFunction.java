@@ -82,8 +82,6 @@ public class HttpGetFunction extends UiFunction {
 					// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
 					String code = IOUtils.toString(response, "UTF-8");
 
-					System.out.println(code);
-
 					if (code.charAt(0) == 65279) {
 						code = code.substring(1);
 					}
