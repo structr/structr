@@ -119,6 +119,7 @@ public class Services implements StructrServices {
 	public static final String APPLICATION_FILESYSTEM_UNIQUE_PATHS       = "application.filesystem.unique.paths";
 	public static final String APPLICATION_INSTANCE_NAME                 = "application.instance.name";
 	public static final String APPLICATION_INSTANCE_STAGE                = "application.instance.stage";
+	public static final String APPLICATION_DEFAULT_UPLOAD_FOLDER         = "application.uploads.folder";
 	public static final String SNAPSHOT_PATH                             = "snapshot.path";
 	public static final String WEBSOCKET_FRONTEND_ACCESS                 = "WebSocketServlet.frontendAccess";
 
