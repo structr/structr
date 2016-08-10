@@ -2923,6 +2923,7 @@ i.fa.ps {
 	padding: 10px;
 	max-height: calc(100vh - 120px);
 	overflow: auto;
+	border-radius: 3px;
 }
 
 #localizations-list {
