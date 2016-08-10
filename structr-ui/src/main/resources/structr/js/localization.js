@@ -218,12 +218,9 @@ var _Localization = {
 			if (_Localization.isFieldNonEmpty(_Localization.localizationDetailKey)) {
 
 				var newData = {
-					name: _Localization.localizationDetailKey.val()
+					name: curKey,
+					domain: curDomain
 				};
-
-				if (_Localization.localizationDetailDomain.val().trim() !== "") {
-					newData.domain = _Localization.localizationDetailDomain.val();
-				}
 
 				$.ajax({
 					url: rootUrl + 'Localizations/ui?' + (oldKey ? 'name=' + oldKey : '') + (oldDomain ? '&domain=' + oldDomain : '') + '&sort=locale',
