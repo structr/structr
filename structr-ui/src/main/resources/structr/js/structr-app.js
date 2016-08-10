@@ -105,7 +105,7 @@ function StructrApp(baseUrl) {
 	 * Bind 'click' event to all Structr buttons
 	 */
 	this.activateButtons = function(sel) {
-		$(sel).on('click', function(e) {
+		$(document).delegate(sel, 'click', function(e) {
 			e.preventDefault();
 			e.stopPropagation();
 			var btn = $(this);
