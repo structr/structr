@@ -2415,16 +2415,6 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 			if(typeof self.getRelationshipEditorWorker === undefined)
 				throw new Error("Graph-Browser-RelationshipEditor: Worker not found.");
 
-			var workerString = _self.getRelationshipEditorWorker();
-
-			if (window.Worker) {
-				var blob = new Blob([workerString], {type: 'application/javascript'});
-				_worker = new Worker(URL.createObjectURL(blob));
-				_worker.onmessage = _self.onmessage;
-			}
-			else{
-				console.log("Graph-Browser-RelationshipEditor: It seems that your browser does not support webworkers.");
-			}
 			_pressedKeys = {shiftKey: false, ctrlKey: false, altKey: false, noKey: true}
 			_bound = false;
 
@@ -2441,7 +2431,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		_callbacks.sigmaCtrl.bindSigmaEvent('keydown', _self.handleKeyEvent);
 		_callbacks.sigmaCtrl.bindSigmaEvent(_deleteEvent, _self.handleSigmaEvent);
 
-		_callbacks.bindBrowserEvent('start', self.start.bind(self));
+		//_callbacks.bindBrowserEvent('start', self.start.bind(self));
 		_callbacks.eventEmitter[_s.id].bind('dataChanged', self.onDataChanged.bind(self));
 	};
 
@@ -2449,6 +2439,27 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		var self = this;
 		if(self.active)
 			_callbacks.conn.getSchemaInformation(this.onSchemaInformationLoaded);
+	};
+
+	Graphbrowser.Modules.RelationshipEditor.prototype.startWorker = function(){
+		var self = this;
+		var workerString = _self.getRelationshipEditorWorker();
+
+		if (window.Worker) {
+			var blob = new Blob([workerString], {type: 'application/javascript'});
+			_worker = new Worker(URL.createObjectURL(blob));
+			_worker.onmessage = _self.onmessage;
+			_callbacks.conn.getSchemaInformation(this.onSchemaInformationLoaded);
+		}
+		else{
+			console.log("Graph-Browser-RelationshipEditor: It seems that your browser does not support webworkers.");
+		}
+	};
+
+	Graphbrowser.Modules.RelationshipEditor.prototype.stopWorker = function(){
+		var self = this;
+		if(_worker)
+			_worker.terminate();
 	};
 
 	Graphbrowser.Modules.RelationshipEditor.prototype.active = function(){
@@ -2464,18 +2475,20 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 		if(!_pressedKeys.noKey && !_bound){
 			_bound = true;
+			_self.startWorker();
 			_callbacks.sigmaCtrl.bindSigmaEvent('startdrag', _self.handleSigmaEvent);
 			_callbacks.sigmaCtrl.bindSigmaEvent('drag', _self.handleSigmaEvent);
 			_callbacks.sigmaCtrl.bindSigmaEvent('dragend', _self.handleSigmaEvent);
 		}
 
-		else{
+		else if(_worker){
 			_bound = false;
 			_callbacks.sigmaCtrl.unbindSigmaEvent('startdrag', _self.handleSigmaEvent);
 			_callbacks.sigmaCtrl.unbindSigmaEvent('drag', _self.handleSigmaEvent);
 			_callbacks.sigmaCtrl.unbindSigmaEvent('dragend', _self.handleSigmaEvent);
+			_worker.postMessage({msg: "removeNewEdges", edges: _s.graph.edges(), nodes: _s.graph.nodes()});
 			window.setTimeout(function(){
-				_worker.postMessage({msg: "removeNewEdges", edges: _s.graph.edges(), nodes: _s.graph.nodes()});
+				_self.stopWorker();
 			}, 50);
 		}
 	};
@@ -2485,9 +2498,11 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 			return;
 		switch(event.type){
 			case 'startdrag':
-				_worker.postMessage({msg: "updateGraphInfo", nodes: _s.graph.nodes() , edges: _s.graph.edges()});
+				if(_worker)
+					_worker.postMessage({msg: "updateGraphInfo", nodes: _s.graph.nodes() , edges: _s.graph.edges()});
 			case 'drag':
-				_worker.postMessage({msg: "handleDrag", dragedNode: event.data.node, keys: _pressedKeys});
+				if(_worker)
+					_worker.postMessage({msg: "handleDrag", dragedNode: event.data.node, keys: _pressedKeys, cameraRatio: _s.camera.ratio});
 				break;
 			case 'dragend':
 				_self.handleDragend(event.data.node);
@@ -2533,22 +2548,19 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 			if(delEdge)
 				if(!delEdge.lock)
 					_s.graph.dropEdge(remove);
-		_s.graph.addEdge(edge);
+		if(!_s.graph.edges(edge.id))
+			_s.graph.addEdge(edge);
 		sigma.canvas.edges.autoCurve(_s);
 		_s.refresh({skipIndexation: false});
 		_self.onDataChanged();
 	};
 
 	Graphbrowser.Modules.RelationshipEditor.prototype.removeNewEdge = function(edge){
-		var replaced = edge.replaced;
 		var delEdge = _s.graph.edges(edge);
-		console.log('Graph-Browser-RelationshipEditor: Drop edge: '+ edge);
+		//console.log('Graph-Browser-RelationshipEditor: Drop edge: '+ edge);
 		if(delEdge)
 			if(!delEdge.lock)
 				_s.graph.dropEdge(edge);
-		if (replaced && _s.graph.edges(replaced) !== undefined){
-			_s.graph.edges(replaced).hidden = false;
-		}
 		sigma.canvas.edges.autoCurve(_s);
 		_s.refresh({skipIndexation: false});
 		_self.onDataChanged();
@@ -2557,7 +2569,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 	Graphbrowser.Modules.RelationshipEditor.prototype.hideEdge = function(edgeId){
 		var edge = _s.graph.edges(edgeId);
 		if(!edge.hidden){
-			console.log("hide: " + edge.label + ":" + edge.id);
+			//console.log("hide: " + edge.label + ":" + edge.id);
 			edge.hidden = true;
 			sigma.canvas.edges.autoCurve(_s);
 			_s.refresh({skipIndexation: true});
@@ -2568,7 +2580,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 	Graphbrowser.Modules.RelationshipEditor.prototype.unhideEdge = function(edgeId){
 		var edge = _s.graph.edges(edgeId) || {};
 		if(edge.hidden){
-			console.log("unhide: " + edge.label + ":" + edge.id);
+			//console.log("unhide: " + edge.label + ":" + edge.id);
 			edge.hidden = false;
 			sigma.canvas.edges.autoCurve(_s);
 			_s.refresh({skipIndexation: true});
@@ -2600,9 +2612,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		$.each(_s.graph.edges(), function(n, edge){
 			if(edge.added) {
 				edge.lock = true;
-				if(edge.replaced !== undefined){
-					_s.graph.dropEdge(edge.replaced);
-				}
+				_worker.postMessage({msg: "commitNewEdge", edge: edge.id});
 
 				_callbacks.conn.createRelationship(edge.source, edge.target, edge.relType, function(rel){
 					var temp = edge;
@@ -2631,12 +2641,12 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		$.each(result, function(o, res){
 				_schemaInformation[res.type] = res;
 		});
-		console.log(_schemaInformation);
 		_worker.postMessage({msg: "init", settings: {schema: _schemaInformation, maxDistance: _maxDistance, nodes: _s.graph.nodes(), edges: _s.graph.edges()}});
 	};
 
 	Graphbrowser.Modules.RelationshipEditor.prototype.onDataChanged = function(event){
-		_worker.postMessage({msg: "updateGraphInfo", nodes: _s.graph.nodes(), edges: _s.graph.edges()});
+		if(_worker)
+			_worker.postMessage({msg: "updateGraphInfo", nodes: _s.graph.nodes(), edges: _s.graph.edges()});
 	};
 
 	Graphbrowser.Modules.RelationshipEditor.prototype.onErrorCreatingRelation = function(errorEdgeId, errorMessage){
@@ -2652,13 +2662,17 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 								target: rel.targetId,
 								relType: rel.relType,
 								label: rel.relType,
-								size: _s.settings('minEdgeSize'),
-								type: 'arrow', color: '#999'
+								size: _s.settings("newEdgeSize"),
+								type: _s.settings("newEdgeType"),
+								color: _s.settings('defaultEdgeColor'),
+								cc: undefined
 							});
+							sigma.canvas.edges.autoCurve(_s);
 						}
-						_s.graph.dropEdge(errorEdgeId);
 						return false;
 					}
+					if(_s.graph.edges(errorEdgeId))
+						_s.graph.dropEdge(errorEdgeId);
 				})
 			});
 		}
@@ -2681,201 +2695,192 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		var _newNodes;
 		var _newEdges;
 
+		var _edgeReferences = {}
+
 		function init(settings){
 			settings.schema !== undefined ? _schema = settings.schema : _schema = [];
 			settings.maxDistance !== undefined ? _maxDistance = settings.maxDistance : _maxDistance = 200;
 			settings.nodes !== undefined ? _nodes = settings.nodes : _nodes = [];
 			settings.edges !== undefined ? _edges = settings.edges : _edges = [];
+			_newEdges = undefined;
+			_newNodes = undefined;
 		};
 
 		function updateGraphInfo(nodes, edges, schema) {
 			_newNodes = nodes;
 			_newEdges = edges;
-
-			for(prevEdge in _previousEdges){
-				var remove = false;
-				for(var c = 0; c < _newEdges.length; c++){
-					if(_newEdges[c].added && _newEdges[c].id === prevEdge.id){
-						prevEdge.replaced = prevEdge.replaced;
-						continue;
-					}
-				}
-			}
 		}
 
-		function handleDrag(dragedNode, keys) {
+		function handleDrag(dragedNode, keys, cameraRatio) {
 			_nodes = _newNodes || _nodes;
 			_edges = _newEdges || _edges;
+			if(!_schema)
+				return;
+
 			var schemaInfo = _schema[dragedNode.nodeType];
 
 			for(var counter = 0; counter < _nodes.length; counter++){
 				if(dragedNode.id === _nodes[counter].id) continue;
 				var nd = nodeDistance(_nodes[counter], dragedNode);
-				var _removedRel = undefined;
+				var triggerDistance = _maxDistance;
 
-				if(schemaInfo === undefined){
+				var relatedToOrFrom = "not";
+				var allTypesPossible = undefined;
+				var possibleTypes = undefined;
+				var related = undefined;
+				var compareSource = undefined, compareTarget = undefined;
+
+				if(schemaInfo === undefined)
 					return;
-				}
 
-				if(keys.shiftKey === true && nd <= _maxDistance){
-					if(schemaInfo.relatedTo !== undefined){
-						var dis = _maxDistance / schemaInfo.relatedTo.length;
-						var length = (schemaInfo.relatedTo.length - 1), selector;
 
-						while(length > 0){
-							if(nd < (length * dis))
-								selector = length;
-							length--;
+				if(cameraRatio > 1){
+	                //triggerDistance = (_maxDistance / (1/cameraRatio));
+	            	nd = (nd * cameraRatio);
+	            }
+
+	            if(cameraRatio < 1){
+	            	//triggerDistance = (_maxDistance / (cameraRatio));
+	                nd = (nd / (1/cameraRatio));
+	            }
+
+				if(keys.shiftKey === true && nd <= triggerDistance)
+					relatedToOrFrom = "to";
+				else if(keys.ctrlKey === true && nd <= triggerDistance)
+					relatedToOrFrom = "from";
+
+
+				switch(relatedToOrFrom){
+					case "from":
+						if(schemaInfo.relatedFrom !== undefined){
+							var dis = triggerDistance / schemaInfo.relatedFrom.length;
+							var length = (schemaInfo.relatedFrom.length - 1), selector;
+
+							while(length >= 0){
+								if(nd < (length * dis))
+									selector = length;
+								length--;
+							}
+
+							//postMessage({msg: 'debug', text: "Trigger: " + triggerDistance + "  -  nodeDistance: " + nd + "  -  selector: " + selector});
+							var related = schemaInfo.relatedFrom[selector];
+							var newEdgeId = selector + ":" + _nodes[counter].id + ":" + dragedNode.id;
+							allTypesPossible = "allSourceTypesPossible";
+							possibleTypes = "possibleSourceTypes";
+							compareTarget = dragedNode.id;
+							compareSource = _nodes[counter].id;
 						}
+					break
+					case "to":
+						if(schemaInfo.relatedTo !== undefined){
+							var dis = triggerDistance / schemaInfo.relatedTo.length;
+							var length = (schemaInfo.relatedTo.length - 1), selector;
 
-						var toRel = schemaInfo.relatedTo[selector];
-						var newEdgeId = selector + ":" + dragedNode.id + ":" + _nodes[counter].id;
+							while(length > 0){
+								if(nd < (length * dis))
+									selector = length;
+								length--;
+							}
+							//postMessage({msg: 'debug', text: "Trigger: " + triggerDistance + "  -  nodeDistance: " + nd + "  -  selector: " + selector});
+							related = schemaInfo.relatedTo[selector];
+							var newEdgeId = selector + ":" + dragedNode.id + ":" + _nodes[counter].id;
+							allTypesPossible = "allTargetTypesPossible";
+							possibleTypes = "possibleTargetTypes";
+							compareTarget = _nodes[counter].id;
+							compareSource = dragedNode.id;
+						}
+					break;
+					default:
+						for(var c3 = 0; c3 < _edges.length; c3++){
+							if ((_edges[c3].source === dragedNode.id && _edges[c3].target === _nodes[counter].id) || (_edges[c3].source === _nodes[counter].id && _edges[c3].target === dragedNode.id)){
+								if (_edges[c3].added){
 
-						if(toRel !== undefined){
-							if((toRel.allTargetTypesPossible === true || toRel.possibleTargetTypes.split(',').indexOf(_nodes[counter].nodeType) > -1)){
-								if(toRel.sourceMultiplicity === '1') {
-									for(var c1 = 0; c1 < _edges.length; c1++){
-										if (_edges[c1].target === _nodes[counter].id && _edges[c1].relType === toRel.type && !_edges[c1].added && !_edges[c1].hidden) {
-											_removedRel = _edges[c1].id;
-											hideEdge(_edges[c1]);
-											continue;
+									if(_edgeReferences[_edges[c3].id]){
+										for(var c4 = 0; c4 < _edgeReferences[_edges[c3].id].length; c4++){
+											unhideEdge(_edgeReferences[_edges[c3].id][c4]);
+										}
+										_edgeReferences[_edges[c3].id] = undefined;
+									}
+
+									_previousEdges[_nodes[counter].id] = _previousEdges[_nodes[counter].id] || {};
+									_previousEdges[_nodes[counter].id].id = _previousEdges[_nodes[counter].id].id || "";
+									if(!_edges[c3].dropped){
+										postMessage({msg: "removeNewEdge", edge: _edges[c3].id});
+										_edges[c3].dropped = true;
+										if(_previousEdges[_nodes[counter].id].id === _edges[c3].id){
+											_previousEdges[_nodes[counter].id].id = undefined;
 										}
 									}
-								}
-
-								if(toRel.targetMultiplicity === '1') {
-									for(var c2 = 0; c2 < _edges.length; c2++){
-										if (_edges[c2].source === dragedNode.id && _edges[c2].relType === toRel.type && !_edges[c2].added && !_edges[c2].hidden) {
-											_removedRel = _edges[c2].id;
-											hideEdge(_edges[c2]);
-											continue;
-										}
-									}
-								}
-
-								_previousEdges[_nodes[counter].id] = _previousEdges[_nodes[counter].id] || {};
-								_previousEdges[_nodes[counter].id].id = _previousEdges[_nodes[counter].id].id || "";
-
-								if(_previousEdges[_nodes[counter].id].id !== newEdgeId){
-
-									var newEdge = {
-										id: newEdgeId,
-										label: toRel.relationshipType,
-										source: dragedNode.id,
-										target: _nodes[counter].id,
-										size: 40,
-										color: '#81ce25',
-										type: 'curvedArrow',
-										added: true,
-										replaced: _removedRel || _previousEdges[_nodes[counter].id].replaced,
-										relType: toRel.type
-									};
-
-									if(_previousEdges[_nodes[counter].id].replaced !== undefined && _removedRel === undefined)
-										unhideEdge(_previousEdges[_nodes[counter].id].replaced);
-
-									postMessage({msg: "add", edge: newEdge, remove: _previousEdges[_nodes[counter].id].id});
-									_previousEdges[_nodes[counter].id].replaced = newEdge.replaced;
-									_previousEdges[_nodes[counter].id].id = newEdgeId;
 								}
 							}
 						}
-					}
+					break;
 				}
 
-				else if(keys.ctrlKey === true && nd <= _maxDistance){
-					if(schemaInfo.relatedFrom !== undefined){
-						var dis = _maxDistance / schemaInfo.relatedFrom.length;
-						var length = (schemaInfo.relatedFrom.length - 1), selector;
-
-						while(length >= 0){
-							if(nd < (length * dis))
-								selector = length;
-							length--;
-						}
-
-						var newEdgeId = selector + ":" + _nodes[counter].id + ":" + dragedNode.id;
-						var fromRel = schemaInfo.relatedFrom[selector];
-
-						if(fromRel !== undefined){
-							if ((fromRel.allSourceTypesPossible === true || fromRel.possibleSourceTypes.split(',').indexOf(_nodes[counter].nodeType) > -1)) {
-								if (fromRel.sourceMultiplicity === '1') {
-									for(var c1 = 0; c1 < _edges.length; c1++){
-										if (_edges[c1].target === dragedNode.id && _edges[c1].relType === fromRel.type && !_edges[c1].added && !_edges[c1].hidden) {
-											_removedRel = _edges[c1].id;
-											hideEdge(_edges[c1]);
-											continue;
-										}
-									}
-								}
-
-								if (fromRel.targetMultiplicity === '1') {
-									for(var c2 = 0; c2 < _edges.length; c2++){
-										if (_edges[c2].source === _nodes[counter].id && _edges[c2].relType === fromRel.type && !_edges[c2].added && !_edges[c2].hidden) {
-											_removedRel = _edges[c2].id;
-											hideEdge(_edges[c2]);
-											continue;
-										}
-									}
-								}
-
-								_previousEdges[_nodes[counter].id] = _previousEdges[_nodes[counter].id] || {};
-								_previousEdges[_nodes[counter].id].id = _previousEdges[_nodes[counter].id].id || "";
-
-								if(_previousEdges[_nodes[counter].id].id !== newEdgeId){
-
-									var newEdge = {
-										id: newEdgeId,
-										label: fromRel.relationshipType,
-										source: _nodes[counter].id,
-										target: dragedNode.id,
-										size: 40,
-										color: '#81ce25',
-										type: 'curvedArrow',
-										added: true,
-										replaced: _removedRel  || _previousEdges[_nodes[counter].id].replaced,
-										relType: fromRel.type
-									};
-
-									if(_previousEdges[_nodes[counter].id].replaced !== undefined && _removedRel === undefined)
-										unhideEdge(_previousEdges[_nodes[counter].id].replaced);
-
-									postMessage({msg: "add", edge: newEdge, remove: _previousEdges[_nodes[counter].id].id});
-									_previousEdges[_nodes[counter].id].replaced = newEdge.replaced;
-									_previousEdges[_nodes[counter].id].id = newEdgeId;
+				if(related !== undefined){
+					if((related[allTypesPossible] === true || related[possibleTypes].split(',').indexOf(_nodes[counter].nodeType) > -1)){
+						var add = true;
+						if(related.sourceMultiplicity === '1') {
+							for(var c1 = 0; c1 < _edges.length; c1++){
+								if(_edges[c1].target === compareTarget && _edges[c1].relType === related.type) {
+									if(_edges[c1].source === compareSource)
+										add = false;
+									else
+										add = checkRelation(_edges[c1], newEdgeId);
+									if(!add)
+										break;
 								}
 							}
 						}
-					}
-				}
-
-				else{
-					for(var c3 = 0; c3 < _edges.length; c3++){
-						if ((_edges[c3].source === dragedNode.id && _edges[c3].target === _nodes[counter].id) || (_edges[c3].source === _nodes[counter].id && _edges[c3].target === dragedNode.id)){
-							if (_edges[c3].added){
-								if(_edges[c3].replaced !== undefined && _previousEdges[_nodes[counter].id].replaced === _edges[c3].replaced){
-									for(var c4 = 0; c4 < _edges.length; c4++){
-										if(_edges[c4].id === _edges[c3].replaced || _previousEdges[_nodes[counter].id].replaced === _edges[c4].id){
-											_previousEdges[_nodes[counter].id].replaced = undefined;
-											unhideEdge(_edges[c4]);
-										}
-									}
-								}
-								_previousEdges[_nodes[counter].id] = _previousEdges[_nodes[counter].id] || {};
-								_previousEdges[_nodes[counter].id].id = _previousEdges[_nodes[counter].id].id || "";
-								if(!_edges[c3].dropped){
-									postMessage({msg: "removeNewEdge", edge: _edges[c3].id});
-									_edges[c3].dropped = true;
-									if(_previousEdges[_nodes[counter].id].id === _edges[c3].id){
-										_previousEdges[_nodes[counter].id].id = undefined;
-									}
+						if(related.targetMultiplicity === '1') {
+							for(var c2 = 0; c2 < _edges.length; c2++){
+								if(_edges[c2].source === compareSource && _edges[c2].relType === related.type) {
+									if(_edges[c2].target === compareTarget)
+										add = false;
+									else
+										add = checkRelation(_edges[c2], newEdgeId);
+									if(!add)
+										break;
 								}
 							}
+						}
 
+						_previousEdges[_nodes[counter].id] = _previousEdges[_nodes[counter].id] || {};
+						_previousEdges[_nodes[counter].id].id = _previousEdges[_nodes[counter].id].id || "";
+
+						if(_previousEdges[_nodes[counter].id].id !== newEdgeId && add){
+
+							var source, target
+							switch(relatedToOrFrom){
+								case "to":
+									source = dragedNode.id;
+									target = _nodes[counter].id;
+									break;
+								case "from":
+									source = _nodes[counter].id;
+									target = dragedNode.id;
+									break;
+							}
+
+							var newEdge = {
+								id: newEdgeId,
+								label: related.relationshipType,
+								source: source,
+								target: target,
+								size: 40,
+								color: '#81ce25',
+								type: 'curvedArrow',
+								added: true,
+								relType: related.type
+							};
+
+							postMessage({msg: "add", edge: newEdge, remove: _previousEdges[_nodes[counter].id].id});
+							_previousEdges[_nodes[counter].id].id = newEdgeId;
 						}
 					}
 				}
 			}
+
 			if(_newNodes !== undefined && _newEdges !== undefined){
 				_edges = _newEdges;
 				_nodes = _newNodes;
@@ -2884,22 +2889,41 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 			}
 		};
 
+		function checkRelation(relation, newEdgeId){
+			var add = true;
+			if(relation.added){
+				add = false;
+			}
+			else if(!relation.hidden){
+				if(_edgeReferences[newEdgeId]){
+					_edgeReferences[newEdgeId].push(relation);
+					add = false;
+					hideEdge(relation);
+				}
+				else{
+					_edgeReferences[newEdgeId] = [];
+					_edgeReferences[newEdgeId].push(relation);
+					add = true;
+					hideEdge(relation);
+				}
+			}
+			return add;
+		};
+
 		function removeNewEdges(nodes, edges) {
 			for(var e = 0; e < edges.length; e++){
-				if (edges[e].added){
-					if(edges[e].replaced !== undefined){
-						for(var c4 = 0; c4 < edges.length; c4++){
-							if(edges[c4].id === edges[e].replaced){
-								unhideEdge(_edges[c4]);
-								//continue;
-							}
+				if(edges[e].added){
+					if(_edgeReferences[edges[e].id]){
+						for(var c4 = 0; c4 < _edgeReferences[edges[e].id].length; c4++){
+							unhideEdge(_edgeReferences[edges[e].id][c4]);
 						}
 					}
 					postMessage({msg: "removeNewEdge", edge: edges[e].id});
 				}
 			}
+			_edgeReferences = {};
 			_previousEdges = {};
-		}
+		};
 
 		function nodeDistance(n1, n2){
 			var x1 = parseFloat(n1['renderer1:x']);
@@ -2918,8 +2942,22 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		function unhideEdge(edge){
 			edge.hidden = false;
 			postMessage({msg: "unhideEdge", edge: edge.id});
-		}
+		};
 
+		function removeNewEdge(edge){
+			if(!edge.removed){
+				edge.removed = true;
+				postMessage({msg: "removeNewEdge", edge: edge.id});
+			}
+		};
+
+		function commitNewEdge(edgeId){
+			if(_edgeReferences[edgeId]){
+				for(var i = 0; i < _edgeReferences[edgeId].length; i++){
+					removeNewEdge(_edgeReferences[edgeId][i]);
+				}
+			}
+		}
 
 		var listener = function(event){
 			var eventType = event.data.msg;
@@ -2933,12 +2971,15 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 					//postMessage({msg: "debug", text: "updateGraphInfo"});
 					break;
 				case "handleDrag":
-					handleDrag(event.data.dragedNode, event.data.keys);
+					handleDrag(event.data.dragedNode, event.data.keys, event.data.cameraRatio);
 					//postMessage({msg: "debug", text: "handleDrag"});
 					break;
 				case "removeNewEdges":
 					removeNewEdges(event.data.nodes, event.data.edges);
 					//postMessage({msg: "debug", text: "handleDrag"});
+					break;
+				case "commitNewEdge":
+					commitNewEdge(event.data.edge);
 					break;
 				default:
 					break;

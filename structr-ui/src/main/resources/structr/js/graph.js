@@ -826,6 +826,8 @@ var _Graph = {
                 name: node.name,
                 hidden: isIn(node.type, hiddenNodeTypes)
             });
+
+            graphBrowser.dataChanged();
         }
         catch (error){
             _Logger.log(_LogType.GRAPH, 'Node: ' + node.id + 'already in the graph');
