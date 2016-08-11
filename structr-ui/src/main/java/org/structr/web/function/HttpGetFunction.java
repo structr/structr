@@ -19,12 +19,16 @@
 package org.structr.web.function;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.IOUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import static org.structr.web.Importer.getHttpClient;
@@ -90,7 +94,23 @@ public class HttpGetFunction extends UiFunction {
 
 					if (sources.length > 2) {
 
-						return doc.select(sources[2].toString()).html();
+						Elements elements = doc.select(sources[2].toString());
+						
+						if (elements.size() > 1) {
+						
+							final List<String> parts = new ArrayList<>();
+							
+							for (final Element el : elements) {
+								
+								parts.add(el.html());
+								
+							}
+							
+							return parts;
+							
+						} else {
+							return elements.html();
+						}
 
 					} else {
 
