@@ -2245,10 +2245,16 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		_filterNodeTypes = [];
 	};
 
-	Graphbrowser.Modules.NodeFilter.prototype.hideNodeType = function(event){
-
-		var nodeType = event.data.nodeType;
-		var status = event.data.value;
+	Graphbrowser.Modules.NodeFilter.prototype.hideNodeType = function(event, value){
+		var nodeType, status;
+		if(event.data){
+			nodeType = event.data.nodeType;
+			status = event.data.value;
+		}
+		else{
+			nodeType = event;
+			status = value;
+		}
 
 		if(status){
 			_hiddenNodeTypes[nodeType] = status;
@@ -2722,13 +2728,13 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 			for(var counter = 0; counter < _nodes.length; counter++){
 				if(dragedNode.id === _nodes[counter].id) continue;
 				var nd = nodeDistance(_nodes[counter], dragedNode);
-				var triggerDistance = _maxDistance;
 
 				var relatedToOrFrom = "not";
 				var allTypesPossible = undefined;
 				var possibleTypes = undefined;
 				var related = undefined;
 				var compareSource = undefined, compareTarget = undefined;
+				var triggerDistance = nd;
 
 				if(schemaInfo === undefined)
 					return;
@@ -2736,29 +2742,29 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 				if(cameraRatio > 1){
 	                //triggerDistance = (_maxDistance / (1/cameraRatio));
-	            	nd = (nd * cameraRatio);
+	            	triggerDistance = (nd * cameraRatio);
 	            }
 
 	            if(cameraRatio < 1){
 	            	//triggerDistance = (_maxDistance / (cameraRatio));
-	                nd = (nd / (1/cameraRatio));
+	                triggerDistance = (nd / (1/cameraRatio));
 	            }
 
-				if(keys.shiftKey === true && nd <= triggerDistance)
+				if(keys.shiftKey === true && triggerDistance <= _maxDistance)
 					relatedToOrFrom = "to";
-				else if(keys.ctrlKey === true && nd <= triggerDistance)
+				else if(keys.ctrlKey === true && triggerDistance <= _maxDistance)
 					relatedToOrFrom = "from";
 
 
 				switch(relatedToOrFrom){
 					case "from":
 						if(schemaInfo.relatedFrom !== undefined){
-							var dis = triggerDistance / schemaInfo.relatedFrom.length;
-							var length = (schemaInfo.relatedFrom.length - 1), selector;
+							var dis = _maxDistance / schemaInfo.relatedFrom.length;
+							var length = (schemaInfo.relatedFrom.length), selector;
 
 							while(length >= 0){
 								if(nd < (length * dis))
-									selector = length;
+									selector = length -1;
 								length--;
 							}
 
@@ -2773,12 +2779,12 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 					break
 					case "to":
 						if(schemaInfo.relatedTo !== undefined){
-							var dis = triggerDistance / schemaInfo.relatedTo.length;
-							var length = (schemaInfo.relatedTo.length - 1), selector;
+							var dis = _maxDistance / schemaInfo.relatedTo.length;
+							var length = (schemaInfo.relatedTo.length), selector;
 
-							while(length > 0){
+							while(length >= 0){
 								if(nd < (length * dis))
-									selector = length;
+									selector = length -1;
 								length--;
 							}
 							//postMessage({msg: 'debug', text: "Trigger: " + triggerDistance + "  -  nodeDistance: " + nd + "  -  selector: " + selector});
