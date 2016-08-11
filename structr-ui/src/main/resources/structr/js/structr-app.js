@@ -703,7 +703,7 @@ function StructrApp(baseUrl) {
 
 	this.create = function(btn, type, data, reload, appendId, successCallback, errorCallback) {
 		//console.log('Create', type, data, reload, successCallback, errorCallback);
-		s.request(btn, 'POST', structrRestUrl + type.toUnderscore(), data, reload, appendId, 'Successfully created new ' + type, 'Could not create ' + type, successCallback, errorCallback);
+		s.request(btn, 'POST', structrRestUrl + type, data, reload, appendId, 'Successfully created new ' + type, 'Could not create ' + type, successCallback, errorCallback);
 	};
 
 	this.customAction = function(btn, id, type, conf, action, data, reload, appendId, successCallback, errorCallback) {
@@ -713,7 +713,7 @@ function StructrApp(baseUrl) {
 			sure = confirm('Are you sure?');
 		}
 		if (!conf || sure) {
-			s.request(btn, 'POST', structrRestUrl + (type ? type.toUnderscore() + '/' : '') + id + '/' + action, data, reload, appendId, 'Successfully executed custom action ' + action, 'Could not execute custom action ' + type, successCallback, errorCallback);
+			s.request(btn, 'POST', structrRestUrl + (type ? type + '/' : '') + id + '/' + action, data, reload, appendId, 'Successfully executed custom action ' + action, 'Could not execute custom action ' + type, successCallback, errorCallback);
 		} else {
 			enableButton(btn);
 		}
@@ -742,7 +742,8 @@ function StructrApp(baseUrl) {
 					s.dialog('success', successMsg);
 					if (reload) {
 						if (appendId) {
-							reload += '/' + data.result[0];
+							var currentLocation = document.location.href;
+							reload = currentLocation.replace(/(\/+|\/+[a-f0-9]{32})$/gi, '') + '/' + data.result[0];
 						}
 						redirectOrReload(reload);
 					} else {
