@@ -409,7 +409,7 @@ var _Localization = {
 	},
 	textfieldChangeAction: function ($el, id, attr) {
 		var oldValue = $el.data('oldValue');
-		var curValue = $el.val();
+		var curValue = ($el.val().trim() !== "" ? $el.val().trim() : null);
 		if (oldValue !== curValue) {
 			_Localization.updateLocalization(id, attr, curValue, oldValue, $el);
 		}
@@ -466,7 +466,7 @@ var _Localization = {
 
 				var newData = {
 					name: _Localization.localizationDetailKey.data('oldValue') || _Localization.localizationDetailKey.val(),
-					locale: $('.___locale', $tr).val(),
+					locale: ($('.___locale', $tr).val().trim() !== "" ? $('.___locale', $tr).val().trim() : null),
 					localizedName: $('.___localizedName', $tr).val(),
 					visibleToPublicUsers: $('.___visibleToPublicUsers', $tr).prop('checked'),
 					visibleToAuthenticatedUsers: $('.___visibleToAuthenticatedUsers', $tr).prop('checked'),
