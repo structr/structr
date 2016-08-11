@@ -66,8 +66,8 @@ public class Localization extends AbstractNode {
 
 			boolean error = !super.isValid(errorBuffer);
 
-			error |= ValidationHelper.checkPropertyNotNull(this, Localization.name, errorBuffer);
-			error |= ValidationHelper.checkPropertyNotNull(this, Localization.locale, errorBuffer);
+			error |= ValidationHelper.checkStringNotBlank(this, Localization.name, errorBuffer);
+			error |= ValidationHelper.checkStringNotBlank(this, Localization.locale, errorBuffer);
 
 			return !error;
 	}

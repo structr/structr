@@ -208,7 +208,7 @@ var _Localization = {
 	},
 	saveButtonAction: function () {
 		var oldKey = _Localization.localizationDetailKey.data('oldValue');
-		var curKey = _Localization.localizationDetailKey.val();
+		var curKey = _Localization.localizationDetailKey.val().trim();
 		var oldDomain = _Localization.localizationDetailDomain.data('oldValue');
 		var curDomain = _Localization.localizationDetailDomain.val().trim();
 		if (curDomain === "") {
@@ -409,7 +409,7 @@ var _Localization = {
 	},
 	textfieldChangeAction: function ($el, id, attr) {
 		var oldValue = $el.data('oldValue');
-		var curValue = ($el.val().trim() !== "" ? $el.val().trim() : null);
+		var curValue = $el.val().trim();
 		if (oldValue !== curValue) {
 			_Localization.updateLocalization(id, attr, curValue, oldValue, $el);
 		}
@@ -465,15 +465,15 @@ var _Localization = {
 			if (_Localization.isFieldNonEmpty(_Localization.localizationDetailKey)) {
 
 				var newData = {
-					name: _Localization.localizationDetailKey.data('oldValue') || _Localization.localizationDetailKey.val(),
-					locale: ($('.___locale', $tr).val().trim() !== "" ? $('.___locale', $tr).val().trim() : null),
+					name: _Localization.localizationDetailKey.data('oldValue') || _Localization.localizationDetailKey.val().trim(),
+					locale: $('.___locale', $tr).val().trim(),
 					localizedName: $('.___localizedName', $tr).val(),
 					visibleToPublicUsers: $('.___visibleToPublicUsers', $tr).prop('checked'),
 					visibleToAuthenticatedUsers: $('.___visibleToAuthenticatedUsers', $tr).prop('checked'),
 					imported: $('.___imported', $tr).prop('checked')
 				};
 
-				newData.domain = _Localization.localizationDetailDomain.data('oldValue') || _Localization.localizationDetailDomain.val();
+				newData.domain = _Localization.localizationDetailDomain.data('oldValue') || _Localization.localizationDetailDomain.val().trim();
 				if (newData.domain.trim() === "") {
 					newData.domain = null;
 				}
