@@ -371,17 +371,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 				String searchValue = request.getParameter(key.dbName());
 				if (searchValue != null) {
 
-					if (!query.isExactSearch()) {
-
-						// no quotes allowed in loose search queries!
-						searchValue = removeQuotes(searchValue);
-
-						query.and(this, searchValue.toLowerCase(), false);
-
-					} else {
-
-						key.determineSearchType(securityContext, searchValue, query);
-					}
+					key.determineSearchType(securityContext, searchValue, query);
 				}
 			}
 		}

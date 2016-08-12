@@ -40,11 +40,6 @@ public class EmptySearchAttribute<T> extends PropertySearchAttribute<T> {
 	}
 
 	@Override
-	public Class getQueryType() {
-		return null;
-	}
-
-	@Override
 	public boolean includeInResult(GraphObject entity) {
 
 		Occurrence occur = getOccurrence();

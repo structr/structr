@@ -89,7 +89,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 			// Try to get the cascading delete flag from the domain specific relationship type
 			newRel.unlockSystemPropertiesOnce();
-			newRel.setProperty(AbstractRelationship.cascadeDelete, factory.instantiate(rel).getCascadingDeleteFlag());
+			newRel.setProperty(AbstractRelationship.cascadeDelete, template.getCascadingDeleteFlag());
 
 			// notify transaction handler
 			TransactionCommand.relationshipCreated(securityContext.getCachedUser(), newRel);

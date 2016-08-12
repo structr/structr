@@ -84,7 +84,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	private static final Logger logger = Logger.getLogger(AbstractRelationship.class.getName());
 
-	public static final Property<Integer>       cascadeDelete              = new IntProperty("cascadeDelete");
+	public static final Property<Integer>       cascadeDelete               = new IntProperty("cascadeDelete");
 	public static final Property<String>        relType                    = new RelationshipTypeProperty("relType");
 	public static final SourceId                sourceId                   = new SourceId("sourceId");
 	public static final TargetId                targetId                   = new TargetId("targetId");
@@ -106,7 +106,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	public boolean internalSystemPropertiesUnlocked = false;
 
 	private boolean readOnlyPropertiesUnlocked = false;
-	
+
 	private String cachedEndNodeId             = null;
 	private String cachedStartNodeId           = null;
 
@@ -188,7 +188,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		this.internalSystemPropertiesUnlocked = true;
 		unlockReadOnlyPropertiesOnce();
 	}
-	
+
 	@Override
 	public void unlockReadOnlyPropertiesOnce() {
 		this.readOnlyPropertiesUnlocked = true;
@@ -237,7 +237,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public int cascadeDelete() {
 
-		Integer value = getProperty(AbstractRelationship.cascadeDelete);
+		final Integer value = getProperty(AbstractRelationship.cascadeDelete);
 
 		return value != null ? value : 0;
 	}
@@ -598,7 +598,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			}
 
 			return key.setProperty(securityContext, this, value);
-			
+
 		} finally {
 
 			// unconditionally lock read-only properties after every write (attempt) to avoid security problems

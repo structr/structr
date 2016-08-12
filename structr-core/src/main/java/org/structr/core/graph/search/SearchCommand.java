@@ -92,7 +92,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	private boolean includeDeletedAndHidden      = true;
 	private boolean sortDescending               = false;
 	private boolean doNotSort                    = false;
-	private boolean exactSearch                  = true;
 	private String offsetId                      = null;
 	private int pageSize                         = Integer.MAX_VALUE;
 	private int page                             = 1;
@@ -343,11 +342,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return result.get(0);
 	}
 
-	@Override
-	public boolean isExactSearch() {
-		return exactSearch;
-	}
-
 	// ----- builder methods -----
 	@Override
 	public org.structr.core.app.Query<T> sort(final PropertyKey key) {
@@ -408,28 +402,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	@Override
-	public org.structr.core.app.Query<T> exact(final boolean exact) {
-
-		if (!exact) {
-
-			for (final SearchAttribute attr : rootGroup.getSearchAttributes()) {
-
-				attr.setExactMatch(false);
-
-			}
-
-			indexType = IndexType.Fulltext;
-
-		} else {
-
-			indexType = IndexType.Exact;
-		}
-
-		this.exactSearch = exact;
-		return this;
-	}
-
-	@Override
 	public org.structr.core.app.Query<T> includeDeletedAndHidden() {
 		this.includeDeletedAndHidden = true;
 		return this;
@@ -458,26 +430,26 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public org.structr.core.app.Query<T> andType(final Class type) {
 
-		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.REQUIRED, exactSearch));
+		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.REQUIRED, true));
 		return this;
 	}
 
 	@Override
 	public org.structr.core.app.Query<T> orType(final Class type) {
 
-		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.OPTIONAL, exactSearch));
+		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.OPTIONAL, true));
 		return this;
 	}
 
 	public org.structr.core.app.Query<T> andType(final String type) {
 
-		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.REQUIRED, exactSearch));
+		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.REQUIRED, true));
 		return this;
 	}
 
 	public org.structr.core.app.Query<T> orType(final String type) {
 
-		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.OPTIONAL, exactSearch));
+		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.OPTIONAL, true));
 		return this;
 	}
 
@@ -557,12 +529,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			this.doNotSort = false;
 		}
 
-		exact(exact);
-
-		// TODO: let database layer create search attribute
-
-
-
 		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, Occurrence.REQUIRED, value, exact, this));
 
 		return this;
@@ -608,7 +574,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public <P> org.structr.core.app.Query<T> or(final PropertyKey<P> key, P value, final boolean exact) {
 
-		exact(exact);
 		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, Occurrence.OPTIONAL, value, exact, this));
 
 		return this;

@@ -78,7 +78,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 				// Create node out of transaction => should give a NotInTransactionException
 				app.create(TestOne.class);
-				fail("Should have raised an org.neo4j.graphdb.NotInTransactionException");
+				fail("Should have raised a NotInTransactionException");
 			} catch (NotInTransactionException e) {
 			}
 
@@ -86,7 +86,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 				// Try to create node without parameters => should fail
 				app.create(TestOne.class);
-				fail("Should have raised an org.neo4j.graphdb.NotInTransactionException");
+				fail("Should have raised a NotInTransactionException");
 			} catch (NotInTransactionException e) {}
 
 			AbstractNode node = null;

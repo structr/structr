@@ -304,8 +304,6 @@ public class AdvancedPagingTest extends PagingTest {
 
 				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).offsetId(nodes.get(3).getUuid()).getResult();
 
-
-
 				assertEquals(7, result.size());
 				assertEquals("TestOne-3", result.get(0).getProperty(AbstractNode.name));
 				assertEquals("TestOne-4", result.get(1).getProperty(AbstractNode.name));

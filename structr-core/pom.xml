@@ -35,8 +35,9 @@
     <dependencies>
         <dependency>
             <groupId>org.structr</groupId>
-            <artifactId>structr-neo4j-enterprise-driver</artifactId>
-            <version>2.2.9-2.0.2-SNAPSHOT</version>
+            <!--<artifactId>structr-neo4j-enterprise-driver</artifactId>-->
+            <artifactId>structr-neo4j-bolt-driver</artifactId>
+            <version>1.0.4-2.0.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

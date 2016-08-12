@@ -23,6 +23,9 @@ package org.structr.api.config;
  */
 public interface Structr {
 
-	public static final String DATABASE_DRIVER = "database.driver";
-	public static final String DATABASE_PATH   = "database.path";
+	public static final String DATABASE_DRIVER          = "database.driver";
+	public static final String DATABASE_PATH            = "database.path";
+	public static final String RELATIONSHIP_CACHE_SIZE  = "database.cache.relationship.size";
+	public static final String NODE_CACHE_SIZE          = "database.cache.node.size";
+
 }

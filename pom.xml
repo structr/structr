@@ -45,6 +45,7 @@
         <module>structr-distributions</module>
         <module>structr-neo4j-driver</module>
         <module>structr-neo4j-enterprise-driver</module>
+        <module>structr-neo4j-bolt-driver</module>
     </modules>
 
     <build>

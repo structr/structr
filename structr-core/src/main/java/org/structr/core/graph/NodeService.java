@@ -108,7 +108,7 @@ public class NodeService implements SingletonService {
 	@Override
 	public void initialize(final StructrServices services, final Properties config) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
-		final String databaseDriver = config.getProperty(Structr.DATABASE_DRIVER, "org.structr.neo4j.Neo4jDatabaseService");
+		final String databaseDriver = config.getProperty(Structr.DATABASE_DRIVER, "org.structr.bolt.BoltDatabaseService" /* "org.structr.neo4j.Neo4jDatabaseService" */ );
 		graphDb = (DatabaseService)Class.forName(databaseDriver).newInstance();
 		if (graphDb != null) {
 

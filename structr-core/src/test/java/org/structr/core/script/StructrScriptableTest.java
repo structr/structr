@@ -544,7 +544,7 @@ public class StructrScriptableTest extends StructrTest {
 			assertEquals("Invalid scripted property conversion result", "12", testOne.getProperty(TestOne.aString));
 
 			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.anInt = '12'; }}");
-			assertEquals("Invalid scripted property conversion result", 12, (int)testOne.getProperty(TestOne.anInt));
+			assertEquals("Invalid scripted property conversion result", 12L, (long)testOne.getProperty(TestOne.anInt));
 
 			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.aDouble = '12.2342'; }}");
 			assertEquals("Invalid scripted property conversion result", 12.2342, (double)testOne.getProperty(TestOne.aDouble));

@@ -235,7 +235,7 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 
 				} else {
 
-					Result<AbstractNode> result = app.nodeQuery(entityProperty.relatedType(), false).and(key, transformedValue, false).getResult();
+					Result<AbstractNode> result = app.nodeQuery(entityProperty.relatedType()).and(key, transformedValue, false).getResult();
 
 					// loose search behaves differently, all results must be combined
 					for (AbstractNode node : result.getResults()) {

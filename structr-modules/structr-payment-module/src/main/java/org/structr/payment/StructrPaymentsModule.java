@@ -9,7 +9,7 @@ package org.structr.payment;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.parboiled.common.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.module.StructrModule;

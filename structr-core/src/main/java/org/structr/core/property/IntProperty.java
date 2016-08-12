@@ -62,8 +62,8 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 	}
 
 	@Override
-	public PropertyConverter<Integer, Integer> databaseConverter(SecurityContext securityContext, GraphObject entity) {
-		return null;
+	public PropertyConverter<Integer, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+		return new DatabaseConverter(securityContext);
 	}
 
 	@Override
@@ -79,6 +79,41 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 		}
 
 		return null;
+	}
+
+	protected class DatabaseConverter extends PropertyConverter<Integer, Object> {
+
+		public DatabaseConverter(final SecurityContext securityContext) {
+			super(securityContext, null);
+		}
+
+		@Override
+		public Integer revert(final Object source) throws FrameworkException {
+
+			if (source instanceof Number) {
+
+				return ((Number)source).intValue();
+			}
+
+			if (source instanceof String && StringUtils.isNotBlank((String) source)) {
+
+				try {
+					return Double.valueOf(source.toString()).intValue();
+
+				} catch (Throwable t) {
+
+					throw new FrameworkException(422, "Cannot parse input for property " + jsonName(), new NumberToken(declaringClass.getSimpleName(), IntProperty.this));
+				}
+			}
+
+			return null;
+		}
+
+		@Override
+		public Object convert(final Integer source) throws FrameworkException {
+			return source;
+		}
+
 	}
 
 	protected class InputConverter extends PropertyConverter<Object, Integer> {

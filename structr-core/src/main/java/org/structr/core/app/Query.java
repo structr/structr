@@ -38,7 +38,6 @@ public interface Query<T extends GraphObject> extends Iterable<T> {
 	public Result<T> getResult() throws FrameworkException;
 	public List<T> getAsList() throws FrameworkException;
 	public T getFirst() throws FrameworkException;
-	public boolean isExactSearch();
 
 	// ----- builder methods -----
 	public Query<T> sort(final PropertyKey key);
@@ -48,7 +47,6 @@ public interface Query<T extends GraphObject> extends Iterable<T> {
 	public Query<T> pageSize(final int pageSize);
 	public Query<T> page(final int page);
 	public Query<T> publicOnly();
-	public Query<T> exact(final boolean exact);
 	public Query<T> includeDeletedAndHidden();
 	public Query<T> publicOnly(final boolean publicOnly);
 	public Query<T> includeDeletedAndHidden(final boolean includeDeletedAndHidden);

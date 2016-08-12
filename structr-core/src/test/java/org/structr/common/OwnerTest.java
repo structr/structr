@@ -111,7 +111,7 @@ public class OwnerTest extends StructrTest {
 				final App user1App = StructrApp.getInstance(SecurityContext.getInstance(user1, AccessMode.Backend));
 
 				// Check if user1 can see t1
-				assertEquals(t1, user1App.nodeQuery(type, false).getFirst());
+				assertEquals(t1, user1App.nodeQuery(type).getFirst());
 			}
 
 			try (final Tx tx = app.tx()) {
@@ -131,7 +131,7 @@ public class OwnerTest extends StructrTest {
 				final App user2App = StructrApp.getInstance(SecurityContext.getInstance(user2, AccessMode.Backend));
 
 				// Check if user2 can see t1
-				assertEquals(t1, user2App.nodeQuery(type, false).getFirst());
+				assertEquals(t1, user2App.nodeQuery(type).getFirst());
 
 				// Check if user2 is owner of t1
 				assertEquals(user2, t1.getProperty(AbstractNode.owner));

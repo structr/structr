@@ -441,7 +441,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	public boolean isSystemInternal() {
 		return systemInternal;
 	}
-	
+
 	@Override
 	public boolean isWriteOnce() {
 		return writeOnce;
@@ -553,6 +553,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 			for (String searchValue : searchValues) {
 
+				/*
 				if (!query.isExactSearch()) {
 
 					// no quotes allowed in loose search queries!
@@ -561,9 +562,13 @@ public abstract class Property<T> implements PropertyKey<T> {
 					query.and(this, convertSearchValue(securityContext, searchValue), false);
 
 				} else {
+				*/
 
-					determineSearchType(securityContext, searchValue, query);
+				determineSearchType(securityContext, searchValue, query);
+
+				/*
 				}
+				*/
 			}
 		}
 	}

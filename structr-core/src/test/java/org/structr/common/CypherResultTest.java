@@ -89,8 +89,8 @@ public class CypherResultTest extends StructrTest {
 			while (it.hasNext()) {
 
 				assertEquals("Invalid wrapped cypher query result", TestOne.class, it.next().getClass());		// n
-				assertEquals("Invalid wrapped cypher query result", TestSix.class, it.next().getClass());		// r
-				assertEquals("Invalid wrapped cypher query result", SixOneManyToMany.class, it.next().getClass());	// m
+				assertEquals("Invalid wrapped cypher query result", SixOneManyToMany.class, it.next().getClass());	// r
+				assertEquals("Invalid wrapped cypher query result", TestSix.class, it.next().getClass());		// m
 			}
 
 			tx.success();

@@ -114,10 +114,12 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 			newRel = relClass.newInstance();
 
 		} catch (Throwable t) {
+			t.printStackTrace();
 			newRel = null;
 		}
 
 		if (newRel == null) {
+			System.out.println("##################### newRel was null, using generic relationship..");
 			newRel = (T)StructrApp.getConfiguration().getFactoryDefinition().createGenericRelationship();
 		}
 

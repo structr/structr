@@ -156,7 +156,7 @@ public class ResourceAccess extends AbstractNode {
 		}
 
 		if (cachedPosition != null) {
-			return cachedPosition;
+			return cachedPosition.intValue();
 		}
 
 		return 0;

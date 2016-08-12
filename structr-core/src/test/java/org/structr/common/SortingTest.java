@@ -514,7 +514,7 @@ public class SortingTest extends StructrTest {
 
 				for (NodeInterface node : nodes) {
 
-					node.setProperty(AbstractNode.name, Integer.toString(i));
+					node.setProperty(AbstractNode.name, Long.toString(i));
 					if (i < 7) {
 						node.setProperty(TestOne.anInt, i);
 					}
@@ -562,13 +562,13 @@ public class SortingTest extends StructrTest {
 					assertEquals("Invalid sort result with mixed values (null vs. int)", null, intIterator.next().getProperty(TestOne.anInt));
 
 					// other values after that
-					assertEquals("Invalid sort result with mixed values (null vs. int)", 0, (int)intIterator.next().getProperty(TestOne.anInt));
-					assertEquals("Invalid sort result with mixed values (null vs. int)", 1, (int)intIterator.next().getProperty(TestOne.anInt));
-					assertEquals("Invalid sort result with mixed values (null vs. int)", 2, (int)intIterator.next().getProperty(TestOne.anInt));
-					assertEquals("Invalid sort result with mixed values (null vs. int)", 3, (int)intIterator.next().getProperty(TestOne.anInt));
-					assertEquals("Invalid sort result with mixed values (null vs. int)", 4, (int)intIterator.next().getProperty(TestOne.anInt));
-					assertEquals("Invalid sort result with mixed values (null vs. int)", 5, (int)intIterator.next().getProperty(TestOne.anInt));
-					assertEquals("Invalid sort result with mixed values (null vs. int)", 6, (int)intIterator.next().getProperty(TestOne.anInt));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", 0L, (long)intIterator.next().getProperty(TestOne.anInt));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", 1L, (long)intIterator.next().getProperty(TestOne.anInt));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", 2L, (long)intIterator.next().getProperty(TestOne.anInt));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", 3L, (long)intIterator.next().getProperty(TestOne.anInt));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", 4L, (long)intIterator.next().getProperty(TestOne.anInt));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", 5L, (long)intIterator.next().getProperty(TestOne.anInt));
+					assertEquals("Invalid sort result with mixed values (null vs. int)", 6L, (long)intIterator.next().getProperty(TestOne.anInt));
 				}
 
 				tx.success();

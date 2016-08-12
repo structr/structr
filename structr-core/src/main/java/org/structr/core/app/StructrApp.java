@@ -212,8 +212,8 @@ public class StructrApp implements App {
 	public RelationshipInterface getRelationshipById(final String uuid) throws FrameworkException {
 
 		if (uuid == null) {
-		return null;
-	}
+			return null;
+		}
 
 		final Long id = getRelFromCache(uuid);
 		if (id == null) {
@@ -266,18 +266,8 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public Query<NodeInterface> nodeQuery(final boolean exact) {
-		return command(SearchNodeCommand.class).exact(exact);
-	}
-
-	@Override
 	public <T extends NodeInterface> Query<T> nodeQuery(final Class<T> type) {
 		return command(SearchNodeCommand.class).andTypes(type);
-	}
-
-	@Override
-	public <T extends NodeInterface> Query<T> nodeQuery(final Class<T> type, final boolean exact) {
-		return command(SearchNodeCommand.class).exact(exact).andTypes(type);
 	}
 
 	@Override
@@ -286,18 +276,8 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public Query<RelationshipInterface> relationshipQuery(final boolean exact) {
-		return command(SearchRelationshipCommand.class).exact(exact);
-	}
-
-	@Override
 	public <T extends RelationshipInterface> Query<T> relationshipQuery(final Class<T> type) {
 		return command(SearchRelationshipCommand.class).andTypes(type);
-	}
-
-	@Override
-	public <T extends RelationshipInterface> Query<T> relationshipQuery(final Class<T> type, final boolean exact) {
-		return command(SearchRelationshipCommand.class).exact(exact).andTypes(type);
 	}
 
 	@Override

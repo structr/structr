@@ -293,7 +293,7 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 
 					} else {
 
-						Result<AbstractNode> result = app.nodeQuery(collectionProperty.relatedType(), false).and(notion.getPrimaryPropertyKey(), searchValue, false).getResult();
+						Result<AbstractNode> result = app.nodeQuery(collectionProperty.relatedType()).and(notion.getPrimaryPropertyKey(), searchValue, false).getResult();
 
 						// loose search behaves differently, all results must be combined
 						for (AbstractNode node : result.getResults()) {

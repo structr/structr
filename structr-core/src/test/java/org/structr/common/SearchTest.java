@@ -374,7 +374,7 @@ public class SearchTest extends StructrTest {
 
 					final String query         = source.substring(0, 6);
 					final int count            = testResults.get(source);
-					final List<TestOne> result = app.nodeQuery(TestOne.class, false).and(AbstractNode.name, query, false).getAsList();
+					final List<TestOne> result = app.nodeQuery(TestOne.class).and(AbstractNode.name, query, false).getAsList();
 
 					assertEquals("Unexpected query result for special char query " + query, count, result.size());
 				}
@@ -390,7 +390,7 @@ public class SearchTest extends StructrTest {
 		}
 
 	}
-	
+
 	public void test07NodeQueryByType() {
 
 		try  {
@@ -406,13 +406,13 @@ public class SearchTest extends StructrTest {
 				long t0 = System.currentTimeMillis();
 
 				Result<? extends GraphObject> result = app.nodeQuery(NodeInterface.class).getResult();
-				
+
 				long t1 = System.currentTimeMillis();
 				logger.log(Level.INFO, "Query with inexact type took {0} ms", t1-t0);
 				assertEquals(1012, result.size());
-				
-				result = app.nodeQuery(NodeInterface.class, true).getResult();
-				
+
+				result = app.nodeQuery(NodeInterface.class).getResult();
+
 				long t2 = System.currentTimeMillis();
 				logger.log(Level.INFO, "Query with exact type took {0} ms", t2-t1);
 				assertEquals(1012, result.size());
