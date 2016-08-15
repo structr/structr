@@ -1578,8 +1578,10 @@ var _Entities = {
 						content = entity.action;
 						break;
 					default:
-						content = entity.state;
+						content = entity.type;
 				}
+				
+				console.log(icon);
 
 				div.append('<img class="typeIcon" src="' + icon + '">'
 					+ '<b title="' + name + '">' + fitStringToWidth(name, 180, 'slideOut') + '</b>'
@@ -1595,7 +1597,11 @@ var _Entities = {
 				var editIcon = $('.edit_icon', div);
 
 				if (!(editIcon && editIcon.length)) {
-					div.append('<img title="Edit" alt="Edit" class="edit_icon button" src="' + '/structr/icon/pencil.png' + '">');
+					if (entity.state === 'Content') {
+						div.append('<img title="Edit" alt="Edit" class="edit_icon button" src="' + '/structr/icon/pencil.png' + '">');
+					} else {
+						div.append('<img title="Edit Properties" alt="Edit Properties" class="edit_icon button" src="' + '/structr/icon/application_view_detail.png' + '">');
+					}
 					editIcon = $('.edit_icon', div);
 				}
 				editIcon.on('click', function(e) {
@@ -1606,7 +1612,7 @@ var _Entities = {
 							_Entities.openQueryDialog(entity.id);
 							break;
 						case 'Content':
-							_Contents.openEditContentDialog(this, entity);
+							_Elements.openEditContentDialog(this, entity);
 							break;
 						case 'Button':
 							_Entities.openEditModeBindingDialog(entity.id);

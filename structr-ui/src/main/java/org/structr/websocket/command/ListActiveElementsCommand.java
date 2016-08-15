@@ -69,7 +69,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 	}
 
 	public enum ActiveElementState {
-		None, Query, Content, Input, Button, Link
+		None, Query, Content, Input, Button, Link, Hidden
 	}
 
 	@Override
@@ -241,19 +241,19 @@ public class ListActiveElementsCommand extends AbstractCommand {
 
 		// last option: just some hidden element..
 		if (!StringUtils.isEmpty(node.getProperty(DOMNode.hideConditions))) {
-			return ActiveElementState.Content;
+			return ActiveElementState.Hidden;
 		}
 
 		if (!StringUtils.isEmpty(node.getProperty(DOMNode.showConditions))) {
-			return ActiveElementState.Content;
+			return ActiveElementState.Hidden;
 		}
 
 		if (node.getProperty(DOMNode.hideOnIndex)) {
-			return ActiveElementState.Content;
+			return ActiveElementState.Hidden;
 		}
 
 		if (node.getProperty(DOMNode.hideOnDetail)) {
-			return ActiveElementState.Content;
+			return ActiveElementState.Hidden;
 		}
 
 		return ActiveElementState.None;
