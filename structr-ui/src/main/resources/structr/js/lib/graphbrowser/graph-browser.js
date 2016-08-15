@@ -53,6 +53,62 @@ var animating = animating || undefined;
 			}
 	};
 
+	Graphbrowser.Control.SigmaControl.prototype.kill = function() {
+		var self = this;
+		$(window).unbind("keyup", self.keyUpFunction);
+		$(window).unbind("keydown", self.keyDownFunction);
+
+		_keyupHandlers = [];
+		_keydownHandlers = [];
+
+		_s.kill();
+		_s = undefined;
+	};
+
+	Graphbrowser.Control.SigmaControl.prototype.keyUpFunction = function(e) {
+		switch(e.which){
+			case 16:
+				_shiftKey = false;
+				break;
+			case 17:
+				_ctrlKey = false;
+				break;
+			case 18:
+				_altKey = false;
+				break;
+			default:
+				return false;
+		}
+		var handler;
+		var noKey = _shiftKey || _altKey || _ctrlKey;
+		for(var i = 0; i < _keyupHandlers.length; i++){
+			_keyupHandlers[i]({shiftKey: _shiftKey, ctrlKey: _ctrlKey, altKey: _altKey, noKey: !noKey});
+		}
+	};
+
+	Graphbrowser.Control.SigmaControl.prototype.keyDownFunction = function(e) {
+		// This hack prevents FF from closing WS connections on ESC
+			if (e.keyCode === 27) {
+				e.preventDefault();
+			}
+			switch(e.which){
+				case 16:
+					_shiftKey = true;
+					break;
+				case 17:
+					_ctrlKey = true;
+					break;
+				case 18:
+					_altKey = true;
+					break;
+			}
+			var handler;
+			var noKey = _shiftKey || _altKey || _ctrlKey;
+			for(var i = 0; i < _keydownHandlers.length; i++){
+				_keydownHandlers[i]({shiftKey: _shiftKey, ctrlKey: _ctrlKey, altKey: _altKey, noKey: !noKey});
+			}
+	};
+
 	Graphbrowser.Control.SigmaControl.prototype.init = function() {
 		var self = this;
 
@@ -74,56 +130,10 @@ var animating = animating || undefined;
 		_lasso = new sigma.plugins.lasso(_s, _s.renderers[0], _lassoSettings);
 
 		_select.bindLasso(_lasso);
-
-		_keyboard.bind('32+83', function() {
-			self.toggleLasso();
-		});
-
 		self.activate();
 
-		$(window).keyup(function(e) {
-			switch(e.which){
-				case 16:
-					_shiftKey = false;
-					break;
-				case 17:
-					_ctrlKey = false;
-					break;
-				case 18:
-					_altKey = false;
-					break;
-				default:
-					return false;
-			}
-			var handler;
-			var noKey = _shiftKey || _altKey || _ctrlKey;
-			for(var i = 0; i < _keyupHandlers.length; i++){
-				_keyupHandlers[i]({shiftKey: _shiftKey, ctrlKey: _ctrlKey, altKey: _altKey, noKey: !noKey});
-			}
-		});
-
-		$(window).on('keydown', function(e) {
-			// This hack prevents FF from closing WS connections on ESC
-			if (e.keyCode === 27) {
-				e.preventDefault();
-			}
-			switch(e.which){
-				case 16:
-					_shiftKey = true;
-					break;
-				case 17:
-					_ctrlKey = true;
-					break;
-				case 18:
-					_altKey = true;
-					break;
-			}
-			var handler;
-			var noKey = _shiftKey || _altKey || _ctrlKey;
-			for(var i = 0; i < _keydownHandlers.length; i++){
-				_keydownHandlers[i]({shiftKey: _shiftKey, ctrlKey: _ctrlKey, altKey: _altKey, noKey: !noKey});
-			}
-		});
+		$(window).keyup(self.keyUpFunction);
+		$(window).on('keydown', self.keyDownFunction);
 
 		//for other modules who want to listen to sigmaevents or manipulate the behaviour of the plugins
 		_callbacks.sigmaCtrl = {};
@@ -755,6 +765,19 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 		_browserEventHandlers[event].push(handler);
 	};
 
+	Graphbrowser.Control.ModuleControl.prototype.kill = function() {
+		_eventEmitter[_s.id].unbind('dataChanged', self.refreshSigma);
+		_eventEmitter[_s.id].unbind('prepareSaveGraph', self.onSave);
+		_eventEmitter[_s.id].unbind('restoreGraph', self.onRestore);
+		_eventEmitter[_s.id].unbind('pickNodes', self.onPickNodes);
+		//_eventEmitter[_s.id].dispatchEvent('reset');
+		_eventEmitter[_s.id].dispatchEvent('kill');
+		window.clearTimeout(_refreshTimeout);
+		for(var m = 0; m < _attachedModules.length; m++){
+			_attachedModules[m] = undefined;
+		}
+	};
+
 	Graphbrowser.Control.ModuleControl.prototype.onDataChanged = function() {
 		_eventEmitter[_s.id].dispatchEvent('dataChanged');
 	};
@@ -816,7 +839,7 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 		if(!(typeof layout === 'string'))
 			return;
 		$.each(_browserEventHandlers['doLayout'], function(i, func){
-				func(layout, options);
+			func(layout, options);
 		});
 	};
 
@@ -891,6 +914,13 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 		}
 	};
 
+	GraphBrowser.prototype.kill = function(){
+		_controller.ModuleControl.kill();
+		_controller.sigmaControl.kill();
+		delete _controller.sigmaControl;
+		delete _controller.ModuleControl;
+	};
+
 	GraphBrowser.prototype.refresh = function(){
 		_controller.ModuleControl.refreshSigma(false, false);
 	};
@@ -902,15 +932,18 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 	};
 
 	GraphBrowser.prototype.getSigma = function(){
-		return _s;
+		if(_controller)
+			return _s;
 	};
 
 	GraphBrowser.prototype.status = function(){
-		return _controller.ModuleControl.status();
+		if(_controller)
+			return _controller.ModuleControl.status();
 	};
 
 	GraphBrowser.prototype.reset = function(){
-		_controller.ModuleControl.reset();
+		if(_controller)
+			_controller.ModuleControl.reset();
 	};
 
 	if (typeof this.GraphBrowser !== 'undefined')
@@ -2421,6 +2454,18 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 			if(typeof self.getRelationshipEditorWorker === undefined)
 				throw new Error("Graph-Browser-RelationshipEditor: Worker not found.");
 
+			var workerString = _self.getRelationshipEditorWorker();
+
+			if (window.Worker && !_worker) {
+				var blob = new Blob([workerString], {type: 'application/javascript'});
+				_worker = new Worker(URL.createObjectURL(blob));
+				_worker.onmessage = _self.onmessage;
+				_callbacks.conn.getSchemaInformation(this.onSchemaInformationLoaded);
+			}
+			else{
+				console.log("Graph-Browser-RelationshipEditor: It seems that your browser does not support webworkers.");
+			}
+
 			_pressedKeys = {shiftKey: false, ctrlKey: false, altKey: false, noKey: true}
 			_bound = false;
 
@@ -2437,8 +2482,9 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		_callbacks.sigmaCtrl.bindSigmaEvent('keydown', _self.handleKeyEvent);
 		_callbacks.sigmaCtrl.bindSigmaEvent(_deleteEvent, _self.handleSigmaEvent);
 
-		//_callbacks.bindBrowserEvent('start', self.start.bind(self));
+		_callbacks.bindBrowserEvent('start', self.start.bind(self));
 		_callbacks.eventEmitter[_s.id].bind('dataChanged', self.onDataChanged.bind(self));
+		_callbacks.eventEmitter[_s.id].bind('kill', self.onKill.bind(self));
 	};
 
 	Graphbrowser.Modules.RelationshipEditor.prototype.start = function(){
@@ -2447,25 +2493,17 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 			_callbacks.conn.getSchemaInformation(this.onSchemaInformationLoaded);
 	};
 
-	Graphbrowser.Modules.RelationshipEditor.prototype.startWorker = function(){
+	Graphbrowser.Modules.RelationshipEditor.prototype.onKill = function(){
 		var self = this;
-		var workerString = _self.getRelationshipEditorWorker();
+		_callbacks.sigmaCtrl.unbindSigmaEvent('keyup', _self.handleKeyEvent);
+		_callbacks.sigmaCtrl.unbindSigmaEvent('keydown', _self.handleKeyEvent);
+		_callbacks.sigmaCtrl.unbindSigmaEvent(_deleteEvent, _self.handleSigmaEvent);
 
-		if (window.Worker) {
-			var blob = new Blob([workerString], {type: 'application/javascript'});
-			_worker = new Worker(URL.createObjectURL(blob));
-			_worker.onmessage = _self.onmessage;
-			_callbacks.conn.getSchemaInformation(this.onSchemaInformationLoaded);
-		}
-		else{
-			console.log("Graph-Browser-RelationshipEditor: It seems that your browser does not support webworkers.");
-		}
-	};
+		_callbacks.eventEmitter[_s.id].unbind('kill', self.start.bind(self));
+		_callbacks.eventEmitter[_s.id].unbind('dataChanged', self.onDataChanged.bind(self));
 
-	Graphbrowser.Modules.RelationshipEditor.prototype.stopWorker = function(){
-		var self = this;
-		if(_worker)
-			_worker.terminate();
+		_worker.terminate();
+		_worker = undefined;
 	};
 
 	Graphbrowser.Modules.RelationshipEditor.prototype.active = function(){
@@ -2477,24 +2515,27 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 	};
 
 	Graphbrowser.Modules.RelationshipEditor.prototype.handleKeyEvent = function(keys){
-		_pressedKeys = keys;
+		var nokey = keys.ctrlKey || keys.shiftKey;
+		_pressedKeys = {
+			ctrlKey: keys.ctrlKey,
+			shiftKey: keys.shiftKey,
+			noKey: !nokey
+		};
 
 		if(!_pressedKeys.noKey && !_bound){
 			_bound = true;
-			_self.startWorker();
 			_callbacks.sigmaCtrl.bindSigmaEvent('startdrag', _self.handleSigmaEvent);
 			_callbacks.sigmaCtrl.bindSigmaEvent('drag', _self.handleSigmaEvent);
 			_callbacks.sigmaCtrl.bindSigmaEvent('dragend', _self.handleSigmaEvent);
 		}
 
-		else if(_worker){
+		else{
 			_bound = false;
 			_callbacks.sigmaCtrl.unbindSigmaEvent('startdrag', _self.handleSigmaEvent);
 			_callbacks.sigmaCtrl.unbindSigmaEvent('drag', _self.handleSigmaEvent);
 			_callbacks.sigmaCtrl.unbindSigmaEvent('dragend', _self.handleSigmaEvent);
-			_worker.postMessage({msg: "removeNewEdges", edges: _s.graph.edges(), nodes: _s.graph.nodes()});
 			window.setTimeout(function(){
-				_self.stopWorker();
+				_worker.postMessage({msg: "removeNewEdges", edges: _s.graph.edges(), nodes: _s.graph.nodes()});
 			}, 50);
 		}
 	};
@@ -2645,9 +2686,9 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 	Graphbrowser.Modules.RelationshipEditor.prototype.onSchemaInformationLoaded = function(result){
 		_schemaInformation = {};
 		$.each(result, function(o, res){
-				_schemaInformation[res.type] = res;
+			_schemaInformation[res.type] = res;
 		});
-		_worker.postMessage({msg: "init", settings: {schema: _schemaInformation, maxDistance: _maxDistance, nodes: _s.graph.nodes(), edges: _s.graph.edges()}});
+		_worker.postMessage({msg: "init", settings: {schema: _schemaInformation, maxDistance: _maxDistance, nodes: _s.graph.nodes(), edges: _s.graph.edges(), rendererId: _s.renderers[0].conradId}});
 	};
 
 	Graphbrowser.Modules.RelationshipEditor.prototype.onDataChanged = function(event){
@@ -2683,7 +2724,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 			});
 		}
 		else
-			_s.graph.dropEdge(errorEdgeId);
+		_s.graph.dropEdge(errorEdgeId);
 		_callbacks.eventEmitter[_s.id].dispatchEvent('dataChanged');
 	};
 
@@ -2700,6 +2741,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		var _edges;
 		var _newNodes;
 		var _newEdges;
+		var _rendererId;
 
 		var _edgeReferences = {}
 
@@ -2708,6 +2750,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 			settings.maxDistance !== undefined ? _maxDistance = settings.maxDistance : _maxDistance = 200;
 			settings.nodes !== undefined ? _nodes = settings.nodes : _nodes = [];
 			settings.edges !== undefined ? _edges = settings.edges : _edges = [];
+			settings.rendererId !== undefined ? _rendererId = settings.rendererId : rendererId = 0;
 			_newEdges = undefined;
 			_newNodes = undefined;
 		};
@@ -2760,11 +2803,11 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 					case "from":
 						if(schemaInfo.relatedFrom !== undefined){
 							var dis = _maxDistance / schemaInfo.relatedFrom.length;
-							var length = (schemaInfo.relatedFrom.length), selector;
+							var length = (schemaInfo.relatedFrom.length -1), selector;
 
 							while(length >= 0){
 								if(nd < (length * dis))
-									selector = length -1;
+									selector = length;
 								length--;
 							}
 
@@ -2780,11 +2823,11 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 					case "to":
 						if(schemaInfo.relatedTo !== undefined){
 							var dis = _maxDistance / schemaInfo.relatedTo.length;
-							var length = (schemaInfo.relatedTo.length), selector;
+							var length = (schemaInfo.relatedTo.length -1), selector;
 
 							while(length >= 0){
 								if(nd < (length * dis))
-									selector = length -1;
+									selector = length;
 								length--;
 							}
 							//postMessage({msg: 'debug', text: "Trigger: " + triggerDistance + "  -  nodeDistance: " + nd + "  -  selector: " + selector});
@@ -2826,11 +2869,14 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 				if(related !== undefined){
 					if((related[allTypesPossible] === true || related[possibleTypes].split(',').indexOf(_nodes[counter].nodeType) > -1)){
 						var add = true;
+						var same = false;
 						if(related.sourceMultiplicity === '1') {
 							for(var c1 = 0; c1 < _edges.length; c1++){
 								if(_edges[c1].target === compareTarget && _edges[c1].relType === related.type) {
-									if(_edges[c1].source === compareSource)
+									if(_edges[c1].source === compareSource){
 										add = false;
+										same = true;
+									}
 									else
 										add = checkRelation(_edges[c1], newEdgeId);
 									if(!add)
@@ -2841,8 +2887,10 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 						if(related.targetMultiplicity === '1') {
 							for(var c2 = 0; c2 < _edges.length; c2++){
 								if(_edges[c2].source === compareSource && _edges[c2].relType === related.type) {
-									if(_edges[c2].target === compareTarget)
+									if(_edges[c2].target === compareTarget){
 										add = false;
+										same = true;
+									}
 									else
 										add = checkRelation(_edges[c2], newEdgeId);
 									if(!add)
@@ -2879,6 +2927,14 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 								added: true,
 								relType: related.type
 							};
+
+							if(_edgeReferences[_previousEdges[_nodes[counter].id].id]){
+								var old = _edgeReferences[_previousEdges[_nodes[counter].id].id];
+								for(var o = 0; o < old.length; o++){
+									unhideEdge(old[o]);
+								}
+								delete _edgeReferences[_previousEdges[_nodes[counter].id].id];
+							}
 
 							postMessage({msg: "add", edge: newEdge, remove: _previousEdges[_nodes[counter].id].id});
 							_previousEdges[_nodes[counter].id].id = newEdgeId;
@@ -2932,10 +2988,10 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		};
 
 		function nodeDistance(n1, n2){
-			var x1 = parseFloat(n1['renderer1:x']);
-			var y1 = parseFloat(n1['renderer1:y']);
-			var x2 = parseFloat(n2['renderer1:x']);
-			var y2 = parseFloat(n2['renderer1:y']);
+			var x1 = parseFloat(n1['renderer' + _rendererId + ':x']);
+			var y1 = parseFloat(n1['renderer' + _rendererId + ':y']);
+			var x2 = parseFloat(n2['renderer' + _rendererId + ':x']);
+			var y2 = parseFloat(n2['renderer' + _rendererId + ':y']);
 			var nodeDistance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 			return nodeDistance;
 		};
@@ -3123,7 +3179,7 @@ var animating = animating || undefined;
 		self.setSelectionFixed(groupId, false);
 		_callbacks.sigmaPlugins.activeState.dropNodes();
 		_activeStateSelections[groupId].nodes = undefined;
-		_s.refresh({skipIndexation: true})
+		_s.refresh({skipIndexation: true});
 	};
 
 	Graphbrowser.Modules.SelectionTools.prototype.deleteSelectionGroup = function(groupId) {
@@ -3158,7 +3214,10 @@ var animating = animating || undefined;
 
 
 	Graphbrowser.Modules.SelectionTools.prototype.activateSelectionLasso = function(status) {
+		var self = this;
 		if((!_callbacks.sigmaPlugins.lasso.isActive) && status === true){
+			if(!self.isActive)
+				self.activate();
 			_callbacks.sigmaPlugins.lasso.activate();
 		}
 		else{
