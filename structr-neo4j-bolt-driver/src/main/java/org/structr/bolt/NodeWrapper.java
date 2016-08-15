@@ -72,7 +72,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		map.put("id", entity.id());
 
-		tx.set("MATCH (n) WHERE ID(n) = {id} SET n :" + label.name(), map);
+		entity = tx.getNode("MATCH (n) WHERE ID(n) = {id} SET n :" + label.name() + " RETURN n", map);
 		tx.modified(this);
 	}
 
@@ -86,7 +86,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		map.put("id", entity.id());
 
-		tx.set("MATCH (n) WHERE ID(n) = {id} REMOVE n:" + label.name(), map);
+		entity = tx.getNode("MATCH (n) WHERE ID(n) = {id} REMOVE n:" + label.name() + " RETURN n", map);
 		tx.modified(this);
 	}
 

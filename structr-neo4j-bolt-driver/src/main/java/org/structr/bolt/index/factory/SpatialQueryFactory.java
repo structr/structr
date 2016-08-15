@@ -44,7 +44,7 @@ public class SpatialQueryFactory extends AbstractQueryFactory {
 			buf.append("}), point(n))");
 
 			// distance is in kilometers
-			context.addParameter(buf.toString(), "<", spatial.getDistance() * 1000.0, false);
+			context.addSimpleParameter(buf.toString(), "<", spatial.getDistance() * 1000.0, false);
 		}
 	}
 

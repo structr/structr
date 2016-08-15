@@ -329,7 +329,7 @@ public interface PropertyKey<T> {
 	public void index(GraphObject entity, Object value);
 
 	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final T searchValue, final boolean exactMatch, final Query query);
-	public void extractSearchableAttribute(final SecurityContext securityContext, final HttpServletRequest request, final Query query) throws FrameworkException;
+	public void extractSearchableAttribute(final SecurityContext securityContext, final HttpServletRequest request, final boolean exactMatch, final Query query) throws FrameworkException;
 	public T convertSearchValue(final SecurityContext securityContext, final String requestParameter) throws FrameworkException;
 
 	/**

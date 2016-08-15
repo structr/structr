@@ -571,7 +571,7 @@ public class OWLParserv2 {
 										value = new String[] { idPart };
 									}
 
-									final Query<NodeInterface> query = app.nodeQuery(false).andType(type).and(key, value, false);
+									final Query<NodeInterface> query = app.nodeQuery().andType(type).and(key, value, false);
 									final List<NodeInterface> nodes  = query.getAsList();
 
 									if (nodes.size() == 1) {
@@ -672,7 +672,7 @@ public class OWLParserv2 {
 											value = new String[] { idPart };
 										}
 
-										final Query<NodeInterface> query = app.nodeQuery(false).andType(type).and(key, value, false);
+										final Query<NodeInterface> query = app.nodeQuery().andType(type).and(key, value, false);
 										final List<NodeInterface> nodes  = query.getAsList();
 
 										if (nodes.size() == 1) {

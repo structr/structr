@@ -111,11 +111,11 @@ public class CypherQuery {
 		buffer.append(" OR ");
 	}
 
-	public void addParameter(final String key, final String operator, final Object value) {
-		addParameter(key, operator, value, true);
+	public void addSimpleParameter(final String key, final String operator, final Object value) {
+		addSimpleParameter(key, operator, value, true);
 	}
 
-	public void addParameter(final String key, final String operator, final Object value, final boolean isProperty) {
+	public void addSimpleParameter(final String key, final String operator, final Object value, final boolean isProperty) {
 
 		if (value != null) {
 
@@ -152,6 +152,32 @@ public class CypherQuery {
 
 			buffer.append(operator);
 			buffer.append(" Null");
+		}
+	}
+
+	public void addListParameter(final String key, final String operator, final Object value) {
+
+		if (value != null) {
+
+			final String paramKey = "param" + count++;
+
+			buffer.append("ANY(x IN n.`");
+			buffer.append(key);
+			buffer.append("` WHERE x ");
+			buffer.append(operator);
+			buffer.append(" {");
+			buffer.append(paramKey);
+			buffer.append("})");
+
+			parameters.put(paramKey, value);
+
+		} else {
+
+			buffer.append("ANY(x IN n.`");
+			buffer.append(key);
+			buffer.append("` WHERE x ");
+			buffer.append(operator);
+			buffer.append(" Null)");
 		}
 	}
 

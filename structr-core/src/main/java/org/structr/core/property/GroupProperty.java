@@ -359,7 +359,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	}
 
 	@Override
-	public void extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, final Query query) throws FrameworkException {
+	public void extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, final boolean exactMatch, final Query query) throws FrameworkException {
 
 		 for (PropertyKey propertyKey : propertyKeys.values()) {
 
@@ -371,7 +371,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 				String searchValue = request.getParameter(key.dbName());
 				if (searchValue != null) {
 
-					key.determineSearchType(securityContext, searchValue, query);
+					key.determineSearchType(securityContext, searchValue, exactMatch, query);
 				}
 			}
 		}

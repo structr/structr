@@ -33,8 +33,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaHelper;
-import org.structr.web.entity.FileBase;
-import org.structr.web.entity.Image;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -94,14 +92,11 @@ public class QueryCommand extends AbstractCommand {
 				final Gson gson                       = new GsonBuilder().create();
 				final Map<String, Object> querySource = gson.fromJson(properties, new TypeToken<Map<String, Object>>() {}.getType());
 				final PropertyMap queryMap            = PropertyMap.inputTypeToJavaType(securityContext, type, querySource);
+				final boolean inexactQuery            = exact != null && exact == false;
 
 				// add properties to query
 				for (final Entry<PropertyKey, Object> entry : queryMap.entrySet()) {
-					query.and(entry.getKey(), entry.getValue());
-				}
-
-				if (exact != null && exact == false) {
-					query.exact(false);
+					query.and(entry.getKey(), entry.getValue(), !inexactQuery);
 				}
 
 			} catch (FrameworkException fex) {

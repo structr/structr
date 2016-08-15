@@ -37,7 +37,6 @@ import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import static org.structr.core.entity.AbstractNode.getRelationshipForType;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
@@ -53,7 +52,6 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.common.ResultTransformer;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
-import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
@@ -92,8 +90,6 @@ public class TypeResource extends SortableResource {
 			// check if this resource representes a virtual type
 			checkVirtualType(app);
 
-			final boolean inexactSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
-
 			// test if resource class exists
 			entityClass = SchemaHelper.getEntityClassForRawType(rawType);
 			if (entityClass != null) {
@@ -101,7 +97,7 @@ public class TypeResource extends SortableResource {
 				if (AbstractRelationship.class.isAssignableFrom(entityClass)) {
 
 					searchCommandType = SearchRelationshipCommand.class;
-					query             = app.relationshipQuery(entityClass, !inexactSearch);
+					query             = app.relationshipQuery(entityClass);
 					isNode            = false;
 					return true;
 
@@ -109,7 +105,7 @@ public class TypeResource extends SortableResource {
 
 					// include interfaces here
 					searchCommandType = SearchNodeCommand.class;
-					query             = app.nodeQuery(entityClass, !inexactSearch);
+					query             = app.nodeQuery(entityClass);
 					isNode            = true;
 					return true;
 				}
@@ -246,7 +242,7 @@ public class TypeResource extends SortableResource {
 				}
 
 				template.ensureCardinality(securityContext, sourceNode, targetNode);
-				
+
 				newRelationship = app.create(sourceNode, targetNode, entityClass, properties);
 
 				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);

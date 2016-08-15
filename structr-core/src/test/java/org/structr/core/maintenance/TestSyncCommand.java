@@ -21,11 +21,14 @@ package org.structr.core.maintenance;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
+import org.structr.api.DatabaseService;
 import org.structr.api.graph.Label;
 import org.structr.api.util.Iterables;
 import org.structr.common.StructrTest;
@@ -196,6 +199,8 @@ public class TestSyncCommand extends StructrTest {
 			// test import
 			app.command(SyncCommand.class).execute(toMap("mode", "import", "file", EXPORT_FILENAME));
 
+			final DatabaseService db = app.getDatabaseService();
+
 
 			try (final Tx tx = app.tx()) {
 
@@ -205,16 +210,17 @@ public class TestSyncCommand extends StructrTest {
 				for (final TestEleven node : result.getResults()) {
 
 					Iterable<Label> labels = node.getNode().getLabels();
+					final Set<Label> set   = new HashSet<>(Iterables.toList(labels));
 
-					assertEquals(7, Iterables.count(labels));
+					assertEquals(7, set.size());
 
-					assertEquals("First label has to be AbstractNode",       Iterables.toList(labels).get(0).name(), "AbstractNode");
-					assertEquals("Second label has to be NodeInterface",     Iterables.toList(labels).get(1).name(), "NodeInterface");
-					assertEquals("Third label has to be AccessControllable", Iterables.toList(labels).get(2).name(), "AccessControllable");
-					assertEquals("Fourth label has to be CMISInfo",          Iterables.toList(labels).get(3).name(), "CMISInfo");
-					assertEquals("Firth label has to be CMISItemInfo",       Iterables.toList(labels).get(4).name(), "CMISItemInfo");
-					assertEquals("Sixth label has to be TestEleven",         Iterables.toList(labels).get(5).name(), "TestEleven");
-					assertEquals("Seventh label has to be TestOne",          Iterables.toList(labels).get(6).name(), "TestOne");
+					assertTrue("First label has to be AbstractNode",       set.contains(db.forName(Label.class, "AbstractNode")));
+					assertTrue("Second label has to be NodeInterface",     set.contains(db.forName(Label.class, "NodeInterface")));
+					assertTrue("Third label has to be AccessControllable", set.contains(db.forName(Label.class, "AccessControllable")));
+					assertTrue("Fourth label has to be CMISInfo",          set.contains(db.forName(Label.class, "CMISInfo")));
+					assertTrue("Firth label has to be CMISItemInfo",       set.contains(db.forName(Label.class, "CMISItemInfo")));
+					assertTrue("Sixth label has to be TestEleven",         set.contains(db.forName(Label.class, "TestEleven")));
+					assertTrue("Seventh label has to be TestOne",          set.contains(db.forName(Label.class, "TestOne")));
 
 				}
 

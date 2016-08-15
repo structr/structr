@@ -306,6 +306,8 @@ public abstract class Resource {
 
 	protected void extractSearchableAttributes(final SecurityContext securityContext, final Class type, final HttpServletRequest request, final Query query) throws FrameworkException {
 
+		final boolean exactSearch = !(parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1);
+
 		if (type != null && request != null && !request.getParameterMap().isEmpty()) {
 
 			final ConfigurationProvider conf   = Services.getInstance().getConfigurationProvider();
@@ -341,7 +343,7 @@ public abstract class Resource {
 			for (final PropertyKey key : searchKeys) {
 
 				// hand list of search attributes over to key
-				key.extractSearchableAttribute(securityContext, request, query);
+				key.extractSearchableAttribute(securityContext, request, exactSearch, query);
 			}
 		}
 	}

@@ -546,15 +546,14 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public void extractSearchableAttribute(final SecurityContext securityContext, final HttpServletRequest request, final Query query) throws FrameworkException {
+	public void extractSearchableAttribute(final SecurityContext securityContext, final HttpServletRequest request, final boolean exactMatch, final Query query) throws FrameworkException {
 
 		final String[] searchValues = request.getParameterValues(jsonName());
 		if (searchValues != null) {
 
 			for (String searchValue : searchValues) {
 
-				/*
-				if (!query.isExactSearch()) {
+				if (!exactMatch) {
 
 					// no quotes allowed in loose search queries!
 					searchValue = removeQuotes(searchValue);
@@ -562,13 +561,10 @@ public abstract class Property<T> implements PropertyKey<T> {
 					query.and(this, convertSearchValue(securityContext, searchValue), false);
 
 				} else {
-				*/
 
-				determineSearchType(securityContext, searchValue, query);
+					determineSearchType(securityContext, searchValue, exactMatch, query);
 
-				/*
 				}
-				*/
 			}
 		}
 	}
@@ -630,7 +626,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return resultStr;
 	}
 
-	protected void determineSearchType(final SecurityContext securityContext, final String requestParameter, final Query query) throws FrameworkException {
+	protected void determineSearchType(final SecurityContext securityContext, final String requestParameter, final boolean exactMatch, final Query query) throws FrameworkException {
 
 		if (StringUtils.startsWith(requestParameter, "[") && StringUtils.endsWith(requestParameter, "]")) {
 
@@ -697,7 +693,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 				for (final String part : requestParameter.split("[;]+")) {
 
-					query.or(this, convertSearchValue(securityContext, part));
+					query.or(this, convertSearchValue(securityContext, part), exactMatch);
 				}
 
 				// ascend to the last group
@@ -705,12 +701,12 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 			} else {
 
-				query.or(this, convertSearchValue(securityContext, requestParameter));
+				query.or(this, convertSearchValue(securityContext, requestParameter), exactMatch);
 			}
 
 		} else {
 
-			query.and(this, convertSearchValue(securityContext, requestParameter));
+			query.and(this, convertSearchValue(securityContext, requestParameter), exactMatch);
 		}
 	}
 

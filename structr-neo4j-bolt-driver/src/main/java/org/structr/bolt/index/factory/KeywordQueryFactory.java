@@ -25,7 +25,7 @@ import org.structr.bolt.index.CypherQuery;
 
 public class KeywordQueryFactory extends AbstractQueryFactory {
 
-	private static final Map<Character, String> SPECIAL_CHARS = new HashMap<>();
+	protected static final Map<Character, String> SPECIAL_CHARS = new HashMap<>();
 
 	static {
 
@@ -55,23 +55,23 @@ public class KeywordQueryFactory extends AbstractQueryFactory {
 
 		if (predicate.isExactMatch()) {
 
-			query.addParameter(name, value != null ? "=" : "is", value);
+			query.addSimpleParameter(name, value != null ? "=" : "is", value);
 
 		} else {
 
 			if (value != null) {
 
-				query.addParameter(name, "=~", "(?i).*" + escape(value) + ".*");
+				query.addSimpleParameter(name, "=~", "(?i).*" + escape(value) + ".*");
 
 			} else {
 
-				query.addParameter(name, "is", null);
+				query.addSimpleParameter(name, "is", null);
 			}
 		}
 	}
 
 	// ----- private methods -----
-	private String escape(final Object src) {
+	protected String escape(final Object src) {
 
 		final StringBuilder output = new StringBuilder();
 		final String input         = src.toString();

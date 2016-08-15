@@ -28,6 +28,7 @@ import java.util.Set;
 import org.structr.api.QueryResult;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.Index;
+import org.structr.api.search.ArrayQuery;
 import org.structr.api.search.ExactQuery;
 import org.structr.api.search.FulltextQuery;
 import org.structr.api.search.GroupQuery;
@@ -41,6 +42,7 @@ import org.structr.bolt.index.converter.DoubleTypeConverter;
 import org.structr.bolt.index.converter.IntTypeConverter;
 import org.structr.bolt.index.converter.LongTypeConverter;
 import org.structr.bolt.index.converter.StringTypeConverter;
+import org.structr.bolt.index.factory.ArrayQueryFactory;
 import org.structr.bolt.index.factory.GroupQueryFactory;
 import org.structr.bolt.index.factory.KeywordQueryFactory;
 import org.structr.bolt.index.factory.QueryFactory;
@@ -131,6 +133,7 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 		FACTORIES.put(GroupQuery.class,    new GroupQueryFactory());
 		FACTORIES.put(RangeQuery.class,    new RangeQueryFactory());
 		FACTORIES.put(ExactQuery.class,    new KeywordQueryFactory());
+		FACTORIES.put(ArrayQuery.class,    new ArrayQueryFactory());
 
 		CONVERTERS.put(Boolean.class, new BooleanTypeConverter());
 		CONVERTERS.put(String.class,  new StringTypeConverter());

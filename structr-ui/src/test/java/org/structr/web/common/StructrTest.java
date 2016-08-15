@@ -44,7 +44,6 @@ import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.module.JarConfigurationProvider;
-import org.structr.neo4j.Neo4jDatabaseService;
 import org.structr.rest.service.HttpService;
 
 //~--- classes ----------------------------------------------------------------
@@ -88,8 +87,8 @@ public class StructrTest extends TestCase {
 		config.setProperty(Services.TMP_PATH, "/tmp/");
 		config.setProperty(Services.BASE_PATH, "/tmp/structr-test-" + timestamp);
 		config.setProperty(Structr.DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/db");
-		config.setProperty(Neo4jDatabaseService.RELATIONSHIP_CACHE_SIZE, "1000");
-		config.setProperty(Neo4jDatabaseService.NODE_CACHE_SIZE, "1000");
+		config.setProperty(Structr.RELATIONSHIP_CACHE_SIZE, "1000");
+		config.setProperty(Structr.NODE_CACHE_SIZE, "1000");
 		config.setProperty(Services.FILES_PATH, "/tmp/structr-test-" + timestamp + "/files");
 		config.setProperty(Services.LOG_DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/logDb.dat");
 		config.setProperty(Services.TCP_PORT, (System.getProperty("tcpPort") != null ? System.getProperty("tcpPort") : "13465"));

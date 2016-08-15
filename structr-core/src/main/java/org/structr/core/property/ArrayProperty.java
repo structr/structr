@@ -31,7 +31,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.search.PropertySearchAttribute;
+import org.structr.core.graph.search.ArraySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
 
@@ -171,14 +171,14 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 		// early exit, return empty search attribute
 		if (searchValue == null) {
-			return new PropertySearchAttribute(this, "", exactMatch ? Occurrence.REQUIRED : Occurrence.OPTIONAL, exactMatch);
+			return new ArraySearchAttribute(this, "", exactMatch ? Occurrence.REQUIRED : Occurrence.OPTIONAL, exactMatch);
 		}
 
 		final SearchAttributeGroup group = new SearchAttributeGroup(occur);
 
 		for (T value : searchValue) {
 
-			group.add(new PropertySearchAttribute(this, value, exactMatch ? Occurrence.REQUIRED : Occurrence.OPTIONAL, exactMatch));
+			group.add(new ArraySearchAttribute(this, value, exactMatch ? Occurrence.REQUIRED : Occurrence.OPTIONAL, exactMatch));
 
 		}
 

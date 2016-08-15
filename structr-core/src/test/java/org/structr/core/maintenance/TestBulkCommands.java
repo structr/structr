@@ -37,7 +37,6 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestTwo;
 import org.structr.core.graph.BulkCreateLabelsCommand;
-import org.structr.core.graph.BulkRebuildIndexCommand;
 import org.structr.core.graph.BulkSetNodePropertiesCommand;
 import org.structr.core.graph.Tx;
 
@@ -81,15 +80,22 @@ public class TestBulkCommands extends StructrTest {
 				tx.success();
 			}
 
+			/*
+			 * This test will fail with the new Neo4j 3.0 Bolt interface, because
+			 * there is no separation between a (Lucene-based) index and the
+			 * database values any more. Nodes are selected by their 'type'
+			 * property and will always be found even if NOT created using Structr
+			 * methods.
 			// nodes should not be found yet..
 			try (final Tx tx = app.tx()) {
 
-				// check nodes, we should find 100 Groups here
+				// check nodes, we should find no Groups here
 				assertEquals(0, app.nodeQuery(Group.class).getResult().size());
 			}
+			 */
 
 			// test rebuild index and create labels
-			app.command(BulkRebuildIndexCommand.class).execute(new LinkedHashMap<>());
+			//app.command(BulkRebuildIndexCommand.class).execute(new LinkedHashMap<>());
 			app.command(BulkCreateLabelsCommand.class).execute(new LinkedHashMap<>());
 
 			// nodes should now be visible to Structr
@@ -118,6 +124,12 @@ public class TestBulkCommands extends StructrTest {
 
 	}
 
+	/*
+	 * This test will fail with the new Neo4j 3.0 Bolt interface, because
+	 * there is no separation between a (Lucene-based) index and the
+	 * database values any more. Nodes are selected by their 'type'
+	 * property and will always be found even if NOT created using Structr
+	 * methods.
 	public void testBulkRebuildIndexCommand() {
 
 		try {
@@ -165,6 +177,7 @@ public class TestBulkCommands extends StructrTest {
 			fail("Unexpected exception.");
 		}
 	}
+	*/
 
 	public void testBulkSetNodePropertiesCommand() {
 

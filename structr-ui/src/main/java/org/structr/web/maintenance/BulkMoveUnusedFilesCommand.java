@@ -76,7 +76,7 @@ public class BulkMoveUnusedFilesCommand extends NodeServiceCommand implements Ma
 		}
 
 		logger.log(Level.INFO, "Starting moving of unused files...");
-		
+
 		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
 		final App app = StructrApp.getInstance();
 
@@ -90,7 +90,7 @@ public class BulkMoveUnusedFilesCommand extends NodeServiceCommand implements Ma
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				fileNodes = app.nodeQuery(FileBase.class, false).getAsList();
+				fileNodes = app.nodeQuery(FileBase.class).getAsList();
 
 				for (final FileBase fileNode : fileNodes) {
 
@@ -124,7 +124,7 @@ public class BulkMoveUnusedFilesCommand extends NodeServiceCommand implements Ma
 				targetDirPath = Paths.get(filesLocation, targetDir);
 
 			}
-			
+
 			if (mode.equals("move") && !Files.exists(targetDirPath)) {
 
 				try {

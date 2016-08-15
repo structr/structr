@@ -19,29 +19,30 @@
 package org.structr.bolt.index.factory;
 
 import org.structr.api.search.QueryPredicate;
-import org.structr.api.search.RangeQuery;
 import org.structr.bolt.index.CypherQuery;
 
-/**
- *
- */
-public class RangeQueryFactory extends AbstractQueryFactory {
+public class ArrayQueryFactory extends KeywordQueryFactory {
 
 	@Override
 	public void createQuery(final QueryFactory parent, final QueryPredicate predicate, final CypherQuery query) {
 
-		if (predicate instanceof RangeQuery) {
+		final Object value = getReadValue(predicate.getValue());
+		final String name  = predicate.getName();
 
-			final RangeQuery rangeQuery = (RangeQuery)predicate;
-			final Object rangeStart     = getReadValue(rangeQuery.getRangeStart());
-			final Object rangeEnd       = getReadValue(rangeQuery.getRangeEnd());
-			final String name           = predicate.getName();
+		if (predicate.isExactMatch()) {
 
-			if (rangeStart == null && rangeEnd == null) {
-				return;
+			query.addListParameter(name, value != null ? "=" : "is", value);
+
+		} else {
+
+			if (value != null) {
+
+				query.addListParameter(name, "=~", "(?i).*" + escape(value) + ".*");
+
+			} else {
+
+				query.addListParameter(name, "is", null);
 			}
-
-			query.addParameters(name, ">=", rangeStart, "<=", rangeEnd);
 		}
 	}
 }

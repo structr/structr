@@ -270,8 +270,8 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public void extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, final Query query) throws FrameworkException {
-		propertyKey.extractSearchableAttribute(securityContext, request, query);
+	public void extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, final boolean exactMatch, final Query query) throws FrameworkException {
+		propertyKey.extractSearchableAttribute(securityContext, request, exactMatch, query);
 	}
 
 	@Override
