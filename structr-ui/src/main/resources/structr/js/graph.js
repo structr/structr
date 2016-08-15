@@ -790,7 +790,17 @@ var _Graph = {
 
     unload: function() {
         //console.log('unload graph');
-        graphBrowser.reset();
+        colors = [];
+        relTypes = {};
+        nodeTypes = {};
+        //color = {};
+        //relColors = {};
+        nodeIds = [];
+        relIds = [];
+        hiddenNodeTypes = [];
+        hiddenRelTypes = [];
+        graphBrowser.kill();
+        graphBrowser = undefined;
     },
 
     drawNode: function(node, x, y) {
