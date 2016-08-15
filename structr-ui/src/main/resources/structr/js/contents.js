@@ -215,7 +215,7 @@ var _Contents = {
 		contentTree.jstree('deselect_node', d.id);
 		contentTree.jstree('open_node', d.id, function() {
 			contentTree.jstree('select_node', currentContentContainer ? currentContentContainer.id : 'root');
-			_Contents.open(dirs);
+			//_Contents.open(dirs);
 		});
 
 	},
@@ -233,7 +233,7 @@ var _Contents = {
 			'plugins': ["themes", "dnd", "search", "state", "types", "wholerow"],
 			'core': {
 				'animation': 0,
-				'state': {'key': 'structr-ui'},
+				'state': {'key': 'structr-ui-contents'},
 				'async': true,
 				'data': function(obj, callback) {
 

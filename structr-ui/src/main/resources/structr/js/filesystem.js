@@ -102,7 +102,7 @@ var _Filesystem = {
 
 		_Filesystem.init();
 
-		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Filesystem');
+		$('#main-help a').attr('href', 'https://support.structr.com/article/49');
 
 		main.append('<div id="filesystem-main"><div class="fit-to-height" id="file-tree-container"><div id="file-tree"></div></div><div class="fit-to-height" id="folder-contents-container"><div id="folder-contents"></div></div>');
 		filesystemMain = $('#filesystem-main');
@@ -197,7 +197,7 @@ var _Filesystem = {
 		fileTree.jstree('deselect_node', d.id);
 		fileTree.jstree('open_node', d.id, function() {
 			fileTree.jstree('select_node', currentWorkingDir ? currentWorkingDir.id : 'root');
-			_Filesystem.open(dirs);
+			//_Filesystem.open(dirs);
 		});
 
 	},
@@ -215,7 +215,7 @@ var _Filesystem = {
 			'plugins': ["themes", "dnd", "search", "state", "types", "wholerow"],
 			'core': {
 				'animation': 0,
-				'state': {'key': 'structr-ui'},
+				'state': {'key': 'structr-ui-filesystem'},
 				'async': true,
 				'data': function(obj, callback) {
 
