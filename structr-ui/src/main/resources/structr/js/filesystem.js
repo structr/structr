@@ -95,7 +95,31 @@ var _Filesystem = {
 				height: windowHeight - headerOffsetHeight - 55 + 'px'
 			});
 		}
+
 		Structr.resize();
+		
+		var nameColumnWidth = $('#files-table th:nth-child(2)').width();
+
+		if (nameColumnWidth < 300) {
+			$('#files-table th:nth-child(4)').css({ display: 'none' });
+			$('#files-table td:nth-child(4)').css({ display: 'none' });
+			$('#files-table th:nth-child(5)').css({ display: 'none' });
+			$('#files-table td:nth-child(5)').css({ display: 'none' });
+		}
+		
+		if (nameColumnWidth > 550) {
+			$('#files-table th:nth-child(4)').css({ display: 'table-cell' });
+			$('#files-table td:nth-child(4)').css({ display: 'table-cell' });
+			$('#files-table th:nth-child(5)').css({ display: 'table-cell' });
+			$('#files-table td:nth-child(5)').css({ display: 'table-cell' });
+		}
+		
+		nameColumnWidth = $('#files-table th:nth-child(2)').width() - 96;
+		
+		$('.node.file .name_').each(function(i, el) {
+			var title = $(el).attr('title');
+			$(el).html('<b title="' +  title + '" class="name_">' + fitStringToWidth(title ? title : '[unnamed]', nameColumnWidth) + '</b>');
+		});
 
 	},
 	onload: function() {
@@ -496,6 +520,8 @@ var _Filesystem = {
 			if (children && children.length) {
 				children.forEach(_Filesystem.appendFileOrFolderRow);
 			}
+			
+			_Filesystem.resize();
 		};
 
 		if (id === 'root') {
