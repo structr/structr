@@ -1485,53 +1485,66 @@ var _Entities = {
 		}
 
 	},
-	makeNameEditable: function(element, width) {
+	makeAttributeEditable: function(parentElement, id, attributeSelector, attributeName, width, callback) {
 		var w = width || 200;
 		//element.off('dblclick');
 		//element.off('hover');
-		var oldName = $.trim(element.children('b.name_').attr('title'));
-		element.children('b.name_').replaceWith('<input type="text" size="' + (oldName.length + 4) + '" class="new-name" value="' + oldName + '">');
+		var attributeElement = parentElement.children(attributeSelector);
+		//var attributeElementHtml = attributeElement.html();
+		var attributeElementTagName = attributeElement.prop('tagName').toLowerCase();
+		var oldValue = $.trim(attributeElement.attr('title'));
+		
+		attributeElement.replaceWith('<input type="text" size="' + (oldValue.length + 4) + '" class="new-' + attributeName + '" value="' + oldValue + '">');
 		//element.find('.button').hide();
 
-		var input = $('input', element);
+		var input = $('input', parentElement);
 
 		input.focus().select();
 
 		input.on('blur', function() {
 			var self = $(this);
-			var newName = self.val();
-			self.replaceWith('<b title="' + oldName + '" class="name_">' + fitStringToWidth(oldName, w) + '</b>');
-			element.children('b.name_').on('click', function(e) {
+			var newValue = self.val();
+			self.replaceWith('<' + attributeElementTagName + ' title="' + newValue + '" class="' + attributeName + '_">' + fitStringToWidth(newValue, w) + '</' + attributeElementTagName + '>');
+			parentElement.children(attributeSelector).on('click', function(e) {
 				e.stopPropagation();
-				_Entities.makeNameEditable(element, w);
+				_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName, w);
 			});
-			_Entities.setNewName(element, newName);
+			_Entities.setNewAttributeValue(parentElement, id, attributeName, newValue, callback);
 		});
 
 		input.keypress(function(e) {
 			if (e.keyCode === 13) {
 				var self = $(this);
-				var newName = self.val();
-				self.replaceWith('<b title="' + oldName + '" class="name_">' + fitStringToWidth(oldName, w) + '</b>');
-				element.children('b.name_').on('click', function(e) {
+				var newValue = self.val();
+				self.replaceWith('<' + attributeElementTagName + ' title="' + newValue + '" class="' + attributeName + '_">' + fitStringToWidth(newValue, w) + '</' + attributeElementTagName + '>');
+				parentElement.children(attributeSelector).on('click', function(e) {
 					e.stopPropagation();
-					_Entities.makeNameEditable(element, w);
+					_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName, w);
 				});
-				_Entities.setNewName(element, newName);
+				_Entities.setNewAttributeValue(parentElement, id, attributeName, newValue, callback);
 			}
 		});
 	},
-	setNewName: function(element, newName) {
+	makeNameEditable: function(element, width, callback) {
 		var id = Structr.getId(element);
-		Command.setProperty(id, 'name', newName, false, function() {
+		_Entities.makeAttributeEditable(element, id, 'b.name_', 'name', width, callback);
+	},
+	setNewName: function(element, newName, callback) {
+		var id = Structr.getId(element);
+		_Entities.setNewAttributeValue(element, id, 'name', newName, callback);
+	},
+	setNewAttributeValue: function(element, id, attributeName, newValue, callback) {
+		Command.setProperty(id, attributeName, newValue, false, function() {
+			blinkGreen(element.children('.' + attributeName + '_'));
 			if (lastMenuEntry === 'pages') {
 				_Pages.reloadPreviews();
-			} else if (lastMenuEntry === 'filesystem') {
+			} else if (lastMenuEntry === 'filesystem' && attributeName === 'name') {
 				var a = element.closest('td').prev().children('a').first();
 				Command.getProperty(id, 'path', function(newPath) {
 					a.attr('href', newPath);
 				});
 			}
+			if (callback) callback();
 		});
 	},
 	handleActiveElement: function(entity) {
