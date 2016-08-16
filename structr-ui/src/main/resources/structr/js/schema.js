@@ -372,15 +372,13 @@ var _Schema = {
 		inheritanceSlideout = $('#inheritance-tree');
 		inheritanceTree = $('#inheritance-tree-container');
 
-		var adjustSlideoutHeight = function () {
-			var windowHeight = win.height();
-			$('.ver-scrollable').css({
-				height: (windowHeight - inheritanceTree.offset().top) + 'px'
-			});
-		}
 		var updateCanvasTranslation = function () {
+			var windowHeight = $(window).height();
+			$('.ver-scrollable').css({
+				height: (windowHeight - inheritanceTree.offset().top - 25) + 'px'
+			});
 			canvas.css('transform', _Schema.getSchemaCSSTransform());
-			adjustSlideoutHeight();
+			_Schema.resize();
 		};
 
 		inheritanceSlideoutOpen = false;
@@ -392,17 +390,14 @@ var _Schema = {
 
 			if (Math.abs(inheritanceSlideout.position().left + inheritanceSlideout.width() + 12) <= 3) {
 				inheritanceSlideoutOpen = true;
-				Structr.openLeftSlideOut(inheritanceSlideout, $("#inheritanceTab"), activeTabLeftKey, adjustSlideoutHeight, updateCanvasTranslation);
-				canvas.css('transform', _Schema.getSchemaCSSTransform());
+				Structr.openLeftSlideOut(inheritanceSlideout, $("#inheritanceTab"), activeTabLeftKey, updateCanvasTranslation, updateCanvasTranslation);
 
 			} else {
 				inheritanceSlideoutOpen = false;
-				Structr.closeLeftSlideOuts([inheritanceSlideout], activeTabLeftKey);
+				Structr.closeLeftSlideOuts([inheritanceSlideout], activeTabLeftKey, _Schema.resize);
 				canvas.css('transform', _Schema.getSchemaCSSTransform());
 
 			}
-
-			_Schema.resize();
 		});
 
 		_Schema.init();
@@ -1258,30 +1253,31 @@ var _Schema = {
 		if (canvas) {
 
 			var zoom = (instance ? instance.getZoom() : 1);
-
 			var canvasPosition = canvas.position();
+			var padding = 100;
 
 			var canvasSize = {
 				w: ($(window).width() - canvasPosition.left),
 				h: ($(window).height() - canvasPosition.top)
 			};
+
 			$('.node').each(function(i, elem) {
 				$elem = $(elem);
-				canvasSize.w = Math.max(canvasSize.w, (($elem.position().left - canvasPosition.left) / zoom + $elem.width()));
-				canvasSize.h = Math.max(canvasSize.h, (($elem.position().top  - canvasPosition.top)  / zoom + $elem.height()));
+				canvasSize.w = Math.max(canvasSize.w, (($elem.position().left - canvasPosition.left) / zoom + $elem.width()) + padding);
+				canvasSize.h = Math.max(canvasSize.h, (($elem.position().top - canvasPosition.top)  / zoom + $elem.height()) + padding);
 			});
 
-			if (canvasSize.w * zoom - canvasPosition.left < $(window).width()) {
-				canvasSize.w = ($(window).width() - canvasPosition.left) / zoom;
+			if (canvasSize.w * zoom < $(window).width() - canvasPosition.left) {
+				canvasSize.w = ($(window).width()) / zoom - canvasPosition.left + padding;
 			}
 
 			if (canvasSize.h * zoom < $(window).height() - canvasPosition.top) {
-				canvasSize.h = ($(window).height() - canvasPosition.top) / zoom;
+				canvasSize.h = ($(window).height()) / zoom  - canvasPosition.top + padding;
 			}
 
 			canvas.css({
 				width: canvasSize.w + 'px',
-				height: canvasSize.h + 'px'
+				height: (canvasSize.h - 1) + 'px'
 			});
 		}
 
@@ -3132,7 +3128,7 @@ var _Schema = {
 		return 'scale(' + zoomLevel + ')';
 	},
 	getSchemaCSSTranslate: function () {
-		return 'translate(' + (inheritanceSlideoutOpen ? inheritanceSlideout.width() / zoomLevel : '0') + 'px)';
+		return 'translate(' + (inheritanceSlideoutOpen ? inheritanceSlideout.outerWidth() / zoomLevel : '0') + 'px)';
 	},
 	sort: function(collection, sortKey, secondarySortKey) {
 		if (!sortKey) {

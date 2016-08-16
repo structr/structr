@@ -104,7 +104,7 @@ var _Pages = {
 				height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
 			});
 		}
-		
+
 		var leftSlideout = $('#' + activeTabLeft).closest('.slideOut');
 		leftSlideout.css({
 			height: windowHeight - headerOffsetHeight - 30 + 'px'
@@ -170,13 +170,13 @@ var _Pages = {
 			}
 			var asw = activeElementsSlideout.width() + 12;
 			if (Math.abs(activeElementsSlideout.position().left + asw) <= 3) {
-				Structr.closeLeftSlideOuts([pagesSlideout, dataBindingSlideout, templatesSlideout], activeTabLeftKey);
+				Structr.closeLeftSlideOuts([pagesSlideout, dataBindingSlideout, templatesSlideout], activeTabLeftKey, _Pages.leftSlideoutClosedCallback);
 				Structr.openLeftSlideOut(activeElementsSlideout, this, activeTabLeftKey, function(params) {
 					_Pages.refreshActiveElements();
 					_Pages.resize(params.sw, 0);
 				});
 			} else {
-				Structr.closeLeftSlideOuts([activeElementsSlideout], activeTabLeftKey);
+				Structr.closeLeftSlideOuts([activeElementsSlideout], activeTabLeftKey, _Pages.leftSlideoutClosedCallback);
 			}
 		});
 
@@ -187,13 +187,13 @@ var _Pages = {
 			}
 			var dsw = dataBindingSlideout.width() + 12;
 			if (Math.abs(dataBindingSlideout.position().left + dsw) <= 3) {
-				Structr.closeLeftSlideOuts([pagesSlideout, activeElementsSlideout, templatesSlideout], activeTabLeftKey);
+				Structr.closeLeftSlideOuts([pagesSlideout, activeElementsSlideout, templatesSlideout], activeTabLeftKey, _Pages.leftSlideoutClosedCallback);
 				Structr.openLeftSlideOut(dataBindingSlideout, this, activeTabLeftKey, function(params) {
 					_Pages.reloadDataBindingWizard();
 					_Pages.resize(params.sw, 0);
 				});
 			} else {
-				Structr.closeLeftSlideOuts([dataBindingSlideout], activeTabLeftKey);
+				Structr.closeLeftSlideOuts([dataBindingSlideout], activeTabLeftKey, _Pages.leftSlideoutClosedCallback);
 			}
 		});
 
@@ -204,13 +204,13 @@ var _Pages = {
 			}
 			var dsw = templatesSlideout.width() + 12;
 			if (Math.abs(templatesSlideout.position().left + dsw) <= 3) {
-				Structr.closeLeftSlideOuts([pagesSlideout, activeElementsSlideout, dataBindingSlideout], activeTabLeftKey);
+				Structr.closeLeftSlideOuts([pagesSlideout, activeElementsSlideout, dataBindingSlideout], activeTabLeftKey, _Pages.leftSlideoutClosedCallback);
 				Structr.openLeftSlideOut(templatesSlideout, this, activeTabLeftKey, function(params) {
 					//_Pages.reloadTemplatesWizard();
 					_Pages.resize(params.sw, 0);
 				});
 			} else {
-				Structr.closeLeftSlideOuts([templatesSlideout], activeTabLeftKey);
+				Structr.closeLeftSlideOuts([templatesSlideout], activeTabLeftKey, _Pages.leftSlideoutClosedCallback);
 			}
 		});
 
@@ -1096,9 +1096,9 @@ var _Pages = {
 			Command.getSchemaInfo(sourceSchemaNode.name, function(properties) {
 
 				properties.reverse().forEach(function(property) {
-					
+
 					var subkey = property.relatedType ? 'name' : '';
-					
+
 					$('#data-wizard-attributes .properties').append('<div class="draggable data-binding-attribute ' + property.jsonName + '" collection="' + property.isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + property.jsonName  + '</div>');
 					$('#data-wizard-attributes .properties').children('.' + property.jsonName).draggable({
 						iframeFix: true,
@@ -1111,7 +1111,7 @@ var _Pages = {
 					}).on('click', function() {
 						//console.log('expand')
 					});
-					
+
 				});
 			});
 
@@ -1162,16 +1162,21 @@ var _Pages = {
 			_Pages.resize(params.sw, 0);
 		};
 		if (Math.abs(pagesSlideout.position().left + psw) <= 3) {
-			Structr.closeLeftSlideOuts([activeElementsSlideout, dataBindingSlideout, templatesSlideout], activeTabLeftKey);
+			Structr.closeLeftSlideOuts([activeElementsSlideout, dataBindingSlideout, templatesSlideout], activeTabLeftKey, _Pages.leftSlideoutClosedCallback);
 			Structr.openLeftSlideOut(pagesSlideout, $("#pagesTab"), activeTabLeftKey, callback, callback);
 		} else {
-			Structr.closeLeftSlideOuts([pagesSlideout], activeTabLeftKey);
+			Structr.closeLeftSlideOuts([pagesSlideout], activeTabLeftKey, _Pages.leftSlideoutClosedCallback);
 		}
 		this.pagesTabResizeContent();
 	},
 	pagesTabResizeContent: function () {
 		var psw = pagesSlideout.width() + 12;
 		$('.node.page', pagesSlideout).width(psw-25);
+	},
+	leftSlideoutClosedCallback: function(wasOpen, offsetLeft, offsetRight) {
+		if (wasOpen) {
+			_Pages.resize(offsetLeft, offsetRight);
+		}
 	}
 };
 

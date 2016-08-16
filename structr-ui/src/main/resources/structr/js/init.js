@@ -908,11 +908,12 @@ var Structr = {
 		var t = $(tab);
 		t.addClass('active');
 		var sw = slideout.width() + 12;
-		s.animate({left: '+=' + sw + 'px'}, {duration: 100}).zIndex(1);
 		LSWrapper.setItem(activeTabKey, t.prop('id'));
-		if (callback) {
-			callback({sw: sw});
-		}
+		s.animate({left: '+=' + sw + 'px'}, 100, function () {
+			if (typeof callback === 'function') {
+				callback({sw: sw});
+			}
+		}).zIndex(1);
 		t.draggable({
 			axis: 'x',
 			start: function(e, ui) {
@@ -938,7 +939,7 @@ var Structr = {
 			}
 		});
 	},
-	closeLeftSlideOuts: function(slideouts, activeTabKey) {
+	closeLeftSlideOuts: function(slideouts, activeTabKey, callback) {
 		var wasOpen = false;
 		var osw;
 		slideouts.forEach(function(w) {
@@ -948,13 +949,14 @@ var Structr = {
 			if (Math.abs(l) <= 3) {
 				wasOpen = true;
 				osw = sw;
-				s.animate({left: '-=' + sw + 'px'}, {duration: 100}).zIndex(2);
+				s.animate({left: '-=' + sw + 'px'}, 100, function () {
+					if (typeof callback === 'function') {
+						callback(wasOpen, -osw, 0);
+					}
+				}).zIndex(2);
 				$('.compTab.active', s).removeClass('active').draggable("destroy");
 			}
 		});
-		if (wasOpen) {
-			_Pages.resize(-osw, 0);
-		}
 		LSWrapper.removeItem(activeTabKey);
 	},
 	pushDialog: function(id, recursive) {
