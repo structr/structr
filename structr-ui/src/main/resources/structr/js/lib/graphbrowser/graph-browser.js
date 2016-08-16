@@ -1132,7 +1132,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		});
 
 		_s.renderers[0].bind('render', function(e) {
-				_s.renderers[0].halo({
+			_s.renderers[0].halo({
 				nodeHaloColor: colorForHalo,
 				nodeHaloSize: 10,
 				nodes: nodesForHalo
@@ -1600,6 +1600,7 @@ var animating = animating || undefined;
 
 	var _expanded = {};
 	var _hoverMap = {};
+	var _hoverMapPreventDuplicates = {};
 
 	var _active = false;
 	var _inNodesLoaded = false;
@@ -1745,7 +1746,8 @@ var animating = animating || undefined;
 		var preResult = result;
 		result = _callbacks.filterNodes(result, 'out');
 		$.each(result, function(i, result){
-			if (!_s.graph.nodes(result.targetNode.id)) {
+			if (!_s.graph.nodes(result.targetNode.id) && !_hoverMapPreventDuplicates[result.targetNode.id]) {
+				_hoverMapPreventDuplicates[result.targetNode.id] = true;
 				if (_hoverMap[result.targetNode.type]) {
 					_hoverMap[result.targetNode.type]++;
 				} else {
@@ -1768,8 +1770,9 @@ var animating = animating || undefined;
 		var preResult = result;
 		result = _callbacks.filterNodes(result, 'in');
 		$.each(result, function(i, result){
-			if (!_s.graph.nodes(result.sourceNode.id)) {
-				if (_hoverMap[result.sourceNode.type]) {
+			if(!_s.graph.nodes(result.sourceNode.id) && !_hoverMapPreventDuplicates[result.sourceNode.id]){
+				_hoverMapPreventDuplicates[result.sourceNode.id] = true;
+				if (_hoverMap[result.sourceNode.type]){
 					_hoverMap[result.sourceNode.type]++;
 				} else {
 					_hoverMap[result.sourceNode.type] = 1;
@@ -1787,13 +1790,14 @@ var animating = animating || undefined;
 	Graphbrowser.Modules.NodeExpander.prototype.updateHoverInfo = function(node, hoverMap) {
 		var self = this;
 		_active = false;
+		var rendererId = _s.renderers[0].conradId;
 		var graphInfo  = $(_infoContainer);
 		var num        = Object.keys(hoverMap).length;
 		var i          = 0;
-		var size       = node['renderer1:size'];
+		var size       = node['renderer' + rendererId + ':size'];
 		var radius     = Math.max(size, 40);
-		var x          = Math.floor(node['renderer1:x']);
-		var y          = node['renderer1:y'];
+		var x          = Math.floor(node['renderer' + rendererId + ':x']);
+		var y          = node['renderer' + rendererId + ':y'];
 		var startAngle = 0;
 		switch (num) {
 			case 2: startAngle = (Math.PI / 8) * 7; break;
@@ -1832,6 +1836,7 @@ var animating = animating || undefined;
 			});
 			i++;
 		});
+		_hoverMapPreventDuplicates = {};
 	};
 
 	Graphbrowser.Modules.NodeExpander.prototype.collapseNode = function(node) {
@@ -2782,7 +2787,6 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 				if(schemaInfo === undefined)
 					return;
 
-
 				if(cameraRatio > 1){
 	                //triggerDistance = (_maxDistance / (1/cameraRatio));
 	            	triggerDistance = (nd * cameraRatio);
@@ -2790,7 +2794,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 	            if(cameraRatio < 1){
 	            	//triggerDistance = (_maxDistance / (cameraRatio));
-	                triggerDistance = (nd / (1/cameraRatio));
+	                triggerDistance = (nd * cameraRatio);
 	            }
 
 				if(keys.shiftKey === true && triggerDistance <= _maxDistance)
@@ -2798,12 +2802,11 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 				else if(keys.ctrlKey === true && triggerDistance <= _maxDistance)
 					relatedToOrFrom = "from";
 
-
 				switch(relatedToOrFrom){
 					case "from":
 						if(schemaInfo.relatedFrom !== undefined){
 							var dis = _maxDistance / schemaInfo.relatedFrom.length;
-							var length = (schemaInfo.relatedFrom.length -1), selector;
+							var length = (schemaInfo.relatedFrom.length), selector;
 
 							while(length >= 0){
 								if(nd < (length * dis))
@@ -2811,32 +2814,39 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 								length--;
 							}
 
-							//postMessage({msg: 'debug', text: "Trigger: " + triggerDistance + "  -  nodeDistance: " + nd + "  -  selector: " + selector});
-							var related = schemaInfo.relatedFrom[selector];
-							var newEdgeId = selector + ":" + _nodes[counter].id + ":" + dragedNode.id;
-							allTypesPossible = "allSourceTypesPossible";
-							possibleTypes = "possibleSourceTypes";
-							compareTarget = dragedNode.id;
-							compareSource = _nodes[counter].id;
+							if(selector){
+								selector -= 1;
+								postMessage({msg: 'debug', text: "Trigger: " + triggerDistance + "  -  nodeDistance: " + nd + "  -  selector: " + selector});
+								related = schemaInfo.relatedFrom[selector];
+								var newEdgeId = selector + ":" + _nodes[counter].id + ":" + dragedNode.id;
+								allTypesPossible = "allSourceTypesPossible";
+								possibleTypes = "possibleSourceTypes";
+								compareTarget = dragedNode.id;
+								compareSource = _nodes[counter].id;
+							}
 						}
 					break
 					case "to":
 						if(schemaInfo.relatedTo !== undefined){
 							var dis = _maxDistance / schemaInfo.relatedTo.length;
-							var length = (schemaInfo.relatedTo.length -1), selector;
+							var length = (schemaInfo.relatedTo.length), selector;
 
 							while(length >= 0){
 								if(nd < (length * dis))
 									selector = length;
 								length--;
 							}
-							//postMessage({msg: 'debug', text: "Trigger: " + triggerDistance + "  -  nodeDistance: " + nd + "  -  selector: " + selector});
-							related = schemaInfo.relatedTo[selector];
-							var newEdgeId = selector + ":" + dragedNode.id + ":" + _nodes[counter].id;
-							allTypesPossible = "allTargetTypesPossible";
-							possibleTypes = "possibleTargetTypes";
-							compareTarget = _nodes[counter].id;
-							compareSource = dragedNode.id;
+
+							if(selector){
+								selector -= 1;
+								postMessage({msg: 'debug', text: "Trigger: " + triggerDistance + "  -  nodeDistance: " + nd + "  -  selector: " + selector});
+								related = schemaInfo.relatedTo[selector];
+								var newEdgeId = selector + ":" + dragedNode.id + ":" + _nodes[counter].id;
+								allTypesPossible = "allTargetTypesPossible";
+								possibleTypes = "possibleTargetTypes";
+								compareTarget = _nodes[counter].id;
+								compareSource = dragedNode.id;
+							}
 						}
 					break;
 					default:
