@@ -2816,7 +2816,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 							if(selector){
 								selector -= 1;
-								postMessage({msg: 'debug', text: "Trigger: " + triggerDistance + "  -  nodeDistance: " + nd + "  -  selector: " + selector});
+								//postMessage({msg: 'debug', text: "Trigger: " + triggerDistance + "  -  nodeDistance: " + nd + "  -  selector: " + selector});
 								related = schemaInfo.relatedFrom[selector];
 								var newEdgeId = selector + ":" + _nodes[counter].id + ":" + dragedNode.id;
 								allTypesPossible = "allSourceTypesPossible";
@@ -2839,7 +2839,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 							if(selector){
 								selector -= 1;
-								postMessage({msg: 'debug', text: "Trigger: " + triggerDistance + "  -  nodeDistance: " + nd + "  -  selector: " + selector});
+								//postMessage({msg: 'debug', text: "Trigger: " + triggerDistance + "  -  nodeDistance: " + nd + "  -  selector: " + selector});
 								related = schemaInfo.relatedTo[selector];
 								var newEdgeId = selector + ":" + dragedNode.id + ":" + _nodes[counter].id;
 								allTypesPossible = "allTargetTypesPossible";
