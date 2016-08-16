@@ -2497,7 +2497,7 @@ td#cascading-options, td#propagation-options {
 }
 
 /*
- * Filesystem
+ * Filesystem-like pages (Filesystem, Contents, Crawer)
  */
 
 .jstree-anchor {
@@ -2509,24 +2509,24 @@ td#cascading-options, td#propagation-options {
 	font-weight: bold;
 }
 
-#filesystem-main {
+#filesystem-main, #contents-main, #crawler-main {
 	display: table-row;
 }
 
-#filesystem-main b.name_ {
+#filesystem-main b.name_, #contents-main b.name, #crawler-main b.name {
 	font-weight: normal;
 }
 
-#filesystem-main input.new-name {
+#filesystem-main input.new-name, #contents-main input.new-name, #crawler-main input.new-name {
 	font-weight: normal;
 }
 
-#file-tree .nodeHover {
+#file-tree .nodeHover, #content-tree .nodeHover, #crawler-tree .nodeHover {
 	border: none;
 	background-color: #eff8e3 ! important;
 }
 
-#file-tree-container, #content-tree-container {
+#file-tree-container, #content-tree-container, #crawler-tree-container {
 	display: table-cell;
 	vertical-align: top;
 	padding: 12px;
@@ -2534,7 +2534,7 @@ td#cascading-options, td#propagation-options {
 	padding-top: 12px;
 }
 
-#file-tree, #contents-tree {
+#file-tree, #contents-tree, #crawler-tree {
 	padding-top: 8px;
 	width: 400px;
 	min-width: 400px;
@@ -2545,17 +2545,17 @@ td#cascading-options, td#propagation-options {
 	border: 1px solid #a5a5a5;
 }
 
-#folder-contents-container, #contents-contents-container {
+#folder-contents-container, #contents-contents-container, #crawler-list-container {
 	display: table-cell;
 	vertical-align: top;
 	padding: 12px;
 }
 
-#folder-contents-container select, #contents-contents-container select {
+#folder-contents-container select, #contents-contents-container select, #crawler-list-container select {
 	padding: 3px;
 }
 
-#folder-contents, #contents-contents {
+#folder-contents, #contents-contents, #crawler-list {
 	vertical-align: top;
 	background-color: #fff;
 	border-radius: 3px;
@@ -2566,22 +2566,42 @@ td#cascading-options, td#propagation-options {
 	font-size: 9pt;
 }
 
-#folder-contents h1, #contents-contents h1 {
+#folder-contents h1, #contents-contents h1, #crawler-list h1 {
 	margin: 0px;
 }
 
-#folder-contents table, #contents-contents table {
+#folder-contents table, #contents-contents table, #crawler-list table {
 	margin: 0px;
 	font-size: 9pt;
 	font-family: sans-serif;
 	width: 100%;
 }
 
-#folder-contents td.file-type, #contents-contents td.file-type {
+#folder-contents table {
+	table-layout: fixed;
+}
+
+#folder-contents table th:nth-child(1) {
 	width: 24px;
 }
 
-#folder-contents table th, #contents-contents table th {
+#folder-contents table th:nth-child(3) {
+	width: 48px;
+}
+
+#folder-contents table th:nth-child(4) {
+	width: 192px;
+}
+
+#folder-contents table th:nth-child(5) {
+	width: 120px;
+}
+
+#folder-contents td.file-type, #contents-contents td.file-type, #crawler-list td.file-type {
+	width: 24px;
+}
+
+#folder-contents table th, #contents-contents table th, #crawler-list table th {
 	text-align: left;
 	padding-left: 8px;
 }
@@ -2591,11 +2611,11 @@ table.dataTable thead th, table.dataTable thead td {
 }
 
 .jstree-default .jstree-wholerow-clicked {
-	background: #81ce25 ! important;
+	background: #b5e27f ! important;
 }
 
 .jstree-default .jstree-wholerow-hovered {
-	background: #eff8e3 ! important;
+	background: #81ce25 ! important;
 }
 
 #files-table {
@@ -2667,7 +2687,7 @@ i.fa-file-archive-o {
 	color: orange;
 }
 
-i.fa-folder {
+i.fa-folder, i.fa-sitemap {
 	color: #f1cd2e;
 }
 
@@ -2959,3 +2979,77 @@ i.fa.ps {
 	font-style: italic;
 }
 
+/**
+ * Crawler
+ */
+
+#page-frame {
+	border: 1px solid #e5e5e5;
+	width: 100%;
+	margin-top: 12px;
+	margin-bottom: 0;
+	padding: 0;
+	min-height: 600px;
+}
+
+.crawler-inputs input {
+	background: #fff;
+	border: 1px solid #c0c0c0;
+	margin: 3px 0;
+}
+
+input#element-path {
+	width: 100%;
+}
+
+input#element-link {
+	width: 100%;
+}
+
+input#element-id {
+	width: 40%;
+	margin-right: 12px;
+}
+
+input#element-class {
+	width: 40%;
+}
+
+.patterns > thead > tr > th:nth-child(2) {
+	width: 200px;
+}
+
+.selector > span,
+.sub-selector > span {
+	border: 1px solid transparent;
+	padding: 2px 4px;
+	cursor: pointer;
+	display: inline-block;
+}
+
+.sub-selector span.active-selector-element,
+.selector span.active-selector-element {
+	border: 1px solid #ccc;
+	background-color: #e7e7e7;
+	border-radius: 3px;
+}
+
+#crawler-list .site-header {
+	height: 40px;
+}
+
+#crawler-list .site-name {
+	min-width: 100px;
+	font-size: 2em;
+	margin-top: 0;
+	display: inline-block;
+}
+
+#crawler-list .delete {
+	margin-left: 4px;
+	cursor: pointer;
+}
+
+#crawler-list .add_page_icon {
+	margin-top: 12px;
+}
