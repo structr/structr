@@ -24,9 +24,6 @@ var sorting = false;
 var sortParent;
 
 var _Dragndrop = {
-	/**
-	 * Make DOM element a target for drop events
-	 */
 	makeDroppable: function(element, previewId) {
 		var el = $(element);
 		var tag, iframe = previewId ? $('#preview_' + previewId) : undefined;
@@ -37,8 +34,6 @@ var _Dragndrop = {
 			accept: '.node, .element, .content, .image, .file, .widget, .data-binding-attribute, .data-binding-type',
 			greedy: true,
 			hoverClass: 'nodeHover',
-			//appendTo: 'body',
-			//tolerance: 'pointer',
 			drop: function(e, ui) {
 
 				_Logger.log(_LogType.DND, 'Drop event', e, ui);
@@ -53,12 +48,10 @@ var _Dragndrop = {
 				e.stopPropagation();
 
 				var self = $(this), related;
-				//if (el.sortable) el.sortable('refresh');
 
 				var sourceId = Structr.getId(ui.draggable) || Structr.getComponentId(ui.draggable);
 
 				if (!sourceId) {
-
 					// palette element dragged
 
 					var d = $(ui.draggable);
@@ -74,7 +67,7 @@ var _Dragndrop = {
 
 				if (self.hasClass('jstree-wholerow')) {
 					targetId = self.parent().prop('id');
-					
+
 					if (targetId === 'root') {
 						Command.setProperty(sourceId, 'parent', null, false, function() {
 							$(ui.draggable).remove();
@@ -101,7 +94,7 @@ var _Dragndrop = {
 
 				var source = StructrModel.obj(sourceId);
 				var target = StructrModel.obj(targetId);
-				
+
 				var page = self.closest('.page')[0];
 
 				if (!page) {
@@ -137,9 +130,6 @@ var _Dragndrop = {
 		});
 
 	},
-	/**
-	 * Enable sorting on DOM element
-	 */
 	makeSortable: function(element) {
 		var el = $(element);
 
@@ -187,10 +177,8 @@ var _Dragndrop = {
 				Command.insertBefore(parentId, id, refId);
 				sorting = false;
 				sortParent = undefined;
-				//_Pages.reloadPreviews();
 			},
 			stop: function(event, ui) {
-				//$(ui.sortable).remove();
 				sorting = false;
 				_Entities.resetMouseOverState(ui.item);
 				$(event.toElement).one('click', function(e) {
@@ -218,27 +206,20 @@ var _Dragndrop = {
 		if (source && pageId && source.pageId && pageId !== source.pageId) {
 
 			if (shadowPage && source.pageId === shadowPage.id) {
-
 				Command.cloneComponent(source.id, target.id);
 				_Logger.log(_LogType.DND, 'dropped', source.id, 'onto', target.id, 'in page', pageId);
 
 			} else if (source.pageId !== target.pageId) {
-
 				Command.cloneNode(source.id, target.id, true);
 				_Logger.log(_LogType.DND, 'dropped', source.id, 'onto', target.id, 'in page', pageId);
 
 			} else {
-
 				Command.appendChild(source.id, target.id, pageId);
 				_Logger.log(_LogType.DND, 'dropped', source.id, 'onto', target.id, 'in page', pageId);
 
 			}
 
-			//Command.copyDOMNode(source.id, target.id);
-			//_Entities.showSyncDialog(source, target);
-			//_Elements.reloadComponents();
 			return false;
-
 		}
 
 		// element dropped on itself?
@@ -248,21 +229,15 @@ var _Dragndrop = {
 		}
 
 		if (source && source.isWidget) {
-
 			return _Dragndrop.widgetDropped(source, target, pageId);
-
 		}
 
 		if (source && source.isImage) {
-
 			return _Dragndrop.imageDropped(source, target, pageId);
-
 		}
 
 		if (source && (source.isFile || source.isFolder)) {
-
 			return _Dragndrop.fileDropped(source, target, pageId);
-
 		}
 
 		if (!source && tag) {
@@ -339,10 +314,10 @@ var _Dragndrop = {
 		if (target.type !== 'Template' && (target.isContent || target.type === 'Comment')) {
 			if (tag === 'content' || tag === 'comment') {
 				_Logger.log(_LogType.DND, 'content element dropped on content or comment, doing nothing');
-				return false;
+			} else {
+				_Logger.log(_LogType.DND, 'wrap content', pageId, target.id, tag);
+				Command.wrapContent(pageId, target.id, tag);
 			}
-			_Logger.log(_LogType.DND, 'wrap content', pageId, target.id, tag);
-			Command.wrapContent(pageId, target.id, tag);
 		} else {
 			Command.createAndAppendDOMNode(pageId, target.id, tag !== 'content' ? tag : '', nodeData);
 		}
@@ -350,15 +325,13 @@ var _Dragndrop = {
 	},
 	widgetDropped: function(source, target, pageId) {
 
-		Structr.modules['widgets'].unload();
 		Structr.makePagesMenuDroppable();
 
-		//var pattern = /^\[[a-zA-Z]+\]$/;
 		var pattern = /\[[a-zA-Z:,]+\]/g;
-		var text = source.source;
-		if (text) {
+		var widgetSource = source.source;
+		if (widgetSource) {
 
-			var rawMatches = text.match(pattern);
+			var rawMatches = widgetSource.match(pattern);
 
 			if (rawMatches) {
 
@@ -366,9 +339,7 @@ var _Dragndrop = {
 
 				if (matches && matches.length) {
 
-					Structr.dialog('Configure Widget', function() {
-					}, function() {
-					});
+					Structr.dialog('Configure Widget', function() { }, function() { });
 
 					dialogText.append('<p>Fill out the following parameters to correctly configure the widget.</p><table class="props"></table>');
 					var table = $('table', dialogText);
@@ -382,8 +353,8 @@ var _Dragndrop = {
 						if (propertyKey.contains(":")) {
 
 							var parts = propertyKey.split(":");
-							if (parts.length === 2) {
 
+							if (parts.length === 2) {
 								propertyKey = parts[0];
 								options = parts[1];
 								hasOptions = true;
@@ -400,7 +371,6 @@ var _Dragndrop = {
 							buffer += '<select id="' + propertyKey + '" class="input-field" >';
 
 							$.each(options.split(","), function(i, option) {
-
 								buffer += '<option>' + option + '</option>';
 							});
 
@@ -425,14 +395,12 @@ var _Dragndrop = {
 							$.each($('.input-field', table), function(i, m) {
 								var key = $(m).prop('id').replace(/\[/, '').replace(/\]/, '');
 								attrs[key] = $(this).val();
-								//console.log(this, match, key, attrs[key]);
 							});
 
 						});
 
-						//console.log(source.source, elementId, pageId, attrs);
 						e.stopPropagation();
-						Command.appendWidget(text, target.id, pageId, widgetsUrl, attrs);
+						Command.appendWidget(widgetSource, target.id, pageId, widgetsUrl, attrs);
 
 						dialogCancelButton.click();
 						return false;
@@ -443,32 +411,30 @@ var _Dragndrop = {
 			} else {
 
 				// If no matches, directly append widget
-				Command.appendWidget(source.source, target.id, pageId, widgetsUrl);
+				Command.appendWidget(widgetSource, target.id, pageId, widgetsUrl);
 
 			}
 
 		}
 
-		return;
-
 	},
 	fileDropped: function(source, target, pageId) {
 		var refreshTimeout;
 		if (!pageId) {
-			
+
 			if (source.id === target.id) {
 				return false;
 			}
-			
+
 			if (selectedElements.length > 1) {
 
 				$.each(selectedElements, function(i, fileEl) {
 					var fileId = Structr.getId(fileEl);
-					
+
 					if (fileId === target.id) {
 						return false;
 					}
-					
+
 					Command.appendFile(fileId, target.id, function() {
 						if (refreshTimeout) {
 							window.clearTimeout(refreshTimeout);
@@ -477,7 +443,7 @@ var _Dragndrop = {
 							_Filesystem.refreshTree();
 							refreshTimeout = 0;
 						}, 100);
-						
+
 					});
 				});
 				selectedElements.length = 0;
@@ -487,7 +453,7 @@ var _Dragndrop = {
 					_Filesystem.refreshTree();
 				});
 			}
-			
+
 			return true;
 		}
 

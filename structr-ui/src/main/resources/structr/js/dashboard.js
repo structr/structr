@@ -24,10 +24,6 @@ $(document).ready(function() {
 });
 
 var _Dashboard = {
-	icon: 'icon/page.png',
-	add_icon: 'icon/page_add.png',
-	delete_icon: 'icon/page_delete.png',
-	clone_icon: 'icon/page_copy.png',
 	init: function() {},
 	unload: function() {},
 	onload: function() {
@@ -53,7 +49,7 @@ var _Dashboard = {
 
 		});
 		_Dashboard.checkAdmin();
-		
+
 		aboutMe.append('<button id="clear-local-storage-on-server">Reset stored UI settings</button>');
 		$('#clear-local-storage-on-server').on('click', function() {
 			_Dashboard.clearLocalStorageOnServer();
@@ -73,7 +69,7 @@ var _Dashboard = {
 			items.forEach(function(i) {
 				myContents.append('<div class="dashboard-info"><a href="/' + i.name + '" target="_blank"><i class="fa ' + _Contents.getIcon(i) + '"></i></a> <a class="contents-link" id="open-' + i.id + '" href="javascript:void(0)">' + _Dashboard.displayName(i) + '</a>' + _Dashboard.displayVersion(i) + '</div>');
 			});
-			
+
 			$('.contents-link', myContents).on('click', function(e) {
 				e.preventDefault();
 				var id = $(this).prop('id').slice(5);

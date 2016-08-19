@@ -26,10 +26,6 @@ $(document).ready(function() {
 });
 
 var _AppBuilder = {
-	icon: 'icon/page.png',
-	add_icon: 'icon/page_add.png',
-	delete_icon: 'icon/page_delete.png',
-	clone_icon: 'icon/page_copy.png',
 	autoRefresh: [],
 	init: function() {
 
@@ -212,7 +208,7 @@ var _AppBuilder = {
 					var area = $(el);
 
 					var children = area.children();
-	
+
 					if (children.size() === 0) {
 						area.css({minHeight: 100});
 					} else {
@@ -240,7 +236,7 @@ var _AppBuilder = {
 
 							var tag;
 							if (!sourceId) {
-								
+
 								var d = $(ui.draggable);
 								tag = d.text();
 								if (d.attr('subkey')) {

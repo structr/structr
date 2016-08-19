@@ -25,8 +25,16 @@ var _Elements = {
 	icon_comp: 'icon/brick_yellow.png',
 	icon_shared_template: 'icon/layout_yellow.png',
 	icon_repeater: 'icon/bricks.png',
-	add_icon: 'icon/brick_add.png',
 	delete_icon: 'icon/brick_delete.png',
+	content_icon: 'icon/page_white.png',
+	active_content_icon: 'icon/page_yellow.png',
+	comment_icon: 'icon/comment.png',
+	comp_icon: 'icon/page_yellow.png',
+	comp_templ_icon: 'icon/layout_yellow.png',
+	template_icon: 'icon/layout_content.png',
+	active_template_icon: 'icon/layout_yellow.png',
+	add_content_icon: 'icon/page_white_add.png',
+	delete_content_icon: 'icon/page_white_delete.png',
 	elementNames: [
 		// The root element
 		'html',
@@ -55,257 +63,187 @@ var _Elements = {
 	],
 	elementGroups: [
 		{
-			'name': 'Root',
-			'elements': ['html', 'content', 'comment', 'template']
+			name: 'Root',
+			elements: ['html', 'content', 'comment', 'template']
 		},
 		{
-			'name': 'Metadata',
-			'elements': ['head', 'title', 'base', 'link', 'meta', 'style']
+			name: 'Metadata',
+			elements: ['head', 'title', 'base', 'link', 'meta', 'style']
 		},
 		{
-			'name': 'Sections',
-			'elements': ['body', 'section', 'nav', 'article', 'aside', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hgroup', 'header', 'footer', 'address']
+			name: 'Sections',
+			elements: ['body', 'section', 'nav', 'article', 'aside', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hgroup', 'header', 'footer', 'address']
 		},
 		{
-			'name': 'Grouping',
-			'elements': ['div', 'p', 'hr', 'ol', 'ul', 'li', 'dl', 'dt', 'dd', 'pre', 'blockquote', 'figure', 'figcaption']
+			name: 'Grouping',
+			elements: ['div', 'p', 'hr', 'ol', 'ul', 'li', 'dl', 'dt', 'dd', 'pre', 'blockquote', 'figure', 'figcaption']
 		},
 		{
-			'name': 'Scripting',
-			'elements': ['script', 'noscript']
+			name: 'Scripting',
+			elements: ['script', 'noscript']
 		},
 		{
-			'name': 'Tabular',
-			'elements': ['table', 'tr', 'td', 'th', 'caption', 'colgroup', 'col', 'tbody', 'thead', 'tfoot']
+			name: 'Tabular',
+			elements: ['table', 'tr', 'td', 'th', 'caption', 'colgroup', 'col', 'tbody', 'thead', 'tfoot']
 		},
 		{
-			'name': 'Text',
-			'elements': ['a', 'em', 'strong', 'small', 's', 'cite', 'g', 'dfn', 'abbr', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr']
+			name: 'Text',
+			elements: ['a', 'em', 'strong', 'small', 's', 'cite', 'g', 'dfn', 'abbr', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr']
 		},
 		{
-			'name': 'Edits',
-			'elements': ['ins', 'del']
+			name: 'Edits',
+			elements: ['ins', 'del']
 		},
 		{
-			'name': 'Embedded',
-			'elements': ['img', 'video', 'audio', 'source', 'track', 'canvas', 'map', 'area', 'iframe', 'embed', 'object', 'param']
+			name: 'Embedded',
+			elements: ['img', 'video', 'audio', 'source', 'track', 'canvas', 'map', 'area', 'iframe', 'embed', 'object', 'param']
 		},
 		{
-			'name': 'Forms',
-			'elements': ['form', 'input', 'button', 'select', 'datalist', 'optgroup', 'option', 'textarea', 'fieldset', 'legend', 'label', 'keygen', 'output', 'progress', 'meter']
+			name: 'Forms',
+			elements: ['form', 'input', 'button', 'select', 'datalist', 'optgroup', 'option', 'textarea', 'fieldset', 'legend', 'label', 'keygen', 'output', 'progress', 'meter']
 		},
 		{
-			'name': 'Interactive',
-			'elements': ['details', 'summary', 'command', 'menu']
+			name: 'Interactive',
+			elements: ['details', 'summary', 'command', 'menu']
 		}
 	],
 	mostUsedAttrs: [
 		{
-			'elements': ['input'],
-			'attrs': ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder'],
-			'focus': 'type'
+			elements: ['input'],
+			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder'],
+			focus: 'type'
 		},
 		{
-			'elements': ['button'],
-			'attrs': ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'onclick']
+			elements: ['button'],
+			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'onclick']
 		},
 		{
-			'elements': ['select', 'option'],
-			'attrs': ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder']
+			elements: ['select', 'option'],
+			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder']
 		},
 		{
-			'elements': ['optgroup'],
-			'attrs': ['label', 'disabled'],
-			'focus': 'label'
+			elements: ['optgroup'],
+			attrs: ['label', 'disabled'],
+			focus: 'label'
 		},
 		{
-			'elements': ['form'],
-			'attrs': ['action', 'method']
+			elements: ['form'],
+			attrs: ['action', 'method']
 		},
 		{
-			'elements': ['img'],
-			'attrs': ['alt', 'title', 'src'],
-			'focus': 'src'
+			elements: ['img'],
+			attrs: ['alt', 'title', 'src'],
+			focus: 'src'
 		},
 		{
-			'elements': ['script', 'img', 'object'],
-			'attrs': ['type', 'rel', 'href', 'media', 'src'],
-			'focus': 'src'
+			elements: ['script', 'img', 'object'],
+			attrs: ['type', 'rel', 'href', 'media', 'src'],
+			focus: 'src'
 		},
 		{
-			'elements': ['link'],
-			'attrs': ['type', 'rel', 'href'],
-			'focus': 'href'
+			elements: ['link'],
+			attrs: ['type', 'rel', 'href'],
+			focus: 'href'
 		},
 		{
-			'elements': ['a'],
-			'attrs': ['type', 'rel', 'href', 'target'],
-			'focus': 'href'
+			elements: ['a'],
+			attrs: ['type', 'rel', 'href', 'target'],
+			focus: 'href'
 		},
 		{
-			'elements': ['td', 'th'],
-			'attrs': ['colspan', 'rowspan']
+			elements: ['td', 'th'],
+			attrs: ['colspan', 'rowspan']
 		},
 		{
-			'elements': ['label'],
-			'attrs': ['for', 'form'],
-			'focus' : 'for'
+			elements: ['label'],
+			attrs: ['for', 'form'],
+			focus: 'for'
 		},
 		{
-			'elements': ['style'],
-			'attrs': ['type', 'media', 'scoped'],
-			'focus' : 'type'
+			elements: ['style'],
+			attrs: ['type', 'media', 'scoped'],
+			focus: 'type'
 		},
 		{
-			'elements': ['iframe'],
-			'attrs': ['src', 'width', 'height'],
-			'focus' : 'src'
+			elements: ['iframe'],
+			attrs: ['src', 'width', 'height'],
+			focus: 'src'
 		},
 		{
-			'elements': ['source'],
-			'attrs': ['src', 'type', 'media'],
-			'focus' : 'src'
+			elements: ['source'],
+			attrs: ['src', 'type', 'media'],
+			focus: 'src'
 		},
 		{
-			'elements': ['video'],
-			'attrs': ['autoplay', 'controls', 'height', 'loop', 'muted', 'poster', 'preload', 'src', 'width'],
-			'focus' : 'controls'
+			elements: ['video'],
+			attrs: ['autoplay', 'controls', 'height', 'loop', 'muted', 'poster', 'preload', 'src', 'width'],
+			focus: 'controls'
 		},
 		{
-			'elements': ['audio'],
-			'attrs': ['autoplay', 'controls', 'loop', 'muted', 'preload', 'src'],
-			'focus' : 'controls'
+			elements: ['audio'],
+			attrs: ['autoplay', 'controls', 'loop', 'muted', 'preload', 'src'],
+			focus: 'controls'
 		}
 	],
 	voidAttrs: ['br', 'hr', 'img', 'input', 'link', 'meta', 'area', 'base', 'col', 'embed', 'keygen', 'menuitem', 'param', 'track', 'wbr'],
 	sortedElementGroups: [
 		{
-			'name': 'a',
-			'elements': ['a', 'abbr', 'address', 'area', 'aside', 'article', 'audio'],
+			name: 'a',
+			elements: ['a', 'abbr', 'address', 'area', 'aside', 'article', 'audio']
 		},
 		{
-			'name': 'b',
-			'elements': ['b', 'base', 'bdi', 'bdo', 'blockquote', 'body', 'br', 'button'],
+			name: 'b',
+			elements: ['b', 'base', 'bdi', 'bdo', 'blockquote', 'body', 'br', 'button']
 		},
 		{
-			'name': 'c',
-			'elements': ['canvas', 'caption', 'cite', 'code', 'colgroup', 'col', 'command', 'comment'],
+			name: 'c',
+			elements: ['canvas', 'caption', 'cite', 'code', 'colgroup', 'col', 'command', 'comment']
 		},
 		{
-			'name': 'd',
-			'elements': ['datalist', 'dd', 'del', 'details', 'div', 'dfn', 'dl', 'dt'],
+			name: 'd',
+			elements: ['datalist', 'dd', 'del', 'details', 'div', 'dfn', 'dl', 'dt']
 		},
 		{
-			'name': 'e-f',
-			'elements': ['em', 'embed', '|', 'fieldset', 'figcaption', 'figure', 'form', 'footer'],
+			name: 'e-f',
+			elements: ['em', 'embed', '|', 'fieldset', 'figcaption', 'figure', 'form', 'footer']
 		},
 		{
-			'name': 'g-h',
-			'elements': ['g', '|', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr'],
+			name: 'g-h',
+			elements: ['g', '|', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr']
 		},
 		{
-			'name': 'i-k',
-			'elements': ['i', 'iframe', 'img', 'input', 'ins', '|', 'kbd', 'keygen'],
+			name: 'i-k',
+			elements: ['i', 'iframe', 'img', 'input', 'ins', '|', 'kbd', 'keygen']
 		},
 		{
-			'name': 'l-m',
-			'elements': ['label', 'legend', 'li', 'link', '|', 'map', 'mark', 'menu', 'meta', 'meter'],
+			name: 'l-m',
+			elements: ['label', 'legend', 'li', 'link', '|', 'map', 'mark', 'menu', 'meta', 'meter']
 		},
 		{
-			'name': 'n-o',
-			'elements': ['nav', 'noscript', '|', 'object', 'ol', 'optgroup', 'option', 'output'],
+			name: 'n-o',
+			elements: ['nav', 'noscript', '|', 'object', 'ol', 'optgroup', 'option', 'output']
 		},
 		{
-			'name': 'p-r',
-			'elements': ['p', 'param', 'pre', 'progress', '|', 'rp', 'rt', 'ruby'],
+			name: 'p-r',
+			elements: ['p', 'param', 'pre', 'progress', '|', 'rp', 'rt', 'ruby']
 		},
 		{
-			'name': 's',
-			'elements': ['s', 'samp', 'script', 'section', 'select', 'small', 'source', 'span', 'strong', 'style', 'sub', 'summary', 'sup'],
+			name: 's',
+			elements: ['s', 'samp', 'script', 'section', 'select', 'small', 'source', 'span', 'strong', 'style', 'sub', 'summary', 'sup']
 		},
 		{
-			'name': 't',
-			'elements': ['table', 'tbody', 'td', 'textarea', 'th', 'thead', 'tfoot', 'time', 'title', 'tr', 'track'],
+			name: 't',
+			elements: ['table', 'tbody', 'td', 'textarea', 'th', 'thead', 'tfoot', 'time', 'title', 'tr', 'track']
 		},
 		{
-			'name': 'u-w',
-			'elements': ['u', 'ul', '|', 'var', 'video', '|', 'wbr'],
+			name: 'u-w',
+			elements: ['u', 'ul', '|', 'var', 'video', '|', 'wbr']
 		}
 	],
-	/**
-	 * Reload widgets
-	 */
-	reloadWidgets: function() {
-
-		widgetsSlideout.find(':not(.compTab)').remove();
-
-		widgetsSlideout.append('<div class="ver-scrollable"><h2>Local Widgets</h2><div id="widgets"></div><h2>Remote Widgets</h2><input placeholder="Filter..." id="remoteWidgetsFilter"><div id="remoteWidgets"></div></div>');
-		widgets = $('#widgets', widgetsSlideout);
-
-
-		widgets.droppable({
-			drop: function(e, ui) {
-				e.preventDefault();
-				e.stopPropagation();
-				dropBlocked = true;
-				var sourceEl = $(ui.draggable);
-				if (sourceEl.parent().attr('id') === 'widgets') {
-					_Logger.log(_LogType.ELEMENTS, 'widget dropped on widget area, aborting');
-					return false;
-				}
-				var sourceId = Structr.getId(sourceEl);
-
-				$.ajax({
-					url: viewRootUrl + sourceId + '?edit=1',
-					contentType: 'text/html',
-					statusCode: {
-						200: function(data) {
-							Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', data, function(entity) {
-
-								//_Widgets.appendWidgetElement(entity, false, localWidgetsArea);
-
-							});
-						}
-					}
-				});
-			}
-
-		});
-
-		_Pager.initPager('local-widgets', 'Widget', 1, 25);
-		_Pager.addPager('local-widgets', widgets, true, 'Widget', 'public', function(entities) {
-			entities.forEach(function (entity) {
-				StructrModel.create(entity, null, false);
-				_Widgets.appendWidgetElement(entity, false, widgets);
-			});
-		});
-
-		remoteWidgets = $('#remoteWidgets', widgetsSlideout);
-
-		$('#remoteWidgetsFilter').keyup(function (event) {
-
-			var e = event || window.event();
-
-			if (e.keyCode === 27) {
-				$(this).val("");
-			}
-
-			_Widgets.repaintRemoteWidgets($(this).val());
-
-		});
-
-		_Widgets.refreshRemoteWidgets();
-
-	},
-	/**
-	 * Reload HTML palette
-	 *
-	 * @returns {undefined}
-	 */
 	reloadPalette: function() {
 
 		paletteSlideout.find(':not(.compTab)').remove();
-		paletteSlideout.append('<div class="ver-scrollable" id="paletteArea"></div>')
+		paletteSlideout.append('<div class="ver-scrollable" id="paletteArea"></div>');
 		palette = $('#paletteArea', paletteSlideout);
 
 		palette.droppable({
@@ -338,14 +276,11 @@ var _Elements = {
 
 		}
 	},
-	/**
-	 * Reload components in component area
-	 */
 	reloadComponents: function() {
 
 		if (!componentsSlideout) return;
 		componentsSlideout.find(':not(.compTab)').remove();
-		componentsSlideout.append('<div class="ver-scrollable" id="componentsArea"></div>')
+		componentsSlideout.append('<div class="ver-scrollable" id="componentsArea"></div>');
 		components = $('#componentsArea', componentsSlideout);
 
 		Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entities) {
@@ -396,18 +331,15 @@ var _Elements = {
 		});
 
 	},
-	/**
-	 * Reload unattached nodes in elements area
-	 */
 	reloadUnattachedNodes: function() {
 
 		elementsSlideout.find(':not(.compTab)').remove();
-		elementsSlideout.append('<div class="ver-scrollable" id="elementsArea"></div>')
+		elementsSlideout.append('<div class="ver-scrollable" id="elementsArea"></div>');
 		elements = $('#elementsArea', elementsSlideout);
 
 		elements.append('<button class="btn" id="delete-all-unattached-nodes">Delete all</button>');
 
-		var btn = $('#delete-all-unattached-nodes')
+		var btn = $('#delete-all-unattached-nodes');
 		btn.on('click', function() {
 			Structr.confirmation('<p>Delete all DOM elements without parent?</p>',
 					function() {
@@ -447,9 +379,6 @@ var _Elements = {
 	componentNode: function(id) {
 		return $($('#componentId_' + id)[0]);
 	},
-	/**
-	 * Create a DOM node and append to the appropriate parent
-	 */
 	appendElementElement: function(entity, refNode, refNodeIsParent) {
 		_Logger.log(_LogType.ELEMENTS, '_Elements.appendElementElement', entity);
 
@@ -576,9 +505,9 @@ var _Elements = {
 				var file = {'name': entity.linkable, 'id': entity.linkableId};
 
 				Structr.dialog('Edit ' + file.name, function() {
-					_Logger.log(_LogType.ELEMENTS, 'content saved')
+					_Logger.log(_LogType.ELEMENTS, 'content saved');
 				}, function() {
-					_Logger.log(_LogType.ELEMENTS, 'cancelled')
+					_Logger.log(_LogType.ELEMENTS, 'cancelled');
 				});
 				_Filesystem.editContent(this, file, $('#dialogBox .dialogText'));
 
@@ -928,88 +857,154 @@ var _Elements = {
 			window.setTimeout(setHover, 10);
 
 			var menu = [
-				{ name: 'Insert HTML element', elements: _Elements.sortedElementGroups },
+				{
+					name: 'Insert HTML element',
+					elements: _Elements.sortedElementGroups
+				},
 				{
 					name: 'Insert content element',
-					elements: [
-						'content', 'template'
-					],
+					elements: ['content', 'template'],
 					separator: true
 				},
-				{ name: 'Query and Data Binding...',  func: function() { _Entities.showProperties(entity, 'query'); } },
-				{ name: 'Edit Mode Binding...',    func: function() { _Entities.showProperties(entity, 'editBinding'); } },
-				{ name: 'HTML Attributes...', func: function() { _Entities.showProperties(entity, '_html_'); } },
-				{ name: 'Node Properties...', func: function() { _Entities.showProperties(entity, 'ui'); }, separator: true },
-				{ name: 'Security...', elements: [
-
-					{ name: 'Access Control and Visibility...', func: function() { _Entities.showAccessControlDialog(entity.id); }, separator: true },
-					{ name: 'Authenticated Users...', elements: [
-						{ name: 'Make element visible', func: function() {
-							Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, false); }
-						},
-						{ name: 'Make Element invisible', func: function() {
-							Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, false); }
-						},
-						{ name: 'Make subtree visible', func: function() {
-							Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, true); },
-							separator: true
-						},
-						{ name: 'Make subtree invisible', func: function() {
-							Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, true); }
-						},
-						],
-						separator: true
-					},
-					{ name: 'Public Users...', elements: [
-						{ name: 'Make element visible', func: function() {
-							Command.setProperty(entity.id, 'visibleToPublicUsers', true, false); }
-						},
-						{ name: 'Make element invisible', func: function() {
-							Command.setProperty(entity.id, 'visibleToPublicUsers', false, false); }
-						},
-						{ name: 'Make subtree visible', func: function() {
-							Command.setProperty(entity.id, 'visibleToPublicUsers', true, true); },
-							separator: true
-						},
-						{ name: 'Make subtree invisible', func: function() {
-							Command.setProperty(entity.id, 'visibleToPublicUsers', false, true); }
-						},
-						]
+				{
+					name: 'Query and Data Binding...',
+					func: function() {
+						_Entities.showProperties(entity, 'query');
 					}
+				},
+				{
+					name: 'Edit Mode Binding...',
+					func: function() {
+						_Entities.showProperties(entity, 'editBinding');
+					}
+				},
+				{
+					name: 'HTML Attributes...',
+					func: function() {
+						_Entities.showProperties(entity, '_html_');
+					}
+				},
+				{
+					name: 'Node Properties...',
+					func: function() {
+						_Entities.showProperties(entity, 'ui');
+					},
+					separator: true
+				},
+				{
+					name: 'Security...',
+					elements: [
+						{
+							name: 'Access Control and Visibility...',
+							func: function() {
+								_Entities.showAccessControlDialog(entity.id);
+							},
+							separator: true
+						},
+						{
+							name: 'Authenticated Users...',
+							elements: [
+								{
+									name: 'Make element visible',
+									func: function() {
+										Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, false);
+									}
+								},
+								{
+									name: 'Make Element invisible',
+									func: function() {
+										Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, false);
+									}
+								},
+								{
+									name: 'Make subtree visible',
+									func: function() {
+										Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, true);
+									},
+									separator: true
+								},
+								{
+									name: 'Make subtree invisible',
+									func: function() {
+										Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, true);
+									}
+								}
+							],
+							separator: true
+						},
+						{
+							name: 'Public Users...',
+							elements: [
+								{
+									name: 'Make element visible',
+									func: function() {
+										Command.setProperty(entity.id, 'visibleToPublicUsers', true, false);
+									}
+								},
+								{
+									name: 'Make element invisible',
+									func: function() {
+										Command.setProperty(entity.id, 'visibleToPublicUsers', false, false);
+									}
+								},
+								{
+									name: 'Make subtree visible',
+									func: function() {
+										Command.setProperty(entity.id, 'visibleToPublicUsers', true, true);
+									},
+									separator: true
+								},
+								{
+									name: 'Make subtree invisible',
+									func: function() {
+										Command.setProperty(entity.id, 'visibleToPublicUsers', false, true);
+									}
+								}
+							]
+						}
 					],
 					separator: true
 				},
-				{ name: 'Expand / Collapse',   elements: [
-						{ name: 'Expand subtree', func: function() {
-
-							$(div).find('.node').each(function(i, el) {
-								if (!_Entities.isExpanded(el)) {
-									_Entities.toggleElement(el);
+				{
+					name: 'Expand / Collapse',
+					elements: [
+						{
+							name: 'Expand subtree',
+							func: function() {
+								$(div).find('.node').each(function(i, el) {
+									if (!_Entities.isExpanded(el)) {
+										_Entities.toggleElement(el);
+									}
+								});
+								if (!_Entities.isExpanded(div)) {
+									_Entities.toggleElement(div);
 								}
-							});
-							if (!_Entities.isExpanded(div)) {
-								_Entities.toggleElement(div);
 							}
-						}},
-						{ name: 'Collapse subtree', func: function() {
-
-							$(div).find('.node').each(function(i, el) {
-								if (_Entities.isExpanded(el)) {
-									_Entities.toggleElement(el);
+						},
+						{
+							name: 'Collapse subtree',
+							func: function() {
+								$(div).find('.node').each(function(i, el) {
+									if (_Entities.isExpanded(el)) {
+										_Entities.toggleElement(el);
+									}
+								});
+								if (_Entities.isExpanded(div)) {
+									_Entities.toggleElement(div);
 								}
-							});
-							if (_Entities.isExpanded(div)) {
-								_Entities.toggleElement(div);
 							}
-						}}
-					], separator: true
-				},
+						}
+					],
+					separator: true
+				}
 			];
 
 			// information about most used elements in this page from backend
 			if (entity.mostUsedTags && entity.mostUsedTags.length) {
 				menu.push({
-					name: 'Most used elements', elements: entity.mostUsedTags, separator: true
+					name: 'Most used elements',
+					elements: entity.mostUsedTags,
+					separator: true
 				});
 			}
 
@@ -1135,15 +1130,6 @@ var _Elements = {
 			});
 		});
 	},
-	content_icon: 'icon/page_white.png',
-	active_content_icon: 'icon/page_yellow.png',
-	comment_icon: 'icon/comment.png',
-	comp_icon: 'icon/page_yellow.png',
-	comp_templ_icon: 'icon/layout_yellow.png',
-	template_icon: 'icon/layout_content.png',
-	active_template_icon: 'icon/layout_yellow.png',
-	add_content_icon: 'icon/page_white_add.png',
-	delete_content_icon: 'icon/page_white_delete.png',
 	appendContentElement: function(entity, refNode, refNodeIsParent) {
 		_Logger.log(_LogType.CONTENTS, 'Contents.appendContentElement', entity, refNode);
 

@@ -40,8 +40,6 @@ $(document).ready(function() {
 
 var _Pages = {
 	icon: 'icon/page.png',
-	add_icon: 'icon/page_add.png',
-	delete_icon: 'icon/page_delete.png',
 	clone_icon: 'icon/page_copy.png',
 	autoRefresh: [],
 	init: function() {
@@ -218,7 +216,7 @@ var _Pages = {
 			if (Math.abs(widgetsSlideout.position().left - $(window).width()) <= 3) {
 				Structr.closeSlideOuts([paletteSlideout, componentsSlideout, elementsSlideout], activeTabRightKey);
 				Structr.openSlideOut(widgetsSlideout, this, activeTabRightKey, function() {
-					_Elements.reloadWidgets();
+					_Widgets.reloadWidgets();
 				});
 			} else {
 				Structr.closeSlideOuts([widgetsSlideout], activeTabRightKey);

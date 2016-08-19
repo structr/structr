@@ -64,10 +64,6 @@ $(document).ready(function() {
 });
 
 var _Graph = {
-	icon: 'icon/page.png',
-	add_icon: 'icon/page_add.png',
-	delete_icon: 'icon/page_delete.png',
-	clone_icon: 'icon/page_copy.png',
 	init: function() {
 
 		// Colors created with http://paletton.com
