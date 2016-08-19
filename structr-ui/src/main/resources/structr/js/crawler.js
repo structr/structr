@@ -27,33 +27,18 @@ var link, path, elid, claz, pageFrame, frameDoc;
 
 
 $(document).ready(function() {
-
 	Structr.registerModule('crawler', _Crawler);
 	_Crawler.resize();
-
 });
 
 var _Crawler = {
-
-	icon: 'icon/folder_page_white.png',
-	add_site_icon: 'icon/page_white_add.png',
-	add_page_icon: 'icon/page_add.png',
-	pull_file_icon: 'icon/page_white_put.png',
-	delete_file_icon: 'icon/page_white_delete.png',
-	add_folder_icon: 'icon/folder_add.png',
-	folder_icon: 'icon/folder-o.png',
-	delete_folder_icon: 'icon/folder_delete.png',
-	download_icon: 'icon/basket_put.png',
-
-
-
 	init: function() {
 
 		_Logger.log(_LogType.CRAWLER, '_Crawler.init');
 
 		main = $('#main');
 
-		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
+		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><img class="clearSearchIcon" src="' + _Icons.grey_cross_icon + '"></div>');
 
 		searchField = $('.search', main);
 		searchField.focus();
@@ -96,14 +81,14 @@ var _Crawler = {
 				width: windowWidth - 400 - 64 + 'px',
 				height: windowHeight - headerOffsetHeight - 55 + 'px'
 			});
-			
+
 			var pagerHeight         = $('.pager').height();
 			var crawlerInputsHeight = $('.crawler-inputs').height();
 			var filesTableHeight    = $('#files-table').height();
-			
+
 			$('#page-frame').css({height: (windowHeight - (headerOffsetHeight + pagerHeight + crawlerInputsHeight + filesTableHeight + 74)) + 'px'});
 		}
-		
+
 		Structr.resize();
 
 	},
@@ -119,7 +104,7 @@ var _Crawler = {
 		crawlerTree = $('#crawler-tree');
 		crawlerList = $('#crawler-list');
 
-		$('#crawler-list-container').prepend('<button class="add_site_icon button"><img title="Add Site" alt="Add Site" src="' + _Crawler.add_site_icon + '"> Add Site</button>');
+		$('#crawler-list-container').prepend('<button class="add_site_icon button"><img title="Add Site" alt="Add Site" src="' + _Icons.add_site_icon + '"> Add Site</button>');
 
 		$('.add_site_icon', main).on('click', function(e) {
 			e.stopPropagation();
@@ -155,7 +140,7 @@ var _Crawler = {
 			}
 
 			_Crawler.setWorkingDirectory(data.node.id);
-			
+
 			if (data.node.icon === 'fa fa-sitemap') {
 				_Crawler.displayPages(data.node.id, data.node.site);
 			} else {
@@ -170,7 +155,7 @@ var _Crawler = {
 		win.resize(function() {
 			_Crawler.resize();
 		});
-		
+
 		_Crawler.resize();
 
 		Structr.unblockMenu(100);
@@ -274,7 +259,7 @@ var _Crawler = {
 		crawlerList.children().show();
 	},
 	loadAndSetWorkingDir: function(callback) {
-		
+
 		currentSite = LSWrapper.getItem(currentSiteKey);
 		callback();
 
@@ -350,14 +335,14 @@ var _Crawler = {
 		Command.get(id, function(site) {
 
 			var name = (site.name || '[unnamed]');
-			crawlerList.append('<div class="site-header"><div id="id_' + site.id + '" class="site-name"><b class="name_" title="' + name + '">' + name + '</b></div><a title="Delete" class="delete"><img alt="Delete Icon" src="' + Structr.delete_icon + '"></a><img <input type="text" placeholder="Site name" value="' + site.name + '"></div>');
+			crawlerList.append('<div class="site-header"><div id="id_' + site.id + '" class="site-name"><b class="name_" title="' + name + '">' + name + '</b></div><a title="Delete" class="delete"><img alt="Delete Icon" src="' + _Icons.delete_icon + '"></a><img <input type="text" placeholder="Site name" value="' + site.name + '"></div>');
 
 			$('.site-header .site-name', crawlerList).on('click', function() {
 				_Entities.makeNameEditable($(this), 200, function() {
 					_Crawler.refreshTree();
 				});
 			});
-			
+
 			$('.site-header .delete', crawlerList).on('click', function(e) {
 				e.stopPropagation();
 				_Entities.deleteNode(this, site, false, function() {
@@ -375,8 +360,8 @@ var _Crawler = {
 					});
 				}
 			};
-			
-			
+
+
 
 			//Command.query('SourcePage', 1000, 1, 'name', 'asc', {site: id}, handlePage, true, 'ui');
 
@@ -402,7 +387,7 @@ var _Crawler = {
 					  '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>URL</th></tr></thead><tbody id="files-table-body"></tbody></table>'
 			);
 
-			crawlerList.append('<button class="add_page_icon button"><img title="Add Page" alt="Add Page" src="' + _Crawler.add_page_icon + '"> Add Page</button>');
+			crawlerList.append('<button class="add_page_icon button"><img title="Add Page" alt="Add Page" src="' + _Icons.add_page_icon + '"> Add Page</button>');
 			$('.add_page_icon', main).on('click', function(e) {
 				e.stopPropagation();
 				Command.create({ type: 'SourcePage', site: site.id }, function(site) {
@@ -432,7 +417,7 @@ var _Crawler = {
 		row.append('<td><div id="id_' + sourcePage.id + '" data-structr_type="item" class="node item"><b title="' +  (sourcePage.name ? sourcePage.name : '[unnamed]') + '" class="name_">' + (sourcePage.name ? fitStringToWidth(sourcePage.name, 200) : '[unnamed]') + '</b></td>');
 
 		row.append('<td class="url_" title="' + url + '">' + url + '</td>');
-		
+
 		//row.append('<td>' + sourcePage.type + (sourcePage.isThumbnail ? ' thumbnail' : '') + (sourcePage.isFile && sourcePage.contentType ? ' (' + sourcePage.contentType + ')' : '') + '</td>');
 		// row.append('<td>' + (sourcePage.owner ? (sourcePage.owner.name ? sourcePage.owner.name : '[unnamed]') : '') + '</td>');
 
@@ -448,18 +433,18 @@ var _Crawler = {
 				//_Crawler.refreshPatterns(sourcePage);
 				_Crawler.refreshTree();
 			});
-		});		
-		
+		});
+
 
 		div.on('remove', function() {
 			div.closest('tr').remove();
 		});
 
 		_Entities.appendAccessControlIcon(div, sourcePage);
-		
+
 		var delIcon = div.children('.delete_icon');
-		
-		var newDelIcon = '<img title="Delete item ' + sourcePage.name + '\'" alt="Delete item \'' + sourcePage.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+
+		var newDelIcon = '<img title="Delete item ' + sourcePage.name + '\'" alt="Delete item \'' + sourcePage.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
 		if (delIcon && delIcon.length) {
 			delIcon.replaceWith(newDelIcon);
 		} else {
@@ -498,7 +483,7 @@ var _Crawler = {
 				selectedElements = $('.node.selected');
 				if (selectedElements.length > 1) {
 					selectedElements.removeClass('selected');
-					return $('<img class="node-helper" src="icon/page_white_stack.png">');//.css("margin-left", event.clientX - $(event.target).offset().left);
+					return $('<img class="node-helper" src="' + _Icons.page_white_stack_icon + '">');//.css("margin-left", event.clientX - $(event.target).offset().left);
 				}
 				var hlp = helperEl.clone();
 				hlp.find('.button').remove();
@@ -510,9 +495,9 @@ var _Crawler = {
 		_Entities.setMouseOver(div);
 		_Entities.makeSelectable(div);
 
-	},	
+	},
 	displayPatterns: function(pageId) {
-		
+
 		Command.get(pageId, function(sourcePage) {
 
 			fastRemoveAllChildren(crawlerList[0]);
@@ -534,15 +519,15 @@ var _Crawler = {
 			}
 
 			_Crawler.resize();
-			
+
 		});
-		
+
 
 	},
 	refreshPatterns: function(sourcePage) {
-		
+
 		console.log('refresh patterns', sourcePage);
-		
+
 		fastRemoveAllChildren($('#files-table-body')[0]);
 
 		var itemsPager = _Pager.addPager('crawler-patterns', crawlerList, false, 'SourcePattern', 'ui', function(patterns) {
@@ -555,7 +540,7 @@ var _Crawler = {
 				});
 
 				frameDoc = pageFrame.contents();
-				
+
 				var subpatterns = $('.selector span');
 				subpatterns.each(function(i, subpattern) {
 
@@ -564,7 +549,7 @@ var _Crawler = {
 					var selector = prevSiblings.map(function(h) { return $(h).text(); }).join(' > ');
 
 					var sub = $(subpattern);
-					
+
 					sub.on('mouseover', function() {
 						_Crawler.highlight($(selector, frameDoc), 'green', selector);
 						sub.addClass('active-selector-element');
@@ -590,7 +575,7 @@ var _Crawler = {
 					$(pattern).html(h);
 				});
 
-				
+
 				var childPatterns = $('.sub-selector span');
 
 				childPatterns.each(function(i, subpattern) {
@@ -599,9 +584,9 @@ var _Crawler = {
 					var prevSiblings = $(subpattern).prevAll().toArray().reverse();
 					prevSiblings.push(this);
 					var selector = prevSiblings.map(function(h) { return $(h).text(); }).join(' > ');
-					
+
 					var sub = $(subpattern);
-					
+
 					sub.on('mouseover', function() {
 						_Crawler.highlight($(selector, frameDoc), 'green', selector);
 						sub.addClass('active-selector-element');
@@ -609,7 +594,7 @@ var _Crawler = {
 						_Crawler.unhighlight($(selector, frameDoc));
 						sub.removeClass('active-selector-element');
 					});
-					
+
 					if (selector.substring(selector.length-1) === 'a') {
 						sub.on('click', function() {
 
@@ -618,19 +603,19 @@ var _Crawler = {
 							var parentPatternId = m.closest('tr').prevAll().children('.selector').first().closest('tr').prop('id').substring(3);
 							//console.log(selector, fullselector); return;
 							// addSubpattern: function(selector, fullselector, parentPatternId, reusePattern, callback) {
-							
+
 //							console.log(fullselector);
 //							console.log(fullselector + ' > ' + selector);
 //							return;
-							
+
 							_Crawler.addSubpattern(fullselector, fullselector + ' > ' + selector, parentPatternId, true, function() {
 								_Crawler.refreshPatterns(sourcePage);
 							});
 						});
 					}
 				});
-				
-				
+
+
 				_Crawler.resize();
 			}
 		});
@@ -669,7 +654,7 @@ var _Crawler = {
 				$('#' + sourcePage.id + '_anchor').click();
 			}
 		});
-		
+
 	},
 	appendPatternRow: function(d) {
 
@@ -694,7 +679,7 @@ var _Crawler = {
 				+ '<td title="' + (subPattern.mappedType || '') + '" class="mappedType_">' + (subPattern.mappedType || '') + '</td><td title="' + (subPattern.mappedAttribute || '') + '" class="mappedAttribute_">' + (subPattern.mappedAttribute || '') + '</td>'
 				+ '<td class="subPage_"></td>'
 				+ '<td></td></tr>');
-		
+
 			if (subPattern.subPage) {
 				Command.get(subPattern.subPage.id, function(subPage) {
 					$('tr#row' + subPattern.id + ' .subPage_').text(subPage.name);
@@ -710,14 +695,14 @@ var _Crawler = {
 				e.stopPropagation();
 				_Entities.makeAttributeEditable($('tr#row' + subPattern.id), subPattern.id, 'td.mappedAttribute_', 'mappedAttribute', 200);
 			});
-			
+
 			var div = Structr.node(subPattern.id);
 			_Entities.appendAccessControlIcon(div, d);
 			_Entities.appendEditPropertiesIcon(div, subPattern);
 
 			var delIcon = div.children('.delete_icon');
 
-			var newDelIcon = '<img title="Delete item ' + d.name + '\'" alt="Delete item \'' + d.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+			var newDelIcon = '<img title="Delete item ' + d.name + '\'" alt="Delete item \'' + d.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
 			if (delIcon && delIcon.length) {
 				delIcon.replaceWith(newDelIcon);
 			} else {
@@ -729,11 +714,11 @@ var _Crawler = {
 				_Entities.deleteNode(this, subPattern, false, function() {
 					_Crawler.refreshPatterns(subPattern.parentPattern.sourcePage);
 				});
-			});			
+			});
 				_Entities.setMouseOver(div);
 				_Entities.makeSelectable(div);
 			});
-		
+
 		var row = $('#' + rowId);
 
 		row.append('<td class="file-type"><a href="javascript:void(0)"><i class="fa fa-code"></i></a></td>');
@@ -756,7 +741,7 @@ var _Crawler = {
 			e.stopPropagation();
 			_Entities.makeAttributeEditable(row, d.id, 'td.mappedType_', 'mappedType', 200);
 		});
-			
+
 		row.children('td.mappedAttribute_').on('click', function(e) {
 			e.stopPropagation();
 			_Entities.makeAttributeEditable(row, d.id, 'td.mappedAttribute_', 'mappedAttribute', 200);
@@ -769,10 +754,10 @@ var _Crawler = {
 		}
 
 		_Entities.appendAccessControlIcon(div, d);
-		
+
 		var delIcon = div.children('.delete_icon');
-		
-		var newDelIcon = '<img title="Delete item ' + d.name + '\'" alt="Delete item \'' + d.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+
+		var newDelIcon = '<img title="Delete item ' + d.name + '\'" alt="Delete item \'' + d.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
 		if (delIcon && delIcon.length) {
 			delIcon.replaceWith(newDelIcon);
 		} else {
@@ -833,7 +818,7 @@ var _Crawler = {
 			if (frameSrc.substring(0, 6) !== '/proxy') {
 				console.log('no proxy URL');
 			} else {
-				realUrl = decodeURIComponent(frameSrc.substring(frameSrc.indexOf('/proxy?url=') + 11)); 
+				realUrl = decodeURIComponent(frameSrc.substring(frameSrc.indexOf('/proxy?url=') + 11));
 			}
 
 			//pageUrl.val(realUrl);
@@ -923,7 +908,7 @@ var _Crawler = {
 
 				var frameSrc = pageFrame[0].src;
 				var url = decodeURIComponent(frameSrc.substring(frameSrc.indexOf('/proxy?url=') + 11));
-			
+
 				_Crawler.addSourcePage(url, pageFrame.contents().find('title').text().trim(), pageFrame.data('site-id'));
 
 			} else {
@@ -979,15 +964,15 @@ var _Crawler = {
 							if (selector.indexOf(pattern.selector) > -1) {
 								existingPattern = pattern;
 							}
-						});					
+						});
 
 						if (existingPattern) {
-							
+
 //							console.log('existingPattern');
 //							console.log(existingPattern.selector);
 //							console.log(selector);
 //							return;
-							
+
 							_Crawler.addSubpattern(existingPattern.selector, selector, existingPattern.id, true, callback);
 						} else {
 							// create new pattern
@@ -1093,12 +1078,12 @@ var _Crawler = {
 
 /*
  *  jquery.getselector.js
- *  
+ *
  *  Get the CSS Selector string for a provided jQuery object.
- * 
+ *
  *  Based heavily on jquery-getpath (http://davecardwell.co.uk/javascript/jquery/plugins/jquery-getpath/),
  *  and this selector SO answer (http://stackoverflow.com/a/3454579).
- * 
+ *
  *  Usage: var select = $('#foo').getSelector();
  */
 (function($){

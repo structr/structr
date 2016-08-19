@@ -30,7 +30,7 @@ var _Entities = {
 		_Logger.log(_LogType.ENTITIES, 'Change boolean attribute ', attrElement, ' to ', value);
 
 		if (value === true) {
-			attrElement.removeClass('inactive').addClass('active').prop('checked', true).html('<img src="icon/tick.png">' + (activeLabel ? ' ' + activeLabel : ''));
+			attrElement.removeClass('inactive').addClass('active').prop('checked', true).html('<img src="' + _Icons.tick_icon + '">' + (activeLabel ? ' ' + activeLabel : ''));
 		} else {
 			attrElement.removeClass('active').addClass('inactive').prop('checked', false).text((inactiveLabel ? inactiveLabel : '-'));
 		}
@@ -127,7 +127,7 @@ var _Entities = {
 
 	},
 	appendRowWithInputField: function(entity, el, key, label) {
-		el.append('<tr><td class="key">' + label + '</td><td class="value"><input class="' + key + '_" name="' + key + '" value="' + (entity[key] ? escapeForHtmlAttributes(entity[key]) : '') + '"></td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
+		el.append('<tr><td class="key">' + label + '</td><td class="value"><input class="' + key + '_" name="' + key + '" value="' + (entity[key] ? escapeForHtmlAttributes(entity[key]) : '') + '"></td><td><img class="nullIcon" id="null_' + key + '" src="' + _Icons.grey_cross_icon + '"></td></tr>');
 		var inp = $('[name="' + key + '"]', el);
 		_Entities.activateInput(inp, entity.id);
 		var nullIcon = $('#null_' + key, el);
@@ -535,20 +535,20 @@ var _Entities = {
 
 							if (display || key === '_html_class' || key === '_html_id') {
 								props.append('<tr><td class="key">' + key.replace(view, '') + '</td>'
-									+ '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="' + null_prefix + key + '" src="icon/cross_small_grey.png"></td></tr>');
+									+ '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="' + null_prefix + key + '" src="' + _Icons.grey_cross_icon + '"></td></tr>');
 							} else if (key !== 'id') {
 								props.append('<tr class="hidden"><td class="key">' + key.replace(view, '') + '</td>'
-									+ '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="' + null_prefix + key + '" src="icon/cross_small_grey.png"></td></tr>');
+									+ '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="' + null_prefix + key + '" src="' + _Icons.grey_cross_icon + '"></td></tr>');
 							}
 						} else if (view === 'in' || view === 'out') {
 							if (key === 'id') {
 								// set ID to rel ID
 								id = res[key];
 							}
-							props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="' + null_prefix + key + '" src="icon/cross_small_grey.png"></td></tr>');
+							props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="' + null_prefix + key + '" src="' + _Icons.grey_cross_icon + '"></td></tr>');
 						} else {
 
-							props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"></td><td><img class="nullIcon" id="' + null_prefix + key + '" src="icon/cross_small_grey.png"></td></tr>');
+							props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"></td><td><img class="nullIcon" id="' + null_prefix + key + '" src="' + _Icons.grey_cross_icon + '"></td></tr>');
 							var cell = $('.value.' + key + '_', props);
 
 							if (!typeInfo[key]) {
@@ -566,14 +566,14 @@ var _Entities = {
 								var isPassword   = false;
 								var isRelated    = false;
 								var isCollection = false;
-								
+
 								if (type) {
 									isBoolean = (type === 'Boolean'); //typeInfo[key].className === 'org.structr.core.property.BooleanProperty'; //isIn(key, _Entities.booleanAttrs);
 									isDate = (type === 'Date'); //typeInfo[key].className === 'org.structr.core.property.ISO8601DateProperty'; //isIn(key, _Entities.dateAttrs);
 									isPassword = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
 
 									isRelated = typeInfo[key].relatedType;
-									
+
 									if (isRelated) {
 										isCollection = typeInfo[key].isCollection;
 									}
@@ -605,19 +605,19 @@ var _Entities = {
 											}
 										});
 									} else if (isDate && !isReadOnly) {
-										
+
 										_Entities.appendDatePicker(cell, res, key, typeInfo[key].format);
-										
+
 									} else if (isRelated) {
 
 										if (res[key]) {
-													
+
 											if (!isCollection) {
 
 												var nodeId = res[key].id || res[key];
 
 												Command.get(nodeId, function(node) {
-													
+
 													_Entities.appendRelatedNode(cell, props, id, key, node, function(nodeEl) {
 
 														$('.remove', nodeEl).on('click', function(e) {
@@ -636,7 +636,7 @@ var _Entities = {
 														});
 
 													});
-												
+
 												});
 
 											} else {
@@ -666,8 +666,8 @@ var _Entities = {
 
 											}
 										}
-											
-										cell.append('<img class="add" src="icon/add_grey.png">');
+
+										cell.append('<img class="add" src="' + _Icons.add_grey_icon + '">');
 										$('.add', cell).on('click', function() {
 											Structr.dialog('Add ' + typeInfo[key].type, function() {
 											}, function() {
@@ -677,7 +677,7 @@ var _Entities = {
 											});
 											_Entities.displaySearch(id, key, typeInfo[key].type, dialogText, isCollection);
 										});
-										
+
 									} else {
 										cell.append(formatValueInputField(key, res[key], isPassword, isReadOnly));
 									}
@@ -738,7 +738,7 @@ var _Entities = {
 	},
 	displaySearch: function(id, key, type, el, isCollection) {
 
-		el.append('<div class="searchBox searchBoxDialog"><input class="search" name="search" size="20" placeholder="Search"><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
+		el.append('<div class="searchBox searchBoxDialog"><input class="search" name="search" size="20" placeholder="Search"><img class="clearSearchIcon" src="' + _Icons.grey_cross_icon + '"></div>');
 		var searchBox = $('.searchBoxDialog', el);
 		var search = $('.search', searchBox);
 		window.setTimeout(function() {
@@ -759,7 +759,7 @@ var _Entities = {
 				});
 
 				el.append('<div class="result-box"></div>');
-				
+
 				var box = $('.result-box', el);
 
 				Command.getByType(type, 1000, 1, 'name', 'asc', null, false, function(nodes) {
@@ -767,9 +767,9 @@ var _Entities = {
 						var displayName = node.title || node.name || node.id;
 						box.append('<div title="' + displayName + '" " class="_' + node.id + ' node element">' + fitStringToWidth(displayName, 120) + '</div>');
 						$('._' + node.id, box).on('click', function() {
-							
+
 							if (isCollection) {
-							
+
 								_Entities.addToCollection(id, node.id, key, function() {
 									if (lastMenuEntry === 'contents') {
 										_Contents.refreshTree();
@@ -778,13 +778,13 @@ var _Entities = {
 										_Filesystem.refreshTree();
 									}
 								});
-								
+
 							} else {
 								Command.setProperty(id, key, node.id, false, function() {
 									dialogCancelButton.click();
 								});
 							}
-							
+
 						});
 					});
 				});
@@ -871,7 +871,7 @@ var _Entities = {
 	},
 	appendRelatedNode: function(cell, props, id, key, node, onDelete) {
 		var displayName = _Crud.displayName(node);
-		cell.append('<div title="' + displayName + '" class="_' + node.id + ' node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
+		cell.append('<div title="' + displayName + '" class="_' + node.id + ' node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<img class="remove" src="' + _Icons.grey_cross_icon + '"></div>');
 		var nodeEl = $('._' + node.id, cell);
 
 		nodeEl.on('click', function(e) {
@@ -960,7 +960,7 @@ var _Entities = {
 		var protected = !entity.visibleToPublicUsers || !entity.visibleToAuthenticatedUsers;
 
 		var keyIcon = $('.key_icon', parent);
-		var newKeyIcon = '<img title="Access Control and Visibility" alt="Access Control and Visibility" class="key_icon button" src="' + Structr.key_icon + '">';
+		var newKeyIcon = '<img title="Access Control and Visibility" alt="Access Control and Visibility" class="key_icon button" src="' + _Icons.key_icon + '">';
 		if (!(keyIcon && keyIcon.length)) {
 			parent.append(newKeyIcon);
 			keyIcon = $('.key_icon', parent);
@@ -1168,7 +1168,7 @@ var _Entities = {
 		var editIcon = $('.edit_icon', parent);
 
 		if (!(editIcon && editIcon.length)) {
-			parent.append('<img title="Edit source code" alt="Edit source code" class="edit_icon button" src="' + '/structr/icon/pencil.png' + '">');
+			parent.append('<img title="Edit source code" alt="Edit source code" class="edit_icon button" src="' + _Icons.edit_icon + '">');
 			editIcon = $('.edit_icon', parent);
 		}
 		editIcon.on('click', function(e) {
@@ -1182,7 +1182,7 @@ var _Entities = {
 		var editIcon = $('.edit_props_icon', parent);
 
 		if (!(editIcon && editIcon.length)) {
-			parent.append('<img title="Edit Properties" alt="Edit Properties" class="edit_props_icon button" src="' + '/structr/icon/application_view_detail.png' + '">');
+			parent.append('<img title="Edit Properties" alt="Edit Properties" class="edit_props_icon button" src="' + _Icons.view_detail_icon + '">');
 			editIcon = $('.edit_props_icon', parent);
 		}
 		editIcon.on('click', function(e) {
@@ -1198,30 +1198,12 @@ var _Entities = {
 		}
 		return editIcon;
 	},
-	appendCollapseChildrenIcon: function(parent, entity, visible) {
-
-		var collapseChildrenIcon = $('.collapse_children_icon', parent);
-
-		if (!(collapseChildrenIcon && collapseChildrenIcon.length)) {
-			parent.append('<img title="Collapse Children" alt="Collapse Children" class="collapse_children_icon button" src="' + '/structr/icon/text_indent_remove.png' + '">');
-			collapseChildrenIcon = $('.collapse_children_icon', parent);
-		}
-		collapseChildrenIcon.on('click', function(e) {
-		});
-		if (visible) {
-			collapseChildrenIcon.css({
-				visibility: 'visible',
-				display: 'inline-block'
-			});
-		}
-		return collapseChildrenIcon;
-	},
 	appendDataIcon: function(parent, entity) {
 
 		var dataIcon = $('.data_icon', parent);
 
 		if (!(dataIcon && dataIcon.length)) {
-			parent.append('<img title="Edit Data Settings" alt="Edit Data Settings" class="data_icon button" src="' + '/structr/icon/database_table.png' + '">');
+			parent.append('<img title="Edit Data Settings" alt="Edit Data Settings" class="data_icon button" src="' + _Icons.database_table_icon + '">');
 			dataIcon = $('.data_icon', parent);
 		}
 		dataIcon.on('click', function(e) {
@@ -1245,7 +1227,7 @@ var _Entities = {
 			_Logger.log(_LogType.ENTITIES, 'appendExpandIcon hasChildren?', hasChildren, 'expand?', expand);
 
 			var typeIcon = $(el.children('.typeIcon').first());
-			var icon = expand ? Structr.expanded_icon : Structr.expand_icon;
+			var icon = expand ? _Icons.expanded_icon : _Icons.expand_icon;
 
 			var displayName = getElementDisplayName(entity);
 
@@ -1397,7 +1379,7 @@ var _Entities = {
 		if (!b || !src) {
 			return false;
 		}
-		return src.endsWith('icon/tree_arrow_down.png');
+		return src.endsWith(_Icons.expanded_icon);
 	},
 	ensureExpanded: function(element, callback) {
 		if (!element) {
@@ -1420,7 +1402,7 @@ var _Entities = {
 			Command.children(id, callback);
 			var displayName = getElementDisplayName(Structr.entity(id));
 
-			el.children('.expand_icon').first().prop('src', 'icon/tree_arrow_down.png')
+			el.children('.expand_icon').first().prop('src', _Icons.expanded_icon)
 				.prop('alt', 'Collapse ' + displayName)
 				.prop('title', 'Collapse ' + displayName);
 		}
@@ -1464,7 +1446,7 @@ var _Entities = {
 				$(child).remove();
 			});
 
-			b.prop('src', 'icon/tree_arrow_right.png')
+			b.prop('src', _Icons.expand_icon)
 				.prop('alt', 'Expand ' + displayName)
 				.prop('title', 'Expand ' + displayName);
 
@@ -1476,7 +1458,7 @@ var _Entities = {
 				Command.children(id);
 
 			}
-			b.prop('src', 'icon/tree_arrow_down.png')
+			b.prop('src', _Icons.expanded_icon)
 				.prop('alt', 'Collapse ' + displayName)
 				.prop('title', 'Collapse ' + displayName);
 ;
@@ -1493,7 +1475,7 @@ var _Entities = {
 		//var attributeElementHtml = attributeElement.html();
 		var attributeElementTagName = attributeElement.prop('tagName').toLowerCase();
 		var oldValue = $.trim(attributeElement.attr('title'));
-		
+
 		attributeElement.replaceWith('<input type="text" size="' + (oldValue.length + 4) + '" class="new-' + attributeName + '" value="' + oldValue + '">');
 		//element.find('.button').hide();
 
@@ -1570,30 +1552,30 @@ var _Entities = {
 				var query = entity.query;
 				//var dataKey     = (entity.dataKey.split(',')[entity.recursionDepth] || '');
 				var expand = entity.state === 'Query';
-				var icon = _Elements.icon;
+				var icon = _Icons.brick_icon;
 				var name = '', content = '', action = '';
 
 				switch (entity.state) {
 					case 'Query':
-						icon = 'icon/database_table.png';
+						icon = _Icons.database_table_icon;
 						name = query || entity.dataKey.replace(',', '.');
 						break;
 					case 'Content':
-						icon = _Contents.icon;
+						icon = _Icons.page_white_icon;
 						content = entity.content ? entity.content : entity.type;
 						break;
 					case 'Button':
-						icon = 'icon/button.png';
+						icon = _Icons.button_icon;
 						action = entity.action;
 						break;
 					case 'Link':
-						icon = 'icon/link.png';
+						icon = _Icons.link_icon;
 						content = entity.action;
 						break;
 					default:
 						content = entity.type;
 				}
-				
+
 				console.log(icon);
 
 				div.append('<img class="typeIcon" src="' + icon + '">'
@@ -1611,9 +1593,9 @@ var _Entities = {
 
 				if (!(editIcon && editIcon.length)) {
 					if (entity.state === 'Content') {
-						div.append('<img title="Edit" alt="Edit" class="edit_icon button" src="' + '/structr/icon/pencil.png' + '">');
+						div.append('<img title="Edit" alt="Edit" class="edit_icon button" src="' + _Icons.edit_icon + '">');
 					} else {
-						div.append('<img title="Edit Properties" alt="Edit Properties" class="edit_icon button" src="' + '/structr/icon/application_view_detail.png' + '">');
+						div.append('<img title="Edit Properties" alt="Edit Properties" class="edit_icon button" src="' + _Icons.view_detail_icon + '">');
 					}
 					editIcon = $('.edit_icon', div);
 				}
@@ -1661,7 +1643,7 @@ var _Entities = {
 				} else {
 					typeIcon.css({
 						paddingRight: padding + 'px'
-					}).after('<img title="Expand ' + displayName + '" alt="Expand ' + displayName + '" class="expand_icon" src="' + Structr.expanded_icon + '">');
+					}).after('<img title="Expand ' + displayName + '" alt="Expand ' + displayName + '" class="expand_icon" src="' + _Icons.expanded_icon + '">');
 				}
 			}
 		}
@@ -1715,7 +1697,7 @@ function addPrincipal(entity, principal, permissions) {
 
 	$('#newPrincipal option[value="' + principal.id + '"]').remove();
 	$('#newPrincipal').trigger('chosen:updated');
-	$('#new').after('<tr class="_' + principal.id + '"><td><img class="typeIcon" src="' + (principal.isGroup ? 'icon/group.png' : 'icon/user.png') + '"> <span class="name">' + principal.name + '</span></td><tr>');
+	$('#new').after('<tr class="_' + principal.id + '"><td><img class="typeIcon" src="' + (principal.isGroup ? _Icons.group_icon : _Icons.user_icon) + '"> <span class="name">' + principal.name + '</span></td><tr>');
 
 	var row = $('._' + principal.id, dialogText);
 
@@ -1763,7 +1745,7 @@ function formatValueInputField(key, obj, isPassword, isReadOnly) {
 	} else if (obj.constructor === Object) {
 		var node = obj;
 		var displayName = _Crud.displayName(node);
-		return '<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>';
+		return '<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<img class="remove" src="' + _Icons.grey_cross_icon + '"></div>';
 		//return '<input name="' + key + '" type="' + (isPassword?'password':'text') + '" ' + (isReadOnly?'readonly class="readonly"':'') + ' value="' + escapeForHtmlAttributes(JSON.stringify(obj)) + '">';
 	} else if (obj.constructor === Array) {
 		var out = '';

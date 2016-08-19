@@ -573,7 +573,7 @@ StructrFolder.prototype.remove = function() {
 	_Entities.resetMouseOverState(folderEl);
 
 	folderEl.children('.delete_icon').replaceWith('<img title="Delete folder ' + folder.id + '" '
-			+ 'alt="Delete folder ' + folder.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+			+ 'alt="Delete folder ' + folder.id + '" class="delete_icon button" src="' + _Icons.delete_icon + '">');
 
 	folderEl.children('.delete_icon').on('click', function(e) {
 		e.stopPropagation();
@@ -1028,7 +1028,7 @@ StructrContent.prototype.append = function(refNode) {
 		});
 
 		$('.delete_icon', div).replaceWith('<img title="Remove content element from parent ' + parentId + '" '
-				+ 'alt="Remove content element from parent ' + parentId + '" class="delete_icon button" src="' + _Elements.delete_content_icon + '">');
+				+ 'alt="Remove content element from parent ' + parentId + '" class="delete_icon button" src="' + _Icons.delete_content_icon + '">');
 		$('.delete_icon', div).on('click', function(e) {
 			e.stopPropagation();
 			Command.removeChild(id);

@@ -21,14 +21,10 @@ var win = $(window);
 var remoteWidgetData = [], remoteWidgetFilter;
 
 var _Widgets = {
-	icon: 'icon/layout.png',
-	group_icon: 'icon/folder.png',
-	add_widget_icon: 'icon/layout_add.png',
-	delete_widget_icon: 'icon/layout_delete.png',
 	reloadWidgets: function() {
 		widgetsSlideout.find(':not(.compTab)').remove();
 		widgetsSlideout.append(
-			'<div class="ver-scrollable"><h2>Local Widgets</h2><button class="add_widgets_icon button"><img title="Add Widget" alt="Add Widget" src="' + _Widgets.add_widget_icon + '"> Add Widget</button>' +
+			'<div class="ver-scrollable"><h2>Local Widgets</h2><button class="add_widgets_icon button"><img title="Add Widget" alt="Add Widget" src="' + _Icons.add_widget_icon + '"> Add Widget</button>' +
 			'<div id="widgets"></div><h2>Remote Widgets</h2><input placeholder="Filter..." id="remoteWidgetsFilter"><div id="remoteWidgets"></div></div>');
 		widgets = $('#widgets', widgetsSlideout);
 
@@ -189,7 +185,7 @@ var _Widgets = {
 					var newParent = $('#' + idString);
 
 					if (newParent.size() === 0) {
-						_Widgets.appendFolderElement(parent, idString, _Widgets.group_icon, part);
+						_Widgets.appendFolderElement(parent, idString, _Icons.folder_icon, part);
 						newParent = $('#' + idString);
 					}
 
@@ -203,7 +199,7 @@ var _Widgets = {
 			var newParent = $('#' + idString);
 
 			if (newParent.size() === 0) {
-				_Widgets.appendFolderElement(parent, idString, _Widgets.group_icon, 'Uncategorized');
+				_Widgets.appendFolderElement(parent, idString, _Icons.folder_icon, 'Uncategorized');
 				newParent = $('#' + idString);
 			}
 
@@ -230,7 +226,7 @@ var _Widgets = {
 
 		_Logger.log(_LogType.WIDGETS, 'Widgets.appendWidgetElement', widget, remote);
 
-		var icon = _Widgets.icon;
+		var icon = _Icons.widget_icon;
 		var parent = _Widgets.getTreeParent(el ? el : (remote ? remoteWidgets : widgets), widget.treePath, remote ? '_remote' : '_local');
 		var delIcon, newDelIcon;
 		var div = Structr.node(widget.id);
@@ -280,7 +276,7 @@ var _Widgets = {
 
 			delIcon = div.children('.delete_icon');
 
-			newDelIcon = '<img title="Delete widget ' + widget.name + '\'" alt="Delete widget \'' + widget.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+			newDelIcon = '<img title="Delete widget ' + widget.name + '\'" alt="Delete widget \'' + widget.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
 			div.append(newDelIcon);
 			delIcon = div.children('.delete_icon');
 			div.children('.delete_icon').on('click', function(e) {
@@ -304,7 +300,7 @@ var _Widgets = {
 		});
 
 		if (!remote) {
-			div.append('<img title="Edit widget" alt="Edit widget ' + widget.id + '" class="edit_icon button" src="icon/pencil.png">');
+			div.append('<img title="Edit widget" alt="Edit widget ' + widget.id + '" class="edit_icon button" src="' + _Icons.edit_icon + '">');
 			$('.edit_icon', div).on('click', function(e) {
 				e.stopPropagation();
 				Structr.dialog('Edit widget "' + widget.name + '"', function() {
@@ -450,7 +446,7 @@ var _Widgets = {
 			_Logger.log(_LogType.WIDGETS, 'appendExpandIcon hasChildren?', hasChildren, 'expand?', expand);
 
 			var typeIcon = $(el.children('.typeIcon').first());
-			var icon = $(el).children('.node').hasClass('hidden') ? Structr.expand_icon : Structr.expanded_icon;
+			var icon = $(el).children('.node').hasClass('hidden') ? _Icons.expand_icon : _Icons.expanded_icon;
 
 			typeIcon.css({
 				paddingRight: 0 + 'px'
@@ -466,11 +462,11 @@ var _Widgets = {
 				var expanded = body.hasClass('hidden');
 				if (expanded) {
 					addExpandedNode(id);
-					expandIcon.prop('src', 'icon/tree_arrow_right.png');
+					expandIcon.prop('src', _Icons.expand_icon);
 
 				} else {
 					removeExpandedNode(id);
-					expandIcon.prop('src', 'icon/tree_arrow_down.png');
+					expandIcon.prop('src', _Icons.expanded_icon);
 				}
 			});
 
@@ -486,10 +482,10 @@ var _Widgets = {
 					var expanded = body.hasClass('hidden');
 					if (expanded) {
 						addExpandedNode(id);
-						expandIcon.prop('src', 'icon/tree_arrow_right.png');
+						expandIcon.prop('src', _Icons.expand_icon);
 					} else {
 						removeExpandedNode(id);
-						expandIcon.prop('src', 'icon/tree_arrow_down.png');
+						expandIcon.prop('src', _Icons.expanded_icon);
 					}
 				});
 

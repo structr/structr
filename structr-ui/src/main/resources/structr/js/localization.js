@@ -58,13 +58,13 @@ var _Localization = {
 						'</tr></thead>' +
 						'<tbody></tbody>' +
 					'</table>' +
-					'<button class="create"><img src="' + Structr.add_icon + '"> Prepare new Localization</button>' +
+					'<button class="create"><img src="' + _Icons.add_icon + '"> Prepare new Localization</button>' +
 				'</div>' +
 				'<div id="localization-detail" class="resourceBox">' +
 					'<strong>Key:</strong> <input id="localization-key" class="disabled" disabled /> <strong>Domain:</strong> <input id="localization-domain" class="disabled" disabled />' +
-					' <a title="Edit" class="edit" id="localization-fields-edit"><img alt="Edit Icon" src="' + Structr.edit_icon + '"></a>' +
-					' <a title="Save" class="save" id="localization-fields-save"><img alt="Save" src="icon/tick.png"></a>' +
-					' <a title="Discard" class="discard" id="localization-fields-discard"><img alt="Discard" src="icon/cross.png"></a>' +
+					' <a title="Edit" class="edit" id="localization-fields-edit"><img alt="Edit Icon" src="' + _Icons.edit_icon + '"></a>' +
+					' <a title="Save" class="save" id="localization-fields-save"><img alt="Save" src="' + _Icons.tick_icon + '"></a>' +
+					' <a title="Discard" class="discard" id="localization-fields-discard"><img alt="Discard" src="' + _Icons.cross_icon + '"></a>' +
 					'<table id="localization-detail-table">' +
 						'<thead><tr>' +
 							'<th>ID</th>' +
@@ -77,7 +77,7 @@ var _Localization = {
 						'</tr></thead>' +
 						'<tbody></tbody>' +
 					'</table>' +
-					'<button class="create"><img src="' + Structr.add_icon + '"> New Localization</button>' +
+					'<button class="create"><img src="' + _Icons.add_icon + '"> New Localization</button>' +
 				'</div>' +
 			'</div>'
 		);
@@ -148,8 +148,8 @@ var _Localization = {
 				'<td>' + keyAndDomainObject.name + '</td>' +
 				'<td>' + (keyAndDomainObject.domain || '') + '</td>' +
 				'<td class="actions">' +
-					'<a title="Edit Properties" class="properties"><img alt="Edit" src="' + Structr.edit_icon + '"></a>' +
-					'<a title="Delete" class="delete"><img alt="Delete Icon" src="' + Structr.delete_icon + '"></a>' +
+					'<a title="Edit Properties" class="properties"><img alt="Edit" src="' + _Icons.edit_icon + '"></a>' +
+					'<a title="Delete" class="delete"><img alt="Delete Icon" src="' + _Icons.delete_icon + '"></a>' +
 				'</td>' +
 			'</tr>'
 		);
@@ -392,7 +392,7 @@ var _Localization = {
 				_Localization.checkboxChangeAction($(event.target), localization.id, 'imported');
 			});
 
-		$('td.actions', $row).html('<a title="Delete" class="delete"><img alt="Delete Icon" src="' + Structr.delete_icon + '"></a>');
+		$('td.actions', $row).html('<a title="Delete" class="delete"><img alt="Delete Icon" src="' + _Icons.delete_icon + '"></a>');
 
 		$('#loc_' + localization.id + ' td.actions .delete').on('click', function(event) {
 			event.preventDefault();
@@ -453,7 +453,7 @@ var _Localization = {
 
 		$('input[type=checkbox]', $tr).attr('disabled', 'disabled');
 
-		$('td.actions', $tr).html('<a title="Save" class="save"><img alt="Save" src="icon/tick.png"></a><a title="Discard" class="discard"><img alt="Discard" src="icon/cross.png"></a>');
+		$('td.actions', $tr).html('<a title="Save" class="save"><img alt="Save" src="' + _Icons.tick_icon + '"></a><a title="Discard" class="discard"><img alt="Discard" src="' + _Icons.cross_icon + '"></a>');
 
 		$('td.actions .discard', $tr).on('click', function(event) {
 			event.preventDefault();

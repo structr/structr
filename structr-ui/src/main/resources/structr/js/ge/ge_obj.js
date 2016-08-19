@@ -31,7 +31,7 @@ function Node(g, entity, size, pos, depth) {
 
     var div = $(this.element);
 
-    div.append('<img title="Delete node ' + entity.id + '" alt="Delete node ' + entity.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+    div.append('<img title="Delete node ' + entity.id + '" alt="Delete node ' + entity.id + '" class="delete_icon button" src="' + _Icons.delete_icon + '">');
     $('.delete_icon', div).on('click', function(e) {
         e.stopPropagation();
         _Entities.deleteNode(this, entity);

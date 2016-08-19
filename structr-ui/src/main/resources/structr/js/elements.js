@@ -21,20 +21,6 @@ var lineWrappingKey = 'structrEditorLineWrapping_' + port;
 var contents, editor, contentType, currentEntity;
 
 var _Elements = {
-	icon: 'icon/brick.png',
-	icon_comp: 'icon/brick_yellow.png',
-	icon_shared_template: 'icon/layout_yellow.png',
-	icon_repeater: 'icon/bricks.png',
-	delete_icon: 'icon/brick_delete.png',
-	content_icon: 'icon/page_white.png',
-	active_content_icon: 'icon/page_yellow.png',
-	comment_icon: 'icon/comment.png',
-	comp_icon: 'icon/page_yellow.png',
-	comp_templ_icon: 'icon/layout_yellow.png',
-	template_icon: 'icon/layout_content.png',
-	active_template_icon: 'icon/layout_yellow.png',
-	add_content_icon: 'icon/page_white_add.png',
-	delete_content_icon: 'icon/page_white_delete.png',
 	elementNames: [
 		// The root element
 		'html',
@@ -433,7 +419,7 @@ var _Elements = {
 			+ '</div>');
 
 		if (entity.parent) {
-			div.append('<img title="Clone ' + displayName + ' element ' + entity.id + '\" alt="Clone ' + entity.tag + ' element ' + entity.id + '" class="clone_icon button" src="icon/page_copy.png">');
+			div.append('<img title="Clone ' + displayName + ' element ' + entity.id + '\" alt="Clone ' + entity.tag + ' element ' + entity.id + '" class="clone_icon button" src="' + _Icons.clone_icon + '">');
 			$('.clone_icon', div).on('click', function(e) {
 				e.stopPropagation();
 				_Logger.log(_LogType.ELEMENTS, 'Cloning node (div, parent)', entity, entity.parent);
@@ -466,7 +452,7 @@ var _Elements = {
 		});
 
 		_Entities.appendAccessControlIcon(div, entity);
-		div.append('<img title="Delete ' + displayName + ' element ' + entity.id + '" alt="Delete ' + entity.tag + ' element ' + entity.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+		div.append('<img title="Delete ' + displayName + ' element ' + entity.id + '" alt="Delete ' + entity.tag + ' element ' + entity.id + '" class="delete_icon button" src="' + _Icons.delete_icon + '">');
 		$('.delete_icon', div).on('click', function(e) {
 			e.stopPropagation();
 			_Entities.deleteNode(this, entity, function() {
@@ -475,7 +461,7 @@ var _Elements = {
 					synced.forEach(function(id) {
 						var el = Structr.node(id);
 						if (el && el.children && el.children.length) {
-							el.children('img.typeIcon').attr('src', _Elements.icon);
+							el.children('img.typeIcon').attr('src', _Icons.brick_icon);
 						}
 
 					});
@@ -494,7 +480,7 @@ var _Elements = {
 
 		if (entity.tag === 'a' || entity.tag === 'link' || entity.tag === 'script' || entity.tag === 'img' || entity.tag === 'video' || entity.tag === 'object') {
 
-			div.append('<img title="Edit Link" alt="Edit Link" class="link_icon button" src="' + Structr.link_icon + '">');
+			div.append('<img title="Edit Link" alt="Edit Link" class="link_icon button" src="' + _Icons.link_icon + '">');
 			if (entity.linkable) {
 				div.append('<span class="linkable">' + entity.linkable + '</span>');
 			}
@@ -542,7 +528,7 @@ var _Elements = {
 								return;
 							}
 
-							pagesToLink.append('<div class="node page ' + page.id + '_"><img class="typeIcon" src="icon/page.png">'
+							pagesToLink.append('<div class="node page ' + page.id + '_"><img class="typeIcon" src="' + _Icons.page_icon + '">'
 									+ '<b title="' + page.name + '" class="name_">' + page.name + '</b></div>');
 
 							var div = $('.' + page.id + '_', pagesToLink);
@@ -717,7 +703,7 @@ var _Elements = {
 		var isComponent = element.sharedComponent || (element.syncedNodes && element.syncedNodes.length);
 		var isActiveNode = element.isActiveNode();
 
-		return isActiveNode ? _Elements.icon_repeater : isComponent ? _Elements.icon_comp : _Elements.icon;
+		return (isActiveNode ? _Icons.repeater_icon : (isComponent ? _Icons.comp_icon : _Icons.brick_icon));
 	},
 	classIdString: function(idString, classString) {
 		var classIdString = '<span class="class-id-attrs">' + (idString ? '<span class="_html_id_">#' + idString.replace(/\${.*}/g, '${…}') + '</span>' : '')
@@ -1176,19 +1162,19 @@ var _Elements = {
 
 		_Entities.appendAccessControlIcon(div, entity);
 
-		div.append('<img title="Clone content node ' + entity.id + '" alt="Clone content node ' + entity.id + '" class="clone_icon button" src="icon/page_copy.png">');
+		div.append('<img title="Clone content node ' + entity.id + '" alt="Clone content node ' + entity.id + '" class="clone_icon button" src="' + _Icons.clone_icon + '">');
 		$('.clone_icon', div).on('click', function(e) {
 			e.stopPropagation();
 			Command.cloneNode(entity.id, entity.parent.id, true);
 		});
 
-		div.append('<img title="Delete content \'' + entity.name + '\'" alt="Delete content \'' + entity.name + '\'" class="delete_icon button" src="' + _Elements.delete_content_icon + '">');
+		div.append('<img title="Delete content \'' + entity.name + '\'" alt="Delete content \'' + entity.name + '\'" class="delete_icon button" src="' + _Icons.delete_content_icon + '">');
 		$('.delete_icon', div).on('click', function(e) {
 			e.stopPropagation();
 			_Entities.deleteNode(this, entity);
 		});
 
-		div.append('<img title="Edit Content" alt="Edit Content of ' + (entity.name ? entity.name : entity.id) + '" class="edit_icon button" src="icon/pencil.png">');
+		div.append('<img title="Edit Content" alt="Edit Content of ' + (entity.name ? entity.name : entity.id) + '" class="edit_icon button" src="' + _Icons.edit_icon + '">');
 		$('.edit_icon', div).on('click', function(e) {
 			e.stopPropagation();
 			_Elements.openEditContentDialog(this, entity);
@@ -1213,7 +1199,7 @@ var _Elements = {
 		var isComponent = content.sharedComponent || (content.syncedNodes && content.syncedNodes.length);
 		var isActiveNode = content.isActiveNode();
 
-		return isComment ? _Elements.comment_icon : ((isTemplate && isComponent) ? _Elements.comp_templ_icon : (isTemplate ? (isActiveNode ? _Elements.active_template_icon : _Elements.template_icon) : (isComponent ? _Elements.comp_icon : (isActiveNode ? _Elements.active_content_icon : _Elements.content_icon))));
+		return isComment ? _Icons.comment_icon : ((isTemplate && isComponent) ? _Icons.comp_templ_icon : (isTemplate ? (isActiveNode ? _Icons.active_template_icon : _Icons.template_icon) : (isComponent ? _Icons.active_content_icon : (isActiveNode ? _Icons.active_content_icon : _Icons.content_icon))));
 	},
 	openEditContentDialog: function(btn, entity) {
 		Structr.dialog('Edit content of ' + (entity.name ? entity.name : entity.id), function() {
@@ -1296,7 +1282,7 @@ var _Elements = {
 		// Experimental speech recognition, works only in Chrome 25+
 		if (typeof(webkitSpeechRecognition) === 'function') {
 
-			dialogBox.append('<button class="speechToText"><img src="img/icon_microphone.svg"></button>');
+			dialogBox.append('<button class="speechToText"><img src="' + _Icons.microphone_icon + '"></button>');
 			var speechBtn = $('.speechToText', dialogBox);
 
 			_Speech.init(speechBtn, function(interim, final) {
