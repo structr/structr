@@ -27,7 +27,6 @@ import org.structr.net.peer.PeerInfo;
 
 /**
  *
- * @author Christian Morgner
  */
 public class BroadcastMessage extends Message {
 

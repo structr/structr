@@ -46,7 +46,6 @@ import org.structr.web.entity.dom.Page;
 
 /**
  *
- * @author Christian Morgner
  */
 public class StructrNonexistingPagePath extends StructrPath {
 

@@ -46,7 +46,6 @@ import org.structr.web.entity.relation.FeedItemContents;
 
 /**
  * Represents feed enclosures
- * @author Christian Kramp <christian.kramp@structr.com>
  */
 public class FeedItemEnclosure extends AbstractNode implements Indexable {
 

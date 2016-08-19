@@ -28,7 +28,6 @@ import org.structr.core.graph.Tx;
 
 /**
  *
- * @author Christian Morgner
  */
 public class SchemaDeleteRelationshipTest extends StructrTest {
 

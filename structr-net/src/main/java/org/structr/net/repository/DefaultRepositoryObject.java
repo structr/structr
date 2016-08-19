@@ -31,7 +31,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  *
- * @author Christian Morgner
  */
 public class DefaultRepositoryObject implements RepositoryObject {
 

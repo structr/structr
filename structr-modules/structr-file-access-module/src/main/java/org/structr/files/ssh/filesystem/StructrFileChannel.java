@@ -29,7 +29,6 @@ import java.nio.channels.WritableByteChannel;
 
 /**
  *
- * @author Christian Morgner
  */
 public class StructrFileChannel extends FileChannel {
 

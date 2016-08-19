@@ -34,7 +34,6 @@ import java.util.concurrent.TimeUnit;
 
 /**
  *
- * @author Christian Morgner
  */
 public class StructrRootAttributes implements PosixFileAttributes, DosFileAttributes {
 

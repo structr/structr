@@ -42,7 +42,6 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author Christian Morgner
  */
 public class StructrFilesystemProvider extends FileSystemProvider {
 

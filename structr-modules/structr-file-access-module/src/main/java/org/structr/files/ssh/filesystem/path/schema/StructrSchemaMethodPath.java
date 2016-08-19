@@ -50,7 +50,6 @@ import org.structr.files.ssh.filesystem.path.graph.StructrPropertyValueChannel;
 
 /**
  *
- * @author Christian Morgner
  */
 public class StructrSchemaMethodPath extends StructrPath {
 

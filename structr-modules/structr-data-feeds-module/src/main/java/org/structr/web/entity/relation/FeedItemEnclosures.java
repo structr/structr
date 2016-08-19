@@ -25,7 +25,6 @@ import org.structr.web.entity.feed.FeedItemEnclosure;
 
 /**
  *
- * @author Christian Kramp <christian.kramp@structr.com>
  */
 public class FeedItemEnclosures extends OneToMany<FeedItem, FeedItemEnclosure> {
 

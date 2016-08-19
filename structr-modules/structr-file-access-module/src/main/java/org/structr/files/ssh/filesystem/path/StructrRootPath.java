@@ -46,7 +46,6 @@ import org.structr.files.ssh.filesystem.path.page.StructrPagesPath;
 
 /**
  *
- * @author Christian Morgner
  */
 public class StructrRootPath extends StructrPath {
 

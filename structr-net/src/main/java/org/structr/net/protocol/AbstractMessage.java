@@ -48,7 +48,6 @@ import org.structr.net.peer.Peer;
 
 /**
  *
- * @author Christian Morgner
  */
 public abstract class AbstractMessage {
 

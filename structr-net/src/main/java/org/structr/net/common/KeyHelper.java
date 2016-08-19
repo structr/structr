@@ -32,7 +32,6 @@ import java.security.spec.X509EncodedKeySpec;
 
 /**
  *
- * @author Christian Morgner
  */
 public class KeyHelper {
 

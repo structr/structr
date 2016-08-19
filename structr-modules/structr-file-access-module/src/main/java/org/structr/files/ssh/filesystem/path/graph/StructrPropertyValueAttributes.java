@@ -47,7 +47,6 @@ import org.structr.core.property.PropertyKey;
 
 /**
  *
- * @author Christian Morgner
  */
 public class StructrPropertyValueAttributes implements PosixFileAttributes, DosFileAttributes, PosixFileAttributeView {
 

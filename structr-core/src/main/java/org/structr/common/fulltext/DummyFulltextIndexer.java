@@ -25,7 +25,6 @@ import org.structr.core.GraphObjectMap;
 
 /**
  *
- * @author Christian Morgner
  */
 public class DummyFulltextIndexer implements FulltextIndexer {
 

@@ -48,7 +48,6 @@ import org.structr.web.entity.dom.DOMNode;
 
 /**
  *
- * @author Christian Morgner
  */
 public class StructrDOMAttributes implements PosixFileAttributes, DosFileAttributes, PosixFileAttributeView {
 

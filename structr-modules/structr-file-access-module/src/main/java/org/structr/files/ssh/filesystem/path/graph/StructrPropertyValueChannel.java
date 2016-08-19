@@ -39,7 +39,6 @@ import org.structr.files.ssh.filesystem.StructrPath.HiddenFileEntry;
 
 /**
  *
- * @author Christian Morgner
  */
 public class StructrPropertyValueChannel<T extends GraphObject> extends FileChannel {
 

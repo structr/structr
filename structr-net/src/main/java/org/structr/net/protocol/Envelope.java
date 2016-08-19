@@ -23,7 +23,6 @@ import org.structr.net.peer.PeerInfo;
 
 /**
  *
- * @author Christian Morgner
  */
 public class Envelope {
 
