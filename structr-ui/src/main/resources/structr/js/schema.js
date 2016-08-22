@@ -42,7 +42,22 @@ $(document).ready(function() {
 var _Schema = {
 	schemaLoading: false,
 	schemaLoaded: false,
-	cnt: 0,
+	new_attr_cnt: 0,
+	typeOptions: '<select class="property-type"><option value="">--Select--</option>'
+		+ '<option value="String">String</option>'
+		+ '<option value="StringArray">String[]</option>'
+		+ '<option value="Integer">Integer</option>'
+		+ '<option value="Long">Long</option>'
+		+ '<option value="Double">Double</option>'
+		+ '<option value="Boolean">Boolean</option>'
+		+ '<option value="Enum">Enum</option>'
+		+ '<option value="Date">Date</option>'
+		+ '<option value="Count">Count</option>'
+		+ '<option value="Function">Function</option>'
+		+ '<option value="Notion">Notion</option>'
+		+ '<option value="Join">Join</option>'
+		+ '<option value="Cypher">Cypher</option>'
+		+ '<option value="Thumbnail">Thumbnail</option>',
 	reload: function() {
 		if (reload) {
 			return;
@@ -984,10 +999,10 @@ var _Schema = {
 			_Schema.appendLocalProperty(propertiesTable, prop);
 		});
 		$('.add-local-attribute', el).on('click', function() {
-			var rowClass = 'new' + (_Schema.cnt++);
+			var rowClass = 'new' + (_Schema.new_attr_cnt++);
 			propertiesTable.append('<tr class="' + rowClass + '"><td><input size="15" type="text" class="property-name" placeholder="Enter JSON name" autofocus></td>'
 					+ '<td><input size="15" type="text" class="property-dbname" placeholder="Enter DB name"></td>'
-					+ '<td>' + typeOptions + '</td>'
+					+ '<td>' + _Schema.typeOptions + '</td>'
 					+ '<td><input size="15" type="text" class="property-format" placeholder="Enter format"></td>'
 					+ '<td><input class="not-null" type="checkbox"></td>'
 					+ '<td><input class="unique" type="checkbox"></td>'
@@ -1203,9 +1218,10 @@ var _Schema = {
 								row = $('.local.' + name, el);
 
 								$('.create-property', row).remove();
-								$('.remove-property', row).off('click');
-
-								$('.remove-property', row).on('click', function() {
+								$('.remove-property', row)
+										.off('click')
+										.attr('src', _Icons.delete_icon)
+										.on('click', function() {
 									_Schema.confirmRemoveSchemaEntity(property, 'Delete property', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); }, 'Property values will not be removed from data nodes.');
 								});
 
@@ -1295,7 +1311,7 @@ var _Schema = {
 
 		el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name" value="' + escapeForHtmlAttributes(property.name) + '"></td><td>'
 				+ '<input size="15" type="text" class="property-dbname" value="' + escapeForHtmlAttributes(property.dbName) + '"></td><td>'
-				+ typeOptions + '</td>'
+				+ _Schema.typeOptions + '</td>'
 				+ (property.propertyType !== 'Function' ?  '<td><input size="15" type="text" class="property-format" value="' + (property.format ? escapeForHtmlAttributes(property.format) : '') + '"></td>' : '<td><button class="edit-read-function">Read</button><button class="edit-write-function">Write</button></td>')
 				+ '<td><input class="not-null" type="checkbox"'
 				+ (property.notNull ? ' checked="checked"' : '') + '></td><td><input class="unique" type="checkbox"'
@@ -3298,40 +3314,3 @@ var _Schema = {
 		});
 	}
 };
-
-function normalizeAttr(attr) {
-	return attr.replace(/^_+/, '');
-}
-
-function normalizeAttrs(attrs, keys) {
-	return attrs.replace(/ /g, '').split(',').map(function(attr) {
-		var a = normalizeAttr(attr);
-		if (keys.indexOf('_' + a) !== -1) {
-			return '_' + a;
-		}
-		return a;
-	}).join(',');
-}
-
-function denormalizeAttrs(attrs) {
-	return attrs.replace(/ /g, '').split(',').map(function(attr) {
-		var a = normalizeAttr(attr);
-		return a;
-	}).join(', ');
-}
-
-var typeOptions = '<select class="property-type"><option value="">--Select--</option>'
-		+ '<option value="String">String</option>'
-		+ '<option value="StringArray">String[]</option>'
-		+ '<option value="Integer">Integer</option>'
-		+ '<option value="Long">Long</option>'
-		+ '<option value="Double">Double</option>'
-		+ '<option value="Boolean">Boolean</option>'
-		+ '<option value="Enum">Enum</option>'
-		+ '<option value="Date">Date</option>'
-		+ '<option value="Count">Count</option>'
-		+ '<option value="Function">Function</option>'
-		+ '<option value="Notion">Notion</option>'
-		+ '<option value="Join">Join</option>'
-		+ '<option value="Cypher">Cypher</option>'
-		+ '<option value="Thumbnail">Thumbnail</option>';
