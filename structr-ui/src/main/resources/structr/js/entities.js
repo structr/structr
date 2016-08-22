@@ -1212,9 +1212,9 @@ var _Entities = {
 			_Entities.showDataDialog(entity);
 		});
 	},
-	appendExpandIcon: function(el, entity, hasChildren, expand) {
+	appendExpandIcon: function(el, entity, hasChildren, expanded) {
 
-		_Logger.log(_LogType.ENTITIES, '_Entities.appendExpandIcon', el, entity, hasChildren, expand);
+		_Logger.log(_LogType.ENTITIES, '_Entities.appendExpandIcon', el, entity, hasChildren, expanded);
 
 		var button = $(el.children('.expand_icon').first());
 		if (button && button.length) {
@@ -1224,10 +1224,10 @@ var _Entities = {
 
 		if (hasChildren) {
 
-			_Logger.log(_LogType.ENTITIES, 'appendExpandIcon hasChildren?', hasChildren, 'expand?', expand);
+			_Logger.log(_LogType.ENTITIES, 'appendExpandIcon hasChildren?', hasChildren, 'expand?', expanded);
 
 			var typeIcon = $(el.children('.typeIcon').first());
-			var icon = expand ? _Icons.expanded_icon : _Icons.expand_icon;
+			var icon = expanded ? _Icons.expanded_icon : _Icons.collapsed_icon;
 
 			var displayName = getElementDisplayName(entity);
 
@@ -1254,7 +1254,7 @@ var _Entities = {
 					e.stopPropagation();
 				});
 
-				if (expand) {
+				if (expanded) {
 					_Entities.ensureExpanded(el);
 				}
 			}
@@ -1446,7 +1446,7 @@ var _Entities = {
 				$(child).remove();
 			});
 
-			b.prop('src', _Icons.expand_icon)
+			b.prop('src', _Icons.collapsed_icon)
 				.prop('alt', 'Expand ' + displayName)
 				.prop('title', 'Expand ' + displayName);
 

@@ -188,7 +188,7 @@ var _Icons = {
 	delete_brick_icon: 'icon/brick_delete.png',
 	edit_icon: 'icon/pencil.png',
 	edit_ui_properties_icon: 'icon/wrench.png',
-	expand_icon: 'icon/tree_arrow_right.png',
+	collapsed_icon: 'icon/tree_arrow_right.png',
 	expanded_icon: 'icon/tree_arrow_down.png',
 	link_icon: 'icon/link.png',
 	key_icon: 'icon/key.png',

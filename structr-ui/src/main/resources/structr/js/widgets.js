@@ -446,7 +446,7 @@ var _Widgets = {
 			_Logger.log(_LogType.WIDGETS, 'appendExpandIcon hasChildren?', hasChildren, 'expand?', expand);
 
 			var typeIcon = $(el.children('.typeIcon').first());
-			var icon = $(el).children('.node').hasClass('hidden') ? _Icons.expand_icon : _Icons.expanded_icon;
+			var icon = $(el).children('.node').hasClass('hidden') ? _Icons.collapsed_icon : _Icons.expanded_icon;
 
 			typeIcon.css({
 				paddingRight: 0 + 'px'
@@ -462,7 +462,7 @@ var _Widgets = {
 				var expanded = body.hasClass('hidden');
 				if (expanded) {
 					addExpandedNode(id);
-					expandIcon.prop('src', _Icons.expand_icon);
+					expandIcon.prop('src', _Icons.collapsed_icon);
 
 				} else {
 					removeExpandedNode(id);
@@ -476,13 +476,12 @@ var _Widgets = {
 
 				button.on('click', function(e) {
 					e.stopPropagation();
-
 					var body = $('#' + id);
 					body.toggleClass('hidden');
-					var expanded = body.hasClass('hidden');
-					if (expanded) {
+					var collapsed = body.hasClass('hidden');
+					if (collapsed) {
 						addExpandedNode(id);
-						expandIcon.prop('src', _Icons.expand_icon);
+						expandIcon.prop('src', _Icons.collapsed_icon);
 					} else {
 						removeExpandedNode(id);
 						expandIcon.prop('src', _Icons.expanded_icon);
@@ -498,7 +497,7 @@ var _Widgets = {
 
 		} else {
 			el.children('.typeIcon').css({
-				paddingRight: 11 + 'px'
+				paddingRight: '11px'
 			});
 		}
 
