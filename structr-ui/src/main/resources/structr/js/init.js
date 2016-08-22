@@ -424,13 +424,13 @@ var Structr = {
 	},
 	clearMain: function() {
 		var newDroppables = new Array();
-		$.ui.ddmanager.droppables.default.forEach(function(droppable, i) {
+		$.ui.ddmanager.droppables['default'].forEach(function(droppable, i) {
 			if (!droppable.element.attr('id') || droppable.element.attr('id') !== 'graph-canvas') {
 			} else {
 				newDroppables.push(droppable);
 			}
 		});
-		$.ui.ddmanager.droppables.default = newDroppables;
+		$.ui.ddmanager.droppables['default'] = newDroppables;
 		$('iframe').unload();
 		//main.children().not('#graph-box').remove();
 		fastRemoveAllChildren(main[0]);
@@ -734,7 +734,6 @@ var Structr = {
 			li.css(css);
 		}
 		return li;
-
 	},
 	tempInfo: function(text, autoclose) {
 		window.clearTimeout(dialogId);

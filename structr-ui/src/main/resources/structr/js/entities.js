@@ -382,7 +382,6 @@ var _Entities = {
 
 				if (hasHtmlAttributes && !entity.isContent) {
 					views.unshift('_html_');
-					//console.log(lastMenuEntry)
 					if (lastMenuEntry === 'pages') {
 						activeView = '_html_';
 					}
@@ -390,7 +389,7 @@ var _Entities = {
 
 				tabTexts._html_ = 'HTML Attributes';
 				tabTexts.ui = 'Node Properties';
-				tabTexts.in = 'Incoming Relationships';
+				tabTexts['in'] = 'Incoming Relationships';
 				tabTexts.out = 'Outgoing Relationships';
 
 				Structr.dialog('Edit Properties of ' + (entity.type ? entity.type : '') + (isRelationship ? ' relationship ' : ' node ') + (entity.name ? entity.name : entity.id), function() {
@@ -957,14 +956,14 @@ var _Entities = {
 	},
 	appendAccessControlIcon: function(parent, entity) {
 
-		var protected = !entity.visibleToPublicUsers || !entity.visibleToAuthenticatedUsers;
+		var isProtected = !entity.visibleToPublicUsers || !entity.visibleToAuthenticatedUsers;
 
 		var keyIcon = $('.key_icon', parent);
 		var newKeyIcon = '<img title="Access Control and Visibility" alt="Access Control and Visibility" class="key_icon button" src="' + _Icons.key_icon + '">';
 		if (!(keyIcon && keyIcon.length)) {
 			parent.append(newKeyIcon);
 			keyIcon = $('.key_icon', parent);
-			if (protected) {
+			if (isProtected) {
 				keyIcon.show();
 				keyIcon.addClass('donthide');
 			}
@@ -1036,22 +1035,22 @@ var _Entities = {
 			});
 			var select = $('#newPrincipal');
 			select.chosen({width: '90%'});
-			var i = 0, n = 10000;
+			var n = 10000;
 			Command.getByType('Group', n, 1, 'name', 'asc', 'id,name', false, function(groups) {
 				groups.forEach(function(group) {
 					select.append('<option value="' + group.id + '">' + group.name + '</option>');
 				});
 				select.trigger("chosen:updated");
 			});
-			i = 0;
-			var al2 = Structr.loaderIcon(select.parent(), {float: 'right'});
+			var al2 = Structr.loaderIcon(select.parent(), {'float':'right'});
 			Command.getByType('User', n, 1, 'name', 'asc', 'id,name', false, function(users) {
 				users.forEach(function(user) {
 					select.append('<option value="' + user.id + '">' + user.name + '</option>');
 				});
 				select.trigger("chosen:updated");
-				if (al2.length)
+				if (al2.length) {
 					al2.remove();
+				}
 			});
 			select.on('change', function() {
 				var sel = $(this);

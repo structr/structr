@@ -438,13 +438,13 @@ var StructrModel = {
 			}
 
 			// check if key icon needs to be displayed (in case of nodes not visible to public/auth users)
-			var protected = !obj.visibleToPublicUsers || !obj.visibleToAuthenticatedUsers;
+			var isProtected = !obj.visibleToPublicUsers || !obj.visibleToAuthenticatedUsers;
 			var keyIcon = element.children('.key_icon');
 			if (!keyIcon.length) {
 				// Images have a special subnode containing the icons
 				keyIcon = $('.icons', element).children('.key_icon');
 			}
-			if (protected) {
+			if (isProtected) {
 				keyIcon.show();
 				keyIcon.addClass('donthide');
 			} else {

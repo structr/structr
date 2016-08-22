@@ -636,15 +636,16 @@ var _Pages = {
 	},
 	clearIframeDroppables: function() {
 		var droppablesArray = [];
-		var d = $.ui.ddmanager.droppables.default;
-		if (!d)
+		var d = $.ui.ddmanager.droppables['default'];
+		if (!d) {
 			return;
+		}
 		d.forEach(function(d) {
 			if (!d.options.iframe) {
 				droppablesArray.push(d);
 			}
 		});
-		$.ui.ddmanager.droppables.default = droppablesArray;
+		$.ui.ddmanager.droppables['default'] = droppablesArray;
 	},
 	makeTabEditable: function(element) {
 		//element.off('dblclick');

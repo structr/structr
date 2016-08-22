@@ -1285,9 +1285,9 @@ var _Elements = {
 			dialogBox.append('<button class="speechToText"><img src="' + _Icons.microphone_icon + '"></button>');
 			var speechBtn = $('.speechToText', dialogBox);
 
-			_Speech.init(speechBtn, function(interim, final) {
+			_Speech.init(speechBtn, function(interim, finalResult) {
 				//console.log('Interim:', interim);
-				//console.log('Final:', final);
+				//console.log('Final:', finalResult);
 
 				if (_Speech.isCommand('save', interim)) {
 					//console.log('Save command detected');

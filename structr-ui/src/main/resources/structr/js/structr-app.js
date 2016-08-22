@@ -274,7 +274,7 @@ function StructrApp(baseUrl) {
 					o = o.trim();
 					sel.append('<option value="' + o + '" ' + (o === f.val ? 'selected="selected"' : '') + '>' + o + '</option>');
 				});
-				sel.addClass(f.class);
+				sel.addClass(f['class']);
 				sel.chosen({allow_single_deselect: true});
 
 			} else {
@@ -287,7 +287,7 @@ function StructrApp(baseUrl) {
 
 			//var el = container.find('[data-structr-attr="' + f.key + '"]');
 			var inp = s.input(el);
-			inp.addClass(f.class);
+			inp.addClass(f['class']);
 
 			//console.log('editAction: input element', inp);
 			if (f.type !== 'Enum') {
@@ -1002,7 +1002,7 @@ function StructrApp(baseUrl) {
 
 		}
 
-		inp.addClass(f.class);
+		inp.addClass(f['class']);
 
 		resizeInput(inp);
 
@@ -1184,28 +1184,28 @@ function isTextarea(el) {
 
 function textarea(f) {
 	//console.log('rendering textarea', f);
-	return '<textarea data-structr-id="' + f.id + '" data-structr-type="' + f.type + '"' + (f.class ? ' data-structr-edit-class="' + f.class + '"' : '') + (f.format ? ' data-structr-format="' + f.format + '"' : '') + '" data-structr-name="' + f.key + '">' + f.val + '</textarea>';
+	return '<textarea data-structr-id="' + f.id + '" data-structr-type="' + f.type + '"' + (f['class'] ? ' data-structr-edit-class="' + f['class'] + '"' : '') + (f.format ? ' data-structr-format="' + f.format + '"' : '') + '" data-structr-name="' + f.key + '">' + f.val + '</textarea>';
 }
 
 function inputField(f) {
 	//console.log('rendering input field  ', f);
 	var size = (f.val ? f.val.length : (f.type && f.type === 'Date' ? 25 : f.key.length));
-	return '<input data-structr-id="' + f.id + '"' + (f.class ? ' data-structr-edit-class="' + f.class + '"' : '') + (f.format ? ' data-structr-format="' + f.format + '"' : '') + '" data-structr-name="' + f.key + '" data-structr-type="' + f.type + '" type="text" placeholder="' + (f.placeholder ? f.placeholder : '')
+	return '<input data-structr-id="' + f.id + '"' + (f['class'] ? ' data-structr-edit-class="' + f['class'] + '"' : '') + (f.format ? ' data-structr-format="' + f.format + '"' : '') + '" data-structr-name="' + f.key + '" data-structr-type="' + f.type + '" type="text" placeholder="' + (f.placeholder ? f.placeholder : '')
 			+ '" value="' + escapeForHtmlAttributes(f.val === 'null' ? '' : f.val)
 			+ '" size="' + size + '">';
 }
 
 function field(f) {
-	return '<span type="text" data-structr-id="' + f.id + '" data-structr-type="' + f.type + '"' + (f.format ? ' data-structr-format="' + f.format + '"' : '') + (f.class ? ' data-structr-edit-class="' + f.class + '"' : '') + ' data-structr-name="' + f.key + '">' + f.val + '</span>';
+	return '<span type="text" data-structr-id="' + f.id + '" data-structr-type="' + f.type + '"' + (f.format ? ' data-structr-format="' + f.format + '"' : '') + (f['class'] ? ' data-structr-edit-class="' + f['class'] + '"' : '') + ' data-structr-name="' + f.key + '">' + f.val + '</span>';
 }
 
 function checkbox(f) {
-	return '<input type="checkbox" data-structr-id="' + f.id + '" data-structr-type="' + f.type + '"' + (f.format ? ' data-structr-format="' + f.format + '"' : '') + (f.class ? ' data-structr-edit-class="' + f.class + '"' : '') + ' data-structr-name="' + f.key + '" ' + (f.val ? 'checked="checked"' : '') + '>';
+	return '<input type="checkbox" data-structr-id="' + f.id + '" data-structr-type="' + f.type + '"' + (f.format ? ' data-structr-format="' + f.format + '"' : '') + (f['class'] ? ' data-structr-edit-class="' + f['class'] + '"' : '') + ' data-structr-name="' + f.key + '" ' + (f.val ? 'checked="checked"' : '') + '>';
 }
 
 function enumSelect(f) {
 	//console.log(f, f.format, f.format.split(','))
-	var inp = '<select data-structr-type="' + f.type + '"' + (f.class ? ' data-structr-edit-class="' + f.class + '"' : '') + ' data-structr-name="' + f.key + '" data-structr-id="' + f.id + '"></select>';
+	var inp = '<select data-structr-type="' + f.type + '"' + (f['class'] ? ' data-structr-edit-class="' + f['class'] + '"' : '') + ' data-structr-name="' + f.key + '" data-structr-id="' + f.id + '"></select>';
 	return inp;
 }
 
