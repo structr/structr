@@ -246,7 +246,8 @@ var _Icons = {
 	add_site_icon: 'icon/page_white_add.png',
 	add_page_icon: 'icon/page_add.png',
 	ajax_loader_1: 'img/ajax-loader.gif',
-	ajax_loader_2: 'img/al.gif'
+	ajax_loader_2: 'img/al.gif',
+	structr_logo_small: 'icon/structr_icon_16x16.png'
 };
 
 var Structr = {

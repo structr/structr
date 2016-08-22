@@ -218,12 +218,12 @@ var _Contents = {
 	initTree: function() {
 		//$.jstree.destroy();
 		contentTree.jstree({
-			'plugins': ["themes", "dnd", "search", "state", "types", "wholerow"],
-			'core': {
-				'animation': 0,
-				'state': {'key': 'structr-ui-contents'},
-				'async': true,
-				'data': function(obj, callback) {
+			plugins: ["themes", "dnd", "search", "state", "types", "wholerow"],
+			core: {
+				animation: 0,
+				state: { key: 'structr-ui-contents' },
+				async: true,
+				data: function(obj, callback) {
 
 					switch (obj.id) {
 
@@ -238,7 +238,7 @@ var _Contents = {
 									id: 'root',
 									text: '/',
 									children: true,
-									icon: '/structr/icon/structr_icon_16x16.png',
+									icon: _Icons.structr_logo_small,
 									path: '/',
 									state: {
 										opened: true,
