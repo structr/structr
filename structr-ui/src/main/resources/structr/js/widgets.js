@@ -214,7 +214,7 @@ var _Widgets = {
 
 		parent.append('<div id="' + id + '_folder" class="widget node">'
 			+ '<img class="typeIcon" src="' + icon + '">'
-			+ '<b title="' + name + '" class="name">' + fitStringToWidth(name, 200) + '</b> <span class="id">' + id + '</span>'
+			+ '<b title="' + name + '" class="name">' + fitStringToWidth(name, 200) + '</b>'
 			+ '<div id="' + id + '" class="node' + (expanded ? ' hidden' : '') + '"></div>'
 			+ '</div>');
 
