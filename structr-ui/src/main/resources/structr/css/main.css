@@ -253,6 +253,11 @@ img.disabled {
 	padding: 6px;
 }
 
+#widgets,
+#remoteWidgets {
+	width: 385px;
+}
+
 .ver-scrollable {
 	overflow: auto;
 }
