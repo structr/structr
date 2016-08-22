@@ -18,6 +18,7 @@
  */
 package org.structr.bolt.index.converter;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.search.TypeConverter;
 
 /**
@@ -27,6 +28,15 @@ public class StringTypeConverter implements TypeConverter {
 
 	@Override
 	public Object getReadValue(final Object value) {
+
+		if (value == null) {
+			return null;
+		}
+		
+		if (StringUtils.isEmpty(value.toString())) {
+			return null;
+		}
+
 		return value;
 	}
 

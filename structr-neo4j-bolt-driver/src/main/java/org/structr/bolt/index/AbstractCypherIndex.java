@@ -25,13 +25,17 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.api.QueryResult;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.Index;
 import org.structr.api.search.ArrayQuery;
+import org.structr.api.search.EmptyQuery;
 import org.structr.api.search.ExactQuery;
 import org.structr.api.search.FulltextQuery;
 import org.structr.api.search.GroupQuery;
+import org.structr.api.search.NotEmptyQuery;
 import org.structr.api.search.QueryPredicate;
 import org.structr.api.search.RangeQuery;
 import org.structr.api.search.SpatialQuery;
@@ -43,8 +47,10 @@ import org.structr.bolt.index.converter.IntTypeConverter;
 import org.structr.bolt.index.converter.LongTypeConverter;
 import org.structr.bolt.index.converter.StringTypeConverter;
 import org.structr.bolt.index.factory.ArrayQueryFactory;
+import org.structr.bolt.index.factory.EmptyQueryFactory;
 import org.structr.bolt.index.factory.GroupQueryFactory;
 import org.structr.bolt.index.factory.KeywordQueryFactory;
+import org.structr.bolt.index.factory.NotEmptyQueryFactory;
 import org.structr.bolt.index.factory.QueryFactory;
 import org.structr.bolt.index.factory.RangeQueryFactory;
 import org.structr.bolt.index.factory.SpatialQueryFactory;
@@ -54,6 +60,8 @@ import org.structr.bolt.index.factory.SpatialQueryFactory;
  * @author Christian Morgner
  */
 public abstract class AbstractCypherIndex<T extends PropertyContainer> implements Index<T>, QueryFactory {
+
+	private static final Logger logger = Logger.getLogger(AbstractCypherIndex.class.getName());
 
 	private static final Set<Class> INDEXABLE = new HashSet<>(Arrays.asList(new Class[] {
 		String.class, Boolean.class, Double.class, Integer.class, Long.class, Character.class, Float.class, Date.class
@@ -108,6 +116,8 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 			query.sort(predicate.getSortType(), sortKey, predicate.sortDescending());
 		}
 
+		System.out.println(query);
+
 		return getResult(query);
 	}
 
@@ -128,12 +138,14 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 
 	static {
 
+		FACTORIES.put(NotEmptyQuery.class, new NotEmptyQueryFactory());
 		FACTORIES.put(FulltextQuery.class, new KeywordQueryFactory());
 		FACTORIES.put(SpatialQuery.class,  new SpatialQueryFactory());
 		FACTORIES.put(GroupQuery.class,    new GroupQueryFactory());
 		FACTORIES.put(RangeQuery.class,    new RangeQueryFactory());
 		FACTORIES.put(ExactQuery.class,    new KeywordQueryFactory());
 		FACTORIES.put(ArrayQuery.class,    new ArrayQueryFactory());
+		FACTORIES.put(EmptyQuery.class,    new EmptyQueryFactory());
 
 		CONVERTERS.put(Boolean.class, new BooleanTypeConverter());
 		CONVERTERS.put(String.class,  new StringTypeConverter());
@@ -153,7 +165,17 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 			if (factory != null) {
 
 				factory.createQuery(this, predicate, query);
+
+			} else {
+
+				logger.log(Level.WARNING, "No query factory registered for type {0}", type);
 			}
+
+		} else {
+
+			// Add a simple "True" to the Cypher statement to prevent
+			// errors when search attributes return search type null.
+			query.noop();
 		}
 	}
 }

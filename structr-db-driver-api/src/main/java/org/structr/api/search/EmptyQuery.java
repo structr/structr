@@ -16,33 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.bolt.index.factory;
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package org.structr.api.search;
 
-import org.structr.api.search.QueryPredicate;
-import org.structr.bolt.index.CypherQuery;
-
-public class ArrayQueryFactory extends KeywordQueryFactory {
-
-	@Override
-	public void createQuery(final QueryFactory parent, final QueryPredicate predicate, final CypherQuery query) {
-
-		final Object value = getReadValue(predicate.getValue());
-		final String name  = predicate.getName();
-
-		if (value == null) {
-
-			query.addSimpleParameter(name, "is", null);
-
-		} else {
-
-			if (predicate.isExactMatch()) {
-
-				query.addListParameter(name, value != null ? "=" : "is", value);
-
-			} else {
-
-				query.addListParameter(name, "=~", "(?i).*" + escape(value) + ".*");
-			}
-		}
-	}
+public interface EmptyQuery extends QueryPredicate {
 }

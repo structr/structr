@@ -21,28 +21,12 @@ package org.structr.bolt.index.factory;
 import org.structr.api.search.QueryPredicate;
 import org.structr.bolt.index.CypherQuery;
 
-public class ArrayQueryFactory extends KeywordQueryFactory {
+public class NotEmptyQueryFactory extends AbstractQueryFactory {
 
 	@Override
 	public void createQuery(final QueryFactory parent, final QueryPredicate predicate, final CypherQuery query) {
 
-		final Object value = getReadValue(predicate.getValue());
-		final String name  = predicate.getName();
-
-		if (value == null) {
-
-			query.addSimpleParameter(name, "is", null);
-
-		} else {
-
-			if (predicate.isExactMatch()) {
-
-				query.addListParameter(name, value != null ? "=" : "is", value);
-
-			} else {
-
-				query.addListParameter(name, "=~", "(?i).*" + escape(value) + ".*");
-			}
-		}
+		// not empty query is simple
+		query.addSimpleParameter(predicate.getName(), "is not", null);
 	}
 }

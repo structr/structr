@@ -42,6 +42,7 @@ import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.TestOne;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +50,7 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.GraphObject;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 
@@ -433,5 +435,41 @@ public class SearchTest extends StructrTest {
 			fail("Unexpected exception");
 
 		}
+	}
 
-	}}
+	public void test08InexactSearch() {
+
+		try  {
+
+			final Date date    = new Date();
+			final TestOne test = createTestNode(TestOne.class,
+				new NodeAttribute(TestOne.name, "TestOne"),
+				new NodeAttribute(TestOne.aBoolean, "true"),
+				new NodeAttribute(TestOne.aDate, date),
+				new NodeAttribute(TestOne.aDouble, 1.234),
+				new NodeAttribute(TestOne.aLong, 12345L),
+				new NodeAttribute(TestOne.anEnum, TestOne.Status.One),
+				new NodeAttribute(TestOne.anInt, 123)
+			);
+
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Invalid inexact search result for type String",  test, app.nodeQuery(TestOne.class).and(TestOne.name,    "TestOne",           false));
+				assertEquals("Invalid inexact search result for type Boolean", test, app.nodeQuery(TestOne.class).and(TestOne.aBoolean, true,               false));
+				assertEquals("Invalid inexact search result for type Date",    test, app.nodeQuery(TestOne.class).and(TestOne.aDate,    date,               false));
+				assertEquals("Invalid inexact search result for type Double",  test, app.nodeQuery(TestOne.class).and(TestOne.aDouble,  1.234,              false));
+				assertEquals("Invalid inexact search result for type Long",    test, app.nodeQuery(TestOne.class).and(TestOne.aLong,    12345L,             false));
+				assertEquals("Invalid inexact search result for type String",  test, app.nodeQuery(TestOne.class).and(TestOne.anEnum,   TestOne.Status.One, false));
+				assertEquals("Invalid inexact search result for type Enum",    test, app.nodeQuery(TestOne.class).and(TestOne.anInt,    123,                false));
+
+				tx.success();
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+	}
+}

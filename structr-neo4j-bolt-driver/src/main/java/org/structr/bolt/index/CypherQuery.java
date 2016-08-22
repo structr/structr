@@ -111,6 +111,10 @@ public class CypherQuery {
 		buffer.append(" OR ");
 	}
 
+	public void noop() {
+		buffer.append(" True ");
+	}
+
 	public void addSimpleParameter(final String key, final String operator, final Object value) {
 		addSimpleParameter(key, operator, value, true);
 	}
@@ -128,7 +132,12 @@ public class CypherQuery {
 			buffer.append(key);
 
 			if (isProperty) {
+
 				buffer.append("` ");
+
+			} else {
+
+				buffer.append(" ");
 			}
 
 			buffer.append(operator);

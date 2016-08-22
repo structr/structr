@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph.search;
 
+import org.structr.api.search.NotEmptyQuery;
 import org.structr.api.search.Occurrence;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
@@ -35,6 +36,11 @@ public class NotBlankSearchAttribute<T> extends EmptySearchAttribute<T> {
 	@Override
 	public String toString() {
 		return "NotBlankSearchAttribute()";
+	}
+
+	@Override
+	public Class getQueryType() {
+		return NotEmptyQuery.class;
 	}
 
 	@Override

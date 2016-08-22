@@ -53,7 +53,8 @@ public class KeywordQueryFactory extends AbstractQueryFactory {
 		final Object value = getReadValue(predicate.getValue());
 		final String name  = predicate.getName();
 
-		if (predicate.isExactMatch()) {
+		// only String properties can be used for inexact search
+		if (!predicate.getType().equals(String.class) || predicate.isExactMatch()) {
 
 			query.addSimpleParameter(name, value != null ? "=" : "is", value);
 

@@ -20,6 +20,7 @@ package org.structr.core.graph.search;
 
 import java.util.Collection;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.search.EmptyQuery;
 import org.structr.api.search.Occurrence;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
@@ -37,6 +38,11 @@ public class EmptySearchAttribute<T> extends PropertySearchAttribute<T> {
 	@Override
 	public String toString() {
 		return "EmptySearchAttribute()";
+	}
+
+	@Override
+	public Class getQueryType() {
+		return EmptyQuery.class;
 	}
 
 	@Override
