@@ -136,12 +136,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	@Override
 	public Node getNodeById(final long id) {
 
-		final SessionTransaction tx   = getCurrentTransaction();
-		final Map<String, Object> map = new HashMap<>();
-
-		map.put("id", id);
-
-		return NodeWrapper.newInstance(this, tx.getNode("MATCH (n) WHERE ID(n) = {id} RETURN n", map));
+		return NodeWrapper.newInstance(this, id);
 	}
 
 	@Override

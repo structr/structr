@@ -77,7 +77,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	}
 
 	@Override
-	public void removeLabel(Label label) {
+	public void removeLabel(final Label label) {
 
 		assertNotStale();
 
@@ -125,7 +125,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	}
 
 	@Override
-	public Iterable<Relationship> getRelationships(Direction direction) {
+	public Iterable<Relationship> getRelationships(final Direction direction) {
 
 		assertNotStale();
 
@@ -157,7 +157,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	}
 
 	@Override
-	public Iterable<Relationship> getRelationships(Direction direction, RelationshipType relationshipType) {
+	public Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType) {
 
 		assertNotStale();
 
@@ -198,10 +198,30 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		synchronized (nodeCache) {
 
 			NodeWrapper wrapper = nodeCache.get(node.id());
-			if (wrapper == null) {
+			if (wrapper == null || wrapper.isStale()) {
 
 				wrapper = new NodeWrapper(db, node);
 				nodeCache.put(node.id(), wrapper);
+			}
+
+			return wrapper;
+		}
+	}
+
+	public static NodeWrapper newInstance(final BoltDatabaseService db, final long id) {
+
+		synchronized (nodeCache) {
+
+			NodeWrapper wrapper = nodeCache.get(id);
+			if (wrapper == null || wrapper.isStale()) {
+
+				final SessionTransaction tx   = db.getCurrentTransaction();
+				final Map<String, Object> map = new HashMap<>();
+
+				map.put("id", id);
+
+				wrapper = new NodeWrapper(db, tx.getNode("MATCH (n) WHERE ID(n) = {id} RETURN n", map));
+				nodeCache.put(id, wrapper);
 			}
 
 			return wrapper;

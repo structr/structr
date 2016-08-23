@@ -161,6 +161,10 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		return false;
 	}
 
+	public boolean isStale() {
+		return this.stale;
+	}
+	
 	public void stale() {
 		this.stale = true;
 	}
