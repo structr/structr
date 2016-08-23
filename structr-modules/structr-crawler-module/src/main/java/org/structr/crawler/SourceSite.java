@@ -18,19 +18,17 @@
  */
 package org.structr.crawler;
 
+import java.util.List;
 import org.structr.common.View;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
 
 public class SourceSite extends CrawlerTreeNode {
 
-	public static final Property<java.util.List<SourcePage>> pagesProperty = new EndNodes<>("pages", SourceSiteCONTAINSSourcePage.class).dynamic();
-	public static final Property<java.lang.String> keywordsProperty = new StringProperty("keywords").indexed().dynamic();
-	public static final Property<java.lang.String> urlProperty = new StringProperty("url").indexed().dynamic();
+	public static final Property<List<SourcePage>> pages = new EndNodes<>("pages", SourceSiteCONTAINSSourcePage.class);
 
 	public static final View uiView = new View(SourceSite.class, "ui",
-		pagesProperty, keywordsProperty, urlProperty
+		pages
 	);
 
 }

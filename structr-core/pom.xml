@@ -206,7 +206,7 @@
                 <version>2.18.1</version>
                 <configuration>
                     <argLine>-Xms2g -Xmx2g</argLine>
-		    <forkCount>1</forkCount>
+		            <forkCount>1</forkCount>
                     <reuseForks>false</reuseForks>
                     <systemPropertyVariables>
                         <user.timezone>UTC</user.timezone>
