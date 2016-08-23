@@ -59,6 +59,7 @@ import org.structr.schema.SchemaHelper;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.FileBase;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 
 //~--- classes ----------------------------------------------------------------
@@ -236,6 +237,18 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 							newFile.setProperty(key, additionalProperties.get(key));
 
+						}
+
+						final String defaultUploadFolderConfigValue = StructrApp.getConfigurationValue(Services.APPLICATION_DEFAULT_UPLOAD_FOLDER, null);
+						if (defaultUploadFolderConfigValue != null) {
+
+							final Folder defaultUploadFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), defaultUploadFolderConfigValue);
+
+							// can only happen if the configuration value is invalid or maps to the root folder
+							if (defaultUploadFolder != null) {
+								newFile.setProperty(FileBase.hasParent, true);
+								newFile.setProperty(FileBase.parent, defaultUploadFolder);
+							}
 						}
 
 						if (!newFile.validatePath(securityContext, null)) {

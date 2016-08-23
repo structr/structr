@@ -113,7 +113,7 @@ public class User extends AbstractUser {
 	@Override
 	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
-		if (super.onCreation(securityContext, errorBuffer)) {
+		if (super.onModification(securityContext, errorBuffer)) {
 
 			checkAndCreateHomeDirectory(securityContext);
 

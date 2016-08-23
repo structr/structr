@@ -23,7 +23,6 @@ import java.util.UUID;
 
 /**
  *
- * @author Christian Morgner
  */
 public class ToplevelTemporalEnvironment implements PseudoTemporalEnvironment {
 

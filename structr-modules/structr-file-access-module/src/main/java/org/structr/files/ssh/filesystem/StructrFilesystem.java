@@ -39,7 +39,6 @@ import org.structr.files.ssh.filesystem.path.StructrRootPath;
 
 /**
  *
- * @author Christian Morgner
  */
 public class StructrFilesystem extends FileSystem {
 

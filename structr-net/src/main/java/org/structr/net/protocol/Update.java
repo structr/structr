@@ -33,7 +33,6 @@ import org.structr.net.repository.RepositoryObject;
 
 /**
  *
- * @author Christian Morgner
  */
 public class Update extends Message {
 

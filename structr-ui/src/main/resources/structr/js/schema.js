@@ -40,10 +40,24 @@ $(document).ready(function() {
 });
 
 var _Schema = {
-	type_icon: 'icon/database_table.png',
 	schemaLoading: false,
 	schemaLoaded: false,
-	cnt: 0,
+	new_attr_cnt: 0,
+	typeOptions: '<select class="property-type"><option value="">--Select--</option>'
+		+ '<option value="String">String</option>'
+		+ '<option value="StringArray">String[]</option>'
+		+ '<option value="Integer">Integer</option>'
+		+ '<option value="Long">Long</option>'
+		+ '<option value="Double">Double</option>'
+		+ '<option value="Boolean">Boolean</option>'
+		+ '<option value="Enum">Enum</option>'
+		+ '<option value="Date">Date</option>'
+		+ '<option value="Count">Count</option>'
+		+ '<option value="Function">Function</option>'
+		+ '<option value="Notion">Notion</option>'
+		+ '<option value="Join">Join</option>'
+		+ '<option value="Cypher">Cypher</option>'
+		+ '<option value="Thumbnail">Thumbnail</option>',
 	reload: function() {
 		if (reload) {
 			return;
@@ -86,12 +100,12 @@ var _Schema = {
 
 		Structr.ensureIsAdmin(schemaInputContainer, function() {
 
-			schemaInputContainer.append('<div class="input-and-button"><input class="schema-input" id="type-name" type="text" size="10" placeholder="New type"><button id="create-type" class="btn"><img src="icon/add.png"> Add</button></div>');
+			schemaInputContainer.append('<div class="input-and-button"><input class="schema-input" id="type-name" type="text" size="10" placeholder="New type"><button id="create-type" class="btn"><img src="' + _Icons.add_icon + '"> Add</button></div>');
 			schemaInputContainer.append('<div class="input-and-button"><input class="schema-input" id="ggist-url" type="text" size="20" placeholder="Enter GraphGist URL"><button id="gg-import" class="btn">Start Import</button></div>');
 			$('#gg-import').on('click', function(e) {
 				var btn = $(this);
 				var text = btn.text();
-				btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="img/al.gif">');
+				btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="' + _Icons.ajax_loader_2 + '">');
 				e.preventDefault();
 				_Schema.importGraphGist($('#ggist-url').val(), text);
 			});
@@ -127,22 +141,22 @@ var _Schema = {
 				}
 			});
 
-			schemaInputContainer.append('<button class="btn" id="admin-tools"><img src="icon/wrench.png"> Tools</button>');
+			schemaInputContainer.append('<button class="btn" id="admin-tools"><img src="' + _Icons.edit_ui_properties_icon + '"> Tools</button>');
 			$('#admin-tools').on('click', function() {
 				_Schema.openAdminTools();
 			});
 
-			schemaInputContainer.append('<button class="btn module-dependend" data-structr-module="cloud" id="sync-schema"><img src="icon/page_white_get.png"> Sync schema</button>');
+			schemaInputContainer.append('<button class="btn module-dependend" data-structr-module="cloud" id="sync-schema"><img src="' + _Icons.push_file_icon + '"> Sync schema</button>');
 			$('#sync-schema').on('click', function() {
 				_Schema.syncSchemaDialog();
 			});
 
-			schemaInputContainer.append('<button class="btn" id="show-snapshots"><img src="icon/database.png"> Snapshots</button>');
+			schemaInputContainer.append('<button class="btn" id="show-snapshots"><img src="' + _Icons.database_icon + '"> Snapshots</button>');
 			$('#show-snapshots').on('click', function() {
 				_Schema.snapshotsDialog();
 			});
 
-			schemaInputContainer.append('<button class="btn" id="schema-display-options"><img src="icon/pencil.png"> Display Options</button>');
+			schemaInputContainer.append('<button class="btn" id="schema-display-options"><img src="' + _Icons.edit_icon + '"> Display Options</button>');
 			$('#schema-display-options').on('click', function() {
 				_Schema.openSchemaDisplayOptions();
 			});
@@ -263,8 +277,8 @@ var _Schema = {
 
 		selectedRel = rel;
 		selectedRel.css({zIndex: ++maxZ});
-		selectedRel.next('._jsPlumb_overlay').css({zIndex: ++maxZ, borderColor: relHighlightColor, background: 'rgba(255, 255, 255, 1)'});
-		pathElements = selectedRel.find('path');
+		selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({zIndex: ++maxZ, borderColor: relHighlightColor, background: 'rgba(255, 255, 255, 1)'});
+		var pathElements = selectedRel.find('path');
 		pathElements.css({stroke: relHighlightColor});
 		$(pathElements[1]).css({fill: relHighlightColor});
 	},
@@ -275,9 +289,9 @@ var _Schema = {
 
 		// deselect selected Relationship
 		if (selectedRel) {
-			selectedRel.next('._jsPlumb_overlay').css({borderColor:'', background: 'rgba(255, 255, 255, .8)'});
-			pathElements = selectedRel.find('path');
-			pathElements.css('stroke', '');
+			selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({borderColor:'', background: 'rgba(255, 255, 255, .8)'});
+			var pathElements = selectedRel.find('path');
+			pathElements.css({stroke: '', fill: ''});
 			$(pathElements[1]).css('fill', '');
 			selectedRel = undefined;
 		}
@@ -372,15 +386,13 @@ var _Schema = {
 		inheritanceSlideout = $('#inheritance-tree');
 		inheritanceTree = $('#inheritance-tree-container');
 
-		var adjustSlideoutHeight = function () {
-			var windowHeight = win.height();
-			$('.ver-scrollable').css({
-				height: (windowHeight - inheritanceTree.offset().top) + 'px'
-			});
-		}
 		var updateCanvasTranslation = function () {
+			var windowHeight = $(window).height();
+			$('.ver-scrollable').css({
+				height: (windowHeight - inheritanceTree.offset().top - 25) + 'px'
+			});
 			canvas.css('transform', _Schema.getSchemaCSSTransform());
-			adjustSlideoutHeight();
+			_Schema.resize();
 		};
 
 		inheritanceSlideoutOpen = false;
@@ -392,17 +404,14 @@ var _Schema = {
 
 			if (Math.abs(inheritanceSlideout.position().left + inheritanceSlideout.width() + 12) <= 3) {
 				inheritanceSlideoutOpen = true;
-				Structr.openLeftSlideOut(inheritanceSlideout, $("#inheritanceTab"), activeTabLeftKey, adjustSlideoutHeight, updateCanvasTranslation);
-				canvas.css('transform', _Schema.getSchemaCSSTransform());
+				Structr.openLeftSlideOut(inheritanceSlideout, $("#inheritanceTab"), activeTabLeftKey, updateCanvasTranslation, updateCanvasTranslation);
 
 			} else {
 				inheritanceSlideoutOpen = false;
-				Structr.closeLeftSlideOuts([inheritanceSlideout], activeTabLeftKey);
+				Structr.closeLeftSlideOuts([inheritanceSlideout], activeTabLeftKey, _Schema.resize);
 				canvas.css('transform', _Schema.getSchemaCSSTransform());
 
 			}
-
-			_Schema.resize();
 		});
 
 		_Schema.init();
@@ -459,8 +468,8 @@ var _Schema = {
 							+ (isBuiltinType ? ' light' : '')
 							//+ '" id="' + id + '">' + (entity.icon ? '<img class="type-icon" src="' + entity.icon + '">' : '') + '<b>' + entity.name + '</b>'
 							+ '" id="' + id + '"><b>' + entity.name + '</b>'
-							+ '<img class="icon delete" src="icon/delete' + (isBuiltinType ? '_gray' : '') + '.png">'
-							+ '<img class="icon edit" src="icon/pencil.png">'
+							+ '<img class="icon delete" src="' + (isBuiltinType ? _Icons.delete_disabled_icon : _Icons.delete_icon) + '">'
+							+ '<img class="icon edit" src="' + _Icons.edit_icon + '">'
 							+ '</div>');
 
 
@@ -650,8 +659,8 @@ var _Schema = {
 							["Label", {
 									cssClass: "label rel-type",
 									label: '<div id="rel_' + res.id + '">' + (res.relationshipType === initialRelType ? '&nbsp;' : res.relationshipType)
-											+ ' <img title="Edit schema relationship" alt="Edit schema relationship" class="edit icon" src="icon/pencil.png">'
-											+ ' <img title="Remove schema relationship" alt="Remove schema relationship" class="remove icon" src="icon/delete.png"></div>',
+											+ ' <img title="Edit schema relationship" alt="Edit schema relationship" class="edit icon" src="' + _Icons.edit_icon + '">'
+											+ ' <img title="Remove schema relationship" alt="Remove schema relationship" class="remove icon" src="' + _Icons.delete_icon + '"></div>',
 									location: .5 + offset,
 									id: "label"
 								}
@@ -712,7 +721,7 @@ var _Schema = {
 
 		if (!entity.isBuiltinType) {
 			headContentDiv.append(' extends <select class="extends-class-select"></select>');
-			headContentDiv.append(' <img id="edit-parent-class" class="icon edit" src="icon/pencil.png" alt="Edit parent class" title="Edit parent class">');
+			headContentDiv.append(' <img id="edit-parent-class" class="icon edit" src="' + _Icons.edit_icon + '" alt="Edit parent class" title="Edit parent class">');
 
 			$("#edit-parent-class", headContentDiv).click(function () {
 
@@ -830,9 +839,9 @@ var _Schema = {
 		var id = '___' + entity.id;
 		headEl.append('<div id="' + id + '_head" class="schema-details">'
 			+ '<table id="relationship-options"><tr><td colspan=2 id="basic-options"></td></tr><tr><td id="cascading-options"></td><td id="propagation-options"></td></tr></table>'
-			+ '<button id="edit-rel-options-button"><img class="edit icon" src="icon/pencil.png"> Edit relationship options</button>'
-			+ '<button id="save-rel-options-button"><img class="save icon" src="icon/tick.png"> Save changes</button>'
-			+ '<button id="cancel-rel-options-button"><img src="icon/cross.png"> Discard changes</button>'
+			+ '<button id="edit-rel-options-button"><img class="edit icon" src="' + _Icons.edit_icon + '"> Edit relationship options</button>'
+			+ '<button id="save-rel-options-button"><img class="save icon" src="' + _Icons.tick_icon + '"> Save changes</button>'
+			+ '<button id="cancel-rel-options-button"><img src="' + _Icons.cross_icon + '"> Discard changes</button>'
 			+ '<div id="tabs" style="margin-top:20px;"><ul></ul></div>'
 			+ '</div>'
 		);
@@ -980,7 +989,7 @@ var _Schema = {
 	appendLocalProperties: function(el, entity) {
 
 		el.append('<table class="local schema-props"><thead><th>JSON Name</th><th>DB Name</th><th>Type</th><th>Format/Code</th><th>Notnull</th><th>Uniq.</th><th>Idx</th><th>Default</th><th>Action</th></thead></table>');
-		el.append('<img alt="Add local attribute" class="add-icon add-local-attribute" src="icon/add.png">');
+		el.append('<img alt="Add local attribute" class="add-icon add-local-attribute" src="' + _Icons.add_icon + '">');
 
 		var propertiesTable = $('.local.schema-props', el);
 
@@ -990,18 +999,18 @@ var _Schema = {
 			_Schema.appendLocalProperty(propertiesTable, prop);
 		});
 		$('.add-local-attribute', el).on('click', function() {
-			var rowClass = 'new' + (_Schema.cnt++);
+			var rowClass = 'new' + (_Schema.new_attr_cnt++);
 			propertiesTable.append('<tr class="' + rowClass + '"><td><input size="15" type="text" class="property-name" placeholder="Enter JSON name" autofocus></td>'
 					+ '<td><input size="15" type="text" class="property-dbname" placeholder="Enter DB name"></td>'
-					+ '<td>' + typeOptions + '</td>'
+					+ '<td>' + _Schema.typeOptions + '</td>'
 					+ '<td><input size="15" type="text" class="property-format" placeholder="Enter format"></td>'
 					+ '<td><input class="not-null" type="checkbox"></td>'
 					+ '<td><input class="unique" type="checkbox"></td>'
 					+ '<td><input class="indexed" type="checkbox"></td>'
 					+ '<td><input class="property-default" size="10" type="text"></td>'
 					+ '<td>'
-					+ '<img alt="Accept" title="Save changes" class="create-icon create-property" src="icon/tick.png">'
-					+ '<img alt="Cancel" title="Discard changes" class="remove-icon remove-property" src="icon/cross.png">'
+					+ '<img alt="Accept" title="Save changes" class="create-icon create-property" src="' + _Icons.tick_icon + '">'
+					+ '<img alt="Cancel" title="Discard changes" class="remove-icon remove-property" src="' + _Icons.cross_icon + '">'
 					+ '</td></div>');
 
 			$('.' + rowClass + ' .remove-property', propertiesTable).on('click', function() {
@@ -1018,7 +1027,7 @@ var _Schema = {
 	appendViews: function(el, resource, entity) {
 
 		el.append('<table class="views schema-props"><thead><th>Name</th><th>Attributes</th><th>Action</th></thead></table>');
-		el.append('<img alt="Add view" class="add-icon add-view" src="icon/add.png">');
+		el.append('<img alt="Add view" class="add-icon add-view" src="' + _Icons.add_icon + '">');
 
 		var viewsTable = $('.views.schema-props', el);
 		var newSelectClass   = 'select-view-attrs-new';
@@ -1032,8 +1041,8 @@ var _Schema = {
 		$('.add-view', el).on('click', function() {
 			viewsTable.append('<tr class="new"><td style="width:20%;"><input size="15" type="text" class="view property-name" placeholder="Enter view name"></td>'
 					+ '<td class="' + newSelectClass + '"></td><td>'
-					+ '<img alt="Accept" title="Save changes" class="create-icon create-view" src="icon/tick.png">'
-					+ '<img alt="Cancel" title="Discard changes" class="remove-icon remove-view" src="icon/cross.png">'
+					+ '<img alt="Accept" title="Save changes" class="create-icon create-view" src="' + _Icons.tick_icon + '">'
+					+ '<img alt="Cancel" title="Discard changes" class="remove-icon remove-view" src="' + _Icons.cross_icon + '">'
 					+ '</td>'
 					+ '</div');
 
@@ -1052,7 +1061,7 @@ var _Schema = {
 	appendMethods: function(el, entity) {
 
 		el.append('<table class="actions schema-props"><thead><th>JSON Name</th><th>Code</th><th>Comment</th><th>Action</th></thead></table>');
-		el.append('<img alt="Add action" class="add-icon add-action-attribute" src="icon/add.png">');
+		el.append('<img alt="Add action" class="add-icon add-action-attribute" src="' + _Icons.add_icon + '">');
 
 		var actionsTable = $('.actions.schema-props', el);
 
@@ -1067,8 +1076,8 @@ var _Schema = {
 			actionsTable.append('<tr class="new"><td style="vertical-align:top;"><input size="15" type="text" class="action property-name" placeholder="Enter method name"></td>'
 					+ '<td><textarea rows="4" class="action property-code" placeholder="Enter Code"></textarea></td><td><textarea rows="4" class="action property-comment" placeholder="Enter comment"></textarea></td>'
 					+ '<td>'
-					+ '<img alt="Accept" title="Save changes" class="create-icon create-action" src="icon/tick.png">'
-					+ '<img alt="Cancel" title="Discard changes" class="remove-icon remove-action" src="icon/cross.png">'
+					+ '<img alt="Accept" title="Save changes" class="create-icon create-action" src="' + _Icons.tick_icon + '">'
+					+ '<img alt="Cancel" title="Discard changes" class="remove-icon remove-action" src="' + _Icons.cross_icon + '">'
 					+ '</td>'
 					+ '</div>');
 
@@ -1209,9 +1218,10 @@ var _Schema = {
 								row = $('.local.' + name, el);
 
 								$('.create-property', row).remove();
-								$('.remove-property', row).off('click');
-
-								$('.remove-property', row).on('click', function() {
+								$('.remove-property', row)
+										.off('click')
+										.attr('src', _Icons.delete_icon)
+										.on('click', function() {
 									_Schema.confirmRemoveSchemaEntity(property, 'Delete property', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); }, 'Property values will not be removed from data nodes.');
 								});
 
@@ -1258,30 +1268,31 @@ var _Schema = {
 		if (canvas) {
 
 			var zoom = (instance ? instance.getZoom() : 1);
-
 			var canvasPosition = canvas.position();
+			var padding = 100;
 
 			var canvasSize = {
 				w: ($(window).width() - canvasPosition.left),
 				h: ($(window).height() - canvasPosition.top)
 			};
+
 			$('.node').each(function(i, elem) {
 				$elem = $(elem);
-				canvasSize.w = Math.max(canvasSize.w, (($elem.position().left - canvasPosition.left) / zoom + $elem.width()));
-				canvasSize.h = Math.max(canvasSize.h, (($elem.position().top  - canvasPosition.top)  / zoom + $elem.height()));
+				canvasSize.w = Math.max(canvasSize.w, (($elem.position().left - canvasPosition.left) / zoom + $elem.width()) + padding);
+				canvasSize.h = Math.max(canvasSize.h, (($elem.position().top - canvasPosition.top)  / zoom + $elem.height()) + padding);
 			});
 
-			if (canvasSize.w * zoom - canvasPosition.left < $(window).width()) {
-				canvasSize.w = ($(window).width() - canvasPosition.left) / zoom;
+			if (canvasSize.w * zoom < $(window).width() - canvasPosition.left) {
+				canvasSize.w = ($(window).width()) / zoom - canvasPosition.left + padding;
 			}
 
 			if (canvasSize.h * zoom < $(window).height() - canvasPosition.top) {
-				canvasSize.h = ($(window).height() - canvasPosition.top) / zoom;
+				canvasSize.h = ($(window).height()) / zoom  - canvasPosition.top + padding;
 			}
 
 			canvas.css({
 				width: canvasSize.w + 'px',
-				height: canvasSize.h + 'px'
+				height: (canvasSize.h - 1) + 'px'
 			});
 		}
 
@@ -1300,14 +1311,14 @@ var _Schema = {
 
 		el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name" value="' + escapeForHtmlAttributes(property.name) + '"></td><td>'
 				+ '<input size="15" type="text" class="property-dbname" value="' + escapeForHtmlAttributes(property.dbName) + '"></td><td>'
-				+ typeOptions + '</td>'
+				+ _Schema.typeOptions + '</td>'
 				+ (property.propertyType !== 'Function' ?  '<td><input size="15" type="text" class="property-format" value="' + (property.format ? escapeForHtmlAttributes(property.format) : '') + '"></td>' : '<td><button class="edit-read-function">Read</button><button class="edit-write-function">Write</button></td>')
 				+ '<td><input class="not-null" type="checkbox"'
 				+ (property.notNull ? ' checked="checked"' : '') + '></td><td><input class="unique" type="checkbox"'
 				+ (property.unique ? ' checked="checked"' : '') + '</td><td><input class="indexed" type="checkbox"'
 				+ (property.indexed ? ' checked="checked"' : '') + '</td><td>'
 				+ '<input type="text" size="10" class="property-default" value="' + escapeForHtmlAttributes(property.defaultValue) + '">' + '</td><td>'
-				+ (property.isBuiltinProperty ? '' : '<img alt="Remove" class="remove-icon remove-property" src="icon/delete.png">')
+				+ (property.isBuiltinProperty ? '' : '<img alt="Remove" class="remove-icon remove-property" src="' + _Icons.delete_icon + '">')
 				+ '</td></tr>');
 
 		_Schema.bindEvents(property);
@@ -1675,9 +1686,9 @@ var _Schema = {
 				+ escapeForHtmlAttributes(method.source) + '</textarea></td><td><textarea rows="4" class="property-comment action">'
 				+ escapeForHtmlAttributes(method.comment || '') + '</textarea></td>'
 				+ '<td>'
-				+ '<img alt="Accept" title="Save changes" class="create-icon save-action hidden" src="icon/tick.png">'
-				+ '<img alt="Cancel" title="Discard changes" class="remove-icon cancel-action hidden" src="icon/cross.png">'
-				+ '<img alt="Remove" title="Remove method" class="remove-icon remove-action" src="icon/delete.png">'
+				+ '<img alt="Accept" title="Save changes" class="create-icon save-action hidden" src="' + _Icons.tick_icon + '">'
+				+ '<img alt="Cancel" title="Discard changes" class="remove-icon cancel-action hidden" src="' + _Icons.cross_icon + '">'
+				+ '<img alt="Remove" title="Remove method" class="remove-icon remove-action" src="' + _Icons.delete_icon + '">'
 				+ '</td></tr>');
 
 		var activate = function() {
@@ -1726,9 +1737,9 @@ var _Schema = {
 
 		el.append('<tr class="' + view.name + '"><td style="width:20%;"><input size="15" type="text" class="property-name view" value="' + escapeForHtmlAttributes(view.name) + '">'
 				+ '</td><td id="' + selectId + '"></td><td>'
-				+ '<img alt="Save" title="Save changes" class="create-icon save-view hidden" src="icon/tick.png">'
-				+ '<img alt="Cancel" title="Discard changes" class="remove-icon cancel-view hidden" src="icon/cross.png">'
-				+ (view.isBuiltinView ? '<img alt="Reset" title="Reset view" class="remove-icon reset-view" src="icon/arrow_undo.png">' : '<img alt="Remove" title="Remove view" class="remove-icon remove-view" src="icon/delete.png">')
+				+ '<img alt="Save" title="Save changes" class="create-icon save-view hidden" src="' + _Icons.tick_icon + '">'
+				+ '<img alt="Cancel" title="Discard changes" class="remove-icon cancel-view hidden" src="' + _Icons.cross_icon + '">'
+				+ (view.isBuiltinView ? '<img alt="Reset" title="Reset view" class="remove-icon reset-view" src="' + _Icons.arrow_undo_icon + '">' : '<img alt="Remove" title="Remove view" class="remove-icon remove-view" src="' + _Icons.delete_icon + '">')
 				+ '</td></tr>');
 
 		_Schema.appendViewSelectionElement('#' + selectId, view, resource, entity);
@@ -2489,7 +2500,7 @@ var _Schema = {
 				200: function() {
 					var btn = $('#import-ggist');
 					btn.removeClass('disabled').attr('disabled', null);
-					btn.html(text + ' <img src="icon/tick.png">');
+					btn.html(text + ' <img src="' + _Icons.tick_icon + '">');
 					window.setTimeout(function() {
 						$('img', btn).fadeOut();
 						document.location.reload();
@@ -2688,15 +2699,15 @@ var _Schema = {
 
 		dialogText.append('<table id="admin-tools-table"></table>');
 		var toolsTable = $('#admin-tools-table');
-		toolsTable.append('<tr><td><button id="rebuild-index"><img src="icon/arrow_refresh.png"> Rebuild Index</button></td><td><label for"rebuild-index">Rebuild database index for all nodes and relationships</label></td></tr>');
-		toolsTable.append('<tr><td><button id="clear-schema"><img src="icon/delete.png"> Clear Schema</button></td><td><label for"clear-schema">Delete all schema nodes and relationships of dynamic schema</label></td></tr>');
+		toolsTable.append('<tr><td><button id="rebuild-index"><img src="' + _Icons.refresh_icon + '"> Rebuild Index</button></td><td><label for"rebuild-index">Rebuild database index for all nodes and relationships</label></td></tr>');
+		toolsTable.append('<tr><td><button id="clear-schema"><img src="' + _Icons.delete_icon + '"> Clear Schema</button></td><td><label for"clear-schema">Delete all schema nodes and relationships of dynamic schema</label></td></tr>');
 		toolsTable.append('<tr><td><select id="node-type-selector"><option selected value="">-- Select Node Type --</option><option disabled>──────────</option><option value="allNodes">All Node Types</option><option disabled>──────────</option></select><button id="add-node-uuids">Add UUIDs</button></td><td><label for"setUuid">Add UUIDs to all nodes of the selected type</label></td></tr>');
 		toolsTable.append('<tr><td><select id="rel-type-selector"><option selected value="">-- Select Relationship Type --</option><option disabled>──────────</option><option value="allRels">All Relationship Types</option><option disabled>──────────</option></select><button id="add-rel-uuids">Add UUIDs</button></td><td><label for"setUuid">Add UUIDs to all relationships of the selected type</label></td></tr>');
 
 		$('#rebuild-index').on('click', function(e) {
 			var btn = $(this);
 			var text = btn.text();
-			btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="img/al.gif">');
+			btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="' + _Icons.ajax_loader_2 + '">');
 			e.preventDefault();
 			$.ajax({
 				url: rootUrl + 'maintenance/rebuildIndex',
@@ -2707,7 +2718,7 @@ var _Schema = {
 					200: function() {
 						var btn = $('#rebuild-index');
 						btn.removeClass('disabled').attr('disabled', null);
-						btn.html(text + ' <img src="icon/tick.png">');
+						btn.html(text + ' <img src="' + _Icons.tick_icon + '">');
 						window.setTimeout(function() {
 							$('img', btn).fadeOut();
 						}, 1000);
@@ -2726,7 +2737,7 @@ var _Schema = {
 
 						var btn = $(this);
 						var text = btn.text();
-						btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="img/al.gif">');
+						btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="' + _Icons.ajax_loader_2 + '">');
 						e.preventDefault();
 						$.ajax({
 							url: rootUrl + 'schema_relationship_nodes',
@@ -2746,7 +2757,7 @@ var _Schema = {
 												_Schema.reload();
 												var btn = $('#clear-schema');
 												btn.removeClass('disabled').attr('disabled', null);
-												btn.html(text + ' <img src="icon/tick.png">');
+												btn.html(text + ' <img src="' + _Icons.tick_icon + '">');
 												window.setTimeout(function() {
 													$('img', btn).fadeOut();
 												}, 1000);
@@ -2785,7 +2796,7 @@ var _Schema = {
 			} else {
 				data = JSON.stringify({'type': type});
 			}
-			btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="img/al.gif">');
+			btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="' + _Icons.ajax_loader_2 + '">');
 			$.ajax({
 				url: rootUrl + 'maintenance/setUuid',
 				type: 'POST',
@@ -2796,7 +2807,7 @@ var _Schema = {
 						var btn = $('#add-node-uuids');
 						nodeTypeSelector.removeClass('notify');
 						btn.removeClass('disabled').attr('disabled', null);
-						btn.html(text + ' <img src="icon/tick.png">');
+						btn.html(text + ' <img src="' + _Icons.tick_icon + '">');
 						window.setTimeout(function() {
 							$('img', btn).fadeOut();
 						}, 1000);
@@ -2830,7 +2841,7 @@ var _Schema = {
 			} else {
 				data = JSON.stringify({'relType': relType});
 			}
-			btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="img/al.gif">');
+			btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="' + _Icons.ajax_loader_2 + '">');
 			$.ajax({
 				url: rootUrl + 'maintenance/setUuid',
 				type: 'POST',
@@ -2841,7 +2852,7 @@ var _Schema = {
 						var btn = $('#add-rel-uuids');
 						relTypeSelector.removeClass('notify');
 						btn.removeClass('disabled').attr('disabled', null);
-						btn.html(text + ' <img src="icon/tick.png">');
+						btn.html(text + ' <img src="' + _Icons.tick_icon + '">');
 						window.setTimeout(function() {
 							$('img', btn).fadeOut();
 						}, 1000);
@@ -2853,9 +2864,9 @@ var _Schema = {
 		dialogText.append('<h2 class="dialogTitle">Layout Tools</h2>');
 		dialogText.append('<table id="layout-tools-table"></table>');
 		var layoutsTable = $('#layout-tools-table');
-		layoutsTable.append('<tr><td><button id="save-layout-to-database"><img src="icon/database.png"> Save Schema Layout</button></td><td><label for"save-layout">Save current positions to backend (for your user account only)</label></td></tr>');
+		layoutsTable.append('<tr><td><button id="save-layout-to-database"><img src="' + _Icons.database_icon + '"> Save Schema Layout</button></td><td><label for"save-layout">Save current positions to backend (for your user account only)</label></td></tr>');
 		layoutsTable.append('<tr><td><input id="save-layout-filename" placeholder="Enter name for layout"><button id="save-layout-file">Save Layout</button></td><td><label for"export-layout">Save current positions to backend (for every user to load)</label></td></tr>');
-		layoutsTable.append('<tr><td><select id="saved-layout-selector"></select><button id="apply-layout"><img src="icon/wand.png"> Apply</button><button id="delete-layout"><img src="icon/delete.png"> Delete</button></td><td><label for"import-layout">Load or delete stored layouts.</label></td></tr>');
+		layoutsTable.append('<tr><td><select id="saved-layout-selector"></select><button id="apply-layout"><img src="' + _Icons.wand_icon + '"> Apply</button><button id="delete-layout"><img src="' + _Icons.delete_icon + '"> Delete</button></td><td><label for"import-layout">Load or delete stored layouts.</label></td></tr>');
 
 		var layoutSelector = $('#saved-layout-selector');
 
@@ -2991,7 +3002,7 @@ var _Schema = {
 		}, function() {
 		});
 
-		dialogText.append('<h3>Visibility</h3><table class="props" id="schema-options-table"><tr><th>Type</th><th>Visible <input type="checkbox" id="toggle-all-types"><img class="invert-icon" src="icon/arrow_switch.png" id="invert-all-types"></button></th></table>');
+		dialogText.append('<h3>Visibility</h3><table class="props" id="schema-options-table"><tr><th>Type</th><th>Visible <input type="checkbox" id="toggle-all-types"><img class="invert-icon" src="' + _Icons.toggle_icon + '" id="invert-all-types"></button></th></table>');
 		var schemaOptionsTable = $('#schema-options-table');
 
 		// list: function(type, rootOnly, pageSize, page, sort, order, properties, callback)
@@ -3132,7 +3143,7 @@ var _Schema = {
 		return 'scale(' + zoomLevel + ')';
 	},
 	getSchemaCSSTranslate: function () {
-		return 'translate(' + (inheritanceSlideoutOpen ? inheritanceSlideout.width() / zoomLevel : '0') + 'px)';
+		return 'translate(' + (inheritanceSlideoutOpen ? inheritanceSlideout.outerWidth() / zoomLevel : '0') + 'px)';
 	},
 	sort: function(collection, sortKey, secondarySortKey) {
 		if (!sortKey) {
@@ -3199,7 +3210,7 @@ var _Schema = {
 
 				classes.forEach(function (classname) {
 
-					var icons = (classname != 'AbstractNode' ? '<img class="delete_icon icon delete" src="icon/delete.png"><img class="edit_icon icon edit" src="icon/pencil.png">' : '');
+					var icons = (classname != 'AbstractNode' ? '<img class="delete_icon icon delete" src="' + _Icons.delete_icon + '"><img class="edit_icon icon edit" src="' + _Icons.edit_icon + '">' : '');
 					var classId = (classname != 'AbstractNode' ? ' data-id="' + classnameToId[classname] + '"' : '');
 
 					var $newLi = $('<li data-jstree=\'{"opened":true}\'' + classId + '>' + classname + icons + '</li>').appendTo($newUl);
@@ -3303,40 +3314,3 @@ var _Schema = {
 		});
 	}
 };
-
-function normalizeAttr(attr) {
-	return attr.replace(/^_+/, '');
-}
-
-function normalizeAttrs(attrs, keys) {
-	return attrs.replace(/ /g, '').split(',').map(function(attr) {
-		var a = normalizeAttr(attr);
-		if (keys.indexOf('_' + a) !== -1) {
-			return '_' + a;
-		}
-		return a;
-	}).join(',');
-}
-
-function denormalizeAttrs(attrs) {
-	return attrs.replace(/ /g, '').split(',').map(function(attr) {
-		var a = normalizeAttr(attr);
-		return a;
-	}).join(', ');
-}
-
-var typeOptions = '<select class="property-type"><option value="">--Select--</option>'
-		+ '<option value="String">String</option>'
-		+ '<option value="StringArray">String[]</option>'
-		+ '<option value="Integer">Integer</option>'
-		+ '<option value="Long">Long</option>'
-		+ '<option value="Double">Double</option>'
-		+ '<option value="Boolean">Boolean</option>'
-		+ '<option value="Enum">Enum</option>'
-		+ '<option value="Date">Date</option>'
-		+ '<option value="Count">Count</option>'
-		+ '<option value="Function">Function</option>'
-		+ '<option value="Notion">Notion</option>'
-		+ '<option value="Join">Join</option>'
-		+ '<option value="Cypher">Cypher</option>'
-		+ '<option value="Thumbnail">Thumbnail</option>';

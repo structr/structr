@@ -29,7 +29,6 @@ import org.structr.net.repository.Repository;
 
 /**
  *
- * @author Christian Morgner
  */
 public class Delete extends Message {
 

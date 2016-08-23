@@ -18,119 +18,106 @@
  */
 var widgets, remoteWidgets, widgetsUrl = 'https://widgets.structr.org/structr/rest/widgets';
 var win = $(window);
-var widgetData = [], remoteWidgetData = [], remoteWidgetFilter;
-
-$(document).ready(function() {
-	Structr.registerModule('widgets', _Widgets);
-	Structr.classes.push('widget');
-});
+var remoteWidgetData = [], remoteWidgetFilter;
 
 var _Widgets = {
-	icon: 'icon/layout.png',
-	group_icon: 'icon/folder.png',
-	add_widget_icon: 'icon/layout_add.png',
-	delete_widget_icon: 'icon/layout_delete.png',
-	init: function() {
+	reloadWidgets: function() {
+		widgetsSlideout.find(':not(.compTab)').remove();
+		widgetsSlideout.append(
+			'<div class="ver-scrollable"><h2>Local Widgets</h2><button class="add_widgets_icon button"><img title="Add Widget" alt="Add Widget" src="' + _Icons.add_widget_icon + '"> Add Widget</button>' +
+			'<div id="widgets"></div><h2>Remote Widgets</h2><input placeholder="Filter..." id="remoteWidgetsFilter"><div id="remoteWidgets"></div></div>');
+		widgets = $('#widgets', widgetsSlideout);
 
-		_Pager.initPager('widgets-widgets', 'Widget', 1, 25);
+		$('.add_widgets_icon', widgetsSlideout).on('click', function(e) {
+			e.stopPropagation();
+			Command.create({type: 'Widget'});
+		});
 
-	},
-	onload: function() {
+		widgets.droppable({
+			drop: function(e, ui) {
+				e.preventDefault();
+				e.stopPropagation();
+				dropBlocked = true;
+				var sourceId = Structr.getId($(ui.draggable));
+				var source = StructrModel.obj(sourceId);
 
-		_Widgets.init();
+				if (source && source.isWidget) {
+					if (source.treePath) {
+						_Logger.log(_LogType.WIDGETS, 'Copying remote widget', source);
 
-		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Widgets');
+						Command.create({ type: 'Widget', name: source.name + ' (copied)', source: source.source }, function(entity) {
+							_Logger.log(_LogType.WIDGETS, 'Copied remote widget successfully', entity);
+						});
+					}
+				} else {
+					$.ajax({
+						url: viewRootUrl + sourceId + '?edit=1',
+						contentType: 'text/html',
+						statusCode: {
+							200: function(data) {
+								Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', data, function(entity) {
+									_Logger.log(_LogType.WIDGETS, 'Created widget successfully', entity);
+								});
+							}
+						}
+					});
+				}
+			}
+		});
 
-		_Logger.log(_LogType.WIDGETS, 'onload');
+		_Pager.initPager('local-widgets', 'Widget', 1, 25);
+		_Pager.addPager('local-widgets', widgets, true, 'Widget', 'public', function(entities) {
+			entities.forEach(function (entity) {
+				StructrModel.create(entity, null, false);
+				_Widgets.appendWidgetElement(entity, false, widgets);
+			});
+		});
 
-		main.append('<div id="dropArea"><div class="fit-to-height" id="widgets"><h2>Local Widgets</h2><div id="widgets-content"></div></div><div class="fit-to-height" id="remoteWidgets"><h2>Remote Widgets</h2><input placeholder="Filter..." id="remoteWidgetsFilter"><div id="remoteWidgets-content"></div></div></div>');
-		widgets = $('#widgets-content');
-		remoteWidgets = $('#remoteWidgets-content');
+		remoteWidgets = $('#remoteWidgets', widgetsSlideout);
 
-		$('#remoteWidgetsFilter').keyup(function (event) {
-
-			var e = event || window.event();
-
+		$('#remoteWidgetsFilter').keyup(function (e) {
 			if (e.keyCode === 27) {
-				$(this).val("");
+				$(this).val('');
 			}
 
 			_Widgets.repaintRemoteWidgets($(this).val());
-
 		});
 
-		_Widgets.refreshWidgets();
 		_Widgets.refreshRemoteWidgets();
 
-		Structr.resize();
-
-		win.off('resize');
-		win.resize(function() {
-			Structr.resize();
-		});
-
-		Structr.unblockMenu(100);
-
-	},
-	unload: function() {
-		$(main.children('table')).remove();
-	},
-	refreshWidgets: function() {
-		widgets.empty();
-		widgets.append('<button class="add_widgets_icon button"><img title="Add Widget" alt="Add Widget" src="' + _Widgets.add_widget_icon + '"> Add Widget</button>');
-		$('.add_widgets_icon', main).on('click', function(e) {
-			e.stopPropagation();
-			Command.create({'type': 'Widget'});
-		});
-		var wPager = _Pager.addPager('widgets-widgets', widgets, true, 'Widget', 'public');
-		wPager.cleanupFunction = function() {
-			$('.node', wPager.el).remove();
-		};
-		Structr.resize();
 	},
 	refreshRemoteWidgets: function() {
 		remoteWidgetFilter = undefined;
 
-		if (widgetsUrl.startsWith(document.location.hostname)) {
-			return;
+		if (!widgetsUrl.startsWith(document.location.hostname)) {
+
+			_Widgets.getRemoteWidgets(widgetsUrl, function(entity) {
+				var obj = StructrModel.create(entity, null, false);
+				obj.srcUrl = widgetsUrl + '/' + entity.id;
+				remoteWidgetData.push(obj);
+			}, function () {
+				_Widgets.repaintRemoteWidgets('');
+			});
+
 		}
-
-		_Widgets.getRemoteWidgets(widgetsUrl, function(entity) {
-			var obj = StructrModel.create(entity, null, false);
-			obj.srcUrl = widgetsUrl + '/' + entity.id;
-			remoteWidgetData.push(obj);
-		}, function () {
-			_Widgets.repaintRemoteWidgets('');
-		});
-
-//		remoteWidgets.append('<input id="widgetServerUrl" type="text" size="40" placeholder="Remote URL" value="http://server2.morgner.de:8084/structr/rest/widgets"><button id="connect_button">Connect</button>');
-//		$('#connect_button', main).on('click', function(e) {
-//			e.stopPropagation();
-//		});
 	},
 	repaintRemoteWidgets: function (search) {
-
 		if (search !== remoteWidgetFilter) {
 
 			remoteWidgetFilter = search;
+			remoteWidgets.empty();
 
 			if (search && search.length > 0) {
 
 				search = search.toLowerCase();
 
-				remoteWidgets.empty();
-
 				remoteWidgetData.forEach(function (obj) {
-
 					if (obj.name.toLowerCase().indexOf(search) !== -1) {
 						_Widgets.appendWidgetElement(obj, true, remoteWidgets);
 					}
-
 				});
 
 			} else {
-
-				remoteWidgets.empty();
 
 				remoteWidgetData.forEach(function (obj) {
 					_Widgets.appendWidgetElement(obj, true, remoteWidgets);
@@ -139,16 +126,13 @@ var _Widgets = {
 			}
 
 		}
-
 	},
 	getRemoteWidgets: function(baseUrl, callback, finishCallback) {
 		$.ajax({
-			//url: $('#widgetServerUrl').val(),
 			url: baseUrl + '?sort=treePath',
 			type: 'GET',
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8',
-			//async: false,
 			statusCode: {
 				200: function(data) {
 					if (callback) {
@@ -179,13 +163,7 @@ var _Widgets = {
 					console.log(data, status, xhr);
 				}
 			}
-
 		});
-
-	},
-	getIcon: function() {
-		var icon = _Widgets.icon; // default
-		return icon;
 	},
 	getTreeParent: function(element, treePath, suffix) {
 
@@ -205,10 +183,9 @@ var _Widgets = {
 					var lowerPart = part.toLowerCase().replace(/ /g, '');
 					var idString = lowerPart + suffix;
 					var newParent = $('#' + idString);
-					if (newParent.size() === 0) {
 
-						_Widgets.appendFolderElement(parent, idString, _Widgets.group_icon, part);
-						// parent.append('<div id="' + idString + '_node" class="node widget"><b>' + part + '</b><div id="' + idString + '" style="padding-left: 2em;"></div></div>');
+					if (newParent.size() === 0) {
+						_Widgets.appendFolderElement(parent, idString, _Icons.folder_icon, part);
 						newParent = $('#' + idString);
 					}
 
@@ -220,10 +197,9 @@ var _Widgets = {
 
 			var idString = 'other' + suffix;
 			var newParent = $('#' + idString);
-			if (newParent.size() === 0) {
 
-				_Widgets.appendFolderElement(parent, idString, _Widgets.group_icon, 'Uncategorized');
-				//parent.append('<div id="' + idString + '_node" class="node widget"><b>Uncategorized</b><div id="' + idString + '" style="padding-left: 2em;"></div></div>');
+			if (newParent.size() === 0) {
+				_Widgets.appendFolderElement(parent, idString, _Icons.folder_icon, 'Uncategorized');
 				newParent = $('#' + idString);
 			}
 
@@ -237,10 +213,10 @@ var _Widgets = {
 		var expanded = isExpanded(id);
 
 		parent.append('<div id="' + id + '_folder" class="widget node">'
-				+ '<img class="typeIcon" src="' + icon + '">'
-				+ '<b title="' + name + '" class="name">' + fitStringToWidth(name, 200) + '</b> <span class="id">' + id + '</span>'
-				+ '<div id="' + id + '" class="node' + (expanded ? ' hidden' : '') + '"></div>'
-				+ '</div>');
+			+ '<img class="typeIcon" src="' + icon + '">'
+			+ '<b title="' + name + '" class="name">' + fitStringToWidth(name, 200) + '</b>'
+			+ '<div id="' + id + '" class="node' + (expanded ? ' hidden' : '') + '"></div>'
+			+ '</div>');
 
 		var div = $('#' + id + '_folder');
 
@@ -250,7 +226,7 @@ var _Widgets = {
 
 		_Logger.log(_LogType.WIDGETS, 'Widgets.appendWidgetElement', widget, remote);
 
-		var icon = _Widgets.getIcon(widget);
+		var icon = _Icons.widget_icon;
 		var parent = _Widgets.getTreeParent(el ? el : (remote ? remoteWidgets : widgets), widget.treePath, remote ? '_remote' : '_local');
 		var delIcon, newDelIcon;
 		var div = Structr.node(widget.id);
@@ -300,7 +276,7 @@ var _Widgets = {
 
 			delIcon = div.children('.delete_icon');
 
-			newDelIcon = '<img title="Delete widget ' + widget.name + '\'" alt="Delete widget \'' + widget.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+			newDelIcon = '<img title="Delete widget ' + widget.name + '\'" alt="Delete widget \'' + widget.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
 			div.append(newDelIcon);
 			delIcon = div.children('.delete_icon');
 			div.children('.delete_icon').on('click', function(e) {
@@ -324,7 +300,7 @@ var _Widgets = {
 		});
 
 		if (!remote) {
-			div.append('<img title="Edit widget" alt="Edit widget ' + widget.id + '" class="edit_icon button" src="icon/pencil.png">');
+			div.append('<img title="Edit widget" alt="Edit widget ' + widget.id + '" class="edit_icon button" src="' + _Icons.edit_icon + '">');
 			$('.edit_icon', div).on('click', function(e) {
 				e.stopPropagation();
 				Structr.dialog('Edit widget "' + widget.name + '"', function() {
@@ -347,12 +323,6 @@ var _Widgets = {
 		if (remote) {
 			div.children('b.name_').off('click').css({cursor: 'move'});
 		}
-
-//        div.append('<div class="preview"></div>');
-//        //$('.preview', div).contents().find('body').html('<html><head><title>' +  widget.name + '</title></head><body>' + widget.source + '</body></html>');
-//        widget.pictures.forEach(function(pic) {
-//            $('.preview', div).append('<img src="/' + pic.id + '">');
-//        });
 
 		return div;
 	},
@@ -417,13 +387,11 @@ var _Widgets = {
 				var data = JSON.stringify({'source': newText});
 				_Logger.log(_LogType.WIDGETS, 'update remote widget', entity.srcUrl, data);
 				$.ajax({
-					//url: $('#widgetServerUrl').val(),
 					url: entity.srcUrl,
 					type: 'PUT',
 					dataType: 'json',
 					data: data,
 					contentType: 'application/json; charset=utf-8',
-					//async: false,
 					statusCode: {
 						200: function(data) {
 							dialogMsg.html('<div class="infoBox success">Widget source saved.</div>');
@@ -478,7 +446,7 @@ var _Widgets = {
 			_Logger.log(_LogType.WIDGETS, 'appendExpandIcon hasChildren?', hasChildren, 'expand?', expand);
 
 			var typeIcon = $(el.children('.typeIcon').first());
-			var icon = $(el).children('.node').hasClass('hidden') ? Structr.expand_icon : Structr.expanded_icon;
+			var icon = $(el).children('.node').hasClass('hidden') ? _Icons.collapsed_icon : _Icons.expanded_icon;
 
 			typeIcon.css({
 				paddingRight: 0 + 'px'
@@ -494,11 +462,11 @@ var _Widgets = {
 				var expanded = body.hasClass('hidden');
 				if (expanded) {
 					addExpandedNode(id);
-					expandIcon.prop('src', 'icon/tree_arrow_right.png');
+					expandIcon.prop('src', _Icons.collapsed_icon);
 
 				} else {
 					removeExpandedNode(id);
-					expandIcon.prop('src', 'icon/tree_arrow_down.png');
+					expandIcon.prop('src', _Icons.expanded_icon);
 				}
 			});
 
@@ -508,35 +476,30 @@ var _Widgets = {
 
 				button.on('click', function(e) {
 					e.stopPropagation();
-
 					var body = $('#' + id);
 					body.toggleClass('hidden');
-					var expanded = body.hasClass('hidden');
-					if (expanded) {
+					var collapsed = body.hasClass('hidden');
+					if (collapsed) {
 						addExpandedNode(id);
-						expandIcon.prop('src', 'icon/tree_arrow_right.png');
+						expandIcon.prop('src', _Icons.collapsed_icon);
 					} else {
 						removeExpandedNode(id);
-						expandIcon.prop('src', 'icon/tree_arrow_down.png');
+						expandIcon.prop('src', _Icons.expanded_icon);
 					}
 				});
 
 				// Prevent expand icon from being draggable
 				button.on('mousedown', function(e) {
 					e.stopPropagation();
-
 				});
 
-				if (expand) {
-				}
 			}
 
 		} else {
 			el.children('.typeIcon').css({
-				paddingRight: 11 + 'px'
+				paddingRight: '11px'
 			});
 		}
-
 
 	}
 };

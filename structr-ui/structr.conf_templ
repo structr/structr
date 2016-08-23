@@ -383,3 +383,7 @@ oauth.facebook.return_uri = /
 # The instance name and stage configuration entries will be displayed in the top right corner of structr-ui
 # application.instance.name =
 # application.instance.stage =
+
+# The absolute path (inside the Structr filesystem) for files being uploaded via the Upload Servlet
+# The folder (hierarchy) will be auto-created if it does not exist (as superuser)
+# application.uploads.folder = /upload/

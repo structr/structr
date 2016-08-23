@@ -64,10 +64,6 @@ $(document).ready(function() {
 });
 
 var _Graph = {
-	icon: 'icon/page.png',
-	add_icon: 'icon/page_add.png',
-	delete_icon: 'icon/page_delete.png',
-	clone_icon: 'icon/page_copy.png',
 	init: function() {
 
 		// Colors created with http://paletton.com
@@ -597,13 +593,13 @@ var _Graph = {
 			$('#' + activeTabRightGraph).addClass('active').click();
 		}
 
-		queriesSlideout.append('<div class="query-box"><textarea class="search" name="rest" cols="39" rows="4" placeholder="Enter a REST query here"></textarea><img class="clearSearchIcon" id="clear-rest" src="icon/cross_small_grey.png">'
+		queriesSlideout.append('<div class="query-box"><textarea class="search" name="rest" cols="39" rows="4" placeholder="Enter a REST query here"></textarea><img class="clearSearchIcon" id="clear-rest" src="' + _Icons.grey_cross_icon + '">'
 			+ '<button id="exec-rest">Execute REST query</button></div>');
 
-		queriesSlideout.append('<div class="query-box"><textarea class="search" name="cypher" cols="39" rows="4" placeholder="Enter a Cypher query here"></textarea><img class="clearSearchIcon" id="clear-cypher" src="icon/cross_small_grey.png">'
+		queriesSlideout.append('<div class="query-box"><textarea class="search" name="cypher" cols="39" rows="4" placeholder="Enter a Cypher query here"></textarea><img class="clearSearchIcon" id="clear-cypher" src="' + _Icons.grey_cross_icon + '">'
 			+ '<button id="exec-cypher">Execute Cypher query</button></div>');
 
-		queriesSlideout.append('<div id="cypher-params"><h3>Cypher Parameters</h3><img id="add-cypher-parameter" src="icon/add.png">');
+		queriesSlideout.append('<div id="cypher-params"><h3>Cypher Parameters</h3><img id="add-cypher-parameter" src="' + _Icons.add_icon + '">');
 		_Graph.appendCypherParameter($('#cypher-params'));
 
 		$('#clear-graph').on('click', function() {
@@ -787,9 +783,9 @@ var _Graph = {
 		var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
 		$.each(savedQueries, function(q, query) {
 			if (query.type === 'cypher') {
-				$('#saved-queries').append('<div class="saved-query cypher-query"><img class="replay" alt="Cypher Query" src="icon/control_play_blue.png">' + query.query + '<img class="remove-query" src="icon/cross_small_grey.png"></div>');
+				$('#saved-queries').append('<div class="saved-query cypher-query"><img class="replay" alt="Cypher Query" src="' + _Icons.exec_cypher_icon + '">' + query.query + '<img class="remove-query" src="' + _Icons.grey_cross_icon + '"></div>');
 			} else {
-				$('#saved-queries').append('<div class="saved-query rest-query"><img class="replay" alt="REST Query" src="icon/control_play.png">' + query.query + '<img class="remove-query" src="icon/cross_small_grey.png"></div>');
+				$('#saved-queries').append('<div class="saved-query rest-query"><img class="replay" alt="REST Query" src="' + _Icons.exec_rest_icon + '">' + query.query + '<img class="remove-query" src="' + _Icons.grey_cross_icon + '"></div>');
 			}
 		});
 		$('.saved-query').on('click', function() {
@@ -1317,7 +1313,7 @@ var _Graph = {
 		}
 	},
 	appendCypherParameter: function(el, key, value) {
-		el.append('<div><img class="remove-cypher-parameter" src="icon/delete.png"> <input name="cyphername[]" type="text" placeholder="name" size="10" value="' + (key || '') + '"> <input name="cyphervalue[]" type="text" placeholder="value" size="10" value="' + (value || '') + '"></div>');
+		el.append('<div><img class="remove-cypher-parameter" src="' + _Icons.delete_icon + '"> <input name="cyphername[]" type="text" placeholder="name" size="10" value="' + (key || '') + '"> <input name="cyphervalue[]" type="text" placeholder="value" size="10" value="' + (value || '') + '"></div>');
 		$('.remove-cypher-parameter', el).on('click', function() {
 			$(this).parent().remove();
 		});

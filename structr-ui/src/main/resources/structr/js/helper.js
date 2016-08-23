@@ -496,6 +496,7 @@ function fastRemoveAllChildren(el) {
  */
 var _LogType = {
 	CONTENTS:     "CONTENTS",
+	CRAWLER:      "CRAWLER",
 	CRUD:         "CRUD",
 	DND:          "DND",
 	ELEMENTS:     "ELEMENTS",

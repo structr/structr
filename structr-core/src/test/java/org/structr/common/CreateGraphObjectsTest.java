@@ -34,6 +34,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.DynamicResourceAccess;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.GenericRelationship;
+import org.structr.core.entity.Localization;
 import org.structr.core.entity.Location;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Person;
@@ -245,6 +246,14 @@ public class CreateGraphObjectsTest extends StructrTest {
 					if (type.equals(PropertyAccess.class)) {
 
 						props.put(PropertyAccess.flags, 6L);
+
+					}
+
+					// For Localization, fill mandatory fields
+					if (type.equals(Localization.class)) {
+
+						props.put(Localization.name, "localizationKey");
+						props.put(Localization.locale, "de_DE");
 
 					}
 

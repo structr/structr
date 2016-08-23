@@ -49,11 +49,11 @@ public class FindFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		
+
 		try {
-		
+
 			if (sources == null) {
-				
+
 				throw new IllegalArgumentException();
 			}
 
@@ -92,19 +92,14 @@ public class FindFunction extends Function<Object, Object> {
 			securityContext.ignoreResultCount(true);
 
 			// extension for native javascript objects
-			if (sources.length == 2 && sources[0] != null && sources[1] instanceof Map) {
+			if (sources.length == 2 && sources[1] instanceof Map) {
 
-				if (sources[0] == null || sources[1] == null) {
-					
-					throw new IllegalArgumentException();
-				}
-				
 				query.and(PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]));
 
 			} else if (sources.length == 2) {
 
-				if (sources[0] == null || sources[1] == null) {
-					
+				if (sources[1] == null) {
+
 					throw new IllegalArgumentException();
 				}
 
@@ -138,7 +133,7 @@ public class FindFunction extends Function<Object, Object> {
 					if (sources[c] == null) {
 						throw new IllegalArgumentException();
 					}
-					
+
 					final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
 
 					if (key != null) {
@@ -163,7 +158,7 @@ public class FindFunction extends Function<Object, Object> {
 			}
 
 			return query.getAsList();
-		
+
 		} catch (final IllegalArgumentException e) {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());

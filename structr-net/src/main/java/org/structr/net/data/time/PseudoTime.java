@@ -28,7 +28,6 @@ import org.structr.net.protocol.ProtocolEntity;
 
 /**
  *
- * @author Christian Morgner
  */
 public class PseudoTime implements Comparable<PseudoTime>, ProtocolEntity {
 
