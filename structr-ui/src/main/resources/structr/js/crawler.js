@@ -24,7 +24,7 @@ var currentSite;
 var sitePageSize = 10000, sitePage = 1;
 var currentSiteKey = 'structrCurrentSite_' + port;
 var link, path, elid, claz, pageFrame, frameDoc;
-
+var proxyUrl = '/structr/proxy';
 
 $(document).ready(function() {
 	Structr.registerModule('crawler', _Crawler);
@@ -514,7 +514,7 @@ var _Crawler = {
 				+ '<input id="element-class" type="text" placeholder="Class"></div>');
 
 			if (sourcePage.url) {
-				$('#crawler-list').append('<iframe id="page-frame" name="page-frame" src="/proxy?url=' + encodeURIComponent(sourcePage.url) + '" data-site-id="' + sourcePage.site.id + '" data-page-id="' + sourcePage.id + '"></iframe>');
+				$('#crawler-list').append('<iframe id="page-frame" name="page-frame" src="' + proxyUrl + '?url=' + encodeURIComponent(sourcePage.url) + '" data-site-id="' + sourcePage.site.id + '" data-page-id="' + sourcePage.id + '"></iframe>');
 				_Crawler.initPageFrame(sourcePage.url);
 			}
 
@@ -525,8 +525,6 @@ var _Crawler = {
 
 	},
 	refreshPatterns: function(sourcePage) {
-
-		console.log('refresh patterns', sourcePage);
 
 		fastRemoveAllChildren($('#files-table-body')[0]);
 
@@ -580,11 +578,17 @@ var _Crawler = {
 
 				childPatterns.each(function(i, subpattern) {
 
-					//var selector = $(subpattern).text();
-					var prevSiblings = $(subpattern).prevAll().toArray().reverse();
-					prevSiblings.push(this);
-					var selector = prevSiblings.map(function(h) { return $(h).text(); }).join(' > ');
+					var localPrevSiblings = $(subpattern).prevAll().toArray().reverse();
+					localPrevSiblings.push(this);
+					var localSelector = localPrevSiblings.map(function(h) { return $(h).text(); }).join(' > ');
 
+					console.log('local selector:', localSelector);
+
+					//var selector = $(subpattern).text();
+					var prevSiblings = $(subpattern).closest('tr').prevAll().find('.selector').toArray().reverse();
+					//prevSiblings.push(localSelector);
+					var selector = prevSiblings.map(function(h) { return $(h).text(); }).join(' > ') + ' > ' + localSelector;
+					
 					var sub = $(subpattern);
 
 					sub.on('mouseover', function() {
@@ -671,7 +675,7 @@ var _Crawler = {
 		tableBody.append('<tr id="' + rowId + '"></tr>');
 
 		d.subPatterns.forEach(function(subPattern) {
-			var name = subPattern.name; console.log(subPattern)
+			var name = subPattern.name;
 			tableBody.append('<tr id="row' + subPattern.id + '">'
 				+ '<td class="file-type"><a href="javascript:void(0)"><i class="fa fa-code"></i></a></td>'
 				+ '<td><div id="id_' + subPattern.id + '" data-structr_type="item" class="node item"><b title="' +  (name ? name : '[unnamed]') + '" class="name_">' + (name ? fitStringToWidth(name, 200) : '[unnamed]') + '</b></td>'
@@ -815,10 +819,10 @@ var _Crawler = {
 			elid = $('#element-id');
 			claz = $('#element-class');
 
-			if (frameSrc.substring(0, 6) !== '/proxy') {
+			if (frameSrc.substring(0, proxyUrl.length) !== proxyUrl) {
 				console.log('no proxy URL');
 			} else {
-				realUrl = decodeURIComponent(frameSrc.substring(frameSrc.indexOf('/proxy?url=') + 11));
+				realUrl = decodeURIComponent(frameSrc.substring(frameSrc.indexOf(proxyUrl + '?url=') + 11));
 			}
 
 			//pageUrl.val(realUrl);
@@ -907,7 +911,7 @@ var _Crawler = {
 			if (pageFrame.length) {
 
 				var frameSrc = pageFrame[0].src;
-				var url = decodeURIComponent(frameSrc.substring(frameSrc.indexOf('/proxy?url=') + 11));
+				var url = decodeURIComponent(frameSrc.substring(frameSrc.indexOf(proxyUrl + '?url=') + 11));
 
 				_Crawler.addSourcePage(url, pageFrame.contents().find('title').text().trim(), pageFrame.data('site-id'));
 
@@ -1070,7 +1074,7 @@ var _Crawler = {
 		pageUrl.val(href);
 
 		var pageFrame = $('#page-frame');
-		var url = '/proxy?url=' + encodeURIComponent(href);
+		var url = proxyUrl + '?url=' + encodeURIComponent(href);
 		pageFrame[0].src = url;
 	}
 };

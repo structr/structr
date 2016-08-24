@@ -18,26 +18,27 @@
  */
 package org.structr.crawler;
 
+import java.util.List;
 import org.structr.common.View;
 import org.structr.core.property.*;
-import static org.structr.core.entity.SchemaRelationshipNode.name;
 
 public class SourcePage extends CrawlerTreeNode {
 
-	public static final Property<java.util.List<SourcePattern>> patternsProperty = new EndNodes<>("patterns", SourcePageUSESourcePattern.class).dynamic();
-	public static final Property<java.util.List<SourcePage>> subPagesProperty = new EndNodes<>("subPages", SourcePageSUBSourcePage.class).dynamic();
-	public static final Property<SourceSite> siteProperty = new StartNode<>("site", SourceSiteCONTAINSSourcePage.class).dynamic();
-	public static final Property<SourcePage> parentPageProperty = new StartNode<>("parentPage", SourcePageSUBSourcePage.class).dynamic();
-	public static final Property<SourcePattern> subPageOfProperty = new StartNode<>("subPageOf", SourcePatternSUBPAGESourcePage.class).dynamic();
-	public static final Property<java.lang.String> urlProperty = new StringProperty("url").indexed().dynamic();
+	public static final Property<List<SourcePattern>> patterns   = new EndNodes<>("patterns",    SourcePageUSESourcePattern.class);
+	public static final Property<List<SourcePage>>    subPages   = new EndNodes<>("subPages",    SourcePageSUBSourcePage.class);
+	public static final Property<SourceSite>          site       = new StartNode<>("site",       SourceSiteCONTAINSSourcePage.class);
+	public static final Property<SourcePage>          parentPage = new StartNode<>("parentPage", SourcePageSUBSourcePage.class);
+	public static final Property<SourcePattern>       subPageOf  = new StartNode<>("subPageOf",  SourcePatternSUBPAGESourcePage.class);
+
+	public static final Property<String>              url        = new StringProperty("url").indexed();
+	public static final Property<String>              cookie     = new StringProperty("cookie");
 
 	public static final View uiView = new View(SourcePage.class, "ui",
-		patternsProperty, subPagesProperty, siteProperty, parentPageProperty, subPageOfProperty, urlProperty
+		patterns, subPages, site, parentPage, subPageOf, url, cookie
 	);
 
 	public static final View publicView = new View(SourcePage.class, "public",
 		name, type, id
 	);
-
 
 }
