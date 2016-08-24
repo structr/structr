@@ -1736,7 +1736,7 @@ var animating = animating || undefined;
 					$(_infoContainer).empty();
 					_active = false;
 				}
-			}, 1000);
+			}, 300000);
 		}
 	};
 
@@ -1822,7 +1822,8 @@ var animating = animating || undefined;
 			var dx    = (cos * radius) - 15;
 			var dy    = (sin * radius) - 15;
 			graphInfo.append('<button class="nodeExpander-expandbutton" id="' + key + '-button" style="position: absolute; top: 0px; left: 0px; z-index: 10000;" title="' + label + '">' + value + '</button>');
-			graphInfo.append('<button class="btn btn-xs nodeExpander-infobutton" style="margin: 4px; color: #000; background-color: ' + color[key] + '">' + label + '</button>');
+			graphInfo.append('<div class="nodeExpander-infobutton"><div class="circle" style="background-color: ' + (color[key] || '#e5e5e5')+ '"></div>' + label + '</div>');
+			//graphInfo.append('<button class="btn btn-xs nodeExpander-infobutton" style="margin: 4px; color: #000; background-color: ' + color[key] + '">' + label + '</button>');
 			var button = $('#' + key + '-button');
 			button.css('border', 'none');
 			button.css('background-color', color[key]);

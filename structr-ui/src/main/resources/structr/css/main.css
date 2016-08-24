@@ -98,7 +98,6 @@ input[type="checkbox"] {
 
 #header {
 	height: 60px;
-	border-bottom: 1px solid #a5a5a5;
 	font-size: 1.25em;
 	line-height: 2em;
 	background: #363636;
@@ -263,7 +262,7 @@ img.disabled {
 }
 
 #previews {
-	margin: 0 25px;
+	margin: 4px 25px 0 25px;
 }
 
 .slideOutLeft {
@@ -397,7 +396,7 @@ img.disabled {
 	border-bottom: 1px solid #a5a5a5 ! important;
 	position: absolute;
 	z-index: 2;
-	top: 93px;
+	top: 96px;
 	background-color: #fafafa;
 }
 
@@ -1032,6 +1031,10 @@ img.button {
 	background-color: #f5f5f5 ! important;
 	border: 1px solid #ccc;
 	z-index: 1;
+}
+
+#graph-canvas {
+    background-color: #fff;
 }
 
 #graph-canvas .node {
@@ -2361,7 +2364,7 @@ input.bitmask {
 }
 
 #node-types {
-	top: 93px;
+	top: 96px;
 	overflow-y: auto;
 }
 
@@ -2500,25 +2503,40 @@ td#cascading-options, td#propagation-options {
 	max-width: 480px;
 }
 
-#fruchterman-controlElement{
+#fruchterman-controlElement {
     float: none ! important;
     display: block;
 }
 
-#graphDisplayTab{
+#graphDisplayTab {
     margin: 8px 8px 0 30px;
 }
 
-#graph-info{
-    background: none;
+#graph-info {
+    background-color: #f1f1f1;
+    border-bottom: 1px solid #a5a5a5;
     top: 0;
     text-align: center;
-    height: 28px;
+    height: 24px;
     position: relative;
 }
 
+#graph-info .circle {
+    display: inline-block;
+    margin-right: 4px;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+    /*border: 1px solid #a5a5a5;*/
+    /* width and height can be anything, as long as they're equal */
+}
+
 .nodeExpander-infobutton {
-    color: white ! important;
+    /*color: white ! important;*/
+    margin: 4px;
+    display: inline-block;
+    border: none;
 }
 
 .nodeExpander-expandbutton {
@@ -2536,12 +2554,12 @@ td#cascading-options, td#propagation-options {
     margin-top: 15pt;
 }
 
-#selectionToolsTableContainer{
+#selectionToolsTableContainer {
     max-height: 300pt;
     overflow-y: auto;
 }
 
-.graphtable{
+.graphtable {
     margin-top: 10pt;
     width: 100%;
 }
@@ -2550,14 +2568,14 @@ td#cascading-options, td#propagation-options {
     border-bottom: double black;
 }
 
-.graphtable > tbody > tr > td{
+.graphtable > tbody > tr > td {
     border-bottom: 1px solid black;
     padding-top:  5pt;
     padding-bottom: 5pt;
     vertical-align: central;
 }
 
-.graphTooltip{
+.graphTooltip {
     margin-top: 10pt;
     background: #fafafa;
     z-index: 99999;
@@ -2566,17 +2584,17 @@ td#cascading-options, td#propagation-options {
     box-shadow: 0 3px 6px rgba(0,0,0,0.3);
 }
 
-.tooltipHeader{
+.tooltipHeader {
     padding-top: 2pt;
     height: 16pt;
     background-color: #cccccc;
 }
 
-.tooltipContent{
+.tooltipContent {
     border: solid #bfbfbf 1px;
 }
 
-.nodeTooltipTitle{
+.nodeTooltipTitle {
     /*color: #979898 ! important;*/
     color: white ! important;
     font-size: 11pt;
@@ -2584,7 +2602,7 @@ td#cascading-options, td#propagation-options {
     margin: 2pt 20pt 4pt 2pt;
 }
 
-.closeTooltipBtn{
+.closeTooltipBtn {
     position: absolute;
     right: 2pt;
     top: 12pt;
@@ -2592,17 +2610,17 @@ td#cascading-options, td#propagation-options {
     cursor: pointer;
 }
 
-.tooltipBody{
+.tooltipBody {
     padding: 2pt 4pt;
     background: #fafafa;
 }
 
-.tooltipFooter{
+.tooltipFooter {
     padding: 2pt 4pt;
     background: #fafafa;
 }
 
-.graphTooltipSelectable{
+.graphTooltipSelectable {
     margin-left: 6pt;
     color: black ! important;
     -webkit-touch-callout: all;
@@ -2614,7 +2632,7 @@ td#cascading-options, td#propagation-options {
     font-size: 9pt;
 }
 
-.tooltipTitle{
+.tooltipTitle {
     margin-top: 12pt;
     margin-right: 4pt;
     margin-left: 4pt;
@@ -2622,7 +2640,7 @@ td#cascading-options, td#propagation-options {
     display: inline;
 }
 
-.tooltipText{
+.tooltipText {
     color: black ! important;
     font-size: 11pt;
     display: inline;
@@ -2643,12 +2661,12 @@ td#cascading-options, td#propagation-options {
     border-bottom-color: #cccccc;
 }
 
-.tooltipTable{
+.tooltipTable {
     width: 100%;
     vertical-align: central;
 }
 
-.tooltipTableLabel{
+.tooltipTableLabel {
     color: black ! important;
     font-size: 9pt;
     padding-right: 4pt;

@@ -882,7 +882,7 @@ var _Graph = {
             height: windowHeight - offsetHeight + 'px'
         });
 
-        var ch = win.height() - 61;
+        var ch = win.height() - 64;
 
         graph.css({
             height: ch,
@@ -895,7 +895,7 @@ var _Graph = {
         });
 
         nodeTypes = $('#node-types');
-        var distance = nodeTypes.position().top - 61;
+        var distance = nodeTypes.position().top - 60;
         var boxHeight = (ch - (3 * distance)) / 2;
 
         nodeTypes.css({
