@@ -26,10 +26,6 @@ $(document).ready(function() {
 });
 
 var _AppBuilder = {
-	icon: 'icon/page.png',
-	add_icon: 'icon/page_add.png',
-	delete_icon: 'icon/page_delete.png',
-	clone_icon: 'icon/page_copy.png',
 	autoRefresh: [],
 	init: function() {
 
@@ -76,14 +72,14 @@ var _AppBuilder = {
 			pages.forEach(function(page) {
 				if (x > c) {
 					x = 0;
-					y++
+					y++;
 				}
-				;
+
 				pagesArea.append('<div id="page-tn-' + page.id + '" class="page-tn"><div class="page-preview">'
 						+ '<iframe class="preview" id="app-preview_' + page.id + '"></iframe>'
 						+ '</div><div class="page-name">' + page.name + '</div>'
-						+ '<div class="icon clone-page" title="Clone Page"><img src="' + _Pages.clone_icon + '"/></div>'
-						+ '<div class="icon delete-page" title="Delete Page"><img src="' + _Pages.delete_icon + '"/></div>'
+						+ '<div class="icon clone-page" title="Clone Page"><img src="' + _Icons.clone_icon + '"/></div>'
+						+ '<div class="icon delete-page" title="Delete Page"><img src="' + _Icons.delete_icon + '"/></div>'
 						+ '</div>');
 
 				var tn = $('#page-tn-' + page.id);
@@ -117,11 +113,12 @@ var _AppBuilder = {
 				$('#app-preview_' + page.id).attr('src', '/structr/html/' + page.name + '?edit=4');
 
 			});
+
 			if (x > c) {
 				x = 0;
-				y++
+				y++;
 			}
-			;
+
 			pagesArea.append('<div id="add-page-area" class="page-tn"><i class="fa fa-plus"></i></div>');
 			$('#add-page-area').css({left: x * 300, top: y * 300}).on('click', function() {
 				Command.create({type: 'Page'}, function() {
@@ -212,7 +209,7 @@ var _AppBuilder = {
 					var area = $(el);
 
 					var children = area.children();
-	
+
 					if (children.size() === 0) {
 						area.css({minHeight: 100});
 					} else {
@@ -240,7 +237,7 @@ var _AppBuilder = {
 
 							var tag;
 							if (!sourceId) {
-								
+
 								var d = $(ui.draggable);
 								tag = d.text();
 								if (d.attr('subkey')) {
@@ -288,7 +285,7 @@ var _AppBuilder = {
 							}
 
 						}
-					})
+					});
 
 				});
 
@@ -357,7 +354,7 @@ var _AppBuilder = {
 				var id = c.attr('data-structr-id');
 				Command.get(id, function(entity) {
 					_Entities.showProperties(entity);
-				})
+				});
 				return false;
 			});
 
@@ -502,7 +499,6 @@ var _AppBuilder = {
 			var doc = $(this).contents();
 			doc.find(cls).each(function(i, example) {
 				var ex = $(example);
-				//console.log(i, ex.attr('data-example-id'), ex.html());
 
 				var exampleId = ex.attr('data-example-id');
 
@@ -513,7 +509,7 @@ var _AppBuilder = {
 					id: exampleId,
 					name: exampleId.replaceAll('-', ' '),
 					source: ex.html()
-				}
+				};
 
 				groups[key].push(widget);
 
@@ -651,7 +647,6 @@ var _AppBuilder = {
 
 	},
 	onload: function() {
-
 		_AppBuilder.init();
 
 		win.off('resize');
@@ -660,8 +655,7 @@ var _AppBuilder = {
 		});
 
 		Structr.unblockMenu(500);
-
-	},
+	}
 };
 
 function px(el, em) {

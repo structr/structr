@@ -21,7 +21,6 @@ package org.structr.net.data.time;
 
 /**
  *
- * @author Christian Morgner
  */
 public class DerivedTemporalEnvironment implements PseudoTemporalEnvironment {
 

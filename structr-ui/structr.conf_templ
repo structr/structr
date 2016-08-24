@@ -114,7 +114,7 @@ tcp.port = 54555
 #############################################################################
 
 # Available servlets
-HttpService.servlets = JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet
+HttpService.servlets = JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet
 
 # Uncomment this if you encounter problems with async HTTP requests
 #HttpService.async = false
@@ -171,6 +171,12 @@ UploadServlet.allowAnonymousUploads = false
 # Upload servlet limits (unit is MiB)
 UploadServlet.maxFileSize = 1000
 UploadServlet.maxRequestSize = 1200
+
+# Proxy servlet
+ProxyServlet.class = org.structr.web.servlet.ProxyServlet
+ProxyServlet.path = /structr/proxy
+ProxyServlet.resourceprovider = org.structr.web.common.UiResourceProvider
+
 
 #############################################################################
 # Custom response headers
@@ -383,3 +389,7 @@ oauth.facebook.return_uri = /
 # The instance name and stage configuration entries will be displayed in the top right corner of structr-ui
 # application.instance.name =
 # application.instance.stage =
+
+# The absolute path (inside the Structr filesystem) for files being uploaded via the Upload Servlet
+# The folder (hierarchy) will be auto-created if it does not exist (as superuser)
+# application.uploads.folder = /upload/

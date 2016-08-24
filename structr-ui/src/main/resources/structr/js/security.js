@@ -38,7 +38,6 @@ var _Security = {
 		_Security.init();
 
 		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Users and Groups');
-		//Structr.activateMenuEntry('usersAndGroups');
 		_Logger.log(_LogType.SECURTIY, 'onload');
 
 		main.append('<div id="securityTabs"><ul id="securityTabsMenu"><li><a id="usersAndGroups_" href="#usersAndGroups"><span>Users and Groups</span></a></li><li><a id="resourceAccess_" href="#resourceAccess"><span>Resource Access Grants</span></a></li></ul><div id="usersAndGroups"></div><div id="resourceAccess"></div></div>');
@@ -100,20 +99,20 @@ var _Security = {
 
 			resourceAccesses.append('<table id="resourceAccessesTable"><thead><tr><th></th><th colspan="6" class="center">Authenticated users</th><th colspan="6" class="center">Non-authenticated (public) users</th><th colspan="3"></th></tr><tr><th>Signature</th><th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th>'
 					+ '<th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th><th>Bitmask</th><th>Del</th></tr><tr><th><input type="text" class="filter" data-attribute="signature"></th><th colspan="15"></th></tr></thead></table>');
-			resourceAccesses.append('Signature: <input class="" type="text" size="20" id="resource-signature"> <button class="add_grant_icon button"><img title="Add Resource Grant" alt="Add Grant" src="icon/key_add.png"> Add Grant</button>');
+			resourceAccesses.append('Signature: <input class="" type="text" size="20" id="resource-signature"> <button class="add_grant_icon button"><img title="Add Resource Grant" alt="Add Grant" src="' + _Icons.key_add_icon + '"> Add Grant</button>');
 
 			raPager.activateFilterElements(resourceAccesses);
 
 			$('.add_grant_icon', resourceAccesses).on('click', function (e) {
 				_Security.addResourceGrant(e);
 			});
-			
+
 			$('#resource-signature', resourceAccesses).on('keyup', function (e) {
 				if (e.keyCode === 13) {
 					_Security.addResourceGrant(e);
 				}
 			});
-			
+
 			_Security.resize();
 		});
 	},
@@ -140,10 +139,10 @@ var _Security = {
 			inp.removeProp('disabled').removeClass('disabled').removeClass('readonly');
 		}, 250);
 	},
-	
+
 	refreshGroups : function() {
 		groups.empty();
-		groups.append('<button class="add_group_icon button"><img title="Add Group" alt="Add Group" src="icon/group_add.png"> Add Group</button>');
+		groups.append('<button class="add_group_icon button"><img title="Add Group" alt="Add Group" src="' + _Icons.group_add_icon + '"> Add Group</button>');
 		$('.add_group_icon', main).on('click', function(e) {
 			e.stopPropagation();
 			return Command.create({'type':'Group'});
@@ -156,7 +155,7 @@ var _Security = {
 
 	refreshUsers : function() {
 		users.empty();
-		users.append('<button class="add_user_icon button"><img title="Add User" alt="Add User" src="icon/user_add.png"> Add User</button>');
+		users.append('<button class="add_user_icon button"><img title="Add User" alt="Add User" src="' + _Icons.user_add_icon + '"> Add User</button>');
 		$('.add_user_icon', main).on('click', function(e) {
 			e.stopPropagation();
 			return Command.create({'type':'User'});
@@ -257,7 +256,7 @@ var _Security = {
 //            });
 //        });
 
-		tr.append('<td><img title="Delete Resource Access ' + resourceAccess.id + '" alt="Delete Resource Access    ' + resourceAccess.id + '" class="delete-resource-access button" src="' + Structr.delete_icon + '"></td>');
+		tr.append('<td><img title="Delete Resource Access ' + resourceAccess.id + '" alt="Delete Resource Access    ' + resourceAccess.id + '" class="delete-resource-access button" src="' + _Icons.delete_icon + '"></td>');
 		$('.delete-resource-access', tr).on('click', function(e) {
 			e.stopPropagation();
 			resourceAccess.name = resourceAccess.signature;
@@ -300,12 +299,12 @@ var _Security = {
 		var hasChildren = group.members && group.members.length;
 		_Logger.log(_LogType.SECURTIY, 'appendGroupElement', group, hasChildren);
 		groups.append('<div id="id_' + group.id + '" class="node group">'
-			+ '<img class="typeIcon" src="icon/group.png">'
+			+ '<img class="typeIcon" src="' + _Icons.group_icon + '">'
 			+ '<b title="' + group.name + '" class="name_">' + group.name + '</b> <span class="id">' + group.id + '</span>'
 			+ '</div>');
 		var div = Structr.node(group.id);
 
-		div.append('<img title="Delete Group ' + group.id + '" alt="Delete Group ' + group.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+		div.append('<img title="Delete Group ' + group.id + '" alt="Delete Group ' + group.id + '" class="delete_icon button" src="' + _Icons.delete_icon + '">');
 		$('.delete_icon', div).on('click', function(e) {
 			e.stopPropagation();
 			_Security.deleteGroup(this, group);
@@ -366,7 +365,7 @@ var _Security = {
 		if (!div || !div.length) return;
 
 
-		var newDelIcon = '<img title="Delete user \'' + name + '\'" alt="Delete user \'' + name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+		var newDelIcon = '<img title="Delete user \'' + name + '\'" alt="Delete user \'' + name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
 		var delIcon = $('.delete_icon', div);
 
 		if (delIcon && delIcon.length) {
@@ -409,7 +408,7 @@ var _Security = {
 			return;
 		}
 
-		var newDelIcon = '<img title="Remove user \'' + user.name + '\' from group \'' + group.name + '\'" alt="Remove user ' + user.name + ' from group \'' + group.name + '\'" class="delete_icon button" src="icon/user_delete.png">';
+		var newDelIcon = '<img title="Remove user \'' + user.name + '\' from group \'' + group.name + '\'" alt="Remove user ' + user.name + ' from group \'' + group.name + '\'" class="delete_icon button" src="' + _Icons.user_delete_icon + '">';
 
 		_Logger.log(_LogType.SECURTIY, 'parent, div', parent, div);
 
@@ -456,7 +455,7 @@ var _Security = {
 	getUserElementMarkup:function (user) {
 		var name = _Security.getUserName(user);
 		return '<div id="id_' + user.id + '" class="node user">'
-			+ '<img class="typeIcon" src="icon/user.png">'
+			+ '<img class="typeIcon" src="' + _Icons.user_icon + '">'
 			+ ' <b title="' + name + '" class="name_">' + name + '</b> <span class="id">' + user.id + '</span>'
 			+ '</div>';
 	},

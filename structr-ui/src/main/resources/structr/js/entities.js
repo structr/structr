@@ -30,7 +30,7 @@ var _Entities = {
 		_Logger.log(_LogType.ENTITIES, 'Change boolean attribute ', attrElement, ' to ', value);
 
 		if (value === true) {
-			attrElement.removeClass('inactive').addClass('active').prop('checked', true).html('<img src="icon/tick.png">' + (activeLabel ? ' ' + activeLabel : ''));
+			attrElement.removeClass('inactive').addClass('active').prop('checked', true).html('<img src="' + _Icons.tick_icon + '">' + (activeLabel ? ' ' + activeLabel : ''));
 		} else {
 			attrElement.removeClass('active').addClass('inactive').prop('checked', false).text((inactiveLabel ? inactiveLabel : '-'));
 		}
@@ -143,7 +143,7 @@ var _Entities = {
 
 	},
 	appendRowWithInputField: function(entity, el, key, label) {
-		el.append('<tr><td class="key">' + label + '</td><td class="value"><input class="' + key + '_" name="' + key + '" value="' + (entity[key] ? escapeForHtmlAttributes(entity[key]) : '') + '"></td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
+		el.append('<tr><td class="key">' + label + '</td><td class="value"><input class="' + key + '_" name="' + key + '" value="' + (entity[key] ? escapeForHtmlAttributes(entity[key]) : '') + '"></td><td><img class="nullIcon" id="null_' + key + '" src="' + _Icons.grey_cross_icon + '"></td></tr>');
 		var inp = $('[name="' + key + '"]', el);
 		_Entities.activateInput(inp, entity.id);
 		var nullIcon = $('#null_' + key, el);
@@ -398,7 +398,6 @@ var _Entities = {
 
 				if (hasHtmlAttributes && !entity.isContent) {
 					views.unshift('_html_');
-					//console.log(lastMenuEntry)
 					if (lastMenuEntry === 'pages') {
 						activeView = '_html_';
 					}
@@ -406,7 +405,7 @@ var _Entities = {
 
 				tabTexts._html_ = 'HTML Attributes';
 				tabTexts.ui = 'Node Properties';
-				tabTexts.in = 'Incoming Relationships';
+				tabTexts['in'] = 'Incoming Relationships';
 				tabTexts.out = 'Outgoing Relationships';
 
 				Structr.dialog('Edit Properties of ' + (entity.type ? entity.type : '') + (isRelationship ? ' relationship ' : ' node ') + (entity.name ? entity.name : entity.id), function() {
@@ -551,20 +550,20 @@ var _Entities = {
 
 							if (display || key === '_html_class' || key === '_html_id') {
 								props.append('<tr><td class="key">' + key.replace(view, '') + '</td>'
-									+ '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="' + null_prefix + key + '" src="icon/cross_small_grey.png"></td></tr>');
+									+ '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="' + null_prefix + key + '" src="' + _Icons.grey_cross_icon + '"></td></tr>');
 							} else if (key !== 'id') {
 								props.append('<tr class="hidden"><td class="key">' + key.replace(view, '') + '</td>'
-									+ '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="' + null_prefix + key + '" src="icon/cross_small_grey.png"></td></tr>');
+									+ '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="' + null_prefix + key + '" src="' + _Icons.grey_cross_icon + '"></td></tr>');
 							}
 						} else if (view === 'in' || view === 'out') {
 							if (key === 'id') {
 								// set ID to rel ID
 								id = res[key];
 							}
-							props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="' + null_prefix + key + '" src="icon/cross_small_grey.png"></td></tr>');
+							props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="' + null_prefix + key + '" src="' + _Icons.grey_cross_icon + '"></td></tr>');
 						} else {
 
-							props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"></td><td><img class="nullIcon" id="' + null_prefix + key + '" src="icon/cross_small_grey.png"></td></tr>');
+							props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"></td><td><img class="nullIcon" id="' + null_prefix + key + '" src="' + _Icons.grey_cross_icon + '"></td></tr>');
 							var cell = $('.value.' + key + '_', props);
 
 							if (!typeInfo[key]) {
@@ -683,7 +682,7 @@ var _Entities = {
 											}
 										}
 
-										cell.append('<img class="add" src="icon/add_grey.png">');
+										cell.append('<img class="add" src="' + _Icons.add_grey_icon + '">');
 										$('.add', cell).on('click', function() {
 											Structr.dialog('Add ' + typeInfo[key].type, function() {
 											}, function() {
@@ -754,7 +753,7 @@ var _Entities = {
 	},
 	displaySearch: function(id, key, type, el, isCollection) {
 
-		el.append('<div class="searchBox searchBoxDialog"><input class="search" name="search" size="20" placeholder="Search"><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
+		el.append('<div class="searchBox searchBoxDialog"><input class="search" name="search" size="20" placeholder="Search"><img class="clearSearchIcon" src="' + _Icons.grey_cross_icon + '"></div>');
 		var searchBox = $('.searchBoxDialog', el);
 		var search = $('.search', searchBox);
 		window.setTimeout(function() {
@@ -887,7 +886,7 @@ var _Entities = {
 	},
 	appendRelatedNode: function(cell, props, id, key, node, onDelete) {
 		var displayName = _Crud.displayName(node);
-		cell.append('<div title="' + displayName + '" class="_' + node.id + ' node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
+		cell.append('<div title="' + displayName + '" class="_' + node.id + ' node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<img class="remove" src="' + _Icons.grey_cross_icon + '"></div>');
 		var nodeEl = $('._' + node.id, cell);
 
 		nodeEl.on('click', function(e) {
@@ -973,14 +972,14 @@ var _Entities = {
 	},
 	appendAccessControlIcon: function(parent, entity) {
 
-		var protected = !entity.visibleToPublicUsers || !entity.visibleToAuthenticatedUsers;
+		var isProtected = !entity.visibleToPublicUsers || !entity.visibleToAuthenticatedUsers;
 
 		var keyIcon = $('.key_icon', parent);
-		var newKeyIcon = '<img title="Access Control and Visibility" alt="Access Control and Visibility" class="key_icon button" src="' + Structr.key_icon + '">';
+		var newKeyIcon = '<img title="Access Control and Visibility" alt="Access Control and Visibility" class="key_icon button" src="' + _Icons.key_icon + '">';
 		if (!(keyIcon && keyIcon.length)) {
 			parent.append(newKeyIcon);
 			keyIcon = $('.key_icon', parent);
-			if (protected) {
+			if (isProtected) {
 				keyIcon.show();
 				keyIcon.addClass('donthide');
 			}
@@ -1052,22 +1051,22 @@ var _Entities = {
 			});
 			var select = $('#newPrincipal');
 			select.chosen({width: '90%'});
-			var i = 0, n = 10000;
+			var n = 10000;
 			Command.getByType('Group', n, 1, 'name', 'asc', 'id,name', false, function(groups) {
 				groups.forEach(function(group) {
 					select.append('<option value="' + group.id + '">' + group.name + '</option>');
 				});
 				select.trigger("chosen:updated");
 			});
-			i = 0;
-			var al2 = Structr.loaderIcon(select.parent(), {float: 'right'});
+			var al2 = Structr.loaderIcon(select.parent(), {'float':'right'});
 			Command.getByType('User', n, 1, 'name', 'asc', 'id,name', false, function(users) {
 				users.forEach(function(user) {
 					select.append('<option value="' + user.id + '">' + user.name + '</option>');
 				});
 				select.trigger("chosen:updated");
-				if (al2.length)
+				if (al2.length) {
 					al2.remove();
+				}
 			});
 			select.on('change', function() {
 				var sel = $(this);
@@ -1184,7 +1183,7 @@ var _Entities = {
 		var editIcon = $('.edit_icon', parent);
 
 		if (!(editIcon && editIcon.length)) {
-			parent.append('<img title="Edit source code" alt="Edit source code" class="edit_icon button" src="' + '/structr/icon/pencil.png' + '">');
+			parent.append('<img title="Edit source code" alt="Edit source code" class="edit_icon button" src="' + _Icons.edit_icon + '">');
 			editIcon = $('.edit_icon', parent);
 		}
 		editIcon.on('click', function(e) {
@@ -1198,7 +1197,7 @@ var _Entities = {
 		var editIcon = $('.edit_props_icon', parent);
 
 		if (!(editIcon && editIcon.length)) {
-			parent.append('<img title="Edit Properties" alt="Edit Properties" class="edit_props_icon button" src="' + '/structr/icon/application_view_detail.png' + '">');
+			parent.append('<img title="Edit Properties" alt="Edit Properties" class="edit_props_icon button" src="' + _Icons.view_detail_icon + '">');
 			editIcon = $('.edit_props_icon', parent);
 		}
 		editIcon.on('click', function(e) {
@@ -1214,30 +1213,12 @@ var _Entities = {
 		}
 		return editIcon;
 	},
-	appendCollapseChildrenIcon: function(parent, entity, visible) {
-
-		var collapseChildrenIcon = $('.collapse_children_icon', parent);
-
-		if (!(collapseChildrenIcon && collapseChildrenIcon.length)) {
-			parent.append('<img title="Collapse Children" alt="Collapse Children" class="collapse_children_icon button" src="' + '/structr/icon/text_indent_remove.png' + '">');
-			collapseChildrenIcon = $('.collapse_children_icon', parent);
-		}
-		collapseChildrenIcon.on('click', function(e) {
-		});
-		if (visible) {
-			collapseChildrenIcon.css({
-				visibility: 'visible',
-				display: 'inline-block'
-			});
-		}
-		return collapseChildrenIcon;
-	},
 	appendDataIcon: function(parent, entity) {
 
 		var dataIcon = $('.data_icon', parent);
 
 		if (!(dataIcon && dataIcon.length)) {
-			parent.append('<img title="Edit Data Settings" alt="Edit Data Settings" class="data_icon button" src="' + '/structr/icon/database_table.png' + '">');
+			parent.append('<img title="Edit Data Settings" alt="Edit Data Settings" class="data_icon button" src="' + _Icons.database_table_icon + '">');
 			dataIcon = $('.data_icon', parent);
 		}
 		dataIcon.on('click', function(e) {
@@ -1246,9 +1227,9 @@ var _Entities = {
 			_Entities.showDataDialog(entity);
 		});
 	},
-	appendExpandIcon: function(el, entity, hasChildren, expand) {
+	appendExpandIcon: function(el, entity, hasChildren, expanded) {
 
-		_Logger.log(_LogType.ENTITIES, '_Entities.appendExpandIcon', el, entity, hasChildren, expand);
+		_Logger.log(_LogType.ENTITIES, '_Entities.appendExpandIcon', el, entity, hasChildren, expanded);
 
 		var button = $(el.children('.expand_icon').first());
 		if (button && button.length) {
@@ -1258,10 +1239,10 @@ var _Entities = {
 
 		if (hasChildren) {
 
-			_Logger.log(_LogType.ENTITIES, 'appendExpandIcon hasChildren?', hasChildren, 'expand?', expand);
+			_Logger.log(_LogType.ENTITIES, 'appendExpandIcon hasChildren?', hasChildren, 'expand?', expanded);
 
 			var typeIcon = $(el.children('.typeIcon').first());
-			var icon = expand ? Structr.expanded_icon : Structr.expand_icon;
+			var icon = expanded ? _Icons.expanded_icon : _Icons.collapsed_icon;
 
 			var displayName = getElementDisplayName(entity);
 
@@ -1288,7 +1269,7 @@ var _Entities = {
 					e.stopPropagation();
 				});
 
-				if (expand) {
+				if (expanded) {
 					_Entities.ensureExpanded(el);
 				}
 			}
@@ -1413,7 +1394,7 @@ var _Entities = {
 		if (!b || !src) {
 			return false;
 		}
-		return src.endsWith('icon/tree_arrow_down.png');
+		return src.endsWith(_Icons.expanded_icon);
 	},
 	ensureExpanded: function(element, callback) {
 		if (!element) {
@@ -1436,7 +1417,7 @@ var _Entities = {
 			Command.children(id, callback);
 			var displayName = getElementDisplayName(Structr.entity(id));
 
-			el.children('.expand_icon').first().prop('src', 'icon/tree_arrow_down.png')
+			el.children('.expand_icon').first().prop('src', _Icons.expanded_icon)
 				.prop('alt', 'Collapse ' + displayName)
 				.prop('title', 'Collapse ' + displayName);
 		}
@@ -1480,7 +1461,7 @@ var _Entities = {
 				$(child).remove();
 			});
 
-			b.prop('src', 'icon/tree_arrow_right.png')
+			b.prop('src', _Icons.collapsed_icon)
 				.prop('alt', 'Expand ' + displayName)
 				.prop('title', 'Expand ' + displayName);
 
@@ -1492,7 +1473,7 @@ var _Entities = {
 				Command.children(id);
 
 			}
-			b.prop('src', 'icon/tree_arrow_down.png')
+			b.prop('src', _Icons.expanded_icon)
 				.prop('alt', 'Collapse ' + displayName)
 				.prop('title', 'Collapse ' + displayName);
 ;
@@ -1501,53 +1482,66 @@ var _Entities = {
 		}
 
 	},
-	makeNameEditable: function(element, width) {
+	makeAttributeEditable: function(parentElement, id, attributeSelector, attributeName, width, callback) {
 		var w = width || 200;
 		//element.off('dblclick');
 		//element.off('hover');
-		var oldName = $.trim(element.children('b.name_').attr('title'));
-		element.children('b.name_').replaceWith('<input type="text" size="' + (oldName.length + 4) + '" class="new-name" value="' + oldName + '">');
+		var attributeElement = parentElement.children(attributeSelector);
+		//var attributeElementHtml = attributeElement.html();
+		var attributeElementTagName = attributeElement.prop('tagName').toLowerCase();
+		var oldValue = $.trim(attributeElement.attr('title'));
+
+		attributeElement.replaceWith('<input type="text" size="' + (oldValue.length + 4) + '" class="new-' + attributeName + '" value="' + oldValue + '">');
 		//element.find('.button').hide();
 
-		var input = $('input', element);
+		var input = $('input', parentElement);
 
 		input.focus().select();
 
 		input.on('blur', function() {
 			var self = $(this);
-			var newName = self.val();
-			self.replaceWith('<b title="' + oldName + '" class="name_">' + fitStringToWidth(oldName, w) + '</b>');
-			element.children('b.name_').on('click', function(e) {
+			var newValue = self.val();
+			self.replaceWith('<' + attributeElementTagName + ' title="' + newValue + '" class="' + attributeName + '_">' + fitStringToWidth(newValue, w) + '</' + attributeElementTagName + '>');
+			parentElement.children(attributeSelector).on('click', function(e) {
 				e.stopPropagation();
-				_Entities.makeNameEditable(element, w);
+				_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName, w);
 			});
-			_Entities.setNewName(element, newName);
+			_Entities.setNewAttributeValue(parentElement, id, attributeName, newValue, callback);
 		});
 
 		input.keypress(function(e) {
 			if (e.keyCode === 13) {
 				var self = $(this);
-				var newName = self.val();
-				self.replaceWith('<b title="' + oldName + '" class="name_">' + fitStringToWidth(oldName, w) + '</b>');
-				element.children('b.name_').on('click', function(e) {
+				var newValue = self.val();
+				self.replaceWith('<' + attributeElementTagName + ' title="' + newValue + '" class="' + attributeName + '_">' + fitStringToWidth(newValue, w) + '</' + attributeElementTagName + '>');
+				parentElement.children(attributeSelector).on('click', function(e) {
 					e.stopPropagation();
-					_Entities.makeNameEditable(element, w);
+					_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName, w);
 				});
-				_Entities.setNewName(element, newName);
+				_Entities.setNewAttributeValue(parentElement, id, attributeName, newValue, callback);
 			}
 		});
 	},
-	setNewName: function(element, newName) {
+	makeNameEditable: function(element, width, callback) {
 		var id = Structr.getId(element);
-		Command.setProperty(id, 'name', newName, false, function() {
+		_Entities.makeAttributeEditable(element, id, 'b.name_', 'name', width, callback);
+	},
+	setNewName: function(element, newName, callback) {
+		var id = Structr.getId(element);
+		_Entities.setNewAttributeValue(element, id, 'name', newName, callback);
+	},
+	setNewAttributeValue: function(element, id, attributeName, newValue, callback) {
+		Command.setProperty(id, attributeName, newValue, false, function() {
+			blinkGreen(element.children('.' + attributeName + '_'));
 			if (lastMenuEntry === 'pages') {
 				_Pages.reloadPreviews();
-			} else if (lastMenuEntry === 'filesystem') {
+			} else if (lastMenuEntry === 'filesystem' && attributeName === 'name') {
 				var a = element.closest('td').prev().children('a').first();
 				Command.getProperty(id, 'path', function(newPath) {
 					a.attr('href', newPath);
 				});
 			}
+			if (callback) callback();
 		});
 	},
 	handleActiveElement: function(entity) {
@@ -1573,29 +1567,31 @@ var _Entities = {
 				var query = entity.query;
 				//var dataKey     = (entity.dataKey.split(',')[entity.recursionDepth] || '');
 				var expand = entity.state === 'Query';
-				var icon = _Elements.icon;
+				var icon = _Icons.brick_icon;
 				var name = '', content = '', action = '';
 
 				switch (entity.state) {
 					case 'Query':
-						icon = 'icon/database_table.png';
+						icon = _Icons.database_table_icon;
 						name = query || entity.dataKey.replace(',', '.');
 						break;
 					case 'Content':
-						icon = _Contents.icon;
+						icon = _Icons.page_white_icon;
 						content = entity.content ? entity.content : entity.type;
 						break;
 					case 'Button':
-						icon = 'icon/button.png';
+						icon = _Icons.button_icon;
 						action = entity.action;
 						break;
 					case 'Link':
-						icon = 'icon/link.png';
+						icon = _Icons.link_icon;
 						content = entity.action;
 						break;
 					default:
-						content = entity.state;
+						content = entity.type;
 				}
+
+				console.log(icon);
 
 				div.append('<img class="typeIcon" src="' + icon + '">'
 					+ '<b title="' + name + '">' + fitStringToWidth(name, 180, 'slideOut') + '</b>'
@@ -1611,7 +1607,11 @@ var _Entities = {
 				var editIcon = $('.edit_icon', div);
 
 				if (!(editIcon && editIcon.length)) {
-					div.append('<img title="Edit" alt="Edit" class="edit_icon button" src="' + '/structr/icon/pencil.png' + '">');
+					if (entity.state === 'Content') {
+						div.append('<img title="Edit" alt="Edit" class="edit_icon button" src="' + _Icons.edit_icon + '">');
+					} else {
+						div.append('<img title="Edit Properties" alt="Edit Properties" class="edit_icon button" src="' + _Icons.view_detail_icon + '">');
+					}
 					editIcon = $('.edit_icon', div);
 				}
 				editIcon.on('click', function(e) {
@@ -1622,7 +1622,7 @@ var _Entities = {
 							_Entities.openQueryDialog(entity.id);
 							break;
 						case 'Content':
-							_Contents.openEditContentDialog(this, entity);
+							_Elements.openEditContentDialog(this, entity);
 							break;
 						case 'Button':
 							_Entities.openEditModeBindingDialog(entity.id);
@@ -1658,7 +1658,7 @@ var _Entities = {
 				} else {
 					typeIcon.css({
 						paddingRight: padding + 'px'
-					}).after('<img title="Expand ' + displayName + '" alt="Expand ' + displayName + '" class="expand_icon" src="' + Structr.expanded_icon + '">');
+					}).after('<img title="Expand ' + displayName + '" alt="Expand ' + displayName + '" class="expand_icon" src="' + _Icons.expanded_icon + '">');
 				}
 			}
 		}
@@ -1712,7 +1712,7 @@ function addPrincipal(entity, principal, permissions) {
 
 	$('#newPrincipal option[value="' + principal.id + '"]').remove();
 	$('#newPrincipal').trigger('chosen:updated');
-	$('#new').after('<tr class="_' + principal.id + '"><td><img class="typeIcon" src="' + (principal.isGroup ? 'icon/group.png' : 'icon/user.png') + '"> <span class="name">' + principal.name + '</span></td><tr>');
+	$('#new').after('<tr class="_' + principal.id + '"><td><img class="typeIcon" src="' + (principal.isGroup ? _Icons.group_icon : _Icons.user_icon) + '"> <span class="name">' + principal.name + '</span></td><tr>');
 
 	var row = $('._' + principal.id, dialogText);
 
@@ -1760,7 +1760,7 @@ function formatValueInputField(key, obj, isPassword, isReadOnly) {
 	} else if (obj.constructor === Object) {
 		var node = obj;
 		var displayName = _Crud.displayName(node);
-		return '<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>';
+		return '<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<img class="remove" src="' + _Icons.grey_cross_icon + '"></div>';
 		//return '<input name="' + key + '" type="' + (isPassword?'password':'text') + '" ' + (isReadOnly?'readonly class="readonly"':'') + ' value="' + escapeForHtmlAttributes(JSON.stringify(obj)) + '">';
 	} else if (obj.constructor === Array) {
 		var out = '';

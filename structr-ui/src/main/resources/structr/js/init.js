@@ -181,19 +181,80 @@ $(function() {
 	dmp = new diff_match_patch();
 });
 
+var _Icons = {
+	add_icon: 'icon/add.png',
+	delete_icon: 'icon/delete.png',
+	delete_disabled_icon: 'icon/delete_gray.png',
+	delete_brick_icon: 'icon/brick_delete.png',
+	edit_icon: 'icon/pencil.png',
+	edit_ui_properties_icon: 'icon/wrench.png',
+	collapsed_icon: 'icon/tree_arrow_right.png',
+	expanded_icon: 'icon/tree_arrow_down.png',
+	link_icon: 'icon/link.png',
+	key_icon: 'icon/key.png',
+	key_add_icon: 'icon/key_add.png',
+	cross_icon: 'icon/cross.png',
+	tick_icon: 'icon/tick.png',
+	grey_cross_icon: 'icon/cross_small_grey.png',
+	page_white_stack_icon: 'icon/page_white_stack.png',
+	eye_icon: 'icon/eye.png',
+	database_icon: 'icon/database.png',
+	database_table_icon: 'icon/database_table.png',
+	database_add_icon: 'icon/database_add.png',
+	view_detail_icon: 'icon/application_view_detail.png',
+	calendar_icon: 'icon/calendar.png',
+	add_grey_icon: 'icon/add_grey.png',
+	page_icon: 'icon/page.png',
+	page_white_icon: 'icon/page_white.png',
+	button_icon: 'icon/button.png',
+	clone_icon: 'icon/page_copy.png',
+	group_icon: 'icon/group.png',
+	group_add_icon: 'icon/group_add.png',
+	user_icon: 'icon/user.png',
+	user_add_icon: 'icon/user_add.png',
+	user_delete_icon: 'icon/user_delete.png',
+	compress_icon: 'icon/compress.png',
+	accept_icon: 'icon/accept.png',
+	push_file_icon: 'icon/page_white_get.png',
+	pull_file_icon: 'icon/page_white_put.png',
+	exec_cypher_icon: 'icon/control_play_blue.png',
+	exec_rest_icon: 'icon/control_play.png',
+	arrow_undo_icon: 'icon/arrow_undo.png',
+	information_icon: 'icon/information.png',
+	refresh_icon: 'icon/arrow_refresh.png',
+	error_icon: 'icon/error.png',
+	pull_page_icon: 'icon/pull_page.png',
+	wand_icon: 'icon/wand.png',
+	toggle_icon: 'icon/arrow_switch.png',
+	widget_icon: 'icon/layout.png',
+	folder_icon: 'icon/folder.png',
+	add_folder_icon: 'icon/folder_add.png',
+	add_widget_icon: 'icon/layout_add.png',
+	content_icon: 'icon/page_white.png',
+	active_content_icon: 'icon/page_yellow.png',
+	delete_content_icon: 'icon/page_white_delete.png',
+	template_icon: 'icon/layout_content.png',
+	active_template_icon: 'icon/layout_yellow.png',
+	comp_templ_icon: 'icon/layout_yellow.png',
+	icon_shared_template: 'icon/layout_yellow.png',
+	comment_icon: 'icon/comment.png',
+	repeater_icon: 'icon/bricks.png',
+	brick_icon: 'icon/brick.png',
+	comp_icon: 'icon/brick_yellow.png',
+	microphone_icon: 'img/icon_microphone.svg',
+	add_file_icon: 'icon/page_white_add.png',
+	add_site_icon: 'icon/page_white_add.png',
+	add_page_icon: 'icon/page_add.png',
+	ajax_loader_1: 'img/ajax-loader.gif',
+	ajax_loader_2: 'img/al.gif',
+	structr_logo_small: 'icon/structr_icon_16x16.png'
+};
+
 var Structr = {
 	modules: {},
 	activeModules: {},
 	classes: [],
 	expanded: {},
-	add_icon: 'icon/add.png',
-	delete_icon: 'icon/delete.png',
-	edit_icon: 'icon/pencil.png',
-	edit_ui_properties_icon: 'icon/wrench.png',
-	expand_icon: 'icon/tree_arrow_right.png',
-	expanded_icon: 'icon/tree_arrow_down.png',
-	link_icon: 'icon/link.png',
-	key_icon: 'icon/key.png',
 	msgCount: 0,
 	hideInactiveTabs: false,
 	autoHideInactiveTabs: undefined,
@@ -363,13 +424,13 @@ var Structr = {
 	},
 	clearMain: function() {
 		var newDroppables = new Array();
-		$.ui.ddmanager.droppables.default.forEach(function(droppable, i) {
+		$.ui.ddmanager.droppables['default'].forEach(function(droppable, i) {
 			if (!droppable.element.attr('id') || droppable.element.attr('id') !== 'graph-canvas') {
 			} else {
 				newDroppables.push(droppable);
 			}
 		});
-		$.ui.ddmanager.droppables.default = newDroppables;
+		$.ui.ddmanager.droppables['default'] = newDroppables;
 		$('iframe').unload();
 		//main.children().not('#graph-box').remove();
 		fastRemoveAllChildren(main[0]);
@@ -667,18 +728,17 @@ var Structr = {
 		new MessageBuilder().error(errorText).show();
 	},
 	loaderIcon: function(element, css) {
-		element.append('<img class="loader-icon" alt="Loading..." title="Loading.." src="img/ajax-loader.gif">');
+		element.append('<img class="loader-icon" alt="Loading..." title="Loading.." src="' + _Icons.ajax_loader_1 + '">');
 		var li = $('.loader-icon', element);
 		if (css) {
 			li.css(css);
 		}
 		return li;
-
 	},
 	tempInfo: function(text, autoclose) {
 		window.clearTimeout(dialogId);
 		if (text)
-			$('#tempInfoBox .infoHeading').html('<img src="icon/information.png"> ' + text);
+			$('#tempInfoBox .infoHeading').html('<img src="' + _Icons.information_icon + '"> ' + text);
 		if (autoclose) {
 			dialogId = window.setTimeout(function() {
 				$.unblockUI({
@@ -908,11 +968,12 @@ var Structr = {
 		var t = $(tab);
 		t.addClass('active');
 		var sw = slideout.width() + 12;
-		s.animate({left: '+=' + sw + 'px'}, {duration: 100}).zIndex(1);
 		LSWrapper.setItem(activeTabKey, t.prop('id'));
-		if (callback) {
-			callback({sw: sw});
-		}
+		s.animate({left: '+=' + sw + 'px'}, 100, function () {
+			if (typeof callback === 'function') {
+				callback({sw: sw});
+			}
+		}).zIndex(1);
 		t.draggable({
 			axis: 'x',
 			start: function(e, ui) {
@@ -938,7 +999,7 @@ var Structr = {
 			}
 		});
 	},
-	closeLeftSlideOuts: function(slideouts, activeTabKey) {
+	closeLeftSlideOuts: function(slideouts, activeTabKey, callback) {
 		var wasOpen = false;
 		var osw;
 		slideouts.forEach(function(w) {
@@ -948,13 +1009,14 @@ var Structr = {
 			if (Math.abs(l) <= 3) {
 				wasOpen = true;
 				osw = sw;
-				s.animate({left: '-=' + sw + 'px'}, {duration: 100}).zIndex(2);
+				s.animate({left: '-=' + sw + 'px'}, 100, function () {
+					if (typeof callback === 'function') {
+						callback(wasOpen, -osw, 0);
+					}
+				}).zIndex(2);
 				$('.compTab.active', s).removeClass('active').draggable("destroy");
 			}
 		});
-		if (wasOpen) {
-			_Pages.resize(-osw, 0);
-		}
 		LSWrapper.removeItem(activeTabKey);
 	},
 	pushDialog: function(id, recursive) {
@@ -1050,10 +1112,10 @@ var Structr = {
 
 					if (syncable.isSynchronized) {
 						syncButton.empty();
-						syncButton.append('<img src="icon/arrow_refresh.png" title="Update" alt="Update"> Update');
+						syncButton.append('<img src="' + _Icons.refresh_icon + '" title="Update" alt="Update"> Update');
 					} else {
 						syncButton.empty();
-						syncButton.append('<img src="icon/page_white_put.png" title="Import" alt="Import"> Import');
+						syncButton.append('<img src="' + _Icons.pull_file_icon + '" title="Import" alt="Import"> Import');
 					}
 
 					syncButton.on('click', function() {
@@ -1065,7 +1127,7 @@ var Structr = {
 						Command.pull(syncable.id, host, port, username, password, 'key-' + syncable.id, recursive, function() {
 							// update table cell..
 							syncButton.empty();
-							syncButton.append('<img src="icon/arrow_refresh.png" title="Update" alt="Update"> Update');
+							syncButton.append('<img src="' + _Icons.refresh_icon + '" title="Update" alt="Update"> Update');
 						});
 					});
 				});
@@ -1076,20 +1138,14 @@ var Structr = {
 		return false;
 	},
 	ensureIsAdmin: function(el, callback) {
-
 		Structr.ping(function() {
-
 			if (!isAdmin) {
-
 				Structr.error('You do not have sufficient permissions<br>to access this function.', true);
-
-				el.append('<div class="errorText"><img src="icon/error.png"> You do not have sufficient permissions to access this function.</div>');
-
+				el.append('<div class="errorText"><img src="' + _Icons.error_icon + '"> You do not have sufficient permissions to access this function.</div>');
 			} else {
-
-				if (callback)
+				if (callback) {
 					callback();
-
+				}
 			}
 		});
 	},
@@ -1530,7 +1586,7 @@ $(window).on('beforeunload', function(event) {
 });
 
 function showLoadingSpinner() {
-	var msg = '<div id="structr-loading-spinner"><img src="/structr/img/ajax-loader.gif"></div>';
+	var msg = '<div id="structr-loading-spinner"><img src="/structr/' + _Icons.ajax_loader_1 + '"></div>';
 	$.blockUI.defaults.overlayCSS.opacity = .2;
 	$.blockUI.defaults.applyPlatformOpacityRules = false;
 	$.blockUI({
@@ -1543,7 +1599,7 @@ function showLoadingSpinner() {
 			backgroundColor: 'transparent'
 		}
 	});
-//	main.append('<div id="structr-loading-spinner"><img src="/structr/img/ajax-loader.gif"></div>');
+//	main.append('<div id="structr-loading-spinner"><img src="/structr/' + _Icons.ajax_loader_1 + '"></div>');
 }
 
 function hideLoadingSpinner() {

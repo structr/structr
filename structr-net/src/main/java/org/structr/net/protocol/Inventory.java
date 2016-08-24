@@ -29,7 +29,6 @@ import org.structr.net.repository.RepositoryObject;
 
 /**
  *
- * @author Christian Morgner
  */
 public class Inventory extends Message {
 

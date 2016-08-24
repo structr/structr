@@ -32,23 +32,11 @@ $(document).ready(function() {
 });
 
 var _Contents = {
-
-	icon: 'icon/page_white.png',
-	add_file_icon: 'icon/page_white_add.png',
-	pull_file_icon: 'icon/page_white_put.png',
-	delete_file_icon: 'icon/page_white_delete.png',
-	add_folder_icon: 'icon/folder_add.png',
-	folder_icon: 'icon/folder-o.png',
-	delete_folder_icon: 'icon/folder_delete.png',
-	download_icon: 'icon/basket_put.png',
-
 	init: function() {
-
 		_Logger.log(_LogType.CONTENTS, '_Contents.init');
 
 		main = $('#main');
-
-		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
+		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><img class="clearSearchIcon" src="' + _Icons.grey_cross_icon + '"></div>');
 
 		searchField = $('.search', main);
 		searchField.focus();
@@ -108,7 +96,7 @@ var _Contents = {
 		contentsContents = $('#contents-contents');
 
 		$('#contents-contents-container').prepend(' <select id="add-content-item"><option value="">Add Content Item</option></select>');
-		
+
 		var itemTypesSelector = $('#add-content-item', main);
 		// query: function(type, pageSize, page, sort, order, properties, callback, exact, view) {
 		Command.query('SchemaNode', 1000, 1, 'name', 'asc', { extendsClass: 'org.structr.web.entity.ContentItem' }, function(schemaNodes) {
@@ -118,7 +106,7 @@ var _Contents = {
 				itemTypesSelector.append('<option value="' + type + '">' + type + '</option>');
 			});
 		}, true);
-		
+
 		itemTypesSelector.on('change', function(e) {
 			e.stopPropagation();
 			var sel = $(this);
@@ -133,7 +121,7 @@ var _Contents = {
 		});
 
 		$('#contents-contents-container').prepend('<select id="add-content-container"><option value="">Add Content Container</option></select>');
-		
+
 		var containerTypesSelector = $('#add-content-container', main);
 		Command.query('SchemaNode', 1000, 1, 'name', 'asc', { extendsClass: 'org.structr.web.entity.ContentContainer' }, function(schemaNodes) {
 			//console.log(schemaNodes);
@@ -142,7 +130,7 @@ var _Contents = {
 				containerTypesSelector.append('<option value="' + type + '">' + type + '</option>');
 			});
 		}, true);
-		
+
 		containerTypesSelector.on('change', function(e) {
 			e.stopPropagation();
 			var sel = $(this);
@@ -215,7 +203,7 @@ var _Contents = {
 		contentTree.jstree('deselect_node', d.id);
 		contentTree.jstree('open_node', d.id, function() {
 			contentTree.jstree('select_node', currentContentContainer ? currentContentContainer.id : 'root');
-			_Contents.open(dirs);
+			//_Contents.open(dirs);
 		});
 
 	},
@@ -230,12 +218,12 @@ var _Contents = {
 	initTree: function() {
 		//$.jstree.destroy();
 		contentTree.jstree({
-			'plugins': ["themes", "dnd", "search", "state", "types", "wholerow"],
-			'core': {
-				'animation': 0,
-				'state': {'key': 'structr-ui'},
-				'async': true,
-				'data': function(obj, callback) {
+			plugins: ["themes", "dnd", "search", "state", "types", "wholerow"],
+			core: {
+				animation: 0,
+				state: { key: 'structr-ui-contents' },
+				async: true,
+				data: function(obj, callback) {
 
 					switch (obj.id) {
 
@@ -250,7 +238,7 @@ var _Contents = {
 									id: 'root',
 									text: '/',
 									children: true,
-									icon: '/structr/icon/structr_icon_16x16.png',
+									icon: _Icons.structr_logo_small,
 									path: '/',
 									state: {
 										opened: true,
@@ -310,7 +298,7 @@ var _Contents = {
 		contentsContents.children().show();
 	},
 	loadAndSetWorkingDir: function(callback) {
-		
+
 		currentContentContainer = LSWrapper.getItem(currentContentContainerKey);
 		callback();
 
@@ -387,7 +375,7 @@ var _Contents = {
 		LSWrapper.setItem(currentContentContainerKey, currentContentContainer);
 	},
 	displayContainerContents: function(id, parentId, nodePath, parents) {
-		
+
 		fastRemoveAllChildren(contentsContents[0]);
 		var path = '';
 		if (parents) {
@@ -535,7 +523,7 @@ var _Contents = {
 
 			// ********** Containers **********
 
-			var newDelIcon = '<img title="Delete container \'' + d.name + '\'" alt="Delete container \'' + d.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+			var newDelIcon = '<img title="Delete container \'' + d.name + '\'" alt="Delete container \'' + d.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
 			if (delIcon && delIcon.length) {
 				delIcon.replaceWith(newDelIcon);
 			} else {
@@ -562,7 +550,7 @@ var _Contents = {
 					var itemId = Structr.getId(ui.draggable);
 					var containerId = Structr.getId(self);
 					_Logger.log(_LogType.CONTENTS, 'itemId, containerId', itemId, containerId);
-					
+
 					if (!(itemId === containerId)) {
 						var nodeData = {};
 						nodeData.id = itemId;
@@ -600,7 +588,7 @@ var _Contents = {
 				e.stopPropagation();
 				window.open(file.path, 'Download ' + file.name);
 			});
-			var newDelIcon = '<img title="Delete item ' + d.name + '\'" alt="Delete item \'' + d.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+			var newDelIcon = '<img title="Delete item ' + d.name + '\'" alt="Delete item \'' + d.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
 			if (delIcon && delIcon.length) {
 				delIcon.replaceWith(newDelIcon);
 			} else {
@@ -640,7 +628,7 @@ var _Contents = {
 				selectedElements = $('.node.selected');
 				if (selectedElements.length > 1) {
 					selectedElements.removeClass('selected');
-					return $('<img class="node-helper" src="icon/page_white_stack.png">');//.css("margin-left", event.clientX - $(event.target).offset().left);
+					return $('<img class="node-helper" src="' + _Icons.page_white_stack_icon + '">');//.css("margin-left", event.clientX - $(event.target).offset().left);
 				}
 				var hlp = helperEl.clone();
 				hlp.find('.button').remove();
@@ -656,20 +644,20 @@ var _Contents = {
 	checkValueHasChanged: function(oldVal, newVal, buttons) {
 
 		if (newVal === oldVal) {
-			
+
 			buttons.forEach(function(button) {
 				button.prop("disabled", true).addClass('disabled');
 			});
 
 		} else {
-			
+
 			buttons.forEach(function(button) {
 				button.prop("disabled", false).removeClass('disabled');
 			});
 		}
 	},
 	editItem: function(item) {
-		
+
 		Structr.dialog('Edit ' + item.name, function() {
 			_Logger.log(_LogType.CONTENTS, 'content saved');
 		}, function() {
@@ -719,16 +707,16 @@ var _Contents = {
 								}
 							});
 						}
-						
+
 					} else if (prop.propertyType === 'Date') {
 						$.get(rootUrl + '_schema/' + entity.type + '/ui', function(data) {
-							
+
 							var typeInfo = data.result.filter(function(obj) { return obj.jsonName === prop.name; })[0];
-							
+
 							//console.log(typeInfo.format);
 							$('#prop-' + prop.id).append('<div class="value-container"></div>');
 							_Entities.appendDatePicker($('#prop-' + prop.id + ' .value-container'), entity, prop.name, typeInfo.format);
-							
+
 							$('#prop-' + prop.id + ' .value-container input').on('change', function(e) {
 								if (e.keyCode !== 27) {
 									Command.get(entity.id, function(newEntity) {
@@ -737,7 +725,7 @@ var _Contents = {
 								}
 							});
 						});
-						
+
 					}
 
 				});
@@ -745,9 +733,9 @@ var _Contents = {
 			}, true);
 
 			dialogSaveButton.on('click', function(e) {
-				
+
 				ignoreKeyUp = false;
-				
+
 				e.preventDefault();
 				e.stopPropagation();
 
@@ -757,7 +745,7 @@ var _Contents = {
 
 						var newVal;
 						var oldVal = entity[prop.name];
-						
+
 						if (prop.propertyType === 'String' || prop.propertyType === 'Date') {
 
 							if (prop.contentType && prop.contentType === 'text/html') {
@@ -783,7 +771,7 @@ var _Contents = {
 										blinkGreen(f);
 									}
 								});
-								
+
 							}
 						}
 
@@ -806,14 +794,14 @@ var _Contents = {
 			});
 
 		});
-		
+
 	},
 	appendEditFileIcon: function(parent, item) {
 
 		var editIcon = $('.edit_file_icon', parent);
 
 		if (!(editIcon && editIcon.length)) {
-			parent.append('<img title="Edit ' + item.name + ' [' + item.id + ']" alt="Edit ' + item.name + ' [' + item.id + ']" class="edit_file_icon button" src="icon/pencil.png">');
+			parent.append('<img title="Edit ' + item.name + ' [' + item.id + ']" alt="Edit ' + item.name + ' [' + item.id + ']" class="edit_file_icon button" src="' + _Icons.edit_icon + '">');
 		}
 
 		$(parent.children('.edit_file_icon')).on('click', function(e) {
@@ -835,14 +823,10 @@ var _Contents = {
 
 		});
 
-		//console.log('Search string:', searchString, url);
-
 		$.ajax({
 			url: url,
 			statusCode: {
 				200: function(data) {
-
-					//console.log(data.result);
 
 					if (!data.result || data.result.length === 0) {
 						container.append('<h1>No results for "' + searchString + '"</h1>');
@@ -879,7 +863,7 @@ var _Contents = {
 									var div = $('#results' + d.id);
 									var icon = _Contents.getIcon(d);
 									//div.append('<h2><img id="preview' + d.id + '" src="' + icon + '" style="margin-left: 6px;" title="' + d.extractedContent + '" />' + d.path + '</h2>');
-									div.append('<h2><i class="fa ' + icon + '"></i> ' + d.name + '<img id="preview' + d.id + '" src="/structr/icon/eye.png" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
+									div.append('<h2><i class="fa ' + icon + '"></i> ' + d.name + '<img id="preview' + d.id + '" src="' + _Icons.eye_icon + '" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
 									div.append('<i class="toggle-height fa fa-expand"></i>').append('<i class="go-to-top fa fa-chevron-up"></i>');
 
 									$('.toggle-height', div).on('click', function() {

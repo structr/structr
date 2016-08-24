@@ -9,6 +9,7 @@ structr-ui/files*
 structr-ui/snapshots
 structr-ui/sessions
 structr-ui/logs
+structr-ui/layouts
 structr-ui/modules
 structr-ui/jsp
 structr-ui/structr.conf

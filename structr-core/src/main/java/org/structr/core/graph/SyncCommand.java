@@ -659,110 +659,129 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				long relCount                 = 0;
 				boolean skipProperties        = false;
 
-				OUTER:
 				do {
+
 					try {
+
+						// store current position
 						dis.mark(4);
+
+						// read one byte
 						byte objectType = dis.readByte();
-						
-						switch (objectType) {
-							case '\n':
-								// skip newlines
-								continue;
-							case 'N':
-								// break loop after 200 objects, commit and restart afterwards
-								if (nodeCount + relCount >= internalBatchSize) {
-									dis.reset();
-									break OUTER;
-								}
-								currentObject = graphDb.createNode();
-								nodeCount++;
-								// store for later use
-								nodes.add((Node)currentObject);
-								break;
-							case 'R':
-								// break look after 200 objects, commit and restart afterwards
-								if (nodeCount + relCount >= internalBatchSize) {
-									dis.reset();
-									break OUTER;
-								}
-								String startId     = (String)deserialize(dis);
-								String endId       = (String)deserialize(dis);
-								String relTypeName = (String)deserialize(dis);
-								Node endNode   = uuidMap.get(endId);
-								Node startNode = uuidMap.get(startId);
-								if (startNode != null && endNode != null) {
-									
-									if (deletedNodes.contains(startNode.getId()) || deletedNodes.contains(endNode.getId())) {
-										
-										System.out.println("NOT creating relationship between deleted nodes..");
-										skipProperties = true;
-										
-									} else {
-										
-										RelationshipType relType = RelationshipType.forName(relTypeName);
-										currentObject = startNode.createRelationshipTo(endNode, relType);
-										
-										// store for later use
-										rels.add((Relationship)currentObject);
-										
-										relCount++;
-									}
-									
-								} else {
-									
-									System.out.println("NOT creating relationship of type " + relTypeName + ", start: " + startId + ", end: " + endId);
-									skipProperties = true;
-								}	break;
-							default:
-								if (skipProperties) {
-									continue;
-								}	// reset if not at the beginning of a line
+
+						// skip newlines
+						if (objectType == '\n') {
+							continue;
+						}
+
+						if (objectType == 'N') {
+
+							// break loop after 200 objects, commit and restart afterwards
+							if (nodeCount + relCount >= internalBatchSize) {
 								dis.reset();
-								if (currentKey == null) {
-									
-									currentKey = (String)deserialize(dis);
-									
+								break;
+							}
+
+							currentObject = graphDb.createNode();
+							nodeCount++;
+
+							// store for later use
+							nodes.add((Node)currentObject);
+
+						} else if (objectType == 'R') {
+
+							// break look after 200 objects, commit and restart afterwards
+							if (nodeCount + relCount >= internalBatchSize) {
+								dis.reset();
+								break;
+							}
+
+							String startId     = (String)deserialize(dis);
+							String endId       = (String)deserialize(dis);
+							String relTypeName = (String)deserialize(dis);
+
+							Node endNode   = uuidMap.get(endId);
+							Node startNode = uuidMap.get(startId);
+
+							if (startNode != null && endNode != null) {
+
+								if (deletedNodes.contains(startNode.getId()) || deletedNodes.contains(endNode.getId())) {
+
+									System.out.println("NOT creating relationship between deleted nodes..");
+									skipProperties = true;
+
 								} else {
-									
-									if (currentObject != null) {
-										
-										Object obj = deserialize(dis);
-										
-										if (uuidPropertyName.equals(currentKey) && currentObject instanceof Node) {
-											
-											String uuid = (String)obj;
-											uuidMap.put(uuid, (Node)currentObject);
+
+									RelationshipType relType = RelationshipType.forName(relTypeName);
+									currentObject = startNode.createRelationshipTo(endNode, relType);
+
+									// store for later use
+									rels.add((Relationship)currentObject);
+
+									relCount++;
+								}
+
+							} else {
+
+								System.out.println("NOT creating relationship of type " + relTypeName + ", start: " + startId + ", end: " + endId);
+								skipProperties = true;
+							}
+
+						} else {
+
+							if (skipProperties) {
+								continue;
+							}
+							
+							// reset if not at the beginning of a line
+							dis.reset();
+
+							if (currentKey == null) {
+
+								currentKey = (String)deserialize(dis);
+
+							} else {
+
+								if (currentObject != null) {
+
+									Object obj = deserialize(dis);
+
+									if (uuidPropertyName.equals(currentKey) && currentObject instanceof Node) {
+
+										String uuid = (String)obj;
+										uuidMap.put(uuid, (Node)currentObject);
+									}
+
+									if (currentKey.length() != 0) {
+
+										// store object in DB
+										currentObject.setProperty(currentKey, obj);
+
+										// set type label
+										if (currentObject instanceof Node && NodeInterface.type.dbName().equals(currentKey)) {
+
+											((Node) currentObject).addLabel(graphDb.forName(Label.class, (String) obj));
 										}
 
-										if (currentKey.length() != 0) {
-											
-											// store object in DB
-											currentObject.setProperty(currentKey, obj);
-											
-											// set type label
-											if (currentObject instanceof Node && NodeInterface.type.dbName().equals(currentKey)) {
-												
-												((Node) currentObject).addLabel(graphDb.forName(Label.class, (String) obj));
-											}
-											
-										} else {
-											
-											logger.log(Level.SEVERE, "Invalid property key for value {0}, ignoring", obj);
-										}
-										
-										currentKey = null;
-										
 									} else {
-										
-										logger.log(Level.WARNING, "No current object to store property in.");
+
+										logger.log(Level.SEVERE, "Invalid property key for value {0}, ignoring", obj);
 									}
-								}	break;
+
+									currentKey = null;
+
+								} else {
+
+									logger.log(Level.WARNING, "No current object to store property in.");
+								}
+							}
 						}
-					}catch (EOFException eofex) {
-						
+
+					} catch (EOFException eofex) {
+
 						finished = true;
 					}
+
 				} while (!finished);
 
 				totalNodeCount += nodeCount;

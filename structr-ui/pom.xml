@@ -78,7 +78,7 @@
             <groupId>org.bitbucket.cowwoc</groupId>
             <artifactId>diff-match-patch</artifactId>
             <version>1.1</version>
-        </dependency>        
+        </dependency>
         <dependency>
             <groupId>com.jayway.restassured</groupId>
             <artifactId>rest-assured</artifactId>
@@ -99,7 +99,7 @@
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.8.1</version>
+            <version>1.9.2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -298,6 +298,16 @@
                     <artifactId>tika-parsers</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.yahoo.platform.yui</groupId>
+            <artifactId>yuicompressor</artifactId>
+            <version>2.4.8</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.javascript</groupId>
+            <artifactId>closure-compiler</artifactId>
+            <version>v20160208</version>
         </dependency>
     </dependencies>
     <build>

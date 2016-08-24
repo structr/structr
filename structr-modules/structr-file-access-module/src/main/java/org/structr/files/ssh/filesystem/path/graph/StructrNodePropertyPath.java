@@ -44,7 +44,6 @@ import org.structr.files.ssh.filesystem.StructrPath;
 
 /**
  *
- * @author Christian Morgner
  */
 public class StructrNodePropertyPath extends StructrPath {
 

@@ -425,13 +425,13 @@ var StructrModel = {
 			}
 
 			// check if key icon needs to be displayed (in case of nodes not visible to public/auth users)
-			var protected = !obj.visibleToPublicUsers || !obj.visibleToAuthenticatedUsers;
+			var isProtected = !obj.visibleToPublicUsers || !obj.visibleToAuthenticatedUsers;
 			var keyIcon = element.children('.key_icon');
 			if (!keyIcon.length) {
 				// Images have a special subnode containing the icons
 				keyIcon = $('.icons', element).children('.key_icon');
 			}
-			if (protected) {
+			if (isProtected) {
 				keyIcon.show();
 				keyIcon.addClass('donthide');
 			} else {
@@ -560,7 +560,7 @@ StructrFolder.prototype.remove = function() {
 	_Entities.resetMouseOverState(folderEl);
 
 	folderEl.children('.delete_icon').replaceWith('<img title="Delete folder ' + folder.id + '" '
-			+ 'alt="Delete folder ' + folder.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
+			+ 'alt="Delete folder ' + folder.id + '" class="delete_icon button" src="' + _Icons.delete_icon + '">');
 
 	folderEl.children('.delete_icon').on('click', function(e) {
 		e.stopPropagation();
@@ -1015,7 +1015,7 @@ StructrContent.prototype.append = function(refNode) {
 		});
 
 		$('.delete_icon', div).replaceWith('<img title="Remove content element from parent ' + parentId + '" '
-				+ 'alt="Remove content element from parent ' + parentId + '" class="delete_icon button" src="' + _Elements.delete_content_icon + '">');
+				+ 'alt="Remove content element from parent ' + parentId + '" class="delete_icon button" src="' + _Icons.delete_content_icon + '">');
 		$('.delete_icon', div).on('click', function(e) {
 			e.stopPropagation();
 			Command.removeChild(id);

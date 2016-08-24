@@ -26,7 +26,6 @@ import org.structr.net.peer.Peer;
 import org.structr.net.peer.PeerInfo;
 
 /**
- * @author Christian Morgner
  */
 public class Commit extends Message {
 

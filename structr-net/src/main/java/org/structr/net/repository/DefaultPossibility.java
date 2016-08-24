@@ -26,7 +26,6 @@ import org.structr.net.data.time.Clock;
 
 /**
  *
- * @author Christian Morgner
  */
 public class DefaultPossibility {
 

@@ -53,7 +53,6 @@ import org.structr.files.ssh.filesystem.path.graph.StructrNodePropertyPath;
 
 /**
  *
- * @author Christian Morgner
  */
 public class StructrSchemaNodePath extends StructrPath {
 

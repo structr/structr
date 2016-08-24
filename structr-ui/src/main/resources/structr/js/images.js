@@ -25,19 +25,10 @@ var timeout, attempts = 0, maxRetry = 10;
 
 $(document).ready(function() {
 	Structr.registerModule('images', _Images);
-	//    Structr.classes.push('folder');
 	Structr.classes.push('image');
-
 });
 
 var _Images = {
-	icon: 'icon/page_white.png',
-	add_file_icon: 'icon/page_white_add.png',
-	delete_file_icon: 'icon/page_white_delete.png',
-	//    add_folder_icon : 'icon/folder_add.png',
-	//    folder_icon : 'icon/folder.png',
-	//    delete_folder_icon : 'icon/folder_delete.png',
-	download_icon: 'icon/basket_put.png',
 	init: function() {
 		_Pager.initPager('images', 'Image', 1, 100, 'name', 'asc');
 		Structr.makePagesMenuDroppable();
@@ -178,7 +169,7 @@ var _Images = {
 		_Images.resize();
 	},
 	getIcon: function(file) {
-		var icon = (file.contentType.startsWith('image/svg') ? file.path : (file.tnSmall ? file.tnSmall.path : _Images.icon));
+		var icon = (file.contentType.startsWith('image/svg') ? file.path : (file.tnSmall ? file.tnSmall.path : _Icons.page_white_icon));
 		return icon;
 	},
 	appendImageElement: function(img) {
@@ -195,7 +186,7 @@ var _Images = {
 		var delIcon, newDelIcon;
 		div = Structr.node(img.id);
 
-		var tn = '/structr/img/ajax-loader.gif';
+		var tn = '/structr/' + _Icons.ajax_loader_1;
 
 		var parent;
 		if (img.parent) {
@@ -248,7 +239,7 @@ var _Images = {
 		_Entities.appendAccessControlIcon(iconArea, img);
 
 		if (Structr.isModulePresent('structr-cloud-module')) {
-			div.append('<img title="Push image \'' + img.name + '\'" alt="Push image \'' + img.name + '\'" class="push_icon button" src="icon/page_white_get.png">');
+			div.append('<img title="Push image \'' + img.name + '\'" alt="Push image \'' + img.name + '\'" class="push_icon button" src="' + _Icons.push_file_icon + '">');
 			div.children('.push_icon').on('click', function() {
 				Structr.pushDialog(img.id, false);
 				return false;
@@ -257,7 +248,7 @@ var _Images = {
 
 		delIcon = $('.delete_icon', div);
 
-		newDelIcon = '<img title="Delete ' + img.name + ' \'' + img.name + '\'" alt="Delete ' + img.name + ' \'' + img.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+		newDelIcon = '<img title="Delete ' + img.name + ' \'' + img.name + '\'" alt="Delete ' + img.name + ' \'' + img.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
 		if (delIcon && delIcon.length) {
 			delIcon.replaceWith(newDelIcon);
 		} else {
@@ -350,7 +341,7 @@ var _Images = {
 		var editIcon = $('.edit_file_icon', parent);
 
 		if (!(editIcon && editIcon.length)) {
-			parent.append('<img title="Edit ' + file.name + ' [' + file.id + ']" alt="Edit ' + file.name + ' [' + file.id + ']" class="edit_file_icon button" src="icon/pencil.png">');
+			parent.append('<img title="Edit ' + file.name + ' [' + file.id + ']" alt="Edit ' + file.name + ' [' + file.id + ']" class="edit_file_icon button" src="' + _Icons.edit_icon + '">');
 		}
 
 		$(parent.children('.edit_file_icon')).on('click', function(e) {

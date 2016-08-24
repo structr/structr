@@ -1,3 +1,21 @@
+/**
+ * Copyright (C) 2010-2016 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -132,13 +150,14 @@ public class OWLParserv2 {
 		customKTypeMapping.put("KStringAttribute",    XML_SCHEMA_TYPE_STRING);
 		customKTypeMapping.put("KURLAttribute",       XML_SCHEMA_TYPE_URI);
 
-		try {
-
-			logger = new PrintWriter(new FileOutputStream("import-" + new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(System.currentTimeMillis()) + ".log", false));
-
-		} catch (FileNotFoundException fnfex) {
-			fnfex.printStackTrace();
-		}
+		// commented this out so that the import-<date> file will not be created every time structr starts with this module
+//		try {
+//
+//			logger = new PrintWriter(new FileOutputStream("import-" + new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(System.currentTimeMillis()) + ".log", false));
+//
+//		} catch (FileNotFoundException fnfex) {
+//			fnfex.printStackTrace();
+//		}
 
 	}
 

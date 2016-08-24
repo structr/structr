@@ -92,7 +92,7 @@ var _Dialogs = {
 			'<tr>'
 			+ '<td class="key"><label>' + label + '</label></td>'
 			+ '<td class="value"><input type="text" name="' + name + '" value="' + (value ? value : '') + '"></td>'
-			+ '<td><img class="nullIcon" id="null_' + name + '" src="icon/cross_small_grey.png"></td>'
+			+ '<td><img class="nullIcon" id="null_' + name + '" src="' + _Icons.grey_cross_icon + '"></td>'
 		);
 	}
 };

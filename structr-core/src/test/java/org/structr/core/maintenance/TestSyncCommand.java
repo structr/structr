@@ -33,6 +33,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.entity.TestEleven;
 import org.structr.core.entity.TestOne;
+import org.structr.core.graph.ClearDatabase;
 import org.structr.core.graph.SyncCommand;
 import org.structr.core.graph.Tx;
 
@@ -97,9 +98,8 @@ public class TestSyncCommand extends StructrTest {
 
  			assertTrue("Export file doesn't exist!", Files.exists(exportFile));
 
-			// stop existing and start new database
-			this.tearDown();
-			this.setUp();
+			// clear database
+			app.command(ClearDatabase.class).execute();
 
 			// test import
 			app.command(SyncCommand.class).execute(toMap("mode", "import", "file", EXPORT_FILENAME));
@@ -115,6 +115,7 @@ public class TestSyncCommand extends StructrTest {
 			logger.log(Level.WARNING, "", ex);
 			fail("Unexpected exception.");
 		}
+		
 	}
 
 	public void testSyncCommandBasicExportImportSmallBatchSize() {
@@ -130,9 +131,8 @@ public class TestSyncCommand extends StructrTest {
 
  			assertTrue("Export file doesn't exist!", Files.exists(exportFile));
 
-			// stop existing and start new database
-			this.tearDown();
-			this.setUp();
+			// clear database
+			app.command(ClearDatabase.class).execute();
 
 			// test import
 			app.command(SyncCommand.class).execute(toMap("mode", "import", "file", EXPORT_FILENAME, "batchSize", 20L));

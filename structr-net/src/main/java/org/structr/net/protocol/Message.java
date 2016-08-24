@@ -25,7 +25,6 @@ import java.io.IOException;
 
 /**
  *
- * @author Christian Morgner
  */
 public abstract class Message extends AbstractMessage {
 

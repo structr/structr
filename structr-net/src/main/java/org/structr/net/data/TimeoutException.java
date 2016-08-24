@@ -21,7 +21,6 @@ package org.structr.net.data;
 
 /**
  *
- * @author Christian Morgner
  */
 public class TimeoutException extends Exception {
 

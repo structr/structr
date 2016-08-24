@@ -28,30 +28,18 @@ var currentWorkingDir;
 var folderPageSize = 10000, folderPage = 1;
 
 $(document).ready(function() {
-
 	Structr.registerModule('filesystem', _Filesystem);
 	_Filesystem.resize();
-
 });
 
 var _Filesystem = {
-
-	icon: 'icon/page_white.png',
-	add_file_icon: 'icon/page_white_add.png',
-	pull_file_icon: 'icon/page_white_put.png',
-	delete_file_icon: 'icon/page_white_delete.png',
-	add_folder_icon: 'icon/folder_add.png',
-	folder_icon: 'icon/folder.png',
-	delete_folder_icon: 'icon/folder_delete.png',
-	download_icon: 'icon/basket_put.png',
-
 	init: function() {
 
 		_Logger.log(_LogType.FILESYSTEM, '_Filesystem.init');
 
 		main = $('#main');
 
-		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
+		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><img class="clearSearchIcon" src="' + _Icons.grey_cross_icon + '"></div>');
 
 		searchField = $('.search', main);
 		searchField.focus();
@@ -95,14 +83,38 @@ var _Filesystem = {
 				height: windowHeight - headerOffsetHeight - 55 + 'px'
 			});
 		}
+
 		Structr.resize();
+
+		var nameColumnWidth = $('#files-table th:nth-child(2)').width();
+
+		if (nameColumnWidth < 300) {
+			$('#files-table th:nth-child(4)').css({ display: 'none' });
+			$('#files-table td:nth-child(4)').css({ display: 'none' });
+			$('#files-table th:nth-child(5)').css({ display: 'none' });
+			$('#files-table td:nth-child(5)').css({ display: 'none' });
+		}
+
+		if (nameColumnWidth > 550) {
+			$('#files-table th:nth-child(4)').css({ display: 'table-cell' });
+			$('#files-table td:nth-child(4)').css({ display: 'table-cell' });
+			$('#files-table th:nth-child(5)').css({ display: 'table-cell' });
+			$('#files-table td:nth-child(5)').css({ display: 'table-cell' });
+		}
+
+		nameColumnWidth = $('#files-table th:nth-child(2)').width() - 96;
+
+		$('.node.file .name_').each(function(i, el) {
+			var title = $(el).attr('title');
+			$(el).html('<b title="' +  title + '" class="name_">' + fitStringToWidth(title ? title : '[unnamed]', nameColumnWidth) + '</b>');
+		});
 
 	},
 	onload: function() {
 
 		_Filesystem.init();
 
-		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Filesystem');
+		$('#main-help a').attr('href', 'https://support.structr.com/article/49');
 
 		main.append('<div id="filesystem-main"><div class="fit-to-height" id="file-tree-container"><div id="file-tree"></div></div><div class="fit-to-height" id="folder-contents-container"><div id="folder-contents"></div></div>');
 		filesystemMain = $('#filesystem-main');
@@ -111,8 +123,8 @@ var _Filesystem = {
 		folderContents = $('#folder-contents');
 
 		$('#folder-contents-container').prepend(
-				'<button class="add_file_icon button"><img title="Add File" alt="Add File" src="' + _Filesystem.add_file_icon + '"> Add File</button>'
-				+ '<button class="pull_file_icon button module-dependend" data-structr-module="cloud"><img title="Sync Files" alt="Sync Files" src="' + _Filesystem.pull_file_icon + '"> Sync Files</button>'
+				'<button class="add_file_icon button"><img title="Add File" alt="Add File" src="' + _Icons.add_file_icon + '"> Add File</button>'
+				+ '<button class="pull_file_icon button module-dependend" data-structr-module="cloud"><img title="Sync Files" alt="Sync Files" src="' + _Icons.pull_file_icon + '"> Sync Files</button>'
 				);
 
 		$('.add_file_icon', main).on('click', function(e) {
@@ -127,7 +139,7 @@ var _Filesystem = {
 			Structr.pullDialog('File,Folder');
 		});
 
-		$('#folder-contents-container').prepend('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Filesystem.add_folder_icon + '"> Add Folder</button>');
+		$('#folder-contents-container').prepend('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Icons.add_folder_icon + '"> Add Folder</button>');
 		$('.add_folder_icon', main).on('click', function(e) {
 			e.stopPropagation();
 			Command.create({ type: 'Folder', parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
@@ -197,7 +209,7 @@ var _Filesystem = {
 		fileTree.jstree('deselect_node', d.id);
 		fileTree.jstree('open_node', d.id, function() {
 			fileTree.jstree('select_node', currentWorkingDir ? currentWorkingDir.id : 'root');
-			_Filesystem.open(dirs);
+			//_Filesystem.open(dirs);
 		});
 
 	},
@@ -212,12 +224,12 @@ var _Filesystem = {
 	initTree: function() {
 		//$.jstree.destroy();
 		fileTree.jstree({
-			'plugins': ["themes", "dnd", "search", "state", "types", "wholerow"],
-			'core': {
-				'animation': 0,
-				'state': {'key': 'structr-ui'},
-				'async': true,
-				'data': function(obj, callback) {
+			plugins: ["themes", "dnd", "search", "state", "types", "wholerow"],
+			core: {
+				animation: 0,
+				state: { key: 'structr-ui-filesystem' },
+				async: true,
+				data: function(obj, callback) {
 
 					switch (obj.id) {
 
@@ -232,7 +244,7 @@ var _Filesystem = {
 									id: 'root',
 									text: '/',
 									children: true,
-									icon: '/structr/icon/structr_icon_16x16.png',
+									icon: _Icons.structr_logo_small,
 									path: '/',
 									state: {
 										opened: true,
@@ -496,6 +508,8 @@ var _Filesystem = {
 			if (children && children.length) {
 				children.forEach(_Filesystem.appendFileOrFolderRow);
 			}
+
+			_Filesystem.resize();
 		};
 
 		if (id === 'root') {
@@ -624,14 +638,14 @@ var _Filesystem = {
 			// ********** Folders **********
 
 			if (Structr.isModulePresent('structr-cloud-module')) {
-				div.append('<img title="Sync folder \'' + d.name + '\' to remote instance" alt="Sync folder \'' + d.name + '\' to remote instance" class="push_icon button" src="icon/page_white_get.png">');
+				div.append('<img title="Sync folder \'' + d.name + '\' to remote instance" alt="Sync folder \'' + d.name + '\' to remote instance" class="push_icon button" src="' + _Icons.push_file_icon + '">');
 				div.children('.push_icon').on('click', function() {
 					Structr.pushDialog(d.id, true);
 					return false;
 				});
 			}
 
-			var newDelIcon = '<img title="Delete folder \'' + d.name + '\'" alt="Delete folder \'' + d.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+			var newDelIcon = '<img title="Delete folder \'' + d.name + '\'" alt="Delete folder \'' + d.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
 			if (delIcon && delIcon.length) {
 				delIcon.replaceWith(newDelIcon);
 			} else {
@@ -692,7 +706,7 @@ var _Filesystem = {
 			// ********** Files **********
 
 			if (_Filesystem.isArchive(d)) {
-				div.append('<img class="unarchive_icon button" src="icon/compress.png">');
+				div.append('<img class="unarchive_icon button" src="' + _Icons.compress_icon + '">');
 				div.children('.unarchive_icon').on('click', function() {
 					_Logger.log(_LogType.FILESYSTEM, 'unarchive', d.id);
 
@@ -729,7 +743,7 @@ var _Filesystem = {
 							if (closed) {
 								new MessageBuilder().success(message).requiresConfirmation("Close").show();
 							} else {
-								$('#tempInfoBox .infoMsg').html('<img src="icon/accept.png"> ' + message);
+								$('#tempInfoBox .infoMsg').html('<img src="' + _Icons.accept_icon + '"> ' + message);
 							}
 
 						} else {
@@ -740,7 +754,7 @@ var _Filesystem = {
 			}
 
 			if (Structr.isModulePresent('structr-cloud-module')) {
-				div.append('<img title="Sync file \'' + d.name + '\' to remote instance" alt="Sync file \'' + d.name + '\' to remote instance" class="push_icon button" src="icon/page_white_get.png">');
+				div.append('<img title="Sync file \'' + d.name + '\' to remote instance" alt="Sync file \'' + d.name + '\' to remote instance" class="push_icon button" src="' + _Icons.push_file_icon + '">');
 				div.children('.push_icon').on('click', function() {
 					Structr.pushDialog(d.id, false);
 					return false;
@@ -751,7 +765,7 @@ var _Filesystem = {
 				e.stopPropagation();
 				window.open(file.path, 'Download ' + file.name);
 			});
-			var newDelIcon = '<img title="Delete file ' + d.name + '\'" alt="Delete file \'' + d.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+			var newDelIcon = '<img title="Delete file ' + d.name + '\'" alt="Delete file \'' + d.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
 			if (delIcon && delIcon.length) {
 				delIcon.replaceWith(newDelIcon);
 			} else {
@@ -791,7 +805,7 @@ var _Filesystem = {
 				selectedElements = $('.node.selected');
 				if (selectedElements.length > 1) {
 					selectedElements.removeClass('selected');
-					return $('<img class="node-helper" src="icon/page_white_stack.png">');//.css("margin-left", event.clientX - $(event.target).offset().left);
+					return $('<img class="node-helper" src="' + _Icons.page_white_stack_icon + '">');//.css("margin-left", event.clientX - $(event.target).offset().left);
 				}
 				var hlp = helperEl.clone();
 				hlp.find('.button').remove();
@@ -809,7 +823,7 @@ var _Filesystem = {
 		var editIcon = $('.edit_file_icon', parent);
 
 		if (!(editIcon && editIcon.length)) {
-			parent.append('<img title="Edit ' + file.name + ' [' + file.id + ']" alt="Edit ' + file.name + ' [' + file.id + ']" class="edit_file_icon button" src="icon/pencil.png">');
+			parent.append('<img title="Edit ' + file.name + ' [' + file.id + ']" alt="Edit ' + file.name + ' [' + file.id + ']" class="edit_file_icon button" src="' + _Icons.edit_icon + '">');
 		}
 
 		$(parent.children('.edit_file_icon')).on('click', function(e) {
@@ -921,7 +935,7 @@ var _Filesystem = {
 									var div = $('#results' + d.id);
 									var icon = _Filesystem.getIcon(d);
 									//div.append('<h2><img id="preview' + d.id + '" src="' + icon + '" style="margin-left: 6px;" title="' + d.extractedContent + '" />' + d.path + '</h2>');
-									div.append('<h2><i class="fa ' + icon + '"></i> ' + d.name + '<img id="preview' + d.id + '" src="/structr/icon/eye.png" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
+									div.append('<h2><i class="fa ' + icon + '"></i> ' + d.name + '<img id="preview' + d.id + '" src="' + _Icons.eye_icon + '" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
 									div.append('<i class="toggle-height fa fa-expand"></i>').append('<i class="go-to-top fa fa-chevron-up"></i>');
 
 									$('.toggle-height', div).on('click', function() {

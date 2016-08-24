@@ -28,7 +28,6 @@ import org.structr.net.repository.Repository;
 
 /**
  *
- * @author Christian Morgner
  */
 public class Committed extends Message {
 

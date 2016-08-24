@@ -31,7 +31,6 @@ import org.structr.net.peer.Peer;
 
 /**
  *
- * @author Christian Morgner
  */
 public class DefaultRepository implements Repository {
 

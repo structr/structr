@@ -50,7 +50,6 @@ import org.structr.files.ssh.filesystem.StructrPath;
 
 /**
  *
- * @author Christian Morgner
  */
 public class StructrSchemaPropertyPath extends StructrPath {
 

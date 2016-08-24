@@ -18,8 +18,6 @@
  */
 package org.structr.web.property;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.api.Predicate;
@@ -86,7 +84,7 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 
 	@Override
 	public SortType getSortType() {
-		return SortType.Integer;
+		return SortType.Default;
 	}
 
 	@Override
@@ -94,7 +92,6 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 
 		final App app                    = StructrApp.getInstance(securityContext);
 		final SourceSearchAttribute attr = new SourceSearchAttribute(occur);
-		final Set<GraphObject> result    = new LinkedHashSet<>();
 
 		final Query<AbstractFile> q = app.nodeQuery(AbstractFile.class).and(AbstractFile.name, PathHelper.getName(searchValue));
 		try {
