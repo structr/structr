@@ -19,13 +19,12 @@
 package org.structr.bolt.index;
 
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import org.structr.api.QueryResult;
 import org.structr.api.graph.Relationship;
+import org.structr.api.util.Iterables;
 import org.structr.bolt.BoltDatabaseService;
-import org.structr.bolt.RelationshipWrapper;
 import org.structr.bolt.SessionTransaction;
+import org.structr.bolt.mapper.RelationshipRelationshipMapper;
 
 /**
  *
@@ -50,20 +49,11 @@ public class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 	@Override
 	public QueryResult<Relationship> getResult(final CypherQuery context) {
 
-		final SessionTransaction tx                             = db.getCurrentTransaction();
-		final List<org.neo4j.driver.v1.types.Relationship> rels = tx.getRelationshipList(context.getStatement(), context.getParameters());
-		final List<Relationship> result                         = new LinkedList<>();
-
-		for (final org.neo4j.driver.v1.types.Relationship rel : rels) {
-			result.add(RelationshipWrapper.newInstance(db, rel));
-		}
+		final SessionTransaction tx                 = db.getCurrentTransaction();
+		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(db);
+		final Iterable<Relationship> mapped         = Iterables.map(mapper, tx.getRelationships(context.getStatement(), context.getParameters()));
 
 		return new QueryResult<Relationship>() {
-
-			@Override
-			public int size() {
-				return result.size();
-			}
 
 			@Override
 			public void close() {
@@ -71,7 +61,7 @@ public class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 
 			@Override
 			public Iterator<Relationship> iterator() {
-				return result.iterator();
+				return mapped.iterator();
 			}
 		};
 	}

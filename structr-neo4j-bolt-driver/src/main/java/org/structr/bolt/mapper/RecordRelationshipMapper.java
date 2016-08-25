@@ -16,13 +16,20 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.bolt.mapper;
+
+import java.util.function.Function;
+import org.neo4j.driver.v1.Record;
+import org.neo4j.driver.v1.types.Relationship;
 
 /**
  *
+ * @author Christian Morgner
  */
-public interface QueryResult<T> extends Iterable<T>, AutoCloseable {
+public class RecordRelationshipMapper implements Function<Record, Relationship> {
 
 	@Override
-	void close();
+	public Relationship apply(final Record t) {
+		return t.get(0).asRelationship();
+	}
 }

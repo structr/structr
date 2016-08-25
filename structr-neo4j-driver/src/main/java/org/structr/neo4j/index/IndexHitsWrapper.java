@@ -39,11 +39,6 @@ public class IndexHitsWrapper<S extends org.neo4j.graphdb.PropertyContainer, T e
 	}
 
 	@Override
-	public int size() {
-		return indexHits.size();
-	}
-
-	@Override
 	public void close() {
 		indexHits.close();
 	}

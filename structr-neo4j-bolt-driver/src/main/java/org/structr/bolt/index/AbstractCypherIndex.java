@@ -80,19 +80,22 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 	@Override
 	public void add(final PropertyContainer t, final String key, final Object value, final Class typeHint) {
 
-		Object indexValue = value;
-		if (value != null) {
+		if (!t.hasProperty(key)) {
 
-			if (value.getClass().isEnum()) {
-				indexValue = indexValue.toString();
+			Object indexValue = value;
+			if (value != null) {
+
+				if (value.getClass().isEnum()) {
+					indexValue = indexValue.toString();
+				}
+
+				if (!INDEXABLE.contains(value.getClass())) {
+					return;
+				}
 			}
 
-			if (!INDEXABLE.contains(value.getClass())) {
-				return;
-			}
+			t.setProperty(key, indexValue);
 		}
-
-		t.setProperty(key, indexValue);
 	}
 
 	@Override
@@ -115,6 +118,8 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 
 			query.sort(predicate.getSortType(), sortKey, predicate.sortDescending());
 		}
+
+		System.out.println(query);
 
 		return getResult(query);
 	}

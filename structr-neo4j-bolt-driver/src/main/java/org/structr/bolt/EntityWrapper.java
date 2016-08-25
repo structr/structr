@@ -45,6 +45,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 	}
 
 	protected abstract String getQueryPrefix();
+	protected abstract void invalidate();
 
 	@Override
 	public long getId() {
@@ -137,7 +138,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 		map.put("id", entity.id());
 
-		return tx.getStringList(getQueryPrefix() + " WHERE ID(n) = {id} RETURN keys(n)", map);
+		return tx.getStrings(getQueryPrefix() + " WHERE ID(n) = {id} RETURN keys(n)", map);
 	}
 
 	@Override
@@ -153,6 +154,8 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		tx.set(getQueryPrefix() + " WHERE ID(n) = {id} DELETE n", map);
 		tx.modified(this);
 
+		invalidate();
+
 		stale = true;
 	}
 
@@ -164,7 +167,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 	public boolean isStale() {
 		return this.stale;
 	}
-	
+
 	public void stale() {
 		this.stale = true;
 	}
@@ -173,6 +176,9 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 	protected synchronized void assertNotStale() {
 
 		if (stale) {
+
+			// invalidate caches
+			invalidate();
 
 			// if a node/rel was deleted in a previous transaction but the caller keeps a
 			// reference to this entity, we need to make sure that the reference is fresh.

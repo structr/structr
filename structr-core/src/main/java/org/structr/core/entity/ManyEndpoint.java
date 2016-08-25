@@ -56,6 +56,10 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 	@Override
 	public Iterable<T> get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
 
+		/*
+		return Iterables.map(new NodeFactory<>(securityContext), node.getNode().getRelatedNodes(Direction.OUTGOING, relation, relation.getTargetType().getSimpleName()));
+		*/
+
 		final NodeFactory<T> nodeFactory  = new NodeFactory<>(securityContext);
 		final Iterable<Relationship> rels = getRawSource(securityContext, node.getNode(), predicate);
 

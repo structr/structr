@@ -44,11 +44,19 @@ public class OneStartpoint<S extends NodeInterface> extends AbstractEndpoint imp
 	@Override
 	public S get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
 
+		/*
+		final Iterable<Node> nodes        = node.getNode().getRelatedNodes(Direction.INCOMING, relation, relation.getSourceType().getSimpleName());
+		final Iterator<Node> iterator     = nodes.iterator();
+
+		if (iterator.hasNext()) {
+			return nodeFactory.instantiate(iterator.next());
+		}
+		*/
+
 		final NodeFactory<S> nodeFactory = new NodeFactory<>(securityContext);
 		final Relationship rel           = getRawSource(securityContext, node.getNode(), predicate);
 
 		if (rel != null) {
-
 			return nodeFactory.instantiate(rel.getStartNode(), rel);
 		}
 

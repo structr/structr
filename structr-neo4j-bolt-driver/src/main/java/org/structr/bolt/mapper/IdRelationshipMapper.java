@@ -16,13 +16,27 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.bolt.mapper;
+
+import java.util.function.Function;
+import org.structr.api.graph.Relationship;
+import org.structr.bolt.BoltDatabaseService;
+import org.structr.bolt.RelationshipWrapper;
 
 /**
  *
+ * @author Christian Morgner
  */
-public interface QueryResult<T> extends Iterable<T>, AutoCloseable {
+public class IdRelationshipMapper implements Function<Long, Relationship> {
+
+	private BoltDatabaseService db = null;
+
+	public IdRelationshipMapper(final BoltDatabaseService db) {
+		this.db = db;
+	}
 
 	@Override
-	void close();
+	public Relationship apply(final Long id) {
+		return RelationshipWrapper.newInstance(db, id);
+	}
 }

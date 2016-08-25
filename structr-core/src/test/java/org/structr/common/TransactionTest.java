@@ -30,6 +30,7 @@ import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
@@ -194,8 +195,91 @@ public class TransactionTest extends StructrTest {
 		} catch (FrameworkException ex) {
 			fail("Unexpected exception");
 		}
+	}
 
+	public void testTransactionIsolation() {
 
+		// Tests the transaction isolation of the underlying database layer.
+		
+		// Create a node and use ten different threads to set a property on
+		// it in a transaction. Observe the property value to check that the
+		// threads do not interfere with each other.
+
+		try {
+
+			final TestOne test             = createTestNode(TestOne.class);
+			final ExecutorService executor = Executors.newCachedThreadPool();
+			final List<TestRunner> tests   = new LinkedList<>();
+			final List<Future> futures     = new LinkedList<>();
+
+			// create and run test runners
+			for (int i=0; i<10; i++) {
+
+				final TestRunner runner = new TestRunner(app, test);
+
+				futures.add(executor.submit(runner));
+				tests.add(runner);
+			}
+
+			// wait for termination
+			for (final Future future : futures) {
+				future.get();
+			}
+
+			// check for success
+			for (final TestRunner runner : tests) {
+				assertTrue("Could not validate transaction isolation", runner.success());
+			}
+
+		} catch (Throwable fex) {
+			fail("Unexpected exception");
+		}
+	}
+
+	private static class TestRunner implements Runnable {
+
+		private boolean success = true;
+		private TestOne test    = null;
+		private App app         = null;
+
+		public TestRunner(final App app, final TestOne test) {
+			this.app  = app;
+			this.test = test;
+		}
+
+		public boolean success() {
+			return success;
+		}
+
+		@Override
+		public void run() {
+
+			final String name = Thread.currentThread().getName();
+
+			try (final Tx tx = app.tx()) {
+
+				// set property on node
+				test.setProperty(TestOne.name, name);
+
+				for (int i=0; i<10; i++) {
+
+					// wait some time
+					try { Thread.sleep((long)(Math.random() * 10L) + 10); } catch (Throwable t) {}
+
+					// check if the given name is still there
+					final String testName = test.getProperty(TestOne.name);
+					if (!name.equals(testName)) {
+
+						success = false;
+					}
+				}
+
+				tx.success();
+
+			} catch (Throwable t) {
+				success = false;
+			}
+		}
 
 	}
 }

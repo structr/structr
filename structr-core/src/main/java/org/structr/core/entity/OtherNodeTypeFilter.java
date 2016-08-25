@@ -18,6 +18,7 @@
  */
 package org.structr.core.entity;
 
+import java.util.Set;
 import org.structr.api.graph.Node;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Relationship;
@@ -33,10 +34,10 @@ import org.structr.core.graph.search.SearchCommand;
  */
 public class OtherNodeTypeFilter implements Predicate<Relationship> {
 
+	private Set<String> subtypes                 = null;
 	private Predicate<GraphObject> nodePredicate = null;
 	private NodeFactory nodeFactory              = null;
 	private Node thisNode                        = null;
-	private Class desiredType                    = null;
 
 	public OtherNodeTypeFilter(final SecurityContext securityContext, final Node thisNode, final Class desiredType) {
 		this(securityContext, thisNode, desiredType, null);
@@ -46,8 +47,8 @@ public class OtherNodeTypeFilter implements Predicate<Relationship> {
 
 		this.nodePredicate = nodePredicate;
 		this.nodeFactory   = new NodeFactory(securityContext);
-		this.desiredType   = desiredType;
 		this.thisNode      = thisNode;
+		this.subtypes      = SearchCommand.getAllSubtypesAsStringSet(desiredType.getSimpleName());
 	}
 
 	@Override
@@ -58,9 +59,8 @@ public class OtherNodeTypeFilter implements Predicate<Relationship> {
 		// check predicate if exists
 		if (otherNode != null && (nodePredicate == null || nodePredicate.accept(otherNode))) {
 
-			final Class otherNodeType = otherNode.getClass();
-
-			final boolean desiredTypeIsAssignableFromOtherNodeType = SearchCommand.getAllSubtypesAsStringSet(desiredType.getSimpleName()).contains(otherNodeType.getSimpleName());
+			final Class otherNodeType                              = otherNode.getClass();
+			final boolean desiredTypeIsAssignableFromOtherNodeType = subtypes.contains(otherNodeType.getSimpleName());
 
 			return desiredTypeIsAssignableFromOtherNodeType;
 		}

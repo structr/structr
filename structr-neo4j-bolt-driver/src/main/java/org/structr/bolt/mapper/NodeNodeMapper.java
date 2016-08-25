@@ -16,13 +16,27 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.bolt.mapper;
+
+import java.util.function.Function;
+import org.structr.api.graph.Node;
+import org.structr.bolt.BoltDatabaseService;
+import org.structr.bolt.NodeWrapper;
 
 /**
  *
+ * @author Christian Morgner
  */
-public interface QueryResult<T> extends Iterable<T>, AutoCloseable {
+public class NodeNodeMapper implements Function<org.neo4j.driver.v1.types.Node, Node> {
+
+	private BoltDatabaseService db = null;
+
+	public NodeNodeMapper(final BoltDatabaseService db) {
+		this.db = db;
+	}
 
 	@Override
-	void close();
+	public Node apply(final org.neo4j.driver.v1.types.Node t) {
+		return NodeWrapper.newInstance(db, t);
+	}
 }

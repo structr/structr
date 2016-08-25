@@ -657,7 +657,6 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				final List<Node> nodes        = new LinkedList<>();
 				long nodeCount                = 0;
 				long relCount                 = 0;
-				boolean skipProperties        = false;
 
 				do {
 
@@ -708,7 +707,8 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 								if (deletedNodes.contains(startNode.getId()) || deletedNodes.contains(endNode.getId())) {
 
 									System.out.println("NOT creating relationship between deleted nodes..");
-									skipProperties = true;
+									currentObject = null;
+									currentKey    = null;
 
 								} else {
 
@@ -724,31 +724,32 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 							} else {
 
 								System.out.println("NOT creating relationship of type " + relTypeName + ", start: " + startId + ", end: " + endId);
-								skipProperties = true;
+								currentObject = null;
+								currentKey    = null;
 							}
 
 						} else {
 
-							if (skipProperties) {
-								continue;
-							}
-							
 							// reset if not at the beginning of a line
 							dis.reset();
 
 							if (currentKey == null) {
 
-								currentKey = (String)deserialize(dis);
+								try {
+									currentKey = (String)deserialize(dis);
+
+								} catch (Throwable t) {
+									t.printStackTrace();
+								}
 
 							} else {
 
-								if (currentObject != null) {
-
-									Object obj = deserialize(dis);
+								final Object obj = deserialize(dis);
+								if (obj != null && currentObject != null) {
 
 									if (uuidPropertyName.equals(currentKey) && currentObject instanceof Node) {
 
-										String uuid = (String)obj;
+										final String uuid = (String)obj;
 										uuidMap.put(uuid, (Node)currentObject);
 									}
 
@@ -768,17 +769,16 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 										logger.log(Level.SEVERE, "Invalid property key for value {0}, ignoring", obj);
 									}
 
-									currentKey = null;
-
 								} else {
 
 									logger.log(Level.WARNING, "No current object to store property in.");
 								}
+
+								currentKey = null;
 							}
 						}
 
 					} catch (EOFException eofex) {
-
 						finished = true;
 					}
 

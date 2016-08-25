@@ -79,10 +79,10 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		graphDb = new GraphDatabaseFactory()
 		        .newEmbeddedDatabaseBuilder(new File(databasePath))
 		        .setConfig( bolt.enabled, "true" )
-		        .setConfig( bolt.address, "localhost:7688" )
+		        .setConfig( bolt.address, "localhost:7689" )
 		        .newGraphDatabase();
 
-		driver = GraphDatabase.driver("bolt://localhost:7688",
+		driver = GraphDatabase.driver("bolt://localhost:7689",
 			AuthTokens.basic("neo4j", "test"),
 			Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()
 		);
@@ -135,7 +135,6 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 	@Override
 	public Node getNodeById(final long id) {
-
 		return NodeWrapper.newInstance(this, id);
 	}
 
@@ -159,7 +158,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		final SessionTransaction tx = getCurrentTransaction();
 		final List<Node> nodes      = new LinkedList<>();
 
-		for (final org.neo4j.driver.v1.types.Node node : tx.getNodeList("MATCH (n) RETURN n", Collections.emptyMap())) {
+		for (final org.neo4j.driver.v1.types.Node node : tx.getNodes("MATCH (n) RETURN n", Collections.emptyMap())) {
 			nodes.add(NodeWrapper.newInstance(this, node));
 		}
 
@@ -172,7 +171,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		final SessionTransaction tx   = getCurrentTransaction();
 		final List<Relationship> rels = new LinkedList<>();
 
-		for (final org.neo4j.driver.v1.types.Relationship rel : tx.getRelationshipList("MATCH ()-[r]-() RETURN r", Collections.emptyMap())) {
+		for (final org.neo4j.driver.v1.types.Relationship rel : tx.getRelationships("MATCH ()-[r]-() RETURN r", Collections.emptyMap())) {
 			rels.add(RelationshipWrapper.newInstance(this, rel));
 		}
 

@@ -32,6 +32,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
 	sections.push('If you enter a wrong combination of username and password, the system does not allow you to log in.');
 
 	casper.waitForSelector('#usernameField').then(function() {
+		casper.wait(200);
 		s.animatedType(this, '#usernameField', false, 'wrong');
 	});
 

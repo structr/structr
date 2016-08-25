@@ -19,13 +19,12 @@
 package org.structr.bolt.index;
 
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import org.structr.api.QueryResult;
 import org.structr.api.graph.Node;
+import org.structr.api.util.Iterables;
 import org.structr.bolt.BoltDatabaseService;
-import org.structr.bolt.NodeWrapper;
 import org.structr.bolt.SessionTransaction;
+import org.structr.bolt.mapper.NodeNodeMapper;
 
 /**
  *
@@ -50,20 +49,11 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	@Override
 	public QueryResult<Node> getResult(final CypherQuery query) {
 
-		final SessionTransaction tx                      = db.getCurrentTransaction();
-		final List<org.neo4j.driver.v1.types.Node> nodes = tx.getNodeList(query.getStatement(), query.getParameters());
-		final List<Node> result                          = new LinkedList<>();
-
-		for (final org.neo4j.driver.v1.types.Node node : nodes) {
-			result.add(NodeWrapper.newInstance(db, node));
-		}
+		final SessionTransaction tx = db.getCurrentTransaction();
+		final NodeNodeMapper mapper = new NodeNodeMapper(db);
+		final Iterable<Node> mapped = Iterables.map(mapper, tx.getNodes(query.getStatement(), query.getParameters()));
 
 		return new QueryResult<Node>() {
-
-			@Override
-			public int size() {
-				return result.size();
-			}
 
 			@Override
 			public void close() {
@@ -71,7 +61,7 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 
 			@Override
 			public Iterator<Node> iterator() {
-				return result.iterator();
+				return mapped.iterator();
 			}
 		};
 	}

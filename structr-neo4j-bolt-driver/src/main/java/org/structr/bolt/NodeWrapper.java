@@ -28,12 +28,17 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.util.FixedSizeCache;
+import org.structr.api.util.Iterables;
+import org.structr.bolt.mapper.RelationshipRelationshipMapper;
 
 /**
  *
  * @author Christian Morgner
  */
 public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implements Node {
+
+	private static final FixedSizeCache<Long, NodeWrapper> nodeCache             = new FixedSizeCache<>(100000);
+	private final Map<String, Map<String, List<Relationship>>> relationshipCache = new HashMap<>();
 
 	private NodeWrapper(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Node node) {
 		super(db, node);
@@ -42,6 +47,11 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	@Override
 	protected String getQueryPrefix() {
 		return "MATCH (n)";
+	}
+
+	@Override
+	public void invalidate() {
+		relationshipCache.clear();
 	}
 
 	@Override
@@ -58,6 +68,10 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		final org.neo4j.driver.v1.types.Relationship rel = tx.getRelationship("MATCH (n), (m) WHERE ID(n) = {id1} AND ID(m) = {id2} CREATE (n)-[r:" + relationshipType.name() + "]->(m) RETURN r", map);
 
 		tx.modified(this);
+
+		// clear caches
+		((NodeWrapper)endNode).relationshipCache.clear();
+		relationshipCache.clear();
 
 		return RelationshipWrapper.newInstance(db, rel);
 	}
@@ -110,18 +124,23 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		assertNotStale();
 
-		final SessionTransaction tx     = db.getCurrentTransaction();
-		final Map<String, Object> map   = new HashMap<>();
-		final List<Relationship> result = new LinkedList<>();
+		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(db);
+		List<Relationship> list                     = getList(null, null);
 
-		map.put("id", entity.id());
+		if (list == null) {
 
-		for (final org.neo4j.driver.v1.types.Relationship rel : tx.getRelationshipList("MATCH (n)-[r]-(m) WHERE ID(n) = {id} RETURN r", map)) {
+			final SessionTransaction tx                 = db.getCurrentTransaction();
+			final Map<String, Object> map               = new HashMap<>();
 
-			result.add(RelationshipWrapper.newInstance(db, rel));
+			map.put("id", entity.id());
+
+			list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r]-(m) WHERE ID(n) = {id} RETURN r", map)));
+
+			// store in cache
+			setList(null, null, list);
 		}
 
-		return result;
+		return list;
 	}
 
 	@Override
@@ -129,31 +148,35 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		assertNotStale();
 
-		final SessionTransaction tx     = db.getCurrentTransaction();
-		final Map<String, Object> map   = new HashMap<>();
-		final List<Relationship> result = new LinkedList<>();
+		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(db);
+		List<Relationship> list                     = getList(direction, null);
 
-		map.put("id", entity.id());
+		if (list == null) {
 
-		switch (direction) {
+			final SessionTransaction tx   = db.getCurrentTransaction();
+			final Map<String, Object> map = new HashMap<>();
 
-			case BOTH:
-				return getRelationships();
+			map.put("id", entity.id());
 
-			case OUTGOING:
-				for (final org.neo4j.driver.v1.types.Relationship rel : tx.getRelationshipList("MATCH (n)-[r]->(m) WHERE ID(n) = {id} RETURN r", map)) {
-					result.add(RelationshipWrapper.newInstance(db, rel));
-				}
-				break;
+			switch (direction) {
 
-			case INCOMING:
-				for (final org.neo4j.driver.v1.types.Relationship rel : tx.getRelationshipList("MATCH (n)<-[r]-(m) WHERE ID(n) = {id} RETURN r", map)) {
-					result.add(RelationshipWrapper.newInstance(db, rel));
-				}
-				break;
+				case BOTH:
+					return getRelationships();
+
+				case OUTGOING:
+					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r]->(m) WHERE ID(n) = {id} RETURN r", map)));
+					break;
+
+				case INCOMING:
+					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)<-[r]-(m) WHERE ID(n) = {id} RETURN r", map)));
+					break;
+			}
+
+			setList(direction, null, list);
+
 		}
 
-		return result;
+		return list;
 	}
 
 	@Override
@@ -161,31 +184,42 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		assertNotStale();
 
-		final SessionTransaction tx     = db.getCurrentTransaction();
-		final Map<String, Object> map   = new HashMap<>();
-		final List<Relationship> result = new LinkedList<>();
+		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(db);
+		List<Relationship> list                     = getList(direction, relationshipType);
 
-		map.put("id", entity.id());
+		if (list == null) {
 
-		switch (direction) {
+			final SessionTransaction tx   = db.getCurrentTransaction();
+			final Map<String, Object> map = new HashMap<>();
 
-			case BOTH:
-				return getRelationships();
+			map.put("id", entity.id());
 
-			case OUTGOING:
-				for (final org.neo4j.driver.v1.types.Relationship rel : tx.getRelationshipList("MATCH (n)-[r:" + relationshipType.name() + "]->(m) WHERE ID(n) = {id} RETURN r", map)) {
-					result.add(RelationshipWrapper.newInstance(db, rel));
-				}
-				break;
+			switch (direction) {
 
-			case INCOMING:
-				for (final org.neo4j.driver.v1.types.Relationship rel : tx.getRelationshipList("MATCH (n)<-[r:" + relationshipType.name() + "]-(m) WHERE ID(n) = {id} RETURN r", map)) {
-					result.add(RelationshipWrapper.newInstance(db, rel));
-				}
-				break;
+				case BOTH:
+					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r:" + relationshipType.name() + "]-(m) WHERE ID(n) = {id} RETURN r", map)));
+					break;
+
+				case OUTGOING:
+					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r:" + relationshipType.name() + "]->(m) WHERE ID(n) = {id} RETURN r", map)));
+					break;
+
+				case INCOMING:
+					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)<-[r:" + relationshipType.name() + "]-(m) WHERE ID(n) = {id} RETURN r", map)));
+					break;
+			}
+
+			setList(direction, relationshipType, list);
 		}
 
-		return result;
+		return list;
+	}
+
+	@Override
+	public void delete() {
+
+		super.delete();
+		nodeCache.remove(entity.id());
 	}
 
 	public static void shutdownCache() {
@@ -198,7 +232,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		synchronized (nodeCache) {
 
 			NodeWrapper wrapper = nodeCache.get(node.id());
-			if (wrapper == null || wrapper.isStale()) {
+			if (wrapper == null) {
 
 				wrapper = new NodeWrapper(db, node);
 				nodeCache.put(node.id(), wrapper);
@@ -213,7 +247,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		synchronized (nodeCache) {
 
 			NodeWrapper wrapper = nodeCache.get(id);
-			if (wrapper == null || wrapper.isStale()) {
+			if (wrapper == null) {
 
 				final SessionTransaction tx   = db.getCurrentTransaction();
 				final Map<String, Object> map = new HashMap<>();
@@ -228,5 +262,34 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		}
 	}
 
-	private static final FixedSizeCache<Long, NodeWrapper> nodeCache = new FixedSizeCache<>(10000);
+	// ----- private methods -----
+	private Map<String, List<Relationship>> getCache(final Direction direction) {
+
+		final String key              = direction != null ? direction.name() : "*";
+		Map<String, List<Relationship>> cache = relationshipCache.get(key);
+
+		if (cache == null) {
+
+			cache = new HashMap<>();
+			relationshipCache.put(key, cache);
+		}
+
+		return cache;
+	}
+
+	private List<Relationship> getList(final Direction direction, final RelationshipType relType) {
+
+		final String key                    = relType != null ? relType.name() : "*";
+		final Map<String, List<Relationship>> cache = getCache(direction);
+
+		return cache.get(key);
+	}
+
+	private void setList(final Direction direction, final RelationshipType relType, final List<Relationship> list) {
+
+		final String key                    = relType != null ? relType.name() : "*";
+		final Map<String, List<Relationship>> cache = getCache(direction);
+
+		cache.put(key, list);
+	}
 }

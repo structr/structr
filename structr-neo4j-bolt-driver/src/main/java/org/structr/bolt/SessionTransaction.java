@@ -20,13 +20,14 @@ package org.structr.bolt;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import org.neo4j.driver.v1.Records;
+import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.Transaction;
+import org.neo4j.driver.v1.Value;
 import org.neo4j.driver.v1.Values;
 import org.neo4j.driver.v1.exceptions.NoSuchRecordException;
 import org.neo4j.driver.v1.types.Entity;
@@ -34,6 +35,10 @@ import org.neo4j.driver.v1.types.Node;
 import org.neo4j.driver.v1.types.Relationship;
 import org.structr.api.NativeResult;
 import org.structr.api.NotFoundException;
+import org.structr.api.util.Iterables;
+import org.structr.bolt.mapper.RecordLongMapper;
+import org.structr.bolt.mapper.RecordNodeMapper;
+import org.structr.bolt.mapper.RecordRelationshipMapper;
 
 /**
  *
@@ -170,11 +175,11 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		}
 	}
 
-	public List<Node> getNodeList(final String statement, final Map<String, Object> map) {
+	public Iterable<Node> getNodes(final String statement, final Map<String, Object> map) {
 
 		try {
 
-			return tx.run(statement, map).list(Records.column(0, Values.ofNode()));
+			return Iterables.map(new RecordNodeMapper(), new StatementIterable(tx.run(statement, map)));
 
 		} catch (NoSuchRecordException nex) {
 
@@ -182,11 +187,11 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		}
 	}
 
-	public List<Relationship> getRelationshipList(final String statement, final Map<String, Object> map) {
+	public Iterable<Relationship> getRelationships(final String statement, final Map<String, Object> map) {
 
 		try {
 
-			return tx.run(statement, map).list(Records.column(0, Values.ofRelationship()));
+			return Iterables.map(new RecordRelationshipMapper(), new StatementIterable(tx.run(statement, map)));
 
 		} catch (NoSuchRecordException nex) {
 
@@ -194,11 +199,27 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		}
 	}
 
-	public List<String> getStringList(final String statement, final Map<String, Object> map) {
+	public Iterable<Long> getIds(final String statement, final Map<String, Object> map) {
 
 		try {
 
-			return tx.run(statement, map).next().get(0).asList(Values.ofString());
+			return Iterables.map(new RecordLongMapper(), new StatementIterable(tx.run(statement, map)));
+
+		} catch (NoSuchRecordException nex) {
+
+			throw new NotFoundException(nex);
+		}
+	}
+
+	public Iterable<String> getStrings(final String statement, final Map<String, Object> map) {
+
+		try {
+
+			final StatementResult result = tx.run(statement, map);
+			final Record record = result.next();
+			final Value value = record.get(0);
+
+			return value.asList(Values.ofString());
 
 		} catch (NoSuchRecordException nex) {
 
@@ -232,5 +253,32 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 	public void modified(final EntityWrapper wrapper) {
 		modifiedEntities.add(wrapper);
+	}
+
+	private class StatementIterable implements Iterable<Record> {
+
+		private StatementResult result = null;
+
+		public StatementIterable(final StatementResult result) {
+			this.result = result;
+		}
+
+		@Override
+		public Iterator<Record> iterator() {
+
+			return new Iterator<Record>() {
+
+				@Override
+				public boolean hasNext() {
+					return result.hasNext();
+				}
+
+				@Override
+				public Record next() {
+					return result.next();
+				}
+			};
+		}
+
 	}
 }

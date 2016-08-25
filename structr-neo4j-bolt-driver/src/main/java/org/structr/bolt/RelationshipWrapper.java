@@ -18,6 +18,8 @@
  */
 package org.structr.bolt;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
@@ -29,6 +31,9 @@ import org.structr.api.util.FixedSizeCache;
  */
 public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Relationship> implements Relationship {
 
+	private Node startNode = null;
+	private Node endNode   = null;
+
 	private RelationshipWrapper(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Relationship relationship) {
 		super(db, relationship);
 	}
@@ -39,17 +44,33 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 	}
 
 	@Override
+	public void invalidate() {
+		((NodeWrapper)getStartNode()).invalidate();
+		((NodeWrapper)getEndNode()).invalidate();
+	}
+
+	@Override
 	public Node getStartNode() {
-		return db.getNodeById(entity.startNodeId());
+
+		if (startNode == null) {
+			startNode = db.getNodeById(entity.startNodeId());
+		}
+
+		return startNode;
 	}
 
 	@Override
 	public Node getEndNode() {
-		return db.getNodeById(entity.endNodeId());
+
+		if (endNode == null) {
+			endNode = db.getNodeById(entity.endNodeId());
+		}
+
+		return endNode;
 	}
 
 	@Override
-	public Node getOtherNode(Node node) {
+	public Node getOtherNode(final Node node) {
 
 		if (node.getId() == entity.startNodeId()) {
 			return getEndNode();
@@ -61,6 +82,13 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 	@Override
 	public RelationshipType getType() {
 		return db.forName(RelationshipType.class, entity.type());
+	}
+
+	@Override
+	public void delete() {
+
+		super.delete();
+		relationshipCache.remove(entity.id());
 	}
 
 	public static void shutdownCache() {
@@ -83,5 +111,25 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 		}
 	}
 
-	private static final FixedSizeCache<Long, RelationshipWrapper> relationshipCache = new FixedSizeCache<>(10000);
+	public static RelationshipWrapper newInstance(final BoltDatabaseService db, final long id) {
+
+		synchronized (relationshipCache) {
+
+			RelationshipWrapper wrapper = relationshipCache.get(id);
+			if (wrapper == null) {
+
+				final SessionTransaction tx   = db.getCurrentTransaction();
+				final Map<String, Object> map = new HashMap<>();
+
+				map.put("id", id);
+
+				wrapper = new RelationshipWrapper(db, tx.getRelationship("MATCH ()-[n]-() WHERE ID(n) = {id} RETURN n", map));
+				relationshipCache.put(id, wrapper);
+			}
+
+			return wrapper;
+		}
+	}
+
+	private static final FixedSizeCache<Long, RelationshipWrapper> relationshipCache = new FixedSizeCache<>(100000);
 }
