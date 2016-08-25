@@ -98,7 +98,6 @@ input[type="checkbox"] {
 
 #header {
 	height: 60px;
-	border-bottom: 1px solid #a5a5a5;
 	font-size: 1.25em;
 	line-height: 2em;
 	background: #363636;
@@ -263,7 +262,7 @@ img.disabled {
 }
 
 #previews {
-	margin: 0 25px;
+	margin: 4px 25px 0 25px;
 }
 
 .slideOutLeft {
@@ -397,7 +396,7 @@ img.disabled {
 	border-bottom: 1px solid #a5a5a5 ! important;
 	position: absolute;
 	z-index: 2;
-	top: 93px;
+	top: 96px;
 	background-color: #fafafa;
 }
 
@@ -1034,6 +1033,10 @@ img.button {
 	z-index: 1;
 }
 
+#graph-canvas {
+    background-color: #fff;
+}
+
 #graph-canvas .node {
 	padding: 2px 6px;
 	margin: 4px 0 4px 0;
@@ -1044,7 +1047,7 @@ img.button {
 	margin: 0 ! important;
 }
 
-#schema-graph.noselect {
+#schema-graph.noselect, .graphNoSelect {
 	-webkit-touch-callout: none;
 	-webkit-user-select: none;
 	-khtml-user-select: none;
@@ -2361,7 +2364,7 @@ input.bitmask {
 }
 
 #node-types {
-	top: 93px;
+	top: 96px;
 	overflow-y: auto;
 }
 
@@ -2404,7 +2407,6 @@ input.bitmask {
 	right: 12px;
 	bottom: 12px;
 }
-
 
 #info-area {
 	z-index: 9999;
@@ -2499,6 +2501,175 @@ td#cascading-options, td#propagation-options {
 
 .CodeMirror-hint {
 	max-width: 480px;
+}
+
+#fruchterman-controlElement {
+    float: none ! important;
+    display: block;
+}
+
+#graphDisplayTab {
+    margin: 8px 8px 0 30px;
+}
+
+#graph-info {
+    background-color: #f1f1f1;
+    border-bottom: 1px solid #a5a5a5;
+    top: 0;
+    text-align: center;
+    height: 24px;
+    position: relative;
+}
+
+#graph-info .circle {
+    display: inline-block;
+    margin-right: 4px;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+    /*border: 1px solid #a5a5a5;*/
+    /* width and height can be anything, as long as they're equal */
+}
+
+.nodeExpander-infobutton {
+    /*color: white ! important;*/
+    margin: 4px;
+    display: inline-block;
+    border: none;
+}
+
+.nodeExpander-expandbutton {
+    -webkit-border-radius: 40px;
+    -moz-border-radius: 40px;
+    border-radius: 40px;
+    min-width: 30px;
+    min-height: 30px;
+    text-align: center;
+    font-size: 9pt;
+    color: white ! important;
+}
+
+#graphSelectionTools {
+    margin-top: 15pt;
+}
+
+#selectionToolsTableContainer {
+    max-height: 300pt;
+    overflow-y: auto;
+}
+
+.graphtable {
+    margin-top: 10pt;
+    width: 100%;
+}
+
+.graphtable > thead {
+    border-bottom: double black;
+}
+
+.graphtable > tbody > tr > td {
+    border-bottom: 1px solid black;
+    padding-top:  5pt;
+    padding-bottom: 5pt;
+    vertical-align: central;
+}
+
+.graphTooltip {
+    margin-top: 10pt;
+    background: #fafafa;
+    z-index: 99999;
+    border: solid #cccccc 2px;
+    border-radius: 2px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+}
+
+.tooltipHeader {
+    padding-top: 2pt;
+    height: 16pt;
+    background-color: #cccccc;
+}
+
+.tooltipContent {
+    border: solid #bfbfbf 1px;
+}
+
+.nodeTooltipTitle {
+    /*color: #979898 ! important;*/
+    color: white ! important;
+    font-size: 11pt;
+    margin-right: 5pt;
+    margin: 2pt 20pt 4pt 2pt;
+}
+
+.closeTooltipBtn {
+    position: absolute;
+    right: 2pt;
+    top: 12pt;
+    padding: 2pt 2pt 2pt 2pt;
+    cursor: pointer;
+}
+
+.tooltipBody {
+    padding: 2pt 4pt;
+    background: #fafafa;
+}
+
+.tooltipFooter {
+    padding: 2pt 4pt;
+    background: #fafafa;
+}
+
+.graphTooltipSelectable {
+    margin-left: 6pt;
+    color: black ! important;
+    -webkit-touch-callout: all;
+    -webkit-user-select: all;
+    -khtml-user-select: all;
+    -moz-user-select: all;
+    -ms-user-select: all;
+    user-select: all;
+    font-size: 9pt;
+}
+
+.tooltipTitle {
+    margin-top: 12pt;
+    margin-right: 4pt;
+    margin-left: 4pt;
+    font-size: 9pt;
+    display: inline;
+}
+
+.tooltipText {
+    color: black ! important;
+    font-size: 11pt;
+    display: inline;
+}
+
+.tooltipArrowUp {
+    left: 50%;
+    top: -10pt;
+    margin-left: -10pt;
+    border-top-width: 0;
+    border-width: 10pt;
+    position: absolute;
+    display: block;
+    width: 0;
+    height: 0;
+    border-color: transparent;
+    border-style: solid;
+    border-bottom-color: #cccccc;
+}
+
+.tooltipTable {
+    width: 100%;
+    vertical-align: central;
+}
+
+.tooltipTableLabel {
+    color: black ! important;
+    font-size: 9pt;
+    padding-right: 4pt;
 }
 
 /*

@@ -319,11 +319,11 @@ public class WebsocketController implements StructrTransactionListener {
 				message.setId(relationship.getUuid());
 
 				final PropertyMap relProperties = relationship.getProperties();
-				final NodeInterface startNode = relationship.getSourceNode();
-				final NodeInterface endNode = relationship.getTargetNode();
+				//final NodeInterface startNode = relationship.getSourceNode();
+				//final NodeInterface endNode = relationship.getTargetNode();
 
-				relProperties.put(new StringProperty("startNodeId"), startNode.getUuid());
-				relProperties.put(new StringProperty("endNodeId"), endNode.getUuid());
+				//relProperties.put(new StringProperty("startNodeId"), startNode.getUuid());
+				//relProperties.put(new StringProperty("endNodeId"), endNode.getUuid());
 
 				final Map<String, Object> properties = PropertyMap.javaTypeToInputType(securityContext, relationship.getClass(), relProperties);
 

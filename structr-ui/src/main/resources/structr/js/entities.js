@@ -63,6 +63,22 @@ var _Entities = {
 				}
 			});
 	},
+        deleteEdge: function(button, entity, rec, callback) {
+		buttonClicked = button;
+		if (isDisabled(button))
+			return;
+
+		Structr.confirmation('<p>Delete Relationship</p><p>(' + entity.sourceId + ')-[' + entity.type + ']->(' + entity.targetId + ')' + (rec ? ' recursively' : '') + '?</p>',
+			function() {
+				Command.deleteRelationship(entity.id, rec);
+				$.unblockUI({
+					fadeOut: 25
+				});
+				if (callback) {
+					callback(entity);
+				}
+			});
+	},
 	showSyncDialog: function(source, target) {
 		Structr.dialog('Sync between ' + source.id + ' and ' + target.id, function() {
 			return true;

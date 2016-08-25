@@ -18,7 +18,6 @@
  */
 package org.structr.web.entity;
 
-import org.structr.common.fulltext.Indexable;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -48,6 +47,8 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.FulltextIndexer;
+import org.structr.common.fulltext.Indexable;
+import static org.structr.common.fulltext.Indexable.extractedContent;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -59,14 +60,15 @@ import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.files.cmis.config.StructrFileActions;
 import org.structr.schema.action.JavaScriptSource;
 import org.structr.util.LogMessageSupplier;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
-import static org.structr.common.fulltext.Indexable.extractedContent;
 import org.structr.web.entity.relation.Folders;
+import org.structr.web.entity.relation.MinificationNeighbor;
 import org.structr.web.property.FileDataProperty;
 
 /**
@@ -77,14 +79,15 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 	private static final Logger logger = Logger.getLogger(FileBase.class.getName());
 
-	public static final Property<String> relativeFilePath        = new StringProperty("relativeFilePath").systemInternal();
-	public static final Property<Long> size                      = new LongProperty("size").indexed().systemInternal();
-	public static final Property<String> url                     = new StringProperty("url");
-	public static final Property<Long> checksum                  = new LongProperty("checksum").indexed().unvalidated().systemInternal();
-	public static final Property<Integer> cacheForSeconds        = new IntProperty("cacheForSeconds").cmis();
-	public static final Property<Integer> version                = new IntProperty("version").indexed().systemInternal();
-	public static final Property<String> base64Data              = new FileDataProperty<>("base64Data");
-	public static final Property<Boolean> isFile                 = new ConstantBooleanProperty("isFile", true);
+	public static final Property<String> relativeFilePath                 = new StringProperty("relativeFilePath").systemInternal();
+	public static final Property<Long> size                               = new LongProperty("size").indexed().systemInternal();
+	public static final Property<String> url                              = new StringProperty("url");
+	public static final Property<Long> checksum                           = new LongProperty("checksum").indexed().unvalidated().systemInternal();
+	public static final Property<Integer> cacheForSeconds                 = new IntProperty("cacheForSeconds").cmis();
+	public static final Property<Integer> version                         = new IntProperty("version").indexed().systemInternal();
+	public static final Property<String> base64Data                       = new FileDataProperty<>("base64Data");
+	public static final Property<Boolean> isFile                          = new ConstantBooleanProperty("isFile", true);
+	public static final Property<AbstractMinifiedFile> minificationTarget = new StartNode<>("minificationTarget", MinificationNeighbor.class);
 
 	public static final View publicView = new View(FileBase.class, PropertyView.Public,
 		type, name, size, url, owner, path, isFile, visibleToPublicUsers, visibleToAuthenticatedUsers
@@ -134,6 +137,15 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 				// restore previous security context
 				this.securityContext = previousSecurityContext;
+			}
+
+			final AbstractMinifiedFile minifiedFile = getProperty(FileBase.minificationTarget);
+			if (minifiedFile != null) {
+				try {
+					minifiedFile.minify();
+				} catch (IOException ex) {
+					logger.log(Level.WARNING, "Could not automatically update minification target", ex);
+				}
 			}
 
 			return true;

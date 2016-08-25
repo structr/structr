@@ -61,7 +61,7 @@ var _Pages = {
 		});
 
 		var windowWidth = win.width(), windowHeight = win.height();
-		var headerOffsetHeight = 100, previewOffset = 22;
+		var headerOffsetHeight = 84, previewOffset = 24;
 
 		$('.ver-scrollable').css({
 			height: windowHeight - headerOffsetHeight + 'px'
@@ -86,7 +86,7 @@ var _Pages = {
 
 			previews.css({
 				width: w,
-				height: windowHeight - headerOffsetHeight + 'px'
+				height: windowHeight - headerOffsetHeight - 2 + 'px'
 			});
 
 			$('.previewBox', previews).css({
@@ -103,7 +103,7 @@ var _Pages = {
 
 		var leftSlideout = $('#' + activeTabLeft).closest('.slideOut');
 		leftSlideout.css({
-			height: windowHeight - headerOffsetHeight - 30 + 'px'
+			height: windowHeight - headerOffsetHeight - 36 + 'px'
 		});
 
 	},
