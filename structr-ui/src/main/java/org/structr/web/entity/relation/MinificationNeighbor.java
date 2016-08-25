@@ -58,7 +58,6 @@ public class MinificationNeighbor extends OneToMany<AbstractMinifiedFile, FileBa
 	@Override
 	public void onRelationshipCreation() {
 		try {
-			// set position to max + 1
 			setProperty(position, getSourceNode().getMaxPosition() + 1);
 		} catch (FrameworkException ex) {
 			Logger.getLogger(MinificationNeighbor.class.getName()).log(Level.SEVERE, "Failed setting minification position!", ex);
