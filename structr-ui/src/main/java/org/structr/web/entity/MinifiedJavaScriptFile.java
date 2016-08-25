@@ -18,13 +18,18 @@
  */
 package org.structr.web.entity;
 
+import com.google.javascript.jscomp.BasicErrorManager;
+import com.google.javascript.jscomp.CheckLevel;
 import com.google.javascript.jscomp.CommandLineRunner;
 import com.google.javascript.jscomp.CompilationLevel;
 import com.google.javascript.jscomp.Compiler;
 import com.google.javascript.jscomp.CompilerOptions;
+import com.google.javascript.jscomp.JSError;
 import com.google.javascript.jscomp.SourceFile;
+import com.google.javascript.jscomp.parsing.parser.util.format.SimpleFormat;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -56,6 +61,24 @@ public class MinifiedJavaScriptFile extends AbstractMinifiedFile {
 		final CompilationLevel selectedLevel = getProperty(optimizationLevel);
 		selectedLevel.setOptionsForCompilationLevel(options);
 
+		compiler.setErrorManager(new BasicErrorManager() {
+			@Override
+			public void println(CheckLevel level, JSError error) {
+//				if (level != CheckLevel.OFF) {
+//					logger.log((level == CheckLevel.ERROR) ? Level.SEVERE : Level.WARNING, error.toString());
+//				}
+			}
+
+			@Override
+			protected void printSummary() {
+				final Level level = (getErrorCount() + getWarningCount() == 0) ? Level.INFO : Level.WARNING;
+				if (getTypedPercent() > 0) {
+					logger.log(level, SimpleFormat.format("%d error(s), %d warning(s), %.1f%% typed", getErrorCount(), getWarningCount(), getTypedPercent()));
+				} else if (getErrorCount() + getWarningCount() > 0) {
+					logger.log(level, SimpleFormat.format("%d error(s), %d warning(s)", getErrorCount(), getWarningCount()));
+				}
+			}
+		});
 		compiler.compile(CommandLineRunner.getBuiltinExterns(options), getSourceFileList(), options);
 
 		FileHelper.setFileData(this, compiler.toSource().getBytes(), null);
@@ -78,7 +101,10 @@ public class MinifiedJavaScriptFile extends AbstractMinifiedFile {
 			sourceList.add(SourceFile.fromCode(src.getProperty(FileBase.name), FileUtils.readFileToString(src.getFileOnDisk())));
 
 			// compact the relationships (if necessary)
-			rel.setProperty(MinificationNeighbor.position, cnt++);
+			if (rel.getProperty(MinificationNeighbor.position) != cnt) {
+				rel.setProperty(MinificationNeighbor.position, cnt);
+			}
+			cnt++;
 		}
 
 		return sourceList;
