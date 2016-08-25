@@ -77,7 +77,10 @@ public abstract class AbstractMinifiedFile extends File {
 			concatenatedSource.append(FileUtils.readFileToString(src.getFileOnDisk()));
 
 			// compact the relationships (if necessary)
-			rel.setProperty(MinificationNeighbor.position, cnt++);
+			if (rel.getProperty(MinificationNeighbor.position) != cnt) {
+				rel.setProperty(MinificationNeighbor.position, cnt);
+			}
+			cnt++;
 		}
 
 		return concatenatedSource.toString();
