@@ -29,46 +29,32 @@ import org.structr.bolt.index.CypherQuery;
 public class GroupQueryFactory extends AbstractQueryFactory {
 
 	@Override
-	public void createQuery(final QueryFactory parent, final QueryPredicate predicate, final CypherQuery query) {
+	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final CypherQuery query, final boolean isFirst) {
 
 		if (predicate instanceof GroupQuery) {
 
-			query.beginGroup();
+			if (predicate.getOccurrence().equals(Occurrence.FORBIDDEN)) {
+				query.not();
+			}
+
+			//query.beginGroup();
 
 			final GroupQuery group   = (GroupQuery)predicate;
-			boolean first            = true;
+			boolean first            = isFirst;
 
 			for (final QueryPredicate attr : group.getQueryPredicates()) {
 
-				if (!first) {
-					addOccur(query, attr.getOccurrence());
+				if (parent.createQuery(parent, attr, query, first)) {
+
+					first = false;
 				}
-
-				parent.createQuery(parent, attr, query);
-
-				first = false;
 			}
 
-			query.endGroup();
+			//query.endGroup();
+
+			return !first;
 		}
-	}
 
-	// ----- private methods -----
-	private void addOccur(final CypherQuery query, final Occurrence occ) {
-
-		switch (occ) {
-
-			case FORBIDDEN:
-				query.andNot();
-				break;
-
-			case OPTIONAL:
-				query.or();
-				break;
-
-			default:
-				query.and();
-				break;
-		}
+		return false;
 	}
 }

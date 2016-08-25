@@ -24,10 +24,12 @@ import org.structr.bolt.index.CypherQuery;
 public class ArrayQueryFactory extends KeywordQueryFactory {
 
 	@Override
-	public void createQuery(final QueryFactory parent, final QueryPredicate predicate, final CypherQuery query) {
+	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final CypherQuery query, final boolean isFirst) {
 
 		final Object value = getReadValue(predicate.getValue());
 		final String name  = predicate.getName();
+
+		checkOccur(query, predicate.getOccurrence(), isFirst);
 
 		if (value == null) {
 
@@ -44,5 +46,7 @@ public class ArrayQueryFactory extends KeywordQueryFactory {
 				query.addListParameter(name, "=~", "(?i).*" + escape(value) + ".*");
 			}
 		}
+
+		return true;
 	}
 }

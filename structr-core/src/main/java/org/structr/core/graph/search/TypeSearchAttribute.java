@@ -18,8 +18,9 @@
  */
 package org.structr.core.graph.search;
 
-import org.structr.api.search.ExactQuery;
+import java.util.Set;
 import org.structr.api.search.Occurrence;
+import org.structr.api.search.TypeQuery;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 
@@ -29,12 +30,16 @@ import org.structr.core.entity.AbstractNode;
  */
 public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAttribute<String> {
 
+	private Set<String> types = null;
+
 	public TypeSearchAttribute(Class<S> type, Occurrence occur, boolean isExactMatch) {
 		this(type.getSimpleName(), occur, isExactMatch);
 	}
 
 	public TypeSearchAttribute(String type, Occurrence occur, boolean isExactMatch) {
 		super(AbstractNode.type, type, occur, isExactMatch);
+
+		this.types  = SearchCommand.getAllSubtypesAsStringSet(type);
 	}
 
 	@Override
@@ -44,6 +49,23 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 
 	@Override
 	public Class getQueryType() {
-		return ExactQuery.class;
+		return TypeQuery.class;
+	}
+
+	@Override
+	public boolean includeInResult(final GraphObject entity) {
+
+		final String nodeValue   = entity.getProperty(getKey());
+		final Occurrence occur   = getOccurrence();
+		final boolean isOfType   = types.contains(nodeValue);
+
+		if (occur.equals(Occurrence.FORBIDDEN)) {
+
+			return !isOfType;
+
+		} else {
+
+			return isOfType;
+		}
 	}
 }

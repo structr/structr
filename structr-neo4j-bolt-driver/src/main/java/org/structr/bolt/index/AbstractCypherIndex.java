@@ -40,6 +40,7 @@ import org.structr.api.search.QueryPredicate;
 import org.structr.api.search.RangeQuery;
 import org.structr.api.search.SpatialQuery;
 import org.structr.api.search.TypeConverter;
+import org.structr.api.search.TypeQuery;
 import org.structr.bolt.index.converter.BooleanTypeConverter;
 import org.structr.bolt.index.converter.DateTypeConverter;
 import org.structr.bolt.index.converter.DoubleTypeConverter;
@@ -54,6 +55,7 @@ import org.structr.bolt.index.factory.NotEmptyQueryFactory;
 import org.structr.bolt.index.factory.QueryFactory;
 import org.structr.bolt.index.factory.RangeQueryFactory;
 import org.structr.bolt.index.factory.SpatialQueryFactory;
+import org.structr.bolt.index.factory.TypeQueryFactory;
 
 /**
  *
@@ -74,7 +76,7 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 	}
 
 	public abstract QueryResult<T> getResult(final CypherQuery query);
-	public abstract String getQueryPrefix();
+	public abstract String getQueryPrefix(final String typeLabel);
 	public abstract String getQuerySuffix();
 
 	@Override
@@ -109,9 +111,9 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 	@Override
 	public QueryResult<T> query(final QueryPredicate predicate) {
 
-		final CypherQuery query = new CypherQuery(getQueryPrefix(), getQuerySuffix());
+		final CypherQuery query = new CypherQuery(this);
 
-		createQuery(this, predicate, query);
+		createQuery(this, predicate, query, true);
 
 		final String sortKey = predicate.getSortKey();
 		if (sortKey != null) {
@@ -119,9 +121,11 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 			query.sort(predicate.getSortType(), sortKey, predicate.sortDescending());
 		}
 
+		final QueryResult<T> result = getResult(query);
+
 		System.out.println(query);
 
-		return getResult(query);
+		return result;
 	}
 
 	@Override
@@ -149,6 +153,7 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 		FACTORIES.put(ExactQuery.class,    new KeywordQueryFactory());
 		FACTORIES.put(ArrayQuery.class,    new ArrayQueryFactory());
 		FACTORIES.put(EmptyQuery.class,    new EmptyQueryFactory());
+		FACTORIES.put(TypeQuery.class,     new TypeQueryFactory());
 
 		CONVERTERS.put(Boolean.class, new BooleanTypeConverter());
 		CONVERTERS.put(String.class,  new StringTypeConverter());
@@ -159,7 +164,7 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 	}
 
 	@Override
-	public void createQuery(final QueryFactory parent, final QueryPredicate predicate, final CypherQuery query) {
+	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final CypherQuery query, final boolean isFirst) {
 
 		final Class type = predicate.getQueryType();
 		if (type != null) {
@@ -167,18 +172,14 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 			final QueryFactory factory = FACTORIES.get(type);
 			if (factory != null) {
 
-				factory.createQuery(this, predicate, query);
+				return factory.createQuery(this, predicate, query, isFirst);
 
 			} else {
 
 				logger.log(Level.WARNING, "No query factory registered for type {0}", type);
 			}
-
-		} else {
-
-			// Add a simple "True" to the Cypher statement to prevent
-			// errors when search attributes return search type null.
-			query.noop();
 		}
+
+		return false;
 	}
 }

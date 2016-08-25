@@ -171,14 +171,14 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 		// early exit, return empty search attribute
 		if (searchValue == null) {
-			return new ArraySearchAttribute(this, "", exactMatch ? Occurrence.REQUIRED : Occurrence.OPTIONAL, exactMatch);
+			return new ArraySearchAttribute(this, "", exactMatch ? occur : Occurrence.OPTIONAL, exactMatch);
 		}
 
 		final SearchAttributeGroup group = new SearchAttributeGroup(occur);
 
 		for (T value : searchValue) {
 
-			group.add(new ArraySearchAttribute(this, value, exactMatch ? Occurrence.REQUIRED : Occurrence.OPTIONAL, exactMatch));
+			group.add(new ArraySearchAttribute(this, value, exactMatch ? occur : Occurrence.OPTIONAL, exactMatch));
 
 		}
 

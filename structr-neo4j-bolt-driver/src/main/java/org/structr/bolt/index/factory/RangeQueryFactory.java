@@ -28,9 +28,11 @@ import org.structr.bolt.index.CypherQuery;
 public class RangeQueryFactory extends AbstractQueryFactory {
 
 	@Override
-	public void createQuery(final QueryFactory parent, final QueryPredicate predicate, final CypherQuery query) {
+	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final CypherQuery query, final boolean isFirst) {
 
 		if (predicate instanceof RangeQuery) {
+
+			checkOccur(query, predicate.getOccurrence(), isFirst);
 
 			final RangeQuery rangeQuery = (RangeQuery)predicate;
 			final Object rangeStart     = getReadValue(rangeQuery.getRangeStart());
@@ -38,10 +40,14 @@ public class RangeQueryFactory extends AbstractQueryFactory {
 			final String name           = predicate.getName();
 
 			if (rangeStart == null && rangeEnd == null) {
-				return;
+				return false;
 			}
 
 			query.addParameters(name, ">=", rangeStart, "<=", rangeEnd);
+
+			return true;
 		}
+
+		return false;
 	}
 }

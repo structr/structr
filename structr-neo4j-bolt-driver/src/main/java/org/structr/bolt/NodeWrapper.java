@@ -65,7 +65,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		map.put("id1", entity.id());
 		map.put("id2", endNode.getId());
 
-		final org.neo4j.driver.v1.types.Relationship rel = tx.getRelationship("MATCH (n), (m) WHERE ID(n) = {id1} AND ID(m) = {id2} CREATE (n)-[r:" + relationshipType.name() + "]->(m) RETURN r", map);
+		final org.neo4j.driver.v1.types.Relationship rel = tx.getRelationship("CYPHER planner=rule MATCH (n), (m) WHERE ID(n) = {id1} AND ID(m) = {id2} CREATE (n)-[r:" + relationshipType.name() + "]->(m) RETURN r", map);
 
 		tx.modified(this);
 
@@ -86,7 +86,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		map.put("id", entity.id());
 
-		entity = tx.getNode("MATCH (n) WHERE ID(n) = {id} SET n :" + label.name() + " RETURN n", map);
+		entity = tx.getNode("CYPHER planner=rule MATCH (n) WHERE ID(n) = {id} SET n :" + label.name() + " RETURN n", map);
 		tx.modified(this);
 	}
 
@@ -100,7 +100,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		map.put("id", entity.id());
 
-		entity = tx.getNode("MATCH (n) WHERE ID(n) = {id} REMOVE n:" + label.name() + " RETURN n", map);
+		entity = tx.getNode("CYPHER planner=rule MATCH (n) WHERE ID(n) = {id} REMOVE n:" + label.name() + " RETURN n", map);
 		tx.modified(this);
 	}
 
@@ -134,7 +134,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 			map.put("id", entity.id());
 
-			list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r]-(m) WHERE ID(n) = {id} RETURN r", map)));
+			list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("CYPHER planner=rule MATCH (n)-[r]-(m) WHERE ID(n) = {id} RETURN r", map)));
 
 			// store in cache
 			setList(null, null, list);
@@ -164,11 +164,11 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 					return getRelationships();
 
 				case OUTGOING:
-					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r]->(m) WHERE ID(n) = {id} RETURN r", map)));
+					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("CYPHER planner=rule MATCH (n)-[r]->(m) WHERE ID(n) = {id} RETURN r", map)));
 					break;
 
 				case INCOMING:
-					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)<-[r]-(m) WHERE ID(n) = {id} RETURN r", map)));
+					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("CYPHER planner=rule MATCH (n)<-[r]-(m) WHERE ID(n) = {id} RETURN r", map)));
 					break;
 			}
 
@@ -197,15 +197,15 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 			switch (direction) {
 
 				case BOTH:
-					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r:" + relationshipType.name() + "]-(m) WHERE ID(n) = {id} RETURN r", map)));
+					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("CYPHER planner=rule MATCH (n)-[r:" + relationshipType.name() + "]-(m) WHERE ID(n) = {id} RETURN r", map)));
 					break;
 
 				case OUTGOING:
-					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r:" + relationshipType.name() + "]->(m) WHERE ID(n) = {id} RETURN r", map)));
+					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("CYPHER planner=rule MATCH (n)-[r:" + relationshipType.name() + "]->(m) WHERE ID(n) = {id} RETURN r", map)));
 					break;
 
 				case INCOMING:
-					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)<-[r:" + relationshipType.name() + "]-(m) WHERE ID(n) = {id} RETURN r", map)));
+					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("CYPHER planner=rule MATCH (n)<-[r:" + relationshipType.name() + "]-(m) WHERE ID(n) = {id} RETURN r", map)));
 					break;
 			}
 
@@ -254,7 +254,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 				map.put("id", id);
 
-				wrapper = new NodeWrapper(db, tx.getNode("MATCH (n) WHERE ID(n) = {id} RETURN n", map));
+				wrapper = new NodeWrapper(db, tx.getNode("CYPHER planner=rule MATCH (n) WHERE ID(n) = {id} RETURN n", map));
 				nodeCache.put(id, wrapper);
 			}
 

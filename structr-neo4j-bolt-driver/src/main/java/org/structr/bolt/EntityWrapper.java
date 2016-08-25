@@ -107,7 +107,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		map.put("value", value);
 
 		// update entity handle
-		entity = (T)tx.getEntity(getQueryPrefix() + " WHERE ID(n) = {id} SET n.`" + key + "` = {value} RETURN n", map);
+		entity = (T)tx.getEntity("CYPHER planner=rule " + getQueryPrefix() + " WHERE ID(n) = {id} SET n.`" + key + "` = {value} RETURN n", map);
 
 		tx.modified(this);
 	}
@@ -123,7 +123,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		map.put("id", entity.id());
 
 		// update entity handle
-		entity = (T)tx.getEntity(getQueryPrefix() + " WHERE ID(n) = {id} SET n.`" + key + "` = Null RETURN n", map);
+		entity = (T)tx.getEntity("CYPHER planner=rule " + getQueryPrefix() + " WHERE ID(n) = {id} SET n.`" + key + "` = Null RETURN n", map);
 
 		tx.modified(this);
 	}
@@ -138,7 +138,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 		map.put("id", entity.id());
 
-		return tx.getStrings(getQueryPrefix() + " WHERE ID(n) = {id} RETURN keys(n)", map);
+		return tx.getStrings("CYPHER planner=rule " + getQueryPrefix() + " WHERE ID(n) = {id} RETURN keys(n)", map);
 	}
 
 	@Override
@@ -151,7 +151,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 		map.put("id", entity.id());
 
-		tx.set(getQueryPrefix() + " WHERE ID(n) = {id} DELETE n", map);
+		tx.set("CYPHER planner=rule " + getQueryPrefix() + " WHERE ID(n) = {id} DELETE n", map);
 		tx.modified(this);
 
 		invalidate();
@@ -191,7 +191,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 			try {
 
 				// check if entity has been deleted
-				entity = (T)tx.getEntity(getQueryPrefix() + " WHERE ID(n) = {id} RETURN n", map);
+				entity = (T)tx.getEntity("CYPHER planner=rule " + getQueryPrefix() + " WHERE ID(n) = {id} RETURN n", map);
 
 			} catch (NoSuchRecordException nex) {
 				throw new NotFoundException(nex);

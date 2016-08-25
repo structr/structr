@@ -24,9 +24,13 @@ import org.structr.bolt.index.CypherQuery;
 public class NotEmptyQueryFactory extends AbstractQueryFactory {
 
 	@Override
-	public void createQuery(final QueryFactory parent, final QueryPredicate predicate, final CypherQuery query) {
+	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final CypherQuery query, final boolean isFirst) {
+
+		checkOccur(query, predicate.getOccurrence(), isFirst);
 
 		// not empty query is simple
 		query.addSimpleParameter(predicate.getName(), "is not", null);
+
+		return true;
 	}
 }

@@ -30,9 +30,7 @@ import org.structr.api.index.IndexManager;
 public class BoltNodeIndexer implements IndexManager<Node> {
 
 	private BoltDatabaseService db = null;
-	private Index<Node> fulltext   = null;
-	private Index<Node> exact      = null;
-	private Index<Node> spatial    = null;
+	private Index<Node> index      = null;
 
 	public BoltNodeIndexer(final BoltDatabaseService db) {
 		this.db = db;
@@ -40,32 +38,32 @@ public class BoltNodeIndexer implements IndexManager<Node> {
 
 	@Override
 	public Index<Node> fulltext() {
-
-		if (fulltext == null) {
-			fulltext = new CypherNodeIndex(db);
-		}
-
-		return fulltext;
+		return getIndex();
 	}
 
 	@Override
 	public Index<Node> exact() {
-
-		if (exact == null) {
-			exact = new CypherNodeIndex(db);
-		}
-
-		return exact;
+		return getIndex();
 	}
 
 	@Override
 	public Index<Node> spatial() {
-
-		if (spatial == null) {
-			spatial = new CypherNodeIndex(db);
-		}
-
-		return spatial;
+		return getIndex();
 	}
 
+	// ----- private methods -----
+	private Index<Node> getIndex() {
+
+		if (index == null) {
+
+			index = new CypherNodeIndex(db);
+
+			db.execute("CREATE INDEX ON :AbstractNode(type)");
+			db.execute("CREATE INDEX ON :AbstractNode(name)");
+			db.execute("CREATE INDEX ON :AbstractFile(name)");
+			db.execute("CREATE INDEX ON :Page(name)");
+		}
+
+		return index;
+	}
 }

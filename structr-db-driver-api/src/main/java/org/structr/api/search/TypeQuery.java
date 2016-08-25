@@ -16,26 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.bolt.index.factory;
-
-import org.structr.api.search.QueryPredicate;
-import org.structr.bolt.index.CypherQuery;
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package org.structr.api.search;
 
 /**
  *
  */
-public interface QueryFactory {
-
-	/**
-	 * Modifies the query according to the given predicate, returns a boolean that
-	 * indicates whether the query was modified or not.
-	 *
-	 * @param parent the query factory
-	 * @param predicate the predicate
-	 * @param query the query
-	 * @param isFirst the isFirst
-	 *
-	 * @return a boolean that indicates whether the query was modified or not
-	 */
-	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final CypherQuery query, final boolean isFirst);
+public interface TypeQuery extends QueryPredicate {
 }

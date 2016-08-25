@@ -18,8 +18,12 @@
  */
 package org.structr.bolt.index.factory;
 
+import org.structr.api.search.Occurrence;
+import static org.structr.api.search.Occurrence.FORBIDDEN;
+import static org.structr.api.search.Occurrence.OPTIONAL;
 import org.structr.api.search.TypeConverter;
 import org.structr.bolt.index.AbstractCypherIndex;
+import org.structr.bolt.index.CypherQuery;
 
 /**
  *
@@ -58,5 +62,36 @@ public abstract class AbstractQueryFactory implements QueryFactory {
 		}
 
 		return value;
+	}
+
+	// ----- protected methods -----
+	protected void checkOccur(final CypherQuery query, final Occurrence occ, final boolean first) {
+
+		if (!first || occ.equals(Occurrence.FORBIDDEN)) {
+			addOccur(query, occ, first);
+		}
+	}
+
+
+	protected void addOccur(final CypherQuery query, final Occurrence occ, final boolean first) {
+
+		switch (occ) {
+
+			case FORBIDDEN:
+				if (first) {
+					query.not();
+				} else {
+					query.andNot();
+				}
+				break;
+
+			case OPTIONAL:
+				query.or();
+				break;
+
+			default:
+				query.and();
+				break;
+		}
 	}
 }

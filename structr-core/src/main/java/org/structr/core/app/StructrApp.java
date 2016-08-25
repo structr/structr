@@ -31,6 +31,7 @@ import org.structr.agent.Task;
 import org.structr.api.DatabaseService;
 import org.structr.api.NotFoundException;
 import org.structr.api.graph.GraphProperties;
+import org.structr.api.graph.RelationshipType;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -277,7 +278,19 @@ public class StructrApp implements App {
 
 	@Override
 	public <T extends RelationshipInterface> Query<T> relationshipQuery(final Class<T> type) {
-		return command(SearchRelationshipCommand.class).andTypes(type);
+
+		try {
+
+			// try to instantiate relationship type and provide it to the query
+			final RelationshipType relType = (RelationshipType)type.newInstance();
+			return command(SearchRelationshipCommand.class).andType(relType.name());
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+
+
+		return command(SearchRelationshipCommand.class).andType(type);
 	}
 
 	@Override

@@ -48,10 +48,12 @@ public class KeywordQueryFactory extends AbstractQueryFactory {
 	}
 
 	@Override
-	public void createQuery(final QueryFactory parent, final QueryPredicate predicate, final CypherQuery query) {
+	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final CypherQuery query, final boolean isFirst) {
 
 		final Object value = getReadValue(predicate.getValue());
 		final String name  = predicate.getName();
+
+		checkOccur(query, predicate.getOccurrence(), isFirst);
 
 		// only String properties can be used for inexact search
 		if (!predicate.getType().equals(String.class) || predicate.isExactMatch()) {
@@ -69,6 +71,8 @@ public class KeywordQueryFactory extends AbstractQueryFactory {
 				query.addSimpleParameter(name, "is", null);
 			}
 		}
+
+		return true;
 	}
 
 	// ----- private methods -----

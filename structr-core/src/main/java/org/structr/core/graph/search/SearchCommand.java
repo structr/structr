@@ -456,6 +456,10 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public org.structr.core.app.Query<T> andTypes(final Class type) {
 
+		andType(type);
+
+
+		/*
 		// create a new search group
 		and();
 
@@ -465,6 +469,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		// exit search group
 		parent();
+		*/
 
 		return this;
 	}
@@ -472,6 +477,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public org.structr.core.app.Query<T> orTypes(final Class type) {
 
+		orType(type);
+
+		/*
 		// create a new search group
 		or();
 
@@ -481,6 +489,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		// exit search group
 		parent();
+		*/
 
 		return this;
 	}

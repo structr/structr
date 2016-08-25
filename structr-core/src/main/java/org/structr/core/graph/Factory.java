@@ -126,20 +126,11 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 			if (factoryProfile.getOffsetId() != null) {
 
-				final Result result = resultWithOffsetId(input);
-				return result;
+				return resultWithOffsetId(input);
 
 			} else {
 
-				final long t0       = System.currentTimeMillis();
-				final Result result = resultWithoutOffsetId(input);
-				final long t1       = System.currentTimeMillis();
-
-				System.out.println((t1-t0) + " ms");
-
-
-				return result;
-
+				return resultWithoutOffsetId(input);
 			}
 		}
 
@@ -442,7 +433,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 			output.add(item.item);
 		});
 
-		System.out.println("Iteration: " + (t1 - t0) + ", instantiation: " + (t2-t1) + ", sorting: " + (t3-t2));
+		//System.out.println("Iteration: " + (t1 - t0) + ", instantiation: " + (t2-t1) + ", sorting: " + (t3-t2));
 
 		// The overall count may be inaccurate
 		return new Result(output, overallCount.get(), true, false);

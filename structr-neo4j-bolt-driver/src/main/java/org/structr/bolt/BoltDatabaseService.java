@@ -146,7 +146,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 		map.put("id", id);
 
-		final org.neo4j.driver.v1.types.Relationship rel = tx.getRelationship("MATCH ()-[r]-() WHERE ID(r) = {id} RETURN r", map);
+		final org.neo4j.driver.v1.types.Relationship rel = tx.getRelationship("CYPHER planner=rule MATCH ()-[r]-() WHERE ID(r) = {id} RETURN r", map);
 
 		return RelationshipWrapper.newInstance(this, rel);
 

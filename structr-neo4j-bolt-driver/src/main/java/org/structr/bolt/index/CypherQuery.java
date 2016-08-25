@@ -19,6 +19,9 @@
 package org.structr.bolt.index;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import org.structr.api.search.SortType;
 
@@ -29,17 +32,16 @@ import org.structr.api.search.SortType;
 public class CypherQuery {
 
 	private final Map<String, Object> parameters = new HashMap<>();
+	private final List<String> typeLabels        = new LinkedList<>();
 	private final StringBuilder buffer           = new StringBuilder();
+	private AbstractCypherIndex<?> index         = null;
 	private boolean sortDescending               = false;
 	private SortType sortType                    = null;
 	private String sortKey                       = null;
-	private String suffix                        = null;
-	private String prefix                        = null;
 	private int count                            = 0;
 
-	public CypherQuery(final String prefix, final String suffix) {
-		this.prefix = prefix;
-		this.suffix = suffix;
+	public CypherQuery(final AbstractCypherIndex<?> index) {
+		this.index = index;
 	}
 
 	@Override
@@ -50,10 +52,53 @@ public class CypherQuery {
 	public String getStatement() {
 
 		final StringBuilder buf = new StringBuilder();
+		final int typeCount     = typeLabels.size();
 
-		buf.append(prefix);
-		buf.append(buffer);
-		buf.append(suffix);
+		switch (typeCount) {
+			case 0:
+
+				buf.append(index.getQueryPrefix(null));
+
+				if (buffer.length() > 0) {
+					buf.append(" WHERE ");
+					buf.append(buffer);
+				}
+
+				buf.append(index.getQuerySuffix());
+				break;
+
+			case 1:
+
+				buf.append(index.getQueryPrefix(typeLabels.get(0)));
+
+				if (buffer.length() > 0) {
+					buf.append(" WHERE ");
+					buf.append(buffer);
+				}
+
+				buf.append(index.getQuerySuffix());
+				break;
+
+			default:
+
+				// create UNION query
+				for (final Iterator<String> it = typeLabels.iterator(); it.hasNext();) {
+
+					buf.append(index.getQueryPrefix(it.next()));
+
+					if (buffer.length() > 0) {
+						buf.append(" WHERE ");
+						buf.append(buffer);
+					}
+
+					buf.append(index.getQuerySuffix());
+
+					if (it.hasNext()) {
+						buf.append(" UNION ");
+					}
+				}
+				break;
+		}
 
 		if (sortKey != null) {
 
@@ -103,6 +148,10 @@ public class CypherQuery {
 		buffer.append(" AND ");
 	}
 
+	public void not() {
+		buffer.append(" NOT ");
+	}
+
 	public void andNot() {
 		buffer.append(" AND NOT ");
 	}
@@ -113,6 +162,10 @@ public class CypherQuery {
 
 	public void noop() {
 		buffer.append(" True ");
+	}
+
+	public void typeLabel(final String typeLabel) {
+		this.typeLabels.add(typeLabel);
 	}
 
 	public void addSimpleParameter(final String key, final String operator, final Object value) {

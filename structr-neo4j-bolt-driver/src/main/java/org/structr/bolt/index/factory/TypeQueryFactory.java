@@ -19,39 +19,20 @@
 package org.structr.bolt.index.factory;
 
 import org.structr.api.search.QueryPredicate;
-import org.structr.api.search.SpatialQuery;
 import org.structr.bolt.index.CypherQuery;
 
-/**
- *
- * @author Christian Morgner
- */
-public class SpatialQueryFactory extends AbstractQueryFactory {
+public class TypeQueryFactory extends AbstractQueryFactory {
 
 	@Override
 	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final CypherQuery query, final boolean isFirst) {
 
-		if (predicate instanceof SpatialQuery) {
+		final Object value = predicate.getValue();
+		if (value != null && value instanceof String) {
 
-			checkOccur(query, predicate.getOccurrence(), isFirst);
-
-			final SpatialQuery spatial = (SpatialQuery)predicate;
-			final StringBuilder buf    = new StringBuilder();
-			final Double[] coords      = spatial.getCoords();
-
-			buf.append("distance(point({latitude:");
-			buf.append(coords[0]);
-			buf.append(",longitude:");
-			buf.append(coords[1]);
-			buf.append("}), point(n))");
-
-			// distance is in kilometers
-			query.addSimpleParameter(buf.toString(), "<", spatial.getDistance() * 1000.0, false);
-
-			return true;
+			query.typeLabel((String)value);
 		}
 
+		// setting the label does not result in a modified WHERE clause
 		return false;
 	}
-
 }
