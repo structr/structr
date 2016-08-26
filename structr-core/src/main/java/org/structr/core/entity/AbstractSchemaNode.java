@@ -32,6 +32,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.SchemaNodeMethod;
 import org.structr.core.entity.relationship.SchemaNodeProperty;
 import org.structr.core.entity.relationship.SchemaNodeView;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.TransactionCommand;
@@ -99,9 +100,9 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		if (super.onModification(securityContext, errorBuffer)) {
+		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
 
 			// register transaction post processing that recreates the schema information
 			TransactionCommand.postProcess("createDefaultProperties", new CreateBuiltInSchemaEntities(this));

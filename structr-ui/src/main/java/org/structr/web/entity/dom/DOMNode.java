@@ -50,9 +50,10 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.function.Functions;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
-import org.structr.core.function.Functions;
 import org.structr.core.property.AbstractReadOnlyProperty;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
@@ -68,23 +69,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
-import org.structr.web.function.AddHeaderFunction;
-import org.structr.web.function.EscapeHtmlFunction;
-import org.structr.web.function.FromJsonFunction;
-import org.structr.web.function.FromXmlFunction;
-import org.structr.web.function.GetContentFunction;
-import org.structr.web.function.GetRequestHeaderFunction;
-import org.structr.web.function.HttpHeadFunction;
-import org.structr.web.function.IncludeFunction;
-import org.structr.web.function.IsLocaleFunction;
-import org.structr.web.function.LogEventFunction;
-import org.structr.web.function.ParseFunction;
-import org.structr.web.function.HttpPostFunction;
-import org.structr.web.function.RenderFunction;
-import org.structr.web.function.SetDetailsObjectFunction;
-import org.structr.web.function.SetResponseHeaderFunction;
-import org.structr.web.function.StripHtmlFunction;
-import org.structr.web.function.ToJsonFunction;
 import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
@@ -101,12 +85,29 @@ import org.structr.web.entity.dom.relationship.DOMSiblings;
 import org.structr.web.entity.relation.PageLink;
 import org.structr.web.entity.relation.RenderNode;
 import org.structr.web.entity.relation.Sync;
+import org.structr.web.function.AddHeaderFunction;
+import org.structr.web.function.EscapeHtmlFunction;
+import org.structr.web.function.FromJsonFunction;
+import org.structr.web.function.FromXmlFunction;
+import org.structr.web.function.GetContentFunction;
+import org.structr.web.function.GetRequestHeaderFunction;
 import org.structr.web.function.GetSessionAttributeFunction;
 import org.structr.web.function.HttpGetFunction;
+import org.structr.web.function.HttpHeadFunction;
+import org.structr.web.function.HttpPostFunction;
+import org.structr.web.function.IncludeFunction;
+import org.structr.web.function.IsLocaleFunction;
+import org.structr.web.function.LogEventFunction;
+import org.structr.web.function.ParseFunction;
 import org.structr.web.function.RemoveSessionAttributeFunction;
+import org.structr.web.function.RenderFunction;
 import org.structr.web.function.SendHtmlMailFunction;
 import org.structr.web.function.SendPlaintextMailFunction;
+import org.structr.web.function.SetDetailsObjectFunction;
+import org.structr.web.function.SetResponseHeaderFunction;
 import org.structr.web.function.SetSessionAttributeFunction;
+import org.structr.web.function.StripHtmlFunction;
+import org.structr.web.function.ToJsonFunction;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -297,7 +298,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 		try {
 

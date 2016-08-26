@@ -18,36 +18,37 @@
  */
 package org.structr.core.entity;
 
-import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.DoubleProperty;
+import org.structr.core.property.Property;
 
 /**
  * A simple entity with lat,lon coordinates
- * 
- * 
+ *
+ *
  *
  */
 public class TestSeven extends AbstractNode {
-	
+
 	public static final Property<Double> latitude = new DoubleProperty("latitude").indexed();
 	public static final Property<Double> longitude = new DoubleProperty("longitude").indexed();
 
 	public static final View publicView = new View(TestSeven.class, PropertyView.Public,
 		latitude, longitude
 	);
-	
+
 	@Override
 	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) {
 		return isValid(errorBuffer);
 	}
-	
+
 	@Override
-	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer) {
+	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) {
 		return isValid(errorBuffer);
 	}
 
@@ -60,5 +61,5 @@ public class TestSeven extends AbstractNode {
 
 		return !error;
 	}
-	
+
 }

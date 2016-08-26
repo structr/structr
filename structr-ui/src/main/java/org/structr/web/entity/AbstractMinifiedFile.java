@@ -29,6 +29,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
+import org.structr.core.graph.ModificationEvent;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.dynamic.File;
@@ -45,19 +47,40 @@ public abstract class AbstractMinifiedFile extends File {
 	public static final Property<List<FileBase>> minificationSources = new EndNodes<>("minificationSources", MinificationNeighbor.class);
 
 	@Override
-	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		try {
-			this.minify();
-		} catch (IOException ex) {
-			logger.log(Level.WARNING, "Could not automatically minify file", ex);
+		boolean shouldMinify = false;
+
+		final String myUUID = getUuid();
+
+		for (ModificationEvent modState : modificationQueue.getModificationEvents()) {
+
+			// only take changes on this exact file into account
+			if (myUUID.equals(modState.getUuid())) {
+
+				shouldMinify = shouldMinify || shouldModificationTriggerMinifcation(modState);
+
+			}
+
 		}
 
-		return super.onModification(securityContext, errorBuffer);
+		if (shouldMinify) {
+
+			try {
+				this.minify();
+			} catch (IOException ex) {
+				logger.log(Level.WARNING, "Could not automatically minify file", ex);
+			}
+
+		}
+
+		return super.onModification(securityContext, errorBuffer, modificationQueue);
 	}
 
 	@Export
 	public abstract void minify() throws FrameworkException, IOException;
+
+	public abstract boolean shouldModificationTriggerMinifcation(ModificationEvent modState);
 
 	public int getMaxPosition () {
 		int max = 0;

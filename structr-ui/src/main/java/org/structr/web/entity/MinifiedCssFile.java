@@ -23,11 +23,13 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.ModificationEvent;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.web.common.FileHelper;
@@ -42,18 +44,26 @@ public class MinifiedCssFile extends AbstractMinifiedFile {
 	public static final View uiView      = new View(MinifiedJavaScriptFile.class, PropertyView.Ui, minificationSources, lineBreak);
 
 	@Override
+	public boolean shouldModificationTriggerMinifcation(ModificationEvent modState) {
+
+		return modState.getModifiedProperties().containsKey(MinifiedCssFile.lineBreak);
+
+	}
+
+	@Override
 	public void minify() throws FrameworkException, IOException {
+
+		logger.log(Level.INFO, "Running minify: {0}", this.getType());
 
 		FileHelper.setFileData(this, getConcatenatedSource().getBytes(), null);
 
 		try (FileReader in = new FileReader(this.getFileOnDisk())) {
 			final java.io.File temp = java.io.File.createTempFile("structr-minify", ".tmp");
 
-			final OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(temp));
-
-			final CssCompressor compressor = new CssCompressor(in);
-			compressor.compress(out, getProperty(lineBreak));
-			out.close();
+			try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(temp))) {
+				final CssCompressor compressor = new CssCompressor(in);
+				compressor.compress(out, getProperty(lineBreak));
+			}
 
 			FileHelper.setFileData(this, FileUtils.readFileToString(temp).getBytes(), null);
 		}

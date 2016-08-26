@@ -78,7 +78,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 	public String getCallbackId() {
 		return this.callbackId;
 	}
-	
+
 	public void setCallbackId(final String callbackId) {
 		this.callbackId = callbackId;
 	}
@@ -307,7 +307,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 				break;
 
 			case 2: // modified => modification callback
-				valid &= object.onModification(securityContext, errorBuffer);
+				valid &= object.onModification(securityContext, errorBuffer, modificationQueue);
 				break;
 
 			case 1: // deleted => deletion callback

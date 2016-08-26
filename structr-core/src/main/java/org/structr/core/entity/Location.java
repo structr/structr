@@ -18,16 +18,17 @@
  */
 package org.structr.core.entity;
 
-import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.relationship.NodeHasLocation;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.DoubleProperty;
+import org.structr.core.property.Property;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -56,7 +57,7 @@ public class Location extends AbstractNode {
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 		return isValid(errorBuffer);
 	}
 

@@ -35,6 +35,7 @@ import org.structr.core.Export;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
@@ -91,7 +92,7 @@ public class XMPPClient extends AbstractNode implements XMPPInfo {
 	}
 
 	@Override
-	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 		XMPPClientConnection connection = XMPPContext.getClientForId(getUuid());
 		boolean enabled                 = getProperty(isEnabled);
@@ -122,7 +123,7 @@ public class XMPPClient extends AbstractNode implements XMPPInfo {
 			}
 		}
 
-		return super.onModification(securityContext, errorBuffer);
+		return super.onModification(securityContext, errorBuffer, modificationQueue);
 	}
 
 	@Override

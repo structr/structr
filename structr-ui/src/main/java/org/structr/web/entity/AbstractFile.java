@@ -29,6 +29,7 @@ import org.structr.common.error.UniqueToken;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.EndNode;
@@ -76,10 +77,10 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 	}
 
 	@Override
-	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 		final boolean valid = validatePath(securityContext, errorBuffer);
-		return valid && super.onModification(securityContext, errorBuffer);
+		return valid && super.onModification(securityContext, errorBuffer, modificationQueue);
 	}
 
 	public boolean validatePath(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {

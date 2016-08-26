@@ -66,6 +66,7 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.SchemaView;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -312,18 +313,18 @@ public class SchemaHelper {
 		try {
 
 			final List<DynamicResourceAccess> existingDynamicGrants  = StructrApp.getInstance().nodeQuery(DynamicResourceAccess.class).getAsList();
-			
+
 			final Set<String> existingSchemaNodeNames = new HashSet<>();
-			
+
 			for (final SchemaNode schemaNode : existingSchemaNodes) {
-				
+
 				existingSchemaNodeNames.add(schemaNode.getResourceSignature());
 			}
-			
+
 			for (final DynamicResourceAccess grant : existingDynamicGrants) {
 
 				boolean foundAllParts = true;
-				
+
 				final String sig;
 				try {
 					sig = grant.getResourceSignature();
@@ -332,31 +333,31 @@ public class SchemaHelper {
 					logger.log(Level.FINE, "Unable to get signature from grant");
 					continue;
 				}
-				
+
 				// Try to find schema nodes for all parts of the grant signature
 				final String[] parts = StringUtils.split(sig, "/");
-				
+
 				if (parts != null) {
-					
-					
+
+
 					for (final String sigPart : parts) {
-						
+
 						if ("/".equals(sigPart) || sigPart.startsWith("_")) {
 							continue;
 						}
-						
+
 						// If one of the signature parts doesn't have an equivalent existing schema node, remove it
 						foundAllParts &= existingSchemaNodeNames.contains(sigPart);
 					}
 				}
 
 				if (!foundAllParts) {
-					
+
 					logger.log(Level.INFO, "Did not find all parts of signature, will be removed: {0}, ", new Object[]{ sig });
-					
+
 					removeDynamicGrants(sig);
 				}
-				
+
 
 			}
 
@@ -377,7 +378,7 @@ public class SchemaHelper {
 			ResourceAccess grant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
 
 			if (grant == null) {
-				
+
 				// create new grant
 				grants.add(app.create(DynamicResourceAccess.class,
 					new NodeAttribute(DynamicResourceAccess.signature, signature),
@@ -388,7 +389,7 @@ public class SchemaHelper {
 			}
 
 			final String schemaSig = schemaResourceSignature(signature);
-			
+
 			ResourceAccess schemaGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, schemaSig).getFirst();
 			if (schemaGrant == null) {
 				// create additional grant for the _schema resource
@@ -401,7 +402,7 @@ public class SchemaHelper {
 			}
 
 			final String uiSig = uiViewResourceSignature(signature);
-			
+
 			ResourceAccess uiViewGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, uiSig).getFirst();
 			if (uiViewGrant == null) {
 
@@ -827,6 +828,7 @@ public class SchemaHelper {
 		src.append("import ").append(PermissionPropagation.class.getName()).append(";\n");
 		src.append("import ").append(FrameworkException.class.getName()).append(";\n");
 		src.append("import ").append(DatePropertyParser.class.getName()).append(";\n");
+		src.append("import ").append(ModificationQueue.class.getName()).append(";\n");
 		src.append("import ").append(PropertyConverter.class.getName()).append(";\n");
 		src.append("import ").append(ValidationHelper.class.getName()).append(";\n");
 		src.append("import ").append(SecurityContext.class.getName()).append(";\n");
@@ -1210,7 +1212,7 @@ public class SchemaHelper {
 			return o2.name().compareTo(o1.name());
 		}
 	}
-	
+
 	private static String schemaResourceSignature(final String signature) {
 		return "_schema/" + signature;
 	}

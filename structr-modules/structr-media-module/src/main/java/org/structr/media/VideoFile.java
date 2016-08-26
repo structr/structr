@@ -33,6 +33,7 @@ import static org.structr.core.GraphObject.type;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.JsonInput;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.ModificationQueue;
 import static org.structr.core.graph.NodeInterface.name;
 import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.graph.Tx;
@@ -48,9 +49,9 @@ import org.structr.dynamic.File;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.Image;
 import static org.structr.web.entity.FileBase.relativeFilePath;
 import static org.structr.web.entity.FileBase.size;
+import org.structr.web.entity.Image;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -104,14 +105,16 @@ public class VideoFile extends File {
 	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
 		updateVideoInfo();
+
 		return super.onCreation(securityContext, errorBuffer);
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 		updateVideoInfo();
-		return super.onModification(securityContext, errorBuffer);
+
+		return super.onModification(securityContext, errorBuffer, modificationQueue);
 	}
 
 	public String getDiskFilePath(final SecurityContext securityContext) {
