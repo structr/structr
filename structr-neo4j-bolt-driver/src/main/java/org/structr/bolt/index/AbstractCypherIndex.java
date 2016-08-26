@@ -121,6 +121,10 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 			query.sort(predicate.getSortType(), sortKey, predicate.sortDescending());
 		}
 
+		if (db.logQueries()) {
+			System.out.println(query);
+		}
+
 		return getResult(query);
 	}
 

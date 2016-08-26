@@ -149,31 +149,6 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 		return instantiate(relationship);
 	}
 
-	/**
-	 * Create structr relationship from all given underlying database rels
-	 *
-	 * @param input
-	 * @return relationship
-	public List<T> instantiate(final Iterable<Relationship> input) throws FrameworkException {
-
-		List<T> rels = new LinkedList<>();
-
-		if ((input != null) && input.iterator().hasNext()) {
-
-			for (Relationship rel : input) {
-
-				T n = instantiate(rel);
-
-				rels.add(n);
-
-			}
-
-		}
-
-		return rels;
-	}
-	 */
-
 	@Override
 	public T instantiate(final Relationship obj, final boolean includeDeletedAndHidden, final boolean publicOnly) throws FrameworkException {
 

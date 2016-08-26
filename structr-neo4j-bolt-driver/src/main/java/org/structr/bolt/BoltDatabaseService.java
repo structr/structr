@@ -64,6 +64,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	private static final Map<String, RelationshipType> relTypeCache   = new ConcurrentHashMap<>();
 	private static final Map<String, Label> labelCache                = new ConcurrentHashMap<>();
 	private static final ThreadLocal<SessionTransaction> sessions     = new ThreadLocal<>();
+	private boolean debugLogging                                      = false;
 	private BoltRelationshipIndexer relationshipIndexer               = null;
 	private BoltNodeIndexer nodeIndexer                               = null;
 	private GraphDatabaseService graphDb                              = null;
@@ -74,17 +75,22 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	public void initialize(final Properties configuration) {
 
 		this.databasePath = configuration.getProperty(Structr.DATABASE_PATH);
+		this.debugLogging = "true".equalsIgnoreCase(configuration.getProperty(Structr.LOG_CYPHER_DEBUG, "false"));
 
-		GraphDatabaseSettings.BoltConnector bolt = GraphDatabaseSettings.boltConnector( "0" );
+		final String url      = configuration.getProperty(Structr.DATABASE_CONNECTION_URL, "bolt://localhost:7689");
+		final String username = configuration.getProperty(Structr.DATABASE_CONNECTION_USERNAME, "neo4j");
+		final String password = configuration.getProperty(Structr.DATABASE_CONNECTION_PASSWORD, "neo4j");
+
+		GraphDatabaseSettings.BoltConnector bolt = GraphDatabaseSettings.boltConnector("0");
 
 		graphDb = new GraphDatabaseFactory()
 		        .newEmbeddedDatabaseBuilder(new File(databasePath))
 		        .setConfig( bolt.enabled, "true" )
-		        .setConfig( bolt.address, "localhost:7689" )
+		        .setConfig( bolt.address, url)
 		        .newGraphDatabase();
 
-		driver = GraphDatabase.driver("bolt://localhost:7689",
-			AuthTokens.basic("neo4j", "test"),
+		driver = GraphDatabase.driver(url,
+			AuthTokens.basic(username, password),
 			Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()
 		);
 	}
@@ -220,6 +226,10 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		}
 
 		return tx;
+	}
+
+	public boolean logQueries() {
+		return debugLogging;
 	}
 
 	// ----- interface GraphProperties -----

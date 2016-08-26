@@ -350,15 +350,10 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		int threadCount                            = 1;
 		int rawCount                               = 0;
 
-		//final long t0 = System.currentTimeMillis();
-
 		// fill queue with data and count elements
 		for (final S item : input) {
 			queue.add(new Item<>(rawCount++, item));
 		}
-
-		//final long t1 = System.currentTimeMillis();
-		//long t2       = t1;
 
 		if (rawCount < 100) {
 
@@ -369,8 +364,6 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 			worker.setKeepRunning(keepRunning);
 
 			worker.doRun();
-
-			//t2 = System.currentTimeMillis();
 
 		} else {
 
@@ -421,8 +414,6 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		// keep initial sort order
 		Collections.sort(nodes);
 
-		//final long t3 = System.currentTimeMillis();
-
 		final int size = nodes.size();
 		final int from = Math.min(offset, size);
 		final int to   = Math.min(offset+pageSize, size);
@@ -431,8 +422,6 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		nodes.subList(from, to).stream().forEach((item) -> {
 			output.add(item.item);
 		});
-
-		//System.out.println("Iteration: " + (t1 - t0) + ", instantiation: " + (t2-t1) + ", sorting: " + (t3-t2));
 
 		// The overall count may be inaccurate
 		return new Result(output, overallCount.get(), true, false);
