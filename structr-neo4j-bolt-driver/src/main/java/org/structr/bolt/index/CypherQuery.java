@@ -49,6 +49,21 @@ public class CypherQuery {
 		return getStatement();
 	}
 
+	public int getHashCode() {
+
+		int hashCode = 23;
+
+		hashCode += 37 * getStatement().hashCode();
+		hashCode += 47 * parameters.hashCode();
+		hashCode += 57 * sortKey.hashCode();
+
+		if (sortDescending) {
+			hashCode += 1;
+		}
+
+		return hashCode;
+	}
+
 	public String getStatement() {
 
 		final StringBuilder buf = new StringBuilder();

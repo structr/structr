@@ -18,7 +18,6 @@
  */
 package org.structr.api.index;
 
-import org.structr.api.QueryResult;
 import org.structr.api.search.QueryPredicate;
 
 /**
@@ -31,7 +30,7 @@ public interface Index<T> {
 	void remove(final T t);
 	void remove(final T t, final String key);
 
-	QueryResult<T> query(final QueryPredicate predicate);
-	QueryResult<T> query(final String key, final Object value, final Class typeHint);
-	QueryResult<T> get(final String key, final Object value, final Class typeHint);
+	Iterable<T> query(final QueryPredicate predicate);
+	Iterable<T> query(final String key, final Object value, final Class typeHint);
+	Iterable<T> get(final String key, final Object value, final Class typeHint);
 }

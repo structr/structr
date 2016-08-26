@@ -34,7 +34,6 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.api.NotFoundException;
-import org.structr.api.QueryResult;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
 import org.structr.common.FactoryDefinition;
@@ -119,7 +118,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	 * @return result
 	 * @throws org.structr.common.error.FrameworkException
 	 */
-	public Result instantiate(final QueryResult<S> input) throws FrameworkException {
+	public Result instantiate(final Iterable<S> input) throws FrameworkException {
 
 
 		if (input != null) {
@@ -193,7 +192,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 	}
 
-	protected Result resultWithOffsetId(final QueryResult<S> input) throws FrameworkException {
+	protected Result resultWithOffsetId(final Iterable<S> input) throws FrameworkException {
 
 		final List<S> list       = Iterables.toList(input);
 		int size                 = list.size();
@@ -302,7 +301,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 	}
 
-	protected Result resultWithoutOffsetId(final QueryResult<S> input) throws FrameworkException {
+	protected Result resultWithoutOffsetId(final Iterable<S> input) throws FrameworkException {
 
 		final int pageSize = factoryProfile.getPageSize();
 		final int page     = factoryProfile.getPage();
@@ -336,7 +335,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		}
 	}
 
-	protected Result page(final QueryResult<S> input, final int offset, final int pageSize) throws FrameworkException {
+	protected Result page(final Iterable<S> input, final int offset, final int pageSize) throws FrameworkException {
 
 		final SecurityContext securityContext = factoryProfile.getSecurityContext();
 
@@ -351,15 +350,15 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		int threadCount                            = 1;
 		int rawCount                               = 0;
 
-		final long t0 = System.currentTimeMillis();
+		//final long t0 = System.currentTimeMillis();
 
 		// fill queue with data and count elements
 		for (final S item : input) {
 			queue.add(new Item<>(rawCount++, item));
 		}
 
-		final long t1 = System.currentTimeMillis();
-		long t2       = t1;
+		//final long t1 = System.currentTimeMillis();
+		//long t2       = t1;
 
 		if (rawCount < 100) {
 
@@ -371,7 +370,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 			worker.doRun();
 
-			t2 = System.currentTimeMillis();
+			//t2 = System.currentTimeMillis();
 
 		} else {
 
@@ -422,7 +421,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		// keep initial sort order
 		Collections.sort(nodes);
 
-		final long t3 = System.currentTimeMillis();
+		//final long t3 = System.currentTimeMillis();
 
 		final int size = nodes.size();
 		final int from = Math.min(offset, size);

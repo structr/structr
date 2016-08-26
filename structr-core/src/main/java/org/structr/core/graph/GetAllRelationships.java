@@ -38,7 +38,7 @@ public class GetAllRelationships extends NodeServiceCommand {
 
 		if (graphDb != null) {
 
-			return relationshipFactory.instantiate(graphDb.getAllRelationships());
+			return relationshipFactory.bulkInstantiate(graphDb.getAllRelationships());
 		}
 
 		return Collections.emptyList();

@@ -97,17 +97,20 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 					} catch (FrameworkException fex) {
 
 						logger.log(Level.WARNING, "Unable to set UUID of node {0}: {1}", new Object[] { node, fex.getMessage() });
+						fex.printStackTrace();
 					}
 				}
 
 				@Override
 				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
 					logger.log(Level.WARNING, "Unable to set UUID of node {0}: {1}", new Object[] { node, t.getMessage() });
+					t.printStackTrace();
 				}
 
 				@Override
 				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
 					logger.log(Level.WARNING, "Unable to set UUID on node: {0}", t.getMessage());
+					t.printStackTrace();
 				}
 			});
 

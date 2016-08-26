@@ -24,8 +24,6 @@ import org.structr.common.error.FrameworkException;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -156,7 +154,6 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 	 *
 	 * @param input
 	 * @return relationship
-	 */
 	public List<T> instantiate(final Iterable<Relationship> input) throws FrameworkException {
 
 		List<T> rels = new LinkedList<>();
@@ -175,6 +172,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 
 		return rels;
 	}
+	 */
 
 	@Override
 	public T instantiate(final Relationship obj, final boolean includeDeletedAndHidden, final boolean publicOnly) throws FrameworkException {

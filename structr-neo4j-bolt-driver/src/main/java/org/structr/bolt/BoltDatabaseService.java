@@ -27,8 +27,6 @@ import java.io.Writer;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -52,6 +50,9 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.index.IndexManager;
+import org.structr.api.util.Iterables;
+import org.structr.bolt.mapper.NodeNodeMapper;
+import org.structr.bolt.mapper.RelationshipRelationshipMapper;
 
 /**
  *
@@ -156,26 +157,18 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	public Iterable<Node> getAllNodes() {
 
 		final SessionTransaction tx = getCurrentTransaction();
-		final List<Node> nodes      = new LinkedList<>();
+		final NodeNodeMapper mapper = new NodeNodeMapper(this);
 
-		for (final org.neo4j.driver.v1.types.Node node : tx.getNodes("MATCH (n) RETURN n", Collections.emptyMap())) {
-			nodes.add(NodeWrapper.newInstance(this, node));
-		}
-
-		return nodes;
+		return Iterables.map(mapper, tx.getNodes("MATCH (n) RETURN n", Collections.emptyMap()));
 	}
 
 	@Override
 	public Iterable<Relationship> getAllRelationships() {
 
-		final SessionTransaction tx   = getCurrentTransaction();
-		final List<Relationship> rels = new LinkedList<>();
+		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(this);
+		final SessionTransaction tx                 = getCurrentTransaction();
 
-		for (final org.neo4j.driver.v1.types.Relationship rel : tx.getRelationships("MATCH ()-[r]-() RETURN r", Collections.emptyMap())) {
-			rels.add(RelationshipWrapper.newInstance(this, rel));
-		}
-
-		return rels;
+		return Iterables.map(mapper, tx.getRelationships("MATCH ()-[r]-() RETURN r", Collections.emptyMap()));
 	}
 
 	@Override

@@ -133,12 +133,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 		assertNotStale();
 
-		final SessionTransaction tx   = db.getCurrentTransaction();
-		final Map<String, Object> map = new HashMap<>();
-
-		map.put("id", entity.id());
-
-		return tx.getStrings("CYPHER planner=rule " + getQueryPrefix() + " WHERE ID(n) = {id} RETURN keys(n)", map);
+		return entity.keys();
 	}
 
 	@Override

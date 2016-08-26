@@ -34,7 +34,6 @@ import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.BulkGraphOperation;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeServiceCommand;
-import static org.structr.core.graph.NodeServiceCommand.bulkGraphOperation;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.web.entity.dom.relationship.DOMChildren;
@@ -67,7 +66,7 @@ public class BulkMigrateRelationships extends NodeServiceCommand implements Main
 
 		if (graphDb != null) {
 
-			final Iterator<AbstractRelationship> relIterator = Iterables.map(relFactory, relFactory.instantiate(graphDb.getAllRelationships())).iterator();
+			final Iterator<AbstractRelationship> relIterator = Iterables.map(relFactory, relFactory.bulkInstantiate(graphDb.getAllRelationships())).iterator();
 
 			final long counter = bulkGraphOperation(securityContext, relIterator, 1000, "MigrateRelationships", new BulkGraphOperation<AbstractRelationship>() {
 

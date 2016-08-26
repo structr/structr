@@ -109,7 +109,7 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 	}
 
 	@Override
-	public QueryResult<T> query(final QueryPredicate predicate) {
+	public Iterable<T> query(final QueryPredicate predicate) {
 
 		final CypherQuery query = new CypherQuery(this);
 
@@ -121,20 +121,16 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 			query.sort(predicate.getSortType(), sortKey, predicate.sortDescending());
 		}
 
-		final QueryResult<T> result = getResult(query);
-
-		System.out.println(query);
-
-		return result;
+		return getResult(query);
 	}
 
 	@Override
-	public QueryResult<T> query(final String key, final Object value, final Class typeHint) {
+	public Iterable<T> query(final String key, final Object value, final Class typeHint) {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public QueryResult<T> get(final String key, final Object value, final Class typeHint) {
+	public Iterable<T> get(final String key, final Object value, final Class typeHint) {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 

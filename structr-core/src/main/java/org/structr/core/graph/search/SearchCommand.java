@@ -32,7 +32,6 @@ import org.structr.api.index.Index;
 import org.structr.api.search.Occurrence;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
-import org.structr.api.QueryResult;
 import org.structr.api.index.IndexType;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PagingHelper;
@@ -218,8 +217,8 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			}
 
 			// do query
-			final QueryResult hits = getIndex().query(rootGroup);
-			intermediateResult     = factory.instantiate(hits);
+			final Iterable hits = getIndex().query(rootGroup);
+			intermediateResult  = factory.instantiate(hits);
 		}
 
 		if (intermediateResult != null && (hasEmptySearchFields || hasGraphSources || hasSpatialSource)) {
