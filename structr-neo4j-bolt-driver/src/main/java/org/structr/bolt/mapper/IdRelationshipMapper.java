@@ -21,7 +21,7 @@ package org.structr.bolt.mapper;
 import java.util.function.Function;
 import org.structr.api.graph.Relationship;
 import org.structr.bolt.BoltDatabaseService;
-import org.structr.bolt.RelationshipWrapper;
+import org.structr.bolt.wrapper.RelationshipWrapper;
 
 /**
  *

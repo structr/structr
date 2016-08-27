@@ -63,11 +63,34 @@ import org.structr.bolt.index.factory.TypeQueryFactory;
  */
 public abstract class AbstractCypherIndex<T extends PropertyContainer> implements Index<T>, QueryFactory {
 
-	private static final Logger logger = Logger.getLogger(AbstractCypherIndex.class.getName());
+	private static final Logger logger                       = Logger.getLogger(AbstractCypherIndex.class.getName());
+	public static final TypeConverter DEFAULT_CONVERTER      = new StringTypeConverter();
+	public static final Map<Class, TypeConverter> CONVERTERS = new HashMap<>();
+	public static final Map<Class, QueryFactory> FACTORIES   = new HashMap<>();
 
 	private static final Set<Class> INDEXABLE = new HashSet<>(Arrays.asList(new Class[] {
 		String.class, Boolean.class, Double.class, Integer.class, Long.class, Character.class, Float.class, Date.class
 	}));
+
+	static {
+
+		FACTORIES.put(NotEmptyQuery.class, new NotEmptyQueryFactory());
+		FACTORIES.put(FulltextQuery.class, new KeywordQueryFactory());
+		FACTORIES.put(SpatialQuery.class,  new SpatialQueryFactory());
+		FACTORIES.put(GroupQuery.class,    new GroupQueryFactory());
+		FACTORIES.put(RangeQuery.class,    new RangeQueryFactory());
+		FACTORIES.put(ExactQuery.class,    new KeywordQueryFactory());
+		FACTORIES.put(ArrayQuery.class,    new ArrayQueryFactory());
+		FACTORIES.put(EmptyQuery.class,    new EmptyQueryFactory());
+		FACTORIES.put(TypeQuery.class,     new TypeQueryFactory());
+
+		CONVERTERS.put(Boolean.class, new BooleanTypeConverter());
+		CONVERTERS.put(String.class,  new StringTypeConverter());
+		CONVERTERS.put(Date.class,    new DateTypeConverter());
+		CONVERTERS.put(Long.class,    new LongTypeConverter());
+		CONVERTERS.put(Integer.class, new IntTypeConverter());
+		CONVERTERS.put(Double.class,  new DoubleTypeConverter());
+	}
 
 	protected BoltDatabaseService db = null;
 
@@ -128,41 +151,7 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 		return getResult(query);
 	}
 
-	@Override
-	public Iterable<T> query(final String key, final Object value, final Class typeHint) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	public Iterable<T> get(final String key, final Object value, final Class typeHint) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-
-	public static final TypeConverter DEFAULT_CONVERTER      = new StringTypeConverter();
-	public static final Map<Class, TypeConverter> CONVERTERS = new HashMap<>();
-	public static final Map<Class, QueryFactory> FACTORIES   = new HashMap<>();
-
-	static {
-
-		FACTORIES.put(NotEmptyQuery.class, new NotEmptyQueryFactory());
-		FACTORIES.put(FulltextQuery.class, new KeywordQueryFactory());
-		FACTORIES.put(SpatialQuery.class,  new SpatialQueryFactory());
-		FACTORIES.put(GroupQuery.class,    new GroupQueryFactory());
-		FACTORIES.put(RangeQuery.class,    new RangeQueryFactory());
-		FACTORIES.put(ExactQuery.class,    new KeywordQueryFactory());
-		FACTORIES.put(ArrayQuery.class,    new ArrayQueryFactory());
-		FACTORIES.put(EmptyQuery.class,    new EmptyQueryFactory());
-		FACTORIES.put(TypeQuery.class,     new TypeQueryFactory());
-
-		CONVERTERS.put(Boolean.class, new BooleanTypeConverter());
-		CONVERTERS.put(String.class,  new StringTypeConverter());
-		CONVERTERS.put(Date.class,    new DateTypeConverter());
-		CONVERTERS.put(Long.class,    new LongTypeConverter());
-		CONVERTERS.put(Integer.class, new IntTypeConverter());
-		CONVERTERS.put(Double.class,  new DoubleTypeConverter());
-	}
-
+	// ----- interface QueryFactory -----
 	@Override
 	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final CypherQuery query, final boolean isFirst) {
 

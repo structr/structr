@@ -21,7 +21,7 @@ package org.structr.bolt.mapper;
 import java.util.function.Function;
 import org.structr.api.graph.Node;
 import org.structr.bolt.BoltDatabaseService;
-import org.structr.bolt.NodeWrapper;
+import org.structr.bolt.wrapper.NodeWrapper;
 
 /**
  *

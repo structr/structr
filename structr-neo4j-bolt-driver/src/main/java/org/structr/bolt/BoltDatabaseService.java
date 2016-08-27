@@ -18,6 +18,10 @@
  */
 package org.structr.bolt;
 
+import org.structr.bolt.index.BoltRelationshipIndexer;
+import org.structr.bolt.index.BoltNodeIndexer;
+import org.structr.bolt.wrapper.NodeWrapper;
+import org.structr.bolt.wrapper.RelationshipWrapper;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;

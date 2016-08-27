@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.bolt;
+package org.structr.bolt.wrapper;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -26,6 +26,7 @@ import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.Value;
 import org.structr.api.NativeResult;
 import org.structr.api.util.Iterables;
+import org.structr.bolt.BoltDatabaseService;
 
 /**
  *

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.bolt;
+package org.structr.bolt.wrapper;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -24,6 +24,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.structr.bolt.BoltDatabaseService;
 
 /**
  *

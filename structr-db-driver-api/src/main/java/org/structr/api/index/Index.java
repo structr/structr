@@ -31,6 +31,4 @@ public interface Index<T> {
 	void remove(final T t, final String key);
 
 	Iterable<T> query(final QueryPredicate predicate);
-	Iterable<T> query(final String key, final Object value, final Class typeHint);
-	Iterable<T> get(final String key, final Object value, final Class typeHint);
 }

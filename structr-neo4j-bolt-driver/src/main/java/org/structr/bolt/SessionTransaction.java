@@ -18,6 +18,8 @@
  */
 package org.structr.bolt;
 
+import org.structr.bolt.wrapper.EntityWrapper;
+import org.structr.bolt.wrapper.StatementResultWrapper;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;

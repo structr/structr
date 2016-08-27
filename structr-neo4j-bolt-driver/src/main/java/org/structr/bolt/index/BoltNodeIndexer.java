@@ -16,56 +16,54 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.bolt;
+package org.structr.bolt.index;
 
-import org.structr.api.graph.Relationship;
+import org.structr.api.graph.Node;
 import org.structr.api.index.Index;
 import org.structr.api.index.IndexManager;
-import org.structr.bolt.index.CypherRelationshipIndex;
+import org.structr.bolt.BoltDatabaseService;
 
 /**
  *
  * @author Christian Morgner
  */
-public class BoltRelationshipIndexer implements IndexManager<Relationship> {
+public class BoltNodeIndexer implements IndexManager<Node> {
 
 	private BoltDatabaseService db = null;
-	private Index<Relationship> fulltext   = null;
-	private Index<Relationship> exact      = null;
-	private Index<Relationship> spatial    = null;
+	private Index<Node> index      = null;
 
-	public BoltRelationshipIndexer(final BoltDatabaseService db) {
+	public BoltNodeIndexer(final BoltDatabaseService db) {
 		this.db = db;
 	}
 
 	@Override
-	public Index<Relationship> fulltext() {
-
-		if (fulltext == null) {
-			fulltext = new CypherRelationshipIndex(db);
-		}
-
-		return fulltext;
+	public Index<Node> fulltext() {
+		return getIndex();
 	}
 
 	@Override
-	public Index<Relationship> exact() {
-
-		if (exact == null) {
-			exact = new CypherRelationshipIndex(db);
-		}
-
-		return exact;
+	public Index<Node> exact() {
+		return getIndex();
 	}
 
 	@Override
-	public Index<Relationship> spatial() {
-
-		if (spatial == null) {
-			spatial = new CypherRelationshipIndex(db);
-		}
-
-		return spatial;
+	public Index<Node> spatial() {
+		return getIndex();
 	}
 
+	// ----- private methods -----
+	private Index<Node> getIndex() {
+
+		if (index == null) {
+
+			index = new CypherNodeIndex(db);
+
+			db.execute("CREATE INDEX ON :AbstractNode(type)");
+			db.execute("CREATE INDEX ON :AbstractNode(name)");
+			db.execute("CREATE INDEX ON :AbstractFile(name)");
+			db.execute("CREATE INDEX ON :Page(name)");
+		}
+
+		return index;
+	}
 }

@@ -390,7 +390,7 @@ var _Filesystem = {
 				url = url + '&indexedWords=' + str;
 			});
 		} else {
-			url = rootUrl + 'files/ui?indexedWords=' + searchString;
+			url = rootUrl + 'files/ui?loose=1&indexedWords=' + searchString;
 		}
 
 		_Filesystem.displaySearchResultsForURL(url);

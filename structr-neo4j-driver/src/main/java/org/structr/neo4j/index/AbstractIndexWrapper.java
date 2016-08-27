@@ -19,7 +19,6 @@
 package org.structr.neo4j.index;
 
 import org.structr.api.graph.PropertyContainer;
-import org.structr.api.QueryResult;
 import org.structr.api.index.Index;
 import org.structr.neo4j.Neo4jDatabaseService;
 import org.structr.neo4j.wrapper.NodeWrapper;
@@ -54,16 +53,6 @@ public abstract class AbstractIndexWrapper<S extends org.neo4j.graphdb.PropertyC
 	@Override
 	public void remove(final T t, final String key) {
 		index.remove(unwrap(t), key);
-	}
-
-	@Override
-	public QueryResult<T> query(final String key, final Object value, final Class typeHint) {
-		return new IndexHitsWrapper<>(graphDb, index.query(key, convertForQuerying(value, typeHint)));
-	}
-
-	@Override
-	public QueryResult<T> get(final String key, final Object value, final Class typeHint) {
-		return new IndexHitsWrapper<>(graphDb, index.get(key, convertForQuerying(value, typeHint)));
 	}
 
 	// ----- protected methods -----

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.bolt;
+package org.structr.bolt.wrapper;
 
 import java.util.HashMap;
 import java.util.List;
@@ -27,6 +27,8 @@ import org.neo4j.driver.v1.types.Entity;
 import org.structr.api.NotFoundException;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.graph.PropertyContainer;
+import org.structr.bolt.BoltDatabaseService;
+import org.structr.bolt.SessionTransaction;
 
 /**
  *
@@ -34,9 +36,9 @@ import org.structr.api.graph.PropertyContainer;
  */
 public abstract class EntityWrapper<T extends Entity> implements PropertyContainer {
 
-	protected BoltDatabaseService db = null;
-	protected boolean stale          = false;
-	protected T entity               = null;
+	protected BoltDatabaseService db        = null;
+	protected boolean stale                 = false;
+	protected T entity                      = null;
 
 	public EntityWrapper(final BoltDatabaseService db, final T entity) {
 
@@ -65,20 +67,31 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 		assertNotStale();
 
-		final Value src = entity.get(name);
-		if (src.isNull()) {
+		try {
 
-			return null;
+			final Value src = entity.get(name);
+			if (src.isNull()) {
+
+				return null;
+			}
+
+			final Object value = src.asObject();
+			if (value instanceof List) {
+
+				// convert list to array
+				return ((List)value).toArray(new String[0]);
+			}
+
+			return value;
+
+		} catch (org.neo4j.graphdb.NotInTransactionException t) {
+
+			throw new NotInTransactionException(t);
+
+		} catch (Throwable t) {
+
+			throw new NotFoundException(t);
 		}
-
-		final Object value = src.asObject();
-		if (value instanceof List) {
-
-			// convert list to array
-			return ((List)value).toArray(new String[0]);
-		}
-
-		return value;
 	}
 
 	@Override

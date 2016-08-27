@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.bolt;
+package org.structr.bolt.wrapper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,6 +24,8 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.util.FixedSizeCache;
+import org.structr.bolt.BoltDatabaseService;
+import org.structr.bolt.SessionTransaction;
 
 /**
  *
