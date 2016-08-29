@@ -40,6 +40,7 @@ import org.structr.core.parser.IfExpression;
 import org.structr.core.parser.NullExpression;
 import org.structr.core.parser.RootExpression;
 import org.structr.core.parser.ValueExpression;
+import org.structr.core.parser.function.PrivilegedFindFunction;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -319,6 +320,7 @@ public class Functions {
 		functions.put("changelog", new ChangelogFunction());
 		functions.put("timer", new TimerFunction());
 		functions.put("str_replace", new StrReplaceFunction());
+                functions.put("privileged_find", new PrivilegedFindFunction());
 
 		// ----- BEGIN functions with side effects -----
 		functions.put("retrieve", new RetrieveFunction());

@@ -48,6 +48,7 @@ import org.structr.core.function.DateFormatFunction;
 import org.structr.core.function.FindFunction;
 import org.structr.core.function.NumberFormatFunction;
 import org.structr.core.function.RoundFunction;
+import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 
 /**
@@ -1145,7 +1146,7 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid find() result", FindFunction.ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED, Scripting.replaceVariables(ctx, testOne, "${find(this.alwaysNull)}"));
 			assertEquals("Invalid find() result", FindFunction.ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED, Scripting.replaceVariables(ctx, testOne, "${find(this.alwaysNull, this.alwaysNull)}"));
 			assertEquals("Invalid find() result", FindFunction.ERROR_MESSAGE_FIND_TYPE_NOT_FOUND + "NonExistingType", Scripting.replaceVariables(ctx, testOne, "${find('NonExistingType')}"));
-			
+
 			// search
 			assertEquals("Invalid search() result", testOne.getUuid(), Scripting.replaceVariables(ctx, testTwo, "${first(search('TestOne', 'name', 'A-nice-little-name-for-my-test-object'))}"));
 			assertEquals("Invalid search() result", testOne.getUuid(), Scripting.replaceVariables(ctx, testTwo, "${first(search('TestOne', 'name', '*little-name-for-my-test-object'))}"));
@@ -1334,6 +1335,49 @@ public class ActionContextTest extends StructrTest {
 			fail("Unexpected exception");
 
 		}
+	}
+
+
+	public void testPrivilegedFind () {
+
+		final ActionContext ctx = new ActionContext(securityContext, null);
+
+		TestOne testNode = null;
+                String uuid ="";
+
+		try (final Tx tx = app.tx()) {
+
+			testNode = createTestNode(TestOne.class);
+			testNode.setProperty(TestOne.aString, "InitialString");
+			testNode.setProperty(TestOne.anInt, 42);
+                        uuid = testNode.getProperty(new StringProperty("id"));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.WARNING, "", ex);
+			fail("Unexpected exception");
+
+		}
+
+		try (final Tx tx = app.tx()) {
+
+                        assertEquals("JavaScript: Trying to find entity with type,key,value!", "InitialString", Scripting.replaceVariables(ctx, testNode, "${{ var t1 = Structr.first(Structr.privileged_find('TestOne','anInt','42')); Structr.print(t1.aString); }}"));
+
+                        assertEquals("JavaScript: Trying to find entity with type,id!", "InitialString", Scripting.replaceVariables(ctx, testNode, "${{ var t1 = Structr.privileged_find('TestOne','"+uuid+"'); Structr.print(t1.aString); }}"));
+
+                        assertEquals("JavaScript: Trying to find entity with type,key,value,key,value!", "InitialString", Scripting.replaceVariables(ctx, testNode, "${{ var t1 = Structr.first(Structr.privileged_find('TestOne','anInt','42','aString','InitialString')); Structr.print(t1.aString); }}"));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+                        logger.log(Level.WARNING, "", ex);
+                        fail("Unexpected exception");
+
+                }
+
 	}
 
 }
