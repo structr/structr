@@ -85,7 +85,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	private static final Logger logger = Logger.getLogger(AbstractRelationship.class.getName());
 
-	public static final Property<Integer>       cascadeDelete               = new IntProperty("cascadeDelete");
+	public static final Property<Integer>       cascadeDelete              = new IntProperty("cascadeDelete");
 	public static final Property<String>        relType                    = new RelationshipTypeProperty("relType");
 	public static final SourceId                sourceId                   = new SourceId("sourceId");
 	public static final TargetId                targetId                   = new TargetId("targetId");
@@ -608,30 +608,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			readOnlyPropertiesUnlocked       = false;
 
 		}
-
-//		try {
-//
-//			// check for read-only properties
-//			//if (StructrApp.getConfiguration().isReadOnlyProperty(type, key) || (StructrApp.getConfiguration().isWriteOnceProperty(type, key) && (dbRelationship != null) && dbRelationship.hasProperty(key.name()))) {
-//			if (key.isReadOnly() || (key.isWriteOnce() && (dbRelationship != null) && dbRelationship.hasProperty(key.dbName()))) {
-//
-//				if (!readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
-//
-//					throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
-//
-//				}
-//
-//			}
-//
-//			return key.setProperty(securityContext, this, value);
-//
-//		} finally {
-//
-//			// unconditionally lock read-only properties after every write (attempt) to avoid security problems
-//			// since we made "unlock_readonly_properties_once" available through scripting
-//			this.readOnlyPropertiesUnlocked = false;
-//
-//		}
 	}
 
 	@Override
@@ -656,16 +632,14 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public void removeFromIndex() {
 
-		for (Index<Relationship> index : Services.getInstance().getService(NodeService.class).getRelationshipIndices()) {
-			index.remove(dbRelationship);
-		}
+		final Index<Relationship> index = Services.getInstance().getService(NodeService.class).getRelationshipIndex();
+		index.remove(dbRelationship);
 	}
 
 	public void removeFromIndex(PropertyKey key) {
 
-		for (Index<Relationship> index : Services.getInstance().getService(NodeService.class).getRelationshipIndices()) {
-			index.remove(dbRelationship, key.dbName());
-		}
+		final Index<Relationship> index = Services.getInstance().getService(NodeService.class).getRelationshipIndex();
+		index.remove(dbRelationship, key.dbName());
 	}
 
 	@Override

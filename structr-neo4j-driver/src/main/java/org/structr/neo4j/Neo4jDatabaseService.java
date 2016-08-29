@@ -49,10 +49,9 @@ import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.Transaction;
 import org.structr.api.config.Structr;
+import org.structr.api.index.Index;
 import org.structr.api.index.IndexManager;
 import org.structr.api.util.FixedSizeCache;
-import org.structr.neo4j.index.lucene.NodeIndexManager;
-import org.structr.neo4j.index.lucene.RelationshipIndexManager;
 import org.structr.neo4j.mapper.NodeMapper;
 import org.structr.neo4j.mapper.RelationshipMapper;
 import org.structr.neo4j.wrapper.NodeWrapper;
@@ -227,25 +226,13 @@ public class Neo4jDatabaseService implements DatabaseService, GraphProperties {
 	}
 
 	@Override
-	public IndexManager<Node> nodeIndexer() {
-
-		if (nodeIndexer == null) {
-
-			nodeIndexer = new NodeIndexManager(this);
-		}
-
-		return nodeIndexer;
+	public Index<Node> nodeIndex() {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public IndexManager<Relationship> relationshipIndexer() {
-
-		if (relationshipIndexer == null) {
-
-			relationshipIndexer = new RelationshipIndexManager(this);
-		}
-
-		return relationshipIndexer;
+	public Index<Relationship> relationshipIndex() {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override

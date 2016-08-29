@@ -23,7 +23,6 @@ import org.structr.common.PropertyView;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeService;
 import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -38,7 +37,7 @@ public interface Indexable extends NodeInterface {
 
 	public static final Property<String> contentType      = new StringProperty("contentType").indexedWhenEmpty();
 	public static final Property<String> extractedContent = new StringProperty("extractedContent");
-	public static final Property<String[]> indexedWords   = new ArrayProperty("indexedWords", String.class).indexed(NodeService.NodeIndex.keyword);
+	public static final Property<String[]> indexedWords   = new ArrayProperty("indexedWords", String.class).indexed();
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(Indexable.class, PropertyView.Public,
 		contentType

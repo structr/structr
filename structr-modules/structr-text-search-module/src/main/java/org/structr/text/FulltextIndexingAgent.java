@@ -158,7 +158,7 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 
 					// index document excluding stop words
 					final NodeService nodeService       = Services.getInstance().getService(NodeService.class);
-					final Index<Node> fulltextIndex     = nodeService.getNodeIndex(NodeService.NodeIndex.fulltext);
+					final Index<Node> fulltextIndex     = nodeService.getNodeIndex();
 					final Set<String> stopWords         = languageStopwordMap.get(tokenizer.getLanguage());
 					final String indexKeyName           = Indexable.indexedWords.jsonName();
 					final Iterator<String> wordIterator = tokenizer.getWords().iterator();

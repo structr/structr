@@ -18,8 +18,6 @@
  */
 package org.structr.bolt;
 
-import org.structr.bolt.index.BoltRelationshipIndexer;
-import org.structr.bolt.index.BoltNodeIndexer;
 import org.structr.bolt.wrapper.NodeWrapper;
 import org.structr.bolt.wrapper.RelationshipWrapper;
 import java.io.File;
@@ -54,8 +52,10 @@ import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
-import org.structr.api.index.IndexManager;
+import org.structr.api.index.Index;
 import org.structr.api.util.Iterables;
+import org.structr.bolt.index.CypherNodeIndex;
+import org.structr.bolt.index.CypherRelationshipIndex;
 import org.structr.bolt.mapper.NodeNodeMapper;
 import org.structr.bolt.mapper.RelationshipRelationshipMapper;
 
@@ -69,10 +69,10 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	private static final Map<String, RelationshipType> relTypeCache   = new ConcurrentHashMap<>();
 	private static final Map<String, Label> labelCache                = new ConcurrentHashMap<>();
 	private static final ThreadLocal<SessionTransaction> sessions     = new ThreadLocal<>();
-	private boolean debugLogging                                      = false;
-	private BoltRelationshipIndexer relationshipIndexer               = null;
-	private BoltNodeIndexer nodeIndexer                               = null;
+	private CypherRelationshipIndex relationshipIndex                 = null;
+	private CypherNodeIndex nodeIndex                                 = null;
 	private GraphDatabaseService graphDb                              = null;
+	private boolean debugLogging                                      = false;
 	private String databasePath                                       = null;
 	private Driver driver                                             = null;
 
@@ -194,23 +194,23 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	}
 
 	@Override
-	public IndexManager<Node> nodeIndexer() {
+	public Index<Node> nodeIndex() {
 
-		if (nodeIndexer == null) {
-			nodeIndexer = new BoltNodeIndexer(this);
+		if (nodeIndex == null) {
+			nodeIndex = new CypherNodeIndex(this);
 		}
 
-		return nodeIndexer;
+		return nodeIndex;
 	}
 
 	@Override
-	public IndexManager<Relationship> relationshipIndexer() {
+	public Index<Relationship> relationshipIndex() {
 
-		if (relationshipIndexer == null) {
-			relationshipIndexer = new BoltRelationshipIndexer(this);
+		if (relationshipIndex == null) {
+			relationshipIndex = new CypherRelationshipIndex(this);
 		}
 
-		return relationshipIndexer;
+		return relationshipIndex;
 	}
 
 	@Override

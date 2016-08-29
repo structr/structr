@@ -19,6 +19,7 @@
 package org.structr.bolt.wrapper;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.neo4j.driver.v1.Value;
@@ -120,7 +121,39 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		map.put("value", value);
 
 		// update entity handle
-		entity = (T)tx.getEntity("CYPHER planner=rule " + getQueryPrefix() + " WHERE ID(n) = {id} SET n.`" + key + "` = {value} RETURN n", map);
+		entity = (T)tx.getEntity(getQueryPrefix() + " WHERE ID(n) = {id} SET n.`" + key + "` = {value} RETURN n", map);
+
+		tx.modified(this);
+	}
+
+	@Override
+	public void setProperties(final Map<String, Object> values) {
+
+		assertNotStale();
+
+		final SessionTransaction tx   = db.getCurrentTransaction();
+		final Map<String, Object> map = new HashMap<>(values);
+		final StringBuilder buf       = new StringBuilder();
+
+		// overwrite a potential "id" property
+		map.put("id", entity.id());
+
+		for (Iterator<String> it = values.keySet().iterator(); it.hasNext();) {
+
+			final String key = it.next();
+
+			buf.append("n.`");
+			buf.append(key);
+			buf.append("` = {");
+			buf.append(key);
+
+			if (it.hasNext()) {
+				buf.append(", ");
+			}
+		}
+
+		// update entity handle
+		entity = (T)tx.getEntity(getQueryPrefix() + " WHERE ID(n) = {id} SET " + buf + " RETURN n", map);
 
 		tx.modified(this);
 	}
@@ -136,7 +169,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		map.put("id", entity.id());
 
 		// update entity handle
-		entity = (T)tx.getEntity("CYPHER planner=rule " + getQueryPrefix() + " WHERE ID(n) = {id} SET n.`" + key + "` = Null RETURN n", map);
+		entity = (T)tx.getEntity(getQueryPrefix() + " WHERE ID(n) = {id} SET n.`" + key + "` = Null RETURN n", map);
 
 		tx.modified(this);
 	}
@@ -159,7 +192,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 		map.put("id", entity.id());
 
-		tx.set("CYPHER planner=rule " + getQueryPrefix() + " WHERE ID(n) = {id} DELETE n", map);
+		tx.set(getQueryPrefix() + " WHERE ID(n) = {id} DELETE n", map);
 		tx.modified(this);
 
 		invalidate();
@@ -199,7 +232,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 			try {
 
 				// check if entity has been deleted
-				entity = (T)tx.getEntity("CYPHER planner=rule " + getQueryPrefix() + " WHERE ID(n) = {id} RETURN n", map);
+				entity = (T)tx.getEntity(getQueryPrefix() + " WHERE ID(n) = {id} RETURN n", map);
 
 			} catch (NoSuchRecordException nex) {
 				throw new NotFoundException(nex);

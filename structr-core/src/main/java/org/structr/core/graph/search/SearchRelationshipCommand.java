@@ -22,7 +22,6 @@ import org.structr.api.index.Index;
 import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.core.graph.Factory;
-import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
 
@@ -39,18 +38,8 @@ public class SearchRelationshipCommand<T extends RelationshipInterface> extends 
 	}
 
 	@Override
-	public Index<Relationship> getFulltextIndex() {
-		return  (Index<Relationship>) arguments.get(NodeService.RelationshipIndex.rel_fulltext.name());
-	}
-
-	@Override
-	public Index<Relationship> getKeywordIndex() {
-		return  (Index<Relationship>) arguments.get(NodeService.RelationshipIndex.rel_keyword.name());
-	}
-
-	@Override
-	public Index<Relationship> getSpatialIndex() {
-		return null;
+	public Index<Relationship> getIndex() {
+		return  (Index<Relationship>) arguments.get("relationshipIndex");
 	}
 
 	@Override

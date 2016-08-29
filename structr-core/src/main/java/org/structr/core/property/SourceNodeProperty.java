@@ -39,7 +39,7 @@ public class SourceNodeProperty extends Property<NodeInterface> {
 
 	public SourceNodeProperty(final String name) {
 		super(name);
-		super.passivelyIndexed();
+		passivelyIndexed();
 	}
 
 	@Override

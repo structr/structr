@@ -39,7 +39,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.EmptySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SourceSearchAttribute;
@@ -77,27 +76,7 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	}
 
 	@Override
-	public Property<List<T>> indexed(NodeService.NodeIndex nodeIndex) {
-		return this;
-	}
-
-	@Override
-	public Property<List<T>> indexed(NodeService.RelationshipIndex relIndex) {
-		return this;
-	}
-
-	@Override
 	public Property<List<T>> passivelyIndexed() {
-		return this;
-	}
-
-	@Override
-	public Property<List<T>> passivelyIndexed(NodeService.NodeIndex nodeIndex) {
-		return this;
-	}
-
-	@Override
-	public Property<List<T>> passivelyIndexed(NodeService.RelationshipIndex relIndex) {
 		return this;
 	}
 

@@ -28,7 +28,6 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.common.SecurityContext;
 import org.structr.core.graph.Factory;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeService;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -58,18 +57,8 @@ public class SearchNodeCommand<T extends NodeInterface> extends SearchCommand<No
 	}
 
 	@Override
-	public Index<Node> getFulltextIndex() {
-		return  (Index<Node>) arguments.get(NodeService.NodeIndex.fulltext.name());
-	}
-
-	@Override
-	public Index<Node> getKeywordIndex() {
-		return  (Index<Node>) arguments.get(NodeService.NodeIndex.keyword.name());
-	}
-
-	@Override
-	public Index<Node> getSpatialIndex() {
-		 return (Index<Node>) arguments.get(NodeService.NodeIndex.layer.name());
+	public Index<Node> getIndex() {
+		return  (Index<Node>) arguments.get("nodeIndex");
 	}
 
 	@Override

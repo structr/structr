@@ -31,7 +31,6 @@ import org.structr.core.PropertyValidator;
 import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.SearchAttribute;
 
 /**
@@ -285,28 +284,8 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public Property<T> indexed(NodeService.NodeIndex nodeIndex) {
-		return propertyKey.indexed(nodeIndex);
-	}
-
-	@Override
-	public Property<T> indexed(NodeService.RelationshipIndex relIndex) {
-		return propertyKey.indexed(relIndex);
-	}
-
-	@Override
 	public Property<T> passivelyIndexed() {
 		return propertyKey.passivelyIndexed();
-	}
-
-	@Override
-	public Property<T> passivelyIndexed(NodeService.NodeIndex nodeIndex) {
-		return propertyKey.passivelyIndexed(nodeIndex);
-	}
-
-	@Override
-	public Property<T> passivelyIndexed(NodeService.RelationshipIndex relIndex) {
-		return propertyKey.passivelyIndexed(relIndex);
 	}
 
 	@Override
@@ -382,5 +361,10 @@ public class Reference<T> implements PropertyKey<T> {
 	@Override
 	public boolean isCMISProperty() {
 		return propertyKey.isCMISProperty();
+	}
+
+	@Override
+	public int compareTo(PropertyKey o) {
+		return propertyKey.compareTo(o);
 	}
 }

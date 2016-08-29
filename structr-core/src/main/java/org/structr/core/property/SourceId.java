@@ -38,7 +38,7 @@ public class SourceId extends Property<String> {
 
 	public SourceId(final String name) {
 		super(name);
-		super.passivelyIndexed();
+		passivelyIndexed();
 	}
 
 	@Override

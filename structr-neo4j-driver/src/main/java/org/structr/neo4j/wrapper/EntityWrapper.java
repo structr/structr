@@ -20,6 +20,7 @@ package org.structr.neo4j.wrapper;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.structr.api.NotFoundException;
@@ -134,6 +135,15 @@ public abstract class EntityWrapper<T extends org.neo4j.graphdb.PropertyContaine
 		} catch (Throwable t) {
 
 			throw new NotFoundException(t);
+		}
+	}
+
+	@Override
+	public void setProperties(final Map<String, Object> values) {
+
+		for (final Entry<String, Object> entry : values.entrySet()) {
+
+			setProperty(entry.getKey(), entry.getValue());
 		}
 	}
 

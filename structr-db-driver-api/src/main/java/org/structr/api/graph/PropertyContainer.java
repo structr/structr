@@ -18,6 +18,7 @@
  */
 package org.structr.api.graph;
 
+import java.util.Map;
 import org.structr.api.NotInTransactionException;
 
 /**
@@ -31,6 +32,7 @@ public interface PropertyContainer {
 	Object getProperty(final String name);
 	Object getProperty(final String name, final Object defaultValue);
 	void setProperty(final String name, final Object value);
+	void setProperties(final Map<String, Object> values);
 	void removeProperty(final String name);
 
 	Iterable<String> getPropertyKeys();

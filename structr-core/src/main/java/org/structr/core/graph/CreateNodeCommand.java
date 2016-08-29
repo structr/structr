@@ -133,13 +133,14 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 				for (Entry<PropertyKey, Object> attr : properties.entrySet()) {
 
-					final Object value = attr.getValue();
-					PropertyKey key = attr.getKey();
+					final Object value    = attr.getValue();
+					final PropertyKey key = attr.getKey();
+
 					if (key.isSystemInternal()) {
 						node.unlockSystemPropertiesOnce();
 					}
-					node.setProperty(key, value);
 
+					node.setProperty(key, value);
 				}
 
 				properties.clear();

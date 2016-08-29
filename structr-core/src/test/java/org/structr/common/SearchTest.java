@@ -50,6 +50,8 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.SixOneManyToMany;
+import org.structr.core.entity.TestSix;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -471,5 +473,48 @@ public class SearchTest extends StructrTest {
 			fail("Unexpected exception");
 
 		}
+	}
+
+	public void test09SearchBySourceAndTargetId() {
+
+		try  {
+
+			final TestOne test1       = createTestNode(TestOne.class);
+			final List<TestSix> tests = createTestNodes(TestSix.class, 5);
+
+			try (final Tx tx = app.tx()) {
+
+				test1.setProperty(TestOne.manyToManyTestSixs, tests);
+
+				tx.success();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				final List<SixOneManyToMany> result1 = app.relationshipQuery(SixOneManyToMany.class).and(SixOneManyToMany.sourceId, tests.get(0).getUuid()).getAsList();
+
+				assertEquals("Invalid sourceId query result", 1, result1.size());
+
+				tx.success();
+
+			}
+
+
+			try (final Tx tx = app.tx()) {
+
+				final List<SixOneManyToMany> result1 = app.relationshipQuery(SixOneManyToMany.class).and(SixOneManyToMany.targetId, test1.getUuid()).getAsList();
+
+				assertEquals("Invalid targetId query result", 5, result1.size());
+
+				tx.success();
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
 	}
 }

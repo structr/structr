@@ -30,7 +30,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.SearchAttribute;
 
 /**
@@ -39,7 +38,7 @@ import org.structr.core.graph.search.SearchAttribute;
  *
  * @param <T>
  */
-public interface PropertyKey<T> {
+public interface PropertyKey<T> extends Comparable<PropertyKey> {
 
 	/**
 	 * Return the JSON name of this property.
@@ -84,24 +83,6 @@ public interface PropertyKey<T> {
 	public Property<T> indexed();
 
 	/**
-	 * Use this method to mark a property for indexing
-	 * in the given index.
-	 *
-	 * @param nodeIndex
-	 * @return the Property to satisfy the builder pattern
-	 */
-	public Property<T> indexed(final NodeService.NodeIndex nodeIndex);
-
-	/**
-	 * Use this method to mark a property for indexing
-	 * in the given index.
-	 *
-	 * @param relIndex
-	 * @return the Property to satisfy the builder pattern
-	 */
-	public Property<T> indexed(final NodeService.RelationshipIndex relIndex);
-
-	/**
 	 * Use this method to indicate that a property key can change its value
 	 * without setProperty() being called directly on it. This method causes
 	 * the given property to be indexed at the end of a transaction instead
@@ -112,29 +93,6 @@ public interface PropertyKey<T> {
 	 * @return the Property to satisfy the builder pattern
 	 */
 	public Property<T> passivelyIndexed();
-
-	/**
-	 * Use this method to indicate that a property key can change its value
-	 * without setProperty() being called directly on it. This method causes
-	 * the given property to be indexed at the end of a transaction instead
-	 * of immediately on setProperty().
-	 *
-	 * @param nodeIndex
-	 * @return the Property to satisfy the builder pattern
-	 */
-	public Property<T> passivelyIndexed(final NodeService.NodeIndex nodeIndex);
-
-	/**
-	 * Use this method to indicate that a property key can change its value
-	 * without setProperty() being called directly on it. This method causes
-	 * the given property to be indexed at the end of a transaction instead
-	 * of immediately on setProperty().
-	 *
-	 * @param relIndex
-	 * @return the Property to satisfy the builder pattern
-	 */
-	public Property<T> passivelyIndexed(final NodeService.RelationshipIndex relIndex);
-
 
 	public Property<T> indexedWhenEmpty();
 

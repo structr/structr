@@ -19,7 +19,6 @@
 package org.structr.core.property;
 
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -46,8 +45,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
-import org.structr.core.graph.NodeService.NodeIndex;
-import org.structr.core.graph.NodeService.RelationshipIndex;
 import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 
@@ -83,9 +80,6 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected String writeFunction                         = null;
 
 	private boolean requiresSynchronization                = false;
-
-	protected Set<RelationshipIndex> relationshipIndices   = new LinkedHashSet<>();
-	protected Set<NodeIndex> nodeIndices                   = new LinkedHashSet<>();
 
 	protected Property(final String name) {
 		this(name, name);
@@ -178,34 +172,6 @@ public abstract class Property<T> implements PropertyKey<T> {
 		this.indexed = true;
 		this.searchable = true;
 
-		nodeIndices.add(NodeIndex.fulltext);
-		nodeIndices.add(NodeIndex.keyword);
-
-		relationshipIndices.add(RelationshipIndex.rel_fulltext);
-		relationshipIndices.add(RelationshipIndex.rel_keyword);
-
-		return this;
-	}
-
-	@Override
-	public Property<T> indexed(NodeIndex nodeIndex) {
-
-		this.indexed = true;
-		this.searchable = true;
-
-		nodeIndices.add(nodeIndex);
-
-		return this;
-	}
-
-	@Override
-	public Property<T> indexed(final RelationshipIndex relIndex) {
-
-		this.indexed = true;
-		this.searchable = true;
-
-		relationshipIndices.add(relIndex);
-
 		return this;
 	}
 
@@ -216,34 +182,6 @@ public abstract class Property<T> implements PropertyKey<T> {
 		this.indexed = true;
 		this.searchable = true;
 
-		nodeIndices.add(NodeIndex.fulltext);
-		nodeIndices.add(NodeIndex.keyword);
-
-		relationshipIndices.add(RelationshipIndex.rel_fulltext);
-		relationshipIndices.add(RelationshipIndex.rel_keyword);
-
-		return this;
-	}
-
-	@Override
-	public Property<T> passivelyIndexed(final NodeIndex nodeIndex) {
-
-		this.indexedPassively = true;
-		this.indexed = true;
-		this.searchable = true;
-
-		nodeIndices.add(nodeIndex);
-		return this;
-	}
-
-	@Override
-	public Property<T> passivelyIndexed(final RelationshipIndex relIndex) {
-
-		this.indexedPassively = true;
-		this.indexed = true;
-		this.searchable = true;
-
-		relationshipIndices.add(relIndex);
 		return this;
 	}
 
@@ -491,24 +429,21 @@ public abstract class Property<T> implements PropertyKey<T> {
 			AbstractNode node       = (AbstractNode)entity;
 			Node dbNode             = node.getNode();
 
-			for (NodeIndex indexName : nodeIndices()) {
+			Index<Node> index = nodeService.getNodeIndex();
+			if (index != null) {
 
-				Index<Node> index = nodeService.getNodeIndex(indexName);
-				if (index != null) {
+				try {
 
-					try {
+					index.remove(dbNode, dbName);
 
-						index.remove(dbNode, dbName);
-
-						if (value != null || isIndexedWhenEmpty()) {
-							index.add(dbNode, dbName, value, valueType());
-						}
-
-					} catch (Throwable t) {
-
-						logger.log(Level.INFO, "Unable to index property with dbName {0} and value {1} of type {2} on {3}: {4}", new Object[] { dbName, value, this.getClass().getSimpleName(), entity, t } );
-						logger.log(Level.WARNING, "", t);
+					if (value != null || isIndexedWhenEmpty()) {
+						index.add(dbNode, dbName, value, valueType());
 					}
+
+				} catch (Throwable t) {
+
+					logger.log(Level.INFO, "Unable to index property with dbName {0} and value {1} of type {2} on {3}: {4}", new Object[] { dbName, value, this.getClass().getSimpleName(), entity, t } );
+					logger.log(Level.WARNING, "", t);
 				}
 			}
 
@@ -518,23 +453,20 @@ public abstract class Property<T> implements PropertyKey<T> {
 			AbstractRelationship rel = (AbstractRelationship)entity;
 			Relationship dbRel       = rel.getRelationship();
 
-			for (RelationshipIndex indexName : relationshipIndices()) {
+			Index<Relationship> index = nodeService.getRelationshipIndex();
+			if (index != null) {
 
-				Index<Relationship> index = nodeService.getRelationshipIndex(indexName);
-				if (index != null) {
+				try {
 
-					try {
+					index.remove(dbRel, dbName);
 
-						index.remove(dbRel, dbName);
-
-						if (value != null || isIndexedWhenEmpty()) {
-							index.add(dbRel, dbName, value, valueType());
-						}
-
-					} catch (Throwable t) {
-
-						logger.log(Level.INFO, "Unable to index property with dbName {0} and value {1} of type {2} on {3}: {4}", new Object[] { dbName, value, this.getClass().getSimpleName(), entity, t } );
+					if (value != null || isIndexedWhenEmpty()) {
+						index.add(dbRel, dbName, value, valueType());
 					}
+
+				} catch (Throwable t) {
+
+					logger.log(Level.INFO, "Unable to index property with dbName {0} and value {1} of type {2} on {3}: {4}", new Object[] { dbName, value, this.getClass().getSimpleName(), entity, t } );
 				}
 			}
 		}
@@ -588,14 +520,6 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return 0;
 	}
 
-	public Set<NodeIndex> nodeIndices() {
-		return nodeIndices;
-	}
-
-	public Set<RelationshipIndex> relationshipIndices() {
-		return relationshipIndices;
-	}
-
 	// ----- CMIS support -----
 	@Override
 	public PropertyType getDataType() {
@@ -605,6 +529,12 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public boolean isCMISProperty() {
 		return isCMISProperty;
+	}
+
+	// ----- interface Comparable -----
+	@Override
+	public int compareTo(final PropertyKey other) {
+		return dbName().compareTo(other.dbName());
 	}
 
 	// ----- protected methods -----

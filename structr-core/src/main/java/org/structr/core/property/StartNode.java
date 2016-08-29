@@ -36,8 +36,6 @@ import org.structr.core.entity.Target;
 import org.structr.core.entity.OneStartpoint;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeService.NodeIndex;
-import org.structr.core.graph.NodeService.RelationshipIndex;
 import org.structr.core.graph.search.EmptySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SourceSearchAttribute;
@@ -169,27 +167,7 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	}
 
 	@Override
-	public Property<S> indexed(NodeIndex nodeIndex) {
-		return this;
-	}
-
-	@Override
-	public Property<S> indexed(RelationshipIndex relIndex) {
-		return this;
-	}
-
-	@Override
 	public Property<S> passivelyIndexed() {
-		return this;
-	}
-
-	@Override
-	public Property<S> passivelyIndexed(NodeIndex nodeIndex) {
-		return this;
-	}
-
-	@Override
-	public Property<S> passivelyIndexed(RelationshipIndex relIndex) {
 		return this;
 	}
 

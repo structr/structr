@@ -40,7 +40,6 @@ import org.structr.core.entity.ManyEndpoint;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Source;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.EmptySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SourceSearchAttribute;
@@ -193,27 +192,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	}
 
 	@Override
-	public Property<List<T>> indexed(NodeService.NodeIndex nodeIndex) {
-		return this;
-	}
-
-	@Override
-	public Property<List<T>> indexed(NodeService.RelationshipIndex relIndex) {
-		return this;
-	}
-
-	@Override
 	public Property<List<T>> passivelyIndexed() {
-		return this;
-	}
-
-	@Override
-	public Property<List<T>> passivelyIndexed(NodeService.NodeIndex nodeIndex) {
-		return this;
-	}
-
-	@Override
-	public Property<List<T>> passivelyIndexed(NodeService.RelationshipIndex relIndex) {
 		return this;
 	}
 

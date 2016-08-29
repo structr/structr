@@ -32,7 +32,6 @@ import org.structr.api.index.Index;
 import org.structr.api.search.Occurrence;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
-import org.structr.api.index.IndexType;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
@@ -85,7 +84,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	private final SearchAttributeGroup rootGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
 	private SearchAttributeGroup currentGroup    = rootGroup;
-	private IndexType indexType                  = IndexType.Exact;
 	private PropertyKey sortKey                  = null;
 	private boolean publicOnly                   = false;
 	private boolean includeDeletedAndHidden      = true;
@@ -96,10 +94,8 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	private int page                             = 1;
 
 	public abstract Factory<S, T> getFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page, final String offsetId);
-	public abstract Index<S> getFulltextIndex();
-	public abstract Index<S> getKeywordIndex();
-	public abstract Index<S> getSpatialIndex();
 	public abstract boolean isRelationshipSearch();
+	public abstract Index<S> getIndex();
 
 	private Result<T> doSearch() throws FrameworkException {
 
@@ -128,7 +124,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		// At this point, all search attributes are ready
 		final List<SourceSearchAttribute> sources    = new ArrayList<>();
 		boolean hasEmptySearchFields                 = false;
-		boolean allExactMatch                        = true;
 		Result intermediateResult                    = null;
 
 		// check for optional-only queries
@@ -171,10 +166,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 					distanceSearch.setCoords(coords.toArray());
 				}
 
-				// don't remove attribute from filter list
-				//it.remove();
-
-				indexType = IndexType.Spatial;
 				hasSpatialSource = true;
 			}
 
@@ -192,13 +183,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			if (attr instanceof EmptySearchAttribute) {
 				hasEmptySearchFields = true;
 			}
-
-			// check for keyword query
-			allExactMatch &= attr.isExactMatch();
-		}
-
-		if (!allExactMatch) {
-			indexType = IndexType.Fulltext;
 		}
 
 		// only do "normal" query if no other sources are present
@@ -779,23 +763,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		allSupertypes.removeAll(baseTypes);
 
 		return allSupertypes;
-	}
-
-	// ----- private methods -----
-	private Index<S> getIndex() {
-
-		switch (indexType) {
-
-			default:
-			case Exact:
-				return getKeywordIndex();
-
-			case Fulltext:
-				return getFulltextIndex();
-
-			case Spatial:
-				return getSpatialIndex();
-		}
 	}
 
 	// ----- nested classes -----

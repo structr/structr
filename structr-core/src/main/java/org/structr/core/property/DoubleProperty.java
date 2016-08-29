@@ -28,7 +28,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.NodeService.NodeIndex;
 
 /**
  * A property that stores and retrieves a simple Double value.
@@ -63,7 +62,6 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 			// this property be indexed at the
 			// end of the transaction instead
 			// of on setProperty
-			nodeIndices.add(NodeIndex.layer);
 			passivelyIndexed();
 		}
 

@@ -19,10 +19,7 @@
 package org.structr.core.graph;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.EnumMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -54,54 +51,23 @@ public class NodeService implements SingletonService {
 
 	//~--- fields ---------------------------------------------------------
 
-	private DatabaseService graphDb                 = null;
-	private Index<Node> fulltextIndex               = null;
-	private Index<Node> keywordIndex                = null;
-	private Index<Node> layerIndex                  = null;
-	private Index<Relationship> relFulltextIndex    = null;
-	private Index<Relationship> relKeywordIndex     = null;
-
-	// indices
-	private final Map<RelationshipIndex, Index<Relationship>> relIndices = new EnumMap<>(RelationshipIndex.class);
-	private final Map<NodeIndex, Index<Node>> nodeIndices                = new EnumMap<>(NodeIndex.class);
-
-	/** Dependent services */
-	private String filesPath      = null;
-	private boolean isInitialized = false;
+	private DatabaseService graphDb      = null;
+	private Index<Node> nodeIndex        = null;
+	private Index<Relationship> relIndex = null;
+	private String filesPath             = null;
+	private boolean isInitialized        = false;
 
 	//~--- constant enums -------------------------------------------------
-
-	/**
-	 * The list of existing node indices.
-	 */
-	public static enum NodeIndex { keyword, fulltext, layer }
-
-	/**
-	 * The list of existing relationship indices.
-	 */
-	public static enum RelationshipIndex { rel_keyword, rel_fulltext }
 
 	@Override
 	public void injectArguments(Command command) {
 
 		if (command != null) {
 
-			command.setArgument("graphDb", graphDb);
-
-			command.setArgument(NodeIndex.fulltext.name(), fulltextIndex);
-			command.setArgument(NodeIndex.keyword.name(), keywordIndex);
-			command.setArgument(NodeIndex.layer.name(), layerIndex);
-
-			command.setArgument(RelationshipIndex.rel_fulltext.name(), relFulltextIndex);
-			command.setArgument(RelationshipIndex.rel_keyword.name(), relKeywordIndex);
-
-			command.setArgument("filesPath", filesPath);
-
-			command.setArgument("indices", NodeIndex.values());
-			command.setArgument("relationshipIndices", RelationshipIndex.values());
-
-
-
+			command.setArgument("graphDb",           graphDb);
+			command.setArgument("nodeIndex",         nodeIndex);
+			command.setArgument("relationshipIndex", relIndex);
+			command.setArgument("filesPath",         filesPath);
 		}
 	}
 
@@ -128,20 +94,8 @@ public class NodeService implements SingletonService {
 			// index creation transaction
 			try ( final Transaction tx = graphDb.beginTx() ) {
 
-				fulltextIndex = graphDb.nodeIndexer().fulltext();
-				nodeIndices.put(NodeIndex.fulltext, fulltextIndex);
-
-				keywordIndex = graphDb.nodeIndexer().exact();
-				nodeIndices.put(NodeIndex.keyword, keywordIndex);
-
-				layerIndex = graphDb.nodeIndexer().spatial();
-				nodeIndices.put(NodeIndex.layer, layerIndex);
-
-				relFulltextIndex = graphDb.relationshipIndexer().fulltext();
-				relIndices.put(RelationshipIndex.rel_fulltext, relFulltextIndex);
-
-				relKeywordIndex = graphDb.relationshipIndexer().exact();
-				relIndices.put(RelationshipIndex.rel_keyword, relKeywordIndex);
+				nodeIndex = graphDb.nodeIndex();
+				relIndex  = graphDb.relationshipIndex();
 
 				tx.success();
 
@@ -199,20 +153,12 @@ public class NodeService implements SingletonService {
 		return true;
 	}
 
-	public Collection<Index<Node>> getNodeIndices() {
-		return nodeIndices.values();
+	public Index<Node> getNodeIndex() {
+		return nodeIndex;
 	}
 
-	public Collection<Index<Relationship>> getRelationshipIndices() {
-		return relIndices.values();
-	}
-
-	public Index<Node> getNodeIndex(NodeIndex name) {
-		return nodeIndices.get(name);
-	}
-
-	public Index<Relationship> getRelationshipIndex(RelationshipIndex name) {
-		return relIndices.get(name);
+	public Index<Relationship> getRelationshipIndex() {
+		return relIndex;
 	}
 
 	private void importSeedFile(final String basePath) {

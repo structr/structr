@@ -36,8 +36,6 @@ import org.structr.core.PropertyGroup;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.NodeService.NodeIndex;
-import org.structr.core.graph.NodeService.RelationshipIndex;
 import org.structr.core.graph.search.PropertySearchAttribute;
 
 /**
@@ -81,25 +79,6 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		return (GroupProperty)super.indexed();
 	}
 
-	@Override
-	public GroupProperty indexed(NodeIndex nodeIndex) {
-
-		for (PropertyKey key : propertyKeys.values()) {
-			key.indexed(nodeIndex);
-		}
-
-		return (GroupProperty)super.indexed(nodeIndex);
-	}
-
-	@Override
-	public GroupProperty indexed(RelationshipIndex relIndex) {
-
-		for (PropertyKey key : propertyKeys.values()) {
-			key.indexed(relIndex);
-		}
-
-		return (GroupProperty)super.indexed(relIndex);
-	}
 
 	@Override
 	public GroupProperty passivelyIndexed() {
@@ -109,26 +88,6 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		}
 
 		return (GroupProperty)super.passivelyIndexed();
-	}
-
-	@Override
-	public GroupProperty passivelyIndexed(NodeIndex nodeIndex) {
-
-		for (PropertyKey key : propertyKeys.values()) {
-			key.passivelyIndexed(nodeIndex);
-		}
-
-		return (GroupProperty)super.passivelyIndexed(nodeIndex);
-	}
-
-	@Override
-	public GroupProperty passivelyIndexed(RelationshipIndex relIndex) {
-
-		for (PropertyKey key : propertyKeys.values()) {
-			key.passivelyIndexed(relIndex);
-		}
-
-		return (GroupProperty)super.passivelyIndexed(relIndex);
 	}
 
 	@Override

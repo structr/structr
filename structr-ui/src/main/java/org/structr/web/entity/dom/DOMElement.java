@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.collections.map.LRUMap;
@@ -187,6 +189,13 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		_onreadystatechange, _onreset, _onscroll, _onseeked, _onseeking, _onselect, _onshow, _onstalled, _onsubmit, _onsuspend,
 		_ontimeupdate, _onvolumechange, _onwaiting, _role
 	);
+
+	private static final Property[] rawProps = new Property[] {
+		dataKey, restQuery, cypherQuery, xpathQuery, functionQuery, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions
+	};
+
+	// a simple cache for data-* properties
+	private Set<PropertyKey> dataProperties = null;
 
 	@Override
 	public boolean contentEquals(DOMNode otherNode) {
@@ -767,6 +776,12 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	@Override
 	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
+		if (dataProperties != null) {
+			
+			// invalidate data property cache
+			dataProperties.clear();
+		}
+
 		for (Sync rel : getOutgoingRelationships(Sync.class)) {
 
 			DOMElement syncedNode = (DOMElement) rel.getTargetNode();
@@ -824,72 +839,34 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		dbNode = this.getNode();
 		EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
 
-		Iterable<String> props = dbNode.getPropertyKeys();
-		for (String key : props) {
+		for (PropertyKey key : getDataPropertyKeys()) {
 
-			if (key.startsWith("data-")) {
+			String value = getPropertyWithVariableReplacement(renderContext, key).trim();
 
-				String value = getPropertyWithVariableReplacement(renderContext, new GenericProperty(key)).trim();
+			if (!(EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode))) {
 
-				if (!(EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode))) {
-
-					value = escapeForHtmlAttributes(value);
-
-				}
-
-				if (StringUtils.isNotBlank(value)) {
-
-					out.append(" ").append(key).append("=\"").append(value).append("\"");
-
-				}
+				value = escapeForHtmlAttributes(value);
 
 			}
 
+			if (StringUtils.isNotBlank(value)) {
+
+				out.append(" ").append(key.dbName()).append("=\"").append(value).append("\"");
+
+			}
 		}
 
 		if (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
 
-			Property[] rawProps = new Property[]{
-				dataKey, restQuery, cypherQuery, xpathQuery, functionQuery, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions
-			};
-
-//			// In raw mode, add query-related data
-//			String _dataKey		= getProperty(dataKey);
-//			String _restQuery	= getProperty(restQuery);
-//			String _cypherQuery	= getProperty(cypherQuery);
-//			String _xpathQuery	= getProperty(xpathQuery);
-//
-//			// Add filter to raw output
-//			boolean _hideOnIndex = getProperty(hideOnIndex);
-//			boolean _hideOnDetail = getProperty(hideOnDetail);
-//			String _showForLocales = getProperty(showForLocales);
-//			String _hideForLocales = getProperty(hideForLocales);
-//			String _showConditions = getProperty(showConditions);
-//			String _hideConditions = getProperty(hideConditions);
-			for (Property p : rawProps) {
-
-				if (p instanceof BooleanProperty) {
-
-				}
+			for (final Property p : rawProps) {
 
 				String htmlName = "data-structr-meta-" + CaseHelper.toUnderscore(p.jsonName(), false).replaceAll("_", "-");
 				Object value = getProperty(p);
+
 				if ((p instanceof BooleanProperty && (boolean) value) || (!(p instanceof BooleanProperty) && value != null && StringUtils.isNotBlank(value.toString()))) {
 					out.append(" ").append(htmlName).append("=\"").append(value.toString()).append("\"");
 				}
 			}
-
-//			if (StringUtils.isNotBlank(_restQuery)) {
-//				buffer.append(" ").append("data-structr-meta-rest-query").append("=\"").append(_restQuery).append("\"");
-//			}
-//
-//			if (StringUtils.isNotBlank(_cypherQuery)) {
-//				buffer.append(" ").append("data-structr-meta-cypher-query").append("=\"").append(_cypherQuery).append("\"");
-//			}
-//
-//			if (StringUtils.isNotBlank(_xpathQuery)) {
-//				buffer.append(" ").append("data-structr-meta-xpath-query").append("=\"").append(_xpathQuery).append("\"");
-//			}
 		}
 	}
 
@@ -926,6 +903,26 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	}
 
+	private Set<PropertyKey> getDataPropertyKeys() {
+
+		if (dataProperties == null) {
+
+			dataProperties = new TreeSet<>();
+
+			final Iterable<String> props = dbNode.getPropertyKeys();
+			for (final String key : props) {
+
+				if (key.startsWith("data-")) {
+
+					dataProperties.add(new GenericProperty(key));
+
+				}
+			}
+		}
+
+		return dataProperties;
+	}
+
 	/**
 	 * This method concatenates the pre-defined HTML attributes and the
 	 * optional custom data-* attributes.
@@ -939,24 +936,12 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		final List<PropertyKey> allProperties = new LinkedList();
 		final Iterable<PropertyKey> htmlAttrs = super.getPropertyKeys(propertyView);
 
-		for (PropertyKey attr : htmlAttrs) {
+		for (final PropertyKey attr : htmlAttrs) {
 
 			allProperties.add(attr);
-
 		}
 
-		dbNode = this.getNode();
-
-		Iterable<String> props = dbNode.getPropertyKeys();
-		for (String key : props) {
-
-			if (key.startsWith("data-")) {
-
-				allProperties.add(new GenericProperty(key));
-
-			}
-
-		}
+		allProperties.addAll(getDataPropertyKeys());
 
 		return allProperties;
 	}

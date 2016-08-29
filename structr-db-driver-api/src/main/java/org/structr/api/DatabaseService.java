@@ -23,7 +23,7 @@ import org.structr.api.graph.Relationship;
 import org.structr.api.graph.GraphProperties;
 import java.util.Map;
 import java.util.Properties;
-import org.structr.api.index.IndexManager;
+import org.structr.api.index.Index;
 
 /**
  *
@@ -50,9 +50,8 @@ public interface DatabaseService {
 
 
 	// ----- index -----
-	IndexManager<Node> nodeIndexer();
-	IndexManager<Relationship> relationshipIndexer();
-
+	Index<Node> nodeIndex();
+	Index<Relationship> relationshipIndex();
 
 
 	NativeResult execute(final String nativeQuery, final Map<String, Object> parameters);
