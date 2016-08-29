@@ -41,6 +41,7 @@ import org.neo4j.driver.v1.Config;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.GraphDatabase;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.structr.api.DatabaseService;
@@ -81,17 +82,23 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		this.databasePath = configuration.getProperty(Structr.DATABASE_PATH);
 		this.debugLogging = "true".equalsIgnoreCase(configuration.getProperty(Structr.LOG_CYPHER_DEBUG, "false"));
 
-		final String url      = configuration.getProperty(Structr.DATABASE_CONNECTION_URL, "bolt://localhost:7689");
-		final String username = configuration.getProperty(Structr.DATABASE_CONNECTION_USERNAME, "neo4j");
-		final String password = configuration.getProperty(Structr.DATABASE_CONNECTION_PASSWORD, "neo4j");
+		final GraphDatabaseSettings.BoltConnector bolt = GraphDatabaseSettings.boltConnector("0");
+		final String url                               = configuration.getProperty(Structr.DATABASE_CONNECTION_URL, "bolt://localhost:7689");
+		final String username                          = configuration.getProperty(Structr.DATABASE_CONNECTION_USERNAME, "neo4j");
+		final String password                          = configuration.getProperty(Structr.DATABASE_CONNECTION_PASSWORD, "neo4j");
+		final String confPath                          = databasePath + "/neo4j.conf";
+		final File confFile                            = new File(confPath);
 
-		GraphDatabaseSettings.BoltConnector bolt = GraphDatabaseSettings.boltConnector("0");
-
-		graphDb = new GraphDatabaseFactory()
+		final GraphDatabaseBuilder builder = new GraphDatabaseFactory()
 		        .newEmbeddedDatabaseBuilder(new File(databasePath))
 		        .setConfig( bolt.enabled, "true" )
-		        .setConfig( bolt.address, url)
-		        .newGraphDatabase();
+		        .setConfig( bolt.address, url);
+
+		if (confFile.exists()) {
+			builder.loadPropertiesFromFile(confPath);
+		}
+
+		graphDb = builder.newGraphDatabase();
 
 		driver = GraphDatabase.driver(url,
 			AuthTokens.basic(username, password),
