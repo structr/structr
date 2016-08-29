@@ -34,7 +34,7 @@ import org.structr.schema.action.Function;
 
 public class PrivilegedFindFunction extends Function<Object, Object> {
 
-    public static final String ERROR_MESSAGE_PRIVILEGEDFIND = "Usage: ${privileged_find(type, key, value)}. Example: ${privileged_find(\"User\", \"email\", \"tester@test.com\"}";
+    public static final String ERROR_MESSAGE_PRIVILEGEDFIND = "Usage: ${find_privileged(type, key, value)}. Example: ${find_privileged(\"User\", \"email\", \"tester@test.com\"}";
 
     @Override
     public Object apply(ActionContext ctx, GraphObject entity, Object[] sources) throws FrameworkException {
@@ -59,16 +59,16 @@ public class PrivilegedFindFunction extends Function<Object, Object> {
 
 				} else {
 
-					logger.log(Level.WARNING, "Error in privileged_find(): type \"{0}\" not found.", typeString);
-					return "Error in privileged_find(): type " + typeString + " not found.";
+					logger.log(Level.WARNING, "Error in find_privileged(): type \"{0}\" not found.", typeString);
+					return "Error in find_privileged(): type " + typeString + " not found.";
 
 				}
 			}
 
 			// exit gracefully instead of crashing..
 			if (type == null) {
-				logger.log(Level.WARNING, "Error in privileged_find(): no type specified. Parameters: {0}", getParametersAsString(sources));
-				return "Error in privileged_find(): no type specified.";
+				logger.log(Level.WARNING, "Error in find_privileged(): no type specified. Parameters: {0}", getParametersAsString(sources));
+				return "Error in find_privileged(): no type specified.";
 			}
 
 			// experimental: disable result count, prevents instantiation
@@ -155,7 +155,7 @@ public class PrivilegedFindFunction extends Function<Object, Object> {
 
     @Override
     public String getName() {
-        return("privileged_find()");
+        return("find_privileged()");
     }
 
 }

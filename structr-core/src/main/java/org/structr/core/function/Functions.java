@@ -320,7 +320,7 @@ public class Functions {
 		functions.put("changelog", new ChangelogFunction());
 		functions.put("timer", new TimerFunction());
 		functions.put("str_replace", new StrReplaceFunction());
-                functions.put("privileged_find", new PrivilegedFindFunction());
+                functions.put("find_privileged", new PrivilegedFindFunction());
 
 		// ----- BEGIN functions with side effects -----
 		functions.put("retrieve", new RetrieveFunction());
