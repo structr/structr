@@ -19,15 +19,16 @@
 package org.structr.core.entity;
 
 import java.util.logging.Logger;
-import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.LongProperty;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.IntProperty;
+import org.structr.core.property.LongProperty;
+import org.structr.core.property.Property;
 
 /**
  * Controls access to resource properties
@@ -51,7 +52,7 @@ public class PropertyAccess extends AbstractNode {
 	private Long cachedFlags       = null;
 	private Integer cachedPosition = null;
 
-	public static final Property<Long>    flags = new LongProperty("flags").indexed();
+	public static final Property<Long>    flags    = new LongProperty("flags").indexed();
 	public static final Property<Integer> position = new IntProperty("position").indexed();
 
 	public static final View uiView = new View(PropertyAccess.class, PropertyView.Ui,
@@ -104,7 +105,7 @@ public class PropertyAccess extends AbstractNode {
 			return cachedFlags;
 		}
 
-		return 0L;
+		return 0;
 	}
 
 	public int getPosition() {
@@ -126,7 +127,7 @@ public class PropertyAccess extends AbstractNode {
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) {
 		return isValid(errorBuffer);
 	}
 

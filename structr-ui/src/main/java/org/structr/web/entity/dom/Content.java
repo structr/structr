@@ -41,6 +41,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -191,7 +192,7 @@ public class Content extends DOMNode implements Text {
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 		for (final Sync rel : getOutgoingRelationships(Sync.class)) {
 
@@ -419,7 +420,7 @@ public class Content extends DOMNode implements Text {
 
 			// catch exception to prevent ugly status 500 error pages in frontend.
 			logger.log(Level.SEVERE, "", t);
-			
+
 		}
 
 	}

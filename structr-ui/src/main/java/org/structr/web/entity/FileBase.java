@@ -54,6 +54,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.ModificationEvent;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.ConstantBooleanProperty;
@@ -120,9 +122,9 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	}
 
 	@Override
-	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		if (super.onModification(securityContext, errorBuffer)) {
+		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
 
 			synchronized (this) {
 
@@ -139,14 +141,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 				this.securityContext = previousSecurityContext;
 			}
 
-			final AbstractMinifiedFile minifiedFile = getProperty(FileBase.minificationTarget);
-			if (minifiedFile != null) {
-				try {
-					minifiedFile.minify();
-				} catch (IOException ex) {
-					logger.log(Level.WARNING, "Could not automatically update minification target", ex);
-				}
-			}
+			triggerMinificationIfNeeded(modificationQueue);
 
 			return true;
 		}
@@ -331,6 +326,38 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 		} else {
 
 			setProperty(FileBase.version, _version + 1);
+		}
+	}
+
+	public void triggerMinificationIfNeeded(ModificationQueue modificationQueue) throws FrameworkException {
+
+		final AbstractMinifiedFile minifiedFile = getProperty(FileBase.minificationTarget);
+		if (minifiedFile != null) {
+
+			// only run minification if the file version changed
+			boolean versionChanged = false;
+			for (ModificationEvent modState : modificationQueue.getModificationEvents()) {
+
+				if (getUuid().equals(modState.getUuid())) {
+
+					versionChanged = versionChanged ||
+							modState.getRemovedProperties().containsKey(FileBase.version) ||
+							modState.getModifiedProperties().containsKey(FileBase.version) ||
+							modState.getNewProperties().containsKey(FileBase.version);
+
+				}
+			}
+
+			if (versionChanged) {
+
+				try {
+					minifiedFile.minify();
+				} catch (IOException ex) {
+					logger.log(Level.WARNING, "Could not automatically update minification target", ex);
+				}
+
+			}
+
 		}
 	}
 

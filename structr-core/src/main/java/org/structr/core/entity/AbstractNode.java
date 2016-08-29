@@ -42,15 +42,16 @@ import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.structr.api.DatabaseService;
-import org.structr.api.graph.Direction;
-import org.structr.api.index.Index;
 import org.structr.api.NativeResult;
+import org.structr.api.Predicate;
+import org.structr.api.graph.Direction;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Path;
-import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
+import org.structr.api.index.Index;
+import org.structr.api.util.FixedSizeCache;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.common.CMISExtensionsData;
 import org.structr.cmis.common.StructrItemActions;
@@ -62,7 +63,6 @@ import org.structr.cmis.info.CMISRelationshipInfo;
 import org.structr.cmis.info.CMISSecondaryInfo;
 import org.structr.common.AccessControllable;
 import org.structr.common.AccessPathCache;
-import org.structr.api.util.FixedSizeCache;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.IdSorter;
 import org.structr.common.Permission;
@@ -79,12 +79,13 @@ import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
-import org.structr.core.entity.relationship.Ownership;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.entity.relationship.Ownership;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeRelationshipStatisticsCommand;
 import org.structr.core.graph.NodeService;
@@ -383,11 +384,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	@Override
 	public String getUuid() {
-		
+
 		if (cachedUuid == null) {
 			cachedUuid = getProperty(GraphObject.id);
 		}
-		
+
 		return cachedUuid;
 	}
 
@@ -1245,7 +1246,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 		return true;
 	}
 
@@ -1508,7 +1509,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	public static void clearRelationshipTemplateInstanceCache() {
 		relationshipTemplateInstanceCache.clear();
 	}
-	
+
 	public static <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R getRelationshipForType(final Class<R> type) {
 
 		R instance = (R) relationshipTemplateInstanceCache.get(type.getName());

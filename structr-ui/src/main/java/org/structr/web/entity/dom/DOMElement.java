@@ -38,6 +38,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.Property;
@@ -764,7 +765,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	// ----- nested classes -----
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 		for (Sync rel : getOutgoingRelationships(Sync.class)) {
 

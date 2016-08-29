@@ -20,8 +20,6 @@ package org.structr.core.entity;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -29,14 +27,17 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.Property;
 
 /**
  *
  *
  */
 public class TestFive extends AbstractNode {
-	
+
 	private static final Logger logger = Logger.getLogger(TestFive.class.getName());
 
 	public static final Property<Integer> intProperty                  = new IntProperty("integerProperty").indexed();
@@ -44,23 +45,23 @@ public class TestFive extends AbstractNode {
 	public static final Property<Integer> modifiedInBeforeModification = new IntProperty("modifiedInBeforeModification").defaultValue(0).indexed().unvalidated();
 	public static final Property<Integer> modifiedInAfterCreation      = new IntProperty("modifiedInAfterCreation").defaultValue(0).indexed().unvalidated();
 	public static final Property<Integer> modifiedInAfterModification  = new IntProperty("modifiedInAfterModification").defaultValue(0).indexed().unvalidated();
-	
+
 	public static final View publicView = new View(TestFive.class, PropertyView.Public,
 		intProperty, modifiedInBeforeCreation, modifiedInBeforeModification, modifiedInAfterCreation, modifiedInAfterModification
 	);
-	
+
 	@Override
 	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		
+
 		int value = getIncreasedValue(modifiedInBeforeCreation);
 		setProperty(modifiedInBeforeCreation, value);
-		
+
 		return true;
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
 		int value = getIncreasedValue(modifiedInBeforeModification);
 		setProperty(modifiedInBeforeModification, value);
 
@@ -69,48 +70,48 @@ public class TestFive extends AbstractNode {
 
 	@Override
 	public void afterCreation(SecurityContext securityContext) {
-		
+
 		final App app = StructrApp.getInstance(securityContext);
 
 		try (final Tx tx = app.tx()) {
 
 			final int value = getIncreasedValue(modifiedInAfterCreation);
 			setProperty(modifiedInAfterCreation, value);
-			
+
 			tx.success();
-			
+
 		} catch (Throwable t) {
-			
+
 			logger.log(Level.WARNING, "", t);
 		}
 	}
 
 	@Override
 	public void afterModification(SecurityContext securityContext) {
-		
+
 		final App app = StructrApp.getInstance(securityContext);
 		try (final Tx tx = app.tx()) {
 
 			final int value = getIncreasedValue(modifiedInAfterModification);
-			
+
 			setProperty(modifiedInAfterModification, value);
 			tx.success();
-			
+
 		} catch (Throwable t) {
-			
+
 			logger.log(Level.WARNING, "", t);
 		}
 	}
-	
+
 	private int getIncreasedValue(Property<Integer> key) {
-		
+
 		Integer value = getProperty(key);
-		
+
 		if (value != null) {
-			
+
 			return value.intValue() + 1;
 		}
-		
+
 		return 1;
 	}
 }

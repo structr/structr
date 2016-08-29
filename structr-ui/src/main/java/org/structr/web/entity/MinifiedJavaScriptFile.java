@@ -36,6 +36,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.ModificationEvent;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -54,7 +55,16 @@ public class MinifiedJavaScriptFile extends AbstractMinifiedFile {
 	public static final View uiView      = new View(MinifiedJavaScriptFile.class, PropertyView.Ui, minificationSources, optimizationLevel, warnings, errors);
 
 	@Override
+	public boolean shouldModificationTriggerMinifcation(ModificationEvent modState) {
+
+		return modState.getModifiedProperties().containsKey(MinifiedJavaScriptFile.optimizationLevel);
+
+	}
+
+	@Override
 	public void minify() throws FrameworkException, IOException {
+
+		logger.log(Level.INFO, "Running minify: {0}", this.getType());
 
 		final Compiler compiler = new Compiler();
 		final CompilerOptions options = new CompilerOptions();

@@ -28,14 +28,13 @@ import org.structr.common.geo.AddressComponent;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
 import org.structr.core.GraphObject;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import static org.structr.core.entity.AbstractNode.name;
+import org.structr.core.graph.ModificationQueue;
+import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.CollectionNotionProperty;
-import org.structr.core.property.EndNodes;
 import org.structr.core.property.DoubleProperty;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 
@@ -47,32 +46,32 @@ public class TestNine extends AbstractNode {
 
 	public static final Property<List<TestEight>> testEights   = new EndNodes<>("testEights", NineEightManyToMany.class);
 	public static final Property<List<String>>    testEightIds = new CollectionNotionProperty("testEightIds", testEights, new PropertyNotion(GraphObject.id));
-	
+
 	public static final Property<String>          city         = new StringProperty("city").indexed().indexedWhenEmpty();
 	public static final Property<String>          street       = new StringProperty("street").indexed().indexedWhenEmpty();
 	public static final Property<String>          postalCode   = new StringProperty("postalCode").indexed().indexedWhenEmpty();
-	               
+
 	public static final Property<Double>          latitude     = new DoubleProperty("latitude");
 	public static final Property<Double>          longitude    = new DoubleProperty("longitude");
-	
+
 	public static final View defaultView = new View(TestNine.class, PropertyView.Public,
 		name, city, street, postalCode, latitude, longitude
 	);
 
 	@Override
 	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		
+
 		geocode();
-		
+
 		return super.onCreation(securityContext, errorBuffer);
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
 		geocode();
-		
-		return super.onModification(securityContext, errorBuffer);
+
+		return super.onModification(securityContext, errorBuffer, modificationQueue);
 	}
 
 	public void geocode() throws FrameworkException {

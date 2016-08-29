@@ -32,6 +32,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.relationship.SchemaNodeProperty;
 import org.structr.core.entity.relationship.SchemaViewProperty;
+import org.structr.core.graph.ModificationQueue;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.BooleanProperty;
@@ -210,14 +211,14 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 		// prevent modification of properties using a content hash value
 		if (getProperty(isBuiltinProperty) && !getContentHash().equals(getProperty(contentHash))) {
 			throw new FrameworkException(403, "Modification of built-in properties not permitted.");
 		}
 
-		return super.onModification(securityContext, errorBuffer);
+		return super.onModification(securityContext, errorBuffer, modificationQueue);
 	}
 
 	public String getContentHash() {

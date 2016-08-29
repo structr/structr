@@ -49,7 +49,7 @@ public class Actions {
 	public enum Type {
 
 		Create("onCreation","SecurityContext securityContext, ErrorBuffer errorBuffer", "securityContext, errorBuffer"),
-		Save("onModification", "SecurityContext securityContext, ErrorBuffer errorBuffer", "securityContext, errorBuffer"),
+		Save("onModification", "SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue", "securityContext, errorBuffer, modificationQueue"),
 		Delete("onDeletion", "SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties", "securityContext, errorBuffer, properties"),
 		Custom("", "", "");
 

@@ -30,6 +30,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.BooleanProperty;
@@ -201,7 +202,7 @@ public interface GraphObject {
 	 */
 	public void unlockReadOnlyPropertiesOnce();
 
-	
+
 	public boolean isValid(ErrorBuffer errorBuffer);
 
 
@@ -224,10 +225,11 @@ public interface GraphObject {
 	 *
 	 * @param securityContext the context in which the modification takes place
 	 * @param errorBuffer the error buffer to put error tokens into
+	 * @param modificationQueue the modification queue that triggered this call to onModification
 	 * @return true if the transaction can go on, false if an error occurred
 	 * @throws FrameworkException
 	 */
-	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
+	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException;
 
 	/**
 	 * Called when an entity of this type is deleted. This method can cause the underlying

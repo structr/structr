@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.logging.Level;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -51,33 +52,65 @@ public class LocalizeFunction extends Function<Object, Object> {
 			Query query = StructrApp.getInstance(superUserSecurityContext).nodeQuery(Localization.class).and(Localization.locale, ctx.getLocale().toString()).and(Localization.name, sources[0].toString());
 			List<Localization> localizations;
 
+			final Locale ctxLocale  = ctx.getLocale();
+			final String fullLocale = ctxLocale.toString();
+			final String lang       = ctxLocale.getLanguage();
+			
 			if (sources.length == 2) {
 
+				// with domain
 				query.and(Localization.domain, sources[1].toString());
 
 				localizations = query.getAsList();
 
-				if (localizations.isEmpty()) {
-					// no domain-specific localization found. fall back to no domain
+				if (localizations.isEmpty() && fullLocale.contains("_")) {
 
+					// no language-specific localization found, try language code only
+					
 					query = StructrApp.getInstance(superUserSecurityContext)
 						.nodeQuery(Localization.class)
-						.and(Localization.locale, ctx.getLocale().toString())
+						.and(Localization.locale, lang)
 						.and(Localization.name, sources[0].toString())
-						.blank(Localization.domain);
+						.and(Localization.domain, sources[1].toString());
 
 					localizations = query.getAsList();
-
 				}
+
 
 			} else {
 
+				// without domain
 				query.blank(Localization.domain);
 
 				localizations = query.getAsList();
 
+				if (localizations.isEmpty() && fullLocale.contains("_")) {
+
+					// no language-specific localization found, try language code only
+					
+					query = StructrApp.getInstance(superUserSecurityContext)
+						.nodeQuery(Localization.class)
+						.and(Localization.locale, lang)
+						.and(Localization.name, sources[0].toString())
+						.blank(Localization.domain);
+
+					localizations = query.getAsList();
+				}
+
 			}
 
+			if (localizations.isEmpty()) {
+				
+				// no domain-specific localization found. fall back to no domain
+
+				query = StructrApp.getInstance(superUserSecurityContext)
+					.nodeQuery(Localization.class)
+					.and(Localization.locale, fullLocale)
+					.and(Localization.name, sources[0].toString())
+					.blank(Localization.domain);
+
+			}
+			
 			if (localizations.size() > 1) {
 				// Ambiguous localization found
 
