@@ -1356,6 +1356,7 @@ var _Entities = {
 					} catch (e) {}
 				}
 				self.addClass('nodeHover').children('img.button').show().css('display', 'inline-block');
+				self.children('.minify_file_icon').show().css('display', 'inline-block');
 				self.children('.icons').children('img.button').show();
 			},
 			mouseout: function(e) {
@@ -1380,6 +1381,7 @@ var _Entities = {
 		if (node) {
 			node.removeClass('nodeHover');
 			node.find('img.button').not('.donthide').hide().css('display', 'none');
+			node.children('.minify_file_icon').hide().css('display', 'none');
 		}
 		var page = node.closest('.page');
 		if (page.length) {

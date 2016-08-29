@@ -396,13 +396,13 @@ var Command = {
 	 * The server will set the properties contained in the 'data' on the node
 	 * with the given id and broadcast an update notification.
 	 */
-	setProperties: function(id, data) {
+	setProperties: function(id, data, callback) {
 		var obj = {};
 		obj.command = 'UPDATE';
 		obj.id = id;
 		obj.data = data;
 		_Logger.log(_LogType.WS[obj.command], 'setProperties()', obj);
-		return sendObj(obj);
+		return sendObj(obj, callback);
 	},
 	/**
 	 * Send a SET_PERMISSIONS command to the server.

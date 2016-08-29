@@ -902,7 +902,7 @@ span.id {
 	margin-right: 3px ! important;
 }
 
-.edit_ui_properties_icon, .edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .link_icon, .add_form_icon, .data_icon, .unarchive_icon, .push_icon, .show_active_icon, .collapse_children_icon, add_child_icon {
+.edit_ui_properties_icon, .edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .link_icon, .add_form_icon, .data_icon, .unarchive_icon, .push_icon, .show_active_icon, .collapse_children_icon, .add_child_icon, .minify_file_icon {
 	display: none;
 	cursor: pointer;
 	height: 16px;
@@ -933,7 +933,7 @@ span.id {
 	position: absolute;
 }
 
-.edit_icon, .edit_file_icon, .collapse_children_icon {
+.edit_icon, .edit_file_icon, .collapse_children_icon, .minify_file_icon {
 	right: 64px;
 }
 
@@ -1090,6 +1090,10 @@ button:hover:not(.disabled) {
 button img {
 	padding: 0;
 	margin: 0;
+	vertical-align: middle;
+}
+
+button i {
 	vertical-align: middle;
 }
 
@@ -3228,4 +3232,53 @@ input#element-class {
 
 #crawler-list .add_page_icon {
 	margin-top: 12px;
+}
+
+#minify-options td {
+	padding: 6px 8px;
+}
+
+#minify-options td.head {
+	font-weight: bold;
+	width: 110px;
+}
+
+#minify-options td input {
+	width: 40px;
+}
+
+#minify-options td.action {
+	text-align: right;
+}
+
+#minify-options td.action button {
+	margin-right: 0;
+}
+
+#minification-files {
+	width: 49%;
+	float: left;
+}
+
+#minification-source-search {
+	width: 49%;
+	float: right;
+}
+
+#minification-source-search .searchBox {
+	position: initial;
+	text-align: right;
+	margin-right: 12px;
+}
+
+#minification-source-search .clearSearchIcon {
+	margin-right: 12px;
+}
+
+#minification-source-search .searchResults {
+	height: 300px !important;
+}
+
+#minification-source-search .searchResultsTitle {
+	display: none;
 }
