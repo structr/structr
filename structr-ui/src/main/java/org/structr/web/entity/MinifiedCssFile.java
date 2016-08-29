@@ -53,7 +53,7 @@ public class MinifiedCssFile extends AbstractMinifiedFile {
 	@Override
 	public void minify() throws FrameworkException, IOException {
 
-		logger.log(Level.INFO, "Running minify: {0}", this.getType());
+		logger.log(Level.INFO, "Running minify: {0}", this.getUuid());
 
 		FileHelper.setFileData(this, getConcatenatedSource().getBytes(), null);
 

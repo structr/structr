@@ -34,7 +34,7 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.dynamic.File;
-import org.structr.web.entity.relation.MinificationNeighbor;
+import org.structr.web.entity.relation.MinificationSource;
 
 /**
  * Base class for minifiable files in structr
@@ -44,13 +44,12 @@ public abstract class AbstractMinifiedFile extends File {
 
 	private static final Logger logger = Logger.getLogger(AbstractMinifiedFile.class.getName());
 
-	public static final Property<List<FileBase>> minificationSources = new EndNodes<>("minificationSources", MinificationNeighbor.class);
+	public static final Property<List<FileBase>> minificationSources = new EndNodes<>("minificationSources", MinificationSource.class);
 
 	@Override
 	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 		boolean shouldMinify = false;
-
 		final String myUUID = getUuid();
 
 		for (ModificationEvent modState : modificationQueue.getModificationEvents()) {
@@ -83,9 +82,9 @@ public abstract class AbstractMinifiedFile extends File {
 	public abstract boolean shouldModificationTriggerMinifcation(ModificationEvent modState);
 
 	public int getMaxPosition () {
-		int max = 0;
-		for (final MinificationNeighbor neighbor : getOutgoingRelationships(MinificationNeighbor.class)) {
-			max = Math.max(max, neighbor.getProperty(MinificationNeighbor.position));
+		int max = -1;
+		for (final MinificationSource neighbor : getOutgoingRelationships(MinificationSource.class)) {
+			max = Math.max(max, neighbor.getProperty(MinificationSource.position));
 		}
 		return max;
 	}
@@ -94,14 +93,14 @@ public abstract class AbstractMinifiedFile extends File {
 		final StringBuilder concatenatedSource = new StringBuilder();
 
 		int cnt = 0;
-		for (MinificationNeighbor rel : getSortedRelationships()) {
+		for (MinificationSource rel : getSortedRelationships()) {
 			final FileBase src = rel.getTargetNode();
 
 			concatenatedSource.append(FileUtils.readFileToString(src.getFileOnDisk()));
 
 			// compact the relationships (if necessary)
-			if (rel.getProperty(MinificationNeighbor.position) != cnt) {
-				rel.setProperty(MinificationNeighbor.position, cnt);
+			if (rel.getProperty(MinificationSource.position) != cnt) {
+				rel.setProperty(MinificationSource.position, cnt);
 			}
 			cnt++;
 		}
@@ -109,11 +108,11 @@ public abstract class AbstractMinifiedFile extends File {
 		return concatenatedSource.toString();
 	}
 
-	public List<MinificationNeighbor> getSortedRelationships() {
-		final List<MinificationNeighbor> rels = new ArrayList();
-		getOutgoingRelationships(MinificationNeighbor.class).forEach(rels::add);
+	public List<MinificationSource> getSortedRelationships() {
+		final List<MinificationSource> rels = new ArrayList();
+		getOutgoingRelationships(MinificationSource.class).forEach(rels::add);
 
-		Collections.sort(rels, (MinificationNeighbor arg0, MinificationNeighbor arg1) -> (arg0.getProperty(MinificationNeighbor.position).compareTo(arg1.getProperty(MinificationNeighbor.position))));
+		Collections.sort(rels, (MinificationSource arg0, MinificationSource arg1) -> (arg0.getProperty(MinificationSource.position).compareTo(arg1.getProperty(MinificationSource.position))));
 
 		return rels;
 	}
@@ -127,11 +126,11 @@ public abstract class AbstractMinifiedFile extends File {
 	 * @throws FrameworkException
 	 */
 	@Export
-	public void moveMinificationNeighbor(final int from, final int to) throws FrameworkException {
+	public void moveMinificationSource(final int from, final int to) throws FrameworkException {
 
-		for (MinificationNeighbor rel : getOutgoingRelationships(MinificationNeighbor.class)) {
+		for (MinificationSource rel : getOutgoingRelationships(MinificationSource.class)) {
 
-			int currentPosition = rel.getProperty(MinificationNeighbor.position);
+			int currentPosition = rel.getProperty(MinificationSource.position);
 
 			int change = 0;
 			if (from < to) {
@@ -142,15 +141,15 @@ public abstract class AbstractMinifiedFile extends File {
 
 			if (currentPosition > from && currentPosition <= to) {
 
-				rel.setProperty(MinificationNeighbor.position, currentPosition + change);
+				rel.setProperty(MinificationSource.position, currentPosition + change);
 
 			} else if (currentPosition >= to && currentPosition < from) {
 
-				rel.setProperty(MinificationNeighbor.position, currentPosition + change);
+				rel.setProperty(MinificationSource.position, currentPosition + change);
 
 			} else if (currentPosition == from) {
 
-				rel.setProperty(MinificationNeighbor.position, to);
+				rel.setProperty(MinificationSource.position, to);
 
 			}
 

@@ -29,11 +29,11 @@ import org.structr.core.property.Property;
 import org.structr.web.entity.AbstractMinifiedFile;
 import org.structr.web.entity.FileBase;
 
-public class MinificationNeighbor extends OneToMany<AbstractMinifiedFile, FileBase> {
+public class MinificationSource extends OneToMany<AbstractMinifiedFile, FileBase> {
 
 	public static final Property<Integer> position = new IntProperty("position").defaultValue(0).indexed();
 
-	public static final View uiView = new View(MinificationNeighbor.class, PropertyView.Ui, position);
+	public static final View uiView = new View(MinificationSource.class, PropertyView.Ui, position);
 
 	@Override
 	public Class<AbstractMinifiedFile> getSourceType() {
@@ -60,7 +60,7 @@ public class MinificationNeighbor extends OneToMany<AbstractMinifiedFile, FileBa
 		try {
 			setProperty(position, getSourceNode().getMaxPosition() + 1);
 		} catch (FrameworkException ex) {
-			Logger.getLogger(MinificationNeighbor.class.getName()).log(Level.SEVERE, "Failed setting minification position!", ex);
+			Logger.getLogger(MinificationSource.class.getName()).log(Level.SEVERE, "Failed setting minification position!", ex);
 		}
 	}
 }
