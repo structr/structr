@@ -330,6 +330,7 @@ public class StructrRestTest extends TestCase {
 
 		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService HttpService SchemaService");
 		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
+		config.setProperty(Structr.DATABASE_CONNECTION_URL, Structr.TEST_DATABASE_URL);
 		config.setProperty(Services.TMP_PATH, "/tmp/");
 		config.setProperty(Services.BASE_PATH, basePath);
 		config.setProperty(Structr.DATABASE_PATH, basePath + "/db");

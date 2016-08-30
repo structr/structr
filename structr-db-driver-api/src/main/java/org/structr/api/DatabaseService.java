@@ -32,6 +32,7 @@ public interface DatabaseService {
 
 	// ----- lifecycle -----
 	void initialize(final Properties configuration);
+	boolean needsIndexRebuild();
 	void shutdown();
 
 	<T> T forName(final Class<T> type, final String name);

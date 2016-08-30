@@ -34,4 +34,6 @@ public interface Structr {
 
 	public static final String LOG_CYPHER_DEBUG              = "log.cypher.debug";
 
+	public static final String DEFAULT_DATABASE_URL          = "bolt://localhost:7688";
+	public static final String TEST_DATABASE_URL             = "bolt://localhost:7689";
 }

@@ -1532,7 +1532,20 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	@Override
 	public String getPropertyWithVariableReplacement(ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
-		return Scripting.replaceVariables(renderContext, this, getProperty(key));
+
+		final Object value = getProperty(key);
+		String result      = null;
+
+		try {
+
+			result = Scripting.replaceVariables(renderContext, this, value);
+
+		} catch (Throwable t) {
+
+			logger.log(Level.WARNING, "Scripting error in {0}: {1}:\n{2}", new Object[] { key.dbName(), getUuid(), value });
+		}
+
+		return result;
 	}
 
 	@Override

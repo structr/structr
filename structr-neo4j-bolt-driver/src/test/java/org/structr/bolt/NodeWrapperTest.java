@@ -45,6 +45,8 @@ public class NodeWrapperTest {
 			ioex.printStackTrace();
 		}
 
+		config.setProperty(Structr.DATABASE_CONNECTION_URL, Structr.TEST_DATABASE_URL);
+
 		s.initialize(config);
 
 		// create new node
@@ -75,6 +77,8 @@ public class NodeWrapperTest {
 		} catch (IOException ioex) {
 			ioex.printStackTrace();
 		}
+
+		config.setProperty(Structr.DATABASE_CONNECTION_URL, Structr.TEST_DATABASE_URL);
 
 		s.initialize(config);
 

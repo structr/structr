@@ -398,6 +398,11 @@ public class Neo4jDatabaseService implements DatabaseService, GraphProperties {
 
 	}
 
+	@Override
+	public boolean needsIndexRebuild() {
+		return false;
+	}
+
 	// ----- nested classes -----
 	private static class LabelImpl implements Label {
 

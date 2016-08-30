@@ -128,6 +128,7 @@ public abstract class StructrUiTest extends TestCase {
 
 		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
 		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService HttpService SchemaService");
+		config.setProperty(Structr.DATABASE_CONNECTION_URL, Structr.TEST_DATABASE_URL);
 		config.setProperty(Services.TMP_PATH, "/tmp/");
 		config.setProperty(Services.BASE_PATH, basePath);
 		config.setProperty(Structr.DATABASE_PATH, basePath + "/db");
@@ -579,7 +580,7 @@ public abstract class StructrUiTest extends TestCase {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.header("X-User", config.getProperty(Services.SUPERUSER_USERNAME))
 				.header("X-Password", config.getProperty(Services.SUPERUSER_PASSWORD))
-				
+
 			.body(buf.toString())
 				.expect().statusCode(201)
 			.when().post(resource).getHeader("Location"));

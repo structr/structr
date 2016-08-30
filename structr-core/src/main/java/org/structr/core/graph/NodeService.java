@@ -19,6 +19,7 @@
 package org.structr.core.graph;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -32,6 +33,7 @@ import org.structr.api.config.Structr;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.api.service.Command;
+import org.structr.api.service.InitializationCallback;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.api.service.SingletonService;
@@ -105,6 +107,27 @@ public class NodeService implements SingletonService {
 			}
 
 			isInitialized = true;
+
+			if (graphDb.needsIndexRebuild()) {
+
+				// schedule a low-priority index rebuild (must be executed AFTER
+				// SchemaService in order to include instances of dynamic types.
+				
+				services.registerInitializationCallback(new InitializationCallback() {
+
+					@Override
+					public void initializationDone() {
+
+						// start index rebuild immediately after initialization
+						Services.getInstance().command(SecurityContext.getSuperUserInstance(), BulkRebuildIndexCommand.class).execute(Collections.EMPTY_MAP);
+					}
+
+					@Override
+					public int priority() {
+						return 10;
+					}
+				});
+			}
 
 		}
 	}

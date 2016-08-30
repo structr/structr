@@ -22,5 +22,9 @@ package org.structr.api.service;
  */
 public interface InitializationCallback {
 
-	public void initializationDone();
+	void initializationDone();
+
+	default int priority() {
+		return 0;
+	}
 }

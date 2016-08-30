@@ -28,6 +28,8 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -393,7 +395,18 @@ public class Services implements StructrServices {
 
 	@Override
 	public void registerInitializationCallback(final InitializationCallback callback) {
+
 		callbacks.add(callback);
+
+		// callbacks need to be sorted by priority
+		Collections.sort(callbacks, new Comparator<InitializationCallback>() {
+
+			@Override
+			public int compare(final InitializationCallback o1, final InitializationCallback o2) {
+				return Integer.valueOf(o1.priority()).compareTo(o2.priority());
+			}
+
+		});
 	}
 
 	public boolean isInitialized() {

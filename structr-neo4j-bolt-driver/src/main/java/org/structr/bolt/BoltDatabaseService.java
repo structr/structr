@@ -26,9 +26,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -73,6 +76,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	private CypherNodeIndex nodeIndex                                 = null;
 	private GraphDatabaseService graphDb                              = null;
 	private boolean debugLogging                                      = false;
+	private boolean needsIndexRebuild                                 = false;
 	private String databasePath                                       = null;
 	private Driver driver                                             = null;
 
@@ -83,14 +87,17 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		this.debugLogging = "true".equalsIgnoreCase(configuration.getProperty(Structr.LOG_CYPHER_DEBUG, "false"));
 
 		final GraphDatabaseSettings.BoltConnector bolt = GraphDatabaseSettings.boltConnector("0");
-		final String url                               = configuration.getProperty(Structr.DATABASE_CONNECTION_URL, "bolt://localhost:7689");
+		final String url                               = configuration.getProperty(Structr.DATABASE_CONNECTION_URL, Structr.DEFAULT_DATABASE_URL);
 		final String username                          = configuration.getProperty(Structr.DATABASE_CONNECTION_USERNAME, "neo4j");
 		final String password                          = configuration.getProperty(Structr.DATABASE_CONNECTION_PASSWORD, "neo4j");
 		final String confPath                          = databasePath + "/neo4j.conf";
 		final File confFile                            = new File(confPath);
+		boolean tryAgain                               = true;
 
 		final GraphDatabaseBuilder builder = new GraphDatabaseFactory()
 		        .newEmbeddedDatabaseBuilder(new File(databasePath))
+			.setConfig( GraphDatabaseSettings.allow_store_upgrade, "true")
+			.setConfig("dbms.allow_format_migration", "true")
 		        .setConfig( bolt.enabled, "true" )
 		        .setConfig( bolt.address, url);
 
@@ -98,7 +105,17 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 			builder.loadPropertiesFromFile(confPath);
 		}
 
-		graphDb = builder.newGraphDatabase();
+		while (tryAgain) {
+
+			try {
+				graphDb  = builder.newGraphDatabase();
+				tryAgain = false;
+
+			} catch (Throwable t) {
+
+				tryAgain = handleException(t);
+			}
+		}
 
 		driver = GraphDatabase.driver(url,
 			AuthTokens.basic(username, password),
@@ -277,7 +294,11 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		return properties.getProperty(name);
 	}
 
-	// ----- private methods -----
+	@Override
+	public boolean needsIndexRebuild() {
+		return needsIndexRebuild;
+	}
+
 	public Label getOrCreateLabel(final String name) {
 
 		Label label = labelCache.get(name);
@@ -300,6 +321,73 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		}
 
 		return relType;
+	}
+
+	// ----- private methods -----
+	private boolean handleException(final Throwable t) {
+
+		final List<String> messages = collectMessages(t);
+		if (contains(messages, "Legacy index migration failed")) {
+
+			// try to remove index directory and try again
+			logger.log(Level.INFO, "Legacy index migration failed, moving offending index files out of the way.");
+
+			final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+			final File indexDbFile    = new File(databasePath + "/index.db");
+			final File indexDir       = new File(databasePath + "/index");
+
+			if (indexDbFile.exists()) {
+
+				indexDbFile.renameTo(new File(databasePath + "/index.db.orig-" + df.format(System.currentTimeMillis())));
+			}
+
+			if (indexDir.exists()) {
+
+				indexDir.renameTo(new File(databasePath + "/index.orig-" + df.format(System.currentTimeMillis())));
+			}
+
+			// raise rebuild index flag
+			this.needsIndexRebuild = true;
+
+			// signal the service to try again
+			return true;
+		}
+
+		// cannot handle error
+		throw new RuntimeException(t);
+	}
+
+	private boolean contains(final List<String> src, final String toFind) {
+
+		for (final String s : src) {
+
+			if (s.contains(toFind)) {
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private List<String> collectMessages(final Throwable t) {
+
+		final List<String> messages = new LinkedList<>();
+		Throwable current           = t;
+
+		// collect exception messages
+		while (current != null) {
+
+			final String message = current.getMessage();
+			if (message != null) {
+
+				messages.add(message);
+			}
+
+			current = current.getCause();
+		}
+
+		return messages;
 	}
 
 	// ----- nested classes -----
