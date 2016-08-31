@@ -124,12 +124,28 @@ var _Filesystem = {
 
 		$('#folder-contents-container').prepend(
 				'<button class="add_file_icon button"><img title="Add File" alt="Add File" src="' + _Icons.add_file_icon + '"> Add File</button>'
+				+ '<button class="add_minified_css_file_icon button">' + _Icons.minification_dialog_icon + ' Add Minified CSS File</button>'
+				+ '<button class="add_minified_js_file_icon button">' + _Icons.minification_dialog_icon + ' Add Minified JS File</button>'
 				+ '<button class="pull_file_icon button module-dependend" data-structr-module="cloud"><img title="Sync Files" alt="Sync Files" src="' + _Icons.pull_file_icon + '"> Sync Files</button>'
 				);
 
 		$('.add_file_icon', main).on('click', function(e) {
 			e.stopPropagation();
 			Command.create({ type: 'File', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
+				_Filesystem.appendFileOrFolderRow(f);
+			});
+		});
+
+		$('.add_minified_css_file_icon', main).on('click', function(e) {
+			e.stopPropagation();
+			Command.create({ type: 'MinifiedCssFile', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
+				_Filesystem.appendFileOrFolderRow(f);
+			});
+		});
+
+		$('.add_minified_js_file_icon', main).on('click', function(e) {
+			e.stopPropagation();
+			Command.create({ type: 'MinifiedJavaScriptFile', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
 				_Filesystem.appendFileOrFolderRow(f);
 			});
 		});
@@ -761,10 +777,6 @@ var _Filesystem = {
 				});
 			}
 
-			div.children('.typeIcon').on('click', function(e) {
-				e.stopPropagation();
-				window.open(file.path, 'Download ' + file.name);
-			});
 			var newDelIcon = '<img title="Delete file ' + d.name + '\'" alt="Delete file \'' + d.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
 			if (delIcon && delIcon.length) {
 				delIcon.replaceWith(newDelIcon);
@@ -777,7 +789,11 @@ var _Filesystem = {
 				_Entities.deleteNode(this, d);
 			});
 
-			_Filesystem.appendEditFileIcon(div, d);
+			if (_Filesystem.isMinificationTarget(d)) {
+				_Filesystem.appendMinificationDialogIcon(div, d);
+			} else {
+				_Filesystem.appendEditFileIcon(div, d);
+			}
 
 		}
 
@@ -795,7 +811,6 @@ var _Filesystem = {
 			//containment: 'body',
 			stop: function(e, ui) {
 				$(this).show();
-				//$('#pages_').droppable('enable').removeClass('nodeHover');
 				$(e.toElement).one('click', function(e) {
 					e.stopImmediatePropagation();
 				});
@@ -847,6 +862,11 @@ var _Filesystem = {
 
 			dialogText.append('<div id="files-tabs" class="files-tabs"><ul></ul></div>');
 			$.each(selectedElements, function(i, el) {
+
+				if (_Filesystem.isMinificationTarget(StructrModel.obj(Structr.getId(el)))) {
+					return;
+				}
+
 				Command.get(Structr.getId(el), function(entity) {
 
 					$('#files-tabs ul').append('<li id="tab-' + entity.id + '">' + entity.name + '</li>');
@@ -876,6 +896,23 @@ var _Filesystem = {
 
 			});
 
+		});
+	},
+	appendMinificationDialogIcon: function(parent, file) {
+
+		var minifyIcon = $('.minify_file_icon', parent);
+
+		if (!(minifyIcon && minifyIcon.length)) {
+			parent.append('<a class="minify_file_icon">' + _Icons.minification_dialog_icon + '</a>');
+		}
+
+		$(parent.children('.minify_file_icon')).on('click', function(e) {
+			e.stopPropagation();
+			e.preventDefault();
+
+			Structr.dialog('Minification', function() { }, function() { });
+
+			_Minification.populateMinificationDialogue(file);
 		});
 	},
 	displaySearchResultsForURL: function(url) {
@@ -1217,5 +1254,9 @@ var _Filesystem = {
 		var archiveExtensions = ['zip', 'tar', 'cpio', 'dump', 'jar'];
 
 		return isIn(contentType, archiveTypes) || isIn(extension, archiveExtensions);
+    },
+	isMinificationTarget: function(file) {
+		var minifyTypes = [ 'MinifiedCssFile', 'MinifiedJavaScriptFile' ];
+		return isIn(file.type, minifyTypes);
     }
 };

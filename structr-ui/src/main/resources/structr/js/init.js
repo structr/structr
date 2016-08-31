@@ -247,7 +247,9 @@ var _Icons = {
 	add_page_icon: 'icon/page_add.png',
 	ajax_loader_1: 'img/ajax-loader.gif',
 	ajax_loader_2: 'img/al.gif',
-	structr_logo_small: 'icon/structr_icon_16x16.png'
+	structr_logo_small: 'icon/structr_icon_16x16.png',
+	minification_dialog_icon: '<i class="fa fa-puzzle-piece"></i>',
+	minification_trigger_icon: '<i class="fa fa-briefcase"></i>'
 };
 
 var Structr = {

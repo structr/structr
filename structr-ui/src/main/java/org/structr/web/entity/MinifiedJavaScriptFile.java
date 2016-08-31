@@ -41,7 +41,7 @@ import org.structr.core.property.EnumProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.relation.MinificationNeighbor;
+import org.structr.web.entity.relation.MinificationSource;
 
 public class MinifiedJavaScriptFile extends AbstractMinifiedFile {
 
@@ -64,7 +64,7 @@ public class MinifiedJavaScriptFile extends AbstractMinifiedFile {
 	@Override
 	public void minify() throws FrameworkException, IOException {
 
-		logger.log(Level.INFO, "Running minify: {0}", this.getType());
+		logger.log(Level.INFO, "Running minify: {0}", this.getUuid());
 
 		final Compiler compiler = new Compiler();
 		final CompilerOptions options = new CompilerOptions();
@@ -93,10 +93,8 @@ public class MinifiedJavaScriptFile extends AbstractMinifiedFile {
 
 		FileHelper.setFileData(this, compiler.toSource().getBytes(), null);
 
-		final String separator = System.lineSeparator().concat("----").concat(System.lineSeparator());
-
-		setProperty(warnings, StringUtils.join(compiler.getWarnings(), separator));
-		setProperty(errors, StringUtils.join(compiler.getErrors(), separator));
+		setProperty(warnings, StringUtils.join(compiler.getWarnings(), System.lineSeparator()));
+		setProperty(errors, StringUtils.join(compiler.getErrors(), System.lineSeparator()));
 	}
 
 	private ArrayList<SourceFile> getSourceFileList() throws FrameworkException, IOException {
@@ -104,15 +102,15 @@ public class MinifiedJavaScriptFile extends AbstractMinifiedFile {
 		ArrayList<SourceFile> sourceList = new ArrayList();
 
 		int cnt = 0;
-		for (MinificationNeighbor rel : getSortedRelationships()) {
+		for (MinificationSource rel : getSortedRelationships()) {
 
 			final FileBase src = rel.getTargetNode();
 
 			sourceList.add(SourceFile.fromCode(src.getProperty(FileBase.name), FileUtils.readFileToString(src.getFileOnDisk())));
 
 			// compact the relationships (if necessary)
-			if (rel.getProperty(MinificationNeighbor.position) != cnt) {
-				rel.setProperty(MinificationNeighbor.position, cnt);
+			if (rel.getProperty(MinificationSource.position) != cnt) {
+				rel.setProperty(MinificationSource.position, cnt);
 			}
 			cnt++;
 		}

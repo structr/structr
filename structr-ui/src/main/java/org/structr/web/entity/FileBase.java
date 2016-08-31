@@ -62,7 +62,7 @@ import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
+import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.files.cmis.config.StructrFileActions;
 import org.structr.schema.action.JavaScriptSource;
@@ -70,7 +70,7 @@ import org.structr.util.LogMessageSupplier;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.relation.Folders;
-import org.structr.web.entity.relation.MinificationNeighbor;
+import org.structr.web.entity.relation.MinificationSource;
 import org.structr.web.property.FileDataProperty;
 
 /**
@@ -81,15 +81,15 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 	private static final Logger logger = Logger.getLogger(FileBase.class.getName());
 
-	public static final Property<String> relativeFilePath                 = new StringProperty("relativeFilePath").systemInternal();
-	public static final Property<Long> size                               = new LongProperty("size").indexed().systemInternal();
-	public static final Property<String> url                              = new StringProperty("url");
-	public static final Property<Long> checksum                           = new LongProperty("checksum").indexed().unvalidated().systemInternal();
-	public static final Property<Integer> cacheForSeconds                 = new IntProperty("cacheForSeconds").cmis();
-	public static final Property<Integer> version                         = new IntProperty("version").indexed().systemInternal();
-	public static final Property<String> base64Data                       = new FileDataProperty<>("base64Data");
-	public static final Property<Boolean> isFile                          = new ConstantBooleanProperty("isFile", true);
-	public static final Property<AbstractMinifiedFile> minificationTarget = new StartNode<>("minificationTarget", MinificationNeighbor.class);
+	public static final Property<String> relativeFilePath                        = new StringProperty("relativeFilePath").systemInternal();
+	public static final Property<Long> size                                      = new LongProperty("size").indexed().systemInternal();
+	public static final Property<String> url                                     = new StringProperty("url");
+	public static final Property<Long> checksum                                  = new LongProperty("checksum").indexed().unvalidated().systemInternal();
+	public static final Property<Integer> cacheForSeconds                        = new IntProperty("cacheForSeconds").cmis();
+	public static final Property<Integer> version                                = new IntProperty("version").indexed().systemInternal();
+	public static final Property<String> base64Data                              = new FileDataProperty<>("base64Data");
+	public static final Property<Boolean> isFile                                 = new ConstantBooleanProperty("isFile", true);
+	public static final Property<List<AbstractMinifiedFile>> minificationTargets = new StartNodes<>("minificationTarget", MinificationSource.class);
 
 	public static final View publicView = new View(FileBase.class, PropertyView.Public,
 		type, name, size, url, owner, path, isFile, visibleToPublicUsers, visibleToAuthenticatedUsers
@@ -331,8 +331,9 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 	public void triggerMinificationIfNeeded(ModificationQueue modificationQueue) throws FrameworkException {
 
-		final AbstractMinifiedFile minifiedFile = getProperty(FileBase.minificationTarget);
-		if (minifiedFile != null) {
+		final List<AbstractMinifiedFile> targets = getProperty(minificationTargets);
+
+		if (!targets.isEmpty()) {
 
 			// only run minification if the file version changed
 			boolean versionChanged = false;
@@ -344,21 +345,25 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 							modState.getRemovedProperties().containsKey(FileBase.version) ||
 							modState.getModifiedProperties().containsKey(FileBase.version) ||
 							modState.getNewProperties().containsKey(FileBase.version);
-
 				}
 			}
 
 			if (versionChanged) {
 
-				try {
-					minifiedFile.minify();
-				} catch (IOException ex) {
-					logger.log(Level.WARNING, "Could not automatically update minification target", ex);
+				for (AbstractMinifiedFile minifiedFile : targets) {
+
+					try {
+						minifiedFile.minify();
+					} catch (IOException ex) {
+						logger.log(Level.WARNING, "Could not automatically update minification target: ".concat(minifiedFile.getName()), ex);
+					}
+
 				}
 
 			}
 
 		}
+
 	}
 
 	@Override
