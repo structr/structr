@@ -446,6 +446,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 							setProperty(contentType, _contentType);
 
 							if (StringUtils.startsWith(_contentType, "image") || ImageHelper.isImageType(getProperty(name))) {
+								unlockSystemPropertiesOnce();
 								setProperty(NodeInterface.type, Image.class.getSimpleName());
 							}
 
