@@ -440,7 +440,8 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	/**
 	 * Return property value which is used for indexing.
 	 *
-	 * This is useful f.e. to filter markup from HTML to index only text
+	 * This is useful f.e. to filter markup from HTML to index only text, or
+	 * to get dates as long values.
 	 *
 	 * @param key
 	 * @return property value for indexing
@@ -448,12 +449,23 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public Object getPropertyForIndexing(final PropertyKey key) {
 
-		Object value = getProperty(key, false, null);
+		Object value = getProperty(key);
 		if (value != null) {
+
+			final PropertyConverter<Object, Object> converter = key.databaseConverter(securityContext);
+			if (converter != null) {
+
+				try {
+					return converter.convert(value);
+
+				} catch (Throwable t) {
+					logger.log(Level.WARNING, "Unable to convert {0} value of type {1} for indexing: {2}", new Object[] { key.dbName(), value.getClass(), t } );
+				}
+			}
 			return value;
 		}
 
-		return getProperty(key);
+		return null;
 	}
 
 	// ----- interface GraphObject -----

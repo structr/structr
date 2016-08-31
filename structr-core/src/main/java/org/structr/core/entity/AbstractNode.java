@@ -478,12 +478,24 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	@Override
 	public Object getPropertyForIndexing(final PropertyKey key) {
 
-		Object value = getProperty(key, false, null);
+		Object value = getProperty(key);
 		if (value != null) {
+
+			final PropertyConverter<Object, Object> converter = key.databaseConverter(securityContext);
+			if (converter != null) {
+
+				try {
+					return converter.convert(value);
+
+				} catch (Throwable t) {
+					logger.log(Level.WARNING, "Unable to convert {0} value of type {1} for indexing: {2}", new Object[] { key.dbName(), value.getClass(), t } );
+				}
+			}
+
 			return value;
 		}
 
-		return getProperty(key);
+		return null;
 	}
 
 	/**

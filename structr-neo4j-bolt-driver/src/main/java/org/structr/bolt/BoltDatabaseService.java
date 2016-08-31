@@ -349,9 +349,6 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 			// raise rebuild index flag
 			this.needsIndexRebuild = true;
 
-			// log success
-			logger.log(Level.INFO, "Scheduling index rebuild to happen after startup..");
-
 			// signal the service to try again
 			return true;
 		}

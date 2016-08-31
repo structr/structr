@@ -108,11 +108,15 @@ public class NodeService implements SingletonService {
 
 			isInitialized = true;
 
-			if (graphDb.needsIndexRebuild()) {
+			final boolean firstInitialization = graphDb.getGlobalProperties().getProperty("initialized") == null;
+
+			if (graphDb.needsIndexRebuild() || firstInitialization) {
+
+				logger.log(Level.INFO, "Scheduling index rebuild to happen after startup..");
 
 				// schedule a low-priority index rebuild (must be executed AFTER
 				// SchemaService in order to include instances of dynamic types.
-				
+
 				services.registerInitializationCallback(new InitializationCallback() {
 
 					@Override
@@ -120,6 +124,8 @@ public class NodeService implements SingletonService {
 
 						// start index rebuild immediately after initialization
 						Services.getInstance().command(SecurityContext.getSuperUserInstance(), BulkRebuildIndexCommand.class).execute(Collections.EMPTY_MAP);
+
+						graphDb.getGlobalProperties().setProperty("initialized", true);
 					}
 
 					@Override
