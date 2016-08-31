@@ -113,7 +113,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 			} catch (Throwable t) {
 
-				tryAgain = handleException(t);
+				tryAgain = handleMigration(t);
 			}
 		}
 
@@ -324,7 +324,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	}
 
 	// ----- private methods -----
-	private boolean handleException(final Throwable t) {
+	private boolean handleMigration(final Throwable t) {
 
 		final List<String> messages = collectMessages(t);
 		if (contains(messages, "Legacy index migration failed")) {
@@ -348,6 +348,9 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 			// raise rebuild index flag
 			this.needsIndexRebuild = true;
+
+			// log success
+			logger.log(Level.INFO, "Scheduling index rebuild to happen after startup..");
 
 			// signal the service to try again
 			return true;
