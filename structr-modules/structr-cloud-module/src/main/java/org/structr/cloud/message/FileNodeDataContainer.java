@@ -190,7 +190,7 @@ public class FileNodeDataContainer extends NodeDataContainer {
 
 	// ----- public static methods -----
 	/**
-	 * Creates and returns an Iterable instance whose iterator creates <code<FileNodeChunk</code> instances of the given file.
+	 * Creates and returns an Iterable instance whose iterator creates {@link FileNodeChunk} instances of the given file.
 	 *
 	 * @param fileNode the node to read from
 	 * @param chunkSize the desired chunk size
@@ -210,7 +210,7 @@ public class FileNodeDataContainer extends NodeDataContainer {
 
 	// ----- nested classes -----
 	/**
-	 * An iterator that creates <code>FileNodeChunks</code> while reading a large file from disk.
+	 * An iterator that creates {@link FileNodeChunk} while reading a large file from disk.
 	 */
 	private static class ChunkIterator implements Iterator<FileNodeChunk> {
 
