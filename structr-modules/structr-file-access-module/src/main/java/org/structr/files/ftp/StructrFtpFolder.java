@@ -27,12 +27,12 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.ftpserver.ftplet.FtpFile;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-import org.structr.dynamic.File;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
@@ -46,8 +46,8 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 	private static final Logger logger = Logger.getLogger(StructrFtpFolder.class.getName());
 
-	public StructrFtpFolder(final Folder folder) {
-		super(folder);
+	public StructrFtpFolder(final SecurityContext securityContext, final Folder folder) {
+		super(securityContext, folder);		
 	}
 
 	@Override
@@ -73,12 +73,18 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 	@Override
 	public long getLastModified() {
-		try (Tx tx = StructrApp.getInstance().tx()) {
+		
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
+		
 			final Date date = structrFile.getProperty(Folder.lastModifiedDate);
+			
 			tx.success();
+			
 			return date.getTime();
+		
 		} catch (Exception ex) {
 		}
+		
 		return 0L;
 	}
 
@@ -92,43 +98,43 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 		final List<FtpFile> ftpFiles = new ArrayList();
 
-		final App app = StructrApp.getInstance();
+		final App app = StructrApp.getInstance(securityContext);
 
 		try (final Tx tx = app.tx()) {
 
 			String requestedPath = getAbsolutePath();
-			logger.log(Level.INFO, "Children of {0} requested", requestedPath);
+			logger.log(Level.FINE, "Children of {0} requested", requestedPath);
 
 			if ("/".equals(requestedPath)) {
 				try {
 					Result<Folder> folders = app.nodeQuery(Folder.class).getResult();
-					logger.log(Level.INFO, "{0} folders found", folders.size());
+					logger.log(Level.FINE, "{0} folders found", folders.size());
 
 					for (Folder f : folders.getResults()) {
 
-						if (f.getProperty(AbstractFile.parent) != null) {
+						if (f.getProperty(AbstractFile.hasParent)) {
 							continue;
 						}
 
-						FtpFile ftpFile = new StructrFtpFolder(f);
-						logger.log(Level.INFO, "Folder found: {0}", ftpFile.getAbsolutePath());
+						FtpFile ftpFile = new StructrFtpFolder(securityContext, f);
+						logger.log(Level.FINE, "Folder found: {0}", ftpFile.getAbsolutePath());
 
 						ftpFiles.add(ftpFile);
 
 					}
 
 					Result<FileBase> files = app.nodeQuery(FileBase.class).getResult();
-					logger.log(Level.INFO, "{0} files found", files.size());
+					logger.log(Level.FINE, "{0} files found", files.size());
 
 					for (FileBase f : files.getResults()) {
 
-						if (f.getProperty(AbstractFile.parent) != null) {
+						if (f.getProperty(AbstractFile.hasParent)) {
 							continue;
 						}
 
 						logger.log(Level.FINEST, "Structr file found: {0}", f);
 
-						FtpFile ftpFile = new StructrFtpFile(f);
+						FtpFile ftpFile = new StructrFtpFile(securityContext, f);
 						logger.log(Level.FINE, "File found: {0}", ftpFile.getAbsolutePath());
 
 						ftpFiles.add(ftpFile);
@@ -136,11 +142,11 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 					}
 
 					Result<Page> pages = app.nodeQuery(Page.class).getResult();
-					logger.log(Level.INFO, "{0} pages found", pages.size());
+					logger.log(Level.FINE, "{0} pages found", pages.size());
 
 					for (Page p : pages.getResults()) {
 
-						logger.log(Level.FINEST, "Structr page found: {0}", p);
+						logger.log(Level.FINE, "Structr page found: {0}", p);
 
 						ftpFiles.add(new FtpFilePageWrapper(p));
 
@@ -158,8 +164,8 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 			for (Folder f : folders) {
 
-				FtpFile ftpFile = new StructrFtpFolder(f);
-				logger.log(Level.INFO, "Subfolder found: {0}", ftpFile.getAbsolutePath());
+				FtpFile ftpFile = new StructrFtpFolder(securityContext, f);
+				logger.log(Level.FINE, "Subfolder found: {0}", ftpFile.getAbsolutePath());
 
 				ftpFiles.add(ftpFile);
 			}
@@ -168,8 +174,8 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 			for (FileBase f : files) {
 
-				FtpFile ftpFile = new StructrFtpFile(f);
-				logger.log(Level.INFO, "File found: {0}", ftpFile.getAbsolutePath());
+				FtpFile ftpFile = new StructrFtpFile(securityContext, f);
+				logger.log(Level.FINE, "File found: {0}", ftpFile.getAbsolutePath());
 
 				ftpFiles.add(ftpFile);
 			}
@@ -194,13 +200,13 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 	@Override
 	public OutputStream createOutputStream(final long l) throws IOException {
-		logger.log(Level.INFO, "createOutputStream()");
+		logger.log(Level.FINE, "createOutputStream()");
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
 	public InputStream createInputStream(final long l) throws IOException {
-		logger.log(Level.INFO, "createInputStream()");
+		logger.log(Level.FINE, "createInputStream()");
 		throw new UnsupportedOperationException("Not supported.");
 	}
 

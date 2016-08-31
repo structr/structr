@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -64,9 +65,68 @@ public class FtpAccessTest extends FtpTest {
 	
 	public void test02LoginSuccess() {
 		
-		FTPClient ftp = setupFTPClient();
+		FTPClient ftp = setupFTPClient("ftpuser1");
 		disconnect(ftp);
 		
+	}
+	
+	public void test03UserAccessToDirectory() {
+		
+		FTPClient ftp1 = setupFTPClient("ftpuser1");
+		
+		final String name1 = "FTPdir1";
+		FTPFile[] dirs = null;
+		
+		try (final Tx tx = app.tx()) {
+
+			dirs = ftp1.listDirectories();
+			
+			assertNotNull(dirs);
+			assertEquals(0, dirs.length);
+
+			// Create folder by API methods
+			createFTPDirectory(null, name1);
+			
+			tx.success();
+			
+		} catch (IOException | FrameworkException ex) {
+			logger.log(Level.WARNING, "", ex);
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+
+		try (final Tx tx = app.tx()) {
+			
+			dirs = ftp1.listDirectories();
+			
+			assertNotNull(dirs);
+			assertEquals(1, dirs.length);
+			assertEquals(name1, dirs[0].getName());
+
+			tx.success();
+			
+		} catch (IOException | FrameworkException ex) {
+			logger.log(Level.WARNING, "", ex);
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+		
+		// Try to access the firectory as another user, result should be empty
+		
+		FTPClient ftp2 = setupFTPClient("ftpuser2");
+		
+		try (final Tx tx = app.tx()) {
+			
+			dirs = ftp2.listDirectories();
+			
+			assertNotNull(dirs);
+			assertEquals(0, dirs.length);
+			
+			tx.success();
+			
+		} catch (IOException | FrameworkException ex) {
+			logger.log(Level.WARNING, "", ex);
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+
 	}
 	
 }

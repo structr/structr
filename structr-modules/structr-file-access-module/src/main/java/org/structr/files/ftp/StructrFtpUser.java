@@ -27,6 +27,7 @@ import org.apache.ftpserver.ftplet.AuthorizationRequest;
 import org.apache.ftpserver.ftplet.User;
 import org.apache.ftpserver.usermanager.impl.ConcurrentLoginPermission;
 import org.apache.ftpserver.usermanager.impl.WritePermission;
+import org.structr.common.SecurityContext;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractUser;
 import org.structr.core.graph.Tx;
@@ -41,14 +42,16 @@ public class StructrFtpUser implements User {
 	private static final Logger logger = Logger.getLogger(StructrFtpUser.class.getName());
 
 	private final org.structr.web.entity.User structrUser;
+	private SecurityContext securityContext;
 
-	public StructrFtpUser(final org.structr.web.entity.User structrUser) {
-		this.structrUser = structrUser;
+	public StructrFtpUser(final SecurityContext securityContext, final org.structr.web.entity.User structrUser) {
+		this.securityContext = securityContext;
+		this.structrUser     = structrUser;
 	}
 
 	@Override
 	public String getName() {
-		try (Tx tx = StructrApp.getInstance().tx()) {
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 			final String name = structrUser.getProperty(org.structr.web.entity.User.name);
 			tx.success();
 			return name;
@@ -123,7 +126,7 @@ public class StructrFtpUser implements User {
 
 	@Override
 	public boolean getEnabled() {
-		try (Tx tx = StructrApp.getInstance().tx()) {
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 			final boolean blocked = structrUser.getProperty(org.structr.web.entity.User.blocked);
 			tx.success();
 			return !blocked;
@@ -134,7 +137,7 @@ public class StructrFtpUser implements User {
 
 	@Override
 	public String getHomeDirectory() {
-		try (Tx tx = StructrApp.getInstance().tx()) {
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 			final String homeDir = structrUser.getProperty(org.structr.web.entity.User.homeDirectory).getProperty(Folder.name);
 			tx.success();
 			return homeDir;

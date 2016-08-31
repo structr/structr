@@ -25,6 +25,7 @@ import org.apache.ftpserver.ftplet.FileSystemView;
 import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.apache.ftpserver.ftplet.User;
+import org.structr.common.AccessMode;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -46,14 +47,22 @@ public class StructrFileSystemView implements FileSystemView {
 
 	private static final Logger logger = Logger.getLogger(StructrFileSystemView.class.getName());
 	private StructrFtpUser user = null;
+	private SecurityContext securityContext = null;
 
 	private String workingDir = "/";
 
 	public StructrFileSystemView(final User user) {
+		
 		try (Tx tx = StructrApp.getInstance().tx()) {
+		
 			org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(AbstractUser.name, user.getName());
-			this.user = new StructrFtpUser(structrUser);
+			
+			securityContext = SecurityContext.getInstance(structrUser, AccessMode.Backend);
+			
+			this.user = new StructrFtpUser(securityContext, structrUser);
+			
 			tx.success();
+		
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error while initializing file system view", fex);
 		}
@@ -61,45 +70,57 @@ public class StructrFileSystemView implements FileSystemView {
 
 	@Override
 	public FtpFile getHomeDirectory() throws FtpException {
-		try (Tx tx = StructrApp.getInstance().tx()) {
+
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
 			org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(AbstractUser.name, user.getName());
+
 			final Folder homeDir = structrUser.getProperty(org.structr.web.entity.User.homeDirectory);
+
 			tx.success();
-			return new StructrFtpFolder(homeDir);
+
+			return new StructrFtpFolder(securityContext, homeDir);
+
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error while getting home directory", fex);
 		}
+
 		return null;
 	}
 
 	@Override
 	public FtpFile getWorkingDirectory() throws FtpException {
 
-		try (Tx tx = StructrApp.getInstance().tx()) {
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			AbstractFile structrWorkingDir = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), workingDir);
+			
 			tx.success();
 
 			if (structrWorkingDir == null || structrWorkingDir instanceof FileBase) {
-				return new StructrFtpFolder(null);
+				return new StructrFtpFolder(securityContext, null);
 			}
 
-			return new StructrFtpFolder((Folder) structrWorkingDir);
+			return new StructrFtpFolder(securityContext, (Folder) structrWorkingDir);
+			
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error in changeWorkingDirectory()", fex);
 		}
+		
 		return null;
 	}
 
 	@Override
 	public boolean changeWorkingDirectory(String requestedPath) throws FtpException {
 
-		try (Tx tx = StructrApp.getInstance().tx()) {
-			//final org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(AbstractUser.name, user.getName());
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
+			
 			final StructrFtpFolder newWorkingDirectory = (StructrFtpFolder) getFile(requestedPath);
 
 			workingDir = newWorkingDirectory.getAbsolutePath();
+
 			tx.success();
+
 			return true;
 
 		} catch (FrameworkException fex) {
@@ -114,7 +135,7 @@ public class StructrFileSystemView implements FileSystemView {
 
 		logger.log(Level.INFO, "Requested path: {0}", requestedPath);
 
-		try (Tx tx = StructrApp.getInstance().tx()) {
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			if (StringUtils.isBlank(requestedPath) || "/".equals(requestedPath)) {
 				return getHomeDirectory();
@@ -127,7 +148,7 @@ public class StructrFileSystemView implements FileSystemView {
 			}
 
 			if ("..".equals(requestedPath) || "../".equals(requestedPath)) {
-				return new StructrFtpFolder(cur.getStructrFile().getProperty(AbstractFile.parent));
+				return new StructrFtpFolder(securityContext, cur.getStructrFile().getProperty(AbstractFile.parent));
 			}
 
 			// If relative path requested, prepend base path
@@ -155,15 +176,15 @@ public class StructrFileSystemView implements FileSystemView {
 
 				if (file instanceof Folder) {
 					tx.success();
-					return new StructrFtpFolder((Folder) file);
+					return new StructrFtpFolder(securityContext, (Folder) file);
 				} else {
 					tx.success();
-					return new StructrFtpFile((FileBase) file);
+					return new StructrFtpFile(securityContext, (FileBase) file);
 				}
 			}
 
 			// Look up a page by its name
-			Page page = StructrApp.getInstance().nodeQuery(Page.class).andName(PathHelper.getName(requestedPath)).getFirst();
+			Page page = StructrApp.getInstance(securityContext).nodeQuery(Page.class).andName(PathHelper.getName(requestedPath)).getFirst();
 			if (page != null) {
 
 				tx.success();

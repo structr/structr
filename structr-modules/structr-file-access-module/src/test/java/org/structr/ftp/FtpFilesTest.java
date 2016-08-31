@@ -44,7 +44,7 @@ public class FtpFilesTest extends FtpTest {
 
 	public void test00StoreFile() {
 
-		FTPClient ftp = setupFTPClient();
+		FTPClient ftp = setupFTPClient("ftpuser1");
 		final String name1 = "file1";
 		final String name2 = "file2";
 
@@ -112,7 +112,7 @@ public class FtpFilesTest extends FtpTest {
 
 	public void test01ListFiles() {
 
-		FTPClient ftp = setupFTPClient();
+		FTPClient ftp = setupFTPClient("ftpuser1");
 		final String name1 = "file1";
 		final String name2 = "file2";
 
@@ -174,7 +174,7 @@ public class FtpFilesTest extends FtpTest {
 
 	public void test02RenameFile() {
 
-		FTPClient ftp = setupFTPClient();
+		FTPClient ftp = setupFTPClient("ftpuser1");
 		final String name2 = "file2";
 		final String name1 = "file1";
 
@@ -226,7 +226,7 @@ public class FtpFilesTest extends FtpTest {
 
 	public void test03MoveFile() {
 
-		FTPClient ftp = setupFTPClient();
+		FTPClient ftp = setupFTPClient("ftpuser1");
 		final String name1 = "file1";
 		final String name2 = "dir1";
 
@@ -291,7 +291,7 @@ public class FtpFilesTest extends FtpTest {
 
 	public void test04MoveFileToRoot() {
 
-		FTPClient ftp = setupFTPClient();
+		FTPClient ftp = setupFTPClient("ftpuser1");
 
 		final String name1 = "file1";
 		final String name2 = "dir1";

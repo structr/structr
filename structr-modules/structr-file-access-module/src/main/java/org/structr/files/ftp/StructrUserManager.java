@@ -28,6 +28,7 @@ import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.ftplet.User;
 import org.apache.ftpserver.ftplet.UserManager;
 import org.apache.ftpserver.usermanager.UsernamePasswordAuthentication;
+import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
@@ -45,15 +46,15 @@ public class StructrUserManager implements UserManager {
 
 	private static final Logger logger = Logger.getLogger(StructrUserManager.class.getName());
 
-	private SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+	private SecurityContext securityContext = null;
 
 	@Override
 	public User getUserByName(String userName) throws FtpException {
-		try (Tx tx = StructrApp.getInstance().tx()) {
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 			org.structr.web.entity.User structrUser = getStructrUser(userName);
 			tx.success();
 			if (structrUser != null) {
-				return new StructrFtpUser(structrUser);
+				return new StructrFtpUser(securityContext, structrUser);
 			} else {
 				return null;
 			}
@@ -66,7 +67,7 @@ public class StructrUserManager implements UserManager {
 	@Override
 	public String[] getAllUserNames() throws FtpException {
 
-		try (Tx tx = StructrApp.getInstance().tx()) {
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			List<String> userNames = new ArrayList();
 
@@ -93,10 +94,14 @@ public class StructrUserManager implements UserManager {
 			}
 
 			tx.success();
+			
+			
 			return (String[]) userNames.toArray(new String[userNames.size()]);
+
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Unable to get user by its name", fex);
 		}
+		
 		return null;
 	}
 
@@ -112,20 +117,26 @@ public class StructrUserManager implements UserManager {
 
 	@Override
 	public boolean doesExist(String string) throws FtpException {
-		try (Tx tx = StructrApp.getInstance().tx()) {
+		
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
 			boolean exists = (getStructrUser(string) != null);
+
 			tx.success();
+
 			return exists;
+
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Unable to determine if user " + string + " exists", fex);
 		}
+
 		return false;
 	}
 
 	@Override
 	public User authenticate(Authentication auth) throws AuthenticationFailedException {
 
-		logger.log(Level.INFO, "Authentication: {0}", auth);
+		logger.log(Level.FINE, "Authentication: {0}", auth);
 		String userName = null;
 		String password = null;
 
@@ -133,6 +144,7 @@ public class StructrUserManager implements UserManager {
 
 			org.structr.web.entity.User user = null;
 
+			// Use superuser context for authentication only
 			try (Tx tx = StructrApp.getInstance().tx()) {
 
 				UsernamePasswordAuthentication authentication = (UsernamePasswordAuthentication) auth;
@@ -141,6 +153,8 @@ public class StructrUserManager implements UserManager {
 				password = authentication.getPassword();
 
 				user = (org.structr.web.entity.User) AuthHelper.getPrincipalForPassword(AbstractUser.name, userName, password);
+				
+				securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
 
 				tx.success();
 
@@ -150,7 +164,7 @@ public class StructrUserManager implements UserManager {
 
 			if (user != null) {
 
-				return new StructrFtpUser(user);
+				return new StructrFtpUser(securityContext, user);
 
 			}
 
@@ -171,10 +185,12 @@ public class StructrUserManager implements UserManager {
 
 	private org.structr.web.entity.User getStructrUser(final String userName) {
 
-		try (Tx tx = StructrApp.getInstance().tx()) {
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			final org.structr.web.entity.User user = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(AbstractUser.name, userName);
+			
 			tx.success();
+			
 			return user;
 
 		} catch (FrameworkException fex) {

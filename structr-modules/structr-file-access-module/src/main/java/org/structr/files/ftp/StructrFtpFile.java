@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.ftpserver.ftplet.FtpFile;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
@@ -37,9 +38,9 @@ import org.structr.web.entity.FileBase;
 public class StructrFtpFile extends AbstractStructrFtpFile {
 
 	private static final Logger logger = Logger.getLogger(StructrFtpFile.class.getName());
-
-	public StructrFtpFile(final FileBase file) {
-		super(file);
+	
+	public StructrFtpFile(final SecurityContext securityContext, final FileBase file) {
+		super(securityContext, file);
 	}
 
 	@Override
@@ -54,11 +55,17 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 
 	@Override
 	public long getSize() {
-		try (Tx tx = StructrApp.getInstance().tx()) {
-			Long size = ((FileBase) structrFile).getSize();
+		
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
+		
+			final Long size = ((FileBase) structrFile).getSize();
+			
 			tx.success();
+			
 			return size == null ? 0L : size;
+			
 		} catch (FrameworkException fex) {}
+		
 		return 0L;
 	}
 
@@ -70,25 +77,37 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 
 	@Override
 	public OutputStream createOutputStream(final long l) throws IOException {
-		try (Tx tx = StructrApp.getInstance().tx()) {
+		
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
+		
 			final OutputStream outputStream = ((FileBase) structrFile).getOutputStream();
+			
 			tx.success();
+			
 			return outputStream;
+
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, null, fex);
 		}
+		
 		return null;
 	}
 
 	@Override
 	public InputStream createInputStream(final long l) throws IOException {
-		try (Tx tx = StructrApp.getInstance().tx()) {
+
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
 			final InputStream inputStream = ((FileBase) structrFile).getInputStream();
+
 			tx.success();
+
 			return inputStream;
+
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, null, fex);
 		}
+
 		return null;
 	}
 

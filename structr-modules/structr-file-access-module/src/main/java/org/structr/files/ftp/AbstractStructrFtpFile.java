@@ -47,11 +47,15 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 	protected AbstractFile structrFile;
 
+	protected SecurityContext securityContext = null;
+
 	protected StructrFtpUser owner;
 	protected String newPath = "/";
 
-	public AbstractStructrFtpFile(final AbstractFile file) {
-		structrFile = file;
+
+	public AbstractStructrFtpFile(final SecurityContext securityContext, final AbstractFile file) {
+		this.structrFile     = file;
+		this.securityContext = securityContext;
 	}
 
 	public AbstractStructrFtpFile(final String path, final StructrFtpUser user) {
@@ -65,48 +69,66 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 		if (structrFile == null) {
 			return newPath;
 		}
-		try (Tx tx = StructrApp.getInstance().tx()) {
+		
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
+		
 			String path = FileHelper.getFolderPath(structrFile);
+			
 			tx.success();
+			
 			return path;
+			
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error in getName() of abstract ftp file", fex);
 		}
+
 		return null;
 	}
 
 	@Override
 	public String getName() {
-		try (Tx tx = StructrApp.getInstance().tx()) {
+
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			String name = null;
+			
 			if (!("/").equals(newPath)) {
+			
 				name = newPath.contains("/") ? StringUtils.substringAfterLast(newPath, "/") : newPath;
+			
 			} else {
+			
 				if (structrFile != null) {
 					name = structrFile.getProperty(FileBase.name);
 				}
 			}
 
 			tx.success();
+			
 			return name == null ? structrFile.getUuid() : name;
 
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error in getName() of abstract ftp file", fex);
 		}
+
 		return null;
 	}
 
 	@Override
 	public boolean isHidden() {
-		try (Tx tx = StructrApp.getInstance().tx()) {
+
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
 			final boolean hidden = structrFile.getProperty(FileBase.hidden);
+
 			tx.success();
+
 			return hidden;
 
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error in isHidden() of abstract ftp file", fex);
 		}
+
 		return true;
 	}
 
@@ -132,34 +154,42 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 	@Override
 	public String getOwnerName() {
-		try (Tx tx = StructrApp.getInstance().tx()) {
+
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
 			final Principal owner = getOwner();
+
 			String name = "";
+
 			if (owner != null) {
 				name = owner.getProperty(AbstractUser.name);
 			}
+
 			tx.success();
+
 			return name;
+
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error while getting owner name of " + this, fex);
 		}
+
 		return null;
 	}
 
 	@Override
 	public String getGroupName() {
 
-		try (Tx tx = StructrApp.getInstance().tx()) {
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			final Principal owner = getOwner();
 			String name = "";
 
 			if (owner != null) {
-				List<Principal> parents = owner.getParents();
+
+				final List<Principal> parents = owner.getParents();
 				if (!parents.isEmpty()) {
 
 					name = parents.get(0).getProperty(AbstractNode.name);
-
 				}
 			}
 
@@ -180,21 +210,31 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 	@Override
 	public long getLastModified() {
-		try (Tx tx = StructrApp.getInstance().tx()) {
+
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
 			final Date date = structrFile.getProperty(AbstractFile.lastModifiedDate);
+
 			tx.success();
+
 			return date.getTime();
+
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error while last modified date of " + this, fex);
 		}
+
 		return 0L;
 	}
 
 	@Override
 	public boolean setLastModified(final long l) {
-		try (Tx tx = StructrApp.getInstance().tx()) {
+
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
 			structrFile.setProperty(AbstractFile.lastModifiedDate, new Date(l));
+
 			tx.success();
+
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, null, ex);
 		}
@@ -205,11 +245,14 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 	@Override
 	public boolean delete() {
 
-		final App app = StructrApp.getInstance();
+		final App app = StructrApp.getInstance(securityContext);
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
+
 			app.delete(structrFile);
+
 			tx.success();
+
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, null, ex);
 		}
@@ -221,7 +264,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 	@Override
 	public boolean move(final FtpFile target) {
 
-		try (Tx tx = StructrApp.getInstance().tx()) {
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			logger.log(Level.INFO, "move()");
 
@@ -261,6 +304,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 			tx.success();
 
 			return true;
+
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, null, ex);
 		}
@@ -269,13 +313,19 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 	}
 
 	private Principal getOwner() {
-		try (Tx tx = StructrApp.getInstance().tx()) {
+
+		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
 			Principal owner = structrFile.getProperty(FileBase.owner);
+
 			tx.success();
+
 			return owner;
+
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error while getting owner of " + this, fex);
 		}
+
 		return null;
 	}
 

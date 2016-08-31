@@ -121,9 +121,10 @@ public abstract class FtpTest extends StructrUiTest {
 	/**
 	 * Creates an FTP client, a backend user and logs this user in.
 	 *
+	 * @param username
 	 * @return
 	 */
-	protected FTPClient setupFTPClient() {
+	protected FTPClient setupFTPClient(final String username) {
 
 		FTPClient ftp = new FTPClient();
 
@@ -135,7 +136,6 @@ public abstract class FtpTest extends StructrUiTest {
 			int reply = ftp.getReplyCode();
 			assertTrue(FTPReply.isPositiveCompletion(reply));
 
-			String username = "ftpuser1";
 			String password = "ftpuserpw1";
 
 			try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
@@ -159,7 +159,7 @@ public abstract class FtpTest extends StructrUiTest {
 		return ftp;
 
 	}
-
+	
 	protected void disconnect(final FTPClient ftp) {
 		try {
 			ftp.disconnect();

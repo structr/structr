@@ -44,7 +44,7 @@ public class FtpDirectoriesTest extends FtpTest {
 		final String name1 = "FTPdir1";
 		final String name2 = "FTPdir2";
 		
-		FTPClient ftp = setupFTPClient();
+		FTPClient ftp = setupFTPClient("ftpuser1");
 		FTPFile[] dirs = null;
 
 		try (final Tx tx = app.tx()) {
@@ -103,7 +103,7 @@ public class FtpDirectoriesTest extends FtpTest {
 	
 	public void test02MkDir() {
 		
-		FTPClient ftp = setupFTPClient();
+		FTPClient ftp = setupFTPClient("ftpuser1");
 		
 		FTPFile[] dirs = null;
 		
@@ -166,7 +166,7 @@ public class FtpDirectoriesTest extends FtpTest {
 
 	public void test03MkdirCd() {
 
-		FTPClient ftp = setupFTPClient();
+		FTPClient ftp = setupFTPClient("ftpuser1");
 		final String name1 = "/FTPdir1";
 		
 		try (final Tx tx = app.tx()) {
@@ -207,7 +207,7 @@ public class FtpDirectoriesTest extends FtpTest {
 	
 	public void test04MkdirCdMkdirCd() {
 
-		FTPClient ftp = setupFTPClient();
+		FTPClient ftp = setupFTPClient("ftpuser1");
 		
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 			
@@ -249,7 +249,7 @@ public class FtpDirectoriesTest extends FtpTest {
 
 	public void test05CdUp() {
 
-		FTPClient ftp = setupFTPClient();
+		FTPClient ftp = setupFTPClient("ftpuser1");
 		
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 			
@@ -286,7 +286,7 @@ public class FtpDirectoriesTest extends FtpTest {
 
 	public void test06CdTwoUp() {
 
-		FTPClient ftp = setupFTPClient();
+		FTPClient ftp = setupFTPClient("ftpuser1");
 		
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 			
@@ -331,7 +331,7 @@ public class FtpDirectoriesTest extends FtpTest {
 
 	public void test07CdToSiblingDirectory() {
 
-		FTPClient ftp = setupFTPClient();
+		FTPClient ftp = setupFTPClient("ftpuser1");
 		
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 			
@@ -369,7 +369,7 @@ public class FtpDirectoriesTest extends FtpTest {
 	
 	public void test08CdRoot() {
 
-		FTPClient ftp = setupFTPClient();
+		FTPClient ftp = setupFTPClient("ftpuser1");
 		
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 			

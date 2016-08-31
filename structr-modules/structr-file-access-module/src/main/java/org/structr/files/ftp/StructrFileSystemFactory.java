@@ -38,15 +38,22 @@ public class StructrFileSystemFactory implements FileSystemFactory {
 
 	@Override
 	public FileSystemView createFileSystemView(final User user) throws FtpException {
+		
 		try (Tx tx = StructrApp.getInstance().tx()) {
+		
 			FileSystemView fileSystemView = new StructrFileSystemView(user);
-			logger.log(Level.INFO, "Created Structr File System View [user, homeDir, workingDir]: {0}, {1}, {2}", new Object[]{user.getName(), fileSystemView.getHomeDirectory().getAbsolutePath(), fileSystemView.getWorkingDirectory().getAbsolutePath()});
+			
+			logger.log(Level.FINE, "Created Structr File System View [user, homeDir, workingDir]: {0}, {1}, {2}", new Object[]{user.getName(), fileSystemView.getHomeDirectory().getAbsolutePath(), fileSystemView.getWorkingDirectory().getAbsolutePath()});
+			
 			tx.success();
+			
 			return fileSystemView;
+
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Could not create file system view for user {0}", user);
 
 		}
+		
 		return null;
 	}
 }
