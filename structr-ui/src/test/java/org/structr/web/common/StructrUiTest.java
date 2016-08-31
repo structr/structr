@@ -48,6 +48,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.GraphDatabaseCommand;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyMap;
@@ -280,6 +281,20 @@ public abstract class StructrUiTest extends TestCase {
 
 		return classes;
 
+	}
+
+	protected <T extends NodeInterface> T createTestNode(final Class<T> type, final NodeAttribute... attrs) throws FrameworkException {
+
+		final PropertyMap props = new PropertyMap();
+
+		props.put(AbstractNode.type, type.getSimpleName());
+		props.put(AbstractNode.name, type.getSimpleName());
+
+		for (final NodeAttribute attr : attrs) {
+			props.put(attr.getKey(), attr.getValue());
+		}
+
+		return app.create(type, props);
 	}
 
 	protected <T extends NodeInterface> List<T> createTestNodes(final Class<T> type, final int number) throws FrameworkException {

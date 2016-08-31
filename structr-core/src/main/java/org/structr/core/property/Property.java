@@ -485,18 +485,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 			for (String searchValue : searchValues) {
 
-				if (!exactMatch) {
-
-					// no quotes allowed in loose search queries!
-					searchValue = removeQuotes(searchValue);
-
-					query.and(this, convertSearchValue(securityContext, searchValue), false);
-
-				} else {
-
-					determineSearchType(securityContext, searchValue, exactMatch, query);
-
-				}
+				determineSearchType(securityContext, searchValue, exactMatch, query);
 			}
 		}
 	}
