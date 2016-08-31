@@ -222,8 +222,8 @@ var StructrModel = {
 			_Pages.reloadPreviews();
 		}
 
-		if (graphBrowser) {	
-                                            try { graphBrowser.graph.dropElement(id); } catch (e) {}
+		if (graphBrowser) {
+                    try { graphBrowser.graph.dropElement(id); } catch (e) {}
 		}
 
 	},
@@ -371,7 +371,7 @@ var StructrModel = {
 			var element = Structr.node(id);
 
 			if (graphBrowser) {
-                                                            graphBrowser.updateNode(id, obj, ['name', 'tag'], {label: 'name'});
+                            graphBrowser.updateNode(id, obj, ['name', 'tag', 'id', 'type'], {label: 'name', nodeType: 'type'});
 			}
 
 			if (!element)
