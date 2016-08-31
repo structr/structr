@@ -152,8 +152,11 @@ var _Graph = {
                     container: 'graph-info',
                     newEdgeSize: 40,
                     newNodeSize: 20,
-                    margins: {top: 28, left: 10},
+                    margins: {top: 24, left: 0},
                     edgeType: "curvedArrow",
+                    infoButtonRenderer: _Graph.renderNodeExpanderInfoButton,
+                    defaultInfoButtonColor: '#e5e5e5',
+                    expandButtonsTimeout: 1000,
                     onNodesAdded: _Graph.onNodesAdded
                 },
                 'selectionTools': {'container': 'graph-canvas'},
@@ -211,6 +214,7 @@ var _Graph = {
         graphBrowser = new GraphBrowser(graphBrowserSettings);
         graphBrowser.start();
 
+        graphBrowser.bindEvent('clickStage', _Graph.handleClickStageEvent)
         graphBrowser.bindEvent('clickNode', _Graph.handleClickNodeEvent);
         graphBrowser.bindEvent('doubleClickNode', _Graph.handleDoubleClickNodeEvent);
         graphBrowser.bindEvent('drag', _Graph.handleDragNodeEvent);
@@ -784,6 +788,7 @@ var _Graph = {
         relIds = [];
         hiddenNodeTypes = [];
         hiddenRelTypes = [];
+        graphBrowser.hideExpandButtons();
         graphBrowser.reset();
         _Graph.updateRelationshipTypes();
     },
@@ -1106,12 +1111,16 @@ var _Graph = {
         _Graph.updateRelationshipTypes();
     },
 
+    handleClickStageEvent: function(){
+      graphBrowser.hideExpandButtons();
+    },
+
     handleDragNodeEvent: function(){
         hasDragged = true;
     },
 
     handleStartDragNodeEvent: function(){
-        hasDragged = false;
+        hasDragged = true;
         graphBrowser.hideExpandButtons();
     },
 
@@ -1147,9 +1156,23 @@ var _Graph = {
     },
 
     handleClickEdgeEvent: function(clickedEdge){
-    var edge = clickedEdge.data.edge;
+        var edge = clickedEdge.data.edge;
+
+        if (hasDragged) {
+            hasDragged = false;
+            return false;
+        }
+        
         hasDoubleClicked = false;
         _Entities.showProperties(edge);
+    },
+
+    renderNodeExpanderInfoButton: function(colorKey, label){
+        var button =
+            '<div class="nodeExpander-infobutton">' +
+                '<div class="circle" style="background-color: ' + (color[colorKey] || '#e5e5e5')+ '"></div>' + label +
+            '</div>';
+        return button;
     },
 
     renderNodeTooltip: function(node){

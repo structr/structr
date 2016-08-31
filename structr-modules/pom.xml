@@ -4,9 +4,17 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.structr</groupId>
     <artifactId>structr-modules</artifactId>
-    <version>2.0.2-SNAPSHOT</version>
-    <packaging>pom</packaging>
-    <modules>
+    <version>2.1.0-SNAPSHOT</version>
+
+    <parent>
+        <groupId>org.structr</groupId>
+        <artifactId>structr</artifactId>
+        <version>2.1.0-SNAPSHOT</version>
+    </parent>
+
+	<packaging>pom</packaging>
+
+	<modules>
         <module>structr-xmpp-module</module>
         <module>structr-media-module</module>
         <module>structr-cloud-module</module>
