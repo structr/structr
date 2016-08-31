@@ -282,7 +282,7 @@ public class Image extends org.structr.dynamic.File {
 						// thumbnailRelationships.add(thumbnailRelationship);
 
 						thumbnail.unlockSystemPropertiesOnce();
-						thumbnail.setProperty(File.size,                                data.length);
+						thumbnail.setProperty(File.size,                                Long.valueOf(data.length));
 						
 						thumbnail.setProperty(Image.width,                              tnWidth);
 						thumbnail.setProperty(Image.height,                             tnHeight);
