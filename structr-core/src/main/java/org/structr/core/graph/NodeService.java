@@ -124,8 +124,6 @@ public class NodeService implements SingletonService {
 
 						// start index rebuild immediately after initialization
 						Services.getInstance().command(SecurityContext.getSuperUserInstance(), BulkRebuildIndexCommand.class).execute(Collections.EMPTY_MAP);
-
-						graphDb.getGlobalProperties().setProperty("initialized", true);
 					}
 
 					@Override
@@ -133,8 +131,24 @@ public class NodeService implements SingletonService {
 						return 10;
 					}
 				});
-			}
 
+				services.registerInitializationCallback(new InitializationCallback() {
+
+					@Override
+					public void initializationDone() {
+
+						// initialize type labels for all nodes in the database
+						Services.getInstance().command(SecurityContext.getSuperUserInstance(), BulkCreateLabelsCommand.class).execute(Collections.EMPTY_MAP);
+
+						graphDb.getGlobalProperties().setProperty("initialized", true);
+					}
+
+					@Override
+					public int priority() {
+						return 20;
+					}
+				});
+			}
 		}
 	}
 

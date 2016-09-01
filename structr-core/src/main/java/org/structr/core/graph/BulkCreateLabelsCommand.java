@@ -48,7 +48,7 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 
 	//~--- methods --------------------------------------------------------
 	@Override
-	public void execute(Map<String, Object> attributes) throws FrameworkException {
+	public void execute(Map<String, Object> attributes) {
 
 		final String entityType                = (String) attributes.get("type");
 		final DatabaseService graphDb          = (DatabaseService) arguments.get("graphDb");
