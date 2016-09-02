@@ -362,7 +362,7 @@ public class StructrRestTest extends TestCase {
 			config.putAll(additionalConfig);
 		}
 
-		final Services services = Services.getInstance(config);
+		final Services services = Services.getInstanceForTesting(config);
 
 		securityContext		= SecurityContext.getSuperUserInstance();
 		app			= StructrApp.getInstance(securityContext);

@@ -399,7 +399,7 @@ public class StructrTest extends TestCase {
 			config.putAll(additionalConfig);
 		}
 
-		final Services services = Services.getInstance(config);
+		final Services services = Services.getInstanceForTesting(config);
 
 		// wait for service layer to be initialized
 		do {

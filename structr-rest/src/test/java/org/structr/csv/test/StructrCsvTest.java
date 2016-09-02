@@ -322,7 +322,7 @@ public class StructrCsvTest extends TestCase {
 		config.setProperty("CsvServlet.defaultview", PropertyView.Public);
 		config.setProperty("CsvServlet.outputdepth", "3");
 
-		final Services services = Services.getInstance(config);
+		final Services services = Services.getInstanceForTesting(config);
 
 		securityContext		= SecurityContext.getSuperUserInstance();
 		app			= StructrApp.getInstance(securityContext);

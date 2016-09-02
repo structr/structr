@@ -99,7 +99,7 @@ public class StructrTest extends TestCase {
 		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
 		config.setProperty(HttpService.APPLICATION_TITLE, "structr unit test app" + timestamp);
 
-		final Services services = Services.getInstance(config);
+		final Services services = Services.getInstanceForTesting(config);
 
 		// wait for service layer to be initialized
 		do {

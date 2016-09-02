@@ -38,6 +38,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.configuration.ConfigurationException;
@@ -151,41 +153,17 @@ public class Services implements StructrServices {
 
 			singletonInstance = new Services();
 			singletonInstance.initialize();
-
-			final Thread thread = new Thread(new Runnable() {
-
-				@Override
-				public void run() {
-
-					// wait a second
-					try { Thread.sleep(100); } catch (Throwable ignore) {}
-
-					// call initialization callbacks from a different thread
-					for (final InitializationCallback callback : singletonInstance.callbacks) {
-						callback.initializationDone();
-					}
-				}
-
-			});
-
-			thread.setDaemon(true);
-			thread.start();
-
 		}
 
 		return singletonInstance;
 	}
 
-	public static Services getInstance(final Properties properties) {
+	public static Services getInstanceForTesting(final Properties properties) {
 
 		if (singletonInstance == null) {
 
 			singletonInstance = new Services();
 			singletonInstance.initialize(properties);
-
-			for (final InitializationCallback callback : singletonInstance.callbacks) {
-				callback.initializationDone();
-			}
 		}
 
 		return singletonInstance;
@@ -386,6 +364,29 @@ public class Services implements StructrServices {
 			// default
 			permissionsForOwnerlessNodes.add(Permission.read);
 		}
+
+		try {
+			final ExecutorService service = Executors.newSingleThreadExecutor();
+			service.submit(new Runnable() {
+
+					@Override
+					public void run() {
+
+						// wait a second
+						try { Thread.sleep(100); } catch (Throwable ignore) {}
+
+						// call initialization callbacks from a different thread
+						for (final InitializationCallback callback : singletonInstance.callbacks) {
+							callback.initializationDone();
+						}
+					}
+
+			}).get();
+
+		} catch (Throwable t) {
+			logger.log(Level.WARNING, "Exception while executing post-initialization tasks", t);
+		}
+
 
 		// Don't use logger here because start/stop scripts rely on this line.
 		System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.ms").format(new Date()) + "  ---------------- Initialization complete ----------------");
