@@ -195,13 +195,6 @@ public class AuthHelper {
 
 		AuthHelper.sendLogoutNotification(user);
 
-		try {
-
-			request.logout();
-			request.changeSessionId();
-
-		} catch (Throwable t) {}
-
 	}
 
 	public static void sendLogoutNotification (final Principal user) throws FrameworkException {
