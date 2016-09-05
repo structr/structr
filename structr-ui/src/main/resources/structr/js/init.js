@@ -88,7 +88,6 @@ $(function() {
 	});
 
 	Structr.connect();
-	Structr.updateVersionInfo();
 
 	// Reset keys in case of window switching
 
@@ -340,14 +339,13 @@ var Structr = {
 		}
 	},
 	getSessionId: function() {
-		return $.cookie('JSESSIONID');
+		return Cookies.get('JSESSIONID');
 	},
 	connect: function() {
 		_Logger.log(_LogType.INIT, 'connect');
 		sessionId = Structr.getSessionId();
 		if (!sessionId) {
-			$.get('/').always(function() {
-				sessionId = $.cookie('JSESSIONID');
+			Structr.renewSessionId(function() {
 				wsConnect();
 			});
 		} else {
@@ -381,21 +379,28 @@ var Structr = {
 		Structr.activateMenuEntry('logout');
 	},
 	doLogin: function(username, password) {
-		$.ajax('/structr/rest/_env').always(function() {
-			return Command.login(username, password);
-		});
+		Command.login(username, password);
 	},
 	doLogout: function(text) {
 		Structr.saveLocalStorage();
 		if (Command.logout(user)) {
-			$.cookie('JSESSIONID', null);
+			Cookies.remove('JSESSIONID');
 			sessionId.length = 0;
+			Structr.renewSessionId();
 			Structr.clearMain();
 			Structr.login(text);
 			return true;
 		}
 		ws.close();
 		return false;
+	},
+	renewSessionId: function (callback) {
+		$.get('/').always(function() {
+			sessionId = Structr.getSessionId();
+			if (typeof callback === "function") {
+				callback();
+			}
+		});
 	},
 	loadInitialModule: function(isLogin) {
 
