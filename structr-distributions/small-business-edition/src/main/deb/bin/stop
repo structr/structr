@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PID_FILE='/var/run/structr-ui.pid'
+. bin/config
 
 if [ ! -e $PID_FILE ]; then
 

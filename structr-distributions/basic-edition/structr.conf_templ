@@ -8,13 +8,12 @@
 #
 #############################################################################
 
-
 #############################################################################
 # General application-wide settings
 #############################################################################
 
 # The title shown at start-up
-application.title = Structr UI
+application.title = Structr Basic Edition
 
 # Listener address. Set this to the real ip address or localhost to restrict access,
 # or to 0.0.0.0 to make this instance accessible over all ip addresses and hostnames
@@ -66,7 +65,6 @@ neo4j.server.port = 7474
 base.path = .
 database.path = ./db
 files.path = ./files
-log.database.path = ./logDb.dat
 tmp.path = /tmp
 
 # Configuration class providing custom schema classes

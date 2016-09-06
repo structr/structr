@@ -4,11 +4,11 @@
 #
 # Build image:
 #
-# sudo docker build -t structr/structr-community-edition:2.1.0-SNAPSHOT .
+# sudo docker build -t structr/structr-small-business-edition:2.1.0-SNAPSHOT .
 #
 # Start container:
 #
-# sudo docker run --name="structr-community-edition-2.1.0-SNAPSHOT" -p 0.0.0.0:8082:8082 -p 0.0.0.0:8021:8021 -p 0.0.0.0:8022:8022 -t -i structr/structr-community-edition:2.1.0-SNAPSHOT
+# sudo docker run --name="structr-small-business-edition-2.1.0-SNAPSHOT" -p 0.0.0.0:8082:8082 -p 0.0.0.0:8021:8021 -p 0.0.0.0:8022:8022 -t -i structr/structr-small-business-edition:2.1.0-SNAPSHOT
 
 FROM ubuntu:latest
 

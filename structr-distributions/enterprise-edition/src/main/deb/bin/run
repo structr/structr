@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd /usr/lib/structr
+
 . bin/config
 
 if [ -e $PID_FILE ]; then
@@ -31,7 +33,7 @@ if [ ! -e "structr" ]; then
 
 	echo "        Unarchiving static resources..."
 
-        jar -xf $(find . -maxdepth 1 -name "*.jar" ! -name "*-sources.jar" ! -name "*-javadoc.jar"|sort|head -n 1) structr
+        jar -xf lib/structr-ui-*.jar structr
 
 fi
 	
@@ -45,9 +47,4 @@ fi
 
 echo -n "        Starting structr server $DISPLAY_NAME: "
 
-java $RUN_OPTS $JAVA_OPTS $MAIN_CLASS >$LOG_FILE 2>&1 & echo $! >$PID_FILE
-
-sleep 1
-
-echo "OK"
-echo
+java $RUN_OPTS $JAVA_OPTS $MAIN_CLASS
