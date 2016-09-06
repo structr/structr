@@ -694,22 +694,27 @@ public class SecurityContext {
 				// Priority 4: Browser locale
 				locale = request.getLocale();
 
+				final Cookie[] cookies = request.getCookies();
+				
+				if (cookies != null) {
+				
+					// Priority 3: Cookie locale
+					for (Cookie c : cookies) {
 
-				// Priority 3: Cookie locale
-				for (Cookie c : request.getCookies()) {
+						if (c.getName().equals(LOCALE_KEY)) {
 
-					if (c.getName().equals(LOCALE_KEY)) {
+							final String cookieLocaleString = c.getValue();
 
-						final String cookieLocaleString = c.getValue();
+							try {
+								locale = LocaleUtils.toLocale(cookieLocaleString);
+							} catch (IllegalArgumentException e) {
+								locale = Locale.forLanguageTag(cookieLocaleString);
+							}
 
-						try {
-							locale = LocaleUtils.toLocale(cookieLocaleString);
-						} catch (IllegalArgumentException e) {
-							locale = Locale.forLanguageTag(cookieLocaleString);
 						}
 
 					}
-
+				
 				}
 
 			}
