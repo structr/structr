@@ -3282,3 +3282,7 @@ input#element-class {
 #minification-source-search .searchResultsTitle {
 	display: none;
 }
+
+i.fa-puzzle-piece {
+	color: rgb(38, 83, 217);
+}
