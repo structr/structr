@@ -1,0 +1,44 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides:          structr
+# Required-Start:    $remote_fs $network
+# Required-Stop:     $remote_fs $network
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start Structr.
+# Description:       Start Structr (see http://structr.org).
+### END INIT INFO
+
+cd /usr/lib/structr
+
+PID_FILE="/var/run/structr.pid"
+
+case "$1" in
+  start)
+        /usr/lib/structr/bin/start
+        exit 0
+        ;;
+  status)
+        if [ -f $PID_FILE ]; then
+            PID=`cat $PID_FILE`
+            if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
+                printf "%s\n" "Process dead but PID_FILE exists"
+                exit 1
+            else
+                echo "Running"
+                exit 0
+            fi
+        else
+            printf "%s\n" "Service not running"
+            exit 1
+        fi
+  ;;
+  stop)
+        /usr/lib/structr/bin/stop
+        ;;
+  *)
+        echo "Usage: structr {start|stop|status}" >&2
+        exit 3
+        ;;
+esac

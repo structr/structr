@@ -175,9 +175,9 @@
     </licenses>
 
     <scm>
-        <url>https://github.com/structr/structr-neo4j-driver</url>
-        <connection>scm:git:https://github.com:structr/structr-neo4j-driver.git</connection>
-        <developerConnection>scm:git:git@github.com:structr/structr-neo4j-driver.git</developerConnection>
+        <url>https://github.com/structr/structr</url>
+        <connection>scm:git:https://github.com:structr/structr.git</connection>
+        <developerConnection>scm:git:git@github.com:structr/structr.git</developerConnection>
     </scm>
 
     <distributionManagement>

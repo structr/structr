@@ -34,11 +34,6 @@
         </dependency>
         <dependency>
             <groupId>org.structr</groupId>
-            <artifactId>structr-neo4j-driver</artifactId>
-            <version>2.2.9-${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
             <artifactId>structr-xmpp-module</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -177,7 +172,7 @@
                                     <dst>${project.build.finalName}.jar</dst>
                                     <mapper>
                                         <type>perm</type>
-                                        <prefix>/usr/lib/${project.artifactId}/</prefix>
+                                        <prefix>/usr/lib/structr/</prefix>
                                     </mapper>
                                 </data>
 
@@ -186,7 +181,7 @@
                                     <type>directory</type>
                                     <mapper>
                                         <type>perm</type>
-                                        <prefix>/usr/lib/${project.artifactId}/lib</prefix>
+                                        <prefix>/usr/lib/structr/lib</prefix>
                                         <filemode>755</filemode>
                                     </mapper>
                                 </data>
@@ -196,7 +191,7 @@
                                     <type>file</type>
                                     <mapper>
                                         <type>perm</type>
-                                        <prefix>/usr/lib/${project.artifactId}/</prefix>
+                                        <prefix>/usr/lib/structr/</prefix>
                                         <filemode>755</filemode>
                                     </mapper>
                                 </data>
@@ -206,7 +201,7 @@
                                     <type>file</type>
                                     <mapper>
                                         <type>perm</type>
-                                        <prefix>/usr/lib/${project.artifactId}/</prefix>
+                                        <prefix>/usr/lib/structr/</prefix>
                                         <filemode>640</filemode>
                                     </mapper>
                                 </data>
@@ -216,7 +211,7 @@
                                     <type>file</type>
                                     <mapper>
                                         <type>perm</type>
-                                        <prefix>/usr/lib/${project.artifactId}/bin/</prefix>
+                                        <prefix>/usr/lib/structr/bin/</prefix>
                                         <filemode>644</filemode>
                                     </mapper>
                                 </data>
@@ -226,7 +221,7 @@
                                     <type>file</type>
                                     <mapper>
                                         <type>perm</type>
-                                        <prefix>/usr/lib/${project.artifactId}/bin/</prefix>
+                                        <prefix>/usr/lib/structr/bin/</prefix>
                                         <filemode>755</filemode>
                                     </mapper>
                                 </data>
@@ -236,7 +231,17 @@
                                     <type>file</type>
                                     <mapper>
                                         <type>perm</type>
-                                        <prefix>/usr/lib/${project.artifactId}/bin/</prefix>
+                                        <prefix>/usr/lib/structr/bin/</prefix>
+                                        <filemode>755</filemode>
+                                    </mapper>
+                                </data>
+
+                                <data>
+                                    <src>${basedir}/src/main/deb/bin/run</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/usr/lib/structr/bin/</prefix>
                                         <filemode>755</filemode>
                                     </mapper>
                                 </data>

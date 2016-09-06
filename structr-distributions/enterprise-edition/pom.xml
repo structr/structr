@@ -34,11 +34,6 @@
         </dependency>
         <dependency>
             <groupId>org.structr</groupId>
-            <artifactId>structr-neo4j-enterprise-driver</artifactId>
-            <version>2.2.9-${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
             <artifactId>structr-xmpp-module</artifactId>
             <version>${project.version}</version>
         </dependency>
