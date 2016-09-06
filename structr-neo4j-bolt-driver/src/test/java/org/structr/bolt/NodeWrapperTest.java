@@ -20,6 +20,7 @@ package org.structr.bolt;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import org.junit.Assert;
@@ -52,14 +53,17 @@ public class NodeWrapperTest {
 		// create new node
 		try (final Transaction tx = s.beginTx()) {
 
-			final Node node1 = s.createNode();
-			final Node node2 = s.createNode();
+			final Node node1 = s.createNode(Collections.EMPTY_SET, Collections.EMPTY_MAP);
+			final Node node2 = s.createNode(Collections.EMPTY_SET, Collections.EMPTY_MAP);
 
 			final Relationship rel = node1.createRelationshipTo(node2, s.forName(RelationshipType.class, "TEST"));
 
 			rel.delete();
 
 			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 
 		s.shutdown();
@@ -87,7 +91,7 @@ public class NodeWrapperTest {
 		// create new node
 		try (final Transaction tx = s.beginTx()) {
 
-			final Node node = s.createNode();
+			final Node node = s.createNode(Collections.EMPTY_SET, Collections.EMPTY_MAP);
 
 			id = node.getId();
 

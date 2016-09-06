@@ -68,7 +68,7 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 	public static final Map<Class, TypeConverter> CONVERTERS = new HashMap<>();
 	public static final Map<Class, QueryFactory> FACTORIES   = new HashMap<>();
 
-	private static final Set<Class> INDEXABLE = new HashSet<>(Arrays.asList(new Class[] {
+	public static final Set<Class> INDEXABLE = new HashSet<>(Arrays.asList(new Class[] {
 		String.class, Boolean.class, Double.class, Integer.class, Long.class, Character.class, Float.class
 	}));
 

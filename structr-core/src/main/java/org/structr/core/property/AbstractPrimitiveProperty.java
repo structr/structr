@@ -20,6 +20,7 @@ package org.structr.core.property;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.api.NotInTransactionException;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.common.SecurityContext;
@@ -30,6 +31,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
+import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.TransactionCommand;
 
 
@@ -129,11 +131,10 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 			if (!TransactionCommand.inTransaction()) {
 
-				logger.log(Level.SEVERE, "setProperty outside of transaction");
-				throw new FrameworkException(500, "setProperty outside of transaction.");
+				throw new NotInTransactionException("setProperty outside of transaction");
 			}
 
-			boolean internalSystemPropertiesUnlocked = false;
+			boolean internalSystemPropertiesUnlocked = (obj instanceof CreationContainer);
 
 			// notify only non-system properties
 
@@ -150,6 +151,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 						value
 					);
 				}
+
 				internalSystemPropertiesUnlocked = ((AbstractNode) obj).internalSystemPropertiesUnlocked;
 
 			} else if (obj instanceof AbstractRelationship) {

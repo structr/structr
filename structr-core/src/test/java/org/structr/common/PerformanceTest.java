@@ -24,15 +24,17 @@ import org.structr.common.error.FrameworkException;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.Date;
+import java.util.LinkedList;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.relationship.NodeHasLocation;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 
 //~--- classes ----------------------------------------------------------------
@@ -68,21 +70,30 @@ public class PerformanceTest extends StructrTest {
 	 */
 	public void test01PerformanceOfNodeCreation() {
 
+		final List<TestOne> nodes = new LinkedList<>();
+		final long t0             = System.currentTimeMillis();
+		final long number         = 1000;
+
 		try {
 
-			int number                = 1000;
-			long t0                   = System.nanoTime();
-			List<GenericNode> nodes   = createTestNodes(GenericNode.class, number);
-			long t1                   = System.nanoTime();
+			try (final Tx tx = app.tx()) {
+				
+				for (int i=0; i<number; i++) {
 
-			assertTrue(nodes.size() == number);
+					nodes.add(createTestNode(TestOne.class,
+						new NodeAttribute(TestOne.name, "TestOne" + i),
+						new NodeAttribute(TestOne.aBoolean, true),
+						new NodeAttribute(TestOne.aDate, new Date()),
+						new NodeAttribute(TestOne.aDouble, 1.234),
+						new NodeAttribute(TestOne.aLong, 12345L),
+						new NodeAttribute(TestOne.anEnum, TestOne.Status.One),
+						new NodeAttribute(TestOne.anInt, 123)
+					));
+				}
 
-			DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-			Double time                 = (t1 - t0) / 1000000000.0;
-			Double rate                 = number / ((t1 - t0) / 1000000000.0);
 
-			logger.log(Level.INFO, "Created {0} nodes in {1} seconds ({2} per s)", new Object[] { number, decimalFormat.format(time), decimalFormat.format(rate) });
-			assertTrue(rate > 10);
+				tx.success();
+			}
 
 		} catch (FrameworkException ex) {
 
@@ -91,6 +102,16 @@ public class PerformanceTest extends StructrTest {
 
 		}
 
+		final long t1 = System.currentTimeMillis();
+
+		assertTrue(nodes.size() == number);
+
+		DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+		Double time                 = (t1 - t0) / 1000.0;
+		Double rate                 = number / ((t1 - t0) / 1000.0);
+
+		logger.log(Level.INFO, "Created {0} nodes in {1} seconds ({2} per s)", new Object[] { number, decimalFormat.format(time), decimalFormat.format(rate) });
+		assertTrue("Creation rate of nodes too low, expected > 100, was " + rate, rate > 100);
 	}
 
 	/**

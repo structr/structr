@@ -23,6 +23,7 @@ import org.structr.api.graph.Relationship;
 import org.structr.api.graph.GraphProperties;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import org.structr.api.index.Index;
 
 /**
@@ -39,7 +40,7 @@ public interface DatabaseService {
 
 	Transaction beginTx();
 
-	Node createNode();
+	Node createNode(final Set<String> labels, final Map<String, Object> properties);
 
 	Node getNodeById(final long id);
 	Relationship getRelationshipById(final long id);

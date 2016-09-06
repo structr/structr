@@ -447,7 +447,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 				}
 			}
 
-		} else {
+		} else if (entity instanceof AbstractRelationship) {
 
 			NodeService nodeService  = Services.getInstance().getService(NodeService.class);
 			AbstractRelationship rel = (AbstractRelationship)entity;

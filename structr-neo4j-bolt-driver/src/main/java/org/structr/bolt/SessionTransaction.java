@@ -279,6 +279,11 @@ public class SessionTransaction implements org.structr.api.Transaction {
 				public Record next() {
 					return result.next();
 				}
+
+				@Override
+				public void remove() {
+					throw new UnsupportedOperationException("Removal not supported.");
+				}
 			};
 		}
 

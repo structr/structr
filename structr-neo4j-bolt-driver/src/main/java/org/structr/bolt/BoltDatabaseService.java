@@ -34,6 +34,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -164,8 +165,29 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	}
 
 	@Override
-	public Node createNode() {
-		return NodeWrapper.newInstance(this, getCurrentTransaction().getNode("CREATE (n) RETURN n", Collections.EMPTY_MAP));
+	public Node createNode(final Set<String> labels, final Map<String, Object> properties) {
+
+		final StringBuilder buf       = new StringBuilder("CREATE (n");
+		final Map<String, Object> map = new HashMap<>();
+
+		for (final String label : labels) {
+
+			buf.append(":");
+			buf.append(label);
+		}
+
+		buf.append(" {properties}) RETURN n");
+
+		// make properties available to Cypher statement
+		map.put("properties", properties);
+
+		/*
+		System.out.println("########################################################");
+		System.out.println(labels);
+		System.out.println(properties);
+		*/
+
+		return NodeWrapper.newInstance(this, getCurrentTransaction().getNode(buf.toString(), map));
 	}
 
 	@Override

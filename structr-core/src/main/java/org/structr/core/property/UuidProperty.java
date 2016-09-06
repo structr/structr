@@ -18,8 +18,6 @@
  */
 package org.structr.core.property;
 
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.validator.GlobalPropertyUniquenessValidator;
 import org.structr.core.validator.SimpleRegexValidator;
 
@@ -40,16 +38,5 @@ public class UuidProperty extends StringProperty {
 		unique(true);
 		notNull(true);
 
-	}
-
-	@Override
-	public Object setProperty(final org.structr.common.SecurityContext securityContext, final GraphObject obj, final String value) throws FrameworkException {
-		
-		final Object result = super.setProperty(securityContext, obj, value);
-		
-		// fill cached uuid field
-		obj.getProperty(this);
-
-		return result;
 	}
 }

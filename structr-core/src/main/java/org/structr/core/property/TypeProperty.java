@@ -46,7 +46,7 @@ public class TypeProperty extends StringProperty {
 		readOnly();
 		indexed();
 		writeOnce();
-		
+
 	}
 
 	@Override
@@ -102,5 +102,21 @@ public class TypeProperty extends StringProperty {
 
 		return null;
 	}
-	
+
+	public static Set<String> getLabelsForType(final Class type) {
+
+		final Set<String> result = new LinkedHashSet<>();
+
+		// collect new labels
+		for (final Class supertype : SearchCommand.typeAndAllSupertypes(type)) {
+
+			final String supertypeName = supertype.getName();
+
+			if (supertypeName.startsWith("org.structr.") || supertypeName.startsWith("com.structr.")) {
+				result.add(supertype.getSimpleName());
+			}
+		}
+
+		return result;
+	}
 }
