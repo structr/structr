@@ -29,6 +29,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -655,17 +656,23 @@ public class SecurityContext {
 	/**
 	 * Determine the effective locale for this request.
 	 *
-	 * Priority 1: URL parameter "locale" Priority 2: User locale  3: Browser locale  4: Default locale
+	 * Priority 1: URL parameter "locale"
+	 * Priority 2: User locale
+	 * Priority 3: Cookie locale
+	 * Priority 4: Browser locale
+	 * Priority 5: Default locale
 	 *
 	 * @return locale
 	 */
 	public Locale getEffectiveLocale() {
 
+		// Priority 5: Default locale
 		Locale locale = Locale.getDefault();
 		boolean userHasLocaleString = false;
 
 		if (cachedUser != null) {
 
+			// Priority 2: User locale
 			final String userLocaleString = cachedUser.getProperty(Principal.locale);
 
 			if (userLocaleString != null) {
@@ -683,10 +690,31 @@ public class SecurityContext {
 		if (request != null) {
 
 			if (!userHasLocaleString) {
+
+				// Priority 4: Browser locale
 				locale = request.getLocale();
+
+
+				// Priority 3: Cookie locale
+				for (Cookie c : request.getCookies()) {
+
+					if (c.getName().equals(LOCALE_KEY)) {
+
+						final String cookieLocaleString = c.getValue();
+
+						try {
+							locale = LocaleUtils.toLocale(cookieLocaleString);
+						} catch (IllegalArgumentException e) {
+							locale = Locale.forLanguageTag(cookieLocaleString);
+						}
+
+					}
+
+				}
+
 			}
 
-			// Overwrite locale if requested by URL parameter
+			// Priority 1: URL parameter locale
 			String requestedLocaleString = request.getParameter(LOCALE_KEY);
 			if (StringUtils.isNotBlank(requestedLocaleString)) {
 				try {
