@@ -27,18 +27,20 @@ import org.structr.core.entity.AbstractNode;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.api.DatabaseService;
+import org.structr.api.NativeResult;
+import org.structr.api.graph.Node;
 import org.structr.common.Permission;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
 import org.structr.core.entity.SuperUser;
-import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.TypeProperty;
@@ -118,12 +120,26 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 			final Set<String> labels = TypeProperty.getLabelsForType(nodeType);
 
+
+
+			final Node dbNode = createNode(graphDb, user, nodeType, labels, tmp.getData());
+			node = (T) nodeFactory.instantiateWithType(dbNode, nodeType, null, isCreation);
+
+
+
+			/*
+
 			// Create node with type and labels and existing properties
 			node = (T) nodeFactory.instantiateWithType(graphDb.createNode(labels, tmp.getData()), nodeType, null, isCreation);
+
+			*/
+
+
 			if (node != null) {
 
 				TransactionCommand.nodeCreated(user, node);
 
+				/* ownership information is set in creation
 				// first: create security relationship, but only for non-Principal node types
 				if (user != null && !(user instanceof SuperUser) && node.canHaveOwner()) {
 
@@ -134,6 +150,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 					Security securityRel = app.create(user, (NodeInterface)node, Security.class);
 					securityRel.setAllowed(Permission.allPermissions);
 				}
+				*/
 
 				// set non-primitive properties
 				for (final Entry<PropertyKey, Object> attr : properties.entrySet()) {
@@ -166,5 +183,83 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 		}
 
 		return node;
+	}
+
+	// ----- private methods -----
+	private Node createNode(final DatabaseService graphDb, final Principal user, final Class nodeType, final Set<String> labels, final Map<String, Object> properties) {
+
+		final Map<String, Object> parameters         = new HashMap<>();
+		final Map<String, Object> ownsProperties     = new HashMap<>();
+		final Map<String, Object> securityProperties = new HashMap<>();
+		final StringBuilder buf                      = new StringBuilder("");
+		final NodeInterface template                 = getTemplate(nodeType);
+
+		if (user != null && !(user instanceof SuperUser) && template.canHaveOwner()) {
+
+			buf.append("MATCH (u:Principal) WHERE id(u) = {userId}");
+			buf.append(" CREATE (u)-[o:OWNS {ownsProperties}]->(n");
+
+			for (final String label : labels) {
+
+				buf.append(":");
+				buf.append(label);
+			}
+
+			buf.append(" {nodeProperties})<-[s:SECURITY {securityProperties}]-(u)");
+			buf.append(" RETURN n");
+
+			// configure OWNS relationship
+			ownsProperties.put(GraphObject.id.dbName(), getNextUuid());
+
+			// configure SECURITY relationship
+			securityProperties.put(Security.allowed.dbName(), new String[] { Permission.read.name(), Permission.write.name(), Permission.delete.name(), Permission.accessControl.name() } );
+			securityProperties.put(GraphObject.id.dbName(), getNextUuid());
+
+			// store properties in statement
+			parameters.put("userId",             user.getId());
+			parameters.put("ownsProperties",     ownsProperties);
+			parameters.put("securityProperties", securityProperties);
+
+		} else {
+
+			buf.append("CREATE (n");
+
+			for (final String label : labels) {
+
+				buf.append(":");
+				buf.append(label);
+			}
+
+			buf.append(" {nodeProperties})");
+			buf.append(" RETURN n");
+		}
+
+		// make properties available to Cypher statement
+		parameters.put("nodeProperties", properties);
+
+
+		final NativeResult result = graphDb.execute(buf.toString(), parameters);
+		if (result.hasNext()) {
+
+			final Map<String, Object> data = result.next();
+			final Node newNode             = (Node)data.get("n");
+
+			return newNode;
+		}
+
+		throw new RuntimeException("Unable to create new node.");
+	}
+
+	private NodeInterface getTemplate(final Class nodeType) {
+
+		try {
+
+			return (NodeInterface)nodeType.newInstance();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+
+		return null;
 	}
 }
