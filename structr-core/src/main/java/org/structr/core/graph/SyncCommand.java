@@ -681,7 +681,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 								break;
 							}
 
-							currentObject = graphDb.createNode();
+							currentObject = graphDb.createNode(Collections.EMPTY_SET, Collections.EMPTY_MAP);
 							nodeCount++;
 
 							// store for later use

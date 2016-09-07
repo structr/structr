@@ -8,13 +8,12 @@
 #
 #############################################################################
 
-
 #############################################################################
 # General application-wide settings
 #############################################################################
 
 # The title shown at start-up
-application.title = Structr UI
+application.title = Structr Enterprise Edition
 
 # Listener address. Set this to the real ip address or localhost to restrict access,
 # or to 0.0.0.0 to make this instance accessible over all ip addresses and hostnames

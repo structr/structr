@@ -41,6 +41,7 @@ import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.TypeProperty;
 import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
@@ -89,16 +90,37 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			final Object typeObject          = properties.get(AbstractNode.type);
 			final Class nodeType             = typeObject != null ? SchemaHelper.getEntityClassForRawType(typeObject.toString()) : StructrApp.getConfiguration().getFactoryDefinition().getGenericNodeType();
 			final NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
+			final CreationContainer tmp      = new CreationContainer();
 			final Date now                   = new Date();
 			final boolean isCreation         = true;
 
-			// Create node with type
-			node = (T) nodeFactory.instantiateWithType(graphDb.createNode(), nodeType, null, isCreation);
-			if (node != null) {
+			String uuid = properties.get(GraphObject.id);
+			if (uuid == null) {
 
-				// very first action: set UUID
-				node.unlockSystemPropertiesOnce();
-				node.setProperty(GraphObject.id, getNextUuid());
+				uuid = getNextUuid();
+			}
+
+			// use property keys to set property values on creation dummy
+			GraphObject.id.setProperty(securityContext, tmp, uuid);
+			GraphObject.type.setProperty(securityContext, tmp, nodeType.getSimpleName());
+			AbstractNode.createdDate.setProperty(securityContext, tmp, now);
+
+			if (user != null) {
+
+				AbstractNode.createdBy.setProperty(securityContext, tmp, user.getProperty(GraphObject.id));
+			}
+
+			// prevent double setting of properties
+			properties.remove(GraphObject.id);
+			properties.remove(AbstractNode.type);
+			properties.remove(AbstractNode.createdDate);
+			properties.remove(AbstractNode.createdBy);
+
+			final Set<String> labels = TypeProperty.getLabelsForType(nodeType);
+
+			// Create node with type and labels and existing properties
+			node = (T) nodeFactory.instantiateWithType(graphDb.createNode(labels, tmp.getData()), nodeType, null, isCreation);
+			if (node != null) {
 
 				TransactionCommand.nodeCreated(user, node);
 
@@ -111,41 +133,18 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 					Security securityRel = app.create(user, (NodeInterface)node, Security.class);
 					securityRel.setAllowed(Permission.allPermissions);
-
-					node.unlockSystemPropertiesOnce();
-					node.setProperty(AbstractNode.createdBy, user.getProperty(GraphObject.id));
 				}
 
-				// set type
-				if (nodeType != null) {
-
-					node.unlockSystemPropertiesOnce();
-					node.setProperty(GraphObject.type, nodeType.getSimpleName());
-				}
-
-				// set created date
-				node.unlockSystemPropertiesOnce();
-				node.setProperty(AbstractNode.createdDate, now);
-
-				// set last modified date
-				node.unlockSystemPropertiesOnce();
-				node.setProperty(AbstractNode.lastModifiedDate, now);
-
-				for (Entry<PropertyKey, Object> attr : properties.entrySet()) {
-
-					final Object value    = attr.getValue();
-					final PropertyKey key = attr.getKey();
-
-					if (key.isSystemInternal()) {
-						node.unlockSystemPropertiesOnce();
-					}
-
-					node.setProperty(key, value);
+				// set non-primitive properties
+				for (final Entry<PropertyKey, Object> attr : properties.entrySet()) {
+					node.setProperty(attr.getKey(), attr.getValue());
 				}
 
 				properties.clear();
-			}
 
+				// ensure indexing of newly created node
+				node.addToIndex();
+			}
 		}
 
 		if (node != null) {

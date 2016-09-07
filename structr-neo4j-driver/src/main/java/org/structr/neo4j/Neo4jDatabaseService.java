@@ -28,6 +28,7 @@ import java.util.Date;
 import org.structr.neo4j.wrapper.TransactionWrapper;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -143,7 +144,7 @@ public class Neo4jDatabaseService implements DatabaseService, GraphProperties {
 	}
 
 	@Override
-	public Node createNode() {
+	public Node createNode(final Set<String> labels, final Map<String, Object> properties) {
 
 		try {
 			return NodeWrapper.getWrapper(this, graphDb.createNode());

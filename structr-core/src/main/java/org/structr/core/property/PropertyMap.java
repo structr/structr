@@ -62,7 +62,7 @@ public class PropertyMap {
 	public PropertyMap() {
 	}
 
-	public PropertyMap(PropertyMap source) {
+	public PropertyMap(final PropertyMap source) {
 
 		for (Entry<PropertyKey, Object> entry : source.entrySet()) {
 			properties.put(entry.getKey(), entry.getValue());
@@ -348,6 +348,35 @@ public class PropertyMap {
 		}
 
 		return resultMap;
+	}
+
+	public static Map<String, Object> javaTypeToDatabaseType(SecurityContext securityContext, Class<? extends GraphObject> entity, PropertyMap properties) throws FrameworkException {
+
+		Map<String, Object> databaseTypedProperties = new LinkedHashMap<>();
+
+		for(Entry<PropertyKey, Object> entry : properties.entrySet()) {
+
+			PropertyKey propertyKey     = entry.getKey();
+			PropertyConverter converter = propertyKey.databaseConverter(securityContext);
+
+			if (converter != null) {
+
+				try {
+					Object propertyValue = converter.convert(entry.getValue());
+					databaseTypedProperties.put(propertyKey.jsonName(), propertyValue);
+
+				} catch(ClassCastException cce) {
+
+					throw new FrameworkException(422, "Invalid JSON input for key " + propertyKey.jsonName() + ", expected a JSON " + propertyKey.typeName() + ".");
+				}
+
+			} else {
+
+				databaseTypedProperties.put(propertyKey.jsonName(), entry.getValue());
+			}
+		}
+
+		return databaseTypedProperties;
 	}
 
 	public static Map<String, Object> javaTypeToInputType(SecurityContext securityContext, Class<? extends GraphObject> entity, PropertyMap properties) throws FrameworkException {

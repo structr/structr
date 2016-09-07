@@ -18,6 +18,7 @@
  */
 package org.structr.core.maintenance;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -69,7 +70,7 @@ public class TestBulkCommands extends StructrTest {
 
 				for (int i=0; i<100; i++) {
 
-					final Node test = graphDb.createNode();
+					final Node test = graphDb.createNode(Collections.EMPTY_SET, Collections.EMPTY_MAP);
 
 					// set ID and type so that the rebuild index command identifies it as a Structr node.
 					test.setProperty("type", "Group");
