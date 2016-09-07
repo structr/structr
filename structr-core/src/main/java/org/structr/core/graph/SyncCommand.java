@@ -947,16 +947,22 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 	private static boolean checkAndMerge(final NodeInterface node, final Set<Long> deletedNodes, final Set<Long> deletedRels) throws FrameworkException {
 
-		final Class type                 = node.getClass();
-		final String name                = node.getName();
-		final NodeInterface existingNode = (NodeInterface)StructrApp.getInstance().nodeQuery(type).andName(name).getFirst();
+		final Class type                        = node.getClass();
+		final String name                       = node.getName();
+		final List<NodeInterface> existingNodes = StructrApp.getInstance().nodeQuery(type).andName(name).getAsList();
 
-		if (existingNode != null) {
-
-			logger.log(Level.INFO, "Found existing schema node {0}, merging!", name);
+		for (NodeInterface existingNode : existingNodes) {
 
 			final Node sourceNode = node.getNode();
 			final Node targetNode = existingNode.getNode();
+			
+			// skip newly created node
+			if (sourceNode.getId() == targetNode.getId()) {
+				
+				continue;
+			}
+			
+			logger.log(Level.INFO, "Found existing schema node {0}, merging!", name);
 
 			copyProperties(sourceNode, targetNode);
 
