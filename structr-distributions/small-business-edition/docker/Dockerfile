@@ -12,7 +12,7 @@
 
 FROM ubuntu:latest
 
-ENV distribution structr-community-edition
+ENV distribution structr-small-business-edition
 ENV baseversion 2.1.0
 ENV version $baseversion-SNAPSHOT
 

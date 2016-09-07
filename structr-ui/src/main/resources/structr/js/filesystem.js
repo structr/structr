@@ -138,14 +138,14 @@ var _Filesystem = {
 
 		$('.add_minified_css_file_icon', main).on('click', function(e) {
 			e.stopPropagation();
-			Command.create({ type: 'MinifiedCssFile', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
+			Command.create({ type: 'MinifiedCssFile', contentType: 'text/css', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
 				_Filesystem.appendFileOrFolderRow(f);
 			});
 		});
 
 		$('.add_minified_js_file_icon', main).on('click', function(e) {
 			e.stopPropagation();
-			Command.create({ type: 'MinifiedJavaScriptFile', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
+			Command.create({ type: 'MinifiedJavaScriptFile', contentType: 'text/javascript', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
 				_Filesystem.appendFileOrFolderRow(f);
 			});
 		});

@@ -1646,6 +1646,42 @@ button.add_property {
 	border: 1px solid #ccc;
 }
 
+.actions.schema-props th:first-of-type {
+	width: 16%;
+}
+
+.actions.schema-props th:last-of-type {
+	width: 8%;
+}
+
+.actions.schema-props th {
+	width: 38%;
+}
+
+.actions.schema-props .cm-schema-methods {
+	height: 100px;
+}
+
+.actions.schema-props .cm-schema-methods .CodeMirror-scroll {
+	margin-bottom: 0;
+	margin-right: 0;
+	padding-bottom: 0;
+}
+
+.actions.schema-props .cm-schema-methods .CodeMirror-gutters {
+	height: 97% !important;
+	padding-bottom: 0;
+}
+
+.actions.schema-props .cm-schema-methods .CodeMirror-gutter {
+	padding-bottom: 0;
+	margin-bottom: 0;
+}
+
+.actions.schema-props .cm-schema-methods div.CodeMirror-scroll > div.CodeMirror-sizer + div, .cm-schema-methods .CodeMirror-vscrollbar {
+	display: none !important;
+}
+
 .schema-props td, .schemaprop-localizations td {
 	border: 1px solid #ccc;
 	padding: 2px 4px;
