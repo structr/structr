@@ -23,7 +23,6 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -160,15 +159,10 @@ public abstract class Resource {
 					throw new FrameworkException(403, "Modification not permitted.");
 				}
 
-				for (final Entry<PropertyKey, Object> attr : properties.entrySet()) {
-
-					obj.setProperty(attr.getKey(), attr.getValue());
-				}
-
+				obj.setProperties(securityContext, properties);
 			}
 
 			return new RestMethodResult(HttpServletResponse.SC_OK);
-
 		}
 
 		throw new IllegalPathException(getResourceSignature() + " can only be applied to a non-empty resource");

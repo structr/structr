@@ -209,22 +209,18 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static void setFileData(final FileBase file, final byte[] fileData, final String contentType)
-		throws FrameworkException, IOException {
+	public static void setFileData(final FileBase file, final byte[] fileData, final String contentType) throws FrameworkException, IOException {
 
 		FileHelper.writeToFile(file, fileData);
 
-		file.setProperty(FileBase.contentType, contentType != null ? contentType : getContentMimeType(file));
+		final PropertyMap map = new PropertyMap();
 
-		file.unlockSystemPropertiesOnce();
-		file.setProperty(FileBase.checksum, FileHelper.getChecksum(file));
+		map.put(FileBase.contentType, contentType != null ? contentType : getContentMimeType(file));
+		map.put(FileBase.checksum, FileHelper.getChecksum(file));
+		map.put(FileBase.size, FileHelper.getSize(file));
+		map.put(FileBase.version, 1);
 
-		file.unlockSystemPropertiesOnce();
-		file.setProperty(FileBase.size, FileHelper.getSize(file));
-
-		file.unlockSystemPropertiesOnce();
-		file.setProperty(FileBase.version, 1);
-
+		file.setProperties(file.getSecurityContext(), map);
 	}
 
 	/**
@@ -236,16 +232,13 @@ public class FileHelper {
 	 */
 	public static void updateMetadata(final FileBase file) throws FrameworkException, IOException {
 
-		file.setProperty(FileBase.contentType, getContentMimeType(file));
+		final PropertyMap map = new PropertyMap();
 
-		// checksum is read-only
-		file.unlockSystemPropertiesOnce();
-		file.setProperty(FileBase.checksum, FileHelper.getChecksum(file));
+		map.put(FileBase.contentType, getContentMimeType(file));
+		map.put(FileBase.checksum, FileHelper.getChecksum(file));
+		map.put(FileBase.size, FileHelper.getSize(file));
 
-		// size is read-only
-		file.unlockSystemPropertiesOnce();
-		file.setProperty(FileBase.size, FileHelper.getSize(file));
-
+		file.setProperties(file.getSecurityContext(), map);
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -511,9 +504,9 @@ public class FileHelper {
 	public static AbstractFile getFileByAbsolutePath(final SecurityContext securityContext, final String absolutePath) {
 
 		try {
-			
+
 			return StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).and(AbstractFile.path, absolutePath).getFirst();
-			
+
 //		String[] parts = PathHelper.getParts(absolutePath);
 //
 //		if (parts == null || parts.length == 0) {
@@ -557,7 +550,7 @@ public class FileHelper {
 		} catch (FrameworkException ex) {
 			logger.log(Level.WARNING, "File not found: {0}", new Object[] { absolutePath });
 		}
-		
+
 		return null;
 	}
 

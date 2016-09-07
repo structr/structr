@@ -330,7 +330,9 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.19.1</version>
                 <configuration>
-                    <argLine>-Xmx2g -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
+                    <argLine>-Xmx1g -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
+                    <reuseForks>false</reuseForks>
+                    <forkCount>1</forkCount>
                 </configuration>
             </plugin>
             <plugin>

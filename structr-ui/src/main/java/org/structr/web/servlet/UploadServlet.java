@@ -51,7 +51,6 @@ import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
@@ -230,14 +229,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 						final FileBase newFile = FileHelper.createFile(securityContext, IOUtils.toByteArray(item.getInputStream()), contentType, cls);
 						newFile.setProperty(AbstractNode.name, PathHelper.getName(name));
-
-						PropertyMap additionalProperties = PropertyMap.inputTypeToJavaType(securityContext, cls, params);
-
-						for (PropertyKey key : additionalProperties.keySet()) {
-
-							newFile.setProperty(key, additionalProperties.get(key));
-
-						}
+						newFile.setProperties(newFile.getSecurityContext(), PropertyMap.inputTypeToJavaType(securityContext, cls, params));
 
 						final String defaultUploadFolderConfigValue = StructrApp.getConfigurationValue(Services.APPLICATION_DEFAULT_UPLOAD_FOLDER, null);
 						if (defaultUploadFolderConfigValue != null) {
@@ -246,6 +238,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 							// can only happen if the configuration value is invalid or maps to the root folder
 							if (defaultUploadFolder != null) {
+								
 								newFile.setProperty(FileBase.hasParent, true);
 								newFile.setProperty(FileBase.parent, defaultUploadFolder);
 							}

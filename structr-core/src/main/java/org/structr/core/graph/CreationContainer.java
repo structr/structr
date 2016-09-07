@@ -88,6 +88,11 @@ public class CreationContainer implements GraphObject, PropertyContainer {
 	}
 
 	@Override
+	public void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
 	public <T> T getProperty(PropertyKey<T> propertyKey) {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}

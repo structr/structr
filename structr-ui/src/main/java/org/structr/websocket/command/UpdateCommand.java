@@ -20,7 +20,6 @@ package org.structr.websocket.command;
 
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,7 +34,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -143,14 +141,7 @@ public class UpdateCommand extends AbstractCommand {
 	//~--- set methods ----------------------------------------------------
 	private void setProperties(final GraphObject obj, final PropertyMap properties, final boolean rec) throws FrameworkException {
 
-		for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
-
-			PropertyKey key = entry.getKey();
-			Object value = entry.getValue();
-
-			obj.setProperty(key, value);
-			
-		}
+		obj.setProperties(obj.getSecurityContext(), properties);
 
 		if (obj instanceof NodeInterface) {
 

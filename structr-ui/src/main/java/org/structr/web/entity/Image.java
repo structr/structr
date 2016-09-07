@@ -29,12 +29,12 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Relation;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.schema.SchemaService;
 import org.structr.web.common.FileHelper;
@@ -273,33 +273,28 @@ public class Image extends org.structr.dynamic.File {
 					if (thumbnail != null && data != null) {
 
 						// Create a thumbnail relationship
-						final Thumbnails thumbnailRelationship = app.create(originalImage, thumbnail, Thumbnails.class);
+						final PropertyMap relProperties = new PropertyMap();
+						relProperties.put(Image.width,                  tnWidth);
+						relProperties.put(Image.height,                 tnHeight);
+						relProperties.put(Image.checksum,               newChecksum);
 
-						// Thumbnails always have to be removed along with origin image
-						//thumbnailRelationship.setProperty(AbstractRelationship.cascadeDelete, Relation.SOURCE_TO_TARGET);
+						app.create(originalImage, thumbnail, Thumbnails.class, relProperties);
 
-						// Add to cache list
-						// thumbnailRelationships.add(thumbnailRelationship);
+						final PropertyMap properties = new PropertyMap();
+						properties.put(Image.width,                              tnWidth);
+						properties.put(Image.height,                             tnHeight);
+						properties.put(AbstractNode.hidden,                      originalImage.getProperty(AbstractNode.hidden));
+						properties.put(AbstractNode.visibleToAuthenticatedUsers, originalImage.getProperty(AbstractNode.visibleToAuthenticatedUsers));
+						properties.put(AbstractNode.visibleToPublicUsers,        originalImage.getProperty(AbstractNode.visibleToPublicUsers));
+
+
+						thumbnail.setProperties(securityContext, properties);
+
+						thumbnail.setProperty(AbstractNode.owner, originalImage.getProperty(AbstractNode.owner));
+						thumbnail.setProperty(File.parent, originalImage.getProperty(File.parent));
 
 						thumbnail.unlockSystemPropertiesOnce();
-						thumbnail.setProperty(File.size,                                Long.valueOf(data.length));
-						
-						thumbnail.setProperty(Image.width,                              tnWidth);
-						thumbnail.setProperty(Image.height,                             tnHeight);
-
-						thumbnail.setProperty(AbstractNode.hidden,                      originalImage.getProperty(AbstractNode.hidden));
-						thumbnail.setProperty(AbstractNode.visibleToAuthenticatedUsers, originalImage.getProperty(AbstractNode.visibleToAuthenticatedUsers));
-						thumbnail.setProperty(AbstractNode.visibleToPublicUsers,        originalImage.getProperty(AbstractNode.visibleToPublicUsers));
-						thumbnail.setProperty(AbstractNode.owner,                       originalImage.getProperty(AbstractNode.owner));
-						
-						// Store thumbnail in same folder as original image to prevent polluting the root path
-						thumbnail.setProperty(File.parent,                              originalImage.getProperty(File.parent));
-
-						thumbnailRelationship.setProperty(Image.width,                  tnWidth);
-						thumbnailRelationship.setProperty(Image.height,                 tnHeight);
-
-						thumbnailRelationship.unlockSystemPropertiesOnce();
-						thumbnailRelationship.setProperty(Image.checksum,               newChecksum);
+						thumbnail.setProperty(File.size, Long.valueOf(data.length));
 
 						// Delete outdated thumbnails
 						for (final Image tn : oldThumbnails) {

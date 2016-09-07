@@ -45,6 +45,7 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
@@ -196,29 +197,32 @@ public class Content extends DOMNode implements Text {
 
 		for (final Sync rel : getOutgoingRelationships(Sync.class)) {
 
-			Content syncedNode = (Content) rel.getTargetNode();
+			final Content syncedNode = (Content) rel.getTargetNode();
+			final PropertyMap map    = new PropertyMap();
 
 			// sync content only
-			syncedNode.setProperty(content, getProperty(content));
-			syncedNode.setProperty(contentType, getProperty(contentType));
-			syncedNode.setProperty(name, getProperty(name));
+			map.put(content, getProperty(content));
+			map.put(contentType, getProperty(contentType));
+			map.put(name, getProperty(name));
+
+			syncedNode.setProperties(securityContext, map);
 		}
 
                 final Sync rel = getIncomingRelationship(Sync.class);
-
                 if (rel != null) {
 
-                    final Content otherNode = (Content) rel.getSourceNode();
+			final Content otherNode = (Content) rel.getSourceNode();
+			if (otherNode != null) {
 
-                    if (otherNode != null) {
+				final PropertyMap map = new PropertyMap();
 
-                        // sync both ways
-                        otherNode.setProperty(content, getProperty(content));
-			otherNode.setProperty(contentType, getProperty(contentType));
-			otherNode.setProperty(name, getProperty(name));
+				// sync both ways
+				map.put(content, getProperty(content));
+				map.put(contentType, getProperty(contentType));
+				map.put(name, getProperty(name));
 
-                    }
-
+				otherNode.setProperties(otherNode.getSecurityContext(), map);
+                	}
                 }
 
                 try {
@@ -267,16 +271,6 @@ public class Content extends DOMNode implements Text {
 			updateFromPropertyMap(properties);
 		}
 	}
-
-//	@Override
-//	public void updateFromPropertyMap(final Map<String, Object> properties) throws FrameworkException {
-//
-//		this.setProperty(Content.content, properties.get(Content.content));
-//
-//		// update visibility as well
-//		this.setProperty(Content.visibleToPublicUsers, properties.get(Content.visibleToPublicUsers));
-//		this.setProperty(Content.visibleToAuthenticatedUsers, properties.get(Content.visibleToAuthenticatedUsers));
-//	}
 
 	@Override
 	public String getIdHash() {

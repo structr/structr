@@ -603,6 +603,11 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 						return null;
 					}
 
+					@Override
+					public void remove() {
+						throw new UnsupportedOperationException("Removal not supported.");
+					}
+
 				};
 			}
 		};

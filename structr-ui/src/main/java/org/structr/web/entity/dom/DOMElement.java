@@ -45,6 +45,7 @@ import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.HtmlProperty;
@@ -776,42 +777,48 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	@Override
 	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
+		final PropertyMap map = new PropertyMap();
+
 		if (dataProperties != null) {
-			
+
 			// invalidate data property cache
 			dataProperties.clear();
 		}
 
+
 		for (Sync rel : getOutgoingRelationships(Sync.class)) {
 
-			DOMElement syncedNode = (DOMElement) rel.getTargetNode();
+			final DOMElement syncedNode = (DOMElement) rel.getTargetNode();
+
+			map.clear();
 
 			// sync HTML properties only
 			for (Property htmlProp : syncedNode.getHtmlAttributes()) {
-
-				syncedNode.setProperty(htmlProp, getProperty(htmlProp));
+				map.put(htmlProp, getProperty(htmlProp));
 			}
 
-			syncedNode.setProperty(name, getProperty(name));
+			map.put(name, getProperty(name));
+
+			syncedNode.setProperties(securityContext, map);
 		}
 
                 final Sync rel = getIncomingRelationship(Sync.class);
-
                 if (rel != null) {
 
-                    final DOMElement otherNode = (DOMElement) rel.getSourceNode();
+			final DOMElement otherNode = (DOMElement) rel.getSourceNode();
+			if (otherNode != null) {
 
-                    if (otherNode != null) {
+				map.clear();
 
-                        // sync both ways
-                        for (Property htmlProp : otherNode.getHtmlAttributes()) {
+	                        // sync both ways
+        	                for (Property htmlProp : otherNode.getHtmlAttributes()) {
+                	                map.put(htmlProp, getProperty(htmlProp));
+                        	}
 
-                                otherNode.setProperty(htmlProp, getProperty(htmlProp));
-                        }
+				map.put(name, getProperty(name));
 
-			otherNode.setProperty(name, getProperty(name));
-
-                    }
+				otherNode.setProperties(securityContext, map);
+			}
                 }
 
                 try {

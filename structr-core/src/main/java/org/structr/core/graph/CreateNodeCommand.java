@@ -57,7 +57,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 	private static final Logger logger = Logger.getLogger(CreateNodeCommand.class.getName());
 
-	public T execute(Collection<NodeAttribute<?>> attributes) throws FrameworkException {
+	public T execute(final Collection<NodeAttribute<?>> attributes) throws FrameworkException {
 
 		PropertyMap properties = new PropertyMap();
 		for (NodeAttribute attribute : attributes) {
@@ -69,7 +69,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 	}
 
-	public T execute(NodeAttribute<?>... attributes) throws FrameworkException {
+	public T execute(final NodeAttribute<?>... attributes) throws FrameworkException {
 
 		PropertyMap properties = new PropertyMap();
 		for (NodeAttribute attribute : attributes) {
@@ -80,7 +80,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 		return execute(properties);
 	}
 
-	public T execute(PropertyMap attributes) throws FrameworkException {
+	public T execute(final PropertyMap attributes) throws FrameworkException {
 
 		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
 		final Principal user          = securityContext.getUser(false);
@@ -179,9 +179,9 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 		final Map<String, Object> ownsProperties     = new HashMap<>();
 		final Map<String, Object> securityProperties = new HashMap<>();
 		final StringBuilder buf                      = new StringBuilder();
-		final NodeInterface template                 = getTemplate(nodeType);
+		final boolean canHaveOwner                   = canHaveOwner(nodeType);
 
-		if (user != null && !(user instanceof SuperUser) && template.canHaveOwner()) {
+		if (canHaveOwner && user != null && !(user instanceof SuperUser)) {
 
 			buf.append("MATCH (u:Principal) WHERE id(u) = {userId}");
 			buf.append(" CREATE (u)-[o:OWNS {ownsProperties}]->(n");
@@ -237,15 +237,24 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 		throw new RuntimeException("Unable to create new node.");
 	}
 
+	private boolean canHaveOwner(final Class nodeType) {
+
+		final NodeInterface template = getTemplate(nodeType);
+		if (template != null) {
+
+			return template.canHaveOwner();
+		}
+
+		return true;
+	}
+
 	private NodeInterface getTemplate(final Class nodeType) {
 
 		try {
 
 			return (NodeInterface)nodeType.newInstance();
 
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
+		} catch (Throwable ignore) {}
 
 		return null;
 	}

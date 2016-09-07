@@ -28,6 +28,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.ValidatedNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.relation.Tagging;
 import org.structr.web.property.UiNotion;
 
@@ -55,9 +56,13 @@ public class Tag extends ValidatedNode {
 	@Override
 	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
+		final PropertyMap map = new PropertyMap();
+
 		// Make tags visible to anyone upon creation
-		setProperty(visibleToPublicUsers, true);
-		setProperty(visibleToAuthenticatedUsers, true);
+		map.put(visibleToPublicUsers, true);
+		map.put(visibleToAuthenticatedUsers, true);
+
+		setProperties(securityContext, map);
 
 		return super.onCreation(securityContext, errorBuffer);
 	}

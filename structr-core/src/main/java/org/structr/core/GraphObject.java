@@ -21,8 +21,10 @@ package org.structr.core;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
+import org.structr.bolt.index.AbstractCypherIndex;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.PermissionResolutionMask;
 import org.structr.common.SecurityContext;
@@ -30,9 +32,11 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.Property;
@@ -128,6 +132,48 @@ public interface GraphObject {
 	 * @throws FrameworkException
 	 */
 	public <T> Object setProperty(final PropertyKey<T> key, T value) throws FrameworkException;
+
+	/**
+	 * Sets the given properties.
+	 *
+	 * @param securityContext
+	 * @param properties
+	 * @throws FrameworkException
+	 */
+	default void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
+
+		final CreationContainer container = new CreationContainer();
+
+		for (final Entry<PropertyKey, Object> attr : properties.entrySet()) {
+
+			final PropertyKey key = attr.getKey();
+			final Class valueType = key.valueType();
+			final Object value    = attr.getValue();
+
+			if (AbstractCypherIndex.INDEXABLE.contains(valueType)) {
+
+				// bulk set possible, store in container
+				key.setProperty(securityContext, container, value);
+
+				if (isNode()) {
+
+					TransactionCommand.nodeModified(securityContext.getCachedUser(), (AbstractNode)this, key, getProperty(key), value);
+
+				} else if (isRelationship()) {
+
+					TransactionCommand.relationshipModified(securityContext.getCachedUser(), (AbstractRelationship)this, key, getProperty(key), value);
+				}
+
+			} else {
+
+				// bulk set NOT possible, set on entity
+				setProperty(key, value);
+			}
+		}
+
+		// set primitive values directly for better performance
+		getPropertyContainer().setProperties(container.getData());
+	}
 
 	/**
 	 * Returns the (converted, validated, transformed, etc.) property for the given

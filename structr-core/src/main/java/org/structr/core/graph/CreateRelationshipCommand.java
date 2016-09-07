@@ -101,7 +101,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 					PropertyKey key = entry.getKey();
 
 					// on creation, writing of read-only properties should be possible
-					if (key.isReadOnly() || key.isWriteOnce()) {
+					if (key.isReadOnly() || key.isWriteOnce() || key.isSystemInternal()) {
 						newRel.unlockSystemPropertiesOnce();
 					}
 
