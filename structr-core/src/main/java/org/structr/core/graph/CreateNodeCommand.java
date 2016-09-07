@@ -88,17 +88,20 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 		if (graphDb != null) {
 
+			final NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
 			final PropertyMap properties     = new PropertyMap(attributes);
 			final Object typeObject          = properties.get(AbstractNode.type);
-			final Class nodeType             = typeObject != null ? SchemaHelper.getEntityClassForRawType(typeObject.toString()) : StructrApp.getConfiguration().getFactoryDefinition().getGenericNodeType();
-			final NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
+			final Class nodeType             = getTypeOrGeneric(typeObject);
+			final Set<String> labels         = TypeProperty.getLabelsForType(nodeType);
 			final CreationContainer tmp      = new CreationContainer();
 			final Date now                   = new Date();
 			final boolean isCreation         = true;
 
+			// use user-supplied UUID?
 			String uuid = properties.get(GraphObject.id);
 			if (uuid == null) {
 
+				// no, create new one
 				uuid = getNextUuid();
 			}
 
@@ -106,55 +109,40 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			GraphObject.id.setProperty(securityContext, tmp, uuid);
 			GraphObject.type.setProperty(securityContext, tmp, nodeType.getSimpleName());
 			AbstractNode.createdDate.setProperty(securityContext, tmp, now);
+			AbstractNode.lastModifiedDate.setProperty(securityContext, tmp, now);
 
 			if (user != null) {
 
-				AbstractNode.createdBy.setProperty(securityContext, tmp, user.getProperty(GraphObject.id));
+				final String userId = user.getProperty(GraphObject.id);
+
+				AbstractNode.createdBy.setProperty(securityContext, tmp, userId);
+				AbstractNode.lastModifiedBy.setProperty(securityContext, tmp, userId);
 			}
 
 			// prevent double setting of properties
 			properties.remove(GraphObject.id);
 			properties.remove(AbstractNode.type);
+			properties.remove(AbstractNode.lastModifiedDate);
+			properties.remove(AbstractNode.lastModifiedBy);
 			properties.remove(AbstractNode.createdDate);
 			properties.remove(AbstractNode.createdBy);
 
-			final Set<String> labels = TypeProperty.getLabelsForType(nodeType);
-
-
-
-			final Node dbNode = createNode(graphDb, user, nodeType, labels, tmp.getData());
-			node = (T) nodeFactory.instantiateWithType(dbNode, nodeType, null, isCreation);
-
-
-
-			/*
-
-			// Create node with type and labels and existing properties
-			node = (T) nodeFactory.instantiateWithType(graphDb.createNode(labels, tmp.getData()), nodeType, null, isCreation);
-
-			*/
-
-
+			node = (T) nodeFactory.instantiateWithType(createNode(graphDb, user, nodeType, labels, tmp.getData()), nodeType, null, isCreation);
 			if (node != null) {
 
 				TransactionCommand.nodeCreated(user, node);
 
-				/* ownership information is set in creation
-				// first: create security relationship, but only for non-Principal node types
-				if (user != null && !(user instanceof SuperUser) && node.canHaveOwner()) {
-
-					final App app = StructrApp.getInstance(securityContext);
-
-					app.create(user, (NodeInterface)node, PrincipalOwnsNode.class);
-
-					Security securityRel = app.create(user, (NodeInterface)node, Security.class);
-					securityRel.setAllowed(Permission.allPermissions);
-				}
-				*/
-
 				// set non-primitive properties
 				for (final Entry<PropertyKey, Object> attr : properties.entrySet()) {
-					node.setProperty(attr.getKey(), attr.getValue());
+
+					final Object value    = attr.getValue();
+					final PropertyKey key = attr.getKey();
+
+					if (key.isSystemInternal()) {
+						node.unlockSystemPropertiesOnce();
+					}
+
+					node.setProperty(key, value);
 				}
 
 				properties.clear();
@@ -170,11 +158,10 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			node.onNodeCreation();
 
 			// iterate post creation transformations
-			Set<Transformation<GraphObject>> transformations = StructrApp.getConfiguration().getEntityCreationTransformations(node.getClass());
+			final Set<Transformation<GraphObject>> transformations = StructrApp.getConfiguration().getEntityCreationTransformations(node.getClass());
 			for (Transformation<GraphObject> transformation : transformations) {
 
 				transformation.apply(securityContext, node);
-
 			}
 
 			if (transformations.isEmpty()) {
@@ -191,7 +178,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 		final Map<String, Object> parameters         = new HashMap<>();
 		final Map<String, Object> ownsProperties     = new HashMap<>();
 		final Map<String, Object> securityProperties = new HashMap<>();
-		final StringBuilder buf                      = new StringBuilder("");
+		final StringBuilder buf                      = new StringBuilder();
 		final NodeInterface template                 = getTemplate(nodeType);
 
 		if (user != null && !(user instanceof SuperUser) && template.canHaveOwner()) {
@@ -261,5 +248,14 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 		}
 
 		return null;
+	}
+
+	private Class getTypeOrGeneric(final Object typeObject) {
+
+		if (typeObject != null) {
+			return SchemaHelper.getEntityClassForRawType(typeObject.toString());
+		}
+
+		return StructrApp.getConfiguration().getFactoryDefinition().getGenericNodeType();
 	}
 }
