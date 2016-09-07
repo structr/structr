@@ -91,7 +91,7 @@ public class MinifiedJavaScriptFile extends AbstractMinifiedFile {
 		});
 		compiler.compile(CommandLineRunner.getBuiltinExterns(options), getSourceFileList(), options);
 
-		FileHelper.setFileData(this, compiler.toSource().getBytes(), null);
+		FileHelper.setFileData(this, compiler.toSource().getBytes(), getProperty(contentType));
 
 		setProperty(warnings, StringUtils.join(compiler.getWarnings(), System.lineSeparator()));
 		setProperty(errors, StringUtils.join(compiler.getErrors(), System.lineSeparator()));
