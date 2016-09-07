@@ -435,7 +435,7 @@ var _Entities = {
 			Structr.resize();
 		});
 	},
-	appendPropTab: function(entity, tabsEl, contentEl, name, label, active, callback) {
+	appendPropTab: function(entity, tabsEl, contentEl, name, label, active, callback, initCallback) {
 
 		var ul = tabsEl.children('ul');
 		ul.append('<li id="tab-' + name + '">' + label + '</li>');
@@ -453,6 +453,10 @@ var _Entities = {
 			$('#tabView-' + name).show();
 			self.addClass('active');
 			LSWrapper.setItem(activeEditTabPrefix  + '_' + entity.id, name);
+
+			if (typeof initCallback === "function") {
+				initCallback();
+			}
 		});
 		contentEl.append('<div class="propTabContent" id="tabView-' + name + '"></div>');
 		var content = $('#tabView-' + name);
@@ -461,6 +465,9 @@ var _Entities = {
 		}
 		if (callback) {
 			callback(content);
+		}
+		if (active && typeof initCallback === "function") {
+			initCallback();
 		}
 		return content;
 	},

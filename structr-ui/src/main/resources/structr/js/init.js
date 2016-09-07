@@ -648,15 +648,15 @@ var Structr = {
 
 		var tabsHeight = $('.files-tabs ul').height();
 
-		$('.CodeMirror').css({
+		$('.CodeMirror:not(.cm-schema-methods)').css({
 			height: (dh - horizontalOffset - 24 - tabsHeight) + 'px'
 		});
 
-		$('.CodeMirror-gutters').css({
+		$('.CodeMirror:not(.cm-schema-methods) .CodeMirror-gutters').css({
 			height: (dh - horizontalOffset - 24 - tabsHeight) + 'px'
 		});
 
-		$('.CodeMirror').each(function(i, el) {
+		$('.CodeMirror:not(.cm-schema-methods)').each(function(i, el) {
 			el.CodeMirror.refresh();
 		});
 
@@ -1295,6 +1295,22 @@ var Structr = {
 	},
 	isModulePresent:function(moduleName) {
 		return Structr.activeModules[moduleName] !== undefined;
+	},
+	guardExecution:function (callbackToGuard) {
+		var didRun = false;
+
+		var guardedFunction = function () {
+			if (didRun) {
+				return;
+			}
+			didRun = true;
+
+			if (typeof callbackToGuard === "function") {
+				callbackToGuard();
+			}
+		}
+
+		return guardedFunction;
 	}
 };
 
