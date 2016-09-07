@@ -379,7 +379,9 @@ var Structr = {
 		Structr.activateMenuEntry('logout');
 	},
 	doLogin: function(username, password) {
-		Command.login(username, password);
+		Structr.renewSessionId(function () {
+			Command.login(username, password);
+		});
 	},
 	doLogout: function(text) {
 		Structr.saveLocalStorage();
