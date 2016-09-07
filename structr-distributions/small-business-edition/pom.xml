@@ -72,6 +72,11 @@
             <artifactId>structr-media-module</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.structr</groupId>
+            <artifactId>structr-crawler-module</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
