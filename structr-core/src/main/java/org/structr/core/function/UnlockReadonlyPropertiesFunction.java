@@ -30,8 +30,8 @@ import org.structr.schema.action.Function;
  */
 public class UnlockReadonlyPropertiesFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE    = "Usage: ${unlock_readonly_properties_once(node)}. Example ${unlock_readonly_properties_once, this}";
-	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS = "Usage: ${{Structr.unlock_readonly_properties_once(node)}}. Example ${{Structr.unlock_readonly_properties_once, Structr.get('this')}}";
+	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE    = "Usage: ${unlock_readonly_properties_once(node)}. Example ${unlock_readonly_properties_once(this)}";
+	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE_JS = "Usage: ${{Structr.unlock_readonly_properties_once(node)}}. Example ${{Structr.unlock_readonly_properties_once(Structr.get('this'))}}";
 
 	@Override
 	public String getName() {
@@ -42,9 +42,9 @@ public class UnlockReadonlyPropertiesFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 		try {
-		
+
 			if (!arrayHasLengthAndAllElementsNotNull(sources, 1)) {
-				
+
 				return null;
 			}
 
