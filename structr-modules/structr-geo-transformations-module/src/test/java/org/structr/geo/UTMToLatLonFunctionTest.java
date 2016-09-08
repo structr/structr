@@ -24,17 +24,14 @@
 package org.structr.geo;
 
 import org.junit.Assert;
-import static org.junit.Assert.fail;
-import org.junit.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 
 /**
  *
  */
-public class UTMToLatLonFunctionTest {
+public class UTMToLatLonFunctionTest extends StructrTest {
 
-	@Test
 	public void testUTMLatLonRoundTrip() {
 
 		final LatLonToUTMFunction latLonUtm = new LatLonToUTMFunction();
@@ -53,7 +50,6 @@ public class UTMToLatLonFunctionTest {
 		}
 	}
 
-	@Test
 	public void testLatLonUTMRoundtrip() {
 
 		final LatLonToUTMFunction latLonUtm = new LatLonToUTMFunction();
@@ -74,29 +70,11 @@ public class UTMToLatLonFunctionTest {
 		}
 	}
 
-	@Test
 	public void testUTMToLatLon() {
 
 		final UTMToLatLonFunction func = new UTMToLatLonFunction();
 
 		try {
-
-			/* disabled..
-			final Object result1 = func.apply(null, null, new Object[] { "32U4395965967780" });
-			Assert.assertEquals("Invalid UTM conversion result", "Unsupported UTM string", result1);
-
-			final Object result2 = func.apply(null, null, new Object[] { "32439596 5967780" });
-			Assert.assertEquals("Invalid UTM conversion result", "Unsupported UTM string", result2);
-
-			final Object result3 = func.apply(null, null, new Object[] { "3T4395965967780" });
-			Assert.assertEquals("Invalid UTM conversion result", "Unsupported UTM string", result3);
-
-			final Object result4 = func.apply(null, null, new Object[] { "3439596 5967780" });
-			Assert.assertEquals("Invalid UTM conversion result", "Unsupported UTM string", result4);
-
-			final Object result5 = func.apply(null, null, new Object[] { "439596 5967780" });
-			Assert.assertEquals("Invalid UTM conversion result", "Unsupported UTM string", result5);
-			*/
 
 			final Object result6 = func.apply(null, null, new Object[] { "32 N 439596 5967780" });
 			Assert.assertEquals("Invalid UTM conversion result", 53.85499997165232, get(result6, 0));

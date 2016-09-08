@@ -23,17 +23,14 @@
  */
 package org.structr.geo;
 
-import static org.junit.Assert.fail;
-import org.junit.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 
 /**
  *
  */
-public class ImportGPXFunctionTest {
+public class ImportGPXFunctionTest extends StructrTest {
 
-	@Test
 	public void testGPXImport() {
 
 		try {

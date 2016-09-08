@@ -24,16 +24,13 @@
 package org.structr.geo;
 
 import org.junit.Assert;
-import static org.junit.Assert.fail;
-import org.junit.Test;
 import org.structr.common.error.FrameworkException;
 
 /**
  *
  */
-public class LatLonToUTMFunctionTest {
+public class LatLonToUTMFunctionTest extends StructrTest {
 
-	@Test
 	public void testLatLonToUTM() {
 
 		final LatLonToUTMFunction func = new LatLonToUTMFunction();
