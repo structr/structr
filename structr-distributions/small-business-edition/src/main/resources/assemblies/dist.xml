@@ -52,14 +52,6 @@
 			<outputDirectory>/</outputDirectory>
 		</file>
 		<file>
-			<source>start</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
-			<source>stop</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-<!--		<file>
 			<source>src/main/resources/bin/start</source>
 			<outputDirectory>/bin</outputDirectory>
 		</file>
@@ -72,6 +64,7 @@
 			<outputDirectory>/bin</outputDirectory>
 			<filtered>true</filtered>
 		</file>
+<!--		
 		<file>
 			<source>src/main/resources/bin/cypher</source>
 			<outputDirectory>/bin</outputDirectory>
@@ -115,6 +108,7 @@
 		<file>
 			<source>src/main/resources/bin/add_grants.sh</source>
 			<outputDirectory>/bin</outputDirectory>
-		</file>-->
+		</file>
+		-->
 	</files>
 </assembly>
