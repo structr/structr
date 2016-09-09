@@ -405,6 +405,8 @@ var _Pages = {
 			Command.createSimplePage();
 		});
 
+		Structr.adaptUiToPresentModules();
+
 	},
 	addTab: function(entity) {
 		previewTabs.children().last().before('<li id="show_' + entity.id + '" class="page ' + entity.id + '_"></li>');

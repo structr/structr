@@ -61,6 +61,7 @@ var _Crawler = {
 		});
 
 		Structr.makePagesMenuDroppable();
+		Structr.adaptUiToPresentModules();
 
 	},
 	resize: function() {
@@ -588,7 +589,7 @@ var _Crawler = {
 					var prevSiblings = $(subpattern).closest('tr').prevAll().find('.selector').toArray().reverse();
 					//prevSiblings.push(localSelector);
 					var selector = prevSiblings.map(function(h) { return $(h).text(); }).join(' > ') + ' > ' + localSelector;
-					
+
 					var sub = $(subpattern);
 
 					sub.on('mouseover', function() {

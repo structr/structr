@@ -1186,6 +1186,7 @@ var Structr = {
 				}
 
 				Structr.activeModules = envInfo.result.modules;
+				Structr.adaptUiToPresentModules();
 			}
 		});
 	},
@@ -1289,6 +1290,8 @@ var Structr = {
 			$el = $(el);
 			if (! Structr.isModulePresent($el.data('structr-module'))) {
 				$el.hide();
+			} else {
+				$el.show();
 			}
 
 		});

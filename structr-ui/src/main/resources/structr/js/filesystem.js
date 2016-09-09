@@ -62,6 +62,7 @@ var _Filesystem = {
 		});
 
 		Structr.makePagesMenuDroppable();
+		Structr.adaptUiToPresentModules();
 
 	},
 	resize: function() {
@@ -204,6 +205,7 @@ var _Filesystem = {
 		Structr.unblockMenu(100);
 
 		_Filesystem.resize();
+		Structr.adaptUiToPresentModules();
 
 	},
 	deepOpen: function(d, dirs) {
