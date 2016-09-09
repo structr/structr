@@ -24,10 +24,6 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -42,25 +38,27 @@ import org.structr.core.Export;
 import org.structr.common.View;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.schema.ConfigurationProvider;
 
 public class SourcePattern extends AbstractNode {
 
-	public static final Property<List<SourcePattern>> subPatternsProperty     = new EndNodes<>("subPatterns", SourcePatternSUBSourcePattern.class);
-	public static final Property<SourcePage>          subPageProperty         = new EndNode<>("subPage", SourcePatternSUBPAGESourcePage.class);
-	public static final Property<SourcePage>          sourcePageProperty      = new StartNode<>("sourcePage", SourcePageUSESourcePattern.class);
-	public static final Property<SourcePattern>       parentPatternProperty   = new StartNode<>("parentPattern", SourcePatternSUBSourcePattern.class);
-
-	public static final Property<Long>                fromProperty            = new LongProperty("from");
-	public static final Property<Long>                toProperty              = new LongProperty("to");
-	public static final Property<String>              selectorProperty        = new StringProperty("selector").indexed();
-	public static final Property<String>              mappedTypeProperty      = new StringProperty("mappedType").indexed();
-	public static final Property<String>              mappedAttributeProperty = new StringProperty("mappedAttribute").indexed();
+	public static final Property<List<SourcePattern>> subPatternsProperty               = new EndNodes<>("subPatterns", SourcePatternSUBSourcePattern.class);
+	public static final Property<SourcePage>          subPageProperty                   = new EndNode<>("subPage", SourcePatternSUBPAGESourcePage.class);
+	public static final Property<SourcePage>          sourcePageProperty                = new StartNode<>("sourcePage", SourcePageUSESourcePattern.class);
+	public static final Property<SourcePattern>       parentPatternProperty             = new StartNode<>("parentPattern", SourcePatternSUBSourcePattern.class);
+          
+	public static final Property<Long>                fromProperty                      = new LongProperty("from");
+	public static final Property<Long>                toProperty                        = new LongProperty("to");
+	public static final Property<String>              selectorProperty                  = new StringProperty("selector").indexed();
+	public static final Property<String>              mappedTypeProperty                = new StringProperty("mappedType").indexed();
+	public static final Property<String>              mappedAttributeProperty           = new StringProperty("mappedAttribute").indexed();
+	public static final Property<String>              mappedAttributeDataFormatProperty = new StringProperty("mappedAttributeFormat");
   
 	public static final View uiView = new View(SourcePattern.class, "ui",
-		subPatternsProperty, subPageProperty, sourcePageProperty, parentPatternProperty, fromProperty, toProperty, selectorProperty, mappedTypeProperty, mappedAttributeProperty
+		subPatternsProperty, subPageProperty, sourcePageProperty, parentPatternProperty, fromProperty, toProperty, selectorProperty, mappedTypeProperty, mappedAttributeProperty, mappedAttributeDataFormatProperty
 	);
 
 	private Class type(final String typeString) throws FrameworkException {
@@ -129,11 +127,20 @@ public class SourcePattern extends AbstractNode {
 
 			final ConfigurationProvider config  = StructrApp.getConfiguration();
 			final PropertyKey key = config.getPropertyKeyForJSONName(type(mappedType), mappedAttribute);
+
 			if (key != null) {
 
-				obj.setProperty(key, ex);
-			}
+				final PropertyConverter inputConverter = key.inputConverter(securityContext);
 				
+				Object convertedValue = ex;
+				
+				if (inputConverter != null) {
+					convertedValue = inputConverter.convert(ex);
+				}
+				
+				obj.setProperty(key, convertedValue);
+			}
+
 		// If the sub pattern has no mapped attribute but a sub page defined, query the patterns of the sub page
 		} else if (subPage != null) {
 
