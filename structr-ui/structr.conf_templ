@@ -10,15 +10,16 @@
 
 
 #############################################################################
+# Paths (database path see below in section Neo4j server settings)
+#############################################################################
+base.path = .
+files.path = ./files
+tmp.path = /tmp
+
+
+#############################################################################
 # General application-wide settings
 #############################################################################
-
-# The title shown at start-up
-application.title = Structr UI
-
-# Listener address. Set this to the real ip address or localhost to restrict access,
-# or to 0.0.0.0 to make this instance accessible over all ip addresses and hostnames
-application.host = 0.0.0.0
 
 # Listener port for HTTP access REST and web service
 application.http.port = 8082
@@ -31,6 +32,13 @@ application.ftp.port = 8021
 
 # Listener port of built-in SSH server
 application.ssh.port = 8022
+
+# The title shown at start-up
+application.title = Structr UI
+
+# Listener address. Set this to the real ip address or localhost to restrict access,
+# or to 0.0.0.0 to make this instance accessible over all ip addresses and hostnames
+application.host = 0.0.0.0
 
 # HTTPS settings
 # run this command to create a selfsigned certificate:
@@ -49,7 +57,23 @@ application.session.timeout = 1800
 # default is read only
 #application.security.ownerless.nodes = read
 
+
+#############################################################################
 # Neo4j server settings
+#############################################################################
+
+database.driver = org.structr.bolt.BoltDatabaseService
+
+database.connection.url = bolt://localhost:7687
+database.connection.username = neo4j
+database.connection.password = neo4j
+
+# Directory with database files in embedded mode
+database.path = ./db
+
+database.cache.relationship.size = 1000
+database.cache.node.size = 1000
+
 ########################################################
 #                                                      #
 #             !!!!!!!!! WARNING !!!!!!!!!              #
@@ -59,14 +83,18 @@ application.session.timeout = 1800
 # bypassing Structr's security measures.               #
 #                                                      #
 ########################################################
+# Neo4j HTTP server
 neo4j.server.host = 0.0.0.0
 neo4j.server.port = 7474
 
-# Paths
-base.path = .
-database.path = ./db
-files.path = ./files
-tmp.path = /tmp
+# Neo4j shell
+neo4j.shell.enabled = true
+neo4j.shell.port = 1337
+
+
+#############################################################################
+# Miscellaneous configuration
+#############################################################################
 
 # Configuration class providing custom schema classes
 configuration.provider = org.structr.module.JarConfigurationProvider
@@ -90,10 +118,6 @@ ws.indentation = true
 # Please note: As long as Javascript doesn't support NaN etc., most of the UI will be broken
 #json.lenient = true
 
-# Neo4j shell
-neo4j.shell.enabled = true
-neo4j.shell.port = 1337
-
 # E-Mail settings: Set host and port of an MTA Structr will use to send e-mails
 smtp.host = localhost
 smtp.port = 25
@@ -108,6 +132,7 @@ tcp.port = 54555
 
 # Default date format (SimpleDateFormat pattern), uncomment to enable full ISO8601 compliant date handling
 #DateProperty.defaultFormat = yyyy-MM-dd'T'HH:mm:ss.SSSXXX
+
 
 #############################################################################
 # Servlets
