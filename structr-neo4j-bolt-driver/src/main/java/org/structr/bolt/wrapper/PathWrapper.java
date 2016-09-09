@@ -28,7 +28,6 @@ import org.structr.bolt.BoltDatabaseService;
 
 /**
  *
- * @author Christian Morgner
  */
 public class PathWrapper implements Path {
 

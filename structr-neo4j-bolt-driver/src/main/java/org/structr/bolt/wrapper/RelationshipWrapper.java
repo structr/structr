@@ -29,7 +29,6 @@ import org.structr.bolt.SessionTransaction;
 
 /**
  *
- * @author Christian Morgner
  */
 public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Relationship> implements Relationship {
 

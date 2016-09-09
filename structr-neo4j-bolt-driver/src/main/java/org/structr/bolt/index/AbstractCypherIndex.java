@@ -59,7 +59,6 @@ import org.structr.bolt.index.factory.TypeQueryFactory;
 
 /**
  *
- * @author Christian Morgner
  */
 public abstract class AbstractCypherIndex<T extends PropertyContainer> implements Index<T>, QueryFactory {
 

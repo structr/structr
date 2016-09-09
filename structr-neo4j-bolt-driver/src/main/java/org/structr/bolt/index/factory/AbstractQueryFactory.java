@@ -27,7 +27,6 @@ import org.structr.bolt.index.CypherQuery;
 
 /**
  *
- * @author Christian Morgner
  */
 public abstract class AbstractQueryFactory implements QueryFactory {
 

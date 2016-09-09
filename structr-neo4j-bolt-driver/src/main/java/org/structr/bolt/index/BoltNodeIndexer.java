@@ -25,7 +25,6 @@ import org.structr.bolt.BoltDatabaseService;
 
 /**
  *
- * @author Christian Morgner
  */
 public class BoltNodeIndexer implements IndexManager<Node> {
 

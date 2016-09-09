@@ -25,7 +25,6 @@ import org.structr.bolt.wrapper.RelationshipWrapper;
 
 /**
  *
- * @author Christian Morgner
  */
 public class RelationshipRelationshipMapper implements Function<org.neo4j.driver.v1.types.Relationship, Relationship> {
 

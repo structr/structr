@@ -65,7 +65,6 @@ import org.structr.bolt.mapper.RelationshipRelationshipMapper;
 
 /**
  *
- * @author Christian Morgner
  */
 public class BoltDatabaseService implements DatabaseService, GraphProperties {
 

@@ -27,7 +27,6 @@ import org.structr.api.search.SortType;
 
 /**
  *
- * @author Christian Morgner
  */
 public class CypherQuery {
 

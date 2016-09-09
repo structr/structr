@@ -30,7 +30,6 @@ import org.structr.bolt.BoltDatabaseService;
 
 /**
  *
- * @author Christian Morgner
  */
 public class StatementResultWrapper<T> implements NativeResult<T> {
 

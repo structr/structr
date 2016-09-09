@@ -28,7 +28,6 @@ import org.structr.bolt.mapper.RelationshipRelationshipMapper;
 
 /**
  *
- * @author Christian Morgner
  */
 public class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 

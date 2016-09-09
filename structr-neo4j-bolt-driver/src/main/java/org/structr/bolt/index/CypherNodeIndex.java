@@ -28,7 +28,6 @@ import org.structr.bolt.mapper.NodeNodeMapper;
 
 /**
  *
- * @author Christian Morgner
  */
 public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 

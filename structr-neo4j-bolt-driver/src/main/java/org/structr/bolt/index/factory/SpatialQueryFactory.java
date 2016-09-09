@@ -24,7 +24,6 @@ import org.structr.bolt.index.CypherQuery;
 
 /**
  *
- * @author Christian Morgner
  */
 public class SpatialQueryFactory extends AbstractQueryFactory {
 

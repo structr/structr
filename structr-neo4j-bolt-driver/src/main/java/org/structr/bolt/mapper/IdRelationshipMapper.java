@@ -25,7 +25,6 @@ import org.structr.bolt.wrapper.RelationshipWrapper;
 
 /**
  *
- * @author Christian Morgner
  */
 public class IdRelationshipMapper implements Function<Long, Relationship> {
 

@@ -24,7 +24,6 @@ import org.neo4j.driver.v1.types.Node;
 
 /**
  *
- * @author Christian Morgner
  */
 public class RecordNodeMapper implements Function<Record, Node> {
 

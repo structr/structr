@@ -32,7 +32,6 @@ import org.structr.bolt.SessionTransaction;
 
 /**
  *
- * @author Christian Morgner
  */
 public abstract class EntityWrapper<T extends Entity> implements PropertyContainer {
 

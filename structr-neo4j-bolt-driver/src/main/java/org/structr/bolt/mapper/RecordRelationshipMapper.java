@@ -24,7 +24,6 @@ import org.neo4j.driver.v1.types.Relationship;
 
 /**
  *
- * @author Christian Morgner
  */
 public class RecordRelationshipMapper implements Function<Record, Relationship> {
 

@@ -35,7 +35,6 @@ import org.structr.bolt.mapper.RelationshipRelationshipMapper;
 
 /**
  *
- * @author Christian Morgner
  */
 public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implements Node {
 

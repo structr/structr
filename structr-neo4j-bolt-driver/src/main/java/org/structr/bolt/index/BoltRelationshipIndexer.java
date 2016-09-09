@@ -22,11 +22,9 @@ import org.structr.api.graph.Relationship;
 import org.structr.api.index.Index;
 import org.structr.api.index.IndexManager;
 import org.structr.bolt.BoltDatabaseService;
-import org.structr.bolt.index.CypherRelationshipIndex;
 
 /**
  *
- * @author Christian Morgner
  */
 public class BoltRelationshipIndexer implements IndexManager<Relationship> {
 

@@ -25,7 +25,6 @@ import org.structr.bolt.wrapper.NodeWrapper;
 
 /**
  *
- * @author Christian Morgner
  */
 public class NodeNodeMapper implements Function<org.neo4j.driver.v1.types.Node, Node> {
 

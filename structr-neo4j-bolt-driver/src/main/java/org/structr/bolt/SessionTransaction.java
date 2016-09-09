@@ -44,7 +44,6 @@ import org.structr.bolt.mapper.RecordRelationshipMapper;
 
 /**
  *
- * @author Christian Morgner
  */
 public class SessionTransaction implements org.structr.api.Transaction {
 

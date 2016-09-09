@@ -23,7 +23,6 @@ import org.neo4j.driver.v1.Record;
 
 /**
  *
- * @author Christian Morgner
  */
 
 public class RecordStringMapper implements Function<Record, String> {
