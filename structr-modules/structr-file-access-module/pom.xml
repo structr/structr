@@ -30,6 +30,12 @@
 			<groupId>org.apache.ftpserver</groupId>
 			<artifactId>ftpserver-core</artifactId>
 			<version>1.0.6</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.jayway.restassured</groupId>
