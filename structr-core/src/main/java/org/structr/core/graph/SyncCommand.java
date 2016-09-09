@@ -180,8 +180,10 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		try (final Tx tx = app.tx()) {
 
-			Set<AbstractNode> nodes         = new HashSet<>();
-			Set<AbstractRelationship> rels  = new HashSet<>();
+			final NodeFactory nodeFactory         = new NodeFactory(SecurityContext.getSuperUserInstance());
+			final RelationshipFactory relFactory  = new RelationshipFactory(SecurityContext.getSuperUserInstance());
+			final Set<AbstractNode> nodes         = new HashSet<>();
+			final Set<AbstractRelationship> rels  = new HashSet<>();
 			boolean conditionalIncludeFiles = includeFiles;
 
 			if (query != null) {
@@ -204,8 +206,8 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			} else {
 
-				nodes.addAll(app.nodeQuery(AbstractNode.class).includeDeletedAndHidden().getAsList());
-				rels.addAll(app.relationshipQuery(AbstractRelationship.class).includeDeletedAndHidden().getAsList());
+				nodes.addAll(nodeFactory.bulkInstantiate(graphDb.getAllNodes()));
+				rels.addAll(relFactory.bulkInstantiate(graphDb.getAllRelationships()));
 			}
 
 			exportToStream(
@@ -955,13 +957,13 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			final Node sourceNode = node.getNode();
 			final Node targetNode = existingNode.getNode();
-			
+
 			// skip newly created node
 			if (sourceNode.getId() == targetNode.getId()) {
-				
+
 				continue;
 			}
-			
+
 			logger.log(Level.INFO, "Found existing schema node {0}, merging!", name);
 
 			copyProperties(sourceNode, targetNode);
