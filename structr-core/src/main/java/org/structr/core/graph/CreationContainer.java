@@ -36,7 +36,6 @@ import org.structr.schema.action.ActionContext;
 
 /**
  *
- * @author Christian Morgner
  */
 public class CreationContainer implements GraphObject, PropertyContainer {
 
