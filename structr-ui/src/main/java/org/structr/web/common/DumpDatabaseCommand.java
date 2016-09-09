@@ -19,13 +19,14 @@
 package org.structr.web.common;
 
 import java.util.Map;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.MaintenanceCommand;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeServiceCommand;
-import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.SyncCommand;
 import org.structr.core.graph.Tx;
 import org.structr.dynamic.File;
@@ -43,8 +44,10 @@ public class DumpDatabaseCommand extends NodeServiceCommand implements Maintenan
 
 		try {
 
-			final App app         = StructrApp.getInstance();
-			final String fileName = (String)attributes.get("name");
+			final NodeFactory nodeFactory        = new NodeFactory(SecurityContext.getSuperUserInstance());
+			final RelationshipFactory relFactory = new RelationshipFactory(SecurityContext.getSuperUserInstance());
+			final App app                        = StructrApp.getInstance();
+			final String fileName                = (String)attributes.get("name");
 
 			if (fileName == null || fileName.isEmpty()) {
 
@@ -59,7 +62,13 @@ public class DumpDatabaseCommand extends NodeServiceCommand implements Maintenan
 				file.setProperty(File.visibleToAuthenticatedUsers, true);
 
 				// Don't include files
-				SyncCommand.exportToStream(file.getOutputStream(), app.nodeQuery(NodeInterface.class).getAsList(), app.relationshipQuery(RelationshipInterface.class).getAsList(), null, false);
+				SyncCommand.exportToStream(
+					file.getOutputStream(),
+					nodeFactory.bulkInstantiate(app.getDatabaseService().getAllNodes()),
+					relFactory.bulkInstantiate(app.getDatabaseService().getAllRelationships()),
+					null,
+					false
+				);
 
 				tx.success();
 			}
