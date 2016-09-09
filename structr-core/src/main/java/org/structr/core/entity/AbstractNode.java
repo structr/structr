@@ -1002,7 +1002,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			// FIXME: make fixed path length of 8 configurable
 			for (int i=1; i<10; i++) {
 
-				final String query        = "MATCH n, m, p = allShortestPaths(n-[" + relTypes + "*.." + i + "]-m) WHERE id(n) = {id1} AND id(m) = {id2} RETURN p";
+				final String query        = "MATCH (n), (m), p = allShortestPaths((n)-[" + relTypes + "*.." + i + "]-(m)) WHERE id(n) = {id1} AND id(m) = {id2} RETURN p";
 				final NativeResult result = db.execute(query, params);
 
 				while (result.hasNext()) {
