@@ -312,20 +312,13 @@ public abstract class Resource {
 				final PropertyKey key = conf.getPropertyKeyForJSONName(type, getFirstPartOfString(name), false);
 				if (key != null) {
 
-					if (key.isSearchable()) {
-
-						// add to list of searchable keys
-						searchKeys.add(key);
-
-					} else if (!JsonRestServlet.commonRequestParameters.contains(name)) {
-
-						throw new FrameworkException(400, "Search key " + name + " is not indexed.");
-					}
+					// add to list of searchable keys
+					searchKeys.add(key);
 
 				} else if (!JsonRestServlet.commonRequestParameters.contains(name)) {
 
 					// exclude common request parameters here (should not throw exception)
-					throw new FrameworkException(400, "Invalid search key " + name);
+					throw new FrameworkException(400, "Unknown search key " + name);
 				}
 			}
 

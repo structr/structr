@@ -233,12 +233,6 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	public boolean isPassivelyIndexed();
 
 	/**
-	 * Indicates whether this property is searchable.
-	 * @return isSearchable
-	 */
-	public boolean isSearchable();
-
-	/**
 	 * Indicates whether this property is searchable with an empty value.
 	 * This behaviour is achieved by storing a special value for empty
 	 * fields which can then later be found again.
