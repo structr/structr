@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web;
+package org.structr.web.importer;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileOutputStream;
@@ -132,7 +132,10 @@ public class Importer {
 	private final SecurityContext securityContext;
 	private final boolean publicVisible;
 	private final boolean authVisible;
+	private CommentHandler commentHandler;
+	private boolean processComment = false;
 	private Document parsedDocument;
+	private String lastComment;
 	private final String name;
 	private URL originalUrl;
 	private String address;
@@ -167,6 +170,10 @@ public class Importer {
 
 	private void init() {
 		app = StructrApp.getInstance(securityContext);
+	}
+
+	public void setCommentHandler(final CommentHandler handler) {
+		this.commentHandler = handler;
 	}
 
 	/**
@@ -219,7 +226,7 @@ public class Importer {
 				get.addRequestHeader("Connection", "close");
 				get.getParams().setParameter("http.protocol.single-cookie-header", true);
 				get.getParams().setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY);
-				
+
 				get.setFollowRedirects(true);
 
 				client.executeMethod(get);
@@ -250,20 +257,21 @@ public class Importer {
 	}
 
 	public Page readPage() throws FrameworkException {
+		return readPage(null);
+	}
 
-		Page page = Page.createNewPage(securityContext, name);
+	public Page readPage(final String uuid) throws FrameworkException {
 
+		Page page = Page.createNewPage(securityContext, uuid, name);
 		if (page != null) {
 
 			page.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
 			page.setProperty(AbstractNode.visibleToPublicUsers, publicVisible);
 			createChildNodes(parsedDocument, page, page);
 			logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[]{address, name});
-
 		}
 
 		return page;
-
 	}
 
 	public void createChildNodes(final DOMNode parent, final Page page) throws FrameworkException {
@@ -535,8 +543,10 @@ public class Importer {
 			// Data and comment nodes: Trim the text and put it into the "content" field without changes
 			if (/*type.equals("#data") || */type.equals("#comment")) {
 
-				tag = "";
-				comment = ((Comment) node).getData();
+				comment        = ((Comment) node).getData();
+				processComment = false; // do not process the comment until next node
+				lastComment    = comment;
+				tag            = "";
 
 				// Don't add content node for whitespace
 				if (StringUtils.isBlank(comment)) {
@@ -718,6 +728,21 @@ public class Importer {
 
 				parent.appendChild(newNode);
 
+				// let comment handler process newly created node
+				// (allow special comments to modify node)
+				if (processComment && commentHandler != null && StringUtils.isNotBlank(lastComment)) {
+
+					commentHandler.handleComment(page, newNode, lastComment);
+
+					// clear comment field
+					lastComment = null;
+				}
+
+				// We enable processing of special Structr comments for the next loop
+				// here, to prevent the actual #comment node from receiving modifications
+				// that are meant for the following node.
+				processComment = true;
+
 				// Link new node to its parent node
 				// linkNodes(parent, newNode, page, localIndex);
 				// Step down and process child nodes
@@ -834,20 +859,20 @@ public class Importer {
 		final String path;
 		final String httpPrefix  = "http://";
 		final String httpsPrefix = "https://";
-		
+
 		if (downloadAddress.startsWith(httpsPrefix)) {
 
 			path = StringUtils.substringBefore((StringUtils.substringAfter(downloadAddress, httpsPrefix)), fileName);
-			
+
 		} else if (downloadAddress.startsWith(httpPrefix)) {
-			
+
 			path = StringUtils.substringBefore((StringUtils.substringAfter(downloadAddress, httpPrefix)), fileName);
-			
+
 		} else {
-			
+
 			path = StringUtils.substringBefore(relativePath, fileName);
 		}
-		
+
 
 		logger.log(Level.INFO, "Relative path: {0}, final path: {1}", new Object[]{relativePath, path});
 
@@ -861,7 +886,7 @@ public class Importer {
 		try {
 
 			final String fullPath = path + fileName;
-			
+
 			FileBase fileNode = fileExists(fullPath, checksum);
 			if (fileNode == null) {
 
@@ -872,7 +897,7 @@ public class Importer {
 
 					fileNode = createFileNode(uuid, fullPath, ct, size, checksum);
 				}
-				
+
 				if (contentType.equals("text/css")) {
 
 					processCssFileNode(fileNode, downloadUrl);
@@ -899,7 +924,7 @@ public class Importer {
 	private FileBase createFileNode(final String uuid, final String path, final String contentType, final long size, final long checksum) throws FrameworkException {
 		return createFileNode(uuid, path, contentType, size, checksum, null);
 	}
-	
+
 	private FileBase createFileNode(final String uuid, final String path, final String contentType, final long size, final long checksum, final Class fileClass) throws FrameworkException {
 
 		final String name = PathHelper.getName(path);
@@ -918,13 +943,13 @@ public class Importer {
 
 		final Folder parentFolder = FileHelper.createFolderPath(securityContext, PathHelper.getFolderPath(path));
 		fileNode.setProperty(FileBase.parent, parentFolder);
-		
+
 		if (!fileNode.validatePath(securityContext, new ErrorBuffer())) {
-			
+
 			final String newName = name.concat("_").concat(FileHelper.getDateString());
-			
+
 			logger.log(Level.WARNING, "File {0} already exists, renaming to {1}", new Object[] { path, newName });
-			
+
 			fileNode.setProperty(AbstractNode.name, newName);
 		}
 

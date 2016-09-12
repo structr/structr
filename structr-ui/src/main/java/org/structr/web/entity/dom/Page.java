@@ -54,7 +54,7 @@ import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaService;
-import org.structr.web.Importer;
+import org.structr.web.importer.Importer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.diff.InvertibleModificationOperation;
@@ -166,6 +166,21 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	 * @throws FrameworkException
 	 */
 	public static Page createNewPage(SecurityContext securityContext, String name) throws FrameworkException {
+		return createNewPage(securityContext, null, name);
+	}
+
+	/**
+	 * Creates a new Page entity with the given name in the database.
+	 *
+	 * @param securityContext the security context to use
+	 * @param uuid the UUID of the new page or null
+	 * @param name the name of the new page, defaults to "page"
+	 * "ownerDocument" if not set
+	 *
+	 * @return the new ownerDocument
+	 * @throws FrameworkException
+	 */
+	public static Page createNewPage(final SecurityContext securityContext, final String uuid, final String name) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
 		final PropertyMap properties = new PropertyMap();
@@ -173,6 +188,10 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		properties.put(AbstractNode.name, name != null ? name : "page");
 		properties.put(AbstractNode.type, Page.class.getSimpleName());
 		properties.put(Page.contentType, "text/html");
+
+		if (id != null) {
+			properties.put(Page.id, uuid);
+		}
 
 		return app.create(Page.class, properties);
 	}

@@ -37,11 +37,11 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractUser;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
-import org.structr.web.Importer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.diff.InvertibleModificationOperation;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.importer.Importer;
 
 /**
  *

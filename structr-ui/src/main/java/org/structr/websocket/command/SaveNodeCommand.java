@@ -27,7 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.web.Importer;
+import org.structr.web.importer.Importer;
 import org.structr.web.diff.InvertibleModificationOperation;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;

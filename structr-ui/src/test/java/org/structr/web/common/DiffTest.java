@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.graph.Tx;
-import org.structr.web.Importer;
+import org.structr.web.importer.Importer;
 import org.structr.web.diff.InvertibleModificationOperation;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;

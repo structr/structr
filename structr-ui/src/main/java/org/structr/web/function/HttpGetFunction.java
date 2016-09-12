@@ -31,7 +31,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
-import static org.structr.web.Importer.getHttpClient;
+import static org.structr.web.importer.Importer.getHttpClient;
 
 /**
  *

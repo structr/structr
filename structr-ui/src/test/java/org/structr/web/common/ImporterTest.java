@@ -27,7 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.graph.Tx;
 import org.structr.dynamic.File;
-import org.structr.web.Importer;
+import org.structr.web.importer.Importer;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.dom.Page;
 import org.w3c.dom.NodeList;

@@ -32,7 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.GenericProperty;
 import org.structr.text.FulltextTokenizer;
-import org.structr.web.Importer;
+import org.structr.web.importer.Importer;
 
 //~--- classes ----------------------------------------------------------------
 /**
