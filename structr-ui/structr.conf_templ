@@ -62,7 +62,10 @@ application.session.timeout = 1800
 # Neo4j server settings
 #############################################################################
 
+# With driver 'org.structr.bolt.BoltDatabaseService'
+# and driver mode 'remote' Structr won't start a Neo4j database
 database.driver = org.structr.bolt.BoltDatabaseService
+database.driver.mode = embedded
 
 database.connection.url = bolt://localhost:7687
 database.connection.username = neo4j
