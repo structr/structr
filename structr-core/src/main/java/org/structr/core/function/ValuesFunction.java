@@ -44,7 +44,8 @@ public class ValuesFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof GraphObject) {
+		//if (arrayHasMinLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof GraphObject) {
+		if (sources.length >= 2 && sources[0] instanceof GraphObject) {
 
 			final Set<Object> values = new LinkedHashSet<>();
 			final GraphObject source = (GraphObject)sources[0];
@@ -55,20 +56,21 @@ public class ValuesFunction extends Function<Object, Object> {
 
 			return new LinkedList<>(values);
 
-		} else if (arrayHasMinLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof GraphObjectMap) {
+		//} else if (arrayHasMinLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof GraphObjectMap) {
+		} else if (sources.length >= 1) {
 
-			return new LinkedList<>(((GraphObjectMap)sources[0]).values());
+			if (sources[0] instanceof GraphObjectMap) {
 
-		} else if (arrayHasMinLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof Map) {
+				return new LinkedList<>(((GraphObjectMap)sources[0]).values());
 
-			return new LinkedList<>(((Map)sources[0]).values());
+			} else if (sources[0] instanceof Map) {
 
-		} else {
-
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+				return new LinkedList<>(((Map)sources[0]).values());
+			}
 
 		}
 
+		logParameterError(entity, sources, ctx.isJavaScriptContext());
 		return "";
 	}
 

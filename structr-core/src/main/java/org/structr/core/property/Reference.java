@@ -196,11 +196,6 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public boolean isSearchable() {
-		return propertyKey.isSearchable();
-	}
-
-	@Override
 	public boolean isIndexedWhenEmpty() {
 		return propertyKey.isIndexedWhenEmpty();
 	}

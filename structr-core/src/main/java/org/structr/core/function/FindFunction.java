@@ -138,12 +138,6 @@ public class FindFunction extends Function<Object, Object> {
 
 					if (key != null) {
 
-						// throw exception if key is not indexed (otherwise the user will never know)
-						if (!key.isSearchable()) {
-
-							throw new FrameworkException(400, "Search key " + key.jsonName() + " is not indexed.");
-						}
-
 						final PropertyConverter inputConverter = key.inputConverter(securityContext);
 						Object value = sources[c + 1];
 

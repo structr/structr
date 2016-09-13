@@ -177,11 +177,6 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	}
 
 	@Override
-	public boolean isSearchable() {
-		return true;
-	}
-
-	@Override
 	public void index(GraphObject entity, Object value) {
 		// no indexing
 	}

@@ -81,11 +81,6 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	}
 
 	@Override
-	public boolean isSearchable() {
-		return true;
-	}
-
-	@Override
 	public Object fixDatabaseProperty(Object value) {
 		return null;
 	}

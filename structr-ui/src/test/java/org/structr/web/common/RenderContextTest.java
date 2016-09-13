@@ -546,7 +546,10 @@ public class RenderContextTest extends StructrUiTest {
 			final TestOne detailsDataObject2 = app.create(TestOne.class, "TestOne");
 			Scripting.replaceVariables(ctx, p1, "${set_details_object(first(find('TestOne', 'id', '" + detailsDataObject2.getUuid() + "')))}");
 			assertEquals("${current.id} should resolve to new details object", detailsDataObject2.getUuid(), Scripting.replaceVariables(ctx, p1, "${current.id}"));
-			
+
+			// test values() with single parameter
+			assertEquals("Invalid values() result", "[test]", Scripting.replaceVariables(ctx, page, "${values(from_json('{name:test}'))}"));
+
 			tx.success();
 
 		} catch (FrameworkException fex) {

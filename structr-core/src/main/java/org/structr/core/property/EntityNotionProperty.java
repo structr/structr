@@ -78,11 +78,6 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 	}
 
 	@Override
-	public boolean isSearchable() {
-		return true;
-	}
-
-	@Override
 	public Object fixDatabaseProperty(Object value) {
 		return null;
 	}

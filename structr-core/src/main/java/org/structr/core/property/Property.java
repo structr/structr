@@ -67,7 +67,6 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected boolean unvalidated                          = false;
 	protected boolean indexed                              = false;
 	protected boolean indexedPassively                     = false;
-	protected boolean searchable                           = false;
 	protected boolean indexedWhenEmpty                     = false;
 	protected boolean unique                               = false;
 	protected boolean notNull                              = false;
@@ -170,7 +169,6 @@ public abstract class Property<T> implements PropertyKey<T> {
 	public Property<T> indexed() {
 
 		this.indexed = true;
-		this.searchable = true;
 
 		return this;
 	}
@@ -180,7 +178,6 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 		this.indexedPassively = true;
 		this.indexed = true;
-		this.searchable = true;
 
 		return this;
 	}
@@ -393,11 +390,6 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public boolean isPassivelyIndexed() {
 		return indexedPassively;
-	}
-
-	@Override
-	public boolean isSearchable() {
-		return searchable;
 	}
 
 	@Override

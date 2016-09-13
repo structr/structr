@@ -106,12 +106,6 @@ public class SearchFunction extends Function<Object, Object> {
 
 					if (key != null) {
 
-						// throw exception if key is not indexed (otherwise the user will never know)
-						if (!key.isSearchable()) {
-
-							throw new FrameworkException(400, "Search key " + key.jsonName() + " is not indexed.");
-						}
-
 						final PropertyConverter inputConverter = key.inputConverter(securityContext);
 						Object value = sources[c + 1];
 
@@ -130,7 +124,7 @@ public class SearchFunction extends Function<Object, Object> {
 
 			// return search results
 			return x;
-			
+
 		} else {
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
