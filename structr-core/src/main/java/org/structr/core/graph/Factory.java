@@ -24,7 +24,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -355,7 +354,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 			queue.add(new Item<>(rawCount++, item));
 		}
 
-		if (rawCount < 100) {
+		//if (rawCount < 100) {
 
 			// do not use multithreading
 			final InstantiationWorker worker = new InstantiationWorker(securityContext, queue, failed, nodes, offset, pageSize, preventFullCount);
@@ -365,6 +364,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 			worker.doRun();
 
+		/*
 		} else {
 
 
@@ -405,6 +405,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 				logger.log(Level.INFO, "Instantiated {0} out of {1} elements in {2} s using {3} threads.", new Object[] { nodes.size(), rawCount, (tt1-tt0) / 1000000000.0, threadCount } );
 			}
 		}
+		*/
 
 		// manually instantiate entities which couldn't be found due to tx isolation
 		failed.stream().forEach((item) -> {
