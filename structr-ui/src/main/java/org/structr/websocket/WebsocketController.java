@@ -44,7 +44,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.message.WebSocketMessage;
@@ -110,7 +109,7 @@ public class WebsocketController implements StructrTransactionListener {
 				// if the object IS of type AbstractNode AND the client has no access to the node
 				// THEN skip sending a message
 				if (
-						( !(webSocketData.getGraphObject() instanceof AbstractNode) && !socket.isPriviledgedUser(socket.getCurrentUser()) )
+						( !(webSocketData.getGraphObject() instanceof AbstractNode) && !socket.isPrivilegedUser(socket.getCurrentUser()) )
 						|| (webSocketData.getGraphObject() instanceof AbstractNode && !securityContext.isVisible((AbstractNode) webSocketData.getGraphObject()))
 					) {
 					continue;
@@ -211,7 +210,7 @@ public class WebsocketController implements StructrTransactionListener {
 	private WebSocketMessage getMessageForEvent(final SecurityContext securityContext, final ModificationEvent modificationEvent) throws FrameworkException {
 
 		final String callbackId = modificationEvent.getCallbackId();
-		
+
 		if (modificationEvent.isNode()) {
 
 			final NodeInterface node = (NodeInterface) modificationEvent.getGraphObject();
@@ -300,13 +299,13 @@ public class WebsocketController implements StructrTransactionListener {
 			}
 
 			if (modificationEvent.isDeleted()) {
-				
+
 				final WebSocketMessage message = createMessage("DELETE", callbackId);
 				message.setId(modificationEvent.getRemovedProperties().get(GraphObject.id));
-				
+
 				return message;
 			}
-			
+
 			if (modificationEvent.isModified()) {
 
 				final WebSocketMessage message = createMessage("UPDATE", callbackId);

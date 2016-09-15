@@ -150,7 +150,7 @@ public interface GraphObject {
 			final Class valueType = key.valueType();
 			final Object value    = attr.getValue();
 
-			if (AbstractCypherIndex.INDEXABLE.contains(valueType)) {
+			if (value != null && AbstractCypherIndex.INDEXABLE.contains(valueType)) {
 
 				// bulk set possible, store in container
 				key.setProperty(securityContext, container, value);

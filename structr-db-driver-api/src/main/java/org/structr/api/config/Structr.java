@@ -24,6 +24,7 @@ package org.structr.api.config;
 public interface Structr {
 
 	public static final String DATABASE_DRIVER               = "database.driver";
+	public static final String DATABASE_DRIVER_MODE          = "database.driver.mode";
 	public static final String DATABASE_CONNECTION_URL       = "database.connection.url";
 	public static final String DATABASE_CONNECTION_USERNAME  = "database.connection.username";
 	public static final String DATABASE_CONNECTION_PASSWORD  = "database.connection.password";

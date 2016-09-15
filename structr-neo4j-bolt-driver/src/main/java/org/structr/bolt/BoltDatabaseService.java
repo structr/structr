@@ -90,30 +90,34 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		final String url                               = configuration.getProperty(Structr.DATABASE_CONNECTION_URL, Structr.DEFAULT_DATABASE_URL);
 		final String username                          = configuration.getProperty(Structr.DATABASE_CONNECTION_USERNAME, "neo4j");
 		final String password                          = configuration.getProperty(Structr.DATABASE_CONNECTION_PASSWORD, "neo4j");
+		final String driverMode                        = configuration.getProperty(Structr.DATABASE_DRIVER_MODE, "embedded");
 		final String confPath                          = databasePath + "/neo4j.conf";
 		final File confFile                            = new File(confPath);
 		boolean tryAgain                               = true;
 
-		final GraphDatabaseBuilder builder = new GraphDatabaseFactory()
-		        .newEmbeddedDatabaseBuilder(new File(databasePath))
-			.setConfig( GraphDatabaseSettings.allow_store_upgrade, "true")
-			.setConfig("dbms.allow_format_migration", "true")
-		        .setConfig( bolt.enabled, "true" )
-		        .setConfig( bolt.address, url);
+		if (!"remote".equals(driverMode)) {
+			
+			final GraphDatabaseBuilder builder = new GraphDatabaseFactory()
+				.newEmbeddedDatabaseBuilder(new File(databasePath))
+				.setConfig( GraphDatabaseSettings.allow_store_upgrade, "true")
+				.setConfig("dbms.allow_format_migration", "true")
+				.setConfig( bolt.enabled, "true" )
+				.setConfig( bolt.address, url);
 
-		if (confFile.exists()) {
-			builder.loadPropertiesFromFile(confPath);
-		}
+			if (confFile.exists()) {
+				builder.loadPropertiesFromFile(confPath);
+			}
 
-		while (tryAgain) {
+			while (tryAgain) {
 
-			try {
-				graphDb  = builder.newGraphDatabase();
-				tryAgain = false;
+				try {
+					graphDb  = builder.newGraphDatabase();
+					tryAgain = false;
 
-			} catch (Throwable t) {
+				} catch (Throwable t) {
 
-				tryAgain = handleMigration(t);
+					tryAgain = handleMigration(t);
+				}
 			}
 		}
 

@@ -200,7 +200,7 @@ public class StructrWebSocket implements WebSocketListener {
 						webSocketData.setSessionValid(isAuthenticated());
 
 						abstractCommand.processMessage(webSocketData);
-						
+
 						// commit transaction
 						tx.success();
 					}
@@ -459,11 +459,11 @@ public class StructrWebSocket implements WebSocketListener {
 	public boolean isAuthenticated() {
 
 		final Principal user = getCurrentUser();
-		return (user != null && (isPriviledgedUser(user) || isFrontendWebsocketAccessEnabled()));
+		return (user != null && (isPrivilegedUser(user) || isFrontendWebsocketAccessEnabled()));
 
 	}
 
-	public boolean isPriviledgedUser(Principal user) {
+	public boolean isPrivilegedUser(Principal user) {
 
 		return (user != null && (user.getProperty(Principal.isAdmin) || user.getProperty(User.backendUser)));
 

@@ -214,7 +214,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		Functions.functions.put("strip_html", new StripHtmlFunction());
 		Functions.functions.put("set_session_attribute", new SetSessionAttributeFunction());
 		Functions.functions.put("get_session_attribute", new GetSessionAttributeFunction());
-		Functions.functions.put("get_session_attribute", new RemoveSessionAttributeFunction());
+		Functions.functions.put("remove_session_attribute", new RemoveSessionAttributeFunction());
 	}
 
 	public abstract boolean isSynced();
