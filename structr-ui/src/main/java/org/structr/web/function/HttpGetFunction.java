@@ -18,20 +18,15 @@
  */
 package org.structr.web.function;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.cookie.CookiePolicy;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.io.IOUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
-import static org.structr.web.Importer.getHttpClient;
+import org.structr.web.common.HttpHelper;
 
 /**
  *
@@ -69,28 +64,7 @@ public class HttpGetFunction extends UiFunction {
 				//long t0 = System.currentTimeMillis();
 				if ("text/html".equals(contentType)) {
 
-					HttpClient client = getHttpClient();
-
-					GetMethod get = new GetMethod(address);
-					get.addRequestHeader("User-Agent", "curl/7.35.0");
-					get.addRequestHeader("Connection", "close");
-					get.getParams().setParameter("http.protocol.single-cookie-header", true);
-					get.getParams().setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY);
-
-					get.setFollowRedirects(true);
-
-					client.executeMethod(get);
-
-					final InputStream response = get.getResponseBodyAsStream();
-
-					// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
-					String code = IOUtils.toString(response, "UTF-8");
-
-					if (code.charAt(0) == 65279) {
-						code = code.substring(1);
-					}
-
-					final Document doc = Jsoup.parse(code);
+					final Document doc = Jsoup.parse(HttpHelper.get(address));
 
 					if (sources.length > 2) {
 

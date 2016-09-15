@@ -124,6 +124,9 @@ public class Services implements StructrServices {
 	public static final String APPLICATION_INSTANCE_NAME                 = "application.instance.name";
 	public static final String APPLICATION_INSTANCE_STAGE                = "application.instance.stage";
 	public static final String APPLICATION_DEFAULT_UPLOAD_FOLDER         = "application.uploads.folder";
+	public static final String APPLICATION_PROXY_HTTP_URL                = "application.proxy.http.url";
+	public static final String APPLICATION_PROXY_HTTP_USERNAME           = "application.proxy.http.username";
+	public static final String APPLICATION_PROXY_HTTP_PASSWORD           = "application.proxy.http.password";
 	public static final String SNAPSHOT_PATH                             = "snapshot.path";
 	public static final String WEBSOCKET_FRONTEND_ACCESS                 = "WebSocketServlet.frontendAccess";
 

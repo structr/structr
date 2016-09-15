@@ -21,14 +21,26 @@ package org.structr.crawler;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.cookie.CookiePolicy;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.params.HttpClientParams;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.Header;
+import org.apache.http.HttpHost;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.params.CookiePolicy;
+import org.apache.http.config.ConnectionConfig;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -44,21 +56,24 @@ import org.structr.core.property.*;
 import org.structr.schema.ConfigurationProvider;
 
 public class SourcePattern extends AbstractNode {
+	
+	private static final Logger logger = Logger.getLogger(SourcePattern.class.getName());
 
-	public static final Property<List<SourcePattern>> subPatternsProperty               = new EndNodes<>("subPatterns", SourcePatternSUBSourcePattern.class);
-	public static final Property<SourcePage>          subPageProperty                   = new EndNode<>("subPage", SourcePatternSUBPAGESourcePage.class);
-	public static final Property<SourcePage>          sourcePageProperty                = new StartNode<>("sourcePage", SourcePageUSESourcePattern.class);
-	public static final Property<SourcePattern>       parentPatternProperty             = new StartNode<>("parentPattern", SourcePatternSUBSourcePattern.class);
-          
-	public static final Property<Long>                fromProperty                      = new LongProperty("from");
-	public static final Property<Long>                toProperty                        = new LongProperty("to");
-	public static final Property<String>              selectorProperty                  = new StringProperty("selector").indexed();
-	public static final Property<String>              mappedTypeProperty                = new StringProperty("mappedType").indexed();
-	public static final Property<String>              mappedAttributeProperty           = new StringProperty("mappedAttribute").indexed();
-	public static final Property<String>              mappedAttributeDataFormatProperty = new StringProperty("mappedAttributeFormat");
+	public static final Property<List<SourcePattern>> subPatternsProperty           = new EndNodes<>("subPatterns", SourcePatternSUBSourcePattern.class);
+	public static final Property<SourcePage>          subPageProperty               = new EndNode<>("subPage", SourcePatternSUBPAGESourcePage.class);
+	public static final Property<SourcePage>          sourcePageProperty            = new StartNode<>("sourcePage", SourcePageUSESourcePattern.class);
+	public static final Property<SourcePattern>       parentPatternProperty         = new StartNode<>("parentPattern", SourcePatternSUBSourcePattern.class);
+      
+	public static final Property<Long>                fromProperty                  = new LongProperty("from");
+	public static final Property<Long>                toProperty                    = new LongProperty("to");
+	public static final Property<String>              selectorProperty              = new StringProperty("selector").indexed();
+	public static final Property<String>              mappedTypeProperty            = new StringProperty("mappedType").indexed();
+	public static final Property<String>              mappedAttributeProperty       = new StringProperty("mappedAttribute").indexed();
+	public static final Property<String>              mappedAttributeFormatProperty = new StringProperty("mappedAttributeFormat");
+	public static final Property<String>              mappedAttributeLocaleProperty = new StringProperty("mappedAttributeLocale");
   
 	public static final View uiView = new View(SourcePattern.class, "ui",
-		subPatternsProperty, subPageProperty, sourcePageProperty, parentPatternProperty, fromProperty, toProperty, selectorProperty, mappedTypeProperty, mappedAttributeProperty, mappedAttributeDataFormatProperty
+		subPatternsProperty, subPageProperty, sourcePageProperty, parentPatternProperty, fromProperty, toProperty, selectorProperty, mappedTypeProperty, mappedAttributeProperty, mappedAttributeFormatProperty, mappedAttributeLocaleProperty
 	);
 
 	private Class type(final String typeString) throws FrameworkException {
@@ -87,37 +102,74 @@ public class SourcePattern extends AbstractNode {
 		return app.create(type(typeString));
 	}
 	
+	private SourceSite getSite() {
+
+		SourcePattern pattern = this;
+		
+		SourcePage page = pattern.getProperty(sourcePageProperty);
+		while (page == null) {
+
+			pattern = pattern.getProperty(parentPatternProperty);
+
+			if (pattern != null) {
+				page = pattern.getProperty(sourcePageProperty);
+			}
+		}
+		
+		return page.getProperty(SourcePage.site);
+		
+	}
+	
 	private String getContent(final String url, final String cookie) throws FrameworkException {
 		
-		final HttpClientParams params = new HttpClientParams(HttpClientParams.getDefaultParams());
+		final CloseableHttpClient client = HttpClients.custom()
+			.setDefaultConnectionConfig(ConnectionConfig.DEFAULT)
+			.setUserAgent("curl/7.35.0")
+			.build();
+		
+		final SourceSite site = getSite();
+		
+		final HttpHost target = HttpHost.create(url);
+		final HttpHost proxy  = HttpHost.create(site.getProperty(SourceSite.proxyUrl));
 
-		final HttpClient client = new HttpClient(params);
-		final GetMethod get = new GetMethod(url);
+		final RequestConfig config = RequestConfig.custom()
+			.setProxy(proxy)
+			.setRedirectsEnabled(true)
+			.setCookieSpec(CookieSpecs.DEFAULT)
+			.build();
 
-		get.addRequestHeader("User-Agent", "curl/7.35.0");
-		get.addRequestHeader("Connection", "close");
-		get.getParams().setParameter("http.protocol.single-cookie-header", true);
-		get.getParams().setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY);
-		get.setFollowRedirects(true);
-
+		final HttpGet request = new HttpGet("/");
+		request.setConfig(config);
+		
 		if (StringUtils.isNotBlank(cookie)) {
 
-			get.addRequestHeader("Cookie", cookie);
+			request.addHeader("Cookie", cookie);
+			request.getParams().setParameter("http.protocol.single-cookie-header", true);
 		}
 
+		request.addHeader("Connection", "close");
+  
 		String content = "";
 		try {
-			client.executeMethod(get);
-			content = get.getResponseBodyAsString().replace("<head>", "<head>\n  <base href=\"" + url + "\">");
+			final CloseableHttpResponse response = client.execute(target, request);
+			
+			final Header contentType = response.getFirstHeader("Content-Type");
+			String       charset     = StringUtils.substringAfterLast(contentType.getValue(), "; charset=");
+			
+			if (StringUtils.isBlank(charset)) {
+				charset = "UTF-8";
+			}
+			content = IOUtils.toString(response.getEntity().getContent(), charset).replace("<head>", "<head>\n  <base href=\"" + url + "\">");
+			
 			
 		} catch (IOException ex) {
-			throw new FrameworkException(422, "Unable to extract content from " + url + ".");
+			logger.log(Level.SEVERE, null, ex);
 		}
-
+		
 		return content;
 	}
 	
-	private void extractAndSetValue(final NodeInterface obj, final Document doc, final String selector, final String mappedType, final String mappedAttribute, final SourcePage subPage)  throws FrameworkException {
+	private void extractAndSetValue(final NodeInterface obj, final Document doc, final String selector, final String mappedType, final String mappedAttribute, final String mappedAttributeFormat, final SourcePage subPage)  throws FrameworkException {
 
 		// If the sub pattern has a mapped attribute, set the extracted value
 		if (StringUtils.isNotEmpty(mappedAttribute)) {
@@ -130,12 +182,37 @@ public class SourcePattern extends AbstractNode {
 
 			if (key != null) {
 
+				Object convertedValue = ex;
+	
 				final PropertyConverter inputConverter = key.inputConverter(securityContext);
 				
-				Object convertedValue = ex;
-				
 				if (inputConverter != null) {
-					convertedValue = inputConverter.convert(ex);
+				
+					final String locale = getProperty(mappedAttributeLocaleProperty);
+					DecimalFormat decimalFormat = null;
+					
+					if (key instanceof DoubleProperty) {
+
+						if (StringUtils.isNotBlank(locale)) {
+
+							decimalFormat = (DecimalFormat) NumberFormat.getNumberInstance(new Locale(locale));
+
+						} else if (StringUtils.isNotBlank(mappedAttributeFormat)) {
+
+							decimalFormat = new DecimalFormat(mappedAttributeFormat);
+						}
+						
+						if (decimalFormat != null) {
+
+							convertedValue = decimalFormat.format(convertedValue);
+						}
+						
+
+					} else {
+
+						convertedValue = inputConverter.convert(ex);
+					}
+
 				}
 				
 				obj.setProperty(key, convertedValue);
@@ -306,18 +383,20 @@ public class SourcePattern extends AbstractNode {
 
 					final String subSelector = selector + ":nth-child(" + i + ") > " + subPattern.getProperty(SourcePattern.selectorProperty);
 
-					final String subPatternMappedAttribute = subPattern.getProperty(SourcePattern.mappedAttributeProperty);
-					final SourcePage subPatternSubPage     = subPattern.getProperty(SourcePattern.subPageProperty);
+					final String subPatternMappedAttribute       = subPattern.getProperty(SourcePattern.mappedAttributeProperty);
+					final String subPatternMappedAttributeFormat = subPattern.getProperty(SourcePattern.mappedAttributeFormatProperty);
+					final SourcePage subPatternSubPage           = subPattern.getProperty(SourcePattern.subPageProperty);
 
-					extractAndSetValue(obj, doc, subSelector, mappedType, subPatternMappedAttribute, subPatternSubPage);
+					extractAndSetValue(obj, doc, subSelector, mappedType, subPatternMappedAttribute, subPatternMappedAttributeFormat, subPatternSubPage);
 
 				}
 			
 			} else {
 				
-				final String mappedAttribute = getProperty(mappedAttributeProperty);
+				final String mappedAttribute       = getProperty(mappedAttributeProperty);
+				final String mappedAttributeFormat = getProperty(mappedAttributeFormatProperty);
 			
-				extractAndSetValue(obj, doc, selector, mappedType, mappedAttribute, null);
+				extractAndSetValue(obj, doc, selector, mappedType, mappedAttribute, mappedAttributeFormat, null);
 				
 			}
 			

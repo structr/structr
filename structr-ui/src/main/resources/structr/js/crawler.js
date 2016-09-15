@@ -362,7 +362,26 @@ var _Crawler = {
 				}
 			};
 
+			crawlerList.append('<table class="props">');
+			var proxySettingsTable = crawlerList.children('table');
 
+			proxySettingsTable.append('<tr id="crawler-proxy-url"><th>Proxy URL</th><td title="' + (site.proxyUrl || '') + '" class="proxyUrl_">' + (site.proxyUrl || '') + '</td></tr>');
+			$('#crawler-proxy-url').children('td.proxyUrl_').on('click', function(e) {
+				e.stopPropagation();
+				_Entities.makeAttributeEditable($('#crawler-proxy-url'), site.id, 'td.proxyUrl_', 'proxyUrl', 200);
+			});
+
+			proxySettingsTable.append('<tr id="crawler-proxy-username"><th>Proxy Username</th><td title="' + (site.proxyUsername || '') + '" class="proxyUsername_">' + (site.proxyUsername || '') + '</td></tr>');
+			$('#crawler-proxy-username').children('td.proxyUsername_').on('click', function(e) {
+				e.stopPropagation();
+				_Entities.makeAttributeEditable($('#crawler-proxy-username'), site.id, 'td.proxyUsername_', 'proxyUsername', 200);
+			});
+
+			proxySettingsTable.append('<tr id="crawler-proxy-password"><th>Proxy Password</th><td title="' + (site.proxyPassword || '') + '" class="proxyPassword_">' + (site.proxyPassword || '') + '</td></tr>');
+			$('#crawler-proxy-password').children('td.proxyPassword_').on('click', function(e) {
+				e.stopPropagation();
+				_Entities.makeAttributeEditable($('#crawler-proxy-password'), site.id, 'td.proxyPassword_', 'proxyPassword', 200);
+			});
 
 			//Command.query('SourcePage', 1000, 1, 'name', 'asc', {site: id}, handlePage, true, 'ui');
 
@@ -642,7 +661,7 @@ var _Crawler = {
 		}
 
 		crawlerList.append(
-				  '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Selector</th><th>Mapped Type</th><th>Mapped Attribute</th><th>Sub Page</th><th>Actions</th></tr></thead>'
+				  '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Selector</th><th>Mapped Type</th><th>Mapped Attribute</th><th>Locale</th><th>Format</th><th>Sub Page</th><th>Actions</th></tr></thead>'
 				+ '<tbody id="files-table-body"></tbody></table>'
 		);
 
@@ -681,7 +700,10 @@ var _Crawler = {
 				+ '<td class="file-type"><a href="javascript:void(0)"><i class="fa fa-code"></i></a></td>'
 				+ '<td><div id="id_' + subPattern.id + '" data-structr_type="item" class="node item"><b title="' +  (name ? name : '[unnamed]') + '" class="name_">' + (name ? fitStringToWidth(name, 200) : '[unnamed]') + '</b></td>'
 				+ '<td data-raw-value="' + (subPattern.selector || '') + '" class="sub-selector">' + (subPattern.selector || '') + '</td>'
-				+ '<td title="' + (subPattern.mappedType || '') + '" class="mappedType_">' + (subPattern.mappedType || '') + '</td><td title="' + (subPattern.mappedAttribute || '') + '" class="mappedAttribute_">' + (subPattern.mappedAttribute || '') + '</td>'
+				+ '<td title="' + (subPattern.mappedType || '') + '" class="mappedType_">' + (subPattern.mappedType || '') + '</td>'
+				+ '<td title="' + (subPattern.mappedAttribute || '') + '" class="mappedAttribute_">' + (subPattern.mappedAttribute || '') + '</td>'
+				+ '<td title="' + (subPattern.mappedAttributeLocale || '') + '" class="mappedAttributeLocale_">' + (subPattern.mappedAttributeLocale || '') + '</td>'
+				+ '<td title="' + (subPattern.mappedAttributeFormat || '') + '" class="mappedAttributeFormat_">' + (subPattern.mappedAttributeFormat || '') + '</td>'
 				+ '<td class="subPage_"></td>'
 				+ '<td></td></tr>');
 
@@ -699,6 +721,16 @@ var _Crawler = {
 			$('tr#row' + subPattern.id).children('td.mappedAttribute_').on('click', function(e) {
 				e.stopPropagation();
 				_Entities.makeAttributeEditable($('tr#row' + subPattern.id), subPattern.id, 'td.mappedAttribute_', 'mappedAttribute', 200);
+			});
+
+			$('tr#row' + subPattern.id).children('td.mappedAttributeLocale_').on('click', function(e) {
+				e.stopPropagation();
+				_Entities.makeAttributeEditable($('tr#row' + subPattern.id), subPattern.id, 'td.mappedAttributeLocale_', 'mappedAttributeLocale', 200);
+			});
+
+			$('tr#row' + subPattern.id).children('td.mappedAttributeFormat_').on('click', function(e) {
+				e.stopPropagation();
+				_Entities.makeAttributeEditable($('tr#row' + subPattern.id), subPattern.id, 'td.mappedAttributeFormat_', 'mappedAttributeFormat', 200);
 			});
 
 			var div = Structr.node(subPattern.id);
@@ -739,6 +771,7 @@ var _Crawler = {
 		row.append('<td data-raw-value="' + (selector || '') + '" class="selector">' + (selector || '') + '</td>'
 			+ '<td title="' + (d.mappedType || '') + '" class="mappedType_">' + (d.mappedType || '') + '</td>'
 			+ '<td title="' + (d.mappedAttribute || '') + '" class="mappedAttribute_">' + (d.mappedAttribute || '') + '</td>'
+			+ '<td></td><td></td>'
 			+ '<td></td><td><button class="extract">Extract</button></td>');
 
 		// makeAttributeEditable: function(parentElement, id, attributeSelector, attributeName, width, callback) {

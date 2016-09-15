@@ -80,6 +80,7 @@ import org.structr.schema.importer.GraphGistImporter;
 import org.structr.schema.importer.SchemaJsonImporter;
 import org.structr.util.LogMessageSupplier;
 import org.structr.web.common.FileHelper;
+import org.structr.web.common.HttpHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.diff.CreateOperation;
 import org.structr.web.diff.DeleteOperation;
@@ -163,6 +164,13 @@ public class Importer {
 		if (address != null && !address.endsWith("/") && !address.endsWith(".html")) {
 			this.address = this.address.concat("/");
 		}
+		
+		try {
+			originalUrl = new URL(this.address);
+			
+		} catch (MalformedURLException ex) {
+			logger.log(Level.SEVERE, null, ex);
+		}
 	}
 
 	private void init() {
@@ -208,40 +216,8 @@ public class Importer {
 
 			logger.log(Level.INFO, "##### Start fetching {0} for page {1} #####", new Object[]{address, name});
 
-			try {
-
-				originalUrl = new URL(address);
-
-				HttpClient client = getHttpClient();
-
-				GetMethod get = new GetMethod(originalUrl.toString());
-				get.addRequestHeader("User-Agent", "curl/7.35.0");
-				get.addRequestHeader("Connection", "close");
-				get.getParams().setParameter("http.protocol.single-cookie-header", true);
-				get.getParams().setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY);
-				
-				get.setFollowRedirects(true);
-
-				client.executeMethod(get);
-
-				final InputStream response = get.getResponseBodyAsStream();
-
-				// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
-				code = IOUtils.toString(response, "UTF-8");
-
-				if (code.charAt(0) == 65279) {
-					code = code.substring(1);
-				}
-
-				parsedDocument = Jsoup.parse(code);
-
-			} catch (IOException ioe) {
-
-				logger.log(Level.WARNING, "", ioe);
-
-				throw new FrameworkException(500, "Error while parsing content from " + address);
-
-			}
+			code = HttpHelper.get(address);
+			parsedDocument = Jsoup.parse(code);
 
 		}
 
