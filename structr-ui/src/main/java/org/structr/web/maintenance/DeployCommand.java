@@ -43,6 +43,7 @@ import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.maintenance.deploy.ComponentImportVisitor;
 import org.structr.web.maintenance.deploy.FileImportVisitor;
+import org.structr.web.maintenance.deploy.PageImportVisitor;
 import org.structr.web.maintenance.deploy.SchemaImportVisitor;
 import org.structr.web.maintenance.deploy.TemplateImportVisitor;
 
@@ -149,16 +150,30 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		// import files
-		final Path data = source.resolve("data");
-		if (Files.exists(data)) {
+		final Path files = source.resolve("files");
+		if (Files.exists(files)) {
 
 			try {
 
-				logger.log(Level.INFO, "Importing files and pages..");
-				Files.walkFileTree(data, new FileImportVisitor(data, pagesConf));
+				logger.log(Level.INFO, "Importing files...");
+				Files.walkFileTree(files, new FileImportVisitor(files, pagesConf));
 
 			} catch (IOException ioex) {
 				logger.log(Level.WARNING, "Exception while importing files", ioex);
+			}
+		}
+
+		// import pages
+		final Path pages = source.resolve("pages");
+		if (Files.exists(pages)) {
+
+			try {
+
+				logger.log(Level.INFO, "Importing pages..");
+				Files.walkFileTree(pages, new PageImportVisitor(pages, pagesConf));
+
+			} catch (IOException ioex) {
+				logger.log(Level.WARNING, "Exception while importing pages", ioex);
 			}
 		}
 

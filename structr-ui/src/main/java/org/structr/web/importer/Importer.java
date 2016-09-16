@@ -172,9 +172,7 @@ public class Importer {
 		try {
 			originalUrl = new URL(this.address);
 			
-		} catch (MalformedURLException ex) {
-			logger.log(Level.SEVERE, null, ex);
-		}
+		} catch (MalformedURLException ex) {}
 	}
 
 	private void init() {

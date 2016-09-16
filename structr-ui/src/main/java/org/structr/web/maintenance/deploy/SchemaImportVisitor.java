@@ -30,7 +30,6 @@ import org.structr.schema.export.StructrSchema;
 
 /**
  *
- * @author Christian Morgner
  */
 public class SchemaImportVisitor implements FileVisitor<Path> {
 
