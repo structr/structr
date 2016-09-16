@@ -1257,9 +1257,12 @@ function enableButton(btn) {
 	btn.removeAttr('disabled');
 }
 
-function disableButton(btn) {
+function disableButton(btn, text) {
 	btn.addClass('disabled');
 	btn.attr('disabled', 'disabled');
+	if (text) {
+		btn.text(text);
+	}
 }
 
 function redirectOrReload(reload) {

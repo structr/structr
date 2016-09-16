@@ -77,8 +77,12 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.18.1</version>
                 <configuration>
-                    <argLine>-Xmx1g -Duser.timezone=UTC</argLine>
+                    <argLine>-Xmx2g -Duser.timezone=UTC</argLine>
                     <reuseForks>false</reuseForks>
+                    <reuseForks>false</reuseForks>
+                    <systemPropertyVariables>
+                        <user.timezone>UTC</user.timezone>
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
             <plugin>

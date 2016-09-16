@@ -19,8 +19,7 @@
 package org.structr.web.servlet;
 
 import java.io.IOException;
-import java.net.CookieHandler;
-import java.net.CookieManager;
+import java.net.URI;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -43,10 +42,6 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.cookie.CookiePolicy;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -59,6 +54,7 @@ import org.structr.rest.service.HttpService;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.web.auth.UiAuthenticator;
+import org.structr.web.common.HttpHelper;
 import org.structr.web.entity.dom.Page;
 
 //~--- classes ----------------------------------------------------------------
@@ -140,35 +136,18 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
 
 		try {
-			final String path = request.getPathInfo();
 			
 			final ServletOutputStream out = response.getOutputStream();
 			
 			String address = request.getParameter("url");
-			String username = request.getParameter("username");
-			String password = request.getParameter("password");
-			String cookie   = request.getParameter("cookie");
+			final URI url  = URI.create(address);
 
-			//long t0 = System.currentTimeMillis();
-
-			final HttpClientParams params = new HttpClientParams(HttpClientParams.getDefaultParams());
-			final HttpClient client = new HttpClient(params);
-			final GetMethod get = new GetMethod(address);
-
-			get.addRequestHeader("User-Agent", "curl/7.35.0");
-			get.addRequestHeader("Connection", "close");
-			get.getParams().setParameter("http.protocol.single-cookie-header", true);
-			get.getParams().setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY);
-			get.setFollowRedirects(true);
+			String proxyUrl      = request.getParameter("proxyUrl");
+			String proxyUsername = request.getParameter("proxyUsername");
+			String proxyPassword = request.getParameter("proxyPassword");
+			String cookie        = request.getParameter("cookie");
 			
-			if (StringUtils.isNotBlank(cookie)) {
-				
-				get.addRequestHeader("Cookie", cookie);
-			}
-
-			client.executeMethod(get);
-
-			final String content = get.getResponseBodyAsString().replace("<head>", "<head>\n  <base href=\"" + address + "\">");
+			final String content = HttpHelper.get(address, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP).replace("<head>", "<head>\n  <base href=\"" + url + "\">");
 
 			IOUtils.write(content, out);
 
