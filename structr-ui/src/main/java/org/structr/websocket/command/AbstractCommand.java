@@ -228,7 +228,7 @@ public abstract class AbstractCommand {
 	 * @return shadow document
 	 * @throws FrameworkException
 	 */
-	protected ShadowDocument getOrCreateHiddenDocument() throws FrameworkException {
+	public static ShadowDocument getOrCreateHiddenDocument() throws FrameworkException {
 
 		final App app = StructrApp.getInstance();
 

@@ -18,6 +18,9 @@
  */
 package org.structr.web.maintenance.deploy;
 
+import org.apache.commons.lang3.StringUtils;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.CommentHandler;
@@ -28,11 +31,33 @@ import org.structr.web.importer.CommentHandler;
 public class DeploymentCommentHandler implements CommentHandler {
 
 	@Override
-	public void handleComment(final Page page, final DOMNode node, final String comment) {
+	public void handleComment(final Page page, final DOMNode node, final String comment) throws FrameworkException {
 
-		System.out.println("###########################################");
-		System.out.println(comment);
+		// implement special comment syntax here to modify the given node
+		final String trimmedComment = comment.trim();
 
+		if (StringUtils.isNotBlank(trimmedComment)) {
 
+			if (trimmedComment.contains("@structr:private")) {
+
+				node.setProperty(AbstractNode.visibleToPublicUsers, false);
+				node.setProperty(AbstractNode.visibleToAuthenticatedUsers, false);
+			}
+
+			if (trimmedComment.contains("@structr:protected")) {
+				node.setProperty(AbstractNode.visibleToPublicUsers, false);
+				node.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+			}
+
+			if (trimmedComment.contains("@structr:public")) {
+				node.setProperty(AbstractNode.visibleToPublicUsers, true);
+				node.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+			}
+
+			if (trimmedComment.contains("@structr:public-only")) {
+				node.setProperty(AbstractNode.visibleToPublicUsers, true);
+				node.setProperty(AbstractNode.visibleToAuthenticatedUsers, false);
+			}
+		}
 	}
 }

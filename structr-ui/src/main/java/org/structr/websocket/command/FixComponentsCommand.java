@@ -42,7 +42,7 @@ import org.structr.websocket.message.WebSocketMessage;
 public class FixComponentsCommand extends AbstractCommand {
 
 	private static final Logger logger                                  = Logger.getLogger(FixComponentsCommand.class.getName());
-	
+
 	static {
 
 		StructrWebSocket.addCommand(FixComponentsCommand.class);
@@ -60,7 +60,7 @@ public class FixComponentsCommand extends AbstractCommand {
 
 			// send DOM exception
 			getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);
-			
+
 		}
 
 	}
@@ -71,32 +71,32 @@ public class FixComponentsCommand extends AbstractCommand {
 		return "FIX_LOST_COMPONENTS";
 
 	}
-	
+
 	/**
 	 * Iterate over all DOM nodes and connect all nodes to the shadow document which
 	 * fulfill the following criteria:
-	 * 
+	 *
 	 * - has child nodes
 	 * - has at least one SYNC relationship (out or in)
-	 * 
-	 * @throws FrameworkException 
+	 *
+	 * @throws FrameworkException
 	 */
 	private void fixLostComponents() throws FrameworkException {
-		
-		Page hiddenDoc                            = getOrCreateHiddenDocument();
+
+		Page hiddenDoc                            = CreateComponentCommand.getOrCreateHiddenDocument();
 		SecurityContext securityContext           = SecurityContext.getSuperUserInstance();
 		Result<DOMNode> result                    = StructrApp.getInstance(securityContext).nodeQuery(DOMNode.class).getResult();
 		final CreateRelationshipCommand createRel = StructrApp.getInstance(securityContext).command(CreateRelationshipCommand.class);
-		
+
 		for (DOMNode node : result.getResults()) {
-			
+
 			if (node.hasChildNodes()
 				&& (node.hasIncomingRelationships(Sync.class) || node.hasRelationship(Sync.class))
 				&& (!hiddenDoc.equals(node.getOwnerDocument()))
 				) {
-				
+
 				try {
-				
+
 					DOMNode clonedNode = (DOMNode) node.cloneNode(false);
 
 					moveChildNodes(node, clonedNode);
@@ -104,15 +104,15 @@ public class FixComponentsCommand extends AbstractCommand {
 
 					createRel.execute((DOMNode) node, clonedNode, Sync.class);
 					createRel.execute(clonedNode, (DOMNode) node, Sync.class);
-					
+
 				} catch (Exception ex) {
-					
+
 					logger.log(Level.SEVERE, "Could not fix component " + node, ex);
-					
+
 				}
-				
+
 			}
-			
+
 		}
 
 	}

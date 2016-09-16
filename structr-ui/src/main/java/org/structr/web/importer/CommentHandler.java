@@ -18,6 +18,7 @@
  */
 package org.structr.web.importer;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 
@@ -27,5 +28,5 @@ import org.structr.web.entity.dom.Page;
 
 public interface CommentHandler {
 
-	void handleComment(final Page page, final DOMNode node, final String comment);
+	void handleComment(final Page page, final DOMNode node, final String comment) throws FrameworkException;
 }

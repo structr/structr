@@ -134,6 +134,7 @@ public class Importer {
 	private final boolean authVisible;
 	private CommentHandler commentHandler;
 	private boolean processComment = false;
+	private boolean isImport       = false;
 	private Document parsedDocument;
 	private String lastComment;
 	private final String name;
@@ -274,9 +275,9 @@ public class Importer {
 		return page;
 	}
 
-	public void createChildNodes(final DOMNode parent, final Page page) throws FrameworkException {
+	public DOMNode createChildNodes(final DOMNode parent, final Page page) throws FrameworkException {
 
-		createChildNodes(parsedDocument.body(), parent, page);
+		return createChildNodes(parsedDocument.body(), parent, page);
 	}
 
 	public void createChildNodes(final DOMNode parent, final Page page, final boolean removeHashAttribute) throws FrameworkException {
@@ -293,6 +294,10 @@ public class Importer {
 
 		// try to import graph gist from comments
 		GraphGistImporter.importCypher(GraphGistImporter.extractSources(new ByteArrayInputStream(commentSource.toString().getBytes())));
+	}
+
+	public void setIsImport(final boolean isImport) {
+		this.isImport = isImport;
 	}
 
 	// ----- public static methods -----
@@ -480,13 +485,15 @@ public class Importer {
 	}
 
 	// ----- private methods -----
-	private void createChildNodes(final Node startNode, final DOMNode parent, final Page page) throws FrameworkException {
-		createChildNodes(startNode, parent, page, false);
+	private DOMNode createChildNodes(final Node startNode, final DOMNode parent, final Page page) throws FrameworkException {
+		return createChildNodes(startNode, parent, page, false);
 	}
 
-	private void createChildNodes(final Node startNode, final DOMNode parent, final Page page, final boolean removeHashAttribute) throws FrameworkException {
+	private DOMNode createChildNodes(final Node startNode, final DOMNode parent, final Page page, final boolean removeHashAttribute) throws FrameworkException {
 
-		Linkable res = null;
+		DOMNode rootElement = null;
+		Linkable res        = null;
+
 		final List<Node> children = startNode.childNodes();
 		for (Node node : children) {
 
@@ -572,9 +579,7 @@ public class Importer {
 			{
 				if (type.equals("#text")) {
 
-//                              type    = "Content";
 					tag = "";
-					//content = ((TextNode) node).getWholeText();
 					content = ((TextNode) node).text();
 
 					// Add content node for whitespace within <p> elements only
@@ -585,7 +590,7 @@ public class Importer {
 				}
 			}
 
-			org.structr.web.entity.dom.DOMNode newNode;
+			org.structr.web.entity.dom.DOMNode newNode = null;
 
 			// create node
 			if (StringUtils.isBlank(tag)) {
@@ -601,12 +606,40 @@ public class Importer {
 					newNode = (Content) page.createTextNode(content);
 				}
 
+			} else if ("template".equals(tag)) {
+
+				final String src = node.attr("src");
+				if (src != null) {
+
+					final DOMNode component = Importer.findSharedComponentByName(src);
+					if (component != null) {
+
+						newNode = (DOMNode) component.cloneNode(false);
+						newNode.setProperty(DOMNode.sharedComponent, component);
+						newNode.setProperty(DOMNode.ownerDocument, page);
+
+					} else {
+
+						logger.log(Level.WARNING, "Unable to find shared component {0}, template ignored!", src);
+					}
+
+				} else {
+
+					logger.log(Level.WARNING, "Invalid template definition, missing src attribute!");
+				}
+
+
 			} else {
 
 				newNode = (org.structr.web.entity.dom.DOMElement) page.createElement(tag);
 			}
 
 			if (newNode != null) {
+
+				// save root element for later use
+				if (rootElement == null) {
+					rootElement = newNode;
+				}
 
 				newNode.setProperty(AbstractNode.visibleToPublicUsers, publicVisible);
 				newNode.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
@@ -682,11 +715,11 @@ public class Importer {
 							boolean isActive = notBlank && value.contains("${");
 							boolean isStructrLib = notBlank && value.startsWith("/structr/js/");
 
-							if ("link".equals(tag) && "href".equals(key) && isLocal && !isActive) {
+							if ("link".equals(tag) && "href".equals(key) && isLocal && !isActive && !isImport) {
 
 								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), "${link.path}?${link.version}");
 
-							} else if (("href".equals(key) || "src".equals(key)) && isLocal && !isActive && !isAnchor && !isStructrLib) {
+							} else if (("href".equals(key) || "src".equals(key)) && isLocal && !isActive && !isAnchor && !isStructrLib && !isImport) {
 
 								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), "${link.path}");
 
@@ -726,7 +759,11 @@ public class Importer {
 					}
 				}
 
-				parent.appendChild(newNode);
+				// allow parent to be null to prevent direct child relationship
+				if (parent != null) {
+					
+					parent.appendChild(newNode);
+				}
 
 				// let comment handler process newly created node
 				// (allow special comments to modify node)
@@ -750,6 +787,8 @@ public class Importer {
 
 			}
 		}
+
+		return rootElement;
 	}
 
 	/**
@@ -1020,4 +1059,22 @@ public class Importer {
 		}
 	}
 
+	public static DOMNode findSharedComponentByName(final String name) throws FrameworkException {
+
+		for (final DOMNode n : StructrApp.getInstance().nodeQuery(DOMNode.class).andName(name).getAsList()) {
+
+			// Ignore nodes in trash
+			if (n.getProperty(DOMNode.parent) == null && n.getOwnerDocumentAsSuperUser() == null) {
+				continue;
+			}
+
+			// IGNORE everything that REFERENCES a shared component!
+			if (n.getProperty(DOMNode.sharedComponent) == null) {
+
+				return n;
+			}
+		}
+
+		return null;
+	}
 }
