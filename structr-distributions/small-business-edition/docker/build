@@ -1,0 +1,2 @@
+#!/bin/sh
+docker build -t structr/structr-small-business-edition:2.1.0-SNAPSHOT .

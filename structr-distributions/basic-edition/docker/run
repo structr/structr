@@ -1,0 +1,2 @@
+#!/bin/sh
+docker run --name="structr-basic-edition-2.1.0-SNAPSHOT" -p 0.0.0.0:8082:8082 -p 0.0.0.0:8021:8021 -p 0.0.0.0:8022:8022 -t -i structr/structr-basic-edition:2.1.0-SNAPSHOT
