@@ -29,8 +29,8 @@ import org.structr.schema.action.Function;
  */
 public class ToDateFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_TO_DATE    = "Usage: ${to_date(value)}. Example: ${to_date(1473201885)}";
-	public static final String ERROR_MESSAGE_TO_DATE_JS = "Usage: ${{Structr.toDate(value)}}. Example: ${{Structr.toDate(1473201885)}}";
+	public static final String ERROR_MESSAGE_TO_DATE    = "Usage: ${to_date(value)}. Example: ${to_date(1473201885000)}";
+	public static final String ERROR_MESSAGE_TO_DATE_JS = "Usage: ${{Structr.toDate(value)}}. Example: ${{Structr.toDate(1473201885000)}}";
 
 	@Override
 	public String getName() {
@@ -56,10 +56,6 @@ public class ToDateFunction extends Function<Object, Object> {
 				
 				} else {
 					throw new UnsupportedOperationException();
-				}
-
-				if (timestamp < 999999999999L) {
-					timestamp *= 1000;
 				}
 
 				return new Date(timestamp);
