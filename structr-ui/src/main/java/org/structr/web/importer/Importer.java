@@ -473,9 +473,9 @@ public class Importer {
 
 			String tag = node.nodeName();
 
-			// clean tag, remove non-word characters
+			// clean tag, remove non-word characters except : and #
 			if (tag != null) {
-				tag = tag.replaceAll("[^a-zA-Z0-9#]+", "");
+				tag = tag.replaceAll("[^a-zA-Z0-9#:.-_]+", "");
 			}
 
 			String type = CaseHelper.toUpperCamelCase(tag);
@@ -580,7 +580,7 @@ public class Importer {
 					newNode = (Content) page.createTextNode(content);
 				}
 
-			} else if ("template".equals(tag)) {
+			} else if ("structr:template".equals(tag)) {
 
 				final String src = node.attr("src");
 				if (src != null) {
@@ -870,8 +870,9 @@ public class Importer {
 		}
 
 		final String path;
-		final String httpPrefix  = "http://";
-		final String httpsPrefix = "https://";
+		final String httpPrefix     = "http://";
+		final String httpsPrefix    = "https://";
+		final String flexiblePrefix = "//";
 
 		if (downloadAddress.startsWith(httpsPrefix)) {
 
@@ -880,6 +881,10 @@ public class Importer {
 		} else if (downloadAddress.startsWith(httpPrefix)) {
 
 			path = StringUtils.substringBefore((StringUtils.substringAfter(downloadAddress, httpPrefix)), fileName);
+
+		} else if (downloadAddress.startsWith(flexiblePrefix)) {
+
+			path = StringUtils.substringBefore((StringUtils.substringAfter(downloadAddress, flexiblePrefix)), fileName);
 
 		} else {
 
