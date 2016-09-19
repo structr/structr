@@ -300,6 +300,7 @@ public class Functions {
 		functions.put("config", new ConfigFunction());
 		functions.put("date_format", new DateFormatFunction());
 		functions.put("parse_date", new ParseDateFunction());
+		functions.put("to_date", new ToDateFunction());
 		functions.put("number_format", new NumberFormatFunction());
 		functions.put("template", new TemplateFunction());
 		functions.put("not", new NotFunction());
