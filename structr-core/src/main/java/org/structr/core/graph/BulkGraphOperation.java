@@ -46,4 +46,16 @@ public abstract class BulkGraphOperation<T> {
 	public Predicate<Long> getCondition() {
 		return null;
 	}
+
+	public boolean doValidation() {
+		return true;
+	}
+
+	public boolean doCallbacks() {
+		return false;
+	}
+
+	public boolean doNotifications() {
+		return false;
+	}
 }
