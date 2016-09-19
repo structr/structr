@@ -190,8 +190,9 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 				new NodeAttribute(Template.content, src)
 			);
 
-			// set name
+			// set name and content type
 			template.setProperty(AbstractNode.name, name);
+			template.setProperty(Template.contentType, "text/html");
 
 			// store properties from templates.json if present
 			if (properties != null) {
