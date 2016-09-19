@@ -516,41 +516,44 @@ public class ValidationHelper {
 		if (key != null) {
 
 			final Object value         = object.getProperty(key);
-			Result<GraphObject> result = null;
-			boolean exists             = false;
-			String id                  = null;
+			if (value != null) {
+				
+				Result<GraphObject> result = null;
+				boolean exists             = false;
+				String id                  = null;
 
-			try {
+				try {
 
-				if (object instanceof NodeInterface) {
+					if (object instanceof NodeInterface) {
 
-					result = StructrApp.getInstance().nodeQuery(((NodeInterface)object).getClass()).and(key, value).getResult();
+						result = StructrApp.getInstance().nodeQuery(((NodeInterface)object).getClass()).and(key, value).getResult();
 
-				} else {
+					} else {
 
-					result = StructrApp.getInstance().relationshipQuery(((RelationshipInterface)object).getClass()).and(key, value).getResult();
+						result = StructrApp.getInstance().relationshipQuery(((RelationshipInterface)object).getClass()).and(key, value).getResult();
+
+					}
+
+					exists = !result.isEmpty();
+
+				} catch (FrameworkException fex) {
+
+					logger.log(Level.WARNING, "", fex);
 
 				}
 
-				exists = !result.isEmpty();
+				if (exists) {
 
-			} catch (FrameworkException fex) {
+					GraphObject foundNode = result.get(0);
 
-				logger.log(Level.WARNING, "", fex);
+					if (foundNode.getId() != object.getId()) {
 
-			}
+						id = ((AbstractNode) result.get(0)).getUuid();
 
-			if (exists) {
+						errorBuffer.add(new UniqueToken(object.getType(), key, id));
 
-				GraphObject foundNode = result.get(0);
-
-				if (foundNode.getId() != object.getId()) {
-
-					id = ((AbstractNode) result.get(0)).getUuid();
-
-					errorBuffer.add(new UniqueToken(object.getType(), key, id));
-
-					return true;
+						return true;
+					}
 				}
 			}
 		}

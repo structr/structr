@@ -112,6 +112,11 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 					logger.log(Level.WARNING, "Unable to set UUID on node: {0}", t.getMessage());
 					t.printStackTrace();
 				}
+
+				@Override
+				public boolean doValidation() {
+					return false;
+				}
 			});
 
 			logger.log(Level.INFO, "Done with setting UUID on {0} nodes", count);
@@ -167,6 +172,11 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 				@Override
 				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
 					logger.log(Level.WARNING, "Unable to set UUID on relationship: {0}", t.getMessage());
+				}
+
+				@Override
+				public boolean doValidation() {
+					return false;
 				}
 			});
 

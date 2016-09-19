@@ -85,6 +85,9 @@ public abstract class NodeServiceCommand extends Command {
 
 		final Predicate<Long> condition = operation.getCondition();
 		final App app                   = StructrApp.getInstance(securityContext);
+		final boolean doValidation      = operation.doValidation();
+		final boolean doCallbacks       = operation.doCallbacks();
+		final boolean doNotifications   = operation.doNotifications();
 		long objectCount                = 0L;
 		boolean active                  = true;
 
@@ -92,7 +95,7 @@ public abstract class NodeServiceCommand extends Command {
 
 			active = false;
 
-			try (final Tx tx = app.tx()) {
+			try (final Tx tx = app.tx(doValidation, doCallbacks, doNotifications)) {
 
 				while (iterator.hasNext() && (condition == null || condition.accept(objectCount))) {
 

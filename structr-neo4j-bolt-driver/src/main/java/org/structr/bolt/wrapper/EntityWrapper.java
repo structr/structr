@@ -114,12 +114,17 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
+		final String query            = getQueryPrefix() + " WHERE ID(n) = {id} SET n.`" + key + "` = {value} RETURN n";
 
 		map.put("id", entity.id());
 		map.put("value", value);
 
+		if (db.logQueries()) {
+			System.out.println(query);
+		}
+
 		// update entity handle
-		entity = (T)tx.getEntity(getQueryPrefix() + " WHERE ID(n) = {id} SET n.`" + key + "` = {value} RETURN n", map);
+		entity = (T)tx.getEntity(query, map);
 
 		tx.modified(this);
 	}
@@ -131,13 +136,18 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>(values);
+		final String query            = getQueryPrefix() + " WHERE ID(n) = {id} SET n += {properties} RETURN n";
 
 		// overwrite a potential "id" property
 		map.put("id", entity.id());
 		map.put("properties", values);
 
+		if (db.logQueries()) {
+			System.out.println(query);
+		}
+
 		// update entity handle
-		entity = (T)tx.getEntity(getQueryPrefix() + " WHERE ID(n) = {id} SET n += {properties} RETURN n", map);
+		entity = (T)tx.getEntity(query, map);
 
 		tx.modified(this);
 	}
@@ -149,11 +159,16 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
+		final String query            = getQueryPrefix() + " WHERE ID(n) = {id} SET n.`" + key + "` = Null RETURN n";
 
 		map.put("id", entity.id());
 
+		if (db.logQueries()) {
+			System.out.println(query);
+		}
+
 		// update entity handle
-		entity = (T)tx.getEntity(getQueryPrefix() + " WHERE ID(n) = {id} SET n.`" + key + "` = Null RETURN n", map);
+		entity = (T)tx.getEntity(query, map);
 
 		tx.modified(this);
 	}
