@@ -740,10 +740,12 @@ function StructrApp(baseUrl) {
 				},
 				201: function(data) {
 					s.dialog('success', successMsg);
-					if (reload) {
+					if (reload || appendId) {
 						if (appendId) {
-							var currentLocation = document.location.href;
-							reload = currentLocation.replace(/(\/+|\/+[a-f0-9]{32})$/gi, '') + '/' + data.result[0];
+							if (!reload) {
+								reload = document.location.href;
+							}
+							reload = reload.replace(/(\/+|\/+[a-f0-9]{32})$/gi, '') + '/' + data.result[0];
 						}
 						redirectOrReload(reload);
 					} else {

@@ -8,6 +8,7 @@ structr-ui/db*
 structr-ui/files*
 structr-ui/snapshots
 structr-ui/sessions
+structr-ui/scripts
 structr-ui/logs
 structr-ui/layouts
 structr-ui/modules

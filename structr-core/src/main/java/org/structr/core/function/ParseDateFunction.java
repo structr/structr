@@ -31,8 +31,8 @@ import org.structr.schema.action.Function;
  */
 public class ParseDateFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_PARSE_DATE    = "Usage: ${parse_date(value, pattern)}. Example: ${parse_format(\"2014-01-01\", \"yyyy-MM-dd\")}";
-	public static final String ERROR_MESSAGE_PARSE_DATE_JS = "Usage: ${{Structr.parse_date(value, pattern)}}. Example: ${{Structr.parse_format(\"2014-01-01\", \"yyyy-MM-dd\")}}";
+	public static final String ERROR_MESSAGE_PARSE_DATE    = "Usage: ${parse_date(value, pattern)}. Example: ${parse_date(\"2014-01-01\", \"yyyy-MM-dd\")}";
+	public static final String ERROR_MESSAGE_PARSE_DATE_JS = "Usage: ${{Structr.parseDate(value, pattern)}}. Example: ${{Structr.parseDate(\"2014-01-01\", \"yyyy-MM-dd\")}}";
 
 	@Override
 	public String getName() {
@@ -42,7 +42,7 @@ public class ParseDateFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (sources == null || sources != null && sources.length != 2) {
+		if (sources == null || sources.length != 2) {
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
