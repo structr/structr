@@ -142,6 +142,8 @@ public class Importer {
 	private URL originalUrl;
 	private String address;
 	private String code;
+	
+	private Map<String, Linkable> alreadyDownloaded = new HashMap<>();
 
 	/**
 	 * Construct an instance of the importer to either read the given code, or download code from the given address.
@@ -772,8 +774,13 @@ public class Importer {
 		return app.nodeQuery(FileBase.class).and(FileBase.path, path).and(File.checksum, checksum).getFirst();
 	}
 
-	private Linkable downloadFile(String downloadAddress, final URL base) {
+	private Linkable downloadFile(final String downloadAddress, final URL base) {
 
+		// Don't download the same file twice
+		if (alreadyDownloaded.containsKey(downloadAddress)) {
+			return alreadyDownloaded.get(downloadAddress);
+		}
+		
 		final String uuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
 		String contentType;
 
@@ -921,13 +928,13 @@ public class Importer {
 					processCssFileNode(fileNode, downloadUrl);
 				}
 
-				return fileNode;
-
 			} else {
 
 				fileOnDisk.delete();
-				return fileNode;
 			}
+
+			alreadyDownloaded.put(downloadAddress, fileNode);
+			return fileNode;
 
 		} catch (final FrameworkException | IOException ex) {
 
