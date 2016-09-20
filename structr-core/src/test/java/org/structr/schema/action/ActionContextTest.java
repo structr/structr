@@ -732,11 +732,11 @@ public class ActionContextTest extends StructrTest {
 
 			// parse_date
 			assertEquals("Invalid parse_date() result", ParseDateFunction.ERROR_MESSAGE_PARSE_DATE, Scripting.replaceVariables(ctx, testOne, "${parse_date('2015-12-12')}"));
-			assertEquals("Invalid parse_date() result", "2015-12-12T00:00:00+0100", Scripting.replaceVariables(ctx, testOne, "${parse_date('2015-12-12', 'yyyy-MM-dd')}"));
+			assertEquals("Invalid parse_date() result", "2015-12-12T00:00:00+0000", Scripting.replaceVariables(ctx, testOne, "${parse_date('2015-12-12', 'yyyy-MM-dd')}"));
 
 			// to_date
 			assertEquals("Invalid to_date() result", ToDateFunction.ERROR_MESSAGE_TO_DATE, Scripting.replaceVariables(ctx, testOne, "${to_date()}"));
-			assertEquals("Invalid to_date() result", "2016-09-07T00:44:45+0200", Scripting.replaceVariables(ctx, testOne, "${to_date(1473201885000)}"));
+			assertEquals("Invalid to_date() result", "2016-09-06T22:44:45+0000", Scripting.replaceVariables(ctx, testOne, "${to_date(1473201885000)}"));
 
 			// number_format error messages
 			assertEquals("Invalid number_format() result for wrong number of parameters", NumberFormatFunction.ERROR_MESSAGE_NUMBER_FORMAT, Scripting.replaceVariables(ctx, testOne, "${number_format()}"));
