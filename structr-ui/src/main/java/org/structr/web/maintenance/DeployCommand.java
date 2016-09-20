@@ -62,7 +62,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
 
-		final String path                        = (String)attributes.get("source");
+		final String path                        = (String) attributes.get("source");
 		final Map<String, Object> componentsConf = new HashMap<>();
 		final Map<String, Object> templatesConf  = new HashMap<>();
 		final Map<String, Object> pagesConf      = new HashMap<>();
