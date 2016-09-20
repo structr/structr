@@ -201,7 +201,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 				deletePage(app, name);
 			}
 
-			final String src         = new String (Files.readAllBytes(file),Charset.forName("UTF-8"));
+			final String src         = new String(Files.readAllBytes(file),Charset.forName("UTF-8"));
 			final String contentType = get(properties, Page.contentType, "text/html");
 
 			if (StringUtils.startsWithIgnoreCase(src, DoctypeString) && "text/html".equals(contentType)) {
