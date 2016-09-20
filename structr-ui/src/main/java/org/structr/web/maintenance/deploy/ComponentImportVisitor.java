@@ -134,6 +134,11 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 			deleteRecursively(app, child);
 		}
 
+		for (DOMNode sync : node.getProperty(DOMNode.syncedNodes)) {
+
+			deleteRecursively(app, sync);
+		}
+
 		app.delete(node);
 	}
 
