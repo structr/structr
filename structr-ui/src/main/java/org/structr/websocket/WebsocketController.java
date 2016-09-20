@@ -21,6 +21,7 @@ package org.structr.websocket;
 import com.google.gson.Gson;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +55,8 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class WebsocketController implements StructrTransactionListener {
 
-	private static final Logger logger = Logger.getLogger(WebsocketController.class.getName());
+	private static final Logger logger                 = Logger.getLogger(WebsocketController.class.getName());
+	private static final Set<String> BroadcastCommands = new HashSet<>(Arrays.asList(new String[] { "UPDATE", "ADD", "CREATE" } ));
 
 	private final Set<StructrWebSocket> clients = new ConcurrentHashSet<>();
 	private Gson gson = null;
@@ -84,16 +86,20 @@ public class WebsocketController implements StructrTransactionListener {
 		// session must be valid to be received by the client
 		webSocketData.setSessionValid(true);
 
-		String message;
-		String pagePath = (String) webSocketData.getNodeData().get("pagePath");
+		final String pagePath                        = (String) webSocketData.getNodeData().get("pagePath");
+		final String encodedPath                     = URIUtil.encodePath(pagePath);
+		final List<StructrWebSocket> clientsToRemove = new LinkedList<>();
+		final List<? extends GraphObject> result     = webSocketData.getResult();
+		final String command                         = webSocketData.getCommand();
+		final GraphObject obj                        = webSocketData.getGraphObject();
 
-		List<StructrWebSocket> clientsToRemove = new LinkedList<>();
+		String message;
 
 		// create message
 		for (StructrWebSocket socket : clients) {
 
 			String clientPagePath = socket.getPagePath();
-			if (clientPagePath != null && !clientPagePath.equals(URIUtil.encodePath(pagePath))) {
+			if (clientPagePath != null && !clientPagePath.equals(encodedPath)) {
 				continue;
 			}
 
@@ -101,24 +107,29 @@ public class WebsocketController implements StructrTransactionListener {
 
 			if (session != null && socket.isAuthenticated()) {
 
-				List<? extends GraphObject> result = webSocketData.getResult();
-				SecurityContext securityContext = socket.getSecurityContext();
+				final SecurityContext securityContext = socket.getSecurityContext();
 
-				// if the object IS NOT of type AbstractNode AND the client is NOT priviledged
-				// OR
+				// if the object IS NOT of type AbstractNode AND the client is NOT priviledged OR
 				// if the object IS of type AbstractNode AND the client has no access to the node
 				// THEN skip sending a message
-				if (
-						( !(webSocketData.getGraphObject() instanceof AbstractNode) && !socket.isPrivilegedUser(socket.getCurrentUser()) )
-						|| (webSocketData.getGraphObject() instanceof AbstractNode && !securityContext.isVisible((AbstractNode) webSocketData.getGraphObject()))
-					) {
-					continue;
+				if (obj instanceof AbstractNode) {
+
+					final AbstractNode node = (AbstractNode)obj;
+
+					if (node.isHidden() || !securityContext.isVisible(node)) {
+						continue;
+					}
+
+				} else {
+
+					if (!socket.isPrivilegedUser(socket.getCurrentUser())) {
+						continue;
+					}
 				}
 
-				if ((result != null) && (result.size() > 0)
-					&& (webSocketData.getCommand().equals("UPDATE") || webSocketData.getCommand().equals("ADD") || webSocketData.getCommand().equals("CREATE"))) {
+				if (result != null && !result.isEmpty() && BroadcastCommands.contains(command)) {
 
-					WebSocketMessage clientData = webSocketData.copy();
+					final WebSocketMessage clientData = webSocketData.copy();
 
 					clientData.setResult(filter(securityContext, result));
 
@@ -129,7 +140,6 @@ public class WebsocketController implements StructrTransactionListener {
 					message = gson.toJson(webSocketData, WebSocketMessage.class);
 				}
 
-				//logger.log(Level.INFO, "############################################################ SENDING \n{0}", message);
 				try {
 
 					session.getRemote().sendString(message);

@@ -96,6 +96,8 @@ import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.html.Body;
+import org.structr.web.entity.html.Head;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -170,10 +172,10 @@ public class Importer {
 		if (address != null && !address.endsWith("/") && !address.endsWith(".html")) {
 			this.address = this.address.concat("/");
 		}
-		
+
 		try {
 			originalUrl = new URL(this.address);
-			
+
 		} catch (MalformedURLException ex) {}
 	}
 
@@ -249,6 +251,29 @@ public class Importer {
 		}
 
 		return page;
+	}
+
+	public DOMNode createComponentChildNodes(final Page page) throws FrameworkException {
+
+		final Element head = parsedDocument.head();
+		final Element body = parsedDocument.body();
+
+		if (head != null && !head.html().isEmpty()) {
+
+			// create Head element and append nodes to it
+			final Head headElement = (Head)page.createElement("head");
+			createChildNodes(head, headElement, page);
+
+			// head is a special case
+			return headElement;
+		}
+
+		if (body != null && !body.html().isEmpty()) {
+
+			return createChildNodes(body, null, page);
+		}
+
+		return null;
 	}
 
 	public DOMNode createChildNodes(final DOMNode parent, final Page page) throws FrameworkException {
@@ -737,8 +762,17 @@ public class Importer {
 
 				// allow parent to be null to prevent direct child relationship
 				if (parent != null) {
-					
-					parent.appendChild(newNode);
+
+					// special handling for <head> elements
+					if (newNode instanceof Head && parent instanceof Body) {
+
+						final org.w3c.dom.Node html = parent.getParentNode();
+						html.insertBefore(newNode, parent);
+
+					} else {
+
+						parent.appendChild(newNode);
+					}
 				}
 
 				// let comment handler process newly created node
