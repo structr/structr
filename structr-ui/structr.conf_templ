@@ -142,7 +142,7 @@ tcp.port = 54555
 #############################################################################
 
 # Available servlets
-HttpService.servlets = JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet
+HttpService.servlets = JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet DeploymentServlet
 
 # Uncomment this if you encounter problems with async HTTP requests
 #HttpService.async = false
@@ -204,6 +204,20 @@ UploadServlet.maxRequestSize = 1200
 ProxyServlet.class = org.structr.web.servlet.ProxyServlet
 ProxyServlet.path = /structr/proxy
 ProxyServlet.resourceprovider = org.structr.web.common.UiResourceProvider
+
+# Deployment servlet
+DeploymentServlet.authenticator = org.structr.web.auth.UiAuthenticator
+DeploymentServlet.class = org.structr.web.servlet.DeploymentServlet
+DeploymentServlet.defaultview = public
+DeploymentServlet.outputdepth = 3
+DeploymentServlet.path = /structr/deploy
+DeploymentServlet.resourceprovider = org.structr.web.common.UiResourceProvider
+DeploymentServlet.user.autocreate = false
+DeploymentServlet.allowAnonymousUploads = false
+
+# Deployment servlet limits (unit is MiB)
+DeploymentServlet.maxFileSize = 1000
+DeploymentServlet.maxRequestSize = 1200
 
 
 #############################################################################

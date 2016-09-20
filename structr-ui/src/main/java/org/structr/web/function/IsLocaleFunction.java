@@ -19,7 +19,6 @@
 package org.structr.web.function;
 
 import java.util.Locale;
-import java.util.logging.Level;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
