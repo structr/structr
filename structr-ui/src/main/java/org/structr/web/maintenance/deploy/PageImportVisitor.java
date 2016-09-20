@@ -49,6 +49,8 @@ import org.structr.web.entity.Image;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  *
@@ -225,6 +227,9 @@ public class PageImportVisitor implements FileVisitor<Path> {
 					// parse page
 					final Page newPage = importer.readPage();
 
+					// remove duplicate elements
+					fixDocumentElements(newPage);
+
 					// store properties from pages.json if present
 					if (properties != null) {
 						newPage.setProperties(securityContext, properties);
@@ -306,6 +311,51 @@ public class PageImportVisitor implements FileVisitor<Path> {
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
+		}
+	}
+
+	/**
+	 * Remove duplicate Head element from import process.
+	 * @param page
+	 */
+	private void fixDocumentElements(final Page page) {
+
+		final NodeList heads = page.getElementsByTagName("head");
+		if (heads.getLength() > 1) {
+
+			final Node head1   = heads.item(0);
+			final Node head2   = heads.item(1);
+			final Node parent  = head1.getParentNode();
+
+			final boolean h1 = head1.hasChildNodes();
+			final boolean h2 = head2.hasChildNodes();
+
+			if (h1 && h2) {
+
+				// merge
+				for (Node child = head2.getFirstChild(); child != null; child = child.getNextSibling()) {
+
+					head2.removeChild(child);
+					head1.appendChild(child);
+				}
+
+				parent.removeChild(head2);
+
+			} else if (h1 && !h2) {
+
+				// remove head2
+				parent.removeChild(head2);
+
+			} else if (!h1 && h2) {
+
+				// remove head1
+				parent.removeChild(head1);
+
+			} else {
+
+				// remove first, doesn't matter
+				parent.removeChild(head1);
+			}
 		}
 	}
 }

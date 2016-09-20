@@ -37,7 +37,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.ShadowDocument;
@@ -120,7 +119,7 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 		return null;
 	}
 
-	private void deleteComponent(final App app, final String name) throws FrameworkException {
+	private void deleteTemplate(final App app, final String name) throws FrameworkException {
 
 		final DOMNode node = getExistingTemplate(name);
 		if (node != null) {
@@ -150,36 +149,22 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 		return null;
 	}
 
-	private <T> T get(final PropertyMap src, final PropertyKey<T> key, final T defaultValue) {
-
-		if (src != null) {
-
-			final T t = src.get(key);
-			if (t != null) {
-
-				return t;
-			}
-		}
-
-		return defaultValue;
-	}
-
 	private void createTemplate(final Path file, final String fileName) throws IOException, FrameworkException {
 
-		final String name               = StringUtils.substringBeforeLast(fileName, ".html");
-		final PropertyMap properties    = getPropertiesForTemplate(name);
-		final DOMNode existingComponent = getExistingTemplate(name);
+		final String name              = StringUtils.substringBeforeLast(fileName, ".html");
+		final PropertyMap properties   = getPropertiesForTemplate(name);
+		final DOMNode existingTemplate = getExistingTemplate(name);
 
 		try (final Tx tx = app.tx()) {
 
-			if (existingComponent != null) {
+			if (existingTemplate != null) {
 
-				deleteComponent(app, name);
+				deleteTemplate(app, name);
 			}
 
 			logger.log(Level.INFO, "Importing page {0} from {1}..", new Object[] { name, fileName } );
 
-			final String src        = new String (Files.readAllBytes(file),Charset.forName("UTF-8"));
+			final String src = new String (Files.readAllBytes(file),Charset.forName("UTF-8"));
 
 			// parse page
 			final ShadowDocument shadowDocument = CreateComponentCommand.getOrCreateHiddenDocument();

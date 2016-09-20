@@ -180,7 +180,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 			boolean visibleToPublic = get(properties, GraphObject.visibleToPublicUsers, false);
 			boolean visibleToAuth   = get(properties, GraphObject.visibleToPublicUsers, false);
 			final Importer importer = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth);
-			final boolean parseOk   = importer.parse(true);
+			final boolean parseOk   = importer.parse(false);
 
 			if (parseOk) {
 
@@ -194,14 +194,17 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 
 				// parse page
 				final ShadowDocument shadowDocument = CreateComponentCommand.getOrCreateHiddenDocument();
-				final DOMNode rootElement           = importer.createChildNodes(null, shadowDocument);
+				final DOMNode rootElement           = importer.createComponentChildNodes(shadowDocument);
 
-				// set name
-				rootElement.setProperty(AbstractNode.name, name);
+				if (rootElement != null) {
 
-				// store properties from pages.json if present
-				if (properties != null) {
-					rootElement.setProperties(securityContext, properties);
+					// set name
+					rootElement.setProperty(AbstractNode.name, name);
+
+					// store properties from pages.json if present
+					if (properties != null) {
+						rootElement.setProperties(securityContext, properties);
+					}
 				}
 			}
 
