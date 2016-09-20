@@ -210,7 +210,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 				// document and use the Structr HTML importer.
 
 				boolean visibleToPublic       = get(properties, GraphObject.visibleToPublicUsers, false);
-				boolean visibleToAuth         = get(properties, GraphObject.visibleToPublicUsers, false);
+				boolean visibleToAuth         = get(properties, GraphObject.visibleToAuthenticatedUsers, false);
 				final Importer importer       = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth);
 				final boolean parseOk         = importer.parse();
 

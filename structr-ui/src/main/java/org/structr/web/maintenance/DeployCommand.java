@@ -28,19 +28,27 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.MaintenanceCommand;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.schema.action.ActionContext;
+import org.structr.web.entity.User;
 import org.structr.web.maintenance.deploy.ComponentImportVisitor;
 import org.structr.web.maintenance.deploy.FileImportVisitor;
 import org.structr.web.maintenance.deploy.PageImportVisitor;
@@ -83,12 +91,28 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			throw new FrameworkException(422, "Source path " + path + " is not a directory.");
 		}
 
+		// read users.json
+		final Path usersConf = source.resolve("security/users.json");
+		if (Files.exists(usersConf)) {
+
+			logger.log(Level.INFO, "Reading {0}..", usersConf);
+			importMapData(User.class, readConfigMap(usersConf));
+		}
+
+		// read grants.json
+		final Path grantsConf = source.resolve("security/grants.json");
+		if (Files.exists(grantsConf)) {
+
+			logger.log(Level.INFO, "Reading {0}..", grantsConf);
+			importListData(ResourceAccess.class, readConfigList(grantsConf));
+		}
+
 		// read pages.conf
 		final Path pagesConfFile = source.resolve("pages.json");
 		if (Files.exists(pagesConfFile)) {
 
 			logger.log(Level.INFO, "Reading {0}..", pagesConfFile);
-			pagesConf.putAll(readConfig(pagesConfFile));
+			pagesConf.putAll(readConfigMap(pagesConfFile));
 		}
 
 		// read components.conf
@@ -96,7 +120,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (Files.exists(componentsConfFile)) {
 
 			logger.log(Level.INFO, "Reading {0}..", componentsConfFile);
-			componentsConf.putAll(readConfig(componentsConfFile));
+			componentsConf.putAll(readConfigMap(componentsConfFile));
 		}
 
 		// read templates.conf
@@ -104,7 +128,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (Files.exists(templatesConfFile)) {
 
 			logger.log(Level.INFO, "Reading {0}..", templatesConfFile);
-			templatesConf.putAll(readConfig(templatesConfFile));
+			templatesConf.putAll(readConfigMap(templatesConfFile));
 		}
 
 		// import schema
@@ -204,7 +228,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	}
 
 	// ----- private methods -----
-	private Map<String, Object> readConfig(final Path pagesConf) {
+	private Map<String, Object> readConfigMap(final Path pagesConf) {
 
 		final Gson gson = new GsonBuilder().create();
 
@@ -217,5 +241,71 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		return Collections.emptyMap();
+	}
+
+	private List<Map<String, Object>> readConfigList(final Path pagesConf) {
+
+		final Gson gson = new GsonBuilder().create();
+
+		try (final Reader reader = Files.newBufferedReader(pagesConf, Charset.forName("utf-8"))) {
+
+			return gson.fromJson(reader, List.class);
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
+
+		return Collections.emptyList();
+	}
+
+	private <T extends NodeInterface> void importMapData(final Class<T> type, final Map<String, Object> data) throws FrameworkException {
+
+		final SecurityContext context = SecurityContext.getSuperUserInstance();
+		final App app                 = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final T toDelete : app.nodeQuery(type).getAsList()) {
+				app.delete(toDelete);
+			}
+
+			for (final Entry<String, Object> entry : data.entrySet()) {
+
+				final String key = entry.getKey();
+				final Object val = entry.getValue();
+
+				if (val instanceof Map) {
+
+					final Map<String, Object> values = (Map<String, Object>)val;
+					final PropertyMap properties     = PropertyMap.inputTypeToJavaType(context, type, values);
+
+					properties.put(AbstractNode.name, key);
+
+					app.create(type, properties);
+				}
+			}
+
+			tx.success();
+		}
+	}
+
+	private <T extends NodeInterface> void importListData(final Class<T> type, final List<Map<String, Object>> data) throws FrameworkException {
+
+		final SecurityContext context = SecurityContext.getSuperUserInstance();
+		final App app                 = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final T toDelete : app.nodeQuery(type).getAsList()) {
+				app.delete(toDelete);
+			}
+
+			for (final Map<String, Object> entry : data) {
+
+				app.create(type, PropertyMap.inputTypeToJavaType(context, type, entry));
+			}
+
+			tx.success();
+		}
 	}
 }
