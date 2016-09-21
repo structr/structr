@@ -438,23 +438,19 @@ public class FileHelper {
 
 			try {
 
-				java.io.File fileOnDisk = new java.io.File(filePath);
-				Long checksum = FileUtils.checksumCRC32(fileOnDisk);
-
-				logger.log(Level.FINE, "Checksum of file {0} ({1}): {2}", new Object[]{file.getUuid(), filePath, checksum});
-
-				return checksum;
+				return getChecksum(new java.io.File(filePath));
 
 			} catch (IOException ex) {
 
 				logger.log(Level.WARNING, "Could not calculate checksum of file {0}", filePath);
-
 			}
-
 		}
 
 		return null;
+	}
 
+	public static Long getChecksum(final java.io.File fileOnDisk) throws IOException {
+		return FileUtils.checksumCRC32(fileOnDisk);
 	}
 
 	/**

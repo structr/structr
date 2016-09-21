@@ -220,7 +220,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 					importer.setCommentHandler(new DeploymentCommentHandler());
 
 					// enable literal import of href attributes
-					importer.setIsImport(true);
+					importer.setIsDeployment(true);
 
 					// parse page
 					final Page newPage = importer.readPage();
@@ -251,7 +251,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 					importer.setCommentHandler(new DeploymentCommentHandler());
 
 					// enable literal import of href attributes
-					importer.setIsImport(true);
+					importer.setIsDeployment(true);
 
 					// parse page
 					final Page newPage = app.create(Page.class, name);
@@ -275,14 +275,24 @@ public class FileImportVisitor implements FileVisitor<Path> {
 			final Path parentPath   = basePath.relativize(file).getParent();
 			final Folder parent     = parentPath != null ? FileHelper.createFolderPath(securityContext, parentPath.toString()) : null;
 			final FileBase existing = app.nodeQuery(FileBase.class).and(FileBase.parent, parent).and(FileBase.name, fileName).getFirst();
-
-			logger.log(Level.INFO, "Importing {0}..", fileName);
+			final String fullPath   = (parentPath != null ? "/" + parentPath.toString() : "") + "/" + fileName;
 
 			if (existing != null) {
+
+				final Long checksumOfExistingFile = existing.getChecksum();
+				final Long checksumOfNewFile      = FileHelper.getChecksum(file.toFile());
+
+				if (checksumOfExistingFile != null && checksumOfNewFile != null && checksumOfExistingFile.equals(checksumOfNewFile)) {
+
+					logger.log(Level.INFO, "{0} is unmodified, skipping import.", fullPath);
+					return;
+				}
 
 				// remove existing file first!
 				app.delete(existing);
 			}
+
+			logger.log(Level.INFO, "Importing {0}..", fullPath);
 
 			// close input stream
 			try (final FileInputStream fis = new FileInputStream(file.toFile())) {

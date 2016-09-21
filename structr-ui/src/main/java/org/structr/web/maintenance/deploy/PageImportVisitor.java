@@ -209,20 +209,20 @@ public class PageImportVisitor implements FileVisitor<Path> {
 				// Import document starts with <!DOCTYPE> definition, so we treat it as an HTML
 				// document and use the Structr HTML importer.
 
-				boolean visibleToPublic       = get(properties, GraphObject.visibleToPublicUsers, false);
-				boolean visibleToAuth         = get(properties, GraphObject.visibleToAuthenticatedUsers, false);
-				final Importer importer       = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth);
-				final boolean parseOk         = importer.parse();
+				boolean visibleToPublic = get(properties, GraphObject.visibleToPublicUsers, false);
+				boolean visibleToAuth   = get(properties, GraphObject.visibleToAuthenticatedUsers, false);
+				final Importer importer = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth);
 
+				// enable literal import of href attributes
+				importer.setIsDeployment(true);
+
+				final boolean parseOk = importer.parse();
 				if (parseOk) {
 
 					logger.log(Level.INFO, "Importing page {0} from {1}..", new Object[] { name, fileName } );
 
 					// set comment handler that can parse and apply special Structr comments in HTML source files
 					importer.setCommentHandler(new DeploymentCommentHandler());
-
-					// enable literal import of href attributes
-					importer.setIsImport(true);
 
 					// parse page
 					final Page newPage = importer.readPage();
@@ -256,7 +256,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 					importer.setCommentHandler(new DeploymentCommentHandler());
 
 					// enable literal import of href attributes
-					importer.setIsImport(true);
+					importer.setIsDeployment(true);
 
 					// parse page
 					final Page newPage = app.create(Page.class, name);

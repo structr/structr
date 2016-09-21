@@ -185,17 +185,17 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 			boolean visibleToPublic = get(properties, GraphObject.visibleToPublicUsers, false);
 			boolean visibleToAuth   = get(properties, GraphObject.visibleToPublicUsers, false);
 			final Importer importer = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth);
-			final boolean parseOk   = importer.parse(false);
 
+			// enable literal import of href attributes
+			importer.setIsDeployment(true);
+
+			final boolean parseOk = importer.parse(false);
 			if (parseOk) {
 
 				logger.log(Level.INFO, "Importing page {0} from {1}..", new Object[] { name, fileName } );
 
 				// set comment handler that can parse and apply special Structr comments in HTML source files
 				importer.setCommentHandler(new DeploymentCommentHandler());
-
-				// enable literal import of href attributes
-				importer.setIsImport(true);
 
 				// parse page
 				final ShadowDocument shadowDocument = CreateComponentCommand.getOrCreateHiddenDocument();

@@ -137,14 +137,14 @@ public class Importer {
 	private final boolean authVisible;
 	private CommentHandler commentHandler;
 	private boolean processComment = false;
-	private boolean isImport       = false;
+	private boolean isDeployment       = false;
 	private Document parsedDocument;
 	private String lastComment;
 	private final String name;
 	private URL originalUrl;
 	private String address;
 	private String code;
-	
+
 	private Map<String, Linkable> alreadyDownloaded = new HashMap<>();
 
 	/**
@@ -210,7 +210,9 @@ public class Importer {
 
 		if (StringUtils.isNotBlank(code)) {
 
-			logger.log(Level.INFO, "##### Start parsing code for page {0} #####", new Object[]{name});
+			if (!isDeployment) {
+				logger.log(Level.INFO, "##### Start parsing code for page {0} #####", new Object[]{name});
+			}
 
 			if (fragment) {
 
@@ -224,7 +226,9 @@ public class Importer {
 
 		} else {
 
-			logger.log(Level.INFO, "##### Start fetching {0} for page {1} #####", new Object[]{address, name});
+			if (!isDeployment) {
+				logger.log(Level.INFO, "##### Start fetching {0} for page {1} #####", new Object[]{address, name});
+			}
 
 			code = HttpHelper.get(address);
 			parsedDocument = Jsoup.parse(code);
@@ -247,7 +251,10 @@ public class Importer {
 			page.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
 			page.setProperty(AbstractNode.visibleToPublicUsers, publicVisible);
 			createChildNodes(parsedDocument, page, page);
-			logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[]{address, name});
+
+			if (!isDeployment) {
+				logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[]{address, name});
+			}
 		}
 
 		return page;
@@ -297,8 +304,8 @@ public class Importer {
 		GraphGistImporter.importCypher(GraphGistImporter.extractSources(new ByteArrayInputStream(commentSource.toString().getBytes())));
 	}
 
-	public void setIsImport(final boolean isImport) {
-		this.isImport = isImport;
+	public void setIsDeployment(final boolean isDeployment) {
+		this.isDeployment = isDeployment;
 	}
 
 	// ----- public static methods -----
@@ -528,15 +535,19 @@ public class Importer {
 
 				id = el.id();
 
-				String downloadAddressAttr = (ArrayUtils.contains(srcElements, tag)
-					? "src" : ArrayUtils.contains(hrefElements, tag)
-					? "href" : null);
+				// do not download files when called from DeployCommand!
+				if (!isDeployment) {
 
-				if (downloadAddressAttr != null && StringUtils.isNotBlank(node.attr(downloadAddressAttr))) {
+					String downloadAddressAttr = (ArrayUtils.contains(srcElements, tag)
+						? "src" : ArrayUtils.contains(hrefElements, tag)
+						? "href" : null);
 
-					String downloadAddress = node.attr(downloadAddressAttr);
-					res = downloadFile(downloadAddress, originalUrl);
+					if (downloadAddressAttr != null && StringUtils.isNotBlank(node.attr(downloadAddressAttr))) {
 
+						String downloadAddress = node.attr(downloadAddressAttr);
+						res = downloadFile(downloadAddress, originalUrl);
+
+					}
 				}
 
 				if (removeHashAttribute) {
@@ -716,11 +727,11 @@ public class Importer {
 							boolean isActive = notBlank && value.contains("${");
 							boolean isStructrLib = notBlank && value.startsWith("/structr/js/");
 
-							if ("link".equals(tag) && "href".equals(key) && isLocal && !isActive && !isImport) {
+							if ("link".equals(tag) && "href".equals(key) && isLocal && !isActive && !isDeployment) {
 
 								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), "${link.path}?${link.version}");
 
-							} else if (("href".equals(key) || "src".equals(key)) && isLocal && !isActive && !isAnchor && !isStructrLib && !isImport) {
+							} else if (("href".equals(key) || "src".equals(key)) && isLocal && !isActive && !isAnchor && !isStructrLib && !isDeployment) {
 
 								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), "${link.path}");
 
@@ -814,7 +825,7 @@ public class Importer {
 		if (alreadyDownloaded.containsKey(downloadAddress)) {
 			return alreadyDownloaded.get(downloadAddress);
 		}
-		
+
 		final String uuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
 		String contentType;
 
