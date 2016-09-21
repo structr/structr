@@ -32,11 +32,13 @@ import org.neo4j.driver.v1.Transaction;
 import org.neo4j.driver.v1.Value;
 import org.neo4j.driver.v1.Values;
 import org.neo4j.driver.v1.exceptions.NoSuchRecordException;
+import org.neo4j.driver.v1.exceptions.TransientException;
 import org.neo4j.driver.v1.types.Entity;
 import org.neo4j.driver.v1.types.Node;
 import org.neo4j.driver.v1.types.Relationship;
 import org.structr.api.NativeResult;
 import org.structr.api.NotFoundException;
+import org.structr.api.RetryException;
 import org.structr.api.util.Iterables;
 import org.structr.bolt.mapper.RecordLongMapper;
 import org.structr.bolt.mapper.RecordNodeMapper;
@@ -87,11 +89,27 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			}
 		}
 
-
-		tx.close();
-		session.close();
-
+		// mark this transaction as closed BEFORE trying to actually close it
+		// so that it is closed in case of a failure
 		closed = true;
+
+		try {
+
+			tx.close();
+			session.close();
+
+		} catch (TransientException tex) {
+
+			// transient exceptions can be retried
+			throw new RetryException(tex);
+
+		} finally {
+
+			// make sure that the resources are freed
+			if (session.isOpen()) {
+				session.close();
+			}
+		}
 	}
 
 	public boolean isClosed() {

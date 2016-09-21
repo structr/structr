@@ -21,9 +21,9 @@ package org.structr.api;
 /**
  *
  */
-public class DeadlockException extends RuntimeException {
+public class RetryException extends RuntimeException {
 
-	public DeadlockException(final Throwable cause) {
+	public RetryException(final Throwable cause) {
 		super(cause);
 	}
 }

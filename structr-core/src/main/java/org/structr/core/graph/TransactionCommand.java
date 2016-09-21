@@ -167,9 +167,6 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 				try {
 					tx.close();
 
-				} catch (Throwable t) {
-					logger.log(Level.WARNING, "", t);
-
 				} finally {
 
 					// release semaphores as the transaction is now finished
@@ -413,7 +410,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 	}
 
 	public static void registerNodeCallback(final NodeInterface node, final String callbackId) {
-		
+
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
 
@@ -431,11 +428,11 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 			logger.log(Level.SEVERE, "Unable to register node callback");
 		}
-		
+
 	}
-	
+
 	public static void registerRelCallback(final RelationshipInterface rel, final String callbackId) {
-		
+
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
 
@@ -453,7 +450,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 			logger.log(Level.SEVERE, "Unable to register relationship callback");
 		}
-		
+
 	}
 
 	// ----- private methods -----

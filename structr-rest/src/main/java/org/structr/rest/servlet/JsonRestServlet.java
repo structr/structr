@@ -39,7 +39,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
-import org.structr.api.DeadlockException;
+import org.structr.api.RetryException;
 import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -191,7 +191,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 					tx.success();
 					retry = false;
 
-				} catch (DeadlockException ddex) {
+				} catch (RetryException ddex) {
 					retry = true;
 				}
 			}
@@ -312,7 +312,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 					tx.success();
 					retry = false;
 
-				} catch (DeadlockException ddex) {
+				} catch (RetryException ddex) {
 					retry = true;
 				}
 			}
@@ -428,7 +428,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 							tx.success();
 							retry = false;
 
-						} catch (DeadlockException ddex) {
+						} catch (RetryException ddex) {
 							retry = true;
 						}
 
@@ -443,7 +443,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 							retry = false;
 
-						} catch (DeadlockException ddex) {
+						} catch (RetryException ddex) {
 							retry = true;
 						}
 					}
@@ -607,7 +607,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 						tx.success();
 						retry = false;
 
-					} catch (DeadlockException ddex) {
+					} catch (RetryException ddex) {
 						retry = true;
 					}
 				}
@@ -813,7 +813,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 					tx.success();
 					retry = false;
 
-				} catch (DeadlockException ddex) {
+				} catch (RetryException ddex) {
 					retry = true;
 				}
 			}
