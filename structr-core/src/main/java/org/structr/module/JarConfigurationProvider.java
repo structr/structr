@@ -1084,7 +1084,8 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 					}
 				}
 
-			} catch (Throwable ignore) {
+			} catch (Throwable t) {
+				logger.log(Level.FINEST, "Error trying to load class " + className, t);
 			}
 		}
 	}

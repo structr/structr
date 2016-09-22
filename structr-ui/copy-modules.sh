@@ -1,2 +1,3 @@
 #!/bin/bash
-cp ../structr-modules/**/target/*.jar target/lib/
+shopt -s extglob
+cp ../structr-modules/**/target/!(*sources|*javadoc).jar target/lib/
