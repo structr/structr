@@ -36,7 +36,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.files.ssh.filesystem.StructrPath;
-import org.structr.files.ssh.filesystem.StructrRootAttributes;
+import org.structr.files.ssh.filesystem.StructrToplevelAttributes;
 
 /**
  *
@@ -82,12 +82,12 @@ public class StructrGraphPath extends StructrPath {
 
 	@Override
 	public Map<String, Object> getAttributes(final String attributes, final LinkOption... options) {
-		return new StructrRootAttributes(StructrPath.GRAPH_DIRECTORY).toMap(attributes);
+		return new StructrToplevelAttributes(StructrPath.GRAPH_DIRECTORY).toMap(attributes);
 	}
 
 	@Override
 	public <T extends BasicFileAttributes> T getAttributes(Class<T> type, LinkOption... options) {
-		return (T)new StructrRootAttributes(StructrPath.GRAPH_DIRECTORY);
+		return (T)new StructrToplevelAttributes(StructrPath.GRAPH_DIRECTORY);
 	}
 
 	@Override

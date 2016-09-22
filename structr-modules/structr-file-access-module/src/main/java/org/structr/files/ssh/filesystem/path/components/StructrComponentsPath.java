@@ -46,7 +46,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.files.ssh.filesystem.StructrPath;
-import org.structr.files.ssh.filesystem.StructrRootAttributes;
+import org.structr.files.ssh.filesystem.StructrToplevelAttributes;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
@@ -154,12 +154,12 @@ public class StructrComponentsPath extends StructrPath {
 
 	@Override
 	public Map<String, Object> getAttributes(final String attributes, final LinkOption... options) {
-		return new StructrRootAttributes(StructrPath.COMPONENTS_DIRECTORY).toMap(attributes);
+		return new StructrToplevelAttributes(StructrPath.COMPONENTS_DIRECTORY).toMap(attributes);
 	}
 
 	@Override
 	public <T extends BasicFileAttributes> T getAttributes(Class<T> type, LinkOption... options) {
-		return (T)new StructrRootAttributes(StructrPath.COMPONENTS_DIRECTORY);
+		return (T)new StructrToplevelAttributes(StructrPath.COMPONENTS_DIRECTORY);
 	}
 
 	@Override

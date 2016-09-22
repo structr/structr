@@ -276,18 +276,30 @@ public class StructrFileAttributes implements PosixFileAttributes, DosFileAttrib
 
 		if (file != null) {
 
+			if (file instanceof Folder) {
+				permissions.add(PosixFilePermission.OWNER_EXECUTE);
+			}
+
 			try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 				if (file.isVisibleToPublicUsers()) {
 
 					permissions.add(PosixFilePermission.OTHERS_READ);
 					permissions.add(PosixFilePermission.OTHERS_WRITE);
+
+					if (file instanceof Folder) {
+						permissions.add(PosixFilePermission.OTHERS_EXECUTE);
+					}
 				}
 
 				if (file.isVisibleToAuthenticatedUsers()) {
 
 					permissions.add(PosixFilePermission.GROUP_READ);
 					permissions.add(PosixFilePermission.GROUP_WRITE);
+
+					if (file instanceof Folder) {
+						permissions.add(PosixFilePermission.GROUP_EXECUTE);
+					}
 				}
 
 				tx.success();

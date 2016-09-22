@@ -46,7 +46,7 @@ import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.Tx;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.files.ssh.filesystem.StructrPath;
-import org.structr.files.ssh.filesystem.StructrRootAttributes;
+import org.structr.files.ssh.filesystem.StructrToplevelAttributes;
 
 /**
  *
@@ -128,12 +128,12 @@ public class StructrSchemaPath extends StructrPath {
 
 	@Override
 	public Map<String, Object> getAttributes(final String attributes, final LinkOption... options) {
-		return new StructrRootAttributes(StructrPath.SCHEMA_DIRECTORY).toMap(attributes);
+		return new StructrToplevelAttributes(StructrPath.SCHEMA_DIRECTORY).toMap(attributes);
 	}
 
 	@Override
 	public <T extends BasicFileAttributes> T getAttributes(Class<T> type, LinkOption... options) {
-		return (T)new StructrRootAttributes(StructrPath.SCHEMA_DIRECTORY);
+		return (T)new StructrToplevelAttributes(StructrPath.SCHEMA_DIRECTORY);
 	}
 
 	@Override

@@ -46,7 +46,7 @@ import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.Tx;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.files.ssh.filesystem.StructrPath;
-import org.structr.files.ssh.filesystem.StructrRootAttributes;
+import org.structr.files.ssh.filesystem.StructrToplevelAttributes;
 
 /**
  *
@@ -147,12 +147,12 @@ public class StructrSchemaViewsPath extends StructrPath {
 
 	@Override
 	public Map<String, Object> getAttributes(final String attributes, final LinkOption... options) throws IOException {
-		return new StructrRootAttributes("views").toMap(attributes);
+		return new StructrToplevelAttributes("views").toMap(attributes);
 	}
 
 	@Override
 	public <T extends BasicFileAttributes> T getAttributes(Class<T> type, LinkOption... options) throws IOException {
-		return (T)new StructrRootAttributes("views");
+		return (T)new StructrToplevelAttributes("views");
 	}
 
 	@Override

@@ -48,7 +48,7 @@ import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.Tx;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.files.ssh.filesystem.StructrPath;
-import org.structr.files.ssh.filesystem.StructrRootAttributes;
+import org.structr.files.ssh.filesystem.StructrToplevelAttributes;
 
 /**
  *
@@ -130,7 +130,7 @@ public class StructrSchemaViewPath extends StructrPath {
 		final AbstractSchemaNode schemaNode = getSchemaNode();
 		if (schemaNode != null) {
 
-			return new StructrRootAttributes(schemaNode.getName()).toMap(attributes);
+			return new StructrToplevelAttributes(schemaNode.getName()).toMap(attributes);
 		}
 
 		throw new NoSuchFileException(toString());
@@ -142,7 +142,7 @@ public class StructrSchemaViewPath extends StructrPath {
 		final AbstractSchemaNode schemaNode = getSchemaNode();
 		if (schemaNode != null) {
 
-			return (T)new StructrRootAttributes(schemaNode.getName());
+			return (T)new StructrToplevelAttributes(schemaNode.getName());
 		}
 
 		throw new NoSuchFileException(toString());
