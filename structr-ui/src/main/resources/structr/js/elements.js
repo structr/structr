@@ -269,24 +269,21 @@ var _Elements = {
 		componentsSlideout.append('<div class="ver-scrollable" id="componentsArea"></div>');
 		components = $('#componentsArea', componentsSlideout);
 
-		Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entities) {
-			shadowPage = entities[0];
-		});
 		components.droppable({
 			drop: function(e, ui) {
 				e.preventDefault();
 				e.stopPropagation();
-				dropBlocked = true;
-				var sourceEl = $(ui.draggable);
-				var sourceId = Structr.getId(sourceEl);
-				if (!sourceId) return false;
-				var obj = StructrModel.obj(sourceId);
-				if (obj && obj.syncedNodes && obj.syncedNodes.length || sourceEl.parent().attr('id') === 'componentsArea') {
-					_Logger.log(_LogType.ELEMENTS, 'component dropped on components area, aborting');
-					return false;
+
+				if (!shadowPage) {
+					// Create shadow page if not existing
+					Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entities) {
+						shadowPage = entities[0];
+						_Elements.createComponend(ui);
+					});
+				} else {
+					_Elements.createComponend(ui);
 				}
-				Command.createComponent(sourceId);
-				dropBlocked = false;
+				
 			}
 
 		});
@@ -316,6 +313,20 @@ var _Elements = {
 
 		});
 
+	},
+	createComponend: function(el) {
+		
+		dropBlocked = true;
+		var sourceEl = $(el.draggable);
+		var sourceId = Structr.getId(sourceEl);
+		if (!sourceId) return false;
+		var obj = StructrModel.obj(sourceId);
+		if (obj && obj.syncedNodes && obj.syncedNodes.length || sourceEl.parent().attr('id') === 'componentsArea') {
+			_Logger.log(_LogType.ELEMENTS, 'component dropped on components area, aborting');
+			return false;
+		}
+		Command.createComponent(sourceId);
+		dropBlocked = false;
 	},
 	reloadUnattachedNodes: function() {
 
