@@ -20,52 +20,39 @@ package org.structr.web.maintenance.deploy;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
-import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.importer.Importer;
 
 /**
  *
  */
 public class FileImportVisitor implements FileVisitor<Path> {
 
-	private static final Logger logger       = Logger.getLogger(FileImportVisitor.class.getName());
-	private static final String DoctypeString = "<!DOCTYPE";
+	private static final Logger logger      = Logger.getLogger(FileImportVisitor.class.getName());
+	private SecurityContext securityContext = null;
+	private Path basePath                   = null;
+	private App app                         = null;
 
-	private Map<String, Object> pagesConfiguration = null;
-	private SecurityContext securityContext        = null;
-	private Path basePath                          = null;
-	private App app                                = null;
+	public FileImportVisitor(final Path basePath) {
 
-	public FileImportVisitor(final Path basePath, final Map<String, Object> pagesConfiguration) {
-
-		this.pagesConfiguration = pagesConfiguration;
 		this.securityContext    = SecurityContext.getSuperUserInstance();
 		this.basePath           = basePath;
 		this.app                = StructrApp.getInstance();
@@ -86,21 +73,8 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		} else if (attrs.isRegularFile()) {
 
 			final String fileName = file.getFileName().toString();
-			if (fileName.endsWith(".html")) {
 
-				try {
-
-					createPage(file, fileName);
-
-				} catch (FrameworkException fex) {
-					logger.log(Level.WARNING, "Exception while importing page {0}: {1}", new Object[] { name, fex.getMessage() });
-				}
-
-			} else {
-
-				createFile(file, fileName);
-			}
-
+			createFile(file, fileName);
 		}
 
 		return FileVisitResult.CONTINUE;
@@ -119,59 +93,6 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	}
 
 	// ----- private methods -----
-	private Page getExistingPage(final String name) {
-
-		final App app = StructrApp.getInstance();
-		try (final Tx tx = app.tx()) {
-
-			return app.nodeQuery(Page.class).andName(name).getFirst();
-
-		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "Unable to determine if page {0} already exists, ignoring.", name);
-		}
-
-		return null;
-	}
-
-	private void deletePage(final App app, final String name) throws FrameworkException {
-
-		final Page page = app.nodeQuery(Page.class).andName(name).getFirst();
-		if (page != null) {
-
-			for (final DOMNode child : page.getProperty(Page.elements)) {
-				app.delete(child);
-			}
-
-			app.delete(page);
-		}
-	}
-
-	private PropertyMap getPropertiesForPage(final String name) throws FrameworkException {
-
-		final Object data = pagesConfiguration.get(name);
-		if (data != null && data instanceof Map) {
-
-			return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), Page.class, (Map<String, Object>)data);
-
-		}
-
-		return null;
-	}
-
-	private <T> T get(final PropertyMap src, final PropertyKey<T> key, final T defaultValue) {
-
-		if (src != null) {
-
-			final T t = src.get(key);
-			if (t != null) {
-
-				return t;
-			}
-		}
-
-		return defaultValue;
-	}
-
 	private void createFolder(final Path file) {
 
 		try (final Tx tx = app.tx()) {
@@ -183,88 +104,6 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
-		}
-	}
-
-	private void createPage(final Path file, final String fileName) throws IOException, FrameworkException {
-
-		final String name            = StringUtils.substringBeforeLast(fileName, ".html");
-		final PropertyMap properties = getPropertiesForPage(name);
-		final Page existingPage      = getExistingPage(name);
-
-		try (final Tx tx = app.tx()) {
-
-			if (existingPage != null) {
-
-				deletePage(app, name);
-			}
-
-			final String src         = new String (Files.readAllBytes(file),Charset.forName("UTF-8"));
-			final String contentType = get(properties, Page.contentType, "text/html");
-
-			if (StringUtils.startsWithIgnoreCase(src, DoctypeString) && "text/html".equals(contentType)) {
-
-				// Import document starts with <!DOCTYPE> definition, so we treat it as an HTML
-				// document and use the Structr HTML importer.
-
-				boolean visibleToPublic       = get(properties, GraphObject.visibleToPublicUsers, false);
-				boolean visibleToAuth         = get(properties, GraphObject.visibleToPublicUsers, false);
-				final Importer importer       = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth);
-				final boolean parseOk         = importer.parse();
-
-				if (parseOk) {
-
-					logger.log(Level.INFO, "Importing page {0} from {1}..", new Object[] { name, fileName } );
-
-					// set comment handler that can parse and apply special Structr comments in HTML source files
-					importer.setCommentHandler(new DeploymentCommentHandler());
-
-					// enable literal import of href attributes
-					importer.setIsDeployment(true);
-
-					// parse page
-					final Page newPage = importer.readPage();
-
-					// store properties from pages.json if present
-					if (properties != null) {
-						newPage.setProperties(securityContext, properties);
-					}
-				}
-
-			} else {
-
-				// Import document does NOT start with a <!DOCTYPE> definition, so we assume a
-				// template or shared component that we need to parse.
-
-				logger.log(Level.INFO, "Importing page {0} from {1}..", new Object[] { name, fileName } );
-
-				boolean visibleToPublic       = get(properties, GraphObject.visibleToPublicUsers, false);
-				boolean visibleToAuth         = get(properties, GraphObject.visibleToPublicUsers, false);
-				final Importer importer       = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth);
-				final boolean parseOk         = importer.parse(true);
-
-				if (parseOk) {
-
-					logger.log(Level.INFO, "Importing page {0} from {1}..", new Object[] { name, fileName } );
-
-					// set comment handler that can parse and apply special Structr comments in HTML source files
-					importer.setCommentHandler(new DeploymentCommentHandler());
-
-					// enable literal import of href attributes
-					importer.setIsDeployment(true);
-
-					// parse page
-					final Page newPage = app.create(Page.class, name);
-					importer.createChildNodes(newPage, newPage);
-
-					// store properties from pages.json if present
-					if (properties != null) {
-						newPage.setProperties(securityContext, properties);
-					}
-				}
-			}
-
-			tx.success();
 		}
 	}
 

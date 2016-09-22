@@ -18,7 +18,6 @@
  */
 package org.structr.web.maintenance.deploy;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.FileVisitResult;
@@ -35,17 +34,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeInterface;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.dynamic.File;
 import org.structr.web.common.FileHelper;
-import org.structr.web.common.ImageHelper;
-import org.structr.web.entity.FileBase;
-import org.structr.web.entity.Folder;
-import org.structr.web.entity.Image;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
@@ -57,7 +50,7 @@ import org.w3c.dom.NodeList;
  */
 public class PageImportVisitor implements FileVisitor<Path> {
 
-	private static final Logger logger       = Logger.getLogger(PageImportVisitor.class.getName());
+	private static final Logger logger        = Logger.getLogger(PageImportVisitor.class.getName());
 	private static final String DoctypeString = "<!DOCTYPE";
 
 	private Map<String, Object> pagesConfiguration = null;
@@ -97,12 +90,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 				} catch (FrameworkException fex) {
 					logger.log(Level.WARNING, "Exception while importing page {0}: {1}", new Object[] { name, fex.getMessage() });
 				}
-
-			} else {
-
-				createFile(file, fileName);
 			}
-
 		}
 
 		return FileVisitResult.CONTINUE;
@@ -270,47 +258,6 @@ public class PageImportVisitor implements FileVisitor<Path> {
 			}
 
 			tx.success();
-		}
-	}
-
-	private void createFile(final Path file, final String fileName) throws IOException {
-
-		try (final Tx tx = app.tx()) {
-
-			final Path parentPath   = basePath.relativize(file).getParent();
-			final Folder parent     = parentPath != null ? FileHelper.createFolderPath(securityContext, parentPath.toString()) : null;
-			final FileBase existing = app.nodeQuery(FileBase.class).and(FileBase.parent, parent).and(FileBase.name, fileName).getFirst();
-
-			logger.log(Level.INFO, "Importing {0}..", fileName);
-
-			if (existing != null) {
-
-				// remove existing file first!
-				app.delete(existing);
-			}
-
-			// close input stream
-			try (final FileInputStream fis = new FileInputStream(file.toFile())) {
-
-				// create file in folder structure
-				final FileBase newFile   = FileHelper.createFile(securityContext, fis, null, File.class, fileName);
-				final String contentType = newFile.getContentType();
-
-				// modify file type according to content
-				if (StringUtils.startsWith(contentType, "image") || ImageHelper.isImageType(newFile.getProperty(name))) {
-
-					newFile.unlockSystemPropertiesOnce();
-					newFile.setProperty(NodeInterface.type, Image.class.getSimpleName());
-				}
-
-				// move file to folder
-				newFile.setProperty(FileBase.parent, parent);
-			}
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
 		}
 	}
 

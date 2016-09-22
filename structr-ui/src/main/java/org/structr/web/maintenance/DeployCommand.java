@@ -180,7 +180,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			try {
 
 				logger.log(Level.INFO, "Importing files...");
-				Files.walkFileTree(files, new FileImportVisitor(files, pagesConf));
+				Files.walkFileTree(files, new FileImportVisitor(files));
 
 			} catch (IOException ioex) {
 				logger.log(Level.WARNING, "Exception while importing files", ioex);
