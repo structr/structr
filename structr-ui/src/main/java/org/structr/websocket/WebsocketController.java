@@ -35,16 +35,13 @@ import org.eclipse.jetty.websocket.api.WebSocketException;
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.RetryException;
 import org.structr.core.GraphObject;
 import org.structr.core.StructrTransactionListener;
 import org.structr.core.TransactionSource;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
@@ -195,38 +192,16 @@ public class WebsocketController implements StructrTransactionListener {
 	@Override
 	public void afterCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents, final TransactionSource source) {
 
-		boolean retry = true;
-		int count     = 0;
+		for (final ModificationEvent event : modificationEvents) {
 
-		// re-try this up to three times..
-		while (retry && count++ < 3) {
-
-			// only retry when a RetryException is encountered
-			retry = false;
-
-			try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
-
-				for (final ModificationEvent event : modificationEvents) {
-
-					try {
-						final WebSocketMessage message = getMessageForEvent(securityContext, event);
-						if (message != null) {
-							logger.log(Level.FINE, "################### Broadcast message: {0}", message.getCommand());
-							broadcast(message);
-						}
-
-					} catch (FrameworkException ignore) {
-					}
+			try {
+				final WebSocketMessage message = getMessageForEvent(securityContext, event);
+				if (message != null) {
+					
+					broadcast(message);
 				}
 
-				tx.success();
-
-			} catch (RetryException rex) {
-				retry = true;
-			} catch (FrameworkException ex) {
-				logger.log(Level.WARNING, "Exception during websocket broadcast.", ex);
-			} catch (Throwable t) {
-				logger.log(Level.WARNING, "Exception during websocket broadcast.", t);
+			} catch (FrameworkException ignore) {
 			}
 		}
 	}

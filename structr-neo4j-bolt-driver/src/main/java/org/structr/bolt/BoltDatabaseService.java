@@ -96,7 +96,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		boolean tryAgain                               = true;
 
 		if (!"remote".equals(driverMode)) {
-			
+
 			final GraphDatabaseBuilder builder = new GraphDatabaseFactory()
 				.newEmbeddedDatabaseBuilder(new File(databasePath))
 				.setConfig( GraphDatabaseSettings.allow_store_upgrade, "true")

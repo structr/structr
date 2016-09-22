@@ -20,6 +20,7 @@ package org.structr.core.graph;
 
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.structr.api.RetryException;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.StructrTransactionListener;
@@ -77,28 +78,37 @@ public class Tx implements AutoCloseable {
 
 		if (success && guard.compareAndSet(false, true)) {
 
-			// experimental
-			try (final Tx tx = begin()) {
+			boolean retry  = true;
+			while (retry) {
 
-				if (doCallbacks && modificationQueue != null) {
+				retry = false;
 
-					modificationQueue.doOuterCallbacks(securityContext);
+				// experimental
+				try (final Tx tx = begin()) {
 
-					// notify listeners if desired, and allow this setting to be overriden locally AND remotely
-					if ( (securityContext == null) ? doNotifications : doNotifications && securityContext.isDoTransactionNotifications() ) {
+					if (doCallbacks && modificationQueue != null) {
 
-						final Collection<ModificationEvent> modificationEvents = modificationQueue.getModificationEvents();
-						for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
+						modificationQueue.doOuterCallbacks(securityContext);
 
-							listener.afterCommit(securityContext, modificationEvents, cmd.getSource());
+						// notify listeners if desired, and allow this setting to be overriden locally AND remotely
+						if ( (securityContext == null) ? doNotifications : doNotifications && securityContext.isDoTransactionNotifications() ) {
+
+							final Collection<ModificationEvent> modificationEvents = modificationQueue.getModificationEvents();
+							for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
+
+								listener.afterCommit(securityContext, modificationEvents, cmd.getSource());
+							}
 						}
+
+						modificationQueue.updateAuditLog();
+						modificationQueue.clear();
 					}
 
-					modificationQueue.updateAuditLog();
-					modificationQueue.clear();
-				}
+					tx.success();
 
-				tx.success();
+				} catch (RetryException rex) {
+					retry = true;
+				}
 			}
 
 			guard.set(false);

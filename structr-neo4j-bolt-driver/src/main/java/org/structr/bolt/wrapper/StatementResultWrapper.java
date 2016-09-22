@@ -68,6 +68,7 @@ public class StatementResultWrapper<T> implements NativeResult<T> {
 			return result.hasNext();
 
 		} catch (TransientException tex) {
+			db.getCurrentTransaction().setClosed(true);
 			throw new RetryException(tex);
 		}
 	}

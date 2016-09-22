@@ -38,13 +38,13 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.structr.api.RetryException;
 import org.structr.common.AccessMode;
 import org.structr.common.PathHelper;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.RetryException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
@@ -251,16 +251,17 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 						}
 
 						final String name = item.getName().replaceAll("\\\\", "/");
+						FileBase newFile  = null;
+						String uuid       = null;
 						boolean retry     = true;
-						int retryCount    = 0;
 
-						while (retry && retryCount++ < 3) {
+						while (retry) {
 
 							retry = false;
 
 							try (final Tx tx = StructrApp.getInstance().tx()) {
 
-								final FileBase newFile = FileHelper.createFile(securityContext, IOUtils.toByteArray(item.getInputStream()), contentType, cls);
+								newFile = FileHelper.createFile(securityContext, IOUtils.toByteArray(item.getInputStream()), contentType, cls);
 								newFile.setProperty(AbstractNode.name, PathHelper.getName(name));
 								newFile.setProperties(newFile.getSecurityContext(), PropertyMap.inputTypeToJavaType(securityContext, cls, params));
 
@@ -281,17 +282,24 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 									newFile.setProperty(AbstractNode.name, name.concat("_").concat(FileHelper.getDateString()));
 								}
 
-								// upload trigger
-								newFile.notifyUploadCompletion();
-
-								// Just write out the uuids of the new files
-								out.write(newFile.getUuid());
+								uuid = newFile.getUuid();
 
 								tx.success();
 
 							} catch (RetryException rex) {
 								retry = true;
 							}
+						}
+
+						// since the transaction can be repeated, we need to make sure that
+						// only the actual existing file creates a UUID output
+						if (newFile != null) {
+
+							// upload trigger
+							newFile.notifyUploadCompletion();
+
+							// Just write out the uuids of the new files
+							out.write(uuid);
 						}
 
 					} catch (IOException ex) {

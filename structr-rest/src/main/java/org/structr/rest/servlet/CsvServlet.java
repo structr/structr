@@ -320,6 +320,8 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 				boolean retry = true;
 				while (retry) {
 
+					retry = false;
+
 					if (resource.createPostTransaction()) {
 
 						try (final Tx tx = app.tx()) {
@@ -330,7 +332,6 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 							}
 
 							tx.success();
-							retry = false;
 
 						} catch (RetryException ddex) {
 							retry = true;
@@ -344,8 +345,6 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 								results.add(resource.doPost(convertPropertySetToMap(propertySet)));
 							}
-
-							retry = false;
 
 						} catch (RetryException ddex) {
 							retry = true;
