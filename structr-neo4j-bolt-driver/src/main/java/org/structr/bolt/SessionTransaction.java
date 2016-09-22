@@ -122,8 +122,9 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 			return getLong(statement, Collections.EMPTY_MAP);
 
+		} catch (TransientException tex) {
+			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
-
 			throw new NotFoundException(nex);
 		}
 	}
@@ -150,8 +151,9 @@ public class SessionTransaction implements org.structr.api.Transaction {
 				return result.next().get(0).asObject();
 			}
 
+		} catch (TransientException tex) {
+			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
-
 			throw new NotFoundException(nex);
 		}
 
@@ -164,8 +166,9 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 			return tx.run(statement, map).next().get(0).asEntity();
 
+		} catch (TransientException tex) {
+			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
-
 			throw new NotFoundException(nex);
 		}
 	}
@@ -176,8 +179,9 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 			return tx.run(statement, map).next().get(0).asNode();
 
+		} catch (TransientException tex) {
+			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
-
 			throw new NotFoundException(nex);
 		}
 	}
@@ -188,8 +192,9 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 			return tx.run(statement, map).next().get(0).asRelationship();
 
+		} catch (TransientException tex) {
+			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
-
 			throw new NotFoundException(nex);
 		}
 	}
@@ -200,8 +205,9 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 			return Iterables.map(new RecordNodeMapper(), new StatementIterable(tx.run(statement, map)));
 
+		} catch (TransientException tex) {
+			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
-
 			throw new NotFoundException(nex);
 		}
 	}
@@ -212,8 +218,9 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 			return Iterables.map(new RecordRelationshipMapper(), new StatementIterable(tx.run(statement, map)));
 
+		} catch (TransientException tex) {
+			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
-
 			throw new NotFoundException(nex);
 		}
 	}
@@ -224,8 +231,9 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 			return Iterables.map(new RecordLongMapper(), new StatementIterable(tx.run(statement, map)));
 
+		} catch (TransientException tex) {
+			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
-
 			throw new NotFoundException(nex);
 		}
 	}
@@ -240,8 +248,9 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 			return value.asList(Values.ofString());
 
+		} catch (TransientException tex) {
+			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
-
 			throw new NotFoundException(nex);
 		}
 	}
@@ -252,8 +261,9 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 			return new StatementResultWrapper(db, tx.run(statement, map));
 
+		} catch (TransientException tex) {
+			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
-
 			throw new NotFoundException(nex);
 		}
 	}
@@ -264,8 +274,9 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 			tx.run(statement, map);
 
+		} catch (TransientException tex) {
+			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
-
 			throw new NotFoundException(nex);
 		}
 	}
@@ -294,7 +305,14 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 				@Override
 				public Record next() {
-					return result.next();
+
+					try {
+
+						return result.next();
+
+					} catch (TransientException tex) {
+						throw new RetryException(tex);
+					}
 				}
 
 				@Override

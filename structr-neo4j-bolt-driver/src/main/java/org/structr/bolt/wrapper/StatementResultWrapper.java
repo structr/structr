@@ -24,7 +24,9 @@ import java.util.function.Function;
 import org.neo4j.driver.v1.Records;
 import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.Value;
+import org.neo4j.driver.v1.exceptions.TransientException;
 import org.structr.api.NativeResult;
+import org.structr.api.RetryException;
 import org.structr.api.util.Iterables;
 import org.structr.bolt.BoltDatabaseService;
 
@@ -61,7 +63,13 @@ public class StatementResultWrapper<T> implements NativeResult<T> {
 
 	@Override
 	public boolean hasNext() {
-		return result.hasNext();
+
+		try {
+			return result.hasNext();
+
+		} catch (TransientException tex) {
+			throw new RetryException(tex);
+		}
 	}
 
 	@Override
