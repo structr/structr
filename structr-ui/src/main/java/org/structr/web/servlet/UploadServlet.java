@@ -44,6 +44,7 @@ import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.RetryException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
@@ -121,7 +122,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
 
-		try (final Tx tx = StructrApp.getInstance().tx()) {
+		try {
 
 			if (!ServletFileUpload.isMultipartContent(request)) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -129,7 +130,15 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 				return;
 			}
 
-			final SecurityContext securityContext;
+		} catch (IOException ioex) {
+			logger.log(Level.WARNING, "Unable to send response", ioex);
+		}
+
+		SecurityContext securityContext = null;
+
+		// isolate request authentication in a transaction
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
 			try {
 				securityContext = getConfig().getAuthenticator().initializeAndExamineRequest(request, response);
 
@@ -139,6 +148,22 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 				response.getOutputStream().write("ERROR (401): Invalid user or password.\n".getBytes("UTF-8"));
 				return;
 			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.log(Level.WARNING, "Unable to examine request", fex);
+		} catch (IOException ioex) {
+			logger.log(Level.WARNING, "Unable to send response", ioex);
+		}
+
+		// something went wrong, but we don't know what...
+		if (securityContext == null) {
+			logger.log(Level.WARNING, "No SecurityContext, aborting.");
+			return;
+		}
+
+		try {
 
 			if (securityContext.getUser(false) == null && Boolean.FALSE.equals(Boolean.parseBoolean(StructrApp.getConfigurationValue("UploadServlet.allowAnonymousUploads", "false")))) {
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -226,46 +251,56 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 						}
 
 						final String name = item.getName().replaceAll("\\\\", "/");
+						boolean retry     = true;
+						int retryCount    = 0;
 
-						final FileBase newFile = FileHelper.createFile(securityContext, IOUtils.toByteArray(item.getInputStream()), contentType, cls);
-						newFile.setProperty(AbstractNode.name, PathHelper.getName(name));
-						newFile.setProperties(newFile.getSecurityContext(), PropertyMap.inputTypeToJavaType(securityContext, cls, params));
+						while (retry && retryCount++ < 3) {
 
-						final String defaultUploadFolderConfigValue = StructrApp.getConfigurationValue(Services.APPLICATION_DEFAULT_UPLOAD_FOLDER, null);
-						if (defaultUploadFolderConfigValue != null) {
+							retry = false;
 
-							final Folder defaultUploadFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), defaultUploadFolderConfigValue);
+							try (final Tx tx = StructrApp.getInstance().tx()) {
 
-							// can only happen if the configuration value is invalid or maps to the root folder
-							if (defaultUploadFolder != null) {
-								
-								newFile.setProperty(FileBase.hasParent, true);
-								newFile.setProperty(FileBase.parent, defaultUploadFolder);
+								final FileBase newFile = FileHelper.createFile(securityContext, IOUtils.toByteArray(item.getInputStream()), contentType, cls);
+								newFile.setProperty(AbstractNode.name, PathHelper.getName(name));
+								newFile.setProperties(newFile.getSecurityContext(), PropertyMap.inputTypeToJavaType(securityContext, cls, params));
+
+								final String defaultUploadFolderConfigValue = StructrApp.getConfigurationValue(Services.APPLICATION_DEFAULT_UPLOAD_FOLDER, null);
+								if (defaultUploadFolderConfigValue != null) {
+
+									final Folder defaultUploadFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), defaultUploadFolderConfigValue);
+
+									// can only happen if the configuration value is invalid or maps to the root folder
+									if (defaultUploadFolder != null) {
+
+										newFile.setProperty(FileBase.hasParent, true);
+										newFile.setProperty(FileBase.parent, defaultUploadFolder);
+									}
+								}
+
+								if (!newFile.validatePath(securityContext, null)) {
+									newFile.setProperty(AbstractNode.name, name.concat("_").concat(FileHelper.getDateString()));
+								}
+
+								// upload trigger
+								newFile.notifyUploadCompletion();
+
+								// Just write out the uuids of the new files
+								out.write(newFile.getUuid());
+
+								tx.success();
+
+							} catch (RetryException rex) {
+								retry = true;
 							}
 						}
-
-						if (!newFile.validatePath(securityContext, null)) {
-							newFile.setProperty(AbstractNode.name, name.concat("_").concat(FileHelper.getDateString()));
-						}
-
-						// upload trigger
-						newFile.notifyUploadCompletion();
-
-						// Just write out the uuids of the new files
-						out.write(newFile.getUuid());
 
 					} catch (IOException ex) {
 						logger.log(Level.WARNING, "Could not upload file", ex);
 					}
-
 				}
-
 			}
 
-			tx.success();
-
-		} catch (FrameworkException | IOException | FileUploadException t) {
-
+		} catch (Throwable t) {
 
 			logger.log(Level.SEVERE, "Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
