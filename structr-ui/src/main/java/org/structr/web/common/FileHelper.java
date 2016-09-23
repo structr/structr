@@ -705,12 +705,6 @@ public class FileHelper {
 				folder.setProperty(AbstractFile.parent, parent);
 
 			}
-
-//			if (folder != null && parent != null) {
-//				app.create(parent, folder, Folders.class);
-//				folder.updateInIndex();
-//			}
-
 		}
 
 		return folder;

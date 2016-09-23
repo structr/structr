@@ -30,7 +30,16 @@ public class Comment extends Content implements org.w3c.dom.Comment {
 	@Override
 	public void render(RenderContext renderContext, int depth) throws FrameworkException {
 
-		renderContext.getBuffer().append("<!--".concat(getProperty(content)).concat("-->"));
+		final String _content = getProperty(content);
+
+		// Avoid rendering existing @structr comments since those comments are
+		// created depending on the visiblity settings of individual nodes. If
+		// those comments are rendered, there will be duplicates in a round-
+		// trip export/import test.
+		if (!_content.contains("@structr:")) {
+
+			renderContext.getBuffer().append("<!--").append(_content).append("-->");
+		}
 
 	}
 }

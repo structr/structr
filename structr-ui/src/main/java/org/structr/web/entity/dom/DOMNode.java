@@ -72,6 +72,7 @@ import org.structr.core.script.Scripting;
 import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
+import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.datasource.CypherGraphDataSource;
 import org.structr.web.datasource.FunctionDataSource;
 import org.structr.web.datasource.IdRequestParameterGraphDataSource;
@@ -341,7 +342,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		final EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
 
-		if (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
+		if (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode) || EditMode.DEPLOYMENT.equals(editMode)) {
 
 			renderContent(renderContext, depth);
 
@@ -440,6 +441,24 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 		}
 
+	}
+
+	/**
+	 * Return the content of this node depending on edit mode
+	 *
+	 * @param editMode
+	 * @return content
+	 * @throws FrameworkException
+	 */
+	public String getContent(final RenderContext.EditMode editMode) throws FrameworkException {
+
+		final RenderContext ctx = new RenderContext(securityContext, null, null, editMode);
+		final StringRenderBuffer buffer = new StringRenderBuffer();
+		ctx.setBuffer(buffer);
+		render(ctx, 0);
+
+		// extract source
+		return buffer.getBuffer().toString();
 	}
 
 	public Template getClosestTemplate(final Page page) {
@@ -799,7 +818,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		// In raw or widget mode, render everything
 		EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
-		if (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
+		if (EditMode.DEPLOYMENT.equals(editMode) || EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
 			return true;
 		}
 
@@ -843,7 +862,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		// In raw or widget mode, render everything
 		EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
-		if (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
+		if (EditMode.DEPLOYMENT.equals(editMode) || EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
 			return true;
 		}
 

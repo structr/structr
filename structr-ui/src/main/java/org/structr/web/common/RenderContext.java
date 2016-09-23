@@ -71,7 +71,7 @@ public class RenderContext extends ActionContext {
 
 	public enum EditMode {
 
-		NONE, WIDGET, CONTENT, RAW;
+		NONE, WIDGET, CONTENT, RAW, DEPLOYMENT;
 
 	}
 

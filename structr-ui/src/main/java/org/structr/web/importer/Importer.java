@@ -136,9 +136,10 @@ public class Importer {
 	private final boolean publicVisible;
 	private final boolean authVisible;
 	private CommentHandler commentHandler;
-	private boolean processComment = false;
-	private boolean isDeployment       = false;
-	private Document parsedDocument;
+	private boolean processComment  = false;
+	private boolean isDeployment    = false;
+	private Document parsedDocument = null;
+	private DOMNode lastCommentNode = null;
 	private String lastComment;
 	private final String name;
 	private URL originalUrl;
@@ -560,12 +561,12 @@ public class Importer {
 			}
 
 			// Data and comment nodes: Trim the text and put it into the "content" field without changes
-			if (/*type.equals("#data") || */type.equals("#comment")) {
+			if (type.equals("#comment")) {
 
-				comment        = ((Comment) node).getData();
-				processComment = false; // do not process the comment until next node
-				lastComment    = comment;
-				tag            = "";
+				comment         = ((Comment) node).getData();
+				processComment  = false; // do not process the comment until next node
+				lastComment     = comment;
+				tag             = "";
 
 				// Don't add content node for whitespace
 				if (StringUtils.isBlank(comment)) {
@@ -612,6 +613,9 @@ public class Importer {
 
 					newNode = (DOMNode) page.createComment(comment);
 					newNode.setProperty(org.structr.web.entity.dom.Comment.contentType, "text/html");
+
+					// allow deletion of comment nodes that contain @structr instructions
+					lastCommentNode = newNode;
 
 				} else {
 
@@ -790,10 +794,18 @@ public class Importer {
 				// (allow special comments to modify node)
 				if (processComment && commentHandler != null && StringUtils.isNotBlank(lastComment)) {
 
-					commentHandler.handleComment(page, newNode, lastComment);
+					if (commentHandler.handleComment(page, newNode, lastComment)) {
 
-					// clear comment field
-					lastComment = null;
+						if (lastCommentNode != null) {
+
+							// remove comment node
+							parent.removeChild(lastCommentNode);
+						}
+					}
+
+					// clear comment fields
+					lastCommentNode = null;
+					lastComment     = null;
 				}
 
 				// We enable processing of special Structr comments for the next loop

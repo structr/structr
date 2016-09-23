@@ -78,12 +78,12 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>1.7.21</version>
-        </dependency>        
+        </dependency>
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
             <version>1.2.17</version>
-        </dependency>        
+        </dependency>
         <dependency>
             <groupId>org.bitbucket.cowwoc</groupId>
             <artifactId>diff-match-patch</artifactId>
@@ -595,6 +595,7 @@
                         <exclude>src/main/resources/structr/css/lib/**</exclude>
                         <exclude>src/test/javascript/casperjs/**</exclude>
                         <exclude>src/test/javascript/bin/**</exclude>
+                        <exclude>src/test/**/*.html</exclude>
                         <exclude>src/main/deb/**</exclude>
                     </excludes>
                     <properties>

@@ -24,6 +24,8 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
@@ -31,12 +33,16 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
+import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
@@ -47,15 +53,17 @@ import org.structr.web.entity.Image;
 public class FileImportVisitor implements FileVisitor<Path> {
 
 	private static final Logger logger      = Logger.getLogger(FileImportVisitor.class.getName());
+	private Map<String, Object> config      = null;
 	private SecurityContext securityContext = null;
 	private Path basePath                   = null;
 	private App app                         = null;
 
-	public FileImportVisitor(final Path basePath) {
+	public FileImportVisitor(final Path basePath, final Map<String, Object> config) {
 
-		this.securityContext    = SecurityContext.getSuperUserInstance();
-		this.basePath           = basePath;
-		this.app                = StructrApp.getInstance();
+		this.securityContext = SecurityContext.getSuperUserInstance();
+		this.basePath        = basePath;
+		this.config          = config;
+		this.app             = StructrApp.getInstance();
 	}
 
 	@Override
@@ -98,7 +106,16 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		try (final Tx tx = app.tx()) {
 
 			// create folder
-			FileHelper.createFolderPath(securityContext, basePath.relativize(file).toString());
+			final Folder folder = createFolders(basePath.relativize(file));
+			if (folder != null) {
+
+				// set properties from files.json
+				final PropertyMap properties = getPropertiesForFileOrFolder(folder.getPath());
+				if (properties != null) {
+
+					folder.setProperties(securityContext, properties);
+				}
+			}
 
 			tx.success();
 
@@ -112,7 +129,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		try (final Tx tx = app.tx()) {
 
 			final Path parentPath   = basePath.relativize(file).getParent();
-			final Folder parent     = parentPath != null ? FileHelper.createFolderPath(securityContext, parentPath.toString()) : null;
+			final Folder parent     = createFolders(parentPath);
 			final FileBase existing = app.nodeQuery(FileBase.class).and(FileBase.parent, parent).and(FileBase.name, fileName).getFirst();
 			final String fullPath   = (parentPath != null ? "/" + parentPath.toString() : "") + "/" + fileName;
 
@@ -149,6 +166,13 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 				// move file to folder
 				newFile.setProperty(FileBase.parent, parent);
+
+				// set properties from files.json
+				final PropertyMap properties = getPropertiesForFileOrFolder(newFile.getPath());
+				if (properties != null) {
+
+					newFile.setProperties(securityContext, properties);
+				}
 			}
 
 			tx.success();
@@ -156,5 +180,58 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
+	}
+
+	private PropertyMap getPropertiesForFileOrFolder(final String path) throws FrameworkException {
+
+		final Object data = config.get(path);
+		if (data != null && data instanceof Map) {
+
+			return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), AbstractFile.class, (Map<String, Object>)data);
+		}
+
+		return null;
+	}
+
+	private Folder createFolders(final Path folder) throws FrameworkException {
+
+		if (folder != null) {
+
+			final App app  = StructrApp.getInstance();
+			Folder current = null;
+			Folder parent  = null;
+
+			for (final Iterator<Path> it = folder.iterator(); it.hasNext(); ) {
+
+				final Path part   = it.next();
+				final String name = part.toString();
+
+				current = app.nodeQuery(Folder.class).andName(name).and(FileBase.parent, parent).getFirst();
+				if (current == null) {
+
+					current = app.create(Folder.class,
+						new NodeAttribute(AbstractNode.name, name),
+						new NodeAttribute(Folder.parent, parent)
+					);
+				}
+
+				if (current != null) {
+
+					// set properties from files.json
+					final PropertyMap properties = getPropertiesForFileOrFolder(current.getPath());
+					if (properties != null) {
+
+						current.setProperties(securityContext, properties);
+					}
+				}
+
+				// make next folder child of new one
+				parent = current;
+			}
+
+			return current;
+		}
+
+		return null;
 	}
 }

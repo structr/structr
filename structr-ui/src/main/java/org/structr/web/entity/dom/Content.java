@@ -310,13 +310,20 @@ public class Content extends DOMNode implements Text {
 	public void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
 
 		try {
+			final EditMode edit = renderContext.getEditMode(securityContext.getUser(false));
+			if (EditMode.DEPLOYMENT.equals(edit)) {
+
+				// EditMode "deployment" means "output raw content, do not interpret in any way
+				renderContext.getBuffer().append(getProperty(Content.content));
+				return;
+			}
+
 
 			if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(renderContext)) {
 				return;
 			}
 
 			final String id            = getUuid();
-			final EditMode edit        = renderContext.getEditMode(securityContext.getUser(false));
 			final boolean inBody       = renderContext.inBody();
 			final AsyncBuffer out      = renderContext.getBuffer();
 
@@ -356,45 +363,38 @@ public class Content extends DOMNode implements Text {
 
 			}
 
-			// No contentType-specific rendering in DATA edit mode
-			//if (!edit.equals(EditMode.DATA)) {
+			// examine content type and apply converter
+			if (_contentType != null) {
 
-				// examine content type and apply converter
+				final Adapter<String, String> converter = contentConverters.get(_contentType);
 
-				if (_contentType != null) {
+				if (converter != null) {
 
-					final Adapter<String, String> converter = contentConverters.get(_contentType);
+					try {
 
-					if (converter != null) {
+						// apply adapter
+						_content = converter.adapt(_content);
+					} catch (FrameworkException fex) {
 
-						try {
-
-							// apply adapter
-							_content = converter.adapt(_content);
-						} catch (FrameworkException fex) {
-
-							logger.log(Level.WARNING, "Unable to convert content: {0}", fex.getMessage());
-
-						}
+						logger.log(Level.WARNING, "Unable to convert content: {0}", fex.getMessage());
 
 					}
 
 				}
 
-				// replace newlines with <br /> for rendering
-				if (((_contentType == null) || _contentType.equals("text/plain")) && (_content != null) && !_content.isEmpty()) {
+			}
 
-					final DOMNode _parent = getProperty(Content.parent);
-					if (_parent == null || !(_parent instanceof Textarea)) {
+			// replace newlines with <br /> for rendering
+			if (((_contentType == null) || _contentType.equals("text/plain")) && (_content != null) && !_content.isEmpty()) {
 
-						_content = _content.replaceAll("[\\n]{1}", "<br>");
-					}
+				final DOMNode _parent = getProperty(Content.parent);
+				if (_parent == null || !(_parent instanceof Textarea)) {
+
+					_content = _content.replaceAll("[\\n]{1}", "<br>");
 				}
-			//}
+			}
 
 			if (_content != null) {
-
-				//buffer.append(indent(depth, true)).append(_content);
 
 				// insert whitespace to make element clickable
 				if (EditMode.CONTENT.equals(edit) && _content.length() == 0) {
@@ -406,7 +406,6 @@ public class Content extends DOMNode implements Text {
 
 			if (EditMode.CONTENT.equals(edit) && inBody && !("text/javascript".equals(getProperty(contentType))) && !("text/css".equals(getProperty(contentType)))) {
 
-	//			buffer.append("</span>");
 				out.append("<!---->");
 			}
 
@@ -419,32 +418,6 @@ public class Content extends DOMNode implements Text {
 
 	}
 
-//	@Override
-//	protected Object getEditModeValue(final SecurityContext securityContext, final RenderContext renderContext, final GraphObject dataObject, final PropertyKey referenceKeyProperty, final Object defaultValue) {
-//
-//		Object value      = dataObject.getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(dataObject.getClass(), referenceKeyProperty.jsonName()));
-//		boolean canWrite  = dataObject instanceof AbstractNode ? securityContext.isAllowed((AbstractNode) dataObject, Permission.write) : true;
-//
-//		if (getProperty(Content.editable) && EditMode.DATA.equals(renderContext.getEditMode(securityContext.getUser(false))) && renderContext.inBody() && canWrite && !referenceKeyProperty.isReadOnly()) {
-//
-//			String editModeValue = "<span data-structr-type=\"" + referenceKeyProperty.typeName()
-//				+ "\" data-structr-id=\"" + dataObject.getUuid()
-////				+ "\" data-structr-content-type=\"" + StringUtils.defaultString(dataObject.getProperty(Content.contentType), "")
-////				+ "\" data-structr-visible-to-authenticated-users=\"" + dataObject.getProperty(AbstractNode.visibleToAuthenticatedUsers)
-////				+ "\" data-structr-visible-to-public-users=\"" + dataObject.getProperty(AbstractNode.visibleToPublicUsers)
-//				+ "\" data-structr-key=\"" + referenceKeyProperty.jsonName() + "\">" + value + "</span>";
-//
-//			logger.log(Level.FINEST, "Edit mode value: {0}", editModeValue);
-//
-//			return editModeValue;
-//
-//		} else {
-//
-//			return value != null ? value : defaultValue;
-//
-//		}
-//
-//	}
 	@Override
 	public boolean isSynced() {
 		return false;

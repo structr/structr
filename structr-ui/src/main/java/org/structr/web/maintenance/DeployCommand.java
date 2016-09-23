@@ -20,14 +20,21 @@ package org.structr.web.maintenance;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.Writer;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -48,7 +55,18 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonSchema;
+import org.structr.web.common.RenderContext;
+import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.FileBase;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
+import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.ShadowDocument;
+import org.structr.web.entity.dom.Template;
 import org.structr.web.maintenance.deploy.ComponentImportVisitor;
 import org.structr.web.maintenance.deploy.FileImportVisitor;
 import org.structr.web.maintenance.deploy.PageImportVisitor;
@@ -70,10 +88,31 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
 
+		final String mode = (String) attributes.get("mode");
+		if (mode != null && "export".equals(mode)) {
+
+			doExport(attributes);
+
+		} else {
+
+			// default is "import"
+			doImport(attributes);
+		}
+	}
+
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return false;
+	}
+
+	// ----- private methods -----
+	private void doImport(final Map<String, Object> attributes) throws FrameworkException {
+
 		final String path                        = (String) attributes.get("source");
 		final Map<String, Object> componentsConf = new HashMap<>();
 		final Map<String, Object> templatesConf  = new HashMap<>();
 		final Map<String, Object> pagesConf      = new HashMap<>();
+		final Map<String, Object> filesConf      = new HashMap<>();
 
 		if (StringUtils.isBlank(path)) {
 
@@ -105,6 +144,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			logger.log(Level.INFO, "Reading {0}..", grantsConf);
 			importListData(ResourceAccess.class, readConfigList(grantsConf));
+		}
+
+		// read files.conf
+		final Path filesConfFile = source.resolve("files.json");
+		if (Files.exists(filesConfFile)) {
+
+			logger.log(Level.INFO, "Reading {0}..", filesConfFile);
+			filesConf.putAll(readConfigMap(filesConfFile));
 		}
 
 		// read pages.conf
@@ -145,6 +192,20 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 		}
 
+		// import files
+		final Path files = source.resolve("files");
+		if (Files.exists(files)) {
+
+			try {
+
+				logger.log(Level.INFO, "Importing files...");
+				Files.walkFileTree(files, new FileImportVisitor(files, filesConf));
+
+			} catch (IOException ioex) {
+				logger.log(Level.WARNING, "Exception while importing files", ioex);
+			}
+		}
+
 		// import components, must be done before pages so the shared components exist
 		final Path templates = source.resolve("templates");
 		if (Files.exists(templates)) {
@@ -170,20 +231,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			} catch (IOException ioex) {
 				logger.log(Level.WARNING, "Exception while importing shared components", ioex);
-			}
-		}
-
-		// import files
-		final Path files = source.resolve("files");
-		if (Files.exists(files)) {
-
-			try {
-
-				logger.log(Level.INFO, "Importing files...");
-				Files.walkFileTree(files, new FileImportVisitor(files));
-
-			} catch (IOException ioex) {
-				logger.log(Level.WARNING, "Exception while importing files", ioex);
 			}
 		}
 
@@ -222,19 +269,358 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		logger.log(Level.INFO, "Import from {0} done.", source.toString());
 	}
 
-	@Override
-	public boolean requiresEnclosingTransaction() {
-		return false;
+	private void doExport(final Map<String, Object> attributes) throws FrameworkException {
+
+		final String path  = (String) attributes.get("target");
+		final Path target  = Paths.get(path);
+
+		if (Files.exists(target)) {
+
+			throw new FrameworkException(422, "Target directory already exists, aborting.");
+		}
+
+		try {
+
+			Files.createDirectories(target);
+
+			final Path components     = Files.createDirectory(target.resolve("components"));
+			final Path files          = Files.createDirectory(target.resolve("files"));
+			final Path pages          = Files.createDirectory(target.resolve("pages"));
+			final Path schema         = Files.createDirectory(target.resolve("schema"));
+			final Path security       = Files.createDirectory(target.resolve("security"));
+			final Path templates      = Files.createDirectory(target.resolve("templates"));
+			final Path schemaJson     = schema.resolve("schema.json");
+			final Path grants         = security.resolve("grants.json");
+			final Path filesConf      = target.resolve("files.json");
+			final Path pagesConf      = target.resolve("pages.json");
+			final Path componentsConf = target.resolve("components.json");
+			final Path templatesConf  = target.resolve("templates.json");
+
+			exportFiles(files, filesConf);
+			exportPages(pages, pagesConf);
+			exportComponents(components, componentsConf);
+			exportTemplates(templates, templatesConf);
+			exportSecurity(grants);
+			exportSchema(schemaJson);
+
+			// config import order is "users, grants, pages, components, templates"
+			// data import order is "schema, files, templates, components, pages"
+
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
 	}
 
-	// ----- private methods -----
-	private Map<String, Object> readConfigMap(final Path pagesConf) {
+	private void exportFiles(final Path target, final Path configTarget) throws FrameworkException {
 
-		final Gson gson = new GsonBuilder().create();
+		final Map<String, Object> config = new LinkedHashMap<>();
+		final App app                    = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			// fetch toplevel folders and recurse
+			for (final Folder folder : app.nodeQuery(Folder.class).and(Folder.parent, null).getAsList()) {
+
+				exportFilesAndFolders(target, folder, config);
+			}
+
+			// fetch toplevel files
+			for (final FileBase file : app.nodeQuery(FileBase.class).and(Folder.parent, null).getAsList()) {
+				exportFile(target, file, config);
+			}
+
+			tx.success();
+
+		} catch (IOException ioex) {
+
+		}
+
+		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(configTarget.toFile()))) {
+
+			getGson().toJson(config, fos);
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
+	}
+
+	private void exportFilesAndFolders(final Path target, final Folder folder, final Map<String, Object> config) throws IOException {
+
+		final Map<String, Object> properties = new LinkedHashMap<>();
+		final String name                    = folder.getName();
+		final Path path                      = target.resolve(name);
+
+		Files.createDirectories(path);
+
+		exportFileConfiguration(folder, properties);
+
+		if (!properties.isEmpty()) {
+			config.put(folder.getPath(), properties);
+		}
+
+		for (final Folder child : folder.getProperty(Folder.folders)) {
+			exportFilesAndFolders(path, child, config);
+		}
+
+		for (final FileBase file : folder.getProperty(Folder.files)) {
+			exportFile(path, file, config);
+		}
+	}
+
+	private void exportFile(final Path target, final FileBase file, final Map<String, Object> config) throws IOException {
+
+		final Map<String, Object> properties = new LinkedHashMap<>();
+		final String name                    = file.getName();
+		final Path path                      = target.resolve(name);
+		final Path src                       = file.getFileOnDisk().toPath();
+
+		Files.copy(src, path);
+
+		exportFileConfiguration(file, properties);
+
+		if (!properties.isEmpty()) {
+			config.put(file.getPath(), properties);
+		}
+	}
+
+	private void exportPages(final Path target, final Path configTarget) throws FrameworkException {
+
+		final Map<String, Object> pagesConfig = new LinkedHashMap<>();
+		final App app                         = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final Page page : app.nodeQuery(Page.class).getAsList()) {
+
+				if (!(page instanceof ShadowDocument)) {
+
+					final String content = page.getContent(RenderContext.EditMode.DEPLOYMENT);
+					if (content != null) {
+
+						final Map<String, Object> properties = new LinkedHashMap<>();
+						final String name                    = page.getName();
+						final Path pageFile                  = target.resolve(name + ".html");
+
+						pagesConfig.put(name, properties);
+						exportConfiguration(page, properties);
+
+						try (final OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(pageFile.toFile()))) {
+
+							writer.write(content);
+							writer.flush();
+							writer.close();
+
+						} catch (IOException ioex) {
+							ioex.printStackTrace();
+						}
+					}
+				}
+			}
+
+			tx.success();
+		}
+
+		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(configTarget.toFile()))) {
+
+			getGson().toJson(pagesConfig, fos);
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
+	}
+
+	private void exportComponents(final Path target, final Path configTarget) throws FrameworkException {
+
+		final Map<String, Object> configuration = new LinkedHashMap<>();
+		final App app                           = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			final ShadowDocument shadowDocument = app.nodeQuery(ShadowDocument.class).getFirst();
+			if (shadowDocument != null) {
+
+				for (final DOMNode node : shadowDocument.getProperty(Page.elements)) {
+
+					if (node.isSynced()) {
+
+						final Map<String, Object> properties = new LinkedHashMap<>();
+						final String content                 = node.getContent(RenderContext.EditMode.DEPLOYMENT);
+						final String name                    = node.getName();
+
+						if (name != null) {
+
+							configuration.put(name, properties);
+							exportConfiguration(node, properties);
+						}
+
+						if (content != null) {
+
+							final Path pageFile = target.resolve(name + ".html");
+
+							try (final OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(pageFile.toFile()))) {
+
+								writer.write(content);
+								writer.flush();
+								writer.close();
+
+							} catch (IOException ioex) {
+								ioex.printStackTrace();
+							}
+						}
+					}
+				}
+			}
+
+			tx.success();
+		}
+
+		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(configTarget.toFile()))) {
+
+			getGson().toJson(configuration, fos);
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
+	}
+
+	private void exportTemplates(final Path target, final Path configTarget) throws FrameworkException {
+
+		final Map<String, Object> configuration = new LinkedHashMap<>();
+		final App app                           = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			final ShadowDocument shadowDocument = app.nodeQuery(ShadowDocument.class).getFirst();
+			if (shadowDocument != null) {
+
+				for (final DOMNode node : shadowDocument.getProperty(Page.elements)) {
+
+					if (node instanceof Template && node.isSynced()) {
+
+						final Map<String, Object> properties = new LinkedHashMap<>();
+						final String content                 = node.getProperty(Template.content);
+						final String name                    = node.getName();
+
+						if (name != null) {
+
+							configuration.put(name, properties);
+							exportConfiguration(node, properties);
+						}
+
+						if (content != null) {
+
+							final Path pageFile = target.resolve(name + ".html");
+
+							try (final OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(pageFile.toFile()))) {
+
+								writer.write(content);
+								writer.flush();
+								writer.close();
+
+							} catch (IOException ioex) {
+								ioex.printStackTrace();
+							}
+						}
+					}
+				}
+			}
+
+			tx.success();
+		}
+
+		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(configTarget.toFile()))) {
+
+			getGson().toJson(configuration, fos);
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
+	}
+
+	private void exportSecurity(final Path target) throws FrameworkException {
+
+		final List<Map<String, Object>> grants = new LinkedList<>();
+		final App app                          = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final ResourceAccess res : app.nodeQuery(ResourceAccess.class).getAsList()) {
+
+				final Map<String, Object> grant = new LinkedHashMap<>();
+				grants.add(grant);
+
+				grant.put("signature", res.getProperty(ResourceAccess.signature));
+				grant.put("flags",     res.getProperty(ResourceAccess.flags));
+			}
+
+			tx.success();
+		}
+
+		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
+
+			getGson().toJson(grants, fos);
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
+	}
+
+	private void exportSchema(final Path target) throws FrameworkException {
+
+		try {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(StructrApp.getInstance());
+
+			try (final Writer writer = new FileWriter(target.toFile())) {
+
+				writer.append(schema.toString());
+				writer.append("\n");
+				writer.flush();
+
+			} catch (IOException ioex) {
+				ioex.printStackTrace();
+			}
+
+		} catch (URISyntaxException x) {
+			x.printStackTrace();
+		}
+	}
+
+	private void exportConfiguration(final DOMNode node, final Map<String, Object> config) {
+
+		putIf(config, "visibleToPublicUsers",        node.isVisibleToPublicUsers());
+		putIf(config, "visibleToAuthenticatedUsers", node.isVisibleToAuthenticatedUsers());
+		putIf(config, "contentType",                 node.getProperty(Content.contentType));
+		putIf(config, "position",                    node.getProperty(Page.position));
+		putIf(config, "showOnErrorCodes",            node.getProperty(Page.showOnErrorCodes));
+		putIf(config, "showConditions",              node.getProperty(Page.showConditions));
+		putIf(config, "hideConditions",              node.getProperty(Page.hideConditions));
+		putIf(config, "dontCache",                   node.getProperty(Page.dontCache));
+		putIf(config, "cacheForSeconds",             node.getProperty(Page.cacheForSeconds));
+		putIf(config, "pageCreatesRawData",          node.getProperty(Page.pageCreatesRawData));
+	}
+
+	private void exportFileConfiguration(final AbstractFile file, final Map<String, Object> config) {
+
+		putIf(config, "visibleToPublicUsers",        file.isVisibleToPublicUsers());
+		putIf(config, "visibleToAuthenticatedUsers", file.isVisibleToAuthenticatedUsers());
+		putIf(config, "contentType",                 file.getProperty(Content.contentType));
+		putIf(config, "dontCache",                   file.getProperty(Page.dontCache));
+		putIf(config, "cacheForSeconds",             file.getProperty(Page.cacheForSeconds));
+	}
+
+	private void putIf(final Map<String, Object> target, final String key, final Object value) {
+
+		if (value != null) {
+			target.put(key, value);
+		}
+	}
+
+	private Map<String, Object> readConfigMap(final Path pagesConf) {
 
 		try (final Reader reader = Files.newBufferedReader(pagesConf, Charset.forName("utf-8"))) {
 
-			return gson.fromJson(reader, Map.class);
+			return getGson().fromJson(reader, Map.class);
 
 		} catch (IOException ioex) {
 			ioex.printStackTrace();
@@ -245,11 +631,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private List<Map<String, Object>> readConfigList(final Path pagesConf) {
 
-		final Gson gson = new GsonBuilder().create();
-
 		try (final Reader reader = Files.newBufferedReader(pagesConf, Charset.forName("utf-8"))) {
 
-			return gson.fromJson(reader, List.class);
+			return getGson().fromJson(reader, List.class);
 
 		} catch (IOException ioex) {
 			ioex.printStackTrace();
@@ -307,5 +691,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			tx.success();
 		}
+	}
+
+	private Gson getGson() {
+		return new GsonBuilder().setPrettyPrinting().create();
 	}
 }

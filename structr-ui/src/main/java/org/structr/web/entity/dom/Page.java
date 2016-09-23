@@ -491,54 +491,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		return importNode(node, deep, true);
 	}
 
-	private Node importNode(final Node node, final boolean deep, final boolean removeParentFromSourceNode) throws DOMException {
-
-		if (node instanceof DOMNode) {
-
-			final DOMNode domNode = (DOMNode) node;
-
-			// step 1: use type-specific import impl.
-			Node importedNode = domNode.doImport(Page.this);
-
-			// step 2: do recursive import?
-			if (deep && domNode.hasChildNodes()) {
-
-				// FIXME: is it really a good idea to do the
-				// recursion inside of a transaction?
-				Node child = domNode.getFirstChild();
-
-				while (child != null) {
-
-					// do not remove parent for child nodes
-					importNode(child, deep, false);
-					child = child.getNextSibling();
-
-					logger.log(Level.INFO, "sibling is {0}", child);
-				}
-
-			}
-
-			// step 3: remove node from its current parent
-			// (Note that this step needs to be done last in
-			// (order for the child to be able to find its
-			// siblings.)
-			if (removeParentFromSourceNode) {
-
-				// only do this for the actual source node, do not remove
-				// child nodes from its parents
-				Node _parent = domNode.getParentNode();
-				if (_parent != null) {
-					_parent.removeChild(domNode);
-				}
-			}
-
-			return importedNode;
-
-		}
-
-		return null;
-	}
-
 	@Override
 	public Node adoptNode(Node node) throws DOMException {
 		return adoptNode(node, true);
@@ -599,23 +551,13 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public DocumentType createDocumentType(String string, String string1, String string2) throws DOMException {
-
 		throw new UnsupportedOperationException("Not supported yet.");
-
 	}
 
 	@Override
 	public Document createDocument(String string, String string1, DocumentType dt) throws DOMException {
-
 		throw new UnsupportedOperationException("Not supported yet.");
-
 	}
-
-//	@Override
-//	public String toString() {
-//
-//		return getClass().getSimpleName() + " " + getName() + " [" + getUuid() + "] (" + getTextContent() + ")";
-//	}
 
 	/**
 	 * Return the content of this page depending on edit mode
@@ -636,7 +578,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	}
 
-	//~--- get methods ----------------------------------------------------
 	@Override
 	public short getNodeType() {
 
@@ -782,7 +723,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		return false;
 	}
 
-	//~--- set methods ----------------------------------------------------
 	@Override
 	public void setXmlStandalone(boolean bln) throws DOMException {
 	}
@@ -928,5 +868,54 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		}
 
 		return data;
+	}
+
+	// ----- private methods -----
+	private Node importNode(final Node node, final boolean deep, final boolean removeParentFromSourceNode) throws DOMException {
+
+		if (node instanceof DOMNode) {
+
+			final DOMNode domNode = (DOMNode) node;
+
+			// step 1: use type-specific import impl.
+			Node importedNode = domNode.doImport(Page.this);
+
+			// step 2: do recursive import?
+			if (deep && domNode.hasChildNodes()) {
+
+				// FIXME: is it really a good idea to do the
+				// recursion inside of a transaction?
+				Node child = domNode.getFirstChild();
+
+				while (child != null) {
+
+					// do not remove parent for child nodes
+					importNode(child, deep, false);
+					child = child.getNextSibling();
+
+					logger.log(Level.INFO, "sibling is {0}", child);
+				}
+
+			}
+
+			// step 3: remove node from its current parent
+			// (Note that this step needs to be done last in
+			// (order for the child to be able to find its
+			// siblings.)
+			if (removeParentFromSourceNode) {
+
+				// only do this for the actual source node, do not remove
+				// child nodes from its parents
+				Node _parent = domNode.getParentNode();
+				if (_parent != null) {
+					_parent.removeChild(domNode);
+				}
+			}
+
+			return importedNode;
+
+		}
+
+		return null;
 	}
 }
