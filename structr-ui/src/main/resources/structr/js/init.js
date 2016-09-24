@@ -1285,15 +1285,14 @@ var Structr = {
 		return Structr.getIdFromPrefixIdString($(element).prop('id'), 'active_') || undefined;
 	},
 	adaptUiToPresentModules: function() {
-		$('.module-dependend').each(function(idx, el) {
-
-			$el = $(el);
-			if (! Structr.isModulePresent($el.data('structr-module'))) {
-				$el.hide();
+		$('.module-dependend').each(function(idx, element) {
+			var el = $(element);
+			var module = el.data('structr-module');
+			if (module !== 'crawler' && Structr.isModulePresent(module)) {
+				if (!el.is(':visible')) el.show();
 			} else {
-				$el.show();
+				el.hide();
 			}
-
 		});
 	},
 	isModulePresent:function(moduleName) {
