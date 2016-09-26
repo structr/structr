@@ -233,6 +233,11 @@ public class RenderContext extends ActionContext {
 				edit = EditMode.RAW;
 				break;
 
+			case "4":
+
+				edit = EditMode.DEPLOYMENT;
+				break;
+
 			default:
 
 				edit = EditMode.NONE;
