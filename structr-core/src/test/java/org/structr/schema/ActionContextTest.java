@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.schema.action;
+package org.structr.schema;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -52,6 +52,8 @@ import org.structr.core.function.RoundFunction;
 import org.structr.core.function.ToDateFunction;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
+import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Actions;
 
 /**
  *

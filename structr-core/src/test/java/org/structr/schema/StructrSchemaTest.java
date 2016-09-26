@@ -16,9 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.schema.export;
+package org.structr.schema;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +31,13 @@ import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractUser;
+import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Cardinality;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.Tx;
+import org.structr.schema.export.StructrSchema;
 import org.structr.schema.json.InvalidSchemaException;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonProperty;
@@ -47,12 +55,7 @@ public class StructrSchemaTest extends StructrTest {
 
 	private static final Logger logger = Logger.getLogger(StructrSchemaTest.class.getName());
 
-	@Override
-	public void test00DbAvailable() {
-
-	}
-
-	public void testSimpleProperties() {
+	public void test00SimpleProperties() {
 
 		try {
 
@@ -143,7 +146,7 @@ public class StructrSchemaTest extends StructrTest {
 
 	}
 
-	public void testInheritance() {
+	public void test01Inheritance() {
 
 		// we need to wait for the schema service to be initialized here.. :(
 		try { Thread.sleep(1000); } catch (Throwable t) {}
@@ -176,7 +179,7 @@ public class StructrSchemaTest extends StructrTest {
 
 	}
 
-	public void testSimpleSymmetricReferences() {
+	public void test02SimpleSymmetricReferences() {
 
 		// we need to wait for the schema service to be initialized here.. :(
 		try { Thread.sleep(1000); } catch (Throwable t) {}
@@ -228,7 +231,7 @@ public class StructrSchemaTest extends StructrTest {
 
 	}
 
-	public void testSchemaBuilder() {
+	public void test03SchemaBuilder() {
 
 		// we need to wait for the schema service to be initialized here.. :(
 		try { Thread.sleep(1000); } catch (Throwable t) {}
@@ -314,43 +317,108 @@ public class StructrSchemaTest extends StructrTest {
 		}
 	}
 
-	private void compareSchemaRoundtrip(final JsonSchema sourceSchema) throws FrameworkException, InvalidSchemaException, URISyntaxException {
+	public void test04ManualSchemaRelatedPropertyNameCreation() {
 
-		final String source = sourceSchema.toString();
+		try {
 
-		System.out.println("##################### source");
-		System.out.println(source);
+			try (final Tx tx = app.tx()) {
 
-		final JsonSchema targetSchema = StructrSchema.createFromSource(sourceSchema.toString());
-		final String target = targetSchema.toString();
+				final SchemaNode source = app.create(SchemaNode.class, "Source");
+				final SchemaNode target = app.create(SchemaNode.class, "Target");
 
-		System.out.println("##################### target");
-		System.out.println(target);
+				app.create(SchemaRelationshipNode.class,
+					new NodeAttribute(SchemaRelationshipNode.relationshipType, "link"),
+					new NodeAttribute(SchemaRelationshipNode.sourceNode, source),
+					new NodeAttribute(SchemaRelationshipNode.targetNode, target),
+					new NodeAttribute(SchemaRelationshipNode.sourceMultiplicity, "1"),
+					new NodeAttribute(SchemaRelationshipNode.targetMultiplicity, "*")
+				);
 
-		assertEquals("Invalid schema (de)serialization roundtrip result", source, target);
+				tx.success();
+			}
 
-		StructrSchema.replaceDatabaseSchema(app, targetSchema);
+			checkSchemaString(StructrSchema.createFromDatabase(app).toString());
 
-		final JsonSchema replacedSchema = StructrSchema.createFromDatabase(app);
-		final String replaced = replacedSchema.toString();
-
-		System.out.println("##################### replaced");
-		System.out.println(replaced);
-
-		assertEquals("Invalid schema replacement result", source, replaced);
+		} catch (FrameworkException | URISyntaxException t) {
+			t.printStackTrace();
+		}
 	}
 
-//	@Override
-//	public void setUp() {
-//
-//		final Map<String, Object> config = new HashMap<>();
-//
-//		config.put("NodeExtender.log", "true");
-//
-//		super.setUp(config);
-//	}
+	public void test05SchemaRelatedPropertyNameCreationWithPresets() {
+
+		try {
+
+			// create test case
+			final JsonSchema schema     = StructrSchema.newInstance(URI.create(app.getInstanceId()));
+			final JsonObjectType source = schema.addType("Source");
+			final JsonObjectType target = schema.addType("Target");
+
+			source.relate(target, "link", Relation.Cardinality.OneToMany, "sourceLink", "linkTargets");
+
+			checkSchemaString(schema.toString());
+
+
+		} catch (FrameworkException | URISyntaxException t) {
+			t.printStackTrace();
+		}
+
+	}
+
+	public void test06SchemaRelatedPropertyNameCreationWithoutPresets() {
+
+		try {
+
+			// create test case
+			final JsonSchema schema     = StructrSchema.newInstance(URI.create(app.getInstanceId()));
+			final JsonObjectType source = schema.addType("Source");
+			final JsonObjectType target = schema.addType("Target");
+
+			source.relate(target, "link", Relation.Cardinality.OneToMany);
+
+			checkSchemaString(schema.toString());
+
+		} catch (FrameworkException | URISyntaxException t) {
+			t.printStackTrace();
+		}
+
+	}
 
 	// ----- private methods -----
+	private void checkSchemaString(final String source) {
+
+		System.out.println("########################################## checking");
+		System.out.println(source);
+
+		final Gson gson = new GsonBuilder().create();
+
+		final Map<String, Object> map  = gson.fromJson(source, Map.class);
+		assertNotNull("Invalid schema serialization", map);
+
+		final Map<String, Object> defs = (Map)map.get("definitions");
+		assertNotNull("Invalid schema serialization", defs);
+
+		final Map<String, Object> src  = (Map)defs.get("Source");
+		assertNotNull("Invalid schema serialization", src);
+
+		final Map<String, Object> srcp = (Map)src.get("properties");
+		assertNotNull("Invalid schema serialization", srcp);
+
+		final Map<String, Object> tgt  = (Map)defs.get("Target");
+		assertNotNull("Invalid schema serialization", tgt);
+
+		final Map<String, Object> tgtp = (Map)tgt.get("properties");
+		assertNotNull("Invalid schema serialization", tgtp);
+
+		final Map<String, Object> lnk  = (Map)defs.get("SourcelinkTarget");
+		assertNotNull("Invalid schema serialization", lnk);
+
+		// check related property names
+		assertTrue("Invalid schema serialization result", srcp.containsKey("linkTargets"));
+		assertTrue("Invalid schema serialization result", tgtp.containsKey("sourceLink"));
+		assertEquals("Invalid schema serialization result", "sourceLink", lnk.get("sourceName"));
+		assertEquals("Invalid schema serialization result", "linkTargets", lnk.get("targetName"));
+	}
+
 	private void mapPathValue(final Map<String, Object> map, final String mapPath, final Object value) {
 
 		final String[] parts = mapPath.split("[\\.]+");
@@ -377,5 +445,31 @@ public class StructrSchemaTest extends StructrTest {
 		}
 
 		assertEquals("Invalid map path result for " + mapPath, value, current);
+	}
+
+	private void compareSchemaRoundtrip(final JsonSchema sourceSchema) throws FrameworkException, InvalidSchemaException, URISyntaxException {
+
+		final String source = sourceSchema.toString();
+
+		System.out.println("##################### source");
+		System.out.println(source);
+
+		final JsonSchema targetSchema = StructrSchema.createFromSource(sourceSchema.toString());
+		final String target = targetSchema.toString();
+
+		System.out.println("##################### target");
+		System.out.println(target);
+
+		assertEquals("Invalid schema (de)serialization roundtrip result", source, target);
+
+		StructrSchema.replaceDatabaseSchema(app, targetSchema);
+
+		final JsonSchema replacedSchema = StructrSchema.createFromDatabase(app);
+		final String replaced = replacedSchema.toString();
+
+		System.out.println("##################### replaced");
+		System.out.println(replaced);
+
+		assertEquals("Invalid schema replacement result", source, replaced);
 	}
 }
