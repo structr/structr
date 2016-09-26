@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.schema.importer;
+package org.structr.schema;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -27,6 +27,7 @@ import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.fail;
 import org.junit.Test;
+import org.structr.schema.importer.LazyFileBasedLongCollection;
 
 /**
  *

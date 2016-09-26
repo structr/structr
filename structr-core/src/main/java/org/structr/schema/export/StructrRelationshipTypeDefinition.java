@@ -366,11 +366,11 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		this.aclHiddenProperties  = schemaNode.getProperty(SchemaRelationshipNode.propertyMask);
 
 		if (sourcePropertyName == null) {
-			sourcePropertyName = schemaNode.getPropertyName(sourceNodeType, root.getExistingPropertyNames(), true);
+			sourcePropertyName = schemaNode.getPropertyName(sourceNodeType, root.getExistingPropertyNames(), false);
 		}
 
 		if (targetPropertyName == null) {
-			targetPropertyName = schemaNode.getPropertyName(targetNodeType, root.getExistingPropertyNames(), false);
+			targetPropertyName = schemaNode.getPropertyName(targetNodeType, root.getExistingPropertyNames(), true);
 		}
 
 

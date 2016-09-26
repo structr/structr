@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.httpclient.Header;
@@ -39,6 +40,7 @@ import org.structr.api.graph.Direction;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.search.SortType;
+import org.structr.common.CaseHelper;
 import org.structr.common.Filter;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
@@ -69,6 +71,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
+import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
@@ -218,6 +221,13 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		Functions.functions.put("remove_session_attribute", new RemoveSessionAttributeFunction());
 	}
 
+	public static final Property[] rawProps = new Property[] {
+		dataKey, restQuery, cypherQuery, xpathQuery, functionQuery, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions
+	};
+
+	// a simple cache for data-* properties
+	private Set<PropertyKey> dataProperties = null;
+
 	public abstract boolean isSynced();
 
 	public abstract boolean contentEquals(final DOMNode otherNode);
@@ -300,6 +310,13 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	@Override
 	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		if (dataProperties != null) {
+
+			// invalidate data property cache
+			dataProperties.clear();
+		}
+
 
 		try {
 
@@ -526,6 +543,10 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		return null;
 	}
 
+	public boolean inTrash() {
+		return (getProperty(DOMNode.parent) == null && getOwnerDocumentAsSuperUser() == null);
+	}
+
 	// ----- private methods -----
 	/**
 	 * Get all ancestors of this node
@@ -548,6 +569,83 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	}
 
 	// ----- protected methods -----
+	protected void renderCustomAttributes(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
+
+		dbNode = this.getNode();
+		EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
+
+		for (PropertyKey key : getDataPropertyKeys()) {
+
+			String value = "";
+
+			if (EditMode.DEPLOYMENT.equals(editMode)) {
+
+				final Object obj = getProperty(key);
+				if (obj != null) {
+
+					value = obj.toString();
+				}
+
+			} else {
+
+				value = getPropertyWithVariableReplacement(renderContext, key);
+				if (value != null) {
+
+					value = value.trim();
+				}
+			}
+
+			if (!(EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode))) {
+
+				value = escapeForHtmlAttributes(value);
+			}
+
+			if (StringUtils.isNotBlank(value)) {
+
+				out.append(" ").append(key.dbName()).append("=\"").append(value).append("\"");
+			}
+		}
+
+		if (EditMode.DEPLOYMENT.equals(editMode) || EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
+
+			for (final Property p : rawProps) {
+
+				String htmlName = "data-structr-meta-" + CaseHelper.toUnderscore(p.jsonName(), false).replaceAll("_", "-");
+				Object value = getProperty(p);
+
+				if (value != null) {
+
+					final boolean isBoolean  = p instanceof BooleanProperty;
+					final String stringValue = value.toString();
+
+					if ((isBoolean && "true".equals(stringValue)) || (!isBoolean && StringUtils.isNotBlank(stringValue))) {
+						out.append(" ").append(htmlName).append("=\"").append(escapeForHtmlAttributes(stringValue)).append("\"");
+					}
+				}
+			}
+		}
+	}
+
+	protected Set<PropertyKey> getDataPropertyKeys() {
+
+		if (dataProperties == null) {
+
+			dataProperties = new TreeSet<>();
+
+			final Iterable<String> props = dbNode.getPropertyKeys();
+			for (final String key : props) {
+
+				if (key.startsWith("data-")) {
+
+					dataProperties.add(new GenericProperty(key));
+
+				}
+			}
+		}
+
+		return dataProperties;
+	}
+
 	protected void setDataRoot(final RenderContext renderContext, final AbstractNode node, final String dataKey) {
 		// an outgoing RENDER_NODE relationship points to the data node where rendering starts
 		for (RenderNode rel : node.getOutgoingRelationships(RenderNode.class)) {
@@ -791,7 +889,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		throw new DOMException(DOMException.INVALID_ACCESS_ERR, INVALID_ACCESS_ERR_MESSAGE);
 	}
 
-	protected String indent(final int depth, final RenderContext renderContext) {
+	public static String indent(final int depth, final RenderContext renderContext) {
 
 		if (!renderContext.shouldIndentHtml()) {
 			return "";

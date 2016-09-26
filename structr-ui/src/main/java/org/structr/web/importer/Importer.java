@@ -695,20 +695,24 @@ public class Importer {
 								String camelCaseKey = key.substring(l, l + 1).concat(upperCaseKey.substring(1));
 
 								if (value != null) {
+
 									if (value.equalsIgnoreCase("true")) {
+
 										newNode.setProperty(new BooleanProperty(camelCaseKey), true);
+
 									} else if (value.equalsIgnoreCase("false")) {
+
 										newNode.setProperty(new BooleanProperty(camelCaseKey), false);
+
 									} else {
+
 										newNode.setProperty(new StringProperty(camelCaseKey), nodeAttr.getValue());
 									}
 								}
 
-							} else
-							if (key.startsWith(DATA_STRUCTR_PREFIX)) { // don't convert data-structr-* attributes as they are internal
+							} else if (key.startsWith(DATA_STRUCTR_PREFIX)) { // don't convert data-structr-* attributes as they are internal
 
-								PropertyKey propertyKey = config.getPropertyKeyForJSONName(newNode.getClass(), key);
-
+								final PropertyKey propertyKey = config.getPropertyKeyForJSONName(newNode.getClass(), key);
 								if (propertyKey != null) {
 
 									final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
@@ -720,8 +724,16 @@ public class Importer {
 										newNode.setProperty(propertyKey, value);
 									}
 								}
-							}
 
+							} else {
+
+								// store data-* attributes in node
+								final PropertyKey propertyKey = new StringProperty(key);
+								if (value != null) {
+
+									newNode.setProperty(propertyKey, value);
+								}
+							}
 
 						} else {
 
@@ -768,10 +780,7 @@ public class Importer {
 
 							// Import schema JSON
 							SchemaJsonImporter.importSchemaJson(source);
-
 						}
-
-
 					}
 				}
 
@@ -800,6 +809,7 @@ public class Importer {
 
 							// remove comment node
 							parent.removeChild(lastCommentNode);
+							app.delete(lastCommentNode);
 						}
 					}
 

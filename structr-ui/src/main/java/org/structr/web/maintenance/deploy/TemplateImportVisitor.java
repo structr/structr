@@ -57,9 +57,9 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 
 	public TemplateImportVisitor(final Map<String, Object> pagesConfiguration) {
 
-		this.configuration = pagesConfiguration;
-		this.securityContext    = SecurityContext.getSuperUserInstance();
-		this.app                = StructrApp.getInstance();
+		this.configuration   = pagesConfiguration;
+		this.securityContext = SecurityContext.getSuperUserInstance();
+		this.app             = StructrApp.getInstance();
 	}
 
 	@Override
@@ -113,7 +113,7 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 			return Importer.findSharedComponentByName(name);
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "Unable to determine if page {0} already exists, ignoring.", name);
+			logger.log(Level.WARNING, "Unable to determine if template {0} already exists, ignoring.", name);
 		}
 
 		return null;
@@ -155,14 +155,14 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 		final PropertyMap properties   = getPropertiesForTemplate(name);
 		final DOMNode existingTemplate = getExistingTemplate(name);
 
-		try (final Tx tx = app.tx()) {
+		try (final Tx tx = app.tx(false, false, false)) {
 
 			if (existingTemplate != null) {
 
 				deleteTemplate(app, name);
 			}
 
-			logger.log(Level.INFO, "Importing page {0} from {1}..", new Object[] { name, fileName } );
+			logger.log(Level.INFO, "Importing template {0} from {1}..", new Object[] { name, fileName } );
 
 			final String src = new String (Files.readAllBytes(file),Charset.forName("UTF-8"));
 

@@ -72,8 +72,8 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 	@Override
 	public JsonReferenceType relate(final JsonObjectType type, final String relationship, final Cardinality cardinality) throws URISyntaxException {
 
-		final String sourcePropertyName = getPropertyName(type.getName(), true,  relationship, cardinality);
-		final String targetPropertyName = getPropertyName(type.getName(), false, relationship, cardinality);
+		final String sourcePropertyName = getPropertyName(type.getName(), false,  relationship, cardinality);
+		final String targetPropertyName = getPropertyName(type.getName(), true, relationship, cardinality);
 
 		return relate(type, relationship, cardinality, sourcePropertyName, targetPropertyName);
 	}
@@ -84,8 +84,8 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 		final Class type = StructrApp.resolveSchemaId(externalTypeReference);
 		if (type != null) {
 
-			final String sourcePropertyName = getPropertyName(type.getSimpleName(), true,  relationship, cardinality);
-			final String targetPropertyName = getPropertyName(type.getSimpleName(), false, relationship, cardinality);
+			final String sourcePropertyName = getPropertyName(type.getSimpleName(), false,  relationship, cardinality);
+			final String targetPropertyName = getPropertyName(type.getSimpleName(), true, relationship, cardinality);
 
 			return relate(externalTypeReference, relationship, cardinality, sourcePropertyName, targetPropertyName);
 		}
@@ -232,15 +232,6 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 				_targetMultiplicity = "*";
 				break;
 		}
-
-		if (!outgoing) {
-
-			// swap multiplicities
-			final String tmp    = _sourceMultiplicity;
-			_sourceMultiplicity = _targetMultiplicity;
-			_targetMultiplicity = tmp;
-		}
-
 
 		return SchemaRelationshipNode.getPropertyName(relatedClassName, root.getExistingPropertyNames(), outgoing, relationshipTypeName, sourceTypeName, targetTypeName, null, _targetMultiplicity, null, _sourceMultiplicity);
 	}
