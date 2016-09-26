@@ -50,6 +50,7 @@ var _Localization = {
 			'<div id="localization-main">' +
 				'<div id="localizations-list" class="resourceBox">' +
 					'<div id="localizations-pager"></div>' +
+					'<p><button class="create"><img src="' + _Icons.add_icon + '"> Prepare new Localization</button></p>' +
 					'<table id="localizations-table">' +
 						'<thead><tr>' +
 							'<th><a class="sortByKey">Key</a></th>' +
@@ -58,13 +59,13 @@ var _Localization = {
 						'</tr></thead>' +
 						'<tbody></tbody>' +
 					'</table>' +
-					'<button class="create"><img src="' + _Icons.add_icon + '"> Prepare new Localization</button>' +
 				'</div>' +
 				'<div id="localization-detail" class="resourceBox">' +
 					'<strong>Key:</strong> <input id="localization-key" class="disabled" disabled /> <strong>Domain:</strong> <input id="localization-domain" class="disabled" disabled />' +
 					' <a title="Edit" class="edit" id="localization-fields-edit"><img alt="Edit Icon" src="' + _Icons.edit_icon + '"></a>' +
 					' <a title="Save" class="save" id="localization-fields-save"><img alt="Save" src="' + _Icons.tick_icon + '"></a>' +
 					' <a title="Discard" class="discard" id="localization-fields-discard"><img alt="Discard" src="' + _Icons.cross_icon + '"></a>' +
+					'<p><button class="create"><img src="' + _Icons.add_icon + '"> New Localization</button></p>' +
 					'<table id="localization-detail-table">' +
 						'<thead><tr>' +
 							'<th>ID</th>' +
@@ -77,7 +78,6 @@ var _Localization = {
 						'</tr></thead>' +
 						'<tbody></tbody>' +
 					'</table>' +
-					'<button class="create"><img src="' + _Icons.add_icon + '"> New Localization</button>' +
 				'</div>' +
 			'</div>'
 		);
@@ -333,7 +333,7 @@ var _Localization = {
 			'<tr class="node localization">' +
 				'<td><span class="placeholder"> - not saved yet - </span></td>' +
 				'<td><input class="___locale"></td>' +
-				'<td><textarea class="___localizedName"></textarea></td>' +
+				'<td><textarea class="___localizedName" cols="40"></textarea></td>' +
 				'<td><input class="___visibleToPublicUsers" type="checkbox" checked></td>' +
 				'<td><input class="___visibleToAuthenticatedUsers" type="checkbox" checked></td>' +
 				'<td><input class="___imported" type="checkbox"></td>' +
