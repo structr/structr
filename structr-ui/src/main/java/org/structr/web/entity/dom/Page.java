@@ -52,7 +52,6 @@ import org.structr.core.property.RelationProperty;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
-import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaService;
 import org.structr.web.importer.Importer;
 import org.structr.web.common.RenderContext;
@@ -320,8 +319,10 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 		// create new content element
 		DOMElement element;
+
 		try {
-			final Class entityClass = SchemaHelper.getEntityClassForRawType(elementType);
+
+			final Class entityClass = Class.forName("org.structr.web.entity.html." + elementType);
 			if (entityClass != null) {
 
 				element = (DOMElement) app.create(entityClass, new NodeAttribute(DOMElement.tag, tag));
@@ -330,8 +331,8 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 				return element;
 			}
 
-		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, null, ex);
+		} catch (Throwable t) {
+			logger.log(Level.SEVERE, "Unable to instantiate element of type " + elementType, t);
 		}
 
 		return null;

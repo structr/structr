@@ -112,7 +112,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 	private Page getExistingPage(final String name) {
 
 		final App app = StructrApp.getInstance();
-		try (final Tx tx = app.tx()) {
+		try (final Tx tx = app.tx(false, false, false)) {
 
 			return app.nodeQuery(Page.class).andName(name).getFirst();
 
@@ -164,7 +164,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 
 	private void createFolder(final Path file) {
 
-		try (final Tx tx = app.tx()) {
+		try (final Tx tx = app.tx(false, false, false)) {
 
 			// create folder
 			FileHelper.createFolderPath(securityContext, basePath.relativize(file).toString());
@@ -182,7 +182,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 		final PropertyMap properties = getPropertiesForPage(name);
 		final Page existingPage      = getExistingPage(name);
 
-		try (final Tx tx = app.tx()) {
+		try (final Tx tx = app.tx(false, false, false)) {
 
 			if (existingPage != null) {
 
@@ -234,17 +234,17 @@ public class PageImportVisitor implements FileVisitor<Path> {
 				boolean visibleToPublic       = get(properties, GraphObject.visibleToPublicUsers, false);
 				boolean visibleToAuth         = get(properties, GraphObject.visibleToPublicUsers, false);
 				final Importer importer       = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth);
-				final boolean parseOk         = importer.parse(true);
 
+				// enable literal import of href attributes
+				importer.setIsDeployment(true);
+
+				final boolean parseOk = importer.parse(true);
 				if (parseOk) {
 
 					logger.log(Level.INFO, "Importing page {0} from {1}..", new Object[] { name, fileName } );
 
 					// set comment handler that can parse and apply special Structr comments in HTML source files
 					importer.setCommentHandler(new DeploymentCommentHandler());
-
-					// enable literal import of href attributes
-					importer.setIsDeployment(true);
 
 					// parse page
 					final Page newPage = app.create(Page.class, name);

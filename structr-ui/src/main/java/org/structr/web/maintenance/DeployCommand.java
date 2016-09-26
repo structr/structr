@@ -320,7 +320,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			// fetch toplevel folders and recurse
 			for (final Folder folder : app.nodeQuery(Folder.class).and(Folder.parent, null).getAsList()) {
-
 				exportFilesAndFolders(target, folder, config);
 			}
 
@@ -332,7 +331,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			tx.success();
 
 		} catch (IOException ioex) {
-
+			ioex.printStackTrace();
 		}
 
 		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(configTarget.toFile()))) {
@@ -371,10 +370,21 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final Map<String, Object> properties = new LinkedHashMap<>();
 		final String name                    = file.getName();
-		final Path path                      = target.resolve(name);
 		final Path src                       = file.getFileOnDisk().toPath();
+		Path path                            = target.resolve(name);
+		int i                                = 0;
 
-		Files.copy(src, path);
+		// modify file name if there are duplicates in the database
+		while (Files.exists(path)) {
+			path = target.resolve(name + i++);
+		}
+
+		try {
+			Files.copy(src, path);
+
+		} catch (IOException ioex) {
+			// ignore this
+		}
 
 		exportFileConfiguration(file, properties);
 
@@ -441,31 +451,35 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				for (final DOMNode node : shadowDocument.getProperty(Page.elements)) {
 
-					if (node.isSynced()) {
+					// skip templates, nodes in trash and non-toplevel nodes
+					if (node instanceof Content || node.inTrash() || node.getProperty(DOMNode.parent) != null) {
+						continue;
+					}
 
-						final Map<String, Object> properties = new LinkedHashMap<>();
-						final String content                 = node.getContent(RenderContext.EditMode.DEPLOYMENT);
-						final String name                    = node.getName();
+					final Map<String, Object> properties = new LinkedHashMap<>();
 
-						if (name != null) {
+					String name = node.getProperty(AbstractNode.name);
+					if (name == null) {
 
-							configuration.put(name, properties);
-							exportConfiguration(node, properties);
-						}
+						name = node.getUuid();
+					}
 
-						if (content != null) {
+					configuration.put(name, properties);
+					exportConfiguration(node, properties);
 
-							final Path pageFile = target.resolve(name + ".html");
+					final String content = node.getContent(RenderContext.EditMode.DEPLOYMENT);
+					if (content != null) {
 
-							try (final OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(pageFile.toFile()))) {
+						final Path pageFile = target.resolve(name + ".html");
 
-								writer.write(content);
-								writer.flush();
-								writer.close();
+						try (final OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(pageFile.toFile()))) {
 
-							} catch (IOException ioex) {
-								ioex.printStackTrace();
-							}
+							writer.write(content);
+							writer.flush();
+							writer.close();
+
+						} catch (IOException ioex) {
+							ioex.printStackTrace();
 						}
 					}
 				}
@@ -490,38 +504,27 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
+			// export template nodes anywhere in the pages tree or shared components view
+			for (final Template template : app.nodeQuery(Template.class).getAsList()) {
+
+				if (template.inTrash()) {
+					continue;
+				}
+
+				exportTemplateSource(target, template, configuration);
+			}
+
 			final ShadowDocument shadowDocument = app.nodeQuery(ShadowDocument.class).getFirst();
 			if (shadowDocument != null) {
 
 				for (final DOMNode node : shadowDocument.getProperty(Page.elements)) {
 
-					if (node instanceof Template && node.isSynced()) {
-
-						final Map<String, Object> properties = new LinkedHashMap<>();
-						final String content                 = node.getProperty(Template.content);
-						final String name                    = node.getName();
-
-						if (name != null) {
-
-							configuration.put(name, properties);
-							exportConfiguration(node, properties);
-						}
-
-						if (content != null) {
-
-							final Path pageFile = target.resolve(name + ".html");
-
-							try (final OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(pageFile.toFile()))) {
-
-								writer.write(content);
-								writer.flush();
-								writer.close();
-
-							} catch (IOException ioex) {
-								ioex.printStackTrace();
-							}
-						}
+					// skip everything except templates, skip nodes in trash and non-toplevel nodes
+					if (!(node instanceof Content) || node.inTrash() || node.getProperty(DOMNode.parent) != null) {
+						continue;
 					}
+
+					exportTemplateSource(target, node, configuration);
 				}
 			}
 
@@ -534,6 +537,37 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} catch (IOException ioex) {
 			ioex.printStackTrace();
+		}
+	}
+
+	private void exportTemplateSource(final Path target, final DOMNode template, final Map<String, Object> configuration) {
+
+		final Map<String, Object> properties = new LinkedHashMap<>();
+
+		// name or uuid
+		String name = template.getProperty(AbstractNode.name);
+		if (name == null) {
+
+			name = template.getUuid();
+		}
+
+		configuration.put(name, properties);
+		exportConfiguration(template, properties);
+
+		final String content = template.getProperty(Template.content);
+		if (content != null) {
+
+			final Path pageFile = target.resolve(name + ".html");
+
+			try (final OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(pageFile.toFile()))) {
+
+				writer.write(content);
+				writer.flush();
+				writer.close();
+
+			} catch (IOException ioex) {
+				ioex.printStackTrace();
+			}
 		}
 	}
 

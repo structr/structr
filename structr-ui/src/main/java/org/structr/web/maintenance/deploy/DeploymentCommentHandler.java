@@ -134,11 +134,6 @@ public class DeploymentCommentHandler implements CommentHandler {
 					logger.log(Level.WARNING, "Unknown token {0}, expected one of {1}.", new Object[] { token, handlers.keySet() });
 					break;
 				}
-
-			} else {
-
-				logger.log(Level.WARNING, "Invalid sequence in instruction comment, expected @structr:");
-				break;
 			}
 		}
 
@@ -168,8 +163,6 @@ public class DeploymentCommentHandler implements CommentHandler {
 				}
 
 				if (c != s) {
-
-					logger.log(Level.WARNING, "Invalid character in instruction comment, expected {0}, got {1}", new Object[] { s, c } );
 					return false;
 				}
 

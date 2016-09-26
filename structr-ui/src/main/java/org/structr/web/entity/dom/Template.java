@@ -18,9 +18,17 @@
  */
 package org.structr.web.entity.dom;
 
+import java.util.List;
 import org.structr.common.PropertyView;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
+import org.structr.web.common.AsyncBuffer;
+import org.structr.web.common.RenderContext;
+import org.structr.web.common.RenderContext.EditMode;
+import org.structr.web.entity.dom.relationship.DOMChildren;
 
 /**
  * Content element that can act as an outer template.
@@ -43,4 +51,60 @@ public class Template extends Content {
 		showForLocales, hideForLocales, showConditions, hideConditions, isContent, configuration
 	);
 
+	@Override
+	public void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
+
+		if (EditMode.DEPLOYMENT.equals(renderContext.getEditMode(securityContext.getUser(false)))) {
+
+			final DOMNode _syncedNode = (DOMNode) getProperty(sharedComponent);
+			final AsyncBuffer out     = renderContext.getBuffer();
+
+			if (depth > 0) {
+				out.append(DOMNode.indent(depth, renderContext));
+			}
+
+			out.append("<structr:template src=\"");
+
+			if (_syncedNode != null) {
+
+				final String name = _syncedNode.getProperty(AbstractNode.name);
+				out.append(name != null ? name : _syncedNode.getUuid());
+
+			} else {
+
+				out.append(getUuid());
+			}
+
+			out.append("\"");
+
+			// include custom attributes in templates as well!
+			renderCustomAttributes(out, securityContext, renderContext);
+
+			out.append(">");
+
+			// TODO: we need to include the children here...
+			// fetch children
+			final List<DOMChildren> rels = getChildRelationships();
+			if (rels.isEmpty()) {
+
+				// No child relationships, maybe this node is in sync with another node
+				if (_syncedNode != null) {
+					rels.addAll(_syncedNode.getChildRelationships());
+				}
+			}
+
+			for (final AbstractRelationship rel : rels) {
+
+				final DOMNode subNode = (DOMNode) rel.getTargetNode();
+				subNode.render(renderContext, depth + 1);
+			}
+
+			out.append(DOMNode.indent(depth, renderContext));
+			out.append("</structr:template>");
+
+		} else {
+
+			super.renderContent(renderContext, depth);
+		}
+	}
 }

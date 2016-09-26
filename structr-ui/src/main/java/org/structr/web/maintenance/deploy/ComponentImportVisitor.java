@@ -113,7 +113,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 			return Importer.findSharedComponentByName(name);
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "Unable to determine if page {0} already exists, ignoring.", name);
+			logger.log(Level.WARNING, "Unable to determine if component {0} already exists, ignoring.", name);
 		}
 
 		return null;
@@ -174,7 +174,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 		final PropertyMap properties    = getPropertiesForComponent(name);
 		final DOMNode existingComponent = getExistingComponent(name);
 
-		try (final Tx tx = app.tx()) {
+		try (final Tx tx = app.tx(false, false, false)) {
 
 			if (existingComponent != null) {
 
@@ -192,7 +192,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 			final boolean parseOk = importer.parse(false);
 			if (parseOk) {
 
-				logger.log(Level.INFO, "Importing page {0} from {1}..", new Object[] { name, fileName } );
+				logger.log(Level.INFO, "Importing component {0} from {1}..", new Object[] { name, fileName } );
 
 				// set comment handler that can parse and apply special Structr comments in HTML source files
 				importer.setCommentHandler(new DeploymentCommentHandler());

@@ -54,9 +54,9 @@ public class IncludeFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 		try {
-			
+
 			if (!(arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String)) {
-				
+
 				return null;
 			}
 
@@ -81,8 +81,7 @@ public class IncludeFunction extends Function<Object, Object> {
 			 */
 			for (final DOMNode n : nodeList) {
 
-				// Ignore nodes in trash
-				if (n.getProperty(DOMNode.parent) == null && n.getOwnerDocumentAsSuperUser() == null) {
+				if (n.inTrash()) {
 					continue;
 				}
 

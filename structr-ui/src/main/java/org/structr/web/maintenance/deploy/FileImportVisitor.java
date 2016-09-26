@@ -103,7 +103,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	// ----- private methods -----
 	private void createFolder(final Path file) {
 
-		try (final Tx tx = app.tx()) {
+		try (final Tx tx = app.tx(false, false, false)) {
 
 			// create folder
 			final Folder folder = createFolders(basePath.relativize(file));
@@ -126,7 +126,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 	private void createFile(final Path file, final String fileName) throws IOException {
 
-		try (final Tx tx = app.tx()) {
+		try (final Tx tx = app.tx(false, false, false)) {
 
 			final Path parentPath   = basePath.relativize(file).getParent();
 			final Folder parent     = createFolders(parentPath);

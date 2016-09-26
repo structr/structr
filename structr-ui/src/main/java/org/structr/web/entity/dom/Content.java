@@ -315,9 +315,9 @@ public class Content extends DOMNode implements Text {
 
 				// EditMode "deployment" means "output raw content, do not interpret in any way
 				renderContext.getBuffer().append(getProperty(Content.content));
+
 				return;
 			}
-
 
 			if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(renderContext)) {
 				return;
