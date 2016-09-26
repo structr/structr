@@ -139,15 +139,15 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 		_Pager.restorePagerData(this.id);
 
 		this.el.append('<div class="pager pager' + this.id + '" style="clear: both"><button class="pageLeft">&lt; Prev</button>'
-				+ ' <input class="page" type="text" size="3" value="' + page[this.id] + '"><button class="pageRight">Next &gt;</button>'
-				+ ' of <input class="readonly pageCount" readonly="readonly" size="3">'
-				+ ' Items: <input class="pageSize" type="text" size="3" value="' + pageSize[this.id] + '"></div>');
+				+ ' <input class="pageNo" type="text" size="2" value="' + page[this.id] + '"><button class="pageRight">Next &gt;</button>'
+				+ ' of <input class="readonly pageCount" readonly="readonly" size="2">'
+				+ ' Items: <input class="pageSize" type="text" size="2" value="' + pageSize[this.id] + '"></div>');
 
 		this.pager = $('.pager' + this.id, this.el);
 
 		this.pageLeft  = $('.pageLeft', this.pager);
 		this.pageRight = $('.pageRight', this.pager);
-		this.pageNo    = $('.page', this.pager);
+		this.pageNo    = $('.pageNo', this.pager);
 		this.pageSize  = $('.pageSize', this.pager);
 		this.pageCount = $('.pageCount', this.pager);
 
@@ -212,7 +212,7 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 	 * Gets called whenever a change has been made (i.e. button has been pressed)
 	 */
 	this.updatePagerElements = function () {
-		$('.page', this.pager).val(page[this.id]);
+		$('.pageNo', this.pager).val(page[this.id]);
 		$('.pageSize', this.pager).val(pageSize[this.id]);
 
 		this.cleanupFunction();

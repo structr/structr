@@ -16,7 +16,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var main, filesystemMain, fileTree, folderContents;
+var main, filesMain, fileTree, folderContents;
+var images, folders, drop;
 var fileList;
 var chunkSize = 1024 * 64;
 var sizeLimit = 1024 * 1024 * 1024;
@@ -26,16 +27,20 @@ var activeFileId, fileContents = {};
 var counter = 0;
 var currentWorkingDir;
 var folderPageSize = 10000, folderPage = 1;
+var filesViewModeKey = 'structrFilesViewMode_' + port;
+var viewMode;
+var timeout, attempts = 0, maxRetry = 10;
 
 $(document).ready(function() {
-	Structr.registerModule('filesystem', _Filesystem);
-	_Filesystem.resize();
+	Structr.registerModule('files', _Files);
+	_Files.resize();
 });
 
-var _Filesystem = {
+var _Files = {
 	init: function() {
 
-		_Logger.log(_LogType.FILESYSTEM, '_Filesystem.init');
+		viewMode = viewMode || LSWrapper.getItem(filesViewModeKey) || 'list';
+		_Logger.log(_LogType.FILES, '_Files.init');
 
 		main = $('#main');
 
@@ -50,13 +55,13 @@ var _Filesystem = {
 			if (searchString && searchString.length && e.keyCode === 13) {
 
 				$('.clearSearchIcon').show().on('click', function() {
-					_Filesystem.clearSearch();
+					_Files.clearSearch();
 				});
 
-				_Filesystem.fulltextSearch(searchString);
+				_Files.fulltextSearch(searchString);
 
 			} else if (e.keyCode === 27 || searchString === '') {
-				_Filesystem.clearSearch();
+				_Files.clearSearch();
 			}
 
 		});
@@ -87,38 +92,44 @@ var _Filesystem = {
 
 		Structr.resize();
 
-		var nameColumnWidth = $('#files-table th:nth-child(2)').width();
+		var nameColumnWidth;
+		if (viewMode === 'list') {
 
-		if (nameColumnWidth < 300) {
-			$('#files-table th:nth-child(4)').css({ display: 'none' });
-			$('#files-table td:nth-child(4)').css({ display: 'none' });
-			$('#files-table th:nth-child(5)').css({ display: 'none' });
-			$('#files-table td:nth-child(5)').css({ display: 'none' });
+			nameColumnWidth = $('#files-table th:nth-child(2)').width();
+
+			if (nameColumnWidth < 300) {
+				$('#files-table th:nth-child(4)').css({ display: 'none' });
+				$('#files-table td:nth-child(4)').css({ display: 'none' });
+				$('#files-table th:nth-child(5)').css({ display: 'none' });
+				$('#files-table td:nth-child(5)').css({ display: 'none' });
+			}
+
+			if (nameColumnWidth > 550) {
+				$('#files-table th:nth-child(4)').css({ display: 'table-cell' });
+				$('#files-table td:nth-child(4)').css({ display: 'table-cell' });
+				$('#files-table th:nth-child(5)').css({ display: 'table-cell' });
+				$('#files-table td:nth-child(5)').css({ display: 'table-cell' });
+			}
+
+			nameColumnWidth = $('#files-table th:nth-child(2)').width() - 96;
+		} else {
+			nameColumnWidth = 80;
 		}
-
-		if (nameColumnWidth > 550) {
-			$('#files-table th:nth-child(4)').css({ display: 'table-cell' });
-			$('#files-table td:nth-child(4)').css({ display: 'table-cell' });
-			$('#files-table th:nth-child(5)').css({ display: 'table-cell' });
-			$('#files-table td:nth-child(5)').css({ display: 'table-cell' });
-		}
-
-		nameColumnWidth = $('#files-table th:nth-child(2)').width() - 96;
 
 		$('.node.file .name_').each(function(i, el) {
 			var title = $(el).attr('title');
-			$(el).html('<b title="' +  title + '" class="name_">' + fitStringToWidth(title ? title : '[unnamed]', nameColumnWidth) + '</b>');
+			$(el).replaceWith('<b title="' +  title + '" class="name_">' + fitStringToWidth(title ? title : '[unnamed]', nameColumnWidth) + '</b>');
 		});
 
 	},
 	onload: function() {
 
-		_Filesystem.init();
+		_Files.init();
 
 		$('#main-help a').attr('href', 'https://support.structr.com/article/49');
 
-		main.append('<div id="filesystem-main"><div class="fit-to-height" id="file-tree-container"><div id="file-tree"></div></div><div class="fit-to-height" id="folder-contents-container"><div id="folder-contents"></div></div>');
-		filesystemMain = $('#filesystem-main');
+		main.append('<div id="files-main"><div class="fit-to-height" id="file-tree-container"><div id="file-tree"></div></div><div class="fit-to-height" id="folder-contents-container"><div id="folder-contents"></div></div>');
+		filesMain = $('#files-main');
 
 		fileTree = $('#file-tree');
 		folderContents = $('#folder-contents');
@@ -133,21 +144,21 @@ var _Filesystem = {
 		$('.add_file_icon', main).on('click', function(e) {
 			e.stopPropagation();
 			Command.create({ type: 'File', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
-				_Filesystem.appendFileOrFolderRow(f);
+				_Files.appendFileOrFolder(f);
 			});
 		});
 
 		$('.add_minified_css_file_icon', main).on('click', function(e) {
 			e.stopPropagation();
 			Command.create({ type: 'MinifiedCssFile', contentType: 'text/css', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
-				_Filesystem.appendFileOrFolderRow(f);
+				_Files.appendFileOrFolder(f);
 			});
 		});
 
 		$('.add_minified_js_file_icon', main).on('click', function(e) {
 			e.stopPropagation();
 			Command.create({ type: 'MinifiedJavaScriptFile', contentType: 'text/javascript', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
-				_Filesystem.appendFileOrFolderRow(f);
+				_Files.appendFileOrFolder(f);
 			});
 		});
 
@@ -160,8 +171,8 @@ var _Filesystem = {
 		$('.add_folder_icon', main).on('click', function(e) {
 			e.stopPropagation();
 			Command.create({ type: 'Folder', parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
-				_Filesystem.appendFileOrFolderRow(f);
-				_Filesystem.refreshTree();
+				_Files.appendFileOrFolder(f);
+				_Files.refreshTree();
 			});
 		});
 
@@ -172,9 +183,9 @@ var _Filesystem = {
 		fileTree.on('ready.jstree', function() {
 			var rootEl = $('#root > .jstree-wholerow');
 			_Dragndrop.makeDroppable(rootEl);
-			_Filesystem.loadAndSetWorkingDir(function() {
+			_Files.loadAndSetWorkingDir(function() {
 				if (currentWorkingDir) {
-					_Filesystem.deepOpen(currentWorkingDir);
+					_Files.deepOpen(currentWorkingDir);
 				}
 				window.setTimeout(function() {
 					fileTree.jstree('select_node', currentWorkingDir ? currentWorkingDir.id : 'root');
@@ -185,26 +196,26 @@ var _Filesystem = {
 		fileTree.on('select_node.jstree', function(evt, data) {
 
 			if (data.node.id === 'root') {
-				_Filesystem.deepOpen(currentWorkingDir, []);
+				_Files.deepOpen(currentWorkingDir, []);
 			}
 
-			_Filesystem.setWorkingDirectory(data.node.id);
-			_Filesystem.displayFolderContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
+			_Files.setWorkingDirectory(data.node.id);
+			_Files.displayFolderContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
 
 		});
 
-		_Filesystem.initTree();
+		_Files.initTree();
 
-		_Filesystem.activateUpload();
+		_Files.activateUpload();
 
 		win.off('resize');
 		win.resize(function() {
-			_Filesystem.resize();
+			_Files.resize();
 		});
 
 		Structr.unblockMenu(100);
 
-		_Filesystem.resize();
+		_Files.resize();
 		Structr.adaptUiToPresentModules();
 
 	},
@@ -214,9 +225,9 @@ var _Filesystem = {
 			dirs.unshift(d);
 			Command.get(d.id, function(dir) {
 				if (dir && dir.parent) {
-					_Filesystem.deepOpen(dir.parent, dirs);
+					_Files.deepOpen(dir.parent, dirs);
 				} else {
-					_Filesystem.open(dirs);
+					_Files.open(dirs);
 				}
 			});
 		}
@@ -227,7 +238,7 @@ var _Filesystem = {
 		fileTree.jstree('deselect_node', d.id);
 		fileTree.jstree('open_node', d.id, function() {
 			fileTree.jstree('select_node', currentWorkingDir ? currentWorkingDir.id : 'root');
-			//_Filesystem.open(dirs);
+			//_Files.open(dirs);
 		});
 
 	},
@@ -286,11 +297,11 @@ var _Filesystem = {
 							break;
 
 						case 'root':
-							_Filesystem.load(null, callback);
+							_Files.load(null, callback);
 							break;
 
 						default:
-							_Filesystem.load(obj.id, callback);
+							_Files.load(obj.id, callback);
 							break;
 					}
 				}
@@ -299,7 +310,7 @@ var _Filesystem = {
 	},
 	unload: function() {
 		fastRemoveAllChildren($('.searchBox', main));
-		fastRemoveAllChildren($('#filesystem-main', main));
+		fastRemoveAllChildren($('#files-main', main));
 	},
 	activateUpload: function() {
 		if (window.File && window.FileReader && window.FileList && window.Blob) {
@@ -307,7 +318,7 @@ var _Filesystem = {
 			drop = $('#folder-contents');
 
 			drop.on('dragover', function(event) {
-				_Logger.log(_LogType.FILESYSTEM, 'dragging over #files area');
+				_Logger.log(_LogType.FILES, 'dragging over #files area');
 				event.originalEvent.dataTransfer.dropEffect = 'copy';
 				return false;
 			});
@@ -318,7 +329,7 @@ var _Filesystem = {
 					return;
 				}
 
-				_Logger.log(_LogType.FILESYSTEM, 'dropped something in the #files area');
+				_Logger.log(_LogType.FILES, 'dropped something in the #files area');
 
 				event.stopPropagation();
 				event.preventDefault();
@@ -348,7 +359,7 @@ var _Filesystem = {
 							fadeOut: 25
 						});
 						$(filesToUpload).each(function(i, file) {
-							_Logger.log(_LogType.FILESYSTEM, file);
+							_Logger.log(_LogType.FILES, file);
 							if (file) {
 								Command.createFile(file);
 							}
@@ -361,7 +372,7 @@ var _Filesystem = {
 						file.parentId = currentWorkingDir ? currentWorkingDir.id : null;
 						file.hasParent = true; // Setting hasParent = true forces the backend to upload the file to the root dir even if parentId is null
 						Command.createFile(file, function(f) {
-							_Filesystem.appendFileOrFolderRow(f);
+							_Files.appendFileOrFolder(f);
 						});
 					});
 				}
@@ -385,13 +396,13 @@ var _Filesystem = {
 			}
 			var typeIcon = Structr.node(file.id).parent().find('.typeIcon');
 			var iconSrc = typeIcon.prop('src');
-			_Logger.log(_LogType.FILESYSTEM, 'Icon src: ', iconSrc);
+			_Logger.log(_LogType.FILES, 'Icon src: ', iconSrc);
 			typeIcon.prop('src', iconSrc + '?' + new Date().getTime());
 		};
 
 		$(fileList).each(function(i, fileObj) {
 			if (fileObj.name === file.name) {
-				_Logger.log(_LogType.FILESYSTEM, 'Uploading chunks for file ' + file.id);
+				_Logger.log(_LogType.FILES, 'Uploading chunks for file ' + file.id);
 				worker.postMessage(fileObj);
 			}
 		});
@@ -411,7 +422,7 @@ var _Filesystem = {
 			url = rootUrl + 'files/ui?loose=1&indexedWords=' + searchString;
 		}
 
-		_Filesystem.displaySearchResultsForURL(url);
+		_Files.displaySearchResultsForURL(url);
 	},
 	clearSearch: function() {
 		$('.search', main).val('');
@@ -509,8 +520,40 @@ var _Filesystem = {
 		});
 	},
 	displayFolderContents: function(id, parentId, nodePath, parents) {
-		var content = $('#folder-contents');
-		fastRemoveAllChildren(content[0]);
+		
+		fastRemoveAllChildren(folderContents[0]);
+		folderContents.prepend('<div id="switches">'
+			+ '<button class="switch ' + (viewMode === 'list' ? 'active' : 'inactive') + '" id="switch-list">'
+			+ (viewMode === 'list' ? '<img src="icon/tick.png">' : '')
+			+ ' List</button><button class="switch ' + (viewMode === 'tiles' ? 'active' : 'inactive') + '" id="switch-tiles">'
+		    + (viewMode === 'tiles' ? '<img src="icon/tick.png">' : '')
+			+ ' Tiles</button>'
+			+ '</div>');
+		
+		var listSw  = $('#switch-list');
+		var tilesSw = $('#switch-tiles');
+		listSw.on('click', function(e) {
+			var state = listSw.hasClass('inactive');
+			if (state) {
+				viewMode = 'list';
+				LSWrapper.setItem(filesViewModeKey, viewMode);
+				_Entities.changeBooleanAttribute(listSw,  state, 'List', 'List');
+				_Entities.changeBooleanAttribute(tilesSw, !state, 'Tiles', 'Tiles');
+				_Files.displayFolderContents(id, parentId, nodePath, parents);
+			}
+		});
+
+		tilesSw.on('click', function(e) {
+			var state = tilesSw.hasClass('inactive');
+			if (state) {
+				viewMode = 'tiles';
+				LSWrapper.setItem(filesViewModeKey, viewMode);
+				_Entities.changeBooleanAttribute(tilesSw, state, 'Tiles', 'Tiles');
+				_Entities.changeBooleanAttribute(listSw,  !state, 'List', 'List');
+				_Files.displayFolderContents(id, parentId, nodePath, parents);
+			}
+		});
+		
 		var path = '';
 		if (parents) {
 			parents = [].concat(parents).reverse().slice(1);
@@ -522,13 +565,14 @@ var _Filesystem = {
 			path += ' <i class="fa fa-caret-right"></i> ' + pathNames.pop();
 		}
 
-		var handleChildren = function(children) {
-			if (children && children.length) {
-				children.forEach(_Filesystem.appendFileOrFolderRow);
-			}
+		var handleChildren = 		
+			function(children) {
+				if (children && children.length) {
+					children.forEach(_Files.appendFileOrFolder);
+				}
 
-			_Filesystem.resize();
-		};
+				_Files.resize();
+			};
 
 		if (id === 'root') {
 			Command.list('Folder', true, 1000, 1, 'name', 'asc', null, handleChildren);
@@ -544,27 +588,40 @@ var _Filesystem = {
 			hasParent: (parentId !== '#')
 		});
 
-		var filesPager = _Pager.addPager('filesystem-files', content, false, 'FileBase', 'public', handleChildren);
+		var filesPager = _Pager.addPager('filesystem-files', folderContents, false, 'FileBase', 'public', handleChildren);
 
-		filesPager.cleanupFunction = function () {
-			var toRemove = $('.node.file', filesPager.el).closest('tr');
-			toRemove.each(function(i, elem) {
-				fastRemoveAllChildren(elem);
-			});
-		};
+		if (viewMode === 'list') {
+			filesPager.cleanupFunction = function () {
+				var toRemove = $('.node.file', filesPager.el).closest('tr');
+				toRemove.each(function(i, elem) {
+					fastRemoveAllChildren(elem);
+					elem.remove();
+				});
+			};
+		} else {
+			filesPager.cleanupFunction = function () {
+				var toRemove = $('.node.file', filesPager.el).closest('.tile');
+				toRemove.each(function(i, elem) {
+					fastRemoveAllChildren(elem);
+					elem.remove();
+				});
+			};
+		}
 
 		filesPager.pager.append('Filter: <input type="text" class="filter" data-attribute="name">');
 		filesPager.pager.append('<input type="text" class="filter" data-attribute="parentId" value="' + ((parentId === '#') ? '' : id) + '" hidden>');
 		filesPager.pager.append('<input type="checkbox" class="filter" data-attribute="hasParent" ' + ((parentId === '#') ? '' : 'checked') + ' hidden>');
 		filesPager.activateFilterElements();
 
-		content.append(
-				'<h2>' + path + '</h2>'
-				+ '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
+		folderContents.append('<h2>' + path + '</h2>');
+		
+		if (viewMode === 'list') {
+
+			folderContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
 				+ '<tbody id="files-table-body">'
 				+ ((id !== 'root') ? '<tr id="parent-file-link"><td class="file-type"><i class="fa fa-folder"></i></td><td><a href="#">..</a></td><td></td><td></td><td></td></tr>' : '')
-				+ '</tbody></table>'
-		);
+				+ '</tbody></table>');
+		}
 
 		$('.breadcrumb-entry').click(function (e) {
 			e.preventDefault();
@@ -579,8 +636,13 @@ var _Filesystem = {
 				$('#' + parentId + '_anchor').click();
 			}
 		});
-
-
+	},
+	appendFileOrFolder: function(d) {
+		if (viewMode === 'list') {
+			_Files.appendFileOrFolderRow(d);
+		} else {
+			_Files.appendFileOrFolderTile(d);
+		}
 	},
 	appendFileOrFolderRow: function(d) {
 
@@ -598,7 +660,7 @@ var _Filesystem = {
 		var rowId = 'row' + d.id;
 		tableBody.append('<tr id="' + rowId + '"' + (d.isThumbnail ? ' class="thumbnail"' : '') + '></tr>');
 		var row = $('#' + rowId);
-		var icon = d.isFolder ? 'fa-folder' : _Filesystem.getIcon(d);
+		var icon = d.isFolder ? 'fa-folder' : _Files.getIcon(d);
 
 		if (d.isFolder) {
 			row.append('<td class="file-type"><i class="fa ' + icon + '"></i></td>');
@@ -650,152 +712,13 @@ var _Filesystem = {
 		});
 
 		_Entities.appendAccessControlIcon(div, d);
-		var delIcon = div.children('.delete_icon');
 		if (d.isFolder) {
 
-			// ********** Folders **********
-
-			if (Structr.isModulePresent('structr-cloud-module')) {
-				div.append('<img title="Sync folder \'' + d.name + '\' to remote instance" alt="Sync folder \'' + d.name + '\' to remote instance" class="push_icon button" src="' + _Icons.push_file_icon + '">');
-				div.children('.push_icon').on('click', function() {
-					Structr.pushDialog(d.id, true);
-					return false;
-				});
-			}
-
-			var newDelIcon = '<img title="Delete folder \'' + d.name + '\'" alt="Delete folder \'' + d.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
-			if (delIcon && delIcon.length) {
-				delIcon.replaceWith(newDelIcon);
-			} else {
-				div.append(newDelIcon);
-			}
-			div.children('.delete_icon').on('click', function(e) {
-				e.stopPropagation();
-				_Entities.deleteNode(this, d, true, function() {
-					_Filesystem.refreshTree();
-				});
-			});
-
-			div.droppable({
-				accept: '.folder, .file, .image',
-				greedy: true,
-				hoverClass: 'nodeHover',
-				tolerance: 'pointer',
-				drop: function(e, ui) {
-
-					e.preventDefault();
-					e.stopPropagation();
-
-					var self = $(this);
-					var fileId = Structr.getId(ui.draggable);
-					var folderId = Structr.getId(self);
-					_Logger.log(_LogType.FILESYSTEM, 'fileId, folderId', fileId, folderId);
-					if (!(fileId === folderId)) {
-						var nodeData = {};
-						nodeData.id = fileId;
-						//addExpandedNode(folderId);
-
-						//selectedElements = $('.node.selected');
-						if (selectedElements.length > 1) {
-
-							$.each(selectedElements, function(i, fileEl) {
-								var fileId = Structr.getId(fileEl);
-								Command.setProperty(fileId, 'parentId', folderId, false, function() {
-									$(ui.draggable).remove();
-								});
-
-							});
-							selectedElements.length = 0;
-						} else {
-							Command.setProperty(fileId, 'parentId', folderId, false, function() {
-								$(ui.draggable).remove();
-							});
-						}
-
-						_Filesystem.refreshTree();
-					}
-
-					return false;
-				}
-			});
-
+			_Files.handleFolder(div, d);
+			
 		} else {
 
-			// ********** Files **********
-
-			if (_Filesystem.isArchive(d)) {
-				div.append('<img class="unarchive_icon button" src="' + _Icons.compress_icon + '">');
-				div.children('.unarchive_icon').on('click', function() {
-					_Logger.log(_LogType.FILESYSTEM, 'unarchive', d.id);
-
-					$('#tempInfoBox .infoHeading, #tempInfoBox .infoMsg').empty();
-					$('#tempInfoBox .closeButton').hide();
-					Structr.loaderIcon($('#tempInfoBox .infoMsg'), { marginBottom: '-6px' });
-					$('#tempInfoBox .infoMsg').append(' Unpacking Archive - please stand by...');
-					$('#tempInfoBox .infoMsg').append('<p>Extraction will run in the background.<br>You can safely close this popup and work during this operation.<br>You will be notified when the extraction has finished.</p>');
-
-					$.blockUI.defaults.overlayCSS.opacity = .6;
-					$.blockUI.defaults.applyPlatformOpacityRules = false;
-					$.blockUI({
-						message: $('#tempInfoBox'),
-						css: {
-							border: 'none',
-							backgroundColor: 'transparent'
-						}
-					});
-
-					var closed = false;
-					window.setTimeout(function() {
-						$('#tempInfoBox .closeButton').show().on('click', function () {
-							closed = true;
-							$.unblockUI({
-								fadeOut: 25
-							});
-						});
-					}, 500);
-
-					Command.unarchive(d.id, currentWorkingDir ? currentWorkingDir.id : undefined, function (data) {
-						if (data.success === true) {
-							_Filesystem.refreshTree();
-							var message = "Extraction of '" + data.filename + "' finished successfully. ";
-							if (closed) {
-								new MessageBuilder().success(message).requiresConfirmation("Close").show();
-							} else {
-								$('#tempInfoBox .infoMsg').html('<img src="' + _Icons.accept_icon + '"> ' + message);
-							}
-
-						} else {
-							$('#tempInfoBox .infoMsg').html('<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAIsSURBVDjLpVNLSJQBEP7+h6uu62vLVAJDW1KQTMrINQ1vPQzq1GOpa9EppGOHLh0kCEKL7JBEhVCHihAsESyJiE4FWShGRmauu7KYiv6Pma+DGoFrBQ7MzGFmPr5vmDFIYj1mr1WYfrHPovA9VVOqbC7e/1rS9ZlrAVDYHig5WB0oPtBI0TNrUiC5yhP9jeF4X8NPcWfopoY48XT39PjjXeF0vWkZqOjd7LJYrmGasHPCCJbHwhS9/F8M4s8baid764Xi0Ilfp5voorpJfn2wwx/r3l77TwZUvR+qajXVn8PnvocYfXYH6k2ioOaCpaIdf11ivDcayyiMVudsOYqFb60gARJYHG9DbqQFmSVNjaO3K2NpAeK90ZCqtgcrjkP9aUCXp0moetDFEeRXnYCKXhm+uTW0CkBFu4JlxzZkFlbASz4CQGQVBFeEwZm8geyiMuRVntzsL3oXV+YMkvjRsydC1U+lhwZsWXgHb+oWVAEzIwvzyVlk5igsi7DymmHlHsFQR50rjl+981Jy1Fw6Gu0ObTtnU+cgs28AKgDiy+Awpj5OACBAhZ/qh2HOo6i+NeA73jUAML4/qWux8mt6NjW1w599CS9xb0mSEqQBEDAtwqALUmBaG5FV3oYPnTHMjAwetlWksyByaukxQg2wQ9FlccaK/OXA3/uAEUDp3rNIDQ1ctSk6kHh1/jRFoaL4M4snEMeD73gQx4M4PsT1IZ5AfYH68tZY7zv/ApRMY9mnuVMvAAAAAElFTkSuQmCC"> Extraction failed');
-						}
-					});
-				});
-			}
-
-			if (Structr.isModulePresent('structr-cloud-module')) {
-				div.append('<img title="Sync file \'' + d.name + '\' to remote instance" alt="Sync file \'' + d.name + '\' to remote instance" class="push_icon button" src="' + _Icons.push_file_icon + '">');
-				div.children('.push_icon').on('click', function() {
-					Structr.pushDialog(d.id, false);
-					return false;
-				});
-			}
-
-			var newDelIcon = '<img title="Delete file ' + d.name + '\'" alt="Delete file \'' + d.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
-			if (delIcon && delIcon.length) {
-				delIcon.replaceWith(newDelIcon);
-			} else {
-				div.append(newDelIcon);
-				delIcon = div.children('.delete_icon');
-			}
-			div.children('.delete_icon').on('click', function(e) {
-				e.stopPropagation();
-				_Entities.deleteNode(this, d);
-			});
-
-			if (_Filesystem.isMinificationTarget(d)) {
-				_Filesystem.appendMinificationDialogIcon(div, d);
-			} else {
-				_Filesystem.appendEditFileIcon(div, d);
-			}
+			_Files.handleFile(div, d);
 
 		}
 
@@ -835,6 +758,365 @@ var _Filesystem = {
 		_Entities.makeSelectable(div);
 
 	},
+	handleFolder: function(div, d) {
+
+		if (Structr.isModulePresent('structr-cloud-module')) {
+			div.append('<img title="Sync folder \'' + d.name + '\' to remote instance" alt="Sync folder \'' + d.name + '\' to remote instance" class="push_icon button" src="' + _Icons.push_file_icon + '">');
+			div.children('.push_icon').on('click', function() {
+				Structr.pushDialog(d.id, true);
+				return false;
+			});
+		}
+
+		var delIcon = div.children('.delete_icon');
+		var newDelIcon = '<img title="Delete folder \'' + d.name + '\'" alt="Delete folder \'' + d.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
+
+		if (delIcon && delIcon.length) {
+			delIcon.replaceWith(newDelIcon);
+		} else {
+			div.append(newDelIcon);
+		}
+		div.children('.delete_icon').on('click', function(e) {
+			e.stopPropagation();
+			_Entities.deleteNode(this, d, true, function() {
+				_Files.refreshTree();
+			});
+		});
+
+		div.droppable({
+			accept: '.folder, .file, .image',
+			greedy: true,
+			hoverClass: 'nodeHover',
+			tolerance: 'pointer',
+			drop: function(e, ui) {
+
+				e.preventDefault();
+				e.stopPropagation();
+
+				var self = $(this);
+				var fileId = Structr.getId(ui.draggable);
+				var folderId = Structr.getId(self);
+				_Logger.log(_LogType.FILES, 'fileId, folderId', fileId, folderId);
+				if (!(fileId === folderId)) {
+					var nodeData = {};
+					nodeData.id = fileId;
+					//addExpandedNode(folderId);
+
+					//selectedElements = $('.node.selected');
+					if (selectedElements.length > 1) {
+
+						$.each(selectedElements, function(i, fileEl) {
+							var fileId = Structr.getId(fileEl);
+							Command.setProperty(fileId, 'parentId', folderId, false, function() {
+								$(ui.draggable).remove();
+							});
+
+						});
+						selectedElements.length = 0;
+					} else {
+						Command.setProperty(fileId, 'parentId', folderId, false, function() {
+							$(ui.draggable).remove();
+						});
+					}
+
+					_Files.refreshTree();
+				}
+
+				return false;
+			}
+		});
+		
+	},
+	handleFile: function(div, d) {
+
+		if (_Files.isArchive(d)) {
+			div.append('<img class="unarchive_icon button" src="' + _Icons.compress_icon + '">');
+			div.children('.unarchive_icon').on('click', function() {
+				_Logger.log(_LogType.FILES, 'unarchive', d.id);
+
+				$('#tempInfoBox .infoHeading, #tempInfoBox .infoMsg').empty();
+				$('#tempInfoBox .closeButton').hide();
+				Structr.loaderIcon($('#tempInfoBox .infoMsg'), { marginBottom: '-6px' });
+				$('#tempInfoBox .infoMsg').append(' Unpacking Archive - please stand by...');
+				$('#tempInfoBox .infoMsg').append('<p>Extraction will run in the background.<br>You can safely close this popup and work during this operation.<br>You will be notified when the extraction has finished.</p>');
+
+				$.blockUI.defaults.overlayCSS.opacity = .6;
+				$.blockUI.defaults.applyPlatformOpacityRules = false;
+				$.blockUI({
+					message: $('#tempInfoBox'),
+					css: {
+						border: 'none',
+						backgroundColor: 'transparent'
+					}
+				});
+
+				var closed = false;
+				window.setTimeout(function() {
+					$('#tempInfoBox .closeButton').show().on('click', function () {
+						closed = true;
+						$.unblockUI({
+							fadeOut: 25
+						});
+					});
+				}, 500);
+
+				Command.unarchive(d.id, currentWorkingDir ? currentWorkingDir.id : undefined, function (data) {
+					if (data.success === true) {
+						_Files.refreshTree();
+						var message = "Extraction of '" + data.filename + "' finished successfully. ";
+						if (closed) {
+							new MessageBuilder().success(message).requiresConfirmation("Close").show();
+						} else {
+							$('#tempInfoBox .infoMsg').html('<img src="' + _Icons.accept_icon + '"> ' + message);
+						}
+
+					} else {
+						$('#tempInfoBox .infoMsg').html('<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAIsSURBVDjLpVNLSJQBEP7+h6uu62vLVAJDW1KQTMrINQ1vPQzq1GOpa9EppGOHLh0kCEKL7JBEhVCHihAsESyJiE4FWShGRmauu7KYiv6Pma+DGoFrBQ7MzGFmPr5vmDFIYj1mr1WYfrHPovA9VVOqbC7e/1rS9ZlrAVDYHig5WB0oPtBI0TNrUiC5yhP9jeF4X8NPcWfopoY48XT39PjjXeF0vWkZqOjd7LJYrmGasHPCCJbHwhS9/F8M4s8baid764Xi0Ilfp5voorpJfn2wwx/r3l77TwZUvR+qajXVn8PnvocYfXYH6k2ioOaCpaIdf11ivDcayyiMVudsOYqFb60gARJYHG9DbqQFmSVNjaO3K2NpAeK90ZCqtgcrjkP9aUCXp0moetDFEeRXnYCKXhm+uTW0CkBFu4JlxzZkFlbASz4CQGQVBFeEwZm8geyiMuRVntzsL3oXV+YMkvjRsydC1U+lhwZsWXgHb+oWVAEzIwvzyVlk5igsi7DymmHlHsFQR50rjl+981Jy1Fw6Gu0ObTtnU+cgs28AKgDiy+Awpj5OACBAhZ/qh2HOo6i+NeA73jUAML4/qWux8mt6NjW1w599CS9xb0mSEqQBEDAtwqALUmBaG5FV3oYPnTHMjAwetlWksyByaukxQg2wQ9FlccaK/OXA3/uAEUDp3rNIDQ1ctSk6kHh1/jRFoaL4M4snEMeD73gQx4M4PsT1IZ5AfYH68tZY7zv/ApRMY9mnuVMvAAAAAElFTkSuQmCC"> Extraction failed');
+					}
+				});
+			});
+		}
+
+		if (Structr.isModulePresent('structr-cloud-module')) {
+			div.append('<img title="Sync file \'' + d.name + '\' to remote instance" alt="Sync file \'' + d.name + '\' to remote instance" class="push_icon button" src="' + _Icons.push_file_icon + '">');
+			div.children('.push_icon').on('click', function() {
+				Structr.pushDialog(d.id, false);
+				return false;
+			});
+		}
+
+		var delIcon = div.children('.delete_icon');
+		var newDelIcon = '<img title="Delete file ' + d.name + '\'" alt="Delete file \'' + d.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
+		if (delIcon && delIcon.length) {
+			delIcon.replaceWith(newDelIcon);
+		} else {
+			div.append(newDelIcon);
+			delIcon = div.children('.delete_icon');
+		}
+		div.children('.delete_icon').on('click', function(e) {
+			e.stopPropagation();
+			_Entities.deleteNode(this, d);
+		});
+
+		if (_Files.isMinificationTarget(d)) {
+			_Files.appendMinificationDialogIcon(div, d);
+		} else {
+			if (d.isImage) {
+				_Files.appendViewImageIcon(div, d);
+			} else {
+				_Files.appendEditFileIcon(div, d);
+			}
+		}
+
+		if (d.isImage) {
+
+			var tnSmall = d.tnSmall;
+			if (tnSmall) {
+				_Files.showThumbnails(d, div);
+			} else {
+				if (d.contentType &&  (d.contentType.startsWith('image/svg') || d.contentType.endsWith('image/vnd.microsoft.icon'))) {
+					d.tnSmall = d;
+					d.tnMid = d;
+					_Files.showThumbnails(d, div);
+				} else {
+					_Files.reloadThumbnail(d.id, div);
+				}
+			}
+		}
+		
+	},
+	appendFileOrFolderTile: function(d) {
+
+		// add folder/file to global model
+		StructrModel.createFromData(d, null, false);
+
+		var tileId = 'tile' + d.id;
+		folderContents.append('<div id="' + tileId + '" class="tile' + (d.isThumbnail ? ' thumbnail' : '') + '"></div>');
+		var tile = $('#' + tileId);
+		var icon = d.isFolder ? 'fa-folder' : _Files.getIcon(d);
+	
+		var files = d.files || [];
+		var folders = d.folders || [];
+		var size = d.isFolder ? folders.length + files.length : (d.size ? d.size : '-');
+		
+		if (d.isFolder) {
+			tile.append('<div id="id_' + d.id + '" data-structr_type="folder" class="node folder"><div class="file-type"><i class="fa ' + icon + '"></i></div>'
+					+ '<b title="' + d.name + '" class="name_">' + fitStringToWidth(d.name, 80) + '</b><span class="id">' + d.id + '</span></div>');
+		} else {
+			tile.append('<div id="id_' + d.id + '" data-structr_type="file" class="node file"><div class="file-type"><a href="' + d.path + '" target="_blank"><i class="fa ' + icon + '"></i></a></div>'
+				+ '<b title="' +  (d.name ? d.name : '[unnamed]') + '" class="name_">' + fitStringToWidth(d.name ? d.name : '[unnamed]', 80) + '</b>'
+				+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + size + '</span></div></div></div><span class="id">' + d.id + '</span></div>');
+		}
+
+		// Change working dir by click on folder icon
+		$('#id_' + d.id + '.folder .file-type i').on('click', function(e) {
+
+			e.preventDefault();
+			e.stopPropagation();
+
+			if (d.parentId) {
+
+				fileTree.jstree('open_node', $('#' + d.parentId), function() {
+
+					if (d.name === '..') {
+						$('#' + d.parentId + '_anchor').click();
+					} else {
+						$('#' + d.id + '_anchor').click();
+					}
+
+				});
+
+			} else {
+
+				$('#' + d.id + '_anchor').click();
+			}
+
+			return false;
+		});
+
+		var div = Structr.node(d.id);
+
+		if (!div || !div.length)
+			return;
+
+		div.on('remove', function() {
+			div.closest('tr').remove();
+		});
+
+		_Entities.appendAccessControlIcon(div, d);
+
+		if (d.isFolder) {
+
+			_Files.handleFolder(div, d);
+			
+		} else {
+
+			_Files.handleFile(div, d);
+		}
+
+		div.draggable({
+			revert: 'invalid',
+			//helper: 'clone',
+			containment: 'body',
+			stack: '.jstree-node',
+			appendTo: '#main',
+			forceHelperSize: true,
+			forcePlaceholderSize: true,
+			distance: 5,
+			cursorAt: { top: 8, left: 25 },
+			zIndex: 99,
+			//containment: 'body',
+			stop: function(e, ui) {
+				$(this).show();
+				$(e.toElement).one('click', function(e) {
+					e.stopImmediatePropagation();
+				});
+			},
+			helper: function(event) {
+				var helperEl = $(this);
+				selectedElements = $('.node.selected');
+				if (selectedElements.length > 1) {
+					selectedElements.removeClass('selected');
+					return $('<img class="node-helper" src="' + _Icons.page_white_stack_icon + '">');//.css("margin-left", event.clientX - $(event.target).offset().left);
+				}
+				var hlp = helperEl.clone();
+				hlp.find('.button').remove();
+				return hlp;
+			}
+		});
+
+		_Entities.appendEditPropertiesIcon(div, d);
+		_Entities.setMouseOver(div);
+		_Entities.makeSelectable(div);
+
+	},
+	showThumbnails: function(img, el) {
+		
+		var tn = '/structr/' + _Icons.ajax_loader_1;
+		$('i', el).replaceWith('<img class="thumbnail" src="' + tn + '">');
+		
+		$('.thumbnail', el).attr('src', '/' + img.tnSmall.id);
+		$('.thumbnail', el).on('mousedown', function(e) {
+			e.stopPropagation();
+			$('.thumbnailZoom', folderContents).remove();
+			el.append('<img class="thumbnailZoom" src="/' + img.tnMid.id + '">');
+			var tnZoom = $($('.thumbnailZoom', folderContents)[0]);
+
+			tnZoom.on('load', function() {
+				_Logger.log(_LogType.FILES, tnZoom, tnZoom.position(), tnZoom.width(), tnZoom.height());
+				var pos = el.position();
+
+				tnZoom.css({
+					top: (pos.top + (el.height() - tnZoom.height()) / 2) - 19 + 'px',
+					left: (pos.left + (el.width() - tnZoom.width()) / 2) + 4 + 'px'
+				}).show();
+			});
+
+			tnZoom.on('mouseup', function(e) {
+				e.stopPropagation();
+				$('.thumbnailZoom', folderContents).remove();
+			});
+
+			tnZoom.on('click', function(e) {
+				e.stopPropagation();
+				Structr.dialog(img.name, function() {
+					return true;
+				}, function() {
+					return true;
+				});
+
+				_Files.showImageDetails($(this), img, dialogText);
+			});
+
+		});
+	},
+	reloadThumbnail: function(id, el) {
+		// wait 1 sec. and try again
+		timeout = window.setTimeout(function() {
+			if (attempts >= maxRetry) {
+				window.clearTimeout(timeout);
+			} else {
+				attempts++;
+				_Crud.crudRead('Image', id, function(img) {
+					var tn = img.tnSmall;
+					if (!tn) {
+						_Files.reloadThumbnail(id, el);
+					} else {
+						_Files.showThumbnails(img, el);
+					}
+				}, function() {
+					_Files.reloadThumbnail(id, el);
+				});
+			}
+		}, 1000);
+	},
+	appendViewImageIcon: function(parent, image) {
+
+		var viewIcon = $('.view_icon', parent);
+
+		if (!(viewIcon && viewIcon.length)) {
+			parent.append('<img title="View ' + image.name + ' [' + image.id + ']" alt="View ' + image.name + ' [' + image.id + ']" class="view_icon button" src="' + _Icons.eye_icon + '">');
+		}
+		
+		viewIcon = $('.view_icon', parent);
+		
+		viewIcon.on('click', function(e) {
+			e.stopPropagation();
+			Structr.dialog('View ' + image.name, function() {
+				_Logger.log(_LogType.IMAGES, 'content saved');
+			}, function() {
+				_Logger.log(_LogType.IMAGES, 'cancelled');
+			});
+			_Files.viewImage(this, image, $('#dialogBox .dialogText'));
+		});
+	},
+	showImageDetails: function(button, image, element) {
+		element.append('<img class="imageDetail" src="/' + image.id + '"><br><a href="/' + image.id + '">Download</a>');
+	},
+	viewImage: function(button, image, element) {
+		_Logger.log(_LogType.IMAGES, image);
+		element.append('Download: <a href="' + image.path + '">Path</a>&nbsp;|&nbsp;<a href="/' + image.id + '">UUID</a><br><br><img src="/' + image.id + '">');
+	},
 	appendEditFileIcon: function(parent, file) {
 
 		var editIcon = $('.edit_file_icon', parent);
@@ -857,15 +1139,15 @@ var _Filesystem = {
 			}
 
 			Structr.dialog('Edit files', function() {
-				_Logger.log(_LogType.FILESYSTEM, 'content saved');
+				_Logger.log(_LogType.FILES, 'content saved');
 			}, function() {
-				_Logger.log(_LogType.FILESYSTEM, 'cancelled');
+				_Logger.log(_LogType.FILES, 'cancelled');
 			});
 
 			dialogText.append('<div id="files-tabs" class="files-tabs"><ul></ul></div>');
 			$.each(selectedElements, function(i, el) {
 
-				if (_Filesystem.isMinificationTarget(StructrModel.obj(Structr.getId(el)))) {
+				if (_Files.isMinificationTarget(StructrModel.obj(Structr.getId(el)))) {
 					return;
 				}
 
@@ -885,7 +1167,7 @@ var _Filesystem = {
 
 						activeFileId = Structr.getIdFromPrefixIdString($(this).prop('id'), 'tab-');
 						$('#content-tab-' + activeFileId).empty();
-						_Filesystem.editContent(null, entity, $('#content-tab-' + activeFileId));
+						_Files.editContent(null, entity, $('#content-tab-' + activeFileId));
 
 						return false;
 					});
@@ -914,7 +1196,7 @@ var _Filesystem = {
 
 			Structr.dialog('Minification', function() { }, function() { });
 
-			_Minification.populateMinificationDialogue(file);
+			_Minification.populateMinificationDialog(file);
 		});
 	},
 	displaySearchResultsForURL: function(url) {
@@ -943,13 +1225,13 @@ var _Filesystem = {
 						container.append('<h1>No results for "' + searchString + '"</h1>');
 						container.append('<h2>Press ESC or click <a href="#filesystem" class="clear-results">here to clear</a> empty result list.</h2>');
 						$('.clear-results', container).on('click', function() {
-							_Filesystem.clearSearch();
+							_Files.clearSearch();
 						});
 						return;
 					} else {
 						container.append('<h1>' + data.result.length + ' search results:</h1><table class="props"><thead><th class="_type">Type</th><th>Name</th><th>Size</th></thead><tbody></tbody></table>');
 						data.result.forEach(function(d) {
-							var icon = _Filesystem.getIcon(d);
+							var icon = _Files.getIcon(d);
 							$('tbody', container).append('<tr><td><i class="fa ' + icon + '"></i> ' + d.type + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td><td><a href="#results' + d.id + '">' + d.name + '</a></td><td>' + d.size + '</td></tr>');
 
 						});
@@ -972,7 +1254,7 @@ var _Filesystem = {
 									container.append('<div class="search-result collapsed" id="results' + d.id + '"></div>');
 
 									var div = $('#results' + d.id);
-									var icon = _Filesystem.getIcon(d);
+									var icon = _Files.getIcon(d);
 									//div.append('<h2><img id="preview' + d.id + '" src="' + icon + '" style="margin-left: 6px;" title="' + d.extractedContent + '" />' + d.path + '</h2>');
 									div.append('<h2><i class="fa ' + icon + '"></i> ' + d.name + '<img id="preview' + d.id + '" src="' + _Icons.eye_icon + '" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
 									div.append('<i class="toggle-height fa fa-expand"></i>').append('<i class="go-to-top fa fa-chevron-up"></i>');
@@ -1223,7 +1505,7 @@ var _Filesystem = {
 					if (data === newText) {
 						return;
 					}
-					_Filesystem.updateTextFile(file, newText);
+					_Files.updateTextFile(file, newText);
 					text1 = newText;
 					dialogSaveButton.prop("disabled", true).addClass('disabled');
 					saveAndClose.prop("disabled", true).addClass('disabled');
@@ -1239,7 +1521,7 @@ var _Filesystem = {
 					}, 500);
 				});
 
-				_Filesystem.resize();
+				_Files.resize();
 
 			},
 			error: function(xhr, statusText, error) {

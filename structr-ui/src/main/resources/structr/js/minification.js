@@ -19,7 +19,7 @@
 
 var _Minification = {
 
-	populateMinificationDialogue: function (file) {
+	populateMinificationDialog: function (file) {
 		dialogText.append('<table id="minification-files" class="props"><thead><tr><th>Position</th><th>Filename</th><th>Size</th><th>Actions</th></tr></thead><tbody></tbody></table>');
 		dialogText.append('<div id="minification-source-search"></div>');
 
@@ -98,7 +98,7 @@ var _Minification = {
 
 			_Minification.printMinificationSourcesTable(f);
 
-			_Filesystem.resize();
+			_Files.resize();
 		});
 	},
 	getTypeSpecificRows: function (file) {
@@ -220,7 +220,7 @@ var _Minification = {
 					return false;
 				});
 
-				_Filesystem.resize();
+				_Files.resize();
 
 			} else if (e.keyCode === 27) {
 

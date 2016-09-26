@@ -796,8 +796,8 @@ var _Entities = {
 									if (lastMenuEntry === 'contents') {
 										_Contents.refreshTree();
 									}
-									if (lastMenuEntry === 'filesystem') {
-										_Filesystem.refreshTree();
+									if (lastMenuEntry === 'files') {
+										_Files.refreshTree();
 									}
 								});
 
@@ -1544,7 +1544,7 @@ var _Entities = {
 			blinkGreen(element.children('.' + attributeName + '_'));
 			if (lastMenuEntry === 'pages') {
 				_Pages.reloadPreviews();
-			} else if (lastMenuEntry === 'filesystem' && attributeName === 'name') {
+			} else if (lastMenuEntry === 'files' && attributeName === 'name') {
 				var a = element.closest('td').prev().children('a').first();
 				Command.getProperty(id, 'path', function(newPath) {
 					a.attr('href', newPath);

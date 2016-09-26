@@ -931,8 +931,8 @@ var Structr = {
 				Structr.activateMenuEntry('pages');
 				window.location.href = '/structr/#pages';
 
-				if (filesystemMain && filesystemMain.length)
-					filesystemMain.hide();
+				if (filesMain && filesMain.length)
+					filesMain.hide();
 				if (widgets && widgets.length)
 					widgets.hide();
 
@@ -974,11 +974,15 @@ var Structr = {
 	},
 	openLeftSlideOut: function(slideout, tab, activeTabKey, callback, dragCallback) {
 		var s = $(slideout);
+		var storedLeftSlideoutWidth = LSWrapper.getItem(leftSlideoutWidthKey);
+		var psw = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (pagesSlideout.width() + 12);
+		
 		var t = $(tab);
 		t.addClass('active');
-		var sw = slideout.width() + 12;
+		var sw = psw + 12;
 		LSWrapper.setItem(activeTabKey, t.prop('id'));
-		s.animate({left: '+=' + sw + 'px'}, 100, function () {
+		s.width(psw);
+		s.animate({left: 0 + 'px'}, 100, function () {
 			if (typeof callback === 'function') {
 				callback({sw: sw});
 			}
@@ -997,14 +1001,14 @@ var Structr = {
 				ui.position.left -= (ui.helper.width() / 2 - 6);
 				var oldLsw = sw;
 				sw = w + 12;
-				$('.node.page', slideout).width(w - 13);
+				$('.node.page', s).width(w - 25);
 
 				if (dragCallback) {
 					dragCallback({sw: (sw - oldLsw)});
 				}
 			},
 			stop: function(e, ui) {
-				LSWrapper.setItem(leftSlideoutWidthKey, slideout.width());
+				LSWrapper.setItem(leftSlideoutWidthKey, s.width());
 			}
 		});
 	},
@@ -1018,7 +1022,7 @@ var Structr = {
 			if (Math.abs(l) <= 3) {
 				wasOpen = true;
 				osw = sw;
-				s.animate({left: '-=' + sw + 'px'}, 100, function () {
+				s.animate({left: - sw -1 + 'px'}, 100, function () {
 					if (typeof callback === 'function') {
 						callback(wasOpen, -osw, 0);
 					}

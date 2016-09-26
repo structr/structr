@@ -506,7 +506,7 @@ var _Elements = {
 				}, function() {
 					_Logger.log(_LogType.ELEMENTS, 'cancelled');
 				});
-				_Filesystem.editContent(this, file, $('#dialogBox .dialogText'));
+				_Files.editContent(this, file, $('#dialogBox .dialogText'));
 
 			});
 
@@ -619,7 +619,7 @@ var _Elements = {
 
 						files.forEach(function(file) {
 
-							filesToLink.append('<div class="node file ' + file.id + '_"><i class="fa ' + _Filesystem.getIcon(file) + '"></i> '
+							filesToLink.append('<div class="node file ' + file.id + '_"><i class="fa ' + _Files.getIcon(file) + '"></i> '
 									+ '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
 
 							var div = $('.' + file.id + '_', filesToLink);
@@ -763,7 +763,7 @@ var _Elements = {
 
 			Command.get(f.id, function(file) {
 
-				$('.' + folder.id + '_').append('<div class="clear"></div><div class="node file sub ' + file.id + '_"><i class="fa ' + _Filesystem.getIcon(file) + '"></i> '
+				$('.' + folder.id + '_').append('<div class="clear"></div><div class="node file sub ' + file.id + '_"><i class="fa ' + _Files.getIcon(file) + '"></i> '
 						+ '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
 				var div = $('.' + file.id + '_');
 

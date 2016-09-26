@@ -33,10 +33,10 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
 	login.init(test, 'admin', 'admin');
 
-	sections.push('Click on the "Filesystem" menu entry.');
+	sections.push('Click on the "Files" menu entry.');
 
 	casper.then(function() {
-		s.moveMousePointerAndClick(casper, {selector: "#filesystem_", wait: 1000});
+		s.moveMousePointerAndClick(casper, {selector: "#files_", wait: 1000});
 	});
 
 	sections.push('Create a new file');

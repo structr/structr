@@ -351,7 +351,7 @@ var StructrModel = {
 
 			} else if (Structr.getClass(element) === 'folder') {
 
-				_Filesystem.refreshTree();
+				_Files.refreshTree();
 
 			}
 		}
@@ -411,11 +411,11 @@ var StructrModel = {
 
 			} else if (element.hasClass('file')) {
 
-				icon = _Filesystem.getIcon(obj);
+				icon = _Files.getIcon(obj);
 
 			} else if (element.hasClass('folder')) {
 
-				_Filesystem.refreshTree();
+				_Files.refreshTree();
 
 			}
 
@@ -634,7 +634,7 @@ StructrFile.prototype.append = function() {
 			parentFolder.files.push(file);
 		}
 	}
-	//StructrModel.expand(_Filesystem.appendFileElement(this, parentFolder), this);
+	//StructrModel.expand(_Files.appendFileElement(this, parentFolder), this);
 };
 
 
@@ -681,7 +681,7 @@ StructrImage.prototype.remove = function() {
 		fileEl.remove();
 	}
 
-	//_Filesystem.appendFileElement(this);
+	//_Files.appendFileElement(this);
 };
 
 StructrImage.prototype.append = function(refNode) {
@@ -693,7 +693,7 @@ StructrImage.prototype.append = function(refNode) {
 	if (images && images.length) {
 		StructrModel.expand(_Images.appendImageElement(this, parentFolder), this);
 	} else {
-		_Filesystem.appendFileOrFolderRow(this);
+		_Files.appendFileOrFolderRow(this);
 	}
 };
 

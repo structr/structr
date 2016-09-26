@@ -1038,7 +1038,7 @@ var _Crud = {
 		$('.pageLeft', pagerNode).off('click');
 		$('.pageRight', pagerNode).off('click');
 	},
-	crudRead: function(type, id, callback) {
+	crudRead: function(type, id, callback, errorCallback) {
 		// use 'ui' view as default to make the 'edit by id' feature work
 		var view = (type && _Crud.view[type] ? _Crud.view[type] : 'ui');
 		var url = rootUrl + id + '/' + view;
@@ -1054,6 +1054,11 @@ var _Crud = {
 					callback(data.result);
 				} else {
 					_Crud.appendRow(type, data.result);
+				}
+			},
+			error: function(data) {
+				if (errorCallback) {
+					errorCallback(data);
 				}
 			}
 		});

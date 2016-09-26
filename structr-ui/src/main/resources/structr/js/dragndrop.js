@@ -71,7 +71,7 @@ var _Dragndrop = {
 					if (targetId === 'root') {
 						Command.setProperty(sourceId, 'parent', null, false, function() {
 							$(ui.draggable).remove();
-							_Filesystem.refreshTree();
+							_Files.refreshTree();
 							return true;
 						});
 						return;
@@ -440,7 +440,7 @@ var _Dragndrop = {
 							window.clearTimeout(refreshTimeout);
 						}
 						refreshTimeout = window.setTimeout(function() {
-							_Filesystem.refreshTree();
+							_Files.refreshTree();
 							refreshTimeout = 0;
 						}, 100);
 
@@ -450,7 +450,7 @@ var _Dragndrop = {
 
 			} else {
 				Command.appendFile(source.id, target.id, function() {
-					_Filesystem.refreshTree();
+					_Files.refreshTree();
 				});
 			}
 
@@ -500,7 +500,7 @@ var _Dragndrop = {
 		}
 		source.id = undefined;
 
-		Structr.modules['filesystem'].unload();
+		Structr.modules['files'].unload();
 		Command.createAndAppendDOMNode(pageId, target.id, tag, nodeData);
 
 		return true;

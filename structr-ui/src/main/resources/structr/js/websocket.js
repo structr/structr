@@ -226,11 +226,12 @@ function wsConnect() {
 								var w = pw / size * part;
 
 								node.find('.bar').css({width: w + 'px'});
-
+								
 								if (part >= size) {
 									blinkGreen(progr);
 									window.setTimeout(function () {
 										progr.fadeOut('fast');
+										_Files.resize();
 									}, 1000);
 								}
 							}
@@ -425,7 +426,7 @@ function wsConnect() {
 							_Pages.activateTab(tab);
 						}, 2000);
 					} else if (command === 'CREATE' && (entity.isFile || entity.isImage || entity.isVideo)) {
-						_Filesystem.uploadFile(entity);
+						_Files.uploadFile(entity);
 					}
 
 					StructrModel.callCallback(data.callback, entity);

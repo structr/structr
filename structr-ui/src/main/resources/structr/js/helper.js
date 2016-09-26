@@ -502,7 +502,6 @@ var _LogType = {
 	ELEMENTS:     "ELEMENTS",
 	ENTITIES:     "ENTITIES",
 	FILES:        "FILES",
-	FILESYSTEM:   "FILESYSTEM",
 	GRAPH:        "GRAPH",
 	INIT:         "INIT",
 	LOCALIZATION: "LOCALIZATION",

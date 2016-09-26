@@ -61,11 +61,7 @@ var _Pages = {
 		});
 
 		var windowWidth = win.width(), windowHeight = win.height();
-		var headerOffsetHeight = 84, previewOffset = 24;
-
-		$('.ver-scrollable').css({
-			height: windowHeight - headerOffsetHeight + 'px'
-		});
+		var headerOffsetHeight = 84, previewOffset = 30;
 
 		if (previews) {
 
@@ -103,9 +99,17 @@ var _Pages = {
 
 		var leftSlideout = $('#' + activeTabLeft).closest('.slideOut');
 		leftSlideout.css({
-			height: windowHeight - headerOffsetHeight - 36 + 'px'
+			height: windowHeight - headerOffsetHeight - 42 + 'px'
+		});
+		
+		var rightSlideout = $('#' + activeTabRight).closest('.slideOut');
+		rightSlideout.css({
+			height: windowHeight - headerOffsetHeight - 42 + 'px'
 		});
 
+		$('.ver-scrollable').css({
+			height: windowHeight - headerOffsetHeight - 42 + 'px'
+		});
 	},
 	onload: function() {
 
@@ -276,23 +280,19 @@ var _Pages = {
 
 		_Pages.refresh();
 
+		if (LSWrapper.getItem(leftSlideoutWidthKey)) {
+
+			var leftSlideoutWidth = parseInt(LSWrapper.getItem(leftSlideoutWidthKey));
+			var leftSlideout = $('#' + activeTabLeft).closest('.slideOut');
+			leftSlideout.css({
+				width: leftSlideoutWidth + 'px',
+				left: '-' + (leftSlideoutWidth + 12) + 'px'
+			});
+			_Pages.pagesTabResizeContent();
+			_Logger.log(_LogType.PAGES, LSWrapper.getItem(leftSlideoutWidthKey), leftSlideoutWidth);
+		}
+		
 		if (activeTabLeft) {
-
-			if (LSWrapper.getItem(leftSlideoutWidthKey)) {
-
-				var leftSlideoutWidth = parseInt(LSWrapper.getItem(leftSlideoutWidthKey));
-				var leftSlideout = $('#' + activeTabLeft).closest('.slideOut');
-				leftSlideout.css({
-					width: leftSlideoutWidth + 'px',
-					left: '-' + (leftSlideoutWidth + 12) + 'px'
-				});
-				setTimeout(function() {
-					$('.node.page', leftSlideout).css({
-						width: (leftSlideoutWidth-13) + 'px'
-					});
-				}, 100);
-				_Logger.log(_LogType.PAGES, LSWrapper.getItem(leftSlideoutWidthKey), leftSlideoutWidth);
-			}
 			$('#' + activeTabLeft).addClass('active').click();
 		}
 
@@ -1156,21 +1156,22 @@ var _Pages = {
 		}
 	},
 	pagesTabStateChangeCallback: function () {
-		var psw = pagesSlideout.width() + 12;
 		var callback = function (params) {
 			_Pages.resize(params.sw, 0);
+			_Pages.pagesTabResizeContent();
 		};
-		if (Math.abs(pagesSlideout.position().left + psw) <= 3) {
+		if (Math.abs(pagesSlideout.position().left < 0)) {
 			Structr.closeLeftSlideOuts([activeElementsSlideout, dataBindingSlideout, templatesSlideout], activeTabLeftKey, _Pages.leftSlideoutClosedCallback);
 			Structr.openLeftSlideOut(pagesSlideout, $("#pagesTab"), activeTabLeftKey, callback, callback);
 		} else {
 			Structr.closeLeftSlideOuts([pagesSlideout], activeTabLeftKey, _Pages.leftSlideoutClosedCallback);
 		}
-		this.pagesTabResizeContent();
+		
 	},
 	pagesTabResizeContent: function () {
-		var psw = pagesSlideout.width() + 12;
-		$('.node.page', pagesSlideout).width(psw-25);
+		var storedLeftSlideoutWidth = LSWrapper.getItem(leftSlideoutWidthKey);
+		var psw = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (pagesSlideout.width() + 12);
+		$('.node.page', pagesSlideout).width(psw-40);
 	},
 	leftSlideoutClosedCallback: function(wasOpen, offsetLeft, offsetRight) {
 		if (wasOpen) {
