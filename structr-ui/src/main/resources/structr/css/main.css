@@ -3247,7 +3247,7 @@ i.fa.ps {
     display: inline-block;
     vertical-align: top;
     padding: 10px;
-    max-height: calc(100vh - 120px);
+    height: calc(100vh - 120px);
     overflow: auto;
     border-radius: 3px;
 }
@@ -3258,7 +3258,7 @@ i.fa.ps {
 }
 
 #localization-detail {
-    max-width: calc(100vw - 400px);
+    width: calc(100vw - 400px);
     margin: 10px 10px 10px 5px;
 }
 
@@ -3283,6 +3283,7 @@ i.fa.ps {
 #localization-detail-table .placeholder {
     color: grey;
     font-style: italic;
+	white-space: nowrap;
 }
 
 /**
