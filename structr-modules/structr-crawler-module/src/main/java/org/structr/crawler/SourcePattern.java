@@ -37,7 +37,6 @@ import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -120,7 +119,7 @@ public class SourcePattern extends AbstractNode {
 		
 	}
 	
-	private String getContent(final String url, final String cookie) throws FrameworkException {
+	private String getContent(final String urlString, final String cookie) throws FrameworkException {
 		
 		final CloseableHttpClient client = HttpClients.custom()
 			.setDefaultConnectionConfig(ConnectionConfig.DEFAULT)
@@ -128,9 +127,16 @@ public class SourcePattern extends AbstractNode {
 			.build();
 		
 		final SourceSite site = getSite();
+
+		final String siteProxyUrl = site.getProperty(SourceSite.proxyUrl);
 		
-		final HttpHost target = HttpHost.create(url);
-		final HttpHost proxy  = HttpHost.create(site.getProperty(SourceSite.proxyUrl));
+		final URI url = URI.create(urlString);
+		final HttpHost target = HttpHost.create(url.getHost());
+		
+		HttpHost proxy = null;
+		if (StringUtils.isNoneBlank(siteProxyUrl)) {
+			proxy = HttpHost.create(siteProxyUrl);
+		}
 
 		final RequestConfig config = RequestConfig.custom()
 			.setProxy(proxy)
@@ -138,7 +144,7 @@ public class SourcePattern extends AbstractNode {
 			.setCookieSpec(CookieSpecs.DEFAULT)
 			.build();
 
-		final HttpGet request = new HttpGet("/");
+		final HttpGet request = new HttpGet(url.getPath() + "?" + url.getQuery());
 		request.setConfig(config);
 		
 		if (StringUtils.isNotBlank(cookie)) {
@@ -159,7 +165,7 @@ public class SourcePattern extends AbstractNode {
 			if (StringUtils.isBlank(charset)) {
 				charset = "UTF-8";
 			}
-			content = IOUtils.toString(response.getEntity().getContent(), charset).replace("<head>", "<head>\n  <base href=\"" + url + "\">");
+			content = IOUtils.toString(response.getEntity().getContent(), charset).replace("<head>", "<head>\n  <base href=\"" + urlString + "\">");
 			
 			
 		} catch (IOException ex) {
