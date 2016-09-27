@@ -50,6 +50,10 @@ var _Pages = {
 		$(window.document).on('mouseup', function() {
 			$('#add-child-dialog').remove();
 		});
+		
+		Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entities) {
+			shadowPage = entities[0];
+		});
 
 	},
 	resize: function(offsetLeft, offsetRight) {

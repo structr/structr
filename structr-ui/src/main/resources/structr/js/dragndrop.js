@@ -207,15 +207,15 @@ var _Dragndrop = {
 
 			if (shadowPage && source.pageId === shadowPage.id) {
 				Command.cloneComponent(source.id, target.id);
-				_Logger.log(_LogType.DND, 'dropped', source.id, 'onto', target.id, 'in page', pageId);
+				_Logger.log(_LogType.DND, 'dropped', source.id, 'onto', target.id, 'in page', pageId, ', cloneComponent');
 
 			} else if (source.pageId !== target.pageId) {
 				Command.cloneNode(source.id, target.id, true);
-				_Logger.log(_LogType.DND, 'dropped', source.id, 'onto', target.id, 'in page', pageId);
+				_Logger.log(_LogType.DND, 'dropped', source.id, 'onto', target.id, 'in page', pageId, ', cloneNode');
 
 			} else {
 				Command.appendChild(source.id, target.id, pageId);
-				_Logger.log(_LogType.DND, 'dropped', source.id, 'onto', target.id, 'in page', pageId);
+				_Logger.log(_LogType.DND, 'dropped', source.id, 'onto', target.id, 'in page', pageId, ', appendChild');
 
 			}
 
