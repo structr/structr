@@ -21,6 +21,7 @@ package org.structr.text;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -32,9 +33,15 @@ import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tika.detect.DefaultDetector;
+import org.apache.tika.detect.Detector;
 import org.apache.tika.io.IOUtils;
 import org.apache.tika.metadata.Metadata;
+import org.apache.tika.mime.MediaType;
+import org.apache.tika.mime.MimeTypes;
 import org.apache.tika.parser.AutoDetectParser;
+import org.apache.tika.parser.Parser;
+import org.apache.tika.parser.pdf.PDFParser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.structr.agent.Agent;
 import org.structr.agent.ReturnValue;
@@ -48,7 +55,7 @@ import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
 import org.structr.common.fulltext.Indexable;
-import org.structr.web.entity.User;
+import org.structr.core.entity.Person;
 
 /**
  *
@@ -110,7 +117,12 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 
 				try (final InputStream is = inputStream) {
 
-					final AutoDetectParser parser = new AutoDetectParser();
+					Detector detector = new DefaultDetector(MimeTypes.getDefaultMimeTypes());
+					final AutoDetectParser parser = new AutoDetectParser(detector);
+					
+					final Map<MediaType, Parser> customParsers = new HashMap<>();
+					customParsers.put(MediaType.application("pdf"), new PDFParser());
+					parser.setParsers(customParsers);
 
 					parser.parse(is, new BodyContentHandler(tokenizer), new Metadata());
 					parsingSuccessful = true;
@@ -140,13 +152,13 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 								tokenizer.write(ownerName);
 							}
 
-							final String eMail = _owner.getProperty(User.eMail);
+							final String eMail = _owner.getProperty(Person.eMail);
 							if (eMail != null) {
 
 								tokenizer.write(eMail);
 							}
 
-							final String twitterName = _owner.getProperty(User.twitterName);
+							final String twitterName = _owner.getProperty(Person.twitterName);
 							if (twitterName != null) {
 
 								tokenizer.write(twitterName);
@@ -215,6 +227,7 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 		} catch (final Throwable t) {
 
 			logger.log(Level.WARNING, "Indexing of {0} failed: {1}", new Object[] { fileName, t.getMessage() } );
+			t.printStackTrace();
 		}
 	}
 
