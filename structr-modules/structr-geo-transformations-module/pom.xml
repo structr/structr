@@ -28,16 +28,19 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>structr-core</artifactId>
             <version>${project.version}</version>
+			<optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-opengis</artifactId>
             <version>13.2</version>
+			<optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-epsg-hsql</artifactId>
             <version>13.2</version>
+			<optional>true</optional>
         </dependency>
     </dependencies>
 

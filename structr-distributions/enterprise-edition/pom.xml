@@ -39,42 +39,12 @@
 		</dependency>
 		<dependency>
 			<groupId>org.structr</groupId>
-			<artifactId>structr-cloud-module</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.structr</groupId>
-			<artifactId>structr-csv-module</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.structr</groupId>
-			<artifactId>structr-data-feeds-module</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.structr</groupId>
-			<artifactId>structr-file-access-module</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.structr</groupId>
-			<artifactId>structr-geo-transformations-module</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.structr</groupId>
-			<artifactId>structr-ldap-client-module</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.structr</groupId>
-			<artifactId>structr-ldap-server-module</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.structr</groupId>
 			<artifactId>structr-media-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-cloud-module</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
@@ -84,7 +54,22 @@
 		</dependency>
 		<dependency>
 			<groupId>org.structr</groupId>
+			<artifactId>structr-file-access-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
 			<artifactId>structr-text-search-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-data-feeds-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-csv-module</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
@@ -94,7 +79,38 @@
 		</dependency>
 		<dependency>
 			<groupId>org.structr</groupId>
+			<artifactId>structr-geo-transformations-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-odf-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-ldap-server-module</artifactId>
+			<version>${project.version}</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-ldap-client-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
 			<artifactId>structr-rdfs-importer-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-peer-to-peer-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-payment-module</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

@@ -1,79 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <name>Structr ODF Module</name>
-    <parent>
-        <groupId>org.structr</groupId>
-        <artifactId>structr-modules</artifactId>
-        <version>2.1.0-SNAPSHOT</version>
-    </parent>
-    <artifactId>structr-odf-module</artifactId>
-    <packaging>jar</packaging>
+	<modelVersion>4.0.0</modelVersion>
+	<name>Structr ODF Module</name>
+	<parent>
+		<groupId>org.structr</groupId>
+		<artifactId>structr-modules</artifactId>
+		<version>2.1.0-SNAPSHOT</version>
+	</parent>
+	<artifactId>structr-odf-module</artifactId>
+	<packaging>jar</packaging>
 
-    <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-    </properties>
+	<properties>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+	</properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>structr-api-builder-module</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>structr-ui</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.odftoolkit</groupId>
-            <artifactId>odfdom-java</artifactId>
-            <version>0.8.7</version>
-        </dependency>
-        <dependency>
-                <groupId>xml-apis</groupId>
-                <artifactId>xml-apis</artifactId>
-                <version>1.3.04</version>
-        </dependency>
-        <dependency>
-                <groupId>xerces</groupId>
-                <artifactId>xercesImpl</artifactId>
-                <version>2.9.1</version>
-        </dependency>
-    </dependencies>
+	<dependencies>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>structr-api-builder-module</artifactId>
+			<version>${project.version}</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>structr-ui</artifactId>
+			<version>${project.version}</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.odftoolkit</groupId>
+			<artifactId>odfdom-java</artifactId>
+			<version>0.8.7</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>xml-apis</groupId>
+			<artifactId>xml-apis</artifactId>
+			<version>1.3.04</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>xerces</groupId>
+			<artifactId>xercesImpl</artifactId>
+			<version>2.9.1</version>
+			<optional>true</optional>
+		</dependency>
+	</dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.6</version>
-                <configuration>
-                    <descriptor>src/assembly/module.xml</descriptor>
-                    <appendAssemblyId>false</appendAssemblyId>
-                    <archive>
-                        <manifestSection>
-                            <Name>ODFDOM</Name>
-                            <manifestEntries>
-                                <ODFDOM-Built-Date>2011-01-20T18:32:50</ODFDOM-Built-Date>
-                                <ODFDOM-Name>odfdom</ODFDOM-Name>
-                                <ODFDOM-Supported-Odf-Version>1.2</ODFDOM-Supported-Odf-Version>
-                                <ODFDOM-Version>0.8.7</ODFDOM-Version>
-                                <ODFDOM-Website>http://odftoolkit.org</ODFDOM-Website>
-                            </manifestEntries>
-                        </manifestSection>
-                    </archive>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>create-archive</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<descriptor>src/assembly/module.xml</descriptor>
+					<appendAssemblyId>false</appendAssemblyId>
+					<archive>
+						<manifestSection>
+							<Name>ODFDOM</Name>
+							<manifestEntries>
+								<ODFDOM-Built-Date>2011-01-20T18:32:50</ODFDOM-Built-Date>
+								<ODFDOM-Name>odfdom</ODFDOM-Name>
+								<ODFDOM-Supported-Odf-Version>1.2</ODFDOM-Supported-Odf-Version>
+								<ODFDOM-Version>0.8.7</ODFDOM-Version>
+								<ODFDOM-Website>http://odftoolkit.org</ODFDOM-Website>
+							</manifestEntries>
+						</manifestSection>
+					</archive>
+				</configuration>
+				<executions>
+					<execution>
+						<id>create-archive</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>com.mycila</groupId>
 				<artifactId>license-maven-plugin</artifactId>
@@ -101,81 +106,81 @@
 					</execution>
 				</executions>
 			</plugin>
-        </plugins>
-    </build>
+		</plugins>
+	</build>
 
 	<profiles>
-        <profile>
-            <id>release-sign-artifacts</id>
-            <activation>
-                <property>
-                    <name>performRelease</name>
-                    <value>true</value>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.4</version>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+		<profile>
+			<id>release-sign-artifacts</id>
+			<activation>
+				<property>
+					<name>performRelease</name>
+					<value>true</value>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.4</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 	<licenses>
-        <license>
-            <name>GNU Affero General Public License, Version 3</name>
-            <url>http://www.gnu.org/licenses/agpl-3.0-standalone.html</url>
-            <comments>
-                Copyright (C) 2010-2016 Structr GmbH
+		<license>
+			<name>GNU Affero General Public License, Version 3</name>
+			<url>http://www.gnu.org/licenses/agpl-3.0-standalone.html</url>
+			<comments>
+				Copyright (C) 2010-2016 Structr GmbH
 
-                This file is part of Structr &lt;http://structr.org&gt;.
+				This file is part of Structr &lt;http://structr.org&gt;.
 
-                Structr is free software: you can redistribute it and/or modify
-                it under the terms of the GNU Affero General Public License as
-                published by the Free Software Foundation, either version 3 of the
-                License, or (at your option) any later version.
+				Structr is free software: you can redistribute it and/or modify
+				it under the terms of the GNU Affero General Public License as
+				published by the Free Software Foundation, either version 3 of the
+				License, or (at your option) any later version.
 
-                Structr is distributed in the hope that it will be useful,
-                but WITHOUT ANY WARRANTY; without even the implied warranty of
-                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-                GNU Affero General Public License for more details.
+				Structr is distributed in the hope that it will be useful,
+				but WITHOUT ANY WARRANTY; without even the implied warranty of
+				MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+				GNU Affero General Public License for more details.
 
-                You should have received a copy of the GNU Affero General Public License
-                along with Structr.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
-            </comments>
-        </license>
-    </licenses>
+				You should have received a copy of the GNU Affero General Public License
+				along with Structr.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+			</comments>
+		</license>
+	</licenses>
 
-    <scm>
-        <url>https://github.com/structr/structr</url>
-        <connection>scm:git:https://github.com:structr/structr.git</connection>
-        <developerConnection>scm:git:git@github.com:structr/structr.git</developerConnection>
-    </scm>
+	<scm>
+		<url>https://github.com/structr/structr</url>
+		<connection>scm:git:https://github.com:structr/structr.git</connection>
+		<developerConnection>scm:git:git@github.com:structr/structr.git</developerConnection>
+	</scm>
 
-    <distributionManagement>
-        <repository>
-            <id>sonatype-nexus-staging</id>
-            <name>Maven Central Staging</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-        </repository>
-        <snapshotRepository>
-            <id>sonatype-nexus-snapshots</id>
-            <name>Maven Central Snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
+	<distributionManagement>
+		<repository>
+			<id>sonatype-nexus-staging</id>
+			<name>Maven Central Staging</name>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+		</repository>
+		<snapshotRepository>
+			<id>sonatype-nexus-snapshots</id>
+			<name>Maven Central Snapshots</name>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
 
 </project>

@@ -20,6 +20,7 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>structr-rest</artifactId>
             <version>${project.version}</version>
+			<optional>true</optional>
         </dependency>
     </dependencies>
 

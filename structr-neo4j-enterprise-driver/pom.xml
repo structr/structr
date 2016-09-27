@@ -72,6 +72,7 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.4</version>
+			<optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.neo4j</groupId>

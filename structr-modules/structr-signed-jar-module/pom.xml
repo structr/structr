@@ -20,16 +20,19 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>structr-ui</artifactId>
             <version>${project.version}</version>
+			<optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk15on</artifactId>
             <version>1.54</version>
+			<optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
             <version>1.54</version>
+			<optional>true</optional>
         </dependency>
     </dependencies>
 

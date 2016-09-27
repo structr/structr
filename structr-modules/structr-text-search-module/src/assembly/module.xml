@@ -41,10 +41,6 @@
 			<scope>runtime</scope>
 			<unpack>true</unpack>
 			<includes>
-				<include>org.apache.tika:tika-core</include>
-				<include>org.apache.tika:tika-parsers</include>
-				<include>com.drewnoakes:metadata-extractor</include>
-				<include>com.adobe.xmp:xmpcore</include>
 			</includes>
 		</dependencySet>
 	</dependencySets>
