@@ -52,6 +52,10 @@
 			<outputDirectory>/</outputDirectory>
 		</file>
 		<file>
+			<source>src/main/resources/README.txt</source>
+			<outputDirectory>/</outputDirectory>
+		</file>
+		<file>
 			<source>src/main/resources/bin/start</source>
 			<outputDirectory>/bin</outputDirectory>
 		</file>
