@@ -6,6 +6,7 @@ target
 structr-ui/data
 structr-ui/db*
 structr-ui/files*
+structr-ui/exchange
 structr-ui/snapshots
 structr-ui/sessions
 structr-ui/scripts
