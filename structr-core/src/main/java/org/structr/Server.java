@@ -18,6 +18,8 @@
  */
 package org.structr;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.core.Services;
 
 /**
@@ -27,9 +29,11 @@ import org.structr.core.Services;
  */
 public class Server {
 
+	private static final Logger logger = Logger.getLogger(Server.class.getName());
+	
 	public static void main(String[] args) {
 		
-		// TODO: handle parameters here?
+		logger.log(Level.INFO, "Starting server instance");
 		
 		// start service layer using default configuration
 		// augmented by local structr.conf
