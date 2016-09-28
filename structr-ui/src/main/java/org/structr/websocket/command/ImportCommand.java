@@ -72,8 +72,8 @@ public class ImportCommand extends AbstractCommand {
 
 			if (parseOk) {
 
-				logger.info("Sucessfully parsed {}", address);
-				getWebSocket().send(MessageBuilder.status().code(200).message("Sucessfully parsed address " + address).build(), true);
+				logger.info("Successfully parsed {}", address);
+				getWebSocket().send(MessageBuilder.status().code(200).message("Successfully parsed address " + address).build(), true);
 
 				String pageId                  = pageImporter.readPage().getUuid();
 				Map<String, Object> resultData = new HashMap();
@@ -81,7 +81,7 @@ public class ImportCommand extends AbstractCommand {
 				if (pageId != null) {
 
 					resultData.put("id", pageId);
-					getWebSocket().send(MessageBuilder.status().code(200).message("Sucessfully created page " + name).data(resultData).build(), true);
+					getWebSocket().send(MessageBuilder.status().code(200).message("Successfully created page " + name).data(resultData).build(), true);
 
 					// try to import graph gist source code from HTML comment
 					pageImporter.importDataComments();

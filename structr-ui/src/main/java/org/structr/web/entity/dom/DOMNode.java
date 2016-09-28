@@ -845,7 +845,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			// TODO: check hierarchy constraints imposed by the schema
-			// validation sucessful
+			// validation successful
 			return;
 		}
 
