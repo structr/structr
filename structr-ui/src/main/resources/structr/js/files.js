@@ -524,9 +524,9 @@ var _Files = {
 		fastRemoveAllChildren(folderContents[0]);
 		folderContents.prepend('<div id="switches">'
 			+ '<button class="switch ' + (viewMode === 'list' ? 'active' : 'inactive') + '" id="switch-list">'
-			+ (viewMode === 'list' ? '<img src="icon/tick.png">' : '')
+			+ (viewMode === 'list' ? '<img src="' + _Icons.tick_icon + '">' : '')
 			+ ' List</button><button class="switch ' + (viewMode === 'tiles' ? 'active' : 'inactive') + '" id="switch-tiles">'
-		    + (viewMode === 'tiles' ? '<img src="icon/tick.png">' : '')
+		    + (viewMode === 'tiles' ? '<img src="' + _Icons.tick_icon + '">' : '')
 			+ ' Tiles</button>'
 			+ '</div>');
 
