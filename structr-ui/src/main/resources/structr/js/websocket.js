@@ -226,7 +226,7 @@ function wsConnect() {
 								var w = pw / size * part;
 
 								node.find('.bar').css({width: w + 'px'});
-								
+
 								if (part >= size) {
 									blinkGreen(progr);
 									window.setTimeout(function () {

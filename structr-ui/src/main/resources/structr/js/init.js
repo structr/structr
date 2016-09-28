@@ -247,8 +247,9 @@ var _Icons = {
 	ajax_loader_1: 'img/ajax-loader.gif',
 	ajax_loader_2: 'img/al.gif',
 	structr_logo_small: 'icon/structr_icon_16x16.png',
-	minification_dialog_icon: '<i class="fa fa-puzzle-piece"></i>',
-	minification_trigger_icon: '<i class="fa fa-briefcase"></i>'
+	minification_dialog_js_icon: 'icon/script_lightning.png',
+	minification_dialog_css_icon: 'icon/script_palette.png',
+	minification_trigger_icon: 'icon/briefcase.png'
 };
 
 var Structr = {
@@ -976,7 +977,7 @@ var Structr = {
 		var s = $(slideout);
 		var storedLeftSlideoutWidth = LSWrapper.getItem(leftSlideoutWidthKey);
 		var psw = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (pagesSlideout.width() + 12);
-		
+
 		var t = $(tab);
 		t.addClass('active');
 		var sw = psw + 12;

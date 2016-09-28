@@ -37,7 +37,7 @@ var _Minification = {
 				+ '<tr><td class="head">File</td><td><a href="' + file.path + '" target="_blank">' + file.name + '</a></td></tr>'
 				+ '<tr><td class="head">Size</td><td>' + file.size + '</td></tr>'
 				+ _Minification.getTypeSpecificRows(file)
-				+ '<tr><td class="action" colspan=2><button><i class="fa fa-briefcase"></i> Manually trigger minification</button></td></tr>'
+				+ '<tr><td class="action" colspan=2><button title="Manually trigger minification"><img src="' + _Icons.minification_trigger_icon + '" /> Manually trigger minification</button></td></tr>'
 				+ '</table>');
 
 		if (file.type === 'MinifiedCssFile') {

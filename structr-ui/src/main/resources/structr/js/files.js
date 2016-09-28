@@ -136,9 +136,10 @@ var _Files = {
 
 		$('#folder-contents-container').prepend(
 				'<button class="add_file_icon button"><img title="Add File" alt="Add File" src="' + _Icons.add_file_icon + '"> Add File</button>'
-				+ '<button class="add_minified_css_file_icon button">' + _Icons.minification_dialog_icon + ' Add Minified CSS File</button>'
-				+ '<button class="add_minified_js_file_icon button">' + _Icons.minification_dialog_icon + ' Add Minified JS File</button>'
+				+ '<button class="add_minified_css_file_icon button"><img title="Add Minified CSS File" src="' + _Icons.minification_dialog_css_icon + '" />' + ' Add Minified CSS File</button>'
+				+ '<button class="add_minified_js_file_icon button"><img title="Add Minified JS File" src="' + _Icons.minification_dialog_js_icon + '" />' + ' Add Minified JS File</button>'
 				+ '<button class="pull_file_icon button module-dependend" data-structr-module="cloud"><img title="Sync Files" alt="Sync Files" src="' + _Icons.pull_file_icon + '"> Sync Files</button>'
+				+ '<button class="duplicate_finder button"><img title="Find duplicates" alt="Find duplicates" src="' + _Icons.pull_file_icon + '"> Find Files with </button>'
 				);
 
 		$('.add_file_icon', main).on('click', function(e) {
@@ -520,7 +521,7 @@ var _Files = {
 		});
 	},
 	displayFolderContents: function(id, parentId, nodePath, parents) {
-		
+
 		fastRemoveAllChildren(folderContents[0]);
 		folderContents.prepend('<div id="switches">'
 			+ '<button class="switch ' + (viewMode === 'list' ? 'active' : 'inactive') + '" id="switch-list">'
@@ -529,7 +530,7 @@ var _Files = {
 		    + (viewMode === 'tiles' ? '<img src="icon/tick.png">' : '')
 			+ ' Tiles</button>'
 			+ '</div>');
-		
+
 		var listSw  = $('#switch-list');
 		var tilesSw = $('#switch-tiles');
 		listSw.on('click', function(e) {
@@ -553,7 +554,7 @@ var _Files = {
 				_Files.displayFolderContents(id, parentId, nodePath, parents);
 			}
 		});
-		
+
 		var path = '';
 		if (parents) {
 			parents = [].concat(parents).reverse().slice(1);
@@ -565,7 +566,7 @@ var _Files = {
 			path += ' <i class="fa fa-caret-right"></i> ' + pathNames.pop();
 		}
 
-		var handleChildren = 		
+		var handleChildren =
 			function(children) {
 				if (children && children.length) {
 					children.forEach(_Files.appendFileOrFolder);
@@ -614,7 +615,7 @@ var _Files = {
 		filesPager.activateFilterElements();
 
 		folderContents.append('<h2>' + path + '</h2>');
-		
+
 		if (viewMode === 'list') {
 
 			folderContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
@@ -715,7 +716,7 @@ var _Files = {
 		if (d.isFolder) {
 
 			_Files.handleFolder(div, d);
-			
+
 		} else {
 
 			_Files.handleFile(div, d);
@@ -825,7 +826,7 @@ var _Files = {
 				return false;
 			}
 		});
-		
+
 	},
 	handleFile: function(div, d) {
 
@@ -923,7 +924,7 @@ var _Files = {
 				}
 			}
 		}
-		
+
 	},
 	appendFileOrFolderTile: function(d) {
 
@@ -934,11 +935,11 @@ var _Files = {
 		folderContents.append('<div id="' + tileId + '" class="tile' + (d.isThumbnail ? ' thumbnail' : '') + '"></div>');
 		var tile = $('#' + tileId);
 		var icon = d.isFolder ? 'fa-folder' : _Files.getIcon(d);
-	
+
 		var files = d.files || [];
 		var folders = d.folders || [];
 		var size = d.isFolder ? folders.length + files.length : (d.size ? d.size : '-');
-		
+
 		if (d.isFolder) {
 			tile.append('<div id="id_' + d.id + '" data-structr_type="folder" class="node folder"><div class="file-type"><i class="fa ' + icon + '"></i></div>'
 					+ '<b title="' + d.name + '" class="name_">' + fitStringToWidth(d.name, 80) + '</b><span class="id">' + d.id + '</span></div>');
@@ -988,7 +989,7 @@ var _Files = {
 		if (d.isFolder) {
 
 			_Files.handleFolder(div, d);
-			
+
 		} else {
 
 			_Files.handleFile(div, d);
@@ -1031,10 +1032,10 @@ var _Files = {
 
 	},
 	showThumbnails: function(img, el) {
-		
+
 		var tn = '/structr/' + _Icons.ajax_loader_1;
 		$('i', el).replaceWith('<img class="thumbnail" src="' + tn + '">');
-		
+
 		$('.thumbnail', el).attr('src', '/' + img.tnSmall.id);
 		$('.thumbnail', el).on('mousedown', function(e) {
 			e.stopPropagation();
@@ -1097,9 +1098,9 @@ var _Files = {
 		if (!(viewIcon && viewIcon.length)) {
 			parent.append('<img title="View ' + image.name + ' [' + image.id + ']" alt="View ' + image.name + ' [' + image.id + ']" class="view_icon button" src="' + _Icons.eye_icon + '">');
 		}
-		
+
 		viewIcon = $('.view_icon', parent);
-		
+
 		viewIcon.on('click', function(e) {
 			e.stopPropagation();
 			Structr.dialog('View ' + image.name, function() {
@@ -1187,7 +1188,7 @@ var _Files = {
 		var minifyIcon = $('.minify_file_icon', parent);
 
 		if (!(minifyIcon && minifyIcon.length)) {
-			parent.append('<a class="minify_file_icon">' + _Icons.minification_dialog_icon + '</a>');
+			parent.append('<img title="Open minification dialog" class="minify_file_icon button" src="' + _Files.getMinificationIcon(file) + '" />');
 		}
 
 		$(parent.children('.minify_file_icon')).on('click', function(e) {
@@ -1542,5 +1543,16 @@ var _Files = {
 	isMinificationTarget: function(file) {
 		var minifyTypes = [ 'MinifiedCssFile', 'MinifiedJavaScriptFile' ];
 		return isIn(file.type, minifyTypes);
-    }
+    },
+	getMinificationIcon: function(file) {
+		switch(file.type) {
+			case 'MinifiedCssFile':
+				return _Icons.minification_dialog_css_icon;
+			case 'MinifiedJavaScriptFile':
+				return _Icons.minification_dialog_js_icon;
+			default:
+				// unknow minification type - show error icon
+				return _Icons.error_icon;
+		}
+	}
 };
