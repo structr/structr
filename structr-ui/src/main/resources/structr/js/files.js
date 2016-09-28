@@ -1026,7 +1026,7 @@ var _Files = {
 		});
 
 		_Entities.appendEditPropertiesIcon(div, d);
-		_Entities.setMouseOver(div);
+		_Entities.setMouseOver(div, true);
 		_Entities.makeSelectable(div);
 
 	},
