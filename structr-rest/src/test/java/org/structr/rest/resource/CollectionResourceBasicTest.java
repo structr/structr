@@ -18,8 +18,8 @@
  */
 package org.structr.rest.resource;
 
-import static org.hamcrest.Matchers.*;
 import com.jayway.restassured.RestAssured;
+import static org.hamcrest.Matchers.*;
 import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.entity.TestObject;
 

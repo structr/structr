@@ -19,8 +19,10 @@
 package org.structr.web.entity.dom;
 
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
 import org.jsoup.Jsoup;
@@ -47,7 +49,7 @@ import org.structr.web.entity.relation.RenderNode;
  */
 public class RenderDataTest extends DOMTest {
 
-	private static final Logger logger = Logger.getLogger(RenderDataTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(RenderDataTest.class.getName());
 
 	public void testRenderFolderTree() {
 
@@ -174,7 +176,7 @@ public class RenderDataTest extends DOMTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception");
 		}
 
@@ -202,7 +204,7 @@ public class RenderDataTest extends DOMTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("unexpected exception");
 		}
 	}
@@ -282,7 +284,7 @@ public class RenderDataTest extends DOMTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception");
 		}
 
@@ -306,7 +308,7 @@ public class RenderDataTest extends DOMTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("unexpected exception");
 		}
 

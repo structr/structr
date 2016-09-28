@@ -41,8 +41,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
@@ -76,7 +78,7 @@ public class StructrDOMNodePath extends StructrPath {
 		"deleted", "hidden", "isContent", "version"
 	} ));
 
-	private static final Logger logger           = Logger.getLogger(StructrDOMNodePath.class.getName());
+	private static final Logger logger           = LoggerFactory.getLogger(StructrDOMNodePath.class.getName());
 
 	private Page ownerDocument = null;
 	private DOMNode parentNode = null;
@@ -162,7 +164,7 @@ public class StructrDOMNodePath extends StructrPath {
 						}
 
 					} catch (FrameworkException fex) {
-						logger.log(Level.WARNING, "", fex);
+						logger.warn("", fex);
 					}
 
 					return nodes.iterator();
@@ -422,7 +424,7 @@ public class StructrDOMNodePath extends StructrPath {
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "Unable to move {0} to {1}: {2}", new Object[] { this, target, fex.getMessage() });
+				logger.warn("Unable to move {} to {}: {}", new Object[] { this, target, fex.getMessage() });
 			}
 
 		} else if (target instanceof StructrNonexistingComponentPath & domNode != null) {
@@ -470,7 +472,7 @@ public class StructrDOMNodePath extends StructrPath {
 					tx.success();
 
 				} catch (FrameworkException fex) {
-					logger.log(Level.WARNING, "", fex);
+					logger.warn("", fex);
 				}
 			}
 		}
@@ -604,7 +606,7 @@ public class StructrDOMNodePath extends StructrPath {
 					);
 
 				} catch (FrameworkException fex) {
-					logger.log(Level.WARNING, "Unable to create new template node", fex);
+					logger.warn("Unable to create new template node", fex);
 				}
 
 				return newNode;
@@ -689,7 +691,7 @@ public class StructrDOMNodePath extends StructrPath {
 
 				} else {
 
-					logger.log(Level.WARNING, "Unable to extract position from {0}: invalid source name", src);
+					logger.warn("Unable to extract position from {}: invalid source name", src);
 				}
 
 			} else {

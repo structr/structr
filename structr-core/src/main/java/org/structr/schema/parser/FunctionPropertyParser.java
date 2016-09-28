@@ -18,7 +18,8 @@
  */
 package org.structr.schema.parser;
 
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.FunctionProperty;
@@ -31,7 +32,7 @@ import org.structr.schema.SchemaHelper.Type;
  */
 public class FunctionPropertyParser extends PropertySourceGenerator {
 
-	private static final Logger logger = Logger.getLogger(FunctionPropertyParser.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FunctionPropertyParser.class.getName());
 
 	public FunctionPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);

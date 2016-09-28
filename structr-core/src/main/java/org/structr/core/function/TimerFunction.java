@@ -19,7 +19,6 @@
 package org.structr.core.function;
 
 import java.util.Date;
-import java.util.logging.Level;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
@@ -55,7 +54,7 @@ public class TimerFunction extends Function<Object, Object>{
 
 				if (begin == null) {
 
-					logger.log(Level.WARNING, "Timer {0} has not been started yet. Starting it.", name);
+					logger.warn("Timer {} has not been started yet. Starting it.", name);
 
 					ctx.addTimer(name);
 
@@ -69,7 +68,7 @@ public class TimerFunction extends Function<Object, Object>{
 
 			} else {
 
-				logger.log(Level.WARNING, "Unknown action for timer function: {0}", action);
+				logger.warn("Unknown action for timer function: {}", action);
 
 			}
 

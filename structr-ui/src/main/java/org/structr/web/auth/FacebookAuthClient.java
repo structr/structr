@@ -18,7 +18,8 @@
  */
 package org.structr.web.auth;
 
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.core.app.StructrApp;
@@ -29,7 +30,7 @@ import org.structr.core.app.StructrApp;
  */
 public class FacebookAuthClient extends StructrOAuthClient {
 	
-	private static final Logger logger = Logger.getLogger(FacebookAuthClient.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FacebookAuthClient.class.getName());
 	
 	public FacebookAuthClient() {}
 

@@ -18,8 +18,10 @@
  */
 package org.structr.websocket.command;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.web.entity.User;
 import org.structr.websocket.StructrWebSocket;
@@ -31,7 +33,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class GetLocalStorageCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(GetLocalStorageCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(GetLocalStorageCommand.class.getName());
 
 	static {
 
@@ -51,7 +53,7 @@ public class GetLocalStorageCommand extends AbstractCommand {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Error retrieving localstorage", t);
+			logger.warn("Error retrieving localstorage", t);
 
 			// send exception
 			getWebSocket().send(MessageBuilder.status().code(422).message(t.toString()).build(), true);

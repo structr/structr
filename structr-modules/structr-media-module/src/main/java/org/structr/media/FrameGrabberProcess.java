@@ -22,8 +22,10 @@ import org.structr.util.AbstractProcess;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -46,7 +48,7 @@ import org.structr.web.entity.Image;
 
 public class FrameGrabberProcess extends AbstractProcess<Image> {
 
-	private static final Logger logger = Logger.getLogger(FrameGrabberProcess.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FrameGrabberProcess.class.getName());
 
 	private Image newFile         = null;
 	private VideoFile inputFile   = null;
@@ -81,7 +83,7 @@ public class FrameGrabberProcess extends AbstractProcess<Image> {
 			tx.success();
 
 		} catch (FrameworkException | IOException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 	}
 
@@ -106,7 +108,7 @@ public class FrameGrabberProcess extends AbstractProcess<Image> {
 
 		} else {
 
-			logger.log(Level.WARNING, "No VideoFile.{0} registered in structr.conf.", scriptName);
+			logger.warn("No VideoFile.{} registered in structr.conf.", scriptName);
 		}
 
 		return null;
@@ -136,7 +138,7 @@ public class FrameGrabberProcess extends AbstractProcess<Image> {
 				tx.success();
 
 			} catch (FrameworkException | IOException fex) {
-				logger.log(Level.WARNING, "", fex);
+				logger.warn("", fex);
 			}
 
 		} else {
@@ -148,7 +150,7 @@ public class FrameGrabberProcess extends AbstractProcess<Image> {
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "", fex);
+				logger.warn("", fex);
 			}
 
 		}

@@ -23,23 +23,20 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import org.structr.common.SecurityContext;
 import org.structr.websocket.message.WebSocketMessage;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -49,7 +46,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.Property;
-import org.structr.rest.maintenance.SnapshotCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -59,7 +55,7 @@ import org.structr.rest.maintenance.SnapshotCommand;
  */
 public class LayoutsCommand extends AbstractCommand {
 
-	private static final Logger logger                          = Logger.getLogger(LayoutsCommand.class.getName());
+	private static final Logger logger                          = LoggerFactory.getLogger(LayoutsCommand.class.getName());
 	private static final Property<List<String>> layoutsProperty = new GenericProperty<>("layouts");
 
 	static {
@@ -108,7 +104,7 @@ public class LayoutsCommand extends AbstractCommand {
 
 					} catch (IOException | FrameworkException ex) {
 
-						Logger.getLogger(LayoutsCommand.class.getName()).log(Level.SEVERE, null, ex);
+						logger.error("", ex);
 
 					}
 
@@ -136,7 +132,7 @@ public class LayoutsCommand extends AbstractCommand {
 
 					} catch (FrameworkException ex) {
 
-						Logger.getLogger(LayoutsCommand.class.getName()).log(Level.SEVERE, null, ex);
+						logger.error("", ex);
 
 					}
 
@@ -152,7 +148,7 @@ public class LayoutsCommand extends AbstractCommand {
 
 					} catch (FrameworkException ex) {
 
-						Logger.getLogger(LayoutsCommand.class.getName()).log(Level.SEVERE, null, ex);
+						logger.error("", ex);
 
 					}
 
@@ -203,7 +199,7 @@ public class LayoutsCommand extends AbstractCommand {
 			tx.success();
 
 		} catch (IOException ioex) {
-			logger.log(Level.WARNING, "", ioex);
+			logger.warn("", ioex);
 		}
 	}
 

@@ -19,8 +19,10 @@
 package org.structr.websocket.command;
 
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -48,7 +50,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class ListCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(ListCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ListCommand.class.getName());
 
 	static {
 
@@ -117,7 +119,7 @@ public class ListCommand extends AbstractCommand {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "Exception occured", fex);
+			logger.warn("Exception occured", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
 		}

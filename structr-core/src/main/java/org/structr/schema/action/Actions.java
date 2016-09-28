@@ -22,8 +22,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -40,7 +40,7 @@ import org.structr.core.script.Scripting;
  */
 public class Actions {
 
-	private static final Logger logger = Logger.getLogger(Actions.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(Actions.class.getName());
 
 	public static final String NOTIFICATION_LOGIN  = "onStructrLogin";
 	public static final String NOTIFICATION_LOGOUT = "onStructrLogout";
@@ -148,7 +148,7 @@ public class Actions {
 		final List<SchemaMethod> methods = app.nodeQuery(SchemaMethod.class).andName(key).getAsList();
 		if (methods.isEmpty()) {
 
-			logger.log(Level.FINE, "Tried to call method {0} but no SchemaMethod entity was found.", key);
+			logger.debug("Tried to call method {} but no SchemaMethod entity was found.", key);
 
 		} else {
 
@@ -165,12 +165,12 @@ public class Actions {
 
 					} else {
 
-						logger.log(Level.WARNING, "Schema method {0} has no source code, will NOT be executed.", key);
+						logger.warn("Schema method {} has no source code, will NOT be executed.", key);
 					}
 
 				} else {
 
-					logger.log(Level.WARNING, "Schema method {0} is attached to an entity, will NOT be executed.", key);
+					logger.warn("Schema method {} is attached to an entity, will NOT be executed.", key);
 				}
 			}
 		}

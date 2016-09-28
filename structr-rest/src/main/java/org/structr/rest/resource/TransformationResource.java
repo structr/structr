@@ -18,20 +18,20 @@
  */
 package org.structr.rest.resource;
 
-import org.structr.common.PagingHelper;
-import org.structr.core.Result;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import org.structr.core.property.PropertyKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Result;
 import org.structr.core.ViewTransformation;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.property.PropertyKey;
 
 /**
  *
@@ -39,7 +39,7 @@ import org.structr.core.graph.NodeFactory;
  */
 public class TransformationResource extends WrappingResource {
 
-	private static final Logger logger = Logger.getLogger(TransformationResource.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(TransformationResource.class.getName());
 
 	private ViewTransformation transformation = null;
 	
@@ -69,7 +69,7 @@ public class TransformationResource extends WrappingResource {
 					result.setRawResultCount(result.size());
 
 				} catch(Throwable t) {
-					logger.log(Level.WARNING, "", t);
+					logger.warn("", t);
 				}
 
 				// apply paging later

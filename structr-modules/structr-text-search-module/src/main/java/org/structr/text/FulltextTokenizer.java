@@ -22,8 +22,10 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.tika.language.LanguageIdentifier;
 import org.structr.core.Services;
@@ -35,7 +37,7 @@ import org.structr.core.app.StructrApp;
  */
 public class FulltextTokenizer extends Writer {
 
-	private static final Logger logger = Logger.getLogger(FulltextTokenizer.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FulltextTokenizer.class.getName());
 	public static final Set<Character> SpecialChars = new LinkedHashSet<>();
 
 	private final int wordCountLimit         = Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_INDEXING_LIMIT), 50_000);
@@ -207,7 +209,7 @@ public class FulltextTokenizer extends Writer {
 
 			if (wordCount > wordCountLimit) {
 
-				logger.log(Level.INFO, "Indexing word count of {0} reached for {1}, no more words will be indexed. Set {2} in structr.conf to increase this limit.",
+				logger.info("Indexing word count of {} reached for {}, no more words will be indexed. Set {} in structr.conf to increase this limit.",
 
 					new Object[] {
 						wordCountLimit,

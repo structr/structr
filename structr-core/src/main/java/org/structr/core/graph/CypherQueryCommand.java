@@ -19,22 +19,18 @@
 package org.structr.core.graph;
 
 import java.util.Collection;
-
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeResult;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.GenericProperty;
 
@@ -48,7 +44,7 @@ import org.structr.core.property.GenericProperty;
  */
 public class CypherQueryCommand extends NodeServiceCommand {
 
-	private static final Logger logger = Logger.getLogger(CypherQueryCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CypherQueryCommand.class.getName());
 
 	//protected static final ThreadLocalExecutionEngine engine = new ThreadLocalExecutionEngine();
 
@@ -108,13 +104,13 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 							} else {
 
-								logger.log(Level.WARNING, "Unable to handle Cypher query result object of type {0}, ignoring.", item.getClass().getName());
+								logger.warn("Unable to handle Cypher query result object of type {}, ignoring.", item.getClass().getName());
 							}
 						}
 
 					} else {
 
-						logger.log(Level.WARNING, "Unable to handle Cypher query result object of type {0}, ignoring.", obj.getClass().getName());
+						logger.warn("Unable to handle Cypher query result object of type {}, ignoring.", obj.getClass().getName());
 					}
 				}
 			}

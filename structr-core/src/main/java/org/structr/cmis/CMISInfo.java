@@ -19,9 +19,9 @@
 package org.structr.cmis;
 
 import java.util.GregorianCalendar;
-import org.structr.cmis.info.CMISFolderInfo;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.structr.cmis.info.CMISDocumentInfo;
+import org.structr.cmis.info.CMISFolderInfo;
 import org.structr.cmis.info.CMISItemInfo;
 import org.structr.cmis.info.CMISPolicyInfo;
 import org.structr.cmis.info.CMISRelationshipInfo;

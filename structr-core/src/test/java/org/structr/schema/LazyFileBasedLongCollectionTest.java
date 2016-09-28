@@ -21,12 +21,12 @@ package org.structr.schema;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.fail;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.schema.importer.LazyFileBasedLongCollection;
 
 /**
@@ -35,7 +35,7 @@ import org.structr.schema.importer.LazyFileBasedLongCollection;
  */
 public class LazyFileBasedLongCollectionTest {
 
-	private static final Logger logger = Logger.getLogger(LazyFileBasedLongCollectionTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(LazyFileBasedLongCollectionTest.class.getName());
 
 	@Test
 	public void testCollection() {
@@ -57,7 +57,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception.");
 		}
 
@@ -81,7 +81,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -103,7 +103,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -121,7 +121,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -136,7 +136,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -165,7 +165,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -194,7 +194,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -219,7 +219,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -247,7 +247,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -267,7 +267,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception.");
 		}
 	}

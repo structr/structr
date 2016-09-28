@@ -18,10 +18,10 @@
  */
 package org.structr.common;
 
-import org.structr.core.property.PropertyKey;
 import java.util.Comparator;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyKey;
 
 /**
  * A wrapper around {@link GraphObjectComparator} to be able to use it for

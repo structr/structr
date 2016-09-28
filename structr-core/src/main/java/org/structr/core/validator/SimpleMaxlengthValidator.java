@@ -19,11 +19,11 @@
 package org.structr.core.validator;
 
 import org.structr.common.SecurityContext;
-import org.structr.core.property.PropertyKey;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.TooLongToken;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
+import org.structr.core.property.PropertyKey;
 
 /**
  * A simple string max length validator.

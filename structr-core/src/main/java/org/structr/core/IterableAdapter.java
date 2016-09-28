@@ -20,8 +20,8 @@ package org.structr.core;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 
 /**
@@ -34,7 +34,7 @@ import org.structr.common.error.FrameworkException;
  */
 public class IterableAdapter<S, T> implements Iterable<T>
 {
-	private static final Logger logger = Logger.getLogger(IterableAdapter.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(IterableAdapter.class.getName());
 	private Iterator<S> sourceIterator = null;
 	private Adapter<S, T> adapter = null;
 	private int size = -1;
@@ -67,7 +67,7 @@ public class IterableAdapter<S, T> implements Iterable<T>
 				try {
 					return(adapter.adapt(sourceIterator.next()));
 				} catch(FrameworkException fex) {
-					logger.log(Level.WARNING, "Error in iterable adapter", fex);
+					logger.warn("Error in iterable adapter", fex);
 				}
 				return null;
 			}

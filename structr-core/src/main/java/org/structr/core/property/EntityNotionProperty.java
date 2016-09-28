@@ -20,11 +20,11 @@ package org.structr.core.property;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.api.search.Occurrence;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -52,7 +52,7 @@ import org.structr.core.notion.Notion;
  */
 public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T> {
 
-	private static final Logger logger = Logger.getLogger(EntityNotionProperty.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(EntityNotionProperty.class.getName());
 
 	private Property<S> entityProperty = null;
 	private Notion<S, T> notion        = null;
@@ -120,7 +120,7 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "Unable to apply notion of type {0} to property {1}", new Object[] { notion.getClass(), this } );
+			logger.warn("Unable to apply notion of type {} to property {}", new Object[] { notion.getClass(), this } );
 		}
 
 		return null;
@@ -230,7 +230,7 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
 		return attr;

@@ -19,8 +19,10 @@
 package org.structr.files.ftp;
 
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.ftplet.FtpException;
@@ -36,7 +38,7 @@ import org.structr.core.Services;
  */
 public class FtpService implements RunnableService {
 
-	private static final Logger logger = Logger.getLogger(FtpService.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FtpService.class.getName());
 	private boolean isRunning          = false;
 
 	private static int port;
@@ -56,7 +58,7 @@ public class FtpService implements RunnableService {
 		factory.setPort(port);
 		serverFactory.addListener("default", factory.createListener());
 
-		logger.log(Level.INFO, "Starting FTP server on port {0}", new Object[] { String.valueOf(port) });
+		logger.info("Starting FTP server on port {}", new Object[] { String.valueOf(port) });
 
 		server = serverFactory.createServer();
 		server.start();

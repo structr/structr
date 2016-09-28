@@ -19,8 +19,10 @@
 package org.structr.files.cmis;
 
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
@@ -47,7 +49,7 @@ import org.structr.core.graph.Tx;
  */
 public class CMISAclService extends AbstractStructrCmisService implements AclService {
 
-	private static final Logger logger = Logger.getLogger(CMISAclService.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CMISAclService.class.getName());
 
 	public CMISAclService(final StructrCMISService parentService, final SecurityContext securityContext) {
 		super(parentService, securityContext);
@@ -69,7 +71,7 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
 		throw new CmisObjectNotFoundException("Object with ID " + objectId + " does not exist");
@@ -117,7 +119,7 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 			return CMISObjectWrapper.wrap(obj, null, false);
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
 		throw new CmisObjectNotFoundException("Object with ID " + objectId + " does not exist");
@@ -159,7 +161,7 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 			return CMISObjectWrapper.wrap(obj, null, false);
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
 		throw new CmisObjectNotFoundException("Object with ID " + objectId + " does not exist");

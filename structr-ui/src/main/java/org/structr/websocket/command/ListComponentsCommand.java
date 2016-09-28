@@ -32,8 +32,10 @@ import org.structr.websocket.message.MessageBuilder;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.app.StructrApp;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -50,7 +52,7 @@ import org.structr.web.entity.dom.relationship.DOMChildren;
  */
 public class ListComponentsCommand extends AbstractCommand {
 	
-	private static final Logger logger = Logger.getLogger(ListComponentsCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ListComponentsCommand.class.getName());
 
 	static {
 
@@ -75,7 +77,7 @@ public class ListComponentsCommand extends AbstractCommand {
 
 			if (result.isEmpty()) {
 				
-				logger.log(Level.WARNING, "No shadow document found, creating one.");
+				logger.warn("No shadow document found, creating one.");
 				resultList.add(CreateComponentCommand.getOrCreateHiddenDocument());
 			}
 			
@@ -140,7 +142,7 @@ public class ListComponentsCommand extends AbstractCommand {
 			
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "Exception occured", fex);
+			logger.warn("Exception occured", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
 		}

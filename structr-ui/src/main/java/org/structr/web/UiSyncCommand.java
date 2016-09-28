@@ -25,8 +25,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -51,7 +53,7 @@ import org.structr.web.entity.dom.ShadowDocument;
  */
 public class UiSyncCommand extends NodeServiceCommand implements MaintenanceCommand {
 
-	private static final Logger logger = Logger.getLogger(UiSyncCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(UiSyncCommand.class.getName());
 
 	static {
 
@@ -193,7 +195,7 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 
 				} else {
 
-					logger.log(Level.WARNING, "Node {0} returned null syncData!", node);
+					logger.warn("Node {} returned null syncData!", node);
 				}
 			}
 
@@ -219,7 +221,7 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 
 				} else {
 
-					logger.log(Level.WARNING, "Relationship {0} returned null syncData!", rel);
+					logger.warn("Relationship {} returned null syncData!", rel);
 				}
 			}
 		}

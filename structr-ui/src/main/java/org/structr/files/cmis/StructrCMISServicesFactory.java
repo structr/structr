@@ -20,8 +20,10 @@ package org.structr.files.cmis;
 
 import java.io.File;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisUnauthorizedException;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.CmisService;
@@ -44,12 +46,12 @@ import org.structr.rest.auth.AuthHelper;
  */
 public class StructrCMISServicesFactory implements CmisServiceFactory {
 
-	private static final Logger logger = Logger.getLogger(CmisServiceFactory.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CmisServiceFactory.class.getName());
 
 	@Override
 	public void init(final Map<String, String> config) {
 
-		logger.log(Level.INFO, "Initialization map: {0}", config);
+		logger.info("Initialization map: {}", config);
 	}
 
 	@Override
@@ -127,7 +129,7 @@ public class StructrCMISServicesFactory implements CmisServiceFactory {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
 		throw new CmisUnauthorizedException();

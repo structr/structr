@@ -18,8 +18,10 @@
  */
 package org.structr.web.entity.dom;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
@@ -40,7 +42,7 @@ import org.w3c.dom.NodeList;
  */
 public class PageTest extends StructrUiTest {
 
-	private static final Logger logger = Logger.getLogger(PageTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(PageTest.class.getName());
 
 	public void testGetElementsByTagName() {
 
@@ -265,7 +267,7 @@ public class PageTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception");
 		}
 
@@ -280,7 +282,7 @@ public class PageTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception");
 		}
 	}

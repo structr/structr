@@ -22,8 +22,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.ConnectionListener;
@@ -66,7 +68,7 @@ import org.structr.xmpp.handler.TypeHandler;
  */
 public class XMPPContext {
 
-	private static final Logger logger                                 = Logger.getLogger(XMPPContext.class.getName());
+	private static final Logger logger                                 = LoggerFactory.getLogger(XMPPContext.class.getName());
 	private static final Map<String, XMPPClientConnection> connections = new HashMap<>();
 	private static final Map<String, TypeHandler> typeHandlers         = new HashMap<>();
 
@@ -103,7 +105,7 @@ public class XMPPContext {
 					tx.success();
 
 				} catch (Throwable t) {
-					logger.log(Level.WARNING, "", t);
+					logger.warn("", t);
 				}
 			}
 		});
@@ -130,7 +132,7 @@ public class XMPPContext {
 
 		} catch (IOException | SmackException | XMPPException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 		}
 	}
 
@@ -414,7 +416,7 @@ public class XMPPContext {
 
 			} catch (Exception ex) {
 
-				logger.log(Level.WARNING, "", ex);
+				logger.warn("", ex);
 			}
 		}
 
@@ -461,7 +463,7 @@ public class XMPPContext {
 
 			} else {
 
-				logger.log(Level.WARNING, "No type handler for type {0}", packet.getClass().getName());
+				logger.warn("No type handler for type {}", packet.getClass().getName());
 			}
 		}
 	}

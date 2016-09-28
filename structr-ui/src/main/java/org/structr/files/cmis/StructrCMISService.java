@@ -21,7 +21,8 @@ package org.structr.files.cmis;
 import java.math.BigInteger;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
@@ -61,7 +62,7 @@ import org.structr.files.cmis.repository.CMISRootFolder;
 
 public class StructrCMISService extends AbstractCmisService {
 
-	private static final Logger logger = Logger.getLogger(StructrCMISService.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrCMISService.class.getName());
 
 	private CMISPolicyService policyService             = null;
 	private CMISAclService aclService                   = null;

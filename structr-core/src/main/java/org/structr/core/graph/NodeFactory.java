@@ -19,17 +19,15 @@
 package org.structr.core.graph;
 
 
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-
-
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
-import org.structr.common.AccessControllable;
 import org.structr.api.util.FixedSizeCache;
+import org.structr.common.AccessControllable;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.GenericNode;
@@ -47,7 +45,7 @@ import org.structr.core.entity.relationship.NodeHasLocation;
  */
 public class NodeFactory<T extends NodeInterface & AccessControllable> extends Factory<Node, T> {
 
-	private static final Logger logger = Logger.getLogger(NodeFactory.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(NodeFactory.class.getName());
 
 	private static final FixedSizeCache<Long, Class> idTypeMap = new FixedSizeCache<>(Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_NODE_CACHE_SIZE), 100000));
 
@@ -156,7 +154,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 
 			} catch (InstantiationException|IllegalAccessException itex) {
 
-				logger.log(Level.WARNING, "", itex);
+				logger.warn("", itex);
 			}
 
 		}

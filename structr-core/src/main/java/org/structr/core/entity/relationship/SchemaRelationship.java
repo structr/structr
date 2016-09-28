@@ -21,11 +21,11 @@ package org.structr.core.entity.relationship;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import org.structr.api.util.Iterables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
@@ -46,7 +46,7 @@ import org.structr.schema.SchemaHelper;
  */
 public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> {
 
-	private static final Logger logger                      = Logger.getLogger(SchemaRelationship.class.getName());
+	private static final Logger logger                      = LoggerFactory.getLogger(SchemaRelationship.class.getName());
 	private static final Pattern ValidKeyPattern            = Pattern.compile("[a-zA-Z_]+");
 
 	public static final Property<String>  name                = new StringProperty("name").indexed();
@@ -232,7 +232,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> {
 				return true;
 			}
 
-			logger.log(Level.WARNING, "Invalid key name {0} for notion.", t);
+			logger.warn("Invalid key name {} for notion.", t);
 
 			return false;
 		}

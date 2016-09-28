@@ -18,11 +18,11 @@
  */
 package org.structr.core.property;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.mail.internet.ContentType;
 import javax.mail.internet.ParseException;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
@@ -41,7 +41,7 @@ import org.structr.core.converter.PropertyConverter;
  */
 public class LowercaseStringProperty extends AbstractPrimitiveProperty<String> {
 
-	private static final Logger logger = Logger.getLogger(LowercaseStringProperty.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(LowercaseStringProperty.class.getName());
 	private ContentType contentType;
 
 	public LowercaseStringProperty(final String jsonName) {
@@ -180,7 +180,7 @@ public class LowercaseStringProperty extends AbstractPrimitiveProperty<String> {
 
 		} catch (ParseException pe) {
 
-			logger.log(Level.WARNING, "Could not parse " + contentTypeString, pe);
+			logger.warn("Could not parse " + contentTypeString, pe);
 
 		}
 

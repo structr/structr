@@ -21,8 +21,10 @@ package org.structr.cloud.message;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.crypto.Cipher;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudService;
@@ -38,7 +40,7 @@ import org.structr.core.graph.SyncCommand;
 
 public class AuthenticationRequest extends Message {
 
-	private static final Logger logger = Logger.getLogger(AuthenticationRequest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(AuthenticationRequest.class.getName());
 	
 	private String userName     = null;
 	private String salt         = null;
@@ -95,7 +97,7 @@ public class AuthenticationRequest extends Message {
 				serverConnection.send(new AuthenticationResponse(userName, user.getEncryptedPassword(), salt, keyLength));
 
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 			}
 
 		} else {

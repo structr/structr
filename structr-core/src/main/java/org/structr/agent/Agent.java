@@ -26,13 +26,12 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.util.LogMessageSupplier;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -46,7 +45,7 @@ public abstract class Agent<T extends NodeInterface> extends Thread implements S
 	public static final String AVERAGE_EXECUTION_TIME = "average_execution_time";
 	public static final String EXECUTION_STATUS       = "execution_status";
 	public static final String MAX_QUEUE_SIZE         = "max_queue_size";
-	private static final Logger logger                = Logger.getLogger(Agent.class.getName());
+	private static final Logger logger                = LoggerFactory.getLogger(Agent.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
@@ -101,8 +100,8 @@ public abstract class Agent<T extends NodeInterface> extends Thread implements S
 						} catch (Throwable t) {
 
 							// someone killed us or the task processing failed..
-							// Log this!!
-							logger.log(Level.SEVERE, t, LogMessageSupplier.create("Processing task {0} failed. Maybe someone killed us?", currentTask.getType()));
+							// Logger this!!
+							logger.error("Processing task {} failed. Maybe someone killed us?", currentTask.getType(), t);
 						}
 
 					} else {
@@ -114,8 +113,8 @@ public abstract class Agent<T extends NodeInterface> extends Thread implements S
 						} catch (Throwable t) {
 
 							// someone killed us or the task processing failed..
-							// Log this!!
-							logger.log(Level.SEVERE, t, LogMessageSupplier.create("Processing task {0} failed. Maybe someone killed us?", currentTask.getType()));
+							// Logger this!!
+							logger.error("Processing task {} failed. Maybe someone killed us?", currentTask.getType(), t);
 						}
 					}
 				}

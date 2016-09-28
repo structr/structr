@@ -27,8 +27,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
@@ -49,7 +49,7 @@ import org.structr.core.property.PropertyKey;
 
 public class ModificationQueue {
 
-	private static final Logger logger = Logger.getLogger(ModificationQueue.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ModificationQueue.class.getName());
 
 	private final boolean auditLogEnabled                                                   = "true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_CHANGELOG_ENABLED, "false"));
 	private final ConcurrentSkipListMap<String, GraphObjectModificationState> modifications = new ConcurrentSkipListMap<>();
@@ -92,7 +92,7 @@ public class ModificationQueue {
 
 		long t = System.currentTimeMillis() - t0;
 		if (t > 1000) {
-			logger.log(Level.INFO, "{0} ms", t);
+			logger.info("{} ms", t);
 		}
 
 		return valid;
@@ -112,7 +112,7 @@ public class ModificationQueue {
 
 		long t = System.currentTimeMillis() - t0;
 		if (t > 1000) {
-			logger.log(Level.INFO, "{0} ms", t);
+			logger.info("{} ms", t);
 		}
 
 		return valid;
@@ -141,7 +141,7 @@ public class ModificationQueue {
 
 		long t = System.currentTimeMillis() - t0;
 		if (t > 1000) {
-			logger.log(Level.INFO, "{0} ms", t);
+			logger.info("{} ms", t);
 		}
 	}
 
@@ -166,7 +166,7 @@ public class ModificationQueue {
 						}
 
 					} catch (Throwable t) {
-						logger.log(Level.WARNING, "", t);
+						logger.warn("", t);
 					}
 				}
 			}

@@ -33,7 +33,7 @@ import org.w3c.dom.Document;
  */
 public class WrapContentCommand extends AbstractCommand {
 
-	//private static final Logger logger = Logger.getLogger(WrapContentCommand.class.getName());
+	//private static final Logger logger = LoggerFactory.getLogger(WrapContentCommand.class.getName());
 
 	static {
 		

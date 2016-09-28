@@ -18,8 +18,7 @@
  */
 package org.structr.core.entity;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
@@ -51,7 +50,7 @@ public abstract class AbstractSchemaLocalization extends AbstractNode {
 
 		} catch (FrameworkException ex) {
 
-			Logger.getLogger(AbstractSchemaLocalization.class.getName()).log(Level.WARNING, "Unable to set the visibility flags for Localization", ex);
+			LoggerFactory.getLogger(AbstractSchemaLocalization.class.getName()).warn("Unable to set the visibility flags for Localization", ex);
 
 		}
 	}

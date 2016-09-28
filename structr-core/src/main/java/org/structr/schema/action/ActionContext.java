@@ -25,11 +25,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
@@ -47,7 +47,7 @@ import org.structr.schema.parser.DatePropertyParser;
  */
 public class ActionContext {
 
-	private static final Logger logger = Logger.getLogger(ActionContext.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ActionContext.class.getName());
 
 	protected SecurityContext securityContext = null;
 	protected Map<String, String> headers     = new HashMap<>();
@@ -300,7 +300,7 @@ public class ActionContext {
 									return response.getOutputStream();
 
 								} catch (IOException ioex) {
-									logger.log(Level.WARNING, "", ioex);
+									logger.warn("", ioex);
 								}
 							}
 						}
@@ -313,7 +313,7 @@ public class ActionContext {
 						return securityContext.getUser(false);
 
 					case "element":
-						logger.log(Level.WARNING, "The \"element\" keyword is deprecated! Please use \"this\" instead. Used in {0}", entity.getProperty(GraphObject.id));
+						logger.warn("The \"element\" keyword is deprecated! Please use \"this\" instead. Used in {}", entity.getProperty(GraphObject.id));
 
 					case "this":
 						return entity;
@@ -383,7 +383,7 @@ public class ActionContext {
 			final List<JavaScriptSource> jsFiles = app.nodeQuery(JavaScriptSource.class).and(JavaScriptSource.name, fileName).and(JavaScriptSource.useAsJavascriptLibrary, true).getAsList();
 
 			if (jsFiles.isEmpty()) {
-				logger.log(Level.WARNING, "No JavaScript library found with fileName: {0}", fileName );
+				logger.warn("No JavaScript library found with fileName: {}", fileName );
 			}
 
 			for (final JavaScriptSource jsLibraryFile : jsFiles) {
@@ -398,19 +398,19 @@ public class ActionContext {
 
 					} else {
 
-						logger.log(Level.INFO, "Ignoring file {0} for use as a Javascript library, content type {1} not allowed. Use text/javascript or application/javascript.", new Object[] { jsLibraryFile.getName(), contentType } );
+						logger.info("Ignoring file {} for use as a Javascript library, content type {} not allowed. Use text/javascript or application/javascript.", new Object[] { jsLibraryFile.getName(), contentType } );
 					}
 
 				} else {
 
-					logger.log(Level.INFO, "Ignoring file {0} for use as a Javascript library, content type not set. Use text/javascript or application/javascript.", new Object[] { jsLibraryFile.getName(), contentType } );
+					logger.info("Ignoring file {} for use as a Javascript library, content type not set. Use text/javascript or application/javascript.", new Object[] { jsLibraryFile.getName(), contentType } );
 				}
 			}
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
 		return buf.toString();

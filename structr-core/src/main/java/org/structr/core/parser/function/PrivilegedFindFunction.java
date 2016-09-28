@@ -19,7 +19,6 @@
 package org.structr.core.parser.function;
 
 import java.util.Map;
-import java.util.logging.Level;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -59,7 +58,7 @@ public class PrivilegedFindFunction extends Function<Object, Object> {
 
 				} else {
 
-					logger.log(Level.WARNING, "Error in find_privileged(): type \"{0}\" not found.", typeString);
+					logger.warn("Error in find_privileged(): type \"{}\" not found.", typeString);
 					return "Error in find_privileged(): type " + typeString + " not found.";
 
 				}
@@ -67,7 +66,7 @@ public class PrivilegedFindFunction extends Function<Object, Object> {
 
 			// exit gracefully instead of crashing..
 			if (type == null) {
-				logger.log(Level.WARNING, "Error in find_privileged(): no type specified. Parameters: {0}", getParametersAsString(sources));
+				logger.warn("Error in find_privileged(): no type specified. Parameters: {}", getParametersAsString(sources));
 				return "Error in find_privileged(): no type specified.";
 			}
 

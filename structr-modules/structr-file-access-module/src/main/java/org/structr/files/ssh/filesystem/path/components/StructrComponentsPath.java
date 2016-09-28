@@ -37,8 +37,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -57,7 +59,7 @@ import org.structr.web.entity.dom.relationship.DOMChildren;
  */
 public class StructrComponentsPath extends StructrPath {
 
-	private static final Logger logger = Logger.getLogger(StructrComponentsPath.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrComponentsPath.class.getName());
 
 	public StructrComponentsPath(final StructrFilesystem fs, final StructrPath parent) {
 		super(fs, parent, StructrPath.COMPONENTS_DIRECTORY);
@@ -104,7 +106,7 @@ public class StructrComponentsPath extends StructrPath {
 						return components.iterator();
 
 					} catch (FrameworkException fex) {
-						logger.log(Level.WARNING, "Unable to create directory stream", fex);
+						logger.warn("Unable to create directory stream", fex);
 					}
 				}
 

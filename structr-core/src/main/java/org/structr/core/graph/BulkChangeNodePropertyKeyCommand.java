@@ -19,19 +19,18 @@
 package org.structr.core.graph;
 
 import java.util.Iterator;
-
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
-import org.structr.api.util.Iterables;
 import org.structr.api.graph.Node;
+import org.structr.api.util.Iterables;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaHelper;
 
@@ -49,7 +48,7 @@ import org.structr.schema.SchemaHelper;
  */
 public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand implements MaintenanceCommand {
 
-	private static final Logger logger = Logger.getLogger(BulkChangeNodePropertyKeyCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(BulkChangeNodePropertyKeyCommand.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -106,7 +105,7 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 
 							if (dbNode.hasProperty(newKey)) {
 
-								logger.log(Level.SEVERE, "Node {0} has already a property with key {1}", new Object[] { node, newKey });
+								logger.error("Node {} has already a property with key {}", new Object[] { node, newKey });
 								throw new IllegalStateException("Node has already a property of the new key");
 
 							}
@@ -128,25 +127,25 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 
 				@Override
 				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
-					logger.log(Level.WARNING, "Unable to set properties of node {0}: {1}", new Object[] { node.getUuid(), t.getMessage() } );
+					logger.warn("Unable to set properties of node {}: {}", new Object[] { node.getUuid(), t.getMessage() } );
 				}
 
 				@Override
 				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
-					logger.log(Level.WARNING, "Unable to set node properties: {0}", t.getMessage() );
+					logger.warn("Unable to set node properties: {}", t.getMessage() );
 				}
 			});
 
 
-			logger.log(Level.INFO, "Fixed {0} nodes ...", count);
+			logger.info("Fixed {} nodes ...", count);
 
 		} else {
 
-			logger.log(Level.INFO, "No values for oldKey and/or newKey found, aborting.");
+			logger.info("No values for oldKey and/or newKey found, aborting.");
 
 		}
 
-		logger.log(Level.INFO, "Done");
+		logger.info("Done");
 	}
 
 	@Override

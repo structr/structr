@@ -19,8 +19,10 @@
 package org.structr.websocket.command;
 
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -41,7 +43,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class RemoveFromCollectionCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(RemoveFromCollectionCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(RemoveFromCollectionCommand.class.getName());
 
 	static {
 
@@ -57,7 +59,7 @@ public class RemoveFromCollectionCommand extends AbstractCommand {
 		final String keyString  = (String) webSocketData.getNodeData().get("key");
 		if (keyString == null) {
 
-			logger.log(Level.SEVERE, "Unable to remove given object from collection: key is null");
+			logger.error("Unable to remove given object from collection: key is null");
 			getWebSocket().send(MessageBuilder.status().code(400).build(), true);
 
 		}
@@ -65,7 +67,7 @@ public class RemoveFromCollectionCommand extends AbstractCommand {
 		final String idToRemove = (String) webSocketData.getNodeData().get("idToRemove");
 		if (idToRemove == null) {
 
-			logger.log(Level.SEVERE, "Unable to remove given object from collection: idToRemove is null");
+			logger.error("Unable to remove given object from collection: idToRemove is null");
 			getWebSocket().send(MessageBuilder.status().code(400).build(), true);
 
 		}
@@ -76,7 +78,7 @@ public class RemoveFromCollectionCommand extends AbstractCommand {
 			if (!((AbstractNode)obj).isGranted(Permission.write, getWebSocket().getSecurityContext())) {
 
 				getWebSocket().send(MessageBuilder.status().message("No write permission").code(400).build(), true);
-				logger.log(Level.WARNING, "No write permission for {0} on {1}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});
+				logger.warn("No write permission for {} on {}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});
 				return;
 
 			}
@@ -115,14 +117,14 @@ public class RemoveFromCollectionCommand extends AbstractCommand {
 
 			} catch (FrameworkException ex) {
 
-				logger.log(Level.SEVERE, "Unable to set properties: {0}", ((FrameworkException) ex).toString());
+				logger.error("Unable to set properties: {}", ((FrameworkException) ex).toString());
 				getWebSocket().send(MessageBuilder.status().code(400).build(), true);
 
 			}
 
 		} else {
 
-			logger.log(Level.WARNING, "Graph object with uuid {0} not found.", webSocketData.getId());
+			logger.warn("Graph object with uuid {} not found.", webSocketData.getId());
 			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 
 		}

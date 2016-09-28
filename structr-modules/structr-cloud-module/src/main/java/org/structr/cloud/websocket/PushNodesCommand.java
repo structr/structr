@@ -19,8 +19,10 @@
 package org.structr.cloud.websocket;
 
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.cloud.CloudService;
 import org.structr.cloud.HostInfo;
 import org.structr.cloud.WebsocketProgressListener;
@@ -43,7 +45,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class PushNodesCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(PushNodesCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(PushNodesCommand.class.getName());
 	
 	static {
 
@@ -92,7 +94,7 @@ public class PushNodesCommand extends AbstractCommand {
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "", fex);
+				logger.warn("", fex);
 
 				getWebSocket().send(MessageBuilder.status().code(400).message(fex.getMessage()).build(), true);
 			}

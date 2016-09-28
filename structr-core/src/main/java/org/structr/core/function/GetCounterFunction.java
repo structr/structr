@@ -50,7 +50,7 @@ public class GetCounterFunction extends Function<Object, Object> {
 
 			} catch (NumberFormatException nfe) {
 
-				logException(nfe, "{0}: NumberFormatException parsing counter level \"{1}\" in element \"{2}\". Parameters: {3}", new Object[] { getName(), sources[0].toString(), entity, getParametersAsString(sources) });
+				logException(nfe, "{}: NumberFormatException parsing counter level \"{}\" in element \"{}\". Parameters: {}", new Object[] { getName(), sources[0].toString(), entity, getParametersAsString(sources) });
 
 			}
 

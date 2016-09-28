@@ -20,8 +20,6 @@ package org.structr.core.property;
 
 import java.util.LinkedList;
 import java.util.List;
-
-
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.converter.PropertyConverter;

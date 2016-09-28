@@ -20,30 +20,27 @@ package org.structr.common;
 
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.core.property.PropertyMap;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Relation;
-import org.structr.core.entity.TestFour;
-import org.structr.core.entity.TestOne;
-import org.structr.core.entity.TestThree;
-import org.structr.core.entity.TestTwo;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.NotFoundException;
 import org.structr.api.NotInTransactionException;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericNode;
+import org.structr.core.entity.Relation;
 import org.structr.core.entity.SixOneOneToOne;
+import org.structr.core.entity.TestFour;
+import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSix;
 import org.structr.core.entity.TestTen;
+import org.structr.core.entity.TestThree;
+import org.structr.core.entity.TestTwo;
 import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -56,7 +53,7 @@ import org.structr.core.graph.Tx;
  */
 public class DeleteGraphObjectsTest extends StructrTest {
 
-	private static final Logger logger = Logger.getLogger(DeleteGraphObjectsTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(DeleteGraphObjectsTest.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -115,9 +112,9 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -170,9 +167,9 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -220,9 +217,9 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -272,9 +269,9 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -337,9 +334,9 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -402,9 +399,9 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -485,9 +482,9 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -569,9 +566,9 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}

@@ -18,8 +18,9 @@
  */
 package org.structr.rest.resource;
 
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -39,7 +40,7 @@ import org.structr.rest.exception.NotFoundException;
  */
 public class UuidResource extends FilterableResource {
 
-	private static final Logger logger = Logger.getLogger(UuidResource.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(UuidResource.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 

@@ -20,9 +20,9 @@ package org.structr.common;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 
@@ -35,7 +35,7 @@ import org.structr.core.Result;
  */
 public class PagingHelper {
 
-	private static final Logger logger = Logger.getLogger(PagingHelper.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(PagingHelper.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -100,7 +100,7 @@ public class PagingHelper {
 			
 		} catch (Throwable t) {
 			
-			logger.log(Level.WARNING, "Invalid range for sublist in paging, pageSize {0}, page {1}, offsetId {2}: {3}", new Object[] {
+			logger.warn("Invalid range for sublist in paging, pageSize {}, page {}, offsetId {}: {}", new Object[] {
 				pageSize,
 				page,
 				offsetId,

@@ -24,10 +24,10 @@ import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.Label;
 import org.structr.api.util.Iterables;
@@ -46,7 +46,7 @@ import org.structr.core.graph.Tx;
  */
 public class TestSyncCommand extends StructrTest {
 
-	private static final Logger logger = Logger.getLogger(TestSyncCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(TestSyncCommand.class.getName());
 
 	private final static String EXPORT_FILENAME = "___structr-test-export___.zip";
 
@@ -83,7 +83,7 @@ public class TestSyncCommand extends StructrTest {
 			}
 
 		} catch (Exception ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -115,7 +115,7 @@ public class TestSyncCommand extends StructrTest {
 			Files.delete(exportFile);
 
 		} catch (Exception ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception.");
 		}
 		
@@ -148,7 +148,7 @@ public class TestSyncCommand extends StructrTest {
 			Files.delete(exportFile);
 
 		} catch (Exception ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -231,7 +231,7 @@ public class TestSyncCommand extends StructrTest {
 			Files.delete(exportFile);
 
 		} catch (Exception ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception.");
 		}
 	}

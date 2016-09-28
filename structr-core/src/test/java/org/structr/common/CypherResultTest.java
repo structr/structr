@@ -21,8 +21,8 @@ package org.structr.common;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -38,7 +38,7 @@ import org.structr.core.property.StringProperty;
  */
 public class CypherResultTest extends StructrTest {
 
-	private static final Logger logger = Logger.getLogger(CypherResultTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CypherResultTest.class);
 
 	public void testCypherResultWrapping() {
 
@@ -56,7 +56,7 @@ public class CypherResultTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception");
 		}
 
@@ -76,7 +76,7 @@ public class CypherResultTest extends StructrTest {
 
 
 		} catch (FrameworkException ex) {
-			Logger.getLogger(CypherResultTest.class.getName()).log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -97,7 +97,7 @@ public class CypherResultTest extends StructrTest {
 
 
 		} catch (FrameworkException ex) {
-			Logger.getLogger(CypherResultTest.class.getName()).log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -115,7 +115,7 @@ public class CypherResultTest extends StructrTest {
 
 
 		} catch (FrameworkException ex) {
-			Logger.getLogger(CypherResultTest.class.getName()).log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -151,7 +151,7 @@ public class CypherResultTest extends StructrTest {
 
 
 		} catch (FrameworkException ex) {
-			Logger.getLogger(CypherResultTest.class.getName()).log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -175,7 +175,7 @@ public class CypherResultTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
-			Logger.getLogger(CypherResultTest.class.getName()).log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -206,7 +206,7 @@ public class CypherResultTest extends StructrTest {
 
 
 		} catch (FrameworkException ex) {
-			Logger.getLogger(CypherResultTest.class.getName()).log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		/*
@@ -237,7 +237,7 @@ public class CypherResultTest extends StructrTest {
 
 
 		} catch (FrameworkException ex) {
-			Logger.getLogger(CypherResultTest.class.getName()).log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 		*/
 	}

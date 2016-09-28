@@ -34,8 +34,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -51,7 +53,7 @@ import org.structr.web.entity.dom.DOMNode;
  */
 public class StructrDOMAttributes implements PosixFileAttributes, DosFileAttributes, PosixFileAttributeView {
 
-	private static final Logger logger              = Logger.getLogger(StructrDOMAttributes.class.getName());
+	private static final Logger logger              = LoggerFactory.getLogger(StructrDOMAttributes.class.getName());
 	public static final Set<String> SUPPORTED_VIEWS = new LinkedHashSet<>(Arrays.asList(new String[] { "unix" /* "owner", "dos", "basic", "posix", "permissions"*/  } ));
 
 	private SecurityContext securityContext = null;
@@ -84,7 +86,7 @@ public class StructrDOMAttributes implements PosixFileAttributes, DosFileAttribu
 			}
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 
 		return owner;
@@ -109,7 +111,7 @@ public class StructrDOMAttributes implements PosixFileAttributes, DosFileAttribu
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 
 		return groups != null && groups.size() > 0 ? groups.get(0)::getName : null;
@@ -128,7 +130,7 @@ public class StructrDOMAttributes implements PosixFileAttributes, DosFileAttribu
 			time = FileTime.fromMillis(domNode.getLastModifiedDate().getTime());
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 
 		return time;
@@ -149,7 +151,7 @@ public class StructrDOMAttributes implements PosixFileAttributes, DosFileAttribu
 			time = FileTime.fromMillis(domNode.getLastModifiedDate().getTime());
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 
 		return time;
@@ -168,7 +170,7 @@ public class StructrDOMAttributes implements PosixFileAttributes, DosFileAttribu
 			time = FileTime.fromMillis(domNode.getCreatedDate().getTime());
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 
 		return time;
@@ -212,7 +214,7 @@ public class StructrDOMAttributes implements PosixFileAttributes, DosFileAttribu
 			uuid = domNode.getUuid();
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 
 		return uuid;
@@ -248,7 +250,7 @@ public class StructrDOMAttributes implements PosixFileAttributes, DosFileAttribu
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				logger.log(Level.SEVERE, "", fex);
+				logger.error("", fex);
 			}
 		}
 
@@ -339,7 +341,7 @@ public class StructrDOMAttributes implements PosixFileAttributes, DosFileAttribu
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 
 		return name;
@@ -365,7 +367,7 @@ public class StructrDOMAttributes implements PosixFileAttributes, DosFileAttribu
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Unable to set mapped file permissions for " + domNode, fex);
+			logger.error("Unable to set mapped file permissions for " + domNode, fex);
 		}
 	}
 

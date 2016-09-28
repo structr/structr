@@ -24,12 +24,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
@@ -51,7 +51,7 @@ import org.structr.rest.resource.ViewFilterResource;
  */
 public class ResourceHelper {
 
-	private static final Logger logger = Logger.getLogger(ResourceHelper.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ResourceHelper.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -123,7 +123,7 @@ public class ResourceHelper {
 								resource = type.newInstance();
 							} catch (Throwable t) {
 
-								logger.log(Level.WARNING, "Error instantiating resource class", t);
+								logger.warn("Error instantiating resource class", t);
 
 							}
 
@@ -134,7 +134,7 @@ public class ResourceHelper {
 
 								if (resource.checkAndConfigure(part, securityContext, request)) {
 
-									logger.log(Level.FINE, "{0} matched, adding resource of type {1} for part {2}", new Object[] { matcher.pattern(), type.getName(),
+									logger.debug("{} matched, adding resource of type {} for part {}", new Object[] { matcher.pattern(), type.getName(),
 										part });
 
 									// allow constraint to modify context
@@ -252,7 +252,7 @@ public class ResourceHelper {
 
 		} else {
 
-			logger.log(Level.WARNING, "Resource chain evaluation for path {0} resulted in {1} entries, returning status code 400.", new Object[] { request.getPathInfo(), resourceChain.size() });
+			logger.warn("Resource chain evaluation for path {} resulted in {} entries, returning status code 400.", new Object[] { request.getPathInfo(), resourceChain.size() });
 
 		}
 

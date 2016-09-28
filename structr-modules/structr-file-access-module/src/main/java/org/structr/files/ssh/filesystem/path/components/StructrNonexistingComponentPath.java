@@ -34,8 +34,10 @@ import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -56,7 +58,7 @@ import org.structr.web.entity.dom.relationship.DOMChildren;
  */
 public class StructrNonexistingComponentPath extends StructrPath {
 
-	private static final Logger logger = Logger.getLogger(StructrNonexistingComponentPath.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrNonexistingComponentPath.class.getName());
 
 	public StructrNonexistingComponentPath(final StructrFilesystem fs, final StructrPath parent, final String name) {
 		super(fs, parent, name);
@@ -125,7 +127,7 @@ public class StructrNonexistingComponentPath extends StructrPath {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 	}
 

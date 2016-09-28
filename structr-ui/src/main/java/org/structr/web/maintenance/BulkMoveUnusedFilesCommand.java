@@ -30,8 +30,10 @@ import org.structr.common.error.FrameworkException;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.DatabaseService;
 import org.structr.core.Services;
@@ -50,7 +52,7 @@ import org.structr.web.entity.FileBase;
  */
 public class BulkMoveUnusedFilesCommand extends NodeServiceCommand implements MaintenanceCommand {
 
-	private static final Logger logger = Logger.getLogger(BulkMoveUnusedFilesCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(BulkMoveUnusedFilesCommand.class.getName());
 
 	static {
 
@@ -75,7 +77,7 @@ public class BulkMoveUnusedFilesCommand extends NodeServiceCommand implements Ma
 			targetDir = "unused";
 		}
 
-		logger.log(Level.INFO, "Starting moving of unused files...");
+		logger.info("Starting moving of unused files...");
 
 		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
 		final App app = StructrApp.getInstance();
@@ -113,7 +115,7 @@ public class BulkMoveUnusedFilesCommand extends NodeServiceCommand implements Ma
 				});
 
 			} catch (IOException ex) {
-				logger.log(Level.SEVERE, null, ex);
+				logger.error("", ex);
 			}
 
 			Path targetDirPath = null;
@@ -131,7 +133,7 @@ public class BulkMoveUnusedFilesCommand extends NodeServiceCommand implements Ma
 					targetDirPath = Files.createDirectory(targetDirPath);
 
 				} catch (IOException ex) {
-					logger.log(Level.INFO, "Could not create target directory {0}: {1}", new Object[]{targetDir, ex});
+					logger.info("Could not create target directory {}: {}", new Object[]{targetDir, ex});
 					return;
 				}
 			}
@@ -158,7 +160,7 @@ public class BulkMoveUnusedFilesCommand extends NodeServiceCommand implements Ma
 							System.out.println("File " + file.getFileName() + " moved to " + targetPath);
 
 						} catch (IOException ex) {
-							logger.log(Level.INFO, "Could not move file {0} to target directory {1}: {2}", new Object[]{file, targetDir, ex});
+							logger.info("Could not move file {} to target directory {}: {}", new Object[]{file, targetDir, ex});
 						}
 
 					}
@@ -168,7 +170,7 @@ public class BulkMoveUnusedFilesCommand extends NodeServiceCommand implements Ma
 
 		}
 
-		logger.log(Level.INFO, "Done");
+		logger.info("Done");
 	}
 
 	@Override

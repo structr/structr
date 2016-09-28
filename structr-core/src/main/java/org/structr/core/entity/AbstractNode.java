@@ -33,14 +33,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeResult;
 import org.structr.api.Predicate;
@@ -108,7 +108,7 @@ import org.structr.schema.action.Function;
 public abstract class AbstractNode implements NodeInterface, AccessControllable, CMISInfo, CMISItemInfo {
 
 	private static final FixedSizeCache<String, Object> relationshipTemplateInstanceCache = new FixedSizeCache<>(1000);
-	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(AbstractNode.class.getName());
 
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type);
 
@@ -283,7 +283,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 			if (key == null) {
 
-				logger.log(Level.SEVERE, "Tried to set property with null key (action was denied)");
+				logger.error("Tried to set property with null key (action was denied)");
 
 				return;
 
@@ -488,7 +488,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 					return converter.convert(value);
 
 				} catch (Throwable t) {
-					logger.log(Level.WARNING, "Unable to convert {0} value of type {1} for indexing: {2}", new Object[] { key.dbName(), value.getClass(), t } );
+					logger.warn("Unable to convert {} value of type {} for indexing: {}", new Object[] { key.dbName(), value.getClass(), t } );
 				}
 			}
 
@@ -555,7 +555,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			return DigestUtils.md5Hex((byte[]) value);
 		}
 
-		logger.log(Level.WARNING, "Could not create MD5 hex out of value {0}", value);
+		logger.warn("Could not create MD5 hex out of value {}", value);
 
 		return null;
 
@@ -583,13 +583,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 				} catch (Throwable t) {
 
-					logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[]{
+					logger.warn("Unable to convert property {} of type {}: {}", new Object[]{
 						key.dbName(),
 						getClass().getSimpleName(),
 						t.getMessage()
 					});
 
-					logger.log(Level.WARNING, "", t);
+					logger.warn("", t);
 				}
 			}
 
@@ -846,7 +846,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	private boolean isGranted(final Permission permission, final Principal accessingUser, final int level, final Set<Long> alreadyTraversed) {
 
 		if (level > 100) {
-			logger.log(Level.WARNING, "Aborting recursive permission resolution because of recursion level > 100, this is quite likely an infinite loop.");
+			logger.warn("Aborting recursive permission resolution because of recursion level > 100, this is quite likely an infinite loop.");
 			return false;
 		}
 
@@ -1095,7 +1095,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			}
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 		mask.setPermission(permission, false);
@@ -1434,7 +1434,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		if (key == null) {
 
-			logger.log(Level.SEVERE, "Tried to set property with null key (action was denied)");
+			logger.error("Tried to set property with null key (action was denied)");
 
 			throw new FrameworkException(422, "Tried to set property with null key (action was denied)", new NullArgumentToken(getClass().getSimpleName(), base));
 
@@ -1535,7 +1535,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				// TODO: throw meaningful exception here,
 				// should be a RuntimeException that indicates
 				// wrong use of Relationships etc.
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 			}
 		}
 
@@ -1554,7 +1554,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Scripting error in {0}: {1}:\n{2}", new Object[] { key.dbName(), getUuid(), value });
+			logger.warn("Scripting error in {}: {}:\n{}", new Object[] { key.dbName(), getUuid(), value });
 		}
 
 		return result;
@@ -1624,8 +1624,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 				} else {
 
-					logger.log(Level.FINE, "Unable to invoke method {0}: {1}", new Object[]{methodName, t.getMessage()});
-					logger.log(Level.WARNING, "", t);
+					logger.debug("Unable to invoke method {}: {}", new Object[]{methodName, t.getMessage()});
+					logger.warn("", t);
 
 				}
 			}
@@ -1717,12 +1717,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 			} else {
 
-				logger.log(Level.WARNING, "Unable to find static valueOf method for type {0}", type);
+				logger.warn("Unable to find static valueOf method for type {}", type);
 			}
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Unable to deserialize value {0} of type {1}, Class has no static valueOf method.", new Object[]{value, type});
+			logger.warn("Unable to deserialize value {} of type {}, Class has no static valueOf method.", new Object[]{value, type});
 		}
 
 		return convertedObject;
@@ -1744,7 +1744,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 			} catch (FrameworkException ex) {
 
-				logger.log(Level.SEVERE, "Could not create security relationship!", ex);
+				logger.error("Could not create security relationship!", ex);
 
 			}
 
@@ -1764,7 +1764,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		Security secRel = getSecurityRelationship(principal);
 		if (secRel == null) {
 
-			logger.log(Level.SEVERE, "Could not create revoke permission, no security relationship exists!");
+			logger.error("Could not create revoke permission, no security relationship exists!");
 
 		} else {
 

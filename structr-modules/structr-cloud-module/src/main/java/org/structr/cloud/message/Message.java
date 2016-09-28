@@ -30,8 +30,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
@@ -50,7 +52,7 @@ import org.structr.core.graph.SyncCommand;
  */
 public abstract class Message<T> {
 
-	private static final Logger logger                   = Logger.getLogger(Message.class.getName());
+	private static final Logger logger                   = LoggerFactory.getLogger(Message.class.getName());
 	private static final AtomicLong idGenerator          = new AtomicLong();
 	private static final Map<String, Class> typeMap      = new LinkedHashMap<>();
 	private static final Set<String> ignoredPropertyKeys = new HashSet<>();
@@ -273,19 +275,19 @@ public abstract class Message<T> {
 					return msg;
 
 				} catch (Throwable t) {
-					logger.log(Level.WARNING, "", t);
+					logger.warn("", t);
 				}
 
 			} else {
 
-				logger.log(Level.WARNING, "Invalid CloudService message: unknown type {0}", type);
+				logger.warn("Invalid CloudService message: unknown type {}", type);
 
 				throw new EOFException("Invalid type, aborting.");
 			}
 
 		} else {
 
-			logger.log(Level.WARNING, "Invalid CloudService message: no type found.");
+			logger.warn("Invalid CloudService message: no type found.");
 		}
 
 		return null;

@@ -19,14 +19,11 @@
 package org.structr.core.graph.search;
 
 
-import org.structr.api.index.Index;
 import org.structr.api.graph.Node;
-import org.structr.core.graph.NodeFactory;
-
-//~--- JDK imports ------------------------------------------------------------
-
+import org.structr.api.index.Index;
 import org.structr.common.SecurityContext;
 import org.structr.core.graph.Factory;
+import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 
 //~--- classes ----------------------------------------------------------------

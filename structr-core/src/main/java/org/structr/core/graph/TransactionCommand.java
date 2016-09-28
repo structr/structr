@@ -22,11 +22,8 @@ package org.structr.core.graph;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.logging.Level;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.graph.Node;
@@ -59,7 +56,7 @@ import org.structr.core.property.PropertyKey;
  */
 public class TransactionCommand extends NodeServiceCommand implements AutoCloseable {
 
-	private static final Logger logger                                  = Logger.getLogger(TransactionCommand.class.getName());
+	private static final Logger logger                                  = LoggerFactory.getLogger(TransactionCommand.class.getName());
 	private static final Set<StructrTransactionListener> listeners      = new LinkedHashSet<>();
 	private static final ThreadLocal<ModificationQueue> queues          = new ThreadLocal<>();
 	private static final ThreadLocal<ErrorBuffer> buffers               = new ThreadLocal<>();
@@ -140,7 +137,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 				tx.success();
 
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 			}
 		}
 	}
@@ -229,12 +226,12 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 			} else {
 
-				logger.log(Level.SEVERE, "Got empty changeSet from command!");
+				logger.error("Got empty changeSet from command!");
 			}
 
 		} else {
 
-			logger.log(Level.SEVERE, "Trying to register transaction post processing while outside of transaction!");
+			logger.error("Trying to register transaction post processing while outside of transaction!");
 		}
 
 	}
@@ -251,12 +248,12 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 			} else {
 
-				logger.log(Level.SEVERE, "Got empty changeSet from command!");
+				logger.error("Got empty changeSet from command!");
 			}
 
 		} else {
 
-			logger.log(Level.SEVERE, "Node created while outside of transaction!");
+			logger.error("Node created while outside of transaction!");
 		}
 	}
 
@@ -272,12 +269,12 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 			} else {
 
-				logger.log(Level.SEVERE, "Got empty changeSet from command!");
+				logger.error("Got empty changeSet from command!");
 			}
 
 		} else {
 
-			logger.log(Level.SEVERE, "Node deleted while outside of transaction!");
+			logger.error("Node deleted while outside of transaction!");
 		}
 	}
 
@@ -293,12 +290,12 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 			} else {
 
-				logger.log(Level.SEVERE, "Got empty changeSet from command!");
+				logger.error("Got empty changeSet from command!");
 			}
 
 		} else {
 
-			logger.log(Level.SEVERE, "Node deleted while outside of transaction!");
+			logger.error("Node deleted while outside of transaction!");
 		}
 	}
 
@@ -314,12 +311,12 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 			} else {
 
-				logger.log(Level.SEVERE, "Got empty changeSet from command!");
+				logger.error("Got empty changeSet from command!");
 			}
 
 		} else {
 
-			logger.log(Level.SEVERE, "Relationships created while outside of transaction!");
+			logger.error("Relationships created while outside of transaction!");
 		}
 	}
 
@@ -335,12 +332,12 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 			} else {
 
-				logger.log(Level.SEVERE, "Got empty changeSet from command!");
+				logger.error("Got empty changeSet from command!");
 			}
 
 		} else {
 
-			logger.log(Level.SEVERE, "Relationship deleted while outside of transaction!");
+			logger.error("Relationship deleted while outside of transaction!");
 		}
 	}
 
@@ -356,12 +353,12 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 			} else {
 
-				logger.log(Level.SEVERE, "Got empty changeSet from command!");
+				logger.error("Got empty changeSet from command!");
 			}
 
 		} else {
 
-			logger.log(Level.SEVERE, "Relationship deleted while outside of transaction!");
+			logger.error("Relationship deleted while outside of transaction!");
 		}
 	}
 
@@ -421,12 +418,12 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 			} else {
 
-				logger.log(Level.SEVERE, "Got empty changeSet from command!");
+				logger.error("Got empty changeSet from command!");
 			}
 
 		} else {
 
-			logger.log(Level.SEVERE, "Unable to register node callback");
+			logger.error("Unable to register node callback");
 		}
 
 	}
@@ -443,12 +440,12 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 			} else {
 
-				logger.log(Level.SEVERE, "Got empty changeSet from command!");
+				logger.error("Got empty changeSet from command!");
 			}
 
 		} else {
 
-			logger.log(Level.SEVERE, "Unable to register relationship callback");
+			logger.error("Unable to register relationship callback");
 		}
 
 	}

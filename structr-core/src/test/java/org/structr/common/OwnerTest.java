@@ -37,20 +37,20 @@
 
 package org.structr.common;
 
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.TestOne;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Direction;
-import org.structr.api.util.Iterables;
 import org.structr.api.graph.Relationship;
-import org.structr.core.entity.relationship.Ownership;
+import org.structr.api.util.Iterables;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
+import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestUser;
+import org.structr.core.entity.relationship.Ownership;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.Tx;
 
@@ -63,7 +63,7 @@ import org.structr.core.graph.Tx;
  */
 public class OwnerTest extends StructrTest {
 
-	private static final Logger logger = Logger.getLogger(OwnerTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(OwnerTest.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -100,7 +100,7 @@ public class OwnerTest extends StructrTest {
 				tx.success();
 
 			} catch (FrameworkException ex) {
-				logger.log(Level.SEVERE, ex.toString());
+				logger.error(ex.toString());
 			}
 
 			try (final Tx tx = app.tx()) {
@@ -122,7 +122,7 @@ public class OwnerTest extends StructrTest {
 				tx.success();
 
 			} catch (FrameworkException ex) {
-				logger.log(Level.SEVERE, ex.toString());
+				logger.error(ex.toString());
 			}
 
 			try (final Tx tx = app.tx()) {
@@ -139,7 +139,7 @@ public class OwnerTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -175,7 +175,7 @@ public class OwnerTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 		}
 	}

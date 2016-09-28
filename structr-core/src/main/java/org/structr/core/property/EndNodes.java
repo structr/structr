@@ -22,13 +22,13 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.api.util.Iterables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
+import org.structr.api.util.Iterables;
 import org.structr.common.NotNullPredicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -53,7 +53,7 @@ import org.structr.core.notion.ObjectNotion;
  */
 public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends Property<List<T>> implements RelationProperty<T> {
 
-	private static final Logger logger = Logger.getLogger(EndNodes.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(EndNodes.class.getName());
 
 	private Relation<S, T, ? extends Source, ManyEndpoint<T>> relation = null;
 	private Notion notion                                              = null;
@@ -85,7 +85,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 			this.relation = relationClass.newInstance();
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 		this.notion   = notion;
@@ -337,7 +337,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Unable to fetch related node: {0}", t.getMessage());
+			logger.warn("Unable to fetch related node: {}", t.getMessage());
 		}
 
 		return relatedNodes;

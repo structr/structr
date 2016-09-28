@@ -18,7 +18,8 @@
  */
 package org.structr.core.entity;
 
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
@@ -47,7 +48,7 @@ import org.structr.core.property.Property;
  */
 public class PropertyAccess extends AbstractNode {
 
-	private static final Logger logger = Logger.getLogger(PropertyAccess.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(PropertyAccess.class.getName());
 
 	private Long cachedFlags       = null;
 	private Integer cachedPosition = null;

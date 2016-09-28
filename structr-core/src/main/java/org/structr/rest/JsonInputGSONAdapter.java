@@ -29,22 +29,12 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.JsonSyntaxException;
-
-
-//~--- JDK imports ------------------------------------------------------------
-
-
-
-
-
-
 import java.lang.reflect.Type;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.IJsonInput;
 import org.structr.core.JsonInput;
 import org.structr.core.JsonSingleInput;
@@ -58,7 +48,7 @@ import org.structr.core.JsonSingleInput;
  */
 public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSerializer<IJsonInput>, JsonDeserializer<IJsonInput> {
 
-	private static final Logger logger = Logger.getLogger(JsonInputGSONAdapter.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(JsonInputGSONAdapter.class.getName());
 
 	@Override
 	public IJsonInput createInstance(final Type type) {
@@ -67,7 +57,7 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 			return (IJsonInput)type.getClass().newInstance();
 
 		} catch (InstantiationException | IllegalAccessException e) {
-			logger.log(Level.WARNING, "", e);
+			logger.warn("", e);
 		}
 
 		return null;

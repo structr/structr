@@ -30,13 +30,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.geo.GeoCodingResult.Type;
 
 /**
@@ -45,7 +45,7 @@ import org.structr.common.geo.GeoCodingResult.Type;
  */
 public class BingGeoCodingProvider extends AbstractGeoCodingProvider {
 
-	private static final Logger logger = Logger.getLogger(BingGeoCodingProvider.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(BingGeoCodingProvider.class.getName());
 	
 	@Override
 	public GeoCodingResult geocode(String street, String house, String postalCode, String city, String state, String country, String language) throws IOException {
@@ -99,7 +99,7 @@ public class BingGeoCodingProvider extends AbstractGeoCodingProvider {
 			String url = urlBuffer.toString();
 			
 			try {
-				logger.log(Level.INFO, "Using url {0}", url);
+				logger.info("Using url {}", url);
 
 				URL mapsUrl                  = new URL(urlBuffer.toString());
 				HttpURLConnection connection = (HttpURLConnection) mapsUrl.openConnection();
@@ -148,13 +148,13 @@ public class BingGeoCodingProvider extends AbstractGeoCodingProvider {
 						
 					} else {
 						
-						logger.log(Level.WARNING, "Geocoding result did not contain location information:\n{0}", xmlDoc.asXML());
+						logger.warn("Geocoding result did not contain location information:\n{}", xmlDoc.asXML());
 					}
 				}
 				
 			} catch (DocumentException dex) {
 				
-				logger.log(Level.WARNING, "Unable to use Bing geocoding provider: {0}", dex.getMessage());
+				logger.warn("Unable to use Bing geocoding provider: {}", dex.getMessage());
 				
 				// maybe not a permanent error => wrap in IOException so the request is retried later
 				throw new IOException(dex);
@@ -162,7 +162,7 @@ public class BingGeoCodingProvider extends AbstractGeoCodingProvider {
 			
 		} else {
 			
-			logger.log(Level.WARNING, "Unable to use Bing geocoding provider, missing API key. Please supply API key in structr.conf using the key geocoding.apikey.");
+			logger.warn("Unable to use Bing geocoding provider, missing API key. Please supply API key in structr.conf using the key geocoding.apikey.");
 		}
 		
 		

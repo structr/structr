@@ -18,7 +18,8 @@
  */
 package org.structr.web.function;
 
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.mail.EmailException;
 import org.structr.common.MailHelper;
 import org.structr.common.error.FrameworkException;
@@ -31,7 +32,7 @@ import org.structr.schema.action.Function;
  */
 public class SendPlaintextMailFunction extends Function<Object, Object> {
 
-	private static final Logger logger = Logger.getLogger(SendPlaintextMailFunction.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(SendPlaintextMailFunction.class.getName());
 
 	public static final String ERROR_MESSAGE_SEND_PLAINTEXT_MAIL = "Usage: ${send_plaintext_mail(fromAddress, fromName, toAddress, toName, subject, content)}.";
 

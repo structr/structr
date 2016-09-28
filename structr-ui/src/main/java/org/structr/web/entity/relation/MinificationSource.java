@@ -18,8 +18,10 @@
  */
 package org.structr.web.entity.relation;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
@@ -60,7 +62,7 @@ public class MinificationSource extends ManyToMany<AbstractMinifiedFile, FileBas
 		try {
 			setProperty(position, getSourceNode().getMaxPosition() + 1);
 		} catch (FrameworkException ex) {
-			Logger.getLogger(MinificationSource.class.getName()).log(Level.SEVERE, "Failed setting minification position!", ex);
+			LoggerFactory.getLogger(MinificationSource.class.getName()).error("Failed setting minification position!", ex);
 		}
 	}
 }

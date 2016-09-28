@@ -31,8 +31,10 @@ import org.structr.websocket.StructrWebSocket;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.SchemaHelper;
@@ -46,7 +48,7 @@ import org.structr.web.entity.relation.FileChildren;
  */
 public class ListFilesCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(ListFilesCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ListFilesCommand.class.getName());
 	
 	static {
 
@@ -109,7 +111,7 @@ public class ListFilesCommand extends AbstractCommand {
 			
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 
 		}
 

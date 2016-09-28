@@ -18,8 +18,8 @@
  */
 package org.structr;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.Services;
 
 /**
@@ -29,11 +29,11 @@ import org.structr.core.Services;
  */
 public class Server {
 
-	private static final Logger logger = Logger.getLogger(Server.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(Server.class.getName());
 	
 	public static void main(String[] args) {
 		
-		logger.log(Level.INFO, "Starting server instance");
+		logger.info("Starting server instance");
 		
 		// start service layer using default configuration
 		// augmented by local structr.conf

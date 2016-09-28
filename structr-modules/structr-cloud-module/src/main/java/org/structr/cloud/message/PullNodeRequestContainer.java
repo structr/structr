@@ -22,8 +22,10 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.ExportSet;
 import org.structr.common.error.FrameworkException;
@@ -40,7 +42,7 @@ import org.structr.core.graph.SyncCommand;
  */
 public class PullNodeRequestContainer extends Message {
 
-	private static final Logger logger = Logger.getLogger(PullNodeRequestContainer.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(PullNodeRequestContainer.class.getName());
 	
 	private boolean recursive             = false;
 	private String rootNodeId             = null;
@@ -102,7 +104,7 @@ public class PullNodeRequestContainer extends Message {
 			}
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 	}
 

@@ -21,21 +21,17 @@ package org.structr.common.geo;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Location;
-import org.structr.core.property.PropertyMap;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.logging.Logger;
 import org.apache.commons.collections.map.LRUMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Location;
 import org.structr.core.graph.search.DistanceSearchAttribute;
+import org.structr.core.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -47,7 +43,7 @@ import org.structr.core.graph.search.DistanceSearchAttribute;
  */
 public class GeoHelper {
 
-	private static final Logger logger                    = Logger.getLogger(GeoHelper.class.getName());
+	private static final Logger logger                    = LoggerFactory.getLogger(GeoHelper.class.getName());
 	
 	private static Map<String, GeoCodingResult> geoCache  = Collections.synchronizedMap(new LRUMap(10000));
 	private static Class<GeoCodingProvider> providerClass = null;
@@ -124,7 +120,7 @@ public class GeoHelper {
 				} catch (IOException ioex) {
 					
 					// IOException, try again next time
-					logger.log(Level.WARNING, "Unable to obtain geocoding result using provider {0}: {1}", new Object[] { provider.getClass().getName(), ioex.getMessage() });
+					logger.warn("Unable to obtain geocoding result using provider {}: {}", new Object[] { provider.getClass().getName(), ioex.getMessage() });
 				}
 			}
 			
@@ -184,7 +180,7 @@ public class GeoHelper {
 
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "Unable to instantiate geocoding provider: {0}", t.getMessage() );
+				logger.warn("Unable to instantiate geocoding provider: {}", t.getMessage() );
 			}
 		}
 		

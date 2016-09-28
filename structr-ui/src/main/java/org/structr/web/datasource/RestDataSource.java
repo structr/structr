@@ -24,8 +24,10 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
@@ -62,7 +64,7 @@ import org.structr.web.entity.dom.DOMNode;
  */
 public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 
-	private static final Logger logger = Logger.getLogger(RestDataSource.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(RestDataSource.class.getName());
 
 	@Override
 	public List<GraphObject> getData(final RenderContext renderContext, AbstractNode referenceNode) throws FrameworkException {
@@ -86,7 +88,7 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 			try {
 				resourceProvider = UiResourceProvider.class.newInstance();
 			} catch (Throwable t) {
-				logger.log(Level.SEVERE, "Couldn't establish a resource provider", t);
+				logger.error("Couldn't establish a resource provider", t);
 				return Collections.EMPTY_LIST;
 			}
 		}
@@ -165,7 +167,7 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 
 		} catch (IllegalPathException | NotFoundException e) {
 
-			logger.log(Level.WARNING, "Illegal path for REST query: {0}", restQuery);
+			logger.warn("Illegal path for REST query: {}", restQuery);
 
 		}
 
@@ -218,7 +220,7 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 			result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
 
 		} catch (NotFoundException nfe) {
-			logger.log(Level.WARNING, "No result from internal REST query: {0}", restQuery);
+			logger.warn("No result from internal REST query: {}", restQuery);
 		}
 
 

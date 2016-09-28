@@ -24,8 +24,10 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -56,7 +58,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class UnarchiveCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(UnarchiveCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(UnarchiveCommand.class.getName());
 
 	static {
 
@@ -112,7 +114,7 @@ public class UnarchiveCommand extends AbstractCommand {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 
 			String msg = t.toString();
 
@@ -150,14 +152,14 @@ public class UnarchiveCommand extends AbstractCommand {
 			existingParentFolder = app.get(Folder.class, parentFolderId);
 			String parentFolderName = null;
 
-			String msgString = "Unarchiving file {0}";
+			String msgString = "Unarchiving file {}";
 			if (existingParentFolder != null) {
 
 				parentFolderName = existingParentFolder.getName();
-				msgString += " into existing folder {1}.";
+				msgString += " into existing folder {}.";
 			}
 
-			logger.log(Level.INFO, msgString, new Object[]{fileName, parentFolderName});
+			logger.info(msgString, new Object[]{fileName, parentFolderName});
 
 			is = file.getInputStream();
 			tx.success();
@@ -184,14 +186,14 @@ public class UnarchiveCommand extends AbstractCommand {
 				while (entry != null && count++ < 50) {
 
 					final String entryPath = "/" + PathHelper.clean(entry.getName());
-					logger.log(Level.INFO, "Entry path: {0}", entryPath);
+					logger.info("Entry path: {}", entryPath);
 
 					if (entry.isDirectory()) {
 
 						final String folderPath = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + entryPath;
 						final Folder newFolder = FileHelper.createFolderPath(securityContext, folderPath);
 
-						logger.log(Level.INFO, "Created folder {0} with path {1}", new Object[]{newFolder, FileHelper.getFolderPath(newFolder)});
+						logger.info("Created folder {} with path {}", new Object[]{newFolder, FileHelper.getFolderPath(newFolder)});
 
 					} else {
 
@@ -215,7 +217,7 @@ public class UnarchiveCommand extends AbstractCommand {
 //							newFile.getProperty(Image.tnSmall);
 //						}
 
-						logger.log(Level.INFO, "Created {0} file {1} with path {2}", new Object[]{newFile.getType(), newFile, FileHelper.getFolderPath(newFile)});
+						logger.info("Created {} file {} with path {}", new Object[]{newFile.getType(), newFile, FileHelper.getFolderPath(newFile)});
 
 					}
 
@@ -225,11 +227,11 @@ public class UnarchiveCommand extends AbstractCommand {
 					overallCount++;
 				}
 
-				logger.log(Level.INFO, "Committing transaction after {0} files.", overallCount);
+				logger.info("Committing transaction after {} files.", overallCount);
 
 				tx.success();
 
-				logger.log(Level.INFO, "Unarchived {0} files.", overallCount);
+				logger.info("Unarchived {} files.", overallCount);
 			}
 
 		}

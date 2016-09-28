@@ -18,8 +18,10 @@
  */
 package org.structr.web.entity.html;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang.StringUtils;
 import org.structr.core.property.Property;
 import org.apache.commons.lang3.ArrayUtils;
@@ -39,7 +41,7 @@ import org.w3c.dom.Node;
  */
 public class Script extends LinkSource {
 
-	private static final Logger logger = Logger.getLogger(Script.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(Script.class.getName());
 
 	public static final Property<String> _src     = new HtmlProperty("src");
 	public static final Property<String> _async   = new HtmlProperty("async");
@@ -80,7 +82,7 @@ public class Script extends LinkSource {
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "Unable to set property on new child: {0}", fex.getMessage());
+				logger.warn("Unable to set property on new child: {}", fex.getMessage());
 
 			}
 		}

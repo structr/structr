@@ -22,8 +22,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -54,7 +56,7 @@ import org.structr.web.servlet.HtmlServlet;
  */
 public class ResetPasswordResource extends Resource {
 
-	private static final Logger logger = Logger.getLogger(ResetPasswordResource.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ResetPasswordResource.class.getName());
 
 	private enum TemplateKey {
 		RESET_PASSWORD_SENDER_NAME,
@@ -220,7 +222,7 @@ public class ResetPasswordResource extends Resource {
 
 		} catch (Exception e) {
 
-			logger.log(Level.SEVERE, "Unable to send reset password e-mail", e);
+			logger.error("Unable to send reset password e-mail", e);
 			return false;
 		}
 
@@ -252,7 +254,7 @@ public class ResetPasswordResource extends Resource {
 
 		} catch (FrameworkException ex) {
 
-			Logger.getLogger(ResetPasswordResource.class.getName()).log(Level.WARNING, "Could not get mail template for key " + key, ex);
+			LoggerFactory.getLogger(ResetPasswordResource.class.getName()).warn("Could not get mail template for key " + key, ex);
 
 		}
 

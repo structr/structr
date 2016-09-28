@@ -18,20 +18,17 @@
  */
 package org.structr.core.graph;
 
+import java.util.Date;
+import java.util.Map.Entry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Transformation;
-import org.structr.core.entity.AbstractRelationship;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.Date;
-import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.structr.api.graph.Node;
-import org.structr.api.graph.Relationship;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -46,7 +43,7 @@ import org.structr.core.property.PropertyMap;
  */
 public class CreateRelationshipCommand extends NodeServiceCommand {
 
-	private static final Logger logger = Logger.getLogger(CreateRelationshipCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CreateRelationshipCommand.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -68,7 +65,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		final R newRel                       = factory.instantiate(rel);
 		final Date now                       = new Date();
 
-		// logger.log(Level.INFO, "CREATING relationship {0}-[{1}]->{2}", new Object[] {  fromNode.getType(), newRel.getRelType(), toNode.getType() } );
+		// logger.info("CREATING relationship {}-[{}]->{}", new Object[] {  fromNode.getType(), newRel.getRelType(), toNode.getType() } );
 
 		if (newRel != null) {
 
@@ -132,7 +129,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 			return type.newInstance();
 
 		} catch(Throwable t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 		return null;

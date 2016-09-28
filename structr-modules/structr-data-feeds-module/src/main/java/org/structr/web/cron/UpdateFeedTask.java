@@ -23,8 +23,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.agent.Task;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -38,7 +40,7 @@ import org.structr.web.entity.feed.DataFeed;
 
 public class UpdateFeedTask<T extends DataFeed> implements Task<T> {
 
-	private static final Logger logger = Logger.getLogger(UpdateFeedTask.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(UpdateFeedTask.class.getName());
 
 	@Override
 	public Principal getUser() {
@@ -51,7 +53,7 @@ public class UpdateFeedTask<T extends DataFeed> implements Task<T> {
 		try {
 			return (List<T>) StructrApp.getInstance().get(DataFeed.class);
 		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, "", ex);
+			logger.error("", ex);
 		}
 
 		return Collections.EMPTY_LIST;

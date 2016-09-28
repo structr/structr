@@ -22,8 +22,10 @@ import com.jayway.restassured.RestAssured;
 import org.structr.common.error.FrameworkException;
 import org.structr.web.common.StructrUiTest;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -43,7 +45,7 @@ import org.structr.web.entity.User;
  */
 public class ResourceAccessTest extends StructrUiTest {
 
-	private static final Logger logger = Logger.getLogger(ResourceAccessTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ResourceAccessTest.class.getName());
 
 	//~--- methods --------------------------------------------------------
 //	@Override
@@ -69,8 +71,8 @@ public class ResourceAccessTest extends StructrUiTest {
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().get("/folders");
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
-			logger.log(Level.SEVERE, fex.toString());
+			logger.warn("", fex);
+			logger.error(fex.toString());
 			fail("Unexpected exception");
 		}
 
@@ -80,8 +82,8 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
-			logger.log(Level.SEVERE, fex.toString());
+			logger.warn("", fex);
+			logger.error(fex.toString());
 			fail("Unexpected exception");
 		}
 
@@ -96,8 +98,8 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
-			logger.log(Level.SEVERE, fex.toString());
+			logger.warn("", fex);
+			logger.error(fex.toString());
 			fail("Unexpected exception");
 		}
 
@@ -109,8 +111,8 @@ public class ResourceAccessTest extends StructrUiTest {
 			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_GET);
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
-			logger.log(Level.SEVERE, fex.toString());
+			logger.warn("", fex);
+			logger.error(fex.toString());
 			fail("Unexpected exception");
 		}
 
@@ -121,8 +123,8 @@ public class ResourceAccessTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
-			logger.log(Level.SEVERE, fex.toString());
+			logger.warn("", fex);
+			logger.error(fex.toString());
 			fail("Unexpected exception");
 		}
 	}
@@ -148,8 +150,8 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
-			logger.log(Level.SEVERE, fex.toString());
+			logger.warn("", fex);
+			logger.error(fex.toString());
 			fail("Unexpected exception");
 		}
 
@@ -163,8 +165,8 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
-			logger.log(Level.SEVERE, fex.toString());
+			logger.warn("", fex);
+			logger.error(fex.toString());
 			fail("Unexpected exception");
 		}
 
@@ -176,9 +178,9 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -211,8 +213,8 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
-			logger.log(Level.SEVERE, fex.toString());
+			logger.warn("", fex);
+			logger.error(fex.toString());
 			fail("Unexpected exception");
 		}
 
@@ -226,8 +228,8 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
-			logger.log(Level.SEVERE, fex.toString());
+			logger.warn("", fex);
+			logger.error(fex.toString());
 			fail("Unexpected exception");
 		}
 
@@ -241,8 +243,8 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
-			logger.log(Level.SEVERE, fex.toString());
+			logger.warn("", fex);
+			logger.error(fex.toString());
 			fail("Unexpected exception");
 		}
 
@@ -260,8 +262,8 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
-			logger.log(Level.SEVERE, fex.toString());
+			logger.warn("", fex);
+			logger.error(fex.toString());
 			fail("Unexpected exception");
 		}
 
@@ -275,9 +277,9 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -303,8 +305,8 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
-			logger.log(Level.SEVERE, fex.toString());
+			logger.warn("", fex);
+			logger.error(fex.toString());
 			fail("Unexpected exception");
 		}
 
@@ -317,8 +319,8 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
-			logger.log(Level.SEVERE, fex.toString());
+			logger.warn("", fex);
+			logger.error(fex.toString());
 			fail("Unexpected exception");
 		}
 
@@ -331,8 +333,8 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
-			logger.log(Level.SEVERE, fex.toString());
+			logger.warn("", fex);
+			logger.error(fex.toString());
 			fail("Unexpected exception");
 		}
 
@@ -345,8 +347,8 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
-			logger.log(Level.SEVERE, fex.toString());
+			logger.warn("", fex);
+			logger.error(fex.toString());
 			fail("Unexpected exception");
 		}
 
@@ -362,8 +364,8 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
-			logger.log(Level.SEVERE, fex.toString());
+			logger.warn("", fex);
+			logger.error(fex.toString());
 			fail("Unexpected exception");
 		}
 
@@ -376,8 +378,8 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
-			logger.log(Level.SEVERE, fex.toString());
+			logger.warn("", fex);
+			logger.error(fex.toString());
 			fail("Unexpected exception");
 		}
 	}
@@ -409,7 +411,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 		return null;
@@ -429,7 +431,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 	}
 }

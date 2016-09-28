@@ -19,8 +19,10 @@
 package org.structr.websocket.command;
 
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
@@ -39,7 +41,7 @@ import org.w3c.dom.DOMException;
  */
 public class ClonePageCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(ClonePageCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ClonePageCommand.class.getName());
 
 	static {
 
@@ -92,19 +94,19 @@ public class ClonePageCommand extends AbstractCommand {
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "Could not create node.", fex);
+				logger.warn("Could not create node.", fex);
 				getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
 			} catch (DOMException dex) {
 
-				logger.log(Level.WARNING, "Could not create node.", dex);
+				logger.warn("Could not create node.", dex);
 				getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);
 
 			}
 
 		} else {
 
-			logger.log(Level.WARNING, "Node with uuid {0} not found.", webSocketData.getId());
+			logger.warn("Node with uuid {} not found.", webSocketData.getId());
 			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 
 		}

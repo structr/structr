@@ -18,11 +18,11 @@
  */
 package org.structr.rest.test;
 
-import static org.hamcrest.Matchers.*;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.util.LinkedList;
 import java.util.List;
+import static org.hamcrest.Matchers.*;
 import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.entity.TestOne;
 

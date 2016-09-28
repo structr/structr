@@ -25,8 +25,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.structr.common.error.FrameworkException;
@@ -48,7 +50,7 @@ import org.structr.web.importer.Importer;
  */
 public class FtpFilePageWrapper implements FtpFile {
 
-	private static final Logger logger = Logger.getLogger(FtpFilePageWrapper.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FtpFilePageWrapper.class.getName());
 
 	private Page page = null;
 
@@ -68,7 +70,7 @@ public class FtpFilePageWrapper implements FtpFile {
 			return path;
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error in getPath() of abstract ftp file", fex);
+			logger.error("Error in getPath() of abstract ftp file", fex);
 		}
 		return null;
 	}
@@ -113,7 +115,7 @@ public class FtpFilePageWrapper implements FtpFile {
 			return owner;
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error while getting owner of " + this, fex);
+			logger.error("Error while getting owner of " + this, fex);
 		}
 		return null;
 	}
@@ -133,7 +135,7 @@ public class FtpFilePageWrapper implements FtpFile {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error while getting owner name of " + this, fex);
+			logger.error("Error while getting owner name of " + this, fex);
 		}
 
 		return name;
@@ -159,7 +161,7 @@ public class FtpFilePageWrapper implements FtpFile {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error while getting group name of " + this, fex);
+			logger.error("Error while getting group name of " + this, fex);
 		}
 
 		return name;
@@ -181,7 +183,7 @@ public class FtpFilePageWrapper implements FtpFile {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error while last modified date of " + this, fex);
+			logger.error("Error while last modified date of " + this, fex);
 		}
 
 		return lastModified;
@@ -196,7 +198,7 @@ public class FtpFilePageWrapper implements FtpFile {
 			tx.success();
 
 		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		return true;
@@ -213,7 +215,7 @@ public class FtpFilePageWrapper implements FtpFile {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error while last modified date of " + this, fex);
+			logger.error("Error while last modified date of " + this, fex);
 		}
 
 		return size;
@@ -230,7 +232,7 @@ public class FtpFilePageWrapper implements FtpFile {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error in getName() of page", fex);
+			logger.error("Error in getName() of page", fex);
 		}
 
 		return name;
@@ -247,7 +249,7 @@ public class FtpFilePageWrapper implements FtpFile {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error in isHidden() of page", fex);
+			logger.error("Error in isHidden() of page", fex);
 		}
 
 		return hidden;
@@ -269,7 +271,7 @@ public class FtpFilePageWrapper implements FtpFile {
 			tx.success();
 
 		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		return true;
@@ -279,7 +281,7 @@ public class FtpFilePageWrapper implements FtpFile {
 	public boolean move(FtpFile target) {
 		try (Tx tx = StructrApp.getInstance().tx()) {
 
-			logger.log(Level.INFO, "move()");
+			logger.info("move()");
 
 			final AbstractStructrFtpFile targetFile = (AbstractStructrFtpFile) target;
 			final String path = targetFile instanceof StructrFtpFile ? "/" : targetFile.getAbsolutePath();
@@ -292,7 +294,7 @@ public class FtpFilePageWrapper implements FtpFile {
 				}
 
 			} catch (FrameworkException ex) {
-				logger.log(Level.SEVERE, "Could not move ftp file", ex);
+				logger.error("Could not move ftp file", ex);
 				return false;
 			}
 
@@ -300,7 +302,7 @@ public class FtpFilePageWrapper implements FtpFile {
 
 			return true;
 		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		return false;
@@ -343,7 +345,7 @@ public class FtpFilePageWrapper implements FtpFile {
 					tx.success();
 
 				} catch (FrameworkException fex) {
-					logger.log(Level.WARNING, "", fex);
+					logger.warn("", fex);
 				}
 
 				super.flush();
@@ -365,7 +367,7 @@ public class FtpFilePageWrapper implements FtpFile {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
 		return bis;

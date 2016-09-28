@@ -23,8 +23,10 @@ import org.structr.cloud.message.Message;
 import java.io.IOException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -32,7 +34,7 @@ import java.util.logging.Logger;
  */
 public class Sender extends Thread {
 
-	private static final Logger logger = Logger.getLogger(Sender.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(Sender.class.getName());
 
 	private final BlockingQueue<Message> outputQueue = new ArrayBlockingQueue<>(10000);
 	private DataOutputStream outputStream            = null;
@@ -52,7 +54,7 @@ public class Sender extends Thread {
 			outputStream.flush();
 
 		} catch (IOException ioex) {
-			logger.log(Level.WARNING, "", ioex);
+			logger.warn("", ioex);
 		}
 	}
 
@@ -90,7 +92,7 @@ public class Sender extends Thread {
 			outputQueue.put(message);
 
 		} catch (InterruptedException iex) {
-			logger.log(Level.WARNING, "", iex);
+			logger.warn("", iex);
 		}
 	}
 }

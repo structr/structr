@@ -18,22 +18,20 @@
  */
 package org.structr.common;
 
+import java.util.Date;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSeven;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
-
-//~--- JDK imports ------------------------------------------------------------
-import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StringProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -46,7 +44,7 @@ import org.structr.core.graph.Tx;
  */
 public class SearchResultsTest extends StructrTest {
 
-	private static final Logger logger = Logger.getLogger(SearchResultsTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(SearchResultsTest.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -98,9 +96,9 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -130,9 +128,9 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -179,9 +177,9 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -213,9 +211,9 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -257,7 +255,7 @@ public class SearchResultsTest extends StructrTest {
 			fail("Expected a FrameworkException (name must_not_be_empty)");
 
 		} catch (FrameworkException nfe) {
-			logger.log(Level.WARNING, "", nfe);
+			logger.warn("", nfe);
 
 		}
 
@@ -273,9 +271,9 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -305,9 +303,9 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -335,9 +333,9 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -364,9 +362,9 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -390,9 +388,9 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -416,9 +414,9 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -442,9 +440,9 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (Throwable ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -468,9 +466,9 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -495,9 +493,9 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}

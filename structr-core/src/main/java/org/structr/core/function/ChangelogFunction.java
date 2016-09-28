@@ -25,8 +25,8 @@ import com.google.gson.JsonParser;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
@@ -39,7 +39,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 	public static final String ERROR_MESSAGE_CHANGLOG = "Usage: ${changelog(entity[, resolve=false])}. Example: ${changelog(current)}";
 	public static final String ERROR_MESSAGE_CHANGLOG_JS = "Usage: ${{Structr.changelog(entity[, resolve=false])}}. Example: ${{Structr.changelog(Structr.get('current'))}}";
 
-	private static final Logger logger = Logger.getLogger(ChangelogFunction.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ChangelogFunction.class.getName());
 
 
 	@Override
@@ -59,7 +59,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 			if (sources[0] instanceof GraphObject) {
 				dataObject = (GraphObject)sources[0];
 			} else {
-				logger.log(Level.WARNING, "First parameter must be of type GraphObject: \"{0}\"", sources[0]);
+				logger.warn("First parameter must be of type GraphObject: \"{}\"", sources[0]);
 				return usage(ctx.isJavaScriptContext());
 			}
 
@@ -118,7 +118,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 
 						} else {
 
-							logger.log(Level.WARNING, "Unknown verb in changelog: \"{0}\"", verb);
+							logger.warn("Unknown verb in changelog: \"{}\"", verb);
 
 						}
 

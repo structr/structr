@@ -18,7 +18,8 @@
  */
 package org.structr.web.auth;
 
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.app.StructrApp;
 
 /**
@@ -27,7 +28,7 @@ import org.structr.core.app.StructrApp;
  */
 public class GoogleAuthClient extends StructrOAuthClient {
 	
-	private static final Logger logger = Logger.getLogger(GoogleAuthClient.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(GoogleAuthClient.class.getName());
 	
 	@Override
 	protected String getScope() {

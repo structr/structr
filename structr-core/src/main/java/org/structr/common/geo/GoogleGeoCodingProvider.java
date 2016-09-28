@@ -31,13 +31,13 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.geo.GeoCodingResult.Type;
 
 /**
@@ -46,7 +46,7 @@ import org.structr.common.geo.GeoCodingResult.Type;
  */
 public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 
-	private static final Logger logger = Logger.getLogger(GoogleGeoCodingProvider.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(GoogleGeoCodingProvider.class.getName());
 
 	@Override
 	public GeoCodingResult geocode(final String street, final String house, String postalCode, final String city, final String state, final String country, final String language) throws IOException {
@@ -67,7 +67,7 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 			encodedAddress = URLEncoder.encode(address, "UTF-8");
 		} catch (UnsupportedEncodingException ex) {
 
-			logger.log(Level.WARNING, "Unsupported Encoding", ex);
+			logger.warn("Unsupported Encoding", ex);
 
 			return null;
 		}
@@ -92,13 +92,13 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 
 		} catch (IOException ioe) {
 
-			logger.log(Level.WARNING, "Connection to geocoding service failed", ioe);
+			logger.warn("Connection to geocoding service failed", ioe);
 
 			return null;
 
 		} catch (DocumentException de) {
 
-			logger.log(Level.WARNING, "Could not read result document", de);
+			logger.warn("Could not read result document", de);
 
 			return null;
 		}
@@ -114,12 +114,12 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 				
 			} catch(Throwable t) {
 				
-				logger.log(Level.WARNING, "Unable to find geocoding for address {0}: {1}", new Object[] { address, t.getMessage() });
+				logger.warn("Unable to find geocoding for address {}: {}", new Object[] { address, t.getMessage() });
 			}
 
 		} else {
 
-			logger.log(Level.WARNING, "Status not OK for address {0}: {1}", new Object[] { address, status });
+			logger.warn("Status not OK for address {}: {}", new Object[] { address, status });
 		}
 
 		return null;
@@ -251,7 +251,7 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 					
 				} catch(Throwable t) {
 					
-					logger.log(Level.WARNING, "Encountered unknown address component type {0} while parsing.", typeName);
+					logger.warn("Encountered unknown address component type {} while parsing.", typeName);
 				}
 				
 			}

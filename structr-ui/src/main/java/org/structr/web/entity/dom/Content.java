@@ -23,8 +23,10 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.java.textilej.parser.MarkupParser;
 import net.java.textilej.parser.markup.confluence.ConfluenceDialect;
 import net.java.textilej.parser.markup.mediawiki.MediaWikiDialect;
@@ -70,7 +72,7 @@ import org.w3c.dom.Text;
  */
 public class Content extends DOMNode implements Text {
 
-	private static final Logger logger                                                   = Logger.getLogger(Content.class.getName());
+	private static final Logger logger                                                   = LoggerFactory.getLogger(Content.class.getName());
 	public static final Property<String> contentType                                     = new StringProperty("contentType").indexed();
 	public static final Property<String> content                                         = new StringProperty("content").indexed();
 	public static final Property<Boolean> isContent                                      = new ConstantBooleanProperty("isContent", true);
@@ -231,7 +233,7 @@ public class Content extends DOMNode implements Text {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "Updating page version failed", ex);
+			logger.warn("Updating page version failed", ex);
 
 		}
 
@@ -376,7 +378,7 @@ public class Content extends DOMNode implements Text {
 						_content = converter.adapt(_content);
 					} catch (FrameworkException fex) {
 
-						logger.log(Level.WARNING, "Unable to convert content: {0}", fex.getMessage());
+						logger.warn("Unable to convert content: {}", fex.getMessage());
 
 					}
 
@@ -412,7 +414,7 @@ public class Content extends DOMNode implements Text {
 		} catch (Throwable t) {
 
 			// catch exception to prevent ugly status 500 error pages in frontend.
-			logger.log(Level.SEVERE, "", t);
+			logger.error("", t);
 
 		}
 

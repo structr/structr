@@ -27,7 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringJoiner;
-import java.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.odftoolkit.odfdom.doc.OdfSpreadsheetDocument;
 import org.odftoolkit.odfdom.doc.table.OdfTable;
 import org.odftoolkit.odfdom.doc.table.OdfTableCell;
@@ -178,7 +179,7 @@ public class ODSExporter extends ODFExporter {
 			spreadsheet.close();
 
 		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Error while exporting to ODS", e);
+			logger.error("Error while exporting to ODS", e);
 		}
 	}
 

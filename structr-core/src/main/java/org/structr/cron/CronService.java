@@ -21,13 +21,13 @@ package org.structr.cron;
 import java.util.LinkedList;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.agent.Task;
 import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
-import org.structr.core.Services;
-import org.structr.agent.Task;
 import org.structr.api.service.StructrServices;
+import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 
 /**
@@ -38,7 +38,7 @@ import org.structr.core.app.StructrApp;
  */
 public class CronService extends Thread implements RunnableService {
 
-	private static final Logger logger           = Logger.getLogger(CronService.class.getName());
+	private static final Logger logger           = LoggerFactory.getLogger(CronService.class.getName());
 
 	public static final String   TASKS             = "CronService.tasks";
 	public static final String   EXPRESSION_SUFFIX = ".cronExpression";
@@ -82,11 +82,11 @@ public class CronService extends Thread implements RunnableService {
 						Class taskClass = Class.forName(taskClassName);
 						Task task = (Task)taskClass.newInstance();
 
-						logger.log(Level.FINE, "Starting task {0}", taskClassName);
+						logger.debug("Starting task {}", taskClassName);
 						StructrApp.getInstance().processTasks(task);
 
 					} catch(Throwable t) {
-						logger.log(Level.WARNING, "Could not start task {0}: {1}", new Object[] { taskClassName, t.getMessage() } );
+						logger.warn("Could not start task {}: {}", new Object[] { taskClassName, t.getMessage() } );
 					}
 				}
 			}
@@ -133,18 +133,18 @@ public class CronService extends Thread implements RunnableService {
 					CronEntry entry = CronEntry.parse(task, expression);
 					if(entry != null) {
 
-						logger.log(Level.INFO, "Adding cron entry {0} for {1}", new Object[]{ entry, task });
+						logger.info("Adding cron entry {} for {}", new Object[]{ entry, task });
 
 						cronEntries.add(entry);
 
 					} else {
 
-						logger.log(Level.WARNING, "Unable to parse cron expression for taks {0}, ignoring.", task);
+						logger.warn("Unable to parse cron expression for taks {}, ignoring.", task);
 					}
 
 				} else {
 
-					logger.log(Level.WARNING, "No cron expression for task {0}, ignoring.", task);
+					logger.warn("No cron expression for task {}, ignoring.", task);
 				}
 			}
 		}

@@ -19,8 +19,10 @@
 package org.structr.websocket.command;
 
 import java.util.Collections;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -47,7 +49,7 @@ public class RemoveCommand extends AbstractCommand {
 
 	}
 
-	private static final Logger logger = Logger.getLogger(RemoveCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(RemoveCommand.class.getName());
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
@@ -76,7 +78,7 @@ public class RemoveCommand extends AbstractCommand {
 
 					} catch (DOMException | FrameworkException ex) {
 
-						logger.log(Level.SEVERE, "Could not remove node from page " + domNode, ex);
+						logger.error("Could not remove node from page " + domNode, ex);
 						getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);
 
 					}
@@ -100,7 +102,7 @@ public class RemoveCommand extends AbstractCommand {
 
 					} catch (Throwable t) {
 
-						logger.log(Level.SEVERE, "Could not delete relationship", t);
+						logger.error("Could not delete relationship", t);
 						getWebSocket().send(MessageBuilder.status().code(400).message("Error in RemoveCommand: " + t.getMessage()).build(), true);
 
 					}

@@ -18,8 +18,10 @@
  */
 package org.structr.files.ftp;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.ftpserver.ftplet.FileSystemFactory;
 import org.apache.ftpserver.ftplet.FileSystemView;
 import org.apache.ftpserver.ftplet.FtpException;
@@ -34,7 +36,7 @@ import org.structr.core.graph.Tx;
  */
 public class StructrFileSystemFactory implements FileSystemFactory {
 
-	private static final Logger logger = Logger.getLogger(StructrFileSystemFactory.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrFileSystemFactory.class.getName());
 
 	@Override
 	public FileSystemView createFileSystemView(final User user) throws FtpException {
@@ -43,14 +45,14 @@ public class StructrFileSystemFactory implements FileSystemFactory {
 		
 			FileSystemView fileSystemView = new StructrFileSystemView(user);
 			
-			logger.log(Level.FINE, "Created Structr File System View [user, homeDir, workingDir]: {0}, {1}, {2}", new Object[]{user.getName(), fileSystemView.getHomeDirectory().getAbsolutePath(), fileSystemView.getWorkingDirectory().getAbsolutePath()});
+			logger.debug("Created Structr File System View [user, homeDir, workingDir]: {}, {}, {}", new Object[]{user.getName(), fileSystemView.getHomeDirectory().getAbsolutePath(), fileSystemView.getWorkingDirectory().getAbsolutePath()});
 			
 			tx.success();
 			
 			return fileSystemView;
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Could not create file system view for user {0}", user);
+			logger.error("Could not create file system view for user {}", user);
 
 		}
 		

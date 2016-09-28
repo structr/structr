@@ -19,12 +19,12 @@
 package org.structr.rest.resource;
 
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
@@ -45,7 +45,7 @@ import org.structr.schema.SchemaHelper;
  */
 public class ViewFilterResource extends WrappingResource {
 
-	private static final Logger logger       = Logger.getLogger(ViewFilterResource.class.getName());
+	private static final Logger logger       = LoggerFactory.getLogger(ViewFilterResource.class.getName());
 	private static final Pattern uuidPattern = Pattern.compile("[a-fA-F0-9]{32}");
 	private String propertyView              = null;
 
@@ -103,7 +103,7 @@ public class ViewFilterResource extends WrappingResource {
 
 		} catch(FrameworkException fex) {
 
-			logger.log(Level.WARNING, "Unable to configure property view", fex);
+			logger.warn("Unable to configure property view", fex);
 		}
 	}
 

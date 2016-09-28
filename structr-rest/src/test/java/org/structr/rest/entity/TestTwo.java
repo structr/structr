@@ -22,12 +22,12 @@ import java.util.Date;
 import java.util.List;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.EndNodes;
 
 /**
  * Another simple entity for the most basic tests.

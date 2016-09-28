@@ -18,12 +18,6 @@
  */
 package org.structr.agent;
 
-import org.structr.api.service.Command;
-import org.structr.api.service.RunnableService;
-import org.structr.core.Services;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -36,9 +30,12 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.service.Command;
+import org.structr.api.service.RunnableService;
 import org.structr.api.service.StructrServices;
+import org.structr.core.Services;
 import org.structr.schema.ConfigurationProvider;
 
 //~--- classes ----------------------------------------------------------------
@@ -50,7 +47,7 @@ import org.structr.schema.ConfigurationProvider;
  */
 public class AgentService extends Thread implements RunnableService {
 
-	private static final Logger logger = Logger.getLogger(AgentService.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(AgentService.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
@@ -79,7 +76,7 @@ public class AgentService extends Thread implements RunnableService {
 		synchronized (taskQueue) {
 
 			taskQueue.add(task);
-			logger.log(Level.FINE, "Task {0} added to task queue", task);
+			logger.debug("Task {} added to task queue", task);
 		}
 	}
 
@@ -103,7 +100,7 @@ public class AgentService extends Thread implements RunnableService {
 	@Override
 	public void run() {
 
-		logger.log(Level.INFO, "AgentService started");
+		logger.info("AgentService started");
 
 		while (run) {
 
@@ -198,7 +195,7 @@ public class AgentService extends Thread implements RunnableService {
 				if (agent.assignTask(nextTask)) {
 
 					// ok, task is assigned
-					logger.log(Level.FINE, "Task assigned to agent {0}", agent.getName());
+					logger.debug("Task assigned to agent {}", agent.getName());
 
 					return;
 				}
@@ -223,7 +220,7 @@ public class AgentService extends Thread implements RunnableService {
 			}
 		} else {
 
-			logger.log(Level.FINE, "Overall agents limit reached, re-queueing task");
+			logger.debug("Overall agents limit reached, re-queueing task");
 
 			// re-add task..
 			synchronized (taskQueue) {

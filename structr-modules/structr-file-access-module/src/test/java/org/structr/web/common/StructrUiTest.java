@@ -34,7 +34,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import org.structr.api.config.Structr;
@@ -70,7 +71,7 @@ import org.structr.websocket.servlet.WebSocketServlet;
  */
 public abstract class StructrUiTest extends TestCase {
 
-	private static final Logger logger = Logger.getLogger(StructrUiTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrUiTest.class.getName());
 
 	protected Properties config                   = new Properties();
 	protected GraphDatabaseCommand graphDbCommand = null;

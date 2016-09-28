@@ -20,8 +20,10 @@ package org.structr.web.test;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.Tx;
@@ -45,7 +47,7 @@ import org.structr.web.entity.User;
 
 public class SchemaMethodsInheritanceTest extends FrontendTest {
 
-	private static final Logger logger = Logger.getLogger(SchemaMethodsInheritanceTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(SchemaMethodsInheritanceTest.class.getName());
 	
 	public void test01InheritanceOfFileMethodToImage() {
 
@@ -56,7 +58,7 @@ public class SchemaMethodsInheritanceTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 		
 		try (final Tx tx = app.tx()) {
@@ -71,7 +73,7 @@ public class SchemaMethodsInheritanceTest extends FrontendTest {
 			tx.success();
 			
 		} catch (Exception ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		FileBase testFile = null;
@@ -84,7 +86,7 @@ public class SchemaMethodsInheritanceTest extends FrontendTest {
 			tx.success();
 			
 		} catch (Exception ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -111,7 +113,7 @@ public class SchemaMethodsInheritanceTest extends FrontendTest {
 			
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 		}
 	}

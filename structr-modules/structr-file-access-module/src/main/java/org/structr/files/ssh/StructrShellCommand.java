@@ -25,8 +25,10 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.Environment;
@@ -58,7 +60,7 @@ import org.structr.web.entity.User;
  */
 public class StructrShellCommand implements Command, SignalListener, TerminalHandler {
 
-	private static final Logger logger = Logger.getLogger(StructrShellCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrShellCommand.class.getName());
 	private static final Map<String, Class<? extends ShellCommand>> commands = new LinkedHashMap<>();
 
 	static {
@@ -124,12 +126,12 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "", fex);
+				logger.warn("", fex);
 			}
 
 		} else {
 
-			logger.log(Level.WARNING, "Cannot start Structr shell, no username set!");
+			logger.warn("Cannot start Structr shell, no username set!");
 
 			return;
 		}
@@ -139,7 +141,7 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 			// abort if no user was found
 			if (user == null) {
 
-				logger.log(Level.WARNING, "Cannot start Structr shell, user not found for name {0}!", userName);
+				logger.warn("Cannot start Structr shell, user not found for name {}!", userName);
 				return;
 			}
 
@@ -155,13 +157,13 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 						break;
 
 					default:
-						logger.log(Level.WARNING, "Unsupported terminal type {0}, aborting.", terminalType);
+						logger.warn("Unsupported terminal type {}, aborting.", terminalType);
 						break;
 
 
 				}
 
-				logger.log(Level.WARNING, "No terminal type provided, aborting.", terminalType);
+				logger.warn("No terminal type provided, aborting.", terminalType);
 			}
 
 			if (term != null) {
@@ -200,7 +202,7 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 
 	@Override
 	public void signal(final Signal signal) {
-		logger.log(Level.INFO, "Received signal {0}", signal.name());
+		logger.info("Received signal {}", signal.name());
 	}
 
 	@Override
@@ -267,7 +269,7 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
 		return buf.toString();
@@ -343,7 +345,7 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 				return clazz.newInstance();
 
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 			}
 		}
 

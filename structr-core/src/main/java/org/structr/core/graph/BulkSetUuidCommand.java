@@ -20,8 +20,8 @@ package org.structr.core.graph;
 
 import java.util.Iterator;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
@@ -43,7 +43,7 @@ import org.structr.core.entity.AbstractRelationship;
  */
 public class BulkSetUuidCommand extends NodeServiceCommand implements MaintenanceCommand {
 
-	private static final Logger logger = Logger.getLogger(BulkSetUuidCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(BulkSetUuidCommand.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -70,19 +70,19 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 					nodeIterator = Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(false, false, true), graphDb.getAllNodes())).iterator();
 
-					logger.log(Level.INFO, "Start setting UUID on all nodes");
+					logger.info("Start setting UUID on all nodes");
 
 				} else {
 
 					nodeIterator = Iterables.filter(new TypePredicate<>(nodeType), Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(false, false, true), graphDb.getAllNodes()))).iterator();
 
-					logger.log(Level.INFO, "Start setting UUID on nodes of type {0}", new Object[] { nodeType });
+					logger.info("Start setting UUID on nodes of type {}", new Object[] { nodeType });
 				}
 
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "Exception while creating all nodes iterator.", fex);
+				logger.warn("Exception while creating all nodes iterator.", fex);
 			}
 
 			final long count = bulkGraphOperation(securityContext, nodeIterator, 1000, "SetNodeUuid", new BulkGraphOperation<AbstractNode>() {
@@ -96,20 +96,20 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 					} catch (FrameworkException fex) {
 
-						logger.log(Level.WARNING, "Unable to set UUID of node {0}: {1}", new Object[] { node, fex.getMessage() });
+						logger.warn("Unable to set UUID of node {}: {}", new Object[] { node, fex.getMessage() });
 						fex.printStackTrace();
 					}
 				}
 
 				@Override
 				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
-					logger.log(Level.WARNING, "Unable to set UUID of node {0}: {1}", new Object[] { node, t.getMessage() });
+					logger.warn("Unable to set UUID of node {}: {}", new Object[] { node, t.getMessage() });
 					t.printStackTrace();
 				}
 
 				@Override
 				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
-					logger.log(Level.WARNING, "Unable to set UUID on node: {0}", t.getMessage());
+					logger.warn("Unable to set UUID on node: {}", t.getMessage());
 					t.printStackTrace();
 				}
 
@@ -119,7 +119,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 				}
 			});
 
-			logger.log(Level.INFO, "Done with setting UUID on {0} nodes", count);
+			logger.info("Done with setting UUID on {} nodes", count);
 
 			return;
 		}
@@ -134,19 +134,19 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 					relIterator = Iterables.map(relFactory,Iterables.filter(new StructrAndSpatialPredicate(false, false, true), graphDb.getAllRelationships())).iterator();
 
-					logger.log(Level.INFO, "Start setting UUID on all rels", new Object[] { relType });
+					logger.info("Start setting UUID on all rels", new Object[] { relType });
 
 				} else {
 
 					relIterator = Iterables.filter(new TypePredicate<>(relType), Iterables.map(relFactory,Iterables.filter(new StructrAndSpatialPredicate(false, false, true), graphDb.getAllRelationships()))).iterator();
 
-					logger.log(Level.INFO, "Start setting UUID on rels of type {0}", new Object[] { relType });
+					logger.info("Start setting UUID on rels of type {}", new Object[] { relType });
 				}
 
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "Exception while creating all nodes iterator.", fex);
+				logger.warn("Exception while creating all nodes iterator.", fex);
 			}
 
 			final long count = bulkGraphOperation(securityContext, relIterator, 1000, "SetRelationshipUuid", new BulkGraphOperation<AbstractRelationship>() {
@@ -160,18 +160,18 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 					} catch (FrameworkException fex) {
 
-						logger.log(Level.WARNING, "Unable to set UUID of relationship {0}: {1}", new Object[] { rel, fex.getMessage() });
+						logger.warn("Unable to set UUID of relationship {}: {}", new Object[] { rel, fex.getMessage() });
 					}
 				}
 
 				@Override
 				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractRelationship rel) {
-					logger.log(Level.WARNING, "Unable to set UUID of relationship {0}: {1}", new Object[] { rel, t.getMessage() });
+					logger.warn("Unable to set UUID of relationship {}: {}", new Object[] { rel, t.getMessage() });
 				}
 
 				@Override
 				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
-					logger.log(Level.WARNING, "Unable to set UUID on relationship: {0}", t.getMessage());
+					logger.warn("Unable to set UUID on relationship: {}", t.getMessage());
 				}
 
 				@Override
@@ -180,12 +180,12 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 				}
 			});
 
-			logger.log(Level.INFO, "Done with setting UUID on {0} relationships", count);
+			logger.info("Done with setting UUID on {} relationships", count);
 
 			return;
 		}
 
-		logger.log(Level.INFO, "Unable to determine entity type to set UUID.");
+		logger.info("Unable to determine entity type to set UUID.");
 
 	}
 

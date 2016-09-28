@@ -20,8 +20,10 @@ package org.structr.files.ssh.shell;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -37,7 +39,7 @@ import org.structr.web.entity.Folder;
  */
 public class LsCommand extends NonInteractiveShellCommand {
 
-	private static final Logger logger = Logger.getLogger(LsCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(LsCommand.class.getName());
 
 	@Override
 	public void execute(final StructrShellCommand parent) throws IOException {
@@ -60,7 +62,7 @@ public class LsCommand extends NonInteractiveShellCommand {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 	}
 

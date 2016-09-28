@@ -20,8 +20,8 @@ package org.structr.core.graph;
 
 import java.util.Iterator;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
@@ -41,7 +41,7 @@ import org.structr.core.property.PropertyKey;
  */
 public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand implements MaintenanceCommand {
 
-	private static final Logger logger = Logger.getLogger(BulkCopyRelationshipPropertyCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(BulkCopyRelationshipPropertyCommand.class.getName());
 
 	@Override
 	public void execute(final Map<String, Object> map) throws FrameworkException {
@@ -86,23 +86,23 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 
 						} catch (FrameworkException fex) {
 
-							logger.log(Level.WARNING, "Unable to copy relationship property {0} of relationship {1} to {2}: {3}", new Object[] { sourcePropertyKey, rel.getUuid(), destPropertyKey, fex.getMessage() } );
+							logger.warn("Unable to copy relationship property {} of relationship {} to {}: {}", new Object[] { sourcePropertyKey, rel.getUuid(), destPropertyKey, fex.getMessage() } );
 						}
 					}
 				}
 
 				@Override
 				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractRelationship rel) {
-					logger.log(Level.WARNING, "Unable to copy relationship properties of relationship {0}: {1}", new Object[] { rel.getUuid(), t.getMessage() } );
+					logger.warn("Unable to copy relationship properties of relationship {}: {}", new Object[] { rel.getUuid(), t.getMessage() } );
 				}
 
 				@Override
 				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
-					logger.log(Level.WARNING, "Unable to copy relationship properties: {0}", t.getMessage() );
+					logger.warn("Unable to copy relationship properties: {}", t.getMessage() );
 				}
 			});
 
-			logger.log(Level.INFO, "Finished setting properties on {0} nodes", count);
+			logger.info("Finished setting properties on {} nodes", count);
 
 		}
 	}

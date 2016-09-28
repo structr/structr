@@ -21,8 +21,10 @@ package org.structr.web.auth;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.oltu.oauth2.client.response.OAuthResourceResponse;
 import org.structr.core.app.StructrApp;
@@ -33,7 +35,7 @@ import org.structr.core.app.StructrApp;
  */
 public class GitHubAuthClient extends StructrOAuthClient {
 
-	private static final Logger logger = Logger.getLogger(GitHubAuthClient.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(GitHubAuthClient.class.getName());
 
 	public GitHubAuthClient() {
 	}
@@ -87,7 +89,7 @@ public class GitHubAuthClient extends StructrOAuthClient {
 		}
 
 		String body = userResponse.getBody();
-		logger.log(Level.FINE, "User response body: {0}", body);
+		logger.debug("User response body: {}", body);
 
 		final JsonParser parser = new JsonParser();
 		final JsonElement result = parser.parse(body);
@@ -101,7 +103,7 @@ public class GitHubAuthClient extends StructrOAuthClient {
 				final JsonElement el = arr.iterator().next();
 
 				final String address = el.getAsJsonObject().get("email").getAsString();
-				logger.log(Level.INFO, "Got 'email' credential from GitHub: {0}", address);
+				logger.info("Got 'email' credential from GitHub: {}", address);
 				return address;
 			}
 

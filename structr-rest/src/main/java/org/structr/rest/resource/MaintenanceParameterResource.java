@@ -18,35 +18,31 @@
  */
 package org.structr.rest.resource;
 
-import org.structr.core.graph.BulkCopyRelationshipPropertyCommand;
-import org.structr.core.graph.BulkSetRelationshipPropertiesCommand;
-import org.structr.core.graph.BulkFixNodePropertiesCommand;
-import org.structr.core.Result;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.BulkSetNodePropertiesCommand;
-import org.structr.core.graph.ClearDatabase;
-import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.NotAllowedException;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
-import org.structr.core.property.PropertyKey;
-import org.structr.api.service.Command;
 import org.structr.agent.Task;
+import org.structr.api.service.Command;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Result;
 import org.structr.core.graph.BulkChangeNodePropertyKeyCommand;
+import org.structr.core.graph.BulkCopyRelationshipPropertyCommand;
 import org.structr.core.graph.BulkCreateLabelsCommand;
 import org.structr.core.graph.BulkDeleteSoftDeletedNodesCommand;
+import org.structr.core.graph.BulkFixNodePropertiesCommand;
 import org.structr.core.graph.BulkRebuildIndexCommand;
+import org.structr.core.graph.BulkSetNodePropertiesCommand;
+import org.structr.core.graph.BulkSetRelationshipPropertiesCommand;
 import org.structr.core.graph.BulkSetUuidCommand;
+import org.structr.core.graph.ClearDatabase;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.SyncCommand;
-import org.structr.schema.SchemaHelper;
+import org.structr.core.property.PropertyKey;
+import org.structr.rest.RestMethodResult;
+import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.maintenance.SnapshotCommand;
+import org.structr.schema.SchemaHelper;
 import org.structr.schema.importer.GraphGistImporter;
 import org.structr.schema.importer.RDFImporter;
 import org.structr.schema.importer.SchemaJsonImporter;

@@ -23,10 +23,10 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utility class for recurring dates
@@ -35,7 +35,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class RecurringDateHelper {
 
-	private static final Logger logger = Logger.getLogger(RecurringDateHelper.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(RecurringDateHelper.class.getName());
 	
 	private enum ShortWeekday {
 
@@ -149,7 +149,7 @@ public class RecurringDateHelper {
 			
 		} catch (Throwable t) {
 			
-			logger.log(Level.WARNING, "Unable to parse time from string {0}", timeString);
+			logger.warn("Unable to parse time from string {}", timeString);
 		}
 		
 		cal.set(Calendar.SECOND, 0);
@@ -191,7 +191,7 @@ public class RecurringDateHelper {
 
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "Unable to parse day of week for string {0}", shortWeekday);
+				logger.warn("Unable to parse day of week for string {}", shortWeekday);
 			}
 
 		return 0;

@@ -27,8 +27,10 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang.StringUtils;
 import org.structr.cloud.CloudHost;
 import org.structr.cloud.CloudListener;
@@ -54,7 +56,7 @@ import org.structr.core.graph.Tx;
 public class SyncService extends Thread  implements RunnableService, StructrTransactionListener {
 
 	private static final BlockingQueue<List<ModificationEvent>> syncQueue = new ArrayBlockingQueue<>(1000);
-	private static final Logger logger                                    = Logger.getLogger(CloudService.class.getName());
+	private static final Logger logger                                    = LoggerFactory.getLogger(CloudService.class.getName());
 
 	public enum SyncRole {
 		master,
@@ -156,7 +158,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 					final SyncHostInfo syncHostInfo = new SyncHostInfo(host, user, pwd, port);
 					syncHosts.add(syncHostInfo);
 
-					logger.log(Level.INFO, "Adding slave host {0}, user {2}", new Object[] { syncHostInfo, port, user } );
+					logger.info("Adding slave host {}, user {}", new Object[] { syncHostInfo, port, user } );
 				}
 
 				try {
@@ -164,7 +166,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 					initializeSyncHosts(minimum);
 
 				} catch (FrameworkException fex) {
-					logger.log(Level.WARNING, "", fex);
+					logger.warn("", fex);
 				}
 			}
 
@@ -172,7 +174,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 				this.retryInterval = Integer.valueOf(retry);
 			}
 
-			logger.log(Level.INFO, "Retry interval is set to {0} seconds", retryInterval);
+			logger.info("Retry interval is set to {} seconds", retryInterval);
 		}
 	}
 
@@ -197,7 +199,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 		running = true;
 		start();
 
-		logger.log(Level.INFO, "SyncService successfully started.");
+		logger.info("SyncService successfully started.");
 	}
 
 	@Override
@@ -232,7 +234,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 							CloudService.doRemote(SecurityContext.getSuperUserInstance(), transmission, info, successListener);
 
 						} catch (FrameworkException fex) {
-							logger.log(Level.WARNING, "Unable to synchronize with host {0}: {1}", new Object[] { info, fex.getMessage() } );
+							logger.warn("Unable to synchronize with host {}: {}", new Object[] { info, fex.getMessage() } );
 						}
 					}
 
@@ -244,7 +246,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 
 					} else {
 
-						logger.log(Level.WARNING, "Unable to synchronize with required number of hosts, retrying in {0} seconds..", retryInterval);
+						logger.warn("Unable to synchronize with required number of hosts, retrying in {} seconds..", retryInterval);
 
 						// sleep
 						try { Thread.sleep(retryInterval * 1000); } catch (Throwable t) {}
@@ -253,7 +255,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 				}
 
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 			}
 		}
 	}
@@ -305,7 +307,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.SEVERE, "Unable to store last modified date for current instance.", fex);
+				logger.error("Unable to store last modified date for current instance.", fex);
 			}
 
 
@@ -318,7 +320,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 				synchronized (syncQueue) { syncQueue.notify(); }
 
 			} catch (InterruptedException iex) {
-				logger.log(Level.WARNING, "", iex);
+				logger.warn("", iex);
 			}
 
 		}
@@ -353,7 +355,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 							lastSyncString = "last sync was " + dateFormat.format(syncTimestamp);
 						}
 
-						logger.log(Level.INFO, "Determined instance ID of {0} to be {1}, {2}.", new Object[] { host, slaveId, lastSyncString } );
+						logger.info("Determined instance ID of {} to be {}, {}.", new Object[] { host, slaveId, lastSyncString } );
 
 						// store replication status in host info
 						host.setReplicationStatus(status);
@@ -370,13 +372,13 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 				reachable = false;
 			}
 
 			if (!reachable) {
 
-				logger.log(Level.WARNING, "Synchronization slave {0} not reachable, removing from list.", host);
+				logger.warn("Synchronization slave {} not reachable, removing from list.", host);
 				it.remove();
 			}
 		}
@@ -389,7 +391,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 			throw new IllegalStateException("synchronization policy requires at least " + requiredSyncCount + " hosts, but only " + numSyncHosts + " are reachable.");
 		}
 
-		logger.log(Level.INFO, "Synchronization to {0} host{1} required.", new Object[] { requiredSyncCount, requiredSyncCount == 1 ? "" : "s" } );
+		logger.info("Synchronization to {} host{} required.", new Object[] { requiredSyncCount, requiredSyncCount == 1 ? "" : "s" } );
 
 
 		// prepare synchronization hosts
@@ -416,7 +418,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 			// there has been a synchronization in the past
 			if (host.getLastSyncTimestamp() != localSyncTimestamp) {
 
-				logger.log(Level.INFO, "Replication host {0} is out of sync, last remote update was {1} whereas last local update was {2}",
+				logger.info("Replication host {} is out of sync, last remote update was {} whereas last local update was {}",
 					new Object[] { host,  df.format(host.getLastSyncTimestamp()), df.format(localSyncTimestamp) }
 				);
 
@@ -425,14 +427,14 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 
 			} else {
 
-				logger.log(Level.INFO, "Replication host {0} is in sync, last update was {1}", new Object[] { host, df.format(localSyncTimestamp) } );
+				logger.info("Replication host {} is in sync, last update was {}", new Object[] { host, df.format(localSyncTimestamp) } );
 			}
 		}
 	}
 
 	private void synchronizeSlave(final SyncHostInfo info) {
 
-		logger.log(Level.INFO, "Establishing initial replication.");
+		logger.info("Establishing initial replication.");
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
@@ -441,10 +443,10 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 			tx.success();
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
-		logger.log(Level.INFO, "Done.");
+		logger.info("Done.");
 	}
 
 	// ----- nested classes -----
@@ -540,22 +542,22 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 
 		@Override
 		public void transmissionStarted() {
-			logger.log(Level.INFO, "Transmission started");
+			logger.info("Transmission started");
 		}
 
 		@Override
 		public void transmissionFinished() {
-			logger.log(Level.INFO, "Transmission finished");
+			logger.info("Transmission finished");
 		}
 
 		@Override
 		public void transmissionAborted() {
-			logger.log(Level.INFO, "Transmission aborted");
+			logger.info("Transmission aborted");
 		}
 
 		@Override
 		public void transmissionProgress(final String message) {
-			logger.log(Level.INFO, "Transmission progress {0}", message );
+			logger.info("Transmission progress {}", message );
 		}
 	}
 }

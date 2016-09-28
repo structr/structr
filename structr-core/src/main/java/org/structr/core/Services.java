@@ -18,10 +18,6 @@
  */
 package org.structr.core;
 
-import org.structr.api.service.Command;
-import org.structr.api.service.RunnableService;
-import org.structr.api.service.SingletonService;
-import org.structr.api.service.Service;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -40,14 +36,18 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
+import org.structr.api.service.Command;
 import org.structr.api.service.InitializationCallback;
+import org.structr.api.service.RunnableService;
+import org.structr.api.service.Service;
+import org.structr.api.service.SingletonService;
 import org.structr.api.service.StructrServices;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
@@ -56,7 +56,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeService;
 import org.structr.module.JarConfigurationProvider;
 import org.structr.schema.ConfigurationProvider;
-import org.structr.util.LogMessageSupplier;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -69,7 +68,7 @@ import org.structr.util.LogMessageSupplier;
  */
 public class Services implements StructrServices {
 
-	private static final Logger logger                                   = Logger.getLogger(StructrApp.class.getName());
+	private static final Logger logger                                   = LoggerFactory.getLogger(StructrApp.class.getName());
 	private static Properties baseConf                                   = null;
 
 	// Configuration constants
@@ -221,7 +220,7 @@ public class Services implements StructrServices {
 					}
 				}
 
-				logger.log(Level.FINEST, "Initializing command ", commandType.getName());
+				logger.debug("Initializing command ", commandType.getName());
 				service.injectArguments(command);
 			}
 
@@ -229,7 +228,7 @@ public class Services implements StructrServices {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.SEVERE, t, LogMessageSupplier.create("Exception while creating command {0}", commandType.getName()));
+			logger.error("Exception while creating command {}", commandType.getName());
 		}
 
 		return (command);
@@ -247,7 +246,7 @@ public class Services implements StructrServices {
 
 		if (!configFile.exists() && !configTemplateFile.exists()) {
 
-			logger.log(Level.SEVERE, "Unable to create config file, {0} and {1} do not exist, aborting. Please create a {0} configuration file and try again.", new Object[] { configFileName, configTemplateFileName } );
+			logger.error("Unable to create config file, {} and {} do not exist, aborting. Please create a {} configuration file and try again.", new Object[] { configFileName, configTemplateFileName } );
 
 			// exit immediately, since we can not proceed without configuration file
 			System.exit(1);
@@ -255,20 +254,20 @@ public class Services implements StructrServices {
 
 		if (!configFile.exists() && configTemplateFile.exists()) {
 
-			logger.log(Level.WARNING, "Configuration file {0} not found, copying from template {1}. Please adapt newly created {0} to your needs.", new Object[] { configFileName, configTemplateFileName } );
+			logger.warn("Configuration file {} not found, copying from template {}. Please adapt newly created {} to your needs.", new Object[] { configFileName, configTemplateFileName } );
 
 			try {
 				Files.copy(configTemplateFile.toPath(), configFile.toPath());
 
 			} catch (IOException ioex) {
 
-				logger.log(Level.SEVERE, "Unable to create config file, copying of template failed.", ioex);
+				logger.error("Unable to create config file, copying of template failed.", ioex);
 
 				System.exit(1);
 			}
 		}
 
-		logger.log(Level.INFO, "Reading {0}..", configFileName);
+		logger.info("Reading {}..", configFileName);
 
 		try {
 
@@ -276,7 +275,7 @@ public class Services implements StructrServices {
 			StructrServices.loadConfiguration(config, new PropertiesConfiguration(configFileName));
 
 		} catch (ConfigurationException ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		StructrServices.mergeConfiguration(config, structrConf);
@@ -299,7 +298,7 @@ public class Services implements StructrServices {
 		// opportunity to modify the default configuration
 		getConfigurationProvider();
 
-		logger.log(Level.INFO, "Starting services");
+		logger.info("Starting services");
 
 		// initialize other services
 		for (final String serviceClassName : configuredServiceClasses) {
@@ -316,20 +315,20 @@ public class Services implements StructrServices {
 
 						} else {
 
-							logger.log(Level.WARNING, "Service {0} was not started!", serviceClassName);
+							logger.warn("Service {} was not started!", serviceClassName);
 						}
 
 					} catch (Throwable t) {
 
-						logger.log(Level.WARNING, t, LogMessageSupplier.create("Exception while registering service {0}", serviceClassName));
+						logger.warn("Exception while registering service {}", serviceClassName);
 					}
 				}
 		}
 
-		logger.log(Level.INFO, "{0} service(s) processed", serviceCache.size());
+		logger.info("{} service(s) processed", serviceCache.size());
 		registeredServiceClasses.clear();
 
-		logger.log(Level.INFO, "Registering shutdown hook.");
+		logger.info("Registering shutdown hook.");
 
 		// register shutdown hook
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -357,7 +356,7 @@ public class Services implements StructrServices {
 
 					} else {
 
-						logger.log(Level.WARNING, "Invalid permisson {0}, ignoring.", trimmed);
+						logger.warn("Invalid permisson {}, ignoring.", trimmed);
 					}
 				}
 			}
@@ -387,7 +386,7 @@ public class Services implements StructrServices {
 			}).get();
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "Exception while executing post-initialization tasks", t);
+			logger.warn("Exception while executing post-initialization tasks", t);
 		}
 
 
@@ -508,7 +507,7 @@ public class Services implements StructrServices {
 
 			} catch (Throwable t) {
 
-				logger.log(Level.SEVERE, t, LogMessageSupplier.create("Unable to instantiate schema provider of type {0}", configurationClass));
+				logger.error("Unable to instantiate schema provider of type {}", configurationClass);
 			}
 		}
 
@@ -548,7 +547,7 @@ public class Services implements StructrServices {
 
 	private Service createService(Class serviceClass) {
 
-		logger.log(Level.FINE, "Creating service ", serviceClass.getName());
+		logger.debug("Creating service ", serviceClass.getName());
 
 		Service service = null;
 
@@ -563,7 +562,7 @@ public class Services implements StructrServices {
 
 				if (runnableService.runOnStartup()) {
 
-					logger.log(Level.FINER, "Starting RunnableService instance ", serviceClass.getName());
+					logger.debug("Starting RunnableService instance ", serviceClass.getName());
 
 					// start RunnableService and cache it
 					runnableService.startService();
@@ -580,14 +579,14 @@ public class Services implements StructrServices {
 
 			if (service.isVital()) {
 
-				logger.log(Level.SEVERE, t, LogMessageSupplier.create("Vital service {0} failed to start. Aborting", service.getClass().getSimpleName()));
+				logger.error("Vital service {} failed to start. Aborting", service.getClass().getSimpleName());
 
 				// hard(est) exit
 				System.exit(1);
 
 			} else {
 
-				logger.log(Level.SEVERE, t, LogMessageSupplier.create("Service {0} failed to start", service.getClass().getSimpleName()));
+				logger.error("Service {} failed to start", service.getClass().getSimpleName());
 			}
 		}
 
@@ -683,7 +682,7 @@ public class Services implements StructrServices {
 			}
 		}
 
-		logger.log(Level.INFO, "Found {0} possible resources: {1}", new Object[] { resources.size(), resources } );
+		logger.info("Found {} possible resources: {}", new Object[] { resources.size(), resources } );
 
 		return resources;
 	}

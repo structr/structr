@@ -18,8 +18,8 @@
  */
 package org.structr.core.property;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 
@@ -31,7 +31,7 @@ import org.structr.core.GraphObject;
  */
 public abstract class AutoStringProperty extends StringProperty {
 
-	private static final Logger logger = Logger.getLogger(AutoStringProperty.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(AutoStringProperty.class.getName());
 	
 	public AutoStringProperty(String name) {
 		
@@ -60,7 +60,7 @@ public abstract class AutoStringProperty extends StringProperty {
 					
 				} catch (FrameworkException fex) {
 					
-					logger.log(Level.WARNING, "Unable to set value {0} on entity {1}: {2}", new Object[] { indexValue, entity, fex.getMessage() } );
+					logger.warn("Unable to set value {} on entity {}: {}", new Object[] { indexValue, entity, fex.getMessage() } );
 				}
 			}
 		}

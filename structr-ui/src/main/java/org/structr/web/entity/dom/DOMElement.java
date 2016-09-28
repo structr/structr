@@ -27,8 +27,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.collections.map.LRUMap;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
@@ -73,7 +75,7 @@ import org.w3c.dom.TypeInfo;
  */
 public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
-	private static final Logger logger = Logger.getLogger(DOMElement.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(DOMElement.class.getName());
 	private static final int HtmlPrefixLength = PropertyView.Html.length();
 
 	private static final String STRUCTR_ACTION_PROPERTY = "data-structr-action";
@@ -386,11 +388,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 			} catch (Throwable t) {
 
-				logger.log(Level.SEVERE, "Error while rendering node {0}: {1}", new java.lang.Object[]{getUuid(), t});
+				logger.error("Error while rendering node {}: {}", new java.lang.Object[]{getUuid(), t});
 
 				out.append("Error while rendering node ").append(getUuid()).append(": ").append(t.getMessage());
 
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 
 			}
 
@@ -992,7 +994,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 				} else {
 
-					logger.log(Level.WARNING, "Cannot export linkable relationship, no path.");
+					logger.warn("Cannot export linkable relationship, no path.");
 				}
 			}
 		}

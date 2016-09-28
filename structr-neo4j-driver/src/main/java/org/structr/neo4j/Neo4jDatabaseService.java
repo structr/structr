@@ -30,8 +30,10 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
@@ -64,7 +66,7 @@ import org.structr.neo4j.wrapper.Neo4jResultWrapper;
  */
 public class Neo4jDatabaseService implements DatabaseService, GraphProperties {
 
-	private static final Logger logger = Logger.getLogger(Neo4jDatabaseService.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(Neo4jDatabaseService.class.getName());
 
 	public static final String RELATIONSHIP_CACHE_SIZE  = "database.cache.relationship.size";
 	public static final String NODE_CACHE_SIZE          = "database.cache.node.size";
@@ -91,23 +93,23 @@ public class Neo4jDatabaseService implements DatabaseService, GraphProperties {
 		final int relationshipCacheSize = Integer.valueOf(config.getProperty(RELATIONSHIP_CACHE_SIZE, "10000"));
 		if (relationshipCacheSize > 0) {
 
-			logger.log(Level.INFO, "Relationship cache size set to {0}", relationshipCacheSize);
+			logger.info("Relationship cache size set to {}", relationshipCacheSize);
 			relationshipCache = new FixedSizeCache<>(relationshipCacheSize);
 
 		} else {
 
-			logger.log(Level.INFO, "Relationship cache disabled.");
+			logger.info("Relationship cache disabled.");
 		}
 
 		final int nodeCacheSize = Integer.valueOf(config.getProperty(NODE_CACHE_SIZE, "10000"));
 		if (nodeCacheSize > 0) {
 
-			logger.log(Level.INFO, "Node cache size set to {0}", nodeCacheSize);
+			logger.info("Node cache size set to {}", nodeCacheSize);
 			nodeCache = new FixedSizeCache<>(nodeCacheSize);
 
 		} else {
 
-			logger.log(Level.INFO, "Node cache disabled.");
+			logger.info("Node cache disabled.");
 		}
 
 		final File confFile                = new File(databasePath + "/neo4j.conf");
@@ -125,7 +127,7 @@ public class Neo4jDatabaseService implements DatabaseService, GraphProperties {
 		// Neo4j page cache memory, default 64m
 		builder.setConfig(GraphDatabaseSettings.pagecache_memory, config.getProperty(NEO4J_PAGE_CACHE_MEMORY, "64m"));
 
-		logger.log(Level.INFO, "Initializing database ({0}) ...", databasePath);
+		logger.info("Initializing database ({}) ...", databasePath);
 
 		graphDb = builder.newGraphDatabase();
 	}
@@ -369,7 +371,7 @@ public class Neo4jDatabaseService implements DatabaseService, GraphProperties {
 			properties.store(writer, "Created by Structr at " + new Date());
 		} catch (IOException ioex) {
 			ioex.printStackTrace();
-			logger.log(Level.WARNING, "Unable to write properties file");
+			logger.warn("Unable to write properties file");
 		}
 	}
 

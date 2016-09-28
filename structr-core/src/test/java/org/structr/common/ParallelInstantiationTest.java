@@ -39,13 +39,11 @@
 
 package org.structr.common;
 
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.TestOne;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.List;
-import java.util.logging.Logger;
 import org.structr.core.graph.Tx;
 
 //~--- classes ----------------------------------------------------------------
@@ -59,7 +57,7 @@ import org.structr.core.graph.Tx;
  */
 public class ParallelInstantiationTest extends PagingTest {
 
-	private static final Logger logger = Logger.getLogger(ParallelInstantiationTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ParallelInstantiationTest.class.getName());
 
 	public void test01ParallelInstantiationPerformance() {
 

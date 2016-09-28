@@ -22,18 +22,18 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.api.index.Index;
-import org.structr.api.graph.Node;
-import org.structr.api.search.Occurrence;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
+import org.structr.api.index.Index;
+import org.structr.api.search.Occurrence;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -55,7 +55,7 @@ import org.structr.core.graph.search.SearchAttribute;
  */
 public abstract class Property<T> implements PropertyKey<T> {
 
-	private static final Logger logger             = Logger.getLogger(Property.class.getName());
+	private static final Logger logger             = LoggerFactory.getLogger(Property.class.getName());
 	private static final Pattern rangeQueryPattern = Pattern.compile("\\[(.+) TO (.+)\\]");
 
 	protected List<PropertyValidator<T>> validators        = new LinkedList<>();
@@ -434,8 +434,8 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 				} catch (Throwable t) {
 
-					logger.log(Level.INFO, "Unable to index property with dbName {0} and value {1} of type {2} on {3}: {4}", new Object[] { dbName, value, this.getClass().getSimpleName(), entity, t } );
-					logger.log(Level.WARNING, "", t);
+					logger.info("Unable to index property with dbName {} and value {} of type {} on {}: {}", new Object[] { dbName, value, this.getClass().getSimpleName(), entity, t } );
+					logger.warn("", t);
 				}
 			}
 
@@ -458,7 +458,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 				} catch (Throwable t) {
 
-					logger.log(Level.INFO, "Unable to index property with dbName {0} and value {1} of type {2} on {3}: {4}", new Object[] { dbName, value, this.getClass().getSimpleName(), entity, t } );
+					logger.info("Unable to index property with dbName {} and value {} of type {} on {}: {}", new Object[] { dbName, value, this.getClass().getSimpleName(), entity, t } );
 				}
 			}
 		}
@@ -565,7 +565,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 					return;
 				}
 
-				logger.log(Level.WARNING, "Unable to determine range query bounds for {0}", requestParameter);
+				logger.warn("Unable to determine range query bounds for {}", requestParameter);
 
 			} else {
 

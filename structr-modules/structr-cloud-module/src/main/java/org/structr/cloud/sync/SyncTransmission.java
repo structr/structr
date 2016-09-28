@@ -22,8 +22,10 @@ import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.NotFoundException;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudService;
@@ -48,7 +50,7 @@ import org.structr.dynamic.File;
  */
 public class SyncTransmission implements CloudTransmission {
 
-	private static final Logger logger = Logger.getLogger(SyncTransmission.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(SyncTransmission.class.getName());
 	private List<ModificationEvent> transaction = null;
 
 	public SyncTransmission(final List<ModificationEvent> transaction) {
@@ -104,7 +106,7 @@ public class SyncTransmission implements CloudTransmission {
 
 					} catch (NotFoundException nfex) {
 
-						logger.log(Level.INFO, "Trying to synchronize deleted entity, ignoring");
+						logger.info("Trying to synchronize deleted entity, ignoring");
 					}
 				}
 

@@ -28,10 +28,10 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.bitbucket.cowwoc.diffmatchpatch.DiffMatchPatch;
 import org.bitbucket.cowwoc.diffmatchpatch.DiffMatchPatch.Patch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.websocket.StructrWebSocket;
 
@@ -43,7 +43,7 @@ import org.structr.websocket.StructrWebSocket;
  */
 public class PatchCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(PatchCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(PatchCommand.class.getName());
 	
 	static {
 		StructrWebSocket.addCommand(PatchCommand.class);
@@ -72,14 +72,14 @@ public class PatchCommand extends AbstractCommand {
 				
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "Could not apply patch {0}", patch);
+				logger.warn("Could not apply patch {}", patch);
 				getWebSocket().send(MessageBuilder.status().code(400).message("Could not apply patch. " + t.getMessage()).build(), true);
 
 			}
 
 		} else {
 
-			logger.log(Level.WARNING, "Node with uuid {0} not found.", webSocketData.getId());
+			logger.warn("Node with uuid {} not found.", webSocketData.getId());
 			getWebSocket().send(MessageBuilder.status().code(404).message("Node with uuid " + webSocketData.getId() + " not found.").build(), true);
 
 		}

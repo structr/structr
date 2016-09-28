@@ -19,7 +19,8 @@
 package org.structr.web.converter;
 
 import java.io.IOException;
-import java.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.sf.jmimemagic.Magic;
 import net.sf.jmimemagic.MagicMatch;
 
@@ -33,7 +34,8 @@ import org.structr.core.converter.PropertyConverter;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.sf.jmimemagic.MagicException;
 import net.sf.jmimemagic.MagicMatchNotFoundException;
 import net.sf.jmimemagic.MagicParseException;
@@ -57,7 +59,7 @@ import org.structr.web.entity.FileBase;
  */
 public class FileDataConverter extends PropertyConverter {
 
-	private static final Logger logger = Logger.getLogger(FileDataConverter.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FileDataConverter.class.getName());
 
 	public FileDataConverter(final SecurityContext securityContext, final GraphObject entity) {
 		super(securityContext, entity);
@@ -84,12 +86,12 @@ public class FileDataConverter extends PropertyConverter {
 
 				} catch (IOException ioex) {
 
-					logger.log(Level.WARNING, "Unable to store file", ioex);
+					logger.warn("Unable to store file", ioex);
 				}
 
 			} catch (MagicException | MagicParseException | MagicMatchNotFoundException mex) {
 
-				logger.log(Level.WARNING, "Unable to parse file data", mex);
+				logger.warn("Unable to parse file data", mex);
 			}
 
 		} else if (source instanceof String) {
@@ -107,7 +109,7 @@ public class FileDataConverter extends PropertyConverter {
 
 					} catch (IOException ioex) {
 
-						logger.log(Level.WARNING, "Unable to store file", ioex);
+						logger.warn("Unable to store file", ioex);
 					}
 				}
 			}

@@ -18,8 +18,10 @@
  */
 package org.structr.web.test;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeServiceCommand;
@@ -36,7 +38,7 @@ import org.w3c.dom.Node;
  */
 public class PerformanceTest extends DOMTest {
 
-	private static final Logger logger = Logger.getLogger(PerformanceTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(PerformanceTest.class.getName());
 
 	public void testSiblingPerformance() {
 
@@ -94,7 +96,7 @@ public class PerformanceTest extends DOMTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 
 			fail("Unexpected exception");
 

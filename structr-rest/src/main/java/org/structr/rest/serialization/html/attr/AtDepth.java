@@ -18,8 +18,8 @@
  */
 package org.structr.rest.serialization.html.attr;
 
-import org.structr.rest.serialization.html.Attr;
 import org.structr.api.Predicate;
+import org.structr.rest.serialization.html.Attr;
 
 /**
  *

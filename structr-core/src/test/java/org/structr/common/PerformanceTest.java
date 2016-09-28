@@ -18,19 +18,15 @@
  */
 package org.structr.common;
 
-import org.structr.common.error.FrameworkException;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Date;
 import java.util.LinkedList;
-
 import java.util.List;
 import java.util.Locale;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.relationship.NodeHasLocation;
@@ -48,7 +44,7 @@ import org.structr.core.graph.Tx;
  */
 public class PerformanceTest extends StructrTest {
 
-	private static final Logger logger = Logger.getLogger(PerformanceTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(PerformanceTest.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -97,7 +93,7 @@ public class PerformanceTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -110,7 +106,7 @@ public class PerformanceTest extends StructrTest {
 		Double time                 = (t1 - t0) / 1000.0;
 		Double rate                 = number / ((t1 - t0) / 1000.0);
 
-		logger.log(Level.INFO, "Created {0} nodes in {1} seconds ({2} per s)", new Object[] { number, decimalFormat.format(time), decimalFormat.format(rate) });
+		logger.info("Created {} nodes in {} seconds ({} per s)", new Object[] { number, decimalFormat.format(time), decimalFormat.format(rate) });
 		assertTrue("Creation rate of nodes too low, expected > 100, was " + rate, rate > 100);
 	}
 
@@ -140,12 +136,12 @@ public class PerformanceTest extends StructrTest {
 			Double time                 = (t1 - t0) / 1000000000.0;
 			Double rate                 = number / ((t1 - t0) / 1000000000.0);
 
-			logger.log(Level.INFO, "Created {0} relationships in {1} seconds ({2} per s)", new Object[] { number, decimalFormat.format(time), decimalFormat.format(rate) });
+			logger.info("Created {} relationships in {} seconds ({} per s)", new Object[] { number, decimalFormat.format(time), decimalFormat.format(rate) });
 			assertTrue(rate > 50);
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -195,12 +191,12 @@ public class PerformanceTest extends StructrTest {
 			double time                 = (t1 - t0) / 1000000000.0;
 			double rate                 = number * loop / ((t1 - t0) / 1000000000.0);
 
-			logger.log(Level.INFO, "Read {0} nodes in {1} seconds ({2} per s)", new Object[] { number, decimalFormat.format(time), decimalFormat.format(rate) });
+			logger.info("Read {} nodes in {} seconds ({} per s)", new Object[] { number, decimalFormat.format(time), decimalFormat.format(rate) });
 			assertTrue("Invalid read performance result", rate > 10000);
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}

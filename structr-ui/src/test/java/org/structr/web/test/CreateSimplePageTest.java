@@ -27,8 +27,10 @@ import org.structr.web.entity.dom.Page;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.jsoup.select.Elements;
 import org.structr.core.graph.Tx;
 import org.w3c.dom.Element;
@@ -42,7 +44,7 @@ import org.w3c.dom.Text;
  */
 public class CreateSimplePageTest extends StructrUiTest {
 
-	private static final Logger logger = Logger.getLogger(CreateSimplePageTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CreateSimplePageTest.class.getName());
 
 	//~--- methods --------------------------------------------------------
 //	@Override
@@ -96,9 +98,9 @@ public class CreateSimplePageTest extends StructrUiTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -131,9 +133,9 @@ public class CreateSimplePageTest extends StructrUiTest {
 
 		} catch (Exception ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected Exception");
 		}
 
@@ -167,9 +169,9 @@ public class CreateSimplePageTest extends StructrUiTest {
 
 		} catch (Exception ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected Exception");
 
 		}

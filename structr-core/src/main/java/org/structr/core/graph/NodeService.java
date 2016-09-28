@@ -22,22 +22,22 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
-import org.structr.api.index.Index;
-import org.structr.api.graph.Node;
-import org.structr.api.graph.Relationship;
 import org.structr.api.Transaction;
 import org.structr.api.config.Structr;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
+import org.structr.api.index.Index;
 import org.structr.api.service.Command;
 import org.structr.api.service.InitializationCallback;
-import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.api.service.SingletonService;
 import org.structr.api.service.StructrServices;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 
 
@@ -49,7 +49,7 @@ import org.structr.core.app.StructrApp;
  */
 public class NodeService implements SingletonService {
 
-	private static final Logger logger = Logger.getLogger(NodeService.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(NodeService.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
@@ -91,7 +91,7 @@ public class NodeService implements SingletonService {
 				files.mkdir();
 			}
 
-			logger.log(Level.INFO, "Database ready.");
+			logger.info("Database ready.");
 
 			// index creation transaction
 			try ( final Transaction tx = graphDb.beginTx() ) {
@@ -103,7 +103,7 @@ public class NodeService implements SingletonService {
 
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "Error while initializing indexes.", t);
+				logger.warn("Error while initializing indexes.", t);
 			}
 
 			isInitialized = true;
@@ -112,7 +112,7 @@ public class NodeService implements SingletonService {
 
 			if (graphDb.needsIndexRebuild() || firstInitialization) {
 
-				logger.log(Level.INFO, "Scheduling index rebuild to happen after startup..");
+				logger.info("Scheduling index rebuild to happen after startup..");
 
 				// schedule a low-priority index rebuild (must be executed AFTER
 				// SchemaService in order to include instances of dynamic types.
@@ -164,7 +164,7 @@ public class NodeService implements SingletonService {
 
 		if (isRunning()) {
 
-			logger.log(Level.INFO, "Shutting down graph database service");
+			logger.info("Shutting down graph database service");
 			graphDb.shutdown();
 
 			graphDb       = null;
@@ -232,7 +232,7 @@ public class NodeService implements SingletonService {
 
 			if (!hasApplicationNodes) {
 
-				logger.log(Level.INFO, "Found initial seed file and no application nodes, applying initial seed..");
+				logger.info("Found initial seed file and no application nodes, applying initial seed..");
 
 				try {
 
@@ -240,7 +240,7 @@ public class NodeService implements SingletonService {
 
 				} catch (FrameworkException fex) {
 
-					logger.log(Level.WARNING, "Unable to import initial seed file.", fex);
+					logger.warn("Unable to import initial seed file.", fex);
 				}
 			}
 		}

@@ -18,8 +18,10 @@
  */
 package org.structr.websocket.command;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -37,7 +39,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class GetSchemaInfoCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(GetSchemaInfoCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(GetSchemaInfoCommand.class.getName());
 
 	static {
 
@@ -68,7 +70,7 @@ public class GetSchemaInfoCommand extends AbstractCommand {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 			getWebSocket().send(MessageBuilder.status().code(500).build(), true);
 		}
 	}

@@ -18,8 +18,8 @@
  */
 package org.structr.cron;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.agent.Agent;
 import org.structr.agent.ReturnValue;
 import org.structr.agent.Task;
@@ -32,7 +32,7 @@ import org.structr.agent.Task;
  */
 public class CronTestAgent extends Agent {
 
-	private static final Logger logger = Logger.getLogger(CronTestAgent.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CronTestAgent.class.getName());
 
 	@Override
 	public Class getSupportedTaskType() {
@@ -42,7 +42,7 @@ public class CronTestAgent extends Agent {
 	@Override
 	public ReturnValue processTask(Task task) throws Throwable {
 
-		logger.log(Level.INFO, "Processing test task {0}", task.getClass().getName());
+		logger.info("Processing test task {}", task.getClass().getName());
 
 		return ReturnValue.Success;
 	}

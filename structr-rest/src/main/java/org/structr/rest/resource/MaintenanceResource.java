@@ -18,28 +18,25 @@
  */
 package org.structr.rest.resource;
 
-import org.structr.core.Result;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.agent.Task;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.agent.Task;
+import org.structr.core.Result;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.MaintenanceCommand;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.SystemException;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.Map;
-import java.util.logging.Logger;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.graph.MaintenanceCommand;
-import org.structr.core.graph.Tx;
-import org.structr.rest.exception.IllegalPathException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,7 +48,7 @@ import org.structr.rest.exception.IllegalPathException;
  */
 public class MaintenanceResource extends Resource {
 
-	private static final Logger logger = Logger.getLogger(MaintenanceResource.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(MaintenanceResource.class.getName());
 
 	private String taskOrCommandName = null;
 	private Class taskOrCommand      = null;

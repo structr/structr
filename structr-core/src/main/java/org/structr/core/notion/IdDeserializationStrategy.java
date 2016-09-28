@@ -19,19 +19,19 @@
 package org.structr.core.notion;
 
 import java.util.List;
-import org.structr.core.property.PropertyKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-
-import java.util.logging.Logger;
 import org.structr.common.error.TypeToken;
 import org.structr.core.GraphObject;
 import org.structr.core.JsonInput;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 
 /**
@@ -41,7 +41,7 @@ import org.structr.core.property.RelationProperty;
  */
 public class IdDeserializationStrategy<S, T extends NodeInterface> implements DeserializationStrategy<S, T> {
 
-	private static final Logger logger = Logger.getLogger(IdDeserializationStrategy.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(IdDeserializationStrategy.class.getName());
 
 	protected RelationProperty<S> relationProperty = null;
 

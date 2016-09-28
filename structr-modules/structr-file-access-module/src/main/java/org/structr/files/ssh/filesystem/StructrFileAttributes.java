@@ -35,8 +35,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -54,7 +56,7 @@ import org.structr.web.entity.User;
  */
 public class StructrFileAttributes implements PosixFileAttributes, DosFileAttributes, PosixFileAttributeView {
 
-	private static final Logger logger              = Logger.getLogger(StructrFileAttributes.class.getName());
+	private static final Logger logger              = LoggerFactory.getLogger(StructrFileAttributes.class.getName());
 	public static final Set<String> SUPPORTED_VIEWS = new LinkedHashSet<>(Arrays.asList(new String[] { "owner", "dos", "basic", "posix", "permissions" } ));
 
 	private SecurityContext securityContext = null;
@@ -87,7 +89,7 @@ public class StructrFileAttributes implements PosixFileAttributes, DosFileAttrib
 			}
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 
 		return owner;
@@ -113,7 +115,7 @@ public class StructrFileAttributes implements PosixFileAttributes, DosFileAttrib
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 
 		return groups != null && groups.size() > 0 ? groups.get(0)::getName : null;
@@ -138,7 +140,7 @@ public class StructrFileAttributes implements PosixFileAttributes, DosFileAttrib
 
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 
 		return time;
@@ -168,7 +170,7 @@ public class StructrFileAttributes implements PosixFileAttributes, DosFileAttrib
 			}
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 
 		return time;
@@ -187,7 +189,7 @@ public class StructrFileAttributes implements PosixFileAttributes, DosFileAttrib
 			isRegularFile = file.getProperty(FileBase.isFile);
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 
 		return isRegularFile;
@@ -206,7 +208,7 @@ public class StructrFileAttributes implements PosixFileAttributes, DosFileAttrib
 			isDirectory = file.getProperty(Folder.isFolder);
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 
 		return isDirectory;
@@ -242,7 +244,7 @@ public class StructrFileAttributes implements PosixFileAttributes, DosFileAttrib
 
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 
 		return size;
@@ -260,7 +262,7 @@ public class StructrFileAttributes implements PosixFileAttributes, DosFileAttrib
 			uuid = file.getUuid();
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 
 		return uuid;
@@ -305,7 +307,7 @@ public class StructrFileAttributes implements PosixFileAttributes, DosFileAttrib
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				logger.log(Level.SEVERE, "", fex);
+				logger.error("", fex);
 			}
 		}
 
@@ -396,7 +398,7 @@ public class StructrFileAttributes implements PosixFileAttributes, DosFileAttrib
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 
 		return name;
@@ -422,7 +424,7 @@ public class StructrFileAttributes implements PosixFileAttributes, DosFileAttrib
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Unable to set mapped file permissions for " + file, fex);
+			logger.error("Unable to set mapped file permissions for " + file, fex);
 		}
 	}
 

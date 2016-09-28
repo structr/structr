@@ -19,8 +19,10 @@
 package org.structr.neo4j;
 
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.GraphDatabaseAPI;
 import org.neo4j.server.Bootstrapper;
@@ -37,7 +39,7 @@ import org.structr.api.service.StructrServices;
  */
 public class Neo4jService implements RunnableService {
 
-	private static final Logger logger = Logger.getLogger(Neo4jService.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(Neo4jService.class.getName());
 
 	public static final String NEO4J_BROWSER_HOST          = "neo4j.server.host";
 	public static final String NEO4J_BROWSER_PORT          = "neo4j.server.port";
@@ -63,14 +65,14 @@ public class Neo4jService implements RunnableService {
 			config.configuration()
 				.addProperty(Configurator.WEBSERVER_PORT_PROPERTY_KEY, port);
 
-			logger.log(Level.INFO, "Starting Neo4j server on port {0}", new Object[] { String.valueOf(port) });
+			logger.info("Starting Neo4j server on port {}", new Object[] { String.valueOf(port) });
 
 			neoServerBootstrapper = new StructrWrappingNeoServerBootstrapper(api, config);
 			neoServerBootstrapper.start();
 
 		} catch (Exception e) {
 
-			logger.log(Level.SEVERE, e.getMessage());
+			logger.error(e.getMessage());
 
 		}
 
@@ -126,13 +128,13 @@ public class Neo4jService implements RunnableService {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.SEVERE, "Unable to parse Neo4j Browser port {0}", configuredPort);
+			logger.error("Unable to parse Neo4j Browser port {}", configuredPort);
 
 			port = -1;
 		}
 
 		if (port == -1) {
-			logger.log(Level.SEVERE, "Unable to start Neo4j service.");
+			logger.error("Unable to start Neo4j service.");
 		}
 	}
 

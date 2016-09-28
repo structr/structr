@@ -19,8 +19,10 @@
 package org.structr.web.test;
 
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
@@ -32,7 +34,7 @@ import org.structr.web.entity.User;
  */
 public class UserTest extends StructrUiTest {
 
-	private static final Logger logger = Logger.getLogger(UserTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(UserTest.class.getName());
 
 	public void test001EMailAddressConstraint() {
 
@@ -94,7 +96,7 @@ public class UserTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
 	}

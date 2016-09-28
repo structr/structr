@@ -18,7 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.logging.Level;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
@@ -54,7 +53,7 @@ public class UnlockSystemPropertiesFunction extends Function<Object, Object> {
 
 			} else {
 
-				logger.log(Level.WARNING, "Parameter 1 is not a node. Parameters: {0}", getParametersAsString(sources));
+				logger.warn("Parameter 1 is not a node. Parameters: {}", getParametersAsString(sources));
 
 				return usage(ctx.isJavaScriptContext());
 

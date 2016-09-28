@@ -22,9 +22,9 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -41,7 +41,7 @@ import org.structr.core.property.PropertyKey;
  */
 public abstract class AbstractUser extends AbstractNode implements Principal {
 
-	private static final Logger logger = Logger.getLogger(AbstractUser.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(AbstractUser.class.getName());
 	private Boolean cachedIsAdminFlag  = null;
 	public static final Object HIDDEN = "****** HIDDEN ******";
 
@@ -66,7 +66,7 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 
 
 		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, "Could not add sessionId " + sessionId + " to array of sessionIds", ex);
+			logger.error("Could not add sessionId " + sessionId + " to array of sessionIds", ex);
 		}
 	}
 
@@ -94,7 +94,7 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 			setProperty(Principal.sessionIds, (String[]) newSessionIds.toArray(new String[newSessionIds.size()]));
 
 		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, "Could not remove sessionId " + sessionId + " from array of sessionIds", ex);
+			logger.error("Could not remove sessionId " + sessionId + " from array of sessionIds", ex);
 		}
 	}
 

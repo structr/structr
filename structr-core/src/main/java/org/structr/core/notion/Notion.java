@@ -20,19 +20,16 @@ package org.structr.core.notion;
 
 import java.util.Collection;
 import java.util.Collections;
-import org.structr.core.property.PropertyKey;
+import java.util.LinkedList;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -51,7 +48,7 @@ import org.structr.core.property.RelationProperty;
  */
 public abstract class Notion<S extends NodeInterface, T> {
 
-	private static final Logger logger = Logger.getLogger(Notion.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(Notion.class.getName());
 
 	protected DeserializationStrategy<T, S> deserializationStrategy = null;
 	protected SerializationStrategy<S, T> serializationStrategy     = null;
@@ -222,7 +219,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 				result.add(adapter.adapt(s));
 
 			} catch(FrameworkException fex) {
-				logger.log(Level.WARNING, "Error in iterable adapter", fex);
+				logger.warn("Error in iterable adapter", fex);
 			}
 	}
 

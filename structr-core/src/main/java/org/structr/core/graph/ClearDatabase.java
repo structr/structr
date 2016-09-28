@@ -19,8 +19,8 @@
 package org.structr.core.graph;
 
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
@@ -43,7 +43,7 @@ import org.structr.core.entity.AbstractNode;
  */
 public class ClearDatabase extends NodeServiceCommand {
 
-	private static final Logger logger = Logger.getLogger(ClearDatabase.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ClearDatabase.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -63,7 +63,7 @@ public class ClearDatabase extends NodeServiceCommand {
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "Exception while creating all nodes iterator.", fex);
+				logger.warn("Exception while creating all nodes iterator.", fex);
 			}
 
 			final long deletedNodes = bulkGraphOperation(securityContext, nodeIterator, 1000, "ClearDatabase", new BulkGraphOperation<AbstractNode>() {
@@ -78,23 +78,23 @@ public class ClearDatabase extends NodeServiceCommand {
 							app.delete(node);
 
 						} catch (FrameworkException fex) {
-							logger.log(Level.WARNING, "Unable to delete node {0}: {1}", new Object[] { node.getUuid(), fex.getMessage() } );
+							logger.warn("Unable to delete node {}: {}", new Object[] { node.getUuid(), fex.getMessage() } );
 						}
 					}
 				}
 
 				@Override
 				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
-					logger.log(Level.WARNING, "Unable to delete node {0}: {1}", new Object[] { node.getUuid(), t.getMessage() } );
+					logger.warn("Unable to delete node {}: {}", new Object[] { node.getUuid(), t.getMessage() } );
 				}
 
 				@Override
 				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
-					logger.log(Level.WARNING, "Unable to clear database: {0}", t.getMessage() );
+					logger.warn("Unable to clear database: {}", t.getMessage() );
 				}
 			});
 
-			logger.log(Level.INFO, "Finished deleting {0} nodes", deletedNodes);
+			logger.info("Finished deleting {} nodes", deletedNodes);
 
 		}
 	}

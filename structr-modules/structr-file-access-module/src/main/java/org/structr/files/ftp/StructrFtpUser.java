@@ -20,8 +20,10 @@ package org.structr.files.ftp;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.ftpserver.ftplet.Authority;
 import org.apache.ftpserver.ftplet.AuthorizationRequest;
 import org.apache.ftpserver.ftplet.User;
@@ -39,7 +41,7 @@ import org.structr.web.entity.Folder;
  */
 public class StructrFtpUser implements User {
 
-	private static final Logger logger = Logger.getLogger(StructrFtpUser.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrFtpUser.class.getName());
 
 	private final org.structr.web.entity.User structrUser;
 	private SecurityContext securityContext;
@@ -94,7 +96,7 @@ public class StructrFtpUser implements User {
 		for (Authority authority : authorities) {
 			if (authority.canAuthorize(request)) {
 
-				logger.log(Level.INFO, "Authority {0} can authorize {1}", new Object[]{authority, request});
+				logger.info("Authority {} can authorize {}", new Object[]{authority, request});
 
 				someoneCouldAuthorize = true;
 
@@ -103,7 +105,7 @@ public class StructrFtpUser implements User {
 				// authorization failed, return null
 				if (request == null) {
 
-					logger.log(Level.INFO, "Authorization of request {0} failed", new Object[]{request});
+					logger.info("Authorization of request {} failed", new Object[]{request});
 					return null;
 				}
 			}
@@ -112,7 +114,7 @@ public class StructrFtpUser implements User {
 
 
 		if (someoneCouldAuthorize) {
-			logger.log(Level.INFO, "Request {0} successfully authorized", new Object[]{request});
+			logger.info("Request {} successfully authorized", new Object[]{request});
 			return request;
 		} else {
 			return null;

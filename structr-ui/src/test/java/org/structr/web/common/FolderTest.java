@@ -18,8 +18,10 @@
  */
 package org.structr.web.common;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
@@ -31,7 +33,7 @@ import org.structr.web.entity.Folder;
  */
 public class FolderTest extends StructrTest {
 	
-	private static final Logger logger = Logger.getLogger(FolderTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FolderTest.class.getName());
 
 	public void testCreateFolder() {
 		
@@ -45,7 +47,7 @@ public class FolderTest extends StructrTest {
 			tx.success();
 			
 		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -63,7 +65,7 @@ public class FolderTest extends StructrTest {
 			assertEquals(FileHelper.getFolderPath(c), "/a/b/c");
 						
 		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 		
 	}
@@ -79,7 +81,7 @@ public class FolderTest extends StructrTest {
 			fail("Folder with non-allowed characters were created.");
 			
 		} catch (FrameworkException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 		}
 		
 		try (final Tx tx = app.tx()) {
@@ -91,7 +93,7 @@ public class FolderTest extends StructrTest {
 			fail("Folder with non-allowed characters were created.");
 			
 		} catch (FrameworkException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -103,7 +105,7 @@ public class FolderTest extends StructrTest {
 			fail("Folder with non-allowed characters were created.");
 			
 		} catch (FrameworkException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -115,7 +117,7 @@ public class FolderTest extends StructrTest {
 			fail("Folder with non-allowed characters were created.");
 			
 		} catch (FrameworkException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -127,7 +129,7 @@ public class FolderTest extends StructrTest {
 			fail("Folder with non-allowed characters were created.");
 			
 		} catch (FrameworkException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -139,7 +141,7 @@ public class FolderTest extends StructrTest {
 			fail("Folder with non-allowed characters were created.");
 			
 		} catch (FrameworkException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 		}
 		
 		try (final Tx tx = app.tx()) {
@@ -151,7 +153,7 @@ public class FolderTest extends StructrTest {
 			fail("Folder with non-allowed characters were created.");
 			
 		} catch (FrameworkException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 		}
 	}
 	

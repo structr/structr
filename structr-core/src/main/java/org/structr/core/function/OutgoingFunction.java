@@ -18,7 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.logging.Level;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.error.FrameworkException;
@@ -68,7 +67,7 @@ public class OutgoingFunction extends Function<Object, Object> {
 
 			} else {
 
-				logger.log(Level.WARNING, "Error: entity is not a node. Parameters: {0}", getParametersAsString(sources));
+				logger.warn("Error: entity is not a node. Parameters: {}", getParametersAsString(sources));
 				return "Error: entity is not a node.";
 
 			}

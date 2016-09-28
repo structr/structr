@@ -18,8 +18,8 @@
  */
 package org.structr.core.property;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
@@ -35,7 +35,7 @@ import org.structr.core.graph.RelationshipInterface;
  */
 public class TargetNodeProperty extends Property<NodeInterface> {
 
-	private static final Logger logger = Logger.getLogger(TargetId.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(TargetId.class.getName());
 
 	public TargetNodeProperty(final String name) {
 		super(name);
@@ -73,7 +73,7 @@ public class TargetNodeProperty extends Property<NodeInterface> {
 
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 			}
 		}
 

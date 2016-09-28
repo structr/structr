@@ -37,20 +37,20 @@
 
 package org.structr.common;
 
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.TestOne;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Result;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SixOneManyToMany;
+import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSix;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -67,7 +67,7 @@ import org.structr.core.graph.Tx;
  */
 public class SearchTest extends StructrTest {
 
-	private static final Logger logger = Logger.getLogger(SearchTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(SearchTest.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -128,7 +128,7 @@ public class SearchTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -178,7 +178,7 @@ public class SearchTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -228,7 +228,7 @@ public class SearchTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -278,7 +278,7 @@ public class SearchTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -328,7 +328,7 @@ public class SearchTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -388,7 +388,7 @@ public class SearchTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -412,20 +412,20 @@ public class SearchTest extends StructrTest {
 				Result<? extends GraphObject> result = app.nodeQuery(NodeInterface.class).getResult();
 
 				long t1 = System.currentTimeMillis();
-				logger.log(Level.INFO, "Query with inexact type took {0} ms", t1-t0);
+				logger.info("Query with inexact type took {} ms", t1-t0);
 				assertEquals(1012, result.size());
 
 				result = app.nodeQuery(NodeInterface.class).getResult();
 
 				long t2 = System.currentTimeMillis();
-				logger.log(Level.INFO, "Query with exact type took {0} ms", t2-t1);
+				logger.info("Query with exact type took {} ms", t2-t1);
 				assertEquals(1012, result.size());
 
 				// TODO: Implement app.nodeQuery() to return all nodes in the system as an alternative to the (slow) app.nodeQuery(NodeInterface.class)
 //				result = app.nodeQuery().getResult();
 //
 //				long t3 = System.currentTimeMillis();
-//				logger.log(Level.INFO, "Query without type took {0} ms", t3-t2);
+//				logger.info("Query without type took {} ms", t3-t2);
 //				assertEquals(1012, result.size());
 
 				tx.success();
@@ -433,7 +433,7 @@ public class SearchTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -469,7 +469,7 @@ public class SearchTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -511,7 +511,7 @@ public class SearchTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}

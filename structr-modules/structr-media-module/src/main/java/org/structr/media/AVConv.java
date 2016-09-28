@@ -23,8 +23,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.web.entity.Image;
 
@@ -35,7 +37,7 @@ import org.structr.web.entity.Image;
 
 public class AVConv implements VideoHelper {
 
-	private static final Logger logger = Logger.getLogger(AVConv.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(AVConv.class.getName());
 
 	private static final ExecutorService service = Executors.newCachedThreadPool();
 	private SecurityContext securityContext      = null;
@@ -75,7 +77,7 @@ public class AVConv implements VideoHelper {
 			return service.submit(new GetMetadataProcess(securityContext, inputVideo)).get();
 
 		} catch (InterruptedException | ExecutionException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 		}
 
 		return null;
@@ -89,7 +91,7 @@ public class AVConv implements VideoHelper {
 			service.submit(new SetMetadataProcess(securityContext, inputVideo, key, value)).get();
 
 		} catch (InterruptedException | ExecutionException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 		}
 	}
 
@@ -101,7 +103,7 @@ public class AVConv implements VideoHelper {
 			service.submit(new SetMetadataProcess(securityContext, inputVideo, metadata)).get();
 
 		} catch (InterruptedException | ExecutionException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 		}
 	}
 
@@ -113,7 +115,7 @@ public class AVConv implements VideoHelper {
 			return service.submit(new GetVideoInfoProcess(securityContext, inputVideo.getDiskFilePath(securityContext))).get();
 
 		} catch (InterruptedException | ExecutionException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 		}
 
 		return null;

@@ -57,7 +57,7 @@ import org.structr.rest.service.HttpService;
  */
 public class StructrTest extends TestCase {
 
-	//private static final Logger logger = Logger.getLogger(StructrTest.class.getName());
+	//private static final Logger logger = LoggerFactory.getLogger(StructrTest.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 

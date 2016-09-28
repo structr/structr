@@ -22,8 +22,10 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.crypto.Cipher;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudService;
@@ -37,7 +39,7 @@ import org.structr.core.graph.SyncCommand;
  */
 public class AuthenticationResponse extends Message {
 
-	private static final Logger logger = Logger.getLogger(AuthenticationResponse.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(AuthenticationResponse.class.getName());
 	
 	private transient String encryptionKey = null;
 
@@ -93,7 +95,7 @@ public class AuthenticationResponse extends Message {
 			serverConnection.send(new Crypt());
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 	}
 
@@ -111,7 +113,7 @@ public class AuthenticationResponse extends Message {
 				client.setEncryptionKey(encryptionKey, keyLength);
 
 			} catch (InvalidKeyException ikex) {
-				logger.log(Level.WARNING, "", ikex);
+				logger.warn("", ikex);
 			}
 		}
 	}

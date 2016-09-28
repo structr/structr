@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
-
 import javatools.administrative.D;
 /** 
 This class is part of the Java Tools (see http://mpii.de/yago-naga/javatools).

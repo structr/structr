@@ -18,9 +18,9 @@
  */
 package org.structr.core.property;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -36,7 +36,7 @@ import org.structr.core.converter.PropertyConverter;
  */
 public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 
-	private static final Logger logger = Logger.getLogger(EnumProperty.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(EnumProperty.class.getName());
 	private Class<T> enumType          = null;
 
 	public EnumProperty(final String name, final Class<T> enumType, final PropertyValidator<T>... validators) {
@@ -132,7 +132,7 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 
 				} catch (Throwable t) {
 
-					logger.log(Level.WARNING, "Cannot convert database value {0} to enum of type {1}, ignoring.", new Object[] { source, enumType.getSimpleName() } );
+					logger.warn("Cannot convert database value {} to enum of type {}, ignoring.", new Object[] { source, enumType.getSimpleName() } );
 				}
 			}
 

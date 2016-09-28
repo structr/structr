@@ -21,8 +21,10 @@ package org.structr.xmpp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence.Mode;
@@ -55,7 +57,7 @@ import org.structr.schema.SchemaService;
  */
 public class XMPPClient extends AbstractNode implements XMPPInfo {
 
-	private static final Logger logger = Logger.getLogger(XMPPClient.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(XMPPClient.class.getName());
 
 	public static final Property<List<XMPPRequest>> pendingRequests = new EndNodes<>("pendingRequests", XMPPClientRequest.class);
 	public static final Property<String>            xmppHandle      = new FunctionProperty("xmppHandle").format("concat(this.xmppUsername, '@', this.xmppHost)").indexed();
@@ -323,7 +325,7 @@ public class XMPPClient extends AbstractNode implements XMPPInfo {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 	}
 
@@ -348,7 +350,7 @@ public class XMPPClient extends AbstractNode implements XMPPInfo {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 	}
 }

@@ -20,10 +20,11 @@ package org.structr.core.property;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import org.structr.api.search.Occurrence;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -44,7 +45,7 @@ import org.structr.core.graph.search.SearchAttributeGroup;
  */
 public class ReferenceGroup extends Property<PropertyMap> implements PropertyGroup<PropertyMap> {
 
-	private static final Logger logger = Logger.getLogger(ReferenceGroup.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ReferenceGroup.class.getName());
 
 	// indicates whether this group property is
 	protected Map<String, PropertyKey> propertyKeys    = new LinkedHashMap<>();

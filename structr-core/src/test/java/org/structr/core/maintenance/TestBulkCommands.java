@@ -23,15 +23,15 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
-import org.structr.api.util.Iterables;
+import org.structr.api.Transaction;
 import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
-import org.structr.api.Transaction;
+import org.structr.api.util.Iterables;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Group;
@@ -47,7 +47,7 @@ import org.structr.core.graph.Tx;
  */
 public class TestBulkCommands extends StructrTest {
 
-	private static final Logger logger = Logger.getLogger(TestBulkCommands.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(TestBulkCommands.class.getName());
 
 	public void testBulkCreateLabelsCommand() {
 
@@ -119,7 +119,7 @@ public class TestBulkCommands extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -174,7 +174,7 @@ public class TestBulkCommands extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -244,7 +244,7 @@ public class TestBulkCommands extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 	}

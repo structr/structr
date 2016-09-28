@@ -35,8 +35,10 @@ import java.nio.file.attribute.FileAttributeView;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.files.ssh.filesystem.AbstractDirectoryStream;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.files.ssh.filesystem.StructrPath;
@@ -49,7 +51,7 @@ import org.structr.files.ssh.filesystem.path.page.StructrPagesPath;
  */
 public class StructrRootPath extends StructrPath {
 
-	private static final Logger logger = Logger.getLogger(StructrRootPath.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrRootPath.class.getName());
 
 	private final StructrRootAttributes rootAttributes = new StructrRootAttributes(StructrPath.ROOT_DIRECTORY);
 	private final Map<String, StructrPath> rootPaths   = new LinkedHashMap<>();
@@ -157,7 +159,7 @@ public class StructrRootPath extends StructrPath {
 					}
 
 				} catch (IOException ioex) {
-					logger.log(Level.WARNING, "Unable to create root directory stream", ioex);
+					logger.warn("Unable to create root directory stream", ioex);
 				}
 			}
 		}

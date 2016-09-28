@@ -24,8 +24,10 @@ import java.math.BigInteger;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
@@ -78,7 +80,7 @@ import org.structr.web.entity.Folder;
  */
 public class CMISObjectService extends AbstractStructrCmisService implements ObjectService {
 
-	private static final Logger logger = Logger.getLogger(CMISObjectService.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CMISObjectService.class.getName());
 
 	public CMISObjectService(final StructrCMISService parentService, final SecurityContext securityContext) {
 		super(parentService, securityContext);
@@ -305,7 +307,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 			}
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 		throw new CmisObjectNotFoundException("Object with ID " + objectId + " does not exist");
@@ -352,7 +354,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 			tx.success();
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 		if (result != null) {
@@ -379,7 +381,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 			tx.success();
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 		if (result != null) {
@@ -586,7 +588,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 
 		} catch (final FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
 

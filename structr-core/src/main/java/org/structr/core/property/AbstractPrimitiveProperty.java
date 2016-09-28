@@ -18,8 +18,8 @@
  */
 package org.structr.core.property;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
@@ -43,7 +43,7 @@ import org.structr.core.graph.TransactionCommand;
  */
 public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
-	private static final Logger logger = Logger.getLogger(AbstractPrimitiveProperty.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(AbstractPrimitiveProperty.class.getName());
 
 	protected GraphObject entity;
 	protected SecurityContext securityContext;
@@ -92,12 +92,12 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 				} catch (Throwable t) {
 
-					logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
+					logger.warn("Unable to convert property {} of type {}: {}", new Object[] {
 						dbName(),
 						getClass().getSimpleName(),
 						t
 					});
-					logger.log(Level.WARNING, "", t);
+					logger.warn("", t);
 
 				}
 			}
@@ -186,7 +186,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 					} else {
 
-						logger.log(Level.WARNING, "Tried to set internal system property {0} to {1}. Action was denied.", new Object[]{dbName(), convertedValue});
+						logger.warn("Tried to set internal system property {} to {}. Action was denied.", new Object[]{dbName(), convertedValue});
 
 					}
 				}
@@ -259,7 +259,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 		} catch (Throwable t) {
 
 			// fail without throwing an exception here
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 	}
 }

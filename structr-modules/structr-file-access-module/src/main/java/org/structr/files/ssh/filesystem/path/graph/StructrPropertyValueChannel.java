@@ -28,7 +28,8 @@ import java.nio.channels.WritableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.NoSuchFileException;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -42,7 +43,7 @@ import org.structr.files.ssh.filesystem.StructrPath.HiddenFileEntry;
  */
 public class StructrPropertyValueChannel<T extends GraphObject> extends FileChannel {
 
-	private static final Logger logger = Logger.getLogger(StructrPropertyValueChannel.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrPropertyValueChannel.class.getName());
 
 	private ByteBuffer buffer               = ByteBuffer.allocate(65535);
 	private SecurityContext securityContext = null;

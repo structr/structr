@@ -21,8 +21,8 @@ package org.structr.core.converter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -40,7 +40,7 @@ import org.structr.core.graph.GraphDatabaseCommand;
  */
 public class CypherQueryConverter extends PropertyConverter {
 
-	private static final Logger logger = Logger.getLogger(CypherQueryConverter.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CypherQueryConverter.class.getName());
 
 	private DatabaseService graphDb    = null;
 	private CypherQueryHandler handler = null;
@@ -56,7 +56,7 @@ public class CypherQueryConverter extends PropertyConverter {
 
 		} catch(Throwable t) {
 
-			logger.log(Level.WARNING, "Unable to create cypher execution engine.");
+			logger.warn("Unable to create cypher execution engine.");
 		}
 	}
 
@@ -92,7 +92,7 @@ public class CypherQueryConverter extends PropertyConverter {
 
 			} catch(FrameworkException fex) {
 
-				logger.log(Level.WARNING, "Exception while executing cypher query {0}: {1}", new Object[] { query, fex.getMessage() } );
+				logger.warn("Exception while executing cypher query {}: {}", new Object[] { query, fex.getMessage() } );
 			}
 		}
 

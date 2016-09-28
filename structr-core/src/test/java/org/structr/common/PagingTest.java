@@ -39,22 +39,19 @@
 
 package org.structr.common;
 
-import org.structr.core.property.PropertyKey;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.TestOne;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Result;
 import org.structr.core.app.Query;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.TestOne;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -67,7 +64,7 @@ import org.structr.core.graph.Tx;
  */
 public class PagingTest extends StructrTest {
 
-	private static final Logger logger = Logger.getLogger(PagingTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(PagingTest.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -102,17 +99,17 @@ public class PagingTest extends StructrTest {
 
 				result = app.nodeQuery(type).includeDeletedAndHidden().sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
-				logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
+				logger.info("Raw result size: {}, expected: {}", new Object[] { result.getRawResultCount(), number });
 				assertTrue(result.getRawResultCount() == number);
-				logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
+				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), pageSize });
 				assertTrue(result.size() == pageSize);
 			}
 
               } catch (FrameworkException ex) {
 
-		      logger.log(Level.WARNING, "", ex);
+		      logger.warn("", ex);
 
-                      logger.log(Level.SEVERE, ex.toString());
+                      logger.error(ex.toString());
                       fail("Unexpected exception");
 
               }
@@ -174,9 +171,9 @@ public class PagingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -193,7 +190,7 @@ public class PagingTest extends StructrTest {
 
 		final Result result = query.getResult();
 
-		logger.log(Level.INFO, "===================================================\nRaw result size: {0}, expected: {1} (page size: {2}, page: {3})", new Object[] { result.getRawResultCount(), number, pageSize, page });
+		logger.info("===================================================\nRaw result size: {}, expected: {} (page size: {}, page: {})", new Object[] { result.getRawResultCount(), number, pageSize, page });
 		assertTrue(result.getRawResultCount() == ((pageSize == 0 || page == 0) ? 0 : number));
 
 		long expectedResultCount = (pageSize == 0 || page == 0)
@@ -202,7 +199,7 @@ public class PagingTest extends StructrTest {
 
 		int startIndex = (Math.max(page, 1) - 1) * pageSize;
 
-		logger.log(Level.INFO, "Result size: {0}, expected: {1}, start index: {2}", new Object[] { result.size(), expectedResultCount, startIndex });
+		logger.info("Result size: {}, expected: {}, start index: {}", new Object[] { result.size(), expectedResultCount, startIndex });
 		assertTrue(result.size() == expectedResultCount);
 
 

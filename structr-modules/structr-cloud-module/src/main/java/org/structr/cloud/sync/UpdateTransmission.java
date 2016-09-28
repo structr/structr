@@ -19,7 +19,8 @@
 package org.structr.cloud.sync;
 
 import java.io.IOException;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
@@ -44,7 +45,7 @@ import org.structr.dynamic.File;
  */
 public class UpdateTransmission implements CloudTransmission {
 
-	private static final Logger logger = Logger.getLogger(UpdateTransmission.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(UpdateTransmission.class.getName());
 
 
 	@Override

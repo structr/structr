@@ -28,10 +28,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.util.Iterables;
 import org.structr.common.CaseHelper;
@@ -73,7 +73,7 @@ import org.structr.schema.parser.Validator;
  */
 public class SchemaRelationshipNode extends AbstractSchemaNode {
 
-	private static final Logger logger                              = Logger.getLogger(SchemaRelationshipNode.class.getName());
+	private static final Logger logger                              = LoggerFactory.getLogger(SchemaRelationshipNode.class.getName());
 	private static final Set<String> propagatingRelTypes            = new TreeSet<>();
 	private static final Pattern ValidKeyPattern                    = Pattern.compile("[a-zA-Z_]+");
 
@@ -269,7 +269,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				setProperty(AbstractNode.name, name);
 
 			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "Unable to set relationship name to {0}.", name);
+				logger.warn("Unable to set relationship name to {}.", name);
 			}
 		}
 
@@ -397,7 +397,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
 		return propertyName;
@@ -707,7 +707,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 					} else {
 
-						logger.log(Level.WARNING, "Invalid key name {0} for notion.", key);
+						logger.warn("Invalid key name {} for notion.", key);
 					}
 
 				} else {
@@ -1019,7 +1019,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				setProperty(AbstractNode.name, potentialNewClassName);
 
 			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "Unable to set relationship name to {0}.", potentialNewClassName);
+				logger.warn("Unable to set relationship name to {}.", potentialNewClassName);
 			}
 		}
 	}
@@ -1162,7 +1162,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				return true;
 			}
 
-			logger.log(Level.WARNING, "Invalid key name {0} for notion.", t);
+			logger.warn("Invalid key name {} for notion.", t);
 
 			return false;
 		}

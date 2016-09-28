@@ -18,9 +18,10 @@
  */
 package org.structr.common;
 
-import java.util.Date;
-import java.util.logging.Logger;
 import java.util.Calendar;
+import java.util.Date;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -29,7 +30,7 @@ import java.util.Calendar;
  */
 public class RecurringDateHelperTest extends StructrTest {
 	
-	private static final Logger logger = Logger.getLogger(DeleteGraphObjectsTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(DeleteGraphObjectsTest.class.getName());
 
 	@Override
 	public void test00DbAvailable() {

@@ -24,9 +24,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -53,7 +53,7 @@ import org.structr.schema.json.JsonType;
  */
 public class StructrSchemaTest extends StructrTest {
 
-	private static final Logger logger = Logger.getLogger(StructrSchemaTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrSchemaTest.class.getName());
 
 	public void test00SimpleProperties() {
 
@@ -140,7 +140,7 @@ public class StructrSchemaTest extends StructrTest {
 
 		} catch (Exception t) {
 
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 			fail("Unexpected exception.");
 		}
 
@@ -173,7 +173,7 @@ public class StructrSchemaTest extends StructrTest {
 			compareSchemaRoundtrip(sourceSchema);
 
 		} catch (Exception t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 			fail("Unexpected exception.");
 		}
 
@@ -225,7 +225,7 @@ public class StructrSchemaTest extends StructrTest {
 
 		} catch (FrameworkException | InvalidSchemaException |URISyntaxException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception.");
 		}
 
@@ -312,7 +312,7 @@ public class StructrSchemaTest extends StructrTest {
 
 		} catch (Exception ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception.");
 		}
 	}

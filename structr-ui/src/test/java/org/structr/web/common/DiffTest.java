@@ -21,8 +21,10 @@ package org.structr.web.common;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.graph.Tx;
@@ -39,7 +41,7 @@ import org.w3c.dom.NodeList;
  */
 public class DiffTest extends StructrUiTest {
 
-	private static final Logger logger = Logger.getLogger(DiffTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(DiffTest.class.getName());
 
 	public void testReplaceContent() {
 
@@ -770,7 +772,7 @@ public class DiffTest extends StructrUiTest {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 		return buf.toString();

@@ -21,8 +21,10 @@ package org.structr.ldap;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.cursor.EntryCursor;
@@ -52,7 +54,7 @@ import org.structr.core.graph.Tx;
  */
 public class LDAPService extends Thread implements RunnableService {
 
-	private static final Logger logger = Logger.getLogger(LDAPService.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(LDAPService.class.getName());
 
 	public static final String CONFIG_KEY_UPDATE_INTERVAL = "ldap.updateInterval";
 	public static final String CONFIG_KEY_LDAP_BINDDN     = "ldap.bindDn";
@@ -159,7 +161,7 @@ public class LDAPService extends Thread implements RunnableService {
 
 			if (connection.connect()) {
 
-				logger.log(Level.INFO, "Updating user/group information from LDAP server {0}:{1}..", new Object[]{host, port});
+				logger.info("Updating user/group information from LDAP server {}:{}..", new Object[]{host, port});
 
 				if (StringUtils.isNotBlank(binddn) && StringUtils.isNotBlank(secret)) {
 
@@ -194,13 +196,13 @@ public class LDAPService extends Thread implements RunnableService {
 
 							} else {
 
-								logger.log(Level.INFO, "User {0} doesn't exist in LDAP directory, deleting.", user);
+								logger.info("User {} doesn't exist in LDAP directory, deleting.", user);
 								app.delete(user);
 							}
 
 						} else {
 
-							logger.log(Level.WARNING, "User {0} doesn't have an LDAP distinguished name, ignoring.", user);
+							logger.warn("User {} doesn't have an LDAP distinguished name, ignoring.", user);
 						}
 					}
 
@@ -212,7 +214,7 @@ public class LDAPService extends Thread implements RunnableService {
 
 			} else {
 
-				logger.log(Level.INFO, "Connection to LDAP server {0} failed", host);
+				logger.info("Connection to LDAP server {} failed", host);
 			}
 		}
 	}
@@ -241,7 +243,7 @@ public class LDAPService extends Thread implements RunnableService {
 						connection.modify(dn, addUuid);
 
 					} catch (LdapException ex) {
-						logger.log(Level.WARNING, "Unable to set entryUUID: {0}", ex.getMessage());
+						logger.warn("Unable to set entryUUID: {}", ex.getMessage());
 					}
 				}
 			}
@@ -251,7 +253,7 @@ public class LDAPService extends Thread implements RunnableService {
 			return user.getUuid();
 
 		} catch (FrameworkException | LdapInvalidAttributeValueException fex) {
-			logger.log(Level.WARNING, "Unable to update LDAP information", fex);
+			logger.warn("Unable to update LDAP information", fex);
 		}
 
 		return null;
@@ -278,7 +280,7 @@ public class LDAPService extends Thread implements RunnableService {
 				doUpdate();
 
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "Unable to update LDAP information", t);
+				logger.warn("Unable to update LDAP information", t);
 			}
 
 			// sleep until next update
@@ -290,7 +292,7 @@ public class LDAPService extends Thread implements RunnableService {
 	@Override
 	public void startService() throws Exception {
 
-		logger.log(Level.INFO, "Starting LDAPService, update interval {0} s", TimeUnit.MILLISECONDS.toSeconds(updateInterval));
+		logger.info("Starting LDAPService, update interval {} s", TimeUnit.MILLISECONDS.toSeconds(updateInterval));
 		this.start();
 	}
 

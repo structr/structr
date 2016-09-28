@@ -46,20 +46,20 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.Direction;
-import org.structr.api.util.Iterables;
 import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -79,7 +79,7 @@ import org.structr.schema.SchemaHelper;
  */
 public class SyncCommand extends NodeServiceCommand implements MaintenanceCommand, Serializable {
 
-	private static final Logger logger                = Logger.getLogger(SyncCommand.class.getName());
+	private static final Logger logger                = LoggerFactory.getLogger(SyncCommand.class.getName());
 	private static final String STRUCTR_ZIP_DB_NAME   = "db";
 
 	private static final Map<Class, Byte> typeMap     = new HashMap<>();
@@ -133,7 +133,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "Unable to parse value for validation flag: {0}", t.getMessage());
+				logger.warn("Unable to parse value for validation flag: {}", t.getMessage());
 			}
 		}
 
@@ -188,7 +188,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			if (query != null) {
 
-				logger.log(Level.INFO, "Using Cypher query {0} to determine export set, disabling export of files", query);
+				logger.info("Using Cypher query {} to determine export set, disabling export of files", query);
 
 				conditionalIncludeFiles = false;
 
@@ -202,7 +202,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 					}
 				}
 
-				logger.log(Level.INFO, "Query returned {0} nodes and {1} relationships.", new Object[] { nodes.size(), rels.size() } );
+				logger.info("Query returned {} nodes and {} relationships.", new Object[] { nodes.size(), rels.size() } );
 
 			} else {
 
@@ -222,7 +222,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 			throw new FrameworkException(500, t.getMessage());
 		}
 
@@ -283,7 +283,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			if (includeFiles) {
 
-				logger.log(Level.INFO, "Exporting files..");
+				logger.info("Exporting files..");
 
 				// export files first
 				exportDirectory(zos, new File("files"), "", filesToInclude.isEmpty() ? null : filesToInclude);
@@ -301,7 +301,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 
 			throw new FrameworkException(500, t.getMessage());
 		}
@@ -318,7 +318,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 
 			throw new FrameworkException(500, t.getMessage());
 		}
@@ -347,7 +347,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		} catch (IOException ioex) {
 
-			logger.log(Level.WARNING, "", ioex);
+			logger.warn("", ioex);
 		}
 	}
 
@@ -400,7 +400,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			} else {
 
-				logger.log(Level.WARNING, "Unable to serialize object of type {0}, type not supported", obj.getClass());
+				logger.warn("Unable to serialize object of type {}, type not supported", obj.getClass());
 			}
 
 		} else {
@@ -451,7 +451,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		} else if (type != 127) {
 
-			logger.log(Level.WARNING, "Unsupported type \"{0}\" in input", type);
+			logger.warn("Unsupported type \"{}\" in input", type);
 		}
 
 
@@ -590,7 +590,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		// finish db entry
 		zos.closeEntry();
 
-		logger.log(Level.INFO, "Exported {0} nodes and {1} rels", new Object[] { nodeCount, relCount } );
+		logger.info("Exported {} nodes and {} rels", new Object[] { nodeCount, relCount } );
 	}
 
 	private static void importDirectory(ZipInputStream zis, ZipEntry entry) throws IOException {
@@ -616,7 +616,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 				if (newFile.lastModified() < entry.getTime()) {
 
-					logger.log(Level.INFO, "Overwriting existing file {0} because import file is newer.", entry.getName());
+					logger.info("Overwriting existing file {} because import file is newer.", entry.getName());
 					overwrite = true;
 				}
 			}
@@ -768,12 +768,12 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 									} else {
 
-										logger.log(Level.SEVERE, "Invalid property key for value {0}, ignoring", obj);
+										logger.error("Invalid property key for value {}, ignoring", obj);
 									}
 
 								} else {
 
-									logger.log(Level.WARNING, "No current object to store property in.");
+									logger.warn("No current object to store property in.");
 								}
 
 								currentKey = null;
@@ -818,7 +818,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 					}
 				}
 
-				logger.log(Level.INFO, "Imported {0} nodes and {1} rels, committing transaction..", new Object[] { totalNodeCount, totalRelCount } );
+				logger.info("Imported {} nodes and {} rels, committing transaction..", new Object[] { totalNodeCount, totalRelCount } );
 
 				tx.success();
 
@@ -833,7 +833,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
 		// set correct labels after schema has been compiled
@@ -843,7 +843,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		double time = ((t1 - t0) / 1000000000.0);
 
 		DecimalFormat decimalFormat  = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-		logger.log(Level.INFO, "Import done in {0} s", decimalFormat.format(time));
+		logger.info("Import done in {} s", decimalFormat.format(time));
 	}
 
 	private static Object readObject(final DataInputStream inputStream, final byte type) throws IOException {
@@ -964,7 +964,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				continue;
 			}
 
-			logger.log(Level.INFO, "Found existing schema node {0}, merging!", name);
+			logger.info("Found existing schema node {}, merging!", name);
 
 			copyProperties(sourceNode, targetNode);
 

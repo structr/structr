@@ -19,14 +19,14 @@
 package org.structr.core.property;
 
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.TestThree;
 import org.structr.core.entity.TestSix;
+import org.structr.core.entity.TestThree;
 import org.structr.core.graph.Tx;
 
 /**
@@ -35,7 +35,7 @@ import org.structr.core.graph.Tx;
  */
 public class EntityPropertyTest extends StructrTest {
 
-	private static final Logger logger = Logger.getLogger(EntityPropertyTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(EntityPropertyTest.class.getName());
 
 	public void testOneToOne() throws Exception {
 
@@ -56,7 +56,7 @@ public class EntityPropertyTest extends StructrTest {
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "", fex);
+				logger.warn("", fex);
 
 				fail("Unable to create test nodes");
 			}
@@ -84,7 +84,7 @@ public class EntityPropertyTest extends StructrTest {
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "", fex);
+				logger.warn("", fex);
 
 				fail("Unable to link test nodes");
 			}
@@ -106,7 +106,7 @@ public class EntityPropertyTest extends StructrTest {
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "", fex);
+				logger.warn("", fex);
 
 				fail("Unable to link test nodes");
 			}
@@ -146,7 +146,7 @@ public class EntityPropertyTest extends StructrTest {
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "", fex);
+				logger.warn("", fex);
 
 				fail("Unable to create test nodes");
 			}
@@ -172,7 +172,7 @@ public class EntityPropertyTest extends StructrTest {
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "", fex);
+				logger.warn("", fex);
 
 				fail("Unable to link test nodes");
 			}
@@ -194,7 +194,7 @@ public class EntityPropertyTest extends StructrTest {
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "", fex);
+				logger.warn("", fex);
 
 				fail("Unable to link test nodes");
 			}

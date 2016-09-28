@@ -19,12 +19,8 @@
 package org.structr.web.common;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertTrue;
-import static junit.framework.TestCase.fail;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
@@ -48,7 +44,7 @@ import org.structr.web.entity.User;
  */
 public abstract class FtpTest extends StructrUiTest {
 
-	private static final Logger logger = Logger.getLogger(FtpTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FtpTest.class.getName());
 
 	protected User ftpUser;
 
@@ -73,7 +69,7 @@ public abstract class FtpTest extends StructrUiTest {
 			}
 		}
 
-		logger.log(Level.INFO, "FTP directory {0} created successfully.", dir);
+		logger.info("FTP directory {} created successfully.", dir);
 
 		return dir;
 	}
@@ -93,7 +89,7 @@ public abstract class FtpTest extends StructrUiTest {
 			}
 		}
 
-		logger.log(Level.INFO, "FTP file {0} created successfully.", file);
+		logger.info("FTP file {} created successfully.", file);
 
 		return file;
 	}
@@ -108,7 +104,7 @@ public abstract class FtpTest extends StructrUiTest {
 
 		} catch (IOException ex) {
 
-			logger.log(Level.SEVERE, "Error in FTP test", ex);
+			logger.error("Error in FTP test", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 
 		}
@@ -131,7 +127,7 @@ public abstract class FtpTest extends StructrUiTest {
 		try {
 
 			ftp.connect("localhost", ftpPort);
-			logger.log(Level.INFO, "Reply from FTP server:", ftp.getReplyString());
+			logger.info("Reply from FTP server:", ftp.getReplyString());
 
 			int reply = ftp.getReplyCode();
 			assertTrue(FTPReply.isPositiveCompletion(reply));
@@ -142,17 +138,17 @@ public abstract class FtpTest extends StructrUiTest {
 				ftpUser = createFTPUser(username, password);
 				tx.success();
 			} catch (FrameworkException fex) {
-				logger.log(Level.SEVERE, "Unable to create FTP user", fex);
+				logger.error("Unable to create FTP user", fex);
 			}
 			boolean loginSuccess = ftp.login(username, password);
-			logger.log(Level.INFO, "Try to login as " + username + "/" + password + ": ", loginSuccess);
+			logger.info("Try to login as " + username + "/" + password + ": ", loginSuccess);
 			assertTrue(loginSuccess);
 
 			reply = ftp.getReplyCode();
 			assertEquals(FTPReply.USER_LOGGED_IN, reply);
 
 		} catch (IOException ex) {
-			logger.log(Level.SEVERE, "Error in FTP test", ex);
+			logger.error("Error in FTP test", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 
@@ -164,7 +160,7 @@ public abstract class FtpTest extends StructrUiTest {
 		try {
 			ftp.disconnect();
 		} catch (IOException ex) {
-			logger.log(Level.SEVERE, "Error while disconnecting from FTP server", ex);
+			logger.error("Error while disconnecting from FTP server", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 	}

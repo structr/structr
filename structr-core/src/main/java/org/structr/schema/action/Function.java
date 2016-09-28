@@ -24,17 +24,15 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -51,7 +49,7 @@ import org.structr.schema.parser.DatePropertyParser;
  */
 public abstract class Function<S, T> extends Hint {
 
-	protected static final Logger logger = Logger.getLogger(Functions.class.getName());
+	protected static final Logger logger = LoggerFactory.getLogger(Functions.class.getName());
 
 	public abstract T apply(ActionContext ctx, GraphObject entity, S[] sources) throws FrameworkException;
 	public abstract String usage(boolean inJavaScriptContext);
@@ -64,7 +62,7 @@ public abstract class Function<S, T> extends Hint {
 	 * @param inJavaScriptContext Has the function been called from a JavaScript context?
 	 */
 	protected void logParameterError(final GraphObject entity, final Object[] parameters, final boolean inJavaScriptContext) {
-		logger.log(Level.WARNING, "{0}: unsupported parameter combination/count in element \"{1}\". Parameters: {2}. {3}", new Object[] { getName(), entity, getParametersAsString(parameters), usage(inJavaScriptContext) });
+		logger.warn("{}: unsupported parameter combination/count in element \"{}\". Parameters: {}. {}", new Object[] { getName(), entity, getParametersAsString(parameters), usage(inJavaScriptContext) });
 	}
 
 	/**
@@ -76,7 +74,7 @@ public abstract class Function<S, T> extends Hint {
 	 */
 	protected void logException (final GraphObject entity, final Throwable t, final Object[] parameters) {
 
-		logException(t, "{0}: Exception in element \"{1}\" for parameters: {2}", new Object[] { getName(), entity, getParametersAsString(parameters) });
+		logException(t, "{}: Exception in element \"{}\" for parameters: {}", new Object[] { getName(), entity, getParametersAsString(parameters) });
 
 	}
 
@@ -88,14 +86,7 @@ public abstract class Function<S, T> extends Hint {
 	 * @param messageParams The parameters for the message
 	 */
 	protected void logException (final Throwable t, final String msg, final Object[] messageParams) {
-
-		logger.log(Level.WARNING, t, new Supplier<String>() {
-			@Override
-			public String get() {
-				return MessageFormat.format(msg, messageParams);
-			}
-		});
-
+		logger.warn(msg, messageParams);
 	}
 
 	protected String getParametersAsString (final Object[] sources) {
@@ -222,7 +213,7 @@ public abstract class Function<S, T> extends Hint {
 
 		} catch (Throwable t) {
 
-			logException(t, "{0}: Exception parsing \"1\"", new Object[] { getName(), obj });
+			logException(t, "{}: Exception parsing \"1\"", new Object[] { getName(), obj });
 		}
 
 		return null;
@@ -284,7 +275,7 @@ public abstract class Function<S, T> extends Hint {
 
 			} catch (Throwable t) {
 
-				logException(t, "{0}: Exception parsing \"1\"", new Object[] { getName(), obj });
+				logException(t, "{}: Exception parsing \"1\"", new Object[] { getName(), obj });
 			}
 		}
 
@@ -432,7 +423,7 @@ public abstract class Function<S, T> extends Hint {
 
 		} else {
 
-			logger.log(Level.WARNING, "Unable to determine base.path from structr.conf, no data input/output possible.");
+			logger.warn("Unable to determine base.path from structr.conf, no data input/output possible.");
 		}
 
 		return null;

@@ -53,8 +53,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.sshd.common.session.Session;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -74,7 +76,7 @@ import org.structr.web.entity.Folder;
  */
 public class StructrSSHFileSystem extends FileSystem {
 
-	private static final Logger logger = Logger.getLogger(StructrSSHFileSystem.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrSSHFileSystem.class.getName());
 
 	private StructrSSHFile rootFolder       = null;
 	private Session        session          = null;
@@ -92,14 +94,14 @@ public class StructrSSHFileSystem extends FileSystem {
 	@Override
 	public FileSystemProvider provider() {
 
-		logger.log(Level.INFO, "x");
+		logger.info("x");
 
 		return new FileSystemProvider() {
 
 			@Override
 			public OutputStream newOutputStream(Path path, OpenOption... options) throws IOException {
 
-				logger.log(Level.INFO, "x");
+				logger.info("x");
 
 				OutputStream os = null;
 
@@ -119,7 +121,7 @@ public class StructrSSHFileSystem extends FileSystem {
 					tx.success();
 
 				} catch (FrameworkException fex) {
-					logger.log(Level.WARNING, "", fex);
+					logger.warn("", fex);
 					throw new IOException(fex);
 				}
 
@@ -130,7 +132,7 @@ public class StructrSSHFileSystem extends FileSystem {
 			public InputStream newInputStream(Path path, OpenOption... options) throws IOException {
 				// Remote file => file node in Structr
 
-				logger.log(Level.INFO, "x");
+				logger.info("x");
 
 				InputStream inputStream = null;
 
@@ -142,7 +144,7 @@ public class StructrSSHFileSystem extends FileSystem {
 					tx.success();
 
 				} catch (FrameworkException fex) {
-					logger.log(Level.WARNING, "", fex);
+					logger.warn("", fex);
 					throw new IOException(fex);
 				}
 
@@ -151,32 +153,32 @@ public class StructrSSHFileSystem extends FileSystem {
 
 			@Override
 			public String getScheme() {
-				logger.log(Level.INFO, "Method not implemented yet");
+				logger.info("Method not implemented yet");
 				return null;
 			}
 
 			@Override
 			public FileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException {
-				logger.log(Level.INFO, "Method not implemented yet");
+				logger.info("Method not implemented yet");
 				return null;
 			}
 
 			@Override
 			public FileSystem getFileSystem(URI uri) {
-				logger.log(Level.INFO, "Method not implemented yet");
+				logger.info("Method not implemented yet");
 				return null;
 			}
 
 			@Override
 			public Path getPath(URI uri) {
-				logger.log(Level.INFO, "Method not implemented yet");
+				logger.info("Method not implemented yet");
 				return null;
 			}
 
 			@Override
 			public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
 
-				logger.log(Level.INFO, "x");
+				logger.info("x");
 
 				SeekableByteChannel channel = null;
 
@@ -190,7 +192,7 @@ public class StructrSSHFileSystem extends FileSystem {
 
 						tx.success();
 					} catch (FrameworkException fex) {
-						logger.log(Level.SEVERE, "", fex);
+						logger.error("", fex);
 						throw new IOException(fex);
 					}
 				}
@@ -201,7 +203,7 @@ public class StructrSSHFileSystem extends FileSystem {
 			@Override
 			public DirectoryStream<Path> newDirectoryStream(Path dir, DirectoryStream.Filter<? super Path> filter) throws IOException {
 
-				logger.log(Level.INFO, "x");
+				logger.info("x");
 
 				return new DirectoryStream() {
 
@@ -230,7 +232,7 @@ public class StructrSSHFileSystem extends FileSystem {
 								tx.success();
 
 							} catch (FrameworkException fex) {
-								logger.log(Level.WARNING, "", fex);
+								logger.warn("", fex);
 							}
 
 							return files.iterator();
@@ -252,7 +254,7 @@ public class StructrSSHFileSystem extends FileSystem {
 			@Override
 			public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
 
-				logger.log(Level.INFO, "x");
+				logger.info("x");
 
 				final StructrSSHFile parent = (StructrSSHFile) dir.getParent();
 
@@ -271,7 +273,7 @@ public class StructrSSHFileSystem extends FileSystem {
 					tx.success();
 
 				} catch (FrameworkException fex) {
-					logger.log(Level.WARNING, "", fex);
+					logger.warn("", fex);
 					throw new IOException(fex);
 				}
 
@@ -279,47 +281,47 @@ public class StructrSSHFileSystem extends FileSystem {
 
 			@Override
 			public void delete(Path path) throws IOException {
-				logger.log(Level.INFO, "Method not implemented yet");
+				logger.info("Method not implemented yet");
 			}
 
 			@Override
 			public void copy(Path source, Path target, CopyOption... options) throws IOException {
-				logger.log(Level.INFO, "Method not implemented yet");
+				logger.info("Method not implemented yet");
 			}
 
 			@Override
 			public void move(Path source, Path target, CopyOption... options) throws IOException {
-				logger.log(Level.INFO, "Method not implemented yet");
+				logger.info("Method not implemented yet");
 			}
 
 			@Override
 			public boolean isSameFile(Path path, Path path2) throws IOException {
 
-				logger.log(Level.INFO, "x");
+				logger.info("x");
 				return path != null && path.equals(path);
 			}
 
 			@Override
 			public boolean isHidden(Path path) throws IOException {
-				logger.log(Level.INFO, "Method not implemented yet");
+				logger.info("Method not implemented yet");
 				return false;
 			}
 
 			@Override
 			public FileStore getFileStore(Path path) throws IOException {
-				logger.log(Level.INFO, "Method not implemented yet");
+				logger.info("Method not implemented yet");
 				return null;
 			}
 
 			@Override
 			public void checkAccess(Path path, AccessMode... modes) throws IOException {
-				logger.log(Level.INFO, "Checking access", new Object[]{path, modes});
+				logger.info("Checking access", new Object[]{path, modes});
 			}
 
 			@Override
 			public <V extends FileAttributeView> V getFileAttributeView(final Path path, final Class<V> type, final LinkOption... options) {
 
-				logger.log(Level.INFO, "x");
+				logger.info("x");
 
 				return (V) new PosixFileAttributeView() {
 
@@ -335,28 +337,28 @@ public class StructrSSHFileSystem extends FileSystem {
 
 					@Override
 					public void setPermissions(Set<PosixFilePermission> set) throws IOException {
-						logger.log(Level.INFO, "Method not implemented yet");
+						logger.info("Method not implemented yet");
 					}
 
 					@Override
 					public void setGroup(GroupPrincipal gp) throws IOException {
-						logger.log(Level.INFO, "Method not implemented yet");
+						logger.info("Method not implemented yet");
 					}
 
 					@Override
 					public void setTimes(FileTime ft, FileTime ft1, FileTime ft2) throws IOException {
-						logger.log(Level.INFO, "Method not implemented yet");
+						logger.info("Method not implemented yet");
 					}
 
 					@Override
 					public UserPrincipal getOwner() throws IOException {
-						logger.log(Level.INFO, "Method not implemented yet");
+						logger.info("Method not implemented yet");
 						return null;
 					}
 
 					@Override
 					public void setOwner(UserPrincipal up) throws IOException {
-						logger.log(Level.INFO, "Method not implemented yet");
+						logger.info("Method not implemented yet");
 					}
 
 				};
@@ -365,7 +367,7 @@ public class StructrSSHFileSystem extends FileSystem {
 			@Override
 			public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException {
 
-				logger.log(Level.INFO, "x");
+				logger.info("x");
 
 				if (path != null) {
 
@@ -393,12 +395,12 @@ public class StructrSSHFileSystem extends FileSystem {
 
 			@Override
 			public void setAttribute(Path path, String attribute, Object value, LinkOption... options) throws IOException {
-				logger.log(Level.INFO, "Method not implemented yet");;
+				logger.info("Method not implemented yet");;
 			}
 
 			private AbstractFile create(final Path path) throws IOException {
 
-				logger.log(Level.INFO, "x");
+				logger.info("x");
 
 				final StructrSSHFile parent = (StructrSSHFile) path.getParent();
 
@@ -419,7 +421,7 @@ public class StructrSSHFileSystem extends FileSystem {
 					tx.success();
 
 				} catch (FrameworkException fex) {
-					logger.log(Level.WARNING, "", fex);
+					logger.warn("", fex);
 					throw new IOException(fex);
 				}
 
@@ -434,34 +436,34 @@ public class StructrSSHFileSystem extends FileSystem {
 	public void close() throws IOException {
 
 
-				logger.log(Level.INFO, "x");
+				logger.info("x");
 	}
 
 	@Override
 	public boolean isOpen() {
 
-				logger.log(Level.INFO, "x");
+				logger.info("x");
 		return true;
 	}
 
 	@Override
 	public boolean isReadOnly() {
 
-				logger.log(Level.INFO, "x");
+				logger.info("x");
 		return false;
 	}
 
 	@Override
 	public String getSeparator() {
 
-				logger.log(Level.INFO, "x");
+				logger.info("x");
 		return "/";
 	}
 
 	@Override
 	public Iterable<Path> getRootDirectories() {
 
-				logger.log(Level.INFO, "x");
+				logger.info("x");
 
 		final List<Path> paths = new LinkedList<>();
 
@@ -473,15 +475,15 @@ public class StructrSSHFileSystem extends FileSystem {
 	@Override
 	public Iterable<FileStore> getFileStores() {
 
-				logger.log(Level.INFO, "x");
-		logger.log(Level.INFO, "Method not implemented yet");
+				logger.info("x");
+		logger.info("Method not implemented yet");
 		return null;
 	}
 
 	@Override
 	public Set<String> supportedFileAttributeViews() {
 
-				logger.log(Level.INFO, "x");
+				logger.info("x");
 
 		final Set<String> views = new HashSet<>();
 
@@ -493,7 +495,7 @@ public class StructrSSHFileSystem extends FileSystem {
 	@Override
 	public Path getPath(String string, String... strings) {
 
-				logger.log(Level.INFO, "x");
+				logger.info("x");
 
 		if ("/".equals(string)) {
 			return rootFolder;
@@ -504,19 +506,19 @@ public class StructrSSHFileSystem extends FileSystem {
 
 	@Override
 	public PathMatcher getPathMatcher(String string) {
-		logger.log(Level.INFO, "Method not implemented yet");
+		logger.info("Method not implemented yet");
 		return null;
 	}
 
 	@Override
 	public UserPrincipalLookupService getUserPrincipalLookupService() {
-		logger.log(Level.INFO, "Method not implemented yet");
+		logger.info("Method not implemented yet");
 		return null;
 	}
 
 	@Override
 	public WatchService newWatchService() throws IOException {
-		logger.log(Level.INFO, "Method not implemented yet");
+		logger.info("Method not implemented yet");
 		return null;
 	}
 

@@ -18,8 +18,10 @@
  */
 package org.structr.web.test;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -37,7 +39,7 @@ import org.w3c.dom.DOMException;
  */
 public class XPathTest extends StructrUiTest {
 
-	private static final Logger logger = Logger.getLogger(XPathTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(XPathTest.class.getName());
 
 	public void testSimpleXPath() {
 
@@ -93,13 +95,13 @@ public class XPathTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 
 			fail("Unexpected exception");
 
 		} catch (XPathExpressionException xpeex) {
 
-			logger.log(Level.WARNING, "", xpeex);
+			logger.warn("", xpeex);
 
 			fail("Unexpected exception");
 
@@ -168,13 +170,13 @@ public class XPathTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 
 			fail("Unexpected exception");
 
 		} catch (XPathExpressionException xpeex) {
 
-			logger.log(Level.WARNING, "", xpeex);
+			logger.warn("", xpeex);
 
 			fail("Unexpected exception");
 

@@ -19,8 +19,10 @@
 package org.structr.websocket.command;
 
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.Principal;
@@ -35,7 +37,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class SaveLocalStorageCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(SaveLocalStorageCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(SaveLocalStorageCommand.class.getName());
 
 	static {
 
@@ -60,7 +62,7 @@ public class SaveLocalStorageCommand extends AbstractCommand {
 
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "Error saving localstorage", t);
+				logger.warn("Error saving localstorage", t);
 
 				// send exception
 				getWebSocket().send(MessageBuilder.status().code(422).message(t.toString()).build(), true);

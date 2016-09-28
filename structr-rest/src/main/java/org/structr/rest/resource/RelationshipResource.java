@@ -18,22 +18,22 @@
  */
 package org.structr.rest.resource;
 
-import org.structr.core.Result;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Direction;
-import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.PropertyKey;
 import org.structr.rest.exception.IllegalPathException;
 
 /**
@@ -43,7 +43,7 @@ import org.structr.rest.exception.IllegalPathException;
 public class RelationshipResource extends WrappingResource {
 
 	public static final String REQUEST_PARAMETER_FILTER_INTERNAL_RELATIONSHIP_TYPES = "domainOnly";
-	private static final Logger logger = Logger.getLogger(RelationshipResource.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(RelationshipResource.class.getName());
 	private Direction direction = null;
 
 	@Override
@@ -129,12 +129,12 @@ public class RelationshipResource extends WrappingResource {
 
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "Exception while fetching relationships", t);
+				logger.warn("Exception while fetching relationships", t);
 			}
 
 		} else {
 
-			logger.log(Level.INFO, "No results from parent..");
+			logger.info("No results from parent..");
 
 		}
 

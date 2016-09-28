@@ -24,9 +24,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
@@ -48,7 +48,7 @@ import org.structr.core.property.StringProperty;
  */
 public class ConcurrentTests extends StructrTest {
 
-	private static final Logger logger = Logger.getLogger(ConcurrentTests.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ConcurrentTests.class.getName());
 
 	public void testConcurrentValidation() {
 
@@ -65,7 +65,7 @@ public class ConcurrentTests extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -122,7 +122,7 @@ public class ConcurrentTests extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -146,7 +146,7 @@ public class ConcurrentTests extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -202,7 +202,7 @@ public class ConcurrentTests extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -229,7 +229,7 @@ public class ConcurrentTests extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -246,7 +246,7 @@ public class ConcurrentTests extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -259,7 +259,7 @@ public class ConcurrentTests extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -275,7 +275,7 @@ public class ConcurrentTests extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -290,7 +290,7 @@ public class ConcurrentTests extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -320,7 +320,7 @@ public class ConcurrentTests extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -354,7 +354,7 @@ public class ConcurrentTests extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 	}

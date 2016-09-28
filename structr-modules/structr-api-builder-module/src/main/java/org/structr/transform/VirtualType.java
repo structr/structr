@@ -23,8 +23,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang.StringUtils;
 import org.structr.api.Predicate;
 import org.structr.api.util.Iterables;
@@ -51,7 +53,7 @@ import org.structr.schema.action.ActionContext;
  */
 public class VirtualType extends AbstractNode implements ResultTransformer {
 
-	private static final Logger logger = Logger.getLogger(VirtualType.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(VirtualType.class.getName());
 
 	public static final Property<List<VirtualProperty>> properties = new EndNodes<>("properties", VirtualTypeProperty.class);
 	public static final Property<Integer> position                 = new IntProperty("position").indexed();
@@ -132,7 +134,7 @@ public class VirtualType extends AbstractNode implements ResultTransformer {
 					return Boolean.TRUE.equals(Scripting.evaluate(ctx, value, "${" + expression + "}"));
 
 				} catch (FrameworkException fex) {
-					logger.log(Level.WARNING, "", fex);
+					logger.warn("", fex);
 				}
 			}
 
@@ -174,7 +176,7 @@ public class VirtualType extends AbstractNode implements ResultTransformer {
 				}
 
 			} catch (FrameworkException ex) {
-				Logger.getLogger(VirtualType.class.getName()).log(Level.SEVERE, null, ex);
+				logger.error("", ex);
 			}
 
 			return obj;

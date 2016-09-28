@@ -20,8 +20,10 @@ package org.structr.web.entity;
 
 import org.structr.common.fulltext.Indexable;
 import java.io.InputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -44,7 +46,7 @@ import org.structr.web.common.DownloadHelper;
  */
 public class RemoteDocument extends AbstractNode implements Indexable {
 
-	private static final Logger logger = Logger.getLogger(RemoteDocument.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(RemoteDocument.class.getName());
 
 	public static final Property<String> url                     = new StringProperty("url");
 	public static final Property<Long> checksum                  = new LongProperty("checksum").indexed().unvalidated().readOnly();
@@ -70,7 +72,7 @@ public class RemoteDocument extends AbstractNode implements Indexable {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "Unable to index " + this, fex);
+			logger.warn("Unable to index " + this, fex);
 		}
 	}
 

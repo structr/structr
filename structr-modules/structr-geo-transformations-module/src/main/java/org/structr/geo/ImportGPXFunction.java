@@ -22,8 +22,10 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -46,7 +48,7 @@ import org.w3c.dom.NodeList;
  */
 public class ImportGPXFunction extends Function<Object, Object> {
 
-	private static final Logger logger                                   = Logger.getLogger(ImportGPXFunction.class.getName());
+	private static final Logger logger                                   = LoggerFactory.getLogger(ImportGPXFunction.class.getName());
 	public static final Property<List<GraphObjectMap>> waypointsProperty = new GenericProperty<>("waypoints");
 	public static final Property<List<GraphObjectMap>> routesProperty    = new GenericProperty<>("routes");
 	public static final Property<List<GraphObjectMap>> tracksProperty    = new GenericProperty<>("tracks");
@@ -150,7 +152,7 @@ public class ImportGPXFunction extends Function<Object, Object> {
 
 			} else {
 
-				logger.log(Level.WARNING, "Invalid parameter for GPX import, expected string, got {0}", sources[0].getClass().getSimpleName() );
+				logger.warn("Invalid parameter for GPX import, expected string, got {}", sources[0].getClass().getSimpleName() );
 			}
 
 			return "Invalid parameters";

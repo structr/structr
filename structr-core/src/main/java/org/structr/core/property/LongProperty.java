@@ -18,9 +18,10 @@
  */
 package org.structr.core.property;
 
-import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -35,7 +36,7 @@ import org.structr.core.converter.PropertyConverter;
  */
 public class LongProperty extends AbstractPrimitiveProperty<Long> implements NumericalPropertyKey<Long> {
 
-	private static final Logger logger = Logger.getLogger(DoubleProperty.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(DoubleProperty.class.getName());
 
 	public LongProperty(final String name) {
 		super(name);

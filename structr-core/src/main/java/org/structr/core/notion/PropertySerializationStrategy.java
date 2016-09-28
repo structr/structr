@@ -18,10 +18,10 @@
  */
 package org.structr.core.notion;
 
-import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
 
 /**

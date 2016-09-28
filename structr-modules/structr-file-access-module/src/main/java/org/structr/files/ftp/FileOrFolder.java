@@ -22,8 +22,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.structr.common.SecurityContext;
@@ -50,7 +52,7 @@ import org.structr.web.entity.Folder;
  */
 public class FileOrFolder extends AbstractStructrFtpFile {
 
-	private static final Logger logger = Logger.getLogger(FileOrFolder.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FileOrFolder.class.getName());
 
 	public FileOrFolder(final String newPath, final StructrFtpUser user) {
 		super(newPath, user);
@@ -58,19 +60,19 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 
 	@Override
 	public boolean isDirectory() {
-		logger.log(Level.SEVERE, "isDirectory()");
+		logger.error("isDirectory()");
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public boolean isFile() {
-		logger.log(Level.SEVERE, "isFile()");
+		logger.error("isFile()");
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public long getSize() {
-		logger.log(Level.SEVERE, "getSize()");
+		logger.error("getSize()");
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -80,11 +82,11 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 		final App app = StructrApp.getInstance();
 		try (final Tx tx = app.tx()) {
 
-			logger.log(Level.INFO, "mkdir() Folder");
+			logger.info("mkdir() Folder");
 
 			AbstractFile existing = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), newPath);
 			if (existing != null) {
-				logger.log(Level.WARNING, "File {0} already exists.", newPath);
+				logger.warn("File {} already exists.", newPath);
 				return false;
 			}
 
@@ -102,7 +104,7 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 				}
 
 			} catch (FrameworkException ex) {
-				logger.log(Level.SEVERE, null, ex);
+				logger.error("", ex);
 				return false;
 			}
 
@@ -111,14 +113,14 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 			return true;
 
 		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 			return false;
 		}
 	}
 
 	@Override
 	public List<FtpFile> listFiles() {
-		logger.log(Level.SEVERE, "listFiles()");
+		logger.error("listFiles()");
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -141,7 +143,7 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 					}
 
 				} catch (FrameworkException ex) {
-					logger.log(Level.SEVERE, null, ex);
+					logger.error("", ex);
 					return null;
 				}
 			}
@@ -151,7 +153,7 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 			return ((FileBase) structrFile).getOutputStream();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, null, fex);
+			logger.error(null, fex);
 		}
 
 		return null;
@@ -159,7 +161,7 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 
 	@Override
 	public InputStream createInputStream(long l) throws IOException {
-		logger.log(Level.SEVERE, "createInputStream()");
+		logger.error("createInputStream()");
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 

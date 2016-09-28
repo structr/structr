@@ -22,8 +22,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.io.FileUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -42,7 +44,7 @@ import org.structr.web.entity.relation.MinificationSource;
  */
 public abstract class AbstractMinifiedFile extends File {
 
-	private static final Logger logger = Logger.getLogger(AbstractMinifiedFile.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(AbstractMinifiedFile.class.getName());
 
 	public static final Property<List<FileBase>> minificationSources = new EndNodes<>("minificationSources", MinificationSource.class);
 
@@ -68,7 +70,7 @@ public abstract class AbstractMinifiedFile extends File {
 			try {
 				this.minify();
 			} catch (IOException ex) {
-				logger.log(Level.WARNING, "Could not automatically minify file", ex);
+				logger.warn("Could not automatically minify file", ex);
 			}
 
 		}

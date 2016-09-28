@@ -20,8 +20,10 @@ package org.structr.web.migration;
 
 import java.util.Iterator;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
@@ -50,7 +52,7 @@ import static org.structr.core.graph.NodeServiceCommand.bulkGraphOperation;
  */
 public class BulkMigrateRelationships extends NodeServiceCommand implements MaintenanceCommand {
 
-	private static final Logger logger = Logger.getLogger(BulkMigrateRelationships.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(BulkMigrateRelationships.class.getName());
 
 	static {
 
@@ -120,7 +122,7 @@ public class BulkMigrateRelationships extends NodeServiceCommand implements Main
 
 						} catch (FrameworkException fex) {
 
-							logger.log(Level.WARNING, "Unable to migrate relationship {0}: {1}", new Object[] { rel.getUuid(), fex.getMessage() } );
+							logger.warn("Unable to migrate relationship {}: {}", new Object[] { rel.getUuid(), fex.getMessage() } );
 
 						}
 					}
@@ -128,16 +130,16 @@ public class BulkMigrateRelationships extends NodeServiceCommand implements Main
 
 				@Override
 				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractRelationship rel) {
-					logger.log(Level.WARNING, "Unable to migrate relationship {0}: {1}", new Object[] { rel.getUuid(), t.getMessage() } );
+					logger.warn("Unable to migrate relationship {}: {}", new Object[] { rel.getUuid(), t.getMessage() } );
 				}
 
 				@Override
 				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
-					logger.log(Level.WARNING, "Unable to migrate relationship: {0}", t.getMessage() );
+					logger.warn("Unable to migrate relationship: {}", t.getMessage() );
 				}
 			});
 
-			logger.log(Level.INFO, "Finished setting properties on {0} nodes", counter);
+			logger.info("Finished setting properties on {} nodes", counter);
 
 		}
 	}

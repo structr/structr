@@ -20,8 +20,10 @@ package org.structr.web.servlet;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.WriteListener;
@@ -32,7 +34,7 @@ import javax.servlet.WriteListener;
  */
 public class StructrWriteListener implements WriteListener {
 	
-	private static final Logger logger = Logger.getLogger(StructrWriteListener.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrWriteListener.class.getName());
 
 	private static final int COPY_BUFFER_SIZE = 4096;
 	private byte[] buffer = new byte[COPY_BUFFER_SIZE];
@@ -69,7 +71,7 @@ public class StructrWriteListener implements WriteListener {
 
 	@Override
 	public void onError(Throwable t) {
-		logger.log(Level.SEVERE, "Async error", t);
+		logger.error("Async error", t);
 		async.complete();
 	}
 

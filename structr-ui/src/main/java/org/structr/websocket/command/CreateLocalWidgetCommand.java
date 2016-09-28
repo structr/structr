@@ -19,8 +19,10 @@
 package org.structr.websocket.command;
 
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -38,7 +40,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class CreateLocalWidgetCommand extends AbstractCommand {
 
-	private static final Logger logger     = Logger.getLogger(CreateLocalWidgetCommand.class.getName());
+	private static final Logger logger     = LoggerFactory.getLogger(CreateLocalWidgetCommand.class.getName());
 	
 	static {
 
@@ -89,7 +91,7 @@ public class CreateLocalWidgetCommand extends AbstractCommand {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, t.toString());
+			logger.warn(t.toString());
 
 			// send exception
 			getWebSocket().send(MessageBuilder.status().code(422).message(t.toString()).build(), true);

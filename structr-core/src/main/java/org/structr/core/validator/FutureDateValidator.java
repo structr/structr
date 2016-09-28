@@ -18,15 +18,16 @@
  */
 package org.structr.core.validator;
 
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
-import org.structr.core.property.PropertyKey;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FutureDateToken;
 import org.structr.common.error.TypeToken;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
+import org.structr.core.property.PropertyKey;
 
 /**
  * A validator that ensures a given date lies in the future.
@@ -35,7 +36,7 @@ import org.structr.core.PropertyValidator;
  */
 public class FutureDateValidator implements PropertyValidator {
 
-	private static final Logger logger = Logger.getLogger(FutureDateValidator.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FutureDateValidator.class.getName());
 
 	@Override
 	public boolean isValid(SecurityContext securityContext, GraphObject object, PropertyKey key, Object value, ErrorBuffer errorBuffer) {

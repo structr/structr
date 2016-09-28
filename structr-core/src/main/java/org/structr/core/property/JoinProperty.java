@@ -25,8 +25,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -39,7 +39,7 @@ import org.structr.core.converter.PropertyConverter;
  */
 public class JoinProperty extends StringProperty {
 
-	private static final Logger logger = Logger.getLogger(JoinProperty.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(JoinProperty.class.getName());
 
 	private List<PropertyKey> keys = new ArrayList<>();
 
@@ -77,7 +77,7 @@ public class JoinProperty extends StringProperty {
 					}
 
 				} catch (FrameworkException fex) {
-					logger.log(Level.WARNING, "", fex);
+					logger.warn("", fex);
 				}
 
 			} else {

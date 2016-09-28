@@ -24,9 +24,9 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -50,7 +50,7 @@ import org.structr.rest.serialization.html.attr.Type;
  */
 public class StructrJsonHtmlWriter implements RestWriter {
 
-	private static final Logger logger = Logger.getLogger(StructrJsonHtmlWriter.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrJsonHtmlWriter.class.getName());
 
 	private static final Set<String> hiddenViews = new LinkedHashSet<>();
 	private static final int CLOSE_LEVEL         = 5;
@@ -130,7 +130,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 			}
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 		for (String view : StructrApp.getConfiguration().getPropertyViews()) {

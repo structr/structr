@@ -29,8 +29,8 @@ import com.google.javascript.jscomp.SourceFile;
 import com.google.javascript.jscomp.parsing.parser.util.format.SimpleFormat;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
@@ -45,7 +45,7 @@ import org.structr.web.entity.relation.MinificationSource;
 
 public class MinifiedJavaScriptFile extends AbstractMinifiedFile {
 
-	private static final Logger logger = Logger.getLogger(MinifiedJavaScriptFile.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(MinifiedJavaScriptFile.class.getName());
 
 	public static final Property<CompilationLevel> optimizationLevel = new EnumProperty<>("optimizationLevel", CompilationLevel.class, CompilationLevel.WHITESPACE_ONLY);
 	public static final Property<String> warnings                    = new StringProperty("warnings");
@@ -64,7 +64,7 @@ public class MinifiedJavaScriptFile extends AbstractMinifiedFile {
 	@Override
 	public void minify() throws FrameworkException, IOException {
 
-		logger.log(Level.INFO, "Running minify: {0}", this.getUuid());
+		logger.info("Running minify: {}", this.getUuid());
 
 		final Compiler compiler = new Compiler();
 		final CompilerOptions options = new CompilerOptions();
@@ -81,11 +81,14 @@ public class MinifiedJavaScriptFile extends AbstractMinifiedFile {
 
 			@Override
 			protected void printSummary() {
-				final Level level = (getErrorCount() + getWarningCount() == 0) ? Level.INFO : Level.WARNING;
 				if (getTypedPercent() > 0) {
-					logger.log(level, SimpleFormat.format("%d error(s), %d warning(s), %.1f%% typed", getErrorCount(), getWarningCount(), getTypedPercent()));
+					if (getErrorCount() + getWarningCount() == 0) {
+						logger.info(SimpleFormat.format("%d error(s), %d warning(s), %.1f%% typed", getErrorCount(), getWarningCount(), getTypedPercent()));
+					} else {
+						logger.warn(SimpleFormat.format("%d error(s), %d warning(s), %.1f%% typed", getErrorCount(), getWarningCount(), getTypedPercent()));
+					}
 				} else if (getErrorCount() + getWarningCount() > 0) {
-					logger.log(level, SimpleFormat.format("%d error(s), %d warning(s)", getErrorCount(), getWarningCount()));
+					logger.warn(SimpleFormat.format("%d error(s), %d warning(s)", getErrorCount(), getWarningCount()));
 				}
 			}
 		});

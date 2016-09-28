@@ -19,16 +19,13 @@
 package org.structr.core.graph;
 
 
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.FixedSizeCache;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
@@ -46,7 +43,7 @@ import org.structr.core.app.StructrApp;
 public class RelationshipFactory<T extends RelationshipInterface> extends Factory<Relationship, T> {
 
 	private static final FixedSizeCache<Long, Class> idTypeMap = new FixedSizeCache<>(Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_REL_CACHE_SIZE), 100000));
-	private static final Logger logger                         = Logger.getLogger(RelationshipFactory.class.getName());
+	private static final Logger logger                         = LoggerFactory.getLogger(RelationshipFactory.class.getName());
 
 	// private Map<String, Class> nodeTypeCache = new ConcurrentHashMap<String, Class>();
 	public RelationshipFactory(final SecurityContext securityContext) {
@@ -102,7 +99,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 			return null;
 		}
 
-		logger.log(Level.FINEST, "Instantiate relationship with type {0}", relClass.getName());
+		logger.debug("Instantiate relationship with type {}", relClass.getName());
 
 		SecurityContext securityContext = factoryProfile.getSecurityContext();
 		T newRel          = null;
@@ -134,7 +131,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 					newRel.setProperty(GraphObject.type, relClass.getSimpleName());
 
 				} catch (FrameworkException fex) {
-					logger.log(Level.WARNING, "", fex);
+					logger.warn("", fex);
 				}
 			}
 		}

@@ -25,8 +25,10 @@ import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -43,7 +45,7 @@ import org.structr.websocket.StructrWebSocket;
  */
 public class ChunkCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(ChunkCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ChunkCommand.class.getName());
 
 	static {
 
@@ -71,12 +73,12 @@ public class ChunkCommand extends AbstractCommand {
 
 				if (rawData instanceof String) {
 
-					logger.log(Level.FINEST, "Raw data: {0}", rawData);
+					logger.debug("Raw data: {}", rawData);
 
 //                                        data = Base64.decodeBase64(((String)rawData).getBytes("UTF-8"));
 					data = Base64.decode(((String) rawData));
 
-					logger.log(Level.FINEST, "Decoded data: {0}", data);
+					logger.debug("Decoded data: {}", data);
 
 				}
 
@@ -86,7 +88,7 @@ public class ChunkCommand extends AbstractCommand {
 
 			if (!file.isGranted(Permission.write, securityContext)) {
 
-				logger.log(Level.WARNING, "No write permission for {0} on {1}", new Object[] {getWebSocket().getCurrentUser().toString(), file.toString()});
+				logger.warn("No write permission for {} on {}", new Object[] {getWebSocket().getCurrentUser().toString(), file.toString()});
 				getWebSocket().send(MessageBuilder.status().message("No write permission").code(400).build(), true);
 				return;
 
@@ -109,7 +111,7 @@ public class ChunkCommand extends AbstractCommand {
 
 				getWebSocket().removeFileUploadHandler(uuid);
 
-				logger.log(Level.FINE, "File upload finished. Checksum: {0}, size: {1}", new Object[]{ checksum, size });
+				logger.debug("File upload finished. Checksum: {}, size: {}", new Object[]{ checksum, size });
 
 			}
 

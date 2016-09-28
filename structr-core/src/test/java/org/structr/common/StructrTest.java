@@ -30,14 +30,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.config.Structr;
 import org.structr.common.error.FrameworkException;
@@ -65,7 +65,7 @@ import org.structr.module.JarConfigurationProvider;
  */
 public class StructrTest extends TestCase {
 
-	private static final Logger logger = Logger.getLogger(StructrTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrTest.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 	protected GraphDatabaseCommand graphDbCommand = null;
@@ -107,7 +107,7 @@ public class StructrTest extends TestCase {
 			}
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 		super.tearDown();
@@ -180,7 +180,7 @@ public class StructrTest extends TestCase {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 		return null;

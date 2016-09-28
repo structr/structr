@@ -25,8 +25,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.Cookie;
@@ -35,6 +33,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.auth.Authenticator;
@@ -55,7 +55,7 @@ public class SecurityContext {
 
 	public static final String LOCALE_KEY = "locale";
 
-	private static final Logger logger                   = Logger.getLogger(SecurityContext.class.getName());
+	private static final Logger logger                   = LoggerFactory.getLogger(SecurityContext.class.getName());
 	private static final Map<String, Long> resourceFlags = new ConcurrentHashMap<>();
 	private static final Pattern customViewPattern       = Pattern.compile(".*properties=([a-zA-Z_,]+)");
 	private boolean doTransactionNotifications           = true;
@@ -176,7 +176,7 @@ public class SecurityContext {
 
 							if (valueRange.contains(",")) {
 
-								logger.log(Level.WARNING, "Unsupported Range header specification {0}, multiple ranges are not supported.", valueRange);
+								logger.warn("Unsupported Range header specification {}, multiple ranges are not supported.", valueRange);
 
 							} else {
 
@@ -200,7 +200,7 @@ public class SecurityContext {
 
 									} catch (Throwable t) {
 
-										logger.log(Level.WARNING, "", t);
+										logger.warn("", t);
 									}
 								}
 							}
@@ -362,7 +362,7 @@ public class SecurityContext {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "No user found");
+			logger.warn("No user found");
 
 		}
 
@@ -414,7 +414,7 @@ public class SecurityContext {
 			flags = flagObject;
 		} else {
 
-			logger.log(Level.FINE, "No resource flag set for {0}", resource);
+			logger.debug("No resource flag set for {}", resource);
 		}
 
 		return flags;

@@ -19,8 +19,10 @@
 package org.structr.websocket.command;
 
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -38,7 +40,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class GetTypeInfoCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(GetTypeInfoCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(GetTypeInfoCommand.class.getName());
 
 	static {
 
@@ -52,7 +54,7 @@ public class GetTypeInfoCommand extends AbstractCommand {
 		final String type = (String) webSocketData.getNodeData().get("type");
 
 		if (type == null) {
-			logger.log(Level.WARNING, "Node type given not found");
+			logger.warn("Node type given not found");
 			getWebSocket().send(MessageBuilder.status().code(400).build(), true);
 		}
 
@@ -72,7 +74,7 @@ public class GetTypeInfoCommand extends AbstractCommand {
 
 			}
 		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 			getWebSocket().send(MessageBuilder.status().code(500).build(), true);
 		}
 	}

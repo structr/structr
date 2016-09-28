@@ -20,7 +20,6 @@ package org.structr.core.function;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.logging.Level;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -116,12 +115,12 @@ public class LocalizeFunction extends Function<Object, Object> {
 
 				if (sources.length > 1) {
 
-					logger.log(Level.WARNING, "Found ambiguous localization for key \"{0}\" and domain \"{1}\". Please fix. Parameters: {2}", new Object[] { sources[0].toString(), sources[1].toString(), getParametersAsString(sources) });
+					logger.warn("Found ambiguous localization for key \"{}\" and domain \"{}\". Please fix. Parameters: {}", new Object[] { sources[0].toString(), sources[1].toString(), getParametersAsString(sources) });
 					return localizations.get(0).getProperty(Localization.localizedName);
 
 				} else {
 
-					logger.log(Level.WARNING, "Found ambiguous localization for key \"{0}\". Please fix. Parameters: {1}", new Object[] { sources[0].toString(), getParametersAsString(sources) });
+					logger.warn("Found ambiguous localization for key \"{}\". Please fix. Parameters: {}", new Object[] { sources[0].toString(), getParametersAsString(sources) });
 					return localizations.get(0).getProperty(Localization.localizedName);
 
 				}

@@ -20,8 +20,10 @@ package org.structr.files.ftp;
 
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.structr.common.SecurityContext;
@@ -43,7 +45,7 @@ import org.structr.web.entity.Folder;
  */
 public abstract class AbstractStructrFtpFile implements FtpFile {
 
-	private static final Logger logger = Logger.getLogger(AbstractStructrFtpFile.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(AbstractStructrFtpFile.class.getName());
 
 	protected AbstractFile structrFile;
 
@@ -79,7 +81,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 			return path;
 			
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error in getName() of abstract ftp file", fex);
+			logger.error("Error in getName() of abstract ftp file", fex);
 		}
 
 		return null;
@@ -108,7 +110,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 			return name == null ? structrFile.getUuid() : name;
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error in getName() of abstract ftp file", fex);
+			logger.error("Error in getName() of abstract ftp file", fex);
 		}
 
 		return null;
@@ -126,7 +128,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 			return hidden;
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error in isHidden() of abstract ftp file", fex);
+			logger.error("Error in isHidden() of abstract ftp file", fex);
 		}
 
 		return true;
@@ -170,7 +172,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 			return name;
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error while getting owner name of " + this, fex);
+			logger.error("Error while getting owner name of " + this, fex);
 		}
 
 		return null;
@@ -197,7 +199,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 			return name;
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error while getting group name of " + this, fex);
+			logger.error("Error while getting group name of " + this, fex);
 		}
 
 		return "";
@@ -220,7 +222,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 			return date.getTime();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error while last modified date of " + this, fex);
+			logger.error("Error while last modified date of " + this, fex);
 		}
 
 		return 0L;
@@ -236,7 +238,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 			tx.success();
 
 		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		return true;
@@ -254,7 +256,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 			tx.success();
 
 		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		return true;
@@ -266,7 +268,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			logger.log(Level.INFO, "move()");
+			logger.info("move()");
 
 			final AbstractStructrFtpFile targetFile = (AbstractStructrFtpFile) target;
 			final String path = targetFile instanceof StructrFtpFile ? "/" : targetFile.getAbsolutePath();
@@ -297,7 +299,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 				}
 
 			} catch (FrameworkException ex) {
-				logger.log(Level.SEVERE, "Could not move ftp file", ex);
+				logger.error("Could not move ftp file", ex);
 				return false;
 			}
 
@@ -306,7 +308,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 			return true;
 
 		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		return false;
@@ -323,7 +325,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 			return owner;
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error while getting owner of " + this, fex);
+			logger.error("Error while getting owner of " + this, fex);
 		}
 
 		return null;

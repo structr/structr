@@ -18,11 +18,11 @@
  */
 package org.structr.core;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.structr.core.converter.PropertyConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.converter.PropertyConverter;
 
 /**
  * A {@link Value} that integrates a {@link PropertyConverter} in order to
@@ -32,7 +32,7 @@ import org.structr.common.error.FrameworkException;
  */
 public class Converter<SourceType, TargetType> implements Value<TargetType> {
 
-	private static final Logger logger = Logger.getLogger(Converter.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(Converter.class.getName());
 	private PropertyConverter<SourceType, TargetType> converter = null;
 	private Value<SourceType> source = null;
 	
@@ -55,7 +55,7 @@ public class Converter<SourceType, TargetType> implements Value<TargetType> {
 			
 		} catch(FrameworkException fex) {
 			
-			logger.log(Level.WARNING, "Unable to obtain value for Converter {0}", getClass().getName());
+			logger.warn("Unable to obtain value for Converter {}", getClass().getName());
 		}
 		
 		return null;

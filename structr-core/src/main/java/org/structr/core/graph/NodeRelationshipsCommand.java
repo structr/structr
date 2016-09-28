@@ -21,8 +21,8 @@ package org.structr.core.graph;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
@@ -37,7 +37,7 @@ import org.structr.common.error.FrameworkException;
  */
 public class NodeRelationshipsCommand extends NodeServiceCommand {
 
-	private static final Logger logger = Logger.getLogger(NodeRelationshipsCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(NodeRelationshipsCommand.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -82,7 +82,7 @@ public class NodeRelationshipsCommand extends NodeServiceCommand {
 
 		} catch (RuntimeException e) {
 
-			logger.log(Level.WARNING, "Exception occured: ", e.getMessage());
+			logger.warn("Exception occured: ", e.getMessage());
 
 			/**
 				* ********* FIXME

@@ -19,15 +19,12 @@
 package org.structr.core.graph;
 
 
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractRelationship;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.Relationship;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractRelationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -38,7 +35,7 @@ import org.structr.api.graph.Relationship;
  */
 public class DeleteRelationshipCommand extends NodeServiceCommand {
 
-	private static final Logger logger = Logger.getLogger(DeleteRelationshipCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(DeleteRelationshipCommand.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -64,7 +61,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 			if (rel.getProperty(AbstractRelationship.id) == null) {
 
-				logger.log(Level.WARNING, "Will not delete relationship which has no UUID: {0} --[:{1}]-->{2}", new Object[] { rel.getSourceNode(), rel.getType(), rel.getTargetNode() });
+				logger.warn("Will not delete relationship which has no UUID: {} --[:{}]-->{}", new Object[] { rel.getSourceNode(), rel.getType(), rel.getTargetNode() });
 
 				return null;
 

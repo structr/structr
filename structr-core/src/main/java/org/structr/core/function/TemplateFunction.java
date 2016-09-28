@@ -18,7 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.logging.Level;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
@@ -74,7 +73,7 @@ public class TemplateFunction extends Function<Object, Object> {
 
 			} else {
 
-				logger.log(Level.WARNING, "No MailTemplate found for parameters: {0}", getParametersAsString(sources));
+				logger.warn("No MailTemplate found for parameters: {}", getParametersAsString(sources));
 
 			}
 

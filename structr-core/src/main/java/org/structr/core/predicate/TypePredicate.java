@@ -18,10 +18,10 @@
  */
 package org.structr.core.predicate;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.structr.api.graph.Node;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.graph.Node;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -32,7 +32,7 @@ import org.structr.core.entity.AbstractNode;
  */
 public class TypePredicate implements Predicate<Node> {
 
-	private static final Logger logger = Logger.getLogger(TypePredicate.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(TypePredicate.class.getName());
 	private String type = null;
 
 	public TypePredicate(String type) {
@@ -46,13 +46,13 @@ public class TypePredicate implements Predicate<Node> {
 
 			String value = (String)node.getProperty(AbstractNode.type.dbName());
 
-			logger.log(Level.FINEST, "Type property: {0}, expected {1}", new Object[] { value, type } );
+			logger.debug("Type property: {}, expected {}", new Object[] { value, type } );
 
 			return type.equals(value);
 
 		} else {
 
-			logger.log(Level.WARNING, "Node has no type property.");
+			logger.warn("Node has no type property.");
 		}
 
 		return false;

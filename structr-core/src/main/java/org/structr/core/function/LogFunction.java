@@ -18,8 +18,8 @@
  */
 package org.structr.core.function;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
@@ -30,7 +30,7 @@ import org.structr.schema.action.Function;
  */
 public class LogFunction extends Function<Object, Object> {
 
-	private static final Logger logger = Logger.getLogger(LogFunction.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(LogFunction.class.getName());
 
 	public static final String ERROR_MESSAGE_LOG    = "Usage: ${log(string)}. Example ${log('Hello World!')}";
 	public static final String ERROR_MESSAGE_LOG_JS = "Usage: ${{Structr.log(string)}}. Example ${{Structr.log('Hello World!')}}";
@@ -54,7 +54,7 @@ public class LogFunction extends Function<Object, Object> {
 				buf.append(obj);
 			}
 
-			logger.log(Level.INFO, buf.toString());
+			logger.info(buf.toString());
 			return "";
 
 		} catch (final IllegalArgumentException e) {

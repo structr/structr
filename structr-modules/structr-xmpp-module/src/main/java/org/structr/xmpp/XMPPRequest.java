@@ -18,7 +18,8 @@
  */
 package org.structr.xmpp;
 
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.jivesoftware.smack.packet.IQ.Type;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
@@ -34,7 +35,7 @@ import org.structr.core.property.StringProperty;
  */
 public class XMPPRequest extends AbstractNode {
 
-	private static final Logger logger = Logger.getLogger(XMPPRequest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(XMPPRequest.class.getName());
 
 	public static final Property<XMPPClient> client = new StartNode<>("client", XMPPClientRequest.class);
 	public static final Property<String> sender     = new StringProperty("sender").indexed();

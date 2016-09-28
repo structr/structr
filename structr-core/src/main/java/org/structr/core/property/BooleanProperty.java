@@ -21,9 +21,9 @@ package org.structr.core.property;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -37,7 +37,7 @@ import org.structr.core.converter.PropertyConverter;
  */
 public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 
-	private static final Logger logger = Logger.getLogger(BooleanProperty.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(BooleanProperty.class.getName());
 	private static final Set<String> TRUE_VALUES = new LinkedHashSet<>(Arrays.asList(new String[] { "true", "1", "on" }));
 
 	public BooleanProperty(final String name) {
@@ -106,7 +106,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 						setProperty(securityContext, entity, fixedValue);
 
 					} catch (FrameworkException fex) {
-						logger.log(Level.SEVERE, "Cound not set fixed property {0} on graph object {1}", new Object[]{fixedValue, entity});
+						logger.error("Cound not set fixed property {} on graph object {}", new Object[]{fixedValue, entity});
 					}
 				}
 
@@ -137,7 +137,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 
 				if (!(source instanceof Boolean)) {
 
-					logger.log(Level.WARNING, "Wrong database type for {0}. Expected: {1}, found: {2}", new Object[]{dbName, Boolean.class.getName(), source.getClass().getName()});
+					logger.warn("Wrong database type for {}. Expected: {}, found: {}", new Object[]{dbName, Boolean.class.getName(), source.getClass().getName()});
 
 					return (Boolean) fixDatabaseProperty(source);
 
@@ -191,7 +191,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 				if (source instanceof String) {
 
 					// don't log this
-					// logger.log(Level.WARNING, "Wrong input type for {0}. Expected: {1}, found: {2}", new Object[]{jsonName, Boolean.class.getName(), source.getClass().getName()});
+					// logger.warn("Wrong input type for {}. Expected: {}, found: {}", new Object[]{jsonName, Boolean.class.getName(), source.getClass().getName()});
 
 					returnValue = TRUE_VALUES.contains(source.toString().toLowerCase());
 

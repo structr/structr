@@ -18,8 +18,10 @@
  */
 package org.structr.geo;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.geotools.geometry.DirectPosition2D;
 import org.geotools.referencing.CRS;
 import org.opengis.geometry.DirectPosition;
@@ -38,7 +40,7 @@ import org.structr.schema.action.Function;
 public class UTMToLatLonFunction extends Function<Object, Object> {
 
 	private static final String ERROR_MESSAGE            = "Usage: ${utmToLatLon(latitude, longitude)}. Example: ${utmToLatLon('32U 395473 5686479')}";
-	private static final Logger logger                   = Logger.getLogger(UTMToLatLonFunction.class.getName());
+	private static final Logger logger                   = LoggerFactory.getLogger(UTMToLatLonFunction.class.getName());
 	private static final String UTMHemisphere            = "SSSSSSSSSSNNNNNNNNNNN";
 	private static final String UTMzdlChars              = "CDEFGHJKLMNPQRSTUVWXX";
 	public static final DoubleProperty latitudeProperty  = new DoubleProperty("latitude");
@@ -56,7 +58,7 @@ public class UTMToLatLonFunction extends Function<Object, Object> {
 
 				if (parts.length < 3) {
 
-					logger.log(Level.WARNING, "Unsupported UTM string: this implementation only supports the full UTM format with spaces, e.g. 32U 439596 5967780 or 32 N 439596 5967780.");
+					logger.warn("Unsupported UTM string: this implementation only supports the full UTM format with spaces, e.g. 32U 439596 5967780 or 32 N 439596 5967780.");
 
 				} else if (parts.length == 3) {
 
@@ -83,7 +85,7 @@ public class UTMToLatLonFunction extends Function<Object, Object> {
 
 			} else {
 
-				logger.log(Level.WARNING, "Invalid argument(s), cannot convert to double: {0}, {1}", new Object[] { sources[0], sources[1] });
+				logger.warn("Invalid argument(s), cannot convert to double: {}, {}", new Object[] { sources[0], sources[1] });
 			}
 		}
 
@@ -138,7 +140,7 @@ public class UTMToLatLonFunction extends Function<Object, Object> {
 			}
 		}
 
-		logger.log(Level.WARNING, "Unable to determine hemisphere from UTM zone, assuming NORTHERN hemisphere.");
+		logger.warn("Unable to determine hemisphere from UTM zone, assuming NORTHERN hemisphere.");
 
 		return "N";
 	}

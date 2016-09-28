@@ -32,8 +32,10 @@ import org.structr.web.entity.Image;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -50,7 +52,7 @@ import java.util.logging.Logger;
  */
 public class ImageConverter extends PropertyConverter {
 
-	private static final Logger logger = Logger.getLogger(ImageConverter.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ImageConverter.class.getName());
 
 	private KeyAndClass<Image> keyAndClass = null;
 
@@ -122,7 +124,7 @@ public class ImageConverter extends PropertyConverter {
 				}
 
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "Cannot create image node from given data", t);
+				logger.warn("Cannot create image node from given data", t);
 			}
 
 			if (img != null) {
@@ -135,7 +137,7 @@ public class ImageConverter extends PropertyConverter {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Cannot create image node from given data", t);
+			logger.warn("Cannot create image node from given data", t);
 		}
 
 		return null;

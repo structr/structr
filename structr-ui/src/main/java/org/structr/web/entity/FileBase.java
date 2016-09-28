@@ -26,8 +26,10 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.commons.io.FileUtils;
@@ -79,7 +81,7 @@ import org.structr.web.property.FileDataProperty;
  */
 public class FileBase extends AbstractFile implements Indexable, Linkable, JavaScriptSource, CMISInfo, CMISDocumentInfo {
 
-	private static final Logger logger = Logger.getLogger(FileBase.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FileBase.class.getName());
 
 	public static final Property<String> relativeFilePath                        = new StringProperty("relativeFilePath").systemInternal();
 	public static final Property<Long> size                                      = new LongProperty("size").indexed().systemInternal();
@@ -161,7 +163,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Exception while trying to set relative file path {0}: {1}", new Object[]{filePath, t});
+			logger.warn("Exception while trying to set relative file path {}: {}", new Object[]{filePath, t});
 
 		}
 	}
@@ -187,7 +189,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		} catch (Throwable t) {
 
-			logger.log(Level.FINE, "Exception while trying to delete file {0}: {1}", new Object[]{filePath, t});
+			logger.debug("Exception while trying to delete file {}: {}", new Object[]{filePath, t});
 
 		}
 
@@ -213,7 +215,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 			} catch (IOException ex) {
 
-				logger.log(Level.SEVERE, "Could not create file", ex);
+				logger.error("Could not create file", ex);
 				return;
 			}
 
@@ -231,7 +233,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, "Could not create file", ex);
+			logger.error("Could not create file", ex);
 
 		}
 
@@ -264,7 +266,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "Unable to index " + this, fex);
+			logger.warn("Unable to index " + this, fex);
 		}
 	}
 
@@ -355,7 +357,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 					try {
 						minifiedFile.minify();
 					} catch (IOException ex) {
-						logger.log(Level.WARNING, "Could not automatically update minification target: ".concat(minifiedFile.getName()), ex);
+						logger.warn("Could not automatically update minification target: ".concat(minifiedFile.getName()), ex);
 					}
 
 				}
@@ -386,7 +388,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 				return fis;
 
 			} catch (FileNotFoundException e) {
-				logger.log(Level.FINE, "File not found: {0}", new Object[]{path});
+				logger.debug("File not found: {}", new Object[]{path});
 
 				if (fis != null) {
 
@@ -460,7 +462,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 						} catch (Throwable ex) {
 
-							logger.log(Level.SEVERE, "Could not determine or save checksum and size after closing file output stream", ex);
+							logger.error("Could not determine or save checksum and size after closing file output stream", ex);
 
 						}
 
@@ -472,7 +474,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 			} catch (FileNotFoundException e) {
 
-				logger.log(Level.SEVERE, e, LogMessageSupplier.create("File not found: {0}", path));
+				logger.error("File not found: {}", path);
 			}
 
 		}
@@ -576,7 +578,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 			return IOUtils.toString(is);
 
 		} catch (IOException ioex) {
-			logger.log(Level.WARNING, "", ioex);
+			logger.warn("", ioex);
 		}
 
 		return null;

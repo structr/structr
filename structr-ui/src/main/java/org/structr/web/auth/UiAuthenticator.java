@@ -21,8 +21,10 @@ package org.structr.web.auth;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -58,7 +60,7 @@ import org.structr.web.servlet.HtmlServlet;
  */
 public class UiAuthenticator implements Authenticator {
 
-	private static final Logger logger       = Logger.getLogger(UiAuthenticator.class.getName());
+	private static final Logger logger       = LoggerFactory.getLogger(UiAuthenticator.class.getName());
 
 	protected boolean examined = false;
 	protected static boolean userAutoCreate;
@@ -236,7 +238,7 @@ public class UiAuthenticator implements Authenticator {
 		// no grants => no access rights
 		if (resourceAccess == null) {
 
-			logger.log(Level.INFO, "No resource access grant found for signature {0}. (URI: {1})", new Object[] { rawResourceSignature, securityContext.getCompoundRequestURI() } );
+			logger.info("No resource access grant found for signature {}. (URI: {})", new Object[] { rawResourceSignature, securityContext.getCompoundRequestURI() } );
 
 			throw new UnauthorizedException("Forbidden");
 
@@ -342,7 +344,7 @@ public class UiAuthenticator implements Authenticator {
 			}
 		}
 
-		logger.log(Level.INFO, "Resource access grant found for signature {0}, but method {1} not allowed for {2}.", new Object[] { rawResourceSignature, method, validUser ? "authenticated users" : "public users" } );
+		logger.info("Resource access grant found for signature {}, but method {} not allowed for {}.", new Object[] { rawResourceSignature, method, validUser ? "authenticated users" : "public users" } );
 
 		throw new UnauthorizedException("Forbidden");
 
@@ -356,7 +358,7 @@ public class UiAuthenticator implements Authenticator {
 
 			final String allowLoginBeforeConfirmation = Services.getInstance().getConfigurationValue(RegistrationResource.ALLOW_LOGIN_BEFORE_CONFIRMATION);
 			if (user.getProperty(User.confirmationKey) != null && Boolean.FALSE.equals(Boolean.parseBoolean(allowLoginBeforeConfirmation))) {
-				logger.log(Level.WARNING, "Login as {0} not allowed before confirmation.", user);
+				logger.warn("Login as {} not allowed before confirmation.", user);
 				throw new AuthenticationException(AuthHelper.STANDARD_ERROR_MSG);
 			}
 
@@ -384,7 +386,7 @@ public class UiAuthenticator implements Authenticator {
 
 		} catch (IllegalStateException | FrameworkException ex) {
 
-			logger.log(Level.WARNING, "Error while logging out user", ex);
+			logger.warn("Error while logging out user", ex);
 		}
 	}
 
@@ -400,11 +402,11 @@ public class UiAuthenticator implements Authenticator {
 		final String path = PathHelper.clean(request.getPathInfo());
 		final String[] uriParts = PathHelper.getParts(path);
 
-		logger.log(Level.FINE, "Checking external authentication ...");
+		logger.debug("Checking external authentication ...");
 
 		if (uriParts == null || uriParts.length != 3 || !("oauth".equals(uriParts[0]))) {
 
-			logger.log(Level.FINE, "Incorrect URI parts for OAuth process, need /oauth/<name>/<action>");
+			logger.debug("Incorrect URI parts for OAuth process, need /oauth/<name>/<action>");
 			return null;
 		}
 
@@ -416,7 +418,7 @@ public class UiAuthenticator implements Authenticator {
 
 		if (oauthServer == null) {
 
-			logger.log(Level.FINE, "No OAuth2 authentication server configured for {0}", path);
+			logger.debug("No OAuth2 authentication server configured for {}", path);
 			return null;
 
 		}
@@ -430,7 +432,7 @@ public class UiAuthenticator implements Authenticator {
 
 			} catch (Exception ex) {
 
-				logger.log(Level.SEVERE, "Could not send redirect to authorization server", ex);
+				logger.error("Could not send redirect to authorization server", ex);
 			}
 
 		} else if ("auth".equals(action)) {
@@ -440,11 +442,11 @@ public class UiAuthenticator implements Authenticator {
 
 			if (accessToken != null) {
 
-				logger.log(Level.FINE, "Got access token {0}", accessToken);
+				logger.debug("Got access token {}", accessToken);
 				//securityContext.setAttribute("OAuthAccessToken", accessToken);
 
 				String value = oauthServer.getCredential(request);
-				logger.log(Level.FINE, "Got credential value: {0}", new Object[] { value });
+				logger.debug("Got credential value: {}", new Object[] { value });
 
 				if (value != null) {
 
@@ -465,13 +467,13 @@ public class UiAuthenticator implements Authenticator {
 
 						try {
 
-							logger.log(Level.FINE, "Response status: {0}", response.getStatus());
+							logger.debug("Response status: {}", response.getStatus());
 
 							response.sendRedirect(oauthServer.getReturnUri());
 
 						} catch (IOException ex) {
 
-							logger.log(Level.SEVERE, "Could not redirect to {0}: {1}", new Object[]{oauthServer.getReturnUri(), ex});
+							logger.error("Could not redirect to {}: {}", new Object[]{oauthServer.getReturnUri(), ex});
 
 						}
 						return user;
@@ -486,7 +488,7 @@ public class UiAuthenticator implements Authenticator {
 
 		} catch (IOException ex) {
 
-			logger.log(Level.SEVERE, "Could not redirect to {0}: {1}", new Object[]{ oauthServer.getReturnUri(), ex });
+			logger.error("Could not redirect to {}: {}", new Object[]{ oauthServer.getReturnUri(), ex });
 
 		}
 

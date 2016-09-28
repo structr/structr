@@ -28,8 +28,10 @@ import java.util.List;
 import java.util.Properties;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.zip.ZipEntry;
 import org.apache.commons.lang.StringUtils;
 import org.apache.directory.server.core.CoreSession;
@@ -60,7 +62,7 @@ public class LDAPServerService implements SingletonService {
 	public static final String LDAP_PARTITION_ROOT_TYPE_PREFIX = "ldap.partition.";
 	public static final String LDAP_PARTITION_ROOT_TYPE_SUFFIX = ".rootType";
 
-	private static final Logger logger = Logger.getLogger(LDAPServerService.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(LDAPServerService.class.getName());
 
 	private DirectoryService ds = null;
 	private LdapServer server   = null;
@@ -77,7 +79,7 @@ public class LDAPServerService implements SingletonService {
 	@Override
 	public void initialize(final StructrServices services, final Properties config) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
-		logger.log(Level.INFO, "Initializing directory service");
+		logger.info("Initializing directory service");
 
 		try {
 
@@ -95,7 +97,7 @@ public class LDAPServerService implements SingletonService {
 			ds.setSystemPartition(new StructrPartition(schemaManager, "system", new Dn("ou=system")));
 			ds.startup();
 
-			logger.log(Level.INFO, "Importing schema..");
+			logger.info("Importing schema..");
 
 			initSchema(schemaManager, ds.getAdminSession(), structrSchemaPartition);
 
@@ -225,7 +227,7 @@ public class LDAPServerService implements SingletonService {
 
 					if (!partition.hasEntry(new EntryOperationContext(adminSession, dn))) {
 
-						logger.log(Level.INFO, "Importing {0}...", name);
+						logger.info("Importing {}...", name);
 						partition.add(new AddOperationContext(adminSession, schemaEntry));
 					}
 				}

@@ -27,7 +27,8 @@ import org.structr.websocket.StructrWebSocket;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.entity.AbstractNode;
 import org.structr.dynamic.File;
 
@@ -42,7 +43,7 @@ import org.structr.dynamic.File;
  */
 public class UploadCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(UploadCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(UploadCommand.class.getName());
 
 	static {
 

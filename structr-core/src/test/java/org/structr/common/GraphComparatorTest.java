@@ -19,11 +19,9 @@
 package org.structr.common;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-
 import org.structr.core.GraphObject;
 import org.structr.core.entity.TestOne;
 import org.structr.core.graph.Tx;
@@ -37,7 +35,7 @@ import org.structr.core.property.PropertyKey;
  */
 public class GraphComparatorTest extends StructrTest {
 
-	private static final Logger logger = Logger.getLogger(GraphComparatorTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(GraphComparatorTest.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -116,7 +114,7 @@ public class GraphComparatorTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -209,7 +207,7 @@ public class GraphComparatorTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}

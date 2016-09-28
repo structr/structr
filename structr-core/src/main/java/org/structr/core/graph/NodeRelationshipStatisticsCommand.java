@@ -21,17 +21,13 @@ package org.structr.core.graph;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import org.structr.core.entity.AbstractNode;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -42,7 +38,7 @@ import org.structr.common.error.FrameworkException;
  */
 public class NodeRelationshipStatisticsCommand extends NodeServiceCommand {
 
-	private static final Logger logger = Logger.getLogger(NodeRelationshipStatisticsCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(NodeRelationshipStatisticsCommand.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -89,7 +85,7 @@ public class NodeRelationshipStatisticsCommand extends NodeServiceCommand {
 
 		} catch (RuntimeException e) {
 
-			logger.log(Level.WARNING, "Exception occured.", e);
+			logger.warn("Exception occured.", e);
 		}
 
 		return statistics;

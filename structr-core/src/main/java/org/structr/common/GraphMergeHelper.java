@@ -19,8 +19,8 @@
 package org.structr.common;
 
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -35,7 +35,7 @@ import org.structr.core.property.PropertyKey;
  */
 public class GraphMergeHelper {
 
-	private static final Logger logger = Logger.getLogger(GraphMergeHelper.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(GraphMergeHelper.class.getName());
 
 	/**
 	 * Merge new nodes into original nodes including all relationships and
@@ -61,7 +61,7 @@ public class GraphMergeHelper {
 				for (final NodeInterface newNode : newNodes) {
 				
 					final String shadowId = (String) newNode.getProperty(shadowIdPropertyKey);
-					logger.log(Level.INFO, "New node shadow id: {0}", shadowId);
+					logger.info("New node shadow id: {}", shadowId);
 					
 					if (origNode.getUuid().equals(shadowId)) {
 						origNode.setProperty(NodeInterface.deleted, false);
@@ -93,7 +93,7 @@ public class GraphMergeHelper {
 			tx.success();
 			
 		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 	}

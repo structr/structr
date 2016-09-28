@@ -18,8 +18,10 @@
  */
 package org.structr.websocket.command;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.rest.auth.AuthHelper;
@@ -38,7 +40,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class PingCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(PingCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(PingCommand.class.getName());
 
 	static {
 
@@ -50,7 +52,7 @@ public class PingCommand extends AbstractCommand {
 	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final String sessionId = webSocketData.getSessionId();
-		logger.log(Level.FINE, "PING received from session {0}", sessionId);
+		logger.debug("PING received from session {}", sessionId);
 
 		final Principal currentUser = AuthHelper.getPrincipalForSessionId(sessionId);
 
@@ -64,7 +66,7 @@ public class PingCommand extends AbstractCommand {
 
 		} else {
 
-			logger.log(Level.FINE, "Invalid session id");
+			logger.debug("Invalid session id");
 			getWebSocket().send(MessageBuilder.status().code(401).build(), true);
 
 		}

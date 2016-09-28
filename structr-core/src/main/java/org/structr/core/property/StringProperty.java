@@ -18,11 +18,11 @@
  */
 package org.structr.core.property;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.mail.internet.ContentType;
 import javax.mail.internet.ParseException;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -40,7 +40,7 @@ import org.structr.core.converter.PropertyConverter;
  */
 public class StringProperty extends AbstractPrimitiveProperty<String> {
 
-	private static final Logger logger = Logger.getLogger(StringProperty.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StringProperty.class.getName());
 	private ContentType contentType;
 
 	public StringProperty(final String jsonName) {
@@ -156,7 +156,7 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 
 		} catch (ParseException pe) {
 
-			logger.log(Level.WARNING, "Could not parse " + contentTypeString, pe);
+			logger.warn("Could not parse " + contentTypeString, pe);
 
 		}
 

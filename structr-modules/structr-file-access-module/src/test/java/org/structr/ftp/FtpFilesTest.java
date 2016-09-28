@@ -20,8 +20,10 @@ package org.structr.ftp;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertNotNull;
 import org.apache.commons.io.IOUtils;
@@ -40,7 +42,7 @@ import org.structr.web.common.FtpTest;
  */
 public class FtpFilesTest extends FtpTest {
 
-	private static final Logger logger = Logger.getLogger(FtpFilesTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FtpFilesTest.class.getName());
 
 	public void test00StoreFile() {
 
@@ -67,7 +69,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 
@@ -87,7 +89,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 
@@ -105,7 +107,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 	}
@@ -129,7 +131,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 
@@ -149,7 +151,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 
@@ -167,7 +169,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 	}
@@ -191,7 +193,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 
@@ -202,7 +204,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 
@@ -219,7 +221,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 	}
@@ -243,7 +245,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 
@@ -254,7 +256,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 
@@ -265,7 +267,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 
@@ -284,7 +286,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 	}
@@ -309,7 +311,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 
@@ -320,7 +322,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 
@@ -331,7 +333,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 
@@ -351,7 +353,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 
@@ -361,7 +363,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 
@@ -379,7 +381,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 	}

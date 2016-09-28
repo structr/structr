@@ -50,7 +50,7 @@ public class MinFunction extends Function<Object, Object> {
 
 			} catch (NumberFormatException nfe) {
 
-				logException(nfe, "{0}: NumberFormatException in element \"{1}\" for parameters: {2}", new Object[] { getName(), entity, getParametersAsString(sources) });
+				logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getName(), entity, getParametersAsString(sources) });
 
 				return usage(ctx.isJavaScriptContext());
 

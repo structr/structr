@@ -19,8 +19,10 @@
 package org.structr.ftp;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
@@ -36,7 +38,7 @@ import org.structr.web.common.FtpTest;
  */
 public class FtpAccessTest extends FtpTest {
 	
-	private static final Logger logger = Logger.getLogger(FtpAccessTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FtpAccessTest.class.getName());
 	
 	public void test01LoginFailed() {
 		
@@ -45,19 +47,19 @@ public class FtpAccessTest extends FtpTest {
 			FTPClient ftp = new FTPClient();
 
 			ftp.connect("127.0.0.1", ftpPort);
-			logger.log(Level.INFO, "Reply from FTP server:", ftp.getReplyString());
+			logger.info("Reply from FTP server:", ftp.getReplyString());
 			
 			int reply = ftp.getReplyCode();
 			assertTrue(FTPReply.isPositiveCompletion(reply));
 			
 			boolean loginSuccess = ftp.login("jt978hasdl", "lj3498ha");
-			logger.log(Level.INFO, "Try to login as jt978hasdl/lj3498ha:", loginSuccess);
+			logger.info("Try to login as jt978hasdl/lj3498ha:", loginSuccess);
 			assertFalse(loginSuccess);
 			
 			ftp.disconnect();
 			
 		} catch (IOException | FrameworkException ex) {
-			logger.log(Level.SEVERE, "Error in FTP test", ex);
+			logger.error("Error in FTP test", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 		
@@ -90,7 +92,7 @@ public class FtpAccessTest extends FtpTest {
 			tx.success();
 			
 		} catch (IOException | FrameworkException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 
@@ -105,7 +107,7 @@ public class FtpAccessTest extends FtpTest {
 			tx.success();
 			
 		} catch (IOException | FrameworkException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 		
@@ -123,7 +125,7 @@ public class FtpAccessTest extends FtpTest {
 			tx.success();
 			
 		} catch (IOException | FrameworkException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 

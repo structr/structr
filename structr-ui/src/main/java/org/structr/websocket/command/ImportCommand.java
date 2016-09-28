@@ -29,8 +29,10 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -40,7 +42,7 @@ import java.util.logging.Logger;
  */
 public class ImportCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(ImportCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ImportCommand.class.getName());
 
 	//~--- static initializers --------------------------------------------
 
@@ -70,7 +72,7 @@ public class ImportCommand extends AbstractCommand {
 
 			if (parseOk) {
 
-				logger.log(Level.INFO, "Sucessfully parsed {0}", address);
+				logger.info("Sucessfully parsed {}", address);
 				getWebSocket().send(MessageBuilder.status().code(200).message("Sucessfully parsed address " + address).build(), true);
 
 				String pageId                  = pageImporter.readPage().getUuid();
@@ -92,7 +94,7 @@ public class ImportCommand extends AbstractCommand {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "Error while importing content", fex);
+			logger.warn("Error while importing content", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
 		}

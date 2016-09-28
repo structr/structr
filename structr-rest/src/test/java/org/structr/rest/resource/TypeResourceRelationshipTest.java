@@ -20,9 +20,9 @@ package org.structr.rest.resource;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import static org.hamcrest.Matchers.equalTo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.rest.common.StructrRestTest;
@@ -38,7 +38,7 @@ import org.structr.rest.entity.TestTwo;
  */
 public class TypeResourceRelationshipTest extends StructrRestTest {
 
-	private static final Logger logger = Logger.getLogger(TypeResourceRelationshipTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(TypeResourceRelationshipTest.class.getName());
 
 	public void testCreateRelationship() {
 
@@ -58,7 +58,7 @@ public class TypeResourceRelationshipTest extends StructrRestTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -163,7 +163,7 @@ public class TypeResourceRelationshipTest extends StructrRestTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -248,7 +248,7 @@ public class TypeResourceRelationshipTest extends StructrRestTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -333,7 +333,7 @@ public class TypeResourceRelationshipTest extends StructrRestTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -421,7 +421,7 @@ public class TypeResourceRelationshipTest extends StructrRestTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -509,7 +509,7 @@ public class TypeResourceRelationshipTest extends StructrRestTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 

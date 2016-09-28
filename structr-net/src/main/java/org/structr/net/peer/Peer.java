@@ -47,8 +47,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.net.PeerListener;
 import org.structr.net.data.RemoteTransaction;
 import org.structr.net.data.TimeoutException;
@@ -74,6 +76,8 @@ public final class Peer implements Runnable, Clock, InternalChangeListener {
 
 	public static final int START_PORT = 5757;
 
+	private static final Logger logger = LoggerFactory.getLogger(Peer.class.getName());
+	
 	private final Queue<Envelope> outputQueue         = new ConcurrentLinkedQueue<>();
 	private final Queue<Envelope> inputQueue          = new ConcurrentLinkedQueue<>();
 	private final ExecutorService executorService     = Executors.newCachedThreadPool();
@@ -227,7 +231,7 @@ public final class Peer implements Runnable, Clock, InternalChangeListener {
 
 		} catch (RejectedExecutionException rex) {
 
-			Logger.getLogger(Peer.class.getName()).log(Level.WARNING, "Unable to start peer, aborting.");
+			logger.warn("Unable to start peer, aborting.");
 			executorService.shutdown();
 		}
 	}

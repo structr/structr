@@ -18,22 +18,13 @@
  */
 package org.structr.module;
 
-import org.structr.api.service.Service;
-import org.structr.agent.Agent;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.GenericNode;
-
-//~--- JDK imports ------------------------------------------------------------
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
-
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -46,19 +37,24 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.agent.Agent;
+import org.structr.api.service.Service;
 import org.structr.common.DefaultFactoryDefinition;
 import org.structr.common.FactoryDefinition;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.core.*;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -66,7 +62,6 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
-import org.structr.util.LogMessageSupplier;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -76,7 +71,7 @@ import org.structr.util.LogMessageSupplier;
  */
 public class JarConfigurationProvider implements ConfigurationProvider {
 
-	private static final Logger logger = Logger.getLogger(JarConfigurationProvider.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(JarConfigurationProvider.class.getName());
 
 	public static final String DYNAMIC_TYPES_PACKAGE = "org.structr.dynamic";
 
@@ -600,7 +595,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			}
 
 		} catch (Throwable t) {
-			logger.log(Level.SEVERE, t, LogMessageSupplier.create("Unable to register type {0}: {1}", new Object[]{type, t.getMessage()}));
+			logger.error("Unable to register type {}: {}", new Object[]{type, t.getMessage()});
 		}
 
 		Map<String, Method> typeMethods = exportedMethodMap.get(fqcn);
@@ -994,7 +989,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			scanResource(resourcePath);
 		}
 
-		logger.log(Level.INFO, "{0} JARs scanned", resourcePaths.size());
+		logger.info("{} JARs scanned", resourcePaths.size());
 
 	}
 
@@ -1009,12 +1004,12 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 			} else {
 
-				logger.log(Level.WARNING, "Module was null!");
+				logger.warn("Module was null!");
 			}
 
 		} catch (IOException ioex) {
 
-			logger.log(Level.WARNING, ioex, LogMessageSupplier.create("Error loading module {0}: {1}", new Object[]{resourceName, ioex.getMessage()}));
+			logger.warn("Error loading module {}: {}", new Object[]{resourceName, ioex.getMessage()});
 
 		}
 
@@ -1074,18 +1069,18 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 						if (!modules.containsKey(moduleName)) {
 
 							modules.put(moduleName, structrModule);
-							logger.log(Level.INFO, "Activating module {0}", moduleName);
+							logger.info("Activating module {}", moduleName);
 
 							structrModule.onLoad();
 						}
 
 					} catch (Throwable t) {
-						logger.log(Level.WARNING, "Unable to instantiate module " + clazz.getName(), t);
+						logger.warn("Unable to instantiate module " + clazz.getName(), t);
 					}
 				}
 
 			} catch (Throwable t) {
-				logger.log(Level.FINEST, "Error trying to load class " + className, t);
+				logger.debug("Error trying to load class " + className, t);
 			}
 		}
 	}
@@ -1176,7 +1171,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 				} catch (Throwable t) {
 					// ignore
-					logger.log(Level.WARNING, "", t);
+					logger.warn("", t);
 				}
 
 			}

@@ -20,13 +20,10 @@ package org.structr.core.graph;
 
 
 import java.util.Map;
-import org.structr.common.error.FrameworkException;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.AccessPathCache;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 
@@ -39,7 +36,7 @@ import org.structr.core.app.StructrApp;
  */
 public class FlushCachesCommand extends NodeServiceCommand implements MaintenanceCommand {
 
-	private static final Logger logger = Logger.getLogger(BulkRebuildIndexCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(BulkRebuildIndexCommand.class.getName());
 
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
@@ -53,7 +50,7 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 		app.invalidateCache();
 		app.getDatabaseService().invalidateCache();
 
-		logger.log(Level.INFO, "Caches cleared.");
+		logger.info("Caches cleared.");
 	}
 
 	@Override

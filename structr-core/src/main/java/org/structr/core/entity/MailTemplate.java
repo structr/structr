@@ -18,10 +18,8 @@
  */
 package org.structr.core.entity;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.structr.core.property.Property;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.ValidationHelper;
 import org.structr.common.error.ErrorBuffer;
@@ -29,9 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UniqueToken;
 import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
-
-//~--- JDK imports ------------------------------------------------------------
-
+import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaService;
 
@@ -45,7 +41,7 @@ import org.structr.schema.SchemaService;
  */
 public class MailTemplate extends AbstractNode {
 
-	private static final Logger logger = Logger.getLogger(MailTemplate.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(MailTemplate.class.getName());
 
 	public static final Property<String>  text   = new StringProperty("text").cmis().indexed();
 	public static final Property<String>  locale = new StringProperty("locale").cmis().indexed();
@@ -88,7 +84,7 @@ public class MailTemplate extends AbstractNode {
 
 		} catch (FrameworkException fe) {
 
-			logger.log(Level.WARNING, "Could not search a MailTemplate with name {0} and locale {1}", new Object[]{getProperty(name), getProperty(locale)});
+			logger.warn("Could not search a MailTemplate with name {} and locale {}", new Object[]{getProperty(name), getProperty(locale)});
 
 		}
 

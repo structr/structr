@@ -19,20 +19,17 @@
 package org.structr.core.graph;
 
 import java.util.HashSet;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Relation;
-
-//~--- JDK imports ------------------------------------------------------------
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.util.LogMessageSupplier;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.Relation;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -42,7 +39,7 @@ import org.structr.util.LogMessageSupplier;
  */
 public class DeleteNodeCommand extends NodeServiceCommand {
 
-	private static final Logger logger = Logger.getLogger(DeleteNodeCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(DeleteNodeCommand.class.getName());
 
 	private final Set<NodeInterface> deletedNodes = new HashSet<>();
 
@@ -59,14 +56,14 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 		try {
 			if (!deletedNodes.contains(node) && node.getUuid() == null) {
 
-				logger.log(Level.WARNING, "Will not delete node which has no UUID, dumping stack.");
+				logger.warn("Will not delete node which has no UUID, dumping stack.");
 				Thread.dumpStack();
 
 				return null;
 			}
 
 		} catch (java.lang.IllegalStateException ise) {
-			logger.log(Level.WARNING, "Trying to delete a node which is already deleted", ise.getMessage());
+			logger.warn("Trying to delete a node which is already deleted", ise.getMessage());
 			return null;
 		} catch (org.structr.api.NotFoundException nfex) {
 			// exception can be ignored, node is already deleted
@@ -166,7 +163,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.FINE, t, LogMessageSupplier.create("Exception while deleting node: {0}", node));
+			logger.debug("Exception while deleting node: {}", node);
 
 		}
 

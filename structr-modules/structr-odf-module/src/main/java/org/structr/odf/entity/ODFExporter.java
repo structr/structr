@@ -20,8 +20,10 @@ package org.structr.odf.entity;
 
 import java.io.File;
 import java.net.URI;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.odftoolkit.odfdom.doc.OdfDocument;
 import org.odftoolkit.odfdom.pkg.OdfPackage;
 import org.structr.common.PropertyView;
@@ -71,7 +73,7 @@ public abstract class ODFExporter extends AbstractNode {
 	private final String ODF_IMAGE_ATTRIBUTE_FILE_PATH         = "xlink:href";
 	private final String ODF_IMAGE_DIRECTORY                   = "Pictures/";
 
-	protected static final Logger logger = Logger.getLogger(ODTExporter.class.getName());
+	protected static final Logger logger = LoggerFactory.getLogger(ODTExporter.class.getName());
 
 	public static final Property<VirtualType> transformationProvider = new EndNode("transformationProvider", TransformationRules.class);
 	public static final Property<FileBase> documentTemplate          = new EndNode("documentTemplate", DocumentTemplate.class);
@@ -113,7 +115,7 @@ public abstract class ODFExporter extends AbstractNode {
 
 		} catch (Exception e) {
 
-			logger.log(Level.SEVERE, "Error while creating ODS from template", e);
+			logger.error("Error while creating ODS from template", e);
 
 		}
 	}
@@ -163,7 +165,7 @@ public abstract class ODFExporter extends AbstractNode {
 
 		} catch (Exception e) {
 
-			logger.log(Level.SEVERE, "Error while exporting image to document", e);
+			logger.error("Error while exporting image to document", e);
 
 		}
 	}

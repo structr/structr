@@ -26,8 +26,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -49,7 +51,7 @@ import org.structr.websocket.command.CreateComponentCommand;
  */
 public class TemplateImportVisitor implements FileVisitor<Path> {
 
-	private static final Logger logger       = Logger.getLogger(TemplateImportVisitor.class.getName());
+	private static final Logger logger       = LoggerFactory.getLogger(TemplateImportVisitor.class.getName());
 
 	private Map<String, Object> configuration = null;
 	private SecurityContext securityContext   = null;
@@ -80,13 +82,13 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 					createTemplate(file, fileName);
 
 				} catch (FrameworkException fex) {
-					logger.log(Level.WARNING, "Exception while importing shared component {0}: {1}", new Object[] { name, fex.getMessage() });
+					logger.warn("Exception while importing shared component {}: {}", new Object[] { name, fex.getMessage() });
 				}
 			}
 
 		} else {
 
-			logger.log(Level.WARNING, "Unexpected directory {0} found in components/ directory, ignoring", file.getFileName().toString());
+			logger.warn("Unexpected directory {} found in components/ directory, ignoring", file.getFileName().toString());
 		}
 
 		return FileVisitResult.CONTINUE;
@@ -95,7 +97,7 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 	@Override
 	public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
 
-		logger.log(Level.WARNING, "Exception while importing file {0}: {1}", new Object[] { file.toString(), exc.getMessage() });
+		logger.warn("Exception while importing file {}: {}", new Object[] { file.toString(), exc.getMessage() });
 		return FileVisitResult.CONTINUE;
 	}
 
@@ -113,7 +115,7 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 			return Importer.findSharedComponentByName(name);
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "Unable to determine if template {0} already exists, ignoring.", name);
+			logger.warn("Unable to determine if template {} already exists, ignoring.", name);
 		}
 
 		return null;
@@ -162,7 +164,7 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 				deleteTemplate(app, name);
 			}
 
-			logger.log(Level.INFO, "Importing template {0} from {1}..", new Object[] { name, fileName } );
+			logger.info("Importing template {} from {}..", new Object[] { name, fileName } );
 
 			final String src = new String (Files.readAllBytes(file),Charset.forName("UTF-8"));
 

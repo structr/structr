@@ -21,8 +21,8 @@ package org.structr.core.entity;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
@@ -75,7 +75,7 @@ import org.structr.core.validator.TypeUniquenessValidator;
 public class ResourceAccess extends AbstractNode {
 
 	private static final Map<String, ResourceAccess> grantCache = new ConcurrentHashMap<>();
-	private static final Logger logger                          = Logger.getLogger(ResourceAccess.class.getName());
+	private static final Logger logger                          = LoggerFactory.getLogger(ResourceAccess.class.getName());
 
 	public static final Property<String>               signature          = new StringProperty("signature", new TypeUniquenessValidator(ResourceAccess.class)).cmis().indexed();
 	public static final Property<Long>                 flags              = new LongProperty("flags").cmis().indexed();
@@ -214,7 +214,7 @@ public class ResourceAccess extends AbstractNode {
 
 			} else {
 
-				logger.log(Level.FINE, "No resource access object found for {0}", signature);
+				logger.debug("No resource access object found for {}", signature);
 			}
 		}
 

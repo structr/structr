@@ -18,18 +18,18 @@
  */
 package org.structr.rest.resource;
 
-import org.structr.core.Result;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
-import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Result;
 import org.structr.core.graph.search.SearchCommand;
-import org.structr.schema.SchemaHelper;
+import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.NotFoundException;
+import org.structr.schema.SchemaHelper;
 
 /**
  * Represents a type-constrained ID match. A TypedIdResource will always

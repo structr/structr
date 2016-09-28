@@ -19,8 +19,10 @@
 package org.structr.files.cmis;
 
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.chemistry.opencmis.commons.data.Properties;
 import org.apache.chemistry.opencmis.commons.data.PropertyData;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
@@ -52,7 +54,7 @@ public abstract class AbstractStructrCmisService {
 			buf.append("\n{").append(i).append("}");
 		}
 
-		logger.log(Level.INFO, buf.toString(), objects);
+		logger.info(buf.toString(), objects);
 	}
 
 	public Object getValue(final Properties properties, final String key) {

@@ -18,15 +18,15 @@
  */
 package org.structr.rest.resource;
 
-import org.structr.core.Result;
 import java.util.Collections;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.GraphObjectComparator;
-import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidSortKey;
 import org.structr.core.GraphObject;
+import org.structr.core.Result;
+import org.structr.core.property.PropertyKey;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.servlet.JsonRestServlet;
 

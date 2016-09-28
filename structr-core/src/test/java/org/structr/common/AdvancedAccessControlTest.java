@@ -18,8 +18,8 @@
  */
 package org.structr.common;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
@@ -38,7 +38,7 @@ import org.structr.core.graph.Tx;
  */
 public class AdvancedAccessControlTest extends StructrTest {
 
-	private static final Logger logger = Logger.getLogger(AdvancedAccessControlTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(AdvancedAccessControlTest.class.getName());
 
 
 	public void test01WriteAccess() {
@@ -152,7 +152,7 @@ public class AdvancedAccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception");
 
 		}
@@ -187,7 +187,7 @@ public class AdvancedAccessControlTest extends StructrTest {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 	}
 

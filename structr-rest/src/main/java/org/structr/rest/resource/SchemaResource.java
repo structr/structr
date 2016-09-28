@@ -21,10 +21,10 @@ package org.structr.rest.resource;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -55,7 +55,7 @@ import org.structr.schema.SchemaHelper;
  */
 public class SchemaResource extends Resource {
 
-	private static final Logger logger = Logger.getLogger(SchemaResource.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(SchemaResource.class.getName());
 	private static final StringProperty urlProperty                      = new StringProperty("url");
 	private static final StringProperty typeProperty                     = new StringProperty("type");
 	private static final StringProperty nameProperty                     = new StringProperty("name");
@@ -112,11 +112,11 @@ public class SchemaResource extends Resource {
 
 		if (next != null) {
 
-			logger.log(Level.WARNING, "Trying to combine SchemaResource with {0}.", next.getClass().getName());
+			logger.warn("Trying to combine SchemaResource with {}.", next.getClass().getName());
 
 		} else {
 
-			logger.log(Level.WARNING, "Trying to combine SchemaResource with null.");
+			logger.warn("Trying to combine SchemaResource with null.");
 		}
 		throw new IllegalPathException("Illegal path, /" + getResourceSignature() + " must be followed by a type resource");
 	}

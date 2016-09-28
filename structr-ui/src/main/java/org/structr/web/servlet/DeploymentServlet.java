@@ -31,8 +31,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import javax.servlet.ServletException;
@@ -65,7 +67,7 @@ import org.structr.web.maintenance.DeployCommand;
  */
 public class DeploymentServlet extends HttpServlet implements HttpServiceServlet {
 
-	private static final Logger logger = Logger.getLogger(DeploymentServlet.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(DeploymentServlet.class.getName());
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-fA-F0-9]{32}");
 
 	private static final int MEGABYTE = 1024 * 1024;
@@ -106,7 +108,7 @@ public class DeploymentServlet extends HttpServlet implements HttpServiceServlet
 
 		} catch (FrameworkException t) {
 
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 	}
 
@@ -201,7 +203,7 @@ public class DeploymentServlet extends HttpServlet implements HttpServiceServlet
 					dir.deleteOnExit();
 
 				} catch (IOException ex) {
-					logger.log(Level.WARNING, "Could not upload file", ex);
+					logger.warn("Could not upload file", ex);
 				}
 
 			}
@@ -211,7 +213,7 @@ public class DeploymentServlet extends HttpServlet implements HttpServiceServlet
 		} catch (FrameworkException | IOException | FileUploadException t) {
 
 
-			logger.log(Level.SEVERE, "Exception while processing request", t);
+			logger.error("Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
 	}

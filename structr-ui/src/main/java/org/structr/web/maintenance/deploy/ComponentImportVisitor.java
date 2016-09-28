@@ -26,8 +26,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -49,7 +51,7 @@ import org.structr.websocket.command.CreateComponentCommand;
  */
 public class ComponentImportVisitor implements FileVisitor<Path> {
 
-	private static final Logger logger       = Logger.getLogger(ComponentImportVisitor.class.getName());
+	private static final Logger logger       = LoggerFactory.getLogger(ComponentImportVisitor.class.getName());
 
 	private Map<String, Object> configuration = null;
 	private SecurityContext securityContext   = null;
@@ -80,13 +82,13 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 					createComponent(file, fileName);
 
 				} catch (FrameworkException fex) {
-					logger.log(Level.WARNING, "Exception while importing shared component {0}: {1}", new Object[] { name, fex.getMessage() });
+					logger.warn("Exception while importing shared component {}: {}", new Object[] { name, fex.getMessage() });
 				}
 			}
 
 		} else {
 
-			logger.log(Level.WARNING, "Unexpected directory {0} found in components/ directory, ignoring", file.getFileName().toString());
+			logger.warn("Unexpected directory {} found in components/ directory, ignoring", file.getFileName().toString());
 		}
 
 		return FileVisitResult.CONTINUE;
@@ -95,7 +97,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 	@Override
 	public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
 
-		logger.log(Level.WARNING, "Exception while importing file {0}: {1}", new Object[] { file.toString(), exc.getMessage() });
+		logger.warn("Exception while importing file {}: {}", new Object[] { file.toString(), exc.getMessage() });
 		return FileVisitResult.CONTINUE;
 	}
 
@@ -113,7 +115,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 			return Importer.findSharedComponentByName(name);
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "Unable to determine if component {0} already exists, ignoring.", name);
+			logger.warn("Unable to determine if component {} already exists, ignoring.", name);
 		}
 
 		return null;
@@ -192,7 +194,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 			final boolean parseOk = importer.parse(false);
 			if (parseOk) {
 
-				logger.log(Level.INFO, "Importing component {0} from {1}..", new Object[] { name, fileName } );
+				logger.info("Importing component {} from {}..", new Object[] { name, fileName } );
 
 				// set comment handler that can parse and apply special Structr comments in HTML source files
 				importer.setCommentHandler(new DeploymentCommentHandler());

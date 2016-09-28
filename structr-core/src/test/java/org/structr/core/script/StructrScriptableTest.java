@@ -24,8 +24,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrTest;
@@ -64,7 +64,7 @@ import org.structr.schema.action.ActionContext;
 
 public class StructrScriptableTest extends StructrTest {
 
-	private static final Logger logger = Logger.getLogger(StructrScriptableTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrScriptableTest.class.getName());
 
 	public void testSetPropertyWithDynamicNodes() {
 
@@ -127,7 +127,7 @@ public class StructrScriptableTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -164,7 +164,7 @@ public class StructrScriptableTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -221,7 +221,7 @@ public class StructrScriptableTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -241,7 +241,7 @@ public class StructrScriptableTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -257,7 +257,7 @@ public class StructrScriptableTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -273,7 +273,7 @@ public class StructrScriptableTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -281,7 +281,7 @@ public class StructrScriptableTest extends StructrTest {
 
 		// first test without grant, expect no test object to be found using the user context
 		try (final Tx tx = userApp.tx()) { assertEquals("Invalid grant() scripting result", 0, userApp.nodeQuery(sourceType).getAsList().size()); tx.success(); } catch(FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -293,13 +293,13 @@ public class StructrScriptableTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
 		// first test without grant, expect no test object to be found using the user context
 		try (final Tx tx = userApp.tx()) { assertEquals("Invalid grant() scripting result", 1, userApp.nodeQuery(sourceType).getAsList().size()); tx.success(); } catch(FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -367,7 +367,7 @@ public class StructrScriptableTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -396,7 +396,7 @@ public class StructrScriptableTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -419,7 +419,7 @@ public class StructrScriptableTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -442,7 +442,7 @@ public class StructrScriptableTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -471,7 +471,7 @@ public class StructrScriptableTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -513,7 +513,7 @@ public class StructrScriptableTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -531,7 +531,7 @@ public class StructrScriptableTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -562,7 +562,7 @@ public class StructrScriptableTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -579,7 +579,7 @@ public class StructrScriptableTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 	}

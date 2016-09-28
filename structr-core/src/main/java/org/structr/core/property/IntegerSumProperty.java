@@ -18,14 +18,13 @@
  */
 package org.structr.core.property;
 
-import org.structr.common.SecurityContext;
-import org.structr.core.GraphObject;
-
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
+import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
 
 /**
  *

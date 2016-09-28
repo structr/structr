@@ -29,8 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.StructrServices;
@@ -67,7 +67,7 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 	public static final String PUBLIC_KEY_CONFIG_KEY  = "peer.key.public.file";
 	public static final String PRIVATE_KEY_CONFIG_KEY = "peer.key.private.file";
 
-	private static final Logger logger = Logger.getLogger(PeerToPeerService.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(PeerToPeerService.class.getName());
 
 	private DefaultRepository repository = null;
 	private boolean initialized          = false;
@@ -79,7 +79,7 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 		if (initialized) {
 
 			peer.start();
-			Logger.getLogger(PeerToPeerService.class.getName()).log(Level.INFO, "Service started");
+			logger.info("Service started");
 		}
 	}
 
@@ -109,7 +109,7 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 	@Override
 	public void initialize(final StructrServices services, final Properties config) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
-		logger.log(Level.INFO, "Initializing..");
+		logger.info("Initializing..");
 
 		try {
 
@@ -121,12 +121,12 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 				final String peerId      = config.getProperty(PEER_UUID_KEY, StructrApp.getInstance().getInstanceId());
 				final boolean verbose    = "true".equals(config.getProperty(VERBOSE_KEY));
 
-				logger.log(Level.INFO, "{0}: {1}", new Object[] { BIND_ADDRESS_KEY, bindAddress });
-				logger.log(Level.INFO, "{0}: {1}", new Object[] { INITIAL_PEER_KEY, initialPeer });
-				logger.log(Level.INFO, "{0}: {1}", new Object[] { PRIVATE_KEY_CONFIG_KEY, config.getProperty(PRIVATE_KEY_CONFIG_KEY) });
-				logger.log(Level.INFO, "{0}: {1}", new Object[] { PUBLIC_KEY_CONFIG_KEY, config.getProperty(PUBLIC_KEY_CONFIG_KEY) });
-				logger.log(Level.INFO, "{0}: {1}", new Object[] { PEER_UUID_KEY, peerId });
-				logger.log(Level.INFO, "{0}: {1}", new Object[] { VERBOSE_KEY, verbose });
+				logger.info("{}: {}", new Object[] { BIND_ADDRESS_KEY, bindAddress });
+				logger.info("{}: {}", new Object[] { INITIAL_PEER_KEY, initialPeer });
+				logger.info("{}: {}", new Object[] { PRIVATE_KEY_CONFIG_KEY, config.getProperty(PRIVATE_KEY_CONFIG_KEY) });
+				logger.info("{}: {}", new Object[] { PUBLIC_KEY_CONFIG_KEY, config.getProperty(PUBLIC_KEY_CONFIG_KEY) });
+				logger.info("{}: {}", new Object[] { PEER_UUID_KEY, peerId });
+				logger.info("{}: {}", new Object[] { VERBOSE_KEY, verbose });
 
 				this.repository = new DefaultRepository(peerId);
 				this.peer       = new Peer(getOrCreateKeyPair(config), repository, bindAddress, initialPeer);
@@ -141,7 +141,7 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 			}
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "Unable to initialize PeerToPeerService", t);
+			logger.warn("Unable to initialize PeerToPeerService", t);
 		}
 	}
 
@@ -175,7 +175,7 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 		final String user     = sharedNode.getUserId();
 		final PseudoTime time = sharedNode.getCreationPseudoTime();
 
-		logger.log(Level.INFO, "Shared node with UUID {0} CREATED in Structr at {1}", new Object[] { sharedNode.getUuid(), time.toString() } );
+		logger.info("Shared node with UUID {} CREATED in Structr at {}", new Object[] { sharedNode.getUuid(), time.toString() } );
 
 		repository.create(uuid, type, peer.getUuid(), user, time, sharedNode.getData());
 	}
@@ -184,7 +184,7 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 
 		final PseudoTime time = peer.getPseudoTemporalEnvironment().current();
 
-		logger.log(Level.INFO, "Shared node with UUID {0} DELETED in Structr at {1}", new Object[] { uuid, time } );
+		logger.info("Shared node with UUID {} DELETED in Structr at {}", new Object[] { uuid, time } );
 
 		repository.delete(uuid, time);
 	}
@@ -199,7 +199,7 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 			final String type              = sharedNode.getType();
 			final String user              = sharedNode.getUserId();
 
-			logger.log(Level.INFO, "Shared node with UUID {0} UPDATED in Structr at {1}", new Object[] { sharedNode.getUuid(), time.toString() } );
+			logger.info("Shared node with UUID {} UPDATED in Structr at {}", new Object[] { sharedNode.getUuid(), time.toString() } );
 
 			repository.update(obj, type, peer.getUuid(), user, time, data);
 		}
@@ -207,7 +207,7 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 
 	public void setProperty(final String uuid, final String key, final Object value) throws FrameworkException {
 
-		logger.log(Level.INFO, "Attempting to modify shared node with UUID {0}: {1} = {2} in Structr", new Object[] { uuid, key, value });
+		logger.info("Attempting to modify shared node with UUID {}: {} = {} in Structr", new Object[] { uuid, key, value });
 
 		final RepositoryObject sharedObject = repository.getObject(uuid);
 		if (sharedObject != null) {
@@ -239,7 +239,7 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 		final String transactionId  = NodeServiceCommand.getNextUuid();
 		final RepositoryObject obj  = repository.add(objectId, objectType, peer.getUuid(), node.getUserId(), created);
 
-		//logger.log(Level.INFO, "External object with UUID {0} ADDED at {1}, created at {2}", new Object[] { node.getUuid(), modified, created });
+		//logger.info("External object with UUID {} ADDED at {}, created at {}", new Object[] { node.getUuid(), modified, created });
 
 		for (final Entry<String, Object> entry : node.getData().entrySet()) {
 			obj.setProperty(modified, transactionId, entry.getKey(), entry.getValue());
@@ -269,7 +269,7 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 
 			if (nodes.size() != repository.objectCount()) {
 
-				logger.log(Level.INFO, "Rebuilding list of shared objects: {0} vs. {1}", new Object[] { nodes.size(), repository.objectCount() } );
+				logger.info("Rebuilding list of shared objects: {} vs. {}", new Object[] { nodes.size(), repository.objectCount() } );
 
 				repository.clear();
 
@@ -289,7 +289,7 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 	@Override
 	public void onCreate(final RepositoryObject object, final Map<String, Object> data) {
 
-		logger.log(Level.INFO, "New object with UUID {0} created in repository", object.getUuid());
+		logger.info("New object with UUID {} created in repository", object.getUuid());
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final Class type = config.getNodeEntityClass(object.getType());
@@ -401,12 +401,12 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 		final String publicKeyFileName  = config.getProperty(PUBLIC_KEY_CONFIG_KEY);
 
 		if (privateKeyFileName == null) {
-			logger.log(Level.WARNING, "No private key file name set for PeerToPeerService, aborting. Please set a value for {0} in structr.conf.", PRIVATE_KEY_CONFIG_KEY);
+			logger.warn("No private key file name set for PeerToPeerService, aborting. Please set a value for {} in structr.conf.", PRIVATE_KEY_CONFIG_KEY);
 			return null;
 		}
 
 		if (publicKeyFileName == null) {
-			logger.log(Level.WARNING, "No public key file name set for PeerToPeerService, aborting. Please set  value for {0} in structr.conf.", PUBLIC_KEY_CONFIG_KEY);
+			logger.warn("No public key file name set for PeerToPeerService, aborting. Please set  value for {} in structr.conf.", PUBLIC_KEY_CONFIG_KEY);
 			return null;
 		}
 
@@ -416,12 +416,12 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 			final File publicKeyFile  = new File(publicKeyFileName);
 
 			if (!privateKeyFile.exists()) {
-				logger.log(Level.WARNING, "Private key file {0} not found, aborting.", privateKeyFileName);
+				logger.warn("Private key file {} not found, aborting.", privateKeyFileName);
 				return null;
 			}
 
 			if (!publicKeyFile.exists()) {
-				logger.log(Level.WARNING, "Public key file {0} not found, aborting.", publicKeyFileName);
+				logger.warn("Public key file {} not found, aborting.", publicKeyFileName);
 				return null;
 			}
 
@@ -429,12 +429,12 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 			final String pubkeyBase64  = getKey(Files.readAllLines(publicKeyFile.toPath()));
 
 			if (privkeyBase64 == null || privkeyBase64.isEmpty()) {
-				logger.log(Level.WARNING, "No private key found in file {0}, aborting", privateKeyFileName);
+				logger.warn("No private key found in file {}, aborting", privateKeyFileName);
 				return null;
 			}
 
 			if (pubkeyBase64 == null || pubkeyBase64.isEmpty()) {
-				logger.log(Level.WARNING, "No public key found in file {0}, aborting", publicKeyFileName);
+				logger.warn("No public key found in file {}, aborting", publicKeyFileName);
 				return null;
 			}
 
@@ -442,7 +442,7 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 			return KeyHelper.fromBytes("RSA", decoder.decode(privkeyBase64), decoder.decode(pubkeyBase64));
 
 		} catch (IOException ex) {
-			Logger.getLogger(PeerToPeerService.class.getName()).log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		return null;

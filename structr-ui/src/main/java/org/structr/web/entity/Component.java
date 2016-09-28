@@ -33,8 +33,10 @@ import org.structr.core.graph.DeleteNodeCommand;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.GraphObject;
@@ -57,7 +59,7 @@ public class Component extends DOMElement {
 
 	private static final int MAX_DEPTH                          = 10;
 	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
-	private static final Logger logger                          = Logger.getLogger(Component.class.getName());
+	private static final Logger logger                          = LoggerFactory.getLogger(Component.class.getName());
 
 	public static final Property<Integer> position   = new IntProperty("position").indexed();
 	public static final Property<String>  kind       = new StringProperty("kind").indexed();
@@ -94,7 +96,7 @@ public class Component extends DOMElement {
 			}
 
 		} catch (Throwable t) {
-			logger.log(Level.SEVERE, "Exception while deleting nested Components: {0}", t.getMessage());
+			logger.error("Exception while deleting nested Components: {}", t.getMessage());
 		}
 	}
 

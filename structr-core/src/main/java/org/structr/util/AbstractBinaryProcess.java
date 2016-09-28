@@ -22,8 +22,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 
 /**
@@ -32,7 +32,7 @@ import org.structr.common.SecurityContext;
  */
 public abstract class AbstractBinaryProcess<T> implements Callable<T> {
 
-	private static final Logger logger = Logger.getLogger(AbstractBinaryProcess.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(AbstractBinaryProcess.class.getName());
 
 	private final AtomicBoolean running       = new AtomicBoolean(true);
 	protected SecurityContext securityContext = null;
@@ -66,7 +66,7 @@ public abstract class AbstractBinaryProcess<T> implements Callable<T> {
 
 				String[] args = {"/bin/sh", "-c", cmd};
 
-				logger.log(Level.INFO, "Executing {0}", cmd);
+				logger.info("Executing {}", cmd);
 
 				Process proc = Runtime.getRuntime().exec(args);
 
@@ -82,14 +82,14 @@ public abstract class AbstractBinaryProcess<T> implements Callable<T> {
 
 		} catch (IOException | InterruptedException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 		}
 
 		running.set(false);
 
 		// debugging output
 		if (exitCode != 0) {
-			logger.log(Level.WARNING, "Process {0} exited with exit code {1}, error stream:\n{2}\n", new Object[] { cmd, exitCode, stdErr.getBuffer() } );
+			logger.warn("Process {} exited with exit code {}, error stream:\n{}\n", new Object[] { cmd, exitCode, stdErr.getBuffer() } );
 		}
 
 		return processExited(exitCode);

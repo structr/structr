@@ -19,8 +19,8 @@
 package org.structr.common;
 
 import org.apache.commons.lang.StringUtils;
-import org.structr.api.graph.Node;
 import org.structr.api.Predicate;
+import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.core.GraphObject;

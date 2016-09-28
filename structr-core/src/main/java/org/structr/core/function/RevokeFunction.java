@@ -18,7 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.logging.Level;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.error.FrameworkException;
@@ -74,7 +73,7 @@ public class RevokeFunction extends Function<Object, Object> {
 
 								} else {
 
-									logger.log(Level.WARNING, "Error: unknown permission \"{0}\". Parameters: {1}", new Object[] { trimmedPart, getParametersAsString(sources) });
+									logger.warn("Error: unknown permission \"{}\". Parameters: {}", new Object[] { trimmedPart, getParametersAsString(sources) });
 									return "Error: unknown permission " + trimmedPart;
 								}
 							}
@@ -84,19 +83,19 @@ public class RevokeFunction extends Function<Object, Object> {
 
 					} else {
 
-						logger.log(Level.WARNING, "Error: third argument is not a string. Parameters: {0}", getParametersAsString(sources));
+						logger.warn("Error: third argument is not a string. Parameters: {}", getParametersAsString(sources));
 						return "Error: third argument is not a string.";
 					}
 
 				} else {
 
-					logger.log(Level.WARNING, "Error: second argument is not a node. Parameters: {0}", getParametersAsString(sources));
+					logger.warn("Error: second argument is not a node. Parameters: {}", getParametersAsString(sources));
 					return "Error: second argument is not a node.";
 				}
 
 			} else {
 
-				logger.log(Level.WARNING, "Error: first argument is not of type Principal. Parameters: {0}", getParametersAsString(sources));
+				logger.warn("Error: first argument is not of type Principal. Parameters: {}", getParametersAsString(sources));
 				return "Error: first argument is not of type Principal.";
 			}
 

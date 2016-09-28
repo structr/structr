@@ -19,8 +19,10 @@
 package org.structr.websocket.command;
 
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.error.FrameworkException;
@@ -42,7 +44,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class SetPermissionCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(SetPermissionCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(SetPermissionCommand.class.getName());
 
 	static {
 
@@ -66,7 +68,7 @@ public class SetPermissionCommand extends AbstractCommand {
 
 		if (principalId == null) {
 
-			logger.log(Level.SEVERE, "This command needs a principalId");
+			logger.error("This command needs a principalId");
 			getWebSocket().send(MessageBuilder.status().code(400).build(), true);
 
 		}
@@ -75,7 +77,7 @@ public class SetPermissionCommand extends AbstractCommand {
 
 		if (principal == null) {
 
-			logger.log(Level.SEVERE, "No principal found with id {0}", new Object[]{principalId});
+			logger.error("No principal found with id {}", new Object[]{principalId});
 			getWebSocket().send(MessageBuilder.status().code(400).build(), true);
 
 		}
@@ -89,7 +91,7 @@ public class SetPermissionCommand extends AbstractCommand {
 
 				if (!((AbstractNode)obj).isGranted(Permission.accessControl, getWebSocket().getSecurityContext())) {
 
-					logger.log(Level.WARNING, "No access control permission for {0} on {1}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});
+					logger.warn("No access control permission for {} on {}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});
 					getWebSocket().send(MessageBuilder.status().message("No access control permission").code(400).build(), true);
 					tx.success();
 
@@ -100,7 +102,7 @@ public class SetPermissionCommand extends AbstractCommand {
 				tx.success();
 
 			} catch (FrameworkException ex) {
-				logger.log(Level.WARNING, "", ex);
+				logger.warn("", ex);
 			}
 
 			try {
@@ -119,14 +121,14 @@ public class SetPermissionCommand extends AbstractCommand {
 
 			} catch (FrameworkException ex) {
 
-				logger.log(Level.SEVERE, "Unable to set permissions: {0}", ((FrameworkException) ex).toString());
+				logger.error("Unable to set permissions: {}", ((FrameworkException) ex).toString());
 				getWebSocket().send(MessageBuilder.status().code(400).build(), true);
 
 			}
 
 		} else {
 
-			logger.log(Level.WARNING, "Graph object with uuid {0} not found.", webSocketData.getId());
+			logger.warn("Graph object with uuid {} not found.", webSocketData.getId());
 			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 
 		}
@@ -168,7 +170,7 @@ public class SetPermissionCommand extends AbstractCommand {
 		// commit transaction after 100 nodes
 		if (++count == 100) {
 
-			logger.log(Level.INFO, "Committing transaction after {0} objects..", sum);
+			logger.info("Committing transaction after {} objects..", sum);
 
 			count = 0;
 

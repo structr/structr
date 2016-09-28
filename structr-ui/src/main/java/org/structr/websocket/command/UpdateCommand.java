@@ -21,8 +21,10 @@ package org.structr.websocket.command;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -46,7 +48,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class UpdateCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(UpdateCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(UpdateCommand.class.getName());
 
 	static {
 
@@ -67,7 +69,7 @@ public class UpdateCommand extends AbstractCommand {
 
 		if (obj == null) {
 
-			logger.log(Level.WARNING, "Graph object with uuid {0} not found.", webSocketData.getId());
+			logger.warn("Graph object with uuid {} not found.", webSocketData.getId());
 			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 
 		}
@@ -84,7 +86,7 @@ public class UpdateCommand extends AbstractCommand {
 				if (!node.isGranted(Permission.write, getWebSocket().getSecurityContext())) {
 
 					getWebSocket().send(MessageBuilder.status().message("No write permission").code(400).build(), true);
-					logger.log(Level.WARNING, "No write permission for {0} on {1}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});
+					logger.warn("No write permission for {} on {}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});
 
 					tx.success();
 					return;

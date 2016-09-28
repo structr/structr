@@ -18,8 +18,8 @@
  */
 package org.structr.core.graph.search;
 
-import org.structr.api.index.Index;
 import org.structr.api.graph.Relationship;
+import org.structr.api.index.Index;
 import org.structr.common.SecurityContext;
 import org.structr.core.graph.Factory;
 import org.structr.core.graph.RelationshipFactory;

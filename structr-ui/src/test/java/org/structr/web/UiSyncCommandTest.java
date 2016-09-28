@@ -21,8 +21,10 @@ package org.structr.web;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.io.IOUtils;
 import static org.hamcrest.Matchers.equalTo;
 import org.structr.common.error.FrameworkException;
@@ -43,7 +45,7 @@ import org.structr.web.entity.html.Script;
  */
 public class UiSyncCommandTest extends StructrUiTest {
 
-	private static final Logger logger = Logger.getLogger(UiSyncCommandTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(UiSyncCommandTest.class.getName());
 
 	public void testExportErrors() {
 
@@ -110,7 +112,7 @@ public class UiSyncCommandTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception");
 		}
 
@@ -134,7 +136,7 @@ public class UiSyncCommandTest extends StructrUiTest {
 
 		} catch (FrameworkException | IOException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception");
 		}
 
@@ -151,7 +153,7 @@ public class UiSyncCommandTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception");
 		}
 
@@ -183,7 +185,7 @@ public class UiSyncCommandTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception");
 		}
 
@@ -200,7 +202,7 @@ public class UiSyncCommandTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception");
 		}
 
@@ -240,7 +242,7 @@ public class UiSyncCommandTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception");
 		}
 	}

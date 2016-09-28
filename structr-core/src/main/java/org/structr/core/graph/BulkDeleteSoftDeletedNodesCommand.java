@@ -19,17 +19,16 @@
 package org.structr.core.graph;
 
 import java.util.Iterator;
-
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.util.Iterables;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrAndSpatialPredicate;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -40,7 +39,7 @@ import org.structr.core.app.StructrApp;
  */
 public class BulkDeleteSoftDeletedNodesCommand extends NodeServiceCommand implements MaintenanceCommand {
 
-	private static final Logger logger = Logger.getLogger(BulkDeleteSoftDeletedNodesCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(BulkDeleteSoftDeletedNodesCommand.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -75,7 +74,7 @@ public class BulkDeleteSoftDeletedNodesCommand extends NodeServiceCommand implem
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
 					if (node.isDeleted()) {
-						logger.log(Level.INFO, "Found deleted node: {0}", node);
+						logger.info("Found deleted node: {}", node);
 
 						if (erase) {
 
@@ -83,7 +82,7 @@ public class BulkDeleteSoftDeletedNodesCommand extends NodeServiceCommand implem
 								StructrApp.getInstance(securityContext).delete(node);
 
 							} catch (FrameworkException ex) {
-								logger.log(Level.WARNING, "Could not delete node " + node, ex);
+								logger.warn("Could not delete node " + node, ex);
 							}
 						}
 					}
@@ -92,18 +91,18 @@ public class BulkDeleteSoftDeletedNodesCommand extends NodeServiceCommand implem
 
 				@Override
 				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
-					logger.log(Level.WARNING, "Unable to set properties of node {0}: {1}", new Object[] { node.getUuid(), t.getMessage() } );
+					logger.warn("Unable to set properties of node {}: {}", new Object[] { node.getUuid(), t.getMessage() } );
 				}
 
 				@Override
 				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
-					logger.log(Level.WARNING, "Unable to set node properties: {0}", t.getMessage() );
+					logger.warn("Unable to set node properties: {}", t.getMessage() );
 				}
 			});
 
 		}
 
-		logger.log(Level.INFO, "Done");
+		logger.info("Done");
 	}
 
 	@Override

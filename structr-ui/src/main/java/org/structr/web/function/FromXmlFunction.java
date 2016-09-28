@@ -21,7 +21,8 @@ package org.structr.web.function;
 import org.structr.core.function.XmlFunction;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -70,7 +71,7 @@ public class FromXmlFunction extends UiFunction {
 
 				} else {
 
-					logger.log(Level.WARNING, "Unable to parse XML document: {0}", sources[0].toString());
+					logger.warn("Unable to parse XML document: {}", sources[0].toString());
 				}
 
 			} catch (Throwable t) {

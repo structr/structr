@@ -32,8 +32,10 @@ import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.files.ssh.filesystem.StructrPath;
 import org.structr.files.ssh.filesystem.StructrToplevelAttributes;
@@ -43,7 +45,7 @@ import org.structr.files.ssh.filesystem.StructrToplevelAttributes;
  */
 public class StructrGraphPath extends StructrPath {
 
-	private static final Logger logger = Logger.getLogger(StructrGraphPath.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrGraphPath.class.getName());
 
 	public StructrGraphPath(StructrFilesystem fs, StructrPath parent) {
 		super(fs, parent, StructrPath.GRAPH_DIRECTORY);
@@ -57,7 +59,7 @@ public class StructrGraphPath extends StructrPath {
 	@Override
 	public DirectoryStream<Path> getDirectoryStream(final DirectoryStream.Filter<? super Path> filter) {
 
-		logger.log(Level.INFO, "{0}", filter);
+		logger.info("{}", filter);
 
 		return null;
 	}
@@ -75,7 +77,7 @@ public class StructrGraphPath extends StructrPath {
 	@Override
 	public StructrPath resolveStructrPath(final String pathComponent) {
 
-		logger.log(Level.INFO, "{0}", pathComponent);
+		logger.info("{}", pathComponent);
 
 		return null;
 	}

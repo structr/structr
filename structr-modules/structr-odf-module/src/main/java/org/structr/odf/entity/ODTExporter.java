@@ -24,7 +24,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.odftoolkit.odfdom.doc.OdfTextDocument;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
@@ -116,7 +117,7 @@ public class ODTExporter extends ODFExporter {
 			text.close();
 
 		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Error while exporting to ODT", e);
+			logger.error("Error while exporting to ODT", e);
 		}
 	}
 

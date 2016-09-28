@@ -21,9 +21,9 @@ package org.structr.common.geo;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.jxpath.JXPathContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.Services;
 
 /**
@@ -33,7 +33,7 @@ import org.structr.core.Services;
  */
 public abstract class AbstractGeoCodingProvider implements GeoCodingProvider {
 
-	private static final Logger logger = Logger.getLogger(AbstractGeoCodingProvider.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(AbstractGeoCodingProvider.class.getName());
 	protected String apiKey            = null;
 	
 	public AbstractGeoCodingProvider() {
@@ -55,7 +55,7 @@ public abstract class AbstractGeoCodingProvider implements GeoCodingProvider {
 			
 		} catch (UnsupportedEncodingException ex) {
 
-			logger.log(Level.WARNING, "Unsupported Encoding", ex);
+			logger.warn("Unsupported Encoding", ex);
 		}
 		
 		// fallback, unencoded

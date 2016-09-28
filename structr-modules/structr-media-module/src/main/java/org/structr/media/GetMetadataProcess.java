@@ -25,8 +25,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 
 /**
@@ -36,7 +38,7 @@ import org.structr.common.SecurityContext;
 
 public class GetMetadataProcess extends AbstractProcess<Map<String, String>> {
 
-	private static final Logger logger = Logger.getLogger(GetMetadataProcess.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(GetMetadataProcess.class.getName());
 
 	private VideoFile inputVideo = null;
 
@@ -86,7 +88,7 @@ public class GetMetadataProcess extends AbstractProcess<Map<String, String>> {
 				}
 
 			} catch (IOException ioex) {
-				logger.log(Level.WARNING, "", ioex);
+				logger.warn("", ioex);
 			}
 
 			return map;

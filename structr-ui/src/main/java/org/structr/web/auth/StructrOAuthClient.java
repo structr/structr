@@ -18,8 +18,10 @@
  */
 package org.structr.web.auth;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.oltu.oauth2.client.OAuthClient;
 import org.apache.oltu.oauth2.client.URLConnectionClient;
@@ -46,7 +48,7 @@ import org.structr.core.property.PropertyKey;
  */
 public class StructrOAuthClient {
 	
-	private static final Logger logger = Logger.getLogger(StructrOAuthClient.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrOAuthClient.class.getName());
 	
 	protected enum ResponseFormat {
 		json, urlEncoded
@@ -121,12 +123,12 @@ public class StructrOAuthClient {
 				.setState(getState())
 				.buildQueryMessage();
 
-			logger.log(Level.INFO, "Authorization request location URI: {0}", oauthClientRequest.getLocationUri());
+			logger.info("Authorization request location URI: {}", oauthClientRequest.getLocationUri());
 		
 			return oauthClientRequest.getLocationUri();
 			
 		} catch (OAuthSystemException ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 		
 		return null;
@@ -166,13 +168,13 @@ public class StructrOAuthClient {
 						oauthServer = (StructrOAuthClient) serverClass.newInstance();
 						oauthServer.init(authLocation, tokenLocation, clientId, clientSecret, redirectUri, tokenResponseClass);
 						
-						logger.log(Level.INFO, "Using OAuth server {0}", oauthServer);
+						logger.info("Using OAuth server {}", oauthServer);
 						
 						return oauthServer;
 	
 					} catch (Throwable t) {
 						
-						logger.log(Level.SEVERE, "Could not instantiate auth server", t);
+						logger.error("Could not instantiate auth server", t);
 						
 					}
 
@@ -253,19 +255,19 @@ public class StructrOAuthClient {
 
 		try {
 
-			logger.log(Level.INFO, "Trying to get authorization code from request {0}", request);
+			logger.info("Trying to get authorization code from request {}", request);
 			
 			oar = OAuthAuthzResponse.oauthCodeAuthzResponse(request);
 			
 			String code = oar.getCode();
 			
-			logger.log(Level.INFO, "Got code {0} from authorization request", code);
+			logger.info("Got code {} from authorization request", code);
 			
 			return oar.getCode();
 
 		} catch (OAuthProblemException e) {
 
-			logger.log(Level.SEVERE, "Could not read authorization request: {0}, {1}", new Object[] { e.getError(), e.getDescription() });
+			logger.error("Could not read authorization request: {}, {}", new Object[] { e.getError(), e.getDescription() });
 
 		}
 		
@@ -300,12 +302,12 @@ public class StructrOAuthClient {
 
 			String body = userResponse.getBody();
 	
-			logger.log(Level.INFO, "User response body: {0}", body);
+			logger.info("User response body: {}", body);
 			return (String) JSONUtils.parseJSON(body).get(key);
 			
 		} catch (Exception ex) {
 			
-			logger.log(Level.WARNING, "Could not extract {0} from JSON response", ex);
+			logger.warn("Could not extract {} from JSON response", ex);
 			
 		}
 		
@@ -351,7 +353,7 @@ public class StructrOAuthClient {
 			
 			if (code == null) {
 				
-				logger.log(Level.SEVERE, "Could not get code from request, cancelling authorization process");
+				logger.error("Could not get code from request, cancelling authorization process");
 				return null;
 				
 			}
@@ -365,19 +367,19 @@ public class StructrOAuthClient {
 				.setCode(getCode(request))
 			.buildBodyMessage();
 
-			logger.log(Level.INFO, "Request body: {0}", clientReq.getBody());
+			logger.info("Request body: {}", clientReq.getBody());
 
 			OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
 
 			tokenResponse = oAuthClient.accessToken(clientReq, tokenResponseClass);
 			
-			logger.log(Level.INFO, "Access token response: {0}", tokenResponse.getBody());
+			logger.info("Access token response: {}", tokenResponse.getBody());
 			
 			return tokenResponse;
 			
 		} catch (Throwable t) {
 			
-			logger.log(Level.SEVERE, "Could not get access token response", t);
+			logger.error("Could not get access token response", t);
 			
 		}
 		
@@ -448,12 +450,12 @@ public class StructrOAuthClient {
 				// needed for LinkedIn
 				clientReq.setHeader("x-li-format", "json");
 				
-				logger.log(Level.INFO, "User info request: {0}", clientReq.getLocationUri());
+				logger.info("User info request: {}", clientReq.getLocationUri());
 				
 				OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
 
 				userResponse = oAuthClient.resource(clientReq, "GET", OAuthResourceResponse.class);
-				logger.log(Level.INFO, "User info response: {0}", userResponse);
+				logger.info("User info response: {}", userResponse);
 
 				return userResponse;
 				
@@ -461,7 +463,7 @@ public class StructrOAuthClient {
 			
 		} catch (Throwable t) {
 			
-			logger.log(Level.SEVERE, "Could not get user response", t);
+			logger.error("Could not get user response", t);
 			
 		}
 		

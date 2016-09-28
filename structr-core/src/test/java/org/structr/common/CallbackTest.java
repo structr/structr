@@ -18,8 +18,8 @@
  */
 package org.structr.common;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.TestEight;
 import org.structr.core.entity.TestFive;
@@ -33,7 +33,7 @@ import org.structr.core.graph.Tx;
  */
 public class CallbackTest extends StructrTest {
 	
-	private static final Logger logger = Logger.getLogger(CallbackTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CallbackTest.class.getName());
 
 	public void testCallbacksWithSuperUserContext() {
 		
@@ -56,7 +56,7 @@ public class CallbackTest extends StructrTest {
 			
 		} catch (FrameworkException fex) {
 			
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 	}
 	
@@ -149,7 +149,7 @@ public class CallbackTest extends StructrTest {
 			
 		} catch (FrameworkException ex) {
 			
-			Logger.getLogger(CallbackTest.class.getName()).log(Level.SEVERE, null, ex);
+			LoggerFactory.getLogger(CallbackTest.class.getName()).error("", ex);
 		}
 	}
 	
@@ -166,7 +166,7 @@ public class CallbackTest extends StructrTest {
 			
 		} catch (Throwable t) {
 			
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 		assertNotNull("Entity should have been created", entity);
@@ -192,7 +192,7 @@ public class CallbackTest extends StructrTest {
 			tx.success();
 			
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 		
 		try (final Tx tx = app.tx()) {

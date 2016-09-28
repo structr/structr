@@ -18,9 +18,9 @@
  */
 package org.structr.rest.test;
 
-import static org.hamcrest.Matchers.*;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import static org.hamcrest.Matchers.*;
 import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.entity.TestOne;
 

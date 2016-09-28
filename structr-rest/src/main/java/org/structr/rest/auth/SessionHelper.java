@@ -21,11 +21,11 @@ package org.structr.rest.auth;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.eclipse.jetty.server.session.HashSessionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -44,7 +44,7 @@ public class SessionHelper {
 	public static final String STANDARD_ERROR_MSG = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
 	public static final String SESSION_IS_NEW     = "SESSION_IS_NEW";
 
-	private static final Logger logger = Logger.getLogger(SessionHelper.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(SessionHelper.class.getName());
 
 	public static boolean isSessionTimedOut(final HttpSession session) {
 
@@ -60,7 +60,7 @@ public class SessionHelper {
 
 			if (now > lastAccessed + Services.getGlobalSessionTimeout() * 1000) {
 
-				logger.log(Level.INFO, "Session {0} timed out, last accessed at {1}", new Object[]{session, Instant.ofEpochMilli(lastAccessed).toString()});
+				logger.info("Session {} timed out, last accessed at {}", new Object[]{session, Instant.ofEpochMilli(lastAccessed).toString()});
 				return true;
 			}
 
@@ -96,7 +96,7 @@ public class SessionHelper {
 
 		} else {
 
-			logger.log(Level.SEVERE, "Unable to create new session after two attempts");
+			logger.error("Unable to create new session after two attempts");
 
 		}
 
@@ -125,7 +125,7 @@ public class SessionHelper {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "Error while removing sessionId " + sessionId + " from all principals", fex);
+			logger.warn("Error while removing sessionId " + sessionId + " from all principals", fex);
 
 		}
 
@@ -138,7 +138,7 @@ public class SessionHelper {
 	 */
 	public static void clearInvalidSessions(final Principal user) {
 
-		logger.log(Level.INFO, "Clearing invalid sessions for user {0}", user);
+		logger.info("Clearing invalid sessions for user {}", user);
 
 		final HashSessionManager sessionManager = Services.getInstance().getService(HttpService.class).getHashSessionManager();
 
@@ -169,7 +169,7 @@ public class SessionHelper {
 
 			} catch (IllegalArgumentException iae) {
 
-				logger.log(Level.WARNING, "Invalidating already invalidated session failed: {0}", session.getId());
+				logger.warn("Invalidating already invalidated session failed: {}", session.getId());
 
 			}
 
@@ -231,7 +231,7 @@ public class SessionHelper {
 		if (sessionValid) {
 
 			final Principal user = AuthHelper.getPrincipalForSessionId(session.getId());
-			logger.log(Level.FINE, "Valid session found: {0}, last accessed {1}, authenticated with user {2}", new Object[]{session, session.getLastAccessedTime(), user});
+			logger.debug("Valid session found: {}, last accessed {}, authenticated with user {}", new Object[]{session, session.getLastAccessedTime(), user});
 
 			return user;
 
@@ -239,7 +239,7 @@ public class SessionHelper {
 
 			final Principal user = AuthHelper.getPrincipalForSessionId(requestedSessionId);
 
-			logger.log(Level.FINE, "Invalid session: {0}, last accessed {1}, authenticated with user {2}", new Object[]{session, (session != null ? session.getLastAccessedTime() : ""), user});
+			logger.debug("Invalid session: {}, last accessed {}, authenticated with user {}", new Object[]{session, (session != null ? session.getLastAccessedTime() : ""), user});
 
 			if (user != null) {
 

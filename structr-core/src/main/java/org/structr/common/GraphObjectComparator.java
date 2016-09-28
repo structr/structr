@@ -18,17 +18,16 @@
  */
 package org.structr.common;
 
-import org.structr.core.property.PropertyKey;
 import java.util.Collections;
-import org.structr.core.GraphObject;
 import java.util.Comparator;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.ViewTransformation;
 import org.structr.core.entity.AbstractNode;
-import org.structr.util.LogMessageSupplier;
+import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -45,7 +44,7 @@ public class GraphObjectComparator extends ViewTransformation<GraphObject> imple
 
 	public static final String ASCENDING  = "asc";
 	public static final String DESCENDING = "desc";
-	private static final Logger logger    = Logger.getLogger(GraphObjectComparator.class.getName());
+	private static final Logger logger    = LoggerFactory.getLogger(GraphObjectComparator.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
@@ -116,14 +115,14 @@ public class GraphObjectComparator extends ViewTransformation<GraphObject> imple
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, t, LogMessageSupplier.create("Cannot compare properties {0} of type {1} to {2} of type {3}, property {4} error.",
+			logger.warn("Cannot compare properties {} of type {} to {} of type {}, property {} error.",
 				new Object[] {
 					n1.getProperty(GraphObject.id),
 					n1.getProperty(AbstractNode.type),
 					n2.getProperty(GraphObject.id),
 					n2.getProperty(AbstractNode.type),
 					sortKey
-				}));
+				});
 		}
 
 		return 0;

@@ -22,8 +22,10 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.servlet.http.HttpServletRequest;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketListener;
@@ -56,7 +58,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 public class StructrWebSocket implements WebSocketListener {
 
-	private static final Logger logger = Logger.getLogger(StructrWebSocket.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrWebSocket.class.getName());
 	private static final Map<String, Class> commandSet = new LinkedHashMap<>();
 
 	//~--- fields ---------------------------------------------------------
@@ -90,7 +92,7 @@ public class StructrWebSocket implements WebSocketListener {
 	@Override
 	public void onWebSocketConnect(final Session session) {
 
-		logger.log(Level.FINE, "New connection with protocol {0}", session.getProtocolVersion());
+		logger.debug("New connection with protocol {}", session.getProtocolVersion());
 
 		this.session = session;
 
@@ -103,7 +105,7 @@ public class StructrWebSocket implements WebSocketListener {
 	@Override
 	public void onWebSocketClose(final int closeCode, final String message) {
 
-		logger.log(Level.FINE, "Connection closed with closeCode {0} and message {1}", new Object[]{closeCode, message});
+		logger.debug("Connection closed with closeCode {} and message {}", new Object[]{closeCode, message});
 
 		final App app = StructrApp.getInstance(securityContext);
 
@@ -124,7 +126,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.SEVERE, "Error while closing connection", fex);
+			logger.error("Error while closing connection", fex);
 
 		}
 
@@ -135,11 +137,11 @@ public class StructrWebSocket implements WebSocketListener {
 	public void onWebSocketText(final String data) {
 
 		if (data == null) {
-			logger.log(Level.WARNING, "Empty text message received.");
+			logger.warn("Empty text message received.");
 			return;
 		}
 
-		logger.log(Level.FINE, "############################################################ RECEIVED \n{0}", data.substring(0, Math.min(data.length(), 1000)));
+		logger.debug("############################################################ RECEIVED \n{}", data.substring(0, Math.min(data.length(), 1000)));
 
 
 		// parse web socket data from JSON
@@ -175,7 +177,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 			} catch (FrameworkException t) {
 
-				logger.log(Level.WARNING, "Unable to parse message.", t);
+				logger.warn("Unable to parse message.", t);
 
 			}
 
@@ -246,7 +248,7 @@ public class StructrWebSocket implements WebSocketListener {
 					tx.success();
 
 				} catch (FrameworkException fex) {
-					logger.log(Level.WARNING, "", fex);
+					logger.warn("", fex);
 				}
 
 				return;
@@ -255,7 +257,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		} else {
 
-			logger.log(Level.WARNING, "Unknown command {0}", command);
+			logger.warn("Unknown command {}", command);
 
 			// send 400 Bad Request
 			send(MessageBuilder.status().code(400).message("Unknown command").build(), true);
@@ -276,7 +278,7 @@ public class StructrWebSocket implements WebSocketListener {
 			tx.success();
 
 		} catch (FrameworkException t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 
@@ -294,15 +296,15 @@ public class StructrWebSocket implements WebSocketListener {
 			message.setMessage("User has no backend access.");
 			message.setCode(403);
 
-			//logger.log(Level.WARNING, "NOT sending message to unauthenticated client.");
+			//logger.warn("NOT sending message to unauthenticated client.");
 		}
 
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			final String msg = gson.toJson(message, WebSocketMessage.class);
 
-			logger.log(Level.FINE, "################### Private message: {0}", message.getCommand());
-			logger.log(Level.FINEST, "############################################################ SENDING \n{0}", msg);
+			logger.debug("################### Private message: {}", message.getCommand());
+			logger.debug("############################################################ SENDING \n{}", msg);
 
 			// Clear custom view here. This is necessary because the security context is reused for all websocket frames.
 			if (securityContext != null) {
@@ -315,7 +317,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		} catch (Throwable t) {
 			// ignore
-			logger.log(Level.FINE, "Unable to send websocket message to remote client");
+			logger.debug("Unable to send websocket message to remote client");
 		}
 
 
@@ -353,7 +355,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "File not found with id " + uuid, ex);
+			logger.warn("File not found with id " + uuid, ex);
 
 		}
 
@@ -392,7 +394,7 @@ public class StructrWebSocket implements WebSocketListener {
 					this.setAuthenticated(sessionId, user);
 				} else {
 
-					logger.log(Level.WARNING, "Session {0} timed out - last accessed by {1}", new Object[]{sessionId, user});
+					logger.warn("Session {} timed out - last accessed by {}", new Object[]{sessionId, user});
 
 					SessionHelper.clearSession(sessionId);
 
@@ -403,7 +405,7 @@ public class StructrWebSocket implements WebSocketListener {
 				}
 
 			} catch (FrameworkException ex) {
-				logger.log(Level.WARNING, "FXE", ex);
+				logger.warn("FXE", ex);
 			}
 
 		}
@@ -420,7 +422,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.SEVERE, "Unable to add command {0}", command.getName());
+			logger.error("Unable to add command {}", command.getName());
 
 		}
 
@@ -491,7 +493,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 	@Override
 	public void onWebSocketError(final Throwable t) {
-		logger.log(Level.FINE, "Error in StructrWebSocket occured", t);
+		logger.debug("Error in StructrWebSocket occured", t);
 	}
 
 }

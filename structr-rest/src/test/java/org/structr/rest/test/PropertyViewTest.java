@@ -21,9 +21,9 @@ package org.structr.rest.test;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.hasSize;
 import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.entity.TestTwo;
 

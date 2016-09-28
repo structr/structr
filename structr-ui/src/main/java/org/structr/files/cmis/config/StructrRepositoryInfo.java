@@ -24,7 +24,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.chemistry.opencmis.commons.data.AclCapabilities;
 import org.apache.chemistry.opencmis.commons.data.ExtensionFeature;
 import org.apache.chemistry.opencmis.commons.data.PermissionMapping;
@@ -50,7 +51,7 @@ import org.structr.files.cmis.repository.StructrWritePermissionMapping;
  */
 public class StructrRepositoryInfo extends CMISExtensionsData implements RepositoryInfo, AclCapabilities {
 
-	private static final Logger logger = Logger.getLogger(StructrRepositoryInfo.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrRepositoryInfo.class.getName());
 
 	@Override
 	public String getId() {

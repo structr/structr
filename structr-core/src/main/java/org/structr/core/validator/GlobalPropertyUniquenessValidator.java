@@ -21,20 +21,19 @@ package org.structr.core.validator;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UniqueToken;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
-import java.util.logging.Logger;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.UuidProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -47,7 +46,7 @@ import org.structr.core.property.UuidProperty;
  */
 public class GlobalPropertyUniquenessValidator<T> implements PropertyValidator<T> {
 
-	private static final Logger logger = Logger.getLogger(GlobalPropertyUniquenessValidator.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(GlobalPropertyUniquenessValidator.class.getName());
 
 	//~--- get methods ----------------------------------------------------
 
@@ -78,7 +77,7 @@ public class GlobalPropertyUniquenessValidator<T> implements PropertyValidator<T
 //					result = StructrApp.getInstance().nodeQuery(AbstractNode.class).and(key, value).getAsList();
 //
 //					long t1 = System.nanoTime() - t0;
-//					logger.log(Level.FINE, "old code => nodeQuery(AbstractNode.class): {0} ns, {1} result(s)", new Object[] {t1, result.size()});
+//					logger.debug("old code => nodeQuery(AbstractNode.class): {} ns, {} result(s)", new Object[] {t1, result.size()});
 //				}
 
 // also slow because it adds a type to the query internally
@@ -93,7 +92,7 @@ public class GlobalPropertyUniquenessValidator<T> implements PropertyValidator<T
 //					}
 //
 //					long t1 = System.nanoTime() - t0;
-//					logger.log(Level.FINE, "getNodeById: {0} ns, {1} result(s)", new Object[] {t1, result.size()});
+//					logger.debug("getNodeById: {} ns, {} result(s)", new Object[] {t1, result.size()});
 //				}
 
 				// fastest query for ids, uses internal UUID cache
@@ -108,7 +107,7 @@ public class GlobalPropertyUniquenessValidator<T> implements PropertyValidator<T
 					}
 					
 					long t1 = System.nanoTime() - t0;
-					logger.log(Level.FINE, "get(): {0} ns, {1} results", new Object[] {t1, result.size()});
+					logger.debug("get(): {} ns, {} results", new Object[] {t1, result.size()});
 				
 				} else {
 
@@ -121,7 +120,7 @@ public class GlobalPropertyUniquenessValidator<T> implements PropertyValidator<T
 						result = StructrApp.getInstance().nodeQuery().and(key, value).getAsList();
 						
 						long t1 = System.nanoTime() - t0;
-						logger.log(Level.FINE, "instanceOf NodeInterface => nodeQuery: {0} ns, {1} result(s)", new Object[] {t1, result.size()});
+						logger.debug("instanceOf NodeInterface => nodeQuery: {} ns, {} result(s)", new Object[] {t1, result.size()});
 
 					} else if (object instanceof RelationshipInterface) {
 
@@ -130,10 +129,10 @@ public class GlobalPropertyUniquenessValidator<T> implements PropertyValidator<T
 						result = StructrApp.getInstance().relationshipQuery().and(key, value).getAsList();
 						
 						long t1 = System.nanoTime()- t0;
-						logger.log(Level.FINE, "instanceOf RelationshipInterface => nodeQuery: {0} ns, {1} result(s)", new Object[] {t1, result.size()});
+						logger.debug("instanceOf RelationshipInterface => nodeQuery: {} ns, {} result(s)", new Object[] {t1, result.size()});
 					} else {
 						
-						logger.log(Level.SEVERE, "GraphObject is neither NodeInterface nor RelationshipInterface");
+						logger.error("GraphObject is neither NodeInterface nor RelationshipInterface");
 						
 					}
 				}
@@ -142,7 +141,7 @@ public class GlobalPropertyUniquenessValidator<T> implements PropertyValidator<T
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "Unable to fetch list of nodes for uniqueness check", fex);
+				logger.warn("Unable to fetch list of nodes for uniqueness check", fex);
 				// handle error
 			}
 

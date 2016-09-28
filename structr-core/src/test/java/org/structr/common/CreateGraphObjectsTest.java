@@ -22,9 +22,9 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.error.FrameworkException;
@@ -62,7 +62,7 @@ import org.structr.core.property.PropertyMap;
  */
 public class CreateGraphObjectsTest extends StructrTest {
 
-	private static final Logger logger = Logger.getLogger(CreateGraphObjectsTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CreateGraphObjectsTest.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -104,7 +104,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 		} catch (FrameworkException ex) {
 
 			ex.printStackTrace();
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -136,7 +136,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -171,7 +171,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -197,7 +197,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 			} catch (IOException | ClassNotFoundException ex) {
 
-				logger.log(Level.SEVERE, null, ex);
+				logger.error("", ex);
 			}
 
 			assertTrue(entityList.contains(AbstractNode.class));
@@ -266,7 +266,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 					}
 
-					logger.log(Level.INFO, "Creating node of type {0}", type);
+					logger.info("Creating node of type {}", type);
 
 					NodeInterface node = app.create(type, props);
 
@@ -287,9 +287,9 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
 			fail("Unexpected exception");
 		}
@@ -310,7 +310,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 			} catch (IOException | ClassNotFoundException ex) {
 
-				Logger.getLogger(CreateGraphObjectsTest.class.getName()).log(Level.SEVERE, null, ex);
+				LoggerFactory.getLogger(CreateGraphObjectsTest.class.getName()).error("", ex);
 			}
 
 			assertTrue(entityList.contains(AbstractRelationship.class));
@@ -324,7 +324,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 					String type = entityClass.getSimpleName();
 
-					logger.log(Level.INFO, "Creating relationship of type {0}", type);
+					logger.info("Creating relationship of type {}", type);
 
 					List<GenericNode> nodes        = createTestNodes(GenericNode.class, 2);
 					final NodeInterface startNode  = nodes.get(0);
@@ -342,9 +342,9 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 		} catch (Throwable ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 		}
 	}

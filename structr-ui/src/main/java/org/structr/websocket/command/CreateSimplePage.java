@@ -26,8 +26,10 @@ import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.websocket.StructrWebSocket;
 
@@ -40,7 +42,7 @@ import org.structr.websocket.StructrWebSocket;
  */
 public class CreateSimplePage extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(CreateSimplePage.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CreateSimplePage.class.getName());
 
 	static {
 
@@ -64,7 +66,7 @@ public class CreateSimplePage extends AbstractCommand {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "Could not create node.", fex);
+			logger.warn("Could not create node.", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.toString()).build(), true);
 		}
 	}

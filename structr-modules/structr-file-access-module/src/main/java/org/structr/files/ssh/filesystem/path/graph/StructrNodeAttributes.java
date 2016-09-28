@@ -32,8 +32,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -46,7 +48,7 @@ import org.structr.core.graph.Tx;
  */
 public class StructrNodeAttributes implements PosixFileAttributes, DosFileAttributes {
 
-	private static final Logger logger              = Logger.getLogger(StructrNodeAttributes.class.getName());
+	private static final Logger logger              = LoggerFactory.getLogger(StructrNodeAttributes.class.getName());
 	public static final Set<String> SUPPORTED_VIEWS = new LinkedHashSet<>(Arrays.asList(new String[] { "owner", "dos", "basic", "posix", "permissions" } ));
 
 	private SecurityContext securityContext = null;
@@ -80,7 +82,7 @@ public class StructrNodeAttributes implements PosixFileAttributes, DosFileAttrib
 			}
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 		*/
 
@@ -103,7 +105,7 @@ public class StructrNodeAttributes implements PosixFileAttributes, DosFileAttrib
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 		*/
 
@@ -123,7 +125,7 @@ public class StructrNodeAttributes implements PosixFileAttributes, DosFileAttrib
 			time = FileTime.fromMillis(node.getProperty(GraphObject.lastModifiedDate).getTime());
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 
 		return time;
@@ -144,7 +146,7 @@ public class StructrNodeAttributes implements PosixFileAttributes, DosFileAttrib
 			time = FileTime.fromMillis(node.getProperty(GraphObject.lastModifiedDate).getTime());
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 
 		return time;
@@ -163,7 +165,7 @@ public class StructrNodeAttributes implements PosixFileAttributes, DosFileAttrib
 			time = FileTime.fromMillis(node.getProperty(GraphObject.createdDate).getTime());
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 
 		return time;
@@ -207,7 +209,7 @@ public class StructrNodeAttributes implements PosixFileAttributes, DosFileAttrib
 			uuid = node.getUuid();
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 
 		return uuid;

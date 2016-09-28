@@ -21,7 +21,8 @@ package org.structr.web.function;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
-import java.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
@@ -122,7 +123,7 @@ public class IncludeFunction extends Function<Object, Object> {
 
 					if (contentType == null || StringUtils.isBlank(extension)) {
 
-						logger.log(Level.WARNING, "No valid file type detected. Please make sure {0} has a valid content type set or file extension. Parameters: {1}", new Object[] { name, getParametersAsString(sources) });
+						logger.warn("No valid file type detected. Please make sure {} has a valid content type set or file extension. Parameters: {}", new Object[] { name, getParametersAsString(sources) });
 						return "No valid file type detected. Please make sure " + name + " has a valid content type set or file extension.";
 
 					}
@@ -145,8 +146,8 @@ public class IncludeFunction extends Function<Object, Object> {
 
 						} catch (IOException ex) {
 
-							logger.log(Level.WARNING, "Exception for parameters: {0}", getParametersAsString(sources));
-							logger.log(Level.SEVERE, "", ex);
+							logger.warn("Exception for parameters: {}", getParametersAsString(sources));
+							logger.error("", ex);
 
 						}
 
@@ -158,7 +159,7 @@ public class IncludeFunction extends Function<Object, Object> {
 
 					} else {
 
-						logger.log(Level.WARNING, "Don't know how to render content type or extension of {0}. Parameters: {1}", new Object[] { name, getParametersAsString(sources) });
+						logger.warn("Don't know how to render content type or extension of {}. Parameters: {}", new Object[] { name, getParametersAsString(sources) });
 						return "Don't know how to render content type or extension of  " + name + ".";
 
 					}

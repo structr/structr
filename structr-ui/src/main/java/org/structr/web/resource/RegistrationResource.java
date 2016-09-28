@@ -27,8 +27,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -65,7 +67,7 @@ import org.structr.web.servlet.HtmlServlet;
  */
 public class RegistrationResource extends Resource {
 
-	private static final Logger logger = Logger.getLogger(RegistrationResource.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(RegistrationResource.class.getName());
 
 	public static final String CUSTOM_ATTRIBUTES                      = "Registration.customUserAttributes";
 	public static final String ALLOW_LOGIN_BEFORE_CONFIRMATION        = "Registration.allowLoginBeforeConfirmation";
@@ -232,7 +234,7 @@ public class RegistrationResource extends Resource {
 
 		} catch (Exception e) {
 
-			logger.log(Level.SEVERE, "Unable to send registration e-mail", e);
+			logger.error("Unable to send registration e-mail", e);
 			return false;
 		}
 
@@ -264,7 +266,7 @@ public class RegistrationResource extends Resource {
 
 		} catch (FrameworkException ex) {
 
-			Logger.getLogger(RegistrationResource.class.getName()).log(Level.WARNING, "Could not get mail template for key " + key, ex);
+			LoggerFactory.getLogger(RegistrationResource.class.getName()).warn("Could not get mail template for key " + key, ex);
 
 		}
 
@@ -452,7 +454,7 @@ public class RegistrationResource extends Resource {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 
 		}
 

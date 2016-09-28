@@ -20,8 +20,10 @@ package org.structr.websocket.command;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -44,7 +46,7 @@ import org.w3c.dom.DOMException;
  */
 public class DeleteNodeCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(DeleteNodeCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(DeleteNodeCommand.class.getName());
 
 	static {
 
@@ -69,7 +71,7 @@ public class DeleteNodeCommand extends AbstractCommand {
 
 				if (!(obj.isGranted(Permission.delete, getWebSocket().getSecurityContext()))) {
 
-					logger.log(Level.WARNING, "No delete permission for {0} on {1}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});
+					logger.warn("No delete permission for {} on {}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});
 					getWebSocket().send(MessageBuilder.status().message("No delete permission").code(400).build(), true);
 					tx.success();
 
@@ -78,7 +80,7 @@ public class DeleteNodeCommand extends AbstractCommand {
 				}
 
 			} catch (FrameworkException ex) {
-				logger.log(Level.WARNING, "", ex);
+				logger.warn("", ex);
 			}
 
 			if (Boolean.TRUE.equals(recursive)) {
@@ -107,12 +109,12 @@ public class DeleteNodeCommand extends AbstractCommand {
 
 				} catch (FrameworkException fex) {
 
-					logger.log(Level.WARNING, "Exception occured", fex);
+					logger.warn("Exception occured", fex);
 					getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
 				} catch (DOMException dex) {
 
-					logger.log(Level.WARNING, "DOMException occured.", dex);
+					logger.warn("DOMException occured.", dex);
 					getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);
 
 				}
@@ -123,13 +125,13 @@ public class DeleteNodeCommand extends AbstractCommand {
 				app.delete(obj);
 
 			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "Unable to delete node(s)", fex);
+				logger.warn("Unable to delete node(s)", fex);
 			}
 
 		} else {
 			// Don't throw a 404. If node doesn't exist, it doesn't need to be removed,
 			// and everything is fine!.
-			//logger.log(Level.WARNING, "Node with id {0} not found.", webSocketData.getId());
+			//logger.warn("Node with id {} not found.", webSocketData.getId());
 			//getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 
 		}

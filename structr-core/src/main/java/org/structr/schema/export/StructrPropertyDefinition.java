@@ -23,8 +23,8 @@ import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
@@ -44,7 +44,7 @@ import org.structr.schema.json.JsonType;
  */
 public abstract class StructrPropertyDefinition implements JsonProperty, StructrDefinition {
 
-	private static final Logger logger = Logger.getLogger(StructrPropertyDefinition.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrPropertyDefinition.class.getName());
 
 	protected JsonType parent     = null;
 	protected String format       = null;
@@ -70,7 +70,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 				return containerURI.resolve("properties/" + getName());
 
 			} catch (URISyntaxException urex) {
-				logger.log(Level.WARNING, "", urex);
+				logger.warn("", urex);
 			}
 		}
 

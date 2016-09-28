@@ -22,24 +22,21 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
-import org.structr.common.PagingHelper;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ScriptRuntime;
-import org.structr.api.util.Iterables;
-import org.structr.api.graph.Node;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-
-import org.structr.core.property.PropertyKey;
+import org.structr.api.graph.Node;
+import org.structr.api.util.Iterables;
+import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -62,6 +59,7 @@ import org.structr.core.property.EndNode;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
@@ -69,7 +67,6 @@ import org.structr.core.validator.TypeValidator;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
-//~--- JDK imports ------------------------------------------------------------
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -78,7 +75,7 @@ import org.structr.rest.exception.NotFoundException;
  */
 public class StaticRelationshipResource extends SortableResource {
 
-	private static final Logger logger = Logger.getLogger(StaticRelationshipResource.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StaticRelationshipResource.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 	TypeResource typeResource = null;
@@ -244,7 +241,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 					} else {
 
-						logger.log(Level.INFO, "Found object {0}, but will not return as it is no graph object or iterable", value);
+						logger.info("Found object {}, but will not return as it is no graph object or iterable", value);
 
 					}
 
@@ -279,7 +276,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 					if (propertyKey.isReadOnly()) {
 
-						logger.log(Level.INFO, "Read-only property on {1}: {0}", new Object[]{sourceEntity.getClass(), typeResource.getRawType()});
+						logger.info("Read-only property on {}: {}", new Object[]{sourceEntity.getClass(), typeResource.getRawType()});
 						return new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
 
 					}
@@ -315,7 +312,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 			if (propertyKey.isReadOnly()) {
 
-				logger.log(Level.INFO, "Read-only property on {0}: {1}", new Object[]{sourceNodeType, typeResource.getRawType()});
+				logger.info("Read-only property on {}: {}", new Object[]{sourceNodeType, typeResource.getRawType()});
 
 				return null;
 			}

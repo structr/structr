@@ -36,8 +36,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Config;
 import org.neo4j.driver.v1.Driver;
@@ -68,7 +68,7 @@ import org.structr.bolt.mapper.RelationshipRelationshipMapper;
  */
 public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
-	private static final Logger logger                                = Logger.getLogger(BoltDatabaseService.class.getName());
+	private static final Logger logger                                = LoggerFactory.getLogger(BoltDatabaseService.class.getName());
 	private static final Map<String, RelationshipType> relTypeCache   = new ConcurrentHashMap<>();
 	private static final Map<String, Label> labelCache                = new ConcurrentHashMap<>();
 	private static final ThreadLocal<SessionTransaction> sessions     = new ThreadLocal<>();
@@ -302,7 +302,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 			properties.store(writer, "Created by Structr at " + new Date());
 		} catch (IOException ioex) {
 			ioex.printStackTrace();
-			logger.log(Level.WARNING, "Unable to write properties file");
+			logger.warn("Unable to write properties file");
 		}
 	}
 
@@ -355,7 +355,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		if (contains(messages, "Legacy index migration failed")) {
 
 			// try to remove index directory and try again
-			logger.log(Level.INFO, "Legacy index migration failed, moving offending index files out of the way.");
+			logger.info("Legacy index migration failed, moving offending index files out of the way.");
 
 			final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
 			final File indexDbFile    = new File(databasePath + "/index.db");

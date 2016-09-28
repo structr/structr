@@ -19,10 +19,10 @@
 package org.structr.core.entity;
 
 import java.util.List;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
 import org.structr.core.property.EndNode;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
+import org.structr.core.property.Property;
 
 /**
  *

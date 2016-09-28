@@ -31,14 +31,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
 import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
@@ -80,7 +80,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	public static final String REQUEST_PARAMETER_SORT_KEY               = "sort";
 	public static final String REQUEST_PARAMETER_SORT_ORDER             = "order";
 	public static final Set<String> commonRequestParameters             = new LinkedHashSet<>();
-	private static final Logger logger                                  = Logger.getLogger(JsonRestServlet.class.getName());
+	private static final Logger logger                                  = LoggerFactory.getLogger(JsonRestServlet.class.getName());
 
 	static {
 
@@ -128,7 +128,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Unable to parse value for {0}: {1}", new Object[] { Services.JSON_INDENTATION, t.getMessage() } );
+			logger.warn("Unable to parse value for {}: {}", new Object[] { Services.JSON_INDENTATION, t.getMessage() } );
 		}
 
 
@@ -140,7 +140,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} else {
 
-			logger.log(Level.SEVERE, "Unable to initialize JsonRestServlet, no resource provider found. Please check structr.conf for a valid resource provider class.");
+			logger.error("Unable to initialize JsonRestServlet, no resource provider found. Please check structr.conf for a valid resource provider class.");
 		}
 
 		// initialize variables
@@ -211,7 +211,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (JsonSyntaxException jsex) {
 
-			logger.log(Level.WARNING, "JsonSyntaxException in DELETE", jsex);
+			logger.warn("JsonSyntaxException in DELETE", jsex);
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -220,7 +220,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (JsonParseException jpex) {
 
-			logger.log(Level.WARNING, "JsonParseException in DELETE", jpex);
+			logger.warn("JsonParseException in DELETE", jpex);
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -229,7 +229,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Exception in DELETE", t);
+			logger.warn("Exception in DELETE", t);
 
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
@@ -244,7 +244,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 			} catch (IOException t) {
 
-				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
+				logger.warn("Unable to flush and close response: {}", t.getMessage());
 			}
 
 		}
@@ -332,7 +332,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (JsonSyntaxException jsex) {
 
-			logger.log(Level.WARNING, "JsonSyntaxException in OPTIONS", jsex);
+			logger.warn("JsonSyntaxException in OPTIONS", jsex);
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -341,7 +341,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (JsonParseException jpex) {
 
-			logger.log(Level.WARNING, "JsonParseException in OPTIONS", jpex);
+			logger.warn("JsonParseException in OPTIONS", jpex);
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -350,7 +350,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Exception in OPTIONS", t);
+			logger.warn("Exception in OPTIONS", t);
 
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
@@ -365,7 +365,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
+				logger.warn("Unable to flush and close response: {}", t.getMessage());
 			}
 
 		}
@@ -507,7 +507,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (JsonSyntaxException jsex) {
 
-			logger.log(Level.WARNING, "POST: Invalid JSON syntax", jsex.getMessage());
+			logger.warn("POST: Invalid JSON syntax", jsex.getMessage());
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -516,7 +516,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (JsonParseException jpex) {
 
-			logger.log(Level.WARNING, "Unable to parse JSON string", jpex.getMessage());
+			logger.warn("Unable to parse JSON string", jpex.getMessage());
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -525,7 +525,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (UnsupportedOperationException uoe) {
 
-			logger.log(Level.WARNING, "POST not supported");
+			logger.warn("POST not supported");
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -534,7 +534,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Exception in POST", t);
+			logger.warn("Exception in POST", t);
 
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
@@ -549,7 +549,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
+				logger.warn("Unable to flush and close response: {}", t.getMessage());
 			}
 
 		}
@@ -638,7 +638,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (JsonSyntaxException jsex) {
 
-			logger.log(Level.WARNING, "PUT: Invalid JSON syntax", jsex.getMessage());
+			logger.warn("PUT: Invalid JSON syntax", jsex.getMessage());
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -647,7 +647,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (JsonParseException jpex) {
 
-			logger.log(Level.WARNING, "PUT: Unable to parse JSON string", jpex.getMessage());
+			logger.warn("PUT: Unable to parse JSON string", jpex.getMessage());
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -656,8 +656,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Exception in PUT", t);
-			logger.log(Level.WARNING, "", t);
+			logger.warn("Exception in PUT", t);
+			logger.warn("", t);
 
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
@@ -672,7 +672,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
+				logger.warn("Unable to flush and close response: {}", t.getMessage());
 			}
 
 		}
@@ -709,7 +709,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			tx.success();
 
 		} catch (JsonSyntaxException jsx) {
-			logger.log(Level.WARNING, "", jsx);
+			logger.warn("", jsx);
 			throw new FrameworkException(400, jsx.getMessage());
 		}
 
@@ -892,7 +892,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (JsonSyntaxException jsex) {
 
-			logger.log(Level.WARNING, "JsonSyntaxException in GET", jsex);
+			logger.warn("JsonSyntaxException in GET", jsex);
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -901,7 +901,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (JsonParseException jpex) {
 
-			logger.log(Level.WARNING, "JsonParseException in GET", jpex);
+			logger.warn("JsonParseException in GET", jpex);
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -910,8 +910,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Exception in GET (URI: {0})", securityContext.getCompoundRequestURI());
-			logger.log(Level.WARNING, " => Error thrown: ", t);
+			logger.warn("Exception in GET (URI: {})", securityContext.getCompoundRequestURI());
+			logger.warn(" => Error thrown: ", t);
 
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
@@ -926,7 +926,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
+				logger.warn("Unable to flush and close response: {}", t.getMessage());
 			}
 
 		}

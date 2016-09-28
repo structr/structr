@@ -25,8 +25,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.QueryResult;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.Index;
@@ -62,7 +64,7 @@ import org.structr.bolt.index.factory.TypeQueryFactory;
  */
 public abstract class AbstractCypherIndex<T extends PropertyContainer> implements Index<T>, QueryFactory {
 
-	private static final Logger logger                       = Logger.getLogger(AbstractCypherIndex.class.getName());
+	private static final Logger logger                       = LoggerFactory.getLogger(AbstractCypherIndex.class.getName());
 	public static final TypeConverter DEFAULT_CONVERTER      = new StringTypeConverter();
 	public static final Map<Class, TypeConverter> CONVERTERS = new HashMap<>();
 	public static final Map<Class, QueryFactory> FACTORIES   = new HashMap<>();
@@ -164,7 +166,7 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 
 			} else {
 
-				logger.log(Level.WARNING, "No query factory registered for type {0}", type);
+				logger.warn("No query factory registered for type {}", type);
 			}
 		}
 

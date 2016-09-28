@@ -18,8 +18,8 @@
  */
 package org.structr.web.common;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.asciidoctor.internal.IOUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -37,6 +37,8 @@ import org.structr.web.entity.Image;
  */
 public class FilesTest extends StructrTest {
 
+	private Logger logger = LoggerFactory.getLogger(FilesTest.class);
+	
 	public void testCreateFolder() {
 
 		Folder folder1 = null;
@@ -47,7 +49,7 @@ public class FilesTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
-			Logger.getLogger(FilesTest.class.getName()).log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -62,7 +64,7 @@ public class FilesTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
-			Logger.getLogger(FilesTest.class.getName()).log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -77,7 +79,7 @@ public class FilesTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
-			Logger.getLogger(FilesTest.class.getName()).log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -86,7 +88,7 @@ public class FilesTest extends StructrTest {
 			assertEquals(1, folder1.getProperty(Folder.images).size());
 
 		} catch (FrameworkException ex) {
-			Logger.getLogger(FilesTest.class.getName()).log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 	}
 
@@ -106,7 +108,7 @@ public class FilesTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
-			Logger.getLogger(FilesTest.class.getName()).log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -116,7 +118,7 @@ public class FilesTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
-			Logger.getLogger(FilesTest.class.getName()).log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 	}

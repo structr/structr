@@ -18,8 +18,10 @@
  */
 package org.structr.web.test;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import static junit.framework.TestCase.fail;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractRelationship;
@@ -38,7 +40,7 @@ import org.w3c.dom.Text;
  */
 public class RelationClassAssignmentTest extends StructrUiTest {
 	
-	private static final Logger logger = Logger.getLogger(CreateSimplePageTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CreateSimplePageTest.class.getName());
 
 	public void test01DOMChildren() {
 
@@ -90,9 +92,9 @@ public class RelationClassAssignmentTest extends StructrUiTest {
 			
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}

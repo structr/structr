@@ -27,10 +27,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 
@@ -42,7 +42,7 @@ import org.structr.core.Result;
  */
 public class RestMethodResult {
 
-	private static final Logger logger = Logger.getLogger(RestMethodResult.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(RestMethodResult.class.getName());
 
 	private List<GraphObject> content                 = null;
 	private Map<String, String> headers               = null;
@@ -116,7 +116,7 @@ public class RestMethodResult {
 			//writer.close();
 		} catch (JsonIOException | IOException t) {
 
-			logger.log(Level.WARNING, "Unable to commit HttpServletResponse", t);
+			logger.warn("Unable to commit HttpServletResponse", t);
 		}
 	}
 

@@ -37,8 +37,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -56,7 +58,7 @@ import org.structr.files.ssh.filesystem.path.graph.StructrNodePropertyPath;
  */
 public class StructrSchemaNodePath extends StructrPath {
 
-	private static final Logger logger = Logger.getLogger(StructrSchemaNodePath.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrSchemaNodePath.class.getName());
 
 	private AbstractSchemaNode cachedSchemaNode = null;
 
@@ -170,7 +172,7 @@ public class StructrSchemaNodePath extends StructrPath {
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "", fex);
+				logger.warn("", fex);
 			}
 
 			return (T)new StructrToplevelAttributes(name);
@@ -218,7 +220,7 @@ public class StructrSchemaNodePath extends StructrPath {
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "Unable to load actual file for path {0}: {1}", new Object[] { toString(), fex.getMessage() } );
+				logger.warn("Unable to load actual file for path {}: {}", new Object[] { toString(), fex.getMessage() } );
 			}
 		}
 

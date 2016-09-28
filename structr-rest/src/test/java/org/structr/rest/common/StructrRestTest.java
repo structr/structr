@@ -35,11 +35,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.config.Structr;
 import org.structr.common.PropertyView;
@@ -70,7 +70,7 @@ import org.structr.rest.servlet.JsonRestServlet;
  */
 public class StructrRestTest extends TestCase {
 
-	private static final Logger logger = Logger.getLogger(StructrRestTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrRestTest.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
@@ -127,7 +127,7 @@ public class StructrRestTest extends TestCase {
 
 			} catch(Throwable t) {
 
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 			}
 
 			try { Thread.sleep(100); } catch(Throwable t) {}

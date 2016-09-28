@@ -20,9 +20,9 @@ package org.structr.common;
 
 import java.util.Arrays;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.ChronologicalOrderToken;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
@@ -48,7 +48,7 @@ import org.structr.core.property.PropertyKey;
  */
 public class ValidationHelper {
 
-	private static final Logger logger = Logger.getLogger(ValidationHelper.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ValidationHelper.class.getName());
 
 	private static final PropertyKey UnknownType = new GenericProperty("unknown type");
 
@@ -538,7 +538,7 @@ public class ValidationHelper {
 
 				} catch (FrameworkException fex) {
 
-					logger.log(Level.WARNING, "", fex);
+					logger.warn("", fex);
 
 				}
 

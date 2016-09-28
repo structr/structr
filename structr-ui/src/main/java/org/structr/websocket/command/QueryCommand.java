@@ -23,8 +23,10 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
@@ -49,7 +51,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class QueryCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(QueryCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(QueryCommand.class.getName());
 
 	static {
 
@@ -101,7 +103,7 @@ public class QueryCommand extends AbstractCommand {
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "Exception occured", fex);
+				logger.warn("Exception occured", fex);
 				getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
 				return;
@@ -125,7 +127,7 @@ public class QueryCommand extends AbstractCommand {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "Exception occured", fex);
+			logger.warn("Exception occured", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
 		}

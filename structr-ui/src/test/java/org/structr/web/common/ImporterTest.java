@@ -20,8 +20,10 @@ package org.structr.web.common;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PathHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
@@ -38,7 +40,7 @@ import org.w3c.dom.NodeList;
  */
 public class ImporterTest extends StructrUiTest {
 
-	private static final Logger logger = Logger.getLogger(ImporterTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ImporterTest.class.getName());
 
 	public void testBootstrapJumbotronEditModeNone() {
 
@@ -345,7 +347,7 @@ public class ImporterTest extends StructrUiTest {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 		return sourceHtml;
@@ -372,7 +374,7 @@ public class ImporterTest extends StructrUiTest {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 		return sourceHtml;
@@ -404,7 +406,7 @@ public class ImporterTest extends StructrUiTest {
 			assertEquals("Wrong version of " + filename + " file", (int) file.getProperty(FileBase.version), expectedVersion);
 
 		} catch (FrameworkException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 		}
 	}
 
@@ -419,7 +421,7 @@ public class ImporterTest extends StructrUiTest {
 			assertNull("File " + filename + " found", file);
 
 		} catch (FrameworkException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 		}
 	}
 }

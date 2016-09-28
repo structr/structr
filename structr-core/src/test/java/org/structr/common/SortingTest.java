@@ -37,20 +37,20 @@
 
 package org.structr.common;
 
-import org.structr.core.property.PropertyKey;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.TestOne;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Result;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.TestOne;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -63,7 +63,7 @@ import org.structr.core.graph.Tx;
  */
 public class SortingTest extends StructrTest {
 
-	private static final Logger logger = Logger.getLogger(SortingTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(SortingTest.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -118,9 +118,9 @@ public class SortingTest extends StructrTest {
 
 				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
-				logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
+				logger.info("Raw result size: {}, expected: {}", new Object[] { result.getRawResultCount(), number });
 				assertEquals(number, (int) result.getRawResultCount());
-				logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), Math.min(number, pageSize) });
+				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), Math.min(number, pageSize) });
 				assertEquals(Math.min(number, pageSize), result.size());
 
 				for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
@@ -138,7 +138,7 @@ public class SortingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -187,9 +187,9 @@ public class SortingTest extends StructrTest {
 
 				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
-				logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
+				logger.info("Raw result size: {}, expected: {}", new Object[] { result.getRawResultCount(), number });
 				assertTrue(result.getRawResultCount() == number);
-				logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), Math.min(number, pageSize) });
+				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), Math.min(number, pageSize) });
 				assertTrue(result.size() == Math.min(number, pageSize));
 
 				for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
@@ -207,7 +207,7 @@ public class SortingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -260,9 +260,9 @@ public class SortingTest extends StructrTest {
 
 				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
-				logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
+				logger.info("Raw result size: {}, expected: {}", new Object[] { result.getRawResultCount(), number });
 				assertTrue(result.getRawResultCount() == number);
-				logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
+				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), pageSize });
 				assertTrue(result.size() == Math.min(number, pageSize));
 
 				for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
@@ -280,7 +280,7 @@ public class SortingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -330,9 +330,9 @@ public class SortingTest extends StructrTest {
 
 				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
-				logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
+				logger.info("Raw result size: {}, expected: {}", new Object[] { result.getRawResultCount(), number });
 				assertTrue(result.getRawResultCount() == number);
-				logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
+				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), pageSize });
 				assertTrue(result.size() == Math.min(number, pageSize));
 
 				for (int j = 0; j < pageSize; j++) {
@@ -350,7 +350,7 @@ public class SortingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -396,9 +396,9 @@ public class SortingTest extends StructrTest {
 
 				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
-				logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
+				logger.info("Raw result size: {}, expected: {}", new Object[] { result.getRawResultCount(), number });
 				assertTrue(result.getRawResultCount() == number);
-				logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
+				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), pageSize });
 				assertTrue(result.size() == Math.min(number, pageSize));
 
 				for (int j = 0; j < pageSize; j++) {
@@ -416,7 +416,7 @@ public class SortingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -476,9 +476,9 @@ public class SortingTest extends StructrTest {
 
 				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
-				logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
+				logger.info("Raw result size: {}, expected: {}", new Object[] { result.getRawResultCount(), number });
 				assertTrue(result.getRawResultCount() == number);
-				logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
+				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), pageSize });
 				assertTrue(result.size() == Math.min(number, pageSize));
 
 				for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
@@ -496,7 +496,7 @@ public class SortingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -576,7 +576,7 @@ public class SortingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}

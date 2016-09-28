@@ -39,28 +39,25 @@
 
 package org.structr.common;
 
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.TestOne;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -73,7 +70,7 @@ import org.structr.core.graph.Tx;
  */
 public class AdvancedPagingTest extends PagingTest {
 
-	private static final Logger logger = Logger.getLogger(AdvancedPagingTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(AdvancedPagingTest.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -151,7 +148,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -254,7 +251,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -318,7 +315,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -377,14 +374,14 @@ public class AdvancedPagingTest extends PagingTest {
 					fail("Should have failed with a FrameworkException with 'id not found' token");
 
 				} catch (FrameworkException fex) {
-					logger.log(Level.INFO, "Exception logged", fex);
+					logger.info("Exception logged", fex);
 				}
 			}
 
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -406,7 +403,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception");
 		}
 
@@ -484,7 +481,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}

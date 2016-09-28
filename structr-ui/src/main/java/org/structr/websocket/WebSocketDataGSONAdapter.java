@@ -33,8 +33,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -55,7 +57,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage>, JsonDeserializer<WebSocketMessage> {
 
-	private static final Logger logger                   = Logger.getLogger(WebSocketDataGSONAdapter.class.getName());
+	private static final Logger logger                   = LoggerFactory.getLogger(WebSocketDataGSONAdapter.class.getName());
 	private final Value<String> propertyView             = new StaticValue<>(PropertyView.Public);
 	private GraphObjectGSONAdapter graphObjectSerializer = null;
 
@@ -240,7 +242,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 				} catch(FrameworkException fex) {
 
-					logger.log(Level.WARNING, "Unable to set property view", fex);
+					logger.warn("Unable to set property view", fex);
 				}
 
 			} else {
@@ -250,7 +252,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 				} catch(FrameworkException fex) {
 
-					logger.log(Level.WARNING, "Unable to set property view", fex);
+					logger.warn("Unable to set property view", fex);
 				}
 
 			}

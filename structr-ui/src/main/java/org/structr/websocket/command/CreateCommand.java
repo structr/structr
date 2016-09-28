@@ -19,8 +19,10 @@
 package org.structr.websocket.command;
 
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -45,7 +47,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class CreateCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(CreateCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CreateCommand.class.getName());
 
 	static {
 
@@ -95,7 +97,7 @@ public class CreateCommand extends AbstractCommand {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "Could not create node.", fex);
+			logger.warn("Could not create node.", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
 		}

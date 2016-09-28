@@ -20,8 +20,10 @@ package org.structr.web.resource;
 
 
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
@@ -44,7 +46,7 @@ import org.structr.web.entity.User;
  */
 public class LoginResource extends Resource {
 
-	private static final Logger logger       = Logger.getLogger(LoginResource.class.getName());
+	private static final Logger logger       = LoggerFactory.getLogger(LoginResource.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -79,7 +81,7 @@ public class LoginResource extends Resource {
 
 			if (user != null) {
 
-				logger.log(Level.INFO, "Login successful: {0}", new Object[]{ user });
+				logger.info("Login successful: {}", new Object[]{ user });
 
 				RestMethodResult methodResult = new RestMethodResult(200);
 				methodResult.addContent(user);
@@ -89,7 +91,7 @@ public class LoginResource extends Resource {
 
 		}
 
-		logger.log(Level.INFO, "Invalid credentials (name, email, password): {0}, {1}, {2}", new Object[]{ name, email, password });
+		logger.info("Invalid credentials (name, email, password): {}, {}, {}", new Object[]{ name, email, password });
 
 		return new RestMethodResult(401);
 

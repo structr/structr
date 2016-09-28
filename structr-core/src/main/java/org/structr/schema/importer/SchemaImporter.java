@@ -34,12 +34,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
-import org.structr.api.util.Iterables;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.common.error.FrameworkException;
@@ -66,7 +66,7 @@ import org.structr.schema.ConfigurationProvider;
 public abstract class SchemaImporter extends NodeServiceCommand {
 
 	private static final String userHome = System.getProperty("user.home");
-	private static final Logger logger = Logger.getLogger(SchemaImporter.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(SchemaImporter.class.getName());
 
 	public static List<String> extractSources(final InputStream source) {
 
@@ -124,7 +124,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			}
 
 		} catch (IOException ioex) {
-			logger.log(Level.WARNING, "", ioex);
+			logger.warn("", ioex);
 		}
 
 		return sources;
@@ -147,7 +147,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		Iterator<Node> nodeIterator                         = null;
 
 
-		logger.log(Level.INFO, "Fetching all nodes iterator..");
+		logger.info("Fetching all nodes iterator..");
 
 		try (final Tx tx = app.tx()) {
 
@@ -155,10 +155,10 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			tx.success();
 
 		} catch(FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
-		logger.log(Level.INFO, "Starting to analyze nodes..");
+		logger.info("Starting to analyze nodes..");
 
 		NodeServiceCommand.bulkGraphOperation(SecurityContext.getSuperUserInstance(), nodeIterator, 100000, "Analyzing nodes", new BulkGraphOperation<Node>() {
 
@@ -175,7 +175,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			}
 		});
 
-		logger.log(Level.INFO, "Identifying common base classes..");
+		logger.info("Identifying common base classes..");
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
@@ -185,11 +185,11 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
 
-		logger.log(Level.INFO, "Collecting type information..");
+		logger.info("Collecting type information..");
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
@@ -199,10 +199,10 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
-		logger.log(Level.INFO, "Aggregating type information..");
+		logger.info("Aggregating type information..");
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
@@ -212,10 +212,10 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
-		logger.log(Level.INFO, "Identifying property sets..");
+		logger.info("Identifying property sets..");
 		try (final Tx tx = app.tx(true, false, false)) {
 
 			// intersect property sets of type infos
@@ -224,11 +224,11 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
 
-		logger.log(Level.INFO, "Sorting result..");
+		logger.info("Sorting result..");
 		try (final Tx tx = app.tx(false, false, false)) {
 
 			// sort type infos
@@ -237,7 +237,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
 		final Map<String, TypeInfo> reducedTypeInfoMap = new LinkedHashMap<>();
@@ -249,7 +249,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			// map TypeInfo to type for later use
 			reducedTypeInfoMap.put(type, info);
 
-			logger.log(Level.INFO, "Starting with setting of type and ID for type {0}", type);
+			logger.info("Starting with setting of type and ID for type {}", type);
 
 			NodeServiceCommand.bulkGraphOperation(SecurityContext.getSuperUserInstance(), info.getNodeIds().iterator(), 10000, "Setting type and ID", new BulkGraphOperation<Long>() {
 
@@ -264,7 +264,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			});
 		}
 
-		logger.log(Level.INFO, "Fetching all relationships iterator..");
+		logger.info("Fetching all relationships iterator..");
 
 		try (final Tx tx = app.tx(false, false, false)) {
 
@@ -272,10 +272,10 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			tx.success();
 
 		} catch(FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
-		logger.log(Level.INFO, "Starting with analyzing relationships..");
+		logger.info("Starting with analyzing relationships..");
 
 		NodeServiceCommand.bulkGraphOperation(SecurityContext.getSuperUserInstance(), relIterator, 10000, "Analyzing relationships", new BulkGraphOperation<Relationship>() {
 
@@ -299,7 +299,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 
 						final String combinedType = getCombinedType(startNodeType, relationshipType, endNodeType);
 
-						logger.log(Level.FINE, "Combined relationship type {0} found for rel type {1}, start node type {2}, end node type {3}", new Object[]{combinedType, relationshipType, startNodeType, endNodeType});
+						logger.debug("Combined relationship type {} found for rel type {}, start node type {}, end node type {}", new Object[]{combinedType, relationshipType, startNodeType, endNodeType});
 
 						rel.setProperty(GraphObject.type.dbName(), combinedType);
 					}
@@ -311,7 +311,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		});
 
 
-		logger.log(Level.INFO, "Grouping relationships..");
+		logger.info("Grouping relationships..");
 
 		// group relationships by type
 		final Map<String, List<RelationshipInfo>> relTypeInfoMap = new LinkedHashMap<>();
@@ -330,7 +330,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			infos.add(relInfo);
 		}
 
-		logger.log(Level.INFO, "Aggregating relationship information..");
+		logger.info("Aggregating relationship information..");
 
 		final List<RelationshipInfo> reducedRelationshipInfos = new ArrayList<>();
 		if ("true".equals(Services.getInstance().getConfigurationValue("importer.inheritancedetection", "true"))) {
@@ -346,7 +346,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			reducedRelationshipInfos.addAll(relationships);
 		}
 
-		logger.log(Level.INFO, "Starting with schema node creation..");
+		logger.info("Starting with schema node creation..");
 
 		NodeServiceCommand.bulkGraphOperation(SecurityContext.getSuperUserInstance(), reducedTypeInfos.iterator(), 100000, "Creating schema nodes", new BulkGraphOperation<TypeInfo>() {
 
@@ -412,7 +412,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		});
 
 
-		logger.log(Level.INFO, "Starting with schema relationship creation..");
+		logger.info("Starting with schema relationship creation..");
 
 		NodeServiceCommand.bulkGraphOperation(SecurityContext.getSuperUserInstance(), reducedRelationshipInfos.iterator(), 100000, "Creating schema relationships", new BulkGraphOperation<RelationshipInfo>() {
 
@@ -432,7 +432,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			}
 		});
 
-		logger.log(Level.INFO, "Starting with index rebuild..");
+		logger.info("Starting with index rebuild..");
 
 		// rebuild index
 		app.command(BulkRebuildIndexCommand.class).execute(Collections.EMPTY_MAP);

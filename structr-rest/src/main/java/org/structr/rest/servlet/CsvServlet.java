@@ -35,8 +35,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -44,6 +42,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
 import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
@@ -73,7 +73,7 @@ import org.structr.rest.service.StructrHttpServiceConfig;
  */
 public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
-	private static final Logger logger = Logger.getLogger(CsvServlet.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CsvServlet.class.getName());
 
 	private static final String DELIMITER = ";";
 	private static final String REMOVE_LINE_BREAK_PARAM = "nolinebreaks";
@@ -221,7 +221,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 					writer.close();
 				} else {
 
-					logger.log(Level.WARNING, "Result was null!");
+					logger.warn("Result was null!");
 
 					int code = HttpServletResponse.SC_NO_CONTENT;
 
@@ -247,7 +247,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 //                      response.getWriter().close();
 		} catch (JsonSyntaxException jsex) {
 
-			logger.log(Level.WARNING, "JsonSyntaxException in GET", jsex);
+			logger.warn("JsonSyntaxException in GET", jsex);
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -256,7 +256,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 			// response.getWriter().append(jsonError(code, "JsonSyntaxException in GET: " + jsex.getMessage()));
 		} catch (JsonParseException jpex) {
 
-			logger.log(Level.WARNING, "JsonParseException in GET", jpex);
+			logger.warn("JsonParseException in GET", jpex);
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -265,7 +265,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 			// response.getWriter().append(jsonError(code, "JsonSyntaxException in GET: " + jpex.getMessage()));
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Exception in GET", t);
+			logger.warn("Exception in GET", t);
 
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
@@ -410,7 +410,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (JsonSyntaxException jsex) {
 
-			logger.log(Level.WARNING, "POST: Invalid JSON syntax", jsex.getMessage());
+			logger.warn("POST: Invalid JSON syntax", jsex.getMessage());
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -419,7 +419,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (JsonParseException jpex) {
 
-			logger.log(Level.WARNING, "Unable to parse JSON string", jpex.getMessage());
+			logger.warn("Unable to parse JSON string", jpex.getMessage());
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -428,7 +428,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (UnsupportedOperationException uoe) {
 
-			logger.log(Level.WARNING, "POST not supported");
+			logger.warn("POST not supported");
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -437,7 +437,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Exception in POST", t);
+			logger.warn("Exception in POST", t);
 
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
@@ -452,7 +452,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
+				logger.warn("Unable to flush and close response: {}", t.getMessage());
 			}
 
 		}
@@ -474,7 +474,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 		try {
 			out.write("\ufeff");
 		} catch (IOException ex) {
-			logger.log(Level.WARNING, "Unable to write UTF-8 BOM", ex);
+			logger.warn("Unable to write UTF-8 BOM", ex);
 		}
 	}
 

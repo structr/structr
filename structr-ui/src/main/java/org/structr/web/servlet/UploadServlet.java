@@ -25,8 +25,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.regex.Matcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -70,7 +72,7 @@ import org.structr.web.entity.Image;
  */
 public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
-	private static final Logger logger = Logger.getLogger(UploadServlet.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(UploadServlet.class.getName());
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-fA-F0-9]{32}");
 
 	private static final int MEGABYTE = 1024 * 1024;
@@ -111,7 +113,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (FrameworkException t) {
 
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 	}
 
@@ -131,7 +133,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 			}
 
 		} catch (IOException ioex) {
-			logger.log(Level.WARNING, "Unable to send response", ioex);
+			logger.warn("Unable to send response", ioex);
 		}
 
 		SecurityContext securityContext = null;
@@ -152,14 +154,14 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "Unable to examine request", fex);
+			logger.warn("Unable to examine request", fex);
 		} catch (IOException ioex) {
-			logger.log(Level.WARNING, "Unable to send response", ioex);
+			logger.warn("Unable to send response", ioex);
 		}
 
 		// something went wrong, but we don't know what...
 		if (securityContext == null) {
-			logger.log(Level.WARNING, "No SecurityContext, aborting.");
+			logger.warn("No SecurityContext, aborting.");
 			return;
 		}
 
@@ -241,7 +243,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 								cls = SchemaHelper.getEntityClassForRawType("VideoFile");
 								if (cls == null) {
 
-									logger.log(Level.WARNING, "Unable to create entity of type VideoFile, class is not defined.");
+									logger.warn("Unable to create entity of type VideoFile, class is not defined.");
 								}
 
 							} else {
@@ -303,14 +305,14 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 						}
 
 					} catch (IOException ex) {
-						logger.log(Level.WARNING, "Could not upload file", ex);
+						logger.warn("Could not upload file", ex);
 					}
 				}
 			}
 
 		} catch (Throwable t) {
 
-			logger.log(Level.SEVERE, "Exception while processing request", t);
+			logger.error("Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
 	}
@@ -393,7 +395,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 					}
 
 				} catch (IOException ex) {
-					logger.log(Level.WARNING, "Could not write to file", ex);
+					logger.warn("Could not write to file", ex);
 				}
 
 			}
@@ -402,7 +404,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (FrameworkException | IOException | FileUploadException t) {
 
-			logger.log(Level.SEVERE, "Exception while processing request", t);
+			logger.error("Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
 	}

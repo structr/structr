@@ -18,8 +18,10 @@
  */
 package org.structr.websocket.command;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
@@ -46,7 +48,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class GetByTypeCommand extends AbstractCommand {
 	
-	private static final Logger logger = Logger.getLogger(GetByTypeCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(GetByTypeCommand.class.getName());
 	
 	static {
 		
@@ -104,7 +106,7 @@ public class GetByTypeCommand extends AbstractCommand {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "Exception occured", fex);
+			logger.warn("Exception occured", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
 		}

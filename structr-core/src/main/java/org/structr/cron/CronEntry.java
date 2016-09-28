@@ -22,8 +22,8 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -34,7 +34,7 @@ import java.util.logging.Logger;
  */
 public class CronEntry implements Delayed {
 
-	private static final Logger logger = Logger.getLogger(CronService.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CronService.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
@@ -97,7 +97,7 @@ public class CronEntry implements Delayed {
 				cronEntry.setSeconds(seconds);
 
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "Invalid cron expression for task {0}, field 'seconds': {1}", new Object[] { task, t.getMessage() });
+				logger.warn("Invalid cron expression for task {}, field 'seconds': {}", new Object[] { task, t.getMessage() });
 			}
 
 			try {
@@ -107,7 +107,7 @@ public class CronEntry implements Delayed {
 				cronEntry.setMinutes(minutes);
 
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "Invalid cron expression for task {0}, field 'minutes': {1}", new Object[] { task, t.getMessage() });
+				logger.warn("Invalid cron expression for task {}, field 'minutes': {}", new Object[] { task, t.getMessage() });
 			}
 
 			try {
@@ -117,7 +117,7 @@ public class CronEntry implements Delayed {
 				cronEntry.setHours(hours);
 
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "Invalid cron expression for task {0}, field 'hours': {1}", new Object[] { task, t.getMessage() });
+				logger.warn("Invalid cron expression for task {}, field 'hours': {}", new Object[] { task, t.getMessage() });
 			}
 
 			try {
@@ -127,7 +127,7 @@ public class CronEntry implements Delayed {
 				cronEntry.setDays(days);
 
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "Invalid cron expression for task {0}, field 'days': {1}", new Object[] { task, t.getMessage() });
+				logger.warn("Invalid cron expression for task {}, field 'days': {}", new Object[] { task, t.getMessage() });
 			}
 
 			try {
@@ -137,7 +137,7 @@ public class CronEntry implements Delayed {
 				cronEntry.setWeeks(weeks);
 
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "Invalid cron expression for task {0}, field 'weeks': {1}", new Object[] { task, t.getMessage() });
+				logger.warn("Invalid cron expression for task {}, field 'weeks': {}", new Object[] { task, t.getMessage() });
 			}
 
 			try {
@@ -147,14 +147,14 @@ public class CronEntry implements Delayed {
 				cronEntry.setMonths(months);
 
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "Invalid cron expression for task {0}, field 'months': {1}", new Object[] { task, t.getMessage() });
+				logger.warn("Invalid cron expression for task {}, field 'months': {}", new Object[] { task, t.getMessage() });
 			}
 
 			return cronEntry;
 
 		} else {
 
-			logger.log(Level.WARNING, "Invalid cron expression for task {0}: invalid number of fields (must be {1}).", new Object[] { task, CronService.NUM_FIELDS });
+			logger.warn("Invalid cron expression for task {}: invalid number of fields (must be {}).", new Object[] { task, CronService.NUM_FIELDS });
 
 		}
 
@@ -398,7 +398,7 @@ public class CronEntry implements Delayed {
 
 		long next = TimeUnit.MILLISECONDS.convert(getDelayToNextExecutionInMillis(), unit);
 
-		logger.log(Level.INFO, "{0} ms until start of task {1}", new Object[] { next, name });
+		logger.info("{} ms until start of task {}", new Object[] { next, name });
 
 		return next;
 	}

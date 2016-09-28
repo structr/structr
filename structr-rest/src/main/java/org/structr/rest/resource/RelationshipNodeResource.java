@@ -18,18 +18,18 @@
  */
 package org.structr.rest.resource;
 
-import org.structr.core.Result;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import org.structr.core.property.PropertyKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Result;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 
@@ -39,7 +39,7 @@ import org.structr.rest.exception.IllegalPathException;
  */
 public class RelationshipNodeResource extends WrappingResource {
 
-	private static final Logger logger = Logger.getLogger(RelationshipNodeResource.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(RelationshipNodeResource.class.getName());
 	private boolean startNode = false;
 
 	@Override
@@ -83,12 +83,12 @@ public class RelationshipNodeResource extends WrappingResource {
 
 			} catch(Throwable t) {
 
-				logger.log(Level.WARNING, "Exception while fetching relationships", t);
+				logger.warn("Exception while fetching relationships", t);
 			}
 
 		} else {
 
-			logger.log(Level.INFO, "No results from parent..");
+			logger.info("No results from parent..");
 
 		}
 

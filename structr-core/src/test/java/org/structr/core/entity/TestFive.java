@@ -18,8 +18,8 @@
  */
 package org.structr.core.entity;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -38,7 +38,7 @@ import org.structr.core.property.Property;
  */
 public class TestFive extends AbstractNode {
 
-	private static final Logger logger = Logger.getLogger(TestFive.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(TestFive.class.getName());
 
 	public static final Property<Integer> intProperty                  = new IntProperty("integerProperty").indexed();
 	public static final Property<Integer> modifiedInBeforeCreation     = new IntProperty("modifiedInBeforeCreation").defaultValue(0).indexed().unvalidated();
@@ -82,7 +82,7 @@ public class TestFive extends AbstractNode {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 	}
 
@@ -99,7 +99,7 @@ public class TestFive extends AbstractNode {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 	}
 

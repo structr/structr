@@ -18,8 +18,10 @@
  */
 package org.structr.websocket.command;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
@@ -38,7 +40,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class LoginCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(LoginCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(LoginCommand.class.getName());
 
 	static {
 
@@ -68,7 +70,7 @@ public class LoginCommand extends AbstractCommand {
 					final String sessionId = webSocketData.getSessionId();
 					if (sessionId == null) {
 
-						logger.log(Level.INFO, "Could not login {0}: No sessionId found", new Object[]{username, password});
+						logger.info("Could not login {}: No sessionId found", new Object[]{username, password});
 						getWebSocket().send(MessageBuilder.status().code(403).build(), true);
 
 					}
@@ -95,12 +97,12 @@ public class LoginCommand extends AbstractCommand {
 
 			} catch (AuthenticationException e) {
 
-				logger.log(Level.INFO, "Could not login {0} with {1}", new Object[]{username, password});
+				logger.info("Could not login {} with {}", new Object[]{username, password});
 				getWebSocket().send(MessageBuilder.status().code(403).build(), true);
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "Unable to execute command", fex);
+				logger.warn("Unable to execute command", fex);
 			}
 		}
 	}

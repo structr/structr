@@ -24,8 +24,10 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.hamcrest.Matchers;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
@@ -44,7 +46,7 @@ import org.w3c.dom.Text;
  */
 public class HtmlServletObjectResolvingTest extends StructrUiTest {
 
-	private static final Logger logger = Logger.getLogger(HtmlServletObjectResolvingTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(HtmlServletObjectResolvingTest.class.getName());
 
 	public void testObjectResolvingInHtmlServlet() {
 
@@ -75,7 +77,7 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 
 				} catch (DOMException dex) {
 
-					logger.log(Level.WARNING, "", dex);
+					logger.warn("", dex);
 
 					throw new FrameworkException(422, dex.getMessage());
 				}
@@ -84,7 +86,7 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
 		RestAssured.basePath = "/structr/html";

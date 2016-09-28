@@ -18,8 +18,10 @@
  */
 package org.structr.ldap;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.exception.LdapInvalidAttributeValueException;
@@ -36,6 +38,8 @@ import org.structr.web.entity.User;
  */
 public class LDAPUser extends User {
 
+	private static final Logger logger = LoggerFactory.getLogger(LDAPUser.class);
+	
 	public static final Property<String> distinguishedName = new StringProperty("distinguishedName").unique().indexed();
 	public static final Property<String> description       = new StringProperty("description").indexed();
 	public static final Property<String> commonName        = new StringProperty("commonName").indexed();
@@ -71,7 +75,7 @@ public class LDAPUser extends User {
 
 		} else {
 
-			Logger.getLogger(LDAPUser.class.getName()).log(Level.WARNING, "Unable to reach LDAP server for authentication of {0}", dn);
+			logger.warn("Unable to reach LDAP server for authentication of {}", dn);
 		}
 
 		return false;
@@ -89,7 +93,7 @@ public class LDAPUser extends User {
 
 		} else {
 
-			Logger.getLogger(LDAPUser.class.getName()).log(Level.WARNING, "Unable to reach LDAP server for user information of {0}", dn);
+			logger.warn("Unable to reach LDAP server for user information of {}", dn);
 		}
 	}
 

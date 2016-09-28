@@ -27,9 +27,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Node;
@@ -83,7 +83,7 @@ import org.structr.schema.action.Function;
  */
 public abstract class AbstractRelationship<S extends NodeInterface, T extends NodeInterface> implements Comparable<AbstractRelationship>, RelationshipInterface {
 
-	private static final Logger logger = Logger.getLogger(AbstractRelationship.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(AbstractRelationship.class.getName());
 
 	public static final Property<Integer>       cascadeDelete              = new IntProperty("cascadeDelete");
 	public static final Property<String>        relType                    = new RelationshipTypeProperty("relType");
@@ -346,7 +346,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 					return converter.convertForSorting(propertyValue);
 
 				} catch(FrameworkException fex) {
-					logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
+					logger.warn("Unable to convert property {} of type {}: {}", new Object[] {
 						key.dbName(),
 						getClass().getSimpleName(),
 						fex.getMessage()
@@ -459,7 +459,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 					return converter.convert(value);
 
 				} catch (Throwable t) {
-					logger.log(Level.WARNING, "Unable to convert {0} value of type {1} for indexing: {2}", new Object[] { key.dbName(), value.getClass(), t } );
+					logger.warn("Unable to convert {} value of type {} for indexing: {}", new Object[] { key.dbName(), value.getClass(), t } );
 				}
 			}
 			return value;
@@ -584,7 +584,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 		if (key == null) {
 
-			logger.log(Level.SEVERE, "Tried to set property with null key (action was denied)");
+			logger.error("Tried to set property with null key (action was denied)");
 
 			throw new FrameworkException(422, "Tried to set property with null key (action was denied)", new NullArgumentToken(getClass().getSimpleName(), base));
 

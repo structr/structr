@@ -29,8 +29,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.sshd.common.Factory;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.config.keys.KeyUtils;
@@ -70,7 +72,7 @@ import org.structr.rest.auth.AuthHelper;
  */
 public class SSHService implements SingletonService, PasswordAuthenticator, PublickeyAuthenticator, FileSystemFactory, CommandFactory, Factory<org.apache.sshd.server.Command>, SftpEventListener {
 
-	private static final Logger logger = Logger.getLogger(SSHService.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(SSHService.class.getName());
 
 	public static final String APPLICATION_SSH_PORT = "application.ssh.port";
 
@@ -113,7 +115,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 			running = true;
 
 		} catch (IOException ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 	}
 
@@ -126,7 +128,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 			running = false;
 
 		} catch (IOException ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 	}
 
@@ -173,7 +175,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 			tx.success();
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 
 			isValid = false;
 		}
@@ -184,7 +186,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 			}
 
 		} catch (IOException ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		return isValid;
@@ -219,7 +221,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 			tx.success();
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 
 			isValid = false;
 		}
@@ -230,7 +232,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 			}
 
 		} catch (IOException ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		return isValid;

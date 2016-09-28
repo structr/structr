@@ -18,26 +18,23 @@
  */
 package org.structr.core.graph;
 
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.Transformation;
-import org.structr.core.entity.AbstractNode;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeResult;
 import org.structr.api.graph.Node;
 import org.structr.common.Permission;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.Transformation;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
 import org.structr.core.entity.SuperUser;
@@ -55,7 +52,7 @@ import org.structr.schema.SchemaHelper;
  */
 public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceCommand {
 
-	private static final Logger logger = Logger.getLogger(CreateNodeCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CreateNodeCommand.class.getName());
 
 	public T execute(final Collection<NodeAttribute<?>> attributes) throws FrameworkException {
 
@@ -165,7 +162,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			}
 
 			if (transformations.isEmpty()) {
-				logger.log(Level.FINE, "No entity creation transformation for {0}", node.getClass());
+				logger.debug("No entity creation transformation for {}", node.getClass());
 			}
 		}
 

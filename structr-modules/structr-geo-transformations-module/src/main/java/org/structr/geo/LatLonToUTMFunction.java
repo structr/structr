@@ -18,8 +18,10 @@
  */
 package org.structr.geo;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.geotools.geometry.DirectPosition2D;
 import org.geotools.referencing.CRS;
 import org.opengis.geometry.DirectPosition;
@@ -36,7 +38,7 @@ import org.structr.schema.action.Function;
 public class LatLonToUTMFunction extends Function<Object, Object> {
 
 	private static final String ERROR_MESSAGE = "Usage: ${latLonToUTM(latitude, longitude)}. Example: ${latLonToUTM(41.3445, 7.35)}";
-	private static final Logger logger        = Logger.getLogger(LatLonToUTMFunction.class.getName());
+	private static final Logger logger        = LoggerFactory.getLogger(LatLonToUTMFunction.class.getName());
 	private static final String UTMzdlChars   = "CDEFGHJKLMNPQRSTUVWXX";
 
 	@Override
@@ -100,7 +102,7 @@ public class LatLonToUTMFunction extends Function<Object, Object> {
 
 			} else {
 
-				logger.log(Level.WARNING, "Invalid argument(s), cannot convert to double: {0}, {1}", new Object[] { sources[0], sources[1] });
+				logger.warn("Invalid argument(s), cannot convert to double: {}, {}", new Object[] { sources[0], sources[1] });
 			}
 		}
 

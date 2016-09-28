@@ -29,8 +29,10 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.servlet.AsyncContext;
 import javax.servlet.DispatcherType;
 import javax.servlet.RequestDispatcher;
@@ -63,7 +65,7 @@ import org.structr.web.entity.dom.Page;
  */
 public class UiScriptingTest extends StructrUiTest {
 
-	private static final Logger logger = Logger.getLogger(UiScriptingTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(UiScriptingTest.class.getName());
 
 	public void testScripting() {
 
@@ -134,7 +136,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 	}

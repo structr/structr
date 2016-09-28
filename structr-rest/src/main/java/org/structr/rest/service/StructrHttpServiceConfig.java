@@ -20,9 +20,9 @@ package org.structr.rest.service;
 
 import java.util.Properties;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.core.Services;
 import org.structr.core.auth.Authenticator;
@@ -35,7 +35,7 @@ import org.structr.schema.compiler.NodeExtender;
  */
 public class StructrHttpServiceConfig {
 
-	private static final Logger logger            = Logger.getLogger(StructrHttpServiceConfig.class.getName());
+	private static final Logger logger            = LoggerFactory.getLogger(StructrHttpServiceConfig.class.getName());
 
 	private String defaultPropertyView                = PropertyView.Public;
 	private ResourceProvider resourceProvider         = null;
@@ -78,7 +78,7 @@ public class StructrHttpServiceConfig {
 
 		if (StringUtils.isBlank(resourceProviderValue)) {
 
-			logger.log(Level.SEVERE, "Missing resource provider key {0}.resourceprovider in configuration file.", servletName);
+			logger.error("Missing resource provider key {}.resourceprovider in configuration file.", servletName);
 
 			throw new IllegalStateException("No resource provider set for servlet " + servletName);
 
@@ -92,7 +92,7 @@ public class StructrHttpServiceConfig {
 
 			} else {
 
-				logger.log(Level.SEVERE, "Unable to initialize resource provider for servlet {0}, no resource provider found. Please check structr.conf for a valid resource provider class.", servletName);
+				logger.error("Unable to initialize resource provider for servlet {}, no resource provider found. Please check structr.conf for a valid resource provider class.", servletName);
 
 				throw new IllegalStateException("No resource provider available for servlet " + servletName);
 			}
@@ -100,14 +100,14 @@ public class StructrHttpServiceConfig {
 
 		if (StringUtils.isBlank(authenticatorValue)) {
 
-			logger.log(Level.SEVERE, "Missing authenticator key {0}.authenticator in configuration file.", servletName);
+			logger.error("Missing authenticator key {}.authenticator in configuration file.", servletName);
 
 		} else {
 
 			authenticatorClass = loadClass(authenticatorValue);
 			if (authenticatorClass == null) {
 
-				logger.log(Level.SEVERE, "Unable	 to instantiate authenticator {0}", authenticatorValue );
+				logger.error("Unable	 to instantiate authenticator {}", authenticatorValue );
 			}
 
 		}
@@ -140,7 +140,7 @@ public class StructrHttpServiceConfig {
 
 		} catch (InstantiationException | IllegalAccessException t) {
 
-			logger.log(Level.SEVERE, "Unable to instantiate authenticator {0}: {1}", new Object[] { authenticatorClass, t.getMessage() } );
+			logger.error("Unable to instantiate authenticator {}: {}", new Object[] { authenticatorClass, t.getMessage() } );
 		}
 
 		return authenticator;

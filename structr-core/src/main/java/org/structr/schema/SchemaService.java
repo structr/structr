@@ -32,15 +32,15 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.structr.common.AccessPathCache;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.service.Command;
 import org.structr.api.service.InitializationCallback;
 import org.structr.api.service.Service;
 import org.structr.api.service.StructrServices;
+import org.structr.common.AccessPathCache;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -58,7 +58,7 @@ import org.structr.schema.compiler.NodeExtender;
  */
 public class SchemaService implements Service {
 
-	private static final Logger logger                            = Logger.getLogger(SchemaService.class.getName());
+	private static final Logger logger                            = LoggerFactory.getLogger(SchemaService.class.getName());
 	private static final AtomicBoolean compiling                  = new AtomicBoolean(false);
 	private static final Map<String, String> builtinTypeMap       = new LinkedHashMap<>();
 
@@ -174,7 +174,7 @@ public class SchemaService implements Service {
 
 				} catch (Throwable t) {
 
-					logger.log(Level.SEVERE, "Unable to compile dynamic schema.", t);
+					logger.error("Unable to compile dynamic schema.", t);
 
 					success = false;
 				}
@@ -263,7 +263,7 @@ public class SchemaService implements Service {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 	}
 

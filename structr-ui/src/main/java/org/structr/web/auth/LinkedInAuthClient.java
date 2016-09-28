@@ -19,8 +19,10 @@
 package org.structr.web.auth;
 
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.oltu.oauth2.client.response.OAuthResourceResponse;
@@ -32,7 +34,7 @@ import org.structr.core.app.StructrApp;
  */
 public class LinkedInAuthClient extends StructrOAuthClient {
 	
-	private static final Logger logger = Logger.getLogger(LinkedInAuthClient.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(LinkedInAuthClient.class.getName());
 
 	public LinkedInAuthClient() {};
 
@@ -95,7 +97,7 @@ public class LinkedInAuthClient extends StructrOAuthClient {
 		}
 		
 		String body = userResponse.getBody();
-		logger.log(Level.FINE, "User response body: {0}", body);
+		logger.debug("User response body: {}", body);
 		
 		String[] addresses = StringUtils.stripAll(StringUtils.stripAll(StringUtils.stripEnd(StringUtils.stripStart(body, "["), "]").split(",")), "\"");
 

@@ -30,8 +30,10 @@ import org.structr.web.entity.dom.Page;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import static junit.framework.TestCase.assertTrue;
 import org.jsoup.select.Elements;
 import org.structr.core.graph.Tx;
@@ -46,7 +48,7 @@ import org.w3c.dom.Text;
  */
 public class PageRenderingBenchmark extends StructrUiTest {
 
-	private static final Logger logger = Logger.getLogger(PageRenderingBenchmark.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(PageRenderingBenchmark.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -95,9 +97,9 @@ public class PageRenderingBenchmark extends StructrUiTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -130,9 +132,9 @@ public class PageRenderingBenchmark extends StructrUiTest {
 
 		} catch (Exception ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected Exception");
 		}
 
@@ -165,7 +167,7 @@ public class PageRenderingBenchmark extends StructrUiTest {
 			Double time                 = (t1 - t0) / 1000.0;
 			Double rate                 = max / ((t1 - t0) / 1000.0);
 
-			logger.log(Level.INFO, "------> Time to render {0} the base URI: {1} seconds ({2} per s)", new Object[] { max, decimalFormat.format(time), decimalFormat.format(rate) });
+			logger.info("------> Time to render {} the base URI: {} seconds ({} per s)", new Object[] { max, decimalFormat.format(time), decimalFormat.format(rate) });
 			
 			assertFalse(doc.select("html").isEmpty());
 			assertFalse(doc.select("html > head").isEmpty());
@@ -197,7 +199,7 @@ public class PageRenderingBenchmark extends StructrUiTest {
 			time                 = (t1 - t0) / 1000.0;
 			rate                 = max / ((t1 - t0) / 1000.0);
 
-			logger.log(Level.INFO, "------> Time to render {0} the test page by name: {1} seconds ({2} per s)", new Object[] { max, decimalFormat.format(time), decimalFormat.format(rate) });
+			logger.info("------> Time to render {} the test page by name: {} seconds ({} per s)", new Object[] { max, decimalFormat.format(time), decimalFormat.format(rate) });
 
 			
 			assertFalse(doc.select("html").isEmpty());
@@ -221,9 +223,9 @@ public class PageRenderingBenchmark extends StructrUiTest {
 
 		} catch (Exception ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected Exception");
 
 		}

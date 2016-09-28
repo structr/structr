@@ -18,7 +18,8 @@
  */
 package org.structr.core.validator;
 
-import java.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
@@ -26,11 +27,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UniqueToken;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
-import org.structr.core.entity.AbstractNode;
-import java.util.logging.Logger;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -41,7 +41,7 @@ import org.structr.core.app.StructrApp;
  */
 public class TypeUniquenessValidator<T> implements PropertyValidator<T> {
 
-	private static final Logger logger = Logger.getLogger(TypeUniquenessValidator.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(TypeUniquenessValidator.class.getName());
 
 	private Class type = null;
 
@@ -88,7 +88,7 @@ public class TypeUniquenessValidator<T> implements PropertyValidator<T> {
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "", fex);
+				logger.warn("", fex);
 
 			}
 

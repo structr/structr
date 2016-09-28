@@ -19,8 +19,8 @@
 package org.structr.core.property;
 
 import java.lang.reflect.Constructor;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -37,7 +37,7 @@ import org.structr.core.converter.PropertyConverter;
  */
 public class ConverterProperty<T> extends AbstractPrimitiveProperty<T> {
 
-	private static final Logger logger = Logger.getLogger(ConverterProperty.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ConverterProperty.class.getName());
 	private Constructor constructor    = null;
 
 	public ConverterProperty(final String name, final Class<? extends PropertyConverter<?, T>> converterClass) {
@@ -49,7 +49,7 @@ public class ConverterProperty<T> extends AbstractPrimitiveProperty<T> {
 
 		} catch(NoSuchMethodException nsmex) {
 
-			logger.log(Level.SEVERE, "Unable to instantiate converter of type {0} for key {1}", new Object[] {
+			logger.error("Unable to instantiate converter of type {} for key {}", new Object[] {
 				converterClass.getName(),
 				name
 			});
@@ -102,7 +102,7 @@ public class ConverterProperty<T> extends AbstractPrimitiveProperty<T> {
 
 		} catch(Throwable t) {
 
-			logger.log(Level.SEVERE, "Unable to instantiate converter of type {0} for key {1}", new Object[] {
+			logger.error("Unable to instantiate converter of type {} for key {}", new Object[] {
 				constructor.getClass().getName(),
 				dbName
 			});

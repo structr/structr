@@ -19,7 +19,8 @@
 package org.structr.web.function;
 
 import java.util.Collection;
-import java.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -69,7 +70,7 @@ public class RenderFunction extends Function<Object, Object> {
 
 			} else {
 
-				logger.log(Level.WARNING, "Error: Parameter 1 is neither node nor collection. Parameters: {0}", getParametersAsString(sources));
+				logger.warn("Error: Parameter 1 is neither node nor collection. Parameters: {}", getParametersAsString(sources));
 
 			}
 

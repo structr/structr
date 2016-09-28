@@ -18,8 +18,10 @@
  */
 package org.structr.web.property;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
@@ -46,7 +48,7 @@ import org.structr.web.entity.Linkable;
  */
 public class PathProperty extends AbstractReadOnlyProperty<String> {
 
-	private static final Logger logger = Logger.getLogger(PathProperty.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(PathProperty.class.getName());
 
 	public PathProperty(String name) {
 		super(name);
@@ -105,7 +107,7 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 			}
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		return attr;

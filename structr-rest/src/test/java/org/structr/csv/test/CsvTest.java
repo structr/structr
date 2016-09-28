@@ -21,9 +21,9 @@ package org.structr.csv.test;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import com.jayway.restassured.internal.RestAssuredResponseImpl;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.servlet.CsvServlet;
 
@@ -33,7 +33,7 @@ import org.structr.rest.servlet.CsvServlet;
  */
 public class CsvTest extends StructrCsvTest {
 
-	private static final Logger logger = Logger.getLogger(CsvTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CsvTest.class.getName());
 
 	public void test01InitServlet() {
 
@@ -45,7 +45,7 @@ public class CsvTest extends StructrCsvTest {
 			assertTrue(servlet instanceof CsvServlet);
 
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexcepted exception");
 		}
 

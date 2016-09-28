@@ -18,8 +18,8 @@
  */
 package org.structr.web.auth;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
@@ -40,7 +40,7 @@ import twitter4j.conf.ConfigurationBuilder;
  */
 public class TwitterAuthClient extends StructrOAuthClient {
 	
-	private static final Logger logger	= Logger.getLogger(TwitterAuthClient.class.getName());
+	private static final Logger logger	= LoggerFactory.getLogger(TwitterAuthClient.class.getName());
 	
 	private static Twitter twitter;
 	
@@ -79,7 +79,7 @@ public class TwitterAuthClient extends StructrOAuthClient {
 		try {
 			// The following does not work, leads to the following error from Twitter:
 			//String callbackUrl = getAbsoluteUrl(request, redirectUri);
-			//logger.log(Level.INFO, "Callback URL: {0}", callbackUrl);
+			//logger.info("Callback URL: {}", callbackUrl);
 			//requestToken = twitter.getOAuthRequestToken(callbackUrl, "read");
 			/*
 			/* 401:Authentication credentials (https://dev.twitter.com/pages/auth) were missing or incorrect. Ensure that you have set valid consumer key/secret, access token/secret, and the system clock is in sync.
@@ -100,13 +100,13 @@ public class TwitterAuthClient extends StructrOAuthClient {
 			
 			// Workaround for requestToken.getAuthorizationURL() ignoring configuration built with ConfigurationBuilder
 			String authorizationUrl = twitter.getConfiguration().getOAuthAuthorizationURL().concat("?oauth_token=").concat(requestToken.getToken());
-			logger.log(Level.INFO, "Authorization request location URI: {0}", authorizationUrl);
+			logger.info("Authorization request location URI: {}", authorizationUrl);
 			
 			return authorizationUrl;
 			
 		} catch (TwitterException ex) {
 			
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 			
 		}
 
@@ -129,7 +129,7 @@ public class TwitterAuthClient extends StructrOAuthClient {
 			
 		} catch (TwitterException ex) {
 			
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 			
 		}
 		
@@ -146,7 +146,7 @@ public class TwitterAuthClient extends StructrOAuthClient {
 			
 		} catch (TwitterException | IllegalStateException ex) {
 			
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 			
 		}
 		

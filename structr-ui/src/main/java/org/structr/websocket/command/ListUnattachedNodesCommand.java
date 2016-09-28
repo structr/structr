@@ -30,8 +30,10 @@ import org.structr.websocket.message.MessageBuilder;
 
 //~--- JDK imports ------------------------------------------------------------
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
@@ -52,7 +54,7 @@ import org.structr.web.entity.dom.relationship.DOMChildren;
  */
 public class ListUnattachedNodesCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(ListUnattachedNodesCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ListUnattachedNodesCommand.class.getName());
 
 	static {
 
@@ -96,7 +98,7 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "Exception occured", fex);
+			logger.warn("Exception occured", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
 		}
@@ -133,7 +135,7 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 			resultList = query.getAsList();
 			
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "Exception occured", fex);
+			logger.warn("Exception occured", fex);
 		}
 
 		// determine which of the nodes have no incoming CONTAINS relationships and no page id

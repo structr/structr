@@ -19,8 +19,10 @@
 package org.structr.web.test;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
@@ -39,7 +41,7 @@ import static org.structr.web.test.ResourceAccessTest.createResourceAccess;
  */
 public abstract class FrontendTest extends StructrUiTest {
 
-	private static final Logger logger = Logger.getLogger(FrontendTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FrontendTest.class.getName());
 	
 	public static final String ADMIN_USERNAME = "admin";
 	public static final String ADMIN_PASSWORD = "admin";
@@ -54,7 +56,7 @@ public abstract class FrontendTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -62,11 +64,11 @@ public abstract class FrontendTest extends StructrUiTest {
 			String[] args = {"/bin/sh", "-c", "cd src/test/javascript ; PATH=./bin/`uname`/:$PATH casperjs/bin/casperjs --httpPort=" + httpPort + " test " + testName + ".js"};
 
 			Process proc = Runtime.getRuntime().exec(args);
-			logger.log(Level.INFO, IOUtils.toString(proc.getInputStream()));
+			logger.info(IOUtils.toString(proc.getInputStream()));
 			String warnings = IOUtils.toString(proc.getErrorStream());
 
 			if (StringUtils.isNotBlank(warnings)) {
-				logger.log(Level.WARNING, warnings);
+				logger.warn(warnings);
 			}
 
 			final int maxRetries = 60;
@@ -87,17 +89,17 @@ public abstract class FrontendTest extends StructrUiTest {
 				return exitValue;
 
 			} catch (IllegalThreadStateException ex) {
-				logger.log(Level.WARNING, "Subprocess has not properly exited", ex);
-				logger.log(Level.WARNING, "", ex);
+				logger.warn("Subprocess has not properly exited", ex);
+				logger.warn("", ex);
 			}
 
-			logger.log(Level.INFO, "casperjs subprocess returned with {0}", exitValue);
+			logger.info("casperjs subprocess returned with {}", exitValue);
 
 			tx.success();
 
 
 		} catch (Exception ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		return 1;
@@ -107,10 +109,10 @@ public abstract class FrontendTest extends StructrUiTest {
 	private void makeVideo(final String testName) throws IOException {
 		String[] args = {"/bin/sh", "-c", "cd ../docs/screenshots &&  avconv -y -r 25 -i " + testName + "/%04d.png -qscale 1 " + testName + ".avi"};
 		Process proc = Runtime.getRuntime().exec(args);
-		logger.log(Level.INFO, IOUtils.toString(proc.getInputStream()));
+		logger.info(IOUtils.toString(proc.getInputStream()));
 		String warnings = IOUtils.toString(proc.getErrorStream());
 		if (StringUtils.isNotBlank(warnings)) {
-			logger.log(Level.WARNING, warnings);
+			logger.warn(warnings);
 		}
 	}
 
@@ -133,7 +135,7 @@ public abstract class FrontendTest extends StructrUiTest {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 		return user;

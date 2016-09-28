@@ -20,8 +20,8 @@ package org.structr.rest.resource;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import org.structr.rest.common.StructrRestTest;
 import static org.hamcrest.Matchers.*;
+import org.structr.rest.common.StructrRestTest;
 
 /**
  *

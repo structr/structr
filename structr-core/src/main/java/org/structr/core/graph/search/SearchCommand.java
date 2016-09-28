@@ -26,12 +26,12 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.structr.api.index.Index;
-import org.structr.api.search.Occurrence;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
+import org.structr.api.index.Index;
+import org.structr.api.search.Occurrence;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
@@ -57,7 +57,7 @@ import org.structr.schema.ConfigurationProvider;
  */
 public abstract class SearchCommand<S extends PropertyContainer, T extends GraphObject> extends NodeServiceCommand implements org.structr.core.app.Query<T> {
 
-	private static final Logger logger = Logger.getLogger(SearchCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(SearchCommand.class.getName());
 
 	protected static final boolean INCLUDE_DELETED_AND_HIDDEN = true;
 	protected static final boolean PUBLIC_ONLY		  = false;
@@ -672,7 +672,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			// there is no way to handle this elegantly with the
 			// current Iterator<> interface, so we just have to
 			// drop the exception here, which is ugly ugly ugly. :(
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
 		return null;

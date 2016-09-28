@@ -18,17 +18,18 @@
  */
 package org.structr.rest.resource;
 
-import org.structr.core.Result;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import org.structr.core.property.PropertyKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Result;
 import org.structr.core.entity.Principal;
+import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotAllowedException;
@@ -39,7 +40,7 @@ import org.structr.rest.exception.NotAllowedException;
  */
 public class MeResource extends TypedIdResource {
 
-	private static final Logger logger = Logger.getLogger(MeResource.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(MeResource.class.getName());
 
 	public MeResource() {
 		super(null);

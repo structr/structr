@@ -24,8 +24,10 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Predicate;
@@ -93,7 +95,7 @@ import org.w3c.dom.Text;
 public class Page extends DOMNode implements Linkable, Document, DOMImplementation {
 
 	public static final Set<String> nonBodyTags = new HashSet<>(Arrays.asList(new String[] { "html", "head", "body", "meta", "link" } ));
-	private static final Logger logger          = Logger.getLogger(Page.class.getName());
+	private static final Logger logger          = LoggerFactory.getLogger(Page.class.getName());
 
 	public static final Property<Integer> version = new IntProperty("version").indexed().readOnly();
 	public static final Property<Integer> position = new IntProperty("position").indexed();
@@ -239,7 +241,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 			} catch (DOMException dex) {
 
-				logger.log(Level.WARNING, "", dex);
+				logger.warn("", dex);
 
 				throw new FrameworkException(422, dex.getMessage());
 			}
@@ -309,7 +311,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		// Avoid creating an (invalid) 'Content' DOMElement
 		if (elementType == null || c.equals(elementType)) {
 
-			logger.log(Level.WARNING, "Blocked attempt to create a DOMElement of type {0}", c);
+			logger.warn("Blocked attempt to create a DOMElement of type {}", c);
 
 			return null;
 
@@ -332,7 +334,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			}
 
 		} catch (Throwable t) {
-			logger.log(Level.SEVERE, "Unable to instantiate element of type " + elementType, t);
+			logger.error("Unable to instantiate element of type " + elementType, t);
 		}
 
 		return null;
@@ -348,7 +350,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 				child.setProperty(ownerDocument, this);
 
 			} catch (FrameworkException ex) {
-				logger.log(Level.WARNING, "", ex);
+				logger.warn("", ex);
 			}
 
 		}
@@ -374,7 +376,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		} catch (FrameworkException fex) {
 
 			// FIXME: what to do with the exception here?
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
 		return null;
@@ -401,7 +403,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		} catch (FrameworkException fex) {
 
 			// FIXME: what to do with the exception here?
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
 		return null;
@@ -427,7 +429,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		} catch (FrameworkException fex) {
 
 			// FIXME: what to do with the exception here?
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
 		return null;
@@ -452,7 +454,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		} catch (FrameworkException fex) {
 
 			// FIXME: what to do with the exception here?
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
 		return null;
@@ -852,7 +854,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			tx.success();
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 	}
 
@@ -894,7 +896,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 					importNode(child, deep, false);
 					child = child.getNextSibling();
 
-					logger.log(Level.INFO, "sibling is {0}", child);
+					logger.info("sibling is {}", child);
 				}
 
 			}

@@ -20,8 +20,10 @@ package org.structr.websocket.command.dom;
 
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -45,7 +47,7 @@ import org.w3c.dom.Document;
  */
 public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(CreateAndAppendDOMNodeCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CreateAndAppendDOMNodeCommand.class.getName());
 
 	static {
 
@@ -106,7 +108,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 						} catch (FrameworkException fex) {
 
-							logger.log(Level.WARNING, "Unable to set type of node {1} to Template: {3}", new Object[] { newNode.getUuid(), fex.getMessage() } );
+							logger.warn("Unable to set type of node {} to Template: {}", new Object[] { newNode.getUuid(), fex.getMessage() } );
 
 						}
 
@@ -149,7 +151,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 								} catch (FrameworkException fex) {
 
-									logger.log(Level.WARNING, "Unable to set node property {0} of node {1} to {2}: {3}", new Object[] { propertyKey, newNode.getUuid(), val, fex.getMessage() } );
+									logger.warn("Unable to set node property {} of node {} to {}: {}", new Object[] { propertyKey, newNode.getUuid(), val, fex.getMessage() } );
 
 								}
 							}

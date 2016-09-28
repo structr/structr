@@ -22,14 +22,14 @@ import java.util.Iterator;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.service.Command;
 import org.structr.common.Filter;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.api.service.Command;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 
@@ -40,7 +40,7 @@ import org.structr.core.app.StructrApp;
  */
 public abstract class NodeServiceCommand extends Command {
 
-	private static final Logger logger                        = Logger.getLogger(NodeServiceCommand.class.getName());
+	private static final Logger logger                        = LoggerFactory.getLogger(NodeServiceCommand.class.getName());
 	private static final ArrayBlockingQueue<String> uuidQueue = new ArrayBlockingQueue<>(100000);
 
 	protected SecurityContext securityContext = null;
@@ -126,7 +126,7 @@ public abstract class NodeServiceCommand extends Command {
 			}
 
 			if (description != null) {
-				logger.log(Level.INFO, "{0}: {1} objects processed", new Object[] { description, objectCount } );
+				logger.info("{}: {} objects processed", new Object[] { description, objectCount } );
 			}
 		}
 

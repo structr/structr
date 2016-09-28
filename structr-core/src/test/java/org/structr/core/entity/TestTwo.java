@@ -20,8 +20,8 @@ package org.structr.core.entity;
 
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.core.property.StartNode;
 import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
 
 /**
  * A simple entity for the most basic tests.

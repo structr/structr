@@ -19,9 +19,9 @@
 package org.structr.rest.resource;
 
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
@@ -36,7 +36,7 @@ import org.structr.rest.exception.IllegalPathException;
  */
 public class IdsOnlyResource extends ViewFilterResource {
 
-	private static final Logger logger = Logger.getLogger(IdsOnlyResource.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(IdsOnlyResource.class.getName());
 
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
@@ -106,7 +106,7 @@ public class IdsOnlyResource extends ViewFilterResource {
 
 		} catch(FrameworkException fex) {
 
-			logger.log(Level.WARNING, "Unable to configure property view", fex);
+			logger.warn("Unable to configure property view", fex);
 		}
 	}
 

@@ -23,8 +23,10 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -41,7 +43,7 @@ import org.structr.web.importer.CommentHandler;
 public class DeploymentCommentHandler implements CommentHandler {
 
 	private static final Set<Character> separators     = new LinkedHashSet<>(Arrays.asList(new Character[] { ',', ';', '(', ')', ' ', '\t', '\n', '\r' } ));
-	private static final Logger logger                 = Logger.getLogger(DeploymentCommentHandler.class.getName());
+	private static final Logger logger                 = LoggerFactory.getLogger(DeploymentCommentHandler.class.getName());
 	private static final Map<String, Handler> handlers = new LinkedHashMap<>();
 
 	static {
@@ -131,7 +133,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 				} else {
 
-					logger.log(Level.WARNING, "Unknown token {0}, expected one of {1}.", new Object[] { token, handlers.keySet() });
+					logger.warn("Unknown token {}, expected one of {}.", new Object[] { token, handlers.keySet() });
 					break;
 				}
 			}
@@ -171,7 +173,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 			} else {
 
-				logger.log(Level.WARNING, "Premature end of sequence, expected {0}, got {1}", new Object[] { sequence, buf.toString() });
+				logger.warn("Premature end of sequence, expected {}, got {}", new Object[] { sequence, buf.toString() });
 			}
 		}
 

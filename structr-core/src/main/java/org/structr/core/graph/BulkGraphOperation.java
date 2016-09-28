@@ -18,8 +18,8 @@
  */
 package org.structr.core.graph;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -31,16 +31,16 @@ import org.structr.common.error.FrameworkException;
  */
 public abstract class BulkGraphOperation<T> {
 
-	private static final Logger logger = Logger.getLogger(BulkGraphOperation.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(BulkGraphOperation.class.getName());
 
 	public abstract void handleGraphObject(SecurityContext securityContext, T obj) throws FrameworkException;
 
 	public void handleThrowable(final SecurityContext securityContext, final Throwable t, final T currentObject) {
-		logger.log(Level.WARNING, "Exception in bulk graph operation.", t);
+		logger.warn("Exception in bulk graph operation.", t);
 	}
 
 	public void handleTransactionFailure(final SecurityContext securityContext, final Throwable t) {
-		logger.log(Level.WARNING, "Transaction failure in bulk graph operation.", t);
+		logger.warn("Transaction failure in bulk graph operation.", t);
 	}
 
 	public Predicate<Long> getCondition() {

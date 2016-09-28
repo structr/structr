@@ -19,7 +19,6 @@
 package org.structr.core.function;
 
 import java.util.Map;
-import java.util.logging.Level;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -66,7 +65,7 @@ public class SearchFunction extends Function<Object, Object> {
 
 				} else {
 
-					logger.log(Level.WARNING, "Error in search(): type {0} not found.", typeString);
+					logger.warn("Error in search(): type {} not found.", typeString);
 					return "Error in search(): type " + typeString + " not found.";
 
 				}
@@ -74,7 +73,7 @@ public class SearchFunction extends Function<Object, Object> {
 
 			// exit gracefully instead of crashing..
 			if (type == null) {
-				logger.log(Level.WARNING, "Error in search(): no type specified. Parameters: {0}", getParametersAsString(sources));
+				logger.warn("Error in search(): no type specified. Parameters: {}", getParametersAsString(sources));
 				return "Error in search(): no type specified.";
 			}
 

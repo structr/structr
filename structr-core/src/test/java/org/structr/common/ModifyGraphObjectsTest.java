@@ -19,15 +19,15 @@
 package org.structr.common;
 
 
-import org.structr.core.property.PropertyKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 
@@ -42,7 +42,7 @@ import org.structr.core.property.StringProperty;
  */
 public class ModifyGraphObjectsTest extends StructrTest {
 
-	private static final Logger logger = Logger.getLogger(ModifyGraphObjectsTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ModifyGraphObjectsTest.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -109,7 +109,7 @@ public class ModifyGraphObjectsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -159,7 +159,7 @@ public class ModifyGraphObjectsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 		}
 	}

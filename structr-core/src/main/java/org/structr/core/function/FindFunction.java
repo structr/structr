@@ -19,7 +19,6 @@
 package org.structr.core.function;
 
 import java.util.Map;
-import java.util.logging.Level;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -75,7 +74,7 @@ public class FindFunction extends Function<Object, Object> {
 
 				} else {
 
-					logger.log(Level.WARNING, "Error in find(): type \"{0}\" not found.", typeString);
+					logger.warn("Error in find(): type \"{}\" not found.", typeString);
 					return ERROR_MESSAGE_FIND_TYPE_NOT_FOUND + typeString;
 
 				}
@@ -83,7 +82,7 @@ public class FindFunction extends Function<Object, Object> {
 
 			// exit gracefully instead of crashing..
 			if (type == null) {
-				logger.log(Level.WARNING, "Error in find(): no type specified. Parameters: {0}", getParametersAsString(sources));
+				logger.warn("Error in find(): no type specified. Parameters: {}", getParametersAsString(sources));
 				return ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED;
 			}
 

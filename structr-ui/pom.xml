@@ -32,12 +32,6 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 	</properties>
-	<repositories>
-		<repository>
-			<id>jodd</id>
-			<url>http://repo1.maven.org/maven2/org/jodd/</url>
-		</repository>
-	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
@@ -99,10 +93,37 @@
 			<optional>false</optional>
 		</dependency>
 		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.1.7</version>
+			<optional>true</optional>
+		</dependency>
+<!--		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-api</artifactId>
+			<version>2.6.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>2.6.2</version>
+		</dependency>		
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j-impl</artifactId>
+			<scope>runtime</scope>
+			<version>2.6.2</version>
+		</dependency>		
+		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>1.7.21</version>
-		</dependency>
+		</dependency>-->
+<!--		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.7.21</version>
+		</dependency>-->
 		<dependency>
 			<groupId>org.bitbucket.cowwoc</groupId>
 			<artifactId>diff-match-patch</artifactId>

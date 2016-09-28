@@ -21,8 +21,10 @@ package org.structr.web.entity;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -60,7 +62,7 @@ public class Image extends org.structr.dynamic.File {
 		SchemaService.registerBuiltinTypeOverride("Image", Image.class.getName());
 	}
 
-	private static final Logger logger                            = Logger.getLogger(Image.class.getName());
+	private static final Logger logger                            = LoggerFactory.getLogger(Image.class.getName());
 
 	public static final Property<Integer> height                  = new IntProperty("height").cmis().indexed();
 	public static final Property<Integer> width                   = new IntProperty("width").cmis().indexed();
@@ -232,14 +234,14 @@ public class Image extends org.structr.dynamic.File {
 
 		if (originalImage.getProperty(Image.isCreatingThumb).equals(Boolean.TRUE)) {
 
-			logger.log(Level.FINE, "Another thumbnail is being created - waiting....");
+			logger.debug("Another thumbnail is being created - waiting....");
 
 		} else {
 
 			try {
 
 				// No thumbnail exists, or thumbnail was too old, so let's create a new one
-				logger.log(Level.FINE, "Creating thumbnail for {0} (w={1} h={2} crop={3})", new Object[] { getName(), maxWidth, maxHeight, cropToFit });
+				logger.debug("Creating thumbnail for {} (w={} h={} crop={})", new Object[] { getName(), maxWidth, maxHeight, cropToFit });
 
 				originalImage.unlockSystemPropertiesOnce();
 				originalImage.setProperty(Image.isCreatingThumb, Boolean.TRUE);
@@ -266,7 +268,7 @@ public class Image extends org.structr.dynamic.File {
 
 					} catch (IOException ex) {
 
-						logger.log(Level.WARNING, "Could not create thumbnail image", ex);
+						logger.warn("Could not create thumbnail image", ex);
 
 					}
 
@@ -305,7 +307,7 @@ public class Image extends org.structr.dynamic.File {
 
 				} else {
 
-					logger.log(Level.FINE, "Could not create thumbnail for image {0} ({1})", new Object[] { getName(), getUuid() });
+					logger.debug("Could not create thumbnail for image {} ({})", new Object[] { getName(), getUuid() });
 
 				}
 
@@ -314,7 +316,7 @@ public class Image extends org.structr.dynamic.File {
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "Unable to create thumbnail", fex);
+				logger.warn("Unable to create thumbnail", fex);
 
 			}
 

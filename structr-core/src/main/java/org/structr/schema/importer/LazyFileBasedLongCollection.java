@@ -30,8 +30,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.graph.SyncCommand;
 
 /**
@@ -40,7 +40,7 @@ import org.structr.core.graph.SyncCommand;
  */
 public class LazyFileBasedLongCollection implements Collection<Long>, Closeable {
 
-	private static final Logger logger = Logger.getLogger(LazyFileBasedLongCollection.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(LazyFileBasedLongCollection.class.getName());
 
 	private DataOutputStream dos = null;
 	private File file            = null;
@@ -142,7 +142,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 			SyncCommand.serialize(dos, e);
 
 		} catch (IOException ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		return true;
@@ -172,7 +172,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 			}
 
 		} catch (IOException ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 
 		return true;
@@ -209,7 +209,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 			}
 
 		} catch (IOException ioex) {
-			logger.log(Level.WARNING, "", ioex);
+			logger.warn("", ioex);
 		}
 
 		try {
@@ -217,7 +217,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 			dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file, append)));
 
 		} catch (IOException ioex) {
-			logger.log(Level.WARNING, "", ioex);
+			logger.warn("", ioex);
 		}
 	}
 
@@ -234,7 +234,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 
 			} catch (IOException ioex) {
 
-				logger.log(Level.WARNING, "", ioex);
+				logger.warn("", ioex);
 			}
 		}
 
@@ -273,7 +273,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 				dis.close();
 
 			} catch (IOException ioex) {
-				logger.log(Level.WARNING, "", ioex);
+				logger.warn("", ioex);
 			}
 		}
 

@@ -20,7 +20,8 @@ package org.structr.files.cmis.config;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.chemistry.opencmis.commons.data.CreatablePropertyTypes;
 import org.apache.chemistry.opencmis.commons.data.NewTypeSettableAttributes;
 import org.apache.chemistry.opencmis.commons.data.RepositoryCapabilities;
@@ -40,7 +41,7 @@ import org.structr.cmis.common.CMISExtensionsData;
  */
 public class StructrRepositoryCapabilities extends CMISExtensionsData implements RepositoryCapabilities, CreatablePropertyTypes, NewTypeSettableAttributes {
 
-	private static final Logger logger = Logger.getLogger(StructrRepositoryCapabilities.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrRepositoryCapabilities.class.getName());
 
 	// ----- interface RepositoryCapabilities -----
 	@Override

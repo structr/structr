@@ -30,6 +30,12 @@
             <version>${project.version}</version>
 			<optional>true</optional>
         </dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.20</version>
+			<optional>true</optional>
+		</dependency>
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-opengis</artifactId>
@@ -42,6 +48,14 @@
             <version>13.2</version>
 			<optional>true</optional>
         </dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+			<type>jar</type>
+			<scope>test</scope>
+			<optional>false</optional>
+		</dependency>
     </dependencies>
 
     <build>

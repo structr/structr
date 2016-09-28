@@ -26,8 +26,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -50,7 +52,7 @@ import org.w3c.dom.NodeList;
  */
 public class PageImportVisitor implements FileVisitor<Path> {
 
-	private static final Logger logger        = Logger.getLogger(PageImportVisitor.class.getName());
+	private static final Logger logger        = LoggerFactory.getLogger(PageImportVisitor.class.getName());
 	private static final String DoctypeString = "<!DOCTYPE";
 
 	private Map<String, Object> pagesConfiguration = null;
@@ -88,7 +90,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 					createPage(file, fileName);
 
 				} catch (FrameworkException fex) {
-					logger.log(Level.WARNING, "Exception while importing page {0}: {1}", new Object[] { name, fex.getMessage() });
+					logger.warn("Exception while importing page {}: {}", new Object[] { name, fex.getMessage() });
 				}
 			}
 		}
@@ -99,7 +101,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 	@Override
 	public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
 
-		logger.log(Level.WARNING, "Exception while importing file {0}: {1}", new Object[] { file.toString(), exc.getMessage() });
+		logger.warn("Exception while importing file {}: {}", new Object[] { file.toString(), exc.getMessage() });
 		return FileVisitResult.CONTINUE;
 	}
 
@@ -117,7 +119,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 			return app.nodeQuery(Page.class).andName(name).getFirst();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "Unable to determine if page {0} already exists, ignoring.", name);
+			logger.warn("Unable to determine if page {} already exists, ignoring.", name);
 		}
 
 		return null;
@@ -207,7 +209,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 				final boolean parseOk = importer.parse();
 				if (parseOk) {
 
-					logger.log(Level.INFO, "Importing page {0} from {1}..", new Object[] { name, fileName } );
+					logger.info("Importing page {} from {}..", new Object[] { name, fileName } );
 
 					// set comment handler that can parse and apply special Structr comments in HTML source files
 					importer.setCommentHandler(new DeploymentCommentHandler());
@@ -229,7 +231,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 				// Import document does NOT start with a <!DOCTYPE> definition, so we assume a
 				// template or shared component that we need to parse.
 
-				logger.log(Level.INFO, "Importing page {0} from {1}..", new Object[] { name, fileName } );
+				logger.info("Importing page {} from {}..", new Object[] { name, fileName } );
 
 				boolean visibleToPublic       = get(properties, GraphObject.visibleToPublicUsers, false);
 				boolean visibleToAuth         = get(properties, GraphObject.visibleToPublicUsers, false);
@@ -241,7 +243,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 				final boolean parseOk = importer.parse(true);
 				if (parseOk) {
 
-					logger.log(Level.INFO, "Importing page {0} from {1}..", new Object[] { name, fileName } );
+					logger.info("Importing page {} from {}..", new Object[] { name, fileName } );
 
 					// set comment handler that can parse and apply special Structr comments in HTML source files
 					importer.setCommentHandler(new DeploymentCommentHandler());

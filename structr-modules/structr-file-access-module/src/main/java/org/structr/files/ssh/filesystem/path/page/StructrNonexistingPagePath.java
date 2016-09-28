@@ -32,8 +32,10 @@ import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -49,7 +51,7 @@ import org.structr.web.entity.dom.Page;
  */
 public class StructrNonexistingPagePath extends StructrPath {
 
-	private static final Logger logger = Logger.getLogger(StructrNonexistingPagePath.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrNonexistingPagePath.class.getName());
 
 	private Page newPage = null;
 
@@ -86,7 +88,7 @@ public class StructrNonexistingPagePath extends StructrPath {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 	}
 

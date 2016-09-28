@@ -30,11 +30,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.CaseHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.MaintenanceCommand;
@@ -49,7 +49,7 @@ import org.xml.sax.SAXException;
  */
 public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 
-	private static final Logger logger = Logger.getLogger(RDFImporter.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(RDFImporter.class.getName());
 
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
@@ -91,7 +91,7 @@ public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 			}
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 		analyzeSchema();

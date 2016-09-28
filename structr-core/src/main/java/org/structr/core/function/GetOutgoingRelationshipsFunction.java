@@ -20,7 +20,6 @@ package org.structr.core.function;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
@@ -62,7 +61,7 @@ public class GetOutgoingRelationshipsFunction extends Function<Object, Object> {
 
 			} else {
 
-				logger.log(Level.WARNING, "Error: entities are not nodes. Parameters: {0}", getParametersAsString(sources));
+				logger.warn("Error: entities are not nodes. Parameters: {}", getParametersAsString(sources));
 				return "Error: entities are not nodes.";
 
 			}

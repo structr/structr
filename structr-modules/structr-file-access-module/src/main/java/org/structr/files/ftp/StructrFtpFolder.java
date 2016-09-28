@@ -24,8 +24,10 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -44,7 +46,7 @@ import org.structr.web.entity.dom.Page;
  */
 public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile {
 
-	private static final Logger logger = Logger.getLogger(StructrFtpFolder.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrFtpFolder.class.getName());
 
 	public StructrFtpFolder(final SecurityContext securityContext, final Folder folder) {
 		super(securityContext, folder);		
@@ -103,12 +105,12 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 		try (final Tx tx = app.tx()) {
 
 			String requestedPath = getAbsolutePath();
-			logger.log(Level.FINE, "Children of {0} requested", requestedPath);
+			logger.debug("Children of {} requested", requestedPath);
 
 			if ("/".equals(requestedPath)) {
 				try {
 					Result<Folder> folders = app.nodeQuery(Folder.class).getResult();
-					logger.log(Level.FINE, "{0} folders found", folders.size());
+					logger.debug("{} folders found", folders.size());
 
 					for (Folder f : folders.getResults()) {
 
@@ -117,14 +119,14 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 						}
 
 						FtpFile ftpFile = new StructrFtpFolder(securityContext, f);
-						logger.log(Level.FINE, "Folder found: {0}", ftpFile.getAbsolutePath());
+						logger.debug("Folder found: {}", ftpFile.getAbsolutePath());
 
 						ftpFiles.add(ftpFile);
 
 					}
 
 					Result<FileBase> files = app.nodeQuery(FileBase.class).getResult();
-					logger.log(Level.FINE, "{0} files found", files.size());
+					logger.debug("{} files found", files.size());
 
 					for (FileBase f : files.getResults()) {
 
@@ -132,21 +134,21 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 							continue;
 						}
 
-						logger.log(Level.FINEST, "Structr file found: {0}", f);
+						logger.debug("Structr file found: {}", f);
 
 						FtpFile ftpFile = new StructrFtpFile(securityContext, f);
-						logger.log(Level.FINE, "File found: {0}", ftpFile.getAbsolutePath());
+						logger.debug("File found: {}", ftpFile.getAbsolutePath());
 
 						ftpFiles.add(ftpFile);
 
 					}
 
 					Result<Page> pages = app.nodeQuery(Page.class).getResult();
-					logger.log(Level.FINE, "{0} pages found", pages.size());
+					logger.debug("{} pages found", pages.size());
 
 					for (Page p : pages.getResults()) {
 
-						logger.log(Level.FINE, "Structr page found: {0}", p);
+						logger.debug("Structr page found: {}", p);
 
 						ftpFiles.add(new FtpFilePageWrapper(p));
 
@@ -155,7 +157,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 					return ftpFiles;
 
 				} catch (FrameworkException ex) {
-					logger.log(Level.SEVERE, null, ex);
+					logger.error("", ex);
 				}
 
 			}
@@ -165,7 +167,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 			for (Folder f : folders) {
 
 				FtpFile ftpFile = new StructrFtpFolder(securityContext, f);
-				logger.log(Level.FINE, "Subfolder found: {0}", ftpFile.getAbsolutePath());
+				logger.debug("Subfolder found: {}", ftpFile.getAbsolutePath());
 
 				ftpFiles.add(ftpFile);
 			}
@@ -175,7 +177,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 			for (FileBase f : files) {
 
 				FtpFile ftpFile = new StructrFtpFile(securityContext, f);
-				logger.log(Level.FINE, "File found: {0}", ftpFile.getAbsolutePath());
+				logger.debug("File found: {}", ftpFile.getAbsolutePath());
 
 				ftpFiles.add(ftpFile);
 			}
@@ -185,7 +187,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 			return ftpFiles;
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error in listFiles()", fex);
+			logger.error("Error in listFiles()", fex);
 		}
 
 		return null;
@@ -194,19 +196,19 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 	@Override
 	public boolean mkdir() {
-		logger.log(Level.SEVERE, "Use FileOrFolder#createOutputStream() instead!");
+		logger.error("Use FileOrFolder#createOutputStream() instead!");
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public OutputStream createOutputStream(final long l) throws IOException {
-		logger.log(Level.FINE, "createOutputStream()");
+		logger.debug("createOutputStream()");
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
 	public InputStream createInputStream(final long l) throws IOException {
-		logger.log(Level.FINE, "createInputStream()");
+		logger.debug("createInputStream()");
 		throw new UnsupportedOperationException("Not supported.");
 	}
 

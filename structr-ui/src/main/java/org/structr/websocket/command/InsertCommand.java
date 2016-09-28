@@ -26,8 +26,10 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyMap;
@@ -43,7 +45,7 @@ import org.structr.web.entity.dom.relationship.DOMChildren;
  */
 public class InsertCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(InsertCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(InsertCommand.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -71,7 +73,7 @@ public class InsertCommand extends AbstractCommand {
 				
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "Could not create node.", fex);
+				logger.warn("Could not create node.", fex);
 				getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
 			}

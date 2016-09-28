@@ -18,9 +18,9 @@
  */
 package org.structr.core;
 
-import org.structr.core.property.PropertyKey;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.core.property.PropertyKey;
 
 /**
  * A validator that can be used to do validation checks on node properties.

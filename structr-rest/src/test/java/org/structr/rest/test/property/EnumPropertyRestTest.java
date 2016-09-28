@@ -21,9 +21,8 @@ package org.structr.rest.test.property;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import com.jayway.restassured.response.Response;
-import org.structr.rest.common.StructrRestTest;
-
 import static org.hamcrest.Matchers.*;
+import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.common.TestEnum;
 
 /**

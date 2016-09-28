@@ -23,10 +23,10 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.impl.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -41,7 +41,7 @@ import org.structr.schema.json.JsonSchema;
  */
 public class SchemaJsonImporter extends SchemaImporter implements MaintenanceCommand {
 
-	private static final Logger logger = Logger.getLogger(SchemaJsonImporter.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(SchemaJsonImporter.class.getName());
 
 	
 	@Override
@@ -83,8 +83,8 @@ public class SchemaJsonImporter extends SchemaImporter implements MaintenanceCom
 			}
 
 		} catch (IOException ioex) {
-			//iologger.log(Level.WARNING, "", ex);
-			logger.log(Level.FINE, "Filename: " + fileName + ", URL: " + url + ", source: " + source, ioex);
+			//iologger.warn("", ex);
+			logger.debug("Filename: " + fileName + ", URL: " + url + ", source: " + source, ioex);
 		}
 
 		//analyzeSchema();

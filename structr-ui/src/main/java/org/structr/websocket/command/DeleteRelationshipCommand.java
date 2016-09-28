@@ -18,7 +18,8 @@
  */
 package org.structr.websocket.command;
 
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -33,7 +34,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class DeleteRelationshipCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(DeleteRelationshipCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(DeleteRelationshipCommand.class.getName());
 
 	static {
 
@@ -58,7 +59,7 @@ public class DeleteRelationshipCommand extends AbstractCommand {
 		} else {
 			// Don't throw a 404. If relationship doesn't exist, it doesn't need to be removed,
 			// and everything is fine!.
-			//logger.log(Level.WARNING, "Relationship with id {0} not found.", webSocketData.getId());
+			//logger.warn("Relationship with id {} not found.", webSocketData.getId());
 			//getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 
 		}

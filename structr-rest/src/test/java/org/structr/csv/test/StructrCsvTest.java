@@ -19,40 +19,35 @@
 package org.structr.csv.test;
 
 
-import org.structr.rest.common.*;
 import com.jayway.restassured.RestAssured;
 import java.io.ByteArrayOutputStream;
-import org.apache.commons.io.FileUtils;
-
-
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.nio.charset.Charset;
-
 import java.util.*;
-import java.util.logging.Logger;
 import junit.framework.TestCase;
+import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.config.Structr;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.SuperUserAuthenticator;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.module.JarConfigurationProvider;
 import org.structr.rest.DefaultResourceProvider;
+import org.structr.rest.common.*;
 import org.structr.rest.entity.TestOne;
 import org.structr.rest.service.HttpService;
 import org.structr.rest.servlet.CsvServlet;
@@ -69,7 +64,7 @@ import org.structr.rest.servlet.JsonRestServlet;
  */
 public class StructrCsvTest extends TestCase {
 
-	private static final Logger logger = Logger.getLogger(StructrCsvTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrCsvTest.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 

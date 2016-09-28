@@ -21,8 +21,9 @@ package org.structr.core.function;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
@@ -33,7 +34,7 @@ import org.structr.schema.action.Function;
  */
 public class ReadFunction extends Function<Object, Object> {
 
-	private static final Logger logger = Logger.getLogger(ReadFunction.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ReadFunction.class.getName());
 
 	public static final String ERROR_MESSAGE_READ = "Usage: ${read(filename)}. Example: ${read(\"text.xml\")}";
 
@@ -68,7 +69,7 @@ public class ReadFunction extends Function<Object, Object> {
 
 			} catch (IOException ioex) {
 
-				logException(ioex, "{0}: IOException in element \"{1}\" for parameters: {2}", new Object[] { getName(), entity, getParametersAsString(sources) });
+				logException(ioex, "{}: IOException in element \"{}\" for parameters: {}", new Object[] { getName(), entity, getParametersAsString(sources) });
 
 			}
 

@@ -28,8 +28,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.tools.Diagnostic;
 import javax.tools.Diagnostic.Kind;
@@ -38,6 +36,8 @@ import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.DiagnosticErrorToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.Services;
@@ -50,7 +50,7 @@ import org.structr.module.JarConfigurationProvider;
  */
 public class NodeExtender {
 
-	private static final Logger logger   = Logger.getLogger(NodeExtender.class.getName());
+	private static final Logger logger   = LoggerFactory.getLogger(NodeExtender.class.getName());
 
 	private static final JavaCompiler compiler       = ToolProvider.getSystemJavaCompiler();
 	private static final JavaFileManager fileManager = new ClassFileManager(compiler.getStandardFileManager(null, null, null));
@@ -98,7 +98,7 @@ public class NodeExtender {
 
 		if (!jfiles.isEmpty()) {
 
-			logger.log(Level.FINE, "Compiling {0} dynamic entities...", jfiles.size());
+			logger.debug("Compiling {} dynamic entities...", jfiles.size());
 
 			Boolean success = compiler.getTask(errorWriter, fileManager, new Listener(errorBuffer), null, null, jfiles).call();
 
@@ -114,8 +114,8 @@ public class NodeExtender {
 
 					} catch (Throwable t) {
 
-						logger.log(Level.WARNING, "Unable to load dynamic entity {0}: {1}", new Object[] { fqcn, t.toString() });
-						logger.log(Level.WARNING, "", t);
+						logger.warn("Unable to load dynamic entity {}: {}", new Object[] { fqcn, t.toString() });
+						logger.warn("", t);
 
 						success = false;
 					}
@@ -135,7 +135,7 @@ public class NodeExtender {
 						classes.put(newType.getName(), newType);
 					}
 
-					logger.log(Level.INFO, "Successfully compiled {0} dynamic entities: {1}", new Object[] { jfiles.size(), jfiles.stream().map(f -> f.getName().replaceFirst("/", "")).collect(Collectors.joining(", ")) });
+					logger.info("Successfully compiled {} dynamic entities: {}", new Object[] { jfiles.size(), jfiles.stream().map(f -> f.getName().replaceFirst("/", "")).collect(Collectors.joining(", ")) });
 				}
 
 			}
@@ -168,7 +168,7 @@ public class NodeExtender {
 				errorBuffer.add(new DiagnosticErrorToken(name, diagnostic));
 
 				// log also to log file
-				logger.log(Level.WARNING, "Unable to compile dynamic entity {0}: {1}", new Object[] { name, diagnostic.getMessage(Locale.ENGLISH) });
+				logger.warn("Unable to compile dynamic entity {}: {}", new Object[] { name, diagnostic.getMessage(Locale.ENGLISH) });
 			}
 		}
 	}

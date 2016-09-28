@@ -18,8 +18,8 @@
  */
 package org.structr.common.fulltext;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 
@@ -28,17 +28,17 @@ import org.structr.core.GraphObjectMap;
  */
 public class DummyFulltextIndexer implements FulltextIndexer {
 
-	private static final Logger logger = Logger.getLogger(DummyFulltextIndexer.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(DummyFulltextIndexer.class.getName());
 
 	@Override
 	public void addToFulltextIndex(final Indexable indexable) throws FrameworkException {
-		logger.log(Level.WARNING, "No fulltext indexer installed, this is a dummy implementation that does nothing.");
+		logger.warn("No fulltext indexer installed, this is a dummy implementation that does nothing.");
 	}
 
 	@Override
 	public GraphObjectMap getContextObject(String searchTerm, String text, int contextLength) {
 
-		logger.log(Level.WARNING, "No fulltext indexer installed, this is a dummy implementation that does nothing.");
+		logger.warn("No fulltext indexer installed, this is a dummy implementation that does nothing.");
 
 		return new GraphObjectMap();
 	}

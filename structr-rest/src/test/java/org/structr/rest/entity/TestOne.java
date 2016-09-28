@@ -23,10 +23,10 @@ import java.util.Map;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.Export;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.Property;
 import org.structr.rest.RestMethodResult;
 

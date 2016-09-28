@@ -23,12 +23,11 @@ import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
-import org.structr.rest.common.StructrRestTest;
 import static org.hamcrest.Matchers.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -37,6 +36,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.common.TestEnum;
 import org.structr.rest.entity.TestThree;
 import org.structr.rest.entity.TestUser;
@@ -47,7 +47,7 @@ import org.structr.rest.entity.TestUser;
  */
 public class AdvancedSearchTest extends StructrRestTest {
 
-	private static final Logger logger = Logger.getLogger(AdvancedSearchTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(AdvancedSearchTest.class.getName());
 
 	public void testGraphBasedIndexingSearchOnNotionProperties() {
 
@@ -781,7 +781,7 @@ public class AdvancedSearchTest extends StructrRestTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception");
 
 		}
@@ -847,7 +847,7 @@ public class AdvancedSearchTest extends StructrRestTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception");
 
 		}
@@ -1063,7 +1063,7 @@ public class AdvancedSearchTest extends StructrRestTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception");
 
 		}

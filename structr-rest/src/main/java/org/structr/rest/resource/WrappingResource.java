@@ -18,13 +18,10 @@
  */
 package org.structr.rest.resource;
 
+import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.Map;
 
 //~--- classes ----------------------------------------------------------------
 

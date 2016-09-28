@@ -18,10 +18,11 @@
  */
 package org.structr.core.converter;
 
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.GraphObject;
+import org.structr.core.property.PropertyKey;
 
 /**
  * Maps a property to another property.
@@ -30,7 +31,7 @@ import org.structr.core.GraphObject;
  */
 public class PropertyMapper extends PropertyConverter {
 
-	private static final Logger logger = Logger.getLogger(PropertyMapper.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(PropertyMapper.class.getName());
 
 	private PropertyKey mappedKey = null;
 	

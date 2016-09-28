@@ -40,8 +40,10 @@ import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.AsyncContext;
@@ -102,7 +104,7 @@ import org.structr.web.entity.dom.Page;
  */
 public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
-	private static final Logger logger = Logger.getLogger(HtmlServlet.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(HtmlServlet.class.getName());
 
 	public static final String CONFIRM_REGISTRATION_PAGE = "/confirm_registration";
 	public static final String RESET_PASSWORD_PAGE       = "/reset-password";
@@ -213,7 +215,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				boolean dontCache = false;
 
-				logger.log(Level.FINE, "Path info {0}", path);
+				logger.debug("Path info {}", path);
 
 				// don't continue on redirects
 				if (response.getStatus() == 302) {
@@ -245,7 +247,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					// find a visible page
 					rootElement = findIndexPage(securityContext, pages, edit);
 
-					logger.log(Level.FINE, "No path supplied, trying to find index page");
+					logger.debug("No path supplied, trying to find index page");
 
 				} else {
 
@@ -446,14 +448,14 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 										tx.success();
 
 									} catch (Throwable t) {
-										logger.log(Level.WARNING, "", t);
+										logger.warn("", t);
 										final String errorMsg = t.getMessage();
 										try {
 											//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 											response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorMsg);
 											finished.set(true);
 										} catch (IOException ex) {
-											logger.log(Level.WARNING, "", ex);
+											logger.warn("", ex);
 										}
 									}
 								}
@@ -501,13 +503,13 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 										}
 
 									} catch (Throwable t) {
-										logger.log(Level.WARNING, "", t);
+										logger.warn("", t);
 									}
 								}
 
 								@Override
 								public void onError(Throwable t) {
-									logger.log(Level.WARNING, "", t);
+									logger.warn("", t);
 								}
 							});
 
@@ -526,7 +528,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 								response.getOutputStream().close();
 
 							} catch (IOException ioex) {
-								logger.log(Level.WARNING, "", ioex);
+								logger.warn("", ioex);
 							}
 						}
 					}
@@ -535,12 +537,12 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				logger.log(Level.SEVERE, "Exception while processing request", fex);
+				logger.error("Exception while processing request", fex);
 			}
 
 		} catch (IOException | FrameworkException t) {
 
-			logger.log(Level.SEVERE, "Exception while processing request", t);
+			logger.error("Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
 	}
@@ -585,7 +587,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				boolean dontCache = false;
 
-				logger.log(Level.FINE, "Path info {0}", path);
+				logger.debug("Path info {}", path);
 
 				// don't continue on redirects
 				if (response.getStatus() == 302) {
@@ -617,7 +619,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					// find a visible page
 					rootElement = findIndexPage(securityContext, pages, edit);
 
-					logger.log(Level.FINE, "No path supplied, trying to find index page");
+					logger.debug("No path supplied, trying to find index page");
 
 				} else {
 
@@ -814,12 +816,12 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				tx.success();
 
 			} catch (Throwable fex) {
-				logger.log(Level.SEVERE, "Exception while processing request", fex);
+				logger.error("Exception while processing request", fex);
 			}
 
 		} catch (FrameworkException t) {
 
-			logger.log(Level.SEVERE, "Exception while processing request", t);
+			logger.error("Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
 	}
@@ -842,7 +844,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (FrameworkException t) {
 
-			logger.log(Level.SEVERE, "Exception while processing request", t);
+			logger.error("Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
 	}
@@ -894,7 +896,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		if (!name.isEmpty()) {
 
-			logger.log(Level.FINE, "Requested name: {0}", name);
+			logger.debug("Requested name: {}", name);
 
 			final Query query                  = StructrApp.getInstance(securityContext).nodeQuery();
 			final ConfigurationProvider config = StructrApp.getConfiguration();
@@ -909,7 +911,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 			final Result results = query.getResult();
 
-			logger.log(Level.FINE, "{0} results", results.size());
+			logger.debug("{} results", results.size());
 			request.setAttribute(POSSIBLE_ENTRY_POINTS_KEY, results.getResults());
 
 			return (results.size() > 0 ? (AbstractNode) results.get(0) : null);
@@ -931,7 +933,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		if (!uuid.isEmpty()) {
 
-			logger.log(Level.FINE, "Requested id: {0}", uuid);
+			logger.debug("Requested id: {}", uuid);
 
 			return (AbstractNode) StructrApp.getInstance(securityContext).getNodeById(uuid);
 		}
@@ -1045,7 +1047,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 */
 	private boolean checkRegistration(final Authenticator auth, final HttpServletRequest request, final HttpServletResponse response, final String path) throws FrameworkException, IOException {
 
-		logger.log(Level.FINE, "Checking registration ...");
+		logger.debug("Checking registration ...");
 
 		String key = request.getParameter(CONFIRM_KEY_KEY);
 
@@ -1117,7 +1119,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 */
 	private boolean checkResetPassword(final Authenticator auth, final HttpServletRequest request, final HttpServletResponse response, final String path) throws FrameworkException, IOException {
 
-		logger.log(Level.FINE, "Checking registration ...");
+		logger.debug("Checking registration ...");
 
 		String key = request.getParameter(CONFIRM_KEY_KEY);
 
@@ -1178,7 +1180,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		if (uuid.length() > 0) {
 
-			logger.log(Level.FINE, "Requested id: {0}", uuid);
+			logger.debug("Requested id: {}", uuid);
 
 			final Query query = StructrApp.getInstance(securityContext).nodeQuery();
 
@@ -1188,7 +1190,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			// Searching for pages needs super user context anyway
 			Result results = query.getResult();
 
-			logger.log(Level.FINE, "{0} results", results.size());
+			logger.debug("{} results", results.size());
 			request.setAttribute(POSSIBLE_ENTRY_POINTS_KEY, results.getResults());
 
 			return (List<Linkable>) results.getResults();
@@ -1207,7 +1209,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		if (path.length() > 0) {
 
-			logger.log(Level.FINE, "Requested path: {0}", path);
+			logger.debug("Requested path: {}", path);
 
 			final Query pageQuery = StructrApp.getInstance(securityContext).nodeQuery();
 
@@ -1219,7 +1221,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 			final Result files = fileQuery.getResult();
 			
-			logger.log(Level.FINE, "Found {0} pages and {1} files/folders", new Object[] { pages.size(), files.size() });
+			logger.debug("Found {} pages and {} files/folders", new Object[] { pages.size(), files.size() });
 			
 			final List<Linkable> linkables = (List<Linkable>) pages.getResults();
 			linkables.addAll(files.getResults());
@@ -1244,7 +1246,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		if (numberOfParts > 0) {
 
-			logger.log(Level.FINE, "Requested name {0}", path);
+			logger.debug("Requested name {}", path);
 
 			possibleEntryPoints = findPossibleEntryPointsByPath(securityContext, request, path);
 
@@ -1274,7 +1276,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			final String[] keyValuePair = header.split("[ :]+");
 			response.setHeader(keyValuePair[0], keyValuePair[1]);
 
-			logger.log(Level.FINE, "Set custom response header: {0} {1}", new Object[]{keyValuePair[0], keyValuePair[1]});
+			logger.debug("Set custom response header: {} {}", new Object[]{keyValuePair[0], keyValuePair[1]});
 
 		}
 
@@ -1336,7 +1338,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					}
 
 				} catch (ParseException ex) {
-					logger.log(Level.WARNING, "Could not parse If-Modified-Since header", ex);
+					logger.warn("Could not parse If-Modified-Since header", ex);
 				}
 
 			}
@@ -1490,7 +1492,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				file.invokeMethod("onDownload", Collections.EMPTY_MAP, false);
 
 			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "", fex);
+				logger.warn("", fex);
 			}
 		}
 	}
@@ -1505,33 +1507,33 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 */
 	private boolean isVisibleForSite(final HttpServletRequest request, final Page page) {
 
-		logger.log(Level.FINE, "Page: {0} [{1}], server name: {2}, server port: {3}", new Object[]{page.getName(), page.getUuid(), request.getServerName(), request.getServerPort()});
+		logger.debug("Page: {} [{}], server name: {}, server port: {}", new Object[]{page.getName(), page.getUuid(), request.getServerName(), request.getServerPort()});
 
 		final Site site = page.getProperty(Page.site);
 
 		if (site == null) {
-			logger.log(Level.FINE, "Page {0} [{1}] has no site assigned.", new Object[]{page.getName(), page.getUuid()});
+			logger.debug("Page {} [{}] has no site assigned.", new Object[]{page.getName(), page.getUuid()});
 			return true;
 		}
 
-		logger.log(Level.FINE, "Checking site: {0} [{1}], hostname: {2}, port: {3}", new Object[]{site.getName(), site.getUuid(), site.getProperty(Site.hostname), site.getProperty(Site.port)});
+		logger.debug("Checking site: {} [{}], hostname: {}, port: {}", new Object[]{site.getName(), site.getUuid(), site.getProperty(Site.hostname), site.getProperty(Site.port)});
 
 		final String serverName = request.getServerName();
 		final int serverPort = request.getServerPort();
 
 		if (StringUtils.isNotBlank(serverName) && !serverName.equals(site.getProperty(Site.hostname))) {
-			logger.log(Level.FINE, "Server name {0} does not fit site hostname {1}", new Object[]{serverName, site.getProperty(Site.hostname)});
+			logger.debug("Server name {} does not fit site hostname {}", new Object[]{serverName, site.getProperty(Site.hostname)});
 			return false;
 		}
 
 		final Integer sitePort = site.getProperty(Site.port);
 
 		if (sitePort != null && serverPort != sitePort) {
-			logger.log(Level.FINE, "Server port {0} does not match site port {1}", new Object[]{serverPort, sitePort});
+			logger.debug("Server port {} does not match site port {}", new Object[]{serverPort, sitePort});
 			return false;
 		}
 
-		logger.log(Level.FINE, "Matching site: {0} [{1}], hostname: {2}, port: {3}", new Object[]{site.getName(), site.getUuid(), site.getProperty(Site.hostname), site.getProperty(Site.port)});
+		logger.debug("Matching site: {} [{}], hostname: {}, port: {}", new Object[]{site.getName(), site.getUuid(), site.getProperty(Site.hostname), site.getProperty(Site.port)});
 
 		return true;
 
@@ -1553,7 +1555,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					break;
 
 				default:
-					logger.log(Level.WARNING, "Unable to process key for object resolution {0}.", possiblePropertyName);
+					logger.warn("Unable to process key for object resolution {}.", possiblePropertyName);
 					break;
 			}
 
@@ -1583,12 +1585,12 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					} else {
 
-						logger.log(Level.WARNING, "Unable to find property key {0} of type {1} defined in key {2} used for object resolution.", new Object[] { keyName, className, possiblePropertyName } );
+						logger.warn("Unable to find property key {} of type {} defined in key {} used for object resolution.", new Object[] { keyName, className, possiblePropertyName } );
 					}
 
 				} else {
 
-					logger.log(Level.WARNING, "Unable to find type {0} defined in key {1} used for object resolution.", new Object[] { className, possiblePropertyName } );
+					logger.warn("Unable to find type {} defined in key {} used for object resolution.", new Object[] { className, possiblePropertyName } );
 				}
 			}
 		}

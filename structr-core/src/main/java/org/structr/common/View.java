@@ -18,8 +18,8 @@
  */
 package org.structr.common;
 
-import org.structr.core.property.Property;
 import org.structr.core.GraphObject;
+import org.structr.core.property.Property;
 
 /**
  * Defines a named set of {@link Property} keys for a given type. This class is

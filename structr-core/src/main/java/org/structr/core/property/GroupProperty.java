@@ -18,15 +18,13 @@
  */
 package org.structr.core.property;
 
-import org.structr.core.graph.search.SearchAttributeGroup;
-import org.structr.core.graph.search.SearchAttribute;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import org.structr.api.search.Occurrence;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -37,6 +35,8 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.PropertySearchAttribute;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchAttributeGroup;
 
 /**
  * A property that combines other properties in a nested object.
@@ -45,7 +45,7 @@ import org.structr.core.graph.search.PropertySearchAttribute;
  */
 public class GroupProperty extends Property<PropertyMap> implements PropertyGroup<PropertyMap> {
 
-	private static final Logger logger = Logger.getLogger(GroupProperty.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(GroupProperty.class.getName());
 
 	// indicates whether this group property is
 	protected Map<String, PropertyKey> propertyKeys    = new LinkedHashMap<>();
@@ -240,7 +240,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 
 				} catch(FrameworkException fex) {
 
-					logger.log(Level.WARNING, "Unable to convert grouped property {0} on type {1}: {2}", new Object[] {
+					logger.warn("Unable to convert grouped property {} on type {}: {}", new Object[] {
 						key.dbName(),
 						source.getClass().getSimpleName(),
 						fex.getMessage()

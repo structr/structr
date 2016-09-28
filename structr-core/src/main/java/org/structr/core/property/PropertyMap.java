@@ -25,11 +25,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Properties;
 import org.apache.chemistry.opencmis.commons.data.PropertyData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -47,7 +47,7 @@ import org.structr.schema.SchemaHelper;
  */
 public class PropertyMap {
 
-	private static final Logger logger      = Logger.getLogger(PropertyMap.class.getName());
+	private static final Logger logger      = LoggerFactory.getLogger(PropertyMap.class.getName());
 	private static final Map<String, String> CMIS_PROPERTY_MAPPING = new LinkedHashMap<>();
 
 	static {
@@ -296,12 +296,12 @@ public class PropertyMap {
 
 				} else {
 
-					logger.log(Level.WARNING, "No entity type found for raw type {0}", typeName);
+					logger.warn("No entity type found for raw type {}", typeName);
 				}
 
 			} else {
 
-				logger.log(Level.WARNING, "No entity type found in source map: {0}", source);
+				logger.warn("No entity type found in source map: {}", source);
 			}
 		}
 
@@ -449,7 +449,7 @@ public class PropertyMap {
 
 		PropertyMap map = new PropertyMap();
 
-		logger.log(Level.SEVERE, "Using GenericProperty for input {0}", source);
+		logger.error("Using GenericProperty for input {}", source);
 		//Thread.dumpStack();
 
 		if (source != null) {

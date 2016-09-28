@@ -26,8 +26,10 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -52,7 +54,7 @@ import org.structr.web.entity.Image;
  */
 public class FileImportVisitor implements FileVisitor<Path> {
 
-	private static final Logger logger      = Logger.getLogger(FileImportVisitor.class.getName());
+	private static final Logger logger      = LoggerFactory.getLogger(FileImportVisitor.class.getName());
 	private Map<String, Object> config      = null;
 	private SecurityContext securityContext = null;
 	private Path basePath                   = null;
@@ -91,7 +93,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	@Override
 	public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
 
-		logger.log(Level.WARNING, "Exception while importing file {0}: {1}", new Object[] { file.toString(), exc.getMessage() });
+		logger.warn("Exception while importing file {}: {}", new Object[] { file.toString(), exc.getMessage() });
 		return FileVisitResult.CONTINUE;
 	}
 
@@ -140,7 +142,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 				if (checksumOfExistingFile != null && checksumOfNewFile != null && checksumOfExistingFile.equals(checksumOfNewFile)) {
 
-					logger.log(Level.INFO, "{0} is unmodified, skipping import.", fullPath);
+					logger.info("{} is unmodified, skipping import.", fullPath);
 					return;
 				}
 
@@ -148,7 +150,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 				app.delete(existing);
 			}
 
-			logger.log(Level.INFO, "Importing {0}..", fullPath);
+			logger.info("Importing {}..", fullPath);
 
 			// close input stream
 			try (final FileInputStream fis = new FileInputStream(file.toFile())) {

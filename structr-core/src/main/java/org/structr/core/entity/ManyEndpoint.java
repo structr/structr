@@ -24,13 +24,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.structr.api.graph.Direction;
-import org.structr.api.util.Iterables;
-import org.structr.api.graph.Node;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.graph.Direction;
+import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -45,7 +45,7 @@ import org.structr.core.graph.NodeInterface;
  */
 public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint implements Target<Iterable<Relationship>, Iterable<T>> {
 
-	private static final Logger logger = Logger.getLogger(ManyEndpoint.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ManyEndpoint.class.getName());
 
 	private Relation<?, T, ?, ManyEndpoint<T>> relation = null;
 
@@ -107,7 +107,7 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 
 				if (sourceNode.equals(targetNode)) {
 
-					logger.log(Level.WARNING, "Preventing deletion of self relationship {0}-[{1}]->{2}. If you experience issue with this, please report to team@structr.com.", new Object[] { sourceNode, rel.getRelType(), targetNode } );
+					logger.warn("Preventing deletion of self relationship {}-[{}]->{}. If you experience issue with this, please report to team@structr.com.", new Object[] { sourceNode, rel.getRelType(), targetNode } );
 
 					// skip self relationships
 					continue;

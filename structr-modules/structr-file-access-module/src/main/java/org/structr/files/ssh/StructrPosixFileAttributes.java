@@ -26,8 +26,10 @@ import java.nio.file.attribute.UserPrincipal;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
@@ -42,7 +44,7 @@ import org.structr.web.entity.User;
  */
 public class StructrPosixFileAttributes implements PosixFileAttributes {
 	
-	private static final Logger logger = Logger.getLogger(StructrPosixFileAttributes.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrPosixFileAttributes.class.getName());
 	
 	final AbstractFile file;
 	
@@ -59,7 +61,7 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 			owner = file.getOwnerNode()::getName;
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 		
 		return owner;
@@ -89,7 +91,7 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 			time = FileTime.fromMillis(file.getLastModifiedDate().getTime());
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 		
 		return time;
@@ -106,7 +108,7 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 			time = FileTime.fromMillis(file.getLastModifiedDate().getTime());
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 		
 		return time;
@@ -121,7 +123,7 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 			time = FileTime.fromMillis(file.getCreatedDate().getTime());
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 		
 		return time;
@@ -136,7 +138,7 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 			isRegularFile = file.getProperty(FileBase.isFile);
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 		
 		return isRegularFile;
@@ -151,7 +153,7 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 			isDirectory = file.getProperty(Folder.isFolder);
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 		
 		return isDirectory;
@@ -177,7 +179,7 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 			size = file.getProperty(FileBase.size);
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 		
 		return size;
@@ -191,7 +193,7 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 			uuid = file.getUuid();
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "", fex);
+			logger.error("", fex);
 		}
 		
 		return uuid;

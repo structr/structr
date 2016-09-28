@@ -22,8 +22,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -37,7 +39,7 @@ import org.structr.web.entity.FileBase;
  */
 public class StructrFtpFile extends AbstractStructrFtpFile {
 
-	private static final Logger logger = Logger.getLogger(StructrFtpFile.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrFtpFile.class.getName());
 	
 	public StructrFtpFile(final SecurityContext securityContext, final FileBase file) {
 		super(securityContext, file);
@@ -71,7 +73,7 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 
 	@Override
 	public boolean mkdir() {
-		logger.log(Level.INFO, "mkdir()");
+		logger.info("mkdir()");
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
@@ -87,7 +89,7 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 			return outputStream;
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, null, fex);
+			logger.error(null, fex);
 		}
 		
 		return null;
@@ -105,7 +107,7 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 			return inputStream;
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, null, fex);
+			logger.error(null, fex);
 		}
 
 		return null;
@@ -113,7 +115,7 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 
 	@Override
 	public List<FtpFile> listFiles() {
-		logger.log(Level.INFO, "listFiles()");
+		logger.info("listFiles()");
 		return null;
 	}
 

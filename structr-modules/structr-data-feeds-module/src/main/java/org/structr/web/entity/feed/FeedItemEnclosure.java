@@ -19,8 +19,10 @@
 package org.structr.web.entity.feed;
 
 import java.io.InputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -49,7 +51,7 @@ import org.structr.web.entity.relation.FeedItemContents;
  */
 public class FeedItemEnclosure extends AbstractNode implements Indexable {
 
-    private static final Logger logger = Logger.getLogger(FeedItemContent.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(FeedItemContent.class.getName());
 
     public static final Property<String> url                     = new StringProperty("url");
     public static final Property<Long> enclosureLength                  = new LongProperty("enclosureLength");
@@ -70,7 +72,7 @@ public class FeedItemEnclosure extends AbstractNode implements Indexable {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "Unable to index " + this, fex);
+			logger.warn("Unable to index " + this, fex);
 		}
 	}
 

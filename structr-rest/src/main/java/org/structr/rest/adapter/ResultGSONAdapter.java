@@ -18,7 +18,6 @@
  */
 package org.structr.rest.adapter;
 
-import org.structr.rest.GraphObjectGSONAdapter;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -34,8 +33,9 @@ import java.text.DecimalFormatSymbols;
 import java.util.List;
 import java.util.Locale;
 import org.structr.core.GraphObject;
-import org.structr.core.Value;
 import org.structr.core.Result;
+import org.structr.core.Value;
+import org.structr.rest.GraphObjectGSONAdapter;
 
 /**
  * Controls deserialization of property sets.

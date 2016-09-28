@@ -24,8 +24,10 @@ import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.crypto.Cipher;
 import org.structr.cloud.message.AuthenticationRequest;
 import org.structr.cloud.message.Begin;
@@ -44,7 +46,7 @@ import org.structr.core.Services;
  */
 public class CloudService extends Thread implements RunnableService {
 
-	private static final Logger logger        = Logger.getLogger(CloudService.class.getName());
+	private static final Logger logger        = LoggerFactory.getLogger(CloudService.class.getName());
 	private static final int DefaultTcpPort   = 54555;
 
 	/**
@@ -112,7 +114,7 @@ public class CloudService extends Thread implements RunnableService {
 		running = true;
 		start();
 
-		logger.log(Level.INFO, "CloudService successfully started.");
+		logger.info("CloudService successfully started.");
 
 	}
 
@@ -157,7 +159,7 @@ public class CloudService extends Thread implements RunnableService {
 		try {
 			maxKeyLen = Cipher.getMaxAllowedKeyLength(CloudService.STREAM_CIPHER);
 		} catch (NoSuchAlgorithmException nsaex) {
-			logger.log(Level.WARNING, "", nsaex);
+			logger.warn("", nsaex);
 		}
 
 		try {
@@ -195,7 +197,7 @@ public class CloudService extends Thread implements RunnableService {
 
 		} catch (IOException  ioex) {
 
-			logger.log(Level.WARNING, "", ioex);
+			logger.warn("", ioex);
 
 			throw new FrameworkException(504, "Unable to connect to remote server: " + ioex.getMessage());
 

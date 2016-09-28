@@ -24,8 +24,10 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.autocomplete.AbstractHintProvider;
 import org.structr.autocomplete.JavascriptHintProvider;
 import org.structr.autocomplete.PlaintextHintProvider;
@@ -45,7 +47,7 @@ import org.structr.websocket.StructrWebSocket;
  */
 public class AutocompleteCommand extends AbstractCommand {
 
-	private static final Logger logger                                   = Logger.getLogger(AutocompleteCommand.class.getName());
+	private static final Logger logger                                   = LoggerFactory.getLogger(AutocompleteCommand.class.getName());
 	private static final Property<List<GraphObjectMap>> list             = new GenericProperty("list");
 	private static final Map<String, AbstractHintProvider> hintProviders = new HashMap<>();
 
@@ -84,17 +86,17 @@ public class AutocompleteCommand extends AbstractCommand {
 					result.addAll(hints);
 
 				} catch(FrameworkException fex) {
-					logger.log(Level.WARNING, "", fex);
+					logger.warn("", fex);
 				}
 
 			} else {
 
-				logger.log(Level.WARNING, "No HintProvider for content type {0}, ignoring.", contentType);
+				logger.warn("No HintProvider for content type {}, ignoring.", contentType);
 			}
 
 		} else {
 
-			logger.log(Level.WARNING, "No content type for AutocompleteCommand, ignoring.");
+			logger.warn("No content type for AutocompleteCommand, ignoring.");
 		}
 
 		// set full result list

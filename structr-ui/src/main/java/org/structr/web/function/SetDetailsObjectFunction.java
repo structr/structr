@@ -18,7 +18,8 @@
  */
 package org.structr.web.function;
 
-import java.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
@@ -47,7 +48,7 @@ public class SetDetailsObjectFunction extends UiFunction {
 
 			} else {
 
-				logger.log(Level.WARNING, "Error: Parameter 1 is not a graph object. Parameters: {0}", getParametersAsString(sources));
+				logger.warn("Error: Parameter 1 is not a graph object. Parameters: {}", getParametersAsString(sources));
 
 			}
 

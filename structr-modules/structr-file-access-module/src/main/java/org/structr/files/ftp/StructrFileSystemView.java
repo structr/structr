@@ -18,8 +18,10 @@
  */
 package org.structr.files.ftp;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.ftplet.FileSystemView;
 import org.apache.ftpserver.ftplet.FtpException;
@@ -45,7 +47,7 @@ import org.structr.web.entity.dom.Page;
  */
 public class StructrFileSystemView implements FileSystemView {
 
-	private static final Logger logger = Logger.getLogger(StructrFileSystemView.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrFileSystemView.class.getName());
 	private StructrFtpUser user = null;
 	private SecurityContext securityContext = null;
 
@@ -64,7 +66,7 @@ public class StructrFileSystemView implements FileSystemView {
 			tx.success();
 		
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error while initializing file system view", fex);
+			logger.error("Error while initializing file system view", fex);
 		}
 	}
 
@@ -82,7 +84,7 @@ public class StructrFileSystemView implements FileSystemView {
 			return new StructrFtpFolder(securityContext, homeDir);
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error while getting home directory", fex);
+			logger.error("Error while getting home directory", fex);
 		}
 
 		return null;
@@ -104,7 +106,7 @@ public class StructrFileSystemView implements FileSystemView {
 			return new StructrFtpFolder(securityContext, (Folder) structrWorkingDir);
 			
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error in changeWorkingDirectory()", fex);
+			logger.error("Error in changeWorkingDirectory()", fex);
 		}
 		
 		return null;
@@ -124,7 +126,7 @@ public class StructrFileSystemView implements FileSystemView {
 			return true;
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error in changeWorkingDirectory()", fex);
+			logger.error("Error in changeWorkingDirectory()", fex);
 		}
 
 		return false;
@@ -133,7 +135,7 @@ public class StructrFileSystemView implements FileSystemView {
 	@Override
 	public FtpFile getFile(String requestedPath) throws FtpException {
 
-		logger.log(Level.INFO, "Requested path: {0}", requestedPath);
+		logger.info("Requested path: {}", requestedPath);
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
@@ -156,7 +158,7 @@ public class StructrFileSystemView implements FileSystemView {
 
 				String basePath = cur.getAbsolutePath();
 
-				logger.log(Level.INFO, "Base path: {0}", basePath);
+				logger.info("Base path: {}", basePath);
 
 				while (requestedPath.startsWith("..")) {
 					requestedPath = StringUtils.stripStart(StringUtils.stripStart(requestedPath, ".."), "/");
@@ -165,7 +167,7 @@ public class StructrFileSystemView implements FileSystemView {
 
 				requestedPath = StringUtils.stripEnd(basePath.equals("/") ? "/".concat(requestedPath) : basePath.concat("/").concat(requestedPath), "/");
 
-				logger.log(Level.INFO, "Base path: {0}, requestedPath: {1}", new Object[]{basePath, requestedPath});
+				logger.info("Base path: {}, requestedPath: {}", new Object[]{basePath, requestedPath});
 
 			}
 
@@ -192,13 +194,13 @@ public class StructrFileSystemView implements FileSystemView {
 				return new FtpFilePageWrapper(page);
 			}
 
-			logger.log(Level.WARNING, "No existing file found: {0}", requestedPath);
+			logger.warn("No existing file found: {}", requestedPath);
 
 			tx.success();
 			return new FileOrFolder(requestedPath, user);
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error in getFile()", fex);
+			logger.error("Error in getFile()", fex);
 		}
 
 		return null;
@@ -207,13 +209,13 @@ public class StructrFileSystemView implements FileSystemView {
 
 	@Override
 	public boolean isRandomAccessible() throws FtpException {
-		logger.log(Level.INFO, "isRandomAccessible(), returning true");
+		logger.info("isRandomAccessible(), returning true");
 		return true;
 	}
 
 	@Override
 	public void dispose() {
-		logger.log(Level.INFO, "dispose() does nothing");
+		logger.info("dispose() does nothing");
 	}
 
 }

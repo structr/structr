@@ -30,8 +30,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.NotFoundException;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
@@ -47,7 +47,7 @@ import org.structr.schema.SchemaHelper;
 
 public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>, Function<S, T> {
 
-	private static final Logger logger = Logger.getLogger(Factory.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(Factory.class.getName());
 	public static final ExecutorService service = Executors.newCachedThreadPool();
 	public static final int DEFAULT_PAGE_SIZE = Integer.MAX_VALUE;
 	public static final int DEFAULT_PAGE      = 1;
@@ -395,14 +395,14 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 				} catch (InterruptedException | ExecutionException iex) {
 
 					if (!iex.getMessage().contains("org.neo4j.kernel.api.exceptions.EntityNotFoundException")) {
-						logger.log(Level.WARNING, "", iex);
+						logger.warn("", iex);
 					}
 				}
 			}
 
 			final double tt1 = System.nanoTime();
 			if (tt1-tt0 > 1000000000) {
-				logger.log(Level.INFO, "Instantiated {0} out of {1} elements in {2} s using {3} threads.", new Object[] { nodes.size(), rawCount, (tt1-tt0) / 1000000000.0, threadCount } );
+				logger.info("Instantiated {} out of {} elements in {} s using {} threads.", new Object[] { nodes.size(), rawCount, (tt1-tt0) / 1000000000.0, threadCount } );
 			}
 		}
 		*/
@@ -467,7 +467,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "", fex);
+				logger.warn("", fex);
 			}
 		}
 
@@ -516,7 +516,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 				if (doLogOutput && System.currentTimeMillis() - t1 > 2000) {
 
 					t1 = System.currentTimeMillis();
-					logger.log(Level.INFO, "Parallel instantiation: checked {0} nodes so far", processedItems.get());
+					logger.info("Parallel instantiation: checked {} nodes so far", processedItems.get());
 				}
 
 			} while (item != null && keepRunning.get());

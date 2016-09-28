@@ -18,8 +18,10 @@
  */
 package org.structr.websocket.command;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.eclipse.jetty.websocket.api.Session;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -48,7 +50,7 @@ public abstract class AbstractCommand {
 
 	public static final String COMMAND_KEY = "command";
 	public static final String ID_KEY      = "id";
-	private static final Logger logger     = Logger.getLogger(AbstractCommand.class.getName());
+	private static final Logger logger     = LoggerFactory.getLogger(AbstractCommand.class.getName());
 
 	protected Session session              = null;
 	protected StructrWebSocket webSocket   = null;
@@ -123,7 +125,7 @@ public abstract class AbstractCommand {
 			return graphObject;
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "Unable to get graph object", fex);
+			logger.warn("Unable to get graph object", fex);
 		}
 
 		return null;
@@ -150,7 +152,7 @@ public abstract class AbstractCommand {
 			return node;
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "Unable to get node", fex);
+			logger.warn("Unable to get node", fex);
 		}
 
 		return null;
@@ -181,7 +183,7 @@ public abstract class AbstractCommand {
 			return rel;
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "Unable to get relationship", fex);
+			logger.warn("Unable to get relationship", fex);
 		}
 
 		return null;

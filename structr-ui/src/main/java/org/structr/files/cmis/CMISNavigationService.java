@@ -22,8 +22,10 @@ import java.math.BigInteger;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.ObjectInFolderContainer;
@@ -59,7 +61,7 @@ import org.structr.web.entity.Image;
  */
 public class CMISNavigationService extends AbstractStructrCmisService implements NavigationService {
 
-	private static final Logger logger = Logger.getLogger(CMISNavigationService.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CMISNavigationService.class.getName());
 
 	public CMISNavigationService(final StructrCMISService parentService, final SecurityContext securityContext) {
 		super(parentService, securityContext);
@@ -78,7 +80,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 			tx.success();
 
 		} catch (final FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
 		return wrapper;
@@ -107,7 +109,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 			tx.success();
 
 		} catch (final FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
 		return result;
@@ -156,7 +158,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 			tx.success();
 
 		} catch (final FrameworkException fex) {
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 
 		return result;
@@ -187,7 +189,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 			return data;
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 		return null;
@@ -215,7 +217,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 			tx.success();
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 		if (result != null) {

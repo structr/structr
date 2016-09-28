@@ -24,8 +24,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.Transaction;
 import org.structr.common.error.FrameworkException;
@@ -39,7 +39,7 @@ import org.structr.core.graph.MaintenanceCommand;
  */
 public class GraphGistImporter extends SchemaImporter implements MaintenanceCommand {
 
-	private static final Logger logger = Logger.getLogger(GraphGistImporter.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(GraphGistImporter.class.getName());
 
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
@@ -80,8 +80,8 @@ public class GraphGistImporter extends SchemaImporter implements MaintenanceComm
 			}
 
 		} catch (IOException ioex) {
-			//iologger.log(Level.WARNING, "", ex);
-			logger.log(Level.FINE, "Filename: " + fileName + ", URL: " + url + ", source: " + source, ioex);
+			//iologger.warn("", ex);
+			logger.debug("Filename: " + fileName + ", URL: " + url + ", source: " + source, ioex);
 		}
 
 		analyzeSchema();
@@ -109,7 +109,7 @@ public class GraphGistImporter extends SchemaImporter implements MaintenanceComm
 
 			} catch (Throwable t) {
 				// ignore
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 			}
 		}
 	}

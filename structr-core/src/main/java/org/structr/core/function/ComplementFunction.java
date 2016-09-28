@@ -21,7 +21,6 @@ package org.structr.core.function;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
@@ -66,7 +65,7 @@ public class ComplementFunction extends Function<Object, Object> {
 
 		} else {
 
-			logger.log(Level.WARNING, "Argument 1 for must be a Collection. Parameters: {1}", new Object[] { getName(), getParametersAsString(sources) });
+			logger.warn("Argument 1 for must be a Collection. Parameters: {}", new Object[] { getName(), getParametersAsString(sources) });
 			return "Argument 1 for complement must be a Collection";
 
 		}

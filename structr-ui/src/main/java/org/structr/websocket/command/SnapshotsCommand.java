@@ -26,7 +26,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.websocket.message.WebSocketMessage;
 import org.structr.websocket.StructrWebSocket;
@@ -34,7 +35,8 @@ import org.structr.websocket.message.MessageBuilder;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -52,7 +54,7 @@ import org.structr.rest.maintenance.SnapshotCommand;
  */
 public class SnapshotsCommand extends AbstractCommand {
 
-	private static final Logger logger                            = Logger.getLogger(SnapshotsCommand.class.getName());
+	private static final Logger logger                            = LoggerFactory.getLogger(SnapshotsCommand.class.getName());
 	private static final Property<List<String>> snapshotsProperty = new GenericProperty<>("snapshots");
 	private static final Property<String> statusProperty          = new GenericProperty<>("status");
 
@@ -112,7 +114,7 @@ public class SnapshotsCommand extends AbstractCommand {
 
 
 						} catch (IOException ex) {
-							Logger.getLogger(SnapshotsCommand.class.getName()).log(Level.SEVERE, null, ex);
+							LoggerFactory.getLogger(SnapshotsCommand.class.getName()).error("", ex);
 						}
 
 					}
@@ -130,7 +132,7 @@ public class SnapshotsCommand extends AbstractCommand {
 						msg.put(statusProperty, "success");
 
 					} catch (Throwable t) {
-						logger.log(Level.WARNING, "", t);
+						logger.warn("", t);
 						msg.put(statusProperty, t.getMessage());
 					}
 			}

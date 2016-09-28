@@ -18,8 +18,8 @@
  */
 package org.structr.core.property;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
@@ -28,7 +28,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
-import org.structr.util.LogMessageSupplier;
 
 /**
  *
@@ -36,7 +35,7 @@ import org.structr.util.LogMessageSupplier;
  */
 public class FunctionProperty<T> extends Property<T> {
 
-	private static final Logger logger = Logger.getLogger(FunctionProperty.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FunctionProperty.class.getName());
 
 	public FunctionProperty(final String name) {
 		super(name);
@@ -64,12 +63,12 @@ public class FunctionProperty<T> extends Property<T> {
 
 			} else {
 
-				logger.log(Level.WARNING, "Unable to evaluate function property {0}, object was null.", jsonName());
+				logger.warn("Unable to evaluate function property {}, object was null.", jsonName());
 			}
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, t, LogMessageSupplier.create("Exception while evaluating read function in Function property \"{0}\"", jsonName()));
+			logger.warn("Exception while evaluating read function in Function property \"{}\"", jsonName());
 
 		}
 
@@ -128,7 +127,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, t, LogMessageSupplier.create("Exception while evaluating write function in Function property \"{0}\"", jsonName()));
+			logger.warn("Exception while evaluating write function in Function property \"{}\"", jsonName());
 
 		}
 

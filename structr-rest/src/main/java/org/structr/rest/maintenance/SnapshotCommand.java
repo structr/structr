@@ -31,9 +31,9 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -51,7 +51,7 @@ import org.structr.schema.json.JsonSchema;
  */
 public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCommand {
 
-	private static final Logger logger = Logger.getLogger(SnapshotCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(SnapshotCommand.class.getName());
 
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
@@ -128,7 +128,7 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 			tx.success();
 
 		} catch (IOException | URISyntaxException ioex) {
-			logger.log(Level.WARNING, "", ioex);
+			logger.warn("", ioex);
 		}
 	}
 
@@ -160,7 +160,7 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 			tx.success();
 
 		} catch (IOException | URISyntaxException ioex) {
-			logger.log(Level.WARNING, "", ioex);
+			logger.warn("", ioex);
 		}
 	}
 
@@ -192,7 +192,7 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 			tx.success();
 
 		} catch (IOException | URISyntaxException ioex) {
-			logger.log(Level.WARNING, "", ioex);
+			logger.warn("", ioex);
 		}
 	}
 

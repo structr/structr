@@ -19,8 +19,8 @@
 package org.structr.core.entity;
 
 import java.util.Set;
-import org.structr.api.graph.Node;
 import org.structr.api.Predicate;
+import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;

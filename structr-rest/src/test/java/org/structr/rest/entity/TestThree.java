@@ -21,7 +21,6 @@ package org.structr.rest.entity;
 import java.util.Date;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
-import org.structr.core.property.Property;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.*;
 import org.structr.rest.common.TestEnum;

@@ -20,8 +20,10 @@ package org.structr.files.ftp;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.ftpserver.ftplet.Authentication;
 import org.apache.ftpserver.ftplet.AuthenticationFailedException;
 import org.apache.ftpserver.ftplet.FtpException;
@@ -44,7 +46,7 @@ import org.structr.rest.auth.AuthHelper;
  */
 public class StructrUserManager implements UserManager {
 
-	private static final Logger logger = Logger.getLogger(StructrUserManager.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrUserManager.class.getName());
 
 	private SecurityContext securityContext = null;
 
@@ -59,7 +61,7 @@ public class StructrUserManager implements UserManager {
 				return null;
 			}
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Unable to get user by its name", fex);
+			logger.error("Unable to get user by its name", fex);
 		}
 		return null;
 	}
@@ -79,7 +81,7 @@ public class StructrUserManager implements UserManager {
 
 			} catch (FrameworkException ex) {
 
-				logger.log(Level.WARNING, "Error while searching for principal", ex);
+				logger.warn("Error while searching for principal", ex);
 
 			}
 
@@ -99,7 +101,7 @@ public class StructrUserManager implements UserManager {
 			return (String[]) userNames.toArray(new String[userNames.size()]);
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Unable to get user by its name", fex);
+			logger.error("Unable to get user by its name", fex);
 		}
 		
 		return null;
@@ -127,7 +129,7 @@ public class StructrUserManager implements UserManager {
 			return exists;
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Unable to determine if user " + string + " exists", fex);
+			logger.error("Unable to determine if user " + string + " exists", fex);
 		}
 
 		return false;
@@ -136,7 +138,7 @@ public class StructrUserManager implements UserManager {
 	@Override
 	public User authenticate(Authentication auth) throws AuthenticationFailedException {
 
-		logger.log(Level.FINE, "Authentication: {0}", auth);
+		logger.debug("Authentication: {}", auth);
 		String userName = null;
 		String password = null;
 
@@ -159,7 +161,7 @@ public class StructrUserManager implements UserManager {
 				tx.success();
 
 			} catch (FrameworkException ex) {
-				logger.log(Level.WARNING, "FTP authentication attempt failed with username {0} and password {1}", new Object[]{userName, password});
+				logger.warn("FTP authentication attempt failed with username {} and password {}", new Object[]{userName, password});
 			}
 
 			if (user != null) {
@@ -194,7 +196,7 @@ public class StructrUserManager implements UserManager {
 			return user;
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Unable to get user by its name", fex);
+			logger.error("Unable to get user by its name", fex);
 		}
 
 		return null;

@@ -19,8 +19,7 @@
 package org.structr.ldap;
 
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.service.Command;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
@@ -53,7 +52,7 @@ public class LDAPCommand extends Command implements MaintenanceCommand {
 				ldapService.doUpdate();
 
 			} catch (Throwable t) {
-				Logger.getLogger(LDAPCommand.class.getName()).log(Level.WARNING, "Unable to update LDAP information.", t);
+				LoggerFactory.getLogger(LDAPCommand.class.getName()).warn("Unable to update LDAP information.", t);
 			}
 		}
 	}

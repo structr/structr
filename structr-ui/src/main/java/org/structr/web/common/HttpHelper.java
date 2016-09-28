@@ -22,8 +22,10 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
@@ -51,7 +53,7 @@ import static org.structr.web.entity.dom.DOMNode.extractHeaders;
  */
 public class HttpHelper {
 	
-	private static final Logger logger = Logger.getLogger(HttpHelper.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(HttpHelper.class.getName());
 	
 	private static String address;
 	private static String proxyUrl;
@@ -159,7 +161,7 @@ public class HttpHelper {
 
 		} catch (final Throwable t) {
 			
-			logger.log(Level.SEVERE, "Unable to fetch content from address " + address + ": ", t.getMessage());
+			logger.error("Unable to fetch content from address " + address + ": ", t.getMessage());
 			return t.getMessage();
 			
 		}
@@ -189,7 +191,7 @@ public class HttpHelper {
 
 		} catch (final Throwable t) {
 			
-			logger.log(Level.SEVERE, "Unable to get headers from address " + address + ": ", t.getMessage());
+			logger.error("Unable to get headers from address " + address + ": ", t.getMessage());
 			
 		}
 

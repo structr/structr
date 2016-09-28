@@ -21,21 +21,20 @@ package org.structr.core.graph;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
 import org.structr.api.util.Iterables;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.search.SearchCommand;
 
 //~--- classes ----------------------------------------------------------------
@@ -44,7 +43,7 @@ import org.structr.core.graph.search.SearchCommand;
  */
 public class BulkCreateLabelsCommand extends NodeServiceCommand implements MaintenanceCommand, TransactionPostProcess {
 
-	private static final Logger logger = Logger.getLogger(BulkCreateLabelsCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(BulkCreateLabelsCommand.class.getName());
 
 	//~--- methods --------------------------------------------------------
 	@Override
@@ -63,16 +62,16 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "Exception while creating all nodes iterator.", fex);
+			logger.warn("Exception while creating all nodes iterator.", fex);
 		}
 
 		if (entityType == null) {
 
-			logger.log(Level.INFO, "Node type not set or no entity class found. Starting creation of labels for all nodes.");
+			logger.info("Node type not set or no entity class found. Starting creation of labels for all nodes.");
 
 		} else {
 
-			logger.log(Level.INFO, "Starting creation of labels for all nodes of type {0}", entityType);
+			logger.info("Starting creation of labels for all nodes of type {}", entityType);
 		}
 
 		final long count = NodeServiceCommand.bulkGraphOperation(securityContext, nodeIterator, 10000, "CreateLabels", new BulkGraphOperation<AbstractNode>() {
@@ -121,16 +120,16 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 
 			@Override
 			public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
-				logger.log(Level.WARNING, "Unable to create labels for node {0}: {1}", new Object[]{node, t.getMessage()});
+				logger.warn("Unable to create labels for node {}: {}", new Object[]{node, t.getMessage()});
 			}
 
 			@Override
 			public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
-				logger.log(Level.WARNING, "Unable to create labels for node: {0}", t.getMessage());
+				logger.warn("Unable to create labels for node: {}", t.getMessage());
 			}
 		});
 
-		logger.log(Level.INFO, "Done with creating labels on {0} nodes", count);
+		logger.info("Done with creating labels on {} nodes", count);
 	}
 
 	@Override

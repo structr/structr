@@ -21,8 +21,8 @@ package org.structr.core.property;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
@@ -42,7 +42,7 @@ import org.structr.core.graph.search.SearchAttributeGroup;
  */
 public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
-	private static final Logger logger = Logger.getLogger(ArrayProperty.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ArrayProperty.class.getName());
 
 	private Class<T> componentType = null;
 
@@ -80,7 +80,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 				try {
 					setProperty(securityContext, entity, (T[]) fixedValue);
 				} catch (FrameworkException ex) {
-					logger.log(Level.WARNING, "", ex);
+					logger.warn("", ex);
 				}
 
 			}

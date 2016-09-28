@@ -18,27 +18,24 @@
  */
 package org.structr.schema;
 
-import org.structr.core.notion.*;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
-import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.PropertiesNotFoundToken;
 import org.structr.common.error.TypeToken;
+import org.structr.core.GraphObject;
 import org.structr.core.JsonInput;
 import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.notion.*;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -50,7 +47,7 @@ import org.structr.core.property.RelationProperty;
  */
 public class SchemaDeserializationStrategy<S, T extends NodeInterface> implements DeserializationStrategy<S, T> {
 
-	private static final Logger logger = Logger.getLogger(TypeAndPropertySetDeserializationStrategy.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(TypeAndPropertySetDeserializationStrategy.class.getName());
 
 	protected Set<PropertyKey> identifyingPropertyKeys = null;
 	protected Set<PropertyKey> foreignPropertyKeys     = null;
@@ -192,7 +189,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 				default:
 
 					errorMessage = "Found " + size + " nodes for given type and properties, property set is ambiguous";
-					logger.log(Level.SEVERE, "Found {0} nodes for given type and properties, property set is ambiguous!\n"
+					logger.error("Found {} nodes for given type and properties, property set is ambiguous!\n"
 						+ "This is often due to wrong modeling, or you should consider creating a uniquness constraint for " + type.getName(), size);
 
 					break;

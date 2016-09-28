@@ -26,8 +26,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.eclipse.jetty.util.URIUtil;
 import org.eclipse.jetty.websocket.api.Session;
@@ -53,7 +55,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class WebsocketController implements StructrTransactionListener {
 
-	private static final Logger logger                 = Logger.getLogger(WebsocketController.class.getName());
+	private static final Logger logger                 = LoggerFactory.getLogger(WebsocketController.class.getName());
 	private static final Set<String> BroadcastCommands = new HashSet<>(Arrays.asList(new String[] { "UPDATE", "ADD", "CREATE" } ));
 
 	private final Set<StructrWebSocket> clients = new ConcurrentHashSet<>();
@@ -80,7 +82,7 @@ public class WebsocketController implements StructrTransactionListener {
 	// ----- private methods -----
 	private void broadcast(final WebSocketMessage webSocketData) {
 
-		//logger.log(Level.FINE, "Broadcasting message to {0} clients..", clients.size());
+		//logger.debug("Broadcasting message to {} clients..", clients.size());
 		// session must be valid to be received by the client
 		webSocketData.setSessionValid(true);
 
@@ -153,7 +155,7 @@ public class WebsocketController implements StructrTransactionListener {
 						}
 					}
 
-					logger.log(Level.FINE, "Error sending message to client.", t);
+					logger.debug("Error sending message to client.", t);
 				}
 
 			}
@@ -164,7 +166,7 @@ public class WebsocketController implements StructrTransactionListener {
 
 			unregisterClient(s);
 
-			logger.log(Level.WARNING, "Client removed from broadcast list: {0}", s);
+			logger.warn("Client removed from broadcast list: {}", s);
 		}
 
 	}

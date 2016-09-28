@@ -28,8 +28,10 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.imageio.ImageIO;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.SecurityContext;
@@ -47,7 +49,7 @@ import org.structr.dynamic.File;
 
 public abstract class ImageHelper extends FileHelper {
 
-	private static final Logger logger = Logger.getLogger(ImageHelper.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ImageHelper.class.getName());
 	//private static Thumbnail tn        = new Thumbnail();
 
 	//~--- methods --------------------------------------------------------
@@ -138,7 +140,7 @@ public abstract class ImageHelper extends FileHelper {
 
 			if (in == null) {
 
-				logger.log(Level.FINE, "InputStream of original image {0} ({1}) is null", new Object[] { originalImage.getName(), originalImage.getId() });
+				logger.debug("InputStream of original image {} ({}) is null", new Object[] { originalImage.getName(), originalImage.getId() });
 				return null;
 			}
 
@@ -185,7 +187,7 @@ public abstract class ImageHelper extends FileHelper {
 						final int offsetX = Math.abs(maxWidth - destWidth) / 2;
 						final int offsetY = Math.abs(maxHeight - destHeight) / 2;
 
-						logger.log(Level.FINE, "Offset and Size (x,y,w,h): {0},{1},{2},{3}", new Object[] { offsetX, offsetY, maxWidth, maxHeight });
+						logger.debug("Offset and Size (x,y,w,h): {},{},{},{}", new Object[] { offsetX, offsetY, maxWidth, maxHeight });
 
 						result = resampled.getSubimage(offsetX, offsetY, maxWidth, maxHeight);
 
@@ -213,7 +215,7 @@ public abstract class ImageHelper extends FileHelper {
 
 			} else {
 
-				logger.log(Level.FINE, "Thumbnail could not be created");
+				logger.debug("Thumbnail could not be created");
 
 				return null;
 
@@ -222,7 +224,7 @@ public abstract class ImageHelper extends FileHelper {
 			final long end  = System.nanoTime();
 			final long time = (end - start) / 1000000;
 
-			logger.log(Level.FINE, "Thumbnail created. Reading, scaling and writing took {0} ms", time);
+			logger.debug("Thumbnail created. Reading, scaling and writing took {} ms", time);
 
 			tn.setBytes(baos.toByteArray());
 
@@ -230,7 +232,7 @@ public abstract class ImageHelper extends FileHelper {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Unable to create thumbnail for image with ID {0}.", originalImage.getUuid());
+			logger.warn("Unable to create thumbnail for image with ID {}.", originalImage.getUuid());
 		}
 
 		return null;
@@ -283,7 +285,7 @@ public abstract class ImageHelper extends FileHelper {
 
 		} catch (IOException ex) {
 
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 
 			if (in != null) {
 
@@ -313,7 +315,7 @@ public abstract class ImageHelper extends FileHelper {
 			}
 
 		} catch (IOException ex) {
-			logger.log(Level.SEVERE, "Could not get base64 string from file ", ex);
+			logger.error("Could not get base64 string from file ", ex);
 		}
 
 		return null;

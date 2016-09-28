@@ -27,8 +27,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
@@ -56,7 +58,7 @@ import org.structr.schema.ConfigurationProvider;
 
 public class SourcePattern extends AbstractNode {
 	
-	private static final Logger logger = Logger.getLogger(SourcePattern.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(SourcePattern.class.getName());
 
 	public static final Property<List<SourcePattern>> subPatternsProperty           = new EndNodes<>("subPatterns", SourcePatternSUBSourcePattern.class);
 	public static final Property<SourcePage>          subPageProperty               = new EndNode<>("subPage", SourcePatternSUBPAGESourcePage.class);
@@ -169,7 +171,7 @@ public class SourcePattern extends AbstractNode {
 			
 			
 		} catch (IOException ex) {
-			logger.log(Level.SEVERE, null, ex);
+			logger.error("", ex);
 		}
 		
 		return content;

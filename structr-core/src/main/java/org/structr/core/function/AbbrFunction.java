@@ -65,7 +65,7 @@ public class AbbrFunction extends Function<Object, Object> {
 
 		} catch (final NumberFormatException nfe) {
 
-			logException(nfe, "{0}: NumberFormatException in element \"{1}\". Can not parse \"{2}\" as Integer. Returning original string. Parameters: {3}", new Object[] {getName(), entity, sources[1], getParametersAsString(sources) });
+			logException(nfe, "{}: NumberFormatException in element \"{}\". Can not parse \"{}\" as Integer. Returning original string. Parameters: {}", new Object[] {getName(), entity, sources[1], getParametersAsString(sources) });
 
 			return sources[0];
 

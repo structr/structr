@@ -24,8 +24,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.lang3.StringUtils;
@@ -40,7 +42,7 @@ import org.structr.web.importer.Importer;
  */
 public class DownloadHelper {
 
-	private static final Logger logger = Logger.getLogger(DownloadHelper.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(DownloadHelper.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -63,9 +65,9 @@ public class DownloadHelper {
 			return get.getResponseBodyAsStream();
 
 		} catch (MalformedURLException ex) {
-			logger.log(Level.SEVERE, "Can't download content from malformed URL " + address, ex);
+			logger.error("Can't download content from malformed URL " + address, ex);
 		} catch (IOException ex) {
-			logger.log(Level.SEVERE, "Can't download content from URL " + address, ex);
+			logger.error("Can't download content from URL " + address, ex);
 		}
 
 		return null;

@@ -21,8 +21,10 @@ package org.structr.files.ssh.shell;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
@@ -40,7 +42,7 @@ import org.structr.web.entity.Folder;
  */
 public class CatCommand extends NonInteractiveShellCommand {
 
-	private static final Logger logger = Logger.getLogger(CatCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CatCommand.class.getName());
 
 	@Override
 	public void execute(final StructrShellCommand parent) throws IOException {
@@ -63,7 +65,7 @@ public class CatCommand extends NonInteractiveShellCommand {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 		}
 	}
 
@@ -203,7 +205,7 @@ public class CatCommand extends NonInteractiveShellCommand {
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				logger.log(Level.WARNING, "", fex);
+				logger.warn("", fex);
 			}
 
 

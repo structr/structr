@@ -28,8 +28,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.activation.MimetypesFileTypeMap;
 import net.sf.jmimemagic.Magic;
 import net.sf.jmimemagic.MagicException;
@@ -63,7 +65,7 @@ import org.structr.web.entity.Folder;
 public class FileHelper {
 
 	private static final String UNKNOWN_MIME_TYPE = "application/octet-stream";
-	private static final Logger logger = Logger.getLogger(FileHelper.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FileHelper.class.getName());
 	private static final MimetypesFileTypeMap mimeTypeMap = new MimetypesFileTypeMap(FileHelper.class.getResourceAsStream("/mime.types"));
 
 	//~--- methods --------------------------------------------------------
@@ -253,7 +255,7 @@ public class FileHelper {
 			}
 
 		} catch (IOException ex) {
-			logger.log(Level.SEVERE, "Could not get base64 string from file ", ex);
+			logger.error("Could not get base64 string from file ", ex);
 		}
 
 		return null;
@@ -414,7 +416,7 @@ public class FileHelper {
 			}
 
 		} catch (MagicParseException | MagicMatchNotFoundException | MagicException ignore) {
-			// mlogger.log(Level.WARNING, "", ex);
+			// mlogger.warn("", ex);
 		}
 
 
@@ -442,7 +444,7 @@ public class FileHelper {
 
 			} catch (IOException ex) {
 
-				logger.log(Level.WARNING, "Could not calculate checksum of file {0}", filePath);
+				logger.warn("Could not calculate checksum of file {}", filePath);
 			}
 		}
 
@@ -472,13 +474,13 @@ public class FileHelper {
 				java.io.File fileOnDisk = new java.io.File(filePath);
 				long fileSize = fileOnDisk.length();
 
-				logger.log(Level.FINE, "File size of node {0} ({1}): {2}", new Object[]{file.getUuid(), filePath, fileSize});
+				logger.debug("File size of node {} ({}): {}", new Object[]{file.getUuid(), filePath, fileSize});
 
 				return fileSize;
 
 			} catch (Exception ex) {
 
-				logger.log(Level.WARNING, "Could not calculate file size{0}", filePath);
+				logger.warn("Could not calculate file size{}", filePath);
 
 			}
 
@@ -544,7 +546,7 @@ public class FileHelper {
 //
 //		return currentFile;
 		} catch (FrameworkException ex) {
-			logger.log(Level.WARNING, "File not found: {0}", new Object[] { absolutePath });
+			logger.warn("File not found: {}", new Object[] { absolutePath });
 		}
 
 		return null;
@@ -552,14 +554,14 @@ public class FileHelper {
 
 	public static AbstractFile getFileByUuid(final SecurityContext securityContext, final String uuid) {
 
-		logger.log(Level.FINE, "Search for file with uuid: {0}", uuid);
+		logger.debug("Search for file with uuid: {}", uuid);
 
 		try {
 			return StructrApp.getInstance(securityContext).get(AbstractFile.class, uuid);
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "Unable to find a file by UUID {0}: {1}", new Object[]{uuid, fex.getMessage()});
+			logger.warn("Unable to find a file by UUID {}: {}", new Object[]{uuid, fex.getMessage()});
 		}
 
 		return null;
@@ -567,14 +569,14 @@ public class FileHelper {
 
 	public static AbstractFile getFirstFileByName(final SecurityContext securityContext, final String name) {
 
-		logger.log(Level.FINE, "Search for file with name: {0}", name);
+		logger.debug("Search for file with name: {}", name);
 
 		try {
 			return StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).andName(name).getFirst();
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "Unable to find a file for name {0}: {1}", new Object[]{name, fex.getMessage()});
+			logger.warn("Unable to find a file for name {}: {}", new Object[]{name, fex.getMessage()});
 		}
 
 		return null;
@@ -589,7 +591,7 @@ public class FileHelper {
 	 */
 	public static AbstractFile getFirstRootFileByName(final SecurityContext securityContext, final String name) {
 
-		logger.log(Level.FINE, "Search for file with name: {0}", name);
+		logger.debug("Search for file with name: {}", name);
 
 		try {
 			final List<AbstractFile> files = StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).andName(name).getAsList();
@@ -604,7 +606,7 @@ public class FileHelper {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "Unable to find a file for name {0}: {1}", new Object[]{name, fex.getMessage()});
+			logger.warn("Unable to find a file for name {}: {}", new Object[]{name, fex.getMessage()});
 		}
 
 		return null;

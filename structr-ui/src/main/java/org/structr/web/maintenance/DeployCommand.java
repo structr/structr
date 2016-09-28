@@ -38,8 +38,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -78,7 +80,7 @@ import org.structr.web.maintenance.deploy.TemplateImportVisitor;
  */
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
 
-	private static final Logger logger = Logger.getLogger(BulkMoveUnusedFilesCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(BulkMoveUnusedFilesCommand.class.getName());
 
 	static {
 
@@ -134,7 +136,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Path usersConf = source.resolve("security/users.json");
 		if (Files.exists(usersConf)) {
 
-			logger.log(Level.INFO, "Reading {0}..", usersConf);
+			logger.info("Reading {}..", usersConf);
 			importMapData(User.class, readConfigMap(usersConf));
 		}
 
@@ -142,7 +144,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Path grantsConf = source.resolve("security/grants.json");
 		if (Files.exists(grantsConf)) {
 
-			logger.log(Level.INFO, "Reading {0}..", grantsConf);
+			logger.info("Reading {}..", grantsConf);
 			importListData(ResourceAccess.class, readConfigList(grantsConf));
 		}
 
@@ -150,7 +152,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Path filesConfFile = source.resolve("files.json");
 		if (Files.exists(filesConfFile)) {
 
-			logger.log(Level.INFO, "Reading {0}..", filesConfFile);
+			logger.info("Reading {}..", filesConfFile);
 			filesConf.putAll(readConfigMap(filesConfFile));
 		}
 
@@ -158,7 +160,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Path pagesConfFile = source.resolve("pages.json");
 		if (Files.exists(pagesConfFile)) {
 
-			logger.log(Level.INFO, "Reading {0}..", pagesConfFile);
+			logger.info("Reading {}..", pagesConfFile);
 			pagesConf.putAll(readConfigMap(pagesConfFile));
 		}
 
@@ -166,7 +168,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Path componentsConfFile = source.resolve("components.json");
 		if (Files.exists(componentsConfFile)) {
 
-			logger.log(Level.INFO, "Reading {0}..", componentsConfFile);
+			logger.info("Reading {}..", componentsConfFile);
 			componentsConf.putAll(readConfigMap(componentsConfFile));
 		}
 
@@ -174,7 +176,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Path templatesConfFile = source.resolve("templates.json");
 		if (Files.exists(templatesConfFile)) {
 
-			logger.log(Level.INFO, "Reading {0}..", templatesConfFile);
+			logger.info("Reading {}..", templatesConfFile);
 			templatesConf.putAll(readConfigMap(templatesConfFile));
 		}
 
@@ -184,11 +186,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try {
 
-				logger.log(Level.INFO, "Importing data from schema/ directory..");
+				logger.info("Importing data from schema/ directory..");
 				Files.walkFileTree(schema, new SchemaImportVisitor(schema));
 
 			} catch (IOException ioex) {
-				logger.log(Level.WARNING, "Exception while importing schema", ioex);
+				logger.warn("Exception while importing schema", ioex);
 			}
 		}
 
@@ -198,11 +200,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try {
 
-				logger.log(Level.INFO, "Importing files...");
+				logger.info("Importing files...");
 				Files.walkFileTree(files, new FileImportVisitor(files, filesConf));
 
 			} catch (IOException ioex) {
-				logger.log(Level.WARNING, "Exception while importing files", ioex);
+				logger.warn("Exception while importing files", ioex);
 			}
 		}
 
@@ -212,11 +214,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try {
 
-				logger.log(Level.INFO, "Importing templates..");
+				logger.info("Importing templates..");
 				Files.walkFileTree(templates, new TemplateImportVisitor(templatesConf));
 
 			} catch (IOException ioex) {
-				logger.log(Level.WARNING, "Exception while importing templates", ioex);
+				logger.warn("Exception while importing templates", ioex);
 			}
 		}
 
@@ -226,11 +228,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try {
 
-				logger.log(Level.INFO, "Importing shared components..");
+				logger.info("Importing shared components..");
 				Files.walkFileTree(components, new ComponentImportVisitor(componentsConf));
 
 			} catch (IOException ioex) {
-				logger.log(Level.WARNING, "Exception while importing shared components", ioex);
+				logger.warn("Exception while importing shared components", ioex);
 			}
 		}
 
@@ -240,11 +242,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try {
 
-				logger.log(Level.INFO, "Importing pages..");
+				logger.info("Importing pages..");
 				Files.walkFileTree(pages, new PageImportVisitor(pages, pagesConf));
 
 			} catch (IOException ioex) {
-				logger.log(Level.WARNING, "Exception while importing pages", ioex);
+				logger.warn("Exception while importing pages", ioex);
 			}
 		}
 
@@ -254,7 +256,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				logger.log(Level.INFO, "Applying configuration from {0}..", conf);
+				logger.info("Applying configuration from {}..", conf);
 
 				final String confSource = new String(Files.readAllBytes(conf), Charset.forName("utf-8"));
 				Scripting.evaluate(new ActionContext(SecurityContext.getSuperUserInstance()), null, confSource.trim());
@@ -266,7 +268,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 		}
 
-		logger.log(Level.INFO, "Import from {0} done.", source.toString());
+		logger.info("Import from {} done.", source.toString());
 	}
 
 	private void doExport(final Map<String, Object> attributes) throws FrameworkException {

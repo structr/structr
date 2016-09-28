@@ -18,8 +18,10 @@
  */
 package org.structr.web.entity.html;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.web.entity.dom.DOMElement;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -39,7 +41,7 @@ import org.w3c.dom.Node;
  */
 public class Style extends DOMElement {
 
-	private static final Logger logger = Logger.getLogger(Style.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(Style.class.getName());
 	
 	public static final Property<String> _media  = new HtmlProperty("media");
 	public static final Property<String> _type   = new HtmlProperty("type");
@@ -70,7 +72,7 @@ public class Style extends DOMElement {
 				
 			} catch (FrameworkException fex) {
 				
-				logger.log(Level.WARNING, "Unable to set property on new child: {0}", fex.getMessage());
+				logger.warn("Unable to set property on new child: {}", fex.getMessage());
 				
 			}
 		}

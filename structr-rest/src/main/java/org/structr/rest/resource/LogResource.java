@@ -42,13 +42,13 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
@@ -78,7 +78,7 @@ import org.structr.rest.logging.entity.LogEvent;
  */
 public class LogResource extends Resource {
 
-	private static final Logger logger                          = Logger.getLogger(LogResource.class.getName());
+	private static final Logger logger                          = LoggerFactory.getLogger(LogResource.class.getName());
 	private static final Pattern RangeQueryPattern              = Pattern.compile("\\[(.+) TO (.+)\\]");
 
 	private static final String SUBJECTS                        = "/s/";
@@ -246,7 +246,7 @@ public class LogResource extends Resource {
 					collectFilesAndStore(context, new File(filesPath + SUBJECTS).toPath(), 0);
 
 				} catch (FrameworkException fex) {
-					logger.log(Level.WARNING, "", fex);
+					logger.warn("", fex);
 				}
 
 				return new RestMethodResult(200);
@@ -341,7 +341,7 @@ public class LogResource extends Resource {
 	private void collectFilesAndStore(final Context context, final Path dir, final int level) throws FrameworkException {
 
 		if (level == 1) {
-			logger.log(Level.INFO, "Path {0}", dir);
+			logger.info("Path {}", dir);
 		}
 
 		try (final DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
@@ -365,7 +365,7 @@ public class LogResource extends Resource {
 			}
 
 		} catch (IOException ioex) {
-			logger.log(Level.WARNING, "", ioex);
+			logger.warn("", ioex);
 		}
 	}
 
@@ -401,7 +401,7 @@ public class LogResource extends Resource {
 			}
 		}
 
-		logger.log(Level.FINE, "No. of correlations: {0}", state.getCorrelations().entrySet().size());
+		logger.debug("No. of correlations: {}", state.getCorrelations().entrySet().size());
 
 		final List<LogEvent> result = StructrApp.getInstance(securityContext).nodeQuery(LogEvent.class)
 			.and(LogEvent.actionProperty, state.logAction)
@@ -640,7 +640,7 @@ public class LogResource extends Resource {
 			return format.parse(format.format(timestamp)).getTime();
 
 		} catch (ParseException pex) {
-			logger.log(Level.WARNING, "", pex);
+			logger.warn("", pex);
 		}
 
 		return 0L;
@@ -672,7 +672,7 @@ public class LogResource extends Resource {
 			return max;
 
 		} catch (ParseException pex) {
-			logger.log(Level.WARNING, "", pex);
+			logger.warn("", pex);
 		}
 
 		return max;
@@ -924,7 +924,7 @@ public class LogResource extends Resource {
 
 		public void addCorrelationEntry(final String key, final LogEvent event) {
 
-			logger.log(Level.FINE, "No. of correllation entry lists: {0}, adding action: {1} {2}", new Object[]{correlations.keySet().size(), key, event.getMessage()});
+			logger.debug("No. of correllation entry lists: {}, adding action: {} {}", new Object[]{correlations.keySet().size(), key, event.getMessage()});
 
 			LinkedList<LogEvent> existingEventList = correlations.get(key);
 
@@ -1189,7 +1189,7 @@ public class LogResource extends Resource {
 
 							} catch (ParseException pex) {
 
-								logger.log(Level.WARNING, "", pex);
+								logger.warn("", pex);
 							}
 						}
 					}
@@ -1282,7 +1282,7 @@ public class LogResource extends Resource {
 
 			if (count > commitCount) {
 
-				logger.log(Level.INFO, "Committing transaction after {0} objects..", total);
+				logger.info("Committing transaction after {} objects..", total);
 
 				tx.success();
 				tx.close();

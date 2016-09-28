@@ -24,8 +24,10 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
@@ -56,7 +58,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 public class WrappedRestCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(WrapContentCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(WrapContentCommand.class.getName());
 
 	static {
 
@@ -72,7 +74,7 @@ public class WrappedRestCommand extends AbstractCommand {
 
 		if (method == null || ! (method.equals("POST") || method.equals("PUT")) ) {
 
-			logger.log(Level.WARNING, "Method not supported: {0}", method);
+			logger.warn("Method not supported: {}", method);
 			getWebSocket().send(MessageBuilder.wrappedRest().code(422).message("Method not supported: " + method).build(), true);
 
 			return;
@@ -86,7 +88,7 @@ public class WrappedRestCommand extends AbstractCommand {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.SEVERE, "Couldn't establish a resource provider", t);
+			logger.error("Couldn't establish a resource provider", t);
 			getWebSocket().send(MessageBuilder.wrappedRest().code(422).message("Couldn't establish a resource provider").build(), true);
 			return;
 
@@ -150,7 +152,7 @@ public class WrappedRestCommand extends AbstractCommand {
 
 		} catch (IllegalPathException | NotFoundException e) {
 
-			logger.log(Level.WARNING, "Illegal path for REST query");
+			logger.warn("Illegal path for REST query");
 			getWebSocket().send(MessageBuilder.wrappedRest().code(422).message("Illegal path for REST query").build(), true);
 			return;
 

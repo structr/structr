@@ -21,13 +21,13 @@ package org.structr.common;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.api.util.Iterables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
+import org.structr.api.util.Iterables;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
@@ -46,7 +46,7 @@ import org.structr.core.graph.TransactionCommand;
  */
 public class DefaultFactoryDefinition implements FactoryDefinition {
 
-	private static final Logger logger = Logger.getLogger(DefaultFactoryDefinition.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(DefaultFactoryDefinition.class.getName());
 
 	public static final String COMBINED_RELATIONSHIP_KEY_SEP = " ";
 
@@ -169,7 +169,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 		final Class entityType  = getClassForCombinedType(sourceType, relType, targetType);
 
 		if (entityType != null) {
-			logger.log(Level.FINE, "Class for assembled combined {0}", entityType.getName());
+			logger.debug("Class for assembled combined {}", entityType.getName());
 			return entityType;
 		}
 
@@ -178,7 +178,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 
 			Object obj =  relationship.getProperty(type);
 
-			logger.log(Level.FINEST, "Type property: {0}", obj);
+			logger.debug("Type property: {}", obj);
 
 			if (obj != null) {
 
@@ -196,7 +196,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 
 			Object obj =  relationship.getProperty(combinedTypeName);
 
-			logger.log(Level.FINE, "Combined type property: {0}", obj);
+			logger.debug("Combined type property: {}", obj);
 
 			if (obj != null) {
 
@@ -207,7 +207,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 			}
 		}
 
-		// logger.log(Level.WARNING, "No instantiable class for relationship found for {0} {1} {2}, returning generic relationship class.", new Object[] { sourceType, relType, targetType });
+		// logger.warn("No instantiable class for relationship found for {} {} {}, returning generic relationship class.", new Object[] { sourceType, relType, targetType });
 
 		return getGenericRelationshipType();
 	}

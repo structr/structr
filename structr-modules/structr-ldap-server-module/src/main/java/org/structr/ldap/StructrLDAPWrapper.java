@@ -30,8 +30,10 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.directory.api.ldap.model.constants.SchemaConstants;
@@ -74,7 +76,7 @@ import org.structr.ldap.api.LDAPValue;
  */
 public class StructrLDAPWrapper {
 
-	private static final Logger logger = Logger.getLogger(StructrLDAPWrapper.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrLDAPWrapper.class.getName());
 	private SecurityContext securityContext = null;
 	private SchemaManager schemaManager     = null;
 	private String partitionId              = null;
@@ -149,18 +151,18 @@ public class StructrLDAPWrapper {
 
 					} else {
 
-						logger.log(Level.WARNING, "Unable to add entry {0}, could not create new instance", entry);
+						logger.warn("Unable to add entry {}, could not create new instance", entry);
 					}
 
 				} else {
 
 
-					logger.log(Level.WARNING, "Unable to add entry {0}, could not determine object class(es)", entry);
+					logger.warn("Unable to add entry {}, could not determine object class(es)", entry);
 				}
 
 			} else {
 
-				logger.log(Level.WARNING, "Unable to add entry {0}, parent not found", entry);
+				logger.warn("Unable to add entry {}, parent not found", entry);
 			}
 
 			tx.success();

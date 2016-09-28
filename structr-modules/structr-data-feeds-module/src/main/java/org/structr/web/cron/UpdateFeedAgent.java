@@ -19,8 +19,10 @@
 package org.structr.web.cron;
 
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.agent.Agent;
 import org.structr.agent.ReturnValue;
 import org.structr.agent.Task;
@@ -34,19 +36,19 @@ import org.structr.web.entity.feed.DataFeed;
  */
 public class UpdateFeedAgent<T extends DataFeed> extends Agent<T> {
 
-	private static final Logger logger = Logger.getLogger(UpdateFeedAgent.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(UpdateFeedAgent.class.getName());
 
 	@Override
 	public ReturnValue processTask(final Task task) throws Throwable {
 
-		logger.log(Level.FINE, "Processing task {0}", task.getClass().getName());
+		logger.debug("Processing task {}", task.getClass().getName());
 
 		final App app = StructrApp.getInstance();
 		try (final Tx tx = app.tx(true, true, false)) {
 
 			for (DataFeed feed : (List<T>) task.getNodes()) {
 
-				logger.log(Level.FINE, "Updating data feed {0} if due", feed.getProperty(DataFeed.name));
+				logger.debug("Updating data feed {} if due", feed.getProperty(DataFeed.name));
 
 				feed.updateIfDue();
 			}

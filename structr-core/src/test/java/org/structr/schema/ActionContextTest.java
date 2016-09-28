@@ -24,11 +24,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrTest;
@@ -43,27 +43,23 @@ import org.structr.core.entity.TestSix;
 import org.structr.core.entity.TestThree;
 import org.structr.core.entity.TestTwo;
 import org.structr.core.entity.TestUser;
-import org.structr.core.graph.Tx;
 import org.structr.core.function.DateFormatFunction;
 import org.structr.core.function.FindFunction;
 import org.structr.core.function.NumberFormatFunction;
 import org.structr.core.function.ParseDateFunction;
 import org.structr.core.function.RoundFunction;
 import org.structr.core.function.ToDateFunction;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 
-/**
- *
- *
- */
 
 
 public class ActionContextTest extends StructrTest {
 
-	private static final Logger logger = Logger.getLogger(ActionContextTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ActionContextTest.class.getName());
 
 	public void testVariableReplacement() {
 
@@ -147,7 +143,7 @@ public class ActionContextTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 
 			fail("Unexpected exception");
 		}
@@ -1208,7 +1204,7 @@ public class ActionContextTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 
 			fail(fex.getMessage());
 		}
@@ -1245,7 +1241,7 @@ public class ActionContextTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception");
 
 		}
@@ -1270,7 +1266,7 @@ public class ActionContextTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception");
 
 		}
@@ -1296,7 +1292,7 @@ public class ActionContextTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception");
 
 		}
@@ -1317,7 +1313,7 @@ public class ActionContextTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception");
 
 		}
@@ -1343,7 +1339,7 @@ public class ActionContextTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception");
 
 		}
@@ -1368,7 +1364,7 @@ public class ActionContextTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail("Unexpected exception");
 
 		}
@@ -1385,7 +1381,7 @@ public class ActionContextTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-                        logger.log(Level.WARNING, "", ex);
+                        logger.warn("", ex);
                         fail("Unexpected exception");
 
                 }

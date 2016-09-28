@@ -31,8 +31,10 @@ import java.net.URL;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
@@ -62,7 +64,7 @@ import org.structr.web.entity.relation.FeedItems;
 
 public class DataFeed extends AbstractNode {
 
-	private static final Logger logger = Logger.getLogger(DataFeed.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(DataFeed.class.getName());
 
 	public static final Property<List<FeedItem>> items          = new EndNodes<>("items", FeedItems.class);
 	public static final Property<String>         url            = new StringProperty("url").indexed();
@@ -123,7 +125,7 @@ public class DataFeed extends AbstractNode {
 						StructrApp.getInstance().delete(item);
 
 					} catch (FrameworkException ex) {
-						logger.log(Level.SEVERE, "Error while deleting old/surplus feed item " + item, ex);
+						logger.error("Error while deleting old/surplus feed item " + item, ex);
 					}
 				}
 			}
@@ -224,7 +226,7 @@ public class DataFeed extends AbstractNode {
 
 						newItems.add(item);
 
-						logger.log(Level.FINE, "Created new item: {0} ({1}) ", new Object[]{item.getProperty(FeedItem.name), item.getProperty(FeedItem.pubDate)});
+						logger.debug("Created new item: {} ({}) ", new Object[]{item.getProperty(FeedItem.name), item.getProperty(FeedItem.pubDate)});
 
 					}
 				}
@@ -233,7 +235,7 @@ public class DataFeed extends AbstractNode {
 				setProperty(lastUpdated, new Date());
 
 			} catch (IllegalArgumentException | IOException | FetcherException | FeedException | FrameworkException ex) {
-				logger.log(Level.SEVERE, "Error while updating feed", ex);
+				logger.error("Error while updating feed", ex);
 			}
 
 		}

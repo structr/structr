@@ -20,11 +20,11 @@ package org.structr.core.property;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.api.search.Occurrence;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -32,9 +32,9 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.Target;
 import org.structr.core.entity.OneStartpoint;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.Target;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.EmptySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
@@ -49,7 +49,7 @@ import org.structr.core.notion.ObjectNotion;
  */
 public class StartNode<S extends NodeInterface, T extends NodeInterface> extends Property<S> implements RelationProperty<S> {
 
-	private static final Logger logger = Logger.getLogger(StartNode.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StartNode.class.getName());
 
 	// relationship members
 	private Relation<S, T, OneStartpoint<S>, ? extends Target> relation = null;
@@ -87,7 +87,7 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 			this.relation = relationClass.newInstance();
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 		this.notion        = notion;
@@ -281,7 +281,7 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Unable to fetch related node: {0}", t.getMessage());
+			logger.warn("Unable to fetch related node: {}", t.getMessage());
 		}
 
 		return relatedNodes;

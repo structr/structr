@@ -19,16 +19,11 @@
 package org.structr.core.graph;
 
 
-import org.structr.common.error.FrameworkException;
-
-//import org.structr.common.xpath.JXPathFinder;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.Relationship;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractRelationship;
 
 //~--- classes ----------------------------------------------------------------
@@ -40,7 +35,7 @@ import org.structr.core.entity.AbstractRelationship;
  */
 public class FindRelationshipCommand<T extends AbstractRelationship> extends NodeServiceCommand {
 
-	private static final Logger logger = Logger.getLogger(FindRelationshipCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FindRelationshipCommand.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
@@ -85,7 +80,7 @@ public class FindRelationshipCommand<T extends AbstractRelationship> extends Nod
 			} catch (NumberFormatException ex) {
 
 				// failed :(
-				logger.log(Level.FINE, "Could not parse {0} to number", idString);
+				logger.debug("Could not parse {} to number", idString);
 			}
 		}
 

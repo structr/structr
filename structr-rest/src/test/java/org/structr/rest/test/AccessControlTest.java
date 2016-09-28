@@ -18,14 +18,14 @@
  */
 package org.structr.rest.test;
 
-import static org.hamcrest.Matchers.*;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import static org.hamcrest.Matchers.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
@@ -40,7 +40,7 @@ import org.structr.rest.entity.TestUser;
  */
 public class AccessControlTest extends StructrRestTest {
 
-	private static final Logger logger = Logger.getLogger(AccessControlTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(AccessControlTest.class.getName());
 
 	@Override
 	protected void setUp() throws Exception {
@@ -89,7 +89,7 @@ public class AccessControlTest extends StructrRestTest {
 			tx.success();
 			
 		} catch (FrameworkException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail(ex.getMessage());
 		}
 
@@ -135,7 +135,7 @@ public class AccessControlTest extends StructrRestTest {
 			tx.success();
 			
 		} catch (FrameworkException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail(ex.getMessage());
 		}
 		
@@ -199,7 +199,7 @@ public class AccessControlTest extends StructrRestTest {
 			tx.success();
 			
 		} catch (FrameworkException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 			fail(ex.getMessage());
 		}
 		

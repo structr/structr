@@ -19,10 +19,10 @@
 package org.structr.cmis.wrapper;
 
 import org.apache.chemistry.opencmis.commons.PropertyIds;
-import org.structr.cmis.info.CMISFolderInfo;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.spi.BindingsObjectFactory;
 import org.structr.cmis.CMISInfo;
+import org.structr.cmis.info.CMISFolderInfo;
 import org.structr.common.error.FrameworkException;
 
 /**

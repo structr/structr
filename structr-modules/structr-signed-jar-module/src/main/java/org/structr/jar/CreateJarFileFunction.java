@@ -46,7 +46,8 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
-import java.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.security.auth.x500.X500Principal;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
@@ -141,7 +142,7 @@ public class CreateJarFileFunction extends UiFunction {
 //
 //									} catch (Throwable t) {
 //
-//										logger.log(Level.WARNING, "", t);
+//										logger.warn("", t);
 //									}
 //								}
 //							}
@@ -216,7 +217,7 @@ public class CreateJarFileFunction extends UiFunction {
 
 			} else {
 
-				logger.log(Level.WARNING, "First parameter of create_jar_file() must be an output stream. Parameters: {0}", getParametersAsString(sources));
+				logger.warn("First parameter of create_jar_file() must be an output stream. Parameters: {}", getParametersAsString(sources));
 				return "First parameter of create_jar_file() must be an output stream.";
 			}
 
@@ -312,7 +313,7 @@ public class CreateJarFileFunction extends UiFunction {
 				return (PrivateKey)keyStore.getKey("priv", keystorePass.toCharArray());
 
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 			}
 		}
 
@@ -328,7 +329,7 @@ public class CreateJarFileFunction extends UiFunction {
 				return (X509Certificate)keyStore.getCertificate("cert");
 
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 			}
 		}
 
@@ -353,7 +354,7 @@ public class CreateJarFileFunction extends UiFunction {
 
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 			}
 
 		} else {
@@ -395,7 +396,7 @@ public class CreateJarFileFunction extends UiFunction {
 
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 			}
 		}
 

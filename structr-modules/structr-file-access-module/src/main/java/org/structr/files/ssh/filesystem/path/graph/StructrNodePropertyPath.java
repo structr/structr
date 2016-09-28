@@ -32,8 +32,10 @@ import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -47,7 +49,7 @@ import org.structr.files.ssh.filesystem.StructrPath;
  */
 public class StructrNodePropertyPath extends StructrPath {
 
-	private static final Logger logger = Logger.getLogger(StructrNodePropertyPath.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrNodePropertyPath.class.getName());
 
 	private PropertyKey key  = null;
 	private GraphObject node = null;
@@ -127,7 +129,7 @@ public class StructrNodePropertyPath extends StructrPath {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "Unable to set property {0} to null: {1}", new Object[] { key.jsonName(), fex.getMessage() } );
+			logger.warn("Unable to set property {} to null: {}", new Object[] { key.jsonName(), fex.getMessage() } );
 		}
 	}
 

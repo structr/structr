@@ -28,8 +28,10 @@ import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Arrays;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -42,7 +44,7 @@ import org.structr.files.ssh.filesystem.path.StructrRootPath;
  */
 public class StructrFilesystem extends FileSystem {
 
-	private static final Logger logger = Logger.getLogger(StructrFilesystem.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrFilesystem.class.getName());
 
 	private StructrFilesystemProvider provider = null;
 	private SecurityContext securityContext    = null;
@@ -90,7 +92,7 @@ public class StructrFilesystem extends FileSystem {
 	@Override
 	public Iterable<FileStore> getFileStores() {
 
-		logger.log(Level.INFO, "x");
+		logger.info("x");
 
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
@@ -162,19 +164,19 @@ public class StructrFilesystem extends FileSystem {
 
 	@Override
 	public PathMatcher getPathMatcher(final String syntaxAndPattern) {
-		logger.log(Level.INFO, "x");
+		logger.info("x");
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public UserPrincipalLookupService getUserPrincipalLookupService() {
-		logger.log(Level.INFO, "x");
+		logger.info("x");
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public WatchService newWatchService() throws IOException {
-		logger.log(Level.INFO, "x");
+		logger.info("x");
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 

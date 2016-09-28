@@ -35,8 +35,10 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
@@ -66,7 +68,7 @@ import org.structr.web.entity.dom.Page;
  */
 public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 
-	private static final Logger logger = Logger.getLogger(ProxyServlet.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ProxyServlet.class.getName());
 
 	public static final String CONFIRM_REGISTRATION_PAGE = "/confirm_registration";
 	public static final String RESET_PASSWORD_PAGE       = "/reset-password";
@@ -153,7 +155,7 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.SEVERE, "Exception while processing request", t);
+			logger.error("Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
 	}
@@ -174,7 +176,7 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.SEVERE, "Exception while processing request", t);
+			logger.error("Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
 	}
@@ -191,7 +193,7 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.SEVERE, "Exception while processing request", t);
+			logger.error("Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
 	}
@@ -213,7 +215,7 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 			final String[] keyValuePair = header.split("[ :]+");
 			response.setHeader(keyValuePair[0], keyValuePair[1]);
 
-			logger.log(Level.FINE, "Set custom response header: {0} {1}", new Object[]{keyValuePair[0], keyValuePair[1]});
+			logger.debug("Set custom response header: {} {}", new Object[]{keyValuePair[0], keyValuePair[1]});
 
 		}
 
@@ -275,7 +277,7 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 					}
 
 				} catch (ParseException ex) {
-					logger.log(Level.WARNING, "Could not parse If-Modified-Since header", ex);
+					logger.warn("Could not parse If-Modified-Since header", ex);
 				}
 
 			}

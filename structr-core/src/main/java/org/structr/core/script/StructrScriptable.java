@@ -27,8 +27,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import jdk.nashorn.api.scripting.ScriptUtils;
 import org.mozilla.javascript.Context;
@@ -42,6 +40,8 @@ import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.TopLevel;
 import org.mozilla.javascript.Wrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.CaseHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
@@ -64,7 +64,7 @@ import org.structr.schema.action.Function;
  */
 public class StructrScriptable extends ScriptableObject {
 
-	private static final Logger logger = Logger.getLogger(StructrScriptable.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrScriptable.class.getName());
 	private static final Object[] IDs  = { "id", "type" };
 
 	private ActionContext actionContext     = null;
@@ -235,7 +235,7 @@ public class StructrScriptable extends ScriptableObject {
 						}
 
 					} catch (FrameworkException fex) {
-						logger.log(Level.WARNING, "", fex);
+						logger.warn("", fex);
 					}
 
 					return null;
@@ -259,7 +259,7 @@ public class StructrScriptable extends ScriptableObject {
 
 					} else {
 
-						logger.log(Level.WARNING, "Incorrect usage of includeJs function. Takes exactly one parameter: The filename of the javascript file!");
+						logger.warn("Incorrect usage of includeJs function. Takes exactly one parameter: The filename of the javascript file!");
 
 					}
 
@@ -383,7 +383,7 @@ public class StructrScriptable extends ScriptableObject {
 					return new Date(value.longValue());
 
 				} catch (Throwable t) {
-					logger.log(Level.WARNING, "", t);
+					logger.warn("", t);
 				}
 
 			} else {
@@ -796,7 +796,7 @@ public class StructrScriptable extends ScriptableObject {
 		@Override
 		public Object getDefaultValue(Class<?> hint) {
 
-			logger.log(Level.WARNING, "getDefaultValue() of HttpServletRequestWrapper called, don't know what to return here.. Please report to team@structr.com what you were trying to do with this object when you encountered this error message.");
+			logger.warn("getDefaultValue() of HttpServletRequestWrapper called, don't know what to return here.. Please report to team@structr.com what you were trying to do with this object when you encountered this error message.");
 
 			return null;
 		}

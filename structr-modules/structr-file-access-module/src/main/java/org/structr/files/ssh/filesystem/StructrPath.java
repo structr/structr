@@ -42,8 +42,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.files.ssh.filesystem.path.file.StructrFilePath;
 import org.structr.web.entity.dom.DOMElement;
@@ -54,7 +56,7 @@ import org.structr.web.entity.dom.DOMNode;
  */
 public abstract class StructrPath implements Path {
 
-	private static final Logger logger                 = Logger.getLogger(StructrPath.class.getName());
+	private static final Logger logger                 = LoggerFactory.getLogger(StructrPath.class.getName());
 	public static final Map<String, HiddenFileEntry> HIDDEN_PROPERTY_FILES = new ConcurrentHashMap<>();
 
 	public static final String ROOT_DIRECTORY      = "/";
@@ -97,7 +99,7 @@ public abstract class StructrPath implements Path {
 	// ----- public methods -----
 	public void checkAccess(final AccessMode... modes) {
 
-		//logger.log(Level.INFO, "{0}: {1}", new Object[] { toString(), Arrays.asList(modes) });
+		//logger.info("{}: {}", new Object[] { toString(), Arrays.asList(modes) });
 	}
 
 	public void enablePropertyFile(final String name) {
@@ -209,31 +211,31 @@ public abstract class StructrPath implements Path {
 
 	@Override
 	public Path subpath(int beginIndex, int endIndex) {
-		logger.log(Level.INFO, "{0}, {1}", new Object[] { beginIndex, endIndex });
+		logger.info("{}, {}", new Object[] { beginIndex, endIndex });
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public boolean startsWith(Path other) {
-		logger.log(Level.INFO, "{0}, {1}", new Object[] { other });
+		logger.info("{}, {}", new Object[] { other });
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public boolean startsWith(String other) {
-		logger.log(Level.INFO, "{0}, {1}", new Object[] { other });
+		logger.info("{}, {}", new Object[] { other });
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public boolean endsWith(Path other) {
-		logger.log(Level.INFO, "{0}, {1}", new Object[] { other });
+		logger.info("{}, {}", new Object[] { other });
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public boolean endsWith(String other) {
-		logger.log(Level.INFO, "{0}, {1}", new Object[] { other });
+		logger.info("{}, {}", new Object[] { other });
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -249,7 +251,7 @@ public abstract class StructrPath implements Path {
 			return other;
 		}
 
-		logger.log(Level.INFO, "{0}", new Object[] { other });
+		logger.info("{}", new Object[] { other });
 
 		return null;
 	}
@@ -265,7 +267,7 @@ public abstract class StructrPath implements Path {
 			return this;
 		}
 
-		logger.log(Level.INFO, "{0}", new Object[] { other });
+		logger.info("{}", new Object[] { other });
 
 		return null;
 	}
@@ -273,27 +275,27 @@ public abstract class StructrPath implements Path {
 	@Override
 	public Path resolveSibling(Path other) {
 
-		logger.log(Level.INFO, "{0}, {1}", new Object[] { other });
+		logger.info("{}, {}", new Object[] { other });
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public Path resolveSibling(String other) {
 
-		logger.log(Level.INFO, "{0}, {1}", new Object[] { other });
+		logger.info("{}, {}", new Object[] { other });
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public Path relativize(Path other) {
 
-		logger.log(Level.INFO, "{0}, {1}", new Object[] { other });
+		logger.info("{}, {}", new Object[] { other });
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public URI toUri() {
-		logger.log(Level.INFO, "x");
+		logger.info("x");
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -304,44 +306,44 @@ public abstract class StructrPath implements Path {
 			return this;
 		}
 
-		logger.log(Level.INFO, "x");
+		logger.info("x");
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public Path toRealPath(LinkOption... options) throws IOException {
-		logger.log(Level.INFO, "x");
+		logger.info("x");
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public File toFile() {
-		logger.log(Level.INFO, "x");
+		logger.info("x");
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public WatchKey register(WatchService watcher, WatchEvent.Kind<?>[] events, WatchEvent.Modifier... modifiers) throws IOException {
-		logger.log(Level.INFO, "x");
+		logger.info("x");
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public WatchKey register(WatchService watcher, WatchEvent.Kind<?>... events) throws IOException {
-		logger.log(Level.INFO, "x");
+		logger.info("x");
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public Iterator<Path> iterator() {
 
-		logger.log(Level.INFO, "x");
+		logger.info("x");
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public int compareTo(Path other) {
-		logger.log(Level.INFO, "x");
+		logger.info("x");
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 

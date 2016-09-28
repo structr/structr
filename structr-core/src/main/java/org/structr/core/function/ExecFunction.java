@@ -21,7 +21,6 @@ package org.structr.core.function;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Level;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -83,7 +82,7 @@ public class ExecFunction extends Function<Object, Object> {
 
 			} else {
 
-				logger.log(Level.WARNING, "No script found for key \"{0}\" in structr.conf, nothing executed.", scriptKey);
+				logger.warn("No script found for key \"{}\" in structr.conf, nothing executed.", scriptKey);
 			}
 
 		} else {

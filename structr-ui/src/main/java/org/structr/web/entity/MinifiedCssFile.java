@@ -25,8 +25,10 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
@@ -40,7 +42,7 @@ import org.structr.web.common.FileHelper;
 
 public class MinifiedCssFile extends AbstractMinifiedFile {
 
-	private static final Logger logger = Logger.getLogger(MinifiedCssFile.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(MinifiedCssFile.class.getName());
 
 	public static final Property<Integer> lineBreak = new IntProperty("lineBreak").defaultValue(-1);
 
@@ -57,7 +59,7 @@ public class MinifiedCssFile extends AbstractMinifiedFile {
 	@Override
 	public void minify() throws FrameworkException, IOException {
 
-		logger.log(Level.INFO, "Running minify: {0}", this.getUuid());
+		logger.info("Running minify: {}", this.getUuid());
 
 		FileHelper.setFileData(this, getConcatenatedSource().getBytes(), null);
 

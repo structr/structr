@@ -23,14 +23,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  */
 public class MultiSemaphore {
 
-	private static final Logger logger = Logger.getLogger(MultiSemaphore.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(MultiSemaphore.class.getName());
 
 	private final Map<String, Semaphore> semaphoreMap = new ConcurrentHashMap<>();
 

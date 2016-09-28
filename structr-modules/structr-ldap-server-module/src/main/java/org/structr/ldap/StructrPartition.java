@@ -21,8 +21,8 @@ package org.structr.ldap;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.directory.server.core.LdapPrincipal;
 import org.apache.directory.server.core.filtering.BaseEntryFilteringCursor;
 import org.apache.directory.server.core.filtering.EntryFilteringCursor;
@@ -58,7 +58,7 @@ import org.structr.ldap.entity.LDAPNodeImpl;
  */
 class StructrPartition implements Partition {
 
-	private static final Logger logger = Logger.getLogger(StructrPartition.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrPartition.class.getName());
 
 	private Class<? extends LDAPNode> rootType = null;
 	private SchemaManager schemaManager        = null;
@@ -151,7 +151,7 @@ class StructrPartition implements Partition {
 	@Override
 	public EntryFilteringCursor search(SearchOperationContext searchContext) throws LdapException {
 
-		Logger.getLogger(StructrPartition.class.getName()).log(Level.INFO, "{0}", searchContext);
+		logger.info("{}", searchContext);
 
 		final LdapPrincipal principal = searchContext.getEffectivePrincipal();
 		final Dn dn                   = searchContext.getDn();
@@ -237,7 +237,7 @@ class StructrPartition implements Partition {
 			final String rootTypeName = StructrApp.getConfigurationValue(keyBuilder.toString());
 			if (rootTypeName == null) {
 
-				logger.log(Level.INFO, "No LDAP root node type specified for partition {0}, using default (LDAPNodeImpl). This default can be changed by setting a value for {1} in structr.conf",
+				logger.info("No LDAP root node type specified for partition {}, using default (LDAPNodeImpl). This default can be changed by setting a value for {} in structr.conf",
 					new Object[] {
 						id,
 						keyBuilder.toString()
@@ -253,7 +253,7 @@ class StructrPartition implements Partition {
 					this.rootType = (Class<? extends LDAPNode>)Class.forName(rootTypeName);
 
 				} catch (ClassNotFoundException ex) {
-					logger.log(Level.WARNING, "Unable to instantiate LDAP root node class {0}, falling back to default. {1}", new Object[] { rootTypeName, ex.getMessage() });
+					logger.warn("Unable to instantiate LDAP root node class {}, falling back to default. {}", new Object[] { rootTypeName, ex.getMessage() });
 				}
 
 				if (rootType == null) {

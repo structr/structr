@@ -22,8 +22,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.dynamic.File;
 import org.structr.web.common.FileHelper;
@@ -37,7 +39,7 @@ import org.structr.web.entity.FileBase;
  */
 public class FileUploadHandler {
 
-	private static final Logger logger = Logger.getLogger(FileUploadHandler.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FileUploadHandler.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
@@ -62,7 +64,7 @@ public class FileUploadHandler {
 				updateSize(this.size);
 
 			} catch (IOException ex) {
-				logger.log(Level.SEVERE, "Could not access file", ex);
+				logger.error("Could not access file", ex);
 			}
 
 
@@ -111,7 +113,7 @@ public class FileUploadHandler {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "Could not set size to " + size, ex);
+			logger.warn("Could not set size to " + size, ex);
 
 		}
 
@@ -140,7 +142,7 @@ public class FileUploadHandler {
 
 		} catch (IOException e) {
 
-			logger.log(Level.WARNING, "Unable to finish file upload", e);
+			logger.warn("Unable to finish file upload", e);
 
 		}
 

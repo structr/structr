@@ -21,7 +21,6 @@ package org.structr.core.graph.search;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.RangeQuery;
 import org.structr.core.GraphObject;
-
 import org.structr.core.property.PropertyKey;
 
 /**

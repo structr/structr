@@ -28,8 +28,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.cloud.CloudConnection;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.SyncCommand;
@@ -42,7 +44,7 @@ import org.structr.dynamic.File;
  */
 public class FileNodeDataContainer extends NodeDataContainer {
 
-	private static final Logger logger = Logger.getLogger(FileNodeDataContainer.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FileNodeDataContainer.class.getName());
 
 	private transient java.io.File temporaryFile = null;
 	private transient OutputStream outputStream  = null;
@@ -111,7 +113,7 @@ public class FileNodeDataContainer extends NodeDataContainer {
 			}
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 	}
 
@@ -129,12 +131,12 @@ public class FileNodeDataContainer extends NodeDataContainer {
 				outputStream.close();
 
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 			}
 
 		} else {
 
-			logger.log(Level.WARNING, "outputStream was null, fileSize: " + fileSize + "..");
+			logger.warn("outputStream was null, fileSize: " + fileSize + "..");
 		}
 	}
 
@@ -241,7 +243,7 @@ public class FileNodeDataContainer extends NodeDataContainer {
 					}
 
 				} catch (Throwable t) {
-					logger.log(Level.WARNING, "Exception in ChunkIterator: {0}", t);
+					logger.warn("Exception in ChunkIterator: {}", t);
 				}
 			}
 
@@ -265,7 +267,7 @@ public class FileNodeDataContainer extends NodeDataContainer {
 					sequenceNumber++;
 
 				} catch (Throwable t) {
-					logger.log(Level.WARNING, "Exception in ChunkIterator: {0}", t);
+					logger.warn("Exception in ChunkIterator: {}", t);
 				}
 			}
 

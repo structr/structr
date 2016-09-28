@@ -18,11 +18,11 @@
  */
 package org.structr.rest.maintenance;
 
-import java.util.Map;
-import java.util.List;
 import java.util.LinkedList;
-import java.util.logging.Logger;
-import java.util.logging.Level;
+import java.util.List;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
@@ -42,7 +42,7 @@ import org.structr.rest.resource.MaintenanceParameterResource;
  */
 public class DeleteSpatialIndexCommand extends NodeServiceCommand implements MaintenanceCommand {
 
-	private static final Logger logger = Logger.getLogger(DeleteSpatialIndexCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(DeleteSpatialIndexCommand.class.getName());
 
 	static {
 
@@ -74,7 +74,7 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 
 			for (Node node : toDelete) {
 
-				logger.log(Level.INFO, "Deleting node {0}", node);
+				logger.info("Deleting node {}", node);
 
 				try {
 
@@ -87,7 +87,7 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 
 				} catch (Throwable t) {
 
-					logger.log(Level.WARNING, "", t);
+					logger.warn("", t);
 				}
 
 			}

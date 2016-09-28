@@ -37,37 +37,39 @@ import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  */
 public class StructrFilesystemProvider extends FileSystemProvider {
 
-	private static final Logger logger = Logger.getLogger(StructrFilesystemProvider.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrFilesystemProvider.class.getName());
 
 	@Override
 	public synchronized String getScheme() {
-		logger.log(Level.INFO, "getScheme");
+		logger.info("getScheme");
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public synchronized FileSystem newFileSystem(final URI uri, final Map<String, ?> env) throws IOException {
-		logger.log(Level.INFO, "{0}, {1}", new Object[] { uri, env } );
+		logger.info("{}, {}", new Object[] { uri, env } );
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public synchronized FileSystem getFileSystem(final URI uri) {
-		logger.log(Level.INFO, "{0}", new Object[] { uri } );
+		logger.info("{}", new Object[] { uri } );
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public synchronized Path getPath(URI uri) {
-		logger.log(Level.INFO, "{0}", new Object[] { uri } );
+		logger.info("{}", new Object[] { uri } );
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -78,7 +80,7 @@ public class StructrFilesystemProvider extends FileSystemProvider {
 
 	@Override
 	public synchronized SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
-		logger.log(Level.INFO, "{0}, {1}, {2}", new Object[] { path, options, attrs } );
+		logger.info("{}, {}, {}", new Object[] { path, options, attrs } );
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -114,13 +116,13 @@ public class StructrFilesystemProvider extends FileSystemProvider {
 
 	@Override
 	public synchronized boolean isHidden(Path path) throws IOException {
-		logger.log(Level.INFO, "{0}", new Object[] { path } );
+		logger.info("{}", new Object[] { path } );
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public synchronized FileStore getFileStore(Path path) throws IOException {
-		logger.log(Level.INFO, "{0}", new Object[] { path } );
+		logger.info("{}", new Object[] { path } );
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 

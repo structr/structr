@@ -19,7 +19,8 @@
 package org.structr.files.cmis;
 
 import java.math.BigInteger;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 import org.apache.chemistry.opencmis.commons.data.ObjectList;
 import org.apache.chemistry.opencmis.commons.enums.IncludeRelationships;
@@ -38,7 +39,7 @@ public class CMISDiscoveryService extends AbstractStructrCmisService implements 
 		super(parentService, securityContext);
 	}
 
-	private static final Logger logger = Logger.getLogger(CMISDiscoveryService.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CMISDiscoveryService.class.getName());
 
 	@Override
 	public ObjectList query(String repositoryId, String statement, Boolean searchAllVersions, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter, BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {

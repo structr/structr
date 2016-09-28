@@ -18,11 +18,11 @@
  */
 package org.structr.rest.auth;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
@@ -43,7 +43,7 @@ public class AuthHelper {
 
 	public static final String STANDARD_ERROR_MSG = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
 
-	private static final Logger logger            = Logger.getLogger(AuthHelper.class.getName());
+	private static final Logger logger            = LoggerFactory.getLogger(AuthHelper.class.getName());
 
 	//~--- get methods ----------------------------------------------------
 
@@ -64,7 +64,7 @@ public class AuthHelper {
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "Error while searching for principal", fex);
+				logger.warn("Error while searching for principal", fex);
 			}
 
 		}
@@ -92,7 +92,7 @@ public class AuthHelper {
 
 		if (superuserName.equals(value) && superUserPwd.equals(password)) {
 
-			// logger.log(Level.INFO, "############# Authenticated as superadmin! ############");
+			// logger.info("############# Authenticated as superadmin! ############");
 
 			principal = new SuperUser();
 
@@ -104,7 +104,7 @@ public class AuthHelper {
 
 				if (principal == null) {
 
-					logger.log(Level.INFO, "No principal found for {0} {1}", new Object[]{ key.dbName(), value });
+					logger.info("No principal found for {} {}", new Object[]{ key.dbName(), value });
 
 					errorMsg = STANDARD_ERROR_MSG;
 
@@ -112,7 +112,7 @@ public class AuthHelper {
 
 					if (principal.getProperty(Principal.blocked)) {
 
-						logger.log(Level.INFO, "Principal {0} is blocked", principal);
+						logger.info("Principal {} is blocked", principal);
 
 						errorMsg = STANDARD_ERROR_MSG;
 
@@ -120,7 +120,7 @@ public class AuthHelper {
 
 					if (StringUtils.isEmpty(password)) {
 
-						logger.log(Level.INFO, "Empty password for principal {0}", principal);
+						logger.info("Empty password for principal {}", principal);
 
 						errorMsg = "Empty password, should never happen here!";
 
@@ -138,7 +138,7 @@ public class AuthHelper {
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "", fex);
+				logger.warn("", fex);
 
 			}
 

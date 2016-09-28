@@ -19,8 +19,10 @@
 package org.structr.websocket.command;
 
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 
 import org.structr.core.entity.AbstractNode;
@@ -36,7 +38,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class AppendUserCommand extends AbstractCommand {
 		
-	private static final Logger logger     = Logger.getLogger(AppendUserCommand.class.getName());
+	private static final Logger logger     = LoggerFactory.getLogger(AppendUserCommand.class.getName());
 
 	static {
 
@@ -89,7 +91,7 @@ public class AppendUserCommand extends AbstractCommand {
 				try {
 					group.addMember(user);
 				} catch (FrameworkException ex) {
-					logger.log(Level.SEVERE, null, ex);
+					logger.error("", ex);
 					getWebSocket().send(MessageBuilder.status().code(422).message("Cannot append file").build(), true);
 				}
 			}

@@ -30,8 +30,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import javax.crypto.Cipher;
@@ -78,7 +80,7 @@ import org.structr.web.entity.dom.ShadowDocument;
 public class CloudConnection<T> extends Thread implements TransactionSource {
 
 	// the logger
-	private static final Logger logger = Logger.getLogger(CloudConnection.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CloudConnection.class.getName());
 
 	// containers
 	private final Map<String, FileNodeDataContainer> fileMap = new LinkedHashMap<>();
@@ -116,7 +118,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 
 		this.setDaemon(true);
 
-		logger.log(Level.INFO, "New connection from {0}", socket.getRemoteSocketAddress());
+		logger.info("New connection from {}", socket.getRemoteSocketAddress());
 	}
 
 	@Override
@@ -145,7 +147,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 				super.start();
 
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 			}
 		}
 	}
@@ -195,13 +197,13 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 				}
 
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 			}
 		}
 
 		shutdown();
 
-		logger.log(Level.INFO, "Transmission finished");
+		logger.info("Transmission finished");
 
 	}
 
@@ -227,7 +229,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 			socket.close();
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 	}
 
@@ -251,7 +253,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 				Thread.sleep(10);
 
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 			}
 		}
 	}
@@ -280,7 +282,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 				Thread.sleep(10);
 
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 			}
 		}
 	}
@@ -296,7 +298,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 				Thread.sleep(10);
 
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 			}
 		}
 
@@ -312,7 +314,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 			encrypter.init(Cipher.ENCRYPT_MODE, skeySpec);
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 	}
 
@@ -345,7 +347,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 
 		if (nodeType == null) {
 
-			logger.log(Level.SEVERE, "Unknown entity type {0}", typeName);
+			logger.error("Unknown entity type {}", typeName);
 			return null;
 		}
 
@@ -449,13 +451,13 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 
 			} else {
 
-				logger.log(Level.WARNING, "Could not store relationship {0} -> {1}", new Object[]{ targetStartNode, targetEndNode });
+				logger.warn("Could not store relationship {} -> {}", new Object[]{ targetStartNode, targetEndNode });
 
 			}
 
 		}
 
-		logger.log(Level.WARNING, "Could not store relationship {0} -> {1}", new Object[]{sourceStartNodeId, sourceEndNodeId});
+		logger.warn("Could not store relationship {} -> {}", new Object[]{sourceStartNodeId, sourceEndNodeId});
 
 		return null;
 	}
@@ -506,7 +508,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 				// do not catch specific exception only, we need to be able to shut
 				// down the connection gracefully, so we must make sure not to be
 				// interrupted here
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 			}
 		} else {
 
@@ -529,7 +531,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 				// do not catch specific exception only, we need to be able to shut
 				// down the connection gracefully, so we must make sure not to be
 				// interrupted here
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 			}
 
 			tx = null;
@@ -545,7 +547,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 			return app.nodeQuery(User.class).andName(userName).getFirst();
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 		return null;
@@ -568,7 +570,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 		final FileNodeDataContainer container = fileMap.get(endChunk.getContainerId());
 		if (container == null) {
 
-			logger.log(Level.WARNING, "Received file end chunk for ID {0} without file, this should not happen!", endChunk.getContainerId());
+			logger.warn("Received file end chunk for ID {} without file, this should not happen!", endChunk.getContainerId());
 
 		} else {
 
@@ -596,7 +598,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 				// do not catch specific exception only, we need to be able to shut
 				// down the connection gracefully, so we must make sure not to be
 				// interrupted here
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 			}
 
 			count++;
@@ -610,7 +612,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 
 		if (container == null) {
 
-			logger.log(Level.WARNING, "Received file chunk for ID {0} without file, this should not happen!", chunk.getContainerId());
+			logger.warn("Received file chunk for ID {} without file, this should not happen!", chunk.getContainerId());
 
 		} else {
 

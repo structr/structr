@@ -21,7 +21,8 @@ package org.structr.web.function;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.mail.EmailAttachment;
 import org.apache.commons.mail.EmailException;
 import org.structr.common.MailHelper;
@@ -36,7 +37,7 @@ import org.structr.web.entity.FileBase;
  */
 public class SendHtmlMailFunction extends Function<Object, Object> {
 
-	private static final Logger logger = Logger.getLogger(SendHtmlMailFunction.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(SendHtmlMailFunction.class.getName());
 
 	public static final String ERROR_MESSAGE_SEND_HTML_MAIL = "Usage: ${send_html_mail(fromAddress, fromName, toAddress, toName, subject, content[, textContent][, files])}.";
 

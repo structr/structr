@@ -24,9 +24,9 @@ package org.structr.core.property;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
+import org.structr.core.entity.OneFourOneToOne;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
-import org.structr.core.entity.OneFourOneToOne;
 import org.structr.core.graph.Tx;
 
 /**

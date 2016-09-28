@@ -27,9 +27,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.schema.json.JsonObjectType;
@@ -42,7 +42,7 @@ import org.structr.schema.json.JsonType;
  */
 public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 
-	private static final Logger logger = Logger.getLogger(StructrSchemaDefinition.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrSchemaDefinition.class.getName());
 
 	protected final Set<String> existingPropertyNames = new TreeSet<>();
 	private StructrTypeDefinitions typeDefinitions    = null;
@@ -288,7 +288,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 				id = new URI(idValue.toString());
 
 			} catch (URISyntaxException ex) {
-				logger.log(Level.WARNING, "", ex);
+				logger.warn("", ex);
 			}
 		}
 
@@ -311,7 +311,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 			id = new URI("https://structr.org/schema/" + app.getInstanceId() + "/#");
 
 		} catch (URISyntaxException ex) {
-			logger.log(Level.WARNING, "", ex);
+			logger.warn("", ex);
 		}
 
 

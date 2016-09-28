@@ -25,8 +25,10 @@
 package org.structr.payment;
 
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.lang.StringUtils;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
@@ -38,12 +40,12 @@ import org.structr.schema.action.Actions;
  */
 public class StructrPaymentsModule implements StructrModule {
 
-	private static final Logger logger = Logger.getLogger(StructrPaymentsModule.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrPaymentsModule.class.getName());
 
 	@Override
 	public void onLoad() {
 
-		logger.log(Level.INFO, "Checking payment provider configuration..");
+		logger.info("Checking payment provider configuration..");
 
 		// check and read configuration..
 		checkString("paypal.mode",      StructrApp.getConfigurationValue("paypal.mode"),      "paypal.mode not set, please set to either sandbox or live.");
@@ -91,11 +93,11 @@ public class StructrPaymentsModule implements StructrModule {
 
 		if (StringUtils.isEmpty(value)) {
 
-			logger.log(Level.WARNING, "{0}", message);
+			logger.warn("{}", message);
 
 		} else {
 
-			logger.log(Level.INFO, "{0}: {1}", new Object[] { key, value } );
+			logger.info("{}: {}", new Object[] { key, value } );
 		}
 	}
 }

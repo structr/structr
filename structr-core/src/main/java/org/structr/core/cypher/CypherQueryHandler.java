@@ -22,8 +22,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.NativeResult;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
@@ -45,7 +45,7 @@ import org.structr.core.graph.RelationshipInterface;
  */
 public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 
-	private static final Logger logger = Logger.getLogger(CypherQueryHandler.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CypherQueryHandler.class.getName());
 
 	protected RelationshipFactory relFactory  = null;
 	protected NodeFactory nodeFactory         = null;
@@ -133,7 +133,7 @@ public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 		} catch(Throwable ignore) {
 
 			// FIXME: ignore or throw??
-			logger.log(Level.WARNING, "Unable to instantiate node {0}", obj);
+			logger.warn("Unable to instantiate node {}", obj);
 		}
 
 		return null;

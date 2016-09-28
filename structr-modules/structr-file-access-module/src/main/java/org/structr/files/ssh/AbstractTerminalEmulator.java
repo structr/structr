@@ -26,8 +26,10 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -35,7 +37,7 @@ import java.util.logging.Logger;
  */
 public abstract class AbstractTerminalEmulator extends Thread implements TerminalEmulator {
 
-	private static final Logger logger = Logger.getLogger(AbstractTerminalEmulator.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(AbstractTerminalEmulator.class.getName());
 
 	protected final StringBuilder lineBuffer      = new StringBuilder();
 	protected TerminalHandler rootTerminalHandler = null;
@@ -282,7 +284,7 @@ public abstract class AbstractTerminalEmulator extends Thread implements Termina
 
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 
 				if (writer != null) {
 
@@ -293,7 +295,7 @@ public abstract class AbstractTerminalEmulator extends Thread implements Termina
 						writer.write('\n');
 
 					} catch (Throwable t2) {
-						logger.log(Level.WARNING, "", t);
+						logger.warn("", t);
 					}
 
 

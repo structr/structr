@@ -28,8 +28,10 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.apache.commons.lang3.StringUtils;
@@ -63,7 +65,7 @@ import org.structr.core.entity.Person;
  */
 public class FulltextIndexingAgent extends Agent<Indexable> {
 
-	private static final Logger logger = Logger.getLogger(FulltextIndexingAgent.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FulltextIndexingAgent.class.getName());
 	private static final Map<String, Set<String>> languageStopwordMap = new LinkedHashMap<>();
 	public static final String TASK_NAME                              = "FulltextIndexing";
 
@@ -177,7 +179,7 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 					final Node node                     = file.getNode();
 					final Set<String> indexedWords      = new TreeSet<>();
 
-					logger.log(Level.INFO, "Indexing {0}..", fileName);
+					logger.info("Indexing {}..", fileName);
 
 					while (wordIterator.hasNext()) {
 
@@ -219,14 +221,14 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 						tx.success();
 					}
 
-					logger.log(Level.INFO, "Indexing of {0} finished, {1} words extracted", new Object[] { fileName, tokenizer.getWordCount() } );
+					logger.info("Indexing of {} finished, {} words extracted", new Object[] { fileName, tokenizer.getWordCount() } );
 
 				}
 			}
 
 		} catch (final Throwable t) {
 
-			logger.log(Level.WARNING, "Indexing of {0} failed: {1}", new Object[] { fileName, t.getMessage() } );
+			logger.warn("Indexing of {} failed: {}", new Object[] { fileName, t.getMessage() } );
 			t.printStackTrace();
 		}
 	}
@@ -262,7 +264,7 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 
 		} catch (IOException ioex) {
 
-			logger.log(Level.WARNING, "", ioex);
+			logger.warn("", ioex);
 		}
 	}
 }

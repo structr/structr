@@ -30,8 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.DispatcherType;
 import javax.servlet.http.HttpServlet;
 import org.apache.chemistry.opencmis.server.impl.CmisRepositoryContextListener;
@@ -64,10 +62,12 @@ import org.eclipse.jetty.util.resource.JarResource;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.structr.common.PropertyView;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.StructrServices;
+import org.structr.common.PropertyView;
 import org.structr.core.Services;
 import org.structr.core.auth.SuperUserAuthenticator;
 import org.structr.rest.DefaultResourceProvider;
@@ -81,7 +81,7 @@ import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
  */
 public class HttpService implements RunnableService {
 
-	private static final Logger logger = Logger.getLogger(HttpService.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(HttpService.class.getName());
 
 	public static final String SERVLETS                      = "HttpService.servlets";
 	public static final String RESOURCE_HANDLERS             = "HttpService.resourceHandlers";
@@ -121,9 +121,9 @@ public class HttpService implements RunnableService {
 	@Override
 	public void startService() throws Exception {
 
-		logger.log(Level.INFO, "Starting {0} (host={1}:{2}, maxIdleTime={3}, requestHeaderSize={4})", new Object[]{applicationName, host, String.valueOf(httpPort), String.valueOf(maxIdleTime), String.valueOf(requestHeaderSize)});
-		logger.log(Level.INFO, "Base path {0}", basePath);
-		logger.log(Level.INFO, "{0} started at http://{1}:{2}", new Object[]{applicationName, String.valueOf(host), String.valueOf(httpPort)});
+		logger.info("Starting {} (host={}:{}, maxIdleTime={}, requestHeaderSize={})", new Object[]{applicationName, host, String.valueOf(httpPort), String.valueOf(maxIdleTime), String.valueOf(requestHeaderSize)});
+		logger.info("Base path {}", basePath);
+		logger.info("{} started at http://{}:{}", new Object[]{applicationName, String.valueOf(host), String.valueOf(httpPort)});
 
 		server.start();
 
@@ -183,12 +183,12 @@ public class HttpService implements RunnableService {
 		Class mainClass = null;
 		if (mainClassName != null) {
 
-			logger.log(Level.INFO, "Running main class {0}", new Object[]{mainClassName});
+			logger.info("Running main class {}", new Object[]{mainClassName});
 
 			try {
 				mainClass = Class.forName(mainClassName);
 			} catch (ClassNotFoundException ex) {
-				logger.log(Level.WARNING, "Did not find class for main class from config " + mainClassName, ex);
+				logger.warn("Did not find class for main class from config " + mainClassName, ex);
 			}
 
 		}
@@ -217,7 +217,7 @@ public class HttpService implements RunnableService {
 		async             = Services.parseBoolean(finalConfig.getProperty(ASYNC), true);
 
 		if (async) {
-			logger.log(Level.INFO, "Running in asynchronous mode");
+			logger.info("Running in asynchronous mode");
 		}
 
 		// other properties
@@ -259,7 +259,7 @@ public class HttpService implements RunnableService {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Base resource {0} not usable: {1}", new Object[]{basePath, t.getMessage()});
+			logger.warn("Base resource {} not usable: {}", new Object[]{basePath, t.getMessage()});
 		}
 
 		// this is needed for the filters to work on the root context "/"
@@ -281,14 +281,14 @@ public class HttpService implements RunnableService {
 
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 		hashSessionManager = new HashSessionManager();
 		try {
 			hashSessionManager.setStoreDirectory(new File(baseDir + "/sessions"));
 		} catch (IOException ex) {
-			logger.log(Level.WARNING, "Could not set custom session manager with session store directory {0}/sessions", baseDir);
+			logger.warn("Could not set custom session manager with session store directory {}/sessions", baseDir);
 		}
 
 		servletContext.getSessionHandler().setSessionManager(hashSessionManager);
@@ -352,7 +352,7 @@ public class HttpService implements RunnableService {
 
 				} catch (IOException ioex) {
 
-					logger.log(Level.WARNING, "Unable to write logback configuration.", ioex);
+					logger.warn("Unable to write logback configuration.", ioex);
 				}
 			}
 
@@ -403,7 +403,7 @@ public class HttpService implements RunnableService {
 
 			servletHolder.setInitOrder(position++);
 
-			logger.log(Level.INFO, "Adding servlet {0} for {1}", new Object[]{servletHolder, path});
+			logger.info("Adding servlet {} for {}", new Object[]{servletHolder, path});
 
 			servletContext.addServlet(servletHolder, path);
 		}
@@ -427,7 +427,7 @@ public class HttpService implements RunnableService {
 
 		} else {
 
-			logger.log(Level.WARNING, "Unable to configure HTTP server port, please make sure that {0} and {1} are set correctly in structr.conf.", new Object[]{APPLICATION_HOST, APPLICATION_HTTP_PORT});
+			logger.warn("Unable to configure HTTP server port, please make sure that {} and {} are set correctly in structr.conf.", new Object[]{APPLICATION_HOST, APPLICATION_HTTP_PORT});
 		}
 
 		if (enableHttps) {
@@ -455,7 +455,7 @@ public class HttpService implements RunnableService {
 
 			} else {
 
-				logger.log(Level.WARNING, "Unable to configure SSL, please make sure that {0}, {1} and {2} are set correctly in structr.conf.", new Object[]{
+				logger.warn("Unable to configure SSL, please make sure that {}, {} and {} are set correctly in structr.conf.", new Object[]{
 					APPLICATION_HTTPS_PORT,
 					APPLICATION_KEYSTORE_PATH,
 					APPLICATION_KEYSTORE_PASSWORD
@@ -469,7 +469,7 @@ public class HttpService implements RunnableService {
 
 		} else {
 
-			logger.log(Level.SEVERE, "No connectors configured, aborting.");
+			logger.error("No connectors configured, aborting.");
 			System.exit(0);
 		}
 
@@ -490,7 +490,7 @@ public class HttpService implements RunnableService {
 
 			} catch (Exception ex) {
 
-				logger.log(Level.WARNING, "Error while stopping Jetty server: {0}", ex.getMessage());
+				logger.warn("Error while stopping Jetty server: {}", ex.getMessage());
 			}
 		}
 
@@ -553,30 +553,30 @@ public class HttpService implements RunnableService {
 
 							} else {
 
-								logger.log(Level.WARNING, "Unable to register resource handler {0}, missing {0}.welcomeFiles", resourceHandlerName);
+								logger.warn("Unable to register resource handler {}, missing {}.welcomeFiles", resourceHandlerName);
 
 							}
 
 						} else {
 
-							logger.log(Level.WARNING, "Unable to register resource handler {0}, missing {0}.resourceBase", resourceHandlerName);
+							logger.warn("Unable to register resource handler {}, missing {}.resourceBase", resourceHandlerName);
 
 						}
 
 					} else {
 
-						logger.log(Level.WARNING, "Unable to register resource handler {0}, missing {0}.resourceBase", resourceHandlerName);
+						logger.warn("Unable to register resource handler {}, missing {}.resourceBase", resourceHandlerName);
 					}
 
 				} else {
 
-					logger.log(Level.WARNING, "Unable to register resource handler {0}, missing {0}.contextPath", resourceHandlerName);
+					logger.warn("Unable to register resource handler {}, missing {}.contextPath", resourceHandlerName);
 				}
 			}
 
 		} else {
 
-			logger.log(Level.WARNING, "No resource handlers configured for HttpService.");
+			logger.warn("No resource handlers configured for HttpService.");
 		}
 
 		return resourceHandlers;
@@ -614,18 +614,18 @@ public class HttpService implements RunnableService {
 
 					} else {
 
-						logger.log(Level.WARNING, "Unable to register servlet {0}, missing {0}.path", servletName);
+						logger.warn("Unable to register servlet {}, missing {}.path", servletName);
 					}
 
 				} else {
 
-					logger.log(Level.WARNING, "Unable to register servlet {0}, missing {0}.class", servletName);
+					logger.warn("Unable to register servlet {}, missing {}.class", servletName);
 				}
 			}
 
 		} else {
 
-			logger.log(Level.WARNING, "No servlets configured for HttpService.");
+			logger.warn("No servlets configured for HttpService.");
 		}
 
 		return servlets;
@@ -644,7 +644,7 @@ public class HttpService implements RunnableService {
 
 			} catch (IOException ex) {
 
-				logger.log(Level.SEVERE, "Unable to delete directory {0}: {1}", new Object[]{directoryName, ex.getMessage()});
+				logger.error("Unable to delete directory {}: {}", new Object[]{directoryName, ex.getMessage()});
 			}
 
 		} else {
@@ -678,7 +678,7 @@ public class HttpService implements RunnableService {
 
 				} catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
 
-					logger.log(Level.SEVERE, "Unable to send lifecycle event to listener " + listenerClass, ex);
+					logger.error("Unable to send lifecycle event to listener " + listenerClass, ex);
 				}
 			}
 		}

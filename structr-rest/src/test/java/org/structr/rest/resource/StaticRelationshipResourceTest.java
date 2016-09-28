@@ -20,8 +20,8 @@ package org.structr.rest.resource;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.rest.common.StructrRestTest;
@@ -33,7 +33,7 @@ import org.structr.rest.entity.TestOne;
  */
 public class StaticRelationshipResourceTest extends StructrRestTest {
 
-	private static final Logger logger = Logger.getLogger(StaticRelationshipResourceTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StaticRelationshipResourceTest.class.getName());
 
 	public void testInvokeMethodResult() {
 
@@ -50,7 +50,7 @@ public class StaticRelationshipResourceTest extends StructrRestTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "", fex);
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 

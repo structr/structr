@@ -20,17 +20,17 @@ package org.structr.core.graph;
 
 import java.util.Iterator;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Node;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaHelper;
 
 /**
@@ -41,7 +41,7 @@ import org.structr.schema.SchemaHelper;
  */
 public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements MaintenanceCommand {
 
-	private static final Logger logger = Logger.getLogger(BulkFixNodePropertiesCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(BulkFixNodePropertiesCommand.class.getName());
 
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
@@ -64,7 +64,7 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 
 				if (type != null) {
 
-					logger.log(Level.INFO, "Trying to fix properties of all {0} nodes", type.getSimpleName() );
+					logger.info("Trying to fix properties of all {} nodes", type.getSimpleName() );
 
 					long nodeCount = NodeServiceCommand.bulkGraphOperation(securityContext, nodeIterator, 100, "FixNodeProperties", new BulkGraphOperation<AbstractNode>() {
 
@@ -97,7 +97,7 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 
 											} catch (Throwable t) {
 
-												logger.log(Level.WARNING, "Unable to fix property {0} of {1} with UUID {2} which is of type {3}", new Object[] {
+												logger.warn("Unable to fix property {} of {} with UUID {} which is of type {}", new Object[] {
 													propertyToFix.dbName(),
 													type.getSimpleName(),
 													node.getUuid(),
@@ -110,7 +110,7 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 									} catch (Throwable t) {
 
 										// log exceptions of other types
-										logger.log(Level.WARNING, "", t);
+										logger.warn("", t);
 									}
 								}
 							}
@@ -143,14 +143,14 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 						}
 					});
 
-					logger.log(Level.INFO, "Fixed {0} nodes", nodeCount);
+					logger.info("Fixed {} nodes", nodeCount);
 
 					return;
 				}
 			}
 		}
 
-		logger.log(Level.INFO, "Unable to determine property and/or entity type to fix.");
+		logger.info("Unable to determine property and/or entity type to fix.");
 	}
 
 	@Override

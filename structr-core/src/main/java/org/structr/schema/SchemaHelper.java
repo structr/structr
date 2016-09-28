@@ -32,10 +32,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javatools.parsers.PlingStemmer;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.NotFoundException;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.common.CaseHelper;
@@ -100,7 +100,7 @@ import org.structr.schema.parser.Validator;
  */
 public class SchemaHelper {
 
-	private static final Logger logger = Logger.getLogger(SchemaHelper.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(SchemaHelper.class.getName());
 
 	private static final String WORD_SEPARATOR = "_";
 
@@ -301,7 +301,7 @@ public class SchemaHelper {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 		return SchemaService.reloadSchema(errorBuffer);
@@ -330,7 +330,7 @@ public class SchemaHelper {
 					sig = grant.getResourceSignature();
 
 				} catch (NotFoundException nfe) {
-					logger.log(Level.FINE, "Unable to get signature from grant");
+					logger.debug("Unable to get signature from grant");
 					continue;
 				}
 
@@ -353,7 +353,7 @@ public class SchemaHelper {
 
 				if (!foundAllParts) {
 
-					logger.log(Level.INFO, "Did not find all parts of signature, will be removed: {0}, ", new Object[]{ sig });
+					logger.info("Did not find all parts of signature, will be removed: {}, ", new Object[]{ sig });
 
 					removeDynamicGrants(sig);
 				}
@@ -363,7 +363,7 @@ public class SchemaHelper {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 	}
 
@@ -385,7 +385,7 @@ public class SchemaHelper {
 					new NodeAttribute(DynamicResourceAccess.flags, initialFlagsValue)
 				));
 
-				logger.log(Level.INFO, "New signature created: {0}", new Object[]{ (signature) });
+				logger.info("New signature created: {}", new Object[]{ (signature) });
 			}
 
 			final String schemaSig = schemaResourceSignature(signature);
@@ -398,7 +398,7 @@ public class SchemaHelper {
 					new NodeAttribute(DynamicResourceAccess.flags, initialFlagsValue)
 				));
 
-				logger.log(Level.INFO, "New signature created: {0}", new Object[]{ schemaSig });
+				logger.info("New signature created: {}", new Object[]{ schemaSig });
 			}
 
 			final String uiSig = uiViewResourceSignature(signature);
@@ -412,12 +412,12 @@ public class SchemaHelper {
 					new NodeAttribute(DynamicResourceAccess.flags, initialFlagsValue)
 				));
 
-				logger.log(Level.INFO, "New signature created: {0}", new Object[]{ uiSig });
+				logger.info("New signature created: {}", new Object[]{ uiSig });
 			}
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 		return grants;
@@ -436,7 +436,7 @@ public class SchemaHelper {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 	}
 
@@ -467,7 +467,7 @@ public class SchemaHelper {
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 	}
@@ -515,7 +515,7 @@ public class SchemaHelper {
 
 							} catch (FrameworkException ex) {
 
-								logger.log(Level.WARNING, "", ex);
+								logger.warn("", ex);
 							}
 						}
 
@@ -1153,7 +1153,7 @@ public class SchemaHelper {
 			return parserClass.getConstructor(ErrorBuffer.class, String.class, PropertyDefinition.class).newInstance(errorBuffer, className, propertyDefinition);
 
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "", t);
+			logger.warn("", t);
 		}
 
 		errorBuffer.add(new InvalidPropertySchemaToken(SchemaProperty.class.getSimpleName(), propertyName, "invalid_property_definition", "Unknow value type " + source + ", options are " + Arrays.asList(Type.values()) + "."));

@@ -21,8 +21,10 @@ package org.structr.web.datasource;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
@@ -44,7 +46,7 @@ import org.w3c.dom.NodeList;
  */
 public class XPathGraphDataSource implements GraphDataSource<List<GraphObject>> {
 
-	private static final Logger logger = Logger.getLogger(XPathGraphDataSource.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(XPathGraphDataSource.class.getName());
 
 	@Override
 	public List<GraphObject> getData(final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException {
@@ -91,7 +93,7 @@ public class XPathGraphDataSource implements GraphDataSource<List<GraphObject>> 
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, t, LogMessageSupplier.create("Unable to execute xpath query: {0}", t.getMessage()));
+			logger.warn("Unable to execute xpath query: {}", t.getMessage());
 		}
 
 		return Collections.EMPTY_LIST;

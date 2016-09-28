@@ -25,19 +25,18 @@ import com.google.gson.*;
 import com.google.gson.stream.JsonWriter;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.converter.PropertyConverter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -49,7 +48,7 @@ import org.structr.core.converter.PropertyConverter;
  */
 public class GraphObjectGSONAdapter {
 
-	private static final Logger logger                   = Logger.getLogger(GraphObjectGSONAdapter.class.getName());
+	private static final Logger logger                   = LoggerFactory.getLogger(GraphObjectGSONAdapter.class.getName());
 	private static final long MAX_SERIALIZATION_TIME     = TimeUnit.SECONDS.toMillis(30);
 
 	private final Map<String, Serializer> serializerCache = new LinkedHashMap<>(100);
@@ -95,7 +94,7 @@ public class GraphObjectGSONAdapter {
 		// check for timeout
 		if (System.currentTimeMillis() > startTime + MAX_SERIALIZATION_TIME) {
 
-			logger.log(Level.SEVERE, "JSON serialization took more than {0} ms, aborted. Please review output view size or adjust timeout.", MAX_SERIALIZATION_TIME);
+			logger.error("JSON serialization took more than {} ms, aborted. Please review output view size or adjust timeout.", MAX_SERIALIZATION_TIME);
 
 			return null;
 		}
@@ -231,7 +230,7 @@ public class GraphObjectGSONAdapter {
 
 			} catch (Throwable t) {
 
-				logger.log(Level.WARNING, "Exception while serializing property {0} ({1}) of entity {2} (value {3}) : {4}", new Object[] {
+				logger.warn("Exception while serializing property {} ({}) of entity {} (value {}) : {}", new Object[] {
 					key.jsonName(),
 					key.getClass(),
 					key.getClass().getDeclaringClass(),
@@ -258,7 +257,7 @@ public class GraphObjectGSONAdapter {
 
 			} else {
 
-				logger.log(Level.FINE, "Found object without UUID: {0}", source);
+				logger.debug("Found object without UUID: {}", source);
 			}
 
 			// prevent endless recursion by pruning at depth n

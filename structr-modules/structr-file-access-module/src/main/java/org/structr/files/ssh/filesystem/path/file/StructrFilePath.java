@@ -38,8 +38,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -62,7 +64,7 @@ import org.structr.web.entity.Folder;
  */
 public class StructrFilePath extends StructrPath {
 
-	private static final Logger logger = Logger.getLogger(StructrFilePath.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrFilePath.class.getName());
 
 	private AbstractFile cachedActualFile = null;
 
@@ -104,7 +106,7 @@ public class StructrFilePath extends StructrPath {
 							tx.success();
 
 						} catch (FrameworkException fex) {
-							logger.log(Level.WARNING, "", fex);
+							logger.warn("", fex);
 						}
 
 						return files.iterator();
@@ -171,7 +173,7 @@ public class StructrFilePath extends StructrPath {
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "Unable to open file channel for writing of {0}: {1}", new Object[] { path, fex.getMessage() });
+				logger.warn("Unable to open file channel for writing of {}: {}", new Object[] { path, fex.getMessage() });
 			}
 
 		}
@@ -186,7 +188,7 @@ public class StructrFilePath extends StructrPath {
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "Unable to open file channel for reading of {0}: {1}", new Object[] { path, fex.getMessage() });
+				logger.warn("Unable to open file channel for reading of {}: {}", new Object[] { path, fex.getMessage() });
 
 			}
 
@@ -214,7 +216,7 @@ public class StructrFilePath extends StructrPath {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "Unable to delete file {0}: {1}", new Object[] { path, fex.getMessage() } );
+			logger.warn("Unable to delete file {}: {}", new Object[] { path, fex.getMessage() } );
 		}
 	}
 
@@ -242,7 +244,7 @@ public class StructrFilePath extends StructrPath {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.log(Level.WARNING, "Unable to delete file {0}: {1}", new Object[] { path, fex.getMessage() } );
+			logger.warn("Unable to delete file {}: {}", new Object[] { path, fex.getMessage() } );
 		}
 	}
 
@@ -362,7 +364,7 @@ public class StructrFilePath extends StructrPath {
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "Unable to load actual file for path {0}: {1}", new Object[] { toString(), fex.getMessage() } );
+				logger.warn("Unable to load actual file for path {}: {}", new Object[] { toString(), fex.getMessage() } );
 			}
 		}
 

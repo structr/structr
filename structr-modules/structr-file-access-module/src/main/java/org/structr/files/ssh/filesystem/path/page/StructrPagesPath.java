@@ -36,8 +36,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -52,7 +54,7 @@ import org.structr.web.entity.dom.Page;
  */
 public class StructrPagesPath extends StructrPath {
 
-	private static final Logger logger = Logger.getLogger(StructrPagesPath.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrPagesPath.class.getName());
 
 	public StructrPagesPath(final StructrFilesystem fs, final StructrPath parent) {
 		super(fs, parent, StructrPath.PAGE_DIRECTORY);
@@ -88,7 +90,7 @@ public class StructrPagesPath extends StructrPath {
 						tx.success();
 
 					} catch (FrameworkException fex) {
-						logger.log(Level.WARNING, "", fex);
+						logger.warn("", fex);
 					}
 
 					return nodes.iterator();

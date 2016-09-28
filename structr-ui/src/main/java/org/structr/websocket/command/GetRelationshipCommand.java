@@ -19,8 +19,10 @@
 package org.structr.websocket.command;
 
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
@@ -35,7 +37,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class GetRelationshipCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(GetRelationshipCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(GetRelationshipCommand.class.getName());
 
 	static {
 
@@ -57,7 +59,7 @@ public class GetRelationshipCommand extends AbstractCommand {
 
 		} else {
 
-			logger.log(Level.WARNING, "Relationship not found for id {0}!", webSocketData.getId());
+			logger.warn("Relationship not found for id {}!", webSocketData.getId());
 			// Not necessary to send a 404 here
 			//getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 

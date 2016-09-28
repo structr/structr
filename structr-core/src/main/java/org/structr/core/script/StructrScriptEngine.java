@@ -22,14 +22,14 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.script.AbstractScriptEngine;
 import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptException;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.function.Functions;
@@ -41,7 +41,7 @@ import org.structr.schema.action.ActionContext;
  */
 public class StructrScriptEngine extends AbstractScriptEngine {
 
-	private static final Logger logger         = Logger.getLogger(StructrScriptEngine.class.getName());
+	private static final Logger logger         = LoggerFactory.getLogger(StructrScriptEngine.class.getName());
 	private StructrScriptEngineFactory factory = null;
 
 	public StructrScriptEngine(final StructrScriptEngineFactory factory) {
@@ -72,7 +72,7 @@ public class StructrScriptEngine extends AbstractScriptEngine {
 			return eval(IOUtils.toString(reader), context);
 
 		} catch (IOException ioex) {
-			logger.log(Level.SEVERE, "Unable to read from Reader.", ioex);
+			logger.error("Unable to read from Reader.", ioex);
 		}
 
 		return null;

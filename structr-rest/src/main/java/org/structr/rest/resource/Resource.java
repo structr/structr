@@ -23,11 +23,11 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.CaseHelper;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.Permission;
@@ -62,7 +62,7 @@ import org.structr.schema.ConfigurationProvider;
  */
 public abstract class Resource {
 
-	private static final Logger logger = Logger.getLogger(Resource.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(Resource.class.getName());
 
 	protected SecurityContext securityContext = null;
 
@@ -128,7 +128,7 @@ public abstract class Resource {
 
 					if (!node.isGranted(Permission.delete, securityContext)) {
 
-						logger.log(Level.WARNING, "Could not delete {0} because {1} has no delete permission", new Object[]{obj, securityContext.getUser(false)});
+						logger.warn("Could not delete {} because {} has no delete permission", new Object[]{obj, securityContext.getUser(false)});
 						throw new NotAllowedException("Could not delete " + obj + " because " + securityContext.getUser(false) + " has no delete permission");
 					}
 

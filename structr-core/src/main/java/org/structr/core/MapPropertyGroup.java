@@ -18,17 +18,14 @@
  */
 package org.structr.core;
 
-import org.structr.core.property.PropertyKey;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -39,7 +36,7 @@ import org.structr.core.converter.PropertyConverter;
  */
 public class MapPropertyGroup implements PropertyGroup<PropertyMap> {
 
-	private static final Logger logger   = Logger.getLogger(MapPropertyGroup.class.getName());
+	private static final Logger logger   = LoggerFactory.getLogger(MapPropertyGroup.class.getName());
 	protected PropertyKey[] propertyKeys = null;
 
 	//~--- constructors ---------------------------------------------------
@@ -66,7 +63,7 @@ public class MapPropertyGroup implements PropertyGroup<PropertyMap> {
 					
 				} catch(FrameworkException fex) {
 					
-					logger.log(Level.WARNING, "Unable to convert grouped property {0} on type {1}: {2}", new Object[] {
+					logger.warn("Unable to convert grouped property {} on type {}: {}", new Object[] {
 						key.dbName(),
 						source.getClass().getSimpleName(),
 						fex.getMessage()

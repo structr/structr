@@ -21,12 +21,12 @@ package org.structr.rest.auth;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -48,7 +48,7 @@ import org.structr.core.entity.SuperUser;
  */
 public class RestAuthenticator implements Authenticator {
 
-	private static final Logger logger       = Logger.getLogger(RestAuthenticator.class.getName());
+	private static final Logger logger       = LoggerFactory.getLogger(RestAuthenticator.class.getName());
 
 	protected boolean examined = false;
 	protected static boolean userAutoCreate;
@@ -214,7 +214,7 @@ public class RestAuthenticator implements Authenticator {
 		// no grants => no access rights
 		if (resourceAccess == null) {
 
-			logger.log(Level.INFO, "No resource access grant found for signature {0}.", rawResourceSignature);
+			logger.info("No resource access grant found for signature {}.", rawResourceSignature);
 
 			throw new UnauthorizedException("Forbidden");
 
@@ -320,7 +320,7 @@ public class RestAuthenticator implements Authenticator {
 			}
 		}
 
-		logger.log(Level.INFO, "Resource access grant found for signature {0}, but method {1} not allowed for {2}.", new Object[] { rawResourceSignature, method, validUser ? "authenticated users" : "public users" } );
+		logger.info("Resource access grant found for signature {}, but method {} not allowed for {}.", new Object[] { rawResourceSignature, method, validUser ? "authenticated users" : "public users" } );
 
 		throw new UnauthorizedException("Forbidden");
 
@@ -354,7 +354,7 @@ public class RestAuthenticator implements Authenticator {
 
 		} catch (IllegalStateException | FrameworkException ex) {
 
-			logger.log(Level.WARNING, "Error while logging out user", ex);
+			logger.warn("Error while logging out user", ex);
 		}
 	}
 

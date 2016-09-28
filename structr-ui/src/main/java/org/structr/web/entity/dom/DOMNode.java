@@ -30,8 +30,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.DatabaseService;
@@ -126,7 +128,7 @@ import org.w3c.dom.UserDataHandler;
  */
 public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, DOMNode> implements Node, Renderable, DOMAdoptable, DOMImportable {
 
-	private static final Logger logger = Logger.getLogger(DOMNode.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(DOMNode.class.getName());
 
 	// ----- error messages for DOMExceptions -----
 	protected static final String NO_MODIFICATION_ALLOWED_MESSAGE         = "Permission denied.";
@@ -267,7 +269,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				child.setProperty(ownerDocument, page);
 
 			} catch (FrameworkException ex) {
-				logger.log(Level.WARNING, "", ex);
+				logger.warn("", ex);
 			}
 
 		}
@@ -324,7 +326,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.WARNING, "Updating page version failed", ex);
+			logger.warn("Updating page version failed", ex);
 
 		}
 
@@ -713,7 +715,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 		} catch (FrameworkException ex) {
-			Logger.getLogger(DOMElement.class.getName()).log(Level.SEVERE, null, ex);
+			LoggerFactory.getLogger(DOMElement.class.getName()).error("", ex);
 		}
 
 	}
@@ -732,9 +734,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "", fex);
+				logger.warn("", fex);
 
-				logger.log(Level.WARNING, "Could not retrieve data from graph data source {0}: {1}", new Object[]{source, fex});
+				logger.warn("Could not retrieve data from graph data source {}: {}", new Object[]{source, fex});
 			}
 		}
 
@@ -934,7 +936,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, "Hide conditions " + _hideConditions + " could not be evaluated.", ex);
+			logger.error("Hide conditions " + _hideConditions + " could not be evaluated.", ex);
 		}
 		try {
 			// If show conditions evaluate to "false", don't render
@@ -943,7 +945,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, "Show conditions " + _showConditions + " could not be evaluated.", ex);
+			logger.error("Show conditions " + _showConditions + " could not be evaluated.", ex);
 		}
 
 		return true;

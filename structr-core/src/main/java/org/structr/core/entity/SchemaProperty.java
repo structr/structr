@@ -22,9 +22,9 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -54,7 +54,7 @@ import org.structr.schema.parser.PropertyDefinition;
  */
 public class SchemaProperty extends SchemaReloadingNode implements PropertyDefinition {
 
-	private static final Logger logger = Logger.getLogger(SchemaProperty.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(SchemaProperty.class.getName());
 
 	public static final Property<AbstractSchemaNode> schemaNode                   = new StartNode<>("schemaNode", SchemaNodeProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
 	public static final Property<List<SchemaView>>   schemaViews                  = new StartNodes<>("schemaViews", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
@@ -382,7 +382,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "", fex);
+				logger.warn("", fex);
 			}
 		}
 
@@ -399,7 +399,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "", fex);
+				logger.warn("", fex);
 			}
 		}
 
@@ -416,7 +416,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "", fex);
+				logger.warn("", fex);
 			}
 		}
 
@@ -433,7 +433,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 			} catch (FrameworkException fex) {
 
-				logger.log(Level.WARNING, "", fex);
+				logger.warn("", fex);
 			}
 		}
 

@@ -19,20 +19,20 @@
 package org.structr.rest.serialization;
 
 import java.io.IOException;
-import java.util.List;
 import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.eclipse.jetty.util.ConcurrentHashSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PermissionResolutionMask;
 import org.structr.common.PropertyView;
 import org.structr.common.QueryRange;
@@ -54,7 +54,7 @@ import org.structr.core.property.PropertyMap;
  */
 public abstract class StreamingWriter {
 
-	private static final Logger logger                   = Logger.getLogger(StreamingWriter.class.getName());
+	private static final Logger logger                   = LoggerFactory.getLogger(StreamingWriter.class.getName());
 	private static final long MAX_SERIALIZATION_TIME     = TimeUnit.SECONDS.toMillis(300);
 	private static final Set<PropertyKey> idNameOnly     = new LinkedHashSet<>();
 	private static final Set<PropertyKey> structrGraph   = new LinkedHashSet<>();
@@ -111,7 +111,7 @@ public abstract class StreamingWriter {
 		try {
 			this.reduceRedundancy = Boolean.valueOf(Services.getInstance().getConfigurationValue(Services.JSON_REDUNDANCY_REDUCTION, "false"));
 		} catch (Throwable t) {
-			logger.log(Level.WARNING, "Unable to parse value for {0}: {1}", new Object[] { Services.JSON_REDUNDANCY_REDUCTION, t.getMessage() } );
+			logger.warn("Unable to parse value for {}: {}", new Object[] { Services.JSON_REDUNDANCY_REDUCTION, t.getMessage() } );
 		}
 
 		//this.writer = new StructrWriter(writer);
@@ -222,7 +222,7 @@ public abstract class StreamingWriter {
 							// check for timeout
 							if (System.currentTimeMillis() > startTime + MAX_SERIALIZATION_TIME) {
 
-								logger.log(Level.SEVERE, "JSON serialization of {0} with {1} results took more than {2} ms, aborted. Please review output view size or adjust timeout.", new Object[] { securityContext.getCompoundRequestURI(), results.size(), MAX_SERIALIZATION_TIME } );
+								logger.error("JSON serialization of {} with {} results took more than {} ms, aborted. Please review output view size or adjust timeout.", new Object[] { securityContext.getCompoundRequestURI(), results.size(), MAX_SERIALIZATION_TIME } );
 
 								// TODO: create some output indicating that streaming was interrupted
 								break;
@@ -266,7 +266,7 @@ public abstract class StreamingWriter {
 						// check for timeout
 						if (System.currentTimeMillis() > startTime + MAX_SERIALIZATION_TIME) {
 
-							logger.log(Level.SEVERE, "JSON serialization of {0} with {1} results took more than {2} ms, aborted. Please review output view size or adjust timeout.", new Object[] { securityContext.getRequest().getRequestURI().concat( (securityContext.getRequest().getQueryString() == null) ? "" : "?".concat(securityContext.getRequest().getQueryString()) ), results.size(), MAX_SERIALIZATION_TIME } );
+							logger.error("JSON serialization of {} with {} results took more than {} ms, aborted. Please review output view size or adjust timeout.", new Object[] { securityContext.getRequest().getRequestURI().concat( (securityContext.getRequest().getQueryString() == null) ? "" : "?".concat(securityContext.getRequest().getQueryString()) ), results.size(), MAX_SERIALIZATION_TIME } );
 
 							// TODO: create some output indicating that streaming was interrupted
 							break;
@@ -440,7 +440,7 @@ public abstract class StreamingWriter {
 
 			} catch(Throwable t) {
 
-				logger.log(Level.WARNING, "Exception while serializing property {0} ({1}) of entity {2} (value {3}) : {4}", new Object[] {
+				logger.warn("Exception while serializing property {} ({}) of entity {} (value {}) : {}", new Object[] {
 					key.jsonName(),
 					key.getClass(),
 					key.getClass().getDeclaringClass(),

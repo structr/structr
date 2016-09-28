@@ -21,8 +21,8 @@ package org.structr.core.property;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
@@ -39,7 +39,7 @@ import org.structr.schema.action.ActionContext;
  */
 public class CypherQueryProperty extends AbstractReadOnlyProperty<List<GraphObject>> {
 
-	private static final Logger logger = Logger.getLogger(CypherQueryProperty.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CypherQueryProperty.class.getName());
 
 	public CypherQueryProperty(final String name, final String cypherQuery) {
 
@@ -79,7 +79,7 @@ public class CypherQueryProperty extends AbstractReadOnlyProperty<List<GraphObje
 				return StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(query, parameters);
 
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "", t);
+				logger.warn("", t);
 			}
 		}
 

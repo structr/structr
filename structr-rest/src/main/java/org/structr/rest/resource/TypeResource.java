@@ -21,10 +21,10 @@ package org.structr.rest.resource;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
@@ -66,7 +66,7 @@ import org.structr.schema.SchemaHelper;
  */
 public class TypeResource extends SortableResource {
 
-	private static final Logger logger = Logger.getLogger(TypeResource.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(TypeResource.class.getName());
 
 	protected Class<? extends SearchCommand> searchCommandType = null;
 	protected ResultTransformer virtualType                    = null;
@@ -185,7 +185,7 @@ public class TypeResource extends SortableResource {
 
 		} else {
 
-			logger.log(Level.WARNING, "type was null");
+			logger.warn("type was null");
 		}
 
 		List emptyList = Collections.emptyList();

@@ -19,8 +19,8 @@
 package org.structr.common;
 
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeResult;
 import org.structr.api.NotFoundException;
@@ -38,7 +38,7 @@ import org.structr.core.graph.Tx;
  */
 public class CypherNotInTransactionTest extends StructrTest {
 
-	private static final Logger logger = Logger.getLogger(CypherNotInTransactionTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CypherNotInTransactionTest.class.getName());
 
 	@Override
 	public void test00DbAvailable() {
@@ -92,7 +92,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -137,7 +137,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -191,7 +191,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -236,7 +236,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.log(Level.SEVERE, ex.toString());
+			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}

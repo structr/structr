@@ -35,8 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.httpclient.HttpClient;
@@ -78,7 +78,6 @@ import org.structr.dynamic.File;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.importer.GraphGistImporter;
 import org.structr.schema.importer.SchemaJsonImporter;
-import org.structr.util.LogMessageSupplier;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.HttpHelper;
 import org.structr.web.common.ImageHelper;
@@ -108,7 +107,7 @@ import org.structr.web.entity.html.Head;
  */
 public class Importer {
 
-	private static final Logger logger = Logger.getLogger(Importer.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(Importer.class.getName());
 
 	private static final String[] hrefElements       = new String[]{"link"};
 	private static final String[] ignoreElementNames = new String[]{"#declaration", "#doctype"};
@@ -212,7 +211,7 @@ public class Importer {
 		if (StringUtils.isNotBlank(code)) {
 
 			if (!isDeployment) {
-				logger.log(Level.INFO, "##### Start parsing code for page {0} #####", new Object[]{name});
+				logger.info("##### Start parsing code for page {} #####", new Object[]{name});
 			}
 
 			if (fragment) {
@@ -228,7 +227,7 @@ public class Importer {
 		} else {
 
 			if (!isDeployment) {
-				logger.log(Level.INFO, "##### Start fetching {0} for page {1} #####", new Object[]{address, name});
+				logger.info("##### Start fetching {} for page {} #####", new Object[]{address, name});
 			}
 
 			code = HttpHelper.get(address);
@@ -254,7 +253,7 @@ public class Importer {
 			createChildNodes(parsedDocument, page, page);
 
 			if (!isDeployment) {
-				logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[]{address, name});
+				logger.info("##### Finished fetching {} for page {} #####", new Object[]{address, name});
 			}
 		}
 
@@ -351,13 +350,13 @@ public class Importer {
 
 		if (sourceNode == null) {
 
-			logger.log(Level.WARNING, "Source node was null, returning empty change set.");
+			logger.warn("Source node was null, returning empty change set.");
 			return Collections.EMPTY_LIST;
 		}
 
 		if (modifiedNode == null) {
 
-			logger.log(Level.WARNING, "Modified node was null, returning empty change set.");
+			logger.warn("Modified node was null, returning empty change set.");
 			return Collections.EMPTY_LIST;
 		}
 
@@ -636,12 +635,12 @@ public class Importer {
 
 					} else {
 
-						logger.log(Level.WARNING, "Unable to find shared component {0}, template ignored!", src);
+						logger.warn("Unable to find shared component {}, template ignored!", src);
 					}
 
 				} else {
 
-					logger.log(Level.WARNING, "Invalid template definition, missing src attribute!");
+					logger.warn("Invalid template definition, missing src attribute!");
 				}
 
 
@@ -866,7 +865,7 @@ public class Importer {
 
 			downloadUrl = new URL(base, downloadAddress);
 
-			logger.log(Level.INFO, "Starting download from {0}", downloadUrl);
+			logger.info("Starting download from {}", downloadUrl);
 
 			copyURLToFile(downloadUrl.toString(), fileOnDisk);
 
@@ -874,39 +873,39 @@ public class Importer {
 
 			if (originalUrl == null || address == null) {
 
-				logger.log(Level.INFO, "Cannot download from {0} without base address", downloadAddress);
+				logger.info("Cannot download from {} without base address", downloadAddress);
 				return null;
 
 			}
 
-			logger.log(Level.WARNING, ioe, LogMessageSupplier.create("Unable to download from {0} {1}", new Object[]{originalUrl, downloadAddress}));
+			logger.warn("Unable to download from {} {}", new Object[]{originalUrl, downloadAddress});
 
 			try {
 				// Try alternative baseUrl with trailing "/"
 				if (address.endsWith("/")) {
 
 					// don't append a second slash!
-					logger.log(Level.INFO, "Starting download from alternative URL {0} {1} {2}", new Object[]{originalUrl, address, downloadAddress});
+					logger.info("Starting download from alternative URL {} {} {}", new Object[]{originalUrl, address, downloadAddress});
 					downloadUrl = new URL(new URL(originalUrl, address), downloadAddress);
 
 				} else {
 
 					// append a slash
-					logger.log(Level.INFO, "Starting download from alternative URL {0} {1} {2}", new Object[]{originalUrl, address.concat("/"), downloadAddress});
+					logger.info("Starting download from alternative URL {} {} {}", new Object[]{originalUrl, address.concat("/"), downloadAddress});
 					downloadUrl = new URL(new URL(originalUrl, address.concat("/")), downloadAddress);
 				}
 
 				copyURLToFile(downloadUrl.toString(), fileOnDisk);
 
 			} catch (MalformedURLException ex) {
-				logger.log(Level.SEVERE, ex, LogMessageSupplier.create("Could not resolve address {0}", address.concat("/")));
+				logger.error("Could not resolve address {}", address.concat("/"));
 				return null;
 			} catch (IOException ex) {
-				logger.log(Level.WARNING, ex, LogMessageSupplier.create("Unable to download from {0}", address.concat("/")));
+				logger.warn("Unable to download from {}", address.concat("/"));
 				return null;
 			}
 
-			logger.log(Level.INFO, "Starting download from alternative URL {0}", downloadUrl);
+			logger.info("Starting download from alternative URL {}", downloadUrl);
 
 		}
 
@@ -915,7 +914,7 @@ public class Importer {
 
 		if (StringUtils.isBlank(fileName)) {
 
-			logger.log(Level.WARNING, "Can't figure out filename from download address {0}, aborting.", downloadAddress);
+			logger.warn("Can't figure out filename from download address {}, aborting.", downloadAddress);
 
 			return null;
 		}
@@ -930,12 +929,12 @@ public class Importer {
 
 		} catch (IOException ioe) {
 
-			logger.log(Level.WARNING, "Unable to determine MIME type, size or checksum of {0}", fileOnDisk);
+			logger.warn("Unable to determine MIME type, size or checksum of {}", fileOnDisk);
 			return null;
 		}
 
 
-		logger.log(Level.INFO, "Download URL: {0}, address: {1}, cleaned address: {2}, filename: {3}",
+		logger.info("Download URL: {}, address: {}, cleaned address: {}, filename: {}",
 			new Object[]{downloadUrl, address, StringUtils.substringBeforeLast(address, "/"), fileName});
 
 		String relativePath = StringUtils.substringAfter(downloadUrl.toString(), StringUtils.substringBeforeLast(address, "/"));
@@ -966,7 +965,7 @@ public class Importer {
 		}
 
 
-		logger.log(Level.INFO, "Relative path: {0}, final path: {1}", new Object[]{relativePath, path});
+		logger.info("Relative path: {}, final path: {}", new Object[]{relativePath, path});
 
 		if (contentType.equals("text/plain")) {
 
@@ -1005,7 +1004,7 @@ public class Importer {
 
 		} catch (final FrameworkException | IOException ex) {
 
-			logger.log(Level.WARNING, "Could not create file node.", ex);
+			logger.warn("Could not create file node.", ex);
 
 		}
 
@@ -1040,7 +1039,7 @@ public class Importer {
 
 			final String newName = name.concat("_").concat(FileHelper.getDateString());
 
-			logger.log(Level.WARNING, "File {0} already exists, renaming to {1}", new Object[] { path, newName });
+			logger.warn("File {} already exists, renaming to {}", new Object[] { path, newName });
 
 			fileNode.setProperty(AbstractNode.name, newName);
 		}
@@ -1076,7 +1075,7 @@ public class Importer {
 
 			String url = matcher.group(2);
 
-			logger.log(Level.INFO, "Trying to download from URL found in CSS: {0}", url);
+			logger.info("Trying to download from URL found in CSS: {}", url);
 			downloadFile(url, base);
 
 		}
@@ -1091,7 +1090,7 @@ public class Importer {
 
 		get.addRequestHeader("User-Agent", "curl/7.35.0");
 
-		logger.log(Level.INFO, "Downloading from {0}", uri);
+		logger.info("Downloading from {}", uri);
 
 		final int statusCode = client.executeMethod(get);
 
@@ -1108,7 +1107,7 @@ public class Importer {
 		} else {
 
 			System.out.println("response body: " + new String(get.getResponseBody(), "utf-8"));
-			logger.log(Level.WARNING, "Unable to create file from URI {0}: status code was {1}", new Object[]{uri, statusCode});
+			logger.warn("Unable to create file from URI {}: status code was {}", new Object[]{uri, statusCode});
 		}
 	}
 
