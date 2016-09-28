@@ -21,8 +21,6 @@ package org.structr.web.function;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;

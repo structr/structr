@@ -19,14 +19,11 @@
 package org.structr.bolt.index;
 
 import java.util.Arrays;
-import org.structr.bolt.*;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.QueryResult;
@@ -43,6 +40,7 @@ import org.structr.api.search.RangeQuery;
 import org.structr.api.search.SpatialQuery;
 import org.structr.api.search.TypeConverter;
 import org.structr.api.search.TypeQuery;
+import org.structr.bolt.*;
 import org.structr.bolt.index.converter.BooleanTypeConverter;
 import org.structr.bolt.index.converter.DateTypeConverter;
 import org.structr.bolt.index.converter.DoubleTypeConverter;

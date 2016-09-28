@@ -18,18 +18,16 @@
  */
 package org.structr.web.entity;
 
-import org.structr.common.fulltext.Indexable;
 import java.io.InputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.FulltextIndexer;
+import org.structr.common.fulltext.Indexable;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -38,7 +36,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
-import org.structr.web.common.DownloadHelper;
+import org.structr.web.common.HttpHelper;
 
 /**
  *
@@ -111,7 +109,7 @@ public class RemoteDocument extends AbstractNode implements Indexable {
 		final String remoteUrl = getProperty(url);
 		if (StringUtils.isNotBlank(remoteUrl)) {
 
-			return DownloadHelper.getInputStream(remoteUrl);
+			return HttpHelper.getAsStream(remoteUrl);
 		}
 
 		return null;

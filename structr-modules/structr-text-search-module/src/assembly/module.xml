@@ -35,13 +35,4 @@
 			<outputDirectory></outputDirectory>
 		</fileSet>
 	</fileSets>
-	<dependencySets>
-		<dependencySet>
-			<outputDirectory></outputDirectory>
-			<scope>runtime</scope>
-			<unpack>true</unpack>
-			<includes>
-			</includes>
-		</dependencySet>
-	</dependencySets>
 </assembly>

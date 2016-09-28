@@ -18,9 +18,9 @@
  */
 package org.structr.xmpp;
 
+import org.jivesoftware.smack.packet.IQ.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.jivesoftware.smack.packet.IQ.Type;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.entity.AbstractNode;

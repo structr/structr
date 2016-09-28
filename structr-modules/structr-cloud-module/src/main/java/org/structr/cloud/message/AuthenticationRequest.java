@@ -21,21 +21,15 @@ package org.structr.cloud.message;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import javax.crypto.Cipher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudService;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.SyncCommand;
 
-/**
- *
- *
- */
 
 
 public class AuthenticationRequest extends Message {

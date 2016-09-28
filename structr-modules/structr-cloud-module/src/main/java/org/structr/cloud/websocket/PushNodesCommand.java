@@ -21,8 +21,6 @@ package org.structr.cloud.websocket;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.cloud.CloudService;
 import org.structr.cloud.HostInfo;
 import org.structr.cloud.WebsocketProgressListener;

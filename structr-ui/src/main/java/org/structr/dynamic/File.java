@@ -18,8 +18,8 @@
  */
 package org.structr.dynamic;
 
-import org.structr.web.entity.FileBase;
 import org.structr.schema.SchemaService;
+import org.structr.web.entity.FileBase;
 
 /**
  * Base class for all File entities. This class is intended to be overridden

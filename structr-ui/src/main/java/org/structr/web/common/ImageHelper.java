@@ -19,33 +19,25 @@
 package org.structr.web.common;
 
 import com.mortennobel.imagescaling.ResampleOp;
-import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.commons.lang3.StringUtils;
-import org.structr.common.error.FrameworkException;
-import org.structr.web.entity.Image;
-import org.structr.util.Base64;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import javax.imageio.ImageIO;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyMap;
-import static org.structr.web.common.FileHelper.setFileData;
-
-/**
- *
- *
- */
-
 import org.structr.dynamic.File;
+import org.structr.util.Base64;
+import static org.structr.web.common.FileHelper.setFileData;
+import org.structr.web.entity.Image;
 
 public abstract class ImageHelper extends FileHelper {
 

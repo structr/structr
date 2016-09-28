@@ -19,13 +19,11 @@
 package org.structr.websocket.command.dom;
 
 import java.util.Map;
-
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
-
 import org.w3c.dom.DOMException;
 
 /**

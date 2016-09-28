@@ -19,16 +19,18 @@
 package org.structr.web.entity.feed;
 
 import java.io.InputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.FulltextIndexer;
+import org.structr.common.fulltext.Indexable;
+import static org.structr.common.fulltext.Indexable.contentType;
+import static org.structr.common.fulltext.Indexable.extractedContent;
+import static org.structr.common.fulltext.Indexable.indexedWords;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import static org.structr.core.GraphObject.type;
@@ -40,10 +42,6 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaService;
-import org.structr.common.fulltext.Indexable;
-import static org.structr.common.fulltext.Indexable.contentType;
-import static org.structr.common.fulltext.Indexable.extractedContent;
-import static org.structr.common.fulltext.Indexable.indexedWords;
 import org.structr.web.entity.relation.FeedItemContents;
 
 /**

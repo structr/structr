@@ -18,10 +18,10 @@
  */
 package org.structr.web.entity.relation;
 
-import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.entity.ManyToOne;
+import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;

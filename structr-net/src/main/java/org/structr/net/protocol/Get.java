@@ -22,9 +22,9 @@ package org.structr.net.protocol;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import org.structr.net.data.time.PseudoTime;
 import org.structr.net.peer.Peer;
 import org.structr.net.peer.PeerInfo;
-import org.structr.net.data.time.PseudoTime;
 import org.structr.net.repository.RepositoryObject;
 
 /**

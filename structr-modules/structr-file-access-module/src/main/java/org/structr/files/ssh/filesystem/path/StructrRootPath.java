@@ -18,8 +18,6 @@
  */
 package org.structr.files.ssh.filesystem.path;
 
-import org.structr.files.ssh.filesystem.path.schema.StructrSchemaPath;
-import org.structr.files.ssh.filesystem.path.file.StructrFilesPath;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.AccessDeniedException;
@@ -37,14 +35,14 @@ import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.files.ssh.filesystem.AbstractDirectoryStream;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.files.ssh.filesystem.StructrPath;
 import org.structr.files.ssh.filesystem.StructrRootAttributes;
 import org.structr.files.ssh.filesystem.path.components.StructrComponentsPath;
+import org.structr.files.ssh.filesystem.path.file.StructrFilesPath;
 import org.structr.files.ssh.filesystem.path.page.StructrPagesPath;
+import org.structr.files.ssh.filesystem.path.schema.StructrSchemaPath;
 
 /**
  *

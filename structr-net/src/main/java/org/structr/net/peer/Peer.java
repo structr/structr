@@ -19,9 +19,6 @@
 
 package org.structr.net.peer;
 
-import org.structr.net.data.time.Clock;
-import org.structr.net.data.time.ToplevelTemporalEnvironment;
-import org.structr.net.protocol.AbstractMessage;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -49,22 +46,23 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.net.PeerListener;
 import org.structr.net.data.RemoteTransaction;
 import org.structr.net.data.TimeoutException;
+import org.structr.net.data.time.Clock;
+import org.structr.net.data.time.PseudoTemporalEnvironment;
+import org.structr.net.data.time.PseudoTime;
+import org.structr.net.data.time.ToplevelTemporalEnvironment;
+import org.structr.net.protocol.AbstractMessage;
 import org.structr.net.protocol.Callback;
+import org.structr.net.protocol.Delete;
 import org.structr.net.protocol.Discovery;
 import org.structr.net.protocol.Envelope;
 import org.structr.net.protocol.Inventory;
-import org.structr.net.data.time.PseudoTemporalEnvironment;
-import org.structr.net.data.time.PseudoTime;
-import org.structr.net.protocol.Delete;
 import org.structr.net.protocol.Update;
 import org.structr.net.repository.DefaultRepositoryObject;
-import org.structr.net.repository.Repository;
 import org.structr.net.repository.InternalChangeListener;
+import org.structr.net.repository.Repository;
 import org.structr.net.repository.RepositoryObject;
 
 /**

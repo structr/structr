@@ -20,30 +20,18 @@ package org.structr.web.test;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static junit.framework.TestCase.fail;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.Tx;
 import org.structr.web.auth.UiAuthenticator;
 import static org.structr.web.test.ResourceAccessTest.createResourceAccess;
-import static junit.framework.TestCase.fail;
-import static org.hamcrest.Matchers.hasSize;
 
-/**
- * Test inheritance of schema attributes.
- * 
- * There are the following inheritance chains:
- * 
- * org.structr.dynamic.File extends org.structr.web.entity.FileBase
- * org.structr.web.entity.Image extends org.structr.dynamic.File
- * 
- * Attributes of File must show up on Image and also all dynamic classes that inherit from File or Image.
- */
 
 
 public class SchemaAttributesInheritanceTest extends FrontendTest {

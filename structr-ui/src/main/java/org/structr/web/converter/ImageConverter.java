@@ -20,22 +20,15 @@ package org.structr.web.converter;
 
 import net.sf.jmimemagic.Magic;
 import net.sf.jmimemagic.MagicMatch;
-
 import org.apache.commons.lang3.StringUtils;
-
-import org.structr.web.common.ImageHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.KeyAndClass;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.Image;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 //~--- classes ----------------------------------------------------------------
 

@@ -19,14 +19,12 @@
 package org.structr.cloud;
 
 import java.io.DataOutputStream;
-import org.structr.cloud.message.Message;
 import java.io.IOException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.structr.cloud.message.Message;
 
 /**
  *

@@ -19,28 +19,26 @@
 package org.structr.web.entity.dom;
 
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.structr.web.entity.Folder;
-import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.property.PropertyMap;
-import org.structr.web.common.DOMTest;
-import org.w3c.dom.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
+import org.structr.web.common.DOMTest;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.FileBase;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 import org.structr.web.entity.relation.RenderNode;
+import org.w3c.dom.Element;
 
 /**
  * Test to render data mixed with markup

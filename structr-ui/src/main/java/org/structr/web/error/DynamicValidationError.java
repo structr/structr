@@ -19,8 +19,8 @@
 package org.structr.web.error;
 
 import java.util.Map;
-import org.structr.core.property.PropertyKey;
 import org.structr.common.error.SemanticErrorToken;
+import org.structr.core.property.PropertyKey;
 
 /**
  *

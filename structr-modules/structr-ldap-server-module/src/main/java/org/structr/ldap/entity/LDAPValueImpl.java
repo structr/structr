@@ -24,7 +24,6 @@
 
 package org.structr.ldap.entity;
 
-import org.structr.ldap.api.LDAPValue;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
@@ -32,6 +31,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
+import org.structr.ldap.api.LDAPValue;
 import org.structr.ldap.relationship.LDAPValues;
 
 /**

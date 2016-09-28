@@ -18,8 +18,6 @@
  */
 package org.structr.cloud.message;
 
-import org.structr.cloud.sync.ReplicationStatus;
-import org.structr.cloud.sync.Synchronize;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
@@ -32,8 +30,6 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
@@ -42,6 +38,8 @@ import org.structr.cloud.CloudListener;
 import org.structr.cloud.sync.Diff;
 import org.structr.cloud.sync.EndOfSync;
 import org.structr.cloud.sync.Ping;
+import org.structr.cloud.sync.ReplicationStatus;
+import org.structr.cloud.sync.Synchronize;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.SyncCommand;

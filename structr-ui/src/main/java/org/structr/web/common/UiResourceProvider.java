@@ -18,15 +18,12 @@
  */
 package org.structr.web.common;
 
-import org.structr.common.PropertyView;
-import org.structr.rest.ResourceProvider;
-import org.structr.rest.resource.*;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
+import org.structr.common.PropertyView;
+import org.structr.rest.ResourceProvider;
+import org.structr.rest.resource.*;
 import org.structr.web.resource.LoginResource;
 import org.structr.web.resource.LogoutResource;
 import org.structr.web.resource.RegistrationResource;

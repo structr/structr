@@ -20,29 +20,17 @@ package org.structr.web.test;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static junit.framework.TestCase.fail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.Tx;
-import static junit.framework.TestCase.fail;
-import org.structr.core.entity.SchemaMethod;
 import org.structr.dynamic.File;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.User;
 
-/**
- * Test inheritance of dynamic schema methods.
- * 
- * There are the following inheritance chains:
- * 
- * org.structr.dynamic.File extends org.structr.web.entity.FileBase
- * org.structr.web.entity.Image extends org.structr.dynamic.File
- * 
- * Attributes of File must show up on Image and also all dynamic classes that inherit from File or Image.
- */
 
 
 public class SchemaMethodsInheritanceTest extends FrontendTest {

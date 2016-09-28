@@ -18,27 +18,22 @@
  */
 package org.structr.websocket.command;
 
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.web.entity.Image;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.PropertyKey;
-import org.structr.common.PagingHelper;
-import org.structr.websocket.message.WebSocketMessage;
-import org.structr.websocket.StructrWebSocket;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.structr.common.PagingHelper;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaHelper;
+import org.structr.web.entity.Image;
 import org.structr.web.entity.relation.FileChildren;
+import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
 

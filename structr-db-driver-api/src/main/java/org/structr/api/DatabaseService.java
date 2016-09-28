@@ -18,12 +18,12 @@
  */
 package org.structr.api;
 
-import org.structr.api.graph.Node;
-import org.structr.api.graph.Relationship;
-import org.structr.api.graph.GraphProperties;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import org.structr.api.graph.GraphProperties;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 import org.structr.api.index.Index;
 
 /**

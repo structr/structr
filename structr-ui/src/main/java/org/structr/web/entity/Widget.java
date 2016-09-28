@@ -35,10 +35,10 @@ import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaService;
-import org.structr.web.importer.Importer;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.relation.ImageWidget;
+import org.structr.web.importer.Importer;
 import org.structr.web.property.UiNotion;
 
 /**

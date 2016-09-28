@@ -19,9 +19,9 @@
 package org.structr.cloud;
 
 import java.io.DataInputStream;
-import org.structr.cloud.message.Message;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import org.structr.cloud.message.Message;
 
 /**
  *

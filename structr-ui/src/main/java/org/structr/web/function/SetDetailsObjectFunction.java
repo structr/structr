@@ -18,8 +18,6 @@
  */
 package org.structr.web.function;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;

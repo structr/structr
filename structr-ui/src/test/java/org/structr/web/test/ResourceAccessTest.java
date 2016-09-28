@@ -19,22 +19,19 @@
 package org.structr.web.test;
 
 import com.jayway.restassured.RestAssured;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.web.common.StructrUiTest;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.web.entity.Folder;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.auth.UiAuthenticator;
+import org.structr.web.common.StructrUiTest;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 
 //~--- classes ----------------------------------------------------------------

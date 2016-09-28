@@ -18,14 +18,11 @@
  */
 package org.structr.web.common;
 
+import java.io.InputStream;
 import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
@@ -38,15 +35,16 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.config.ConnectionConfig;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.Services;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.StringProperty;
-import static org.structr.web.entity.dom.DOMNode.extractHeaders;
 
 /**
  * Helper class for outbound HTTP requests
@@ -64,7 +62,7 @@ public class HttpHelper {
 	private static CloseableHttpClient client;
 	private static RequestConfig reqConfig;
 	
-	private static void configure(final HttpRequestBase req, final String proxyUrlParameter, final String proxyUsernameParameter, final String proxyPasswordParameter, final String cookieParameter, final Map<String, String> headers, final boolean followRedirects) {
+	private static void configure(final HttpRequestBase req, final String username, final String password, final String proxyUrlParameter, final String proxyUsernameParameter, final String proxyPasswordParameter, final String cookieParameter, final Map<String, String> headers, final boolean followRedirects) {
 
 		if (StringUtils.isBlank(proxyUrlParameter)) {
 			proxyUrl = Services.getBaseConfiguration().getProperty(Services.APPLICATION_PROXY_HTTP_URL);
@@ -80,13 +78,19 @@ public class HttpHelper {
 
 		//final HttpHost target             = HttpHost.create(url.getHost());
 		HttpHost proxy                    = null;
-		CredentialsProvider credsProvider = null;
+		final CredentialsProvider credsProvider = new BasicCredentialsProvider();
 
+		if (StringUtils.isNoneBlank(username, password)) {
+			
+			credsProvider.setCredentials(
+				new AuthScope(new HttpHost(req.getURI().getHost())),
+				new UsernamePasswordCredentials(username, password)
+			);
+		}
+		
 		if (StringUtils.isNotBlank(proxyUrl)) {
 
-			proxy  = HttpHost.create(proxyUrl);
-
-			credsProvider = new BasicCredentialsProvider();
+			proxy         = HttpHost.create(proxyUrl);
 
 			if (StringUtils.isNoneBlank(proxyUsername, proxyPassword)) {
 
@@ -124,23 +128,30 @@ public class HttpHelper {
 		for (final Map.Entry<String, String> header : headers.entrySet()) {
 			req.addHeader(header.getKey(), header.getValue());
 		}
-		
 	}
 	
 	public static String get(final String address) {
 		return get(address, null, null, null, null, Collections.EMPTY_MAP);
 	}
 	
-	public static String get(final String address, String proxyUrl, String proxyUsername, String proxyPassword, String cookie, Map<String, String> headers) {
+	public static String get(final String address, final String username, final String password, final Map<String, String> headers) {
+		return get(address, username, password, null, null, null, null, headers);
+	}
+
+	public static String get(final String address, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) {
+		return get(address, null, null, proxyUrl, proxyUsername, proxyPassword, cookie, headers);
+	}
+	
+	public static String get(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) {
 				
 		String content = "";
 
 		try {
 		
-			final URI url = URI.create(address);
+			final URI     url = URI.create(address);
 			final HttpGet req = new HttpGet(url);
 
-			configure(req, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true);
+			configure(req, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true);
 
 			final CloseableHttpResponse resp = client.execute(req);
 
@@ -161,24 +172,35 @@ public class HttpHelper {
 
 		} catch (final Throwable t) {
 			
-			logger.error("Unable to fetch content from address " + address + ": ", t.getMessage());
-			return t.getMessage();
+			logger.error("Unable to fetch content from address {}, {}", new Object[] { address, t });
+			return t.toString();
 			
 		}
 		
 		return content;
-
 	}
 	
-	public static Map<String, String> head(final String address, String proxyUrl, String proxyUsername, String proxyPassword, String cookie, Map<String, String> headers) {
+	public static Map<String, String> head(final String address) {
+		return head(address, null, null, null, null, Collections.EMPTY_MAP);
+	}
+
+	public static Map<String, String> head(final String address, final String username, final String password, final Map<String, String> headers) {
+		return head(address, username, password, null, null, null, null, headers);
+	}
+	
+	public static Map<String, String> head(final String address, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) {
+		return head(address, null, null, proxyUrl, proxyUsername, proxyPassword, cookie, headers);
+	}
+
+	public static Map<String, String> head(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) {
 				
 		final Map<String, String> responseHeaders = new HashMap<>();
 
 		try {
-			final URI url = URI.create(address);
+			final URI      url = URI.create(address);
 			final HttpHead req = new HttpHead(url);
 
-			configure(req, proxyUrl, proxyUsername, proxyPassword, cookie, headers, false);
+			configure(req, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, false);
 
 			final CloseableHttpResponse response = client.execute(req);
 
@@ -186,16 +208,106 @@ public class HttpHelper {
 			for (final Header header : response.getAllHeaders()) {
 				
 				responseHeaders.put(header.getName(), header.getValue());
-				
 			}
 
 		} catch (final Throwable t) {
 			
-			logger.error("Unable to get headers from address " + address + ": ", t.getMessage());
-			
+			logger.error("Unable to get headers from address {}, {}", new Object[] { address, t.getMessage() });
 		}
 
 		return responseHeaders;
+	}
+	
+	public static Map<String, String> post(final String address, final String requestBody) {
+		return post(address, requestBody, null, null, null, null, Collections.EMPTY_MAP);
+	}
+	
+	public static Map<String, String> post(final String address, final String requestBody, final String username, final String password, final Map<String, String> headers) {
+		return post(address, requestBody, username, password, null, null, null, null, headers);
+	}
 
+	public static Map<String, String> post(final String address, final String requestBody, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) {
+		return post(address, requestBody, null, null, proxyUrl, proxyUsername, proxyPassword, cookie, headers);
+	}
+	
+	public static Map<String, String> post(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) {
+				
+		final Map<String, String> responseData = new HashMap<>();;
+
+		try {
+		
+			final URI      url = URI.create(address);
+			final HttpPost req = new HttpPost(url);
+
+			configure(req, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true);
+
+			req.setEntity(new StringEntity(requestBody));
+			
+			final CloseableHttpResponse response = client.execute(req);
+
+			final Header contentType = response.getFirstHeader("Content-Type");
+			String       charset     = StringUtils.substringAfterLast(contentType.getValue(), "; charset=");
+
+			// default charset is UTF-8
+			if (StringUtils.isBlank(charset)) {
+				charset = "UTF-8";
+			}
+
+			String content = IOUtils.toString(response.getEntity().getContent(), charset);
+
+			// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
+			if (content.charAt(0) == 65279) {
+				content = content.substring(1);
+			}
+			
+			responseData.put("body", content);
+			
+			responseData.put("status", Integer.toString(response.getStatusLine().getStatusCode()));
+			for (final Header header : response.getAllHeaders()) {
+				
+				responseData.put(header.getName(), header.getValue());
+			}
+
+		} catch (final Throwable t) {
+			
+			logger.error("Unable to fetch content from address {}, {}", new Object[] { address, t.getMessage() });
+		}
+		
+		return responseData;
+	}
+
+	public static InputStream getAsStream(final String address) {
+		
+		return getAsStream(address, null, null, null, null, null, null, Collections.EMPTY_MAP);
+	}
+	
+	public static InputStream getAsStream(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) {
+				
+		try {
+		
+			final URI     url = URI.create(address);
+			final HttpGet req = new HttpGet(url);
+
+			configure(req, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true);
+
+			final CloseableHttpResponse resp = client.execute(req);
+
+			final Header contentType = resp.getFirstHeader("Content-Type");
+			String       charset     = StringUtils.substringAfterLast(contentType.getValue(), "; charset=");
+
+			// default charset is UTF-8
+			if (StringUtils.isBlank(charset)) {
+				charset = "UTF-8";
+			}
+
+			return resp.getEntity().getContent();
+
+		} catch (final Throwable t) {
+			
+			logger.error("Unable to get content stream from address {}, {}", new Object[] { address, t.getMessage() });
+			
+		}
+		
+		return null;
 	}
 }

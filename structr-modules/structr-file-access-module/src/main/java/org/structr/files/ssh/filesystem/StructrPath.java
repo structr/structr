@@ -44,8 +44,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.files.ssh.filesystem.path.file.StructrFilePath;
 import org.structr.web.entity.dom.DOMElement;

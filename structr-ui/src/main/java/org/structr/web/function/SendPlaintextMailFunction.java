@@ -18,9 +18,9 @@
  */
 package org.structr.web.function;
 
+import org.apache.commons.mail.EmailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.commons.mail.EmailException;
 import org.structr.common.MailHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;

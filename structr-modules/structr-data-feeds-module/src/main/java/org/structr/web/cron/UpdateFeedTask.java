@@ -25,17 +25,12 @@ import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.agent.Task;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.web.entity.feed.DataFeed;
 
-/**
- *
- */
 
 
 public class UpdateFeedTask<T extends DataFeed> implements Task<T> {

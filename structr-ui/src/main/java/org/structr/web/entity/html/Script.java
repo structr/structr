@@ -18,17 +18,14 @@
  */
 package org.structr.web.entity.html;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.commons.lang.StringUtils;
-import org.structr.core.property.Property;
 import org.apache.commons.lang3.ArrayUtils;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.property.Property;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.dom.Content;

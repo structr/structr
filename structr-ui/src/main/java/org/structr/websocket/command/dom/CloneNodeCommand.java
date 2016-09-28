@@ -19,7 +19,6 @@
 package org.structr.websocket.command.dom;
 
 import java.util.Map;
-
 import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
