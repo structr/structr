@@ -19,7 +19,9 @@
 
 var _Minification = {
 
-	populateMinificationDialog: function (file) {
+	showMinificationDialog: function (file) {
+		Structr.dialog('Minification', function() { }, function() { });
+
 		dialogText.append('<table id="minification-files" class="props"><thead><tr><th>Position</th><th>Filename</th><th>Size</th><th>Actions</th></tr></thead><tbody></tbody></table>');
 		dialogText.append('<div id="minification-source-search"></div>');
 

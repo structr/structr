@@ -139,7 +139,6 @@ var _Files = {
 				+ '<button class="add_minified_css_file_icon button"><img title="Add Minified CSS File" src="' + _Icons.minification_dialog_css_icon + '" />' + ' Add Minified CSS File</button>'
 				+ '<button class="add_minified_js_file_icon button"><img title="Add Minified JS File" src="' + _Icons.minification_dialog_js_icon + '" />' + ' Add Minified JS File</button>'
 				+ '<button class="pull_file_icon button module-dependend" data-structr-module="cloud"><img title="Sync Files" alt="Sync Files" src="' + _Icons.pull_file_icon + '"> Sync Files</button>'
-				+ '<button class="duplicate_finder button"><img title="Find duplicates" alt="Find duplicates" src="' + _Icons.pull_file_icon + '"> Find Files with </button>'
 				);
 
 		$('.add_file_icon', main).on('click', function(e) {
@@ -1193,11 +1192,8 @@ var _Files = {
 
 		$(parent.children('.minify_file_icon')).on('click', function(e) {
 			e.stopPropagation();
-			e.preventDefault();
 
-			Structr.dialog('Minification', function() { }, function() { });
-
-			_Minification.populateMinificationDialog(file);
+			_Minification.showMinificationDialog(file);
 		});
 	},
 	displaySearchResultsForURL: function(url) {
