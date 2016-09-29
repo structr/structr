@@ -74,11 +74,6 @@
 		</dependency>
 		<dependency>
 			<groupId>org.structr</groupId>
-			<artifactId>structr-signed-jar-module</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.structr</groupId>
 			<artifactId>structr-geo-transformations-module</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -86,12 +81,6 @@
 			<groupId>org.structr</groupId>
 			<artifactId>structr-odf-module</artifactId>
 			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.structr</groupId>
-			<artifactId>structr-ldap-server-module</artifactId>
-			<version>${project.version}</version>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.structr</groupId>

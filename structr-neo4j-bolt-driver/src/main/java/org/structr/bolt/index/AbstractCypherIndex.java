@@ -104,22 +104,19 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 	@Override
 	public void add(final PropertyContainer t, final String key, final Object value, final Class typeHint) {
 
-		if (!t.hasProperty(key)) {
+		Object indexValue = value;
+		if (value != null) {
 
-			Object indexValue = value;
-			if (value != null) {
-
-				if (value.getClass().isEnum()) {
-					indexValue = indexValue.toString();
-				}
-
-				if (!INDEXABLE.contains(value.getClass())) {
-					return;
-				}
+			if (value.getClass().isEnum()) {
+				indexValue = indexValue.toString();
 			}
 
-			t.setProperty(key, indexValue);
+			if (!INDEXABLE.contains(value.getClass())) {
+				return;
+			}
 		}
+
+		t.setProperty(key, indexValue);
 	}
 
 	@Override

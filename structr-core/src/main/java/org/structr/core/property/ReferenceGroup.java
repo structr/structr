@@ -264,15 +264,6 @@ public class ReferenceGroup extends Property<PropertyMap> implements PropertyGro
 	}
 
 	@Override
-	public void index(GraphObject entity, Object value) {
-
-		for (PropertyKey key : propertyKeys.values()) {
-
-			key.index(entity, entity.getPropertyForIndexing(key));
-		}
-	}
-
-	@Override
 	public void extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, final boolean exactMatch, final Query query) throws FrameworkException {
 
 		for (PropertyKey key : propertyKeys.values()) {

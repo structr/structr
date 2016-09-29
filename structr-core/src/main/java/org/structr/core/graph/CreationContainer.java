@@ -110,11 +110,6 @@ public class CreationContainer implements GraphObject, PropertyContainer {
 	}
 
 	@Override
-	public Object getPropertyForIndexing(PropertyKey key) {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
 	public void removeProperty(PropertyKey key) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}

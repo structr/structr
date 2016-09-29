@@ -582,5 +582,4 @@ public class SortingTest extends StructrTest {
 		}
 
 	}
-
 }

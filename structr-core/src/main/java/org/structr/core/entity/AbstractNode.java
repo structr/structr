@@ -467,38 +467,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	/**
-	 * Return property value which is used for indexing.
-	 *
-	 * This is useful f.e. to filter markup from HTML to index only text, or
-	 * to get dates as long values.
-	 *
-	 * @param key
-	 * @return property value for indexing
-	 */
-	@Override
-	public Object getPropertyForIndexing(final PropertyKey key) {
-
-		Object value = getProperty(key);
-		if (value != null) {
-
-			final PropertyConverter<Object, Object> converter = key.databaseConverter(securityContext);
-			if (converter != null) {
-
-				try {
-					return converter.convert(value);
-
-				} catch (Throwable t) {
-					logger.warn("Unable to convert {} value of type {} for indexing: {}", new Object[] { key.dbName(), value.getClass(), t } );
-				}
-			}
-
-			return value;
-		}
-
-		return null;
-	}
-
-	/**
 	 * Returns the (converted, validated, transformed, etc.) property for
 	 * the given property key.
 	 *
@@ -1478,7 +1446,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 			if (key.isIndexed()) {
 
-				key.index(this, this.getPropertyForIndexing(key));
+				key.index(this, this.getProperty(key));
 			}
 		}
 	}
@@ -1511,7 +1479,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 			if (key.isPassivelyIndexed()) {
 
-				key.index(this, this.getPropertyForIndexing(key));
+				key.index(this, this.getProperty(key));
 			}
 		}
 	}
