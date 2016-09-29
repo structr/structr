@@ -57,6 +57,11 @@ application.session.timeout = 1800
 # default is read only
 #application.security.ownerless.nodes = read
 
+# Global proxy configuration
+#application.proxy.http.url = http://localhost:3128
+#application.proxy.http.username = 
+#application.proxy.http.password = 
+
 
 #############################################################################
 # Neo4j server settings
