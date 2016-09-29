@@ -31,7 +31,6 @@ import org.structr.cmis.info.CMISRelationshipInfo;
 import org.structr.cmis.info.CMISSecondaryInfo;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -77,17 +76,6 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 	// register this type as an overridden builtin type
 	static {
 		SchemaService.registerBuiltinTypeOverride("Folder", Folder.class.getName());
-	}
-
-	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
-
-		boolean valid = true;
-
-		valid &= super.isValid(errorBuffer);
-		valid &= ValidationHelper.checkStringMatchesRegex(this, name, "[^\\/\\x00]+", errorBuffer);
-
-		return valid;
 	}
 
 	@Override
