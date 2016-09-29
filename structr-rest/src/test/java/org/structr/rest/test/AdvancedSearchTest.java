@@ -813,7 +813,7 @@ public class AdvancedSearchTest extends StructrRestTest {
 				}
 
 				uuid = users.get(0).getUuid();
-				
+
 				tx.success();
 			}
 
@@ -1068,4 +1068,130 @@ public class AdvancedSearchTest extends StructrRestTest {
 
 		}
 	}
+
+	/* disabled, failing test
+	public void testQueriesOnFunctionProperties() {
+
+		String customerId = null;
+
+		try (final Tx tx = app.tx()) {
+
+			// setup test schema
+			final SchemaNode customerType = app.create(SchemaNode.class, "Customer");
+			final SchemaNode projectType  = app.create(SchemaNode.class, "Project");
+
+			app.create(SchemaRelationshipNode.class,
+				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, customerType),
+				new NodeAttribute<>(SchemaRelationshipNode.targetNode, projectType),
+				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "has"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceMultiplicity, "1"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetMultiplicity, "*"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "customer"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "projects")
+			);
+
+			customerType.setProperty(new StringProperty("_projectCount"), "Function(size(this.projects))");
+			customerType.setProperty(new StringProperty("_hasProjects"), "Function(gt(this.projectCount, 0))");
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			logger.warn("", ex);
+			fail("Unexpected exception");
+
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Class customerType   = StructrApp.getConfiguration().getNodeEntityClass("Customer");
+			final Class projectType    = StructrApp.getConfiguration().getNodeEntityClass("Project");
+			final PropertyKey projects = StructrApp.getConfiguration().getPropertyKeyForJSONName(customerType, "projects");
+
+			final List<NodeInterface> projectList = new LinkedList<>();
+
+			projectList.add(app.create(projectType, "Project 1"));
+			projectList.add(app.create(projectType, "Project 2"));
+
+			// create a customer with the two projects
+			customerId = app.create(customerType,
+				new NodeAttribute<>(AbstractNode.name, "Customer 1"),
+				new NodeAttribute<>(projects, projectList)
+			).getUuid();
+
+			// create a second customer without projects
+			app.create(customerType, "Customer 2");
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			logger.warn("", ex);
+			fail("Unexpected exception");
+
+		}
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+			.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(2))
+				.body("result_count", equalTo(2))
+
+			.when()
+				.get(concat("/Customer/ui"));
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+			.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
+				.body("result[0].id", equalTo(customerId))
+
+			.when()
+				.get(concat("/Customer?hasProjects=true"));
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+			.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
+				.body("result[0].id", equalTo(customerId))
+
+			.when()
+				.get(concat("/Customer?projectCount=2"));
+	}
+	*/
 }

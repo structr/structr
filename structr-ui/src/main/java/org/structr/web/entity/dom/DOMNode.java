@@ -608,6 +608,16 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		if (EditMode.DEPLOYMENT.equals(editMode) || EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
 
+			if (EditMode.DEPLOYMENT.equals(editMode)) {
+
+				// export name property if set
+				final String name = getProperty(AbstractNode.name);
+				if (name != null) {
+
+					out.append(" data-structr-meta-name=\"").append(escapeForHtmlAttributes(name)).append("\"");
+				}
+			}
+
 			for (final Property p : rawProps) {
 
 				String htmlName = "data-structr-meta-" + CaseHelper.toUnderscore(p.jsonName(), false).replaceAll("_", "-");

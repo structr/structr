@@ -46,7 +46,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 	}
 
 	protected abstract String getQueryPrefix();
-	protected abstract void invalidate();
+	public abstract void invalidate();
 
 	@Override
 	public long getId() {

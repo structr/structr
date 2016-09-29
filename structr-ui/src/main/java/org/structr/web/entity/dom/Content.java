@@ -296,7 +296,7 @@ public class Content extends DOMNode implements Text {
 			if (EditMode.DEPLOYMENT.equals(edit)) {
 
 				// EditMode "deployment" means "output raw content, do not interpret in any way
-				renderContext.getBuffer().append(getProperty(Content.content));
+				renderContext.getBuffer().append(escapeForHtmlAttributes(getProperty(Content.content)));
 
 				return;
 			}
