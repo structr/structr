@@ -206,15 +206,6 @@ public interface GraphObject {
 	public <T> Comparable getComparableProperty(final PropertyKey<T> key);
 
 	/**
-	 * Returns the property value for the given key that will be used
-	 * for indexing.
-	 *
-	 * @param key the key to index the value for
-	 * @return the property value for indexing
-	 */
-	public Object getPropertyForIndexing(final PropertyKey key);
-
-	/**
 	 * Removes the property value for the given key from this graph object.
 	 *
 	 * @param key the key to remove the value for

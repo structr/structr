@@ -25,8 +25,6 @@ import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.java.textilej.parser.MarkupParser;
 import net.java.textilej.parser.markup.confluence.ConfluenceDialect;
 import net.java.textilej.parser.markup.mediawiki.MediaWikiDialect;
@@ -46,7 +44,6 @@ import org.structr.core.Adapter;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.AsyncBuffer;
@@ -289,23 +286,6 @@ public class Content extends DOMNode implements Text {
 		}
 
 		return super.getIdHash();
-	}
-
-	@Override
-	public java.lang.Object getPropertyForIndexing(final PropertyKey key) {
-
-		if (key.equals(Content.content)) {
-
-			String value = getProperty(Content.content);
-			if (value != null) {
-
-				return escape(value);
-			}
-
-		}
-
-		return super.getPropertyForIndexing(key);
-
 	}
 
 	@Override

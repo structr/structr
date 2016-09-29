@@ -180,19 +180,6 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 		}
 	}
 
-	@Override
-	public Object getPropertyForIndexing(final PropertyKey key) {
-
-		if (password.equals(key) || salt.equals(key)) {
-
-			return null;
-
-		}
-
-		return super.getPropertyForIndexing(key);
-
-	}
-
 	/**
 	 * Intentionally return a special value indicating that the real value is not being disclosed.
 	 *

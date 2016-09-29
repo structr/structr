@@ -123,12 +123,6 @@ public class SuperUser implements Principal, AccessControllable {
 
 	}
 
-	public Object getPropertyForIndexing(String key) {
-
-		return null;
-
-	}
-
 	public String getPassword() {
 
 		return null;
@@ -243,11 +237,6 @@ public class SuperUser implements Principal, AccessControllable {
 
 	@Override
 	public Object setProperty(PropertyKey key, Object value) throws FrameworkException {
-		return null;
-	}
-
-	@Override
-	public Object getPropertyForIndexing(PropertyKey key) {
 		return null;
 	}
 

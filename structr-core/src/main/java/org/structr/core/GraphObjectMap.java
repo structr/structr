@@ -194,11 +194,6 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public Object getPropertyForIndexing(PropertyKey key) {
-		return null;
-	}
-
-	@Override
 	public PropertyContainer getPropertyContainer() {
 		return null;
 	}

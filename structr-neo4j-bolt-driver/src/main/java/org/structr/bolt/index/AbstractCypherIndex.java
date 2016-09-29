@@ -27,8 +27,6 @@ import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.QueryResult;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.Index;
@@ -106,22 +104,19 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 	@Override
 	public void add(final PropertyContainer t, final String key, final Object value, final Class typeHint) {
 
-		if (!t.hasProperty(key)) {
+		Object indexValue = value;
+		if (value != null) {
 
-			Object indexValue = value;
-			if (value != null) {
-
-				if (value.getClass().isEnum()) {
-					indexValue = indexValue.toString();
-				}
-
-				if (!INDEXABLE.contains(value.getClass())) {
-					return;
-				}
+			if (value.getClass().isEnum()) {
+				indexValue = indexValue.toString();
 			}
 
-			t.setProperty(key, indexValue);
+			if (!INDEXABLE.contains(value.getClass())) {
+				return;
+			}
 		}
+
+		t.setProperty(key, indexValue);
 	}
 
 	@Override
