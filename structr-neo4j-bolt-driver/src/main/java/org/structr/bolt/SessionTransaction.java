@@ -82,10 +82,18 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		if (!success) {
 
-			// we need to invalidate all existing references because we cannot
-			// be sure that they contain the correct values after a rollback
+			// We need to invalidate all existing references because we cannot
+			// be sure that they contain the correct values after a rollback.
 			for (final EntityWrapper entity : modifiedEntities) {
 				entity.stale();
+			}
+
+		} else {
+
+			// Invalidate all nodes that are modified in this transaction
+			// so that the relationship caches are rebuilt.
+			for (final EntityWrapper entity : modifiedEntities) {
+				entity.invalidate();
 			}
 		}
 
