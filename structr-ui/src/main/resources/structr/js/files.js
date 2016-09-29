@@ -121,6 +121,12 @@ var _Files = {
 			$(el).replaceWith('<b title="' +  title + '" class="name_">' + fitStringToWidth(title ? title : '[unnamed]', nameColumnWidth) + '</b>');
 		});
 
+		if (folderContents) {
+			folderContents.find('.node').each(function() {
+				_Entities.setMouseOver($(this), true);
+			});
+		}
+
 	},
 	onload: function() {
 
@@ -754,7 +760,7 @@ var _Files = {
 		});
 
 		_Entities.appendEditPropertiesIcon(div, d);
-		_Entities.setMouseOver(div);
+		//_Entities.setMouseOver(div);
 		_Entities.makeSelectable(div);
 
 	},
@@ -1026,7 +1032,7 @@ var _Files = {
 		});
 
 		_Entities.appendEditPropertiesIcon(div, d);
-		_Entities.setMouseOver(div, true);
+		//_Entities.setMouseOver(div, true);
 		_Entities.makeSelectable(div);
 
 	},

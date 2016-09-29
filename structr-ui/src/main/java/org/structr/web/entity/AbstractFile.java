@@ -22,6 +22,7 @@ package org.structr.web.entity;
 import java.util.List;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -30,6 +31,7 @@ import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.ModificationQueue;
+import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.EndNode;
@@ -114,7 +116,13 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
-		return (super.isValid(errorBuffer) && nonEmpty(AbstractFile.name, errorBuffer));
+
+		boolean valid = true;
+
+		valid &= (super.isValid(errorBuffer) && nonEmpty(AbstractFile.name, errorBuffer));
+		valid &= ValidationHelper.checkStringMatchesRegex(this, name, "[^\\/\\x00]+", errorBuffer);
+
+		return valid;
 	}
 
 	@Override

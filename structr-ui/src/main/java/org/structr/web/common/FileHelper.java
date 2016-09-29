@@ -633,6 +633,10 @@ public class FileHelper {
 			parentFolder = parentFolder.getProperty(AbstractFile.parent);
 		}
 
+		if (Boolean.TRUE.equals(file.getProperty(Folder.isFolder))) {
+			folderPath = folderPath.concat("/");
+		}
+
 		return "/".concat(folderPath);
 	}
 

@@ -2838,7 +2838,8 @@ td#cascading-options, td#propagation-options {
 }
 
 #folder-contents .tile .file-type {
-	margin-top: 8px;
+	margin-top: 6px;
+	margin-bottom: 2px;
 	height: 48px;
 	display: flex;
 	align-items: center;
