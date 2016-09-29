@@ -64,7 +64,7 @@ public class HttpGetFunction extends UiFunction {
 				//long t0 = System.currentTimeMillis();
 				if ("text/html".equals(contentType)) {
 
-					final Document doc = Jsoup.parse(HttpHelper.get(address));
+					final Document doc = Jsoup.parse(HttpHelper.get(address, ctx.getHeaders()));
 
 					if (sources.length > 2) {
 

@@ -19,7 +19,6 @@
 package org.structr.web.function;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.structr.common.error.FrameworkException;
@@ -37,12 +36,12 @@ public abstract class UiFunction extends Function<Object, Object> {
 
 	protected String getFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password) throws IOException {
 		
-		return HttpHelper.get(requestUrl, username, password, Collections.EMPTY_MAP);
+		return HttpHelper.get(requestUrl, username, password, ctx.getHeaders());
 	}
 
 	protected GraphObjectMap headFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password) throws IOException, FrameworkException {
 
-		final Map<String, String> headers = HttpHelper.head(requestUrl, password, username, Collections.EMPTY_MAP);
+		final Map<String, String> headers = HttpHelper.head(requestUrl, password, username, ctx.getHeaders());
 		
 		final GraphObjectMap response = new GraphObjectMap();
 		response.setProperty(new IntProperty("status"), headers.get("status"));

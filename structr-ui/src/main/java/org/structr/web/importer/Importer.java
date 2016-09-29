@@ -1102,16 +1102,8 @@ public class Importer {
 			}
 
 		} else {
-			
-			final Header contentType = resp.getFirstHeader("Content-Type");
-			String       charset     = StringUtils.substringAfterLast(contentType.getValue(), "; charset=");
 
-			// default charset is UTF-8
-			if (StringUtils.isBlank(charset)) {
-				charset = "UTF-8";
-			}
-
-			String content = IOUtils.toString(resp.getEntity().getContent(), charset);
+			String content = IOUtils.toString(resp.getEntity().getContent(), HttpHelper.charset(resp));
 
 			// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
 			if (content.charAt(0) == 65279) {

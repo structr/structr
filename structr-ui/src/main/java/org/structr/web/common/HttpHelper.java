@@ -27,6 +27,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
@@ -38,6 +39,7 @@ import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.config.ConnectionConfig;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -134,6 +136,10 @@ public class HttpHelper {
 		return get(address, null, null, null, null, Collections.EMPTY_MAP);
 	}
 	
+	public static String get(final String address, final Map<String, String> headers) {
+		return get(address, null, null, headers);
+	}
+
 	public static String get(final String address, final String username, final String password, final Map<String, String> headers) {
 		return get(address, username, password, null, null, null, null, headers);
 	}
@@ -155,15 +161,7 @@ public class HttpHelper {
 
 			final CloseableHttpResponse resp = client.execute(req);
 
-			final Header contentType = resp.getFirstHeader("Content-Type");
-			String       charset     = StringUtils.substringAfterLast(contentType.getValue(), "; charset=");
-
-			// default charset is UTF-8
-			if (StringUtils.isBlank(charset)) {
-				charset = "UTF-8";
-			}
-
-			content = IOUtils.toString(resp.getEntity().getContent(), charset);
+			content = IOUtils.toString(resp.getEntity().getContent(), charset(resp));
 
 			// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
 			if (content.charAt(0) == 65279) {
@@ -245,15 +243,7 @@ public class HttpHelper {
 			
 			final CloseableHttpResponse response = client.execute(req);
 
-			final Header contentType = response.getFirstHeader("Content-Type");
-			String       charset     = StringUtils.substringAfterLast(contentType.getValue(), "; charset=");
-
-			// default charset is UTF-8
-			if (StringUtils.isBlank(charset)) {
-				charset = "UTF-8";
-			}
-
-			String content = IOUtils.toString(response.getEntity().getContent(), charset);
+			String content = IOUtils.toString(response.getEntity().getContent(), charset(response));
 
 			// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
 			if (content.charAt(0) == 65279) {
@@ -292,14 +282,6 @@ public class HttpHelper {
 
 			final CloseableHttpResponse resp = client.execute(req);
 
-			final Header contentType = resp.getFirstHeader("Content-Type");
-			String       charset     = StringUtils.substringAfterLast(contentType.getValue(), "; charset=");
-
-			// default charset is UTF-8
-			if (StringUtils.isBlank(charset)) {
-				charset = "UTF-8";
-			}
-
 			return resp.getEntity().getContent();
 
 		} catch (final Throwable t) {
@@ -309,5 +291,17 @@ public class HttpHelper {
 		}
 		
 		return null;
+	}
+	
+	public static String charset(final HttpResponse response) {
+
+		final ContentType contentType = ContentType.get(response.getEntity());
+		String charset = "UTF-8";
+		if (contentType != null && contentType.getCharset() != null) {
+
+			charset = contentType.getCharset().toString();
+		}
+
+		return charset;
 	}
 }
