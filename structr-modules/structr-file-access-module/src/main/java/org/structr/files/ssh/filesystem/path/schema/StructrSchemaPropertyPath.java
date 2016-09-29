@@ -18,7 +18,6 @@
  */
 package org.structr.files.ssh.filesystem.path.schema;
 
-import org.structr.files.ssh.filesystem.path.graph.StructrNodeAttributes;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.AccessDeniedException;
@@ -38,8 +37,6 @@ import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -49,6 +46,7 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.Tx;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.files.ssh.filesystem.StructrPath;
+import org.structr.files.ssh.filesystem.path.graph.StructrNodeAttributes;
 
 /**
  *

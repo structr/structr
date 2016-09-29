@@ -28,7 +28,6 @@ import java.util.List;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.schema.SchemaService;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -39,16 +38,17 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.payment.api.APIError;
 import org.structr.payment.api.APIResponse;
+import org.structr.payment.api.BeginCheckoutResponse;
+import org.structr.payment.api.CheckoutState;
+import org.structr.payment.api.ConfirmCheckoutResponse;
 import org.structr.payment.api.Payment;
 import org.structr.payment.api.PaymentItem;
 import org.structr.payment.api.PaymentProvider;
 import org.structr.payment.api.PaymentState;
-import org.structr.payment.api.BeginCheckoutResponse;
-import org.structr.payment.api.CheckoutState;
-import org.structr.payment.api.ConfirmCheckoutResponse;
 import org.structr.payment.impl.paypal.PayPalErrorToken;
 import org.structr.payment.impl.paypal.PayPalPaymentProvider;
 import org.structr.payment.impl.stripe.StripePaymentProvider;
+import org.structr.schema.SchemaService;
 
 /**
  *

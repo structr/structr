@@ -24,16 +24,11 @@
 
 package org.structr.ldap;
 
-import org.structr.ldap.api.LDAPNode;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.directory.api.ldap.model.constants.SchemaConstants;
@@ -60,6 +55,8 @@ import org.apache.directory.shared.ldap.model.name.Rdn;
 import org.apache.directory.shared.ldap.model.schema.AttributeType;
 import org.apache.directory.shared.ldap.model.schema.SchemaManager;
 import org.apache.directory.shared.ldap.model.schema.registries.ObjectClassRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -68,8 +65,9 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.ldap.api.LDAPAttribute;
-import org.structr.ldap.entity.LDAPNodeImpl;
+import org.structr.ldap.api.LDAPNode;
 import org.structr.ldap.api.LDAPValue;
+import org.structr.ldap.entity.LDAPNodeImpl;
 
 /**
  *

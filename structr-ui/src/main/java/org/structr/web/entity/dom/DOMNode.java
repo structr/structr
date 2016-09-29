@@ -30,12 +30,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.apache.commons.httpclient.Header;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.Header;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Direction;
@@ -845,7 +843,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			// TODO: check hierarchy constraints imposed by the schema
-			// validation sucessful
+			// validation successful
 			return;
 		}
 

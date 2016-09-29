@@ -18,8 +18,8 @@
  */
 package org.structr.files.cmis.repository;
 
-import org.structr.cmis.common.CMISExtensionsData;
 import org.apache.chemistry.opencmis.commons.definitions.PermissionDefinition;
+import org.structr.cmis.common.CMISExtensionsData;
 import org.structr.common.Permission;
 
 /**

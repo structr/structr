@@ -18,14 +18,11 @@
  */
 package org.structr.files.cmis.config;
 
-import org.structr.cmis.common.CMISExtensionsData;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.chemistry.opencmis.commons.data.AclCapabilities;
 import org.apache.chemistry.opencmis.commons.data.ExtensionFeature;
 import org.apache.chemistry.opencmis.commons.data.PermissionMapping;
@@ -36,7 +33,10 @@ import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.CmisVersion;
 import org.apache.chemistry.opencmis.commons.enums.SupportedPermissions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.cmis.CMISInfo;
+import org.structr.cmis.common.CMISExtensionsData;
 import org.structr.common.Permission;
 import org.structr.core.entity.Principal;
 import org.structr.files.cmis.repository.StructrAccessControlPermissionMapping;

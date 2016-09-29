@@ -21,7 +21,6 @@ package org.structr.media;
 import org.structr.core.entity.OneToOne;
 import org.structr.core.entity.Relation;
 import org.structr.web.entity.Image;
-import org.structr.media.VideoFile;
 
 /**
  *

@@ -35,17 +35,4 @@
 			<outputDirectory></outputDirectory>
 		</fileSet>
 	</fileSets>
-	<!-- no dependencies
-	<dependencySets>
-		<dependencySet>
-			<outputDirectory></outputDirectory>
-			<scope>runtime</scope>
-			<unpack>true</unpack>
-			<includes>
-				<include>org.apache.tika:tika-core</include>
-				<include>org.apache.tika:tika-parsers</include>
-			</includes>
-		</dependencySet>
-	</dependencySets>
-	-->
 </assembly>

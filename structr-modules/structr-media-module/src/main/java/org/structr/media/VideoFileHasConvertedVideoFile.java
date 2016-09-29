@@ -20,7 +20,6 @@ package org.structr.media;
 
 import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Relation;
-import org.structr.media.VideoFile;
 
 /**
  *

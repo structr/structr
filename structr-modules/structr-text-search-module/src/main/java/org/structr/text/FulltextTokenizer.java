@@ -22,12 +22,10 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.tika.language.LanguageIdentifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 

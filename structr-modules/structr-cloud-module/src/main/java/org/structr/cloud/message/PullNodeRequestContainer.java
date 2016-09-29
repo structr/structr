@@ -24,8 +24,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.ExportSet;
 import org.structr.common.error.FrameworkException;

@@ -20,13 +20,13 @@ package org.structr.payment.entity;
 
 import org.structr.common.PropertyView;
 import org.structr.common.View;
-import org.structr.schema.SchemaService;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.payment.api.PaymentItem;
+import org.structr.schema.SchemaService;
 
 /**
  *

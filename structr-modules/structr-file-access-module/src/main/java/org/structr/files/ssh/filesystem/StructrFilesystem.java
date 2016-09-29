@@ -30,14 +30,12 @@ import java.util.Arrays;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-import org.structr.files.ssh.filesystem.path.file.StructrFilePath;
 import org.structr.files.ssh.filesystem.path.StructrRootPath;
+import org.structr.files.ssh.filesystem.path.file.StructrFilePath;
 
 /**
  *

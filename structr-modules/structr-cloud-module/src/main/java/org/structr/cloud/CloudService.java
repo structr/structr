@@ -24,18 +24,16 @@ import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Properties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import javax.crypto.Cipher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.service.Command;
+import org.structr.api.service.RunnableService;
+import org.structr.api.service.StructrServices;
 import org.structr.cloud.message.AuthenticationRequest;
 import org.structr.cloud.message.Begin;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.api.service.Command;
-import org.structr.api.service.RunnableService;
-import org.structr.api.service.StructrServices;
 import org.structr.core.Services;
 
 /**

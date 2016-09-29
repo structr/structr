@@ -18,16 +18,13 @@
  */
 package org.structr.websocket.command.dom;
 
+import java.util.*;
 import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
-import org.structr.websocket.message.WebSocketMessage;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.*;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.AbstractCommand;
+import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
 

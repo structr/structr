@@ -43,8 +43,8 @@ import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.NoSuchPaddingException;
-import org.structr.net.peer.PeerInfo;
 import org.structr.net.peer.Peer;
+import org.structr.net.peer.PeerInfo;
 
 /**
  *

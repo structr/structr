@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,21 +36,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.URI;
-import org.apache.commons.httpclient.cookie.CookiePolicy;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
+import org.apache.http.Header;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.config.ConnectionConfig;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Comment;
@@ -58,6 +57,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.CaseHelper;
 import org.structr.common.PathHelper;
 import org.structr.common.PropertyView;
@@ -309,16 +310,6 @@ public class Importer {
 	}
 
 	// ----- public static methods -----
-	public static HttpClient getHttpClient() {
-
-		final HttpClient client = new HttpClient();
-
-		client.getParams().setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
-		client.getParams().setParameter(HttpClientParams.ALLOW_CIRCULAR_REDIRECTS, true);
-
-		return client;
-	}
-
 	public static Page parsePageFromSource(final SecurityContext securityContext, final String source, final String name) throws FrameworkException {
 
 		return parsePageFromSource(securityContext, source, name, false);
@@ -1082,21 +1073,27 @@ public class Importer {
 
 	}
 
-	private void copyURLToFile(final String uri, final java.io.File fileOnDisk) throws IOException {
+	private void copyURLToFile(final String address, final java.io.File fileOnDisk) throws IOException {
 
-		final HttpClient client = getHttpClient();
-		final HttpMethod get = new GetMethod();
-		get.setURI(new URI(uri, false));
+		final URI     url = URI.create(address);
+		final HttpGet req = new HttpGet(url);
+		
+		req.addHeader("User-Agent", "curl/7.35.0");
 
-		get.addRequestHeader("User-Agent", "curl/7.35.0");
+		logger.info("Downloading from {}", address);
 
-		logger.info("Downloading from {}", uri);
+		final CloseableHttpClient client = HttpClients.custom()
+			.setDefaultConnectionConfig(ConnectionConfig.DEFAULT)
+			.setUserAgent("curl/7.35.0")
+			.build();
+		
+		final CloseableHttpResponse resp = client.execute(req);
 
-		final int statusCode = client.executeMethod(get);
-
+		final int statusCode = resp.getStatusLine().getStatusCode();
+		
 		if (statusCode == 200) {
 
-			try (final InputStream is = get.getResponseBodyAsStream()) {
+			try (final InputStream is = resp.getEntity().getContent()) {
 
 				try (final OutputStream os = new FileOutputStream(fileOnDisk)) {
 
@@ -1106,8 +1103,15 @@ public class Importer {
 
 		} else {
 
-			System.out.println("response body: " + new String(get.getResponseBody(), "utf-8"));
-			logger.warn("Unable to create file from URI {}: status code was {}", new Object[]{uri, statusCode});
+			String content = IOUtils.toString(resp.getEntity().getContent(), HttpHelper.charset(resp));
+
+			// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
+			if (content.charAt(0) == 65279) {
+				content = content.substring(1);
+			}
+			
+			System.out.println("Response body: " + content);
+			logger.warn("Unable to create file from URI {}: status code was {}", new Object[]{ address, statusCode });
 		}
 	}
 

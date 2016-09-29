@@ -19,10 +19,6 @@
 package org.structr.files.cmis;
 
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
@@ -30,6 +26,8 @@ import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisInvalidArgumentException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.spi.AclService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.cmis.wrapper.CMISObjectWrapper;
 import org.structr.common.AccessControllable;
 import org.structr.common.Permission;

@@ -21,22 +21,16 @@ package org.structr.web.test;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
+import static junit.framework.TestCase.assertTrue;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-
+import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.Tx;
 import org.structr.web.common.StructrUiTest;
 import org.structr.web.entity.dom.Page;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import static junit.framework.TestCase.assertTrue;
-import org.jsoup.select.Elements;
-import org.structr.core.graph.Tx;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
 

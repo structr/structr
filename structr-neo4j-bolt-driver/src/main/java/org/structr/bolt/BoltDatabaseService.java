@@ -18,8 +18,6 @@
  */
 package org.structr.bolt;
 
-import org.structr.bolt.wrapper.NodeWrapper;
-import org.structr.bolt.wrapper.RelationshipWrapper;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -36,8 +34,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Config;
 import org.neo4j.driver.v1.Driver;
@@ -46,6 +42,8 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeResult;
 import org.structr.api.NotInTransactionException;
@@ -62,6 +60,8 @@ import org.structr.bolt.index.CypherNodeIndex;
 import org.structr.bolt.index.CypherRelationshipIndex;
 import org.structr.bolt.mapper.NodeNodeMapper;
 import org.structr.bolt.mapper.RelationshipRelationshipMapper;
+import org.structr.bolt.wrapper.NodeWrapper;
+import org.structr.bolt.wrapper.RelationshipWrapper;
 
 /**
  *

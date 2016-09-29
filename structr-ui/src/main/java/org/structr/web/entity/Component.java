@@ -18,32 +18,25 @@
  */
 package org.structr.web.entity;
 
-import org.structr.web.entity.dom.Content;
-import org.structr.core.property.Property;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.StringProperty;
-
-import org.structr.core.property.PropertyKey;
+import java.util.*;
+import javax.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.DeleteNodeCommand;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.servlet.http.HttpServletRequest;
-import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.common.RenderContext;
+import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 

@@ -18,10 +18,10 @@
  */
 package org.structr.files.cmis.repository;
 
-import org.structr.cmis.common.CMISExtensionsData;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.chemistry.opencmis.commons.data.PermissionMapping;
+import org.structr.cmis.common.CMISExtensionsData;
 import org.structr.common.Permission;
 
 /**

@@ -19,29 +19,22 @@
 package org.structr.web.converter;
 
 import java.io.IOException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.sf.jmimemagic.Magic;
-import net.sf.jmimemagic.MagicMatch;
-
-import org.apache.commons.lang3.StringUtils;
-
-import org.structr.web.common.ImageHelper;
-import org.structr.common.KeyAndClass;
-import org.structr.common.SecurityContext;
-import org.structr.core.GraphObject;
-import org.structr.core.converter.PropertyConverter;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.sf.jmimemagic.MagicException;
+import net.sf.jmimemagic.MagicMatch;
 import net.sf.jmimemagic.MagicMatchNotFoundException;
 import net.sf.jmimemagic.MagicParseException;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.KeyAndClass;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.FileHelper.Base64URIData;
+import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.FileBase;
 
 //~--- classes ----------------------------------------------------------------

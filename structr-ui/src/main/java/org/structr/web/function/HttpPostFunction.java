@@ -18,12 +18,7 @@
  */
 package org.structr.web.function;
 
-import java.io.IOException;
 import java.util.Map;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
-import org.apache.commons.httpclient.params.HttpClientParams;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -31,7 +26,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
-import static org.structr.web.entity.dom.DOMNode.extractHeaders;
+import org.structr.web.common.HttpHelper;
 
 /**
  *
@@ -66,45 +61,39 @@ public class HttpPostFunction extends Function<Object, Object> {
 				charset = sources[3].toString();
 			}
 
-			final HttpClientParams params = new HttpClientParams(HttpClientParams.getDefaultParams());
-			final HttpClient client = new HttpClient(params);
-			final PostMethod postMethod = new PostMethod(uri);
+			final Map<String, String> responseData = HttpHelper.post(uri, body, null, null, ctx.getHeaders());
 
-			// add request headers from context
-			for (final Map.Entry<String, String> header : ctx.getHeaders().entrySet()) {
-				postMethod.addRequestHeader(header.getKey(), header.getValue());
-			}
+			final int statusCode = Integer.parseInt(responseData.get("status"));
+			responseData.remove("status");
 
-			try {
+			final String responseBody = responseData.get("body");
+			responseData.remove("body");
 
-				postMethod.setRequestEntity(new StringRequestEntity(body, contentType, charset));
+			final GraphObjectMap response = new GraphObjectMap();
 
-				final int statusCode = client.executeMethod(postMethod);
-				final String responseBody = postMethod.getResponseBodyAsString();
+			if ("application/json".equals(contentType)) {
 
-				final GraphObjectMap response = new GraphObjectMap();
+				final FromJsonFunction fromJsonFunction = new FromJsonFunction();
+				response.setProperty(new StringProperty("body"), fromJsonFunction.apply(ctx, entity, new Object[]{responseBody}));
 
-				if ("application/json".equals(contentType)) {
+			} else {
 
-					final FromJsonFunction fromJsonFunction = new FromJsonFunction();
-					response.setProperty(new StringProperty("body"), fromJsonFunction.apply(ctx, entity, new Object[]{responseBody}));
-
-				} else {
-
-					response.setProperty(new StringProperty("body"), responseBody);
-
-				}
-
-				response.setProperty(new IntProperty("status"), statusCode);
-				response.setProperty(new StringProperty("headers"), extractHeaders(postMethod.getResponseHeaders()));
-
-				return response;
-
-			} catch (IOException ioex) {
-
-				logException(entity, ioex, sources);
+				response.setProperty(new StringProperty("body"), responseBody);
 
 			}
+
+			response.setProperty(new IntProperty("status"), statusCode);
+
+			final GraphObjectMap map = new GraphObjectMap();
+
+			for (final Map.Entry<String, String> entry : responseData.entrySet()) {
+
+				map.put(new StringProperty(entry.getKey()), entry.getValue());
+			}
+
+			response.setProperty(new StringProperty("headers"), map);
+
+			return response;
 
 		} else {
 
@@ -112,7 +101,6 @@ public class HttpPostFunction extends Function<Object, Object> {
 			return usage(ctx.isJavaScriptContext());
 		}
 
-		return null;
 	}
 
 	@Override

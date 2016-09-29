@@ -28,8 +28,8 @@ import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.StructrWebSocketCreator;
-import org.structr.websocket.WebsocketController;
 import org.structr.websocket.WebSocketDataGSONAdapter;
+import org.structr.websocket.WebsocketController;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------

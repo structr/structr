@@ -18,21 +18,18 @@
  */
 package org.structr.websocket.command;
 
-import org.structr.common.PropertyView;
-import org.structr.web.common.RelType;
-import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
-import org.structr.websocket.message.WebSocketMessage;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.*;
 import org.structr.api.graph.Direction;
+import org.structr.common.PropertyView;
+import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.web.common.RelType;
 import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
 

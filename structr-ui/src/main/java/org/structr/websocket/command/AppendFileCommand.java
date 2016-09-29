@@ -21,16 +21,11 @@ package org.structr.websocket.command;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.web.entity.AbstractFile;
-
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
-import org.structr.web.entity.relation.FileChildren;
-import org.structr.web.entity.relation.Folders;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;

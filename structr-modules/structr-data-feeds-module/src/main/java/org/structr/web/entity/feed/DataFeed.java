@@ -31,11 +31,9 @@ import java.net.URL;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -56,10 +54,6 @@ import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaService;
 import org.structr.web.entity.relation.FeedItems;
 
-/**
- * Represents a data feed as a collection of feed items.
- *
- */
 
 
 public class DataFeed extends AbstractNode {

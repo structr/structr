@@ -22,16 +22,14 @@ import java.util.LinkedList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.PathHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.graph.Tx;
 import org.structr.dynamic.File;
-import org.structr.web.importer.Importer;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.importer.Importer;
 import org.w3c.dom.NodeList;
 
 /**

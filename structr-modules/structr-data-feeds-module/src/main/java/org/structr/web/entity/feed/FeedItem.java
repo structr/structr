@@ -18,21 +18,19 @@
  */
 package org.structr.web.entity.feed;
 
-import org.structr.common.fulltext.Indexable;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.FulltextIndexer;
+import org.structr.common.fulltext.Indexable;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -48,7 +46,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.validator.SimpleNonEmptyValueValidator;
 import org.structr.core.validator.TypeUniquenessValidator;
 import org.structr.schema.SchemaService;
-import org.structr.web.common.DownloadHelper;
+import org.structr.web.common.HttpHelper;
 import org.structr.web.entity.relation.FeedItemContents;
 import org.structr.web.entity.relation.FeedItemEnclosures;
 import org.structr.web.entity.relation.FeedItems;
@@ -146,7 +144,7 @@ public class FeedItem extends AbstractNode implements Indexable {
 		final String remoteUrl = getProperty(url);
 		if (StringUtils.isNotBlank(remoteUrl)) {
 
-			return DownloadHelper.getInputStream(remoteUrl);
+			return HttpHelper.getAsStream(remoteUrl);
 		}
 
 		return null;

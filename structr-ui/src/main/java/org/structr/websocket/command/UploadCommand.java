@@ -19,18 +19,15 @@
 package org.structr.websocket.command;
 
 
-import org.structr.websocket.message.MessageBuilder;
-import org.structr.websocket.message.WebSocketMessage;
-import org.structr.common.SecurityContext;
-import org.structr.web.common.FileHelper;
-import org.structr.websocket.StructrWebSocket;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.dynamic.File;
+import org.structr.web.common.FileHelper;
+import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.message.MessageBuilder;
+import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
 

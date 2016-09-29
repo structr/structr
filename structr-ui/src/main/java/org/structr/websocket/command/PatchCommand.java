@@ -19,21 +19,18 @@
 package org.structr.websocket.command;
 
 
-import org.structr.core.entity.AbstractNode;
-import org.structr.web.entity.dom.Content;
-import org.structr.websocket.message.MessageBuilder;
-import org.structr.websocket.message.WebSocketMessage;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.LinkedList;
 import java.util.Map;
 import org.bitbucket.cowwoc.diffmatchpatch.DiffMatchPatch;
 import org.bitbucket.cowwoc.diffmatchpatch.DiffMatchPatch.Patch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.web.entity.dom.Content;
 import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.message.MessageBuilder;
+import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
 

@@ -22,8 +22,6 @@ import java.util.Iterator;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
@@ -36,6 +34,7 @@ import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.BulkGraphOperation;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeServiceCommand;
+import static org.structr.core.graph.NodeServiceCommand.bulkGraphOperation;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.web.entity.dom.relationship.DOMChildren;
@@ -43,7 +42,6 @@ import org.structr.web.entity.dom.relationship.DOMSiblings;
 import org.structr.web.entity.html.relation.ResourceLink;
 import org.structr.web.entity.relation.PageLink;
 import org.structr.web.entity.relation.Sync;
-import static org.structr.core.graph.NodeServiceCommand.bulkGraphOperation;
 
 /**
  * Migrate UI relationships of the pre-0.9 scheme to the new scheme

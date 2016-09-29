@@ -19,13 +19,10 @@
 package org.structr.files.cmis;
 
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.chemistry.opencmis.commons.data.Properties;
 import org.apache.chemistry.opencmis.commons.data.PropertyData;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.slf4j.Logger;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;

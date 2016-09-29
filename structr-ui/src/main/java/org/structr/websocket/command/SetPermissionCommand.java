@@ -21,8 +21,6 @@ package org.structr.websocket.command;
 import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.error.FrameworkException;

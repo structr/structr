@@ -18,17 +18,15 @@
  */
 package org.structr.websocket.command;
 
-import org.structr.common.SecurityContext;
-import org.structr.websocket.message.MessageBuilder;
-import org.structr.websocket.message.WebSocketMessage;
-
 import java.util.Map;
+import org.structr.common.SecurityContext;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.web.entity.dom.DOMNode;
-
 import org.structr.web.entity.relation.Sync;
 import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.message.MessageBuilder;
+import org.structr.websocket.message.WebSocketMessage;
 
 /**
  *

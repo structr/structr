@@ -24,8 +24,6 @@
 
 package org.structr.ldap.entity;
 
-import org.structr.ldap.api.LDAPAttribute;
-import org.structr.ldap.api.LDAPNode;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -42,6 +40,8 @@ import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
+import org.structr.ldap.api.LDAPAttribute;
+import org.structr.ldap.api.LDAPNode;
 import org.structr.ldap.relationship.LDAPAttributes;
 import org.structr.ldap.relationship.LDAPChildren;
 

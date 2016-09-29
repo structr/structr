@@ -50,9 +50,9 @@ import org.structr.net.data.RemoteTransaction;
 import org.structr.net.data.time.PseudoTime;
 import org.structr.net.peer.Peer;
 import org.structr.net.repository.DefaultRepository;
+import org.structr.net.repository.ExternalChangeListener;
 import org.structr.net.repository.ObjectListener;
 import org.structr.net.repository.RepositoryObject;
-import org.structr.net.repository.ExternalChangeListener;
 import org.structr.schema.ConfigurationProvider;
 
 /**
