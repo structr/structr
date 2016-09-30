@@ -363,6 +363,7 @@ public class Functions {
 		functions.put("property_info", new PropertyInfoFunction());
 		functions.put("disable_notifications", new DisableNotificationsFunction());
 		functions.put("enable_notifications", new EnableNotificationsFunction());
+		functions.put("r", new RInterpreterFunction());
 	}
 
 	public static String cleanString(final Object input) {
