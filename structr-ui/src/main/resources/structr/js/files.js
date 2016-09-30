@@ -654,6 +654,7 @@ var _Files = {
 		} else {
 			_Files.appendFileOrFolderTile(d);
 		}
+		_Files.resize();
 	},
 	appendFileOrFolderRow: function(d) {
 
