@@ -3281,10 +3281,11 @@ i.fa.ps {
     width: 50px;
 }
 
-#localization-detail-table .placeholder {
+.placeholderText {
     color: grey;
     font-style: italic;
 	white-space: nowrap;
+	text-align: center;
 }
 
 /**
@@ -3419,4 +3420,32 @@ input#element-class {
 	padding: 0;
 	margin: 0;
 	vertical-align: middle;
+}
+
+/**
+ * find duplicates
+ */
+#no-duplicates-found {
+	width: 100%;
+	text-align: center;
+	margin-top: 100px;
+}
+
+.props tr.heading th {
+	background: #fff;
+	text-align: center;
+	font-size: 1.5em;
+}
+
+.duplicates-table + div#no-duplicates-found {
+	display: none;
+	visibility: hidden;
+}
+
+.duplicates-table th button {
+	float: right;
+}
+
+.duplicate-obj-edit-name input {
+	width: calc(100% - 12px);
 }
