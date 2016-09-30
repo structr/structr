@@ -35,6 +35,7 @@ import org.structr.schema.action.Function;
 public class KeysFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_KEYS = "Usage: ${keys(entity [, viewName])}. Example: ${keys(this, \"ui\")}";
+	public static final String ERROR_MESSAGE_KEYS_JS = "Usage: ${{Structr.keys(entity [, viewName])}}. Example: ${{Structr.keys(this, \"ui\")}}";
 
 	@Override
 	public String getName() {
@@ -84,7 +85,7 @@ public class KeysFunction extends Function<Object, Object> {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_KEYS;
+		return (inJavaScriptContext ? ERROR_MESSAGE_KEYS_JS : ERROR_MESSAGE_KEYS);
 	}
 
 	@Override
