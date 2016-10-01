@@ -592,6 +592,8 @@ var _Schema = {
 	},
 	openEditDialog: function(id, targetView, callback) {
 
+		dialogMeta.hide();
+
 		Command.get(id, function(entity) {
 
 			var title = 'Edit schema node';
@@ -603,10 +605,12 @@ var _Schema = {
 			}
 
 			Structr.dialog(title, function() {
+				dialogMeta.show();
 			}, function() {
 				if (callback) {
 					callback();
 				}
+				dialogMeta.show();
 				instance.repaintEverything();
 			});
 
@@ -1503,6 +1507,8 @@ var _Schema = {
 
 	},
 	openCodeEditor: function(btn, id, key, callback) {
+
+		dialogMeta.show();
 
 		Command.get(id, function(entity) {
 
