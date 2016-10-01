@@ -1805,6 +1805,10 @@ button.add_property {
     cursor: pointer;
 }
 
+.schema-details .remote-schema-node {
+    border-bottom: 1px dashed #999;
+}
+
 .schema.compact .new-name {
     font-size: 1.3em;
     margin: -3px 0 -3px 0;
