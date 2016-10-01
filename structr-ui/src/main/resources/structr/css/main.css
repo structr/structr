@@ -1690,6 +1690,10 @@ button.add_property {
     display: none !important;
 }
 
+#tabView-methods .editor-settings label {
+    min-width: 0px;
+}
+
 .schema-props td, .schemaprop-localizations td {
     border: 1px solid #ccc;
     padding: 2px 4px;

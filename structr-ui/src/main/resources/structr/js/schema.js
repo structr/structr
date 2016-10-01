@@ -1136,6 +1136,24 @@ var _Schema = {
 				self.closest('tr').remove();
 			});
 		});
+
+		var lineWrapping = LSWrapper.getItem(lineWrappingKey);
+		el.append('<div class="editor-settings"><span><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span></div>');
+		$('#lineWrapping', el).on('change', function() {
+			var inp = $(this);
+			var isLinewrappingOn = inp.is(':checked');
+			if  (isLinewrappingOn) {
+				LSWrapper.setItem(lineWrappingKey, "1");
+			} else {
+				LSWrapper.removeItem(lineWrappingKey);
+			}
+			blinkGreen(inp.parent());
+
+			$('.CodeMirror', actionsTable).each(function(idx, cmEl) {
+				cmEl.CodeMirror.setOption('lineWrapping', isLinewrappingOn);
+				cmEl.CodeMirror.refresh();
+			});
+		});
 	},
 	appendRemoteProperties: function(el, entity) {
 
