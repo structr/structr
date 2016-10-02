@@ -331,7 +331,7 @@ var _Localization = {
 	appendEmptyLocalizationRow: function () {
 		_Localization.localizationsDetailList.append(
 			'<tr class="node localization">' +
-				'<td><span class="placeholder"> - not saved yet - </span></td>' +
+				'<td><span class="placeholderText"> - not saved yet - </span></td>' +
 				'<td><input class="___locale"></td>' +
 				'<td><textarea class="___localizedName" cols="40"></textarea></td>' +
 				'<td><input class="___visibleToPublicUsers" type="checkbox" checked></td>' +

@@ -1176,9 +1176,9 @@ var Command = {
 		return sendObj(obj, callback);
 	},
 	/**
-	 * Send a SNAPSHOTS command to the server.
+	 * Send a LAYOUTS command to the server.
 	 *
-	 * The server will return a status object.
+	 * The server will return the stored layout filenames
 	 */
 	layouts: function(mode, name, schemaLayout, callback) {
 		var obj  = {};
@@ -1187,6 +1187,17 @@ var Command = {
 			obj.data.schemaLayout = schemaLayout;
 		}
 		obj.command = 'LAYOUTS';
+		return sendObj(obj, callback);
+	},
+	/**
+	 * Send a FIND_DUPLICATES command to the server.
+	 *
+	 * The server will return a list of all files with identical paths
+	 */
+	findDuplicates: function(callback) {
+		var obj  = {
+			command: 'FIND_DUPLICATES'
+		};
 		return sendObj(obj, callback);
 	}
 };

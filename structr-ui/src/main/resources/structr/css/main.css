@@ -1690,6 +1690,10 @@ button.add_property {
     display: none !important;
 }
 
+#tabView-methods .editor-settings label {
+    min-width: 0px;
+}
+
 .schema-props td, .schemaprop-localizations td {
     border: 1px solid #ccc;
     padding: 2px 4px;
@@ -1799,6 +1803,10 @@ button.add_property {
 
 .schema-details .remote-schema-node:hover {
     cursor: pointer;
+}
+
+.schema-details .remote-schema-node {
+    border-bottom: 1px dashed #999;
 }
 
 .schema.compact .new-name {
@@ -3281,10 +3289,11 @@ i.fa.ps {
     width: 50px;
 }
 
-#localization-detail-table .placeholder {
+.placeholderText {
     color: grey;
     font-style: italic;
 	white-space: nowrap;
+	text-align: center;
 }
 
 /**
@@ -3419,4 +3428,32 @@ input#element-class {
 	padding: 0;
 	margin: 0;
 	vertical-align: middle;
+}
+
+/**
+ * find duplicates
+ */
+#no-duplicates-found {
+	width: 100%;
+	text-align: center;
+	margin-top: 100px;
+}
+
+.props tr.heading th {
+	background: #fff;
+	text-align: center;
+	font-size: 1.5em;
+}
+
+.duplicates-table + div#no-duplicates-found {
+	display: none;
+	visibility: hidden;
+}
+
+.duplicates-table th button {
+	float: right;
+}
+
+.duplicate-obj-edit-name input {
+	width: calc(100% - 12px);
 }

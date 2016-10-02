@@ -249,7 +249,8 @@ var _Icons = {
 	structr_logo_small: 'icon/structr_icon_16x16.png',
 	minification_dialog_js_icon: 'icon/script_lightning.png',
 	minification_dialog_css_icon: 'icon/script_palette.png',
-	minification_trigger_icon: 'icon/briefcase.png'
+	minification_trigger_icon: 'icon/briefcase.png',
+	search_icon: 'icon/zoom.png'
 };
 
 var Structr = {
@@ -1315,7 +1316,7 @@ var Structr = {
 			if (typeof callbackToGuard === "function") {
 				callbackToGuard();
 			}
-		}
+		};
 
 		return guardedFunction;
 	}

@@ -145,6 +145,7 @@ var _Files = {
 				+ '<button class="add_minified_css_file_icon button"><img title="Add Minified CSS File" src="' + _Icons.minification_dialog_css_icon + '" />' + ' Add Minified CSS File</button>'
 				+ '<button class="add_minified_js_file_icon button"><img title="Add Minified JS File" src="' + _Icons.minification_dialog_js_icon + '" />' + ' Add Minified JS File</button>'
 				+ '<button class="pull_file_icon button module-dependend" data-structr-module="cloud"><img title="Sync Files" alt="Sync Files" src="' + _Icons.pull_file_icon + '"> Sync Files</button>'
+				+ '<button class="duplicate_finder button"><img title="Find duplicates" alt="Find Duplicates" src="' + _Icons.search_icon + '"> Find Duplicates</button>'
 				);
 
 		$('.add_file_icon', main).on('click', function(e) {
@@ -171,6 +172,10 @@ var _Files = {
 		$('.pull_file_icon', main).on('click', function(e) {
 			e.stopPropagation();
 			Structr.pullDialog('File,Folder');
+		});
+
+		$('.duplicate_finder', main).on('click', function(e) {
+			_DuplicateFinder.openDuplicateFinderDialog();
 		});
 
 		$('#folder-contents-container').prepend('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Icons.add_folder_icon + '"> Add Folder</button>');
@@ -649,6 +654,7 @@ var _Files = {
 		} else {
 			_Files.appendFileOrFolderTile(d);
 		}
+		_Files.resize();
 	},
 	appendFileOrFolderRow: function(d) {
 

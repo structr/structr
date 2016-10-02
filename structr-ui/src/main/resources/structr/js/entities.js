@@ -1480,12 +1480,11 @@ var _Entities = {
 			if (!expanded) {
 				_Logger.log(_LogType.ENTITIES, 'toggleElement: fetch children', id);
 				Command.children(id);
-
 			}
+
 			b.prop('src', _Icons.expanded_icon)
 				.prop('alt', 'Collapse ' + displayName)
 				.prop('title', 'Collapse ' + displayName);
-;
 
 			addExpandedNode(id);
 		}
@@ -1493,15 +1492,11 @@ var _Entities = {
 	},
 	makeAttributeEditable: function(parentElement, id, attributeSelector, attributeName, width, callback) {
 		var w = width || 200;
-		//element.off('dblclick');
-		//element.off('hover');
 		var attributeElement = parentElement.children(attributeSelector);
-		//var attributeElementHtml = attributeElement.html();
 		var attributeElementTagName = attributeElement.prop('tagName').toLowerCase();
 		var oldValue = $.trim(attributeElement.attr('title'));
 
 		attributeElement.replaceWith('<input type="text" size="' + (oldValue.length + 4) + '" class="new-' + attributeName + '" value="' + oldValue + '">');
-		//element.find('.button').hide();
 
 		var input = $('input', parentElement);
 
@@ -1607,9 +1602,7 @@ var _Entities = {
 					+ '<b class="action">' + (action ? action : '&nbsp;') + '</b    >'
 					+ '<span class="content_">' + (content ? fitStringToWidth(content, 180, 'slideOut') : '&nbsp;') + '</span>'
 					+ '<span class="id">' + entity.id + '</span>'
-//                        + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id.replace(/\${.*}/g, '${…}') + '</span>' : '')
-//                        + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/\${.*}/g, '${…}').replace(/ /g, '.') + '</span>' : '')
-					);
+				);
 
 				_Entities.setMouseOver(div);
 

@@ -451,6 +451,10 @@ function wsConnect() {
 
 				StructrModel.callCallback(data.callback, result);
 
+			} else if (command === 'FIND_DUPLICATES') {
+
+				StructrModel.callCallback(data.callback, result);
+
 			} else {
 				console.log('Received unknown command: ' + command);
 

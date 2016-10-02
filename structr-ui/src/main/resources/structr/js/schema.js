@@ -592,6 +592,8 @@ var _Schema = {
 	},
 	openEditDialog: function(id, targetView, callback) {
 
+		dialogMeta.hide();
+
 		Command.get(id, function(entity) {
 
 			var title = 'Edit schema node';
@@ -603,10 +605,12 @@ var _Schema = {
 			}
 
 			Structr.dialog(title, function() {
+				dialogMeta.show();
 			}, function() {
 				if (callback) {
 					callback();
 				}
+				dialogMeta.show();
 				instance.repaintEverything();
 			});
 
@@ -1132,6 +1136,24 @@ var _Schema = {
 				self.closest('tr').remove();
 			});
 		});
+
+		var lineWrapping = LSWrapper.getItem(lineWrappingKey);
+		el.append('<div class="editor-settings"><span><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span></div>');
+		$('#lineWrapping', el).on('change', function() {
+			var inp = $(this);
+			var isLinewrappingOn = inp.is(':checked');
+			if  (isLinewrappingOn) {
+				LSWrapper.setItem(lineWrappingKey, "1");
+			} else {
+				LSWrapper.removeItem(lineWrappingKey);
+			}
+			blinkGreen(inp.parent());
+
+			$('.CodeMirror', actionsTable).each(function(idx, cmEl) {
+				cmEl.CodeMirror.setOption('lineWrapping', isLinewrappingOn);
+				cmEl.CodeMirror.refresh();
+			});
+		});
 	},
 	appendRemoteProperties: function(el, entity) {
 
@@ -1503,6 +1525,8 @@ var _Schema = {
 
 	},
 	openCodeEditor: function(btn, id, key, callback) {
+
+		dialogMeta.show();
 
 		Command.get(id, function(entity) {
 
