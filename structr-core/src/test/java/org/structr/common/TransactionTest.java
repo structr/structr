@@ -36,6 +36,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.TestOne;
+import org.structr.core.entity.TestSix;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -200,7 +201,7 @@ public class TransactionTest extends StructrTest {
 	public void testTransactionIsolation() {
 
 		// Tests the transaction isolation of the underlying database layer.
-		
+
 		// Create a node and use ten different threads to set a property on
 		// it in a transaction. Observe the property value to check that the
 		// threads do not interfere with each other.
@@ -281,5 +282,33 @@ public class TransactionTest extends StructrTest {
 			}
 		}
 
+	}
+
+	private static class RelationshipCreator implements Runnable {
+
+		private TestSix source = null;
+		private TestOne target = null;
+
+		public RelationshipCreator(final TestSix source, final TestOne  target) {
+			this.source = source;
+			this.target = target;
+		}
+
+		@Override
+		public void run() {
+
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+
+				final List<TestOne> list = new LinkedList<>();
+				list.add(target);
+
+				source.setProperty(TestSix.oneToManyTestOnes, list);
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+			}
+		}
 	}
 }

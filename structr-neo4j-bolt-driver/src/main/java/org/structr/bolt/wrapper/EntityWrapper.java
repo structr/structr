@@ -119,10 +119,6 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		map.put("id", entity.id());
 		map.put("value", value);
 
-		if (db.logQueries()) {
-			System.out.println(query);
-		}
-
 		// update entity handle
 		entity = (T)tx.getEntity(query, map);
 
@@ -142,10 +138,6 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		map.put("id", entity.id());
 		map.put("properties", values);
 
-		if (db.logQueries()) {
-			System.out.println(query);
-		}
-
 		// update entity handle
 		entity = (T)tx.getEntity(query, map);
 
@@ -162,10 +154,6 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		final String query            = getQueryPrefix() + " WHERE ID(n) = {id} SET n.`" + key + "` = Null RETURN n";
 
 		map.put("id", entity.id());
-
-		if (db.logQueries()) {
-			System.out.println(query);
-		}
 
 		// update entity handle
 		entity = (T)tx.getEntity(query, map);

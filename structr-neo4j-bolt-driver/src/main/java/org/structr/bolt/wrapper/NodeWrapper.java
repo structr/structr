@@ -62,11 +62,29 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
+		final NodeWrapper otherNode   = (NodeWrapper)endNode;
+
+		tx.modified(this);
+		tx.modified(otherNode);
+
+		assertNotStale();
 
 		map.put("id1", entity.id());
 		map.put("id2", endNode.getId());
 
-		final org.neo4j.driver.v1.types.Relationship rel = tx.getRelationship("MATCH (n), (m) WHERE ID(n) = {id1} AND ID(m) = {id2} CREATE (n)-[r:" + relationshipType.name() + "]->(m) RETURN r", map);
+		/**
+		 * Neo4j does not seem to lock source and target node when
+		 * creating a relationship between the two, so we need to set
+		 * a temporary property to enforce locking on the two nodes
+		 * for the duration of the transaction.
+		 */
+
+		final org.neo4j.driver.v1.types.Relationship rel = tx.getRelationship(
+			"MATCH (n), (m) WHERE ID(n) = {id1} AND ID(m) = {id2} "
+				+ "SET n.locked = true, m.locked = true "
+				+ "MERGE (n)-[r:" + relationshipType.name() + "]->(m) "
+				+ "SET n.locked = Null, m.locked = Null RETURN r",
+			map);
 
 		tx.modified(this);
 
