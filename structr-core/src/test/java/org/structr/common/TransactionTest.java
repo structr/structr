@@ -21,6 +21,7 @@ package org.structr.common;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -234,6 +235,36 @@ public class TransactionTest extends StructrTest {
 
 		} catch (Throwable fex) {
 			fail("Unexpected exception");
+		}
+	}
+
+	public void testConcurrentIdenticalRelationshipCreation() {
+
+		try {
+			final ExecutorService service = Executors.newCachedThreadPool();
+			final TestSix source          = createTestNode(TestSix.class);
+			final TestOne target          = createTestNode(TestOne.class);
+
+			final Future one = service.submit(new RelationshipCreator(source, target));
+			final Future two = service.submit(new RelationshipCreator(source, target));
+
+			// wait for completion
+			one.get();
+			two.get();
+
+			try (final Tx tx = app.tx()) {
+
+				// check for a single relationship since all three parts of
+				// both relationships are equal => only one should be created
+				final List<TestOne> list = source.getProperty(TestSix.oneToManyTestOnes);
+
+				assertEquals("Invalid concurrent identical relationship creation result", 1, list.size());
+
+				tx.success();
+			}
+
+		} catch (ExecutionException | InterruptedException | FrameworkException fex) {
+			fex.printStackTrace();
 		}
 	}
 
