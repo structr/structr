@@ -288,6 +288,8 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public void increaseVersion() throws FrameworkException {
 
 		final Integer _version = getProperty(Page.version);
+		
+		unlockReadOnlyPropertiesOnce();
 		if (_version == null) {
 
 			setProperty(Page.version, 1);
