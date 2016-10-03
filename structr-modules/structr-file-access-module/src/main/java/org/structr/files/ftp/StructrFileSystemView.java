@@ -93,7 +93,7 @@ public class StructrFileSystemView implements FileSystemView {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			AbstractFile structrWorkingDir = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), workingDir);
+			AbstractFile structrWorkingDir = FileHelper.getFileByAbsolutePath(securityContext, workingDir);
 			
 			tx.success();
 
@@ -169,7 +169,7 @@ public class StructrFileSystemView implements FileSystemView {
 
 			}
 
-			AbstractFile file = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), requestedPath);
+			AbstractFile file = FileHelper.getFileByAbsolutePath(securityContext, requestedPath);
 
 
 			if (file != null) {

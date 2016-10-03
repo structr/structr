@@ -275,7 +275,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 				if (path.contains("/")) {
 
 					String newParentPath = StringUtils.substringBeforeLast(path, "/");
-					AbstractFile newParent = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), newParentPath);
+					AbstractFile newParent = FileHelper.getFileByAbsolutePath(securityContext, newParentPath);
 
 					if (newParent != null && newParent instanceof Folder) {
 

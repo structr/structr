@@ -77,7 +77,7 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 	@Override
 	public boolean mkdir() {
 
-		final App app = StructrApp.getInstance();
+		final App app = StructrApp.getInstance(securityContext);
 		try (final Tx tx = app.tx()) {
 
 			logger.info("mkdir() Folder");
@@ -88,10 +88,10 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 				return false;
 			}
 
-			final Folder parentFolder = (Folder) FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), StringUtils.substringBeforeLast(newPath, "/"));
+			final Folder parentFolder = (Folder) FileHelper.getFileByAbsolutePath(securityContext, StringUtils.substringBeforeLast(newPath, "/"));
 
 			try {
-				Folder newFolder = (Folder) StructrApp.getInstance().command(CreateNodeCommand.class).execute(
+				Folder newFolder = (Folder) app.command(CreateNodeCommand.class).execute(
 					new NodeAttribute(AbstractNode.type, Folder.class.getSimpleName()),
 					new NodeAttribute(AbstractNode.owner, owner.getStructrUser()),
 					new NodeAttribute(AbstractNode.name, getName())
@@ -129,10 +129,10 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 
 			if (structrFile == null) {
 
-				final Folder parentFolder = (Folder) FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), StringUtils.substringBeforeLast(newPath, "/"));
+				final Folder parentFolder = (Folder) FileHelper.getFileByAbsolutePath(securityContext, StringUtils.substringBeforeLast(newPath, "/"));
 
 				try {
-					structrFile = FileHelper.createFile(SecurityContext.getSuperUserInstance(), new byte[0], null, File.class, getName());
+					structrFile = FileHelper.createFile(securityContext, new byte[0], null, File.class, getName());
 					structrFile.setProperty(AbstractNode.type, File.class.getSimpleName());
 					structrFile.setProperty(AbstractNode.owner, owner.getStructrUser());
 

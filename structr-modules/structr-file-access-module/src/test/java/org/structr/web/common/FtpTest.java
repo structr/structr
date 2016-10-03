@@ -62,7 +62,7 @@ public abstract class FtpTest extends StructrUiTest {
 		Folder dir = (Folder) createTestNodes(Folder.class, 1, props).get(0);
 
 		if (StringUtils.isNotBlank(path)) {
-			AbstractFile parent = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), path);
+			AbstractFile parent = FileHelper.getFileByAbsolutePath(securityContext, path);
 			if (parent != null && parent instanceof Folder) {
 				Folder parentFolder = (Folder) parent;
 				dir.setProperty(AbstractFile.parent, parentFolder);
@@ -82,7 +82,7 @@ public abstract class FtpTest extends StructrUiTest {
 		FileBase file = (FileBase) createTestNodes(File.class, 1, props).get(0);
 
 		if (StringUtils.isNotBlank(path)) {
-			AbstractFile parent = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), path);
+			AbstractFile parent = FileHelper.getFileByAbsolutePath(securityContext, path);
 			if (parent != null && parent instanceof Folder) {
 				Folder parentFolder = (Folder) parent;
 				file.setProperty(AbstractFile.parent, parentFolder);
