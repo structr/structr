@@ -59,8 +59,10 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 	}
 
 	public AbstractStructrFtpFile(final String path, final StructrFtpUser user) {
-		newPath = path;
-		owner = user;
+		this.newPath = path;
+		this.owner   = user;
+		this.securityContext = user.getStructrUser().getSecurityContext();
+		
 	}
 
 	@Override

@@ -140,8 +140,9 @@ public abstract class FtpTest extends StructrUiTest {
 			} catch (FrameworkException fex) {
 				logger.error("Unable to create FTP user", fex);
 			}
+			
 			boolean loginSuccess = ftp.login(username, password);
-			logger.info("Try to login as " + username + "/" + password + ": ", loginSuccess);
+			logger.info("Tried to login as {}/{}: {}", new Object[]{ username, password, loginSuccess});
 			assertTrue(loginSuccess);
 
 			reply = ftp.getReplyCode();
