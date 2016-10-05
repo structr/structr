@@ -375,7 +375,7 @@ public class StaticRelationshipResource extends SortableResource {
 		throw new IllegalPathException("Illegal path");
 	}
 
-	private void unwrapTo(final Object source, final RestMethodResult result) {
+	public static void unwrapTo(final Object source, final RestMethodResult result) {
 
 		if (source != null) {
 

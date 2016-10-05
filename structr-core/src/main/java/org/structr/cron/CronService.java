@@ -18,6 +18,7 @@
  */
 package org.structr.cron;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -29,6 +30,7 @@ import org.structr.api.service.RunnableService;
 import org.structr.api.service.StructrServices;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
+import org.structr.schema.action.Actions;
 
 /**
  * A service that keeps track of registered tasks and runs
@@ -76,17 +78,26 @@ public class CronService extends Thread implements RunnableService {
 
 				if(entry.getDelayToNextExecutionInMillis() < GRANULARITY_UNIT.toMillis(GRANULARITY)) {
 
-					String taskClassName = entry.getName();
+					final String taskClassName = entry.getName();
+					final Class taskClass      = instantiate(taskClassName);
 
 					try {
-						Class taskClass = Class.forName(taskClassName);
-						Task task = (Task)taskClass.newInstance();
 
-						logger.debug("Starting task {}", taskClassName);
-						StructrApp.getInstance().processTasks(task);
+						if (taskClass != null) {
 
-					} catch(Throwable t) {
-						logger.warn("Could not start task {}: {}", new Object[] { taskClassName, t.getMessage() } );
+							Task task = (Task)taskClass.newInstance();
+
+							logger.debug("Starting task {}", taskClassName);
+							StructrApp.getInstance().processTasks(task);
+
+						} else {
+
+							// check for schema method with the given name
+							Actions.call(taskClassName, Collections.EMPTY_MAP);
+						}
+
+					} catch (Throwable t) {
+						logger.warn("Exception while executing cron task {}: {}", taskClassName, t.getMessage());
 					}
 				}
 			}
@@ -161,5 +172,17 @@ public class CronService extends Thread implements RunnableService {
 	@Override
 	public boolean isVital() {
 		return false;
+	}
+
+	// ----- private methods -----
+	private Class instantiate(final String taskClass) {
+
+		try {
+
+			return Class.forName(taskClass);
+
+		} catch (Throwable ignore) {}
+
+		return null;
 	}
 }

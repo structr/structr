@@ -93,11 +93,11 @@ public class SchemaNode extends AbstractSchemaNode {
 		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount
 	);
 
-	public static final View schemaView = new View(SchemaMethod.class, "schema",
+	public static final View schemaView = new View(SchemaNode.class, "schema",
 		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount
 	);
 
-	public static final View exportView = new View(SchemaMethod.class, "export",
+	public static final View exportView = new View(SchemaNode.class, "export",
 		extendsClass, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount
 	);
 

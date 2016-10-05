@@ -406,8 +406,10 @@ oauth.facebook.return_uri = /
 # Configuration for scheduled tasks (cron jobs)
 #############################################################################
 #
-# The cron job configuration is a single line starting with "CronService tasks = ", followed by
-# a list of tasks defined by its full class name followed by a cron expression in the following format:
+# The cron job configuration is a single line starting with "CronService.tasks = ", followed by
+# a list of schema method names. Please note the the schema methods must not be attachted to
+# a type, they must be "stand-alone" schema methods. After that, the cron expressions for the
+# individual methods can be specified in a separate line in the following format:
 #
 # <full-qualified class name>.cronExpression = <seconds> <minutes> <hours> <days> <months> <days of week>
 #
@@ -423,11 +425,10 @@ oauth.facebook.return_uri = /
 # Run every day at 4:00                                                     0    0    4   *    *    *
 # Run each hour on Mondays during the first 10 days in April and October    0    0    *  1-10 4,10  1 
 
-#CronService.tasks = \
-#org.structr.examples.UpdateTask \
-#org.structr.examples.UpdateTask.cronExpression = 0 0 * * * * \
-#org.structr.examples.CleanupTask \
-#org.structr.examples.CleanupTask.cronExpression = 0 0 4 * * * \
+#CronService.tasks = method1 myMethod2 testMethod
+#method1.cronExpression = 0 0 * * * *
+#myMethod2.cronExpression = 0 0 * * * *
+#testMEthod.cronExpression = 0 0 * * * *
 
 
 # Enable/disable uniqueness constraint for files/folders

@@ -124,7 +124,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		readPropagation, writePropagation, deletePropagation, accessControlPropagation, propertyMask
 	);
 
-	public static final View exportView = new View(SchemaMethod.class, "export",
+	public static final View exportView = new View(SchemaRelationshipNode.class, "export",
 		sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
 		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag, permissionPropagation,
 		propertyMask

@@ -713,7 +713,7 @@ function StructrApp(baseUrl) {
 			sure = confirm('Are you sure?');
 		}
 		if (!conf || sure) {
-			s.request(btn, 'POST', structrRestUrl + (type ? type + '/' : '') + id + '/' + action, data, reload, appendId, 'Successfully executed custom action ' + action, 'Could not execute custom action ' + type, successCallback, errorCallback);
+			s.request(btn, 'POST', structrRestUrl + (type ? type + '/' : '') + (id ? id + '/' : '') + action, data, reload, appendId, 'Successfully executed custom action ' + action, 'Could not execute custom action ' + type, successCallback, errorCallback);
 		} else {
 			enableButton(btn);
 		}

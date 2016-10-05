@@ -88,7 +88,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		id, type, name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, indexed, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction
 	);
 
-	public static final View exportView = new View(SchemaMethod.class, "export",
+	public static final View exportView = new View(SchemaProperty.class, "export",
 		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, notNull, unique, indexed, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction
 	);
 

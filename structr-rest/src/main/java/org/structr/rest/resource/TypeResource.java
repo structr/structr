@@ -291,6 +291,12 @@ public class TypeResource extends SortableResource {
 		} else if (next instanceof TypeResource) {
 
 			throw new IllegalPathException("Cannot apply a second type resource to this type resource");
+
+		} else if (next instanceof SchemaMethodResource) {
+
+			// make this type resource available to the next resource
+			((SchemaMethodResource)next).wrapResource(this);
+			return next;
 		}
 
 		return super.tryCombineWith(next);

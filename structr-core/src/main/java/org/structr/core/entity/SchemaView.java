@@ -54,7 +54,7 @@ public class SchemaView extends SchemaReloadingNode {
 		name, schemaNode, schemaProperties, nonGraphProperties, isBuiltinView
 	);
 
-	public static final View exportView = new View(SchemaMethod.class, "export",
+	public static final View exportView = new View(SchemaView.class, "export",
 		id, type, name, schemaNode, nonGraphProperties, isBuiltinView
 	);
 }
