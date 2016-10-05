@@ -28,6 +28,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.web.common.FtpTest;
+import org.structr.web.entity.Folder;
 
 /**
  * Tests for FTP service.
@@ -42,19 +43,19 @@ public class FtpAccessTest extends FtpTest {
 		
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 			
-			FTPClient ftp = new FTPClient();
+			FTPClient ftpClient = new FTPClient();
 
-			ftp.connect("127.0.0.1", ftpPort);
-			logger.info("Reply from FTP server:", ftp.getReplyString());
+			ftpClient.connect("127.0.0.1", ftpPort);
+			logger.info("Reply from FTP server:", ftpClient.getReplyString());
 			
-			int reply = ftp.getReplyCode();
+			int reply = ftpClient.getReplyCode();
 			assertTrue(FTPReply.isPositiveCompletion(reply));
 			
-			boolean loginSuccess = ftp.login("jt978hasdl", "lj3498ha");
+			boolean loginSuccess = ftpClient.login("jt978hasdl", "lj3498ha");
 			logger.info("Try to login as jt978hasdl/lj3498ha:", loginSuccess);
 			assertFalse(loginSuccess);
 			
-			ftp.disconnect();
+			ftpClient.disconnect();
 			
 		} catch (IOException | FrameworkException ex) {
 			logger.error("Error in FTP test", ex);
@@ -65,21 +66,21 @@ public class FtpAccessTest extends FtpTest {
 	
 	public void test02LoginSuccess() {
 		
-		FTPClient ftp = setupFTPClient("ftpuser1");
-		disconnect(ftp);
+		FTPClient ftpClilent = setupFTPClient("ftpuser1");
+		disconnect(ftpClilent);
 		
 	}
 	
 	public void test03UserAccessToDirectory() {
 		
-		FTPClient ftp1 = setupFTPClient("ftpuser1");
+		FTPClient client1 = setupFTPClient("ftpuser1");
 		
 		final String name1 = "FTPdir1";
 		FTPFile[] dirs = null;
 		
 		try (final Tx tx = app.tx()) {
 
-			dirs = ftp1.listDirectories();
+			dirs = client1.listDirectories();
 			
 			assertNotNull(dirs);
 			assertEquals(0, dirs.length);
@@ -96,7 +97,7 @@ public class FtpAccessTest extends FtpTest {
 
 		try (final Tx tx = app.tx()) {
 			
-			dirs = ftp1.listDirectories();
+			dirs = client1.listDirectories();
 			
 			assertNotNull(dirs);
 			assertEquals(1, dirs.length);
@@ -109,13 +110,13 @@ public class FtpAccessTest extends FtpTest {
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 		
-		// Try to access the firectory as another user, result should be empty
+		// Try to access the directory as another user, result should be empty
 		
-		FTPClient ftp2 = setupFTPClient("ftpuser2");
+		FTPClient client2 = setupFTPClient("ftpuser2");
 		
 		try (final Tx tx = app.tx()) {
 			
-			dirs = ftp2.listDirectories();
+			dirs = client2.listDirectories();
 			
 			assertNotNull(dirs);
 			assertEquals(0, dirs.length);
@@ -129,4 +130,87 @@ public class FtpAccessTest extends FtpTest {
 
 	}
 	
+	public void test04UserAccessToSubdirectory() {
+		
+		FTPClient client1 = setupFTPClient("ftpuser1");
+		
+		final String name1 = "FTPdir1";
+		final String name2 = "FTPdir2";
+		
+		FTPFile[] dirs = null;
+		
+		Folder dir1 = null;
+		Folder dir2 = null;
+		
+		try (final Tx tx = app.tx()) {
+
+			dirs = client1.listDirectories();
+			
+			assertNotNull(dirs);
+			assertEquals(0, dirs.length);
+
+			// Create folders by API methods
+			dir1 = createFTPDirectory(null, name1);
+			dir2 = createFTPDirectory(dir1.getPath(), name2);
+			
+			// Make dir1 visible to authenticated users
+			dir1.setProperty(Folder.visibleToAuthenticatedUsers, true);
+
+			tx.success();
+			
+		} catch (IOException | FrameworkException ex) {
+			logger.warn("", ex);
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+
+		try (final Tx tx = app.tx()) {
+			
+			dirs = client1.listDirectories();
+			
+			assertNotNull(dirs);
+			assertEquals(1, dirs.length);
+			assertEquals(name1, dirs[0].getName());
+			
+			client1.changeWorkingDirectory(dir1.getPath());
+			FTPFile[] subdirs = client1.listDirectories();
+
+			assertNotNull(subdirs);
+			assertEquals(1, subdirs.length);
+			assertEquals(name2, subdirs[0].getName());
+
+			tx.success();
+			
+		} catch (IOException | FrameworkException ex) {
+			logger.warn("", ex);
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+		
+		// Try to access the directories as another user.
+		
+		// client2 should see dir1
+		
+		FTPClient client2 = setupFTPClient("ftpuser2");
+		
+		try (final Tx tx = app.tx()) {
+			
+			dirs = client2.listDirectories();
+			
+			assertNotNull(dirs);
+			assertEquals(1, dirs.length);
+			assertEquals(name1, dirs[0].getName());
+
+			client2.changeWorkingDirectory(dir1.getPath());
+			FTPFile[] subdirs = client2.listDirectories();
+
+			assertNotNull(subdirs);
+			assertEquals(0, subdirs.length);
+			
+			tx.success();
+			
+		} catch (IOException | FrameworkException ex) {
+			logger.warn("", ex);
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+
+	}
 }

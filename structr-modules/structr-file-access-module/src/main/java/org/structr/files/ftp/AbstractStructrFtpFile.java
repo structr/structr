@@ -59,8 +59,10 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 	}
 
 	public AbstractStructrFtpFile(final String path, final StructrFtpUser user) {
-		newPath = path;
-		owner = user;
+		this.newPath = path;
+		this.owner   = user;
+		this.securityContext = user.getStructrUser().getSecurityContext();
+		
 	}
 
 	@Override
@@ -275,7 +277,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 				if (path.contains("/")) {
 
 					String newParentPath = StringUtils.substringBeforeLast(path, "/");
-					AbstractFile newParent = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), newParentPath);
+					AbstractFile newParent = FileHelper.getFileByAbsolutePath(securityContext, newParentPath);
 
 					if (newParent != null && newParent instanceof Folder) {
 
