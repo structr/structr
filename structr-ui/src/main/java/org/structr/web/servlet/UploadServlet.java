@@ -70,13 +70,14 @@ import org.structr.web.entity.Image;
  */
 public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
-	private static final Logger logger = LoggerFactory.getLogger(UploadServlet.class.getName());
+	private static final Logger logger                             = LoggerFactory.getLogger(UploadServlet.class.getName());
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-fA-F0-9]{32}");
-
-	private static final int MEGABYTE = 1024 * 1024;
-	private static final int MEMORY_THRESHOLD = 10 * MEGABYTE;  // above 10 MB, files are stored on disk
-	private static final String MAX_FILE_SIZE = "1000"; // unit is MB
-	private static final String MAX_REQUEST_SIZE = "1000"; // unit is MB
+	private static final String REDIRECT_AFTER_UPLOAD_PARAMETER    = "redirectOnSuccess";
+	private static final String APPEND_UUID_ON_REDIRECT            = "appendUuidOnRedirect";
+	private static final int MEGABYTE                              = 1024 * 1024;
+	private static final int MEMORY_THRESHOLD                      = 10 * MEGABYTE;  // above 10 MB, files are stored on disk
+	private static final String MAX_FILE_SIZE                      = "1000"; // unit is MB
+	private static final String MAX_REQUEST_SIZE                   = "1000"; // unit is MB
 
 	// non-static fields
 	private ServletFileUpload uploader = null;
@@ -135,6 +136,8 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 		}
 
 		SecurityContext securityContext = null;
+		String redirectUrl              = null;
+		boolean appendUuidOnRedirect    = false;
 
 		// isolate request authentication in a transaction
 		try (final Tx tx = StructrApp.getInstance().tx()) {
@@ -210,7 +213,20 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 				if (item.isFormField()) {
 
-					params.put(item.getFieldName(), item.getString());
+					final String fieldName = item.getFieldName();
+
+					if (REDIRECT_AFTER_UPLOAD_PARAMETER.equals(fieldName)) {
+
+						redirectUrl = item.getString();
+
+					} else if (APPEND_UUID_ON_REDIRECT.equals(fieldName)) {
+
+						appendUuidOnRedirect = "true".equalsIgnoreCase(item.getString());
+
+					} else {
+
+						params.put(item.getFieldName(), item.getString());
+					}
 
 				} else {
 
@@ -298,8 +314,24 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 							// upload trigger
 							newFile.notifyUploadCompletion();
 
-							// Just write out the uuids of the new files
-							out.write(uuid);
+							// send redirect to allow form-based file upload without JavaScript..
+							if (StringUtils.isNotBlank(redirectUrl)) {
+
+								if (appendUuidOnRedirect) {
+
+									response.sendRedirect(redirectUrl + uuid);
+
+								} else {
+
+									response.sendRedirect(redirectUrl);
+								}
+
+							} else {
+
+								// Just write out the uuids of the new files
+								out.write(uuid);
+							}
+
 						}
 
 					} catch (IOException ex) {
