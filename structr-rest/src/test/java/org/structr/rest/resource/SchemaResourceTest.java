@@ -842,4 +842,59 @@ public class SchemaResourceTest extends StructrRestTest {
 				.get("/_schema/TestType26/ui");
 
 	}
+
+	public void testSchemaMethodExecution() {
+
+		createEntity("/SchemaNode", "{ name: Test, __public: \"name, type\", ___test: \"find('Test')\" }");
+		createEntity("Test", "{ name: Test }");
+
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+			.expect()
+				.statusCode(200)
+
+				.body("result_count", equalTo(1))
+				.body("result.type", equalTo("Test"))
+				.body("result.name", equalTo("Test"))
+
+			.when()
+				.post("/Test/test");
+	}
+
+	public void testInheritedSchemaMethodExecution() {
+
+		createEntity("/SchemaNode", "{ name: TestBase, ___test: \"find('Test')\" }");
+		createEntity("/SchemaNode", "{ name: Test, __public: \"name, type\", extendsClass: \"org.structr.dynamic.TestBase\" }");
+		createEntity("Test", "{ name: Test }");
+
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+			.expect()
+				.statusCode(200)
+
+				.body("result_count", equalTo(1))
+				.body("result.type", equalTo("Test"))
+				.body("result.name", equalTo("Test"))
+
+			.when()
+				.post("/Test/test");
+	}
 }
