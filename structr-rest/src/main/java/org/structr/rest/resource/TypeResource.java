@@ -292,7 +292,7 @@ public class TypeResource extends SortableResource {
 
 			// two type resources, must be schema method execution
 			// the constructor will throw an IllegalPathException if there is no method to execute
-			return new SchemaMethodResource(this, (TypeResource)next);
+			return new SchemaMethodResource(securityContext, this, (TypeResource)next);
 		}
 
 		return super.tryCombineWith(next);

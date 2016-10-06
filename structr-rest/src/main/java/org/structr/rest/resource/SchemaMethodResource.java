@@ -50,17 +50,18 @@ public class SchemaMethodResource extends SortableResource {
 	private Method method               = null;
 	private Class type                  = null;
 
-	public SchemaMethodResource(final TypeResource typeResource, final TypeResource methodResource) throws IllegalPathException {
+	public SchemaMethodResource(final SecurityContext securityContext, final TypeResource typeResource, final TypeResource methodResource) throws IllegalPathException {
 
-		this.typeResource   = typeResource;
-		this.methodResource = methodResource;
+		this.typeResource    = typeResource;
+		this.methodResource  = methodResource;
+		this.securityContext = securityContext;
 
 		// check if the given type has a method of the given name here
 		this.methodName = methodResource.getRawType();
 		this.type       = typeResource.getEntityClass();
 
 		try {
-			this.method = type.getDeclaredMethod(methodName, Map.class);
+			this.method = type.getMethod(methodName, Map.class);
 
 		} catch (NoSuchMethodException nsex) {
 			throw new IllegalPathException("Type and method name do not match the given path.");
