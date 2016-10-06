@@ -18,108 +18,111 @@
  */
 package org.structr.rest.resource;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
-import org.structr.schema.action.Actions;
 
 /**
  *
  */
 public class SchemaMethodResource extends SortableResource {
 
-	private String methodName = null;
+	private static final Logger logger  = LoggerFactory.getLogger(SchemaMethodResource.class.getName());
+
+	private TypeResource typeResource   = null;
+	private TypeResource methodResource = null;
+	private String methodName           = null;
+	private Method method               = null;
+	private Class type                  = null;
+
+	public SchemaMethodResource(final TypeResource typeResource, final TypeResource methodResource) throws IllegalPathException {
+
+		this.typeResource   = typeResource;
+		this.methodResource = methodResource;
+
+		// check if the given type has a method of the given name here
+		this.methodName = methodResource.getRawType();
+		this.type       = typeResource.getEntityClass();
+
+		try {
+			this.method = type.getDeclaredMethod(methodName, Map.class);
+
+		} catch (NoSuchMethodException nsex) {
+			throw new IllegalPathException("Type and method name do not match the given path.");
+		}
+
+		if (method == null) {
+			throw new IllegalPathException("Type and method name do not match the given path.");
+		}
+	}
 
 	@Override
 	public boolean checkAndConfigure(final String part, final SecurityContext securityContext, final HttpServletRequest request) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
-		try (final Tx tx = app.tx()) {
-
-			// we only need to check if the method in question exists at all,
-			// the actual check for correct type etc. are carried out elsewhere
-			final boolean exists = app.nodeQuery(SchemaMethod.class).andName(part).getFirst() != null;
-
-			tx.success();
-
-			if (exists) {
-				methodName = part;
-				return true;
-			}
-		}
-
+		// never return this method in a URL path evaluation
 		return false;
 	}
 
 	@Override
 	public String getResourceSignature() {
-		return methodName;
+		return typeResource.getResourceSignature() + "/" + methodResource.getResourceSignature();
 	}
 
 	@Override
 	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
-		throw new IllegalMethodException("PUT not allowed on " + getResourceSignature());
+		throw new IllegalMethodException("GET not allowed on " + getResourceSignature());
 	}
 
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
-		if (wrappedResource != null && wrappedResource instanceof TypeResource) {
+		final App app = StructrApp.getInstance(securityContext);
 
-			final App app            = StructrApp.getInstance(securityContext);
-			final TypeResource other = (TypeResource)wrappedResource;
-			final Class type         = other.getEntityClass();
+		try (final Tx tx = app.tx()) {
 
-			if (type != null) {
+			if (type != null && method != null) {
 
-				try (final Tx tx = app.tx()) {
+				try {
 
-					final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(type.getSimpleName()).getFirst();
-					if (schemaNode != null) {
+					final Object instance = instantiate(type);
+					final Object obj      = method.invoke(instance, propertySet);
 
-						final SchemaMethod method = app.nodeQuery(SchemaMethod.class)
-							.and(SchemaMethod.name, methodName)
-							.and(SchemaMethod.schemaNode, schemaNode)
-							.getFirst();
+					if (obj instanceof RestMethodResult) {
 
-						if (method != null) {
+						return (RestMethodResult)obj;
 
-							final String source = method.getProperty(SchemaMethod.source);
-							if (StringUtils.isNotBlank(source)) {
+					} else {
 
-								final Object obj = Actions.execute(securityContext, null, "${" + source + "}", propertySet);
-								if (obj instanceof RestMethodResult) {
+						final RestMethodResult result = new RestMethodResult(200);
 
-									return (RestMethodResult)obj;
+						// unwrap nested object(s)
+						StaticRelationshipResource.unwrapTo(obj, result);
 
-								} else {
-
-									final RestMethodResult result = new RestMethodResult(200);
-
-									// unwrap nested object(s)
-									StaticRelationshipResource.unwrapTo(obj, result);
-
-									return result;
-								}
-							}
-						}
+						return result;
 					}
 
-					tx.success();
+				} catch (InstantiationException | InvocationTargetException | IllegalAccessException ex) {
+					logger.warn("Exception while executing {}.{}: {}", type.getSimpleName(), methodName, ex.getMessage());
+
 				}
 			}
+
+			tx.success();
 		}
 
 		throw new IllegalPathException("Type and method name do not match the given path.");
@@ -128,5 +131,24 @@ public class SchemaMethodResource extends SortableResource {
 	@Override
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 		throw new IllegalMethodException("PUT not allowed on " + getResourceSignature());
+	}
+
+	// ----- private methods -----
+	private Object instantiate(final Class type) throws InstantiationException, IllegalAccessException {
+
+		final Object instance = type.newInstance();
+		if (instance != null) {
+
+			if (instance instanceof AbstractNode) {
+
+				((AbstractNode)instance).init(securityContext, null, type, false);
+
+			} else if (instance instanceof AbstractRelationship) {
+
+				((AbstractRelationship)instance).init(securityContext, null, type);
+			}
+		}
+
+		return instance;
 	}
 }
