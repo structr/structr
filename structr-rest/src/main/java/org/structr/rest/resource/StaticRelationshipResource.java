@@ -347,9 +347,22 @@ public class StaticRelationshipResource extends SortableResource {
 
 			final Class entityType  = typedIdResource.getTypeResource().getEntityClass();
 			final String methodName = typeResource.getRawType();
-			final String source = SchemaMethodResource.findMethodSource(entityType, methodName);
 
-			result = SchemaMethodResource.invoke(securityContext, typedIdResource.getEntity(), source, propertySet);
+			try {
+				final String source = SchemaMethodResource.findMethodSource(entityType, methodName);
+				result = SchemaMethodResource.invoke(securityContext, typedIdResource.getEntity(), source, propertySet);
+
+			} catch (IllegalPathException ex) {
+
+				// try direct invocation of the schema method on the node type
+				try {
+
+					result = SchemaMethodResource.wrapInResult(typedIdResource.getEntity().invokeMethod(methodName, propertySet, true));
+
+				} catch (Throwable t) {
+					logger.warn("Unable to execute {}.{}: {}", entityType.getSimpleName(), methodName, t.getMessage());
+				}
+			}
 		}
 
 		if (result == null) {

@@ -105,8 +105,11 @@ public class SchemaMethodResource extends SortableResource {
 
 	// ----- private methods -----
 	public static RestMethodResult invoke(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> propertySet) throws FrameworkException {
+		return SchemaMethodResource.wrapInResult(Actions.execute(securityContext, entity, "${" + source + "}", propertySet));
+	}
 
-		final Object obj        = Actions.execute(securityContext, entity, "${" + source + "}", propertySet);
+	public static RestMethodResult wrapInResult(final Object obj) {
+
 		RestMethodResult result = null;
 
 		if (obj instanceof RestMethodResult) {
@@ -122,6 +125,7 @@ public class SchemaMethodResource extends SortableResource {
 		}
 
 		return result;
+
 	}
 
 	public static String findMethodSource(final Class type, final String methodName) throws IllegalPathException {
