@@ -30,6 +30,7 @@ import org.structr.api.service.RunnableService;
 import org.structr.api.service.StructrServices;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
 import org.structr.schema.action.Actions;
 
 /**
@@ -92,8 +93,13 @@ public class CronService extends Thread implements RunnableService {
 
 						} else {
 
-							// check for schema method with the given name
-							Actions.call(taskClassName, Collections.EMPTY_MAP);
+							try (final Tx tx = StructrApp.getInstance().tx()) {
+
+								// check for schema method with the given name
+								Actions.call(taskClassName, Collections.EMPTY_MAP);
+
+								tx.success();
+							}
 						}
 
 					} catch (Throwable t) {
