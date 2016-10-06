@@ -18,12 +18,16 @@
  */
 package org.structr.web.test;
 
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.io.IOException;
+import java.util.Properties;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.auth.UiAuthenticator;
@@ -138,6 +142,35 @@ public abstract class FrontendTest extends StructrUiTest {
 
 		return user;
 
+	}
+
+	protected String createEntityAsAdmin(String resource, String... body) {
+
+		StringBuilder buf = new StringBuilder();
+
+		for (String part : body) {
+			buf.append(part);
+		}
+
+		final Properties config = Services.getBaseConfiguration();
+
+		return getUuidFromLocation(
+			RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+
+			.body(buf.toString())
+				.expect().statusCode(201)
+			.when().post(resource).getHeader("Location"));
 	}
 
 }

@@ -84,7 +84,12 @@ public class TypedIdResource extends FilterableResource {
 	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
-		if (next instanceof TypeResource) {
+		if (next instanceof SchemaMethodResource) {
+
+			// make this type resource available to the next resource
+			((SchemaMethodResource)next).wrapResource(this);
+
+		} else if (next instanceof TypeResource) {
 
 			// next constraint is a type constraint
 			// => follow predefined statc relationship

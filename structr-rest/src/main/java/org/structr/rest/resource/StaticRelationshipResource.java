@@ -303,7 +303,8 @@ public class StaticRelationshipResource extends SortableResource {
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
 		final GraphObject sourceNode = typedIdResource.getEntity();
-
+		RestMethodResult result = null;
+		
 		if (sourceNode != null && propertyKey != null && propertyKey instanceof RelationProperty) {
 
 			final RelationProperty relationProperty = (RelationProperty) propertyKey;
@@ -339,43 +340,53 @@ public class StaticRelationshipResource extends SortableResource {
 
 			if (newNode != null) {
 
-				final RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
+				result = new RestMethodResult(HttpServletResponse.SC_CREATED);
 				result.addHeader("Location", buildLocationHeader(newNode));
 
 				return result;
 			}
 
 		} else {
-
-			// look for methods that have an @Export annotation
-			final GraphObject entity = typedIdResource.getIdResource().getEntity();
-			final Class entityType   = typedIdResource.getEntityClass();
-			final String methodName  = typeResource.getRawType();
-
-			if (entity != null && entityType != null && methodName != null) {
-
-				final Object obj = entity.invokeMethod(methodName, propertySet, true);
-
-				if (obj instanceof RestMethodResult) {
-
-					return (RestMethodResult)obj;
-
-				} else {
-
-					final RestMethodResult result = new RestMethodResult(200);
-
-					// unwrap nested object(s)
-					unwrapTo(obj, result);
-
-					return result;
-				}
-			}
+			result = invokeMethod(typedIdResource, propertySet, typeResource.getRawType());
 		}
-
-		throw new IllegalPathException("Illegal path");
+		
+		if (result == null) {
+			throw new IllegalPathException("Illegal path");
+		} else {
+			return result;
+		}
 	}
 
-	public static void unwrapTo(final Object source, final RestMethodResult result) {
+	protected static RestMethodResult invokeMethod(final TypedIdResource typedIdResource, final Map propertySet, final String methodName) throws FrameworkException {
+
+		// look for methods that have an @Export annotation
+		final GraphObject entity = typedIdResource.getIdResource().getEntity();
+		final Class entityType   = typedIdResource.getEntityClass();
+
+		if (entity != null && entityType != null && methodName != null) {
+
+			final Object obj = entity.invokeMethod(methodName, propertySet, true);
+
+			if (obj instanceof RestMethodResult) {
+
+				return (RestMethodResult)obj;
+
+			} else {
+
+				final RestMethodResult result = new RestMethodResult(200);
+
+				// unwrap nested object(s)
+				unwrapTo(obj, result);
+
+				return result;
+			}
+		}
+		
+		return null;
+		
+	}
+	
+	protected static void unwrapTo(final Object source, final RestMethodResult result) {
 
 		if (source != null) {
 

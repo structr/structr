@@ -18,12 +18,10 @@
  */
 package org.structr.rest.resource;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
@@ -31,18 +29,19 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
+import org.structr.schema.action.Actions;
 
 /**
  *
  */
 public class SchemaMethodResource extends SortableResource {
-
-	private static final Logger logger  = LoggerFactory.getLogger(SchemaMethodResource.class.getName());
 
 	private TypeResource typeResource   = null;
 	private TypeResource methodResource = null;
@@ -59,13 +58,7 @@ public class SchemaMethodResource extends SortableResource {
 		// check if the given type has a method of the given name here
 		this.methodName = methodResource.getRawType();
 		this.type       = typeResource.getEntityClass();
-
-		try {
-			this.method = type.getMethod(methodName, Map.class);
-
-		} catch (NoSuchMethodException nsex) {
-			throw new IllegalPathException("Type and method name do not match the given path.");
-		}
+		this.method     = StructrApp.getConfiguration().getExportedMethodsForType(type).get(methodName);
 
 		if (method == null) {
 			throw new IllegalPathException("Type and method name do not match the given path.");
@@ -92,41 +85,51 @@ public class SchemaMethodResource extends SortableResource {
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
+		final App app           = StructrApp.getInstance(securityContext);
+		RestMethodResult result = null;
 
 		try (final Tx tx = app.tx()) {
 
-			if (type != null && method != null) {
+			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(method.getDeclaringClass().getSimpleName()).getFirst();
+			if (schemaNode != null) {
 
-				try {
+				final SchemaMethod schemaMethod = app.nodeQuery(SchemaMethod.class)
+					.and(SchemaMethod.name, method.getName())
+					.and(SchemaMethod.schemaNode, schemaNode)
+					.getFirst();
 
-					final Object instance = instantiate(type);
-					final Object obj      = method.invoke(instance, propertySet);
+				if (schemaMethod != null) {
 
-					if (obj instanceof RestMethodResult) {
+					final String source = schemaMethod.getProperty(SchemaMethod.source);
+					if (StringUtils.isNotBlank(source)) {
 
-						return (RestMethodResult)obj;
+						final Object obj = Actions.execute(securityContext, null, "${" + source + "}", propertySet);
+						if (obj instanceof RestMethodResult) {
 
-					} else {
+							result = (RestMethodResult)obj;
 
-						final RestMethodResult result = new RestMethodResult(200);
+						} else {
 
-						// unwrap nested object(s)
-						StaticRelationshipResource.unwrapTo(obj, result);
+							result = new RestMethodResult(200);
 
-						return result;
+							// unwrap nested object(s)
+							StaticRelationshipResource.unwrapTo(obj, result);
+						}
 					}
-
-				} catch (InstantiationException | InvocationTargetException | IllegalAccessException ex) {
-					logger.warn("Exception while executing {}.{}: {}", type.getSimpleName(), methodName, ex.getMessage());
-
 				}
 			}
 
 			tx.success();
 		}
 
-		throw new IllegalPathException("Type and method name do not match the given path.");
+		if (result != null) {
+
+			return result;
+
+		} else {
+
+			throw new IllegalPathException("Type and method name do not match the given path.");
+		}
 	}
 
 	@Override
