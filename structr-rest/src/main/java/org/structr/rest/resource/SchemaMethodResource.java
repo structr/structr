@@ -18,6 +18,7 @@
  */
 package org.structr.rest.resource;
 
+import java.lang.reflect.Method;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
@@ -79,47 +80,58 @@ public class SchemaMethodResource extends SortableResource {
 		if (wrappedResource != null && wrappedResource instanceof TypeResource) {
 
 			final App app            = StructrApp.getInstance(securityContext);
-			final TypeResource other = (TypeResource)wrappedResource;
+			final TypeResource other = (TypeResource) wrappedResource;
 			final Class type         = other.getEntityClass();
 
 			if (type != null) {
 
 				try (final Tx tx = app.tx()) {
+						
+					final Method method = StructrApp.getConfiguration().getExportedMethodsForType(type).get(methodName);
 
-					final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(type.getSimpleName()).getFirst();
-					if (schemaNode != null) {
+					if (method != null) {
 
-						final SchemaMethod method = app.nodeQuery(SchemaMethod.class)
-							.and(SchemaMethod.name, methodName)
-							.and(SchemaMethod.schemaNode, schemaNode)
-							.getFirst();
+						final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(method.getDeclaringClass().getSimpleName()).getFirst();
+							
+						if (schemaNode != null) {
 
-						if (method != null) {
+							final SchemaMethod schemaMethod = app.nodeQuery(SchemaMethod.class)
+								.and(SchemaMethod.name, method.getName())
+								.and(SchemaMethod.schemaNode, schemaNode)
+								.getFirst();
 
-							final String source = method.getProperty(SchemaMethod.source);
-							if (StringUtils.isNotBlank(source)) {
+							if (schemaMethod != null) {
 
-								final Object obj = Actions.execute(securityContext, null, "${" + source + "}", propertySet);
-								if (obj instanceof RestMethodResult) {
+								final String source = schemaMethod.getProperty(SchemaMethod.source);
+								if (StringUtils.isNotBlank(source)) {
 
-									return (RestMethodResult)obj;
+									final Object obj = Actions.execute(securityContext, null, "${" + source + "}", propertySet);
+									if (obj instanceof RestMethodResult) {
 
-								} else {
+										return (RestMethodResult)obj;
 
-									final RestMethodResult result = new RestMethodResult(200);
+									} else {
 
-									// unwrap nested object(s)
-									StaticRelationshipResource.unwrapTo(obj, result);
+										final RestMethodResult result = new RestMethodResult(200);
 
-									return result;
+										// unwrap nested object(s)
+										StaticRelationshipResource.unwrapTo(obj, result);
+
+										return result;
+									}
 								}
 							}
 						}
 					}
-
+					
 					tx.success();
 				}
 			}
+
+		} else if (wrappedResource != null && wrappedResource instanceof TypedIdResource) {
+			
+			return StaticRelationshipResource.invokeMethod((TypedIdResource) wrappedResource, propertySet, methodName);
+			
 		}
 
 		throw new IllegalPathException("Type and method name do not match the given path.");
