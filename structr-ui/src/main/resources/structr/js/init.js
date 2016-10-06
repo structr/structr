@@ -286,8 +286,6 @@ var Structr = {
 		_Logger.log(_LogType.INIT, 'user', user);
 		Structr.ping();
 		Structr.startPing();
-		Structr.expanded = JSON.parse(LSWrapper.getItem(expandedIdsKey));
-		_Logger.log(_LogType.INIT, '######## Expanded IDs after reload ##########', Structr.expanded);
 	},
 	ping: function(callback) {
 
@@ -410,6 +408,9 @@ var Structr = {
 
 		Structr.restoreLocalStorage(function() {
 
+			Structr.expanded = JSON.parse(LSWrapper.getItem(expandedIdsKey));
+			_Logger.log(_LogType.INIT, '######## Expanded IDs after reload ##########', Structr.expanded);
+
 			var browserUrl = window.location.href;
 			var anchor = getAnchorFromUrl(browserUrl);
 			lastMenuEntry = ((!isLogin && anchor && anchor !== 'logout') ? anchor : LSWrapper.getItem(lastMenuEntryKey));
@@ -492,8 +493,12 @@ var Structr = {
 		Command.saveLocalStorage();
 	},
 	restoreLocalStorage: function(callback) {
-		_Logger.log(_LogType.INIT, "Restoring localstorage");
-		Command.getLocalStorage(callback);
+		if (!localStorageObject || (Object.keys(localStorageObject).length === 0 && localStorageObject.constructor === Object)) {
+			_Logger.log(_LogType.INIT, "Restoring localstorage");		
+			Command.getLocalStorage(callback);
+		} else {
+			callback();
+		}
 	},
 	restoreDialog: function(dialogData) {
 		_Logger.log(_LogType.INIT, 'restoreDialog', dialogData, dialogBox);
