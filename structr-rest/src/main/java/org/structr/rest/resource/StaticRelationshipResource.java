@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
@@ -29,8 +28,6 @@ import java.util.Map;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.ScriptRuntime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -304,7 +301,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 		final GraphObject sourceNode = typedIdResource.getEntity();
 		RestMethodResult result = null;
-		
+
 		if (sourceNode != null && propertyKey != null && propertyKey instanceof RelationProperty) {
 
 			final RelationProperty relationProperty = (RelationProperty) propertyKey;
@@ -347,66 +344,18 @@ public class StaticRelationshipResource extends SortableResource {
 			}
 
 		} else {
-			result = invokeMethod(typedIdResource, propertySet, typeResource.getRawType());
+
+			final Class entityType  = typedIdResource.getTypeResource().getEntityClass();
+			final String methodName = typeResource.getRawType();
+			final String source = SchemaMethodResource.findMethodSource(entityType, methodName);
+
+			result = SchemaMethodResource.invoke(securityContext, typedIdResource.getEntity(), source, propertySet);
 		}
-		
+
 		if (result == null) {
 			throw new IllegalPathException("Illegal path");
 		} else {
 			return result;
-		}
-	}
-
-	protected static RestMethodResult invokeMethod(final TypedIdResource typedIdResource, final Map propertySet, final String methodName) throws FrameworkException {
-
-		// look for methods that have an @Export annotation
-		final GraphObject entity = typedIdResource.getIdResource().getEntity();
-		final Class entityType   = typedIdResource.getEntityClass();
-
-		if (entity != null && entityType != null && methodName != null) {
-
-			final Object obj = entity.invokeMethod(methodName, propertySet, true);
-
-			if (obj instanceof RestMethodResult) {
-
-				return (RestMethodResult)obj;
-
-			} else {
-
-				final RestMethodResult result = new RestMethodResult(200);
-
-				// unwrap nested object(s)
-				unwrapTo(obj, result);
-
-				return result;
-			}
-		}
-		
-		return null;
-		
-	}
-	
-	protected static void unwrapTo(final Object source, final RestMethodResult result) {
-
-		if (source != null) {
-
-			final Object unwrapped = Context.jsToJava(source, ScriptRuntime.ObjectClass);
-			if (unwrapped.getClass().isArray()) {
-
-				for (final Object element : (Object[])unwrapped) {
-					unwrapTo(element, result);
-				}
-
-			} else if (unwrapped instanceof Collection) {
-
-				for (final Object element : (Collection)unwrapped) {
-					unwrapTo(element, result);
-				}
-
-			} else if (unwrapped instanceof GraphObject) {
-
-				result.addContent((GraphObject)unwrapped);
-			}
 		}
 	}
 
