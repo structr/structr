@@ -19,16 +19,19 @@
 package org.structr.rest.resource;
 
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang3.StringUtils;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.ScriptRuntime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.Tx;
@@ -43,26 +46,17 @@ import org.structr.schema.action.Actions;
  */
 public class SchemaMethodResource extends SortableResource {
 
+	private static final Logger logger   = LoggerFactory.getLogger(SchemaMethodResource.class);
 	private TypeResource typeResource   = null;
 	private TypeResource methodResource = null;
-	private String methodName           = null;
-	private Method method               = null;
-	private Class type                  = null;
+	private String source               = null;
 
 	public SchemaMethodResource(final SecurityContext securityContext, final TypeResource typeResource, final TypeResource methodResource) throws IllegalPathException {
 
 		this.typeResource    = typeResource;
 		this.methodResource  = methodResource;
 		this.securityContext = securityContext;
-
-		// check if the given type has a method of the given name here
-		this.methodName = methodResource.getRawType();
-		this.type       = typeResource.getEntityClass();
-		this.method     = StructrApp.getConfiguration().getExportedMethodsForType(type).get(methodName);
-
-		if (method == null) {
-			throw new IllegalPathException("Type and method name do not match the given path.");
-		}
+		this.source          = findMethodSource(typeResource.getEntityClass(), methodResource.getRawType());
 	}
 
 	@Override
@@ -88,48 +82,20 @@ public class SchemaMethodResource extends SortableResource {
 		final App app           = StructrApp.getInstance(securityContext);
 		RestMethodResult result = null;
 
-		try (final Tx tx = app.tx()) {
+		if (source != null) {
 
-			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(method.getDeclaringClass().getSimpleName()).getFirst();
-			if (schemaNode != null) {
+			try (final Tx tx = app.tx()) {
 
-				final SchemaMethod schemaMethod = app.nodeQuery(SchemaMethod.class)
-					.and(SchemaMethod.name, method.getName())
-					.and(SchemaMethod.schemaNode, schemaNode)
-					.getFirst();
-
-				if (schemaMethod != null) {
-
-					final String source = schemaMethod.getProperty(SchemaMethod.source);
-					if (StringUtils.isNotBlank(source)) {
-
-						final Object obj = Actions.execute(securityContext, null, "${" + source + "}", propertySet);
-						if (obj instanceof RestMethodResult) {
-
-							result = (RestMethodResult)obj;
-
-						} else {
-
-							result = new RestMethodResult(200);
-
-							// unwrap nested object(s)
-							StaticRelationshipResource.unwrapTo(obj, result);
-						}
-					}
-				}
+				result = SchemaMethodResource.invoke(securityContext, null, source, propertySet);
+				tx.success();
 			}
-
-			tx.success();
 		}
 
-		if (result != null) {
-
-			return result;
-
-		} else {
-
+		if (result == null) {
 			throw new IllegalPathException("Type and method name do not match the given path.");
 		}
+
+		return result;
 	}
 
 	@Override
@@ -138,21 +104,110 @@ public class SchemaMethodResource extends SortableResource {
 	}
 
 	// ----- private methods -----
-	private Object instantiate(final Class type) throws InstantiationException, IllegalAccessException {
+	public static RestMethodResult invoke(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> propertySet) throws FrameworkException {
 
-		final Object instance = type.newInstance();
-		if (instance != null) {
+		final Object obj        = Actions.execute(securityContext, entity, "${" + source + "}", propertySet);
+		RestMethodResult result = null;
 
-			if (instance instanceof AbstractNode) {
+		if (obj instanceof RestMethodResult) {
 
-				((AbstractNode)instance).init(securityContext, null, type, false);
+			result = (RestMethodResult)obj;
 
-			} else if (instance instanceof AbstractRelationship) {
+		} else {
 
-				((AbstractRelationship)instance).init(securityContext, null, type);
-			}
+			result = new RestMethodResult(200);
+
+			// unwrap nested object(s)
+			SchemaMethodResource.unwrapTo(obj, result);
 		}
 
-		return instance;
+		return result;
+	}
+
+	public static String findMethodSource(final Class type, final String methodName) throws IllegalPathException {
+
+		try {
+			final App app               = StructrApp.getInstance();
+			final String typeName       = type.getSimpleName();
+
+			// first step: schema node or one of its parents
+			SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(typeName).getFirst();
+			while (schemaNode != null) {
+
+				for (final SchemaMethod method : schemaNode.getProperty(SchemaNode.schemaMethods)) {
+
+					if (methodName.equals(method.getName())) {
+
+						return method.getProperty(SchemaMethod.source);
+					}
+				}
+
+				Class parentType = type.getSuperclass();
+				if (parentType != null) {
+
+					// skip non-dynamic types
+					if (parentType.getSimpleName().equals(typeName) || !parentType.getName().startsWith("org.structr.dynamic.")) {
+						parentType = parentType.getSuperclass();
+					}
+
+					if (parentType != null && parentType.getName().startsWith("org.structr.dynamic.")) {
+
+						schemaNode = app.nodeQuery(SchemaNode.class).andName(parentType.getSimpleName()).getFirst();
+
+					} else {
+
+						break;
+					}
+
+				} else {
+
+					break;
+				}
+			}
+
+		} catch (FrameworkException fex) {}
+
+		throw new IllegalPathException("Type and method name do not match the given path.");
+	}
+
+	public static void unwrapTo(final Object source, final RestMethodResult result) {
+
+		if (source != null) {
+
+			final Object unwrapped = Context.jsToJava(source, ScriptRuntime.ObjectClass);
+			if (unwrapped.getClass().isArray()) {
+
+				for (final Object element : (Object[])unwrapped) {
+					unwrapTo(element, result);
+				}
+
+			} else if (unwrapped instanceof Collection) {
+
+				for (final Object element : (Collection)unwrapped) {
+					unwrapTo(element, result);
+				}
+
+			} else if (unwrapped instanceof GraphObject) {
+
+				result.addContent((GraphObject)unwrapped);
+			}
+		}
+	}
+
+	private Method determineMethod(final Class type, final String methodName) throws IllegalPathException {
+
+		Method result = null;
+
+		try {
+			result = type.getMethod(methodName, Map.class);
+
+		} catch (NoSuchMethodException ignore) {
+
+			// fallback: check exported schema methods
+			final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(type);
+			result =  methods.get(methodName);
+		}
+
+		return result;
 	}
 }
