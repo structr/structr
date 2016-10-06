@@ -18,6 +18,8 @@
  */
 package org.structr.core.function;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -34,7 +36,7 @@ import org.structr.schema.action.Function;
  */
 public class SortFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_SORT = "Usage: ${sort(list1, key [, descending=false])}. Example: ${sort(this.children, \"name\")}";
+	public static final String ERROR_MESSAGE_SORT = "Usage: ${sort(list1, [key [, descending=false]])}. Example: ${sort(this.children, \"name\")}";
 
 	@Override
 	public String getName() {
@@ -43,13 +45,25 @@ public class SortFunction extends Function<Object, Object> {
 
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
-
-		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 3)) {
-
-			if (sources[0] instanceof List && sources[1] instanceof String) {
-
+		
+		if (sources == null || sources.length == 0) {
+			
+			return null;
+		}
+		
+		// Default sort key
+		String sortKey = "name";
+		
+		if (sources.length > 1 && sources[1] instanceof String) {
+			
+			sortKey = (String) sources[1];			
+		}
+		
+		if (sources.length >= 1) {
+			
+			if (sources[0] instanceof List) {
+				
 				final List list = (List)sources[0];
-				final String sortKey = sources[1].toString();
 				final Iterator iterator = list.iterator();
 
 				if (iterator.hasNext()) {
@@ -68,15 +82,19 @@ public class SortFunction extends Function<Object, Object> {
 
 							return sortCollection;
 						}
+					} else if (firstElement instanceof String) {
+						
+						final String[] stringArray = (String[]) list.toArray(new String[list.size()]);
+						Arrays.sort(stringArray);
+						return Arrays.asList(stringArray);
 					}
 
 				}
 			}
-
+			
 		} else {
 
 			logParameterError(entity, sources, ctx.isJavaScriptContext());
-
 		}
 
 		return sources[0];
@@ -90,7 +108,7 @@ public class SortFunction extends Function<Object, Object> {
 
 	@Override
 	public String shortDescription() {
-		return "Sorts the given collection according to the given property key";
+		return "Sorts the given collection or array according to the given property key. Default sort key is 'name'.";
 	}
 
 }
