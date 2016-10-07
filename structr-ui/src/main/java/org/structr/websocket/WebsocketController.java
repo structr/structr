@@ -220,6 +220,7 @@ public class WebsocketController implements StructrTransactionListener {
 				final WebSocketMessage message = createMessage("DELETE", callbackId);
 
 				message.setId(modificationEvent.getRemovedProperties().get(GraphObject.id));
+				message.setCode(200);
 
 				return message;
 			}
@@ -230,6 +231,7 @@ public class WebsocketController implements StructrTransactionListener {
 
 				message.setGraphObject(node);
 				message.setResult(Arrays.asList(new GraphObject[]{node}));
+				message.setCode(201);
 
 				return message;
 			}
@@ -244,6 +246,7 @@ public class WebsocketController implements StructrTransactionListener {
 				message.getModifiedProperties().addAll(modificationEvent.getModifiedProperties().keySet());
 				message.getRemovedProperties().addAll(modificationEvent.getRemovedProperties().keySet());
 				message.setNodeData(modificationEvent.getData(securityContext));
+				message.setCode(200);
 
 				return message;
 			}
@@ -263,7 +266,8 @@ public class WebsocketController implements StructrTransactionListener {
 
 					message.setNodeData("parentId", relationship.getSourceNodeId());
 					message.setId(relationship.getTargetNodeId());
-
+					message.setCode(200);
+					
 					return message;
 				}
 
@@ -276,6 +280,7 @@ public class WebsocketController implements StructrTransactionListener {
 					message.setResult(Arrays.asList(new GraphObject[]{endNode}));
 					message.setId(endNode.getUuid());
 					message.setNodeData("parentId", startNode.getUuid());
+					message.setCode(200);
 
 					message.setCommand("APPEND_CHILD");
 
@@ -302,7 +307,8 @@ public class WebsocketController implements StructrTransactionListener {
 
 				final WebSocketMessage message = createMessage("DELETE", callbackId);
 				message.setId(modificationEvent.getRemovedProperties().get(GraphObject.id));
-
+				message.setCode(200);
+				
 				return message;
 			}
 
@@ -316,6 +322,7 @@ public class WebsocketController implements StructrTransactionListener {
 
 				message.setGraphObject(relationship);
 				message.setId(relationship.getUuid());
+				message.setCode(200);
 
 				final PropertyMap relProperties = relationship.getProperties();
 				//final NodeInterface startNode = relationship.getSourceNode();

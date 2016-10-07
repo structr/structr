@@ -63,21 +63,21 @@ public class CronService extends Thread implements RunnableService {
 		final Services servicesInstance = Services.getInstance();
 
 		// wait for service layer to be initialized
-		while(!servicesInstance.isInitialized()) {
+		while (!servicesInstance.isInitialized()) {
 			try { Thread.sleep(1000); } catch(InterruptedException iex) { }
 		}
 
 		// sleep 5 seconds more
 		try { Thread.sleep(5000); } catch(InterruptedException iex) { }
 
-		while(doRun) {
+		while (doRun) {
 
 			// sleep for some time
 			try { Thread.sleep(GRANULARITY_UNIT.toMillis(GRANULARITY)); } catch(InterruptedException iex) { }
 
-			for(CronEntry entry : cronEntries) {
+			for (CronEntry entry : cronEntries) {
 
-				if(entry.getDelayToNextExecutionInMillis() < GRANULARITY_UNIT.toMillis(GRANULARITY)) {
+				if (entry.getDelayToNextExecutionInMillis() < GRANULARITY_UNIT.toMillis(GRANULARITY)) {
 
 					final String taskClassName = entry.getName();
 					final Class taskClass      = instantiate(taskClassName);

@@ -53,24 +53,22 @@ import org.structr.websocket.message.WebSocketMessage;
  *
  *
  */
-
 public class StructrWebSocket implements WebSocketListener {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrWebSocket.class.getName());
 	private static final Map<String, Class> commandSet = new LinkedHashMap<>();
 
 	//~--- fields ---------------------------------------------------------
-	private Session session                        = null;
-	private Gson gson                              = null;
-	private HttpServletRequest request             = null;
-	private SecurityContext securityContext        = null;
-	private WebsocketController syncController     = null;
+	private Session session = null;
+	private Gson gson = null;
+	private HttpServletRequest request = null;
+	private SecurityContext securityContext = null;
+	private WebsocketController syncController = null;
 	private Map<String, FileUploadHandler> uploads = null;
-	private Authenticator authenticator            = null;
-	private String pagePath                        = null;
+	private Authenticator authenticator = null;
+	private String pagePath = null;
 
 	//~--- constructors ---------------------------------------------------
-
 	public StructrWebSocket() {}
 
 	public StructrWebSocket(final WebsocketController syncController, final Gson gson, final Authenticator authenticator) {
@@ -128,11 +126,17 @@ public class StructrWebSocket implements WebSocketListener {
 
 		}
 
-
 	}
 
 	@Override
 	public void onWebSocketText(final String data) {
+
+		final Services servicesInstance = Services.getInstance();
+
+		// wait for service layer to be initialized
+		while (!servicesInstance.isInitialized()) {
+			try { Thread.sleep(1000); } catch(InterruptedException iex) { }
+		}
 
 		if (data == null) {
 			logger.warn("Empty text message received.");
@@ -140,7 +144,6 @@ public class StructrWebSocket implements WebSocketListener {
 		}
 
 		logger.debug("############################################################ RECEIVED \n{}", data.substring(0, Math.min(data.length(), 1000)));
-
 
 		// parse web socket data from JSON
 		final WebSocketMessage webSocketData = gson.fromJson(data, WebSocketMessage.class);
@@ -190,7 +193,6 @@ public class StructrWebSocket implements WebSocketListener {
 
 				// The below blocks allow a websocket command to manage its own
 				// transactions in case of bulk processing commands etc.
-
 				if (abstractCommand.requiresEnclosingTransaction()) {
 
 					try (final Tx tx = app.tx()) {
@@ -228,7 +230,6 @@ public class StructrWebSocket implements WebSocketListener {
 
 				// Clear result in case of rollback
 				//webSocketData.clear();
-
 				try (final Tx tx = app.tx()) {
 
 					// send 400 Bad Request
@@ -279,7 +280,6 @@ public class StructrWebSocket implements WebSocketListener {
 			logger.warn("", t);
 		}
 
-
 		// return session status to client
 		message.setSessionValid(isAuthenticated);
 
@@ -299,6 +299,11 @@ public class StructrWebSocket implements WebSocketListener {
 
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
+			if (message.getCode() == 0) {
+				// default is: 200 OK
+				message.setCode(200);
+			}
+			
 			final String msg = gson.toJson(message, WebSocketMessage.class);
 
 			logger.debug("################### Private message: {}", message.getCommand());
@@ -306,8 +311,8 @@ public class StructrWebSocket implements WebSocketListener {
 
 			// Clear custom view here. This is necessary because the security context is reused for all websocket frames.
 			if (securityContext != null) {
-                            securityContext.clearCustomView();
-                        }
+				securityContext.clearCustomView();
+			}
 
 			session.getRemote().sendString(msg);
 
@@ -317,7 +322,6 @@ public class StructrWebSocket implements WebSocketListener {
 			// ignore
 			logger.debug("Unable to send websocket message to remote client");
 		}
-
 
 	}
 
@@ -386,7 +390,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 			try {
 
-				final boolean sessionValid = ! SessionHelper.isSessionTimedOut(SessionHelper.getSessionBySessionId(sessionId));
+				final boolean sessionValid = !SessionHelper.isSessionTimedOut(SessionHelper.getSessionBySessionId(sessionId));
 
 				if (sessionValid) {
 					this.setAuthenticated(sessionId, user);
