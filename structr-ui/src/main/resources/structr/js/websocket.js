@@ -485,7 +485,7 @@ function sendObj(obj, callback) {
 		StructrModel.callbacks[obj.callback] = callback;
 	}
 
-	var t = $.toJSON(obj);
+	var t = JSON.stringify(obj);
 
 	if (!t) {
 		_Logger.log(_LogType.WEBSOCKET, 'No text to send!');
