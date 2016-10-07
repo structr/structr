@@ -98,7 +98,7 @@ public class StructrScriptable extends ScriptableObject {
 
 						try {
 
-							return wrap(context, thisObject, null, actionContext.evaluate(entity, parameters[0].toString(), null, null));
+							return wrap(context, thisObject, null, actionContext.evaluate(entity, parameters[0].toString(), null, null, 0));
 
 						} catch (FrameworkException ex) {
 							exception = ex;

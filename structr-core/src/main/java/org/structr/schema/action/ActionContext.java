@@ -127,7 +127,7 @@ public class ActionContext {
 		constants.put(name, data);
 	}
 
-	public Object getReferencedProperty(final GraphObject entity, final String refKey, final Object initialData) throws FrameworkException {
+	public Object getReferencedProperty(final GraphObject entity, final String refKey, final Object initialData, final int depth) throws FrameworkException {
 
 		final String DEFAULT_VALUE_SEP = "!";
 		final String[] parts           = refKey.split("[\\.]+");
@@ -150,7 +150,7 @@ public class ActionContext {
 				}
 			}
 
-			_data = evaluate(entity, key, _data, defaultValue);
+			_data = evaluate(entity, key, _data, defaultValue, i+depth);
 		}
 
 		return _data;
@@ -223,7 +223,7 @@ public class ActionContext {
 		return headers;
 	}
 
-	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue) throws FrameworkException {
+	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue, final int depth) throws FrameworkException {
 
 		Object value = constants.get(key);
 		if (value == null) {

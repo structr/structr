@@ -362,14 +362,15 @@ public class RenderContext extends ActionContext {
 	}
 
 	@Override
-	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue) throws FrameworkException {
+	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue, final int depth) throws FrameworkException {
 
-		if (hasDataForKey(key)) {
+		// data key can only be used as the very first token
+		if (depth == 0 && hasDataForKey(key)) {
 			return getDataNode(key);
 		}
 
 		// evaluate non-ui specific context
-		final Object value = super.evaluate(entity, key, data, defaultValue);
+		final Object value = super.evaluate(entity, key, data, defaultValue, depth);
 		if (value == null) {
 
 			if (data != null) {

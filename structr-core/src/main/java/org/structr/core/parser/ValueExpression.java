@@ -54,7 +54,7 @@ public class ValueExpression extends Expression {
 	@Override
 	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
 
-		Object value = ctx.getReferencedProperty(entity, keyword, null);
+		Object value = ctx.getReferencedProperty(entity, keyword, null, 0);
 
 		for (final Expression expression : expressions) {
 
@@ -75,7 +75,9 @@ public class ValueExpression extends Expression {
 
 			if (value instanceof GraphObject) {
 
-				return ctx.getReferencedProperty(entity, key, value);
+				// use evaluation depth > 0 so that any data key that is registered in the
+				// context can NOT be used
+				return ctx.getReferencedProperty(entity, key, value, 1);
 
 			} else if (value instanceof Map) {
 

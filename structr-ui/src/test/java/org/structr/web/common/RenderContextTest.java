@@ -29,6 +29,7 @@ import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.function.GetFunction;
@@ -582,5 +583,95 @@ public class RenderContextTest extends StructrUiTest {
 			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
+	}
+
+	public void testScriptEvaluation() {
+
+		try (final Tx tx = app.tx()) {
+
+			// create a Project type
+			final SchemaNode projectNode = createTestNode(SchemaNode.class, new NodeAttribute<>(AbstractNode.name, "Project"));
+
+			// create a Task type with a string property "task"
+			final SchemaNode taskNode    = createTestNode(SchemaNode.class,
+				new NodeAttribute<>(AbstractNode.name, "Task"),
+				new NodeAttribute<>(new StringProperty("_task"), "String")
+			);
+
+			// create a schema relationship between them
+			createTestNode(SchemaRelationshipNode.class,
+				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, projectNode),
+				new NodeAttribute<>(SchemaRelationshipNode.targetNode, taskNode),
+				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "has"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceMultiplicity, "1"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetMultiplicity, "*"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "project"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "tasks")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			logger.warn("", ex);
+			fail("Unexpected exception");
+
+		}
+
+
+		try (final Tx tx = app.tx()) {
+
+			// obtain class objects to create instances of the above types
+			final Class projectType    = StructrApp.getConfiguration().getNodeEntityClass("Project");
+			final Class taskType       = StructrApp.getConfiguration().getNodeEntityClass("Task");
+			final PropertyKey taskKey  = StructrApp.getConfiguration().getPropertyKeyForJSONName(taskType, "task");
+			final PropertyKey tasksKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(projectType, "tasks");
+
+			final List<NodeInterface> tasks = new LinkedList<>();
+
+			tasks.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task 1"), new NodeAttribute<>(taskKey, "Task 1")));
+			tasks.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task 2"), new NodeAttribute<>(taskKey, "Task 2")));
+			tasks.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task 3"), new NodeAttribute<>(taskKey, "Task 3")));
+
+			// create a project and a task
+			final NodeInterface project = app.create(projectType,
+				new NodeAttribute<>(AbstractNode.name, "project"),
+				new NodeAttribute<>(tasksKey, tasks)
+			);
+
+			// create an additional test task without a project
+			final NodeInterface testTask = app.create(taskType, new NodeAttribute<>(AbstractNode.name, "test task"), new NodeAttribute<>(taskKey, "test task"));
+			final RenderContext renderContext = new RenderContext(securityContext);
+
+			renderContext.putDataObject("project", project);
+			renderContext.putDataObject("task", testTask);
+
+			assertEquals("Invalid scripting evaluation result", "",                     Scripting.replaceVariables(renderContext, null, "${foo.page}"));
+
+			assertEquals("Invalid scripting evaluation result", testTask.getUuid(),     Scripting.replaceVariables(renderContext, null, "${task}"));
+			assertEquals("Invalid scripting evaluation result", "test task",            Scripting.replaceVariables(renderContext, null, "${task.task}"));
+			assertEquals("Invalid scripting evaluation result", tasks.toString(),       Scripting.replaceVariables(renderContext, null, "${project.tasks}"));
+
+			assertEquals("Invalid scripting evaluation result", tasks.get(0).getUuid(), Scripting.replaceVariables(renderContext, null, "${project.tasks[0]}"));
+			assertEquals("Invalid scripting evaluation result", tasks.get(1).getUuid(), Scripting.replaceVariables(renderContext, null, "${project.tasks[1]}"));
+			assertEquals("Invalid scripting evaluation result", tasks.get(2).getUuid(), Scripting.replaceVariables(renderContext, null, "${project.tasks[2]}"));
+
+			assertEquals("Invalid scripting evaluation result", "", Scripting.replaceVariables(renderContext, null, "${project.tasks[3]}"));
+
+			assertEquals("Invalid scripting evaluation result", "Task 1", Scripting.replaceVariables(renderContext, null, "${project.tasks[0].task}"));
+			assertEquals("Invalid scripting evaluation result", "Task 2", Scripting.replaceVariables(renderContext, null, "${project.tasks[1].task}"));
+			assertEquals("Invalid scripting evaluation result", "Task 3", Scripting.replaceVariables(renderContext, null, "${project.tasks[2].task}"));
+
+			assertEquals("Invalid scripting evaluation result", "", Scripting.replaceVariables(renderContext, null, "${project.tasks[3].task}"));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			logger.warn("", ex);
+			fail("Unexpected exception");
+
+		}
+
 	}
 }
