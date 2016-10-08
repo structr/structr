@@ -48,34 +48,33 @@ public class CloneNodeCommand extends AbstractCommand {
 		final String parentId                       = (String) nodeData.get("parentId");
 		final boolean deep                          = (Boolean) nodeData.get("deep");
 		
-
+		DOMNode parent = null;
 		if (id != null) {
 
 			final DOMNode node = getDOMNode(id);
 
-			if (parentId == null) {
+			if (parentId != null) {
 
-				getWebSocket().send(MessageBuilder.status().code(422).message("Cannot clone node without parentId").build(), true);
+				// check if parent node with given ID exists
+				parent = getDOMNode(parentId);
 
-				return;
+				if (parent == null) {
 
+					getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);
+
+					return;
+
+				}
 			}
-
-			// check if parent node with given ID exists
-			final DOMNode parent = getDOMNode(parentId);
-
-			if (parent == null) {
-
-				getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);
-
-				return;
-
-			}
-
+			
 			try {
 				DOMNode clonedNode = (DOMNode) node.cloneNode(deep);
-				parent.appendChild(clonedNode);
-				clonedNode.setProperty(DOMNode.ownerDocument, parent.getProperty(DOMNode.ownerDocument));
+				
+				if (parent != null) {
+					parent.appendChild(clonedNode);
+				}
+
+				clonedNode.setProperty(DOMNode.ownerDocument, (parent != null ? parent : node).getProperty(DOMNode.ownerDocument));
 
 			} catch (DOMException | FrameworkException ex) {
 
