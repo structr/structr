@@ -353,6 +353,9 @@ var _Crawler = {
 					}, 250);
 				});
 			});
+			
+			var div = $('.site-header .site-name', crawlerList);
+			_Entities.appendEditPropertiesIcon(div, site, true);
 
 			var handlePage = function(pages) {
 				if (pages && pages.length) {
@@ -362,26 +365,26 @@ var _Crawler = {
 				}
 			};
 
-			crawlerList.append('<table class="props">');
-			var proxySettingsTable = crawlerList.children('table');
-
-			proxySettingsTable.append('<tr id="crawler-proxy-url"><th>Proxy URL</th><td title="' + (site.proxyUrl || '') + '" class="proxyUrl_">' + (site.proxyUrl || '') + '</td></tr>');
-			$('#crawler-proxy-url').children('td.proxyUrl_').on('click', function(e) {
-				e.stopPropagation();
-				_Entities.makeAttributeEditable($('#crawler-proxy-url'), site.id, 'td.proxyUrl_', 'proxyUrl', 200);
-			});
-
-			proxySettingsTable.append('<tr id="crawler-proxy-username"><th>Proxy Username</th><td title="' + (site.proxyUsername || '') + '" class="proxyUsername_">' + (site.proxyUsername || '') + '</td></tr>');
-			$('#crawler-proxy-username').children('td.proxyUsername_').on('click', function(e) {
-				e.stopPropagation();
-				_Entities.makeAttributeEditable($('#crawler-proxy-username'), site.id, 'td.proxyUsername_', 'proxyUsername', 200);
-			});
-
-			proxySettingsTable.append('<tr id="crawler-proxy-password"><th>Proxy Password</th><td title="' + (site.proxyPassword || '') + '" class="proxyPassword_">' + (site.proxyPassword || '') + '</td></tr>');
-			$('#crawler-proxy-password').children('td.proxyPassword_').on('click', function(e) {
-				e.stopPropagation();
-				_Entities.makeAttributeEditable($('#crawler-proxy-password'), site.id, 'td.proxyPassword_', 'proxyPassword', 200);
-			});
+//			crawlerList.append('<table class="props">');
+//			var proxySettingsTable = crawlerList.children('table');
+//
+//			proxySettingsTable.append('<tr id="crawler-proxy-url"><th>Proxy URL</th><td title="' + (site.proxyUrl || '') + '" class="proxyUrl_">' + (site.proxyUrl || '') + '</td></tr>');
+//			$('#crawler-proxy-url').children('td.proxyUrl_').on('click', function(e) {
+//				e.stopPropagation();
+//				_Entities.makeAttributeEditable($('#crawler-proxy-url'), site.id, 'td.proxyUrl_', 'proxyUrl', 200);
+//			});
+//
+//			proxySettingsTable.append('<tr id="crawler-proxy-username"><th>Proxy Username</th><td title="' + (site.proxyUsername || '') + '" class="proxyUsername_">' + (site.proxyUsername || '') + '</td></tr>');
+//			$('#crawler-proxy-username').children('td.proxyUsername_').on('click', function(e) {
+//				e.stopPropagation();
+//				_Entities.makeAttributeEditable($('#crawler-proxy-username'), site.id, 'td.proxyUsername_', 'proxyUsername', 200);
+//			});
+//
+//			proxySettingsTable.append('<tr id="crawler-proxy-password"><th>Proxy Password</th><td title="' + (site.proxyPassword || '') + '" class="proxyPassword_">' + (site.proxyPassword || '') + '</td></tr>');
+//			$('#crawler-proxy-password').children('td.proxyPassword_').on('click', function(e) {
+//				e.stopPropagation();
+//				_Entities.makeAttributeEditable($('#crawler-proxy-password'), site.id, 'td.proxyPassword_', 'proxyPassword', 200);
+//			});
 
 			//Command.query('SourcePage', 1000, 1, 'name', 'asc', {site: id}, handlePage, true, 'ui');
 

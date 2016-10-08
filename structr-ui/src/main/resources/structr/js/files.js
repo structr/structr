@@ -198,9 +198,9 @@ var _Files = {
 				if (currentWorkingDir) {
 					_Files.deepOpen(currentWorkingDir);
 				}
-				window.setTimeout(function() {
-					fileTree.jstree('select_node', currentWorkingDir ? currentWorkingDir.id : 'root');
-				}, 100);
+//				window.setTimeout(function() {
+//					fileTree.jstree('select_node', currentWorkingDir ? currentWorkingDir.id : 'root');
+//				}, 100);
 			});
 		});
 

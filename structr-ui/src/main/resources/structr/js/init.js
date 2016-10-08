@@ -1299,7 +1299,7 @@ var Structr = {
 		$('.module-dependend').each(function(idx, element) {
 			var el = $(element);
 			var module = el.data('structr-module');
-			if (module !== 'crawler' && Structr.isModulePresent(module)) {
+			if (Structr.isModulePresent(module)) {
 				if (!el.is(':visible')) el.show();
 			} else {
 				el.hide();

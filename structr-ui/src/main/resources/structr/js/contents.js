@@ -155,9 +155,9 @@ var _Contents = {
 				if (currentContentContainer) {
 					_Contents.deepOpen(currentContentContainer);
 				}
-				window.setTimeout(function() {
-					contentTree.jstree('select_node', currentContentContainer ? currentContentContainer.id : 'root');
-				}, 100);
+//				window.setTimeout(function() {
+//					contentTree.jstree('select_node', currentContentContainer ? currentContentContainer.id : 'root');
+//				}, 100);
 			});
 		});
 
