@@ -429,14 +429,12 @@ var _Elements = {
 			+ _Elements.classIdString(entity._html_id, entity._html_class)
 			+ '</div>');
 
-		if (entity.parent) {
-			div.append('<img title="Clone ' + displayName + ' element ' + entity.id + '\" alt="Clone ' + entity.tag + ' element ' + entity.id + '" class="clone_icon button" src="' + _Icons.clone_icon + '">');
-			$('.clone_icon', div).on('click', function(e) {
-				e.stopPropagation();
-				_Logger.log(_LogType.ELEMENTS, 'Cloning node (div, parent)', entity, entity.parent);
-				Command.cloneNode(entity.id, entity.parent.id, true);
-			});
-		}
+		div.append('<img title="Clone ' + displayName + ' element ' + entity.id + '\" alt="Clone ' + entity.tag + ' element ' + entity.id + '" class="clone_icon button" src="' + _Icons.clone_icon + '">');
+		$('.clone_icon', div).on('click', function(e) {
+			e.stopPropagation();
+			_Logger.log(_LogType.ELEMENTS, 'Cloning node (div, parent)', entity, entity.parent);
+			Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
+		});
 
 		_Elements.appendContextMenu(div, entity);
 
