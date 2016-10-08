@@ -19,12 +19,9 @@
 package org.structr.core.script;
 
 import java.io.StringWriter;
-import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.script.Bindings;
@@ -37,6 +34,7 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
+import org.renjin.script.RenjinScriptEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -191,7 +189,9 @@ public class Scripting {
 		final ScriptContext scriptContext = engine.getContext();
 		final Bindings bindings           = new StructrScriptBindings(actionContext, entity);
 		
-		scriptContext.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
+		if (!(engine instanceof RenjinScriptEngine)) {
+			scriptContext.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
+		}
 		
 		StringWriter output = new StringWriter();
 		scriptContext.setWriter(output);
