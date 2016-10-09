@@ -30,6 +30,8 @@ var folderPageSize = 10000, folderPage = 1;
 var filesViewModeKey = 'structrFilesViewMode_' + port;
 var viewMode;
 var timeout, attempts = 0, maxRetry = 10;
+var displayingFavorites = false;
+var filesLastOpenFolderKey = 'structrFilesLastOpenFolder_' + port;
 
 $(document).ready(function() {
 	Structr.registerModule('files', _Files);
@@ -189,12 +191,26 @@ var _Files = {
 		fileTree.on('ready.jstree', function() {
 			var rootEl = $('#root > .jstree-wholerow');
 			_Dragndrop.makeDroppable(rootEl);
+
+			var favEl = $('#favorites > .jstree-wholerow');
+			_Dragndrop.makeDroppable(favEl);
+
 			_Files.loadAndSetWorkingDir(function() {
 
-				if (currentWorkingDir) {
+				var lastOpenFolder = LSWrapper.getItem(filesLastOpenFolderKey);
+
+				if (lastOpenFolder === 'favorites') {
+
+					fileTree.jstree('select_node', 'favorites');
+
+				} else if (currentWorkingDir) {
+
 					_Files.deepOpen(currentWorkingDir);
+
 				} else {
+
 					fileTree.jstree('select_node', 'root');
+
 				}
 
 			});
@@ -202,12 +218,20 @@ var _Files = {
 
 		fileTree.on('select_node.jstree', function(evt, data) {
 
-			if (data.node.id === 'root') {
-				_Files.deepOpen(currentWorkingDir, []);
-			}
+			if (data.node.id === 'favorites') {
 
-			_Files.setWorkingDirectory(data.node.id);
-			_Files.displayFolderContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
+				_Files.displayFolderContents('favorites');
+
+			} else {
+
+				if (data.node.id === 'root') {
+					_Files.deepOpen(currentWorkingDir, []);
+				}
+
+				_Files.setWorkingDirectory(data.node.id);
+				_Files.displayFolderContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
+
+			}
 
 		});
 
@@ -254,6 +278,10 @@ var _Files = {
 		window.setTimeout(function() {
 			var rootEl = $('#root > .jstree-wholerow');
 			_Dragndrop.makeDroppable(rootEl);
+
+			var favEl = $('#favorites > .jstree-wholerow');
+			_Dragndrop.makeDroppable(favEl);
+
 		}, 500);
 	},
 	initTree: function() {
@@ -274,6 +302,13 @@ var _Files = {
 
 								var children = [];
 								var list = [];
+
+								list.push({
+									id: 'favorites',
+									text: 'Favorite Files',
+									children: false,
+									icon: _Icons.star_icon
+								});
 
 								list.push({
 									id: 'root',
@@ -335,10 +370,16 @@ var _Files = {
 					return;
 				}
 
-				_Logger.log(_LogType.FILES, 'dropped something in the #files area');
-
 				event.stopPropagation();
 				event.preventDefault();
+
+				if (displayingFavorites === true) {
+					(new MessageBuilder()).warning("Can't upload to virtual folder Favorites - please first upload file to destination folder and then drag to favorites.").show();
+					return;
+				}
+
+				_Logger.log(_LogType.FILES, 'dropped something in the #files area');
+
 
 				fileList = event.originalEvent.dataTransfer.files;
 				var filesToUpload = [];
@@ -515,93 +556,113 @@ var _Files = {
 		} else {
 			currentWorkingDir = { 'id': id };
 		}
-		var data = JSON.stringify({'workingDirectory': currentWorkingDir});
 
 		$.ajax({
 			url: rootUrl + 'me',
 			dataType: 'json',
 			contentType: 'application/json; UTF-8',
 			type: 'PUT',
-			data: data
+			data: JSON.stringify({'workingDirectory': currentWorkingDir})
 		});
 	},
 	displayFolderContents: function(id, parentId, nodePath, parents) {
 
 		fastRemoveAllChildren(folderContents[0]);
 
+		LSWrapper.setItem(filesLastOpenFolderKey, id);
+
+		displayingFavorites = (id === 'favorites');
+		var isRootFolder = (id === 'root');
+		var parentIsRoot = (parentId === '#');
+
 		_Files.insertLayoutSwitches(id, parentId, nodePath, parents);
 
-		var handleChildren =
-			function(children) {
-				if (children && children.length) {
-					children.forEach(_Files.appendFileOrFolder);
+		var handleChildren = function(children) {
+			if (children && children.length) {
+				children.forEach(_Files.appendFileOrFolder);
+			}
+
+			_Files.resize();
+		};
+
+
+		if (displayingFavorites === true) {
+
+			$('#folder-contents-container > button').addClass('disabled').attr('disabled', 'disabled');
+
+			folderContents.append('<h2><img src="' + _Icons.star_icon + '" /> Favorite Files</h2>');
+
+			if (viewMode === 'list') {
+
+				folderContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
+					+ '<tbody id="files-table-body"></tbody></table>');
+
+			}
+
+			Command.rest("/me/favoriteFiles", function (result) {
+				handleChildren(result);
+			});
+
+		} else {
+
+			$('#folder-contents-container > button').removeClass('disabled').attr('disabled', null);
+
+			if (isRootFolder) {
+				Command.list('Folder', true, 1000, 1, 'name', 'asc', null, handleChildren);
+			} else {
+				Command.query('Folder', 1000, 1, 'name', 'asc', {parentId: id}, handleChildren, true, 'public');
+			}
+
+			_Pager.initPager('filesystem-files', 'FileBase', 1, 25, 'name', 'asc');
+			page['FileBase'] = 1;
+			_Pager.initFilters('filesystem-files', 'FileBase', {
+				parentId: (parentIsRoot ? '' : id),
+				hasParent: (!parentIsRoot)
+			});
+
+			var filesPager = _Pager.addPager('filesystem-files', folderContents, false, 'FileBase', 'public', handleChildren);
+
+			filesPager.cleanupFunction = function () {
+				var toRemove = $('.node.file', filesPager.el).closest( ((viewMode === 'list') ? 'tr' : '.tile') );
+				toRemove.each(function(i, elem) {
+					fastRemoveAllChildren(elem);
+					elem.remove();
+				});
+			};
+
+			filesPager.pager.append('Filter: <input type="text" class="filter" data-attribute="name">');
+			filesPager.pager.append('<input type="text" class="filter" data-attribute="parentId" value="' + (parentIsRoot ? '' : id) + '" hidden>');
+			filesPager.pager.append('<input type="checkbox" class="filter" data-attribute="hasParent" ' + (parentIsRoot ? '' : 'checked') + ' hidden>');
+			filesPager.activateFilterElements();
+
+			_Files.insertBreadCrumbNavigation(parents, nodePath);
+
+			if (viewMode === 'list') {
+
+				folderContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
+					+ '<tbody id="files-table-body">'
+					+ (!isRootFolder ? '<tr id="parent-file-link"><td class="file-type"><i class="fa fa-folder"></i></td><td><a href="#">..</a></td><td></td><td></td><td></td></tr>' : '')
+					+ '</tbody></table>');
+
+			} else {
+
+				if (!isRootFolder) {
+
+					folderContents.append('<div id="parent-file-link" class="tile"><div class="node folder"><div class="file-type"><i class="fa fa-folder"></i></div><b title="..">..</b></div></div>');
+
 				}
 
-				_Files.resize();
-			};
-
-		if (id === 'root') {
-			Command.list('Folder', true, 1000, 1, 'name', 'asc', null, handleChildren);
-		} else {
-			Command.query('Folder', 1000, 1, 'name', 'asc', {parentId: id}, handleChildren, true, 'public');
-		}
-
-		_Pager.initPager('filesystem-files', 'FileBase', 1, 25, 'name', 'asc');
-		page['FileBase'] = 1;
-		_Pager.initFilters('filesystem-files', 'FileBase', {
-			parentId: ((parentId === '#') ? '' : id),
-			hasParent: (parentId !== '#')
-		});
-
-		var filesPager = _Pager.addPager('filesystem-files', folderContents, false, 'FileBase', 'public', handleChildren);
-
-		if (viewMode === 'list') {
-			filesPager.cleanupFunction = function () {
-				var toRemove = $('.node.file', filesPager.el).closest('tr');
-				toRemove.each(function(i, elem) {
-					fastRemoveAllChildren(elem);
-					elem.remove();
-				});
-			};
-		} else {
-			filesPager.cleanupFunction = function () {
-				var toRemove = $('.node.file', filesPager.el).closest('.tile');
-				toRemove.each(function(i, elem) {
-					fastRemoveAllChildren(elem);
-					elem.remove();
-				});
-			};
-		}
-
-		filesPager.pager.append('Filter: <input type="text" class="filter" data-attribute="name">');
-		filesPager.pager.append('<input type="text" class="filter" data-attribute="parentId" value="' + ((parentId === '#') ? '' : id) + '" hidden>');
-		filesPager.pager.append('<input type="checkbox" class="filter" data-attribute="hasParent" ' + ((parentId === '#') ? '' : 'checked') + ' hidden>');
-		filesPager.activateFilterElements();
-
-		_Files.insertBreadCrumbNavigation(parents, nodePath);
-
-		if (viewMode === 'list') {
-
-			folderContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
-				+ '<tbody id="files-table-body">'
-				+ ((id !== 'root') ? '<tr id="parent-file-link"><td class="file-type"><i class="fa fa-folder"></i></td><td><a href="#">..</a></td><td></td><td></td><td></td></tr>' : '')
-				+ '</tbody></table>');
-		} else {
-
-			if (id !== 'root') {
-
-				folderContents.append('<div id="parent-file-link" class="tile"><div class="node folder"><div class="file-type"><i class="fa fa-folder"></i></div><b title="..">..</b></div></div>');
-
 			}
 
+			$('#parent-file-link').on('click', function(e) {
+
+				if (!parentIsRoot) {
+					$('#' + parentId + '_anchor').click();
+				}
+			});
+
 		}
 
-		$('#parent-file-link').on('click', function(e) {
-
-			if (parentId !== '#') {
-				$('#' + parentId + '_anchor').click();
-			}
-		});
 	},
 	insertBreadCrumbNavigation: function(parents, nodePath) {
 
@@ -634,18 +695,15 @@ var _Files = {
 	insertLayoutSwitches: function (id, parentId, nodePath, parents) {
 
 		folderContents.prepend('<div id="switches">'
-			+ '<button class="switch ' + (viewMode === 'list' ? 'active' : 'inactive') + '" id="switch-list">'
+			+ '<button class="switch ' + (viewMode === 'list' ? 'active' : 'inactive') + '" id="switch-list" data-view-mode="list">'
 			+ (viewMode === 'list' ? '<img src="' + _Icons.tick_icon + '">' : '')
-			+ ' List</button><button class="switch ' + (viewMode === 'tiles' ? 'active' : 'inactive') + '" id="switch-tiles">'
+			+ ' List</button><button class="switch ' + (viewMode === 'tiles' ? 'active' : 'inactive') + '" id="switch-tiles" data-view-mode="tiles">'
 			+ (viewMode === 'tiles' ? '<img src="' + _Icons.tick_icon + '">' : '')
 			+ ' Tiles</button>'
 			+ '</div>');
 
 		var listSw  = $('#switch-list');
-		listSw.data('viewMode', 'list');
-
 		var tilesSw = $('#switch-tiles');
-		tilesSw.data('viewMode', 'tiles');
 
 		var layoutSwitchFunction = function(e) {
 			var state = $(this).hasClass('inactive');
@@ -911,18 +969,25 @@ var _Files = {
 			});
 		}
 
-		var delIcon = div.children('.delete_icon');
-		var newDelIcon = '<img title="Delete file ' + d.name + '\'" alt="Delete file \'' + d.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
-		if (delIcon && delIcon.length) {
-			delIcon.replaceWith(newDelIcon);
+		if (displayingFavorites === true) {
+
+			_Files.appendRemoveFavoriteIcon(div, d);
+
 		} else {
-			div.append(newDelIcon);
-			delIcon = div.children('.delete_icon');
+
+			var delIcon = div.children('.delete_icon');
+			var newDelIcon = '<img title="Delete file ' + d.name + '\'" alt="Delete file \'' + d.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
+			if (delIcon && delIcon.length) {
+				delIcon.replaceWith(newDelIcon);
+			} else {
+				div.append(newDelIcon);
+				delIcon = div.children('.delete_icon');
+			}
+			div.children('.delete_icon').on('click', function(e) {
+				e.stopPropagation();
+				_Entities.deleteNode(this, d);
+			});
 		}
-		div.children('.delete_icon').on('click', function(e) {
-			e.stopPropagation();
-			_Entities.deleteNode(this, d);
-		});
 
 		if (_Files.isMinificationTarget(d)) {
 			_Files.appendMinificationDialogIcon(div, d);
@@ -1221,6 +1286,26 @@ var _Files = {
 
 			_Minification.showMinificationDialog(file);
 		});
+
+	},
+	appendRemoveFavoriteIcon: function (parent, file) {
+
+		var removeFavoriteIcon = $('.remove_favorite_icon', parent);
+
+		if (!(removeFavoriteIcon && removeFavoriteIcon.length)) {
+			parent.append('<img title="Remove from favorites" class="remove_favorite_icon button" src="' + _Icons.star_delete_icon + '" />');
+		}
+
+		$(parent.children('.remove_favorite_icon')).on('click', function(e) {
+			e.stopPropagation();
+
+			Command.favorites('remove', file.id, function() {
+
+				parent.remove();
+
+			});
+		});
+
 	},
 	displaySearchResultsForURL: function(url) {
 

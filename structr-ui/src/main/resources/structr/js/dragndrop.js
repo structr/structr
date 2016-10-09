@@ -69,12 +69,33 @@ var _Dragndrop = {
 					targetId = self.parent().prop('id');
 
 					if (targetId === 'root') {
+
 						Command.setProperty(sourceId, 'parent', null, false, function() {
 							$(ui.draggable).remove();
 							_Files.refreshTree();
 							return true;
 						});
 						return;
+
+					} else if (targetId === 'favorites') {
+
+						var obj = StructrModel.obj(sourceId);
+						if (obj.isFile) {
+
+							Command.favorites('add', sourceId, function() {
+
+								blinkGreen(Structr.node(sourceId));
+
+							});
+
+						} else {
+
+							blinkRed(Structr.node(sourceId));
+
+						}
+
+						return;
+
 					}
 				}
 

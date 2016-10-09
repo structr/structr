@@ -912,7 +912,7 @@ span.id {
     margin-right: 3px ! important;
 }
 
-.edit_ui_properties_icon, .edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .minify_file_icon, .link_icon, .add_form_icon, .data_icon, .unarchive_icon, .push_icon, .show_active_icon, .collapse_children_icon, .add_child_icon, .minify_file_icon {
+.edit_ui_properties_icon, .edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .minify_file_icon, .link_icon, .add_form_icon, .data_icon, .unarchive_icon, .push_icon, .show_active_icon, .collapse_children_icon, .add_child_icon, .minify_file_icon, .remove_favorite_icon {
     display: none;
     cursor: pointer;
     height: 16px;
@@ -963,7 +963,7 @@ span.id {
     right: 44px;
 }
 
-.delete_icon {
+.delete_icon, .remove_favorite_icon {
     right: 24px;
 }
 
@@ -2881,7 +2881,7 @@ td#cascading-options, td#propagation-options {
 	left: 44px;
 }
 
-#folder-contents .tile img.delete_icon {
+#folder-contents .tile img.delete_icon, #folder-contents .tile img.remove_favorite_icon {
 	top: 4px;
 	right: 4px;
 }

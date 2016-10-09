@@ -1199,5 +1199,21 @@ var Command = {
 			command: 'FIND_DUPLICATES'
 		};
 		return sendObj(obj, callback);
+	},
+	/**
+	 * Send a FAVORITES command to the server.
+	 *
+	 * Depending on the mode the server will either add/remove the file to/from
+	 * the users favorite files.
+	 */
+	favorites: function(mode, fileId, callback) {
+		var obj  = {
+			command: 'FAVORITES',
+			data: {
+				mode: mode,
+				id: fileId
+			}
+		};
+		return sendObj(obj, callback);
 	}
 };

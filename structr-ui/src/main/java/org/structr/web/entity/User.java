@@ -35,6 +35,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.EndNode;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.LowercaseStringProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
@@ -45,6 +46,7 @@ import org.structr.core.validator.SimpleNonEmptyValueValidator;
 import org.structr.core.validator.SimpleRegexValidator;
 import org.structr.core.validator.TypeUniquenessValidator;
 import org.structr.schema.SchemaService;
+import org.structr.web.entity.relation.UserFavoriteFile;
 import org.structr.web.entity.relation.UserHomeDir;
 import org.structr.web.entity.relation.UserImage;
 import org.structr.web.entity.relation.UserWorkDir;
@@ -61,21 +63,22 @@ import org.structr.web.property.UiNotion;
  */
 public class User extends AbstractUser {
 
-	public static final Property<String>      confirmationKey  = new StringProperty("confirmationKey").indexed();
-	public static final Property<Boolean>     backendUser      = new BooleanProperty("backendUser").indexed();
-	public static final Property<Boolean>     frontendUser     = new BooleanProperty("frontendUser").indexed();
-	public static final Property<Image>       img              = new StartNode<>("img", UserImage.class);
-	public static final ImageDataProperty     imageData        = new ImageDataProperty("imageData", new KeyAndClass(img, Image.class));
-	public static final Property<Folder>      homeDirectory    = new EndNode<>("homeDirectory", UserHomeDir.class);
-	public static final Property<Folder>      workingDirectory = new EndNode<>("workingDirectory", UserWorkDir.class);
-	public static final Property<List<Group>> groups           = new StartNodes<>("groups", Groups.class, new UiNotion());
-	public static final Property<Boolean>     isUser           = new ConstantBooleanProperty("isUser", true);
-	public static final Property<String>      eMail            = new LowercaseStringProperty("eMail").cmis().indexed();
-	public static final Property<String>      twitterName      = new StringProperty("twitterName").cmis().indexed();
-	public static final Property<String>      localStorage     = new StringProperty("localStorage");
+	public static final Property<String>         confirmationKey  = new StringProperty("confirmationKey").indexed();
+	public static final Property<Boolean>        backendUser      = new BooleanProperty("backendUser").indexed();
+	public static final Property<Boolean>        frontendUser     = new BooleanProperty("frontendUser").indexed();
+	public static final Property<Image>          img              = new StartNode<>("img", UserImage.class);
+	public static final ImageDataProperty        imageData        = new ImageDataProperty("imageData", new KeyAndClass(img, Image.class));
+	public static final Property<Folder>         homeDirectory    = new EndNode<>("homeDirectory", UserHomeDir.class);
+	public static final Property<Folder>         workingDirectory = new EndNode<>("workingDirectory", UserWorkDir.class);
+	public static final Property<List<Group>>    groups           = new StartNodes<>("groups", Groups.class, new UiNotion());
+	public static final Property<Boolean>        isUser           = new ConstantBooleanProperty("isUser", true);
+	public static final Property<String>         eMail            = new LowercaseStringProperty("eMail").cmis().indexed();
+	public static final Property<String>         twitterName      = new StringProperty("twitterName").cmis().indexed();
+	public static final Property<String>         localStorage     = new StringProperty("localStorage");
+	public static final Property<List<FileBase>> favoriteFiles    = new EndNodes<>("favoriteFiles", UserFavoriteFile.class);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
-		type, name, eMail, isAdmin, password, publicKey, blocked, sessionIds, confirmationKey, backendUser, frontendUser, groups, img, homeDirectory, workingDirectory, isUser, locale
+		type, name, eMail, isAdmin, password, publicKey, blocked, sessionIds, confirmationKey, backendUser, frontendUser, groups, img, homeDirectory, workingDirectory, isUser, locale, favoriteFiles
 	);
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(User.class, PropertyView.Public,
