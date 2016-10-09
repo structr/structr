@@ -603,6 +603,14 @@ var _Files = {
 				+ '<tbody id="files-table-body">'
 				+ ((id !== 'root') ? '<tr id="parent-file-link"><td class="file-type"><i class="fa fa-folder"></i></td><td><a href="#">..</a></td><td></td><td></td><td></td></tr>' : '')
 				+ '</tbody></table>');
+		} else {
+
+			if (id !== 'root') {
+
+				folderContents.append('<div id="parent-file-link" class="tile"><div class="node folder"><div class="file-type"><i class="fa fa-folder"></i></div><b title="..">..</b></div></div>');
+
+			}
+
 		}
 
 		$('.breadcrumb-entry').click(function (e) {
