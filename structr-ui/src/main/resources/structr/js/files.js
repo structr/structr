@@ -141,7 +141,8 @@ var _Files = {
 		folderContents = $('#folder-contents');
 
 		$('#folder-contents-container').prepend(
-				'<button class="add_file_icon button"><img title="Add File" alt="Add File" src="' + _Icons.add_file_icon + '"> Add File</button>'
+				'<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Icons.add_folder_icon + '"> Add Folder</button>'
+				+ '<button class="add_file_icon button"><img title="Add File" alt="Add File" src="' + _Icons.add_file_icon + '"> Add File</button>'
 				+ '<button class="add_minified_css_file_icon button"><img title="Add Minified CSS File" src="' + _Icons.minification_dialog_css_icon + '" />' + ' Add Minified CSS File</button>'
 				+ '<button class="add_minified_js_file_icon button"><img title="Add Minified JS File" src="' + _Icons.minification_dialog_js_icon + '" />' + ' Add Minified JS File</button>'
 				+ '<button class="pull_file_icon button module-dependend" data-structr-module="cloud"><img title="Sync Files" alt="Sync Files" src="' + _Icons.pull_file_icon + '"> Sync Files</button>'
@@ -149,28 +150,24 @@ var _Files = {
 				);
 
 		$('.add_file_icon', main).on('click', function(e) {
-			e.stopPropagation();
 			Command.create({ type: 'File', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
 				_Files.appendFileOrFolder(f);
 			});
 		});
 
 		$('.add_minified_css_file_icon', main).on('click', function(e) {
-			e.stopPropagation();
 			Command.create({ type: 'MinifiedCssFile', contentType: 'text/css', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
 				_Files.appendFileOrFolder(f);
 			});
 		});
 
 		$('.add_minified_js_file_icon', main).on('click', function(e) {
-			e.stopPropagation();
 			Command.create({ type: 'MinifiedJavaScriptFile', contentType: 'text/javascript', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
 				_Files.appendFileOrFolder(f);
 			});
 		});
 
 		$('.pull_file_icon', main).on('click', function(e) {
-			e.stopPropagation();
 			Structr.pullDialog('File,Folder');
 		});
 
@@ -178,9 +175,7 @@ var _Files = {
 			_DuplicateFinder.openDuplicateFinderDialog();
 		});
 
-		$('#folder-contents-container').prepend('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Icons.add_folder_icon + '"> Add Folder</button>');
 		$('.add_folder_icon', main).on('click', function(e) {
-			e.stopPropagation();
 			Command.create({ type: 'Folder', parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
 				_Files.appendFileOrFolder(f);
 				_Files.refreshTree();
