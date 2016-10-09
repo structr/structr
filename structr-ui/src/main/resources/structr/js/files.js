@@ -536,17 +536,6 @@ var _Files = {
 
 		_Files.insertLayoutSwitches(id, parentId, nodePath, parents);
 
-		var path = '';
-		if (parents) {
-			parents = [].concat(parents).reverse().slice(1);
-			var pathNames = nodePath.split('/');
-			pathNames[0] = '/';
-			path = parents.map(function(parent, idx) {
-				return '<a class="breadcrumb-entry" data-folder-id="' + parent + '"><i class="fa fa-caret-right"></i> ' + pathNames[idx] + '</span></a>';
-			}).join(' ');
-			path += ' <i class="fa fa-caret-right"></i> ' + pathNames.pop();
-		}
-
 		var handleChildren =
 			function(children) {
 				if (children && children.length) {
@@ -561,7 +550,6 @@ var _Files = {
 		} else {
 			Command.query('Folder', 1000, 1, 'name', 'asc', {parentId: id}, handleChildren, true, 'public');
 		}
-
 
 		_Pager.initPager('filesystem-files', 'FileBase', 1, 25, 'name', 'asc');
 		page['FileBase'] = 1;
@@ -595,7 +583,7 @@ var _Files = {
 		filesPager.pager.append('<input type="checkbox" class="filter" data-attribute="hasParent" ' + ((parentId === '#') ? '' : 'checked') + ' hidden>');
 		filesPager.activateFilterElements();
 
-		folderContents.append('<h2>' + path + '</h2>');
+		_Files.insertBreadCrumbNavigation(parents, nodePath);
 
 		if (viewMode === 'list') {
 
@@ -613,19 +601,40 @@ var _Files = {
 
 		}
 
-		$('.breadcrumb-entry').click(function (e) {
-			e.preventDefault();
-
-			$('#' + $(this).data('folderId') + '_anchor').click();
-
-		});
-
 		$('#parent-file-link').on('click', function(e) {
 
 			if (parentId !== '#') {
 				$('#' + parentId + '_anchor').click();
 			}
 		});
+	},
+	insertBreadCrumbNavigation: function(parents, nodePath) {
+
+		if (parents) {
+
+			var path = '';
+
+			parents = [].concat(parents).reverse().slice(1);
+			var pathNames = nodePath.split('/');
+			pathNames[0] = '/';
+			path = parents.map(function(parent, idx) {
+				return '<a class="breadcrumb-entry" data-folder-id="' + parent + '"><i class="fa fa-caret-right"></i> ' + pathNames[idx] + '</span></a>';
+			}).join(' ');
+
+			path += ' <i class="fa fa-caret-right"></i> ' + pathNames.pop();
+
+			folderContents.append('<h2>' + path + '</h2>');
+
+
+			$('.breadcrumb-entry').click(function (e) {
+				e.preventDefault();
+
+				$('#' + $(this).data('folderId') + '_anchor').click();
+
+			});
+
+		}
+
 	},
 	insertLayoutSwitches: function (id, parentId, nodePath, parents) {
 
