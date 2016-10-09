@@ -20,7 +20,11 @@ package org.structr.core.script;
 
 import java.io.Reader;
 import java.io.Writer;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import javax.script.Bindings;
 import javax.script.ScriptContext;
 
@@ -30,74 +34,115 @@ import javax.script.ScriptContext;
  */
 public class StructrScriptContext implements ScriptContext {
 
+	private Map<Integer, Bindings> bindingMap = new HashMap<>();
+	private Writer errorWriter                = null;
+	private Reader reader                     = null;
+	private Writer writer                     = null;
+
 	@Override
 	public void setBindings(Bindings bindings, int scope) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		bindingMap.put(scope, bindings);
 	}
 
 	@Override
 	public Bindings getBindings(int scope) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return bindingMap.get(scope);
 	}
 
 	@Override
 	public void setAttribute(String name, Object value, int scope) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		final Bindings bindings = getBindings(scope);
+		if (bindings != null) {
+
+			bindings.put(name, value);
+		}
 	}
 
 	@Override
 	public Object getAttribute(String name, int scope) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		final Bindings bindings = getBindings(scope);
+		if (bindings != null) {
+
+			return bindings.get(name);
+		}
+
+		return null;
 	}
 
 	@Override
 	public Object removeAttribute(String name, int scope) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		final Bindings bindings = getBindings(scope);
+		if (bindings != null) {
+
+			return bindings.remove(name);
+		}
+
+		return null;
 	}
 
 	@Override
-	public Object getAttribute(String name) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	public Object getAttribute(final String name) {
+
+		final Bindings bindings = getBindings(ScriptContext.GLOBAL_SCOPE);
+		if (bindings != null) {
+
+			return bindings.get(name);
+		}
+
+		return null;
+
 	}
 
 	@Override
-	public int getAttributesScope(String name) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	public int getAttributesScope(final String name) {
+
+		for (final Entry<Integer, Bindings> entry : bindingMap.entrySet()) {
+
+			if (entry.getValue().containsKey(name)) {
+
+				return entry.getKey();
+			}
+		}
+
+		return -1;
 	}
 
 	@Override
 	public Writer getWriter() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return writer;
 	}
 
 	@Override
 	public Writer getErrorWriter() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return errorWriter;
 	}
 
 	@Override
 	public void setWriter(Writer writer) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		this.writer = writer;
 	}
 
 	@Override
 	public void setErrorWriter(Writer writer) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		this.errorWriter = writer;
 	}
 
 	@Override
 	public Reader getReader() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return reader;
 	}
 
 	@Override
 	public void setReader(Reader reader) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		this.reader = reader;
 	}
 
 	@Override
 	public List<Integer> getScopes() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return new LinkedList<>(bindingMap.keySet());
 	}
 
 }

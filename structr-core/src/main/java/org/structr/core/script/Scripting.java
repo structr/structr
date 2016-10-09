@@ -51,7 +51,8 @@ import org.structr.schema.parser.DatePropertyParser;
  */
 public class Scripting {
 
-	private static final Logger logger = LoggerFactory.getLogger(Scripting.class.getName());
+	private static final Logger logger                  = LoggerFactory.getLogger(Scripting.class.getName());
+	private static final Pattern ScriptEngineExpression = Pattern.compile("^\\$\\{(\\w+)\\{(.*)\\}\\}$", Pattern.DOTALL);
 
 	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue) throws FrameworkException {
 
@@ -133,18 +134,17 @@ public class Scripting {
 		boolean isJavascript   = expression.startsWith("${{") && expression.endsWith("}}");
 		final int prefixOffset = isJavascript ? 1 : 0;
 		String source          = expression.substring(2 + prefixOffset, expression.length() - (1 + prefixOffset));
-		
+
 		String engine = "";
 		boolean isScriptEngine = false;
-		
-		if (!isJavascript) {
-		
-			final Pattern pattern = Pattern.compile("^\\$\\{(\\w+)\\{(.*)\\}\\}$", Pattern.DOTALL);
-			final Matcher matcher = pattern.matcher(expression);
 
+		if (!isJavascript) {
+
+			final Matcher matcher = ScriptEngineExpression.matcher(expression);
 			if (matcher.matches()) {
+
 				engine = matcher.group(1);
-				source     = matcher.group(2);
+				source = matcher.group(2);
 
 				logger.info("Scripting engine {} requested.", engine);
 
@@ -156,9 +156,9 @@ public class Scripting {
 		actionContext.setJavaScriptContext(isJavascript);
 
 		if (isScriptEngine) {
-			
+
 			return evaluateScript(actionContext, entity, engine, source);
-		
+
 		} else if (isJavascript) {
 
 			return evaluateJavascript(actionContext, entity, source);
@@ -185,34 +185,36 @@ public class Scripting {
 		if (engine == null) {
 			throw new RuntimeException(engineName + " script engine could not be initialized. Check class path.");
 		}
-		
+
 		final ScriptContext scriptContext = engine.getContext();
 		final Bindings bindings           = new StructrScriptBindings(actionContext, entity);
-		
+
 		if (!(engine instanceof RenjinScriptEngine)) {
 			scriptContext.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
 		}
-		
+
 		StringWriter output = new StringWriter();
 		scriptContext.setWriter(output);
 
 		try {
 
 			engine.eval(script);
-			
+
 			Object extractedValue = output.toString();
-			
+
 			return extractedValue;
 
 		} catch (final ScriptException e) {
 
+			e.printStackTrace();
+
 			logger.error("Error while processing " + engineName + " script: {}", new Object[]{script, e});
 		}
-		
+
 		return null;
 
 	}
-	
+
 	private static Object evaluateJavascript(final ActionContext actionContext, final GraphObject entity, final String script) throws FrameworkException {
 
 		final String entityName        = entity != null ? entity.getProperty(AbstractNode.name) : null;
