@@ -2292,8 +2292,7 @@ var _Crud = {
 			}
 
 			if (callbackCancel) {
-				dialogCancelButton.off('click');
-				dialogCancelButton.on('click', function(e) {
+				dialogCancelButton.off('click').on('click', function(e) {
 					e.stopPropagation();
 					callbackCancel();
 					dialogText.empty();

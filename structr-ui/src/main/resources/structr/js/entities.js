@@ -496,17 +496,12 @@ var _Entities = {
 				tabView.show();
 				LSWrapper.setItem(activeEditTabPrefix  + '_' + entity.id, view);
 
-				$.ajax({
-					url: rootUrl + '_schema/' + entity.type + '/ui',
-					dataType: 'json',
-					contentType: 'application/json; charset=utf-8',
-					success: function(data) {
-						var typeInfo = {};
-						$(data.result).each(function(i, prop) {
-							typeInfo[prop.jsonName] = prop;
-						});
-						_Entities.listProperties(entity, view, tabView, typeInfo);
-					}
+				Command.getSchemaInfo(entity.type, function(schemaInfo) {
+					var typeInfo = {};
+					$(schemaInfo).each(function(i, prop) {
+						typeInfo[prop.jsonName] = prop;
+					});
+					_Entities.listProperties(entity, view, tabView, typeInfo);
 				});
 			});
 		});
@@ -640,7 +635,7 @@ var _Entities = {
 
 												Command.get(nodeId, function(node) {
 
-													_Entities.appendRelatedNode(cell, props, id, key, node, function(nodeEl) {
+													_Entities.appendRelatedNode(cell, node, function(nodeEl) {
 
 														$('.remove', nodeEl).on('click', function(e) {
 															e.preventDefault();
@@ -669,7 +664,7 @@ var _Entities = {
 
 													Command.get(nodeId, function(node) {
 
-														_Entities.appendRelatedNode(cell, props, id, key, node, function(nodeEl) {
+														_Entities.appendRelatedNode(cell, node, function(nodeEl) {
 															$('.remove', nodeEl).on('click', function(e) {
 																e.preventDefault();
 																Command.removeFromCollection(id, key, node.id, function() {
@@ -693,9 +688,7 @@ var _Entities = {
 										$('.add', cell).on('click', function() {
 											Structr.dialog('Add ' + typeInfo[key].type, function() {
 											}, function() {
-												window.setTimeout(function() {
-													_Entities.showProperties(entity);
-												}, 250);
+												_Entities.showProperties(entity);
 											});
 											_Entities.displaySearch(id, key, typeInfo[key].type, dialogText, isCollection);
 										});
@@ -891,7 +884,7 @@ var _Entities = {
 			separator: dateTimePickerFormat.separator
 		});
 	},
-	appendRelatedNode: function(cell, props, id, key, node, onDelete) {
+	appendRelatedNode: function(cell, node, onDelete) {
 		var displayName = _Crud.displayName(node);
 		cell.append('<div title="' + displayName + '" class="_' + node.id + ' node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<img class="remove" src="' + _Icons.grey_cross_icon + '"></div>');
 		var nodeEl = $('._' + node.id, cell);

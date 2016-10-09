@@ -1615,7 +1615,7 @@ var _Schema = {
 			LSWrapper.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
 		});
 
-		dialogCancelButton.on('click', function(e) {
+		dialogCancelButton.off('click').on('click', function(e) {
 			e.stopPropagation();
 			e.preventDefault();
 			if (callback) {
