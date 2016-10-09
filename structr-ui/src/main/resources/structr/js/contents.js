@@ -115,6 +115,7 @@ var _Contents = {
 				var containers = (currentContentContainer ? [ { id : currentContentContainer.id } ] : null);
 				Command.create({ type: type, size: 0, containers: containers }, function(f) {
 					_Contents.appendItemOrContainerRow(f);
+					_Contents.refreshTree();
 					itemTypesSelector.prop('selectedIndex', 0);
 				});
 			}
@@ -247,10 +248,10 @@ var _Contents = {
 								});
 
 								folders.forEach(function(d) {
-
+									var i = d.items && d.items.length > 0 ? d.items.length : undefined;
 									children.push({
 										id: d.id,
-										text: d.name ? d.name : '[unnamed]',
+										text: (d.name ? d.name : '[unnamed]') + (i ? ' (' + i + ')' : ''),
 										children: d.isContentContainer && d.childContainers.length > 0,
 										icon: 'fa fa-folder-o'
 									});
@@ -312,9 +313,10 @@ var _Contents = {
 				var list = [];
 
 				folders.forEach(function(d) {
+					var i = d.items && d.items.length > 0 ? d.items.length : undefined;
 					list.push({
 						id: d.id,
-						text:  d.name ? d.name : '[unnamed]',
+						text:  (d.name ? d.name : '[unnamed]') + (i ? ' (' + i + ')' : ''),
 						children: d.isContentContainer && d.childContainers.length > 0,
 						icon: 'fa fa-folder-o',
 						path: d.path
@@ -421,9 +423,9 @@ var _Contents = {
 
 		contentsContents.append(
 				'<h2>' + path + '</h2>'
-				+ '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
+				+ '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th>><th>Modified</th></tr></thead>'
 				+ '<tbody id="files-table-body">'
-				+ ((id !== 'root') ? '<tr id="parent-file-link"><td class="file-type"><i class="fa fa-folder-o"></i></td><td><a href="#">..</a></td><td></td><td></td><td></td></tr>' : '')
+				+ ((id !== 'root') ? '<tr id="parent-file-link"><td class="file-type"><i class="fa fa-folder-o"></i></td><td><a href="#">..</a></td><td></td><td></td><td></td><td></td></tr>' : '')
 				+ '</tbody></table>'
 		);
 
@@ -481,6 +483,7 @@ var _Contents = {
 		row.append('<td>' + size + '</td>');
 		row.append('<td>' + d.type + (d.isThumbnail ? ' thumbnail' : '') + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td>');
 		row.append('<td>' + (d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '') + '</td>');
+		row.append('<td>' + moment(d.lastModifiedDate).calendar() + '</td>');
 
 		// Change working dir by click on folder icon
 		$('#id_' + d.id + '.container').parent().prev().on('click', function(e) {

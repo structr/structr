@@ -70,6 +70,7 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.relation.Folders;
 import org.structr.web.entity.relation.MinificationSource;
+import org.structr.web.entity.relation.UserFavoriteFile;
 import org.structr.web.property.FileDataProperty;
 
 /**
@@ -89,6 +90,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	public static final Property<String> base64Data                              = new FileDataProperty<>("base64Data");
 	public static final Property<Boolean> isFile                                 = new ConstantBooleanProperty("isFile", true);
 	public static final Property<List<AbstractMinifiedFile>> minificationTargets = new StartNodes<>("minificationTarget", MinificationSource.class);
+	public static final Property<List<User>> favoriteOfUsers                     = new StartNodes<>("favoriteOfUsers", UserFavoriteFile.class);
 
 	public static final View publicView = new View(FileBase.class, PropertyView.Public,
 		type, name, size, url, owner, path, isFile, visibleToPublicUsers, visibleToAuthenticatedUsers

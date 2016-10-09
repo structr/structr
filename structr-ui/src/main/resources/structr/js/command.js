@@ -440,6 +440,19 @@ var Command = {
 		return sendObj(obj, callback);
 	},
 	/**
+	 * Send an APPEND_CONTENT_ITEM command to the server.
+	 */
+	appendContentItem: function(id, parentId, callback) {
+		var obj = {};
+		obj.command = 'APPEND_CONTENT_ITEM';
+		obj.id = id;
+		var data = {};
+		data.parentId = parentId;
+		obj.data = data;
+		_Logger.log(_LogType.WS[obj.command], 'appendContentItem()', obj);
+		return sendObj(obj, callback);
+	},
+	/**
 	 * Send an UNARCHIVE command to the server.
 	 *
 	 * The server will unarchive the file with the given id in the folder
@@ -1197,6 +1210,22 @@ var Command = {
 	findDuplicates: function(callback) {
 		var obj  = {
 			command: 'FIND_DUPLICATES'
+		};
+		return sendObj(obj, callback);
+	},
+	/**
+	 * Send a FAVORITES command to the server.
+	 *
+	 * Depending on the mode the server will either add/remove the file to/from
+	 * the users favorite files.
+	 */
+	favorites: function(mode, fileId, callback) {
+		var obj  = {
+			command: 'FAVORITES',
+			data: {
+				mode: mode,
+				id: fileId
+			}
 		};
 		return sendObj(obj, callback);
 	}

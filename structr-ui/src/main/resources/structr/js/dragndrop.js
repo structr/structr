@@ -69,12 +69,33 @@ var _Dragndrop = {
 					targetId = self.parent().prop('id');
 
 					if (targetId === 'root') {
+
 						Command.setProperty(sourceId, 'parent', null, false, function() {
 							$(ui.draggable).remove();
 							_Files.refreshTree();
 							return true;
 						});
 						return;
+
+					} else if (targetId === 'favorites') {
+
+						var obj = StructrModel.obj(sourceId);
+						if (obj.isFile) {
+
+							Command.favorites('add', sourceId, function() {
+
+								blinkGreen(Structr.node(sourceId));
+
+							});
+
+						} else {
+
+							blinkRed(Structr.node(sourceId));
+
+						}
+
+						return;
+
 					}
 				}
 
@@ -241,6 +262,10 @@ var _Dragndrop = {
 
 		if (source && (source.isFile || source.isFolder)) {
 			return _Dragndrop.fileDropped(source, target, pageId);
+		}
+
+		if (source && (source.isContentItem || source.isContentContainer)) {
+			return _Dragndrop.contentItemDropped(source, target);
 		}
 
 		if (!source && tag) {
@@ -521,5 +546,19 @@ var _Dragndrop = {
 		Command.createAndAppendDOMNode(pageId, target.id, tag, nodeData);
 
 		return true;
-	}
+	},
+	contentItemDropped: function(source, target) {
+		var refreshTimeout;
+
+		if (source.id === target.id) {
+			return false;
+		}
+
+		Command.appendContentItem(source.id, target.id, function() {
+			_Contents.refreshTree();
+		});
+
+		return true;
+
+	},
 };
