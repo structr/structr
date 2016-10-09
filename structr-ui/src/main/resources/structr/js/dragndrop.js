@@ -264,6 +264,10 @@ var _Dragndrop = {
 			return _Dragndrop.fileDropped(source, target, pageId);
 		}
 
+		if (source && (source.isContentItem || source.isContentContainer)) {
+			return _Dragndrop.contentItemDropped(source, target);
+		}
+
 		if (!source && tag) {
 
 			if (tag.indexOf('.') !== -1) {
@@ -542,5 +546,19 @@ var _Dragndrop = {
 		Command.createAndAppendDOMNode(pageId, target.id, tag, nodeData);
 
 		return true;
-	}
+	},
+	contentItemDropped: function(source, target) {
+		var refreshTimeout;
+
+		if (source.id === target.id) {
+			return false;
+		}
+
+		Command.appendContentItem(source.id, target.id, function() {
+			_Contents.refreshTree();
+		});
+
+		return true;
+
+	},
 };

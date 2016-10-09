@@ -440,6 +440,19 @@ var Command = {
 		return sendObj(obj, callback);
 	},
 	/**
+	 * Send an APPEND_CONTENT_ITEM command to the server.
+	 */
+	appendContentItem: function(id, parentId, callback) {
+		var obj = {};
+		obj.command = 'APPEND_CONTENT_ITEM';
+		obj.id = id;
+		var data = {};
+		data.parentId = parentId;
+		obj.data = data;
+		_Logger.log(_LogType.WS[obj.command], 'appendContentItem()', obj);
+		return sendObj(obj, callback);
+	},
+	/**
 	 * Send an UNARCHIVE command to the server.
 	 *
 	 * The server will unarchive the file with the given id in the folder
