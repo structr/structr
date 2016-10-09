@@ -533,37 +533,8 @@ var _Files = {
 	displayFolderContents: function(id, parentId, nodePath, parents) {
 
 		fastRemoveAllChildren(folderContents[0]);
-		folderContents.prepend('<div id="switches">'
-			+ '<button class="switch ' + (viewMode === 'list' ? 'active' : 'inactive') + '" id="switch-list">'
-			+ (viewMode === 'list' ? '<img src="' + _Icons.tick_icon + '">' : '')
-			+ ' List</button><button class="switch ' + (viewMode === 'tiles' ? 'active' : 'inactive') + '" id="switch-tiles">'
-		    + (viewMode === 'tiles' ? '<img src="' + _Icons.tick_icon + '">' : '')
-			+ ' Tiles</button>'
-			+ '</div>');
 
-		var listSw  = $('#switch-list');
-		var tilesSw = $('#switch-tiles');
-		listSw.on('click', function(e) {
-			var state = listSw.hasClass('inactive');
-			if (state) {
-				viewMode = 'list';
-				LSWrapper.setItem(filesViewModeKey, viewMode);
-				_Entities.changeBooleanAttribute(listSw,  state, 'List', 'List');
-				_Entities.changeBooleanAttribute(tilesSw, !state, 'Tiles', 'Tiles');
-				_Files.displayFolderContents(id, parentId, nodePath, parents);
-			}
-		});
-
-		tilesSw.on('click', function(e) {
-			var state = tilesSw.hasClass('inactive');
-			if (state) {
-				viewMode = 'tiles';
-				LSWrapper.setItem(filesViewModeKey, viewMode);
-				_Entities.changeBooleanAttribute(tilesSw, state, 'Tiles', 'Tiles');
-				_Entities.changeBooleanAttribute(listSw,  !state, 'List', 'List');
-				_Files.displayFolderContents(id, parentId, nodePath, parents);
-			}
-		});
+		_Files.insertLayoutSwitches(id, parentId, nodePath, parents);
 
 		var path = '';
 		if (parents) {
@@ -647,6 +618,37 @@ var _Files = {
 				$('#' + parentId + '_anchor').click();
 			}
 		});
+	},
+	insertLayoutSwitches: function (id, parentId, nodePath, parents) {
+
+		folderContents.prepend('<div id="switches">'
+			+ '<button class="switch ' + (viewMode === 'list' ? 'active' : 'inactive') + '" id="switch-list">'
+			+ (viewMode === 'list' ? '<img src="' + _Icons.tick_icon + '">' : '')
+			+ ' List</button><button class="switch ' + (viewMode === 'tiles' ? 'active' : 'inactive') + '" id="switch-tiles">'
+			+ (viewMode === 'tiles' ? '<img src="' + _Icons.tick_icon + '">' : '')
+			+ ' Tiles</button>'
+			+ '</div>');
+
+		var listSw  = $('#switch-list');
+		listSw.data('viewMode', 'list');
+
+		var tilesSw = $('#switch-tiles');
+		tilesSw.data('viewMode', 'tiles');
+
+		var layoutSwitchFunction = function(e) {
+			var state = $(this).hasClass('inactive');
+			if (state) {
+				viewMode = $(this).data('viewMode');
+				LSWrapper.setItem(filesViewModeKey, viewMode);
+				_Entities.changeBooleanAttribute(listSw,  state, 'List', 'List');
+				_Entities.changeBooleanAttribute(tilesSw, !state, 'Tiles', 'Tiles');
+				_Files.displayFolderContents(id, parentId, nodePath, parents);
+			}
+		};
+
+		listSw.on('click', layoutSwitchFunction);
+		tilesSw.on('click', layoutSwitchFunction);
+
 	},
 	appendFileOrFolder: function(d) {
 		if (viewMode === 'list') {
