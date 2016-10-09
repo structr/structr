@@ -90,6 +90,84 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	public void testPhp() {
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			assertEquals("Invalid PHP scripting evaluation result", "✓ Hello World from PHP!", Scripting.evaluate(ctx, null, "${quercus{<?\necho \"✓ Hello World from PHP!\";\n#phpinfo();\n?>}}"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+	}
+
+	public void testRenjin() {
+
+		//final String source = "${Renjin{print(\"Hello World from R!\")\n#plot(sin, -pi, 2*pi)\n# Define the cars vector with 5 values\ncars <- c(1, 3, 6, 4, 9)\n# Graph the cars vector with all defaults\nplot(cars)}}";
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			final Object result     = Scripting.evaluate(ctx, null, "${Renjin{print(\"Hello World from R!\")}}");
+			assertEquals("Invalid R scripting evaluation result", "[1] \"Hello World from R!\"\n", result);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+	}
+
+	public void testRuby() {
+
+		final String source = "${ruby{puts \"Hello World from Ruby!\"}}";
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+			final Object result     = Scripting.evaluate(ctx, null, source);
+
+			System.out.println(result);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+	}
+
+	public void testPython() {
+
+		final String source = "${python{print \"Hello World from Python!\"}}";
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+			final Object result     = Scripting.evaluate(ctx, null, source);
+
+			assertEquals("Invalid python scripting evaluation result", "Hello World from Python!\n", result);
+			System.out.println(result);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+	}
+
 	private void testExtraction(final String source) {
 
 		final List<String> scripts = Scripting.extractScripts(source);
