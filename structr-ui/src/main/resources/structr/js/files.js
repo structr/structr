@@ -1236,38 +1236,46 @@ var _Files = {
 			});
 
 			dialogText.append('<div id="files-tabs" class="files-tabs"><ul></ul></div>');
+
+			var selectedCount = selectedElements.length;
+			$.each(selectedElements, function(i, el) {
+				if (_Files.isMinificationTarget(StructrModel.obj(Structr.getId(el)))) {
+					selectedCount--;
+				}
+			});
+
 			$.each(selectedElements, function(i, el) {
 
-				if (_Files.isMinificationTarget(StructrModel.obj(Structr.getId(el)))) {
-					return;
-				}
+				if (!_Files.isMinificationTarget(StructrModel.obj(Structr.getId(el)))) {
 
-				Command.get(Structr.getId(el), function(entity) {
+					Command.get(Structr.getId(el), function(entity) {
 
-					$('#files-tabs ul').append('<li id="tab-' + entity.id + '">' + entity.name + '</li>');
-					$('#files-tabs').append('<div id="content-tab-' + entity.id + '"></div>');
+						$('#files-tabs ul').append('<li id="tab-' + entity.id + '">' + entity.name + '</li>');
+						$('#files-tabs').append('<div id="content-tab-' + entity.id + '"></div>');
 
-					$('#tab-' + entity.id).on('click', function(e) {
+						$('#tab-' + entity.id).on('click', function(e) {
 
-						e.stopPropagation();
+							e.stopPropagation();
 
-						// Store current editor text
-						if (editor) {
-							fileContents[activeFileId] = editor.getValue();
+							// Store current editor text
+							if (editor) {
+								fileContents[activeFileId] = editor.getValue();
+							}
+
+							activeFileId = Structr.getIdFromPrefixIdString($(this).prop('id'), 'tab-');
+							$('#content-tab-' + activeFileId).empty();
+							_Files.editContent(null, entity, $('#content-tab-' + activeFileId));
+
+							return false;
+						});
+
+						if (i+1 === selectedCount) {
+							_Entities.activateTabs(file.id, '#files-tabs', '#content-tab-' + file.id);
 						}
 
-						activeFileId = Structr.getIdFromPrefixIdString($(this).prop('id'), 'tab-');
-						$('#content-tab-' + activeFileId).empty();
-						_Files.editContent(null, entity, $('#content-tab-' + activeFileId));
-
-						return false;
 					});
 
-					if (i+1 === selectedElements.length) {
-						_Entities.activateTabs(file.id, '#files-tabs', '#content-tab-' + file.id);
-					}
-
-				});
+				}
 
 			});
 
