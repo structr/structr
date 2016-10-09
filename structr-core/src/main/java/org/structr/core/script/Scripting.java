@@ -206,6 +206,8 @@ public class Scripting {
 
 		} catch (final ScriptException e) {
 
+			e.printStackTrace();
+
 			logger.error("Error while processing " + engineName + " script: {}", new Object[]{script, e});
 		}
 

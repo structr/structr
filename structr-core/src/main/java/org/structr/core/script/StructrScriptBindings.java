@@ -30,23 +30,8 @@ import org.structr.schema.action.ActionContext;
  */
 public class StructrScriptBindings extends HashMap<String, Object> implements Bindings {
 
-	private StructrScriptObject structr = null;
-	
 	public StructrScriptBindings(final ActionContext actionContext, final GraphObject entity) {
-		
-		final Object[] parameters = new Object[]{};
-		
-		this.structr = new StructrScriptObject(actionContext, entity, parameters);
-	}
 
-	@Override
-	public Object get(Object key) {
-		
-		if ("Structr".equals(key)) {
-			return structr;
-		}		
-		
-		return super.get(key);
+		put("Structr", new StructrScriptObject(actionContext, entity, null));
 	}
-
 }
