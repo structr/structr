@@ -195,12 +195,13 @@ var _Files = {
 			var rootEl = $('#root > .jstree-wholerow');
 			_Dragndrop.makeDroppable(rootEl);
 			_Files.loadAndSetWorkingDir(function() {
+
 				if (currentWorkingDir) {
 					_Files.deepOpen(currentWorkingDir);
+				} else {
+					fileTree.jstree('select_node', 'root');
 				}
-				window.setTimeout(function() {
-					fileTree.jstree('select_node', currentWorkingDir ? currentWorkingDir.id : 'root');
-				}, 100);
+
 			});
 		});
 
@@ -249,7 +250,6 @@ var _Files = {
 		fileTree.jstree('deselect_node', d.id);
 		fileTree.jstree('open_node', d.id, function() {
 			fileTree.jstree('select_node', currentWorkingDir ? currentWorkingDir.id : 'root');
-			//_Files.open(dirs);
 		});
 
 	},
