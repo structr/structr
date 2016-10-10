@@ -599,8 +599,13 @@ var _Files = {
 
 			}
 
-			Command.rest("/me/favoriteFiles", function (result) {
-				handleChildren(result);
+			$.ajax({
+				url: rootUrl + 'me/favoriteFiles',
+				statusCode: {
+					200: function(data) {
+						handleChildren(data.result);
+					}
+				}
 			});
 
 		} else {
