@@ -24,11 +24,14 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.IntProperty;
@@ -97,6 +100,37 @@ public class Image extends org.structr.dynamic.File {
 		}
 
 		return super.setProperty(key, value);
+	}
+
+	@Override
+	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
+
+			if ( !isThumbnail() && modificationQueue.getSynchronizationKeys().contains("Image.name") ) {
+
+				final String newImageName = getName();
+
+				for (Image tn : getThumbnails()) {
+
+					final String expectedThumbnailName = getThumbnailName(newImageName, tn.getWidth(), tn.getHeight());
+					final String currentThumbnailName  = tn.getName();
+
+					if ( !expectedThumbnailName.equals(currentThumbnailName) ) {
+
+						logger.debug("Auto-renaming Thumbnail({}) from '{}' to '{}'", tn.getUuid(), currentThumbnailName, expectedThumbnailName);
+						tn.setProperty(AbstractNode.name, expectedThumbnailName);
+
+					}
+
+				}
+
+			}
+
+			return true;
+		}
+
+		return false;
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -259,7 +293,7 @@ public class Image extends org.structr.dynamic.File {
 					try {
 
 						data = thumbnailData.getBytes();
-						final String thumbnailName = originalImage.getName() + "_thumb_" + tnWidth + "x" + tnHeight;
+						final String thumbnailName = getThumbnailName(originalImage.getName(), tnWidth, tnHeight);
 
 						// create thumbnail node
 						thumbnail = ImageHelper.createImage(securityContext, data, "image/" + Thumbnail.FORMAT, Image.class, thumbnailName, true);
@@ -334,6 +368,18 @@ public class Image extends org.structr.dynamic.File {
 	public boolean isThumbnail() {
 
 		return getProperty(Image.isThumbnail) || getIncomingRelationship(Thumbnails.class) != null;
+
+	}
+
+	/**
+	 * @param originalImageName The filename of the image which this thumbnail belongs to
+	 * @param tnWidth The width of the thumbnail
+	 * @param tnHeight The height of the thumbnail
+	 * @return the thumbnail name for the thumbnail with the given dimensions
+	 */
+	public String getThumbnailName(final String originalImageName, final Integer tnWidth, final Integer tnHeight) {
+
+		return originalImageName + "_thumb_" + tnWidth + "x" + tnHeight;
 
 	}
 
