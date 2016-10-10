@@ -3119,6 +3119,36 @@ i.fa.ps {
     border-bottom-left-radius: 0;
 }
 
+.prop .node {
+    color: #333;
+    line-height: 1.7em;
+    border-radius: 3px;
+    border: 1px solid #a5a5a5;
+    padding: 2px 5px;
+    margin: 2px 2px 3px 1px;
+    background-color: #eee;
+}
+
+.prop .node:hover {
+    color: #555;
+    border: 1px solid #bbb;
+    background-color: #f5f5f5;
+    cursor: pointer;
+}
+
+.prop .add:hover {
+    cursor: pointer;
+    filter: alpha(opacity=60);
+    -khtml-opacity: 0.6;
+    -moz-opacity: 0.6;
+    opacity: 0.6;
+}
+
+.prop .remove {
+	float: right;
+    margin: 4px 0 2px 1px;
+}
+
 /**
  * Settings for insert shortcut menu
  */

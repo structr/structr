@@ -190,14 +190,14 @@ input.readonly {
 .resourceBox div.node img.add, .resourceBox td img.add, .props td img.add,
 .resourceBox div.node img.edit, .resourceBox td img.edit, .props td img.edit,
 .resourceBox div.node img.remove, .resourceBox td img.remove, .props td img.remove {
-    filter: alpha(opacity=60);
-    -khtml-opacity: 0.6;
-    -moz-opacity: 0.6;
-    opacity: 0.6;
+    filter: alpha(opacity=100);
+    -khtml-opacity: 1.0;
+    -moz-opacity: 1.0;
+    opacity: 1.0;
 }
 
-.props td img.add,
-.resourceBox td img.add {
+.props td img.add, .props td img.remove,
+.resourceBox td img.add, .resourceBox td img.remove {
     margin: 2px 0 2px 1px;
     float: right;
 }
@@ -205,10 +205,10 @@ input.readonly {
 .resourceBox div.node img.add:hover, .resourceBox td img.add:hover, .props td img.add:hover,
 .resourceBox div.node img.edit:hover, .resourceBox td img.edit:hover, .props td img.edit:hover,
 .resourceBox div.node img.remove:hover, .resourceBox td img.remove:hover .props td img.remove:hover {
-    filter: alpha(opacity=100);
-    -khtml-opacity: 1.0;
-    -moz-opacity: 1.0;
-    opacity: 1.0;
+    filter: alpha(opacity=60);
+    -khtml-opacity: 0.6;
+    -moz-opacity: 0.6;
+    opacity: 0.6;
     cursor: pointer;
 }
 
