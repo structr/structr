@@ -2933,6 +2933,24 @@ table.dataTable thead th, table.dataTable thead td {
     text-align: left;
 }
 
+#files-table tbody tr td .editable {
+	min-width: 100px;
+	min-height: 14px;
+}
+
+#files-table tbody tr td .editable .placeholder {
+	color: #b5b5b5;
+}
+
+#files-table tbody tr td .node {
+	min-width: 160px;
+}
+
+#files-table tbody tr td input {
+	margin-top: 4px;
+	min-width: 100px;
+}
+
 #folder-contents .thumbnail,
 #folder-contents .thumbnail .file,
 #folder-contents .thumbnail i.fa-file-image-o {
@@ -3393,6 +3411,15 @@ input#element-class {
 }
 
 #crawler-list .delete {
+    margin-left: 4px;
+    cursor: pointer;
+}
+#crawler-list .button-area {
+	display: inline-block;
+	margin-left: 8px;
+}
+
+#crawler-list .edit-properties {
     margin-left: 4px;
     cursor: pointer;
 }

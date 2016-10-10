@@ -205,7 +205,7 @@ var _Files = {
 
 				} else if (currentWorkingDir) {
 
-					_Files.deepOpen(currentWorkingDir);
+					_Files.deepOpen(currentWorkingDir.parent);
 
 				} else {
 
@@ -512,7 +512,7 @@ var _Files = {
 				window.setTimeout(function() {
 					list.forEach(function(obj) {
 						var el = $('#file-tree #' + obj.id + ' > .jstree-wholerow');
-						StructrModel.create({id: obj.id});
+						StructrModel.create({id: obj.id}, null, false);
 						_Dragndrop.makeDroppable(el);
 					});
 				}, 500);
@@ -540,7 +540,7 @@ var _Files = {
 				window.setTimeout(function() {
 					list.forEach(function(obj) {
 						var el = $('#file-tree #' + obj.id + ' > .jstree-wholerow');
-						StructrModel.create({id: obj.id});
+						StructrModel.create({id: obj.id}, null, false);
 						_Dragndrop.makeDroppable(el);
 					});
 				}, 500);
