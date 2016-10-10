@@ -547,10 +547,6 @@ var _Pages = {
 			$(this).removeClass('active');
 		});
 
-		$('.previewBox', previews).each(function() {
-			$(this).hide();
-		});
-
 		if (!element.hasClass('page')) {
 			return false;
 		}
@@ -564,6 +560,13 @@ var _Pages = {
 
 		_Logger.log(_LogType.PAGES, 'store active tab', activeTab);
 		LSWrapper.setItem(activeTabKey, activeTab);
+
+	},
+	hideAllPreviews: function () {
+
+		$('.previewBox', previews).each(function() {
+			$(this).hide();
+		});
 
 	},
 	refreshActiveElements: function() {
@@ -591,6 +594,7 @@ var _Pages = {
 			var url = viewRootUrl + obj.name + (LSWrapper.getItem(detailsObjectId + id) ? '/' + LSWrapper.getItem(detailsObjectId + id) : '') + '?edit=2';
 			iframe.prop('src', url);
 			_Logger.log(_LogType.PAGES, 'iframe', id, 'activated');
+			_Pages.hideAllPreviews();
 			iframe.parent().show();
 			_Pages.resize();
 		});
