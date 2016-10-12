@@ -92,7 +92,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 
 		server.setKeyPairProvider(hostKeyProvider);
-		server.setPort(Services.parseInt(APPLICATION_SSH_PORT, 8022));
+		server.setPort(Services.parseInt(config.getProperty(APPLICATION_SSH_PORT), 8022));
 		server.setPasswordAuthenticator(this);
 		server.setPublickeyAuthenticator(this);
 		server.setFileSystemFactory(this);
