@@ -23,6 +23,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -53,6 +54,8 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.schema.ConfigurationProvider;
+import org.structr.web.common.HttpHelper;
+import org.structr.web.entity.User;
 
 public class SourcePattern extends AbstractNode {
 	
@@ -121,58 +124,20 @@ public class SourcePattern extends AbstractNode {
 	
 	private String getContent(final String urlString, final String cookie) throws FrameworkException {
 		
-		final CloseableHttpClient client = HttpClients.custom()
-			.setDefaultConnectionConfig(ConnectionConfig.DEFAULT)
-			.setUserAgent("curl/7.35.0")
-			.build();
-		
 		final SourceSite site = getSite();
 
-		final String siteProxyUrl = site.getProperty(SourceSite.proxyUrl);
+		String proxyUrl = site.getProperty(SourceSite.proxyUrl);
+		String proxyUsername = site.getProperty(SourceSite.proxyUsername);
+		String proxyPassword = site.getProperty(SourceSite.proxyPassword);
 		
-		final URI url = URI.create(urlString);
-		final HttpHost target = HttpHost.create(url.getHost());
-		
-		HttpHost proxy = null;
-		if (StringUtils.isNoneBlank(siteProxyUrl)) {
-			proxy = HttpHost.create(siteProxyUrl);
+		if (StringUtils.isBlank(proxyUrl)) {
+			proxyUrl      = ((User) securityContext.getCachedUser()).getProperty(User.proxyUrl);
+			proxyUsername = ((User) securityContext.getCachedUser()).getProperty(User.proxyUsername);
+			proxyPassword = ((User) securityContext.getCachedUser()).getProperty(User.proxyPassword);
 		}
-
-		final RequestConfig config = RequestConfig.custom()
-			.setProxy(proxy)
-			.setRedirectsEnabled(true)
-			.setCookieSpec(CookieSpecs.DEFAULT)
-			.build();
-
-		final HttpGet request = new HttpGet(url.getPath() + "?" + url.getQuery());
-		request.setConfig(config);
-		
-		if (StringUtils.isNotBlank(cookie)) {
-
-			request.addHeader("Cookie", cookie);
-			request.getParams().setParameter("http.protocol.single-cookie-header", true);
-		}
-
-		request.addHeader("Connection", "close");
-  
-		String content = "";
-		try {
-			final CloseableHttpResponse response = client.execute(target, request);
 			
-			final Header contentType = response.getFirstHeader("Content-Type");
-			String       charset     = StringUtils.substringAfterLast(contentType.getValue(), "; charset=");
-			
-			if (StringUtils.isBlank(charset)) {
-				charset = "UTF-8";
-			}
-			content = IOUtils.toString(response.getEntity().getContent(), charset).replace("<head>", "<head>\n  <base href=\"" + urlString + "\">");
-			
-			
-		} catch (IOException ex) {
-			logger.error("", ex);
-		}
-		
-		return content;
+		return HttpHelper.get(urlString, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP)
+				.replace("<head>", "<head>\n  <base href=\"" + urlString + "\">");
 	}
 	
 	private void extractAndSetValue(final NodeInterface obj, final Document doc, final String selector, final String mappedType, final String mappedAttribute, final String mappedAttributeFormat, final SourcePage subPage)  throws FrameworkException {
