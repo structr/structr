@@ -70,6 +70,8 @@ public class LoginCommand extends AbstractCommand {
 
 						logger.info("Could not login {}: No sessionId found", new Object[]{username, password});
 						getWebSocket().send(MessageBuilder.status().code(403).build(), true);
+						
+						return;
 
 					}
 
