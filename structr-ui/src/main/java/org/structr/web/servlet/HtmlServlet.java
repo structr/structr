@@ -171,33 +171,33 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
 
-		final Authenticator auth        = getConfig().getAuthenticator();
-		List<Page> pages                = null;
-		boolean requestUriContainsUuids = false;
+			final Authenticator auth        = getConfig().getAuthenticator();
+			List<Page> pages                = null;
+			boolean requestUriContainsUuids = false;
 
-		SecurityContext securityContext;
-		final App app;
+			SecurityContext securityContext;
+			final App app;
 
-		try {
-			final String path = request.getPathInfo();
+			try {
+				final String path = request.getPathInfo();
 
-			// check for registration (has its own tx because of write access
-			if (checkRegistration(auth, request, response, path)) {
+				// check for registration (has its own tx because of write access
+				if (checkRegistration(auth, request, response, path)) {
 
-				return;
-			}
+					return;
+				}
 
-			// check for registration (has its own tx because of write access
-			if (checkResetPassword(auth, request, response, path)) {
+				// check for registration (has its own tx because of write access
+				if (checkResetPassword(auth, request, response, path)) {
 
-				return;
-			}
+					return;
+				}
 
-			// isolate request authentication in a transaction
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-				securityContext = auth.initializeAndExamineRequest(request, response);
-				tx.success();
-			}
+				// isolate request authentication in a transaction
+				try (final Tx tx = StructrApp.getInstance().tx()) {
+					securityContext = auth.initializeAndExamineRequest(request, response);
+					tx.success();
+				}
 
 			app = StructrApp.getInstance(securityContext);
 

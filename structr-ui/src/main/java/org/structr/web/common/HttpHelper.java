@@ -46,6 +46,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 
 /**
@@ -65,17 +66,23 @@ public class HttpHelper {
 	private static RequestConfig reqConfig;
 	
 	private static void configure(final HttpRequestBase req, final String username, final String password, final String proxyUrlParameter, final String proxyUsernameParameter, final String proxyPasswordParameter, final String cookieParameter, final Map<String, String> headers, final boolean followRedirects) {
-
+	
 		if (StringUtils.isBlank(proxyUrlParameter)) {
 			proxyUrl = Services.getBaseConfiguration().getProperty(Services.APPLICATION_PROXY_HTTP_URL);
+		} else {
+			proxyUrl = proxyUrlParameter;
 		}
 
 		if (StringUtils.isBlank(proxyUsernameParameter)) {
 			proxyUsername = Services.getBaseConfiguration().getProperty(Services.APPLICATION_PROXY_HTTP_USERNAME);
+		} else {
+			proxyUsername = proxyUsernameParameter;
 		}
 
 		if (StringUtils.isBlank(proxyPasswordParameter)) {
 			proxyPassword = Services.getBaseConfiguration().getProperty(Services.APPLICATION_PROXY_HTTP_PASSWORD);
+		} else {
+			proxyPassword = proxyPasswordParameter;
 		}
 
 		//final HttpHost target             = HttpHost.create(url.getHost());
@@ -132,23 +139,28 @@ public class HttpHelper {
 		}
 	}
 	
-	public static String get(final String address) {
+	public static String get(final String address)
+	throws FrameworkException {
 		return get(address, null, null, null, null, Collections.EMPTY_MAP);
 	}
 	
-	public static String get(final String address, final Map<String, String> headers) {
+	public static String get(final String address, final Map<String, String> headers)
+	throws FrameworkException {
 		return get(address, null, null, headers);
 	}
 
-	public static String get(final String address, final String username, final String password, final Map<String, String> headers) {
+	public static String get(final String address, final String username, final String password, final Map<String, String> headers)
+	throws FrameworkException {
 		return get(address, username, password, null, null, null, null, headers);
 	}
 
-	public static String get(final String address, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) {
+	public static String get(final String address, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers)
+	throws FrameworkException {
 		return get(address, null, null, proxyUrl, proxyUsername, proxyPassword, cookie, headers);
 	}
 	
-	public static String get(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) {
+	public static String get(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers)
+	throws FrameworkException {
 				
 		String content = "";
 
@@ -169,10 +181,9 @@ public class HttpHelper {
 			}
 
 		} catch (final Throwable t) {
-			
-			logger.error("Unable to fetch content from address {}, {}", new Object[] { address, t });
-			return t.toString();
-			
+			t.printStackTrace();
+			throw new FrameworkException(422, "Unable to fetch content from address " + address);
+
 		}
 		
 		return content;

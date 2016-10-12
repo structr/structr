@@ -76,9 +76,15 @@ public class User extends AbstractUser {
 	public static final Property<String>         twitterName      = new StringProperty("twitterName").cmis().indexed();
 	public static final Property<String>         localStorage     = new StringProperty("localStorage");
 	public static final Property<List<FileBase>> favoriteFiles    = new EndNodes<>("favoriteFiles", UserFavoriteFile.class);
+	public static final Property<String>         proxyUrl         = new StringProperty("proxyUrl");
+	public static final Property<String>         proxyUsername    = new StringProperty("proxyUsername");
+	public static final Property<String>         proxyPassword    = new StringProperty("proxyPassword");
+  	
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
-		type, name, eMail, isAdmin, password, publicKey, blocked, sessionIds, confirmationKey, backendUser, frontendUser, groups, img, homeDirectory, workingDirectory, isUser, locale, favoriteFiles
+		type, name, eMail, isAdmin, password, publicKey, blocked, sessionIds, confirmationKey, backendUser, frontendUser,
+			groups, img, homeDirectory, workingDirectory, isUser, locale, favoriteFiles,
+			proxyUrl, proxyUsername, proxyPassword
 	);
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(User.class, PropertyView.Public,

@@ -45,16 +45,21 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.AccessMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.Tx;
 import org.structr.rest.service.HttpService;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.HttpHelper;
+import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Page;
 
 //~--- classes ----------------------------------------------------------------
@@ -135,7 +140,21 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
 
+		final Authenticator auth        = getConfig().getAuthenticator();
+		SecurityContext securityContext;
+
 		try {
+
+			// isolate request authentication in a transaction
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				securityContext = auth.initializeAndExamineRequest(request, response);
+				tx.success();
+			}
+
+			// Ensure access mode is frontend
+			securityContext.setAccessMode(AccessMode.Frontend);
+
+			final Principal user = securityContext.getCachedUser();
 			
 			final ServletOutputStream out = response.getOutputStream();
 			
@@ -146,6 +165,12 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 			String proxyUsername = request.getParameter("proxyUsername");
 			String proxyPassword = request.getParameter("proxyPassword");
 			String cookie        = request.getParameter("cookie");
+
+			if (user != null && StringUtils.isBlank(proxyUrl)) {
+				proxyUrl      = user.getProperty(User.proxyUrl);
+				proxyUsername = user.getProperty(User.proxyUsername);
+				proxyPassword = user.getProperty(User.proxyPassword);
+			}
 			
 			final String content = HttpHelper.get(address, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP).replace("<head>", "<head>\n  <base href=\"" + url + "\">");
 
