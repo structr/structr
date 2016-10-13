@@ -223,15 +223,7 @@ var StructrModel = {
 
 		} else if (lastMenuEntry === 'files') {
 
-			if (_DuplicateFinder.isDialogOpen()) {
-
-				var $row = $('table.duplicates-table tr.dup_' + id);
-				var callback = $row.data('callback');
-
-				if (typeof callback === "function") {
-					callback();
-				}
-			}
+			_DuplicateFinder.reactToDeleteNotification(id);
 
 		}
 
