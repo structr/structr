@@ -385,10 +385,13 @@ var StructrModel = {
 		_Logger.log(_LogType.MODEL, 'Model refresh, updated object', obj);
 
 		if (obj) {
+
+			_DuplicateFinder.reactToUpdateNotification(obj);
+
 			var element = Structr.node(id);
 
 			if (graphBrowser) {
-                            graphBrowser.updateNode(id, obj, ['name', 'tag', 'id', 'type'], {label: 'name', nodeType: 'type'});
+				graphBrowser.updateNode(id, obj, ['name', 'tag', 'id', 'type'], {label: 'name', nodeType: 'type'});
 			}
 
 			if (!element)

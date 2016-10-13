@@ -40,6 +40,22 @@ var _DuplicateFinder = new (function () {
 		return _dialogIsOpen;
 	};
 
+	this.reactToUpdateNotification = function (obj) {
+
+		if (this.isDialogOpen()) {
+
+			var $tr = $('tr.dup_' + obj.id, dialogText);
+
+			if ($tr && $tr.length) {
+
+				$tr.find('.duplicate-obj-edit-name input').val(obj.name);
+
+				_checkTableForConflicts($tr.closest('table'));
+
+			}
+
+		}
+	};
 
 
 	/* ~~~~~~~~~~ private fields ~~~~~~~~~~ */
