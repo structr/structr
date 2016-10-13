@@ -3119,6 +3119,22 @@ i.fa.ps {
     border-bottom-left-radius: 0;
 }
 
+#switch-list.active {
+	width: 61px;
+}
+
+#switch-list.inactive {
+	width: 34px;
+}
+
+#switch-tiles.active {
+	width: 66px;
+}
+
+#switch-tiles.inactive {
+	width: 39px;
+}
+
 /**
  * Settings for insert shortcut menu
  */
