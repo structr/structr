@@ -398,8 +398,6 @@ public abstract class Function<S, T> extends Hint {
 
 	protected String getSandboxFileName(final String source) throws IOException {
 
-		final File sandboxFile = new File(source);
-		final String fileName = sandboxFile.getName();
 		final String basePath = StructrApp.getConfigurationValue(Services.BASE_PATH);
 
 		if (!basePath.isEmpty()) {
@@ -414,12 +412,21 @@ public abstract class Function<S, T> extends Hint {
 			// create exchange directory
 			final File dir = new File(exchangeDir);
 			if (!dir.exists()) {
-
 				dir.mkdirs();
 			}
 
-			// return sandboxed file name
-			return exchangeDir.concat(fileName);
+			final String finalFilePath = dir.getCanonicalPath().concat("/").concat(source);
+			final File sourceFile = new File(finalFilePath);
+
+			if (finalFilePath.equals(sourceFile.getCanonicalPath())) {
+
+				return finalFilePath;
+
+			} else {
+
+				logger.warn("File path might contain directory traversal attack, aborting. Path: '{}'", source);
+
+			}
 
 		} else {
 
