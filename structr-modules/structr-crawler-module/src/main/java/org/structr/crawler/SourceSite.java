@@ -30,9 +30,12 @@ public class SourceSite extends CrawlerTreeNode {
 	public static final Property<String>        proxyUrl = new StringProperty("proxyUrl");
 	public static final Property<String>   proxyUsername = new StringProperty("proxyUsername");
 	public static final Property<String>   proxyPassword = new StringProperty("proxyPassword");
+	public static final Property<String>    authUsername = new StringProperty("authUsername");
+	public static final Property<String>    authPassword = new StringProperty("authPassword");
+	public static final Property<String>          cookie = new StringProperty("cookie");
 
 	public static final View uiView = new View(SourceSite.class, "ui",
-		pages, proxyUrl, proxyUsername, proxyPassword
+		pages, proxyUrl, proxyUsername, proxyPassword, authUsername, authPassword, cookie
 	);
 
 }
