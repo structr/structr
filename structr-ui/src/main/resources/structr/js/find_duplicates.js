@@ -40,7 +40,39 @@ var _DuplicateFinder = new (function () {
 		return _dialogIsOpen;
 	};
 
+	this.reactToUpdateNotification = function (obj) {
 
+		if (this.isDialogOpen()) {
+
+			var $tr = $('tr.dup_' + obj.id, dialogText);
+
+			if ($tr && $tr.length) {
+
+				var $input = $tr.find('.duplicate-obj-edit-name input');
+				$input.val(obj.name);
+				blinkGreen($input);
+
+				_checkTableForConflicts($tr.closest('table'));
+
+			}
+
+		}
+	};
+
+	this.reactToDeleteNotification = function (id) {
+
+		if (this.isDialogOpen()) {
+
+			var $tr = $('tr.dup_' + id, dialogText);
+
+			if ($tr && $tr.length) {
+
+				_deleteRowCallback($tr);
+
+			}
+
+		}
+	};
 
 	/* ~~~~~~~~~~ private fields ~~~~~~~~~~ */
 	var _didInit      = false;
@@ -92,11 +124,7 @@ var _DuplicateFinder = new (function () {
 
 				// we only get the broadcast - that is why we set up a callback and call it from the model...
 				$tr.data('callback', function () {
-					$tr.data('callback', null);
-					var $table = $tr.closest('table');
-					$tr.remove();
-
-					_checkTableForConflicts($table);
+					_deleteRowCallback($tr);
 				});
 
 				Command.deleteNode(objId);
@@ -106,6 +134,14 @@ var _DuplicateFinder = new (function () {
 		}
 
 		_didInit = true;
+	};
+
+	function _deleteRowCallback ($tr) {
+		$tr.data('callback', null);
+		var $table = $tr.closest('table');
+		$tr.remove();
+
+		_checkTableForConflicts($table);
 	};
 
 	function _closeDialog() {

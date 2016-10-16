@@ -90,11 +90,16 @@ var _Dashboard = {
 			});
 		});
 
+		var getImageIcon = function(file) {
+			var icon = (file.contentType.startsWith('image/svg') ? file.path : (file.tnSmall ? file.tnSmall.path : _Images.icon));
+			return icon;
+		};
+
 		var myImages = _Dashboard.appendBox('My Images', 'my-images');
 		myImages.append('<div class="dashboard-info">Your most edited <a class="internal-link" href="javascript:void(0)">images</a> are:</div>');
 		Command.getByType('Image', 5, 1, 'version', 'desc', null, false, function(images) {
 			images.forEach(function(i) {
-				myImages.append('<div class="dashboard-info"><a href="/' + i.name + '" target="_blank"><img class="icon" src="' + _Images.getIcon(i) + '"></a> <a href="/' + i.id + '" target="_blank">' + _Dashboard.displayName(i) + '</a>' + _Dashboard.displayVersion(i) + '</div>');
+				myImages.append('<div class="dashboard-info"><a href="/' + i.name + '" target="_blank"><img class="icon" src="' + getImageIcon(i) + '"></a> <a href="/' + i.id + '" target="_blank">' + _Dashboard.displayName(i) + '</a>' + _Dashboard.displayVersion(i) + '</div>');
 			});
 		});
 

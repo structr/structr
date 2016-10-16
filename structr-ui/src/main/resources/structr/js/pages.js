@@ -50,7 +50,7 @@ var _Pages = {
 		$(window.document).on('mouseup', function() {
 			$('#add-child-dialog').remove();
 		});
-		
+
 		Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entities) {
 			shadowPage = entities[0];
 		});
@@ -105,7 +105,7 @@ var _Pages = {
 		leftSlideout.css({
 			height: windowHeight - headerOffsetHeight - 42 + 'px'
 		});
-		
+
 		var rightSlideout = $('#' + activeTabRight).closest('.slideOut');
 		rightSlideout.css({
 			height: windowHeight - headerOffsetHeight - 42 + 'px'
@@ -295,7 +295,7 @@ var _Pages = {
 			_Pages.pagesTabResizeContent();
 			_Logger.log(_LogType.PAGES, LSWrapper.getItem(leftSlideoutWidthKey), leftSlideoutWidth);
 		}
-		
+
 		if (activeTabLeft) {
 			$('#' + activeTabLeft).addClass('active').click();
 		}
@@ -498,9 +498,6 @@ var _Pages = {
 			self.show();
 		});
 
-
-
-
 		return tab;
 	},
 	resetTab: function(element) {
@@ -550,10 +547,6 @@ var _Pages = {
 			$(this).removeClass('active');
 		});
 
-		$('.previewBox', previews).each(function() {
-			$(this).hide();
-		});
-
 		if (!element.hasClass('page')) {
 			return false;
 		}
@@ -567,6 +560,13 @@ var _Pages = {
 
 		_Logger.log(_LogType.PAGES, 'store active tab', activeTab);
 		LSWrapper.setItem(activeTabKey, activeTab);
+
+	},
+	hideAllPreviews: function () {
+
+		$('.previewBox', previews).each(function() {
+			$(this).hide();
+		});
 
 	},
 	refreshActiveElements: function() {
@@ -594,6 +594,7 @@ var _Pages = {
 			var url = viewRootUrl + obj.name + (LSWrapper.getItem(detailsObjectId + id) ? '/' + LSWrapper.getItem(detailsObjectId + id) : '') + '?edit=2';
 			iframe.prop('src', url);
 			_Logger.log(_LogType.PAGES, 'iframe', id, 'activated');
+			_Pages.hideAllPreviews();
 			iframe.parent().show();
 			_Pages.resize();
 		});
@@ -742,8 +743,12 @@ var _Pages = {
 
 		var tab = _Pages.addTab(entity);
 
-		previews.append('<div class="previewBox"><iframe id="preview_'
-				+ entity.id + '"></iframe></div><div style="clear: both"></div>');
+		var existingIframe = $('#preview_' + entity.id);
+		if (existingIframe && existingIframe.length) {
+			existingIframe.replaceWith('<iframe id="preview_' + entity.id + '"></iframe>');
+		} else {
+			previews.append('<div class="previewBox"><iframe id="preview_' + entity.id + '"></iframe></div><div style="clear: both"></div>');
+		}
 
 		_Pages.resetTab(tab, entity.name);
 
@@ -1170,7 +1175,7 @@ var _Pages = {
 		} else {
 			Structr.closeLeftSlideOuts([pagesSlideout], activeTabLeftKey, _Pages.leftSlideoutClosedCallback);
 		}
-		
+
 	},
 	pagesTabResizeContent: function () {
 		var storedLeftSlideoutWidth = LSWrapper.getItem(leftSlideoutWidthKey);

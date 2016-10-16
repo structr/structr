@@ -266,7 +266,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 	@Override
 	public org.apache.sshd.server.Command create() {
-		return new StructrShellCommand();
+		return new StructrConsoleCommand(securityContext);
 	}
 
 	// ----- private methods -----

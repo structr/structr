@@ -985,7 +985,7 @@ var Structr = {
 	openLeftSlideOut: function(slideout, tab, activeTabKey, callback, dragCallback) {
 		var s = $(slideout);
 		var storedLeftSlideoutWidth = LSWrapper.getItem(leftSlideoutWidthKey);
-		var psw = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (pagesSlideout.width() + 12);
+		var psw = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (s.width() + 12);
 
 		var t = $(tab);
 		t.addClass('active');

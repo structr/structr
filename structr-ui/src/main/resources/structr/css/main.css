@@ -3165,6 +3165,21 @@ i.fa.ps {
 .prop .remove {
 	float: right;
     margin: 4px 0 2px 1px;
+
+#switch-list.active {
+	width: 61px;
+}
+
+#switch-list.inactive {
+	width: 34px;
+}
+
+#switch-tiles.active {
+	width: 66px;
+}
+
+#switch-tiles.inactive {
+	width: 39px;
 }
 
 /**
