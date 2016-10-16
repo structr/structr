@@ -42,7 +42,7 @@ var _Dashboard = {
 			//console.log(me);
 			var t = $('table', aboutMe);
 			t.append('<tr><td class="key">ID</td><td>' + meObj.id + '</td></tr>');
-			t.append('<tr><td class="key">E-Mail</td><td>' + meObj.eMail + '</td></tr>');
+			t.append('<tr><td class="key">E-Mail</td><td>' + (meObj.eMail || '') + '</td></tr>');
 			t.append('<tr><td class="key">Working Directory</td><td>' + (meObj.workingDirectory ? meObj.workingDirectory.name : '') + '</td></tr>');
 			t.append('<tr><td class="key">Session ID(s)</td><td>' + meObj.sessionIds.join('<br>') + '</td></tr>');
 			t.append('<tr><td class="key">Groups</td><td>' + meObj.groups.map(function(g) { return g.name; }).join(', ') + '</td></tr>');
