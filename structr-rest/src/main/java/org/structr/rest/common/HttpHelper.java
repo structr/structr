@@ -56,7 +56,6 @@ public class HttpHelper {
 	
 	private static final Logger logger = LoggerFactory.getLogger(HttpHelper.class.getName());
 	
-	private static String address;
 	private static String proxyUrl;
 	private static String proxyUsername;
 	private static String proxyPassword;
@@ -83,6 +82,10 @@ public class HttpHelper {
 			proxyPassword = Services.getBaseConfiguration().getProperty(Services.APPLICATION_PROXY_HTTP_PASSWORD);
 		} else {
 			proxyPassword = proxyPasswordParameter;
+		}
+
+		if (!StringUtils.isBlank(cookieParameter)) {
+			cookie = cookieParameter;
 		}
 
 		//final HttpHost target             = HttpHost.create(url.getHost());
