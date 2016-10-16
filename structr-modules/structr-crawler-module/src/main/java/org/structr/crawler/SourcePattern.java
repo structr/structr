@@ -18,7 +18,6 @@
  */
 package org.structr.crawler;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DecimalFormat;
@@ -28,17 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpHost;
-import org.apache.http.client.config.CookieSpecs;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.config.ConnectionConfig;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -51,11 +40,11 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
+import org.structr.rest.common.HttpHelper;
 import org.structr.schema.ConfigurationProvider;
-import org.structr.web.common.HttpHelper;
-import org.structr.web.entity.User;
 
 public class SourcePattern extends AbstractNode {
 	
@@ -73,9 +62,10 @@ public class SourcePattern extends AbstractNode {
 	public static final Property<String>              mappedAttributeProperty       = new StringProperty("mappedAttribute").indexed();
 	public static final Property<String>              mappedAttributeFormatProperty = new StringProperty("mappedAttributeFormat");
 	public static final Property<String>              mappedAttributeLocaleProperty = new StringProperty("mappedAttributeLocale");
+	public static final Property<String>              inputValue                    = new StringProperty("inputValue").indexed();
   
 	public static final View uiView = new View(SourcePattern.class, "ui",
-		subPatternsProperty, subPageProperty, sourcePageProperty, parentPatternProperty, fromProperty, toProperty, selectorProperty, mappedTypeProperty, mappedAttributeProperty, mappedAttributeFormatProperty, mappedAttributeLocaleProperty
+		subPatternsProperty, subPageProperty, sourcePageProperty, parentPatternProperty, fromProperty, toProperty, selectorProperty, mappedTypeProperty, mappedAttributeProperty, mappedAttributeFormatProperty, mappedAttributeLocaleProperty, inputValue
 	);
 
 	private Class type(final String typeString) throws FrameworkException {
@@ -122,7 +112,7 @@ public class SourcePattern extends AbstractNode {
 		
 	}
 	
-	private String getContent(final String urlString, final String cookie) throws FrameworkException {
+	private String getContent(final String urlString) throws FrameworkException {
 		
 		final SourceSite site = getSite();
 
@@ -130,11 +120,15 @@ public class SourcePattern extends AbstractNode {
 		String proxyUsername = site.getProperty(SourceSite.proxyUsername);
 		String proxyPassword = site.getProperty(SourceSite.proxyPassword);
 		
-		if (StringUtils.isBlank(proxyUrl)) {
-			proxyUrl      = ((User) securityContext.getCachedUser()).getProperty(User.proxyUrl);
-			proxyUsername = ((User) securityContext.getCachedUser()).getProperty(User.proxyUsername);
-			proxyPassword = ((User) securityContext.getCachedUser()).getProperty(User.proxyPassword);
+		Principal user = securityContext.getCachedUser();
+		
+		if (user != null & StringUtils.isBlank(proxyUrl)) {
+			proxyUrl      = user.getProperty(Principal.proxyUrl);
+			proxyUsername = user.getProperty(Principal.proxyUsername);
+			proxyPassword = user.getProperty(Principal.proxyPassword);
 		}
+
+		final String cookie = site.getProperty(SourceSite.cookie);
 			
 		return HttpHelper.get(urlString, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP)
 				.replace("<head>", "<head>\n  <base href=\"" + urlString + "\">");
@@ -205,7 +199,7 @@ public class SourcePattern extends AbstractNode {
 			final String subUrl     = uri.getScheme() + "://" + uri.getAuthority() + doc.select(selector).attr("href");
 
 			// Extract the content of the linked page
-			final String subContent = getContent(subUrl, null);
+			final String subContent = getContent(subUrl);
 
 			// Parse the content into a document
 			final Document subDoc = Jsoup.parse(subContent);
@@ -321,13 +315,12 @@ public class SourcePattern extends AbstractNode {
 		} else {
 			
 			final String url      = page.getProperty(SourcePage.url);
-			final String cookie   = page.getProperty(SourcePage.cookie);
 			if (url == null) {
 				throw new FrameworkException(422, "This pattern's source page has no URL, exiting.");
 			}
 
 			// Get the content from the URL
-			final String content = getContent(url, cookie);
+			final String content = getContent(url);
 
 			// Parse the document with Jsoup and extract the elements matched by the given selector
 			doc = Jsoup.parse(content);
