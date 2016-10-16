@@ -52,6 +52,9 @@ public interface Principal extends NodeInterface, AccessControllable {
 	public static final Property<String[]> denied                = new ArrayProperty("denied", String.class);
 	public static final Property<String> locale                  = new StringProperty("locale");
 	public static final Property<String> publicKey               = new StringProperty("publicKey");
+	public static final Property<String> proxyUrl                = new StringProperty("proxyUrl");
+	public static final Property<String> proxyUsername           = new StringProperty("proxyUsername");
+	public static final Property<String> proxyPassword           = new StringProperty("proxyPassword");
 
 	public List<Principal> getParents();
 
