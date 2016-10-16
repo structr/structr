@@ -95,7 +95,10 @@ var _Crawler = {
 	},
 	onload: function() {
 
-		_Crawler.init();
+		$.get(rootUrl + '/me/ui', function(data) {
+			meObj = data.result;
+			_Crawler.init();
+		});
 
 		$('#main-help a').attr('href', 'https://support.structr.com/knowledge-graph');
 
@@ -126,7 +129,7 @@ var _Crawler = {
 			_Dragndrop.makeDroppable(rootEl);
 			_Crawler.loadAndSetWorkingDir(function() {
 				if (currentSite) {
-					_Crawler.deepOpen(currentSite);
+//					_Crawler.deepOpen(currentSite);
 				}
 //				window.setTimeout(function() {
 //					crawlerTree.jstree('select_node', currentSite ? currentSite.id : 'root');
@@ -316,7 +319,7 @@ var _Crawler = {
 				window.setTimeout(function() {
 					list.forEach(function(obj) {
 						var el = $('#' + obj.id + ' > .jstree-wholerow', crawlerTree);
-						StructrModel.create({id: obj.id});
+						StructrModel.create({id: obj.id}, null, false);
 						_Dragndrop.makeDroppable(el);
 					});
 				}, 500);
@@ -387,7 +390,7 @@ var _Crawler = {
 			itemsPager.activateFilterElements();
 
 			crawlerList.append(
-					  '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>URL</th></tr></thead><tbody id="files-table-body"></tbody></table>'
+					  '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>URL</th><th>Login Page</th></tr></thead><tbody id="files-table-body"></tbody></table>'
 			);
 
 			crawlerList.append('<button class="add_page_icon button"><img title="Add Page" alt="Add Page" src="' + _Icons.add_page_icon + '"> Add Page</button>');
@@ -406,7 +409,7 @@ var _Crawler = {
 
 		var tableBody = $('#files-table-body');
 
-		$('#row' + sourcePage.id, tableBody).remove(); console.log(sourcePage.url.length)
+		$('#row' + sourcePage.id, tableBody).remove();
 
 		var rowId = 'row' + sourcePage.id;
 		tableBody.append('<tr id="' + rowId + '"' + (sourcePage.isThumbnail ? ' class="thumbnail"' : '') + '></tr>');
@@ -418,7 +421,8 @@ var _Crawler = {
 		row.append('<td><div id="id_' + sourcePage.id + '" data-structr_type="item" class="node item"><b title="' +  (sourcePage.name ? sourcePage.name : '[unnamed]') + '" class="name_">' + (sourcePage.name ? fitStringToWidth(sourcePage.name, 200) : '[unnamed]') + '</b></td>');
 
 		row.append('<td><div class="editable url_" title="' + (sourcePage.url || '') + '">' + (sourcePage.url && sourcePage.url.length ? sourcePage.url : '<span class="placeholder">click to edit</span>') + '</div></td>');
-
+		row.append('<td>' + (sourcePage.isLoginPage ? '✓' : '') + '</td>');
+		
 		//row.append('<td>' + sourcePage.type + (sourcePage.isThumbnail ? ' thumbnail' : '') + (sourcePage.isFile && sourcePage.contentType ? ' (' + sourcePage.contentType + ')' : '') + '</td>');
 		// row.append('<td>' + (sourcePage.owner ? (sourcePage.owner.name ? sourcePage.owner.name : '[unnamed]') : '') + '</td>');
 
@@ -517,8 +521,46 @@ var _Crawler = {
 				+ '<input id="element-id" type="text" placeholder="Id">'
 				+ '<input id="element-class" type="text" placeholder="Class"></div>');
 
+			var url = proxyUrl;
+
 			if (sourcePage.url) {
-				$('#crawler-list').append('<iframe id="page-frame" name="page-frame" src="' + proxyUrl + '?url=' + encodeURIComponent(sourcePage.url) + '" data-site-id="' + sourcePage.site.id + '" data-page-id="' + sourcePage.id + '"></iframe>');
+				
+				url += '?url=' + encodeURIComponent(sourcePage.url);
+				
+				if (sourcePage.site) {
+					
+					if (sourcePage.site.proxyUrl) {
+						url += '&proxyUrl=' + encodeURIComponent(sourcePage.site.proxyUrl);
+					}
+						
+					if (sourcePage.site.proxyUsername) {
+						url += '&proxyUsername=' + encodeURIComponent(sourcePage.site.proxyUsername);
+					}
+					
+					if (sourcePage.site.proxyPassword) {
+						url += '&proxyPassword=' + encodeURIComponent(sourcePage.site.proxyPassword);
+					}
+					
+					if (sourcePage.site.authUsername) {
+						url += '&authUsername=' + encodeURIComponent(sourcePage.site.authUsername);
+					}
+
+					if (sourcePage.site.authPassword) {
+						url += '&authPassword=' + encodeURIComponent(sourcePage.site.authPassword);
+					}
+
+					if (sourcePage.site.cookie) {
+						url += '&cookie=' + encodeURIComponent(sourcePage.site.cookie);
+					}
+				}
+				
+//				if (meObj && meObj.proxyUrl) {
+//					proxyUrl += '&proxyUrl=' + meObj.proxyUrl;
+//				}
+				
+				//console.log(url);
+				
+				$('#crawler-list').append('<iframe id="page-frame" name="page-frame" src="' + url + '" data-site-id="' + sourcePage.site.id + '" data-page-id="' + sourcePage.id + '"></iframe>');
 				_Crawler.initPageFrame(sourcePage.url);
 			}
 
@@ -644,10 +686,31 @@ var _Crawler = {
 
 		}
 
-		crawlerList.append(
-				  '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Selector</th><th>Mapped Type</th><th>Mapped Attribute</th><th>Locale</th><th>Format</th><th>Sub Page</th><th>Actions</th></tr></thead>'
-				+ '<tbody id="files-table-body"></tbody></table>'
-		);
+		if (sourcePage.isLoginPage) {
+			
+			crawlerList.append(
+				'<table id="files-table" class="stripe"><thead><tr>'
+				+ '<th class="icon">&nbsp;</th>'
+				+ '<th>Name</th>'
+				+ '<th>Selector</th>'
+				+ '<th>Value</th>'
+				+ '</tr></thead><tbody id="files-table-body"></tbody></table>');
+
+		} else {
+
+			crawlerList.append(
+				'<table id="files-table" class="stripe"><thead><tr>'
+				+ '<th class="icon">&nbsp;</th>'
+				+ '<th>Name</th>'
+				+ '<th>Selector</th>'
+				+ '<th>Mapped Type</th>'
+				+ '<th>Mapped Attribute</th>'
+				+ '<th>Locale</th>'
+				+ '<th>Format</th>'
+				+ '<th>Sub Page</th>'
+				+ '<th>Actions</th>'
+				+ '</tr></thead><tbody id="files-table-body"></tbody></table>');
+		}
 
 		$('.breadcrumb-entry').click(function (e) {
 			e.preventDefault();
@@ -665,6 +728,8 @@ var _Crawler = {
 
 	},
 	appendPatternRow: function(d) {
+		
+		console.log(d);
 
 		// add container/item to global model
 		StructrModel.createFromData(d, null, false);
@@ -755,13 +820,21 @@ var _Crawler = {
 		});
 
 		row.append('<td data-raw-value="' + (selector || '') + '" class="selector">' + (selector || '') + '</td>'
-			+ '<td><div title="' + (d.mappedType || '') + '" class="editable mappedType_">' + (d.mappedType || '<span class="placeholder">click to edit</span>') + '</div></td>'
-			+ '<td><div title="' + (d.mappedAttribute || '') + '" class="editable mappedAttribute_">' + (d.mappedAttribute || '<span class="placeholder">click to edit</span>') + '</div></td>'
-			+ '<td><div title="' + (d.mappedAttributeLocale || '') + '" class="editable mappedAttributeLocale_">' + (d.mappedAttributeLocale || '<span class="placeholder">click to edit</span>') + '</div></td>'
-			+ '<td><div title="' + (d.mappedAttributeFormat || '') + '" class="editable mappedAttributeFormat_">' + (d.mappedAttributeFormat || '<span class="placeholder">click to edit</span>') + '</div></td>'
-			+ '<td></td><td><button class="extract">Extract</button></td>');
+		
+			+ (d.sourcePage.isLoginPage ? 
+				  '<td><div title="' + (d.inputValue || '') + '" class="editable inputValue_">' + (d.inputValue || '<span class="placeholder">click to edit</span>') + '</div></td>'
+				: '<td><div title="' + (d.mappedType || '') + '" class="editable mappedType_">' + (d.mappedType || '<span class="placeholder">click to edit</span>') + '</div></td>')
+			+ (d.sourcePage.isLoginPage ? '' : '<td><div title="' + (d.mappedAttribute || '') + '" class="editable mappedAttribute_">' + (d.mappedAttribute || '<span class="placeholder">click to edit</span>') + '</div></td>')
+			+ (d.sourcePage.isLoginPage ? '' : '<td><div title="' + (d.mappedAttributeLocale || '') + '" class="editable mappedAttributeLocale_">' + (d.mappedAttributeLocale || '<span class="placeholder">click to edit</span>') + '</div></td>')
+			+ (d.sourcePage.isLoginPage ? '' : '<td><div title="' + (d.mappedAttributeFormat || '') + '" class="editable mappedAttributeFormat_">' + (d.mappedAttributeFormat || '<span class="placeholder">click to edit</span>') + '</div></td>')
+			+ (d.sourcePage.isLoginPage ? '<td></td>' : '<td></td><td><button class="extract">Extract</button></td>'));
 
 		// makeAttributeEditable: function(parentElement, id, attributeSelector, attributeName, width, callback) {
+		row.find('.inputValue_').on('click', function(e) {
+			e.stopPropagation();
+			_Entities.makeAttributeEditable(row, d.id, '.inputValue_', 'inputValue', 200);
+		});
+
 		row.find('.mappedType_').on('click', function(e) {
 			e.stopPropagation();
 			_Entities.makeAttributeEditable(row, d.id, '.mappedType_', 'mappedType', 200);
@@ -801,7 +874,7 @@ var _Crawler = {
 		}
 		div.children('.delete_icon').on('click', function(e) {
 			e.stopPropagation();
-			_Entities.deleteNode(this, d, false, function() {// console.log('pattern deleted', d, d.sourcePage)
+			_Entities.deleteNode(this, d, false, function() {
 				_Crawler.refreshPatterns(d.sourcePage);
 			});
 		});
