@@ -1485,7 +1485,7 @@ var _Entities = {
 	},
 	makeAttributeEditable: function(parentElement, id, attributeSelector, attributeName, width, callback) {
 		var w = width || 200;
-		var attributeElement = parentElement.find(attributeSelector);
+		var attributeElement = parentElement.find(attributeSelector).first();
 		var attributeElementTagName = attributeElement.prop('tagName').toLowerCase();
 		var oldValue = $.trim(attributeElement.attr('title'));
 
@@ -1499,7 +1499,7 @@ var _Entities = {
 			var self = $(this);
 			var newValue = self.val();
 			self.replaceWith('<' + attributeElementTagName + ' title="' + newValue + '" class="' + attributeName + '_">' + fitStringToWidth(newValue, w) + '</' + attributeElementTagName + '>');
-			parentElement.find(attributeSelector).on('click', function(e) {
+			parentElement.find(attributeSelector).first().on('click', function(e) {
 				e.stopPropagation();
 				_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName, w);
 			});
@@ -1511,7 +1511,7 @@ var _Entities = {
 				var self = $(this);
 				var newValue = self.val();
 				self.replaceWith('<' + attributeElementTagName + ' title="' + newValue + '" class="' + attributeName + '_">' + fitStringToWidth(newValue, w) + '</' + attributeElementTagName + '>');
-				parentElement.find(attributeSelector).on('click', function(e) {
+				parentElement.find(attributeSelector).first().on('click', function(e) {
 					e.stopPropagation();
 					_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName, w);
 				});
@@ -1521,7 +1521,7 @@ var _Entities = {
 				var self = $(this);
 				var newValue = self.val();
 				self.replaceWith('<' + attributeElementTagName + ' title="' + newValue + '" class="' + attributeName + '_">' + fitStringToWidth(oldValue, w) + '</' + attributeElementTagName + '>');
-				parentElement.find(attributeSelector).on('click', function(e) {
+				parentElement.find(attributeSelector).first().on('click', function(e) {
 					e.stopPropagation();
 					_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName, w);
 				});
@@ -1538,7 +1538,7 @@ var _Entities = {
 	},
 	setNewAttributeValue: function(element, id, attributeName, newValue, callback) {
 		Command.setProperty(id, attributeName, newValue, false, function() {
-			blinkGreen(element.find('.' + attributeName + '_'));
+			blinkGreen(element.find('.' + attributeName + '_').first());
 			if (lastMenuEntry === 'pages') {
 				_Pages.reloadPreviews();
 			} else if (lastMenuEntry === 'files' && attributeName === 'name') {
