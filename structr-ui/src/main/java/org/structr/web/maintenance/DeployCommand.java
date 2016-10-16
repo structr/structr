@@ -116,7 +116,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (StringUtils.isBlank(path)) {
 
-			throw new FrameworkException(422, "Please provide source path for deployment.");
+			throw new FrameworkException(422, "Please provide 'source' attribute for deployment source directory path.");
 		}
 
 		final Path source = Paths.get(path);
@@ -272,6 +272,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private void doExport(final Map<String, Object> attributes) throws FrameworkException {
 
 		final String path  = (String) attributes.get("target");
+
+		if (StringUtils.isBlank(path)) {
+
+			throw new FrameworkException(422, "Please provide 'target' attribute for deployment target directory path.");
+		}
+
 		final Path target  = Paths.get(path);
 
 		if (Files.exists(target)) {
