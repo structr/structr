@@ -20,8 +20,10 @@ package org.structr.web.function;
 
 import java.io.StringWriter;
 import java.util.List;
+import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.Result;
 import org.structr.core.StaticValue;
 import org.structr.core.Value;
@@ -102,6 +104,41 @@ public class ToJsonFunction extends UiFunction {
 					final List list = (List)sources[0];
 
 					jsonStreamer.stream(securityContext, writer, new Result(list, list.size(), true, false), null);
+
+					return writer.getBuffer().toString();
+
+				} catch (Throwable t) {
+
+					logException(entity, t, sources);
+
+				}
+
+
+			} else if (sources[0] instanceof Map) {
+
+				try {
+
+					final Value<String> view = new StaticValue<>("public");
+					if (sources.length > 1) {
+
+						view.set(securityContext, sources[1].toString());
+					}
+
+					int outputDepth = 3;
+					if (sources.length > 2) {
+
+						if (sources[2] instanceof Number) {
+							outputDepth = ((Number)sources[2]).intValue();
+						}
+					}
+
+					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth);
+					final StringWriter writer = new StringWriter();
+					final GraphObjectMap map  = new GraphObjectMap();
+
+					this.recursivelyConvertMapToGraphObjectMap(map, (Map)sources[0], outputDepth);
+
+					jsonStreamer.stream(securityContext, writer, new Result(map, false), null);
 
 					return writer.getBuffer().toString();
 
