@@ -24,21 +24,21 @@ import org.structr.core.property.*;
 
 public class SourcePage extends CrawlerTreeNode {
 
-	public static final Property<List<SourcePattern>> patterns   = new EndNodes<>("patterns",    SourcePageUSESourcePattern.class);
-	public static final Property<List<SourcePage>>    subPages   = new EndNodes<>("subPages",    SourcePageSUBSourcePage.class);
-	public static final Property<SourceSite>          site       = new StartNode<>("site",       SourceSiteCONTAINSSourcePage.class);
-	public static final Property<SourcePage>          parentPage = new StartNode<>("parentPage", SourcePageSUBSourcePage.class);
-	public static final Property<SourcePattern>       subPageOf  = new StartNode<>("subPageOf",  SourcePatternSUBPAGESourcePage.class);
-
-	public static final Property<String>              url        = new StringProperty("url").indexed();
-	public static final Property<String>              cookie     = new StringProperty("cookie");
+	public static final Property<List<SourcePattern>> patterns    = new EndNodes<>("patterns",    SourcePageUSESourcePattern.class);
+	public static final Property<List<SourcePage>>    subPages    = new EndNodes<>("subPages",    SourcePageSUBSourcePage.class);
+	public static final Property<SourceSite>          site        = new StartNode<>("site",       SourceSiteCONTAINSSourcePage.class);
+	public static final Property<SourcePage>          parentPage  = new StartNode<>("parentPage", SourcePageSUBSourcePage.class);
+	public static final Property<SourcePattern>       subPageOf   = new StartNode<>("subPageOf",  SourcePatternSUBPAGESourcePage.class);
+ 
+	public static final Property<String>              url         = new StringProperty("url").indexed();
+	public static final Property<Boolean>             isLoginPage = new BooleanProperty("isLoginPage").indexed();
 
 	public static final View uiView = new View(SourcePage.class, "ui",
-		patterns, subPages, site, parentPage, subPageOf, url, cookie
+		patterns, subPages, site, parentPage, subPageOf, url, isLoginPage
 	);
 
 	public static final View publicView = new View(SourcePage.class, "public",
 		name, type, id
 	);
-
+	
 }
