@@ -46,7 +46,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.validator.SimpleNonEmptyValueValidator;
 import org.structr.core.validator.TypeUniquenessValidator;
 import org.structr.schema.SchemaService;
-import org.structr.web.common.HttpHelper;
+import org.structr.rest.common.HttpHelper;
 import org.structr.web.entity.relation.FeedItemContents;
 import org.structr.web.entity.relation.FeedItemEnclosures;
 import org.structr.web.entity.relation.FeedItems;

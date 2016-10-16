@@ -27,14 +27,14 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
-import org.structr.web.common.HttpHelper;
+import org.structr.rest.common.HttpHelper;
 
 /**
  *
  */
 public abstract class UiFunction extends Function<Object, Object> {
 
-	protected String getFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password) throws IOException {
+	protected String getFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password) throws IOException, FrameworkException {
 		
 		return HttpHelper.get(requestUrl, username, password, ctx.getHeaders());
 	}

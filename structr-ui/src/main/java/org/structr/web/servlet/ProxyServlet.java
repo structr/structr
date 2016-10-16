@@ -58,7 +58,7 @@ import org.structr.rest.service.HttpService;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.web.auth.UiAuthenticator;
-import org.structr.web.common.HttpHelper;
+import org.structr.rest.common.HttpHelper;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Page;
 
@@ -154,7 +154,6 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 			// Ensure access mode is frontend
 			securityContext.setAccessMode(AccessMode.Frontend);
 
-			final Principal user = securityContext.getCachedUser();
 			
 			final ServletOutputStream out = response.getOutputStream();
 			
@@ -164,7 +163,11 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 			String proxyUrl      = request.getParameter("proxyUrl");
 			String proxyUsername = request.getParameter("proxyUsername");
 			String proxyPassword = request.getParameter("proxyPassword");
+			String authUsername  = request.getParameter("authUsername");
+			String authPassword  = request.getParameter("authPassword");
 			String cookie        = request.getParameter("cookie");
+
+			final Principal user = securityContext.getCachedUser();
 
 			if (user != null && StringUtils.isBlank(proxyUrl)) {
 				proxyUrl      = user.getProperty(User.proxyUrl);
@@ -172,7 +175,7 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 				proxyPassword = user.getProperty(User.proxyPassword);
 			}
 			
-			final String content = HttpHelper.get(address, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP).replace("<head>", "<head>\n  <base href=\"" + url + "\">");
+			final String content = HttpHelper.get(address, authUsername, authPassword, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP).replace("<head>", "<head>\n  <base href=\"" + url + "\">");
 
 			IOUtils.write(content, out);
 
