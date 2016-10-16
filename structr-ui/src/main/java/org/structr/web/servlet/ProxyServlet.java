@@ -41,6 +41,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
@@ -140,9 +141,10 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
 
-		final Authenticator auth        = getConfig().getAuthenticator();
+		final Authenticator auth      = getConfig().getAuthenticator();
 		SecurityContext securityContext;
-
+		String content;
+		
 		try {
 
 			// isolate request authentication in a transaction
@@ -153,9 +155,6 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 
 			// Ensure access mode is frontend
 			securityContext.setAccessMode(AccessMode.Frontend);
-
-			
-			final ServletOutputStream out = response.getOutputStream();
 			
 			String address = request.getParameter("url");
 			final URI url  = URI.create(address);
@@ -175,14 +174,20 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 				proxyPassword = user.getProperty(User.proxyPassword);
 			}
 			
-			final String content = HttpHelper.get(address, authUsername, authPassword, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP).replace("<head>", "<head>\n  <base href=\"" + url + "\">");
+			content = HttpHelper.get(address, authUsername, authPassword, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP).replace("<head>", "<head>\n  <base href=\"" + url + "\">");
 
-			IOUtils.write(content, out);
 
 		} catch (Throwable t) {
 
 			logger.error("Exception while processing request", t);
-			UiAuthenticator.writeInternalServerError(response);
+			content = errorPage(t);
+		}
+
+		try {
+			final ServletOutputStream out = response.getOutputStream();
+			IOUtils.write(content, out);
+		} catch (IOException ex) {
+			logger.error("Could not write to response", ex);
 		}
 	}
 
@@ -314,4 +319,8 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 	}
 
 
+	private String errorPage(final Throwable t) {
+		return "<html><head><title>Error in Structr Proxy</title></head><body><h1>Error in Proxy</h1><p>" + t.getMessage() + "</p>\n<!--" + ExceptionUtils.getStackTrace(t) + "--></body></html>";
+	}
+	
 }
