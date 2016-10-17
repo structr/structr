@@ -56,6 +56,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
+import org.jsoup.parser.Parser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.CaseHelper;
@@ -216,11 +217,36 @@ public class Importer {
 
 			if (fragment) {
 
-				parsedDocument = Jsoup.parseBodyFragment(code);
+				if (isDeployment) {
+
+					final List<Node> nodeList = Parser.parseXmlFragment(code, "");
+					parsedDocument            = Document.createShell("");
+					final Element body        = parsedDocument.body();
+					final Node[] nodes        = nodeList.toArray(new Node[nodeList.size()]);
+
+					for (int i = nodes.length - 1; i > 0; i--) {
+					    nodes[i].remove();
+					}
+
+					for (Node node : nodes) {
+					    body.appendChild(node);
+					}
+
+				} else {
+
+					parsedDocument = Jsoup.parseBodyFragment(code);
+				}
 
 			} else {
 
-				parsedDocument = Jsoup.parse(code);
+				if (isDeployment) {
+
+					parsedDocument = Jsoup.parse(code, "", Parser.xmlParser());
+
+				} else {
+
+					parsedDocument = Jsoup.parse(code);
+				}
 
 			}
 
