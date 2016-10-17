@@ -39,9 +39,14 @@ import org.structr.web.maintenance.DeployCommand;
 
 public class DeploymentTest extends StructrUiTest {
 
-	public void test00SimpleDeploymentRoundtrip() {
+	public void test00SimpleDeployment() {
 
 		doImportExportRoundtrip(readFileFromJar("/test/deployment/test01.html"));
+	}
+
+	public void test01ContentAttributes() {
+
+		doImportExportRoundtrip(readFileFromJar("/test/deployment/test02.html"));
 	}
 
 	// ----- private methods -----

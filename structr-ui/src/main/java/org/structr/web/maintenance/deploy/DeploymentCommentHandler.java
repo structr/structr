@@ -31,6 +31,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
+import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.CommentHandler;
@@ -77,6 +78,18 @@ public class DeploymentCommentHandler implements CommentHandler {
 					linkSource.setProperty(LinkSource.linkable, file);
 				}
 			}
+		});
+
+		handlers.put("content", (Page page, DOMNode node, final String parameters) -> {
+			node.setProperty(Content.contentType, parameters);
+		});
+
+		handlers.put("show", (Page page, DOMNode node, final String parameters) -> {
+			node.setProperty(DOMNode.showConditions, parameters);
+		});
+
+		handlers.put("hide", (Page page, DOMNode node, final String parameters) -> {
+			node.setProperty(DOMNode.hideConditions, parameters);
 		});
 	}
 

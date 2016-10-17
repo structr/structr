@@ -178,17 +178,6 @@ public class Content extends DOMNode implements Text {
 			}
 
 		});
-//		contentConverters.put("text/plain", new Adapter<String, String>() {
-//
-//			@Override
-//			public String adapt(String s) throws FrameworkException {
-//
-//				return StringEscapeUtils.escapeHtml(s);
-//
-//			}
-//
-//		});
-
 	}
 
 	@Override
@@ -295,8 +284,13 @@ public class Content extends DOMNode implements Text {
 			final EditMode edit = renderContext.getEditMode(securityContext.getUser(false));
 			if (EditMode.DEPLOYMENT.equals(edit)) {
 
+				final AsyncBuffer buf = renderContext.getBuffer();
+
+				// output ownership comments
+				renderDeploymentExportComments(buf, true);
+
 				// EditMode "deployment" means "output raw content, do not interpret in any way
-				renderContext.getBuffer().append(escapeForHtmlAttributes(getProperty(Content.content)));
+				buf.append(escapeForHtmlAttributes(getProperty(Content.content)));
 
 				return;
 			}

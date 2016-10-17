@@ -43,7 +43,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
-import org.apache.http.Header;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.config.ConnectionConfig;
@@ -1077,7 +1076,7 @@ public class Importer {
 
 		final URI     url = URI.create(address);
 		final HttpGet req = new HttpGet(url);
-		
+
 		req.addHeader("User-Agent", "curl/7.35.0");
 
 		logger.info("Downloading from {}", address);
@@ -1086,11 +1085,11 @@ public class Importer {
 			.setDefaultConnectionConfig(ConnectionConfig.DEFAULT)
 			.setUserAgent("curl/7.35.0")
 			.build();
-		
+
 		final CloseableHttpResponse resp = client.execute(req);
 
 		final int statusCode = resp.getStatusLine().getStatusCode();
-		
+
 		if (statusCode == 200) {
 
 			try (final InputStream is = resp.getEntity().getContent()) {
@@ -1109,7 +1108,7 @@ public class Importer {
 			if (content.charAt(0) == 65279) {
 				content = content.substring(1);
 			}
-			
+
 			System.out.println("Response body: " + content);
 			logger.warn("Unable to create file from URI {}: status code was {}", new Object[]{ address, statusCode });
 		}

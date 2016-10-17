@@ -24,6 +24,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -83,6 +84,7 @@ import org.structr.web.datasource.NodeGraphDataSource;
 import org.structr.web.datasource.RestDataSource;
 import org.structr.web.datasource.XPathGraphDataSource;
 import org.structr.web.entity.LinkSource;
+import org.structr.web.entity.Linkable;
 import org.structr.web.entity.Renderable;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.dom.relationship.DOMSiblings;
@@ -569,6 +571,176 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	}
 
 	// ----- protected methods -----
+	protected boolean renderDeploymentExportComments(final AsyncBuffer out, final boolean isContentNode) {
+
+		final Set<String> instructions = new LinkedHashSet<>();
+
+		getVisibilityInstructions(instructions);
+		getLinkableInstructions(instructions);
+
+		if (isContentNode) {
+
+			// special rules apply for content nodes: since we can not store
+			// structr-specific properties in the attributes of the element,
+			// we need to encode those attributes in instructions.
+			getContentInstructions(instructions);
+		}
+
+		if (!instructions.isEmpty()) {
+
+			out.append("<!-- ");
+
+			for (final Iterator<String> it = instructions.iterator(); it.hasNext();) {
+
+				final String instruction = it.next();
+
+				out.append(instruction);
+
+				if (it.hasNext()) {
+					out.append(", ");
+				}
+			}
+
+			out.append(" -->");
+
+			return true;
+
+		} else {
+
+			return false;
+		}
+	}
+
+	private void getContentInstructions(final Set<String> instructions) {
+
+		final String _contentType = getProperty(Content.contentType);
+		if (_contentType != null && !"text/plain".equals(_contentType)) {
+
+			instructions.add("@structr:content(" + escapeForHtmlAttributes(_contentType) + ")");
+		}
+
+		final String _showConditions = getProperty(DOMNode.showConditions);
+		if (StringUtils.isNotEmpty(_showConditions)) {
+
+			instructions.add("@structr:show(" + escapeForHtmlAttributes(_showConditions) + ")");
+		}
+
+		final String _hideConditions = getProperty(DOMNode.hideConditions);
+		if (StringUtils.isNotEmpty(_hideConditions)) {
+
+			instructions.add("@structr:hide(" + escapeForHtmlAttributes(_hideConditions) + ")");
+		}
+	}
+
+	private void getLinkableInstructions(final Set<String> instructions) {
+
+		if (this instanceof LinkSource) {
+
+			final LinkSource linkSourceElement = (LinkSource)this;
+			final Linkable linkable            = linkSourceElement.getProperty(LinkSource.linkable);
+
+			if (linkable != null) {
+
+				final String path = linkable.getPath();
+				if (path != null) {
+
+					instructions.add("@structr:link(" + path + ")");
+
+				} else {
+
+					logger.warn("Cannot export linkable relationship, no path.");
+				}
+			}
+		}
+	}
+
+	private void getVisibilityInstructions(final Set<String> instructions) {
+
+		final Page _ownerDocument       = (Page)getOwnerDocument();
+		final boolean pagePublic        = _ownerDocument.isVisibleToPublicUsers();
+		final boolean pageProtected     = _ownerDocument.isVisibleToAuthenticatedUsers();
+		final boolean pagePrivate       = !pagePublic && !pageProtected;
+		final boolean pagePublicOnly    = pagePublic && !pageProtected;
+		final boolean elementPublic     = isVisibleToPublicUsers();
+		final boolean elementProtected  = isVisibleToAuthenticatedUsers();
+		final boolean elementPrivate    = !elementPublic && !elementProtected;
+		final boolean elementPublicOnly = elementPublic && !elementProtected;
+
+		if (pagePrivate && !elementPrivate) {
+
+			if (elementPublicOnly) {
+				instructions.add("@structr:public-only");
+				return;
+			}
+
+			if (elementPublic && elementProtected) {
+				instructions.add("@structr:public");
+				return;
+			}
+
+			if (elementProtected) {
+				instructions.add("@structr:protected");
+				return;
+			}
+		}
+
+		if (pageProtected && !elementProtected) {
+
+			if (elementPublicOnly) {
+				instructions.add("@structr:public-only");
+				return;
+			}
+
+			if (elementPublic && elementProtected) {
+				instructions.add("@structr:public");
+				return;
+			}
+
+			if (elementPrivate) {
+				instructions.add("@structr:private");
+				return;
+			}
+		}
+
+		if (pagePublic && !elementPublic) {
+
+			if (elementPublicOnly) {
+				instructions.add("@structr:public-only");
+				return;
+			}
+
+			if (elementProtected) {
+				instructions.add("@structr:protected");
+				return;
+			}
+
+			if (elementPrivate) {
+				instructions.add("@structr:private");
+				return;
+			}
+		}
+
+		if (pagePublicOnly && !elementPublicOnly) {
+
+			if (elementPublic && elementProtected) {
+				instructions.add("@structr:public");
+				return;
+			}
+
+			if (elementProtected) {
+				instructions.add("@structr:protected");
+				return;
+			}
+
+			if (elementPrivate) {
+				instructions.add("@structr:private");
+				return;
+			}
+
+			return;
+		}
+	}
+
 	protected void renderCustomAttributes(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
 
 		dbNode = this.getNode();
