@@ -183,48 +183,42 @@ public class Content extends DOMNode implements Text {
 	@Override
 	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		for (final Sync rel : getOutgoingRelationships(Sync.class)) {
+		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
 
-			final Content syncedNode = (Content) rel.getTargetNode();
-			final PropertyMap map    = new PropertyMap();
+			for (final Sync rel : getOutgoingRelationships(Sync.class)) {
 
-			// sync content only
-			map.put(content, getProperty(content));
-			map.put(contentType, getProperty(contentType));
-			map.put(name, getProperty(name));
+				final Content syncedNode = (Content) rel.getTargetNode();
+				final PropertyMap map    = new PropertyMap();
 
-			syncedNode.setProperties(securityContext, map);
-		}
-
-                final Sync rel = getIncomingRelationship(Sync.class);
-                if (rel != null) {
-
-			final Content otherNode = (Content) rel.getSourceNode();
-			if (otherNode != null) {
-
-				final PropertyMap map = new PropertyMap();
-
-				// sync both ways
+				// sync content only
 				map.put(content, getProperty(content));
 				map.put(contentType, getProperty(contentType));
 				map.put(name, getProperty(name));
 
-				otherNode.setProperties(otherNode.getSecurityContext(), map);
-                	}
-                }
+				syncedNode.setProperties(securityContext, map);
+			}
 
-                try {
+			final Sync rel = getIncomingRelationship(Sync.class);
+			if (rel != null) {
 
-			increasePageVersion();
+				final Content otherNode = (Content) rel.getSourceNode();
+				if (otherNode != null) {
 
-		} catch (FrameworkException ex) {
+					final PropertyMap map = new PropertyMap();
 
-			logger.warn("Updating page version failed", ex);
+					// sync both ways
+					map.put(content, getProperty(content));
+					map.put(contentType, getProperty(contentType));
+					map.put(name, getProperty(name));
 
+					otherNode.setProperties(otherNode.getSecurityContext(), map);
+				}
+			}
+
+			return true;
 		}
 
-		return true;
-
+		return false;
 	}
 
 	@Override
