@@ -67,12 +67,15 @@ public class Template extends Content {
 
 			if (_syncedNode != null) {
 
-				final String name = _syncedNode.getProperty(AbstractNode.name);
-				out.append(name != null ? name : _syncedNode.getUuid());
+				// use name of synced node
+				final String _name = _syncedNode.getProperty(AbstractNode.name);
+				out.append(_name != null ? _name : _syncedNode.getUuid());
 
 			} else {
 
-				out.append(getUuid());
+				// use name of local template
+				final String _name = getProperty(AbstractNode.name);
+				out.append(_name != null ? _name : getUuid());
 			}
 
 			out.append("\"");

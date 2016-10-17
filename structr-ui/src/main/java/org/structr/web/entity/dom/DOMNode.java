@@ -47,6 +47,7 @@ import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.SemanticErrorToken;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
@@ -311,27 +312,42 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	}
 
 	@Override
+	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		if (super.onCreation(securityContext, errorBuffer)) {
+
+			return checkName(errorBuffer);
+		}
+
+		return false;
+	}
+
+	@Override
 	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		if (dataProperties != null) {
+		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
 
-			// invalidate data property cache
-			dataProperties.clear();
+			if (dataProperties != null) {
+
+				// invalidate data property cache
+				dataProperties.clear();
+			}
+
+
+			try {
+
+				increasePageVersion();
+
+			} catch (FrameworkException ex) {
+
+				logger.warn("Updating page version failed", ex);
+
+			}
+
+			return checkName(errorBuffer);
 		}
 
-
-		try {
-
-			increasePageVersion();
-
-		} catch (FrameworkException ex) {
-
-			logger.warn("Updating page version failed", ex);
-
-		}
-
-		return isValid(errorBuffer);
-
+		return false;
 	}
 
 	/**
@@ -1936,6 +1952,19 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			getMostUsedElementNames(mostUsedElements, node, depth + 1);
 		}
+	}
+
+	private boolean checkName(final ErrorBuffer errorBuffer) {
+
+		final String _name = getProperty(AbstractNode.name);
+		if (_name != null && _name.contains("/")) {
+
+			errorBuffer.add(new SemanticErrorToken(getType(), AbstractNode.name, "may_not_contain_slashes", _name));
+
+			return false;
+		}
+
+		return true;
 	}
 
 	// nested classes
