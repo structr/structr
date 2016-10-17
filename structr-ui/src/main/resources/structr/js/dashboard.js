@@ -91,7 +91,7 @@ var _Dashboard = {
 		});
 
 		var getImageIcon = function(file) {
-			var icon = (file.contentType.startsWith('image/svg') ? file.path : (file.tnSmall ? file.tnSmall.path : _Images.icon));
+			var icon = (file.contentType.startsWith('image/svg') ? file.path : (file.tnSmall ? file.tnSmall.path : _Icons.image_icon));
 			return icon;
 		};
 

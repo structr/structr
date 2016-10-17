@@ -252,7 +252,8 @@ var _Icons = {
 	minification_trigger_icon: 'icon/briefcase.png',
 	search_icon: 'icon/zoom.png',
 	star_icon: 'icon/star.png',
-	star_delete_icon: 'icon/star_delete.png'
+	star_delete_icon: 'icon/star_delete.png',
+	image_icon: 'icon/image.png'
 };
 
 var Structr = {
