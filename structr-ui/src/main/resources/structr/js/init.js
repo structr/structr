@@ -57,7 +57,7 @@ $(function() {
 	dialogBtn          = $('.dialogBtn', dialogBox);
 	dialogTitle        = $('.dialogTitle', dialogBox);
 	dialogMeta         = $('.dialogMeta', dialogBox);
-	dialogCancelButton = $('.closeButton');
+	dialogCancelButton = $('.closeButton', dialogBox);
 	dialogSaveButton   = $('.save', dialogBox);
 	loginButton        = $('#loginButton');
 
@@ -559,26 +559,27 @@ var Structr = {
 				dialogTitle.html(text);
 			}
 
-			if (callbackCancel) {
-				dialogCancelButton.off('click');
-				dialogCancelButton.on('click', function(e) {
-					e.stopPropagation();
-					callbackCancel();
-					dialogText.empty();
-					$.unblockUI({
-						fadeOut: 25
-
-					});
-					dialogBtn.children(':not(.closeButton)').remove();
-					//dialogSaveButton.remove();
-					//$('#saveProperties').remove();
-					if (searchField)
-						searchField.focus();
-
-					LSWrapper.removeItem(dialogDataKey);
+			dialogCancelButton.off('click').on('click', function(e) {
+				e.stopPropagation();
+				dialogText.empty();
+				$.unblockUI({
+					fadeOut: 25
 
 				});
-			}
+				dialogBtn.children(':not(.closeButton)').remove();
+				//dialogSaveButton.remove();
+				//$('#saveProperties').remove();
+				if (searchField)
+					searchField.focus();
+
+				LSWrapper.removeItem(dialogDataKey);
+
+				if (callbackCancel) {
+					window.setTimeout(function() {
+						callbackCancel();
+					}, 100);
+				}
+			});
 
 			$.blockUI.defaults.overlayCSS.opacity = .4;
 			$.blockUI.defaults.applyPlatformOpacityRules = false;
@@ -1301,7 +1302,7 @@ var Structr = {
 		$('.module-dependend').each(function(idx, element) {
 			var el = $(element);
 			var module = el.data('structr-module');
-			if (module !== 'crawler' && Structr.isModulePresent(module)) {
+			if (Structr.isModulePresent(module)) {
 				if (!el.is(':visible')) el.show();
 			} else {
 				el.hide();

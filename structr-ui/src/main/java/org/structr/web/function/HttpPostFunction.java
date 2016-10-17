@@ -26,7 +26,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
-import org.structr.web.common.HttpHelper;
+import org.structr.rest.common.HttpHelper;
 
 /**
  *

@@ -36,7 +36,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
-import org.structr.web.common.HttpHelper;
+import org.structr.rest.common.HttpHelper;
 
 /**
  *

@@ -2933,6 +2933,24 @@ table.dataTable thead th, table.dataTable thead td {
     text-align: left;
 }
 
+#files-table tbody tr td .editable {
+	min-width: 100px;
+	min-height: 14px;
+}
+
+#files-table tbody tr td .editable .placeholder {
+	color: #b5b5b5;
+}
+
+#files-table tbody tr td .node {
+	min-width: 160px;
+}
+
+#files-table tbody tr td input {
+	margin-top: 4px;
+	min-width: 100px;
+}
+
 #folder-contents .thumbnail,
 #folder-contents .thumbnail .file,
 #folder-contents .thumbnail i.fa-file-image-o {
@@ -3118,6 +3136,35 @@ i.fa.ps {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
 }
+
+.prop .node {
+    color: #333;
+    line-height: 1.7em;
+    border-radius: 3px;
+    border: 1px solid #a5a5a5;
+    padding: 2px 5px;
+    margin: 2px 2px 3px 1px;
+    background-color: #eee;
+}
+
+.prop .node:hover {
+    color: #555;
+    border: 1px solid #bbb;
+    background-color: #f5f5f5;
+    cursor: pointer;
+}
+
+.prop .add:hover {
+    cursor: pointer;
+    filter: alpha(opacity=60);
+    -khtml-opacity: 0.6;
+    -moz-opacity: 0.6;
+    opacity: 0.6;
+}
+
+.prop .remove {
+	float: right;
+    margin: 4px 0 2px 1px;
 
 #switch-list.active {
 	width: 61px;
@@ -3379,6 +3426,15 @@ input#element-class {
 }
 
 #crawler-list .delete {
+    margin-left: 4px;
+    cursor: pointer;
+}
+#crawler-list .button-area {
+	display: inline-block;
+	margin-left: 8px;
+}
+
+#crawler-list .edit-properties {
     margin-left: 4px;
     cursor: pointer;
 }

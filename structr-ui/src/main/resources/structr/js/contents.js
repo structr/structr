@@ -156,9 +156,9 @@ var _Contents = {
 				if (currentContentContainer) {
 					_Contents.deepOpen(currentContentContainer);
 				}
-				window.setTimeout(function() {
-					contentTree.jstree('select_node', currentContentContainer ? currentContentContainer.id : 'root');
-				}, 100);
+//				window.setTimeout(function() {
+//					contentTree.jstree('select_node', currentContentContainer ? currentContentContainer.id : 'root');
+//				}, 100);
 			});
 		});
 
@@ -306,63 +306,32 @@ var _Contents = {
 	},
 	load: function(id, callback) {
 
-		if (!id) {
+		Command.query('ContentContainer', containerPageSize, containerPage, 'name', 'asc', {parent: id}, function(folders) {
 
-			Command.list('ContentContainer', true, containerPageSize, containerPage, 'name', 'asc', null, function(folders) {
+			var list = [];
 
-				var list = [];
-
-				folders.forEach(function(d) {
-					var i = d.items && d.items.length > 0 ? d.items.length : undefined;
-					list.push({
-						id: d.id,
-						text:  (d.name ? d.name : '[unnamed]') + (i ? ' (' + i + ')' : ''),
-						children: d.isContentContainer && d.childContainers.length > 0,
-						icon: 'fa fa-folder-o',
-						path: d.path
-					});
+			folders.forEach(function(d) {
+				var i = d.items && d.items.length > 0 ? d.items.length : undefined;
+				list.push({
+					id: d.id,
+					text: (d.name ? d.name : '[unnamed]') + (i ? ' (' + i + ')' : ''),
+					children: d.isContentContainer && d.childContainers.length > 0,
+					icon: 'fa fa-folder-o',
+					path: d.path
 				});
+			});
 
-				callback(list);
+			callback(list);
 
-				window.setTimeout(function() {
-					list.forEach(function(obj) {
-						var el = $('#' + obj.id + ' > .jstree-wholerow', contentTree);
-						StructrModel.create({id: obj.id});
-						_Dragndrop.makeDroppable(el);
-					});
-				}, 500);
-
-			}, true);
-
-		} else {
-
-			Command.query('ContentContainer', containerPageSize, containerPage, 'name', 'asc', {parent: id}, function(folders) {
-
-				var list = [];
-
-				folders.forEach(function(d) {
-					list.push({
-						id: d.id,
-						text:  d.name ? d.name : '[unnamed]',
-						children: d.isContentContainer && d.childContainers.length > 0,
-						icon: 'fa fa-folder-o',
-						path: d.path
-					});
+			window.setTimeout(function() {
+				list.forEach(function(obj) {
+					var el = $('#' + obj.id + ' > .jstree-wholerow', contentTree);
+					StructrModel.create({id: obj.id}, null, false);
+					_Dragndrop.makeDroppable(el);
 				});
+			}, 500);
 
-				callback(list);
-
-				window.setTimeout(function() {
-					list.forEach(function(obj) {
-						var el = $('#' + obj.id + ' > .jstree-wholerow', contentTree);
-						StructrModel.create({id: obj.id});
-						_Dragndrop.makeDroppable(el);
-					});
-				}, 500);
-
-			}, true);
-		}
+		}, true);
 
 	},
 	setWorkingDirectory: function(id) {
@@ -557,28 +526,12 @@ var _Contents = {
 					if (!(itemId === containerId)) {
 						var nodeData = {};
 						nodeData.id = itemId;
-						//addExpandedNode(folderId);
-
-						//selectedElements = $('.node.selected');
-//						if (selectedElements.length > 1) {
-//
-//							$.each(selectedElements, function(i, fileEl) {
-//								var itemId = Structr.getId(fileEl);
-//								Command.setProperty(itemId, 'parentId', containerId, false, function() {
-//									$(ui.draggable).remove();
-//								});
-//
-//							});
-//							selectedElements.length = 0;
-//						} else {
 
 						_Entities.addToCollection(itemId, containerId, 'containers', function() {
 							$(ui.draggable).remove();
 							_Contents.refreshTree();
 						});
-
 					}
-
 					return false;
 				}
 			});
@@ -675,62 +628,194 @@ var _Contents = {
 			dialogSaveButton = $('#saveItem', dialogBtn);
 			saveAndClose = $('#saveAndClose', dialogBtn);
 
+			var typeInfo = {};
+			Command.getSchemaInfo(entity.type, function(schemaInfo) {
+				$(schemaInfo).each(function(i, prop) {
+					typeInfo[prop.jsonName] = prop;
+				});
+			});
+
 			Command.query('SchemaNode', 1, 1, 'name', 'asc', { name: entity.type }, function(schemaNodes) {
 
 				schemaNodes[0].schemaProperties.reverse().forEach(function(prop) {
 
 					dialogText.append('<div id="prop-' + prop.id + '" class="prop"><label for="' + prop.id + '"><h3>' + formatKey(prop.name) + '</h3></label></div>');
+					var div = $('#prop-' + prop.id);
 
-					var oldVal = entity[prop.name];
 
-					if (prop.propertyType === 'String') {
+					var key = prop.name;
+					var isReadOnly = typeInfo[key].isReadOnly;
+					var isSystem   = typeInfo[key].system;
+					//var isPassword = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
 
-						if (prop.contentType && prop.contentType === 'text/html') {
-							$('#prop-' + prop.id).append('<div class="value-container edit-area">' + (oldVal || '') + '</div>');
-							$('#prop-' + prop.id + ' .edit-area').trumbowyg({
-								//btns: ['strong', 'em', '|', 'insertImage'],
-								//autogrow: true
-							}).on('tbwchange', function() {
-								Command.get(entity.id, function(newEntity) {
-									_Contents.checkValueHasChanged(newEntity[prop.name], $('#prop-' + prop.id + ' .edit-area').trumbowyg('html') || null, [dialogSaveButton, saveAndClose]);
+					var oldVal = entity[key];
+
+					if (prop.propertyType === 'Boolean') {
+						
+						div.removeClass('value').append('<div class="value-container"><input type="checkbox" class="' + key + '_"></div>');
+						var checkbox = div.find('input[type="checkbox"].' + key + '_');
+						Command.getProperty(entity.id, key, function(val) {
+							if (val) {
+								checkbox.prop('checked', true);
+							}
+							if ((!isReadOnly || isAdmin) && !isSystem) {
+								checkbox.on('change', function() {
+									var checked = checkbox.prop('checked');
+									_Contents.checkValueHasChanged(oldVal, checked || false, [dialogSaveButton, saveAndClose]);
+//									_Entities.setProperty(entity.id, key, checked, false, function(newVal) {
+//										if (val !== newVal) {
+//											blinkGreen(div);
+//										}
+//										checkbox.prop('checked', newVal);
+//										val = newVal;
+//									});
 								});
-							}).on('tbwpaste', function() {
-								Command.get(entity.id, function(newEntity) {
-									_Contents.checkValueHasChanged(newEntity[prop.name], $('#prop-' + prop.id + ' .edit-area').trumbowyg('html') || null, [dialogSaveButton, saveAndClose]);
-								});
-							});
-
-						} else {
-							$('#prop-' + prop.id).append('<div class="value-container"><input value="' + (oldVal || '') + '">');
-							$('#prop-' + prop.id + ' .value-container input').on('keyup', function(e) {
-								if (e.keyCode !== 27) {
-									Command.get(entity.id, function(newEntity) {
-										_Contents.checkValueHasChanged(newEntity[prop.name], $('#prop-' + prop.id + ' .value-container input').val() || null, [dialogSaveButton, saveAndClose]);
-									});
-								}
-							});
-						}
-
-					} else if (prop.propertyType === 'Date') {
+							} else {
+								checkbox.prop('disabled', 'disabled');
+								checkbox.addClass('readOnly');
+								checkbox.addClass('disabled');
+							}
+						});
+					} else if (prop.propertyType === 'Date' && !isReadOnly) {
+						
 						$.get(rootUrl + '_schema/' + entity.type + '/ui', function(data) {
 
 							var typeInfo = data.result.filter(function(obj) { return obj.jsonName === prop.name; })[0];
 
 							//console.log(typeInfo.format);
-							$('#prop-' + prop.id).append('<div class="value-container"></div>');
-							_Entities.appendDatePicker($('#prop-' + prop.id + ' .value-container'), entity, prop.name, typeInfo.format);
-
-							$('#prop-' + prop.id + ' .value-container input').on('change', function(e) {
+							div.append('<div class="value-container"></div>');
+							_Entities.appendDatePicker($('.value-container', div), entity, prop.name, typeInfo.format);
+							var valueInput = $('.value-container input', div);
+							valueInput.on('change', function(e) {
 								if (e.keyCode !== 27) {
 									Command.get(entity.id, function(newEntity) {
-										_Contents.checkValueHasChanged(newEntity[prop.name], $('#prop-' + prop.id + ' .value-container input').val() || null, [dialogSaveButton, saveAndClose]);
+										_Contents.checkValueHasChanged(newEntity[prop.name], valueInput.val() || null, [dialogSaveButton, saveAndClose]);
 									});
 								}
 							});
 						});
 
-					}
+					} else {
 
+						if (prop.contentType && prop.contentType === 'text/html') {
+							div.append('<div class="value-container edit-area">' + (oldVal || '') + '</div>');
+							var editArea = $('.edit-area', div);
+							editArea.trumbowyg({
+								//btns: ['strong', 'em', '|', 'insertImage'],
+								//autogrow: true
+							}).on('tbwchange', function() {
+								Command.get(entity.id, function(newEntity) {
+									_Contents.checkValueHasChanged(newEntity[prop.name], editArea.trumbowyg('html') || null, [dialogSaveButton, saveAndClose]);
+								});
+							}).on('tbwpaste', function() {
+								Command.get(entity.id, function(newEntity) {
+									_Contents.checkValueHasChanged(newEntity[prop.name], editArea.trumbowyg('html') || null, [dialogSaveButton, saveAndClose]);
+								});
+							});
+
+						} else {
+							div.append('<div class="value-container"><input value="' + (oldVal || '') + '">');
+							var valueInput = $('.value-container input', div);
+							valueInput.on('keyup', function(e) {
+								
+								if (e.keyCode !== 27) {
+									Command.get(entity.id, function(newEntity) {
+										_Contents.checkValueHasChanged(newEntity[prop.name], valueInput.val() || null, [dialogSaveButton, saveAndClose]);
+									});
+								}
+							});
+						}
+					}
+				});
+				
+				schemaNodes[0].relatedTo.reverse().forEach(function(prop) {
+					
+					var key = prop.targetJsonName;
+					
+					var type = typeInfo[key].type;
+					var isRelated    = false;
+					var isCollection = false;
+
+					if (type) {
+						isRelated = typeInfo[key].relatedType;
+						if (isRelated) {
+							isCollection = typeInfo[key].isCollection;
+						}
+					}
+					
+					if (isRelated) {
+
+						dialogText.append('<div id="prop-' + prop.id + '" class="prop"><label for="' + prop.id + '"><h3>' + formatKey(key) + '</h3></label><img class="add" src="' + _Icons.add_grey_icon + '"><div class="related-nodes"></div></div>');
+						var div = $('#prop-' + prop.id);
+						div.prepend();
+						div.children('.add').on('click', function() {
+							Structr.dialog('Add ' + typeInfo[key].type, function() {
+							}, function() {
+								_Contents.editItem(item);
+							});
+							_Entities.displaySearch(entity.id, key, typeInfo[key].type, dialogText, isCollection);
+						});
+
+						if (entity[key]) {
+
+							var relatedNodes = $('.related-nodes', div);
+
+							if (!isCollection) {
+
+								var nodeId = entity[key].id || entity[key];
+
+								Command.get(nodeId, function(node) {
+
+									_Entities.appendRelatedNode(relatedNodes, node, function(nodeEl) {
+
+										$('.remove', nodeEl).on('click', function(e) {
+											e.preventDefault();
+											_Entities.setProperty(entity.id, key, null, false, function(newVal) {
+												if (!newVal) {
+													blinkGreen(relatedNodes);
+													dialogMsg.html('<div class="infoBox success">Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".</div>');
+													$('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+													nodeEl.remove();
+												} else {
+													blinkRed(relatedNodes);
+												}
+											});
+											return false;
+										});
+
+									});
+
+								});
+
+							} else {
+
+								entity[key].forEach(function(obj) {
+
+									var nodeId = obj.id || obj;
+
+									Command.get(nodeId, function(node) {
+
+										_Entities.appendRelatedNode(relatedNodes, node, function(nodeEl) {
+											$('.remove', nodeEl).on('click', function(e) {
+												e.preventDefault();
+												Command.removeFromCollection(entity.id, key, node.id, function() {
+													var nodeEl = $('._' + node.id, relatedNodes);
+													nodeEl.remove();
+													blinkGreen(relatedNodes);
+													dialogMsg.html('<div class="infoBox success">Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".</div>');
+													$('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+												});
+												return false;
+											});
+										});
+									});
+
+								});
+
+							}
+
+						}
+					}
 				});
 
 			}, true);
@@ -749,10 +834,12 @@ var _Contents = {
 						var newVal;
 						var oldVal = entity[prop.name];
 
-						if (prop.propertyType === 'String' || prop.propertyType === 'Date') {
+						if (true) {
 
 							if (prop.contentType && prop.contentType === 'text/html') {
 								newVal = $('#prop-' + prop.id + ' .edit-area').trumbowyg('html') || null;
+							} else if (prop.propertyType === 'Boolean') {
+								newVal = $('#prop-' + prop.id + ' .value-container input').prop('checked') || false;
 							} else {
 								newVal = $('#prop-' + prop.id + ' .value-container input').val() || null;
 							}

@@ -80,7 +80,8 @@ public class StructrScriptEngine extends AbstractScriptEngine {
 
 	@Override
 	public Bindings createBindings() {
-		return new StructrScriptBindings();
+		throw new UnsupportedOperationException();
+		//return new StructrScriptBindings();
 	}
 
 	@Override

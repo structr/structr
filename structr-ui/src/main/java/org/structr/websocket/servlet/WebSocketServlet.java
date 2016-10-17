@@ -55,6 +55,7 @@ public class WebSocketServlet extends org.eclipse.jetty.websocket.servlet.WebSoc
 
 		// create GSON serializer
 		final GsonBuilder gsonBuilder = new GsonBuilder()
+			.serializeNulls()
 			.registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(config.getOutputNestingDepth()));
 
 		if (Boolean.parseBoolean(StructrApp.getConfigurationValue(Services.WS_INDENTATION, "true"))) {

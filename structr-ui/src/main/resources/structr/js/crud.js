@@ -100,7 +100,7 @@ var _Crud = {
 					Structr.errorFromResponse(data.responseJSON, url);
 				},
 				422: function(data) {
-					Structr.errorFromResponse(data.responseJSON);
+					Structr.errorFromResponse(data.responseJSON, url);
 				}
 			},
 			error:function () {
@@ -2292,8 +2292,7 @@ var _Crud = {
 			}
 
 			if (callbackCancel) {
-				dialogCancelButton.off('click');
-				dialogCancelButton.on('click', function(e) {
+				dialogCancelButton.off('click').on('click', function(e) {
 					e.stopPropagation();
 					callbackCancel();
 					dialogText.empty();

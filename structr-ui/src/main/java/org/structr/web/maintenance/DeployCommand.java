@@ -122,7 +122,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (StringUtils.isBlank(path)) {
 
-			throw new FrameworkException(422, "Please provide source path for deployment.");
+			throw new FrameworkException(422, "Please provide 'source' attribute for deployment source directory path.");
 		}
 
 		final Path source = Paths.get(path);

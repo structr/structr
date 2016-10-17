@@ -95,7 +95,10 @@ var _Crawler = {
 	},
 	onload: function() {
 
-		_Crawler.init();
+		$.get(rootUrl + '/me/ui', function(data) {
+			meObj = data.result;
+			_Crawler.init();
+		});
 
 		$('#main-help a').attr('href', 'https://support.structr.com/knowledge-graph');
 
@@ -126,7 +129,7 @@ var _Crawler = {
 			_Dragndrop.makeDroppable(rootEl);
 			_Crawler.loadAndSetWorkingDir(function() {
 				if (currentSite) {
-					_Crawler.deepOpen(currentSite);
+//					_Crawler.deepOpen(currentSite);
 				}
 //				window.setTimeout(function() {
 //					crawlerTree.jstree('select_node', currentSite ? currentSite.id : 'root');
@@ -278,7 +281,7 @@ var _Crawler = {
 						id: d.id,
 						text:  d.name ? d.name : '[unnamed]',
 						pages: d.sourcePages,
-						icon: 'fa fa-folder-o',
+						icon: 'fa fa-sitemap',
 						path: d.path
 					});
 				});
@@ -288,7 +291,7 @@ var _Crawler = {
 				window.setTimeout(function() {
 					list.forEach(function(obj) {
 						var el = $('#' + obj.id + ' > .jstree-wholerow', crawlerTree);
-						StructrModel.create({id: obj.id});
+						StructrModel.create({id: obj.id}, null, false);
 						_Dragndrop.makeDroppable(el);
 					});
 				}, 500);
@@ -316,7 +319,7 @@ var _Crawler = {
 				window.setTimeout(function() {
 					list.forEach(function(obj) {
 						var el = $('#' + obj.id + ' > .jstree-wholerow', crawlerTree);
-						StructrModel.create({id: obj.id});
+						StructrModel.create({id: obj.id}, null, false);
 						_Dragndrop.makeDroppable(el);
 					});
 				}, 500);
@@ -336,7 +339,7 @@ var _Crawler = {
 		Command.get(id, function(site) {
 
 			var name = (site.name || '[unnamed]');
-			crawlerList.append('<div class="site-header"><div id="id_' + site.id + '" class="site-name"><b class="name_" title="' + name + '">' + name + '</b></div><a title="Delete" class="delete"><img alt="Delete Icon" src="' + _Icons.delete_icon + '"></a><img <input type="text" placeholder="Site name" value="' + site.name + '"></div>');
+			crawlerList.append('<div class="site-header"><div id="id_' + site.id + '" class="site-name"><b class="name_" title="' + name + '">' + name + '</b></div><div class="button-area"><img title="Edit Properties" alt="Edit Properties" class="edit-properties" src="' + _Icons.view_detail_icon + '"><img title="Delete Site" alt="Delete Site" class="delete" src="' + _Icons.delete_icon + '"></div></div>');
 
 			$('.site-header .site-name', crawlerList).on('click', function() {
 				_Entities.makeNameEditable($(this), 200, function() {
@@ -353,6 +356,12 @@ var _Crawler = {
 					}, 250);
 				});
 			});
+			
+			var editIcon = $('.site-header .edit-properties', crawlerList);
+			editIcon.on('click', function(e) {
+				e.stopPropagation();
+				_Entities.showProperties(site);
+			});
 
 			var handlePage = function(pages) {
 				if (pages && pages.length) {
@@ -361,29 +370,6 @@ var _Crawler = {
 					});
 				}
 			};
-
-			crawlerList.append('<table class="props">');
-			var proxySettingsTable = crawlerList.children('table');
-
-			proxySettingsTable.append('<tr id="crawler-proxy-url"><th>Proxy URL</th><td title="' + (site.proxyUrl || '') + '" class="proxyUrl_">' + (site.proxyUrl || '') + '</td></tr>');
-			$('#crawler-proxy-url').children('td.proxyUrl_').on('click', function(e) {
-				e.stopPropagation();
-				_Entities.makeAttributeEditable($('#crawler-proxy-url'), site.id, 'td.proxyUrl_', 'proxyUrl', 200);
-			});
-
-			proxySettingsTable.append('<tr id="crawler-proxy-username"><th>Proxy Username</th><td title="' + (site.proxyUsername || '') + '" class="proxyUsername_">' + (site.proxyUsername || '') + '</td></tr>');
-			$('#crawler-proxy-username').children('td.proxyUsername_').on('click', function(e) {
-				e.stopPropagation();
-				_Entities.makeAttributeEditable($('#crawler-proxy-username'), site.id, 'td.proxyUsername_', 'proxyUsername', 200);
-			});
-
-			proxySettingsTable.append('<tr id="crawler-proxy-password"><th>Proxy Password</th><td title="' + (site.proxyPassword || '') + '" class="proxyPassword_">' + (site.proxyPassword || '') + '</td></tr>');
-			$('#crawler-proxy-password').children('td.proxyPassword_').on('click', function(e) {
-				e.stopPropagation();
-				_Entities.makeAttributeEditable($('#crawler-proxy-password'), site.id, 'td.proxyPassword_', 'proxyPassword', 200);
-			});
-
-			//Command.query('SourcePage', 1000, 1, 'name', 'asc', {site: id}, handlePage, true, 'ui');
 
 			_Pager.initPager('crawler-pages', 'SourcePage', 1, 25, 'name', 'asc');
 			page['ContentItem'] = 1;
@@ -404,7 +390,7 @@ var _Crawler = {
 			itemsPager.activateFilterElements();
 
 			crawlerList.append(
-					  '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>URL</th></tr></thead><tbody id="files-table-body"></tbody></table>'
+					  '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>URL</th><th>Login Page</th></tr></thead><tbody id="files-table-body"></tbody></table>'
 			);
 
 			crawlerList.append('<button class="add_page_icon button"><img title="Add Page" alt="Add Page" src="' + _Icons.add_page_icon + '"> Add Page</button>');
@@ -425,19 +411,18 @@ var _Crawler = {
 
 		$('#row' + sourcePage.id, tableBody).remove();
 
-		var url = sourcePage.url || '';
-
 		var rowId = 'row' + sourcePage.id;
 		tableBody.append('<tr id="' + rowId + '"' + (sourcePage.isThumbnail ? ' class="thumbnail"' : '') + '></tr>');
 		var row = $('#' + rowId);
-		var icon = 'fa-folder-o';
+		var icon = 'fa-file-code-o';
 
-		row.append('<td class="file-type"><a href="' + url + '" target="_blank"><i class="fa ' + icon + '"></i></a></td>');
+		row.append('<td class="file-type"><a href="' + (sourcePage.url || '') + '" target="_blank"><i class="fa ' + icon + '"></i></a></td>');
 		//row.append('<td class="item-title"><b>' + (d.title ? fitStringToWidth(d.title, 200) : '[no title]') + '</b></td>');
 		row.append('<td><div id="id_' + sourcePage.id + '" data-structr_type="item" class="node item"><b title="' +  (sourcePage.name ? sourcePage.name : '[unnamed]') + '" class="name_">' + (sourcePage.name ? fitStringToWidth(sourcePage.name, 200) : '[unnamed]') + '</b></td>');
 
-		row.append('<td class="url_" title="' + url + '">' + url + '</td>');
-
+		row.append('<td><div class="editable url_" title="' + (sourcePage.url || '') + '">' + (sourcePage.url && sourcePage.url.length ? sourcePage.url : '<span class="placeholder">click to edit</span>') + '</div></td>');
+		row.append('<td>' + (sourcePage.isLoginPage ? '✓' : '') + '</td>');
+		
 		//row.append('<td>' + sourcePage.type + (sourcePage.isThumbnail ? ' thumbnail' : '') + (sourcePage.isFile && sourcePage.contentType ? ' (' + sourcePage.contentType + ')' : '') + '</td>');
 		// row.append('<td>' + (sourcePage.owner ? (sourcePage.owner.name ? sourcePage.owner.name : '[unnamed]') : '') + '</td>');
 
@@ -447,9 +432,9 @@ var _Crawler = {
 			return;
 
 		// makeAttributeEditable: function(parentElement, attributeSelector, attributeName, width, callback) {
-		row.children('td.url_').on('click', function(e) {
+		row.find('.url_').on('click', function(e) {
 			e.stopPropagation();
-			_Entities.makeAttributeEditable(row, sourcePage.id, 'td.url_', 'url', 200, function() {
+			_Entities.makeAttributeEditable(row, sourcePage.id, '.url_', 'url', 200, function() {
 				//_Crawler.refreshPatterns(sourcePage);
 				_Crawler.refreshTree();
 			});
@@ -478,6 +463,9 @@ var _Crawler = {
 			});
 		});
 
+		div.on('click', function() {
+			_Crawler.displayPatterns(sourcePage.id);
+		});
 
 		div.draggable({
 			revert: 'invalid',
@@ -533,8 +521,46 @@ var _Crawler = {
 				+ '<input id="element-id" type="text" placeholder="Id">'
 				+ '<input id="element-class" type="text" placeholder="Class"></div>');
 
+			var url = proxyUrl;
+
 			if (sourcePage.url) {
-				$('#crawler-list').append('<iframe id="page-frame" name="page-frame" src="' + proxyUrl + '?url=' + encodeURIComponent(sourcePage.url) + '" data-site-id="' + sourcePage.site.id + '" data-page-id="' + sourcePage.id + '"></iframe>');
+				
+				url += '?url=' + encodeURIComponent(sourcePage.url);
+				
+				if (sourcePage.site) {
+					
+					if (sourcePage.site.proxyUrl) {
+						url += '&proxyUrl=' + encodeURIComponent(sourcePage.site.proxyUrl);
+					}
+						
+					if (sourcePage.site.proxyUsername) {
+						url += '&proxyUsername=' + encodeURIComponent(sourcePage.site.proxyUsername);
+					}
+					
+					if (sourcePage.site.proxyPassword) {
+						url += '&proxyPassword=' + encodeURIComponent(sourcePage.site.proxyPassword);
+					}
+					
+					if (sourcePage.site.authUsername) {
+						url += '&authUsername=' + encodeURIComponent(sourcePage.site.authUsername);
+					}
+
+					if (sourcePage.site.authPassword) {
+						url += '&authPassword=' + encodeURIComponent(sourcePage.site.authPassword);
+					}
+
+					if (sourcePage.site.cookie) {
+						url += '&cookie=' + encodeURIComponent(sourcePage.site.cookie);
+					}
+				}
+				
+//				if (meObj && meObj.proxyUrl) {
+//					proxyUrl += '&proxyUrl=' + meObj.proxyUrl;
+//				}
+				
+				//console.log(url);
+				
+				$('#crawler-list').append('<iframe id="page-frame" name="page-frame" src="' + url + '" data-site-id="' + sourcePage.site.id + '" data-page-id="' + sourcePage.id + '"></iframe>');
 				_Crawler.initPageFrame(sourcePage.url);
 			}
 
@@ -602,7 +628,7 @@ var _Crawler = {
 					localPrevSiblings.push(this);
 					var localSelector = localPrevSiblings.map(function(h) { return $(h).text(); }).join(' > ');
 
-					console.log('local selector:', localSelector);
+					//console.log('local selector:', localSelector);
 
 					//var selector = $(subpattern).text();
 					var prevSiblings = $(subpattern).closest('tr').prevAll().find('.selector').toArray().reverse();
@@ -660,10 +686,31 @@ var _Crawler = {
 
 		}
 
-		crawlerList.append(
-				  '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Selector</th><th>Mapped Type</th><th>Mapped Attribute</th><th>Locale</th><th>Format</th><th>Sub Page</th><th>Actions</th></tr></thead>'
-				+ '<tbody id="files-table-body"></tbody></table>'
-		);
+		if (sourcePage.isLoginPage) {
+			
+			crawlerList.append(
+				'<table id="files-table" class="stripe"><thead><tr>'
+				+ '<th class="icon">&nbsp;</th>'
+				+ '<th>Name</th>'
+				+ '<th>Selector</th>'
+				+ '<th>Value</th>'
+				+ '</tr></thead><tbody id="files-table-body"></tbody></table>');
+
+		} else {
+
+			crawlerList.append(
+				'<table id="files-table" class="stripe"><thead><tr>'
+				+ '<th class="icon">&nbsp;</th>'
+				+ '<th>Name</th>'
+				+ '<th>Selector</th>'
+				+ '<th>Mapped Type</th>'
+				+ '<th>Mapped Attribute</th>'
+				+ '<th>Locale</th>'
+				+ '<th>Format</th>'
+				+ '<th>Sub Page</th>'
+				+ '<th>Actions</th>'
+				+ '</tr></thead><tbody id="files-table-body"></tbody></table>');
+		}
 
 		$('.breadcrumb-entry').click(function (e) {
 			e.preventDefault();
@@ -681,6 +728,8 @@ var _Crawler = {
 
 	},
 	appendPatternRow: function(d) {
+		
+		console.log(d);
 
 		// add container/item to global model
 		StructrModel.createFromData(d, null, false);
@@ -699,13 +748,15 @@ var _Crawler = {
 			tableBody.append('<tr id="row' + subPattern.id + '">'
 				+ '<td class="file-type"><a href="javascript:void(0)"><i class="fa fa-code"></i></a></td>'
 				+ '<td><div id="id_' + subPattern.id + '" data-structr_type="item" class="node item"><b title="' +  (name ? name : '[unnamed]') + '" class="name_">' + (name ? fitStringToWidth(name, 200) : '[unnamed]') + '</b></td>'
-				+ '<td data-raw-value="' + (subPattern.selector || '') + '" class="sub-selector">' + (subPattern.selector || '') + '</td>'
-				+ '<td title="' + (subPattern.mappedType || '') + '" class="mappedType_">' + (subPattern.mappedType || '') + '</td>'
-				+ '<td title="' + (subPattern.mappedAttribute || '') + '" class="mappedAttribute_">' + (subPattern.mappedAttribute || '') + '</td>'
-				+ '<td title="' + (subPattern.mappedAttributeLocale || '') + '" class="mappedAttributeLocale_">' + (subPattern.mappedAttributeLocale || '') + '</td>'
-				+ '<td title="' + (subPattern.mappedAttributeFormat || '') + '" class="mappedAttributeFormat_">' + (subPattern.mappedAttributeFormat || '') + '</td>'
-				+ '<td class="subPage_"></td>'
+				+ '<td><div data-raw-value="' + (subPattern.selector || '') + '" class="editable sub-selector">' + (subPattern.selector || '<span class="placeholder">click to edit</span>') + '</div></td>'
+				+ '<td><div title="' + (subPattern.mappedType || '') + '" class="editable mappedType_">' + (subPattern.mappedType || '<span class="placeholder">click to edit</span>') + '</div></td>'
+				+ '<td><div title="' + (subPattern.mappedAttribute || '') + '" class="editable mappedAttribute_">' + (subPattern.mappedAttribute || '<span class="placeholder">click to edit</span>') + '</div></td>'
+				+ '<td><div title="' + (subPattern.mappedAttributeLocale || '') + '" class="editable mappedAttributeLocale_">' + (subPattern.mappedAttributeLocale || '<span class="placeholder">click to edit</span>') + '</div></td>'
+				+ '<td><div title="' + (subPattern.mappedAttributeFormat || '') + '" class="editable mappedAttributeFormat_">' + (subPattern.mappedAttributeFormat || '<span class="placeholder">click to edit</span>') + '</div></td>'
+				+ '<td><div class="subPage_"></td>'
 				+ '<td></td></tr>');
+
+			var row = $('tr#row' + subPattern.id);
 
 			if (subPattern.subPage) {
 				Command.get(subPattern.subPage.id, function(subPage) {
@@ -713,24 +764,24 @@ var _Crawler = {
 				});
 			}
 
-			$('tr#row' + subPattern.id).children('td.mappedType_').on('click', function(e) {
+			row.find('.mappedType_').on('click', function(e) {
 				e.stopPropagation();
-				_Entities.makeAttributeEditable($('tr#row' + subPattern.id), subPattern.id, 'td.mappedType_', 'mappedType', 200);
+				_Entities.makeAttributeEditable($('tr#row' + subPattern.id), subPattern.id, '.mappedType_', 'mappedType', 200);
 			});
 
-			$('tr#row' + subPattern.id).children('td.mappedAttribute_').on('click', function(e) {
+			row.find('.mappedAttribute_').on('click', function(e) {
 				e.stopPropagation();
-				_Entities.makeAttributeEditable($('tr#row' + subPattern.id), subPattern.id, 'td.mappedAttribute_', 'mappedAttribute', 200);
+				_Entities.makeAttributeEditable(row, subPattern.id, '.mappedAttribute_', 'mappedAttribute', 200);
 			});
 
-			$('tr#row' + subPattern.id).children('td.mappedAttributeLocale_').on('click', function(e) {
+			row.find('.mappedAttributeLocale_').on('click', function(e) {
 				e.stopPropagation();
-				_Entities.makeAttributeEditable($('tr#row' + subPattern.id), subPattern.id, 'td.mappedAttributeLocale_', 'mappedAttributeLocale', 200);
+				_Entities.makeAttributeEditable(row, subPattern.id, '.mappedAttributeLocale_', 'mappedAttributeLocale', 200);
 			});
 
-			$('tr#row' + subPattern.id).children('td.mappedAttributeFormat_').on('click', function(e) {
+			row.find('.mappedAttributeFormat_').on('click', function(e) {
 				e.stopPropagation();
-				_Entities.makeAttributeEditable($('tr#row' + subPattern.id), subPattern.id, 'td.mappedAttributeFormat_', 'mappedAttributeFormat', 200);
+				_Entities.makeAttributeEditable(row, subPattern.id, '.mappedAttributeFormat_', 'mappedAttributeFormat', 200);
 			});
 
 			var div = Structr.node(subPattern.id);
@@ -769,20 +820,39 @@ var _Crawler = {
 		});
 
 		row.append('<td data-raw-value="' + (selector || '') + '" class="selector">' + (selector || '') + '</td>'
-			+ '<td title="' + (d.mappedType || '') + '" class="mappedType_">' + (d.mappedType || '') + '</td>'
-			+ '<td title="' + (d.mappedAttribute || '') + '" class="mappedAttribute_">' + (d.mappedAttribute || '') + '</td>'
-			+ '<td></td><td></td>'
-			+ '<td></td><td><button class="extract">Extract</button></td>');
+		
+			+ (d.sourcePage.isLoginPage ? 
+				  '<td><div title="' + (d.inputValue || '') + '" class="editable inputValue_">' + (d.inputValue || '<span class="placeholder">click to edit</span>') + '</div></td>'
+				: '<td><div title="' + (d.mappedType || '') + '" class="editable mappedType_">' + (d.mappedType || '<span class="placeholder">click to edit</span>') + '</div></td>')
+			+ (d.sourcePage.isLoginPage ? '' : '<td><div title="' + (d.mappedAttribute || '') + '" class="editable mappedAttribute_">' + (d.mappedAttribute || '<span class="placeholder">click to edit</span>') + '</div></td>')
+			+ (d.sourcePage.isLoginPage ? '' : '<td><div title="' + (d.mappedAttributeLocale || '') + '" class="editable mappedAttributeLocale_">' + (d.mappedAttributeLocale || '<span class="placeholder">click to edit</span>') + '</div></td>')
+			+ (d.sourcePage.isLoginPage ? '' : '<td><div title="' + (d.mappedAttributeFormat || '') + '" class="editable mappedAttributeFormat_">' + (d.mappedAttributeFormat || '<span class="placeholder">click to edit</span>') + '</div></td>')
+			+ (d.sourcePage.isLoginPage ? '<td></td>' : '<td></td><td><button class="extract">Extract</button></td>'));
 
 		// makeAttributeEditable: function(parentElement, id, attributeSelector, attributeName, width, callback) {
-		row.children('td.mappedType_').on('click', function(e) {
+		row.find('.inputValue_').on('click', function(e) {
 			e.stopPropagation();
-			_Entities.makeAttributeEditable(row, d.id, 'td.mappedType_', 'mappedType', 200);
+			_Entities.makeAttributeEditable(row, d.id, '.inputValue_', 'inputValue', 200);
 		});
 
-		row.children('td.mappedAttribute_').on('click', function(e) {
+		row.find('.mappedType_').on('click', function(e) {
 			e.stopPropagation();
-			_Entities.makeAttributeEditable(row, d.id, 'td.mappedAttribute_', 'mappedAttribute', 200);
+			_Entities.makeAttributeEditable(row, d.id, '.mappedType_', 'mappedType', 200);
+		});
+
+		row.find('.mappedAttribute_').on('click', function(e) {
+			e.stopPropagation();
+			_Entities.makeAttributeEditable(row, d.id, '.mappedAttribute_', 'mappedAttribute', 200);
+		});
+
+		row.find('.mappedAttributeLocale_').on('click', function(e) {
+			e.stopPropagation();
+			_Entities.makeAttributeEditable(row, d.id, '.mappedAttributeLocale_', 'mappedAttributeLocale', 200);
+		});
+
+		row.find('.mappedAttributeFormat_').on('click', function(e) {
+			e.stopPropagation();
+			_Entities.makeAttributeEditable(row, d.id, '.mappedAttributeFormat_', 'mappedAttributeFormat', 200);
 		});
 
 		var div = Structr.node(d.id);
@@ -804,17 +874,55 @@ var _Crawler = {
 		}
 		div.children('.delete_icon').on('click', function(e) {
 			e.stopPropagation();
-			_Entities.deleteNode(this, d, false, function() { console.log('pattern deleted', d, d.sourcePage)
+			_Entities.deleteNode(this, d, false, function() {
 				_Crawler.refreshPatterns(d.sourcePage);
 			});
 		});
 
 
-		$('.extract', row).on('click', function() {
+		$('.extract', row).on('click', function(e) {
+			var btn = $(this);
+			var text = btn.text();
+			btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="' + _Icons.ajax_loader_2 + '">');
+			e.preventDefault();
+			
+			var url = '/structr/rest/SourcePattern/' + d.id + '/extract';
+			
 			$.ajax({
-				url: '/structr/rest/SourcePattern/' + d.id + '/extract',
-				method: 'POST'
-			})
+				url: url,
+				method: 'POST',
+				statusCode: {
+					200: function(data) {
+						var btn = $('.extract', row);
+						btn.removeClass('disabled').attr('disabled', null);
+						btn.html(text + ' <img src="' + _Icons.tick_icon + '">');
+					},
+					400: function(data) {
+						console.log(data);
+						Structr.errorFromResponse(data.responseJSON, url);
+					},
+					401: function(data) {
+						console.log(data);
+						Structr.errorFromResponse(data.responseJSON, url);
+					},
+					403: function(data) {
+						console.log(data);
+						Structr.errorFromResponse(data.responseJSON, url);
+					},
+					404: function(data) {
+						console.log(data);
+						Structr.errorFromResponse(data.responseJSON, url);
+					},
+					422: function(data) {
+						Structr.errorFromResponse(data.responseJSON, url);
+					}
+				}
+				
+			}).always(function() {
+				window.setTimeout(function() {
+					$('img', btn).fadeOut();
+				}, 1000);
+			});
 		});
 
 

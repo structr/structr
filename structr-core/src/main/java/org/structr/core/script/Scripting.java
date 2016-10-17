@@ -18,14 +18,23 @@
  */
 package org.structr.core.script;
 
+import java.io.StringWriter;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.script.Bindings;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import org.apache.commons.lang.StringUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
+import org.renjin.script.RenjinScriptEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -42,7 +51,8 @@ import org.structr.schema.parser.DatePropertyParser;
  */
 public class Scripting {
 
-	private static final Logger logger = LoggerFactory.getLogger(Scripting.class.getName());
+	private static final Logger logger                  = LoggerFactory.getLogger(Scripting.class.getName());
+	private static final Pattern ScriptEngineExpression = Pattern.compile("^\\$\\{(\\w+)\\{(.*)\\}\\}$", Pattern.DOTALL);
 
 	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue) throws FrameworkException {
 
@@ -110,7 +120,7 @@ public class Scripting {
 
 	/**
 	 * Evaluate the given script according to the parsing conventions: ${} will try to evaluate
-	 * Structr script, ${{}} means Javascript.
+	 * Structr script, ${{}} means Javascript, ${ENGINE{}} means calling a script interpreter for ENGINE
 	 *
 	 * @param actionContext the action context
 	 * @param entity the entity - may not be null because internal functions will fetch the security context from it
@@ -121,13 +131,35 @@ public class Scripting {
 	 */
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String expression) throws FrameworkException {
 
-		final boolean isJavascript = expression.startsWith("${{") && expression.endsWith("}}");
-		final int prefixOffset     = isJavascript ? 1 : 0;
-		final String source        = expression.substring(2 + prefixOffset, expression.length() - (1 + prefixOffset));
+		boolean isJavascript   = expression.startsWith("${{") && expression.endsWith("}}");
+		final int prefixOffset = isJavascript ? 1 : 0;
+		String source          = expression.substring(2 + prefixOffset, expression.length() - (1 + prefixOffset));
+
+		String engine = "";
+		boolean isScriptEngine = false;
+
+		if (!isJavascript) {
+
+			final Matcher matcher = ScriptEngineExpression.matcher(expression);
+			if (matcher.matches()) {
+
+				engine = matcher.group(1);
+				source = matcher.group(2);
+
+				logger.info("Scripting engine {} requested.", engine);
+
+				isJavascript   = StringUtils.isBlank(engine) || "JavaScript".equals(engine);
+				isScriptEngine = !isJavascript && StringUtils.isNotBlank(engine);
+			}
+		}
 
 		actionContext.setJavaScriptContext(isJavascript);
 
-		if (isJavascript) {
+		if (isScriptEngine) {
+
+			return evaluateScript(actionContext, entity, engine, source);
+
+		} else if (isJavascript) {
 
 			return evaluateJavascript(actionContext, entity, source);
 
@@ -143,6 +175,44 @@ public class Scripting {
 
 			return extractedValue;
 		}
+	}
+
+	private static Object evaluateScript(final ActionContext actionContext, final GraphObject entity, final String engineName, final String script) throws FrameworkException {
+
+		final ScriptEngineManager manager = new ScriptEngineManager();
+		final ScriptEngine engine = manager.getEngineByName(engineName);
+
+		if (engine == null) {
+			throw new RuntimeException(engineName + " script engine could not be initialized. Check class path.");
+		}
+
+		final ScriptContext scriptContext = engine.getContext();
+		final Bindings bindings           = new StructrScriptBindings(actionContext, entity);
+
+		if (!(engine instanceof RenjinScriptEngine)) {
+			scriptContext.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
+		}
+
+		StringWriter output = new StringWriter();
+		scriptContext.setWriter(output);
+
+		try {
+
+			engine.eval(script);
+
+			Object extractedValue = output.toString();
+
+			return extractedValue;
+
+		} catch (final ScriptException e) {
+
+			e.printStackTrace();
+
+			logger.error("Error while processing " + engineName + " script: {}", new Object[]{script, e});
+		}
+
+		return null;
+
 	}
 
 	private static Object evaluateJavascript(final ActionContext actionContext, final GraphObject entity, final String script) throws FrameworkException {

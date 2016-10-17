@@ -26,7 +26,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
-import org.structr.web.common.HttpHelper;
+import org.structr.rest.common.HttpHelper;
 
 /**
  *

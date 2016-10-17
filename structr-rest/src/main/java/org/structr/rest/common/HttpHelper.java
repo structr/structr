@@ -4,19 +4,19 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.common;
+package org.structr.rest.common;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -46,6 +46,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 
 /**
@@ -55,7 +56,6 @@ public class HttpHelper {
 	
 	private static final Logger logger = LoggerFactory.getLogger(HttpHelper.class.getName());
 	
-	private static String address;
 	private static String proxyUrl;
 	private static String proxyUsername;
 	private static String proxyPassword;
@@ -65,17 +65,27 @@ public class HttpHelper {
 	private static RequestConfig reqConfig;
 	
 	private static void configure(final HttpRequestBase req, final String username, final String password, final String proxyUrlParameter, final String proxyUsernameParameter, final String proxyPasswordParameter, final String cookieParameter, final Map<String, String> headers, final boolean followRedirects) {
-
+	
 		if (StringUtils.isBlank(proxyUrlParameter)) {
 			proxyUrl = Services.getBaseConfiguration().getProperty(Services.APPLICATION_PROXY_HTTP_URL);
+		} else {
+			proxyUrl = proxyUrlParameter;
 		}
 
 		if (StringUtils.isBlank(proxyUsernameParameter)) {
 			proxyUsername = Services.getBaseConfiguration().getProperty(Services.APPLICATION_PROXY_HTTP_USERNAME);
+		} else {
+			proxyUsername = proxyUsernameParameter;
 		}
 
 		if (StringUtils.isBlank(proxyPasswordParameter)) {
 			proxyPassword = Services.getBaseConfiguration().getProperty(Services.APPLICATION_PROXY_HTTP_PASSWORD);
+		} else {
+			proxyPassword = proxyPasswordParameter;
+		}
+
+		if (!StringUtils.isBlank(cookieParameter)) {
+			cookie = cookieParameter;
 		}
 
 		//final HttpHost target             = HttpHost.create(url.getHost());
@@ -132,23 +142,28 @@ public class HttpHelper {
 		}
 	}
 	
-	public static String get(final String address) {
+	public static String get(final String address)
+	throws FrameworkException {
 		return get(address, null, null, null, null, Collections.EMPTY_MAP);
 	}
 	
-	public static String get(final String address, final Map<String, String> headers) {
+	public static String get(final String address, final Map<String, String> headers)
+	throws FrameworkException {
 		return get(address, null, null, headers);
 	}
 
-	public static String get(final String address, final String username, final String password, final Map<String, String> headers) {
+	public static String get(final String address, final String username, final String password, final Map<String, String> headers)
+	throws FrameworkException {
 		return get(address, username, password, null, null, null, null, headers);
 	}
 
-	public static String get(final String address, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) {
+	public static String get(final String address, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers)
+	throws FrameworkException {
 		return get(address, null, null, proxyUrl, proxyUsername, proxyPassword, cookie, headers);
 	}
 	
-	public static String get(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) {
+	public static String get(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers)
+	throws FrameworkException {
 				
 		String content = "";
 
@@ -169,10 +184,8 @@ public class HttpHelper {
 			}
 
 		} catch (final Throwable t) {
-			
-			logger.error("Unable to fetch content from address {}, {}", new Object[] { address, t });
-			return t.toString();
-			
+			t.printStackTrace();
+			throw new FrameworkException(422, "Unable to fetch content from address " + address + ": " + t.getMessage());
 		}
 		
 		return content;

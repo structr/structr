@@ -496,17 +496,12 @@ var _Entities = {
 				tabView.show();
 				LSWrapper.setItem(activeEditTabPrefix  + '_' + entity.id, view);
 
-				$.ajax({
-					url: rootUrl + '_schema/' + entity.type + '/ui',
-					dataType: 'json',
-					contentType: 'application/json; charset=utf-8',
-					success: function(data) {
-						var typeInfo = {};
-						$(data.result).each(function(i, prop) {
-							typeInfo[prop.jsonName] = prop;
-						});
-						_Entities.listProperties(entity, view, tabView, typeInfo);
-					}
+				Command.getSchemaInfo(entity.type, function(schemaInfo) {
+					var typeInfo = {};
+					$(schemaInfo).each(function(i, prop) {
+						typeInfo[prop.jsonName] = prop;
+					});
+					_Entities.listProperties(entity, view, tabView, typeInfo);
 				});
 			});
 		});
@@ -640,7 +635,7 @@ var _Entities = {
 
 												Command.get(nodeId, function(node) {
 
-													_Entities.appendRelatedNode(cell, props, id, key, node, function(nodeEl) {
+													_Entities.appendRelatedNode(cell, node, function(nodeEl) {
 
 														$('.remove', nodeEl).on('click', function(e) {
 															e.preventDefault();
@@ -669,7 +664,7 @@ var _Entities = {
 
 													Command.get(nodeId, function(node) {
 
-														_Entities.appendRelatedNode(cell, props, id, key, node, function(nodeEl) {
+														_Entities.appendRelatedNode(cell, node, function(nodeEl) {
 															$('.remove', nodeEl).on('click', function(e) {
 																e.preventDefault();
 																Command.removeFromCollection(id, key, node.id, function() {
@@ -693,9 +688,7 @@ var _Entities = {
 										$('.add', cell).on('click', function() {
 											Structr.dialog('Add ' + typeInfo[key].type, function() {
 											}, function() {
-												window.setTimeout(function() {
-													_Entities.showProperties(entity);
-												}, 250);
+												_Entities.showProperties(entity);
 											});
 											_Entities.displaySearch(id, key, typeInfo[key].type, dialogText, isCollection);
 										});
@@ -891,7 +884,7 @@ var _Entities = {
 			separator: dateTimePickerFormat.separator
 		});
 	},
-	appendRelatedNode: function(cell, props, id, key, node, onDelete) {
+	appendRelatedNode: function(cell, node, onDelete) {
 		var displayName = _Crud.displayName(node);
 		cell.append('<div title="' + displayName + '" class="_' + node.id + ' node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<img class="remove" src="' + _Icons.grey_cross_icon + '"></div>');
 		var nodeEl = $('._' + node.id, cell);
@@ -1492,7 +1485,7 @@ var _Entities = {
 	},
 	makeAttributeEditable: function(parentElement, id, attributeSelector, attributeName, width, callback) {
 		var w = width || 200;
-		var attributeElement = parentElement.children(attributeSelector);
+		var attributeElement = parentElement.find(attributeSelector).first();
 		var attributeElementTagName = attributeElement.prop('tagName').toLowerCase();
 		var oldValue = $.trim(attributeElement.attr('title'));
 
@@ -1506,7 +1499,7 @@ var _Entities = {
 			var self = $(this);
 			var newValue = self.val();
 			self.replaceWith('<' + attributeElementTagName + ' title="' + newValue + '" class="' + attributeName + '_">' + fitStringToWidth(newValue, w) + '</' + attributeElementTagName + '>');
-			parentElement.children(attributeSelector).on('click', function(e) {
+			parentElement.find(attributeSelector).first().on('click', function(e) {
 				e.stopPropagation();
 				_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName, w);
 			});
@@ -1518,11 +1511,20 @@ var _Entities = {
 				var self = $(this);
 				var newValue = self.val();
 				self.replaceWith('<' + attributeElementTagName + ' title="' + newValue + '" class="' + attributeName + '_">' + fitStringToWidth(newValue, w) + '</' + attributeElementTagName + '>');
-				parentElement.children(attributeSelector).on('click', function(e) {
+				parentElement.find(attributeSelector).first().on('click', function(e) {
 					e.stopPropagation();
 					_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName, w);
 				});
 				_Entities.setNewAttributeValue(parentElement, id, attributeName, newValue, callback);
+			} else if (e.keyCode === 27) {
+				e.stopPropagation();
+				var self = $(this);
+				var newValue = self.val();
+				self.replaceWith('<' + attributeElementTagName + ' title="' + newValue + '" class="' + attributeName + '_">' + fitStringToWidth(oldValue, w) + '</' + attributeElementTagName + '>');
+				parentElement.find(attributeSelector).first().on('click', function(e) {
+					e.stopPropagation();
+					_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName, w);
+				});
 			}
 		});
 	},
@@ -1536,7 +1538,7 @@ var _Entities = {
 	},
 	setNewAttributeValue: function(element, id, attributeName, newValue, callback) {
 		Command.setProperty(id, attributeName, newValue, false, function() {
-			blinkGreen(element.children('.' + attributeName + '_'));
+			blinkGreen(element.find('.' + attributeName + '_').first());
 			if (lastMenuEntry === 'pages') {
 				_Pages.reloadPreviews();
 			} else if (lastMenuEntry === 'files' && attributeName === 'name') {

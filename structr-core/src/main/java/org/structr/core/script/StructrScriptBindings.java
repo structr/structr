@@ -20,6 +20,8 @@ package org.structr.core.script;
 
 import java.util.HashMap;
 import javax.script.Bindings;
+import org.structr.core.GraphObject;
+import org.structr.schema.action.ActionContext;
 
 
 /**
@@ -27,4 +29,9 @@ import javax.script.Bindings;
  *
  */
 public class StructrScriptBindings extends HashMap<String, Object> implements Bindings {
+
+	public StructrScriptBindings(final ActionContext actionContext, final GraphObject entity) {
+
+		put("Structr", new StructrScriptObject(actionContext, entity, null));
+	}
 }

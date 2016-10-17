@@ -41,20 +41,26 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.AccessMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.Tx;
 import org.structr.rest.service.HttpService;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.web.auth.UiAuthenticator;
-import org.structr.web.common.HttpHelper;
+import org.structr.rest.common.HttpHelper;
+import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Page;
 
 //~--- classes ----------------------------------------------------------------
@@ -135,9 +141,20 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
 
+		final Authenticator auth      = getConfig().getAuthenticator();
+		SecurityContext securityContext;
+		String content;
+		
 		try {
-			
-			final ServletOutputStream out = response.getOutputStream();
+
+			// isolate request authentication in a transaction
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				securityContext = auth.initializeAndExamineRequest(request, response);
+				tx.success();
+			}
+
+			// Ensure access mode is frontend
+			securityContext.setAccessMode(AccessMode.Frontend);
 			
 			String address = request.getParameter("url");
 			final URI url  = URI.create(address);
@@ -145,16 +162,32 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 			String proxyUrl      = request.getParameter("proxyUrl");
 			String proxyUsername = request.getParameter("proxyUsername");
 			String proxyPassword = request.getParameter("proxyPassword");
+			String authUsername  = request.getParameter("authUsername");
+			String authPassword  = request.getParameter("authPassword");
 			String cookie        = request.getParameter("cookie");
-			
-			final String content = HttpHelper.get(address, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP).replace("<head>", "<head>\n  <base href=\"" + url + "\">");
 
-			IOUtils.write(content, out);
+			final Principal user = securityContext.getCachedUser();
+
+			if (user != null && StringUtils.isBlank(proxyUrl)) {
+				proxyUrl      = user.getProperty(User.proxyUrl);
+				proxyUsername = user.getProperty(User.proxyUsername);
+				proxyPassword = user.getProperty(User.proxyPassword);
+			}
+			
+			content = HttpHelper.get(address, authUsername, authPassword, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP).replace("<head>", "<head>\n  <base href=\"" + url + "\">");
+
 
 		} catch (Throwable t) {
 
 			logger.error("Exception while processing request", t);
-			UiAuthenticator.writeInternalServerError(response);
+			content = errorPage(t);
+		}
+
+		try {
+			final ServletOutputStream out = response.getOutputStream();
+			IOUtils.write(content, out);
+		} catch (IOException ex) {
+			logger.error("Could not write to response", ex);
 		}
 	}
 
@@ -286,4 +319,8 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 	}
 
 
+	private String errorPage(final Throwable t) {
+		return "<html><head><title>Error in Structr Proxy</title></head><body><h1>Error in Proxy</h1><p>" + t.getMessage() + "</p>\n<!--" + ExceptionUtils.getStackTrace(t) + "--></body></html>";
+	}
+	
 }

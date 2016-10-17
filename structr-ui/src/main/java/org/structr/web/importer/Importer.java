@@ -80,7 +80,7 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.importer.GraphGistImporter;
 import org.structr.schema.importer.SchemaJsonImporter;
 import org.structr.web.common.FileHelper;
-import org.structr.web.common.HttpHelper;
+import org.structr.rest.common.HttpHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.diff.CreateOperation;
 import org.structr.web.diff.DeleteOperation;
