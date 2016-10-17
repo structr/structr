@@ -630,7 +630,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	private void getContentInstructions(final Set<String> instructions) {
 
 		final String _contentType = getProperty(Content.contentType);
-		if (_contentType != null) {
+		if (_contentType != null && !"text/plain".equals(_contentType)) {
 
 			instructions.add("@structr:content(" + escapeForHtmlAttributes(_contentType) + ")");
 		}
