@@ -306,7 +306,8 @@ public class Importer {
 			return createChildNodes(body, null, page);
 		}
 
-		return null;
+		// fallback, no head no body => document is parent
+		return createChildNodes(parsedDocument, null, page);
 	}
 
 	public DOMNode createChildNodes(final DOMNode parent, final Page page) throws FrameworkException {
