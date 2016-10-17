@@ -226,16 +226,14 @@ public class StructrWebSocket implements WebSocketListener {
 
 			} catch (FrameworkException | InstantiationException | IllegalAccessException t) {
 
-				t.printStackTrace(System.out);
-
-				// Clear result in case of rollback
-				//webSocketData.clear();
 				try (final Tx tx = app.tx()) {
 
 					// send 400 Bad Request
 					if (t instanceof FrameworkException) {
 
-						send(MessageBuilder.status().message(t.toString()).jsonErrorObject(((FrameworkException) t).toJSON()).build(), true);
+						final FrameworkException fex = (FrameworkException)t;
+
+						send(MessageBuilder.status().code(fex.getStatus()).message(fex.toString()).jsonErrorObject(fex.toJSON()).build(), true);
 
 					} else {
 
@@ -303,7 +301,7 @@ public class StructrWebSocket implements WebSocketListener {
 				// default is: 200 OK
 				message.setCode(200);
 			}
-			
+
 			final String msg = gson.toJson(message, WebSocketMessage.class);
 
 			logger.debug("################### Private message: {}", message.getCommand());
