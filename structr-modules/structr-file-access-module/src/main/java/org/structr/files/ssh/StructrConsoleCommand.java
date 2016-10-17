@@ -50,19 +50,21 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrConsoleCommand.class.getName());
 
-	private final List<String> commandHistory = new LinkedList<>();
-	private StringBuilder buf                 = new StringBuilder();
-	private Console console                   = null;
-	private TerminalEmulator term             = null;
-	private ExitCallback callback             = null;
-	private InputStream in                    = null;
-	private OutputStream out                  = null;
-	private User user                         = null;
-	private int inBlock                       = 0;
-	private int inSingleQuotes                = 0;
-	private int inDoubleQuotes                = 0;
-	private int inArray                       = 0;
-	private int inBraces                      = 0;
+	private final List<String> commandHistory  = new LinkedList<>();
+	private final StringBuilder lastBlockChars = new StringBuilder();
+	private final StringBuilder buf            = new StringBuilder();
+	private Console console                    = null;
+	private TerminalEmulator term              = null;
+	private ExitCallback callback              = null;
+	private InputStream in                     = null;
+	private OutputStream out                   = null;
+	private User user                          = null;
+	private int consoleMode                    = 1;
+	private int inBlock                        = 0;
+	private int inSingleQuotes                 = 0;
+	private int inDoubleQuotes                 = 0;
+	private int inArray                        = 0;
+	private int inBraces                       = 0;
 
 	public StructrConsoleCommand(final SecurityContext securityContext) {
 		this.console = new Console(securityContext, null);
@@ -149,9 +151,9 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 				term.print("Welcome to the ");
 				term.setBold(true);
-				term.print("Structr");
-				term.print(" 2.1 JavaScript console");
+				term.print("Structr 2.1");
 				term.setBold(false);
+				term.print(" JavaScript console. Use the <tab> key to switch modes.");
 				term.println();
 
 				// display first prompt
@@ -167,6 +169,8 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 			// create terminal emulation
 			term = new XTermTerminalEmulator(in, out, this);
 		}
+
+		console.setWritable(term);
 	}
 
 	@Override
@@ -187,7 +191,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 		if (StringUtils.isNotBlank(line)) {
 
-			if (insideOfSomething()) {
+			if (insideOfBlockOrStructure()) {
 
 				buf.append(line);
 				buf.append("\n");
@@ -199,28 +203,34 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 			checkForBlockChars(line.trim());
 
-			if (!insideOfSomething()) {
+			if (!insideOfBlockOrStructure()) {
 
 				commandHistory.add(buf.toString());
 
 				try (final Tx tx = StructrApp.getInstance(console.getSecurityContext()).tx()) {
 
-					term.println(console.run(buf.toString()));
+					final String cmd = buf.toString();
+					final String ret = console.run(cmd);
+
+					term.println(ret);
 
 					tx.success();
 
-				} catch (FrameworkException fex) {
+				} catch (Throwable t) {
 
-					term.println(fex.getMessage());
+					final String message = t.getMessage();
+					if (message != null) {
+
+						term.println(message);
+
+					} else {
+
+						t.printStackTrace();
+						term.println(t.getClass().getSimpleName() + " encountered.");
+					}
 				}
 
-				buf.setLength(0);
-
-				inSingleQuotes = 0;
-				inDoubleQuotes = 0;
-				inBraces = 0;
-				inBlock = 0;
-				inArray = 0;
+				clearBlockStatus();
 
 			}
 		}
@@ -237,50 +247,22 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 	public String getPrompt() {
 
-		final StringBuilder buf = new StringBuilder();
+		final StringBuilder buffer = new StringBuilder();
 
-		if (insideOfSomething()) {
+		buffer.append("\u001b[1m");
+		buffer.append("Structr");
 
-			int indent = 0;
-
-			if ((inSingleQuotes % 2) != 0) {
-				buf.append("'");
-				indent++;
-			}
-
-			if ((inDoubleQuotes % 2) != 0) {
-				buf.append("\"");
-				indent++;
-			}
-
-			if (inArray > 0) {
-				buf.append("[");
-				indent++;
-			}
-
-			if (inBraces > 0) {
-				buf.append("(");
-				indent++;
-			}
-
-			if (inBlock > 0) {
-				buf.append("{");
-				indent++;
-			}
-
-			for (int i=0; i<indent; i++) {
-				buf.append("    ");
-			}
-
+		if (insideOfBlockOrStructure() && lastBlockChars.length() > 0) {
+			buffer.append(lastBlockChars.charAt(lastBlockChars.length() - 1));
 		} else {
-
-			buf.append("\u001b[1m");
-			buf.append("Structr >");
-			buf.append("\u001b[0m");
-			buf.append(" ");
+			buffer.append("/");
 		}
 
-		return buf.toString();
+		buffer.append(">");
+		buffer.append("\u001b[0m");
+		buffer.append(" ");
+
+		return buffer.toString();
 	}
 
 	public boolean isAllowed(final AbstractFile file, final Permission permission, final boolean explicit) {
@@ -309,6 +291,8 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 	public void displayPrompt() throws IOException {
 
 		// output prompt
+		term.setBold(true);
+		term.setTextColor(7);
 		term.print(getPrompt());
 	}
 
@@ -323,6 +307,8 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 	@Override
 	public void handleCtrlC() throws IOException {
+
+		clearBlockStatus();
 
 		// Ctrl-C
 		term.print("^C");
@@ -342,6 +328,41 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 	@Override
 	public void handleTab(final int tabCount) throws IOException {
+
+		if (tabCount == 1 && !insideOfBlockOrStructure()) {
+
+			String mode = null;
+
+			switch (consoleMode) {
+
+				case 0:
+					mode = "javascript";
+					consoleMode = 1;
+					break;
+
+				case 1:
+					mode = "structr";
+					consoleMode = 2;
+					break;
+
+				case 2:
+					mode = "cypher";
+					consoleMode = 3;
+					break;
+
+				case 3:
+					mode = "shell";
+					consoleMode = 0;
+					break;
+			}
+
+			term.handleString("Console.setMode('" + mode + "')");
+			term.clearTabCount();
+
+			term.setBold(true);
+			term.setTextColor(3);
+			term.handleNewline();
+		}
 	}
 
 	public boolean isInteractive() {
@@ -356,7 +377,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 	}
 
 	// ----- private method -----
-	private boolean insideOfSomething() {
+	private boolean insideOfBlockOrStructure() {
 
 		final boolean singleQuotes = (inSingleQuotes % 2) != 0;
 		final boolean doubleQuotes = (inDoubleQuotes % 2) != 0;
@@ -371,37 +392,64 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 			switch (c) {
 
 				case '{':
+					lastBlockChars.append("{");
 					inBlock++;
 					break;
 
 				case '}':
+					lastBlockChars.setLength(lastBlockChars.length() - 1);
 					inBlock--;
 					break;
 
 				case '[':
+					lastBlockChars.append("[");
 					inArray++;
 					break;
 
 				case ']':
+					lastBlockChars.setLength(lastBlockChars.length() - 1);
 					inArray--;
 					break;
 
 				case '(':
+					lastBlockChars.append("(");
 					inBraces++;
 					break;
 
 				case ')':
+					lastBlockChars.setLength(lastBlockChars.length() - 1);
 					inBraces--;
 					break;
 
 				case '"':
 					inDoubleQuotes++;
+					if ((inDoubleQuotes % 2) == 0) {
+						lastBlockChars.setLength(lastBlockChars.length() - 1);
+					} else {
+						lastBlockChars.append("\"");
+					}
 					break;
 
 				case '\'':
 					inSingleQuotes++;
+					if ((inSingleQuotes % 2) == 0) {
+						lastBlockChars.setLength(lastBlockChars.length() - 1);
+					} else {
+						lastBlockChars.append("'");
+					}
 					break;
 			}
 		}
+	}
+
+	private void clearBlockStatus() {
+
+		inSingleQuotes = 0;
+		inDoubleQuotes = 0;
+		inBraces = 0;
+		inBlock = 0;
+		inArray = 0;
+
+		buf.setLength(0);
 	}
 }

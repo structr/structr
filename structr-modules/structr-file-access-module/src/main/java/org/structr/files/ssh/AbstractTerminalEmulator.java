@@ -306,13 +306,13 @@ public abstract class AbstractTerminalEmulator extends Thread implements Termina
 
 	@Override
 	public void print(final String text) throws IOException {
-		writer.write(text);
+		writer.write(text != null ? text.replaceAll("\n", "\r\n") : text);
 		writer.flush();
 	}
 
 	@Override
 	public void println(final String text) throws IOException {
-		writer.write(text);
+		writer.write(text != null ? text.replaceAll("\n", "\r\n") : text);
 		println();
 		writer.flush();
 	}
@@ -337,6 +337,10 @@ public abstract class AbstractTerminalEmulator extends Thread implements Termina
 	@Override
 	public void flush() throws IOException {
 		writer.flush();
+	}
+
+	public void clearTabCount() {
+		tabCount = 0;
 	}
 
 	// ----- protected methods -----

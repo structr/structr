@@ -36,8 +36,6 @@ import org.apache.sshd.common.config.keys.PublicKeyEntry;
 import org.apache.sshd.common.config.keys.PublicKeyEntryResolver;
 import org.apache.sshd.common.file.FileSystemFactory;
 import org.apache.sshd.common.session.Session;
-import org.apache.sshd.server.CommandFactory;
-import org.apache.sshd.server.Environment;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.auth.password.PasswordAuthenticator;
 import org.apache.sshd.server.auth.pubkey.PublickeyAuthenticator;
@@ -68,7 +66,7 @@ import org.structr.rest.auth.AuthHelper;
  *
  *
  */
-public class SSHService implements SingletonService, PasswordAuthenticator, PublickeyAuthenticator, FileSystemFactory, CommandFactory, Factory<org.apache.sshd.server.Command>, SftpEventListener {
+public class SSHService implements SingletonService, PasswordAuthenticator, PublickeyAuthenticator, FileSystemFactory, Factory<org.apache.sshd.server.Command>, SftpEventListener {
 
 	private static final Logger logger = LoggerFactory.getLogger(SSHService.class.getName());
 
@@ -235,32 +233,6 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 		return isValid;
 	}
-
-	@Override
-	public org.apache.sshd.server.Command createCommand(final String command) {
-
-		final StructrShellCommand cmd = new StructrShellCommand() {
-
-			@Override
-			public void start(final Environment env) throws IOException {
-
-				super.start(env);
-
-				// non-interactively handle the command
-				this.handleLine(command);
-				this.flush();
-				this.handleExit();
-			}
-
-			@Override
-			public boolean isInteractive() {
-				return false;
-			}
-		};
-
-		return cmd;
-	}
-
 
 	private Tx currentTransaction = null;
 
