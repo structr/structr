@@ -458,7 +458,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				for (final DOMNode node : shadowDocument.getProperty(Page.elements)) {
 
 					// skip templates, nodes in trash and non-toplevel nodes
-					if (node instanceof Content || node.inTrash() || node.getProperty(DOMNode.parent) != null) {
+					if (node.inTrash() || node.getProperty(DOMNode.parent) != null) {
 						continue;
 					}
 
@@ -510,28 +510,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			// export template nodes anywhere in the pages tree or shared components view
+			// export template nodes anywhere in the pages tree which are not related to shared components
 			for (final Template template : app.nodeQuery(Template.class).getAsList()) {
 
-				if (template.inTrash()) {
+				if (template.inTrash() || template.getProperty(DOMNode.sharedComponent) != null) {
 					continue;
 				}
 
 				exportTemplateSource(target, template, configuration);
-			}
-
-			final ShadowDocument shadowDocument = app.nodeQuery(ShadowDocument.class).getFirst();
-			if (shadowDocument != null) {
-
-				for (final DOMNode node : shadowDocument.getProperty(Page.elements)) {
-
-					// skip everything except templates, skip nodes in trash and non-toplevel nodes
-					if (!(node instanceof Content) || node.inTrash() || node.getProperty(DOMNode.parent) != null) {
-						continue;
-					}
-
-					exportTemplateSource(target, node, configuration);
-				}
 			}
 
 			tx.success();

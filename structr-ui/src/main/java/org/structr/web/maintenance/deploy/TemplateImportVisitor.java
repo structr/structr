@@ -39,10 +39,8 @@ import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.dom.Template;
 import org.structr.web.importer.Importer;
-import org.structr.websocket.command.CreateComponentCommand;
 
 /**
  *
@@ -153,30 +151,17 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 
 		final String name              = StringUtils.substringBeforeLast(fileName, ".html");
 		final PropertyMap properties   = getPropertiesForTemplate(name);
-		final DOMNode existingTemplate = getExistingTemplate(name);
 
 		try (final Tx tx = app.tx(false, false, false)) {
-
-			if (existingTemplate != null) {
-
-				deleteTemplate(app, name);
-			}
 
 			logger.info("Importing template {} from {}..", new Object[] { name, fileName } );
 
 			final String src = new String (Files.readAllBytes(file),Charset.forName("UTF-8"));
 
-			// parse page
-			final ShadowDocument shadowDocument = CreateComponentCommand.getOrCreateHiddenDocument();
-
-			final Template template             = app.create(Template.class,
-				new NodeAttribute(Template.ownerDocument, shadowDocument),
+			final Template template = app.create(Template.class,
 				new NodeAttribute(AbstractNode.name, name),
 				new NodeAttribute(Template.content, src)
 			);
-
-			// set name
-			template.setProperty(AbstractNode.name, name);
 
 			// store properties from templates.json if present
 			if (properties != null) {

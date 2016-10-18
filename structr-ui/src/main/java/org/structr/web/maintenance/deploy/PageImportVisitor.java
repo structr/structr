@@ -192,17 +192,17 @@ public class PageImportVisitor implements FileVisitor<Path> {
 			final String src         = new String(Files.readAllBytes(file),Charset.forName("UTF-8"));
 			final String contentType = get(properties, Page.contentType, "text/html");
 
+			boolean visibleToPublic = get(properties, GraphObject.visibleToPublicUsers, false);
+			boolean visibleToAuth   = get(properties, GraphObject.visibleToAuthenticatedUsers, false);
+			final Importer importer = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth);
+
+			// enable literal import of href attributes
+			importer.setIsDeployment(true);
+
 			if (StringUtils.startsWithIgnoreCase(src, DoctypeString) && "text/html".equals(contentType)) {
 
 				// Import document starts with <!DOCTYPE> definition, so we treat it as an HTML
 				// document and use the Structr HTML importer.
-
-				boolean visibleToPublic = get(properties, GraphObject.visibleToPublicUsers, false);
-				boolean visibleToAuth   = get(properties, GraphObject.visibleToAuthenticatedUsers, false);
-				final Importer importer = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth);
-
-				// enable literal import of href attributes
-				importer.setIsDeployment(true);
 
 				final boolean parseOk = importer.parse();
 				if (parseOk) {
@@ -228,15 +228,6 @@ public class PageImportVisitor implements FileVisitor<Path> {
 
 				// Import document does NOT start with a <!DOCTYPE> definition, so we assume a
 				// template or shared component that we need to parse.
-
-				logger.info("Importing page {} from {}..", new Object[] { name, fileName } );
-
-				boolean visibleToPublic       = get(properties, GraphObject.visibleToPublicUsers, false);
-				boolean visibleToAuth         = get(properties, GraphObject.visibleToPublicUsers, false);
-				final Importer importer       = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth);
-
-				// enable literal import of href attributes
-				importer.setIsDeployment(true);
 
 				final boolean parseOk = importer.parse(true);
 				if (parseOk) {
