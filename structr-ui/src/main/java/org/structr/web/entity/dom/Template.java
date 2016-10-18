@@ -63,7 +63,11 @@ public class Template extends Content {
 				out.append(DOMNode.indent(depth, renderContext));
 			}
 
-			out.append("<structr:template src=\"");
+			if (_syncedNode == null) {
+				out.append("<structr:template src=\"");
+			} else {
+				out.append("<structr:component src=\"");
+			}
 
 			if (_syncedNode != null) {
 
@@ -102,7 +106,12 @@ public class Template extends Content {
 			}
 
 			out.append(DOMNode.indent(depth, renderContext));
-			out.append("</structr:template>");
+
+			if (_syncedNode == null) {
+				out.append("</structr:template>");
+			} else {
+				out.append("</structr:component>");
+			}
 
 		} else {
 

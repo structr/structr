@@ -226,7 +226,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 			final String name = _syncedNode.getProperty(AbstractNode.name);
 
-			out.append("<structr:template src=\"");
+			out.append("<structr:component src=\"");
 			out.append(name != null ? name : _syncedNode.getUuid());
 			out.append("\"");
 
@@ -406,7 +406,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 					out.append(indent(depth, renderContext));
 				}
 
-				if (isTemplate) {
+				if (_syncedNode != null && EditMode.DEPLOYMENT.equals(editMode)) {
+
+					out.append("</structr:component>");
+
+				} else if (isTemplate) {
 
 					out.append("</structr:template>");
 

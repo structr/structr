@@ -96,6 +96,7 @@ import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.Template;
 import org.structr.web.entity.html.Body;
 import org.structr.web.entity.html.Head;
 
@@ -643,12 +644,14 @@ public class Importer {
 				final String src = node.attr("src");
 				if (src != null) {
 
-					final DOMNode component = Importer.findSharedComponentByName(src);
-					if (component != null) {
+					final DOMNode template = Importer.findTemplateByName(src);
+					if (template != null) {
 
-						newNode = (DOMNode) component.cloneNode(false);
-						newNode.setProperty(DOMNode.sharedComponent, component);
-						newNode.setProperty(DOMNode.ownerDocument, page);
+						newNode = template;
+
+						if (page != null) {
+							newNode.setProperty(DOMNode.ownerDocument, page);
+						}
 
 					} else {
 
@@ -660,6 +663,28 @@ public class Importer {
 					logger.warn("Invalid template definition, missing src attribute!");
 				}
 
+			} else if ("structr:component".equals(tag)) {
+
+				final String src = node.attr("src");
+				if (src != null) {
+
+					final DOMNode component = Importer.findSharedComponentByName(src);
+					if (component != null) {
+
+						newNode = (DOMNode) component.cloneNode(false);
+						newNode.setProperty(DOMNode.sharedComponent, component);
+						newNode.setProperty(DOMNode.ownerDocument, page);
+
+					} else {
+
+						logger.warn("Unable to find shared component {} - ignored!", src);
+					}
+
+				} else {
+
+					logger.warn("Invalid component definition, missing src attribute!");
+				}
+
 
 			} else {
 
@@ -669,7 +694,7 @@ public class Importer {
 			if (newNode != null) {
 
 				// save root element for later use
-				if (rootElement == null) {
+				if (rootElement == null && !(newNode instanceof org.structr.web.entity.dom.Comment)) {
 					rootElement = newNode;
 				}
 
@@ -822,11 +847,6 @@ public class Importer {
 					if (commentHandler.handleComment(page, newNode, lastComment)) {
 
 						if (lastCommentNode != null) {
-
-							// if the comment node was the first node in a shared component, we reset the rootElement
-							if (rootElement == lastCommentNode) {
-								rootElement = null;
-							}
 
 							// remove comment node from parent (if there is a parent)
 							if (parent != null) {
@@ -1156,6 +1176,20 @@ public class Importer {
 			if (n.getProperty(DOMNode.parent) == null && n.getOwnerDocumentAsSuperUser() == null) {
 				continue;
 			}
+
+			// IGNORE everything that REFERENCES a shared component!
+			if (n.getProperty(DOMNode.sharedComponent) == null) {
+
+				return n;
+			}
+		}
+
+		return null;
+	}
+
+	public static DOMNode findTemplateByName(final String name) throws FrameworkException {
+
+		for (final DOMNode n : StructrApp.getInstance().nodeQuery(Template.class).andName(name).getAsList()) {
 
 			// IGNORE everything that REFERENCES a shared component!
 			if (n.getProperty(DOMNode.sharedComponent) == null) {
