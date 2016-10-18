@@ -229,8 +229,6 @@ public class PageImportVisitor implements FileVisitor<Path> {
 				// Import document does NOT start with a <!DOCTYPE> definition, so we assume a
 				// template or shared component that we need to parse.
 
-				logger.info("Importing page {} from {}..", new Object[] { name, fileName } );
-
 				boolean visibleToPublic       = get(properties, GraphObject.visibleToPublicUsers, false);
 				boolean visibleToAuth         = get(properties, GraphObject.visibleToAuthenticatedUsers, false);
 				final Importer importer       = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth);
