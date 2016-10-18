@@ -164,12 +164,22 @@ public class ConsoleTest extends StructrUiTest {
 			"Done with (re-)indexing 0 relationships\r\n";
 
 		final String createNodeUuidsOutput =
+			"Start setting UUID on all nodes\r\n" +
+			"SetNodeUuid: 0 objects processed\r\n" +
+			"Done with setting UUID on 0 nodes\r\n";
+
+		final String createNodeUuidsOnUserOutput =
 			"Start setting UUID on nodes of type User\r\n" +
 			"SetNodeUuid: 0 objects processed\r\n" +
 			"Done with setting UUID on 0 nodes\r\n";
 
-		final String createRelUuidsOutput =
+		final String createRelUuidsOnUserOutput =
 			"Start setting UUID on rels of type User\r\n" +
+			"SetRelationshipUuid: 0 objects processed\r\n" +
+			"Done with setting UUID on 0 relationships\r\n";
+
+		final String createRelUuidsOutput =
+			"Start setting UUID on all rels\r\n" +
 			"SetRelationshipUuid: 0 objects processed\r\n" +
 			"Done with setting UUID on 0 relationships\r\n";
 
@@ -229,14 +239,14 @@ public class ConsoleTest extends StructrUiTest {
 			assertEquals("Invalid console execution result", typedRelationshipIndexRebuildOutput, console.runForTest("init relationship index for ResourceAccess"));
 			assertEquals("Invalid console execution result", typedRelationshipIndexRebuildOutput, console.runForTest("init rel index for ResourceAccess"));
 
-			assertEquals("Invalid console execution result", "Unable to determine entity type to set UUID.\r\n", console.runForTest("init ids"));
-			assertEquals("Invalid console execution result", "Unable to determine entity type to set UUID.\r\n", console.runForTest("init node ids"));
-			assertEquals("Invalid console execution result", "Unable to determine entity type to set UUID.\r\n", console.runForTest("init relationship ids"));
-			assertEquals("Invalid console execution result", "Unable to determine entity type to set UUID.\r\n", console.runForTest("init rel ids"));
-			assertEquals("Invalid console execution result", createNodeUuidsOutput, console.runForTest("init ids for User"));
-			assertEquals("Invalid console execution result", createNodeUuidsOutput, console.runForTest("init node ids for User"));
-			assertEquals("Invalid console execution result", createRelUuidsOutput, console.runForTest("init rel ids for User"));
-			assertEquals("Invalid console execution result", createRelUuidsOutput, console.runForTest("init relationship ids for User"));
+			assertEquals("Invalid console execution result", createNodeUuidsOutput, console.runForTest("init ids"));
+			assertEquals("Invalid console execution result", createNodeUuidsOutput, console.runForTest("init node ids"));
+			assertEquals("Invalid console execution result", createRelUuidsOutput, console.runForTest("init relationship ids"));
+			assertEquals("Invalid console execution result", createRelUuidsOutput, console.runForTest("init rel ids"));
+			assertEquals("Invalid console execution result", createNodeUuidsOnUserOutput, console.runForTest("init ids for User"));
+			assertEquals("Invalid console execution result", createNodeUuidsOnUserOutput, console.runForTest("init node ids for User"));
+			assertEquals("Invalid console execution result", createRelUuidsOnUserOutput, console.runForTest("init rel ids for User"));
+			assertEquals("Invalid console execution result", createRelUuidsOnUserOutput, console.runForTest("init relationship ids for User"));
 
 			System.out.println(console.runForTest("init labels for User"));
 

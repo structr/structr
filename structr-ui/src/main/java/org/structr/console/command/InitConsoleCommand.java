@@ -20,6 +20,7 @@ package org.structr.console.command;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -50,6 +51,8 @@ public class InitConsoleCommand extends ConsoleCommand {
 		if (user != null && user.isAdmin()) {
 
 			NodeServiceCommand command = null;
+			boolean allNodes           = true;
+			boolean allRels            = true;
 			boolean isCreateLabels     = false;
 			boolean isIndex            = false;
 			boolean isIds              = false;
@@ -140,8 +143,9 @@ public class InitConsoleCommand extends ConsoleCommand {
 
 						} else {
 
-							mode = "nodesOnly";
+							mode    = "nodesOnly";
 							typeKey = "type";
+							allRels = false;
 						}
 						break;
 
@@ -169,8 +173,9 @@ public class InitConsoleCommand extends ConsoleCommand {
 								error = true;
 							}
 
-							mode = "relsOnly";
-							typeKey = "relType";
+							mode     = "relsOnly";
+							typeKey  = "relType";
+							allNodes = false;
 						}
 						break;
 
@@ -216,6 +221,7 @@ public class InitConsoleCommand extends ConsoleCommand {
 								error = true;
 							}
 						}
+						break;
 				}
 
 				// break early on errors
@@ -240,7 +246,15 @@ public class InitConsoleCommand extends ConsoleCommand {
 
 				if (command instanceof MaintenanceCommand) {
 
-					((MaintenanceCommand)command).execute(toMap("mode", mode, typeKey, type));
+					final Map<String, Object> data = toMap("mode", mode, typeKey, type);
+
+					if (type == null) {
+						
+						data.put("allNodes", allNodes);
+						data.put("allRels", allRels);
+					}
+
+					((MaintenanceCommand)command).execute(data);
 
 				} else {
 
