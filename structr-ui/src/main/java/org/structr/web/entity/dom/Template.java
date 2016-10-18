@@ -85,7 +85,6 @@ public class Template extends Content {
 
 			out.append(">");
 
-			// TODO: we need to include the children here...
 			// fetch children
 			final List<DOMChildren> rels = getChildRelationships();
 			if (rels.isEmpty()) {

@@ -353,29 +353,34 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 					renderContext.setInBody(true);
 				}
 
-				// fetch children
-				final List<DOMChildren> rels = getChildRelationships();
-				if (rels.isEmpty()) {
+				// only render children if we are not in a shared component scenario and not in deployment mode
+				if (getProperty(sharedComponent) == null || !EditMode.DEPLOYMENT.equals(editMode)) {
 
-					migrateSyncRels();
+					// fetch children
+					final List<DOMChildren> rels = getChildRelationships();
+					if (rels.isEmpty()) {
 
-					// No child relationships, maybe this node is in sync with another node
-					final DOMElement _syncedNode = (DOMElement) getProperty(sharedComponent);
-					if (_syncedNode != null) {
+						migrateSyncRels();
 
-						rels.addAll(_syncedNode.getChildRelationships());
-					}
-				}
+						// No child relationships, maybe this node is in sync with another node
+						final DOMElement _syncedNode = (DOMElement) getProperty(sharedComponent);
+						if (_syncedNode != null) {
 
-				for (final AbstractRelationship rel : rels) {
-
-					final DOMNode subNode = (DOMNode) rel.getTargetNode();
-
-					if (subNode instanceof DOMElement) {
-						anyChildNodeCreatesNewLine = (anyChildNodeCreatesNewLine || !(subNode.avoidWhitespace()));
+							rels.addAll(_syncedNode.getChildRelationships());
+						}
 					}
 
-					subNode.render(renderContext, depth + 1);
+					for (final AbstractRelationship rel : rels) {
+
+						final DOMNode subNode = (DOMNode) rel.getTargetNode();
+
+						if (subNode instanceof DOMElement) {
+							anyChildNodeCreatesNewLine = (anyChildNodeCreatesNewLine || !(subNode.avoidWhitespace()));
+						}
+
+						subNode.render(renderContext, depth + 1);
+
+					}
 
 				}
 
