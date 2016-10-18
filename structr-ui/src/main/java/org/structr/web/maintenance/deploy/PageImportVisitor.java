@@ -232,7 +232,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 				logger.info("Importing page {} from {}..", new Object[] { name, fileName } );
 
 				boolean visibleToPublic       = get(properties, GraphObject.visibleToPublicUsers, false);
-				boolean visibleToAuth         = get(properties, GraphObject.visibleToPublicUsers, false);
+				boolean visibleToAuth         = get(properties, GraphObject.visibleToAuthenticatedUsers, false);
 				final Importer importer       = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth);
 
 				// enable literal import of href attributes
