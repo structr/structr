@@ -57,7 +57,6 @@ import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.json.JsonSchema;
-import org.structr.util.Writable;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
@@ -80,7 +79,6 @@ import org.structr.web.maintenance.deploy.TemplateImportVisitor;
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(BulkMoveUnusedFilesCommand.class.getName());
-	private Writable logWritable       = null;
 
 	static {
 
@@ -105,10 +103,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	@Override
 	public boolean requiresEnclosingTransaction() {
 		return false;
-	}
-
-	public void setLogBuffer(final Writable writable) {
-		this.logWritable = writable;
 	}
 
 	// ----- private methods -----
@@ -140,7 +134,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Path usersConf = source.resolve("security/users.json");
 		if (Files.exists(usersConf)) {
 
-			log("Reading {}..", usersConf);
+			info("Reading {}..", usersConf);
 			importMapData(User.class, readConfigMap(usersConf));
 		}
 
@@ -148,7 +142,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Path grantsConf = source.resolve("security/grants.json");
 		if (Files.exists(grantsConf)) {
 
-			log("Reading {}..", grantsConf);
+			info("Reading {}..", grantsConf);
 			importListData(ResourceAccess.class, readConfigList(grantsConf));
 		}
 
@@ -156,7 +150,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Path filesConfFile = source.resolve("files.json");
 		if (Files.exists(filesConfFile)) {
 
-			log("Reading {}..", filesConfFile);
+			info("Reading {}..", filesConfFile);
 			filesConf.putAll(readConfigMap(filesConfFile));
 		}
 
@@ -164,7 +158,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Path pagesConfFile = source.resolve("pages.json");
 		if (Files.exists(pagesConfFile)) {
 
-			log("Reading {}..", pagesConfFile);
+			info("Reading {}..", pagesConfFile);
 			pagesConf.putAll(readConfigMap(pagesConfFile));
 		}
 
@@ -172,7 +166,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Path componentsConfFile = source.resolve("components.json");
 		if (Files.exists(componentsConfFile)) {
 
-			log("Reading {}..", componentsConfFile);
+			info("Reading {}..", componentsConfFile);
 			componentsConf.putAll(readConfigMap(componentsConfFile));
 		}
 
@@ -180,7 +174,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Path templatesConfFile = source.resolve("templates.json");
 		if (Files.exists(templatesConfFile)) {
 
-			log("Reading {}..", templatesConfFile);
+			info("Reading {}..", templatesConfFile);
 			templatesConf.putAll(readConfigMap(templatesConfFile));
 		}
 
@@ -190,7 +184,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try {
 
-				log("Importing data from schema/ directory..");
+				info("Importing data from schema/ directory..");
 				Files.walkFileTree(schema, new SchemaImportVisitor(schema));
 
 			} catch (IOException ioex) {
@@ -204,7 +198,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try {
 
-				log("Importing files...");
+				info("Importing files...");
 				Files.walkFileTree(files, new FileImportVisitor(files, filesConf));
 
 			} catch (IOException ioex) {
@@ -218,7 +212,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try {
 
-				log("Importing templates..");
+				info("Importing templates..");
 				Files.walkFileTree(templates, new TemplateImportVisitor(templatesConf));
 
 			} catch (IOException ioex) {
@@ -232,7 +226,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try {
 
-				log("Importing shared components..");
+				info("Importing shared components..");
 				Files.walkFileTree(components, new ComponentImportVisitor(componentsConf));
 
 			} catch (IOException ioex) {
@@ -246,7 +240,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try {
 
-				log("Importing pages..");
+				info("Importing pages..");
 				Files.walkFileTree(pages, new PageImportVisitor(pages, pagesConf));
 
 			} catch (IOException ioex) {
@@ -260,7 +254,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				log("Applying configuration from {}..", conf);
+				info("Applying configuration from {}..", conf);
 
 				final String confSource = new String(Files.readAllBytes(conf), Charset.forName("utf-8"));
 				Scripting.evaluate(new ActionContext(SecurityContext.getSuperUserInstance()), null, confSource.trim());
@@ -272,7 +266,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 		}
 
-		log("Import from {} done.", source.toString());
+		info("Import from {} done.", source.toString());
 	}
 
 	private void doExport(final Map<String, Object> attributes) throws FrameworkException {
@@ -741,27 +735,5 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private Gson getGson() {
 		return new GsonBuilder().setPrettyPrinting().create();
-	}
-
-	private void log(final String msg, final Object... data) {
-
-		if (logWritable != null) {
-
-			String logMessage = msg;
-
-			for (final Object obj : data) {
-
-				if (obj != null) {
-					logMessage = logMessage.replaceFirst("\\{\\}", obj.toString());
-				}
-
-				// alternative logging
-				try { logWritable.println(logMessage); } catch (IOException ignore) {}
-			}
-
-		} else {
-
-			logger.info(msg, data);
-		}
 	}
 }

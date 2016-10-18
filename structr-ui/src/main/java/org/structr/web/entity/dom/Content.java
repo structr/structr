@@ -313,18 +313,16 @@ public class Content extends DOMNode implements Text {
 				if ("text/javascript".equals(_contentType)) {
 
 					// Javascript will only be given some local vars
-					// TODO: Is this neccessary?
 					out.append("// data-structr-type='").append(getType()).append("'\n// data-structr-id='").append(id).append("'\n");
 
 				} else if ("text/css".equals(_contentType)) {
 
 					// CSS will only be given some local vars
-					// TODO: Is this neccessary?
 					out.append("/* data-structr-type='").append(getType()).append("'*/\n/* data-structr-id='").append(id).append("'*/\n");
 
 				} else {
 
-	//				// In edit mode, add an artificial comment tag around content nodes within body to make them editable
+					// In edit mode, add an artificial comment tag around content nodes within body to make them editable
 					final String cleanedContent = StringUtils.remove(StringUtils.remove(org.apache.commons.lang3.StringUtils.replace(getProperty(Content.content), "\n", "\\\\n"), "<!--"), "-->");
 					out.append("<!--data-structr-id=\"".concat(id)
 						.concat("\" data-structr-raw-value=\"").concat(escapeForHtmlAttributes(cleanedContent)).concat("\"-->"));

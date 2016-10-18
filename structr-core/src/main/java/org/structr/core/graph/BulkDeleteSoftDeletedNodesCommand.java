@@ -68,7 +68,7 @@ public class BulkDeleteSoftDeletedNodesCommand extends NodeServiceCommand implem
 				erase = false;
 			}
 
-			NodeServiceCommand.bulkGraphOperation(securityContext, nodeIterator, 1000, "DeleteSoftDeletedNodes", new BulkGraphOperation<AbstractNode>() {
+			bulkGraphOperation(securityContext, nodeIterator, 1000, "DeleteSoftDeletedNodes", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {

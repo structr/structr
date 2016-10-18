@@ -77,7 +77,7 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 				}
 			}
 
-			final long count = NodeServiceCommand.bulkGraphOperation(securityContext, relIterator, 1000, "SetRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
+			final long count = bulkGraphOperation(securityContext, relIterator, 1000, "SetRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {

@@ -18,6 +18,7 @@
  */
 package org.structr.console.command;
 
+import java.io.IOException;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
@@ -25,7 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.util.Writable;
 
 /**
- *
+ * A console command that displays help texts for other console commands.
  */
 public class HelpConsoleCommand extends ConsoleCommand {
 
@@ -34,9 +35,7 @@ public class HelpConsoleCommand extends ConsoleCommand {
 	}
 
 	@Override
-	public String run(final SecurityContext securityContext, final List<String> parameters, final Writable writable) throws FrameworkException {
-
-		final StringBuilder buf = new StringBuilder("\r\n");
+	public void run(final SecurityContext securityContext, final List<String> parameters, final Writable writable) throws FrameworkException, IOException {
 
 		if (parameters.size() > 1) {
 
@@ -45,14 +44,11 @@ public class HelpConsoleCommand extends ConsoleCommand {
 
 			if (cmd != null) {
 
-				buf.append(cmd.detailHelp());
-				buf.append("\r\n");
+				cmd.detailHelp(writable);
 
 			} else {
 
-				buf.append("Unknown command '");
-				buf.append(key);
-				buf.append("'");
+				writable.println("Unknown command '" + key + "'.");
 			}
 
 		} else {
@@ -61,23 +57,20 @@ public class HelpConsoleCommand extends ConsoleCommand {
 
 				final ConsoleCommand cmd = ConsoleCommand.getCommand(key);
 
-				buf.append(StringUtils.rightPad(key, 10));
-				buf.append(" - ");
-				buf.append(cmd.commandHelp());
-				buf.append("\r\n");
+				writable.print(StringUtils.rightPad(key, 10));
+				writable.print(" - ");
+				cmd.commandHelp(writable);
 			}
 		}
-
-		return buf.toString();
 	}
 
 	@Override
-	public String commandHelp() {
-		return "Prints a list of all commands and a short help text. Use 'help <command> to get more details.";
+	public void commandHelp(final Writable writable) throws IOException {
+		writable.println("Prints a list of all commands and a short help text. Use 'help <command> to get more details.");
 	}
 
 	@Override
-	public String detailHelp() {
-		return commandHelp();
+	public void detailHelp(final Writable writable) throws IOException {
+		commandHelp(writable);
 	}
 }

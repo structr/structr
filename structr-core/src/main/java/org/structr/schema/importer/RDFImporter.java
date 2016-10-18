@@ -78,15 +78,15 @@ public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 
 			if (fileName != null) {
 
-				GraphGistImporter.importCypher(importRDF(new FileInputStream(fileName)));
+				importCypher(importRDF(new FileInputStream(fileName)));
 
 			} else if (url != null) {
 
-				GraphGistImporter.importCypher(importRDF(new URL(url).openStream()));
+				importCypher(importRDF(new URL(url).openStream()));
 
 			} else if (source != null) {
 
-				GraphGistImporter.importCypher(importRDF(new ByteArrayInputStream(source.getBytes())));
+				importCypher(importRDF(new ByteArrayInputStream(source.getBytes())));
 
 			}
 
@@ -102,7 +102,7 @@ public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 		return true;
 	}
 
-	public static List<String> importRDF(final InputStream is) throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+	public List<String> importRDF(final InputStream is) throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
 
 		final Document doc                            = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is);
 		final Set<HasSubclassRelationship> subclasses = new LinkedHashSet<>();

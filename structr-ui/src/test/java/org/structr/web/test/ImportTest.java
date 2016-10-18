@@ -42,6 +42,7 @@ public class ImportTest extends StructrUiTest {
 
 	public void testImportAndSchemaAnalyzer() {
 
+		final GraphGistImporter importer = app.command(GraphGistImporter.class);
 		final String source =
 			"== Test setup\n" +
 			"\n" +
@@ -51,11 +52,11 @@ public class ImportTest extends StructrUiTest {
 			"CREATE (p:Company { name: 'Company 2'})\n" +
 			"----\n";
 
-		final List<String> sourceLines = GraphGistImporter.extractSources(new ByteArrayInputStream(source.getBytes(Charset.forName("utf-8"))));
+		final List<String> sourceLines = importer.extractSources(new ByteArrayInputStream(source.getBytes(Charset.forName("utf-8"))));
 
 		// import (uses Neo4j transaction)
-		GraphGistImporter.importCypher(sourceLines);
-		GraphGistImporter.analyzeSchema();
+		importer.importCypher(sourceLines);
+		importer.analyzeSchema();
 
 		try (final Tx tx = app.tx()) {
 

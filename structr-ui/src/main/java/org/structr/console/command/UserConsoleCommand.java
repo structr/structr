@@ -18,6 +18,7 @@
  */
 package org.structr.console.command;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import org.apache.commons.lang.StringUtils;
@@ -34,7 +35,7 @@ import org.structr.core.graph.Tx;
 import org.structr.util.Writable;
 
 /**
- *
+ * A console command for user management.
  */
 public class UserConsoleCommand extends ConsoleCommand {
 
@@ -43,11 +44,9 @@ public class UserConsoleCommand extends ConsoleCommand {
 	}
 
 	@Override
-	public String run(final SecurityContext securityContext, final List<String> parameters, final Writable writable) throws FrameworkException {
+	public void run(final SecurityContext securityContext, final List<String> parameters, final Writable writable) throws FrameworkException, IOException {
 
-		final StringBuilder buf = new StringBuilder("\r\n");
 		final String command    = getParameter(parameters, 1);
-
 		if (command != null) {
 
 			final Principal user = securityContext.getUser(false);
@@ -56,55 +55,49 @@ public class UserConsoleCommand extends ConsoleCommand {
 				switch (command) {
 
 					case "list":
-						handleList(securityContext, buf);
+						handleList(securityContext, writable);
 						break;
 
 					case "add":
-						handleAdd(securityContext, buf, getParameter(parameters, 2), getParameter(parameters, 3), getParameter(parameters, 4));
+						handleAdd(securityContext, writable, getParameter(parameters, 2), getParameter(parameters, 3), getParameter(parameters, 4));
 						break;
 
 					case "delete":
-						handleDelete(securityContext, buf, getParameter(parameters, 2), getParameter(parameters, 3));
+						handleDelete(securityContext, writable, getParameter(parameters, 2), getParameter(parameters, 3));
 						break;
 
 					case "password":
-						handlePwd(securityContext, buf, getParameter(parameters, 2), getParameter(parameters, 3));
+						handlePwd(securityContext, writable, getParameter(parameters, 2), getParameter(parameters, 3));
 						break;
 				}
 
 			} else {
 
-				buf.append("You must be admin user to use this command.");
+				writable.println("You must be admin user to use this command.");
 			}
 
 		} else {
 
-			buf.append("Missing command, must be one of 'list', 'add', 'delete' or 'password'.");
+			writable.println("Missing command, must be one of 'list', 'add', 'delete' or 'password'.");
 		}
-
-		return buf.toString();
 	}
 
 	@Override
-	public String commandHelp() {
-		return "Creates and deletes users, sets passwords.";
+	public void commandHelp(final Writable writable) throws IOException {
+		writable.println("Creates and deletes users, sets passwords.");
 	}
 
 	@Override
-	public String detailHelp() {
+	public void detailHelp(final Writable writable) throws IOException {
 
-		final StringBuilder buf = new StringBuilder();
-
-		buf.append("user list                          - lists all user in the database\r\n");
-		buf.append("user add <name> [<e-mail>|isAdmin] - adds a new user with the given name and optional e-mail address.\r\n");
-		buf.append("user delete <name>                 - deletes the user with the given name\r\n");
-		buf.append("user password <name> <password>    - sets the password for the given user\r\n");
-
-		return buf.toString();
+		writable.println("user list                          - lists all user in the database");
+		writable.println("user add <name> [<e-mail>|isAdmin] - adds a new user with the given name and optional e-mail address");
+		writable.println("user delete <name>                 - deletes the user with the given name");
+		writable.println("user password <name> <password>    - sets the password for the given user");
 	}
 
 	// ----- private methods -----
-	private void handleList(final SecurityContext securityContext, final StringBuilder buf) throws FrameworkException {
+	private void handleList(final SecurityContext securityContext, final Writable writable) throws FrameworkException, IOException{
 
 		final Class<NodeInterface> type = StructrApp.getConfiguration().getNodeEntityClass("User");
 		final App app                   = StructrApp.getInstance(securityContext);
@@ -121,20 +114,20 @@ public class UserConsoleCommand extends ConsoleCommand {
 
 					if (name != null) {
 
-						buf.append(name);
+						writable.print(name);
 
 					} else {
 
-						buf.append(user.getUuid());
+						writable.print(user.getUuid());
 					}
 
 					if (it.hasNext()) {
 
-						buf.append(", ");
+						writable.print(", ");
 					}
 				}
 
-				buf.append("\r\n");
+				writable.println();
 
 				tx.success();
 			}
@@ -145,7 +138,7 @@ public class UserConsoleCommand extends ConsoleCommand {
 		}
 	}
 
-	private void handleAdd(final SecurityContext securityContext, final StringBuilder buf, final String name, final String eMail, final String isAdmin) throws FrameworkException {
+	private void handleAdd(final SecurityContext securityContext, final Writable writable, final String name, final String eMail, final String isAdmin) throws FrameworkException, IOException {
 
 		if (StringUtils.isEmpty(name)) {
 			throw new FrameworkException(422, "Missing user name for add command.");
@@ -170,7 +163,7 @@ public class UserConsoleCommand extends ConsoleCommand {
 					user.setProperty(Principal.isAdmin, true);
 				}
 
-				buf.append("User created.\r\n");
+				writable.println("User created.");
 
 				tx.success();
 			}
@@ -181,7 +174,7 @@ public class UserConsoleCommand extends ConsoleCommand {
 		}
 	}
 
-	private void handleDelete(final SecurityContext securityContext, final StringBuilder buf, final String name, final String confirm) throws FrameworkException {
+	private void handleDelete(final SecurityContext securityContext, final Writable writable, final String name, final String confirm) throws FrameworkException, IOException {
 
 		if (StringUtils.isEmpty(name)) {
 			throw new FrameworkException(422, "Missing user name for delete command.");
@@ -206,7 +199,7 @@ public class UserConsoleCommand extends ConsoleCommand {
 
 						app.delete(user);
 
-						buf.append("User deleted.\r\n");
+						writable.println("User deleted.");
 
 					} else {
 
@@ -214,19 +207,19 @@ public class UserConsoleCommand extends ConsoleCommand {
 
 						if (confirm == null || !confirm.equals(hash)) {
 
-							buf.append("User '");
-							buf.append(name);
-							buf.append("' has owned nodes, please confirm deletion with 'user delete ");
-							buf.append(name);
-							buf.append(" ");
-							buf.append(hash);
-							buf.append("'.\r\n");
+							writable.print("User '");
+							writable.print(name);
+							writable.print("' has owned nodes, please confirm deletion with 'user delete ");
+							writable.print(name);
+							writable.print(" ");
+							writable.print(hash);
+							writable.println("'.");
 
 						} else {
 
 							app.delete(user);
 
-							buf.append("User deleted.\r\n");
+							writable.println("User deleted.");
 						}
 					}
 
@@ -244,7 +237,7 @@ public class UserConsoleCommand extends ConsoleCommand {
 		}
 	}
 
-	private void handlePwd(final SecurityContext securityContext, final StringBuilder buf, final String name, final String password) throws FrameworkException {
+	private void handlePwd(final SecurityContext securityContext, final Writable writable, final String name, final String password) throws FrameworkException, IOException {
 
 		if (StringUtils.isEmpty(name)) {
 			throw new FrameworkException(422, "Missing user name for password command.");
@@ -264,7 +257,7 @@ public class UserConsoleCommand extends ConsoleCommand {
 
 						user.setProperty(Principal.password, password);
 
-						buf.append("Password changed.\r\n");
+						writable.println("Password changed.");
 
 					} else {
 
