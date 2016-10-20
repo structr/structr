@@ -18,6 +18,7 @@
  */
 package org.structr.console;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -49,106 +50,105 @@ public class Console {
 	private StructrScriptable scriptable = null;
 	private ActionContext actionContext  = null;
 	private ScriptableObject scope       = null;
-	private Writable writable            = null;
 
 	public Console(final SecurityContext securityContext, final Map<String, Object> parameters) {
 		this.actionContext = new ActionContext(securityContext, parameters);
 	}
 
-	public String run(final String line) throws FrameworkException {
+	public String runForTest(final String line) throws FrameworkException {
+
+		final PrintWritable writable = new PrintWritable();
+
+		// run
+		try { run(line, writable); } catch (IOException ioex) {}
+
+		return writable.getBuffer();
+	}
+
+	public void run(final String line, final Writable output) throws FrameworkException, IOException {
 
 		if (line.startsWith("Console.setMode('javascript')") || line.startsWith("Console.setMode(\"javascript\")")) {
 
 			mode = ConsoleMode.javascript;
-			return "\r\nMode set to 'JavaScript'.\r\n";
+			output.println("Mode set to 'JavaScript'.");
 
 		} else if (line.startsWith("Console.setMode('cypher')") || line.startsWith("Console.setMode(\"cypher\")")) {
 
 			mode = ConsoleMode.cypher;
-			return "\r\nMode set to 'Cypher'.\r\n";
+			output.println("Mode set to 'Cypher'.");
 
 		} else if (line.startsWith("Console.setMode('structr')") || line.startsWith("Console.setMode(\"structr\")")) {
 
 			mode = ConsoleMode.structrscript;
-			return "\r\nMode set to 'StructrScript'.\r\n";
+			output.println("Mode set to 'StructrScript'.");
 
 		} else if (line.startsWith("Console.setMode('shell')") || line.startsWith("Console.setMode(\"shell\")")) {
 
 			mode = ConsoleMode.adminshell;
-			return "\r\nMode set to 'AdminShell'. Type 'help' to get a list of commands.\r\n";
+			output.println("Mode set to 'AdminShell'. Type 'help' to get a list of commands.");
 
 		} else {
 
 			switch (mode) {
 
 				case cypher:
-					return runCypher(line);
+					runCypher(line, output);
+					break;
 
 				case javascript:
-					return runJavascript(line);
+					runJavascript(line, output);
+					break;
 
 				case structrscript:
-					return runStructrScript(line);
+					runStructrScript(line, output);
+					break;
 
 				case adminshell:
-					return runAdminShell(line);
+					runAdminShell(line, output);
+					break;
 			}
 		}
-
-		return null;
 	}
 
 	public SecurityContext getSecurityContext() {
 		return actionContext.getSecurityContext();
 	}
 
-	public void setWritable(final Writable writable) {
-		this.writable = writable;
-	}
-
 	// ----- private methods -----
-	private String runCypher(final String line) throws FrameworkException {
+	private void runCypher(final String line, final Writable writable) throws FrameworkException, IOException {
 
 		final App app                  = StructrApp.getInstance(actionContext.getSecurityContext());
 		final long t0                  = System.currentTimeMillis();
 		final List<GraphObject> result = app.cypher(line, Collections.emptyMap());
 		final long t1                  = System.currentTimeMillis();
 		final int size                 = result.size();
-		final StringBuilder buf        = new StringBuilder();
 
-		buf.append("Query returned ");
-		buf.append(size);
-		buf.append(" objects in ");
-		buf.append((t1-t0));
-		buf.append(" ms.");
-
-		buf.append("\r\n");
-		buf.append("\r\n");
+		writable.print("Query returned ", size, " objects in ", (t1-t0), " ms.");
+		writable.println();
+		writable.println();
 
 		if (size <= 10) {
 
-			buf.append(Functions.get("to_json").apply(actionContext, null, new Object[] { result } ));
+			writable.print(Functions.get("to_json").apply(actionContext, null, new Object[] { result } ));
 
 		} else {
 
-			buf.append("Too many results (> 10), please use LIMIT to reduce the result count of your Cypher query.");
+			writable.print("Too many results (> 10), please use LIMIT to reduce the result count of your Cypher query.");
 		}
 
-		return buf.toString();
+		writable.println();
 	}
 
-	private String runStructrScript(final String line) throws FrameworkException {
+	private void runStructrScript(final String line, final Writable writable) throws FrameworkException, IOException {
 
 		final Object result = Functions.evaluate(actionContext, null, line);
 		if (result != null) {
 
-			return result.toString();
+			writable.println(result.toString());
 		}
-
-		return "null";
 	}
 
-	private String runJavascript(final String line) throws FrameworkException {
+	private void runJavascript(final String line, final Writable writable) throws FrameworkException {
 
 		final Context scriptingContext = Context.enter();
 
@@ -167,11 +167,9 @@ public class Console {
 				extractedValue = output;
 			}
 
-			if (extractedValue == null) {
-				return "null";
+			if (extractedValue != null) {
+				writable.println(extractedValue.toString());
 			}
-
-			return extractedValue.toString();
 
 		} catch (final FrameworkException fex) {
 
@@ -188,7 +186,7 @@ public class Console {
 		}
 	}
 
-	private String runAdminShell(final String line) throws FrameworkException {
+	private void runAdminShell(final String line, final Writable writable) throws FrameworkException, IOException {
 
 		final List<String> parts = splitAnClean(line);
 		if (!parts.isEmpty()) {
@@ -196,11 +194,17 @@ public class Console {
 			final ConsoleCommand cmd = ConsoleCommand.getCommand(parts.get(0));
 			if (cmd != null) {
 
-				return cmd.run(actionContext.getSecurityContext(), parts, writable);
-			}
-		}
+				cmd.run(actionContext.getSecurityContext(), parts, writable);
 
-		return "Unknown command '" + line + "'";
+			} else {
+
+				writable.println("Unknown command '" + line + "'.");
+			}
+
+		} else {
+
+			writable.println("Syntax error.");
+		}
 	}
 
 	private void init(final Context scriptingContext) {
@@ -247,5 +251,39 @@ public class Console {
 		}
 
 		return parts;
+	}
+
+	// ----- nested classes -----
+	private static class PrintWritable implements Writable {
+
+		final StringBuilder buf = new StringBuilder();
+
+		@Override
+		public void print(final Object... text) throws IOException {
+			for (final Object o : text) {
+				buf.append(o);
+			}
+		}
+
+		@Override
+		public void println(final Object... text) throws IOException {
+			for (final Object o : text) {
+				buf.append(o);
+			}
+			println();
+		}
+
+		@Override
+		public void println() throws IOException {
+			buf.append("\r\n");
+		}
+
+		@Override
+		public void flush() throws IOException {
+		}
+
+		public String getBuffer() {
+			return buf.toString();
+		}
 	}
 }

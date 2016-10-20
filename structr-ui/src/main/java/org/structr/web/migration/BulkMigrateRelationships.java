@@ -34,7 +34,6 @@ import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.BulkGraphOperation;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeServiceCommand;
-import static org.structr.core.graph.NodeServiceCommand.bulkGraphOperation;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.web.entity.dom.relationship.DOMChildren;

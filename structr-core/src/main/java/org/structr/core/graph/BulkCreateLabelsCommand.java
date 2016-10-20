@@ -23,8 +23,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
@@ -43,9 +41,6 @@ import org.structr.core.graph.search.SearchCommand;
  */
 public class BulkCreateLabelsCommand extends NodeServiceCommand implements MaintenanceCommand, TransactionPostProcess {
 
-	private static final Logger logger = LoggerFactory.getLogger(BulkCreateLabelsCommand.class.getName());
-
-	//~--- methods --------------------------------------------------------
 	@Override
 	public void execute(Map<String, Object> attributes) {
 
@@ -62,19 +57,19 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("Exception while creating all nodes iterator.", fex);
+			warn("Exception while creating all nodes iterator.", fex);
 		}
 
 		if (entityType == null) {
 
-			logger.info("Node type not set or no entity class found. Starting creation of labels for all nodes.");
+			info("Node type not set or no entity class found. Starting creation of labels for all nodes.");
 
 		} else {
 
-			logger.info("Starting creation of labels for all nodes of type {}", entityType);
+			info("Starting creation of labels for all nodes of type {}", entityType);
 		}
 
-		final long count = NodeServiceCommand.bulkGraphOperation(securityContext, nodeIterator, 10000, "CreateLabels", new BulkGraphOperation<AbstractNode>() {
+		final long count = bulkGraphOperation(securityContext, nodeIterator, 10000, "CreateLabels", new BulkGraphOperation<AbstractNode>() {
 
 			@Override
 			public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
@@ -120,16 +115,16 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 
 			@Override
 			public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
-				logger.warn("Unable to create labels for node {}: {}", new Object[]{node, t.getMessage()});
+				warn("Unable to create labels for node {}: {}", node, t.getMessage());
 			}
 
 			@Override
 			public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
-				logger.warn("Unable to create labels for node: {}", t.getMessage());
+				warn("Unable to create labels for node: {}", t.getMessage());
 			}
 		});
 
-		logger.info("Done with creating labels on {} nodes", count);
+		info("Done with creating labels on {} nodes", count);
 	}
 
 	@Override

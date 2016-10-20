@@ -18,6 +18,7 @@
  */
 package org.structr.console.command;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,9 +35,9 @@ public abstract class ConsoleCommand {
 
 	private static final Map<String, Class<? extends ConsoleCommand>> commands = new TreeMap<>();
 
-	public abstract String run(final SecurityContext securityContext, final List<String> parameters, final Writable writable) throws FrameworkException;
-	public abstract String commandHelp();
-	public abstract String detailHelp();
+	public abstract void run(final SecurityContext securityContext, final List<String> parameters, final Writable writable) throws FrameworkException, IOException;
+	public abstract void commandHelp(final Writable writable) throws IOException;
+	public abstract void detailHelp(final Writable writable) throws IOException;
 
 	public static Set<String> commandNames() {
 		return commands.keySet();

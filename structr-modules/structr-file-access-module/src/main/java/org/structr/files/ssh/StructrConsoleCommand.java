@@ -44,7 +44,6 @@ import org.structr.web.entity.User;
 
 /**
  *
- *
  */
 public class StructrConsoleCommand implements Command, SignalListener, TerminalHandler {
 
@@ -169,8 +168,6 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 			// create terminal emulation
 			term = new XTermTerminalEmulator(in, out, this);
 		}
-
-		console.setWritable(term);
 	}
 
 	@Override
@@ -209,10 +206,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 				try (final Tx tx = StructrApp.getInstance(console.getSecurityContext()).tx()) {
 
-					final String cmd = buf.toString();
-					final String ret = console.run(cmd);
-
-					term.println(ret);
+					console.run(buf.toString(), term);
 
 					tx.success();
 

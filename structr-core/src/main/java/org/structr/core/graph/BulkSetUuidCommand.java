@@ -70,13 +70,13 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 					nodeIterator = Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(false, false, true), graphDb.getAllNodes())).iterator();
 
-					logger.info("Start setting UUID on all nodes");
+					info("Start setting UUID on all nodes");
 
 				} else {
 
 					nodeIterator = Iterables.filter(new TypePredicate<>(nodeType), Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(false, false, true), graphDb.getAllNodes()))).iterator();
 
-					logger.info("Start setting UUID on nodes of type {}", new Object[] { nodeType });
+					info("Start setting UUID on nodes of type {}", new Object[] { nodeType });
 				}
 
 				tx.success();
@@ -119,7 +119,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 				}
 			});
 
-			logger.info("Done with setting UUID on {} nodes", count);
+			info("Done with setting UUID on {} nodes", count);
 
 			return;
 		}
@@ -134,13 +134,13 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 					relIterator = Iterables.map(relFactory,Iterables.filter(new StructrAndSpatialPredicate(false, false, true), graphDb.getAllRelationships())).iterator();
 
-					logger.info("Start setting UUID on all rels", new Object[] { relType });
+					info("Start setting UUID on all rels", new Object[] { relType });
 
 				} else {
 
 					relIterator = Iterables.filter(new TypePredicate<>(relType), Iterables.map(relFactory,Iterables.filter(new StructrAndSpatialPredicate(false, false, true), graphDb.getAllRelationships()))).iterator();
 
-					logger.info("Start setting UUID on rels of type {}", new Object[] { relType });
+					info("Start setting UUID on rels of type {}", new Object[] { relType });
 				}
 
 				tx.success();
@@ -180,12 +180,12 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 				}
 			});
 
-			logger.info("Done with setting UUID on {} relationships", count);
+			info("Done with setting UUID on {} relationships", count);
 
 			return;
 		}
 
-		logger.info("Unable to determine entity type to set UUID.");
+		info("Unable to determine entity type to set UUID.");
 
 	}
 

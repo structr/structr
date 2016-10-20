@@ -94,14 +94,14 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 		if (entityType == null) {
 
-			logger.info("Node type not set or no entity class found. Starting (re-)indexing all nodes");
+			info("Node type not set or no entity class found. Starting (re-)indexing all nodes");
 
 		} else {
 
-			logger.info("Starting (re-)indexing all nodes of type {}", entityType);
+			info("Starting (re-)indexing all nodes of type {}", entityType);
 		}
 
-		long count = NodeServiceCommand.bulkGraphOperation(securityContext, nodeIterator, 1000, "RebuildNodeIndex", new BulkGraphOperation<AbstractNode>() {
+		long count = bulkGraphOperation(securityContext, nodeIterator, 1000, "RebuildNodeIndex", new BulkGraphOperation<AbstractNode>() {
 
 			@Override
 			public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
@@ -119,7 +119,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 			}
 		});
 
-		logger.info("Done with (re-)indexing {} nodes", count);
+		info("Done with (re-)indexing {} nodes", count);
 	}
 
 	private void rebuildRelationshipIndex(final String relType) {
@@ -141,15 +141,15 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 		if (relType == null) {
 
-			logger.info("Relationship type not set, starting (re-)indexing all relationships");
+			info("Relationship type not set, starting (re-)indexing all relationships");
 
 		} else {
 
-			logger.info("Starting (re-)indexing all relationships of type {}", new Object[]{relType});
+			info("Starting (re-)indexing all relationships of type {}", new Object[]{relType});
 
 		}
 
-		long count = NodeServiceCommand.bulkGraphOperation(securityContext, relIterator, 1000, "RebuildRelIndex", new BulkGraphOperation<AbstractRelationship>() {
+		long count = bulkGraphOperation(securityContext, relIterator, 1000, "RebuildRelIndex", new BulkGraphOperation<AbstractRelationship>() {
 
 			@Override
 			public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
@@ -167,6 +167,6 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 			}
 		});
 
-		logger.info("Done with (re-)indexing {} relationships", count);
+		info("Done with (re-)indexing {} relationships", count);
 	}
 }

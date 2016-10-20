@@ -18,6 +18,7 @@
  */
 package org.structr.console.command;
 
+import java.io.IOException;
 import java.util.List;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -27,7 +28,7 @@ import org.structr.util.Writable;
 import org.structr.web.maintenance.DeployCommand;
 
 /**
- *
+ * A console wrapper for DeployCommand, export mode.
  */
 public class ExportConsoleCommand extends ConsoleCommand {
 
@@ -36,11 +37,9 @@ public class ExportConsoleCommand extends ConsoleCommand {
 	}
 
 	@Override
-	public String run(final SecurityContext securityContext, final List<String> parameters, final Writable writable) throws FrameworkException {
+	public void run(final SecurityContext securityContext, final List<String> parameters, final Writable writable) throws FrameworkException, IOException {
 
-		final StringBuilder buf = new StringBuilder("\r\n");
 		final Principal user = securityContext.getUser(false);
-
 		if (user != null && user.isAdmin()) {
 
 			final DeployCommand cmd = StructrApp.getInstance(securityContext).command(DeployCommand.class);
@@ -50,24 +49,17 @@ public class ExportConsoleCommand extends ConsoleCommand {
 
 		} else {
 
-			buf.append("You must be admin user to use this command.");
+			writable.println("You must be admin user to use this command.");
 		}
-
-		return buf.toString();
 	}
 
 	@Override
-	public String commandHelp() {
-		return "Exports the Structr application to a directory.";
+	public void commandHelp(final Writable writable) throws IOException {
+		writable.println("Exports the Structr application to a directory.");
 	}
 
 	@Override
-	public String detailHelp() {
-
-		final StringBuilder buf = new StringBuilder();
-
-		buf.append("export <target> - exports this application to the given target directory.\r\n");
-
-		return buf.toString();
+	public void detailHelp(final Writable writable) throws IOException {
+		writable.println("export <target> - exports this application to the given target directory.");
 	}
 }

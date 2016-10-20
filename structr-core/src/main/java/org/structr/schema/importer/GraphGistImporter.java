@@ -22,15 +22,10 @@ import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.DatabaseService;
-import org.structr.api.Transaction;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.MaintenanceCommand;
 
 /**
@@ -68,15 +63,15 @@ public class GraphGistImporter extends SchemaImporter implements MaintenanceComm
 
 			if (fileName != null) {
 
-				GraphGistImporter.importCypher(extractSources(new FileInputStream(fileName)));
+				importCypher(extractSources(new FileInputStream(fileName)));
 
 			} else if (url != null) {
 
-				GraphGistImporter.importCypher(extractSources(new URL(url).openStream()));
+				importCypher(extractSources(new URL(url).openStream()));
 
 			} else if (source != null) {
 
-				GraphGistImporter.importCypher(extractSources(new ByteArrayInputStream(source.getBytes())));
+				importCypher(extractSources(new ByteArrayInputStream(source.getBytes())));
 			}
 
 		} catch (IOException ioex) {
@@ -85,33 +80,6 @@ public class GraphGistImporter extends SchemaImporter implements MaintenanceComm
 		}
 
 		analyzeSchema();
-	}
-
-
-	public static void importCypher(final List<String> sources) {
-
-		final App app                 = StructrApp.getInstance();
-		final DatabaseService graphDb = app.getDatabaseService();
-
-		// nothing to do
-		if (sources.isEmpty()) {
-			return;
-		}
-
-		// first step: execute cypher queries
-		for (final String source : sources) {
-
-			try (final Transaction tx = graphDb.beginTx()) {
-
-				// be very tolerant here, just execute everything
-				graphDb.execute(source);
-				tx.success();
-
-			} catch (Throwable t) {
-				// ignore
-				logger.warn("", t);
-			}
-		}
 	}
 
 	@Override

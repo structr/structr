@@ -66,7 +66,7 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 
 					logger.info("Trying to fix properties of all {} nodes", type.getSimpleName() );
 
-					long nodeCount = NodeServiceCommand.bulkGraphOperation(securityContext, nodeIterator, 100, "FixNodeProperties", new BulkGraphOperation<AbstractNode>() {
+					long nodeCount = bulkGraphOperation(securityContext, nodeIterator, 100, "FixNodeProperties", new BulkGraphOperation<AbstractNode>() {
 
 						private void fixProperty(AbstractNode node, Property propertyToFix) {
 

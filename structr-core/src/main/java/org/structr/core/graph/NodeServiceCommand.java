@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -32,6 +33,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.util.Writable;
 
 /**
  * Abstract base class for all graph service commands.
@@ -44,6 +46,7 @@ public abstract class NodeServiceCommand extends Command {
 	private static final ArrayBlockingQueue<String> uuidQueue = new ArrayBlockingQueue<>(100000);
 
 	protected SecurityContext securityContext = null;
+	private Writable logWritable              = null;
 
 	@Override
 	public Class getServiceClass()	{
@@ -66,7 +69,7 @@ public abstract class NodeServiceCommand extends Command {
 	 * @param operation the operation to execute
 	 * @return the number of nodes processed
 	 */
-	public static <T> long bulkGraphOperation(final SecurityContext securityContext, final Iterator<T> iterator, final long commitCount, String description, final BulkGraphOperation<T> operation) {
+	public <T> long bulkGraphOperation(final SecurityContext securityContext, final Iterator<T> iterator, final long commitCount, String description, final BulkGraphOperation<T> operation) {
 		return bulkGraphOperation(securityContext, iterator, commitCount, description, operation, true);
 	}
 	/**
@@ -81,7 +84,7 @@ public abstract class NodeServiceCommand extends Command {
 	 * @param validation
 	 * @return the number of nodes processed
 	 */
-	public static <T> long bulkGraphOperation(final SecurityContext securityContext, final Iterator<T> iterator, final long commitCount, String description, final BulkGraphOperation<T> operation, boolean validation) {
+	public <T> long bulkGraphOperation(final SecurityContext securityContext, final Iterator<T> iterator, final long commitCount, String description, final BulkGraphOperation<T> operation, boolean validation) {
 
 		final Predicate<Long> condition = operation.getCondition();
 		final App app                   = StructrApp.getInstance(securityContext);
@@ -126,7 +129,7 @@ public abstract class NodeServiceCommand extends Command {
 			}
 
 			if (description != null) {
-				logger.info("{}: {} objects processed", new Object[] { description, objectCount } );
+				info("{}: {} objects processed", description, objectCount);
 			}
 		}
 
@@ -143,7 +146,7 @@ public abstract class NodeServiceCommand extends Command {
 	 * @param stopCondition
 	 * @throws FrameworkException
 	 */
-	public static void bulkTransaction(final SecurityContext securityContext, final long commitCount, final StructrTransaction transaction, final Predicate<Long> stopCondition) throws FrameworkException {
+	public void bulkTransaction(final SecurityContext securityContext, final long commitCount, final StructrTransaction transaction, final Predicate<Long> stopCondition) throws FrameworkException {
 
 		final App app                = StructrApp.getInstance(securityContext);
 		final AtomicLong objectCount = new AtomicLong(0L);
@@ -180,6 +183,68 @@ public abstract class NodeServiceCommand extends Command {
 		} while (uuid == null);
 
 		return uuid;
+	}
+
+	// ----- public methods -----
+	public void setLogBuffer(final Writable writable) {
+		this.logWritable = writable;
+	}
+
+	// ----- protected methods -----
+	protected void info(final String msg, final Object... data) {
+
+		// allow redirection of logging output
+		if (logWritable != null) {
+
+			String logMessage = msg;
+
+			for (final Object obj : data) {
+
+				if (obj != null) {
+					logMessage = logMessage.replaceFirst("\\{\\}", obj.toString());
+				}
+			}
+
+			// alternative logging to a writer
+			try {
+
+				logWritable.println(logMessage);
+				logWritable.flush();
+
+			} catch (IOException ignore) {}
+
+		} else {
+
+			logger.info(msg, data);
+		}
+	}
+
+	protected void warn(final String msg, final Object... data) {
+
+		// allow redirection of logging output
+		if (logWritable != null) {
+
+			String logMessage = msg;
+
+			for (final Object obj : data) {
+
+				if (obj != null) {
+					logMessage = logMessage.replaceFirst("\\{\\}", obj.toString());
+				}
+			}
+
+			// alternative logging to a writer
+			try {
+
+				logWritable.println(logMessage);
+				logWritable.flush();
+
+			} catch (IOException ignore) {}
+
+		} else {
+
+			logger.warn(msg, data);
+		}
 	}
 
 	// create uuid producer that fills the queue

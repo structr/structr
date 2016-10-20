@@ -16,15 +16,10 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.util;
+package org.structr.core.graph;
 
-import java.io.IOException;
-
-public interface Writable {
-
-	void print(final Object... text) throws IOException;
-	void println(final Object... text) throws IOException;
-	void println() throws IOException;
-
-	void flush() throws IOException;
+/**
+ *
+ */
+public class DummyNodeServiceCommand extends NodeServiceCommand {
 }

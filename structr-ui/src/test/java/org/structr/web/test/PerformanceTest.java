@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.NodeServiceCommand;
+import org.structr.core.graph.DummyNodeServiceCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.Tx;
 import org.structr.web.common.DOMTest;
@@ -52,7 +52,7 @@ public class PerformanceTest extends DOMTest {
 
 			try {
 
-				NodeServiceCommand.bulkTransaction(securityContext, 1000, new StructrTransaction() {
+				app.command(DummyNodeServiceCommand.class).bulkTransaction(securityContext, 1000, new StructrTransaction() {
 
 					@Override
 					public Object execute() throws FrameworkException {
