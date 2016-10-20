@@ -21,6 +21,7 @@ package org.structr.web.entity;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
@@ -85,11 +86,11 @@ public class Image extends org.structr.dynamic.File {
 	public Object setProperty(final PropertyKey key, final Object value) throws FrameworkException {
 
 		// Copy visibility properties and owner to all thumbnails
-		if (AbstractNode.visibleToPublicUsers.equals(key)
-		 || AbstractNode.visibleToAuthenticatedUsers.equals(key)
-		 || AbstractNode.visibilityStartDate.equals(key)
-		 || AbstractNode.visibleToAuthenticatedUsers.equals(key)
-		 || AbstractNode.owner.equals(key)) {
+		if (visibleToPublicUsers.equals(key) ||
+			visibleToAuthenticatedUsers.equals(key) ||
+			visibilityStartDate.equals(key) ||
+			visibilityEndDate.equals(key) ||
+			owner.equals(key)) {
 
 			for (Image tn : getThumbnails()) {
 
@@ -103,23 +104,60 @@ public class Image extends org.structr.dynamic.File {
 	}
 
 	@Override
+	public void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
+
+		if ( !isThumbnail() ) {
+
+			final List<Image> thumbnails = getThumbnails();
+
+			for (final Map.Entry<PropertyKey, Object> attr : properties.entrySet()) {
+
+				final PropertyKey key = attr.getKey();
+				final Object value    = attr.getValue();
+
+				for (Image tn : thumbnails) {
+
+					if (visibleToPublicUsers.equals(key) ||
+						visibleToAuthenticatedUsers.equals(key) ||
+						visibilityStartDate.equals(key) ||
+						visibilityEndDate.equals(key) ||
+						owner.equals(key)) {
+
+						tn.setProperty(key, value);
+
+					}
+
+				}
+
+			}
+
+		}
+
+		super.setProperties(securityContext, properties);
+	}
+
+	@Override
 	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
 
-			if ( !isThumbnail() && modificationQueue.getSynchronizationKeys().contains("Image.name") ) {
+			if ( !isThumbnail() ) {
 
-				final String newImageName = getName();
+				if (modificationQueue.isPropertyModified(name)) {
 
-				for (Image tn : getThumbnails()) {
+					final String newImageName = getName();
 
-					final String expectedThumbnailName = getThumbnailName(newImageName, tn.getWidth(), tn.getHeight());
-					final String currentThumbnailName  = tn.getName();
+					for (Image tn : getThumbnails()) {
 
-					if ( !expectedThumbnailName.equals(currentThumbnailName) ) {
+						final String expectedThumbnailName = getThumbnailName(newImageName, tn.getWidth(), tn.getHeight());
+						final String currentThumbnailName  = tn.getName();
 
-						logger.debug("Auto-renaming Thumbnail({}) from '{}' to '{}'", tn.getUuid(), currentThumbnailName, expectedThumbnailName);
-						tn.setProperty(AbstractNode.name, expectedThumbnailName);
+						if ( !expectedThumbnailName.equals(currentThumbnailName) ) {
+
+							logger.debug("Auto-renaming Thumbnail({}) from '{}' to '{}'", tn.getUuid(), currentThumbnailName, expectedThumbnailName);
+							tn.setProperty(AbstractNode.name, expectedThumbnailName);
+
+						}
 
 					}
 
