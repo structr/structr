@@ -88,7 +88,7 @@ public class Image extends org.structr.dynamic.File {
 		if (AbstractNode.visibleToPublicUsers.equals(key)
 		 || AbstractNode.visibleToAuthenticatedUsers.equals(key)
 		 || AbstractNode.visibilityStartDate.equals(key)
-		 || AbstractNode.visibleToAuthenticatedUsers.equals(key)
+		 || AbstractNode.visibilityEndDate.equals(key)
 		 || AbstractNode.owner.equals(key)) {
 
 			for (Image tn : getThumbnails()) {
