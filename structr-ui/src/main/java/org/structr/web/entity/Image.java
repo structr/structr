@@ -300,7 +300,7 @@ public class Image extends org.structr.dynamic.File {
 
 					} catch (IOException ex) {
 
-						logger.warn("Could not create thumbnail image", ex);
+						logger.warn("Could not create thumbnail image for " + getUuid(), ex);
 
 					}
 
@@ -339,7 +339,7 @@ public class Image extends org.structr.dynamic.File {
 
 				} else {
 
-					logger.debug("Could not create thumbnail for image {} ({})", new Object[] { getName(), getUuid() });
+					logger.debug("Could not create thumbnail for image {} ({})", getName(), getUuid());
 
 				}
 
@@ -348,7 +348,7 @@ public class Image extends org.structr.dynamic.File {
 
 			} catch (FrameworkException fex) {
 
-				logger.warn("Unable to create thumbnail", fex);
+				logger.warn("Unable to create thumbnail for " + getUuid(), fex);
 
 			}
 
