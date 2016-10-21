@@ -16,50 +16,61 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.console.command;
+package org.structr.console.shell;
 
 import java.io.IOException;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Principal;
 import org.structr.util.Writable;
-import org.structr.web.maintenance.DeployCommand;
 
 /**
- * A console wrapper for DeployCommand, import mode.
+ * A console command that displays help texts for other console commands.
  */
-public class ImportConsoleCommand extends ConsoleCommand {
+public class HelpConsoleCommand extends ConsoleCommand {
 
 	static {
-		ConsoleCommand.registerCommand("import", ImportConsoleCommand.class);
+		ConsoleCommand.registerCommand("help", HelpConsoleCommand.class);
 	}
 
 	@Override
 	public void run(final SecurityContext securityContext, final List<String> parameters, final Writable writable) throws FrameworkException, IOException {
 
-		final Principal user = securityContext.getUser(false);
-		if (user != null && user.isAdmin()) {
+		if (parameters.size() > 1) {
 
-			final DeployCommand cmd = StructrApp.getInstance(securityContext).command(DeployCommand.class);
+			final String key         = parameters.get(1);
+			final ConsoleCommand cmd = ConsoleCommand.getCommand(key);
 
-			cmd.setLogBuffer(writable);
-			cmd.execute(toMap("mode", "import", "source", getParameter(parameters, 1)));
+			if (cmd != null) {
+
+				cmd.detailHelp(writable);
+
+			} else {
+
+				writable.println("Unknown command '" + key + "'.");
+			}
 
 		} else {
 
-			writable.println("You must be admin user to use this command.");
+			for (final String key : ConsoleCommand.commandNames()) {
+
+				final ConsoleCommand cmd = ConsoleCommand.getCommand(key);
+
+				writable.print(StringUtils.rightPad(key, 10));
+				writable.print(" - ");
+				cmd.commandHelp(writable);
+			}
 		}
 	}
 
 	@Override
 	public void commandHelp(final Writable writable) throws IOException {
-		writable.println("Imports a Structr application from a directory.");
+		writable.println("Prints a list of all commands and a short help text. Use 'help <command> to get more details.");
 	}
 
 	@Override
 	public void detailHelp(final Writable writable) throws IOException {
-		writable.println("import <source> - imports an application from the given source directory.");
+		commandHelp(writable);
 	}
 }

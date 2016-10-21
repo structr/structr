@@ -21,6 +21,8 @@ package org.structr.files.ssh;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
@@ -36,9 +38,11 @@ import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.console.Console;
+import org.structr.console.Console.ConsoleMode;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
+import org.structr.util.Writable;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.User;
 
@@ -52,13 +56,14 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 	private final List<String> commandHistory  = new LinkedList<>();
 	private final StringBuilder lastBlockChars = new StringBuilder();
 	private final StringBuilder buf            = new StringBuilder();
+	private ConsoleMode consoleMode            = ConsoleMode.javascript;
+	private String command                     = null;
 	private Console console                    = null;
 	private TerminalEmulator term              = null;
 	private ExitCallback callback              = null;
 	private InputStream in                     = null;
 	private OutputStream out                   = null;
 	private User user                          = null;
-	private int consoleMode                    = 1;
 	private int inBlock                        = 0;
 	private int inSingleQuotes                 = 0;
 	private int inDoubleQuotes                 = 0;
@@ -66,7 +71,15 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 	private int inBraces                       = 0;
 
 	public StructrConsoleCommand(final SecurityContext securityContext) {
-		this.console = new Console(securityContext, null);
+		this(securityContext, ConsoleMode.javascript, null);
+	}
+
+	public StructrConsoleCommand(final SecurityContext securityContext, final ConsoleMode consoleMode, final String command) {
+
+		this.console     = new Console(securityContext, consoleMode, null);
+		this.consoleMode = consoleMode;
+		this.command     = command;
+
 	}
 
 	@Override
@@ -114,59 +127,69 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 			return;
 		}
 
-		if (isInteractive()) {
+		// abort if no user was found
+		if (user == null) {
 
-			// abort if no user was found
-			if (user == null) {
+			logger.warn("Cannot start Structr shell, user not found for name {}!", userName);
+			return;
+		}
 
-				logger.warn("Cannot start Structr shell, user not found for name {}!", userName);
-				return;
+		final String terminalType = env.getEnv().get("TERM");
+		if (terminalType != null) {
+
+			switch (terminalType) {
+
+				case "xterm":
+				case "vt100":
+				case "vt220":
+					term = new XTermTerminalEmulator(in, out, this);
+					break;
+
+				default:
+					logger.warn("Unsupported terminal type {}, aborting.", terminalType);
+					break;
+
+
 			}
 
-			final String terminalType = env.getEnv().get("TERM");
-			if (terminalType != null) {
+			logger.warn("No terminal type provided, aborting.", terminalType);
+		}
 
-				switch (terminalType) {
+		if (term != null) {
 
-					case "xterm":
-					case "vt100":
-					case "vt220":
-						term = new XTermTerminalEmulator(in, out, this);
-						break;
+			term.start();
 
-					default:
-						logger.warn("Unsupported terminal type {}, aborting.", terminalType);
-						break;
+			term.print("Welcome to the ");
+			term.setBold(true);
+			term.print("Structr 2.1");
+			term.setBold(false);
+			term.print(" JavaScript console. Use the <tab> key to switch modes.");
+			term.println();
 
-
-				}
-
-				logger.warn("No terminal type provided, aborting.", terminalType);
-			}
-
-			if (term != null) {
-
-				term.start();
-
-				term.print("Welcome to the ");
-				term.setBold(true);
-				term.print("Structr 2.1");
-				term.setBold(false);
-				term.print(" JavaScript console. Use the <tab> key to switch modes.");
-				term.println();
-
-				// display first prompt
-				displayPrompt();
-
-			} else {
-
-				callback.onExit(1);
-			}
+			// display first prompt
+			displayPrompt();
 
 		} else {
 
-			// create terminal emulation
-			term = new XTermTerminalEmulator(in, out, this);
+			final OutputStreamWritable writable = new OutputStreamWritable(out);
+
+			if (command != null) {
+
+				try {
+
+					this.console.run(command, writable);
+
+				} catch (FrameworkException fex) {
+
+					writable.println(fex.getMessage());
+				}
+
+			} else {
+
+				writable.println("No command specified, aborting.");
+			}
+
+			callback.onExit(1);
 		}
 	}
 
@@ -186,12 +209,14 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 	@Override
 	public void handleLine(final String line) throws IOException {
 
+		term.flush();
+
 		if (StringUtils.isNotBlank(line)) {
 
 			if (insideOfBlockOrStructure()) {
 
 				buf.append(line);
-				buf.append("\n");
+				buf.append("\r\n");
 
 			} else {
 
@@ -244,7 +269,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 		final StringBuilder buffer = new StringBuilder();
 
 		buffer.append("\u001b[1m");
-		buffer.append("Structr");
+		buffer.append(console.getPrompt());
 
 		if (insideOfBlockOrStructure() && lastBlockChars.length() > 0) {
 			buffer.append(lastBlockChars.charAt(lastBlockChars.length() - 1));
@@ -325,42 +350,36 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 		if (tabCount == 1 && !insideOfBlockOrStructure()) {
 
-			String mode = null;
-
 			switch (consoleMode) {
 
-				case 0:
-					mode = "javascript";
-					consoleMode = 1;
+				case rest:
+					consoleMode = ConsoleMode.javascript;
 					break;
 
-				case 1:
-					mode = "structr";
-					consoleMode = 2;
+				case javascript:
+					consoleMode = ConsoleMode.structrscript;
 					break;
 
-				case 2:
-					mode = "cypher";
-					consoleMode = 3;
+				case structrscript:
+					consoleMode = ConsoleMode.cypher;
 					break;
 
-				case 3:
-					mode = "shell";
-					consoleMode = 0;
+				case cypher:
+					consoleMode = ConsoleMode.admin;
+					break;
+
+				case admin:
+					consoleMode = ConsoleMode.rest;
 					break;
 			}
 
-			term.handleString("Console.setMode('" + mode + "')");
+			term.handleString("Console.setMode('" + consoleMode.name() + "')");
 			term.clearTabCount();
 
 			term.setBold(true);
 			term.setTextColor(3);
 			term.handleNewline();
 		}
-	}
-
-	public boolean isInteractive() {
-		return true;
 	}
 
 	public void flush() throws IOException {
@@ -445,5 +464,55 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 		inArray = 0;
 
 		buf.setLength(0);
+	}
+
+	// ----- nested classes -----
+	private static class OutputStreamWritable implements Writable {
+
+		private Writer writer = null;
+
+		public OutputStreamWritable(final OutputStream out) {
+			this.writer = new OutputStreamWriter(out);
+		}
+
+		@Override
+		public void print(final Object... text) throws IOException {
+
+			if (text != null) {
+
+				for (final Object o : text) {
+
+					if (o != null) {
+
+						writer.write(o.toString().replaceAll("\n", "\r\n"));
+
+					} else {
+
+						writer.write("null");
+					}
+				}
+			}
+
+			writer.flush();
+		}
+
+		@Override
+		public void println(final Object... text) throws IOException {
+
+			print(text);
+			println();
+			writer.flush();
+		}
+
+		@Override
+		public void println() throws IOException {
+			writer.write(10);
+			writer.write(13);
+		}
+
+		@Override
+		public void flush() throws IOException {
+			writer.flush();
+		}
 	}
 }

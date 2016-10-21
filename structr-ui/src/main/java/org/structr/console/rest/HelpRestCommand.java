@@ -16,52 +16,63 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.console.command;
+package org.structr.console.rest;
 
 import java.io.IOException;
-import java.util.List;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.console.Console;
 import org.structr.util.Writable;
 
 /**
- * A console command that displays help texts for other console commands.
+ *
  */
-public class HelpConsoleCommand extends ConsoleCommand {
+public class HelpRestCommand extends RestCommand {
+
+	private String subCommand = null;
 
 	static {
-		ConsoleCommand.registerCommand("help", HelpConsoleCommand.class);
+
+		RestCommand.registerCommand("help", HelpRestCommand.class);
 	}
 
 	@Override
-	public void run(final SecurityContext securityContext, final List<String> parameters, final Writable writable) throws FrameworkException, IOException {
+	public void run(final Console console, final Writable writable) throws FrameworkException, IOException {
 
-		if (parameters.size() > 1) {
+		if (subCommand != null) {
 
-			final String key         = parameters.get(1);
-			final ConsoleCommand cmd = ConsoleCommand.getCommand(key);
-
-			if (cmd != null) {
+			final RestCommand cmd = RestCommand.getCommand(subCommand);
+			if (subCommand != null) {
 
 				cmd.detailHelp(writable);
 
 			} else {
 
-				writable.println("Unknown command '" + key + "'.");
+				writable.println("Unknown command '" + subCommand + "'.");
 			}
 
 		} else {
 
-			for (final String key : ConsoleCommand.commandNames()) {
+			for (final String key : RestCommand.commandNames()) {
 
-				final ConsoleCommand cmd = ConsoleCommand.getCommand(key);
+				final RestCommand cmd = RestCommand.getCommand(key);
 
 				writable.print(StringUtils.rightPad(key, 10));
 				writable.print(" - ");
 				cmd.commandHelp(writable);
 			}
 		}
+	}
+
+	@Override
+	public boolean parseNext(final String line, final Writable writable) throws IOException {
+
+		if (StringUtils.isNotBlank(line)) {
+
+			this.subCommand = StringUtils.substringBefore(line, " ").trim();
+		}
+
+		return true;
 	}
 
 	@Override
@@ -73,4 +84,5 @@ public class HelpConsoleCommand extends ConsoleCommand {
 	public void detailHelp(final Writable writable) throws IOException {
 		commandHelp(writable);
 	}
+
 }

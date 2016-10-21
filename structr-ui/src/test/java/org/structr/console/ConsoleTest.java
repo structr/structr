@@ -21,6 +21,7 @@ package org.structr.console;
 import java.util.Collections;
 import static junit.framework.TestCase.assertEquals;
 import org.structr.common.error.FrameworkException;
+import org.structr.console.Console.ConsoleMode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.web.common.StructrUiTest;
@@ -35,13 +36,15 @@ public class ConsoleTest extends StructrUiTest {
 
 			final Console console = new Console(securityContext, Collections.emptyMap());
 
-			assertEquals("Invalid console execution result", "Mode set to 'StructrScript'.\r\n", console.runForTest("Console.setMode('structr')"));
-			assertEquals("Invalid console execution result", "Mode set to 'Cypher'.\r\n",        console.runForTest("Console.setMode('cypher')"));
-			assertEquals("Invalid console execution result", "Mode set to 'JavaScript'.\r\n",    console.runForTest("Console.setMode('javascript')"));
-			assertEquals("Invalid console execution result", "Mode set to 'AdminShell'. Type 'help' to get a list of commands.\r\n", console.runForTest("Console.setMode('shell')"));
+			assertEquals("Invalid console execution result", "Mode set to 'StructrScript'.\r\n", console.runForTest("Console.setMode('" + ConsoleMode.structrscript.name() + "')"));
+			assertEquals("Invalid console execution result", "Mode set to 'Cypher'.\r\n",        console.runForTest("Console.setMode('" + ConsoleMode.cypher.name() + "')"));
+			assertEquals("Invalid console execution result", "Mode set to 'JavaScript'.\r\n",    console.runForTest("Console.setMode('" + ConsoleMode.javascript.name() + "')"));
+			assertEquals("Invalid console execution result", "Mode set to 'AdminShell'. Type 'help' to get a list of commands.\r\n", console.runForTest("Console.setMode('" + ConsoleMode.admin.name() + "')"));
+			assertEquals("Invalid console execution result", "Mode set to 'REST'. Type 'help' to get a list of commands.\r\n", console.runForTest("Console.setMode('" + ConsoleMode.rest.name() + "')"));
 
 
 		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
 			fex.printStackTrace();
 		}
 	}
@@ -53,7 +56,7 @@ public class ConsoleTest extends StructrUiTest {
 
 		try {
 
-			assertEquals("Invalid console execution result", "Mode set to 'AdminShell'. Type 'help' to get a list of commands.\r\n", console.runForTest("Console.setMode('shell')"));
+			assertEquals("Invalid console execution result", "Mode set to 'AdminShell'. Type 'help' to get a list of commands.\r\n", console.runForTest("Console.setMode('" + ConsoleMode.admin.name() + "')"));
 			assertEquals("Invalid console execution result", "\r\n", console.runForTest("user list"));
 
 			// create a user
@@ -124,6 +127,7 @@ public class ConsoleTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
+			fail("Unexpected exception.");
 		}
 	}
 
@@ -196,7 +200,7 @@ public class ConsoleTest extends StructrUiTest {
 
 		try {
 
-			assertEquals("Invalid console execution result", "Mode set to 'AdminShell'. Type 'help' to get a list of commands.\r\n", console.runForTest("Console.setMode('shell')"));
+			assertEquals("Invalid console execution result", "Mode set to 'AdminShell'. Type 'help' to get a list of commands.\r\n", console.runForTest("Console.setMode('" + ConsoleMode.admin.name() + "')"));
 
 			// test syntax parser
 			assertEquals("Invalid console execution result", "Please specify what to initialize.\r\n", console.runForTest("init"));
@@ -265,6 +269,7 @@ public class ConsoleTest extends StructrUiTest {
 
 
 		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
 			fex.printStackTrace();
 		}
 	}

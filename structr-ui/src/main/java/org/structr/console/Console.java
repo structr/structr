@@ -28,10 +28,12 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ScriptableObject;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.console.command.ConsoleCommand;
+import org.structr.console.rest.RestCommand;
+import org.structr.console.shell.ConsoleCommand;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
 import org.structr.core.function.Functions;
 import org.structr.core.script.StructrScriptable;
 import org.structr.schema.action.ActionContext;
@@ -43,16 +45,24 @@ import org.structr.util.Writable;
 public class Console {
 
 	public enum ConsoleMode {
-		cypher, javascript, structrscript, adminshell
+		cypher, javascript, structrscript, admin, rest
 	};
 
 	private ConsoleMode mode             = ConsoleMode.javascript;
 	private StructrScriptable scriptable = null;
 	private ActionContext actionContext  = null;
 	private ScriptableObject scope       = null;
+	private String username              = null;
+	private String password              = null;
 
 	public Console(final SecurityContext securityContext, final Map<String, Object> parameters) {
+		this(securityContext, ConsoleMode.javascript, parameters);
+	}
+
+	public Console(final SecurityContext securityContext, final ConsoleMode consoleMode, final Map<String, Object> parameters) {
+
 		this.actionContext = new ActionContext(securityContext, parameters);
+		this.mode          = consoleMode;
 	}
 
 	public String runForTest(final String line) throws FrameworkException {
@@ -77,15 +87,20 @@ public class Console {
 			mode = ConsoleMode.cypher;
 			output.println("Mode set to 'Cypher'.");
 
-		} else if (line.startsWith("Console.setMode('structr')") || line.startsWith("Console.setMode(\"structr\")")) {
+		} else if (line.startsWith("Console.setMode('structrscript')") || line.startsWith("Console.setMode(\"structrscript\")")) {
 
 			mode = ConsoleMode.structrscript;
 			output.println("Mode set to 'StructrScript'.");
 
-		} else if (line.startsWith("Console.setMode('shell')") || line.startsWith("Console.setMode(\"shell\")")) {
+		} else if (line.startsWith("Console.setMode('admin')") || line.startsWith("Console.setMode(\"admin\")")) {
 
-			mode = ConsoleMode.adminshell;
+			mode = ConsoleMode.admin;
 			output.println("Mode set to 'AdminShell'. Type 'help' to get a list of commands.");
+
+		} else if (line.startsWith("Console.setMode('rest')") || line.startsWith("Console.setMode(\"rest\")")) {
+
+			mode = ConsoleMode.rest;
+			output.println("Mode set to 'REST'. Type 'help' to get a list of commands.");
 
 		} else {
 
@@ -103,8 +118,12 @@ public class Console {
 					runStructrScript(line, output);
 					break;
 
-				case adminshell:
+				case admin:
 					runAdminShell(line, output);
+					break;
+
+				case rest:
+					RestCommand.run(this, line, output);
 					break;
 			}
 		}
@@ -112,6 +131,53 @@ public class Console {
 
 	public SecurityContext getSecurityContext() {
 		return actionContext.getSecurityContext();
+	}
+
+	public String getPrompt() {
+
+		final Principal principal = actionContext.getSecurityContext().getUser(false);
+		final StringBuilder buf   = new StringBuilder();
+
+		switch (mode) {
+
+			case cypher:
+			case javascript:
+			case structrscript:
+			case admin:
+				if (principal != null) {
+					buf.append(principal.getName());
+				}
+				break;
+
+			case rest:
+				if (username != null) {
+					buf.append(username);
+				} else {
+					buf.append("anonymous");
+				}
+				break;
+		}
+
+		buf.append("@");
+		buf.append("Structr");
+
+		return buf.toString();
+	}
+
+	public void setUsername(final String username) {
+		this.username = username;
+	}
+
+	public void setPassword(final String password) {
+		this.password = password;
+	}
+
+	public String getUsername() {
+		return this.username;
+	}
+
+	public String getPassword() {
+		return this.password;
 	}
 
 	// ----- private methods -----
