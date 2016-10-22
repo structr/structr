@@ -137,19 +137,13 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 		final String terminalType = env.getEnv().get("TERM");
 		if (terminalType != null) {
 
-			switch (terminalType) {
+			if (terminalType.startsWith("xterm") || terminalType.startsWith("vt100") || terminalType.startsWith("vt220")) {
 
-				case "xterm":
-				case "vt100":
-				case "vt220":
-					term = new XTermTerminalEmulator(in, out, this);
-					break;
+				term = new XTermTerminalEmulator(in, out, this);
+				
+			} else {
 
-				default:
-					logger.warn("Unsupported terminal type {}, aborting.", terminalType);
-					break;
-
-
+				logger.warn("Unsupported terminal type {}, aborting.", terminalType);
 			}
 
 			logger.warn("No terminal type provided, aborting.", terminalType);
