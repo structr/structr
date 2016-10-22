@@ -40,7 +40,14 @@ import org.structr.schema.action.ActionContext;
 public class CreationContainer implements GraphObject, PropertyContainer {
 
 	private final Map<String, Object> data = new LinkedHashMap<>();
-
+	private GraphObject         wrappedObj = null;
+	
+	public CreationContainer() {}
+	
+	public CreationContainer(final GraphObject obj) {
+		this.wrappedObj = obj;
+	}
+	
 	public Map<String, Object> getData() {
 		return data;
 	}
@@ -58,7 +65,11 @@ public class CreationContainer implements GraphObject, PropertyContainer {
 
 	@Override
 	public String getType() {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+		if (wrappedObj == null) {
+			return null;
+		} else {
+			return wrappedObj.getType();
+		}
 	}
 
 	@Override

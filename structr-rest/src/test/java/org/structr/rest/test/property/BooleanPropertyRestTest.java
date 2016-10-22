@@ -31,15 +31,15 @@ public class BooleanPropertyRestTest extends StructrRestTest {
 	
 	public void testBasics() {
 		
-		RestAssured.given()
+		String uuid =  getUuidFromLocation(RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.body(" { 'booleanProperty' : true } ")
 		.expect()
 			.statusCode(201)
 		.when()
 			.post("/test_threes")
-			.getHeader("Location");
-		
+			.getHeader("Location")
+		);
 		
 		
 		RestAssured.given()
@@ -52,7 +52,31 @@ public class BooleanPropertyRestTest extends StructrRestTest {
 		.when()
 			.get("/test_threes");
 		
+
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.body(" { 'constantBooleanProperty' : false } ")
+		.expect()
+			.statusCode(422)
+		.when()
+			.put("/test_threes/" + uuid);
 		
+		// PUT with old value should be ignored
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.body(" { 'constantBooleanProperty' : true } ")
+		.expect()
+			.statusCode(200)
+		.when()
+			.put("/test_threes/" + uuid);
 		
 	}
 }

@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
+import org.structr.core.entity.Group;
 import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -163,4 +164,59 @@ public class ModifyGraphObjectsTest extends StructrTest {
 			fail("Unexpected exception");
 		}
 	}
+
+	/**
+	 * Test the results of setProperty and getProperty of a node
+	 */
+	public void test03ModifyConstantBooleanProperty() {
+
+		try {
+
+			final PropertyMap props = new PropertyMap();
+			final String type       = "Group";
+			final String name       = "TestGroup-1";
+			
+			NodeInterface node      = null;
+
+			props.put(AbstractNode.type, type);
+			props.put(AbstractNode.name, name);
+
+			try (final Tx tx = app.tx()) {
+				
+				node = app.create(Group.class, props);
+				tx.success();
+			}
+
+			try (final Tx tx = app.tx()) {
+				
+				// Check defaults
+				assertEquals(Group.class.getSimpleName(), node.getProperty(AbstractNode.type));
+				assertTrue(node.getProperty(AbstractNode.name).equals(name));
+				assertTrue(node.getProperty(Group.isGroup));
+			}
+
+			final String name2 = "TestGroup-2";
+
+			try (final Tx tx = app.tx()) {
+				
+				// Modify values
+				node.setProperty(AbstractNode.name, name2);
+				node.setProperty(Group.isGroup, false);
+
+				fail("Should have failed with an exception: Group.isGroup is_read_only_property");
+				
+				tx.success();
+				
+			} catch (FrameworkException expected) {}
+
+
+		} catch (FrameworkException ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+
 }
