@@ -129,7 +129,7 @@ function StructrApp(baseUrl) {
 				s.create(btn, type, data, returnUrl, appendId, function() {enableButton(btn);}, function() {enableButton(btn);});
 
 			} else if (action === 'save') {
-				s.saveAction(btn, id, attrs, type, suffix, returnUrl, 'Unable to save values', 'Successfully updated object ' + id, function() {enableButton(btn);}, function() {enableButton(btn);});
+				//s.saveAction(btn, id, attrs, type, suffix, returnUrl, 'Unable to save values', 'Successfully updated object ' + id, function() {enableButton(btn);}, function() {enableButton(btn);});
 
 			} else if (action === 'edit') {
 				s.editAction(btn, id, attrs, type, suffix, returnUrl);
@@ -298,6 +298,8 @@ function StructrApp(baseUrl) {
 				inp.attr('data-structr-href', href);
 			}
 
+			inp.attr('data-structr-display-value', f.displayVal);
+
 			inp.on('keyup', function(e) {
 				if (f.type === 'String') {
 					//console.log('keyup', inp, s.field(inp))
@@ -352,7 +354,8 @@ function StructrApp(baseUrl) {
 		enableButton(saveButton);
 		saveButton.on('click', function() {
 			s.saveAction(btn, id, attrs, type, suffix, reload, 'Successfully updated ' + id, 'Could not update ' + id, function() {
-				enableButton(btn);
+				enableButton(saveButton);
+				//s.cancelEditAction(btn, id, attrs, suffix, reload);
 			}, function() {
 				s.cancelEditAction(btn, id, attrs, suffix, reload);
 			});
@@ -449,7 +452,8 @@ function StructrApp(baseUrl) {
 						document.location.href = href;
 					});
 				}
-				inp.replaceWith(s.data[id][key]);
+				//inp.replaceWith(s.data[id][key]);
+				inp.replaceWith(f.displayVal);
 			});
 			// clear data
 			$('button[data-structr-id="' + id + '"][data-structr-action="save"]').remove();
@@ -661,6 +665,7 @@ function StructrApp(baseUrl) {
 	},
 	this.field = function(el) {
 		if (!el || !el.length) return;
+		var displayVal  = el.attr('data-structr-display-value') || (el.is('select') ? null : el.html());
 		var rawType     = el.attr('data-structr-type');
 		var clazz       = el.attr('data-structr-edit-class');
 		var query       = el.attr('data-structr-custom-options-query');
@@ -690,7 +695,7 @@ function StructrApp(baseUrl) {
 				//val = rawVal || el.text();
 			}
 		}
-		var f = {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal, 'format': format, 'query' : query, 'optionsKey': optionsKey, 'class' : clazz, 'placeholder': placeholder};
+		var f = {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal, 'format': format, 'query' : query, 'optionsKey': optionsKey, 'class' : clazz, 'placeholder': placeholder, 'displayVal': displayVal};
 		//console.log(f);
 		return f;
 	};
