@@ -41,7 +41,7 @@ public class DeleteRestCommand extends RestCommand {
 	@Override
 	public void run(final Console console, final Writable writable) throws FrameworkException, IOException {
 
-		final String requestUrl = "http://localhost:8082/structr/rest/" + uri;
+		final String requestUrl = getBaseUrl() + getBasePath() + uri;
 		final Response response = request(console).delete(requestUrl);
 
 		writable.println("DELETE ", requestUrl);
