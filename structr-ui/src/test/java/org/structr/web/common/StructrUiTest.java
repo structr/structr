@@ -20,12 +20,9 @@ package org.structr.web.common;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -95,9 +92,6 @@ public abstract class StructrUiTest extends TestCase {
 	protected static String baseUri;
 
 	static {
-
-		// check character set
-		checkCharset();
 
 		baseUri = prot + host + ":" + httpPort + htmlUrl + "/";
 		// configure RestAssured
@@ -496,23 +490,6 @@ public abstract class StructrUiTest extends TestCase {
 
 			.when()
 				.delete(resource);
-	}
-
-	private static void checkCharset() {
-
-		System.out.println("######### Charset settings ##############");
-		System.out.println("Default Charset=" + Charset.defaultCharset());
-		System.out.println("file.encoding=" + System.getProperty("file.encoding"));
-		System.out.println("Default Charset=" + Charset.defaultCharset());
-		System.out.println("Default Charset in Use=" + getEncodingInUse());
-		System.out.println("This should look like the umlauts of 'a', 'o', 'u' and 'ss': äöüß");
-		System.out.println("#########################################");
-
-	}
-
-	private static String getEncodingInUse() {
-		OutputStreamWriter writer = new OutputStreamWriter(new ByteArrayOutputStream());
-		return writer.getEncoding();
 	}
 
 	// disabled to be able to test on windows systems

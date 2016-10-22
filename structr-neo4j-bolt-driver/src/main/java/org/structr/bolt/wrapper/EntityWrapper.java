@@ -21,7 +21,8 @@ package org.structr.bolt.wrapper;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.neo4j.driver.v1.Value;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import org.neo4j.driver.v1.exceptions.NoSuchRecordException;
 import org.neo4j.driver.v1.types.Entity;
 import org.structr.api.NotFoundException;
@@ -35,13 +36,15 @@ import org.structr.bolt.SessionTransaction;
  */
 public abstract class EntityWrapper<T extends Entity> implements PropertyContainer {
 
-	protected BoltDatabaseService db        = null;
-	protected boolean stale                 = false;
-	protected T entity                      = null;
+	protected final Map<String, Object> data = new ConcurrentHashMap<>();
+	protected BoltDatabaseService db         = null;
+	protected boolean stale                  = false;
+	protected long id                        = -1L;
 
 	public EntityWrapper(final BoltDatabaseService db, final T entity) {
 
-		this.entity = entity;
+		this.data.putAll(entity.asMap());
+		this.id   = entity.id();
 		this.db   = db;
 	}
 
@@ -50,7 +53,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 	@Override
 	public long getId() {
-		return entity.id();
+		return id;
 	}
 
 	@Override
@@ -58,7 +61,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 		assertNotStale();
 
-		return !entity.get(name).isNull();
+		return data.containsKey(name);
 	}
 
 	@Override
@@ -66,31 +69,14 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 		assertNotStale();
 
-		try {
+		final Object value = data.get(name);
+		if (value instanceof List) {
 
-			final Value src = entity.get(name);
-			if (src.isNull()) {
-
-				return null;
-			}
-
-			final Object value = src.asObject();
-			if (value instanceof List) {
-
-				// convert list to array
-				return ((List)value).toArray(new String[0]);
-			}
-
-			return value;
-
-		} catch (org.neo4j.graphdb.NotInTransactionException t) {
-
-			throw new NotInTransactionException(t);
-
-		} catch (Throwable t) {
-
-			throw new NotFoundException(t);
+			// convert list to array
+			return ((List)value).toArray(new String[0]);
 		}
+
+		return value;
 	}
 
 	@Override
@@ -114,13 +100,16 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
-		final String query            = getQueryPrefix() + " WHERE ID(n) = {id} SET n.`" + key + "` = {value} RETURN n";
+		final String query            = getQueryPrefix() + " WHERE ID(n) = {id} SET n.`" + key + "` = {value}";
 
-		map.put("id", entity.id());
+		map.put("id", id);
 		map.put("value", value);
 
 		// update entity handle
-		entity = (T)tx.getEntity(query, map);
+		tx.set(query, map);
+
+		// update data
+		update(key, value);
 
 		tx.modified(this);
 	}
@@ -132,14 +121,17 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>(values);
-		final String query            = getQueryPrefix() + " WHERE ID(n) = {id} SET n += {properties} RETURN n";
+		final String query            = getQueryPrefix() + " WHERE ID(n) = {id} SET n += {properties}";
 
 		// overwrite a potential "id" property
-		map.put("id", entity.id());
+		map.put("id", id);
 		map.put("properties", values);
 
-		// update entity handle
-		entity = (T)tx.getEntity(query, map);
+		// execute query
+		tx.set(query, map);
+
+		// update data
+		update(values);
 
 		tx.modified(this);
 	}
@@ -151,12 +143,15 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
-		final String query            = getQueryPrefix() + " WHERE ID(n) = {id} SET n.`" + key + "` = Null RETURN n";
+		final String query            = getQueryPrefix() + " WHERE ID(n) = {id} SET n.`" + key + "` = Null";
 
-		map.put("id", entity.id());
+		map.put("id", id);
 
-		// update entity handle
-		entity = (T)tx.getEntity(query, map);
+		// execute query
+		tx.set(query, map);
+
+		// remove key from data
+		data.remove(key);
 
 		tx.modified(this);
 	}
@@ -166,7 +161,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 		assertNotStale();
 
-		return entity.keys();
+		return data.keySet();
 	}
 
 	@Override
@@ -177,7 +172,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
 
-		map.put("id", entity.id());
+		map.put("id", id);
 
 		tx.set(getQueryPrefix() + " WHERE ID(n) = {id} DELETE n", map);
 		tx.modified(this);
@@ -214,18 +209,40 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 			final SessionTransaction tx   = db.getCurrentTransaction();
 			final Map<String, Object> map = new HashMap<>();
 
-			map.put("id", entity.id());
+			map.put("id", id);
 
 			try {
 
-				// check if entity has been deleted
-				entity = (T)tx.getEntity(getQueryPrefix() + " WHERE ID(n) = {id} RETURN n", map);
+				// update data
+				data.clear();
+				update(tx.getEntity(getQueryPrefix() + " WHERE ID(n) = {id} RETURN n", map).asMap());
 
 			} catch (NoSuchRecordException nex) {
 				throw new NotFoundException(nex);
 			}
 
 			stale  = false;
+		}
+	}
+
+	// ----- private methods -----
+	private void update(final Map<String, Object> values) {
+
+		for (final Entry<String, Object> entry : values.entrySet()) {
+
+			update(entry.getKey(), entry.getValue());
+		}
+	}
+
+	private void update(final String key, final Object value) {
+
+		if (value != null) {
+
+			data.put(key, value);
+
+		} else {
+
+			data.remove(key);
 		}
 	}
 }

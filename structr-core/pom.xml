@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -185,7 +185,7 @@
 			<artifactId>jython-standalone</artifactId>
 			<version>2.7.1b3</version>
 		</dependency>
-		
+
 	</dependencies>
 
 	<build>
@@ -245,11 +245,12 @@
 				<configuration>
 					<argLine>-Xmx2g</argLine>
 					<forkCount>1</forkCount>
-					<reuseForks>false</reuseForks>
+					<reuseForks>true</reuseForks>
 					<systemPropertyVariables>
 						<user.timezone>UTC</user.timezone>
 					</systemPropertyVariables>
 				</configuration>
+
 			</plugin>
 			<plugin>
 				<groupId>com.mycila</groupId>
@@ -264,6 +265,7 @@
 						<exclude>**/README</exclude>
 						<exclude>src/**/.directory</exclude>
 						<exclude>src/**/*.properties</exclude>
+						<exclude>src/main/resources/**</exclude>
 					</excludes>
 					<properties>
 						<year>2016</year>

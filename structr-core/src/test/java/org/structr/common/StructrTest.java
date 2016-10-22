@@ -380,6 +380,9 @@ public class StructrTest extends TestCase {
 
 		basePath = "/tmp/structr-test-" + timestamp;
 
+		// enable "just testing" flag to avoid JAR resource scanning
+		config.setProperty(Services.TESTING, "true");
+
 		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService SchemaService");
 		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
 		config.setProperty(Structr.DATABASE_CONNECTION_URL, Structr.TEST_DATABASE_URL);

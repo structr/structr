@@ -109,8 +109,9 @@ public class NodeService implements SingletonService {
 			isInitialized = true;
 
 			final boolean firstInitialization = graphDb.getGlobalProperties().getProperty("initialized") == null;
+			final boolean isTest              = Boolean.parseBoolean(config.getProperty(Services.TESTING, "false"));
 
-			if (graphDb.needsIndexRebuild() || firstInitialization) {
+			if (graphDb.needsIndexRebuild() || (firstInitialization && !isTest)) {
 
 				logger.info("Scheduling index rebuild to happen after startup..");
 

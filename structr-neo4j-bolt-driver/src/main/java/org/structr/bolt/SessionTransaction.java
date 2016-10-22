@@ -344,7 +344,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 				System.out.println(statement);
 			}
 
-			tx.run(statement, map);
+			tx.run(statement, map).consume();
 
 		} catch (TransientException tex) {
 			closed = true;

@@ -32,11 +32,19 @@ import org.structr.bolt.SessionTransaction;
  */
 public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Relationship> implements Relationship {
 
-	private Node startNode = null;
-	private Node endNode   = null;
+	private long sourceNodeId = -1L;
+	private long targetNodeId = -1L;
+	private Node sourceNode   = null;
+	private Node targetNode   = null;
+	private String type       = null;
 
 	private RelationshipWrapper(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Relationship relationship) {
+
 		super(db, relationship);
+
+		this.sourceNodeId = relationship.startNodeId();
+		this.targetNodeId = relationship.endNodeId();
+		this.type         = relationship.type();
 	}
 
 	@Override
@@ -53,27 +61,27 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 	@Override
 	public Node getStartNode() {
 
-		if (startNode == null) {
-			startNode = db.getNodeById(entity.startNodeId());
+		if (sourceNode == null) {
+			sourceNode = db.getNodeById(sourceNodeId);
 		}
 
-		return startNode;
+		return sourceNode;
 	}
 
 	@Override
 	public Node getEndNode() {
 
-		if (endNode == null) {
-			endNode = db.getNodeById(entity.endNodeId());
+		if (targetNode == null) {
+			targetNode = db.getNodeById(targetNodeId);
 		}
 
-		return endNode;
+		return targetNode;
 	}
 
 	@Override
 	public Node getOtherNode(final Node node) {
 
-		if (node.getId() == entity.startNodeId()) {
+		if (node.getId() == sourceNodeId) {
 			return getEndNode();
 		}
 
@@ -82,14 +90,14 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 
 	@Override
 	public RelationshipType getType() {
-		return db.forName(RelationshipType.class, entity.type());
+		return db.forName(RelationshipType.class, type);
 	}
 
 	@Override
 	public void delete() {
 
 		super.delete();
-		relationshipCache.remove(entity.id());
+		relationshipCache.remove(id);
 	}
 
 	public static void shutdownCache() {

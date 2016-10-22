@@ -69,7 +69,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		assertNotStale();
 
-		map.put("id1", entity.id());
+		map.put("id1", id);
 		map.put("id2", endNode.getId());
 
 		/**
@@ -103,9 +103,9 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
 
-		map.put("id", entity.id());
+		map.put("id", id);
 
-		entity = tx.getNode("MATCH (n) WHERE ID(n) = {id} SET n :" + label.name() + " RETURN n", map);
+		tx.set("MATCH (n) WHERE ID(n) = {id} SET n :" + label.name(), map);
 		tx.modified(this);
 	}
 
@@ -117,9 +117,9 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
 
-		map.put("id", entity.id());
+		map.put("id", id);
 
-		entity = tx.getNode("MATCH (n) WHERE ID(n) = {id} REMOVE n:" + label.name() + " RETURN n", map);
+		tx.set("MATCH (n) WHERE ID(n) = {id} REMOVE n:" + label.name(), map);
 		tx.modified(this);
 	}
 
@@ -128,10 +128,14 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		assertNotStale();
 
-		final List<Label> result = new LinkedList<>();
+		final SessionTransaction tx   = db.getCurrentTransaction();
+		final Map<String, Object> map = new HashMap<>();
+		final List<Label> result      = new LinkedList<>();
+
+		map.put("id", id);
 
 		// execute query
-		for (final String label : entity.labels()) {
+		for (final String label : tx.getStrings("MATCH (n) WHERE ID(n) = {id} RETURN LABELS(n)", map)) {
 			result.add(db.forName(Label.class, label));
 		}
 
@@ -151,7 +155,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 			final SessionTransaction tx                 = db.getCurrentTransaction();
 			final Map<String, Object> map               = new HashMap<>();
 
-			map.put("id", entity.id());
+			map.put("id", id);
 
 			list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r]-(m) WHERE ID(n) = {id} RETURN r", map)));
 
@@ -175,7 +179,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 			final SessionTransaction tx   = db.getCurrentTransaction();
 			final Map<String, Object> map = new HashMap<>();
 
-			map.put("id", entity.id());
+			map.put("id", id);
 
 			switch (direction) {
 
@@ -211,7 +215,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 			final SessionTransaction tx   = db.getCurrentTransaction();
 			final Map<String, Object> map = new HashMap<>();
 
-			map.put("id", entity.id());
+			map.put("id", id);
 
 			switch (direction) {
 
@@ -238,7 +242,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	public void delete() {
 
 		super.delete();
-		nodeCache.remove(entity.id());
+		nodeCache.remove(id);
 	}
 
 	public static void shutdownCache() {

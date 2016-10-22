@@ -19,9 +19,12 @@
 package org.structr.web.common;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -137,6 +140,23 @@ public class UiScriptingTest extends StructrUiTest {
 			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
+	}
+
+	public void testCharset() {
+
+		System.out.println("######### Charset settings ##############");
+		System.out.println("Default Charset=" + Charset.defaultCharset());
+		System.out.println("file.encoding=" + System.getProperty("file.encoding"));
+		System.out.println("Default Charset=" + Charset.defaultCharset());
+		System.out.println("Default Charset in Use=" + getEncodingInUse());
+		System.out.println("This should look like the umlauts of 'a', 'o', 'u' and 'ss': äöüß");
+		System.out.println("#########################################");
+
+	}
+
+	private String getEncodingInUse() {
+		OutputStreamWriter writer = new OutputStreamWriter(new ByteArrayOutputStream());
+		return writer.getEncoding();
 	}
 
 	private void test(final DOMNode p, final DOMNode text, final String content, final String expected, final RenderContext context) throws FrameworkException {
