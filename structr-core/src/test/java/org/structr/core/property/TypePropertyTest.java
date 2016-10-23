@@ -22,6 +22,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.fail;
+import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -44,6 +46,7 @@ public class TypePropertyTest extends StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(TypePropertyTest.class.getName());
 
+	@Test
 	public void testModifyType() {
 
 		final DatabaseService db      = StructrApp.getInstance().getDatabaseService();

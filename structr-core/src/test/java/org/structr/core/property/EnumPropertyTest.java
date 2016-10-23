@@ -18,6 +18,10 @@
  */
 package org.structr.core.property;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
@@ -33,16 +37,17 @@ import org.structr.core.graph.Tx;
  */
 public class EnumPropertyTest extends StructrTest {
 
+	@Test
 	public void testSimpleProperty() {
-		
+
 		try {
 
 			final PropertyMap properties    = new PropertyMap();
-			
+
 			properties.put(TestFour.enumProperty, TestEnum.Status1);
-			
+
 			final TestFour testEntity        = createTestNode(TestFour.class, properties);
-			
+
 			assertNotNull(testEntity);
 
 			try (final Tx tx = app.tx()) {
@@ -50,24 +55,25 @@ public class EnumPropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(TestEnum.Status1, testEntity.getProperty(TestFour.enumProperty));
 			}
-			
+
 		} catch (FrameworkException fex) {
-			
+
 			fail("Unable to store array");
 		}
 	}
-	
+
+	@Test
 	public void testSimpleSearchOnNode() {
-		
+
 		try {
 
 			final PropertyMap properties  = new PropertyMap();
 			final PropertyKey<TestEnum> key = TestFour.enumProperty;
-			
+
 			properties.put(key, TestEnum.Status1);
-			
+
 			final TestFour testEntity     = createTestNode(TestFour.class, properties);
-			
+
 			assertNotNull(testEntity);
 
 			try (final Tx tx = app.tx()) {
@@ -80,27 +86,28 @@ public class EnumPropertyTest extends StructrTest {
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
 			}
-		
+
 		} catch (FrameworkException fex) {
-			
+
 			fail("Unable to store array");
 		}
-		
+
 	}
-	
+
+	@Test
 	public void testSimpleSearchOnRelationship() {
-		
+
 		try {
 
 			final TestOne testOne        = createTestNode(TestOne.class);
 			final TestFour testFour      = createTestNode(TestFour.class);
 			final Property<TestEnum> key = OneFourOneToOne.enumProperty;
-			
+
 			assertNotNull(testOne);
 			assertNotNull(testFour);
-			
+
 			final OneFourOneToOne testEntity = createTestRelationship(testOne, testFour, OneFourOneToOne.class);
-			
+
 			assertNotNull(testEntity);
 
 			try (final Tx tx = app.tx()) {
@@ -108,7 +115,7 @@ public class EnumPropertyTest extends StructrTest {
 				testEntity.setProperty(key, TestEnum.Status1);
 				tx.success();
 			}
-			
+
 			try (final Tx tx = app.tx()) {
 
 				// check value from database
@@ -119,9 +126,9 @@ public class EnumPropertyTest extends StructrTest {
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
 			}
-		
+
 		} catch (FrameworkException fex) {
-			
+
 			fail("Unable to store array");
 		}
 	}

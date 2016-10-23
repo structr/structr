@@ -43,6 +43,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import static org.junit.Assert.fail;
+import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -69,15 +72,7 @@ public class SearchTest extends StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(SearchTest.class.getName());
 
-	//~--- methods --------------------------------------------------------
-
-	@Override
-	public void test00DbAvailable() {
-
-		super.test00DbAvailable();
-
-	}
-
+	@Test
 	public void test01SeachByName() {
 
 		try  {
@@ -135,6 +130,7 @@ public class SearchTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test02SeachByNameProperty() {
 
 		try  {
@@ -185,6 +181,7 @@ public class SearchTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test03SeachByNamePropertyLooseLowercase() {
 
 		try  {
@@ -235,6 +232,7 @@ public class SearchTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test04SeachByNamePropertyLooseUppercase() {
 
 		try  {
@@ -285,6 +283,7 @@ public class SearchTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test05SeachByDefaultValue() {
 
 		try  {
@@ -335,6 +334,7 @@ public class SearchTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test06InexactSearchWithHyphen() {
 
 		final Map<String, Integer> testResults = new LinkedHashMap<>();
@@ -395,6 +395,7 @@ public class SearchTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test07NodeQueryByType() {
 
 		try  {
@@ -413,13 +414,13 @@ public class SearchTest extends StructrTest {
 
 				long t1 = System.currentTimeMillis();
 				logger.info("Query with inexact type took {} ms", t1-t0);
-				assertEquals(1012, result.size());
+				assertEquals(1000, result.size());
 
 				result = app.nodeQuery(NodeInterface.class).getResult();
 
 				long t2 = System.currentTimeMillis();
 				logger.info("Query with exact type took {} ms", t2-t1);
-				assertEquals(1012, result.size());
+				assertEquals(1000, result.size());
 
 				// TODO: Implement app.nodeQuery() to return all nodes in the system as an alternative to the (slow) app.nodeQuery(NodeInterface.class)
 //				result = app.nodeQuery().getResult();
@@ -439,6 +440,7 @@ public class SearchTest extends StructrTest {
 		}
 	}
 
+	@Test
 	public void test08InexactSearch() {
 
 		try  {
@@ -475,6 +477,7 @@ public class SearchTest extends StructrTest {
 		}
 	}
 
+	@Test
 	public void test09SearchBySourceAndTargetId() {
 
 		try  {

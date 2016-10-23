@@ -19,6 +19,11 @@
 package org.structr.common;
 
 import java.util.List;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -45,15 +50,7 @@ public class AccessControlTest extends StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(AccessControlTest.class.getName());
 
-	//~--- methods --------------------------------------------------------
-
-	@Override
-	public void test00DbAvailable() {
-
-		super.test00DbAvailable();
-
-	}
-
+	@Test
 	public void test01PublicAccessToNonPublicNode() {
 
 		// remove auto-generated resource access objects
@@ -66,7 +63,7 @@ public class AccessControlTest extends StructrTest {
 
 			// Create node with user context
 			Class type = TestOne.class;
-			TestOne t1 = createTestNode(TestOne.class, user);
+			createTestNode(TestOne.class, user);
 
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
 
@@ -88,6 +85,7 @@ public class AccessControlTest extends StructrTest {
 	}
 
 
+	@Test
 	public void test02PublicAccessToPublicNode() {
 
 		// remove auto-generated resource access objects
@@ -125,6 +123,7 @@ public class AccessControlTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test03PublicAccessToProtectedNode() {
 
 		// remove auto-generated resource access objects
@@ -166,6 +165,7 @@ public class AccessControlTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test04BackendUserAccessToProtectedNode() {
 
 		// remove auto-generated resource access objects
@@ -207,6 +207,7 @@ public class AccessControlTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test05FrontendUserAccessToProtectedNode() {
 
 		// remove auto-generated resource access objects
@@ -249,6 +250,7 @@ public class AccessControlTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test06GrantReadPermission() {
 
 		// remove auto-generated resource access objects
@@ -305,6 +307,7 @@ public class AccessControlTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test07ResultCount() {
 
 		// remove auto-generated resource access objects
@@ -346,6 +349,7 @@ public class AccessControlTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test07ResultCountWithPaging() {
 
 		// remove auto-generated resource access objects
@@ -398,8 +402,7 @@ public class AccessControlTest extends StructrTest {
 
 	}
 
-
-
+	@Test
 	public void test08WriteAccess() {
 
 		// remove auto-generated resource access objects

@@ -21,6 +21,10 @@ package org.structr.common;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -40,6 +44,7 @@ public class CypherResultTest extends StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(CypherResultTest.class);
 
+	@Test
 	public void testCypherResultWrapping() {
 
 		try (final Tx tx = app.tx()) {

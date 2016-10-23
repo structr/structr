@@ -19,6 +19,10 @@
 package org.structr.core.property;
 
 import java.util.Date;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
@@ -31,6 +35,7 @@ import org.structr.core.graph.Tx;
  */
 public class DatePropertyTest extends StructrTest {
 
+	@Test
 	public void test() {
 
 		try {
@@ -61,6 +66,7 @@ public class DatePropertyTest extends StructrTest {
 		}
 	}
 
+	@Test
 	public void testSimpleSearchOnNode() {
 
 		try {
@@ -93,6 +99,7 @@ public class DatePropertyTest extends StructrTest {
 
 	}
 
+	@Test
 	public void testRangeSearchOnNode() {
 
 		try {

@@ -25,6 +25,8 @@ import java.util.Set;
 import java.util.UUID;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
+import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -49,6 +51,7 @@ public class TestBulkCommands extends StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(TestBulkCommands.class.getName());
 
+	@Test
 	public void testBulkCreateLabelsCommand() {
 
 		try {
@@ -180,6 +183,7 @@ public class TestBulkCommands extends StructrTest {
 	}
 	*/
 
+	@Test
 	public void testBulkSetNodePropertiesCommand() {
 
 		final Integer one = 1;

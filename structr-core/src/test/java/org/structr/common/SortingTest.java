@@ -42,6 +42,10 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -65,15 +69,7 @@ public class SortingTest extends StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(SortingTest.class.getName());
 
-	//~--- methods --------------------------------------------------------
-
-	@Override
-	public void test00DbAvailable() {
-
-		super.test00DbAvailable();
-
-	}
-
+	@Test
 	public void test01SortByName() {
 
 		try  {
@@ -145,6 +141,7 @@ public class SortingTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test02SortByNameDesc() {
 
 		try {
@@ -214,6 +211,7 @@ public class SortingTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test03SortByDate() {
 
 		try {
@@ -287,6 +285,7 @@ public class SortingTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test04SortByDateDesc() {
 
 		try {
@@ -357,6 +356,7 @@ public class SortingTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test05SortByInt() {
 
 		try {
@@ -423,6 +423,7 @@ public class SortingTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test06SortByDateWitNullValues() {
 
 		try {
@@ -503,6 +504,7 @@ public class SortingTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test07SortByIntWithNullValues() {
 
 		try {

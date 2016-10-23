@@ -18,6 +18,10 @@
  */
 package org.structr.core.property;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
@@ -32,6 +36,7 @@ import org.structr.core.graph.Tx;
  */
 public class LongPropertyTest extends StructrTest {
 
+	@Test
 	public void test() {
 
 		try {
@@ -62,6 +67,7 @@ public class LongPropertyTest extends StructrTest {
 		}
 	}
 
+	@Test
 	public void testSimpleSearchOnNode() {
 
 		try {
@@ -93,6 +99,7 @@ public class LongPropertyTest extends StructrTest {
 
 	}
 
+	@Test
 	public void testSimpleSearchOnRelationship() {
 
 		try {
@@ -131,6 +138,7 @@ public class LongPropertyTest extends StructrTest {
 		}
 	}
 
+	@Test
 	public void testRangeSearchOnNode() {
 
 		try {

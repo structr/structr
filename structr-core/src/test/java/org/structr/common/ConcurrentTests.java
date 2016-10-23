@@ -25,6 +25,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang3.StringUtils;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -50,6 +54,7 @@ public class ConcurrentTests extends StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(ConcurrentTests.class.getName());
 
+	@Test
 	public void testConcurrentValidation() {
 
 		final int count = 100;
@@ -131,6 +136,7 @@ public class ConcurrentTests extends StructrTest {
 		assertEquals("Invalid concurrent validation result", count, result.size());
 	}
 
+	@Test
 	public void testConcurrentValidationOnDynamicProperty() {
 
 		final int count = 100;
@@ -215,6 +221,7 @@ public class ConcurrentTests extends StructrTest {
 	/**
 	 * disabled, failing test to check for (existing, confirmed) flaw in parallel node instantiation)
 	 */
+	@Test
 	public void testFlawedParallelInstantiation() {
 
 		final int nodeCount       = 1000;
@@ -295,7 +302,8 @@ public class ConcurrentTests extends StructrTest {
 		}
 	}
 
-	
+
+	@Test
 	public void testConcurrentModificationIsolation() {
 
 		final ExecutorService service = Executors.newCachedThreadPool();

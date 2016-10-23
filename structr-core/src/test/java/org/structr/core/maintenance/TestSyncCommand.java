@@ -21,11 +21,14 @@ package org.structr.core.maintenance;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
+import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -50,6 +53,7 @@ public class TestSyncCommand extends StructrTest {
 
 	private final static String EXPORT_FILENAME = "___structr-test-export___.zip";
 
+	@Test
 	public void testSyncCommandParameters() {
 
 		try {
@@ -88,6 +92,7 @@ public class TestSyncCommand extends StructrTest {
 		}
 	}
 
+	@Test
 	public void testSyncCommandBasicExportImport() {
 
 		try {
@@ -118,9 +123,10 @@ public class TestSyncCommand extends StructrTest {
 			logger.warn("", ex);
 			fail("Unexpected exception.");
 		}
-		
+
 	}
 
+	@Test
 	public void testSyncCommandBasicExportImportSmallBatchSize() {
 
 		try {
@@ -153,6 +159,7 @@ public class TestSyncCommand extends StructrTest {
 		}
 	}
 
+	@Test
 	public void testSyncCommandInheritance() {
 
 		try {
@@ -177,8 +184,8 @@ public class TestSyncCommand extends StructrTest {
 					assertEquals("Third label has to be AccessControllable", Iterables.toList(labels).get(2).name(), "AccessControllable");
 					assertEquals("Fourth label has to be CMISInfo",          Iterables.toList(labels).get(3).name(), "CMISInfo");
 					assertEquals("Firth label has to be CMISItemInfo",       Iterables.toList(labels).get(4).name(), "CMISItemInfo");
-					assertEquals("Sixth label has to be TestEleven",         Iterables.toList(labels).get(5).name(), "TestEleven");
-					assertEquals("Seventh label has to be TestOne",          Iterables.toList(labels).get(6).name(), "TestOne");
+					assertEquals("Sixth label has to be TestOne",            Iterables.toList(labels).get(5).name(), "TestOne");
+					assertEquals("Seventh label has to be TestEleven",       Iterables.toList(labels).get(6).name(), "TestEleven");
 				}
 
 				tx.success();
@@ -193,8 +200,8 @@ public class TestSyncCommand extends StructrTest {
  			assertTrue("Export file doesn't exist!", Files.exists(exportFile));
 
 			// stop existing and start new database
-			this.tearDown();
-			this.setUp();
+			stopSystem();
+			startSystem(Collections.emptyMap());
 
 			// test import
 			app.command(SyncCommand.class).execute(toMap("mode", "import", "file", EXPORT_FILENAME));

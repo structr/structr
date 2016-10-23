@@ -20,6 +20,8 @@ package org.structr.common;
 
 import java.util.Calendar;
 import java.util.Date;
+import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,14 +31,10 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class RecurringDateHelperTest extends StructrTest {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(DeleteGraphObjectsTest.class.getName());
 
-	@Override
-	public void test00DbAvailable() {
-		super.test00DbAvailable();
-	}
-
+	@Test
 	public void test01AppointmentsSize(){
 		Calendar cal = Calendar.getInstance();
 		cal.set(2013, 07, 01);

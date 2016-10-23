@@ -25,9 +25,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.fail;
 import org.apache.commons.lang3.StringUtils;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -51,6 +54,7 @@ public class TransactionTest extends StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(TransactionTest.class.getName());
 
+	@Test
 	public void testRollbackOnError () {
 
 		final ActionContext ctx = new ActionContext(securityContext, null);
@@ -102,6 +106,7 @@ public class TransactionTest extends StructrTest {
 		}
 	}
 
+	@Test
 	public void testConstraintsConcurrently() {
 
 		/**
@@ -199,6 +204,7 @@ public class TransactionTest extends StructrTest {
 		}
 	}
 
+	@Test
 	public void testTransactionIsolation() {
 
 		// Tests the transaction isolation of the underlying database layer.
@@ -241,6 +247,7 @@ public class TransactionTest extends StructrTest {
 		}
 	}
 
+	@Test
 	public void testTransactionIsolationWithFailures() {
 
 		// Tests the transaction isolation of the underlying database layer.
@@ -283,6 +290,7 @@ public class TransactionTest extends StructrTest {
 		}
 	}
 
+	@Test
 	public void testConcurrentIdenticalRelationshipCreation() {
 
 		try {

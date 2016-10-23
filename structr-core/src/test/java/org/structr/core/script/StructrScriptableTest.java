@@ -24,6 +24,11 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
@@ -66,6 +71,7 @@ public class StructrScriptableTest extends StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrScriptableTest.class.getName());
 
+	@Test
 	public void testSetPropertyWithDynamicNodes() {
 
 		/**
@@ -226,6 +232,7 @@ public class StructrScriptableTest extends StructrTest {
 		}
 	}
 
+	@Test
 	public void testGrantViaScripting() {
 
 		// setup phase: create schema nodes
@@ -304,6 +311,7 @@ public class StructrScriptableTest extends StructrTest {
 		}
 	}
 
+	@Test
 	public void testScriptedFindWithJSONObject() {
 
 		final Random random    = new Random();
@@ -401,6 +409,7 @@ public class StructrScriptableTest extends StructrTest {
 		}
 	}
 
+	@Test
 	public void testWrappingUnwrapping() {
 
 		// setup phase
@@ -424,6 +433,7 @@ public class StructrScriptableTest extends StructrTest {
 		}
 	}
 
+	@Test
 	public void testEnumPropertyGet() {
 
 		// setup phase
@@ -447,6 +457,7 @@ public class StructrScriptableTest extends StructrTest {
 		}
 	}
 
+	@Test
 	public void testCollectionOperations() {
 
 		Group group            = null;
@@ -518,6 +529,7 @@ public class StructrScriptableTest extends StructrTest {
 		}
 	}
 
+	@Test
 	public void testPropertyConversion() {
 
 		TestOne testOne = null;
@@ -547,10 +559,10 @@ public class StructrScriptableTest extends StructrTest {
 			assertEquals("Invalid scripted property conversion result", 12L, (long)testOne.getProperty(TestOne.anInt));
 
 			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.aDouble = '12.2342'; }}");
-			assertEquals("Invalid scripted property conversion result", 12.2342, (double)testOne.getProperty(TestOne.aDouble));
+			assertEquals("Invalid scripted property conversion result", 12.2342, (double)testOne.getProperty(TestOne.aDouble), 0.0);
 
 			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.aDouble = 2; }}");
-			assertEquals("Invalid scripted property conversion result", 2.0, (double)testOne.getProperty(TestOne.aDouble));
+			assertEquals("Invalid scripted property conversion result", 2.0, (double)testOne.getProperty(TestOne.aDouble), 0.0);
 
 			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.aLong = 2352343457252; }}");
 			assertEquals("Invalid scripted property conversion result", 2352343457252L, (long)testOne.getProperty(TestOne.aLong));
@@ -567,6 +579,7 @@ public class StructrScriptableTest extends StructrTest {
 		}
 	}
 
+	@Test
 	public void testQuotes() {
 
 		try (final Tx tx = app.tx()) {

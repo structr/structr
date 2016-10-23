@@ -18,7 +18,8 @@
  */
 package org.structr.core.property;
 
-import java.util.Map;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.StructrTest;
@@ -35,11 +36,7 @@ public class FunctionPropertyTest extends StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(FunctionPropertyTest.class.getName());
 
-	@Override
-	protected void setUp(Map<String, Object> additionalConfig) {
-		super.setUp(toMap("NodeExtender.log", "true"));
-	}
-	
+	@Test
 	public void testEscaping() {
 
 		// create test node with offending quote

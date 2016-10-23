@@ -19,6 +19,10 @@
 package org.structr.common;
 
 import java.util.Date;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -46,15 +50,7 @@ public class SearchResultsTest extends StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(SearchResultsTest.class.getName());
 
-	//~--- methods --------------------------------------------------------
-
-	@Override
-	public void test00DbAvailable() {
-
-		super.test00DbAvailable();
-
-	}
-
+	@Test
 	public void test01SearchSingleNodeByName() {
 
 		try {
@@ -105,6 +101,7 @@ public class SearchResultsTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test02SearchSingleNodeByDate() {
 
 		try {
@@ -137,6 +134,7 @@ public class SearchResultsTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test03SearchRelationship() {
 
 		try {
@@ -186,6 +184,7 @@ public class SearchResultsTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test04SearchByLocation() {
 
 		try {
@@ -220,6 +219,7 @@ public class SearchResultsTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test05SpatialRollback() {
 
 		try {
@@ -261,6 +261,7 @@ public class SearchResultsTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test06DistanceSearchOnEmptyDB() {
 
 		try (final Tx tx = app.tx()) {
@@ -280,6 +281,7 @@ public class SearchResultsTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test07SearchByStaticMethod01() {
 
 		try {
@@ -311,6 +313,7 @@ public class SearchResultsTest extends StructrTest {
 		}
 	}
 
+	@Test
 	public void test08SearchByStaticMethod02() {
 
 		try {
@@ -341,6 +344,7 @@ public class SearchResultsTest extends StructrTest {
 		}
 	}
 
+	@Test
 	public void test08SearchByStaticMethodWithNullSearchValue01() {
 
 		try {
@@ -371,6 +375,7 @@ public class SearchResultsTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test09SearchByEmptyStringField() {
 
 		try {
@@ -397,6 +402,7 @@ public class SearchResultsTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test10SearchByEmptyDateField() {
 
 		try {
@@ -423,6 +429,7 @@ public class SearchResultsTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test11SearchByEmptyIntField() {
 
 		try {
@@ -449,6 +456,7 @@ public class SearchResultsTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test12SearchByEmptyLongField() {
 
 		try {
@@ -475,6 +483,7 @@ public class SearchResultsTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test13SearchByEmptyDoubleField() {
 
 		try {

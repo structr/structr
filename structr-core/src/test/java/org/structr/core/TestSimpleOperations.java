@@ -18,6 +18,10 @@
  */
 package org.structr.core;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
@@ -30,6 +34,7 @@ import org.structr.core.property.PropertyMap;
  */
 public class TestSimpleOperations extends StructrTest {
 
+	@Test
 	public void test00SimpleCreateOperation() {
 
 		try (final Tx tx = app.tx()) {

@@ -38,6 +38,10 @@
 package org.structr.common;
 
 import java.util.List;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Direction;
@@ -65,15 +69,7 @@ public class OwnerTest extends StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(OwnerTest.class.getName());
 
-	//~--- methods --------------------------------------------------------
-
-	@Override
-	public void test00DbAvailable() {
-
-		super.test00DbAvailable();
-
-	}
-
+	@Test
 	public void test01SetOwner() {
 
 		try {
@@ -83,7 +79,6 @@ public class OwnerTest extends StructrTest {
 			TestOne t1 = null;
 			Class type = TestOne.class;
 
-			final App superUserApp = StructrApp.getInstance();
 			try (final Tx tx = app.tx()) {
 
 				List<TestUser> users = createTestNodes(TestUser.class, 2);
@@ -146,9 +141,8 @@ public class OwnerTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test02SetDifferentPrincipalTypesAsOwner() {
-
-		final App superUserApp = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 

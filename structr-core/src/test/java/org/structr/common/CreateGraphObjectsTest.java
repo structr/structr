@@ -23,6 +23,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.NotInTransactionException;
@@ -63,13 +66,6 @@ import org.structr.core.property.PropertyMap;
 public class CreateGraphObjectsTest extends StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(CreateGraphObjectsTest.class.getName());
-
-	//~--- methods --------------------------------------------------------
-
-	@Override
-	public void test00DbAvailable() {
-		super.test00DbAvailable();
-	}
 
 	public void test01CreateNode() {
 

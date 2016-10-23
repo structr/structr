@@ -18,6 +18,8 @@
  */
 package org.structr.core.script;
 
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
@@ -148,6 +150,7 @@ public class ScriptingTest extends StructrTest {
 	}
 	*/
 
+	@Test
 	public void testPython() {
 
 		try (final Tx tx = app.tx()) {

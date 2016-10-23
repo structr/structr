@@ -21,6 +21,10 @@ package org.structr.core.property;
 
 
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
@@ -34,15 +38,16 @@ import org.structr.core.graph.Tx;
  *
  */
 public class BooleanPropertyTest extends StructrTest {
-	
+
+	@Test
 	public void test() {
-		
+
 		try {
 
 
 			final Property<Boolean> key = TestFour.booleanProperty;
 			final TestFour testEntity        = createTestNode(TestFour.class);
-			
+
 			assertNotNull(testEntity);
 
 			// store boolean in the test entitiy
@@ -59,24 +64,25 @@ public class BooleanPropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(value, testEntity.getProperty(key));
 			}
-			
+
 		} catch (FrameworkException fex) {
-			
+
 			fail("Unable to store array");
 		}
 	}
-	
+
+	@Test
 	public void testSimpleSearchOnNode() {
-		
+
 		try {
 
 			final PropertyMap properties  = new PropertyMap();
 			final PropertyKey<Boolean> key = TestFour.booleanProperty;
-			
+
 			properties.put(key, true);
-			
+
 			final TestFour testEntity     = createTestNode(TestFour.class, properties);
-			
+
 			assertNotNull(testEntity);
 
 			try (final Tx tx = app.tx()) {
@@ -89,27 +95,28 @@ public class BooleanPropertyTest extends StructrTest {
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
 			}
-		
+
 		} catch (FrameworkException fex) {
-			
+
 			fail("Unable to store array");
 		}
-		
+
 	}
-	
+
+	@Test
 	public void testSimpleSearchOnRelationship() {
-		
+
 		try {
 
 			final TestOne testOne        = createTestNode(TestOne.class);
 			final TestFour testFour      = createTestNode(TestFour.class);
 			final Property<Boolean> key = OneFourOneToOne.booleanProperty;
-			
+
 			assertNotNull(testOne);
 			assertNotNull(testFour);
-			
+
 			final OneFourOneToOne testEntity = createTestRelationship(testOne, testFour, OneFourOneToOne.class);
-			
+
 			assertNotNull(testEntity);
 
 			try (final Tx tx = app.tx()) {
@@ -117,7 +124,7 @@ public class BooleanPropertyTest extends StructrTest {
 				testEntity.setProperty(key, true);
 				tx.success();
 			}
-			
+
 			try (final Tx tx = app.tx()) {
 
 				// check value from database
@@ -128,9 +135,9 @@ public class BooleanPropertyTest extends StructrTest {
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
 			}
-		
+
 		} catch (FrameworkException fex) {
-			
+
 			fail("Unable to store array");
 		}
 	}

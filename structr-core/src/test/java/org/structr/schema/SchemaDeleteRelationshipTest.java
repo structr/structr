@@ -18,6 +18,7 @@
  */
 package org.structr.schema;
 
+import static org.junit.Assert.fail;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaNode;

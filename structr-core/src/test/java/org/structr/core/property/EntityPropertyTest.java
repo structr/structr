@@ -19,6 +19,12 @@
 package org.structr.core.property;
 
 import java.util.List;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.StructrTest;
@@ -37,6 +43,7 @@ public class EntityPropertyTest extends StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(EntityPropertyTest.class.getName());
 
+	@Test
 	public void testOneToOne() throws Exception {
 
 		try {
@@ -127,6 +134,7 @@ public class EntityPropertyTest extends StructrTest {
 		}
 	}
 
+	@Test
 	public void testOneToMany() throws Exception {
 
 		try {
@@ -219,6 +227,7 @@ public class EntityPropertyTest extends StructrTest {
 	/**
 	 * Test of typeName method, of class EntityProperty.
 	 */
+	@Test
 	public void testTypeName() {
 
 		String expResult = "object";
@@ -229,6 +238,7 @@ public class EntityPropertyTest extends StructrTest {
 	/**
 	 * Test of databaseConverter method, of class EntityProperty.
 	 */
+	@Test
 	public void testDatabaseConverter() {
 
 		PropertyConverter expResult = null;
@@ -239,6 +249,7 @@ public class EntityPropertyTest extends StructrTest {
 	/**
 	 * Test of inputConverter method, of class EntityProperty.
 	 */
+	@Test
 	public void testInputConverter() {
 
 		PropertyConverter result = TestSix.oneToOneTestThree.inputConverter(securityContext);
@@ -249,6 +260,7 @@ public class EntityPropertyTest extends StructrTest {
 	/**
 	 * Test of relatedType method, of class EntityProperty.
 	 */
+	@Test
 	public void testRelatedType() {
 
 		Class expResult = TestThree.class;
@@ -259,6 +271,7 @@ public class EntityPropertyTest extends StructrTest {
 	/**
 	 * Test of isCollection method, of class EntityProperty.
 	 */
+	@Test
 	public void testIsCollection() {
 
 		boolean expResult = false;

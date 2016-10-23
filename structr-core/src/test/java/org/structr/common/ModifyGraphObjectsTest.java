@@ -19,6 +19,10 @@
 package org.structr.common;
 
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -45,16 +49,11 @@ public class ModifyGraphObjectsTest extends StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(ModifyGraphObjectsTest.class.getName());
 
-	//~--- methods --------------------------------------------------------
-
-	@Override
-	public void test00DbAvailable() {
-		super.test00DbAvailable();
-	}
-	
 	/**
 	 * Test the results of setProperty and getProperty of a node
 	 */
+
+	@Test
 	public void test01ModifyNode() {
 
 		try {
@@ -62,20 +61,20 @@ public class ModifyGraphObjectsTest extends StructrTest {
 			final PropertyMap props = new PropertyMap();
 			final String type       = "UnknownTestType";
 			final String name       = "GenericNode-name";
-			
+
 			NodeInterface node      = null;
 
 			props.put(AbstractNode.type, type);
 			props.put(AbstractNode.name, name);
 
 			try (final Tx tx = app.tx()) {
-				
+
 				node = app.create(GenericNode.class, props);
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				// Check defaults
 				assertEquals(GenericNode.class.getSimpleName(), node.getProperty(AbstractNode.type));
 				assertTrue(node.getProperty(AbstractNode.name).equals(name));
@@ -88,7 +87,7 @@ public class ModifyGraphObjectsTest extends StructrTest {
 			final String name2 = "GenericNode-name-äöüß";
 
 			try (final Tx tx = app.tx()) {
-				
+
 				// Modify values
 				node.setProperty(AbstractNode.name, name2);
 				node.setProperty(AbstractNode.hidden, true);
@@ -100,7 +99,7 @@ public class ModifyGraphObjectsTest extends StructrTest {
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				assertTrue(node.getProperty(AbstractNode.name).equals(name2));
 				assertTrue(node.getProperty(AbstractNode.hidden));
 				assertTrue(node.getProperty(AbstractNode.deleted));
@@ -120,6 +119,7 @@ public class ModifyGraphObjectsTest extends StructrTest {
 	 /**
 	 * Test the results of setProperty and getProperty of a relationship
 	 */
+	@Test
 	public void test02ModifyRelationship() {
 
 		try {
@@ -129,13 +129,13 @@ public class ModifyGraphObjectsTest extends StructrTest {
 			final String val1              = "54354354546806849870";
 
 			try (final Tx tx = app.tx()) {
-				
+
 				rel.setProperty(key1, val1);
 				tx.success();
 			}
-			
+
 			try (final Tx tx = app.tx()) {
-				
+
 				assertTrue("Expected relationship to have a value for key '" + key1.dbName() + "'", rel.getRelationship().hasProperty(key1.dbName()));
 
 				assertEquals(val1, rel.getRelationship().getProperty(key1.dbName()));
@@ -143,17 +143,17 @@ public class ModifyGraphObjectsTest extends StructrTest {
 				Object vrfy1 = rel.getProperty(key1);
 				assertEquals(val1, vrfy1);
 			}
-			
+
 			final String val2 = "öljkhöohü8osdfhoödhi";
 
 			try (final Tx tx = app.tx()) {
-				
+
 				rel.setProperty(key1, val2);
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				Object vrfy2 = rel.getProperty(key1);
 				assertEquals(val2, vrfy2);
 			}
@@ -168,6 +168,7 @@ public class ModifyGraphObjectsTest extends StructrTest {
 	/**
 	 * Test the results of setProperty and getProperty of a node
 	 */
+	@Test
 	public void test03ModifyConstantBooleanProperty() {
 
 		try {
@@ -175,20 +176,20 @@ public class ModifyGraphObjectsTest extends StructrTest {
 			final PropertyMap props = new PropertyMap();
 			final String type       = "Group";
 			final String name       = "TestGroup-1";
-			
+
 			NodeInterface node      = null;
 
 			props.put(AbstractNode.type, type);
 			props.put(AbstractNode.name, name);
 
 			try (final Tx tx = app.tx()) {
-				
+
 				node = app.create(Group.class, props);
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				// Check defaults
 				assertEquals(Group.class.getSimpleName(), node.getProperty(AbstractNode.type));
 				assertTrue(node.getProperty(AbstractNode.name).equals(name));
@@ -198,15 +199,15 @@ public class ModifyGraphObjectsTest extends StructrTest {
 			final String name2 = "TestGroup-2";
 
 			try (final Tx tx = app.tx()) {
-				
+
 				// Modify values
 				node.setProperty(AbstractNode.name, name2);
 				node.setProperty(Group.isGroup, false);
 
 				fail("Should have failed with an exception: Group.isGroup is_read_only_property");
-				
+
 				tx.success();
-				
+
 			} catch (FrameworkException expected) {}
 
 

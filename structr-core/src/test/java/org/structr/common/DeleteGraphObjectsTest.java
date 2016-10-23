@@ -20,6 +20,11 @@ package org.structr.common;
 
 import java.util.LinkedList;
 import java.util.List;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.NotFoundException;
@@ -55,15 +60,6 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeleteGraphObjectsTest.class.getName());
 
-	//~--- methods --------------------------------------------------------
-
-	@Override
-	public void test00DbAvailable() {
-
-		super.test00DbAvailable();
-
-	}
-
 	/**
 	 * Test successful deletion of a node.
 	 *
@@ -71,6 +67,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 	 * Creation and deletion are executed in two different transactions.
 	 *
 	 */
+	@Test
 	public void test01DeleteNode() {
 
 		try {
@@ -121,6 +118,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test01DeleteRelationship() {
 
 		try {
@@ -180,6 +178,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 	/**
 	 * DELETE_NONE should not trigger any delete cascade
 	 */
+	@Test
 	public void test03CascadeDeleteNone() {
 
 		/* this test is flawed in that it expects the cascading
@@ -230,6 +229,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 	 * DELETE_INCOMING should not trigger delete cascade from start to end node,
 	 * but from end to start node
 	 */
+	@Test
 	public void test04CascadeDeleteIncoming() {
 
 		/* this test is flawed in that it expects the cascading
@@ -282,6 +282,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 	 * DELETE_OUTGOING should trigger delete cascade from start to end node,
 	 * but not from end to start node.
 	 */
+	@Test
 	public void test05CascadeDeleteOutgoing() {
 
 		try {
@@ -347,6 +348,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 	 * DELETE_INCOMING + DELETE_OUTGOING should trigger delete cascade from start to end node
 	 * and from end node to start node
 	 */
+	@Test
 	public void test06CascadeDeleteBidirectional() {
 
 		try {
@@ -413,6 +415,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 	 * trigger delete cascade from start to end node only
 	 * if the remote node would not be valid afterwards
 	 */
+	@Test
 	public void test07CascadeDeleteConditional() {
 
 		try {
@@ -491,6 +494,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test08OverlappingDeleteCascades() {
 
 		/*

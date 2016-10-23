@@ -20,6 +20,10 @@ package org.structr.core.property;
 
 import java.util.LinkedList;
 import java.util.List;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.converter.PropertyConverter;
@@ -33,6 +37,7 @@ import org.structr.core.graph.Tx;
  */
 public class CollectionPropertyTest extends StructrTest {
 
+	@Test
 	public void testOneToMany() throws Exception {
 
 		TestOne testOne                   = null;
@@ -80,6 +85,7 @@ public class CollectionPropertyTest extends StructrTest {
 
 	}
 
+	@Test
 	public void testManyToMany() throws Exception {
 
 		try {
@@ -157,6 +163,7 @@ public class CollectionPropertyTest extends StructrTest {
 	/**
 	 * Test of typeName method, of class CollectionProperty.
 	 */
+	@Test
 	public void testTypeName() {
 
 		Property<List<TestOne>> instance = TestSix.manyToManyTestOnes;
@@ -168,6 +175,7 @@ public class CollectionPropertyTest extends StructrTest {
 	/**
 	 * Test of databaseConverter method, of class CollectionProperty.
 	 */
+	@Test
 	public void testDatabaseConverter() {
 
 		Property<List<TestOne>> instance = TestSix.manyToManyTestOnes;
@@ -179,6 +187,7 @@ public class CollectionPropertyTest extends StructrTest {
 	/**
 	 * Test of inputConverter method, of class CollectionProperty.
 	 */
+	@Test
 	public void testInputConverter() {
 
 		Property<List<TestOne>> instance = TestSix.manyToManyTestOnes;
@@ -190,6 +199,7 @@ public class CollectionPropertyTest extends StructrTest {
 	/**
 	 * Test of relatedType method, of class CollectionProperty.
 	 */
+	@Test
 	public void testRelatedType() {
 
 		Property<List<TestOne>> instance = TestSix.manyToManyTestOnes;
@@ -201,6 +211,7 @@ public class CollectionPropertyTest extends StructrTest {
 	/**
 	 * Test of isCollection method, of class CollectionProperty.
 	 */
+	@Test
 	public void testIsCollection() {
 
 		Property<List<TestOne>> instance = TestSix.manyToManyTestOnes;

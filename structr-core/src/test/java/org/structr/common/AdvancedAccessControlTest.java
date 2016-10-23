@@ -18,6 +18,11 @@
  */
 package org.structr.common;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -40,7 +45,7 @@ public class AdvancedAccessControlTest extends StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(AdvancedAccessControlTest.class.getName());
 
-
+	@Test
 	public void test01WriteAccess() {
 
 		// remove auto-generated resource access objects

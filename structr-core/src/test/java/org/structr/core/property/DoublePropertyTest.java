@@ -21,6 +21,9 @@ package org.structr.core.property;
 
 
 import static junit.framework.TestCase.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
@@ -35,6 +38,7 @@ import org.structr.core.graph.Tx;
  */
 public class DoublePropertyTest extends StructrTest {
 
+	@Test
 	public void test() {
 
 		try {
@@ -97,6 +101,7 @@ public class DoublePropertyTest extends StructrTest {
 	}
 	*/
 
+	@Test
 	public void testSimpleSearchOnNode() {
 
 		try {
@@ -161,6 +166,7 @@ public class DoublePropertyTest extends StructrTest {
 	}
 	*/
 
+	@Test
 	public void testNegativeInfinitySearchOnNode() {
 
 		try {
@@ -192,6 +198,7 @@ public class DoublePropertyTest extends StructrTest {
 
 	}
 
+	@Test
 	public void testPositiveInfinitySearchOnNode() {
 
 		try {
@@ -223,6 +230,7 @@ public class DoublePropertyTest extends StructrTest {
 
 	}
 
+	@Test
 	public void testSimpleSearchOnRelationship() {
 
 		try {
@@ -261,6 +269,7 @@ public class DoublePropertyTest extends StructrTest {
 		}
 	}
 
+	@Test
 	public void testRangeSearchOnNode() {
 
 		try {

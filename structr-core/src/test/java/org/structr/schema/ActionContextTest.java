@@ -27,6 +27,8 @@ import java.util.Locale;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
 import org.apache.commons.lang3.StringUtils;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;

@@ -44,6 +44,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import org.apache.commons.lang3.StringUtils;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -72,18 +76,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(AdvancedPagingTest.class.getName());
 
-	//~--- methods --------------------------------------------------------
-
-	@Override
-	public void test00DbAvailable() {
-
-		super.test00DbAvailable();
-
-	}
-
-	@Override
-	public void test01Paging() {}
-
+	@Test
 	public void test02PagingAndCreate() {
 
 		try {
@@ -155,6 +148,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 	}
 
+	@Test
 	public void test03NegativeOffsetPaging() {
 
 		try {
@@ -258,6 +252,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 	}
 
+	@Test
 	public void test04OffsetPagingWithLargePageSize() {
 
 		try {
@@ -322,6 +317,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 	}
 
+	@Test
 	public void test05UnkownOffsetId() {
 
 		try {
@@ -388,6 +384,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 	}
 
+	@Test
 	public void test06PagingVisibility() {
 
 		Principal tester1 = null;
@@ -487,6 +484,7 @@ public class AdvancedPagingTest extends PagingTest {
 		}
 	}
 
+	@Test
 	public void test07PagingOverflow() {
 
 		try {
@@ -509,6 +507,7 @@ public class AdvancedPagingTest extends PagingTest {
 		}
 	}
 
+	@Test
 	public void test08PagingWithHiddenOrDeletedElements() {
 
 		try {

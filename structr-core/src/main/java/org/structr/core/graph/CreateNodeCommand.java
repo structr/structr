@@ -160,10 +160,6 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 				transformation.apply(securityContext, node);
 			}
-
-			if (transformations.isEmpty()) {
-				logger.debug("No entity creation transformation for {}", node.getClass());
-			}
 		}
 
 		return node;

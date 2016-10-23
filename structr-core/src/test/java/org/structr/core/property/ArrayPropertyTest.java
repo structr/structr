@@ -19,6 +19,11 @@
 package org.structr.core.property;
 
 import java.util.Objects;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
@@ -31,6 +36,7 @@ import org.structr.core.graph.Tx;
  */
 public class ArrayPropertyTest extends StructrTest {
 
+	@Test
 	public void testStringArrayProperty() {
 
 		try {
@@ -62,6 +68,7 @@ public class ArrayPropertyTest extends StructrTest {
 		}
 	}
 
+	@Test
 	public void testSimpleSearchOnNode() {
 
 		try {

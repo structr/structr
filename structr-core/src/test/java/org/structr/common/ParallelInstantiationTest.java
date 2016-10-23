@@ -40,6 +40,8 @@
 package org.structr.common;
 
 import java.util.List;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -59,6 +61,7 @@ public class ParallelInstantiationTest extends PagingTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(ParallelInstantiationTest.class.getName());
 
+	@Test
 	public void test01ParallelInstantiationPerformance() {
 
 		try {

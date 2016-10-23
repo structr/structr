@@ -19,6 +19,11 @@
 package org.structr.common;
 
 import java.util.Iterator;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -30,6 +35,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.SixOneOneToOne;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSix;
+import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.Tx;
 
 /**
@@ -40,13 +46,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(CypherNotInTransactionTest.class.getName());
 
-	@Override
-	public void test00DbAvailable() {
-
-		super.test00DbAvailable();
-
-	}
-
+	@Test
 	public void test01DeleteAfterLookupWithCypherInTransaction() {
 
 		try {
@@ -66,7 +66,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 			assertNotNull(rel);
 
-			DatabaseService graphDb = graphDbCommand.execute();
+			DatabaseService graphDb = app.command(GraphDatabaseCommand.class).execute();
 
 			try (final Tx tx = app.tx()) {
 
@@ -99,6 +99,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test03DeleteDirectly() {
 
 		try {
@@ -144,6 +145,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test04DeleteAfterIndexLookup() {
 
 		try {
@@ -198,6 +200,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test05RollbackDelete() {
 
 		try {

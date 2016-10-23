@@ -18,8 +18,8 @@
  */
 package org.structr.common;
 
-import junit.framework.TestCase;
 import static junit.framework.TestCase.assertEquals;
+import org.junit.Test;
 
 /**
  *
@@ -27,8 +27,9 @@ import static junit.framework.TestCase.assertEquals;
  */
 
 
-public class CaseHelperTest extends TestCase {
+public class CaseHelperTest extends StructrTest {
 
+	@Test
 	public void testCaseConversion() {
 
 		assertEquals("CheckIns", CaseHelper.toUpperCamelCase("check_ins"));

@@ -19,6 +19,9 @@
 package org.structr.core.property;
 
 import static junit.framework.TestCase.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
@@ -32,14 +35,15 @@ import org.structr.core.graph.Tx;
  *
  */
 public class StringPropertyTest extends StructrTest {
-	
+
+	@Test
 	public void test() {
-		
+
 		try {
 
 			final Property<String> instance = TestFour.stringProperty;
 			final TestFour testEntity        = createTestNode(TestFour.class);
-			
+
 			assertNotNull(testEntity);
 
 			// store string in the test entitiy
@@ -52,71 +56,73 @@ public class StringPropertyTest extends StructrTest {
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				// check value from database
 				assertEquals(value, instance.getProperty(securityContext, testEntity, true));
 			}
-			
+
 		} catch (FrameworkException fex) {
-			
+
 			fail("Unable to store array");
 		}
 	}
-	
+
+	@Test
 	public void testSimpleSearchOnNode() {
-		
+
 		try {
 
 			final PropertyMap properties  = new PropertyMap();
 			final PropertyKey<String> key = TestFour.stringProperty;
-			
+
 			properties.put(key, "test");
-			
+
 			final TestFour testEntity     = createTestNode(TestFour.class, properties);
-			
+
 			assertNotNull(testEntity);
-			
+
 			try (final Tx tx = app.tx()) {
 
 				// check value from database
 				assertEquals("test", testEntity.getProperty(key));
-				
+
 				Result<TestFour> result = app.nodeQuery(TestFour.class).and(key, "test").getResult();
 
 				assertEquals(result.size(), 1);
 				assertEquals(result.get(0), testEntity);
 			}
-		
+
 		} catch (FrameworkException fex) {
-			
+
 			fail("Unable to store array");
 		}
-		
+
 	}
-	
+
+	@Test
 	public void testSimpleSearchOnRelationship() {
-		
+
 		try {
 
 			final TestOne testOne        = createTestNode(TestOne.class);
 			final TestFour testFour      = createTestNode(TestFour.class);
 			final Property<String> key   = OneFourOneToOne.stringProperty;
-			
+
 			assertNotNull(testOne);
 			assertNotNull(testFour);
-			
+
 			final OneFourOneToOne testEntity = createTestRelationship(testOne, testFour, OneFourOneToOne.class);
-			
+
 			assertNotNull(testEntity);
 
 			try (final Tx tx = app.tx()) {
-				
+
 				testEntity.setProperty(key, "test");
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				// check value from database
 				assertEquals("test", testEntity.getProperty(key));
 
@@ -125,9 +131,9 @@ public class StringPropertyTest extends StructrTest {
 				assertEquals(result.size(), 1);
 				assertEquals(result.get(0), testEntity);
 			}
-		
+
 		} catch (FrameworkException fex) {
-			
+
 			fail("Unable to store array");
 		}
 	}

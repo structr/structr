@@ -42,6 +42,10 @@ package org.structr.common;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -66,17 +70,8 @@ public class PagingTest extends StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(PagingTest.class.getName());
 
-	//~--- methods --------------------------------------------------------
-
-	@Override
-	public void test00DbAvailable() {
-
-		super.test00DbAvailable();
-
-	}
-
-
-      public void test01FirstPage() {
+	@Test
+	public void test01FirstPage() {
 
 		try {
 
@@ -119,7 +114,8 @@ public class PagingTest extends StructrTest {
 	/**
 	 * Test different pages and page sizes
 	 */
-	public void test01Paging() {
+	@Test
+	public void test02Paging() {
 
 		try {
 
