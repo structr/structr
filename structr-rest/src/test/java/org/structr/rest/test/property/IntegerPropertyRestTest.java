@@ -21,6 +21,7 @@ package org.structr.rest.test.property;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.*;
+import org.junit.Test;
 import org.structr.rest.common.StructrRestTest;
 
 /**
@@ -29,6 +30,7 @@ import org.structr.rest.common.StructrRestTest;
  */
 public class IntegerPropertyRestTest extends StructrRestTest {
 
+	@Test
 	public void testBasics() {
 
 		RestAssured.given()
@@ -54,6 +56,7 @@ public class IntegerPropertyRestTest extends StructrRestTest {
 
 	}
 
+	@Test
 	public void testSearch() {
 
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 1 } ").expect().statusCode(201).when().post("/test_threes");
@@ -105,6 +108,7 @@ public class IntegerPropertyRestTest extends StructrRestTest {
 			.get("/test_threes?integerProperty=");
 	}
 
+	@Test
 	public void testRangeSearch() {
 
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 1 } ").expect().statusCode(201).when().post("/test_threes");
@@ -127,6 +131,7 @@ public class IntegerPropertyRestTest extends StructrRestTest {
 
 	}
 
+	@Test
 	public void testConverters() {
 
 		// test int property on regular node

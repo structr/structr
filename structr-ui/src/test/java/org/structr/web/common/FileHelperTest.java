@@ -23,6 +23,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.commons.io.IOUtils;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -38,6 +41,7 @@ public class FileHelperTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(FileHelperTest.class.getName());
 
+	@Test
 	public void testExtensionBasedMimeTypeDetection() {
 
 		final Map<String, Map<String, byte[]>> testMap = new LinkedHashMap<>();
@@ -84,6 +88,7 @@ public class FileHelperTest extends StructrUiTest {
 
 	}
 
+	@Test
 	public void testContentBasedMimeTypeDetection() {
 
 		final Map<String, Map<String, byte[]>> testMap = new LinkedHashMap<>();

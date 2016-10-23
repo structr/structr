@@ -23,6 +23,7 @@ import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.core.app.StructrApp;
@@ -49,6 +50,7 @@ public class RenderDataTest extends DOMTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(RenderDataTest.class.getName());
 
+	@Test
 	public void testRenderFolderTree() {
 
 		String name = null;
@@ -207,6 +209,7 @@ public class RenderDataTest extends DOMTest {
 		}
 	}
 
+	@Test
 	public void testRenderListFromRestQuery() {
 
 		String name = null;

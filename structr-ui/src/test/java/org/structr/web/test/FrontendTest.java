@@ -44,11 +44,10 @@ import static org.structr.web.test.ResourceAccessTest.createResourceAccess;
 public abstract class FrontendTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(FrontendTest.class.getName());
-	
+
 	public static final String ADMIN_USERNAME = "admin";
 	public static final String ADMIN_PASSWORD = "admin";
 
-	//~--- methods --------------------------------------------------------
 	protected int run(final String testName) {
 
 		try (final Tx tx = app.tx()) {
@@ -128,7 +127,7 @@ public abstract class FrontendTest extends StructrUiTest {
 		properties.put(User.backendUser, true);
 
 		User user = null;
-		
+
 		try (final Tx tx = app.tx()) {
 
 			user = app.create(User.class, properties);

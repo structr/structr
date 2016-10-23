@@ -31,8 +31,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Structr;
@@ -49,6 +55,7 @@ import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.module.JarConfigurationProvider;
 import org.structr.rest.service.HttpService;
@@ -66,19 +73,18 @@ import org.structr.websocket.servlet.WebSocketServlet;
  *
  *
  */
-public abstract class StructrUiTest extends TestCase {
+public abstract class StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrUiTest.class.getName());
 
-	protected Properties config                   = new Properties();
-	protected GraphDatabaseCommand graphDbCommand = null;
-	protected SecurityContext securityContext     = null;
-
-	protected App app = null;
+	protected static Properties config                   = new Properties();
+	protected static GraphDatabaseCommand graphDbCommand = null;
+	protected static SecurityContext securityContext     = null;
+	protected static App app                             = null;
+	protected static String basePath                     = null;
 
 	// the jetty server
 	private boolean running = false;
-	protected String basePath;
 
 	protected static final String prot = "http://";
 //	protected static final String contextPath = "/";
@@ -101,17 +107,32 @@ public abstract class StructrUiTest extends TestCase {
 
 	}
 
-	//~--- methods --------------------------------------------------------
-	@Override
-	protected void setUp() throws Exception {
-		setUp(null);
+	@Rule
+	public TestRule watcher = new TestWatcher() {
+
+		@Override
+		protected void starting(Description description) {
+
+			System.out.println("######################################################################################");
+			System.out.println("# Starting " + getClass().getSimpleName() + "#" + description.getMethodName());
+			System.out.println("######################################################################################");
+		}
+
+		@Override
+		protected void finished(Description description) {
+
+			System.out.println("######################################################################################");
+			System.out.println("# Finished " + getClass().getSimpleName() + "#" + description.getMethodName());
+			System.out.println("######################################################################################");
+		}
+	};
+
+	@BeforeClass
+	public static void start() throws Exception {
+		start(null);
 	}
 
-	protected void setUp(final Map<String, Object> additionalConfig) {
-
-		System.out.println("\n######################################################################################");
-		System.out.println("# Starting " + getClass().getSimpleName() + "#" + getName());
-		System.out.println("######################################################################################");
+	public static void start(final Map<String, Object> additionalConfig) {
 
 		config = Services.getBaseConfiguration();
 
@@ -199,8 +220,25 @@ public abstract class StructrUiTest extends TestCase {
 
 	}
 
-	@Override
-	protected void tearDown() throws Exception {
+	@After
+	public void cleanDatabase() {
+
+		try (final Tx tx = app.tx()) {
+
+			for (final NodeInterface node : app.nodeQuery().getAsList()) {
+				app.delete(node);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			 logger.error("Exception while trying to clean database: {}", fex);
+		}
+	}
+
+	@AfterClass
+	public static void stop() throws Exception {
 
 		Services.getInstance().shutdown();
 
@@ -229,13 +267,6 @@ public abstract class StructrUiTest extends TestCase {
 			} catch (Throwable t) {
 			}
 		}
-
-		super.tearDown();
-
-		System.out.println("######################################################################################");
-		System.out.println("# " + getClass().getSimpleName() + "#" + getName() + " finished.");
-		System.out.println("######################################################################################\n");
-
 	}
 
 	/**
@@ -333,7 +364,6 @@ public abstract class StructrUiTest extends TestCase {
 		return rels;
 	}
 
-	//~--- get methods ----------------------------------------------------
 	/**
 	 * Get classes in given package and subpackages, accessible from the
 	 * context class loader
@@ -492,10 +522,6 @@ public abstract class StructrUiTest extends TestCase {
 				.delete(resource);
 	}
 
-	// disabled to be able to test on windows systems
-//	public void testCharset() {
-//		assertTrue(StringUtils.remove(getEncodingInUse().toLowerCase(), "-").equals("utf8"));
-//	}
 	protected void makePublic(final Object... objects) throws FrameworkException {
 
 		for (Object obj : objects) {

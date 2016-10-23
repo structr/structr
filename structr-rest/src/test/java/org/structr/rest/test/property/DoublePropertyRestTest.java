@@ -22,6 +22,8 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import com.jayway.restassured.response.Response;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 import org.structr.rest.common.StructrRestTest;
 
 /**
@@ -30,6 +32,7 @@ import org.structr.rest.common.StructrRestTest;
  */
 public class DoublePropertyRestTest extends StructrRestTest {
 
+	@Test
 	public void testBasics() {
 
 		RestAssured.given()
@@ -57,10 +60,11 @@ public class DoublePropertyRestTest extends StructrRestTest {
 		//        result from RestAssured here..
 		// assertEquals("3.141592653589793238", response.getBody().jsonPath().getDouble("result[0].doubleProperty"));
 
-		assertEquals(3.1415927, response.getBody().jsonPath().getDouble("result[0].doubleProperty"));
+		assertEquals(3.1415927, response.getBody().jsonPath().getDouble("result[0].doubleProperty"), 0.0);
 
 	}
 
+	@Test
 	public void testSearch() {
 
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : 1.2 } ").expect().statusCode(201).when().post("/test_threes");
@@ -144,6 +148,7 @@ public class DoublePropertyRestTest extends StructrRestTest {
 		*/
 	}
 
+	@Test
 	public void testConverters() {
 
 		// test double property on regular node

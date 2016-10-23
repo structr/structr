@@ -23,6 +23,7 @@ import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static junit.framework.TestCase.fail;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -37,10 +38,11 @@ import static org.structr.web.test.ResourceAccessTest.createResourceAccess;
 public class SchemaAttributesInheritanceTest extends FrontendTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaAttributesInheritanceTest.class.getName());
-	
+
+	@Test
 	public void test01InheritanceOfFileAttributesToImage() {
 
-		
+
 		try (final Tx tx = app.tx()) {
 
 			createAdminUser();
@@ -55,14 +57,14 @@ public class SchemaAttributesInheritanceTest extends FrontendTest {
 
 			// Add String property "testFile" to built-in File class
 			SchemaNode fileNodeDef = app.nodeQuery(SchemaNode.class).andName("File").getFirst();
-			
+
 			SchemaProperty testFileProperty = app.create(SchemaProperty.class);
 			testFileProperty.setProperty(SchemaProperty.name, "testFile");
 			testFileProperty.setProperty(SchemaProperty.propertyType, "String");
 			testFileProperty.setProperty(SchemaProperty.schemaNode, fileNodeDef);
 
 			tx.success();
-			
+
 		} catch (Exception ex) {
 			logger.error("", ex);
 		}
@@ -87,12 +89,12 @@ public class SchemaAttributesInheritanceTest extends FrontendTest {
 					.body("result",	                   hasSize(31))
 					.body("result[30].jsonName",       equalTo("testFile"))
 					.body("result[30].declaringClass", equalTo("_FileHelper"))
-				
+
 				.when()
 					.get("/_schema/File/ui");
-	
+
 			tx.success();
-			
+
 		} catch (FrameworkException ex) {
 
 			logger.error(ex.toString());
@@ -119,12 +121,12 @@ public class SchemaAttributesInheritanceTest extends FrontendTest {
 					.body("result",	                   hasSize(37))
 					.body("result[36].jsonName",       equalTo("testFile"))
 					.body("result[36].declaringClass", equalTo("_FileHelper"))
-				
+
 				.when()
 					.get("/_schema/Image/ui");
-	
+
 			tx.success();
-			
+
 		} catch (FrameworkException ex) {
 
 			logger.error(ex.toString());
@@ -132,6 +134,7 @@ public class SchemaAttributesInheritanceTest extends FrontendTest {
 		}
 	}
 
+	@Test
 	public void test02InheritanceOfFileAttributesToSubclass() {
 
 		try (final Tx tx = app.tx()) {
@@ -147,14 +150,14 @@ public class SchemaAttributesInheritanceTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			SchemaNode fileNodeDef = app.nodeQuery(SchemaNode.class).andName("File").getFirst();
-			
+
 			SchemaProperty testFileProperty = app.create(SchemaProperty.class);
 			testFileProperty.setProperty(SchemaProperty.name, "testFile");
 			testFileProperty.setProperty(SchemaProperty.propertyType, "String");
 			testFileProperty.setProperty(SchemaProperty.schemaNode, fileNodeDef);
 
 			tx.success();
-			
+
 		} catch (Exception ex) {
 			logger.error("", ex);
 		}
@@ -165,7 +168,7 @@ public class SchemaAttributesInheritanceTest extends FrontendTest {
 			SchemaNode subFile = app.create(SchemaNode.class);
 			subFile.setProperty(SchemaNode.name, "SubFile");
 			subFile.setProperty(SchemaNode.extendsClass, "File");
-			
+
 			// Add String property "testSubFile" to new dynamic class
 			SchemaProperty testFileProperty = app.create(SchemaProperty.class);
 			testFileProperty.setProperty(SchemaProperty.name, "testSubFile");
@@ -173,12 +176,12 @@ public class SchemaAttributesInheritanceTest extends FrontendTest {
 			testFileProperty.setProperty(SchemaProperty.schemaNode, subFile);
 
 			tx.success();
-			
+
 		} catch (Exception ex) {
 			logger.error("", ex);
 		}
-		
-		
+
+
 		try (final Tx tx = app.tx()) {
 
 			RestAssured
@@ -201,12 +204,12 @@ public class SchemaAttributesInheritanceTest extends FrontendTest {
 					.body("result[30].declaringClass", equalTo("SubFile"))
 					.body("result[31].jsonName",       equalTo("testFile"))
 					.body("result[31].declaringClass", equalTo("_FileHelper"))
-				
+
 				.when()
 					.get("/_schema/SubFile/ui");
-	
+
 			tx.success();
-			
+
 		} catch (FrameworkException ex) {
 
 			logger.error(ex.toString());
@@ -215,6 +218,7 @@ public class SchemaAttributesInheritanceTest extends FrontendTest {
 
 	}
 
+	@Test
 	public void test03InheritanceOfFileAttributesToSubclassOfImage() {
 
 		try (final Tx tx = app.tx()) {
@@ -230,14 +234,14 @@ public class SchemaAttributesInheritanceTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			SchemaNode fileNodeDef = app.nodeQuery(SchemaNode.class).andName("File").getFirst();
-			
+
 			SchemaProperty testFileProperty = app.create(SchemaProperty.class);
 			testFileProperty.setProperty(SchemaProperty.name, "testFile");
 			testFileProperty.setProperty(SchemaProperty.propertyType, "String");
 			testFileProperty.setProperty(SchemaProperty.schemaNode, fileNodeDef);
 
 			tx.success();
-			
+
 		} catch (Exception ex) {
 			logger.error("", ex);
 		}
@@ -248,7 +252,7 @@ public class SchemaAttributesInheritanceTest extends FrontendTest {
 			SchemaNode subFile = app.create(SchemaNode.class);
 			subFile.setProperty(SchemaNode.name, "SubFile");
 			subFile.setProperty(SchemaNode.extendsClass, "Image");
-			
+
 			// Add String property "testSubFile" to new dynamic class
 			SchemaProperty testFileProperty = app.create(SchemaProperty.class);
 			testFileProperty.setProperty(SchemaProperty.name, "testSubFile");
@@ -256,12 +260,12 @@ public class SchemaAttributesInheritanceTest extends FrontendTest {
 			testFileProperty.setProperty(SchemaProperty.schemaNode, subFile);
 
 			tx.success();
-			
+
 		} catch (Exception ex) {
 			logger.error("", ex);
 		}
-		
-		
+
+
 		try (final Tx tx = app.tx()) {
 
 			RestAssured
@@ -284,12 +288,12 @@ public class SchemaAttributesInheritanceTest extends FrontendTest {
 					.body("result[36].declaringClass", equalTo("SubFile"))
 					.body("result[37].jsonName",       equalTo("testFile"))
 					.body("result[37].declaringClass", equalTo("_FileHelper"))
-				
+
 				.when()
 					.get("/_schema/SubFile/ui");
-	
+
 			tx.success();
-			
+
 		} catch (FrameworkException ex) {
 
 			logger.error(ex.toString());

@@ -19,6 +19,9 @@
 package org.structr.web.test;
 
 import static junit.framework.TestCase.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -33,11 +36,12 @@ import org.w3c.dom.DOMException;
  *
  */
 public class PagePathTest extends StructrUiTest {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(PagePathTest.class.getName());
 
+	@Test
 	public void testPagePath() {
-		
+
 		final String pageName	= "page-01";
 
 		try (final Tx tx = app.tx()) {
@@ -56,7 +60,7 @@ public class PagePathTest extends StructrUiTest {
 			DOMElement div_3  = (DOMElement)page.createElement("div");
 			DOMElement h1     = (DOMElement)page.createElement("h1");
 			DOMElement h1_2   = (DOMElement)page.createElement("h1");
-			
+
 			try {
 				// add HTML element to page
 				page.appendChild(html);
@@ -68,22 +72,22 @@ public class PagePathTest extends StructrUiTest {
 				// add TITLE element to HEAD
 				head.appendChild(title);
 				title.appendChild(page.createTextNode("Test Page"));
-				
+
 				// add DIVs to BODY
 				body.appendChild(div);
 				body.appendChild(div_2);
 				body.appendChild(div_3);
-				
+
 				// add H1 elements to DIV
 				div_3.appendChild(h1);
 				div_3.appendChild(h1_2);
 				h1.appendChild(page.createTextNode("Page Title"));
-				
+
 			} catch (DOMException dex) {
 
 				throw new FrameworkException(422, dex.getMessage());
 			}
-			
+
 			assertEquals(html.getPositionPath(),	"/0");
 			assertEquals(head.getPositionPath(),	"/0/0");
 			assertEquals(title.getPositionPath(),	"/0/0/0");
@@ -93,15 +97,15 @@ public class PagePathTest extends StructrUiTest {
 			assertEquals(div_3.getPositionPath(),	"/0/1/2");
 			assertEquals(h1.getPositionPath(),	"/0/1/2/0");
 			assertEquals(h1_2.getPositionPath(),	"/0/1/2/1");
-			
+
 			tx.success();
-			
+
 		} catch (FrameworkException fex) {
 
 			logger.warn("", fex);
-			
+
 			fail("Unexpected exception");
-			
+
 		}
 	}
 

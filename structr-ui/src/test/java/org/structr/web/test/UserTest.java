@@ -19,6 +19,9 @@
 package org.structr.web.test;
 
 import java.util.List;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -34,6 +37,7 @@ public class UserTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(UserTest.class.getName());
 
+	@Test
 	public void test001EMailAddressConstraint() {
 
 		try (final Tx tx = app.tx()) {

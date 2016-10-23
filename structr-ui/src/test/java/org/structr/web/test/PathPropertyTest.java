@@ -21,6 +21,7 @@ package org.structr.web.test;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.*;
+import org.junit.Test;
 import org.structr.web.common.StructrUiTest;
 
 /**
@@ -29,18 +30,19 @@ import org.structr.web.common.StructrUiTest;
  */
 public class PathPropertyTest extends StructrUiTest {
 
+	@Test
 	public void test01PathProperty() {
-		
+
 		// create a folder and a subfolder
-		
+
 		String folder01 = createEntityAsSuperUser("/folder", "{ name: 'folder 01', visibleToPublicUsers: true }");
 		String folder02 = createEntityAsSuperUser("/folder", "{ name: 'folder 02', visibleToPublicUsers: true, parent: '" + folder01 + "'}");
-		
+
 		grant("Folder", 4095, true);
-		
+
 		// find folder by name
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -51,7 +53,7 @@ public class PathPropertyTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			
+
 			.expect()
 				.statusCode(200)
 
@@ -60,10 +62,10 @@ public class PathPropertyTest extends StructrUiTest {
 			.when()
 				.get("/folder?name=folder 01");
 
-		
+
 		// find subfolder by name
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -74,7 +76,7 @@ public class PathPropertyTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			
+
 			.expect()
 				.statusCode(200)
 
@@ -82,10 +84,10 @@ public class PathPropertyTest extends StructrUiTest {
 
 			.when()
 				.get("/folder?name=folder 02");
-		
+
 		// find folder by path
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -96,7 +98,7 @@ public class PathPropertyTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			
+
 			.expect()
 				.statusCode(200)
 
@@ -107,7 +109,7 @@ public class PathPropertyTest extends StructrUiTest {
 
 		// find subfolder by path
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -118,7 +120,7 @@ public class PathPropertyTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			
+
 			.expect()
 				.statusCode(200)
 
@@ -127,10 +129,10 @@ public class PathPropertyTest extends StructrUiTest {
 			.when()
 				.get("/folder?path=/folder 01/folder 02");
 
-		
+
 //		// test update via put
 //		RestAssured
-//		    
+//
 //			.given()
 //				.contentType("application/json; charset=UTF-8")
 //				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -140,7 +142,7 @@ public class PathPropertyTest extends StructrUiTest {
 //				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 //				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 //				.body(" { testSixIds: [" + test03 + "," + test04 + "] } ")
-//			
+//
 //			.expect()
 //				.statusCode(200)
 //
@@ -148,7 +150,7 @@ public class PathPropertyTest extends StructrUiTest {
 //				.put(concat("/test_sevens/", test09));
 //
 //		RestAssured
-//		    
+//
 //			.given()
 //				.contentType("application/json; charset=UTF-8")
 //				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -157,7 +159,7 @@ public class PathPropertyTest extends StructrUiTest {
 //				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 //				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 //				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-//			
+//
 //			.expect()
 //				.statusCode(200)
 //
@@ -166,5 +168,5 @@ public class PathPropertyTest extends StructrUiTest {
 //			.when()
 //				.get(concat("/test_sevens/", test09));
 	}
-	
+
 }

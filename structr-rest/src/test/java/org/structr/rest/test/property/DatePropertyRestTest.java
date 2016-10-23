@@ -21,6 +21,7 @@ package org.structr.rest.test.property;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.*;
+import org.junit.Test;
 import org.structr.rest.common.StructrRestTest;
 
 /**
@@ -29,8 +30,9 @@ import org.structr.rest.common.StructrRestTest;
  */
 public class DatePropertyRestTest extends StructrRestTest {
 
+	@Test
 	public void testBasics() {
-		
+
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.body(" { 'dateProperty' : '2013-04-05T10:43:40+0200' } ")
@@ -39,9 +41,9 @@ public class DatePropertyRestTest extends StructrRestTest {
 		.when()
 			.post("/test_threes")
 			.getHeader("Location");
-		
-		
-		
+
+
+
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -51,16 +53,17 @@ public class DatePropertyRestTest extends StructrRestTest {
 			.body("result[0].dateProperty", equalTo("2013-04-05T08:43:40+0000"))
 		.when()
 			.get("/test_threes");
-			
+
 	}
-	
+
+	@Test
 	public void testSearch() {
 
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-03T10:34:56+0000' } ").expect().statusCode(201).when().post("/test_threes");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-05T08:43:40+0000' } ").expect().statusCode(201).when().post("/test_threes");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-07T08:43:40+0000' } ").expect().statusCode(201).when().post("/test_threes");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name'         : 'test'                     } ").expect().statusCode(201).when().post("/test_threes");
-		
+
 		// test for three elements
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -74,7 +77,7 @@ public class DatePropertyRestTest extends StructrRestTest {
 			.body("result_count", equalTo(4))
 		.when()
 			.get("/test_threes");
-		
+
 		// test strict search
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -88,7 +91,7 @@ public class DatePropertyRestTest extends StructrRestTest {
 			.body("result[0].dateProperty", equalTo("2013-04-03T10:34:56+0000"))
 		.when()
 			.get("/test_threes?dateProperty=2013-04-03T10:34:56+0000");
-	
+
 		// test empty value
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -104,13 +107,14 @@ public class DatePropertyRestTest extends StructrRestTest {
 		.when()
 			.get("/test_threes?dateProperty=");
 	}
-	
+
+	@Test
 	public void testRangeSearch1() {
 
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-03T10:34:56+0000' } ").expect().statusCode(201).when().post("/test_threes");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-05T08:43:40+0000' } ").expect().statusCode(201).when().post("/test_threes");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-07T08:43:40+0000' } ").expect().statusCode(201).when().post("/test_threes");
-		
+
 		// test range query
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -124,9 +128,10 @@ public class DatePropertyRestTest extends StructrRestTest {
 			.body("result_count", equalTo(2))
 		.when()
 			.get("/test_threes?dateProperty=[2013-04-03T10:34:56+0000 TO 2013-04-06T23:59:59+0000]");
-	
-	}	
-	
+
+	}
+
+	@Test
 	public void testRangeSearch2() {
 
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-03T10:34:56+0000' } ").expect().statusCode(201).when().post("/test_threes");
@@ -146,6 +151,6 @@ public class DatePropertyRestTest extends StructrRestTest {
 			.body("result_count", equalTo(2))
 		.when()
 			.get("/test_threes?dateProperty=[2013-04-01T00:00:00+0000 TO 2013-04-06T23:59:59+0000]");
-	
-	}	
+
+	}
 }

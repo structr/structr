@@ -20,19 +20,16 @@ package org.structr.csv.test;
 
 
 import com.jayway.restassured.RestAssured;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.*;
-import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matcher;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.DatabaseService;
 import org.structr.api.config.Structr;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -62,15 +59,13 @@ import org.structr.rest.servlet.JsonRestServlet;
  *
  *
  */
-public class StructrCsvTest extends TestCase {
+public class StructrCsvTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrCsvTest.class.getName());
 
-	//~--- fields ---------------------------------------------------------
-
-	protected SecurityContext securityContext = null;
-	protected App app                         = null;
-	protected String basePath                 = null;
+	protected static SecurityContext securityContext = null;
+	protected static App app                         = null;
+	protected static String basePath                 = null;
 
 	protected static final String contextPath = "/";
 	protected static final String restUrl = "/structr/rest";
@@ -80,25 +75,14 @@ public class StructrCsvTest extends TestCase {
 
 	static {
 
-		// check character set
-		checkCharset();
-
 		// configure RestAssured
 		RestAssured.basePath = restUrl;
 		RestAssured.baseURI = "http://" + host + ":" + httpPort;
 		RestAssured.port = httpPort;
 	}
 
-
-	public void test00DbAvailable() {
-
-		DatabaseService graphDb = app.getDatabaseService();
-
-		assertTrue(graphDb != null);
-	}
-
-	@Override
-	protected void tearDown() throws Exception {
+	@AfterClass
+	public static void tearDown() throws Exception {
 
 		Services.getInstance().shutdown();
 
@@ -123,8 +107,6 @@ public class StructrCsvTest extends TestCase {
 
 			try { Thread.sleep(500); } catch(Throwable t) {}
 		}
-
-		super.tearDown();
 	}
 
 	/**
@@ -268,8 +250,8 @@ public class StructrCsvTest extends TestCase {
 
 	//~--- set methods ----------------------------------------------------
 
-	@Override
-	protected void setUp() throws Exception {
+	@BeforeClass
+	public static void start() throws Exception {
 
 		final Properties config = Services.getBaseConfiguration();
 		final Date now          = new Date();
@@ -337,28 +319,4 @@ public class StructrCsvTest extends TestCase {
 	protected static Matcher isEntity(Class<? extends AbstractNode> type) {
 		return new EntityMatcher(type);
 	}
-
-	private static void checkCharset() {
-
-		System.out.println("######### Charset settings ##############");
-		System.out.println("Default Charset=" + Charset.defaultCharset());
-		System.out.println("file.encoding=" + System.getProperty("file.encoding"));
-		System.out.println("Default Charset=" + Charset.defaultCharset());
-		System.out.println("Default Charset in Use=" + getEncodingInUse());
-		System.out.println("This should look like the umlauts of 'a', 'o', 'u' and 'ss': äöüß");
-		System.out.println("#########################################");
-
-	}
-
-
-	private static String getEncodingInUse() {
-		OutputStreamWriter writer = new OutputStreamWriter(new ByteArrayOutputStream());
-		return writer.getEncoding();
-	}
-
-	// disabled to be able to test on windows systems
-//	public void testCharset() {
-//		assertTrue(StringUtils.remove(getEncodingInUse().toLowerCase(), "-").equals("utf8"));
-//	}
-
 }

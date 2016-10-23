@@ -21,6 +21,10 @@ package org.structr.web.entity.dom;
 import java.util.LinkedList;
 import java.util.List;
 import static junit.framework.TestCase.fail;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import org.junit.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.relationship.AbstractChildren;
@@ -40,6 +44,7 @@ import org.w3c.dom.Text;
  */
 public class DOMNodeTest extends DOMTest {
 
+	@Test
 	public void testAppendChild() {
 
 		try (final Tx tx = app.tx()) {
@@ -107,6 +112,7 @@ public class DOMNodeTest extends DOMTest {
 
 	}
 
+	@Test
 	public void testGetParentNode() {
 
 		try (final Tx tx = app.tx()) {
@@ -136,6 +142,7 @@ public class DOMNodeTest extends DOMTest {
 
 	}
 
+	@Test
 	public void testGetChildNodes() {
 
 		try (final Tx tx = app.tx()) {
@@ -173,6 +180,7 @@ public class DOMNodeTest extends DOMTest {
 
 	}
 
+	@Test
 	public void testRemoveChildNode() {
 
 		try (final Tx tx = app.tx()) {
@@ -248,6 +256,7 @@ public class DOMNodeTest extends DOMTest {
 
 	}
 
+	@Test
 	public void testSiblingMethods() {
 
 		try (final Tx tx = app.tx()) {
@@ -298,6 +307,7 @@ public class DOMNodeTest extends DOMTest {
 
 	}
 
+	@Test
 	public void testAppendChildErrors() {
 
 		try (final Tx tx = app.tx()) {
@@ -377,6 +387,7 @@ public class DOMNodeTest extends DOMTest {
 
 	}
 
+	@Test
 	public void testReplaceChild() {
 
 		try (final Tx tx = app.tx()) {
@@ -435,6 +446,7 @@ public class DOMNodeTest extends DOMTest {
 
 	}
 
+	@Test
 	public void testInsertBefore() {
 
 		try (final Tx tx = app.tx()) {
@@ -494,6 +506,7 @@ public class DOMNodeTest extends DOMTest {
 
 	}
 
+	@Test
 	public void testReplaceChildWithFragment() {
 
 		try (final Tx tx = app.tx()) {
@@ -571,6 +584,7 @@ public class DOMNodeTest extends DOMTest {
 
 	}
 
+	@Test
 	public void testInsertBeforeWithFragment() {
 
 		try (final Tx tx = app.tx()) {
@@ -649,6 +663,7 @@ public class DOMNodeTest extends DOMTest {
 
 	}
 
+	@Test
 	public void testAppendWithFragment() {
 
 		try (final Tx tx = app.tx()) {
@@ -727,6 +742,7 @@ public class DOMNodeTest extends DOMTest {
 
 	}
 
+	@Test
 	public void testNormalize() {
 
 		try (final Tx tx = app.tx()) {

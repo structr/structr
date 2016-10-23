@@ -26,6 +26,7 @@ import java.util.Random;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
 import static org.hamcrest.Matchers.*;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -49,6 +50,7 @@ public class AdvancedSearchTest extends StructrRestTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(AdvancedSearchTest.class.getName());
 
+	@Test
 	public void testGraphBasedIndexingSearchOnNotionProperties() {
 
 		String test01 = createEntity("/test_sixs", "{ name: test01, aString: string01, anInt: 1 }");
@@ -376,6 +378,7 @@ public class AdvancedSearchTest extends StructrRestTest {
 
 	}
 
+	@Test
 	public void testGraphBasedIndexingSearchOnRelatedNodeProperties() {
 
 		String test01 = createEntity("/test_sixs", "{ name: test01, aString: string01, anInt: 1 }");
@@ -517,6 +520,7 @@ public class AdvancedSearchTest extends StructrRestTest {
 
 	}
 
+	@Test
 	public void testGraphBasedIndexingSearchCombinedWithGeocoding() {
 
 		String test01 = createEntity("/test_eights", "{ name: test01, aString: string01, anInt: 1 }");
@@ -686,6 +690,7 @@ public class AdvancedSearchTest extends StructrRestTest {
 				.get(concat("/test_nines?distance=100&location=Bahnhofstraße,Wuppertal&postalCode="));
 	}
 
+	@Test
 	public void testMultiValueSearch() {
 
 		String test01 = createEntity("/test_sixs", "{ aString: string01 }");
@@ -718,6 +723,7 @@ public class AdvancedSearchTest extends StructrRestTest {
 
 	}
 
+	@Test
 	public void testSearchDynamicNodes() {
 
 		/**
@@ -787,6 +793,7 @@ public class AdvancedSearchTest extends StructrRestTest {
 		}
 	}
 
+	@Test
 	public void testSearchWithOwnerAndEnum() {
 
 		try {
@@ -853,6 +860,7 @@ public class AdvancedSearchTest extends StructrRestTest {
 		}
 	}
 
+	@Test
 	public void testSearchWithOwnerAndEnumOnDynamicNodes() {
 
 		try {

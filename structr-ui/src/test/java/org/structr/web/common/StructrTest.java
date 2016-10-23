@@ -28,9 +28,16 @@ import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
-import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
-import org.structr.api.DatabaseService;
+import org.junit.After;
+import org.junit.AfterClass;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 import org.structr.api.config.Structr;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -42,6 +49,7 @@ import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.module.JarConfigurationProvider;
 import org.structr.rest.service.HttpService;
@@ -55,29 +63,35 @@ import org.structr.rest.service.HttpService;
  *
  *
  */
-public class StructrTest extends TestCase {
+public class StructrTest {
 
-	//private static final Logger logger = LoggerFactory.getLogger(StructrTest.class.getName());
+	protected static Properties config                   = new Properties();
+	protected static GraphDatabaseCommand graphDbCommand = null;
+	protected static SecurityContext securityContext     = null;
+	protected static App app                             = null;
 
-	//~--- fields ---------------------------------------------------------
+	@Rule
+	public TestRule watcher = new TestWatcher() {
 
-	protected Properties config                   = new Properties();
-	protected GraphDatabaseCommand graphDbCommand = null;
-	protected SecurityContext securityContext     = null;
+		@Override
+		protected void starting(Description description) {
 
-	protected App app = null;
+			System.out.println("######################################################################################");
+			System.out.println("# Starting " + getClass().getSimpleName() + "#" + description.getMethodName());
+			System.out.println("######################################################################################");
+		}
 
-	//~--- methods --------------------------------------------------------
+		@Override
+		protected void finished(Description description) {
 
-	public void test00DbAvailable() {
+			System.out.println("######################################################################################");
+			System.out.println("# Finished " + getClass().getSimpleName() + "#" + description.getMethodName());
+			System.out.println("######################################################################################");
+		}
+	};
 
-		DatabaseService graphDb = graphDbCommand.execute();
-
-		assertTrue(graphDb != null);
-	}
-
-	@Override
-	protected void setUp() throws Exception {
+	@BeforeClass
+	public static void start() throws Exception {
 
 		Date now       = new Date();
 		long timestamp = now.getTime();
@@ -115,8 +129,23 @@ public class StructrTest extends TestCase {
 
 	}
 
-	@Override
-	protected void tearDown() throws Exception {
+	@After
+	public void cleanDatabase() {
+
+		try (final Tx tx = app.tx()) {
+
+			for (final NodeInterface node : app.nodeQuery().getAsList()) {
+				app.delete(node);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+		}
+	}
+
+	@AfterClass
+	public static void stop() {
 
 		// shutdown
 		Services.getInstance().shutdown();
@@ -134,9 +163,6 @@ public class StructrTest extends TestCase {
 
 		} catch(Throwable t) {
 		}
-
-		super.tearDown();
-
 	}
 
 	/**

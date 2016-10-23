@@ -21,6 +21,7 @@ package org.structr.rest.test.property;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.*;
+import org.junit.Test;
 import org.structr.rest.common.StructrRestTest;
 
 /**
@@ -29,6 +30,7 @@ import org.structr.rest.common.StructrRestTest;
  */
 public class LongPropertyRestTest extends StructrRestTest {
 
+	@Test
 	public void testBasics() {
 
 		RestAssured.given()
@@ -54,6 +56,7 @@ public class LongPropertyRestTest extends StructrRestTest {
 
 	}
 
+	@Test
 	public void testSearch() {
 
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647001 } ").expect().statusCode(201).when().post("/test_threes");
@@ -106,6 +109,7 @@ public class LongPropertyRestTest extends StructrRestTest {
 
 	}
 
+	@Test
 	public void testRangeSearch1() {
 
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647001 } ").expect().statusCode(201).when().post("/test_threes");
@@ -128,6 +132,7 @@ public class LongPropertyRestTest extends StructrRestTest {
 
 	}
 
+	@Test
 	public void testRangeSearch2() {
 
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647001 } ").expect().statusCode(201).when().post("/test_threes");
@@ -150,6 +155,7 @@ public class LongPropertyRestTest extends StructrRestTest {
 
 	}
 
+	@Test
 	public void testRangeSearch3() {
 
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647001 } ").expect().statusCode(201).when().post("/test_threes");
@@ -172,6 +178,7 @@ public class LongPropertyRestTest extends StructrRestTest {
 
 	}
 
+	@Test
 	public void testRangeSearch4() {
 
 		long base = 12345678000L;
@@ -199,6 +206,7 @@ public class LongPropertyRestTest extends StructrRestTest {
 
 	}
 
+	@Test
 	public void testRangeSearchLargeInterval1() {
 
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647001 } ").expect().statusCode(201).when().post("/test_threes");
@@ -221,6 +229,7 @@ public class LongPropertyRestTest extends StructrRestTest {
 
 	}
 
+	@Test
 	public void testConverters() {
 
 		// test int property on regular node

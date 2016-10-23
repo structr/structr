@@ -22,6 +22,10 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -39,6 +43,7 @@ public class XPathTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(XPathTest.class.getName());
 
+	@Test
 	public void testSimpleXPath() {
 
 		final String pageName	= "page-01";
@@ -106,6 +111,7 @@ public class XPathTest extends StructrUiTest {
 		}
 	}
 
+	@Test
 	public void testXPathAttributes() {
 
 		final String pageName	= "page-02";

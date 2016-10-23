@@ -21,6 +21,8 @@ package org.structr.rest.resource;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -40,6 +42,7 @@ public class TypeResourceRelationshipTest extends StructrRestTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(TypeResourceRelationshipTest.class.getName());
 
+	@Test
 	public void testCreateRelationship() {
 
 		String sourceNodeId = null;
@@ -82,7 +85,7 @@ public class TypeResourceRelationshipTest extends StructrRestTest {
 				.get(concat("/TestTwo/", sourceNodeId));
 
 		/* Create relationship using the TypeResource.
-		
+
 		 * The relation class is TwoOneOneToMany: (:TestTwo) -1-[:OWNS]-*-> (:TestOne)
 		 */
 		RestAssured
@@ -144,7 +147,8 @@ public class TypeResourceRelationshipTest extends StructrRestTest {
 
 	}
 
-	
+
+	@Test
 	public void testCardinalityOneToMany() {
 
 		String sourceNodeId = null;
@@ -230,6 +234,7 @@ public class TypeResourceRelationshipTest extends StructrRestTest {
 
 	}
 
+	@Test
 	public void testCardinalityOneToOne() {
 
 		String sourceNodeId = null;
@@ -314,7 +319,8 @@ public class TypeResourceRelationshipTest extends StructrRestTest {
 				.get("/FourThreeOneToOne");
 
 	}
-	
+
+	@Test
 	public void testCardinalityManyToOne() {
 
 		String sourceNodeId = null;
@@ -400,6 +406,7 @@ public class TypeResourceRelationshipTest extends StructrRestTest {
 
 	}
 
+	@Test
 	public void testCardinalityOneToOneThreeNodes() {
 
 		String sourceNodeId = null;
@@ -487,7 +494,8 @@ public class TypeResourceRelationshipTest extends StructrRestTest {
 				.get("/FourThreeOneToOne");
 
 	}
-	
+
+	@Test
 	public void testCardinalityManyToOneThreeNodes() {
 
 		String sourceNodeId = null;
@@ -574,5 +582,5 @@ public class TypeResourceRelationshipTest extends StructrRestTest {
 			.when()
 				.get("/FiveOneManyToOne");
 
-	}	
+	}
 }

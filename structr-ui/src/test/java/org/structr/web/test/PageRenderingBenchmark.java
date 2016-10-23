@@ -25,6 +25,10 @@ import static junit.framework.TestCase.assertTrue;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -44,8 +48,7 @@ public class PageRenderingBenchmark extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(PageRenderingBenchmark.class.getName());
 
-	//~--- methods --------------------------------------------------------
-
+	@Test
 	public void test01PagePerformance() {
 
 		final String pageName = "page-01";
@@ -138,7 +141,7 @@ public class PageRenderingBenchmark extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			Document doc = null;
-			
+
 
 			// Warm-up caches and JVM
 			for (long i = 0; i < 50000; i++) {
@@ -147,22 +150,22 @@ public class PageRenderingBenchmark extends StructrUiTest {
 
 			final long max = 1000;
 
-			
-			
+
+
 			long t0 = System.currentTimeMillis();
-			
+
 			for (long i = 0; i < max; i++) {
 				doc = Jsoup.connect(baseUri).get();
 			}
 
 			long t1 = System.currentTimeMillis();
-			
+
 			DecimalFormat decimalFormat = new DecimalFormat("0.000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 			Double time                 = (t1 - t0) / 1000.0;
 			Double rate                 = max / ((t1 - t0) / 1000.0);
 
 			logger.info("------> Time to render {} the base URI: {} seconds ({} per s)", new Object[] { max, decimalFormat.format(time), decimalFormat.format(rate) });
-			
+
 			assertFalse(doc.select("html").isEmpty());
 			assertFalse(doc.select("html > head").isEmpty());
 			assertFalse(doc.select("html > head > title").isEmpty());
@@ -181,21 +184,21 @@ public class PageRenderingBenchmark extends StructrUiTest {
 			assertEquals(divElements.first().attr("class"), divClassAttr);
 
 
-			
+
 			t0 = System.currentTimeMillis();
-			
+
 			for (long i = 0; i < max; i++) {
 				doc = Jsoup.connect(baseUri + pageName).get();
 			}
 
 			t1 = System.currentTimeMillis();
-			
+
 			time                 = (t1 - t0) / 1000.0;
 			rate                 = max / ((t1 - t0) / 1000.0);
 
 			logger.info("------> Time to render {} the test page by name: {} seconds ({} per s)", new Object[] { max, decimalFormat.format(time), decimalFormat.format(rate) });
 
-			
+
 			assertFalse(doc.select("html").isEmpty());
 			assertFalse(doc.select("html > head").isEmpty());
 			assertFalse(doc.select("html > head > title").isEmpty());

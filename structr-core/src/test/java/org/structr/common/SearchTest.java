@@ -414,13 +414,13 @@ public class SearchTest extends StructrTest {
 
 				long t1 = System.currentTimeMillis();
 				logger.info("Query with inexact type took {} ms", t1-t0);
-				assertEquals(1000, result.size());
+				assertEquals(1012, result.size());
 
 				result = app.nodeQuery(NodeInterface.class).getResult();
 
 				long t2 = System.currentTimeMillis();
 				logger.info("Query with exact type took {} ms", t2-t1);
-				assertEquals(1000, result.size());
+				assertEquals(1012, result.size());
 
 				// TODO: Implement app.nodeQuery() to return all nodes in the system as an alternative to the (slow) app.nodeQuery(NodeInterface.class)
 //				result = app.nodeQuery().getResult();

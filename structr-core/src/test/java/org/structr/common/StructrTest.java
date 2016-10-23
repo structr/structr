@@ -32,10 +32,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import org.apache.commons.io.FileUtils;
+import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TestRule;
@@ -65,7 +65,6 @@ public class StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrTest.class.getName());
 
-	//~--- fields ---------------------------------------------------------
 	protected static SecurityContext securityContext = null;
 	protected static String basePath                 = null;
 	protected static App app                         = null;
@@ -76,7 +75,7 @@ public class StructrTest {
 		@Override
 		protected void starting(Description description) {
 
-			System.out.println("\n######################################################################################");
+			System.out.println("######################################################################################");
 			System.out.println("# Starting " + getClass().getSimpleName() + "#" + description.getMethodName());
 			System.out.println("######################################################################################");
 		}
@@ -84,7 +83,7 @@ public class StructrTest {
 		@Override
 		protected void finished(Description description) {
 
-			System.out.println("\n######################################################################################");
+			System.out.println("######################################################################################");
 			System.out.println("# Finished " + getClass().getSimpleName() + "#" + description.getMethodName());
 			System.out.println("######################################################################################");
 		}
@@ -334,12 +333,10 @@ public class StructrTest {
 
 	}
 
-	@Before
+	@After
 	public void cleanDatabase() {
 
-		System.out.println("###### CLEANING DATABASE..");
-
-		try (final Tx tx = app.tx(false, false, false)) {
+		try (final Tx tx = app.tx()) {
 
 			for (final NodeInterface node : app.nodeQuery().getAsList()) {
 				app.delete(node);
@@ -351,8 +348,6 @@ public class StructrTest {
 
 			 logger.error("Exception while trying to clean database: {}", fex);
 		}
-
-		System.out.println("###### CLEANING DONE");
 	}
 
 	@BeforeClass

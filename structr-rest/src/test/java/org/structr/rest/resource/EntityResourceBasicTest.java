@@ -21,6 +21,11 @@ package org.structr.rest.resource;
 import com.jayway.restassured.RestAssured;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThan;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.entity.TestObject;
 
@@ -33,6 +38,7 @@ public class EntityResourceBasicTest extends StructrRestTest {
 	/**
 	 * Test the correct response for a non-existing entity
 	 */
+	@Test
 	public void test000NotFoundError() {
 
 		// provoke 404 error with GET on non-existing resource
@@ -50,6 +56,7 @@ public class EntityResourceBasicTest extends StructrRestTest {
 	/**
 	 * Test the creation of a single unnamed entity.
 	 */
+	@Test
 	public void test010CreateEmptyTestObject() {
 
 		// create empty object
@@ -99,6 +106,7 @@ public class EntityResourceBasicTest extends StructrRestTest {
 	 * given name. This method also tests the contents of the JSON
 	 * response and reasonable query and serialization time.
 	 */
+	@Test
 	public void test020CreateNamedTestObject() {
 
 		// create named object

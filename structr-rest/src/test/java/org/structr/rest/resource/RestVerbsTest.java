@@ -25,6 +25,8 @@ import java.util.Collection;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
@@ -37,6 +39,7 @@ import org.structr.rest.entity.TestOne;
  */
 public class RestVerbsTest extends StructrRestTest {
 
+	@Test
 	public void test01GET() {
 
 		createNodes(100);
@@ -46,6 +49,7 @@ public class RestVerbsTest extends StructrRestTest {
 
 	}
 
+	@Test
 	public void test02PUT() {
 
 		/*
@@ -64,6 +68,7 @@ public class RestVerbsTest extends StructrRestTest {
 
 	}
 
+	@Test
 	public void test03POST() {
 
 		/*
@@ -84,6 +89,7 @@ public class RestVerbsTest extends StructrRestTest {
 
 	}
 
+	@Test
 	public void test04DELETE() {
 
 		createNodes(100);

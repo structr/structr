@@ -26,6 +26,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import org.junit.Test;
 import org.structr.web.common.StructrUiTest;
 import org.structr.web.entity.TestOne;
 
@@ -35,6 +36,7 @@ import org.structr.web.entity.TestOne;
  */
 public class PropertyViewTest extends StructrUiTest {
 
+	@Test
 	public void testResourceAccessGrants() {
 
 		final String username = "tester";
@@ -211,6 +213,7 @@ public class PropertyViewTest extends StructrUiTest {
 
 	}
 
+	@Test
 	public void testPropertyViewsAndResultSetLayoutWeb() {
 
 		final String username = "tester";

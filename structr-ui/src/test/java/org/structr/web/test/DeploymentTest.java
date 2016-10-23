@@ -33,17 +33,22 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.web.common.StructrUiTest;
 import org.structr.web.maintenance.DeployCommand;
 
 public class DeploymentTest extends StructrUiTest {
 
+	@Test
 	public void test00SimpleDeployment() {
 
 		doImportExportRoundtrip(readFileFromJar("/test/deployment/test01.html"));
 	}
 
+	@Test
 	public void test01ContentAttributes() {
 
 		doImportExportRoundtrip(readFileFromJar("/test/deployment/test02.html"));

@@ -18,6 +18,10 @@
  */
 package org.structr.web.common;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -30,129 +34,131 @@ import org.structr.web.entity.Folder;
  *
  */
 public class FolderTest extends StructrTest {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(FolderTest.class.getName());
 
+	@Test
 	public void testCreateFolder() {
-		
+
 		try (final Tx tx = app.tx()) {
-			
+
 			Folder test4 = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/a/a");
 			Folder test3 = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/c/b/a");
 			Folder test2 = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/b/a");
 			Folder test1 = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/a/b/c");
-						
+
 			tx.success();
-			
+
 		} catch (FrameworkException ex) {
 			logger.error("", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
-			
+
 			Folder a = (Folder) FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), "/a");
 			assertNotNull(a);
 			assertEquals(FileHelper.getFolderPath(a), "/a");
-			
+
 			Folder b = (Folder) FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), "/a/b");
 			assertNotNull(b);
 			assertEquals(FileHelper.getFolderPath(b), "/a/b");
-			
+
 			Folder c = (Folder) FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), "/a/b/c");
 			assertNotNull(c);
 			assertEquals(FileHelper.getFolderPath(c), "/a/b/c");
-						
+
 		} catch (FrameworkException ex) {
 			logger.error("", ex);
 		}
-		
+
 	}
 
+	@Test
 	public void testAllowedCharacters() {
-		
+
 		try (final Tx tx = app.tx()) {
-			
+
 			app.create(Folder.class, "/a/b");
-						
+
 			tx.success();
-			
+
 			fail("Folder with non-allowed characters were created.");
-			
+
 		} catch (FrameworkException ex) {
 			logger.warn("", ex);
 		}
-		
+
 		try (final Tx tx = app.tx()) {
-			
+
 			app.create(Folder.class, "a/b");
-						
+
 			tx.success();
-			
+
 			fail("Folder with non-allowed characters were created.");
-			
+
 		} catch (FrameworkException ex) {
 			logger.warn("", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
-			
+
 			app.create(Folder.class, "/");
-						
+
 			tx.success();
-			
+
 			fail("Folder with non-allowed characters were created.");
-			
+
 		} catch (FrameworkException ex) {
 			logger.warn("", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
-			
+
 			app.create(Folder.class, "c/");
-						
+
 			tx.success();
-			
+
 			fail("Folder with non-allowed characters were created.");
-			
+
 		} catch (FrameworkException ex) {
 			logger.warn("", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
-			
+
 			app.create(Folder.class, "abc\0");
-						
+
 			tx.success();
-			
+
 			fail("Folder with non-allowed characters were created.");
-			
+
 		} catch (FrameworkException ex) {
 			logger.warn("", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
-			
+
 			app.create(Folder.class, "\0abc");
-						
+
 			tx.success();
-			
+
 			fail("Folder with non-allowed characters were created.");
-			
+
 		} catch (FrameworkException ex) {
 			logger.warn("", ex);
 		}
-		
+
 		try (final Tx tx = app.tx()) {
-			
+
 			app.create(Folder.class, "a\0bc");
-						
+
 			tx.success();
-			
+
 			fail("Folder with non-allowed characters were created.");
-			
+
 		} catch (FrameworkException ex) {
 			logger.warn("", ex);
 		}
 	}
-	
+
 }

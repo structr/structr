@@ -21,6 +21,7 @@ package org.structr.rest.test.property;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.*;
+import org.junit.Test;
 import org.structr.rest.common.StructrRestTest;
 
 /**
@@ -29,6 +30,7 @@ import org.structr.rest.common.StructrRestTest;
  */
 public class ArrayPropertyRestTest extends StructrRestTest {
 
+	@Test
 	public void testViaRest() {
 
 		String location = RestAssured.given()
@@ -63,7 +65,7 @@ public class ArrayPropertyRestTest extends StructrRestTest {
 			.statusCode(200)
 		.when()
 			.put("/test_threes/" + uuid);
-		
+
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -77,6 +79,7 @@ public class ArrayPropertyRestTest extends StructrRestTest {
 			.get("/test_threes");
 	}
 
+	@Test
 	public void testSearch() {
 
 		// create test objects
@@ -127,6 +130,7 @@ public class ArrayPropertyRestTest extends StructrRestTest {
 	}
 
 
+	@Test
 	public void testSearchStringArray() {
 
 		// create test objects
@@ -144,7 +148,7 @@ public class ArrayPropertyRestTest extends StructrRestTest {
 		.when()
 			.post("/test_threes?sort=name")
 			.getHeader("Location");
-		
+
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -154,19 +158,19 @@ public class ArrayPropertyRestTest extends StructrRestTest {
 			.body("result_count", equalTo(5))
 
 			.body("result[0].stringArrayProperty[0]", equalTo("one"))
-		
+
 			.body("result[1].stringArrayProperty[0]", equalTo("one"))
 			.body("result[1].stringArrayProperty[1]", equalTo("two"))
-		
+
 			.body("result[2].stringArrayProperty[0]", equalTo("one"))
 			.body("result[2].stringArrayProperty[1]", equalTo("two"))
 			.body("result[2].stringArrayProperty[2]", equalTo("three"))
-		
+
 			.body("result[3].stringArrayProperty[0]", equalTo("one"))
 			.body("result[3].stringArrayProperty[1]", equalTo("two"))
 			.body("result[3].stringArrayProperty[2]", equalTo("three"))
 			.body("result[3].stringArrayProperty[3]", equalTo("four"))
-		
+
 			.body("result[4].stringArrayProperty[0]", equalTo("one"))
 			.body("result[4].stringArrayProperty[1]", equalTo("two"))
 			.body("result[4].stringArrayProperty[2]", equalTo("three"))
@@ -186,16 +190,16 @@ public class ArrayPropertyRestTest extends StructrRestTest {
 
 			.body("result[0].stringArrayProperty[0]", equalTo("one"))
 			.body("result[0].stringArrayProperty[1]", equalTo("two"))
-		
+
 			.body("result[1].stringArrayProperty[0]", equalTo("one"))
 			.body("result[1].stringArrayProperty[1]", equalTo("two"))
 			.body("result[1].stringArrayProperty[2]", equalTo("three"))
-		
+
 			.body("result[2].stringArrayProperty[0]", equalTo("one"))
 			.body("result[2].stringArrayProperty[1]", equalTo("two"))
 			.body("result[2].stringArrayProperty[2]", equalTo("three"))
 			.body("result[2].stringArrayProperty[3]", equalTo("four"))
-		
+
 			.body("result[3].stringArrayProperty[0]", equalTo("one"))
 			.body("result[3].stringArrayProperty[1]", equalTo("two"))
 			.body("result[3].stringArrayProperty[2]", equalTo("three"))
@@ -215,12 +219,12 @@ public class ArrayPropertyRestTest extends StructrRestTest {
 			.body("result[0].stringArrayProperty[0]", equalTo("one"))
 			.body("result[0].stringArrayProperty[1]", equalTo("two"))
 			.body("result[0].stringArrayProperty[2]", equalTo("three"))
-		
+
 			.body("result[1].stringArrayProperty[0]", equalTo("one"))
 			.body("result[1].stringArrayProperty[1]", equalTo("two"))
 			.body("result[1].stringArrayProperty[2]", equalTo("three"))
 			.body("result[1].stringArrayProperty[3]", equalTo("four"))
-		
+
 			.body("result[2].stringArrayProperty[0]", equalTo("one"))
 			.body("result[2].stringArrayProperty[1]", equalTo("two"))
 			.body("result[2].stringArrayProperty[2]", equalTo("three"))
@@ -236,12 +240,12 @@ public class ArrayPropertyRestTest extends StructrRestTest {
 		.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(2))
-			
+
 			.body("result[0].stringArrayProperty[0]", equalTo("one"))
 			.body("result[0].stringArrayProperty[1]", equalTo("two"))
 			.body("result[0].stringArrayProperty[2]", equalTo("three"))
 			.body("result[0].stringArrayProperty[3]", equalTo("four"))
-		
+
 			.body("result[1].stringArrayProperty[0]", equalTo("one"))
 			.body("result[1].stringArrayProperty[1]", equalTo("two"))
 			.body("result[1].stringArrayProperty[2]", equalTo("three"))
@@ -257,7 +261,7 @@ public class ArrayPropertyRestTest extends StructrRestTest {
 		.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(1))
-			
+
 			.body("result[0].stringArrayProperty[0]", equalTo("one"))
 			.body("result[0].stringArrayProperty[1]", equalTo("two"))
 			.body("result[0].stringArrayProperty[2]", equalTo("three"))
@@ -268,6 +272,7 @@ public class ArrayPropertyRestTest extends StructrRestTest {
 	}
 
 
+	@Test
 	public void testSearchStringArrayOR() {
 
 		// create test objects
@@ -283,7 +288,7 @@ public class ArrayPropertyRestTest extends StructrRestTest {
 		.when()
 			.post("/test_threes?sort=name")
 			.getHeader("Location");
-		
+
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -293,7 +298,7 @@ public class ArrayPropertyRestTest extends StructrRestTest {
 			.body("result_count", equalTo(2))
 
 			.body("result[0].stringArrayProperty[0]", equalTo("one"))
-		
+
 			.body("result[1].stringArrayProperty[0]", equalTo("two"))
 
 		.when()
@@ -302,6 +307,7 @@ public class ArrayPropertyRestTest extends StructrRestTest {
 	}
 
 
+	@Test
 	public void testSearchStringArrayAND() {
 
 		// create test objects
@@ -317,7 +323,7 @@ public class ArrayPropertyRestTest extends StructrRestTest {
 		.when()
 			.post("/test_threes?sort=name")
 			.getHeader("Location");
-		
+
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -328,7 +334,7 @@ public class ArrayPropertyRestTest extends StructrRestTest {
 
 			.body("result[0].stringArrayProperty[0]", equalTo("one"))
 			.body("result[0].stringArrayProperty[1]", equalTo("two"))
-		
+
 			.body("result[1].stringArrayProperty[0]", equalTo("one"))
 			.body("result[1].stringArrayProperty[1]", equalTo("two"))
 			.body("result[1].stringArrayProperty[2]", equalTo("three"))

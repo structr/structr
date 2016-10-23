@@ -18,10 +18,13 @@
  */
 package org.structr.web.frontend;
 
+import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 import org.structr.web.test.FrontendTest;
 
 public class PageVisibilityTest extends FrontendTest {
 
+	@Test
 	public void test() {
 		assertEquals(0, run("010_page_visibility"));
 	}

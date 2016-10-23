@@ -24,6 +24,9 @@ import static junit.framework.TestCase.fail;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -42,6 +45,7 @@ public class PageTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(PageTest.class.getName());
 
+	@Test
 	public void testGetElementsByTagName() {
 
 		final String pageName = "page-01";
@@ -111,6 +115,7 @@ public class PageTest extends StructrUiTest {
 
 	}
 
+	@Test
 	public void testAdoptNodes() {
 
 		try {
@@ -194,6 +199,7 @@ public class PageTest extends StructrUiTest {
 		}
 	}
 
+	@Test
 	public void testImportNodesDeep() {
 
 		try (final Tx tx = app.tx()) {
@@ -233,7 +239,7 @@ public class PageTest extends StructrUiTest {
 
 			Page dstPage = Page.createNewPage(securityContext, "dstPage");
 			assertNotNull(dstPage);
-			
+
 			// test
 			assertEquals(srcPage, html.getOwnerDocument());
 
@@ -261,7 +267,7 @@ public class PageTest extends StructrUiTest {
 			assertEquals(body, h1.getParentNode());
 			assertEquals(body, div.getParentNode());
 			assertEquals(div, p.getParentNode());
-			
+
 			tx.success();
 
 		} catch (Exception ex) {
@@ -270,7 +276,7 @@ public class PageTest extends StructrUiTest {
 		}
 
 		try (final Tx tx = app.tx()) {
-		
+
 			Document srcDoc = Jsoup.connect(baseUri + "srcPage").get();
 			Document dstDoc = Jsoup.connect(baseUri + "dstPage").get();
 
@@ -285,6 +291,7 @@ public class PageTest extends StructrUiTest {
 		}
 	}
 
+	@Test
 	public void testCloneNode() {
 
 		try {

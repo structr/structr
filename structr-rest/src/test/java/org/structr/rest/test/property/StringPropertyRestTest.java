@@ -21,6 +21,7 @@ package org.structr.rest.test.property;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.*;
+import org.junit.Test;
 import org.structr.rest.common.StructrRestTest;
 
 /**
@@ -28,9 +29,10 @@ import org.structr.rest.common.StructrRestTest;
  *
  */
 public class StringPropertyRestTest extends StructrRestTest {
-	
+
+	@Test
 	public void testBasics() {
-		
+
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.body(" { 'stringProperty' : 'This is a test!' } ")
@@ -39,9 +41,9 @@ public class StringPropertyRestTest extends StructrRestTest {
 		.when()
 			.post("/test_threes")
 			.getHeader("Location");
-		
-		
-		
+
+
+
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -54,18 +56,19 @@ public class StringPropertyRestTest extends StructrRestTest {
 			.body("result[0].stringProperty", equalTo("This is a test!"))
 		.when()
 			.get("/test_threes");
-		
-		
-		
+
+
+
 	}
-	
+
+	@Test
 	public void testSearch() {
 
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'stringProperty' : 'test1' } ").expect().statusCode(201).when().post("/test_threes");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'stringProperty' : 'test2' } ").expect().statusCode(201).when().post("/test_threes");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'stringProperty' : 'test3' } ").expect().statusCode(201).when().post("/test_threes");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name'           : 'test4' } ").expect().statusCode(201).when().post("/test_threes");
-		
+
 		// test for three elements
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -79,7 +82,7 @@ public class StringPropertyRestTest extends StructrRestTest {
 			.body("result_count", equalTo(4))
 		.when()
 			.get("/test_threes");
-		
+
 		// test strict search
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -93,8 +96,8 @@ public class StringPropertyRestTest extends StructrRestTest {
 			.body("result[0].stringProperty", equalTo("test2"))
 		.when()
 			.get("/test_threes?stringProperty=test2");
-		
-		
+
+
 		// test loose search
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -108,8 +111,8 @@ public class StringPropertyRestTest extends StructrRestTest {
 			.body("result_count", equalTo(3))
 		.when()
 			.get("/test_threes?stringProperty=test&loose=1");
-		
-		
+
+
 		// test range query
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -123,7 +126,7 @@ public class StringPropertyRestTest extends StructrRestTest {
 			.body("result_count", equalTo(2))
 		.when()
 			.get("/test_threes?stringProperty=[test1 TO test2]");
-		
+
 
 		// test empty value
 		RestAssured.given()
@@ -139,6 +142,6 @@ public class StringPropertyRestTest extends StructrRestTest {
 			.body("result[0].name", equalTo("test4"))
 		.when()
 			.get("/test_threes?stringProperty=");
-		
+
 	}
 }

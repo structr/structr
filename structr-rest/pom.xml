@@ -98,7 +98,7 @@
                         <exclude>**/README</exclude>
                         <exclude>src/**/.directory</exclude>
                         <exclude>src/**/*.properties</exclude>
-                        <exclude>src/main/resources/*.js</exclude>
+			<exclude>src/main/resources/**</exclude>
                     </excludes>
                     <properties>
                         <year>2016</year>
@@ -165,11 +165,17 @@
             <version>4.11</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-access</artifactId>
-            <version>1.1.7</version>
-        </dependency>
+	<dependency>
+		<groupId>ch.qos.logback</groupId>
+		<artifactId>logback-access</artifactId>
+		<version>1.1.7</version>
+	</dependency>
+	<dependency>
+		<groupId>ch.qos.logback</groupId>
+		<artifactId>logback-classic</artifactId>
+		<version>1.1.7</version>
+		<optional>true</optional>
+	</dependency>
         <dependency>
             <groupId>com.jayway.restassured</groupId>
             <artifactId>rest-assured</artifactId>
@@ -217,16 +223,6 @@
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
 			<version>4.5.2</version>
-			<!--            <exclusions>
-				<exclusion>
-					<groupId>commons-codec</groupId>
-					<artifactId>commons-codec</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-			</exclusions>-->
 		</dependency>
     </dependencies>
     <licenses>

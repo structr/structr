@@ -20,16 +20,16 @@ package org.structr.rest.test;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-import org.structr.rest.auth.RestAuthenticator;
 import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.entity.TestOne;
 import org.structr.rest.entity.TestUser;
@@ -42,42 +42,45 @@ public class AccessControlTest extends StructrRestTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(AccessControlTest.class.getName());
 
+	/*
 	@Override
 	protected void setUp() throws Exception {
-		
+
 		super.setUp(new HashMap<String, Object>() {
 			{ put("JsonRestServlet.authenticator", RestAuthenticator.class.getName()); }
 		});
-		
+
 	}
-	
-	
+	*/
+
+
 	/**
 	 * Paging with deleted nodes
 	 */
+	@Test
 	public void test01PagingWithDeletedNodes() {
-		
-		
+
+
 		List<TestOne> testOnes = new LinkedList<>();
-		
+
 		// Create two User and ten TestOne nodes
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			createEntityAsSuperUser("/resource_access", "{'signature': 'TestOne', 'flags': 4095}");
-			
+
 			List<TestUser> users = createTestNodes(TestUser.class, 2);
-			
+
 			users.get(0).setProperty(TestUser.name, "user1");
 			users.get(0).setProperty(TestUser.password, "user1");
-			
+
 			users.get(1).setProperty(TestUser.name, "user2");
 			users.get(1).setProperty(TestUser.password, "user2");
 			users.get(1).setProperty(TestUser.isAdmin, true);
-			
+
 			testOnes = createTestNodes(TestOne.class, 3);
-			
+
 			int i=0;
-			
+
 			// First test user is owner
 			for (TestOne t: testOnes) {
 				i++;
@@ -85,9 +88,9 @@ public class AccessControlTest extends StructrRestTest {
 				t.setProperty(TestOne.owner, users.get(0));
 				t.setProperty(TestOne.visibleToAuthenticatedUsers, true);
 			}
-			
+
 			tx.success();
-			
+
 		} catch (FrameworkException ex) {
 			logger.warn("", ex);
 			fail(ex.getMessage());
@@ -108,7 +111,7 @@ public class AccessControlTest extends StructrRestTest {
 
 			.when()
 				.get("/test_ones?pageSize=1&page=1");
-		
+
 		// Check as user2 with pageSize=1
 		RestAssured
 
@@ -131,14 +134,14 @@ public class AccessControlTest extends StructrRestTest {
 			testOnes.get(0).setProperty(TestOne.name, "deleted");
 			testOnes.get(0).setProperty(TestOne.deleted, true);
 			//testOnes.get(0).setProperty(TestOne.hidden, true);
-			
+
 			tx.success();
-			
+
 		} catch (FrameworkException ex) {
 			logger.warn("", ex);
 			fail(ex.getMessage());
 		}
-		
+
 		// Check as user1 with pageSize=1
 		RestAssured
 
@@ -154,35 +157,36 @@ public class AccessControlTest extends StructrRestTest {
 
 			.when()
 				.get("/test_ones?sort=name&pageSize=1&page=1");
-		
+
 	}
 
 	/**
 	 * Paging with soft-deleted nodes
 	 */
+	@Test
 	public void test02PagingWithSoftDeletedNodes() {
-		
-		
-		List<TestOne> testOnes = new LinkedList<>();
-		
+
+
+		List<TestOne> testOnes = null;
+
 		// Create two User and ten TestOne nodes
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			createEntityAsSuperUser("/resource_access", "{'signature': 'TestOne', 'flags': 4095}");
-			
+
 			List<TestUser> users = createTestNodes(TestUser.class, 2);
-			
+
 			users.get(0).setProperty(TestUser.name, "user1");
 			users.get(0).setProperty(TestUser.password, "user1");
-			
+
 			users.get(1).setProperty(TestUser.name, "user2");
 			users.get(1).setProperty(TestUser.password, "user2");
 			users.get(1).setProperty(TestUser.isAdmin, true);
-			
+
 			testOnes = createTestNodes(TestOne.class, 3);
-			
+
 			int i=0;
-			
+
 			// First test user is owner
 			for (TestOne t: testOnes) {
 				i++;
@@ -195,14 +199,14 @@ public class AccessControlTest extends StructrRestTest {
 			testOnes.get(0).setProperty(TestOne.name, "deleted");
 			testOnes.get(0).setProperty(TestOne.deleted, true);
 			//testOnes.get(0).setProperty(TestOne.hidden, true);
-			
+
 			tx.success();
-			
+
 		} catch (FrameworkException ex) {
 			logger.warn("", ex);
 			fail(ex.getMessage());
 		}
-		
+
 		// Check as user1 with pageSize=1
 		RestAssured
 
@@ -218,7 +222,7 @@ public class AccessControlTest extends StructrRestTest {
 
 			.when()
 				.get("/test_ones?sort=name&pageSize=1&page=1");
-		
+
 		// Check as user1 with pageSize=1
 		RestAssured
 

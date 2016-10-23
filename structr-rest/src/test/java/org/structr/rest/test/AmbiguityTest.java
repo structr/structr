@@ -18,6 +18,7 @@
  */
 package org.structr.rest.test;
 
+import org.junit.Test;
 import org.structr.core.notion.TypeAndPropertySetDeserializationStrategy;
 import org.structr.rest.common.StructrRestTest;
 
@@ -29,23 +30,24 @@ public class AmbiguityTest extends StructrRestTest {
 
 	/**
 	 * Tests {@link TypeAndPropertySetDeserializationStrategy} for ambiguity avoidance.
-	 * 
+	 *
 	 * Before fixing a bug in {@link TypeAndPropertySetDeserializationStrategy}, the creation
 	 * of test03 was not possible because the a search was conducted internally with the values
 	 * given in the 'testSeven' object, and the result was ambiguous.
 	 */
+	@Test
 	public void testAmbiguity() {
 
 		// Create a TestTen with a TestSeven on the fly with {'aString':'test'}
 		String test01 = createEntity("/test_tens", "{ 'name': 'test01', 'testSeven':{ 'aString' : 'test' } }");
-		
+
 		// Create another TestSeven with {'aString':'test'}
 		String test02 = createEntity("/test_sevens", "{ 'aString': 'test' }");
 
 		// Create another TestTen with another TestSeven on the fly
 		String test03 = createEntity("/test_tens", "{ 'name': 'test02', 'testSeven':{ 'aString' : 'test' } }");
-		
-		
+
+
 
 	}
 }

@@ -23,6 +23,10 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -40,6 +44,7 @@ public class ImportTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(ImportTest.class.getName());
 
+	@Test
 	public void testImportAndSchemaAnalyzer() {
 
 		final GraphGistImporter importer = app.command(GraphGistImporter.class);

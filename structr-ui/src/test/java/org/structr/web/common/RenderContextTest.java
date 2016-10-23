@@ -23,6 +23,11 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import static junit.framework.TestCase.fail;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
@@ -56,6 +61,7 @@ public class RenderContextTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(RenderContextTest.class.getName());
 
+	@Test
 	public void testVariableReplacementInDynamicTypes() {
 
 		SchemaNode itemNode  = null;
@@ -152,6 +158,7 @@ public class RenderContextTest extends StructrUiTest {
 
 	}
 
+	@Test
 	public void testFunctionEvaluationInDynamicTypes() {
 
 		NodeInterface item  = null;
@@ -213,6 +220,7 @@ public class RenderContextTest extends StructrUiTest {
 		}
 	}
 
+	@Test
 	public void testNotionTransformedPropertyAccess() {
 
 		NodeInterface project = null;
@@ -331,6 +339,7 @@ public class RenderContextTest extends StructrUiTest {
 		}
 	}
 
+	@Test
 	public void testVariableReplacement() {
 
 		NodeInterface detailsDataObject = null;
@@ -557,6 +566,7 @@ public class RenderContextTest extends StructrUiTest {
 		}
 	}
 
+	@Test
 	public void testFiltering() {
 
 		final List<TestOne> testOnes = new LinkedList<>();
@@ -585,6 +595,7 @@ public class RenderContextTest extends StructrUiTest {
 		}
 	}
 
+	@Test
 	public void testScriptEvaluation() {
 
 		try (final Tx tx = app.tx()) {

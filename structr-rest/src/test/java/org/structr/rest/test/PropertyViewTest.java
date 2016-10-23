@@ -24,6 +24,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import org.junit.Test;
 import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.entity.TestTwo;
 
@@ -33,6 +34,7 @@ import org.structr.rest.entity.TestTwo;
  */
 public class PropertyViewTest extends StructrRestTest {
 
+	@Test
 	public void testPropertyViewsAndResultSetLayout() {
 
 

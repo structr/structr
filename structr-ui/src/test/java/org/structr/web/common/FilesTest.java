@@ -19,6 +19,9 @@
 package org.structr.web.common;
 
 import org.asciidoctor.internal.IOUtils;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -38,7 +41,8 @@ import org.structr.web.entity.Image;
 public class FilesTest extends StructrTest {
 
 	private Logger logger = LoggerFactory.getLogger(FilesTest.class);
-	
+
+	@Test
 	public void testCreateFolder() {
 
 		Folder folder1 = null;
@@ -92,6 +96,7 @@ public class FilesTest extends StructrTest {
 		}
 	}
 
+	@Test
 	public void testCreateBase64File() {
 
 		final String base64Data = "data:text/plain;base64,RGllcyBpc3QgZWluIFRlc3Q=";

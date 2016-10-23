@@ -21,6 +21,7 @@ package org.structr.rest.test.property;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.*;
+import org.junit.Test;
 import org.structr.rest.common.StructrRestTest;
 
 /**
@@ -29,12 +30,13 @@ import org.structr.rest.common.StructrRestTest;
  */
 public class CollectionPropertyTest extends StructrRestTest {
 
+	@Test
 	public void testManyToMany() throws Exception {
 
 		String[] testOneIds = new String[3];
-		
+
 		for (int i=0; i<3; i++) {
-		
+
 			String location = RestAssured.given()
 				.contentType("application/json; charset=UTF-8")
 				//.body(" { 'name' : 'TestOne-'" + i + "' } ")
@@ -43,11 +45,11 @@ public class CollectionPropertyTest extends StructrRestTest {
 			.when()
 				.post("/test_ones")
 				.getHeader("Location");
-			
+
 			testOneIds[i] = getUuidFromLocation(location);
-		
+
 		}
-		
+
 		// POST to create a TestOne object with relationships to the three TestOnes
 		String location = RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -57,11 +59,11 @@ public class CollectionPropertyTest extends StructrRestTest {
 		.when()
 			.post("/test_fives")
 			.getHeader("Location");
-		
+
 		String testFiveId = getUuidFromLocation(location);
-		
+
 		System.out.println("ID of TestFive node: " + testFiveId);
-		
+
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -71,19 +73,21 @@ public class CollectionPropertyTest extends StructrRestTest {
 			.body("result.manyToManyTestOnes", hasItems(testOneIds[0], testOneIds[1], testOneIds[2]))
 		.when()
 			.get("/test_fives/" + testFiveId);
-		
-				
+
+
 	}
 
+	@Test
 	public void testOneToMany() throws Exception {
-		
+
 
 	}
-	
-	
+
+
 	/**
 	 * Test of typeName method, of class CollectionProperty.
 	 */
+	@Test
 	public void testTypeName() {
 
 	}
@@ -91,6 +95,7 @@ public class CollectionPropertyTest extends StructrRestTest {
 	/**
 	 * Test of databaseConverter method, of class CollectionProperty.
 	 */
+	@Test
 	public void testDatabaseConverter() {
 
 	}
@@ -98,6 +103,7 @@ public class CollectionPropertyTest extends StructrRestTest {
 	/**
 	 * Test of inputConverter method, of class CollectionProperty.
 	 */
+	@Test
 	public void testInputConverter() {
 
 	}
@@ -105,6 +111,7 @@ public class CollectionPropertyTest extends StructrRestTest {
 	/**
 	 * Test of relatedType method, of class CollectionProperty.
 	 */
+	@Test
 	public void testRelatedType() {
 
 	}
@@ -112,6 +119,7 @@ public class CollectionPropertyTest extends StructrRestTest {
 	/**
 	 * Test of isCollection method, of class CollectionProperty.
 	 */
+	@Test
 	public void testIsCollection() {
 
 	}
@@ -119,6 +127,7 @@ public class CollectionPropertyTest extends StructrRestTest {
 	/**
 	 * Test of getNotion method, of class CollectionProperty.
 	 */
+	@Test
 	public void testGetNotion() {
 
 	}
@@ -126,6 +135,7 @@ public class CollectionPropertyTest extends StructrRestTest {
 	/**
 	 * Test of isOneToMany method, of class CollectionProperty.
 	 */
+	@Test
 	public void testIsOneToMany() {
 
 	}

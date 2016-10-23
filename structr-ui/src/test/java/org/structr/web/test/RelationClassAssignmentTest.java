@@ -19,6 +19,8 @@
 package org.structr.web.test;
 
 import static junit.framework.TestCase.fail;
+import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -37,23 +39,20 @@ import org.w3c.dom.Text;
  *
  */
 public class RelationClassAssignmentTest extends StructrUiTest {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(CreateSimplePageTest.class.getName());
 
+	@Test
 	public void test01DOMChildren() {
 
 		final String pageName	= "page-01";
 		final String pageTitle	= "Page Title";
-		final String bodyText	= "Body Text";
-		
-		final String h1ClassAttr = "heading";
-		final String divClassAttr = "main";
 
 		try (final Tx tx = app.tx()) {
 
 			Page page = Page.createNewPage(securityContext, pageName);
 			if (page != null) {
-				
+
 				DOMElement html  = (DOMElement) page.createElement("html");
 				DOMElement head  = (DOMElement) page.createElement("head");
 				DOMElement title = (DOMElement) page.createElement("title");
@@ -62,15 +61,15 @@ public class RelationClassAssignmentTest extends StructrUiTest {
 				for (AbstractRelationship r : page.getIncomingRelationships()) {
 					System.out.println("============ Relationship: " + r.toString());
 					assertTrue(r instanceof PageLink);
-					
+
 				}
-				
+
 				html.appendChild(head);
-				
+
 				for (AbstractRelationship r : head.getIncomingRelationships()) {
 					System.out.println("============ Relationship: " + r.toString());
 					assertTrue(r instanceof DOMChildren);
-					
+
 				}
 
 				head.appendChild(title);
@@ -79,26 +78,26 @@ public class RelationClassAssignmentTest extends StructrUiTest {
 				for (AbstractRelationship r : ((DOMNode) titleText).getIncomingRelationships()) {
 					System.out.println("============ Relationship: " + r.toString());
 					assertTrue(r instanceof DOMChildren);
-					
+
 				}
 
-				
-				
+
+
 			}
-			
+
 			tx.success();
-			
+
 		} catch (FrameworkException ex) {
 
 			logger.warn("", ex);
-			
+
 			logger.error(ex.toString());
 			fail("Unexpected exception");
 
 		}
 
 	}
-		
-	
+
+
 
 }

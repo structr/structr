@@ -22,6 +22,7 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import org.junit.Test;
 import org.structr.core.entity.Relation;
 import org.structr.rest.common.StructrRestTest;
 
@@ -31,6 +32,7 @@ import org.structr.rest.common.StructrRestTest;
  */
 public class DocumentTest extends StructrRestTest {
 
+	@Test
 	public void testSchemaAutocreateNone() {
 
 		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"));
@@ -64,6 +66,7 @@ public class DocumentTest extends StructrRestTest {
 
 	}
 
+	@Test
 	public void testSchemaAutocreateSourceToTarget() {
 
 		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"));
@@ -98,6 +101,7 @@ public class DocumentTest extends StructrRestTest {
 
 	}
 
+	@Test
 	public void testSchemaAutocreateTargetToSource() {
 
 		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"));
@@ -132,6 +136,7 @@ public class DocumentTest extends StructrRestTest {
 
 	}
 
+	@Test
 	public void testSchemaAutocreateAlways() {
 
 		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"));
@@ -164,6 +169,7 @@ public class DocumentTest extends StructrRestTest {
 			.post("/tasks");
 	}
 
+	@Test
 	public void testSimpleDocumentWithSchema() {
 
 		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"));
@@ -278,6 +284,7 @@ public class DocumentTest extends StructrRestTest {
 
 	}
 
+	@Test
 	public void testComplexDocumentWithSchema() {
 
 		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"));

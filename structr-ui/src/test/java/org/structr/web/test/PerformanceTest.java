@@ -18,6 +18,10 @@
  */
 package org.structr.web.test;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -38,6 +42,7 @@ public class PerformanceTest extends DOMTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(PerformanceTest.class.getName());
 
+	@Test
 	public void testSiblingPerformance() {
 
 		try (final Tx tx = app.tx()) {
@@ -103,6 +108,7 @@ public class PerformanceTest extends DOMTest {
 	}
 
 	/*
+	@Test
 	 public void testForcedVsUnforcedTransactions() {
 
 	 try {

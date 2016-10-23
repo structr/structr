@@ -21,6 +21,7 @@ package org.structr.rest.test.property;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.*;
+import org.junit.Test;
 import org.structr.rest.common.StructrRestTest;
 
 /**
@@ -28,9 +29,10 @@ import org.structr.rest.common.StructrRestTest;
  *
  */
 public class BooleanPropertyRestTest extends StructrRestTest {
-	
+
+	@Test
 	public void testBasics() {
-		
+
 		String uuid =  getUuidFromLocation(RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.body(" { 'booleanProperty' : true } ")
@@ -40,8 +42,8 @@ public class BooleanPropertyRestTest extends StructrRestTest {
 			.post("/test_threes")
 			.getHeader("Location")
 		);
-		
-		
+
+
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -51,7 +53,7 @@ public class BooleanPropertyRestTest extends StructrRestTest {
 			.body("result[0].booleanProperty", equalTo(Boolean.TRUE))
 		.when()
 			.get("/test_threes");
-		
+
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -64,7 +66,7 @@ public class BooleanPropertyRestTest extends StructrRestTest {
 			.statusCode(422)
 		.when()
 			.put("/test_threes/" + uuid);
-		
+
 		// PUT with old value should be ignored
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -77,6 +79,6 @@ public class BooleanPropertyRestTest extends StructrRestTest {
 			.statusCode(200)
 		.when()
 			.put("/test_threes/" + uuid);
-		
+
 	}
 }

@@ -20,6 +20,8 @@ package org.structr.rest.resource;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -35,6 +37,7 @@ public class StaticRelationshipResourceTest extends StructrRestTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(StaticRelationshipResourceTest.class.getName());
 
+	@Test
 	public void testInvokeMethodResult() {
 
 		String id = null;

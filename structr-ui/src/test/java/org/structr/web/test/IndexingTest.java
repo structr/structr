@@ -19,7 +19,9 @@
 package org.structr.web.test;
 
 import java.util.List;
+import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
+import org.junit.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
@@ -35,6 +37,7 @@ import static ucar.httpservices.CustomX509TrustManager.logger;
  */
 public class IndexingTest extends StructrUiTest {
 
+	@Test
 	public void test08PassiveIndexing() {
 
 		try {
@@ -44,7 +47,7 @@ public class IndexingTest extends StructrUiTest {
 
 			// check initial sort order
 			try (final Tx tx = app.tx()) {
-				
+
 				// create some test nodes
 				test1 = createTestNode(File.class, new NodeAttribute<>(AbstractNode.name, "aaaaa"));
 				createTestNode(File.class, new NodeAttribute<>(AbstractNode.name, "bbbbb"));

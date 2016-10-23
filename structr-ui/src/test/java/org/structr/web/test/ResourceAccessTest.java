@@ -19,6 +19,9 @@
 package org.structr.web.test;
 
 import com.jayway.restassured.RestAssured;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -44,13 +47,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(ResourceAccessTest.class.getName());
 
-	//~--- methods --------------------------------------------------------
-//	@Override
-//	public void test00DbAvailable() {
-//
-//		super.test00DbAvailable();
-//
-//	}
+	@Test
 	public void test01ResourceAccessGET() {
 
 		// clear resource access objects that are created by the dynamic schema
@@ -126,6 +123,7 @@ public class ResourceAccessTest extends StructrUiTest {
 		}
 	}
 
+	@Test
 	public void test02ResourceAccessPOST() {
 
 		// clear resource access objects that are created by the dynamic schema
@@ -184,6 +182,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 	}
 
+	@Test
 	public void test03ResourceAccessPUT() {
 
 		// clear resource access objects that are created by the dynamic schema
@@ -283,6 +282,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 	}
 
+	@Test
 	public void test04ResourceAccessDELETE() {
 
 		// clear resource access objects that are created by the dynamic schema

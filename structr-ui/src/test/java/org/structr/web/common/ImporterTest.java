@@ -20,6 +20,10 @@ package org.structr.web.common;
 
 import java.util.LinkedList;
 import java.util.List;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PathHelper;
@@ -40,6 +44,7 @@ public class ImporterTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(ImporterTest.class.getName());
 
+	@Test
 	public void testBootstrapJumbotronEditModeNone() {
 
 		Services.getInstance().getCurrentConfig().setProperty(Services.JSON_INDENTATION,          "true");
@@ -136,6 +141,7 @@ public class ImporterTest extends StructrUiTest {
 
 	}
 
+	@Test
 	public void testBootstrapJumbotronEditModeWidget() {
 
 		Services.getInstance().getCurrentConfig().setProperty(Services.JSON_INDENTATION,          "true");
@@ -221,6 +227,7 @@ public class ImporterTest extends StructrUiTest {
 		);
 	}
 
+	@Test
 	public void testNewsfeedWidget() {
 
 		Services.getInstance().getCurrentConfig().setProperty(Services.JSON_INDENTATION,          "true");

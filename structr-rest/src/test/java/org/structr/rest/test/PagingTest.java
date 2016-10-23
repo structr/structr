@@ -21,6 +21,7 @@ package org.structr.rest.test;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.*;
+import org.junit.Test;
 import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.entity.TestOne;
 
@@ -33,17 +34,18 @@ public class PagingTest extends StructrRestTest {
 	/**
 	 * Test paging
 	 */
+	@Test
 	public void test01Paging() {
 
 		// create some objects
-		
+
 		String resource = "/test_one";
-		
+
 		RestAssured.given().contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.body(" { 'name' : 'TestOne-0', 'anInt' : 0, 'aLong' : 0, 'aDate' : '2012-09-18T00:33:12+0200' } ")
 			.expect().statusCode(201).when().post(resource).getHeader("Location");
-		
+
 		RestAssured.given().contentType("application/json; charset=UTF-8")
 			.body(" { 'name' : 'TestOne-1', 'anInt' : 1, 'aLong' : 10, 'aDate' : '2012-09-18T01:33:12+0200' } ")
 			.expect().statusCode(201).when().post(resource).getHeader("Location");
@@ -51,11 +53,11 @@ public class PagingTest extends StructrRestTest {
 		RestAssured.given().contentType("application/json; charset=UTF-8")
 			.body(" { 'name' : 'TestOne-2', 'anInt' : 2, 'aLong' : 20, 'aDate' : '2012-09-18T02:33:12+0200' } ")
 			.expect().statusCode(201).when().post(resource).getHeader("Location");
-		
+
 		String location = RestAssured.given().contentType("application/json; charset=UTF-8")
 			.body(" { 'name' : 'TestOne-3', 'anInt' : 3, 'aLong' : 30, 'aDate' : '2012-09-18T03:33:12+0200' } ")
 			.expect().statusCode(201).when().post(resource).getHeader("Location");
-		
+
 		String offsetId = getUuidFromLocation(location);
 
 		RestAssured.given().contentType("application/json; charset=UTF-8")
@@ -74,9 +76,9 @@ public class PagingTest extends StructrRestTest {
 			.body(" { 'name' : 'TestOne-7', 'anInt' : 7, 'aLong' : 70, 'aDate' : '2012-09-18T07:33:12+0200' } ")
 			.expect().statusCode(201).when().post(resource).getHeader("Location");
 
-		
+
 		Object result = RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -93,12 +95,12 @@ public class PagingTest extends StructrRestTest {
 
 			.when()
 				.get(resource + "?sort=name&pageSize=2&page=1");
-		
+
 		//System.out.println("result: " + ((RestAssuredResponseImpl) result).prettyPrint());
-		
-		    
+
+
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 			.expect()
@@ -116,7 +118,7 @@ public class PagingTest extends StructrRestTest {
 				.get(resource + "?sort=name&pageSize=2&page=-1");
 
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 			.expect()
@@ -134,7 +136,7 @@ public class PagingTest extends StructrRestTest {
 				.get(resource + "?sort=name&pageSize=2&page=-2");
 
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 			.expect()
@@ -152,7 +154,7 @@ public class PagingTest extends StructrRestTest {
 				.get(resource + "?sort=name&pageSize=2&page=-3");
 
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 			.expect()
@@ -168,9 +170,9 @@ public class PagingTest extends StructrRestTest {
 
 			.when()
 				.get(resource + "?sort=name&pageSize=2&page=-4");
-		
+
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 			.expect()
@@ -188,7 +190,7 @@ public class PagingTest extends StructrRestTest {
 				.get(resource + "?sort=name&pageSize=2&page=-5");
 
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 			.expect()
@@ -204,9 +206,9 @@ public class PagingTest extends StructrRestTest {
 
 			.when()
 				.get(resource + "?sort=name&pageSize=2&page=1&pageStartId=" + offsetId);
-	
+
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 			.expect()
@@ -222,7 +224,7 @@ public class PagingTest extends StructrRestTest {
 
 			.when()
 				.get(resource + "?sort=name&pageSize=2&page=-1&pageStartId=" + offsetId);
-	
+
 	}
-		
+
 }

@@ -20,6 +20,9 @@ package org.structr.console;
 
 import java.util.Collections;
 import static junit.framework.TestCase.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.console.Console.ConsoleMode;
 import org.structr.core.entity.Principal;
@@ -30,6 +33,7 @@ import org.structr.web.entity.User;
 
 public class ConsoleTest extends StructrUiTest {
 
+	@Test
 	public void testSwitchModes() {
 
 		try {
@@ -49,6 +53,7 @@ public class ConsoleTest extends StructrUiTest {
 		}
 	}
 
+	@Test
 	public void testUserCommand() {
 
 		final Console console = new Console(securityContext, Collections.emptyMap());
@@ -131,15 +136,16 @@ public class ConsoleTest extends StructrUiTest {
 		}
 	}
 
+	@Test
 	public void testRebuildCommand() {
 
 		final Console console = new Console(securityContext, Collections.emptyMap());
 
 		final String fullIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +
-			"RebuildNodeIndex: 48 objects processed\r\n" +
-			"RebuildNodeIndex: 48 objects processed\r\n" +
-			"Done with (re-)indexing 48 nodes\r\n" +
+			"RebuildNodeIndex: 24 objects processed\r\n" +
+			"RebuildNodeIndex: 24 objects processed\r\n" +
+			"Done with (re-)indexing 24 nodes\r\n" +
 			"Relationship type not set, starting (re-)indexing all relationships\r\n" +
 			"RebuildRelIndex: 32 objects processed\r\n" +
 			"RebuildRelIndex: 32 objects processed\r\n" +
@@ -147,9 +153,9 @@ public class ConsoleTest extends StructrUiTest {
 
 		final String nodeIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +
-			"RebuildNodeIndex: 48 objects processed\r\n" +
-			"RebuildNodeIndex: 48 objects processed\r\n" +
-			"Done with (re-)indexing 48 nodes\r\n";
+			"RebuildNodeIndex: 24 objects processed\r\n" +
+			"RebuildNodeIndex: 24 objects processed\r\n" +
+			"Done with (re-)indexing 24 nodes\r\n";
 
 		final String relIndexRebuildOutput =
 			"Relationship type not set, starting (re-)indexing all relationships\r\n" +
@@ -189,9 +195,9 @@ public class ConsoleTest extends StructrUiTest {
 
 		final String createLabelsOutput =
 			"Node type not set or no entity class found. Starting creation of labels for all nodes.\r\n" +
-			"CreateLabels: 48 objects processed\r\n" +
-			"CreateLabels: 48 objects processed\r\n" +
-			"Done with creating labels on 48 nodes\r\n";
+			"CreateLabels: 24 objects processed\r\n" +
+			"CreateLabels: 24 objects processed\r\n" +
+			"Done with creating labels on 24 nodes\r\n";
 
 		final String createUserLabelsOutput =
 			"Starting creation of labels for all nodes of type User\r\n" +

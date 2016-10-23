@@ -21,6 +21,8 @@ package org.structr.rest.test.property;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.structr.rest.common.StructrRestTest;
 
 /**
@@ -29,18 +31,19 @@ import org.structr.rest.common.StructrRestTest;
  */
 public class RelatedNodePropertyTest extends StructrRestTest {
 
+	@Test
 	public void test01StaticRelationshipResourceFilter() {
-		
+
 		String test01 = createEntity("/test_sixs", "{ name: test01, aString: string01, anInt: 1 }");
 		String test02 = createEntity("/test_sixs", "{ name: test02, aString: string02, anInt: 2 }");
 		String test03 = createEntity("/test_sixs", "{ name: test03, aString: string03, anInt: 3 }");
 		String test04 = createEntity("/test_sixs", "{ name: test04, aString: string04, anInt: 4 }");
-		
+
 		String test09 = createEntity("/test_sevens", "{ name: test09, testSixIds: [", test01, ",", test02, "] }");
 
 		// test simple related node search
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -49,7 +52,7 @@ public class RelatedNodePropertyTest extends StructrRestTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			
+
 			.expect()
 				.statusCode(200)
 
@@ -61,7 +64,7 @@ public class RelatedNodePropertyTest extends StructrRestTest {
 
 		// test update via put
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -71,7 +74,7 @@ public class RelatedNodePropertyTest extends StructrRestTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.body(" { testSixIds: [" + test03 + "," + test04 + "] } ")
-			
+
 			.expect()
 				.statusCode(200)
 
@@ -79,7 +82,7 @@ public class RelatedNodePropertyTest extends StructrRestTest {
 				.put(concat("/test_sevens/", test09));
 
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -88,7 +91,7 @@ public class RelatedNodePropertyTest extends StructrRestTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			
+
 			.expect()
 				.statusCode(200)
 
@@ -97,19 +100,20 @@ public class RelatedNodePropertyTest extends StructrRestTest {
 			.when()
 				.get(concat("/test_sevens/", test09));
 	}
-	
+
 	/**
 	 * Create a TestFive entity with the id of a related TestThree entity.
 	 */
+	@Test
 	public void test02CreateWithRelatedNode() {
-		
+
 		String test01 = createEntity("/test_threes", "{ name: test01 }");
-		
+
 		String test02 = createEntity("/test_fives", "{ name: test02, oneToOneTestThree: ", test01, " }");
 
 		// test simple related node search
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -118,7 +122,7 @@ public class RelatedNodePropertyTest extends StructrRestTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			
+
 			.expect()
 				.statusCode(200)
 
@@ -128,41 +132,43 @@ public class RelatedNodePropertyTest extends StructrRestTest {
 				.get(concat("/test_fives/", test02));
 
 	}
-	
+
 	/**
 	 * Create a TestFive entity with the id of a related TestFour entity.
-	 * 
+	 *
 	 * The second POST should fail because TestFour doesn't fit the expected type of the oneToOneTestThree attribute.
 	 */
+	@Test
 	public void test03CreateWithRelatedNodeOfWrongType() {
-		
+
 		String test01 = createEntity("/test_fours", "{ name: test01 }");
-		
+
 		try {
-			
+
 			createEntity("/test_fives", "{ name: test02, oneToOneTestThree: ", test01, " }");
 
 			fail("Creation of TestFive entity should fail because entity with id " + test01 + " is of type TestFour, but oneToOneTestThree does only takes an entity of type TestThree");
 
 		} catch (AssertionError err) {
-			
+
 		}
 
-	}	
-	
+	}
+
 
 	/**
 	 * Create a TestFive entity with the id of a related TestThree entity.
 	 */
+	@Test
 	public void test04CreateWithRelatedNode() {
-		
+
 		String test01 = createEntity("/test_threes", "{ name: test01 }");
-		
+
 		String test02 = createEntity("/test_fives", "{ name: test02, manyToOneTestThree: ", test01, " }");
 
 		// test simple related node search
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -171,7 +177,7 @@ public class RelatedNodePropertyTest extends StructrRestTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			
+
 			.expect()
 				.statusCode(200)
 
@@ -184,36 +190,38 @@ public class RelatedNodePropertyTest extends StructrRestTest {
 
 	/**
 	 * Create a TestFive entity with the id of a related TestFour entity.
-	 * 
+	 *
 	 * The second POST should fail because TestFour doesn't fit the expected type of the oneToOneTestThree attribute.
 	 */
+	@Test
 	public void test05CreateWithRelatedNodeOfWrongType() {
-		
+
 		String test01 = createEntity("/test_fours", "{ name: test01 }");
-		
+
 		try {
 			createEntity("/test_fives", "{ name: test02, manyToOneTestThree: ", test01, " }");
 
 			fail("Creation of TestFive entity should fail because entity with id " + test01 + " is of type TestFour, but manyToOneTestThree does only takes an entity of type TestThree");
-			
+
 		} catch (AssertionError err) {
-			
+
 		}
 
-	}	
+	}
 
 	/**
 	 * Create a TestFive entity with the id of a related TestOne entity.
 	 */
+	@Test
 	public void test06CreateWithRelatedNode() {
-		
+
 		String test01 = createEntity("/test_ones", "{ name: test01 }");
-		
+
 		String test02 = createEntity("/test_fives", "{ name: test02, manyToManyTestOnes: [", test01, "] }");
 
 		// test simple related node search
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -222,7 +230,7 @@ public class RelatedNodePropertyTest extends StructrRestTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			
+
 			.expect()
 				.statusCode(200)
 
@@ -232,40 +240,42 @@ public class RelatedNodePropertyTest extends StructrRestTest {
 				.get(concat("/test_fives/", test02));
 
 	}
-	
+
 	/**
 	 * Create a TestFive entity with the id of a related TestFour entity.
-	 * 
+	 *
 	 * The second POST should fail because TestFour doesn't fit the expected type of the oneToOneTestThree attribute.
 	 */
+	@Test
 	public void test07CreateWithRelatedNodeOfWrongType() {
-		
+
 		String test01 = createEntity("/test_fours", "{ name: test01 }");
-		
+
 		try {
 			createEntity("/test_fives", "{ name: test02, manyToManyTestOnes: [", test01, "] }");
-	
+
 			fail("Creation of TestFive entity should fail because entity with id " + test01 + " is of type TestFour, but manyToManyTestOnes does only take entities of type TestOne");
-			
+
 		} catch (AssertionError err) {
-			
+
 		}
 
 
-	}	
+	}
 
 	/**
 	 * Create a TestFive entity with the id of a related TestOne entity.
 	 */
+	@Test
 	public void test08CreateWithRelatedNode() {
-		
+
 		String test01 = createEntity("/test_ones", "{ name: test01 }");
-		
+
 		String test02 = createEntity("/test_fives", "{ name: test02, oneToManyTestOnes: [", test01, "] }");
 
 		// test simple related node search
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -274,7 +284,7 @@ public class RelatedNodePropertyTest extends StructrRestTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			
+
 			.expect()
 				.statusCode(200)
 
@@ -284,27 +294,28 @@ public class RelatedNodePropertyTest extends StructrRestTest {
 				.get(concat("/test_fives/", test02));
 
 	}
-	
+
 	/**
 	 * Create a TestFive entity with the id of a related TestFour entity.
-	 * 
+	 *
 	 * The second POST should fail because TestFour doesn't fit the expected type of the oneToOneTestThree attribute.
 	 */
+	@Test
 	public void test09CreateWithRelatedNodeOfWrongType() {
-		
+
 		String test01 = createEntity("/test_fours", "{ name: test01 }");
-		
+
 		try {
-		
+
 			createEntity("/test_fives", "{ name: test02, oneToManyTestOnes: [", test01, "] }");
-			
+
 			fail("Creation of TestFive entity should fail because entity with id " + test01 + " is of type TestFour, but oneToManyTestOnes does only take entities of type TestOne");
 
 		} catch (AssertionError err) {
-			
+
 		}
 
 
-	}	
-	
+	}
+
 }

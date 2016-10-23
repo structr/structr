@@ -200,7 +200,7 @@ public class PerformanceTest extends StructrTest {
 			double rate                 = number * loop / ((t1 - t0) / 1000000000.0);
 
 			logger.info("Read {}x {} nodes in {} seconds ({} per s)", new Object[] { loop, number, decimalFormat.format(time), decimalFormat.format(rate) });
-			assertTrue("Invalid read performance result", rate > 10000);
+			assertTrue("Invalid read performance result", rate > 50000);
 
 		} catch (FrameworkException ex) {
 

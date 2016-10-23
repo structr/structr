@@ -21,6 +21,7 @@ package org.structr.web.test;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import org.hamcrest.Matchers;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -41,6 +42,7 @@ public class SitesTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(SitesTest.class.getName());
 
+	@Test
 	public void testSites() {
 
 		try (final Tx tx = app.tx()) {
@@ -70,7 +72,7 @@ public class SitesTest extends StructrUiTest {
 			try {
 				final Element html = pageTwo.createElement("html");
 				((DOMNode) html).setProperty(DOMNode.visibleToPublicUsers, true);
-				
+
 				final Text textNode = pageTwo.createTextNode("page-2");
 				((DOMNode) textNode).setProperty(DOMNode.visibleToPublicUsers, true);
 
@@ -84,7 +86,7 @@ public class SitesTest extends StructrUiTest {
 
 			final Site siteOne = app.create(Site.class, "site-one");
 			siteOne.setProperty(Site.visibleToPublicUsers, true);
-			
+
 			final Site siteTwo = app.create(Site.class, "site-two");
 			siteTwo.setProperty(Site.visibleToPublicUsers, true);
 

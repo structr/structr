@@ -21,6 +21,7 @@ package org.structr.web.test;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static junit.framework.TestCase.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -29,7 +30,6 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.Tx;
 import org.structr.dynamic.File;
 import org.structr.web.entity.FileBase;
-import org.structr.web.entity.Image;
 import org.structr.web.entity.User;
 
 
@@ -38,22 +38,23 @@ public class SchemaMethodsTest extends FrontendTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaMethodsTest.class.getName());
 
+	@Test
 	public void test01SchemaMethodOnBuiltinType() {
 
 		final String builtinTypeName = "File";
 		final String schemaMethodName = "testFileMethod";
-		
+
 		try (final Tx tx = app.tx()) {
 
 			// Add schema method "testFileMethod" to built-in File class
 			SchemaNode fileNodeDef = app.nodeQuery(SchemaNode.class).andName(builtinTypeName).getFirst();
-			
+
 			SchemaMethod testFileMethod = app.create(SchemaMethod.class, schemaMethodName);
 			testFileMethod.setProperty(SchemaMethod.source, "()");
 			testFileMethod.setProperty(SchemaMethod.schemaNode, fileNodeDef);
 
 			tx.success();
-			
+
 		} catch (Exception ex) {
 			logger.error("", ex);
 		}
@@ -67,7 +68,7 @@ public class SchemaMethodsTest extends FrontendTest {
 		} catch (Exception ex) {
 			logger.error("", ex);
 		}
-		
+
 		try (final Tx tx = app.tx()) {
 
 			RestAssured
@@ -84,12 +85,12 @@ public class SchemaMethodsTest extends FrontendTest {
 				.body("{}")
 				.expect()
 					.statusCode(200)
-				
+
 				.when()
 					.post(builtinTypeName +"/" + schemaMethodName);
-	
+
 			tx.success();
-			
+
 		} catch (FrameworkException ex) {
 
 			logger.error(ex.toString());
@@ -97,26 +98,27 @@ public class SchemaMethodsTest extends FrontendTest {
 		}
 	}
 
+	@Test
 	public void test02SchemaMethodOnCustomType() {
 
 		final String customTypeName = "FooFile";
 		final String schemaMethodName = "testFooFileMethod";
-		
+
 		try (final Tx tx = app.tx()) {
 
 			// Add schema method "testFileMethod" to built-in File class
 			SchemaNode fooFileDef = app.create(SchemaNode.class, customTypeName);
-			
+
 			SchemaMethod testFooFileMethod = app.create(SchemaMethod.class, schemaMethodName);
 			testFooFileMethod.setProperty(SchemaMethod.source, "()");
 			testFooFileMethod.setProperty(SchemaMethod.schemaNode, fooFileDef);
 
 			tx.success();
-			
+
 		} catch (Exception ex) {
 			logger.error("", ex);
 		}
-		
+
 		try (final Tx tx = app.tx()) {
 
 			createAdminUser();
@@ -125,7 +127,7 @@ public class SchemaMethodsTest extends FrontendTest {
 		} catch (Exception ex) {
 			logger.error("", ex);
 		}
-		
+
 		try (final Tx tx = app.tx()) {
 
 			RestAssured
@@ -142,25 +144,25 @@ public class SchemaMethodsTest extends FrontendTest {
 				.body("{}")
 				.expect()
 					.statusCode(200)
-				
+
 				.when()
 					.post(customTypeName + "/" + schemaMethodName);
-	
+
 			tx.success();
-			
+
 		} catch (FrameworkException ex) {
 
 			logger.error(ex.toString());
 			fail("Unexpected exception");
 		}
 	}
-	
-	
+
+	@Test
 	public void test03SchemaMethodOnEntityOfBuiltinType() {
 
 		final String builtinTypeName = "File";
 		final String schemaMethodName = "testFileMethod";
-		
+
 		User admin = null;
 		try (final Tx tx = app.tx()) {
 
@@ -170,18 +172,18 @@ public class SchemaMethodsTest extends FrontendTest {
 		} catch (Exception ex) {
 			logger.error("", ex);
 		}
-		
+
 		try (final Tx tx = app.tx()) {
 
 			// Add schema method "testFileMethod" to built-in File class
 			SchemaNode fileNodeDef = app.nodeQuery(SchemaNode.class).andName(builtinTypeName).getFirst();
-			
+
 			SchemaMethod testFileMethod = app.create(SchemaMethod.class, schemaMethodName);
 			testFileMethod.setProperty(SchemaMethod.source, "()");
 			testFileMethod.setProperty(SchemaMethod.schemaNode, fileNodeDef);
 
 			tx.success();
-			
+
 		} catch (Exception ex) {
 			logger.error("", ex);
 		}
@@ -194,7 +196,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			testFile.setProperty(File.owner, admin);
 
 			tx.success();
-			
+
 		} catch (Exception ex) {
 			logger.error("", ex);
 		}
@@ -215,12 +217,12 @@ public class SchemaMethodsTest extends FrontendTest {
 				.body("{}")
 				.expect()
 					.statusCode(200)
-				
+
 				.when()
 					.post(builtinTypeName + "/" + testFile.getUuid() + "/" + schemaMethodName);
-	
+
 			tx.success();
-			
+
 		} catch (FrameworkException ex) {
 
 			logger.error(ex.toString());
@@ -228,22 +230,23 @@ public class SchemaMethodsTest extends FrontendTest {
 		}
 	}
 
+	@Test
 	public void test04SchemaMethodOnEntityOfCustomType() {
 
 		final String customTypeName = "FooFile";
 		final String schemaMethodName = "testFooFileMethod";
-		
+
 		try (final Tx tx = app.tx()) {
 
 			// Add schema method "testFileMethod" to built-in File class
 			SchemaNode fooFileDef = app.create(SchemaNode.class, customTypeName);
-			
+
 			SchemaMethod testFooFileMethod = app.create(SchemaMethod.class, schemaMethodName);
 			testFooFileMethod.setProperty(SchemaMethod.source, "()");
 			testFooFileMethod.setProperty(SchemaMethod.schemaNode, fooFileDef);
 
 			tx.success();
-			
+
 		} catch (Exception ex) {
 			logger.error("", ex);
 		}
@@ -256,7 +259,7 @@ public class SchemaMethodsTest extends FrontendTest {
 		} catch (Exception ex) {
 			logger.error("", ex);
 		}
-		
+
 		String id = createEntityAsSuperUser(customTypeName, "{'name':'Test Foo File'}");
 
 		try (final Tx tx = app.tx()) {
@@ -275,23 +278,25 @@ public class SchemaMethodsTest extends FrontendTest {
 				.body("{}")
 				.expect()
 					.statusCode(200)
-				
+
 				.when()
 					.post(customTypeName + "/" + id + "/" + schemaMethodName);
-	
+
 			tx.success();
-			
+
 		} catch (FrameworkException ex) {
 
 			logger.error(ex.toString());
 			fail("Unexpected exception");
 		}
-	}	
+	}
+
+	@Test
 	public void test05InheritedSchemaMethodOnBuildinType() {
 
 		final String builtinTypeName = "File";
 		final String schemaMethodName = "testFileMethod";
-		
+
 		User admin = null;
 		try (final Tx tx = app.tx()) {
 
@@ -301,18 +306,18 @@ public class SchemaMethodsTest extends FrontendTest {
 		} catch (Exception ex) {
 			logger.error("", ex);
 		}
-		
+
 		try (final Tx tx = app.tx()) {
 
 			// Add schema method "testFileMethod" to built-in File class
 			SchemaNode fileNodeDef = app.nodeQuery(SchemaNode.class).andName(builtinTypeName).getFirst();
-			
+
 			SchemaMethod testFileMethod = app.create(SchemaMethod.class, schemaMethodName);
 			testFileMethod.setProperty(SchemaMethod.source, "()");
 			testFileMethod.setProperty(SchemaMethod.schemaNode, fileNodeDef);
 
 			tx.success();
-			
+
 		} catch (Exception ex) {
 			logger.error("", ex);
 		}
@@ -333,12 +338,12 @@ public class SchemaMethodsTest extends FrontendTest {
 				.body("{}")
 				.expect()
 					.statusCode(200)
-				
+
 				.when()
 					.post("/Image/" + schemaMethodName);
-	
+
 			tx.success();
-			
+
 		} catch (FrameworkException ex) {
 
 			logger.error(ex.toString());
@@ -347,11 +352,12 @@ public class SchemaMethodsTest extends FrontendTest {
 
 	}
 
+	@Test
 	public void test06InheritedSchemaMethodOnEntityOfBuiltinType() {
 
 		final String builtinTypeName = "File";
 		final String schemaMethodName = "testFileMethod";
-		
+
 		User admin = null;
 		try (final Tx tx = app.tx()) {
 
@@ -361,24 +367,24 @@ public class SchemaMethodsTest extends FrontendTest {
 		} catch (Exception ex) {
 			logger.error("", ex);
 		}
-		
+
 		try (final Tx tx = app.tx()) {
 
 			// Add schema method "testFileMethod" to built-in File class
 			SchemaNode fileNodeDef = app.nodeQuery(SchemaNode.class).andName(builtinTypeName).getFirst();
-			
+
 			SchemaMethod testFileMethod = app.create(SchemaMethod.class, schemaMethodName);
 			testFileMethod.setProperty(SchemaMethod.source, "()");
 			testFileMethod.setProperty(SchemaMethod.schemaNode, fileNodeDef);
 
 			tx.success();
-			
+
 		} catch (Exception ex) {
 			logger.error("", ex);
 		}
 
 		String id = createEntityAsAdmin("Image", "{'name': 'Test Image'}");
-		
+
 
 		try (final Tx tx = app.tx()) {
 
@@ -396,12 +402,12 @@ public class SchemaMethodsTest extends FrontendTest {
 				.body("{}")
 				.expect()
 					.statusCode(200)
-				
+
 				.when()
 					.post("/Image/" + id + "/" + schemaMethodName);
-	
+
 			tx.success();
-			
+
 		} catch (FrameworkException ex) {
 
 			logger.error(ex.toString());

@@ -21,6 +21,7 @@ package org.structr.rest.test;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.*;
+import org.junit.Test;
 import org.structr.rest.common.StructrRestTest;
 
 /**
@@ -29,8 +30,9 @@ import org.structr.rest.common.StructrRestTest;
  */
 public class AdvancedRelatedNodeSearchTest extends StructrRestTest {
 
+	@Test
 	public void testStaticRelationshipResourceFilter() {
-		
+
 		String test01 = createEntity("/test_sixs", "{ name: test01, aString: string01, anInt: 1 }");
 		String test02 = createEntity("/test_sixs", "{ name: test02, aString: string02, anInt: 2 }");
 		String test03 = createEntity("/test_sixs", "{ name: test03, aString: string03, anInt: 3 }");
@@ -39,12 +41,12 @@ public class AdvancedRelatedNodeSearchTest extends StructrRestTest {
 		String test06 = createEntity("/test_sixs", "{ name: test06, aString: string06, anInt: 6 }");
 		String test07 = createEntity("/test_sixs", "{ name: test07, aString: string07, anInt: 7 }");
 		String test08 = createEntity("/test_sixs", "{ name: test08, aString: string08, anInt: 8 }");
-		
+
 		String test09 = createEntity("/test_sevens", "{ name: test09, testSixIds: [", test01, ",", test02, "], aString: string09, anInt: 9 }");
 		String test10 = createEntity("/test_sevens", "{ name: test10, testSixIds: [", test03, ",", test04, "], aString: string10, anInt: 10 }");
 		String test11 = createEntity("/test_sevens", "{ name: test11, testSixIds: [", test05, ",", test06, "], aString: string11, anInt: 11 }");
 		String test12 = createEntity("/test_sevens", "{ name: test12, testSixIds: [", test07, ",", test08, "], aString: string12, anInt: 12 }");
-		
+
 		String test13 = createEntity("/test_eights", "{ name: test13, testSixIds: [", test01, ",", test02, "], aString: string13, anInt: 13 }");
 		String test14 = createEntity("/test_eights", "{ name: test14, testSixIds: [", test02, ",", test03, "], aString: string14, anInt: 14 }");
 		String test15 = createEntity("/test_eights", "{ name: test15, testSixIds: [", test03, ",", test04, "], aString: string15, anInt: 15 }");
@@ -56,7 +58,7 @@ public class AdvancedRelatedNodeSearchTest extends StructrRestTest {
 
 		// test simple related node search
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -65,7 +67,7 @@ public class AdvancedRelatedNodeSearchTest extends StructrRestTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			
+
 			.expect()
 				.statusCode(200)
 
@@ -78,7 +80,7 @@ public class AdvancedRelatedNodeSearchTest extends StructrRestTest {
 
 		// test simple related node search with range query
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -87,7 +89,7 @@ public class AdvancedRelatedNodeSearchTest extends StructrRestTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			
+
 			.expect()
 				.statusCode(200)
 

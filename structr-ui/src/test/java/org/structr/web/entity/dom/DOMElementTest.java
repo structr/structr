@@ -19,6 +19,9 @@
 package org.structr.web.entity.dom;
 
 import static junit.framework.TestCase.fail;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import org.junit.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
@@ -32,6 +35,7 @@ import org.w3c.dom.Element;
  */
 public class DOMElementTest extends DOMTest {
 
+	@Test
 	public void testGetTagName() {
 
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
@@ -51,6 +55,7 @@ public class DOMElementTest extends DOMTest {
 
 	}
 
+	@Test
 	public void testAttributeMethods() {
 
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
@@ -86,6 +91,7 @@ public class DOMElementTest extends DOMTest {
 		}
 	}
 
+	@Test
 	public void testAttributeNodeMethods() {
 
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {

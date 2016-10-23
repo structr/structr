@@ -23,6 +23,9 @@ import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.io.IOException;
 import org.apache.commons.io.IOUtils;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -45,6 +48,7 @@ public class UiSyncCommandTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(UiSyncCommandTest.class.getName());
 
+	@Test
 	public void testExportErrors() {
 
 		RestAssured
@@ -91,6 +95,7 @@ public class UiSyncCommandTest extends StructrUiTest {
 
 	}
 
+	@Test
 	public void testSimpleExportRoundtrip() {
 
 		final String fileName = super.basePath + "/exportTest.zip";

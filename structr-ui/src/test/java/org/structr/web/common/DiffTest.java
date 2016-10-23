@@ -21,6 +21,11 @@ package org.structr.web.common;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -41,6 +46,7 @@ public class DiffTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(DiffTest.class.getName());
 
+	@Test
 	public void testReplaceContent() {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body>Test</body></html>", (String from) -> from.replace("Test", "Wurst"));
@@ -57,6 +63,7 @@ public class DiffTest extends StructrUiTest {
 		);
 	}
 
+	@Test
 	public void testInsertHeading() {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body>Test</body></html>", (String from) -> from.replace("Test", "<h1>Title text</h1>"));
@@ -75,6 +82,7 @@ public class DiffTest extends StructrUiTest {
 		);
 	}
 
+	@Test
 	public void testInsertDivBranch() {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body>Test</body></html>", (String from) -> from.replace("Test", "<div><h1>Title text</h1></div>"));
@@ -95,6 +103,7 @@ public class DiffTest extends StructrUiTest {
 		);
 	}
 
+	@Test
 	public void testInsertDivBranch2() {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body>Test</body></html>", (String from) -> from.replace("Test", "<div><div><h1>Title text</h1><p>paragraph</p></div></div>"));
@@ -118,6 +127,7 @@ public class DiffTest extends StructrUiTest {
 		);
 	}
 
+	@Test
 	public void testInsertMultipleTextNodes() {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body>Test</body></html>", (String from) -> from.replace("Test", "Test<b>bold</b>between<i>italic</i>Text"));
@@ -134,6 +144,7 @@ public class DiffTest extends StructrUiTest {
 		);
 	}
 
+	@Test
 	public void testModifyMultipleTextNodes2() {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body>Test<b>bold</b>between<i>italic</i>Text</body></html>", (String from) -> {
@@ -159,6 +170,7 @@ public class DiffTest extends StructrUiTest {
 		);
 	}
 
+	@Test
 	public void testReparentOneLevel() {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body><h1>Title text</h1></body></html>", (String from) -> {
@@ -190,6 +202,7 @@ public class DiffTest extends StructrUiTest {
 		);
 	}
 
+	@Test
 	public void testReparentTwoLevels() {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body><h1>Title text</h1></body></html>", (String from) -> {
@@ -223,6 +236,7 @@ public class DiffTest extends StructrUiTest {
 		);
 	}
 
+	@Test
 	public void testReparentThreeLevels() {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body><h1>Title text</h1></body></html>", (String from) -> {
@@ -258,6 +272,7 @@ public class DiffTest extends StructrUiTest {
 		);
 	}
 
+	@Test
 	public void testMove() {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body><h1>Title text</h1><div><h2>subtitle</h2></div></body></html>", (String from) -> {
@@ -393,6 +408,7 @@ public class DiffTest extends StructrUiTest {
 //		);
 //	}
 
+	@Test
 	public void testSwap() {
 
 		final StringBuilder clipboard = new StringBuilder();
@@ -439,6 +455,7 @@ public class DiffTest extends StructrUiTest {
 		);
 	}
 
+	@Test
 	public void testAddAttributes() {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body><div><h2>one</h2></div><div><h2>two</h2></div><div><h2>three</h2></div><div><h2>four</h2></div></body></html>", (String from) -> {
@@ -476,6 +493,7 @@ public class DiffTest extends StructrUiTest {
 		);
 	}
 
+	@Test
 	public void testModifyRemoveAttributes() {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body><div><h2 class=\"test\" id=\"one\">one</h2></div><div><h2>two</h2></div><div><h2 id=\"three\">three</h2></div><div><h2>four</h2></div></body></html>", (String from) -> {
@@ -513,6 +531,7 @@ public class DiffTest extends StructrUiTest {
 		);
 	}
 
+	@Test
 	public void testBlockMoveUp() {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body><div>Text<h2>one</h2><p>two</p></div></body></html>", (String from) -> {
@@ -550,6 +569,7 @@ public class DiffTest extends StructrUiTest {
 		);
 	}
 
+	@Test
 	public void testBlockMoveDown() {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body><div>Text<h2>one</h2><div><p>two</p></div></div></body></html>", (String from) -> {
@@ -593,6 +613,7 @@ public class DiffTest extends StructrUiTest {
 		);
 	}
 
+	@Test
 	public void testSurroundBlock() {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body><h1>title</h1><p>text</p></body></html>", (String from) -> {
@@ -626,6 +647,7 @@ public class DiffTest extends StructrUiTest {
 		);
 	}
 
+	@Test
 	public void testModifyTag() {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body><h1>title</h1><p>text</p></body></html>", (String from) -> {
@@ -657,6 +679,7 @@ public class DiffTest extends StructrUiTest {
 		);
 	}
 
+	@Test
 	public void testTreeRemovalFix() {
 
 		final String comment = "<!-- comment --->";

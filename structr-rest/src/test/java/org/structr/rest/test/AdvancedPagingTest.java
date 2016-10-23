@@ -23,6 +23,7 @@ import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.util.LinkedList;
 import java.util.List;
 import static org.hamcrest.Matchers.*;
+import org.junit.Test;
 import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.entity.TestOne;
 
@@ -36,6 +37,8 @@ public class AdvancedPagingTest extends StructrRestTest {
 	/**
 	 * Paging with offsetId
 	 */
+
+	@Test
 	public void test01Paging() {
 
 		// create a root object
@@ -163,6 +166,7 @@ public class AdvancedPagingTest extends StructrRestTest {
 	/**
 	 * Paging of subresources
 	 */
+	@Test
 	public void test02PagingOfSubresources() {
 
 		// create a root object
@@ -283,6 +287,7 @@ public class AdvancedPagingTest extends StructrRestTest {
 
 	}
 
+	@Test
 	public void test03RangeHeader() {
 
 		// create a root object

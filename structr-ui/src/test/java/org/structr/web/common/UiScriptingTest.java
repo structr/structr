@@ -28,7 +28,6 @@ import java.nio.charset.Charset;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
@@ -50,6 +49,8 @@ import javax.servlet.http.Part;
 import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 import org.apache.commons.lang.StringUtils;
+import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -68,6 +69,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(UiScriptingTest.class.getName());
 
+	@Test
 	public void testScripting() {
 
 		NodeInterface detailsDataObject = null;
@@ -142,6 +144,7 @@ public class UiScriptingTest extends StructrUiTest {
 		}
 	}
 
+	@Test
 	public void testCharset() {
 
 		System.out.println("######### Charset settings ##############");
@@ -184,18 +187,6 @@ public class UiScriptingTest extends StructrUiTest {
 		}
 
 		return buf.toString();
-	}
-
-	@Override
-	public void setUp() throws Exception {
-
-		final Map<String, Object> config = new HashMap<>();
-
-		// set scripting engine to rhino
-		config.put("scripting.engine", "rhino");
-
-		// call super with additional config
-		super.setUp(config);
 	}
 
 	public class RequestMockUp implements HttpServletRequest {

@@ -21,12 +21,14 @@ package org.structr.rest.resource;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.equalTo;
+import org.junit.Test;
 import org.structr.rest.common.StructrRestTest;
 
 /**
  */
 public class TypeResourceTest extends StructrRestTest {
 
+	@Test
 	public void test00CreationOfDerivedTypeObjects() {
 
 		// Verify that the creation of derived type objects is possible

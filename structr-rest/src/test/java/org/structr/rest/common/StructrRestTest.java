@@ -21,26 +21,29 @@ package org.structr.rest.common;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matcher;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.DatabaseService;
 import org.structr.api.config.Structr;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -68,15 +71,16 @@ import org.structr.rest.servlet.JsonRestServlet;
  *
  *
  */
-public class StructrRestTest extends TestCase {
+public class StructrRestTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrRestTest.class.getName());
+	protected static final Map<String, Object> staticConfig = new HashMap<>();
 
 	//~--- fields ---------------------------------------------------------
 
-	protected SecurityContext securityContext = null;
-	protected App app                         = null;
-	protected String basePath                 = null;
+	protected static SecurityContext securityContext = null;
+	protected static App app                         = null;
+	protected static String basePath                 = null;
 
 	protected static final String contextPath = "/";
 	protected static final String restUrl = "/structr/rest";
@@ -85,26 +89,34 @@ public class StructrRestTest extends TestCase {
 
 	static {
 
-		// check character set
-		checkCharset();
-
 		// configure RestAssured
 		RestAssured.basePath = restUrl;
 		RestAssured.baseURI = "http://" + host + ":" + httpPort;
 		RestAssured.port = httpPort;
 	}
 
+	@Rule
+	public TestRule watcher = new TestWatcher() {
 
-	public void test00DbAvailable() {
+		@Override
+		protected void starting(Description description) {
 
-		DatabaseService graphDb = app.getDatabaseService();
+			System.out.println("######################################################################################");
+			System.out.println("# Starting " + getClass().getSimpleName() + "#" + description.getMethodName());
+			System.out.println("######################################################################################");
+		}
 
-		assertTrue(graphDb != null);
+		@Override
+		protected void finished(Description description) {
 
-	}
+			System.out.println("######################################################################################");
+			System.out.println("# Finished " + getClass().getSimpleName() + "#" + description.getMethodName());
+			System.out.println("######################################################################################");
+		}
+	};
 
-	@Override
-	protected void tearDown() throws Exception {
+	@AfterClass
+	public static void stop() throws Exception {
 
 		Services.getInstance().shutdown();
 
@@ -132,12 +144,6 @@ public class StructrRestTest extends TestCase {
 
 			try { Thread.sleep(100); } catch(Throwable t) {}
 		}
-
-		super.tearDown();
-
-		System.out.println("######################################################################################");
-		System.out.println("# " + getClass().getSimpleName() + "#" + getName() + " finished.");
-		System.out.println("######################################################################################\n");
 	}
 
 	/**
@@ -306,18 +312,29 @@ public class StructrRestTest extends TestCase {
 
 	}
 
-	//~--- set methods ----------------------------------------------------
+	@After
+	public void cleanDatabase() {
 
-	@Override
-	protected void setUp() throws Exception {
-		setUp(null);
+		try (final Tx tx = app.tx()) {
+
+			for (final NodeInterface node : app.nodeQuery().getAsList()) {
+				app.delete(node);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			 logger.error("Exception while trying to clean database: {}", fex);
+		}
 	}
 
-	protected void setUp(final Map<String, Object> additionalConfig) {
+	@BeforeClass
+	public static void start() {
+		start(null);
+	}
 
-		System.out.println("\n######################################################################################");
-		System.out.println("# Starting " + getClass().getSimpleName() + "#" + getName());
-		System.out.println("######################################################################################");
+	public static void start(final Map<String, Object> additionalConfig) {
 
 		final Properties config = Services.getBaseConfiguration();
 		final Date now          = new Date();
@@ -362,6 +379,8 @@ public class StructrRestTest extends TestCase {
 			config.putAll(additionalConfig);
 		}
 
+		config.putAll(staticConfig);
+
 		final Services services = Services.getInstanceForTesting(config);
 
 		securityContext		= SecurityContext.getSuperUserInstance();
@@ -381,23 +400,6 @@ public class StructrRestTest extends TestCase {
 
 	protected static Matcher isEntity(Class<? extends AbstractNode> type) {
 		return new EntityMatcher(type);
-	}
-
-	private static void checkCharset() {
-
-		System.out.println("######### Charset settings ##############");
-		System.out.println("Default Charset=" + Charset.defaultCharset());
-		System.out.println("file.encoding=" + System.getProperty("file.encoding"));
-		System.out.println("Default Charset=" + Charset.defaultCharset());
-		System.out.println("Default Charset in Use=" + getEncodingInUse());
-		System.out.println("This should look like the umlauts of 'a', 'o', 'u' and 'ss': äöüß");
-		System.out.println("#########################################");
-
-	}
-
-	private static String getEncodingInUse() {
-		OutputStreamWriter writer = new OutputStreamWriter(new ByteArrayOutputStream());
-		return writer.getEncoding();
 	}
 
 	protected Map<String, Object> toMap(final String key1, final Object value1) {

@@ -21,6 +21,10 @@ package org.structr.rest.test;
 import com.jayway.restassured.RestAssured;
 import java.text.SimpleDateFormat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.entity.TestOne;
 
@@ -30,22 +34,23 @@ import org.structr.rest.entity.TestOne;
  */
 public class SortTest extends StructrRestTest {
 
-	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
-	
-	private String aDate = dateFormat.format(System.currentTimeMillis());
-	private String aDate3 = dateFormat.format(System.currentTimeMillis() - 200000);	// 2012-09-18T03:33:12+0200
-	private String aDate2 = dateFormat.format(System.currentTimeMillis() - 400000);	// 2012-09-18T01:33:12+0200
-	private String aDate4 = dateFormat.format(System.currentTimeMillis() - 100000);	// 2012-09-18T04:33:12+0200
-	private String aDate1 = dateFormat.format(System.currentTimeMillis() - 300000);	// 2012-09-18T02:33:12+0200
-	
+	private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+
+	private final String aDate = dateFormat.format(System.currentTimeMillis());
+	private final String aDate3 = dateFormat.format(System.currentTimeMillis() - 200000);	// 2012-09-18T03:33:12+0200
+	private final String aDate2 = dateFormat.format(System.currentTimeMillis() - 400000);	// 2012-09-18T01:33:12+0200
+	private final String aDate4 = dateFormat.format(System.currentTimeMillis() - 100000);	// 2012-09-18T04:33:12+0200
+	private final String aDate1 = dateFormat.format(System.currentTimeMillis() - 300000);	// 2012-09-18T02:33:12+0200
+
 	/**
 	 * Test a more complex object
 	 */
+	@Test
 	public void test01CreateTestOne() {
 
 		// create named object
 		String location = RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.body(" { 'name' : 'a TestOne object', 'anInt' : 123, 'aLong' : 234, 'aDate' : '" + aDate + "' } ")
@@ -54,12 +59,12 @@ public class SortTest extends StructrRestTest {
 			.when()
 				.post("/test_one")
 				.getHeader("Location");
-		    
+
 		// POST must return a Location header
 		assertNotNull(location);
-		
+
 		String uuid = getUuidFromLocation(location);
-				
+
 		// POST must create a UUID
 		assertNotNull(uuid);
 		assertFalse(uuid.isEmpty());
@@ -67,7 +72,7 @@ public class SortTest extends StructrRestTest {
 
 		// check for exactly one object
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 			.expect()
@@ -78,19 +83,20 @@ public class SortTest extends StructrRestTest {
 				.body("result[0]",          isEntity(TestOne.class))
 			.when()
 				.get("/test_one");
-		    
+
 	}
 
 
 	/**
 	 * Test a more complex object
 	 */
+	@Test
 	public void test02SortTestOne() {
 
 		// create some objects
-		
+
 		String resource = "/test_one";
-		
+
 		RestAssured.given().contentType("application/json; charset=UTF-8")
 			.body(" { 'name' : 'TestOne-3', 'anInt' : 3, 'aLong' : 30, 'aDate' : '" + aDate3 + "' } ")
 			.expect().statusCode(201).when().post(resource).getHeader("Location");
@@ -98,7 +104,7 @@ public class SortTest extends StructrRestTest {
 		RestAssured.given().contentType("application/json; charset=UTF-8")
 			.body(" { 'name' : 'TestOne-1', 'anInt' : 2, 'aLong' : 10, 'aDate' : '" + aDate2 + "' } ")
 			.expect().statusCode(201).when().post(resource).getHeader("Location");
-		
+
 		RestAssured.given().contentType("application/json; charset=UTF-8")
 			.body(" { 'name' : 'TestOne-4', 'anInt' : 4, 'aLong' : 40, 'aDate' : '" + aDate4 + "' } ")
 			.expect().statusCode(201).when().post(resource).getHeader("Location");
@@ -106,10 +112,10 @@ public class SortTest extends StructrRestTest {
 		RestAssured.given().contentType("application/json; charset=UTF-8")
 			.body(" { 'name' : 'TestOne-2', 'anInt' : 1, 'aLong' : 20, 'aDate' : '" + aDate1 + "' } ")
 			.expect().statusCode(201).when().post(resource).getHeader("Location");
-		
+
 		// sort by name
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 			.expect()
@@ -136,11 +142,11 @@ public class SortTest extends StructrRestTest {
 
 			.when()
 				.get(resource + "?sort=name&pageSize=10&page=1");
-		    
+
 
 		// sort by date, descending
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 			.expect()
@@ -167,10 +173,10 @@ public class SortTest extends StructrRestTest {
 
 			.when()
 				.get(resource + "?sort=aDate&order=desc&pageSize=10&page=1");
-	
+
 		// sort by int
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 			.expect()
@@ -193,8 +199,8 @@ public class SortTest extends StructrRestTest {
 
 			.when()
 				.get(resource + "?sort=anInt&pageSize=10&page=1");
-	
+
 	}
-	
-	
+
+
 }

@@ -19,6 +19,9 @@
 package org.structr.web.entity.dom;
 
 import static junit.framework.TestCase.fail;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import org.junit.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.web.common.DOMTest;
@@ -33,6 +36,7 @@ import org.w3c.dom.Text;
  */
 public class ContentTest extends DOMTest {
 
+	@Test
 	public void testSplitText() {
 
 		try (final Tx tx = app.tx()) {
@@ -72,6 +76,7 @@ public class ContentTest extends DOMTest {
 		}
 	}
 
+	@Test
 	public void testIsElementContentWhitespace() {
 
 		try (final Tx tx = app.tx()) {
@@ -93,6 +98,7 @@ public class ContentTest extends DOMTest {
 		}
 	}
 
+	@Test
 	public void testGetData() {
 
 		try (final Tx tx = app.tx()) {
@@ -112,6 +118,7 @@ public class ContentTest extends DOMTest {
 		}
 	}
 
+	@Test
 	public void testSetData() {
 
 		try (final Tx tx = app.tx()) {
@@ -131,6 +138,7 @@ public class ContentTest extends DOMTest {
 		}
 	}
 
+	@Test
 	public void testGetLength() {
 
 		try (final Tx tx = app.tx()) {
@@ -152,6 +160,7 @@ public class ContentTest extends DOMTest {
 		}
 	}
 
+	@Test
 	public void testSubstringData() {
 
 		try (final Tx tx = app.tx()) {
@@ -174,6 +183,7 @@ public class ContentTest extends DOMTest {
 		}
 	}
 
+	@Test
 	public void testAppendData() {
 
 		try (final Tx tx = app.tx()) {
@@ -196,6 +206,7 @@ public class ContentTest extends DOMTest {
 		}
 	}
 
+	@Test
 	public void testInsertData() {
 
 		try (final Tx tx = app.tx()) {
@@ -218,6 +229,7 @@ public class ContentTest extends DOMTest {
 		}
 	}
 
+	@Test
 	public void testDeleteData() {
 
 		try (final Tx tx = app.tx()) {
@@ -240,6 +252,7 @@ public class ContentTest extends DOMTest {
 		}
 	}
 
+	@Test
 	public void testReplaceData() {
 
 		try (final Tx tx = app.tx()) {
@@ -260,13 +273,5 @@ public class ContentTest extends DOMTest {
 
 			fail("unexpected exception");
 		}
-	}
-
-	public void testGetWholeText() {
-
-	}
-
-	public void testReplaceWholeText() {
-
 	}
 }

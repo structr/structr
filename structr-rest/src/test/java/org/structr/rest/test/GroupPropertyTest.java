@@ -20,6 +20,7 @@ package org.structr.rest.test;
 
 import com.jayway.restassured.RestAssured;
 import static org.hamcrest.Matchers.*;
+import org.junit.Test;
 import org.structr.rest.common.StructrRestTest;
 
 /**
@@ -28,6 +29,7 @@ import org.structr.rest.common.StructrRestTest;
  */
 public class GroupPropertyTest extends StructrRestTest{
 
+	@Test
 	public void test01GroupProperty(){
 
 
@@ -111,6 +113,7 @@ public class GroupPropertyTest extends StructrRestTest{
 				.get(concat("/test_group_prop_three/"+test032));
 	}
 
+	@Test
 	public void test02SearchProperty(){
 
 		String test01 = createEntity("/test_group_prop_four","{gP:{sP:text,iP:1337}}");

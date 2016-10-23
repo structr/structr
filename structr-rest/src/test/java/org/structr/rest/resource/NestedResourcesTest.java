@@ -20,6 +20,8 @@ package org.structr.rest.resource;
 
 import com.jayway.restassured.RestAssured;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertNotNull;
+import org.junit.Test;
 import org.structr.rest.common.StructrRestTest;
 
 /**
@@ -31,6 +33,7 @@ public class NestedResourcesTest extends StructrRestTest {
 	/**
 	 * Test the correct response for a non-existing nested resource (404)
 	 */
+	@Test
 	public void test000NotFoundError() {
 
 		// create empty object
@@ -50,28 +53,29 @@ public class NestedResourcesTest extends StructrRestTest {
 
 	/**
 	 * Test different notations of the REST endpoint (first URI part).
-	 * 
+	 *
 	 * For the class TestTwo, the following notations are allowed:
-	 * 
+	 *
 	 *    /test_two
 	 *    /test_twos
 	 *    /TestTwo
 	 *    /TestTwos
-	 * 
+	 *
 	 */
+	@Test
 	public void test010EndpointNotations() {
 
 		String testOne = createEntity("/test_one", "{ \"name\": \"TestOne\" }");
 		assertNotNull(testOne);
-		
+
 		System.out.println(testOne);
-		
+
 		String body = "{ \"test_ones\": [ \"" + testOne + "\" ] }";
 		System.out.println(body);
-		
+
 		String testTwo = createEntity("/test_two", body);
 		assertNotNull(testTwo);
-		
+
 		System.out.println(testTwo);
 
 		RestAssured
@@ -117,26 +121,27 @@ public class NestedResourcesTest extends StructrRestTest {
 				.body("result.id",          equalTo(testTwo))
 			.when()
 				.get("/TestTwos/" + testTwo);
-		
+
 	}
 
 	/**
 	 * Test nested attribute "test_ones"
-	 * 
+	 *
 	 */
+	@Test
 	public void test020EndpointNotations() {
 
 		String testOne = createEntity("/test_one", "{ \"name\": \"TestOne\" }");
 		assertNotNull(testOne);
-		
+
 		System.out.println(testOne);
-		
+
 		String body = "{ \"test_ones\": [ \"" + testOne + "\" ] }";
 		System.out.println(body);
-		
+
 		String testTwo = createEntity("/test_two", body);
 		assertNotNull(testTwo);
-		
+
 		System.out.println(testTwo);
 
 		RestAssured
@@ -151,25 +156,26 @@ public class NestedResourcesTest extends StructrRestTest {
 				.get("/test_two/" + testTwo + "/test_ones")
 			.prettyPrint();
 
-	}	
+	}
 
 	/**
 	 * Test nested attribute "testOnes"
-	 * 
+	 *
 	 */
+	@Test
 	public void test030EndpointNotations() {
 
 		String testOne = createEntity("/test_one", "{ \"name\": \"TestOne\" }");
 		assertNotNull(testOne);
-		
+
 		System.out.println(testOne);
-		
+
 		String body = "{ \"testOnes\": [ \"" + testOne + "\" ] }";
 		System.out.println(body);
-		
+
 		String testTwo = createEntity("/test_two", body);
 		assertNotNull(testTwo);
-		
+
 		System.out.println(testTwo);
 
 		RestAssured
@@ -183,7 +189,7 @@ public class NestedResourcesTest extends StructrRestTest {
 			.when()
 				.get("/test_two/" + testTwo + "/testOnes");
 
-		
-	}	
+
+	}
 
 }
