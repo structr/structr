@@ -203,7 +203,7 @@ public class TransactionTest extends StructrTest {
 
 		// Tests the transaction isolation of the underlying database layer.
 
-		// Create a node and use ten different threads to set a property on
+		// Create a node and use many different threads to set a property on
 		// it in a transaction. Observe the property value to check that the
 		// threads do not interfere with each other.
 
@@ -215,7 +215,7 @@ public class TransactionTest extends StructrTest {
 			final List<Future> futures     = new LinkedList<>();
 
 			// create and run test runners
-			for (int i=0; i<10; i++) {
+			for (int i=0; i<25; i++) {
 
 				final TestRunner runner = new TestRunner(app, test);
 
@@ -226,10 +226,55 @@ public class TransactionTest extends StructrTest {
 			// wait for termination
 			for (final Future future : futures) {
 				future.get();
+				System.out.print(".");
 			}
+
+			System.out.println();
 
 			// check for success
 			for (final TestRunner runner : tests) {
+				assertTrue("Could not validate transaction isolation", runner.success());
+			}
+
+		} catch (Throwable fex) {
+			fail("Unexpected exception");
+		}
+	}
+
+	public void testTransactionIsolationWithFailures() {
+
+		// Tests the transaction isolation of the underlying database layer.
+
+		// Create a node and use ten different threads to set a property on
+		// it in a transaction. Observe the property value to check that the
+		// threads do not interfere with each other.
+
+		try {
+
+			final TestOne test                  = createTestNode(TestOne.class);
+			final ExecutorService executor      = Executors.newCachedThreadPool();
+			final List<FailingTestRunner> tests = new LinkedList<>();
+			final List<Future> futures          = new LinkedList<>();
+
+			// create and run test runners
+			for (int i=0; i<25; i++) {
+
+				final FailingTestRunner runner = new FailingTestRunner(app, test);
+
+				futures.add(executor.submit(runner));
+				tests.add(runner);
+			}
+
+			// wait for termination
+			for (final Future future : futures) {
+				future.get();
+				System.out.print(".");
+			}
+
+			System.out.println();
+
+			// check for success
+			for (final FailingTestRunner runner : tests) {
 				assertTrue("Could not validate transaction isolation", runner.success());
 			}
 
@@ -293,10 +338,10 @@ public class TransactionTest extends StructrTest {
 				// set property on node
 				test.setProperty(TestOne.name, name);
 
-				for (int i=0; i<10; i++) {
+				for (int i=0; i<100; i++) {
 
 					// wait some time
-					try { Thread.sleep((long)(Math.random() * 10L) + 10); } catch (Throwable t) {}
+					try { Thread.sleep(1); } catch (Throwable t) {}
 
 					// check if the given name is still there
 					final String testName = test.getProperty(TestOne.name);
@@ -307,6 +352,56 @@ public class TransactionTest extends StructrTest {
 				}
 
 				tx.success();
+
+			} catch (Throwable t) {
+				success = false;
+			}
+		}
+
+	}
+
+	private static class FailingTestRunner implements Runnable {
+
+		private boolean success = true;
+		private TestOne test    = null;
+		private App app         = null;
+
+		public FailingTestRunner(final App app, final TestOne test) {
+			this.app  = app;
+			this.test = test;
+		}
+
+		public boolean success() {
+			return success;
+		}
+
+		@Override
+		public void run() {
+
+			final String name = Thread.currentThread().getName();
+
+			try (final Tx tx = app.tx()) {
+
+				// set property on node
+				test.setProperty(TestOne.name, name);
+
+				for (int i=0; i<100; i++) {
+
+					// wait some time
+					try { Thread.sleep(1); } catch (Throwable t) {}
+
+					// check if the given name is still there
+					final String testName = test.getProperty(TestOne.name);
+					if (!name.equals(testName)) {
+
+						success = false;
+					}
+				}
+
+				// make Transactions fail randomly
+				if (Math.random() <= 0.5) {
+					tx.success();
+				}
 
 			} catch (Throwable t) {
 				success = false;
