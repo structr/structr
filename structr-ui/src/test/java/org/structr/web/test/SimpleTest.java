@@ -618,6 +618,9 @@ public class SimpleTest extends StructrUiTest {
 
 				makePublic(page, html, head, body, title, h1, div, titleText, heading, bodyContent);
 
+				page.setProperty(Page.showOnErrorCodes, "404");
+				page.setProperty(Page.position, 0);
+
 				tx.success();
 			}
 
@@ -749,7 +752,7 @@ public class SimpleTest extends StructrUiTest {
 
 		} catch (Exception ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 
 			logger.error(ex.toString());
 			fail("Unexpected Exception");

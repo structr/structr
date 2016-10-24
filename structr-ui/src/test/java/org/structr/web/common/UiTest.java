@@ -126,9 +126,7 @@ public class UiTest extends StructrUiTest {
 
 			fail("Folder with non-allowed characters were created.");
 
-		} catch (FrameworkException ex) {
-			logger.warn("", ex);
-		}
+		} catch (FrameworkException ex) {}
 
 		try (final Tx tx = app.tx()) {
 
@@ -138,9 +136,7 @@ public class UiTest extends StructrUiTest {
 
 			fail("Folder with non-allowed characters were created.");
 
-		} catch (FrameworkException ex) {
-			logger.warn("", ex);
-		}
+		} catch (FrameworkException ex) {}
 
 		try (final Tx tx = app.tx()) {
 
@@ -150,9 +146,7 @@ public class UiTest extends StructrUiTest {
 
 			fail("Folder with non-allowed characters were created.");
 
-		} catch (FrameworkException ex) {
-			logger.warn("", ex);
-		}
+		} catch (FrameworkException ex) {}
 
 		try (final Tx tx = app.tx()) {
 
@@ -162,9 +156,7 @@ public class UiTest extends StructrUiTest {
 
 			fail("Folder with non-allowed characters were created.");
 
-		} catch (FrameworkException ex) {
-			logger.warn("", ex);
-		}
+		} catch (FrameworkException ex) {}
 
 		try (final Tx tx = app.tx()) {
 
@@ -174,9 +166,7 @@ public class UiTest extends StructrUiTest {
 
 			fail("Folder with non-allowed characters were created.");
 
-		} catch (FrameworkException ex) {
-			logger.warn("", ex);
-		}
+		} catch (FrameworkException ex) {}
 
 		try (final Tx tx = app.tx()) {
 
@@ -186,9 +176,7 @@ public class UiTest extends StructrUiTest {
 
 			fail("Folder with non-allowed characters were created.");
 
-		} catch (FrameworkException ex) {
-			logger.warn("", ex);
-		}
+		} catch (FrameworkException ex) {}
 
 		try (final Tx tx = app.tx()) {
 
@@ -198,9 +186,7 @@ public class UiTest extends StructrUiTest {
 
 			fail("Folder with non-allowed characters were created.");
 
-		} catch (FrameworkException ex) {
-			logger.warn("", ex);
-		}
+		} catch (FrameworkException ex) {}
 	}
 
 	@Test
@@ -219,7 +205,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			File file1 = (File) app.create(File.class, "file1");
+			FileBase file1 = (FileBase) app.create(File.class, "file1");
 			assertNotNull(file1);
 			assertEquals(FileHelper.getFolderPath(file1), "/file1");
 
@@ -262,7 +248,7 @@ public class UiTest extends StructrUiTest {
 
 		final String base64Data = "data:text/plain;base64,RGllcyBpc3QgZWluIFRlc3Q=";
 		final String plaintext  = "Dies ist ein Test";
-		File file               = null;
+		FileBase file           = null;
 
 		try (final Tx tx = app.tx()) {
 
