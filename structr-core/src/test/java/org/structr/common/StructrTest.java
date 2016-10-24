@@ -54,7 +54,6 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.module.JarConfigurationProvider;
@@ -98,30 +97,6 @@ public class StructrTest {
 			for (final NodeInterface node : app.nodeQuery().getAsList()) {
 				app.delete(node);
 			}
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			 logger.error("Exception while trying to clean database: {}", fex);
-		}
-
-		try (final Tx tx = app.tx()) {
-
-			for (final RelationshipInterface rel : app.relationshipQuery().getAsList()) {
-				app.delete(rel);
-			}
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			 logger.error("Exception while trying to clean database: {}", fex);
-		}
-
-		try (final Tx tx = app.tx()) {
-
-			app.cypher("MATCH (n)-[r]-(m) DELETE n, r, m", Collections.emptyMap());
 
 			tx.success();
 

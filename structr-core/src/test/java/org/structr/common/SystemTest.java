@@ -18,15 +18,16 @@
  */
 package org.structr.common;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang3.StringUtils;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import org.junit.Test;
@@ -42,6 +43,7 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.TestEight;
 import org.structr.core.entity.TestFive;
 import org.structr.core.entity.TestOne;
+import org.structr.core.entity.TestSix;
 import org.structr.core.entity.TestUser;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -49,6 +51,8 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.core.script.Scripting;
+import org.structr.schema.action.ActionContext;
 
 /**
  *
@@ -487,110 +491,401 @@ public class SystemTest extends StructrTest {
 	}
 
 	@Test
-	public void testConcurrentModificationIsolation() {
+	public void testRollbackOnError () {
 
-		final ExecutorService service = Executors.newCachedThreadPool();
-		final List<Future> futures    = new LinkedList<>();
-		final int count               = 20;
-		final int num                 = 20;
+		final ActionContext ctx = new ActionContext(securityContext, null);
 
+		/**
+		 * first the old scripting style
+		 */
+		TestOne testNode = null;
 
-		// setup: create dynamic type with onCreate() method
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode createTestType = createTestNode(SchemaNode.class, "CreateTest");
-			final SchemaProperty prop       = createTestNode(SchemaProperty.class,
-				new NodeAttribute(SchemaProperty.schemaNode, createTestType),
-				new NodeAttribute(SchemaProperty.name, "name"),
-				new NodeAttribute(SchemaProperty.propertyType, "String"),
-				new NodeAttribute(SchemaProperty.unique, true),
-				new NodeAttribute(SchemaProperty.notNull, true)
+			testNode = createTestNode(TestOne.class);
+			testNode.setProperty(TestOne.aString, "InitialString");
+			testNode.setProperty(TestOne.anInt, 42);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			logger.warn("", ex);
+			fail("Unexpected exception");
+
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			Scripting.replaceVariables(ctx, testNode, "${ ( set(this, 'aString', 'NewString'), set(this, 'anInt', 'NOT_AN_INTEGER') ) }");
+			fail("StructrScript: setting anInt to 'NOT_AN_INTEGER' should cause an Exception");
+
+			tx.success();
+
+		} catch (FrameworkException expected) { }
+
+
+		try {
+
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Property value should still have initial value!", "InitialString", testNode.getProperty(TestOne.aString));
+
+				tx.success();
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.warn("", ex);
+			fail("Unexpected exception");
+
+		}
+	}
+
+	@Test
+	public void testConstraintsConcurrently() {
+
+		/**
+		 * This test concurrently creates 1000 nodes in
+		 * batches of 10, with 10 threads simultaneously.
+		 */
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(SchemaNode.class,
+				new NodeAttribute(SchemaNode.name, "Item"),
+				new NodeAttribute(SchemaNode.schemaProperties,
+					Arrays.asList(app.create(
+						SchemaProperty.class,
+						new NodeAttribute(SchemaProperty.name, "name"),
+						new NodeAttribute(SchemaProperty.propertyType, "String"),
+						new NodeAttribute(SchemaProperty.unique, true),
+						new NodeAttribute(SchemaProperty.indexed, true)
+					)
+				))
 			);
 
 			tx.success();
 
-		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-			fail("Unexpected exception.");
+		} catch (FrameworkException ex) {
+			fail("Error creating schema node");
 		}
 
+		final Class itemType = StructrApp.getConfiguration().getNodeEntityClass("Item");
 
-		final Class type = StructrApp.getConfiguration().getNodeEntityClass("CreateTest");
+		assertNotNull("Error creating schema node", itemType);
 
-		for (int i=0; i<count; i++) {
+		final Runnable worker = new Runnable() {
 
-			futures.add(service.submit(new Worker<>(app, type, num)));
+			@Override
+			public void run() {
+
+				int i = 0;
+
+				while (i < 1000) {
+
+					try (final Tx tx = app.tx()) {
+
+						for (int j=0; j<10 && i<1000; j++) {
+
+							app.create(itemType, "Item" + StringUtils.leftPad(Integer.toString(i++), 5, "0"));
+						}
+
+						tx.success();
+
+					} catch (FrameworkException expected) {
+					}
+				}
+			}
+		};
+
+		final ExecutorService service = Executors.newFixedThreadPool(10);
+		final List<Future> futures    = new LinkedList<>();
+
+		for (int i=0; i<10; i++) {
+
+			futures.add(service.submit(worker));
 		}
 
+		// wait for result of async. operations
 		for (final Future future : futures) {
-			try { future.get(); } catch (Throwable t) {}
+
+			try {
+				future.get();
+
+			} catch (Throwable t) {
+
+				logger.warn("", t);
+				fail("Unexpected exception");
+			}
 		}
+
 
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> tests = app.nodeQuery(type).sort(AbstractNode.name).getAsList();
+			final List<NodeInterface> items = app.nodeQuery(itemType).sort(AbstractNode.name).getAsList();
 			int i                           = 0;
 
-			assertEquals("Invalid result size for concurrent modification test", count*num, tests.size());
+			assertEquals("Invalid concurrent constraint test result", 1000, items.size());
 
-			for (final NodeInterface one : tests) {
+			for (final NodeInterface item : items) {
 
-				final String name = "Test" + StringUtils.leftPad(Integer.toString(i++), 3, "0");
-				assertEquals("Invalid detail result for concurrent modification test", name, one.getName());
-				assertEquals("Invalid detail result for concurrent modification test", one.getName(), one.getProperty(TestOne.aString));
+				assertEquals("Invalid name detected", "Item" + StringUtils.leftPad(Integer.toString(i++), 5, "0"), item.getName());
 			}
 
 			tx.success();
 
-		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-			fail("Unexpected exception.");
+		} catch (FrameworkException ex) {
+			fail("Unexpected exception");
 		}
 
 		service.shutdownNow();
 	}
 
-	private static class Worker<T> implements Runnable {
+	@Test
+	public void testTransactionIsolation() {
 
-		private static final AtomicInteger counter = new AtomicInteger();
-		private Class<NodeInterface> type          = null;
-		private App app                            = null;
-		private int num                            = 0;
+		// Tests the transaction isolation of the underlying database layer.
 
-		public Worker(final App app, final Class<NodeInterface> type, final int num) {
-			this.type = type;
-			this.num  = num;
+		// Create a node and use many different threads to set a property on
+		// it in a transaction. Observe the property value to check that the
+		// threads do not interfere with each other.
+
+		try {
+
+			final TestOne test             = createTestNode(TestOne.class);
+			final ExecutorService executor = Executors.newCachedThreadPool();
+			final List<TestRunner> tests   = new LinkedList<>();
+			final List<Future> futures     = new LinkedList<>();
+
+			// create and run test runners
+			for (int i=0; i<25; i++) {
+
+				final TestRunner runner = new TestRunner(app, test);
+
+				futures.add(executor.submit(runner));
+				tests.add(runner);
+			}
+
+			// wait for termination
+			for (final Future future : futures) {
+				future.get();
+				System.out.print(".");
+			}
+
+			System.out.println();
+
+			// check for success
+			for (final TestRunner runner : tests) {
+				assertTrue("Could not validate transaction isolation", runner.success());
+			}
+
+			executor.shutdownNow();
+
+		} catch (Throwable fex) {
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testTransactionIsolationWithFailures() {
+
+		// Tests the transaction isolation of the underlying database layer.
+
+		// Create a node and use ten different threads to set a property on
+		// it in a transaction. Observe the property value to check that the
+		// threads do not interfere with each other.
+
+		try {
+
+			final TestOne test                  = createTestNode(TestOne.class);
+			final ExecutorService executor      = Executors.newCachedThreadPool();
+			final List<FailingTestRunner> tests = new LinkedList<>();
+			final List<Future> futures          = new LinkedList<>();
+
+			// create and run test runners
+			for (int i=0; i<25; i++) {
+
+				final FailingTestRunner runner = new FailingTestRunner(app, test);
+
+				futures.add(executor.submit(runner));
+				tests.add(runner);
+			}
+
+			// wait for termination
+			for (final Future future : futures) {
+				future.get();
+				System.out.print(".");
+			}
+
+			System.out.println();
+
+			// check for success
+			for (final FailingTestRunner runner : tests) {
+				assertTrue("Could not validate transaction isolation", runner.success());
+			}
+
+			executor.shutdownNow();
+
+		} catch (Throwable fex) {
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testConcurrentIdenticalRelationshipCreation() {
+
+		try {
+			final ExecutorService service = Executors.newCachedThreadPool();
+			final TestSix source          = createTestNode(TestSix.class);
+			final TestOne target          = createTestNode(TestOne.class);
+
+			final Future one = service.submit(new RelationshipCreator(source, target));
+			final Future two = service.submit(new RelationshipCreator(source, target));
+
+			// wait for completion
+			one.get();
+			two.get();
+
+			try (final Tx tx = app.tx()) {
+
+				// check for a single relationship since all three parts of
+				// both relationships are equal => only one should be created
+				final List<TestOne> list = source.getProperty(TestSix.oneToManyTestOnes);
+
+				assertEquals("Invalid concurrent identical relationship creation result", 1, list.size());
+
+				tx.success();
+			}
+
+			service.shutdownNow();
+
+		} catch (ExecutionException | InterruptedException | FrameworkException fex) {
+			fex.printStackTrace();
+		}
+	}
+
+	private static class TestRunner implements Runnable {
+
+		private boolean success = true;
+		private TestOne test    = null;
+		private App app         = null;
+
+		public TestRunner(final App app, final TestOne test) {
 			this.app  = app;
+			this.test = test;
+		}
+
+		public boolean success() {
+			return success;
 		}
 
 		@Override
 		public void run() {
 
-			for (int i=0; i<num; i++) {
+			final String name = Thread.currentThread().getName();
 
-				final int number  = counter.getAndIncrement();
+			try (final Tx tx = app.tx()) {
 
-				System.out.println("number: " + number);
+				// set property on node
+				test.setProperty(TestOne.name, name);
 
-				final String name = "Test" + StringUtils.leftPad(Integer.toString(number), 3, "0");
+				for (int i=0; i<100; i++) {
 
-				try (final Tx tx = app.tx()) {
+					// wait some time
+					try { Thread.sleep(1); } catch (Throwable t) {}
 
-					app.create(type, name).setProperty(TestOne.aString, name);
+					// check if the given name is still there
+					final String testName = test.getProperty(TestOne.name);
+					if (!name.equals(testName)) {
+
+						success = false;
+					}
+				}
+
+				tx.success();
+
+			} catch (Throwable t) {
+				success = false;
+			}
+		}
+
+	}
+
+	private static class FailingTestRunner implements Runnable {
+
+		private boolean success = true;
+		private TestOne test    = null;
+		private App app         = null;
+
+		public FailingTestRunner(final App app, final TestOne test) {
+			this.app  = app;
+			this.test = test;
+		}
+
+		public boolean success() {
+			return success;
+		}
+
+		@Override
+		public void run() {
+
+			final String name = Thread.currentThread().getName();
+
+			try (final Tx tx = app.tx()) {
+
+				// set property on node
+				test.setProperty(TestOne.name, name);
+
+				for (int i=0; i<100; i++) {
+
+					// wait some time
+					try { Thread.sleep(1); } catch (Throwable t) {}
+
+					// check if the given name is still there
+					final String testName = test.getProperty(TestOne.name);
+					if (!name.equals(testName)) {
+
+						success = false;
+					}
+				}
+
+				// make Transactions fail randomly
+				if (Math.random() <= 0.5) {
 					tx.success();
+				}
 
-				} catch (FrameworkException fex) {}
+			} catch (Throwable t) {
+				success = false;
+			}
+		}
 
-				try (final Tx tx = app.tx()) {
+	}
 
-					final NodeInterface object = app.nodeQuery(type).sort(AbstractNode.name).getFirst();
-					object.setProperty(AbstractNode.name, name);
+	private static class RelationshipCreator implements Runnable {
 
-					tx.success();
+		private TestSix source = null;
+		private TestOne target = null;
 
-				} catch (FrameworkException fex) {}
+		public RelationshipCreator(final TestSix source, final TestOne  target) {
+			this.source = source;
+			this.target = target;
+		}
+
+		@Override
+		public void run() {
+
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+
+				final List<TestOne> list = new LinkedList<>();
+				list.add(target);
+
+				source.setProperty(TestSix.oneToManyTestOnes, list);
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
 			}
 		}
 	}
