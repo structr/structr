@@ -24,8 +24,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import static org.junit.Assert.fail;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,18 +38,12 @@ import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- * Test performance of node and relationship creation
- *
- * All tests are executed in superuser context
- *
  *
  */
 public class PerformanceTest extends StructrTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(PerformanceTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(PerformanceTest.class);
 
 	/**
 	 * Tests basic throughput of node creation operations
@@ -210,5 +204,4 @@ public class PerformanceTest extends StructrTest {
 		}
 
 	}
-
 }

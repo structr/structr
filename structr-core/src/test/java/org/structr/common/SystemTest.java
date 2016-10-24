@@ -25,8 +25,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang3.StringUtils;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -38,7 +39,10 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.TestEight;
+import org.structr.core.entity.TestFive;
 import org.structr.core.entity.TestOne;
+import org.structr.core.entity.TestUser;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -48,11 +52,186 @@ import org.structr.core.property.StringProperty;
 
 /**
  *
- *
  */
-public class ConcurrentTests extends StructrTest {
+public class SystemTest extends StructrTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(ConcurrentTests.class.getName());
+	private static final Logger logger         = LoggerFactory.getLogger(SystemTest.class);
+
+	@Test
+	public void testCallbacksWithSuperUserContext() {
+
+		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+		try {
+			testCallbacks(securityContext);
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testCallbacksWithNormalContext() {
+
+		try {
+
+			TestUser person = this.createTestNode(TestUser.class);
+
+			final SecurityContext securityContext = SecurityContext.getInstance(person, null, AccessMode.Backend);
+			testCallbacks(securityContext);
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+		}
+	}
+
+	@Test
+	public void testCallbackOrder() {
+
+		try {
+
+// ##################################### test creation callbacks
+
+			TestEight test = null;
+
+			try (final Tx tx = app.tx()) {
+
+				test = app.create(TestEight.class, new NodeAttribute(TestEight.testProperty, 123));
+				tx.success();
+			}
+
+			// only the creation methods should have been called now!
+			assertTrue("onCreationTimestamp should be != 0", test.getOnCreationTimestamp() != 0L);
+			assertEquals("onModificationTimestamp should be == 0", 0L, test.getOnModificationTimestamp());
+			assertEquals("onDeletionTimestamp should be == 0", 0L, test.getOnDeletionTimestamp());
+
+			// only the creation methods should have been called now!
+			assertTrue("afterCreationTimestamp should be != 0", test.getAfterCreationTimestamp() != 0L);
+			assertEquals("afterModificationTimestamp should be == 0", 0L, test.getAfterModificationTimestamp());
+
+
+// ##################################### test modification callbacks
+
+
+			// reset timestamps
+			test.resetTimestamps();
+
+			try (final Tx tx = app.tx()) {
+				test.setProperty(TestEight.testProperty, 234);
+				tx.success();
+			}
+
+			// only the modification methods should have been called now!
+			assertEquals("onCreationTimestamp should be == 0", 0L, test.getOnCreationTimestamp());
+			assertTrue("onModificationTimestamp should be != 0", test.getOnModificationTimestamp() != 0L);
+			assertEquals("onDeletionTimestamp should be == 0", 0L, test.getOnDeletionTimestamp());
+
+			// only the modification methods should have been called now!
+			assertEquals("afterCreationTimestamp should be == 0", 0L, test.getAfterCreationTimestamp());
+			assertTrue("afterModificationTimestamp should be != 0", test.getAfterModificationTimestamp() != 0L);
+
+
+// ##################################### test non-modifying set operation
+
+			// reset timestamps
+			test.resetTimestamps();
+
+			try (final Tx tx = app.tx()) {
+				test.setProperty(TestEight.testProperty, 234);
+				tx.success();
+			}
+
+			// only the creation methods should have been called now!
+			assertEquals("onCreationTimestamp should be == 0", 0L, test.getOnCreationTimestamp());
+			assertEquals("onModificationTimestamp should be == 0", 0L, test.getOnModificationTimestamp());
+			assertEquals("onDeletionTimestamp should be == 0", 0L, test.getOnDeletionTimestamp());
+
+			// only the creation methods should have been called now!
+			assertEquals("afterCreationTimestamp should be == 0", 0L, test.getAfterCreationTimestamp());
+			assertEquals("afterModificationTimestamp should be == 0", 0L, test.getAfterModificationTimestamp());
+
+
+
+// ##################################### test deletion
+
+			// reset timestamps
+			test.resetTimestamps();
+
+			try (final Tx tx = app.tx()) {
+				app.delete(test);
+				tx.success();
+			}
+
+			// only the creation methods should have been called now!
+			assertEquals("onCreationTimestamp should be == 0", 0L, test.getOnCreationTimestamp());
+			assertEquals("onModificationTimestamp should be == 0", 0L, test.getOnModificationTimestamp());
+			assertTrue("onDeletionTimestamp should be != 0", test.getOnDeletionTimestamp() != 0L);
+
+			// only the creation methods should have been called now!
+			assertEquals("afterCreationTimestamp should be == 0", 0L, test.getAfterCreationTimestamp());
+			assertEquals("afterModificationTimestamp should be == 0", 0L, test.getAfterModificationTimestamp());
+
+
+
+		} catch (FrameworkException ex) {
+
+			logger.error("Error", ex);
+			fail("Unexpected exception.");
+		}
+	}
+
+	private void testCallbacks(final SecurityContext securityContext) throws FrameworkException {
+
+		TestFive entity = null;
+		Integer zero = 0;
+		Integer one  = 1;
+
+		try (final Tx tx = app.tx()) {
+
+			entity = app.create(TestFive.class);
+			tx.success();
+
+		} catch (Throwable t) {
+
+			logger.warn("", t);
+		}
+
+		assertNotNull("Entity should have been created", entity);
+
+		// creation assertions
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("modifiedInBeforeCreation should have a value of 1: ", one, entity.getProperty(TestFive.modifiedInBeforeCreation));
+			assertEquals("modifiedInAfterCreation should have a value of 1:  ", one, entity.getProperty(TestFive.modifiedInAfterCreation));
+
+			// modification assertions
+			assertEquals("modifiedInBeforeModification should have a value of 0: ", zero, entity.getProperty(TestFive.modifiedInBeforeModification));
+			assertEquals("modifiedInAfterModification should have a value of 0:  ", zero, entity.getProperty(TestFive.modifiedInAfterModification));
+		}
+
+
+		// 2nd part of the test: modify node
+		try (final Tx tx = app.tx()) {
+
+			final TestFive finalEntity = entity;
+
+			finalEntity.setProperty(TestFive.intProperty, 123);
+			tx.success();
+
+		} catch (Throwable t) {
+			logger.warn("", t);
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			// creation assertions
+			assertEquals("modifiedInBeforeCreation should have a value of 1: ", one, entity.getProperty(TestFive.modifiedInBeforeCreation));
+			assertEquals("modifiedInAfterCreation should have a value of 1:  ", one, entity.getProperty(TestFive.modifiedInAfterCreation));
+
+			// modification assertions
+			assertEquals("modifiedInBeforeModification should have a value of 1: ", one, entity.getProperty(TestFive.modifiedInBeforeModification));
+			assertEquals("modifiedInAfterModification should have a value of 1:  ", one, entity.getProperty(TestFive.modifiedInAfterModification));
+		}
+	}
 
 	@Test
 	public void testConcurrentValidation() {
@@ -134,6 +313,9 @@ public class ConcurrentTests extends StructrTest {
 
 		// verify that only count entities have been created.
 		assertEquals("Invalid concurrent validation result", count, result.size());
+
+
+		executor.shutdownNow();
 	}
 
 	@Test
@@ -215,6 +397,8 @@ public class ConcurrentTests extends StructrTest {
 
 		// verify that only count entities have been created.
 		assertEquals("Invalid concurrent validation result", count, result.size());
+
+		executor.shutdownNow();
 	}
 
 
@@ -302,7 +486,6 @@ public class ConcurrentTests extends StructrTest {
 		}
 	}
 
-
 	@Test
 	public void testConcurrentModificationIsolation() {
 
@@ -346,7 +529,7 @@ public class ConcurrentTests extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> tests = app.nodeQuery(type).getAsList();
+			final List<NodeInterface> tests = app.nodeQuery(type).sort(AbstractNode.name).getAsList();
 			int i                           = 0;
 
 			assertEquals("Invalid result size for concurrent modification test", count*num, tests.size());
@@ -365,6 +548,8 @@ public class ConcurrentTests extends StructrTest {
 			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
+
+		service.shutdownNow();
 	}
 
 	private static class Worker<T> implements Runnable {
@@ -385,7 +570,11 @@ public class ConcurrentTests extends StructrTest {
 
 			for (int i=0; i<num; i++) {
 
-				final String name = "Test" + StringUtils.leftPad(Integer.toString(counter.getAndIncrement()), 3, "0");
+				final int number  = counter.getAndIncrement();
+
+				System.out.println("number: " + number);
+
+				final String name = "Test" + StringUtils.leftPad(Integer.toString(number), 3, "0");
 
 				try (final Tx tx = app.tx()) {
 

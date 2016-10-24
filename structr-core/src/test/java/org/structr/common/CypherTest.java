@@ -22,27 +22,234 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.DatabaseService;
+import org.structr.api.NativeResult;
+import org.structr.api.NotFoundException;
+import org.structr.api.graph.Relationship;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.entity.SixOneManyToMany;
+import org.structr.core.entity.SixOneOneToOne;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSix;
 import org.structr.core.graph.CypherQueryCommand;
+import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.StringProperty;
 
 /**
  *
  */
-public class CypherResultTest extends StructrTest {
+public class CypherTest extends StructrTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(CypherResultTest.class);
+	private static final Logger logger = LoggerFactory.getLogger(CypherTest.class);
+
+	@Test
+	public void test01DeleteAfterLookupWithCypherInTransaction() {
+
+		try {
+
+			final TestSix testSix = this.createTestNode(TestSix.class);
+			final TestOne testOne = this.createTestNode(TestOne.class);
+			SixOneOneToOne rel            = null;
+
+			assertNotNull(testSix);
+			assertNotNull(testOne);
+
+			try (final Tx tx = app.tx()) {
+
+				rel = app.create(testSix, testOne, SixOneOneToOne.class);
+				tx.success();
+			}
+
+			assertNotNull(rel);
+
+			DatabaseService graphDb = app.command(GraphDatabaseCommand.class).execute();
+
+			try (final Tx tx = app.tx()) {
+
+				NativeResult<Relationship> result = graphDb.execute("start n = node(*) match (n)<-[r:ONE_TO_ONE]-() return r");
+				final Iterator<Relationship> rels = result.columnAs("r");
+
+				assertTrue(rels.hasNext());
+
+				rels.next().delete();
+
+				tx.success();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				rel.getUuid();
+				fail("Accessing a deleted relationship should thow an exception.");
+
+				tx.success();
+
+			} catch (NotFoundException iex) {
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+
+	@Test
+	public void test03DeleteDirectly() {
+
+		try {
+
+			final TestOne testOne  = createTestNode(TestOne.class);
+			final TestSix testSix  = createTestNode(TestSix.class);
+			SixOneOneToOne rel     = null;
+
+			assertNotNull(testOne);
+			assertNotNull(testSix);
+
+			try (final Tx tx = app.tx()) {
+
+				rel = app.create(testSix, testOne, SixOneOneToOne.class);
+				tx.success();
+			}
+
+			assertNotNull(rel);
+
+			try (final Tx tx = app.tx()) {
+
+				testOne.getRelationships().iterator().next().getRelationship().delete();
+				tx.success();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				rel.getUuid();
+				fail("Accessing a deleted relationship should thow an exception.");
+
+				tx.success();
+
+			} catch (NotFoundException nfex) {
+				assertNotNull(nfex.getMessage());
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+
+	@Test
+	public void test04DeleteAfterIndexLookup() {
+
+		try {
+
+			final TestOne testOne  = createTestNode(TestOne.class);
+			final TestSix testSix  = createTestNode(TestSix.class);
+			SixOneOneToOne rel     = null;
+
+			assertNotNull(testOne);
+			assertNotNull(testSix);
+
+			try (final Tx tx = app.tx()) {
+
+				rel = app.create(testSix, testOne, SixOneOneToOne.class);
+				tx.success();
+			}
+
+			assertNotNull(rel);
+
+			try (final Tx tx = app.tx()) {
+
+				GraphObject  searchRes = app.getNodeById(testSix.getUuid());
+				assertNotNull(searchRes);
+
+				tx.success();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				testSix.getRelationships().iterator().next().getRelationship().delete();
+
+				tx.success();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				rel.getUuid();
+				fail("Accessing a deleted relationship should thow an exception.");
+
+				tx.success();
+
+			} catch (NotFoundException nfex) {
+				assertNotNull(nfex.getMessage());
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+
+	@Test
+	public void test05RollbackDelete() {
+
+		try {
+
+			final TestOne testOne = createTestNode(TestOne.class);
+			final TestSix testSix = createTestNode(TestSix.class);
+			String relId          = null;
+			SixOneOneToOne rel    = null;
+
+			assertNotNull(testOne);
+			assertNotNull(testSix);
+
+			try (final Tx tx = app.tx()) {
+
+				rel   = app.create(testSix, testOne, SixOneOneToOne.class);
+				relId = rel.getUuid();
+				tx.success();
+			}
+
+			assertNotNull(rel);
+
+			try (final Tx tx = app.tx()) {
+
+				// do not commit transaction
+				testOne.getRelationships().iterator().next().getRelationship().delete();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("UUID of relationship should be readable after rollback", relId, rel.getUuid());
+				tx.success();
+
+			} catch (NotFoundException iex) {
+
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
 
 	@Test
 	public void testCypherResultWrapping() {

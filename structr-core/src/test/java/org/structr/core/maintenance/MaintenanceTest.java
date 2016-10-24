@@ -18,9 +18,14 @@
  */
 package org.structr.core.maintenance;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import static junit.framework.TestCase.assertEquals;
@@ -36,20 +41,216 @@ import org.structr.api.graph.Node;
 import org.structr.api.util.Iterables;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Result;
 import org.structr.core.entity.Group;
+import org.structr.core.entity.TestEleven;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestTwo;
 import org.structr.core.graph.BulkCreateLabelsCommand;
 import org.structr.core.graph.BulkSetNodePropertiesCommand;
+import org.structr.core.graph.ClearDatabase;
+import org.structr.core.graph.SyncCommand;
 import org.structr.core.graph.Tx;
 
 /**
  *
  *
  */
-public class TestBulkCommands extends StructrTest {
+public class MaintenanceTest extends StructrTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(TestBulkCommands.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(MaintenanceTest.class.getName());
+
+	private final static String EXPORT_FILENAME = "___structr-test-export___.zip";
+
+	@Test
+	public void testSyncCommandParameters() {
+
+		try {
+
+			// test failure with non-existing mode
+			try {
+
+				// test failure with wrong mode
+				app.command(SyncCommand.class).execute(toMap("mode", "non-existing-mode", "file", EXPORT_FILENAME));
+				fail("Using SyncCommand with a non-existing mode should throw an exception.");
+
+			} catch (FrameworkException fex) {
+
+				// status: 400
+				assertEquals(400, fex.getStatus());
+				assertEquals("Please specify sync mode (import|export).", fex.getMessage());
+			}
+
+			// test failure with omitted file name
+			try {
+
+				// test failure with wrong mode
+				app.command(SyncCommand.class).execute(toMap("mode", "export"));
+				fail("Using SyncCommand without file parameter should throw an exception.");
+
+			} catch (FrameworkException fex) {
+
+				// status: 400
+				assertEquals(400, fex.getStatus());
+				assertEquals("Please specify sync file.", fex.getMessage());
+			}
+
+		} catch (Exception ex) {
+			logger.warn("", ex);
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testSyncCommandBasicExportImport() {
+
+		try {
+			// create test nodes
+			createTestNodes(TestOne.class, 100);
+
+			// test export
+			app.command(SyncCommand.class).execute(toMap("mode", "export", "file", EXPORT_FILENAME));
+
+			final Path exportFile = Paths.get(EXPORT_FILENAME);
+
+ 			assertTrue("Export file doesn't exist!", Files.exists(exportFile));
+
+			// clear database
+			app.command(ClearDatabase.class).execute();
+
+			// test import
+			app.command(SyncCommand.class).execute(toMap("mode", "import", "file", EXPORT_FILENAME));
+
+			try (final Tx tx = app.tx()) {
+				assertEquals(100, app.nodeQuery(TestOne.class).getResult().size());
+			}
+
+			// clean-up after test
+			Files.delete(exportFile);
+
+		} catch (Exception ex) {
+			logger.warn("", ex);
+			fail("Unexpected exception.");
+		}
+
+	}
+
+	@Test
+	public void testSyncCommandBasicExportImportSmallBatchSize() {
+
+		try {
+			// create test nodes
+			createTestNodes(TestOne.class, 100);
+
+			// test export
+			app.command(SyncCommand.class).execute(toMap("mode", "export", "file", EXPORT_FILENAME));
+
+			final Path exportFile = Paths.get(EXPORT_FILENAME);
+
+ 			assertTrue("Export file doesn't exist!", Files.exists(exportFile));
+
+			// clear database
+			app.command(ClearDatabase.class).execute();
+
+			// test import
+			app.command(SyncCommand.class).execute(toMap("mode", "import", "file", EXPORT_FILENAME, "batchSize", 20L));
+
+			try (final Tx tx = app.tx()) {
+				assertEquals(100, app.nodeQuery(TestOne.class).getResult().size());
+			}
+
+			// clean-up after test
+			Files.delete(exportFile);
+
+		} catch (Exception ex) {
+			logger.warn("", ex);
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testSyncCommandInheritance() {
+
+		try {
+			// create test nodes
+			final List<TestEleven> testNodes = createTestNodes(TestEleven.class, 10);
+
+			try (final Tx tx = app.tx()) {
+
+				for (final TestEleven node : testNodes) {
+
+					Iterable<Label> labels = node.getNode().getLabels();
+
+					assertEquals(7, Iterables.count(labels));
+
+					for (final Label label : labels) {
+						System.out.print(label.name() + " ");
+					}
+					System.out.println();
+
+					assertEquals("First label has to be AbstractNode",       Iterables.toList(labels).get(0).name(), "AbstractNode");
+					assertEquals("Second label has to be NodeInterface",     Iterables.toList(labels).get(1).name(), "NodeInterface");
+					assertEquals("Third label has to be AccessControllable", Iterables.toList(labels).get(2).name(), "AccessControllable");
+					assertEquals("Fourth label has to be CMISInfo",          Iterables.toList(labels).get(3).name(), "CMISInfo");
+					assertEquals("Firth label has to be CMISItemInfo",       Iterables.toList(labels).get(4).name(), "CMISItemInfo");
+					assertEquals("Sixth label has to be TestOne",            Iterables.toList(labels).get(5).name(), "TestOne");
+					assertEquals("Seventh label has to be TestEleven",       Iterables.toList(labels).get(6).name(), "TestEleven");
+				}
+
+				tx.success();
+			}
+
+
+			// test export
+			app.command(SyncCommand.class).execute(toMap("mode", "export", "file", EXPORT_FILENAME));
+
+			final Path exportFile = Paths.get(EXPORT_FILENAME);
+
+ 			assertTrue("Export file doesn't exist!", Files.exists(exportFile));
+
+			// stop existing and start new database
+			stopSystem();
+			startSystem(Collections.emptyMap());
+
+			// test import
+			app.command(SyncCommand.class).execute(toMap("mode", "import", "file", EXPORT_FILENAME));
+
+			final DatabaseService db = app.getDatabaseService();
+
+
+			try (final Tx tx = app.tx()) {
+
+				final Result<TestEleven> result = app.nodeQuery(TestEleven.class).getResult();
+				assertEquals(10, result.size());
+
+				for (final TestEleven node : result.getResults()) {
+
+					Iterable<Label> labels = node.getNode().getLabels();
+					final Set<Label> set   = new HashSet<>(Iterables.toList(labels));
+
+					assertEquals(7, set.size());
+
+					assertTrue("First label has to be AbstractNode",       set.contains(db.forName(Label.class, "AbstractNode")));
+					assertTrue("Second label has to be NodeInterface",     set.contains(db.forName(Label.class, "NodeInterface")));
+					assertTrue("Third label has to be AccessControllable", set.contains(db.forName(Label.class, "AccessControllable")));
+					assertTrue("Fourth label has to be CMISInfo",          set.contains(db.forName(Label.class, "CMISInfo")));
+					assertTrue("Firth label has to be CMISItemInfo",       set.contains(db.forName(Label.class, "CMISItemInfo")));
+					assertTrue("Sixth label has to be TestEleven",         set.contains(db.forName(Label.class, "TestEleven")));
+					assertTrue("Seventh label has to be TestOne",          set.contains(db.forName(Label.class, "TestOne")));
+
+				}
+
+				tx.success();
+			}
+
+			// clean-up after test
+			Files.delete(exportFile);
+
+		} catch (Exception ex) {
+			logger.warn("", ex);
+			fail("Unexpected exception.");
+		}
+	}
 
 	@Test
 	public void testBulkCreateLabelsCommand() {

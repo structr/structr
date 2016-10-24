@@ -29,6 +29,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.StructrTest;
@@ -39,6 +40,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
@@ -55,10 +57,11 @@ import org.structr.schema.json.JsonType;
  *
  *
  */
-public class StructrSchemaTest extends StructrTest {
+public class SchemaTest extends StructrTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(StructrSchemaTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(SchemaTest.class.getName());
 
+	@Test
 	public void test00SimpleProperties() {
 
 		try {
@@ -150,6 +153,7 @@ public class StructrSchemaTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test01Inheritance() {
 
 		// we need to wait for the schema service to be initialized here.. :(
@@ -183,6 +187,7 @@ public class StructrSchemaTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test02SimpleSymmetricReferences() {
 
 		// we need to wait for the schema service to be initialized here.. :(
@@ -235,6 +240,7 @@ public class StructrSchemaTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test03SchemaBuilder() {
 
 		// we need to wait for the schema service to be initialized here.. :(
@@ -321,6 +327,7 @@ public class StructrSchemaTest extends StructrTest {
 		}
 	}
 
+	@Test
 	public void test04ManualSchemaRelatedPropertyNameCreation() {
 
 		try {
@@ -348,6 +355,7 @@ public class StructrSchemaTest extends StructrTest {
 		}
 	}
 
+	@Test
 	public void test05SchemaRelatedPropertyNameCreationWithPresets() {
 
 		try {
@@ -368,6 +376,7 @@ public class StructrSchemaTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test06SchemaRelatedPropertyNameCreationWithoutPresets() {
 
 		try {
@@ -385,6 +394,52 @@ public class StructrSchemaTest extends StructrTest {
 			t.printStackTrace();
 		}
 
+	}
+
+	@Test
+	public void test00DeleteSchemaRelationshipInView() {
+
+		SchemaRelationshipNode rel = null;
+
+		try (final Tx tx = app.tx()) {
+
+			// create source and target node
+			final SchemaNode fooNode = app.create(SchemaNode.class, "Foo");
+			final SchemaNode barNode = app.create(SchemaNode.class, "Bar");
+
+			// create relationship
+			rel = app.create(SchemaRelationshipNode.class,
+				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, fooNode),
+				new NodeAttribute<>(SchemaRelationshipNode.targetNode, barNode),
+				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "narf")
+			);
+
+			// create "public" view that contains the related property
+			app.create(SchemaView.class,
+				new NodeAttribute<>(SchemaView.name, "public"),
+				new NodeAttribute<>(SchemaView.schemaNode, fooNode),
+				new NodeAttribute<>(SchemaView.nonGraphProperties, "type, id, narfBars")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.delete(rel);
+			tx.success();
+
+		} catch (Throwable t) {
+
+			// deletion of relationship should not fail
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
 	}
 
 	// ----- private methods -----

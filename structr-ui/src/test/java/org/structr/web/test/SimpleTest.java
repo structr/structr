@@ -71,9 +71,9 @@ import org.w3c.dom.Text;
  *
  * @author Christian Morgner
  */
-public class SimpleTestSuite extends StructrUiTest {
+public class SimpleTest extends StructrUiTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(SimpleTestSuite.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(SimpleTest.class.getName());
 
 	@Test
 	public void test01CreatePage() {

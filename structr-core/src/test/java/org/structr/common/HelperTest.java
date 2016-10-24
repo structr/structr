@@ -18,16 +18,48 @@
  */
 package org.structr.common;
 
-import static junit.framework.TestCase.assertEquals;
+import java.util.Calendar;
+import java.util.Date;
+import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 /**
  *
- *
  */
+public class HelperTest {
 
+	@Test
+	public void test01AppointmentsSize(){
 
-public class CaseHelperTest extends StructrTest {
+		final Calendar cal = Calendar.getInstance();
+		cal.set(2013, 07, 01);
+
+		final Date startDate = new Date(cal.getTimeInMillis());
+		cal.set(2013, 07,02);
+
+		final Date endDate = new Date(cal.getTimeInMillis());
+
+		final String weekdays        = "Mo,Di,Mi,Do,Fr,Sa,So";
+		final String startTimeString = "14:00";
+		final String endTimeString   = "17:00";
+
+		int expResult = 0;
+
+		int result1 = RecurringDateHelper.generateAppointments(null, null, null, null, null).size();
+		assertEquals("result1: Appointments not empty",expResult, result1);
+
+		int result2 = RecurringDateHelper.generateAppointments(null, null, "", "", "").size();
+		assertEquals("result2: Appointments not empty",expResult, result2);
+
+		int result3 = RecurringDateHelper.generateAppointments(startDate, endDate, weekdays, startTimeString, "").size();
+		assertEquals("result3: Appointments not empty",expResult, result3);
+
+		int result4 = RecurringDateHelper.generateAppointments(startDate, endDate, weekdays, "", endTimeString).size();
+		assertEquals("result4: Appointments not empty",expResult, result4);
+
+		int result5 = RecurringDateHelper.generateAppointments(startDate, endDate, "", startTimeString, endTimeString).size();
+		assertEquals("result5: Appointments not empty",expResult, result5);
+	}
 
 	@Test
 	public void testCaseConversion() {
@@ -67,27 +99,5 @@ public class CaseHelperTest extends StructrTest {
 		assertEquals("Blogentries", CaseHelper.toUpperCamelCase("Blogentries"));
 		assertEquals("blogentries", CaseHelper.toUnderscore("Blogentries", true));
 		assertEquals("blogentries", CaseHelper.toUnderscore("Blogentries", false));
-
-		// not working right now..
-//		assertEquals("URL", CaseHelper.toUpperCamelCase("URL"));
-//		assertEquals("urls", CaseHelper.toUnderscore("URL", true));
-//		assertEquals("url", CaseHelper.toUnderscore("URL", false));
-//
-//		assertEquals("URLs", CaseHelper.toUpperCamelCase("URLs"));
-//		assertEquals("urls", CaseHelper.toUnderscore("URLs", true));
-//		assertEquals("urls", CaseHelper.toUnderscore("URLs", false));
-//
-//		assertEquals("TestRELATEDProject", CaseHelper.toUpperCamelCase("TestRELATEDProject"));
-//		assertEquals("test_related_projects", CaseHelper.toUnderscore("TestRELATEDProject", true));
-//		assertEquals("test_related_project", CaseHelper.toUnderscore("TestRELATEDProject", false));
-//
-//		assertEquals("TestRELATEDProjects", CaseHelper.toUpperCamelCase("TestRELATEDProjects"));
-//		assertEquals("test_related_projects", CaseHelper.toUnderscore("TestRELATEDProjects", true));
-//		assertEquals("test_related_projects", CaseHelper.toUnderscore("TestRELATEDProjects", false));
-//
-//		assertEquals("URLandURI", CaseHelper.toUpperCamelCase("URLandURI"));
-//		assertEquals("url_and_uri", CaseHelper.toUnderscore("URLandURI", true));
-//		assertEquals("url_and_uri", CaseHelper.toUnderscore("URLandURI", false));
-
 	}
 }

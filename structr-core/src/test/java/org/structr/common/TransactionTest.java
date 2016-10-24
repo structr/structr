@@ -26,9 +26,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.apache.commons.lang3.StringUtils;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -52,7 +52,7 @@ import org.structr.schema.action.ActionContext;
  */
 public class TransactionTest extends StructrTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(TransactionTest.class.getName());
+	private static final Logger logger         = LoggerFactory.getLogger(TransactionTest.class);
 
 	@Test
 	public void testRollbackOnError () {
@@ -202,6 +202,8 @@ public class TransactionTest extends StructrTest {
 		} catch (FrameworkException ex) {
 			fail("Unexpected exception");
 		}
+
+		service.shutdownNow();
 	}
 
 	@Test
@@ -241,6 +243,8 @@ public class TransactionTest extends StructrTest {
 			for (final TestRunner runner : tests) {
 				assertTrue("Could not validate transaction isolation", runner.success());
 			}
+
+			executor.shutdownNow();
 
 		} catch (Throwable fex) {
 			fail("Unexpected exception");
@@ -285,6 +289,8 @@ public class TransactionTest extends StructrTest {
 				assertTrue("Could not validate transaction isolation", runner.success());
 			}
 
+			executor.shutdownNow();
+
 		} catch (Throwable fex) {
 			fail("Unexpected exception");
 		}
@@ -315,6 +321,8 @@ public class TransactionTest extends StructrTest {
 
 				tx.success();
 			}
+
+			service.shutdownNow();
 
 		} catch (ExecutionException | InterruptedException | FrameworkException fex) {
 			fex.printStackTrace();

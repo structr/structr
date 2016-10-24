@@ -54,6 +54,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.module.JarConfigurationProvider;
@@ -88,6 +89,118 @@ public class StructrTest {
 			System.out.println("######################################################################################");
 		}
 	};
+
+	@After
+	public void cleanDatabase() {
+
+		try (final Tx tx = app.tx()) {
+
+			for (final NodeInterface node : app.nodeQuery().getAsList()) {
+				app.delete(node);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			 logger.error("Exception while trying to clean database: {}", fex);
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			for (final RelationshipInterface rel : app.relationshipQuery().getAsList()) {
+				app.delete(rel);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			 logger.error("Exception while trying to clean database: {}", fex);
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.cypher("MATCH (n)-[r]-(m) DELETE n, r, m", Collections.emptyMap());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			 logger.error("Exception while trying to clean database: {}", fex);
+		}
+	}
+
+	@BeforeClass
+	public static void startSystem() {
+		startSystem(Collections.emptyMap());
+	}
+
+	public static void startSystem(final Map<String, Object> additionalConfig) {
+
+		final Properties config = Services.getBaseConfiguration();
+		final Date now          = new Date();
+		final long timestamp    = now.getTime();
+
+		basePath = "/tmp/structr-test-" + timestamp;
+
+		// enable "just testing" flag to avoid JAR resource scanning
+		config.setProperty(Services.TESTING, "true");
+
+		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService SchemaService");
+		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
+		config.setProperty(Structr.DATABASE_CONNECTION_URL, Structr.TEST_DATABASE_URL);
+		config.setProperty(Services.TMP_PATH, "/tmp/");
+		config.setProperty(Services.BASE_PATH, basePath);
+		config.setProperty(Structr.DATABASE_PATH, basePath + "/db");
+		config.setProperty(Structr.RELATIONSHIP_CACHE_SIZE, "1000");
+		config.setProperty(Structr.NODE_CACHE_SIZE, "1000");
+		config.setProperty(Services.FILES_PATH, basePath + "/files");
+		config.setProperty(Services.LOG_DATABASE_PATH, basePath + "/logDb.dat");
+		config.setProperty(Services.TCP_PORT, (System.getProperty("tcpPort") != null ? System.getProperty("tcpPort") : "13465"));
+		config.setProperty(Services.UDP_PORT, (System.getProperty("udpPort") != null ? System.getProperty("udpPort") : "13466"));
+		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
+		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
+
+		if (additionalConfig != null) {
+			config.putAll(additionalConfig);
+		}
+
+		final Services services = Services.getInstanceForTesting(config);
+
+		// wait for service layer to be initialized
+		do {
+			try {
+				Thread.sleep(100);
+			} catch (Throwable t) {
+			}
+
+		} while (!services.isInitialized());
+
+		securityContext = SecurityContext.getSuperUserInstance();
+		app = StructrApp.getInstance(securityContext);
+	}
+
+	@AfterClass
+	public static void stopSystem() {
+
+		Services.getInstance().shutdown();
+
+		try {
+			File testDir = new File(basePath);
+			if (testDir.isDirectory()) {
+
+				FileUtils.deleteDirectory(testDir);
+
+			} else {
+
+				testDir.delete();
+			}
+
+		} catch (Throwable t) {
+			logger.warn("", t);
+		}
+	}
 
 	/**
 	 * Recursive method used to find all classes in a given directory and
@@ -331,93 +444,5 @@ public class StructrTest {
 
 		return classList;
 
-	}
-
-	@After
-	public void cleanDatabase() {
-
-		try (final Tx tx = app.tx()) {
-
-			for (final NodeInterface node : app.nodeQuery().getAsList()) {
-				app.delete(node);
-			}
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			 logger.error("Exception while trying to clean database: {}", fex);
-		}
-	}
-
-	@BeforeClass
-	public static void startSystem() {
-		startSystem(Collections.emptyMap());
-	}
-
-	public static void startSystem(final Map<String, Object> additionalConfig) {
-
-		final Properties config = Services.getBaseConfiguration();
-		final Date now          = new Date();
-		final long timestamp    = now.getTime();
-
-		basePath = "/tmp/structr-test-" + timestamp;
-
-		// enable "just testing" flag to avoid JAR resource scanning
-		config.setProperty(Services.TESTING, "true");
-
-		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService SchemaService");
-		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
-		config.setProperty(Structr.DATABASE_CONNECTION_URL, Structr.TEST_DATABASE_URL);
-		config.setProperty(Services.TMP_PATH, "/tmp/");
-		config.setProperty(Services.BASE_PATH, basePath);
-		config.setProperty(Structr.DATABASE_PATH, basePath + "/db");
-		config.setProperty(Structr.RELATIONSHIP_CACHE_SIZE, "1000");
-		config.setProperty(Structr.NODE_CACHE_SIZE, "1000");
-		config.setProperty(Services.FILES_PATH, basePath + "/files");
-		config.setProperty(Services.LOG_DATABASE_PATH, basePath + "/logDb.dat");
-		config.setProperty(Services.TCP_PORT, (System.getProperty("tcpPort") != null ? System.getProperty("tcpPort") : "13465"));
-		config.setProperty(Services.UDP_PORT, (System.getProperty("udpPort") != null ? System.getProperty("udpPort") : "13466"));
-		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
-		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
-
-		if (additionalConfig != null) {
-			config.putAll(additionalConfig);
-		}
-
-		final Services services = Services.getInstanceForTesting(config);
-
-		// wait for service layer to be initialized
-		do {
-			try {
-				Thread.sleep(100);
-			} catch (Throwable t) {
-			}
-
-		} while (!services.isInitialized());
-
-		securityContext = SecurityContext.getSuperUserInstance();
-		app = StructrApp.getInstance(securityContext);
-	}
-
-	@AfterClass
-	public static void stopSystem() {
-
-		Services.getInstance().shutdown();
-
-		try {
-			File testDir = new File(basePath);
-			if (testDir.isDirectory()) {
-
-				FileUtils.deleteDirectory(testDir);
-
-			} else {
-
-				testDir.delete();
-			}
-
-		} catch (Throwable t) {
-			logger.warn("", t);
-		}
 	}
 }

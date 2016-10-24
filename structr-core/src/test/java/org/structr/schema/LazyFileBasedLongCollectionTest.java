@@ -35,7 +35,7 @@ import org.structr.schema.importer.LazyFileBasedLongCollection;
  */
 public class LazyFileBasedLongCollectionTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(LazyFileBasedLongCollectionTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(LazyFileBasedLongCollectionTest.class);
 
 	@Test
 	public void testCollection() {
