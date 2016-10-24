@@ -35,11 +35,13 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.notion.TypeAndPropertySetDeserializationStrategy;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.common.TestEnum;
 import org.structr.rest.entity.TestThree;
+import org.structr.rest.entity.TestTwo;
 import org.structr.rest.entity.TestUser;
 
 /**
@@ -1077,68 +1079,55 @@ public class AdvancedSearchTest extends StructrRestTest {
 		}
 	}
 
-	/* disabled, failing test
-	public void testQueriesOnFunctionProperties() {
+	@Test
+	public void testStaticRelationshipResourceFilter() {
 
-		String customerId = null;
+		String test01 = createEntity("/test_sixs", "{ name: test01, aString: string01, anInt: 1 }");
+		String test02 = createEntity("/test_sixs", "{ name: test02, aString: string02, anInt: 2 }");
+		String test03 = createEntity("/test_sixs", "{ name: test03, aString: string03, anInt: 3 }");
+		String test04 = createEntity("/test_sixs", "{ name: test04, aString: string04, anInt: 4 }");
+		String test05 = createEntity("/test_sixs", "{ name: test05, aString: string05, anInt: 5 }");
+		String test06 = createEntity("/test_sixs", "{ name: test06, aString: string06, anInt: 6 }");
+		String test07 = createEntity("/test_sixs", "{ name: test07, aString: string07, anInt: 7 }");
+		String test08 = createEntity("/test_sixs", "{ name: test08, aString: string08, anInt: 8 }");
 
-		try (final Tx tx = app.tx()) {
+		String test09 = createEntity("/test_sevens", "{ name: test09, testSixIds: [", test01, ",", test02, "], aString: string09, anInt: 9 }");
+		String test10 = createEntity("/test_sevens", "{ name: test10, testSixIds: [", test03, ",", test04, "], aString: string10, anInt: 10 }");
+		String test11 = createEntity("/test_sevens", "{ name: test11, testSixIds: [", test05, ",", test06, "], aString: string11, anInt: 11 }");
+		String test12 = createEntity("/test_sevens", "{ name: test12, testSixIds: [", test07, ",", test08, "], aString: string12, anInt: 12 }");
 
-			// setup test schema
-			final SchemaNode customerType = app.create(SchemaNode.class, "Customer");
-			final SchemaNode projectType  = app.create(SchemaNode.class, "Project");
+		String test13 = createEntity("/test_eights", "{ name: test13, testSixIds: [", test01, ",", test02, "], aString: string13, anInt: 13 }");
+		String test14 = createEntity("/test_eights", "{ name: test14, testSixIds: [", test02, ",", test03, "], aString: string14, anInt: 14 }");
+		String test15 = createEntity("/test_eights", "{ name: test15, testSixIds: [", test03, ",", test04, "], aString: string15, anInt: 15 }");
+		String test16 = createEntity("/test_eights", "{ name: test16, testSixIds: [", test04, ",", test05, "], aString: string16, anInt: 16 }");
+		String test17 = createEntity("/test_eights", "{ name: test17, testSixIds: [", test05, ",", test06, "], aString: string17, anInt: 17 }");
+		String test18 = createEntity("/test_eights", "{ name: test18, testSixIds: [", test06, ",", test07, "], aString: string18, anInt: 18 }");
+		String test19 = createEntity("/test_eights", "{ name: test19, testSixIds: [", test07, ",", test08, "], aString: string19, anInt: 19 }");
+		String test20 = createEntity("/test_eights", "{ name: test20, testSixIds: [", test08, ",", test01, "], aString: string20, anInt: 20 }");
 
-			app.create(SchemaRelationshipNode.class,
-				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, customerType),
-				new NodeAttribute<>(SchemaRelationshipNode.targetNode, projectType),
-				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "has"),
-				new NodeAttribute<>(SchemaRelationshipNode.sourceMultiplicity, "1"),
-				new NodeAttribute<>(SchemaRelationshipNode.targetMultiplicity, "*"),
-				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "customer"),
-				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "projects")
-			);
+		// test simple related node search
+		RestAssured
 
-			customerType.setProperty(new StringProperty("_projectCount"), "Function(size(this.projects))");
-			customerType.setProperty(new StringProperty("_hasProjects"), "Function(gt(this.projectCount, 0))");
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
-			tx.success();
+			.expect()
+				.statusCode(200)
 
-		} catch (FrameworkException ex) {
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
+				.body("result[0].id", equalTo(test13))
 
-			logger.warn("", ex);
-			fail("Unexpected exception");
+			.when()
+				.get(concat("/test_sixs/", test01, "/testEights?aString=string13&anInt=13"));
 
-		}
-
-		try (final Tx tx = app.tx()) {
-
-			final Class customerType   = StructrApp.getConfiguration().getNodeEntityClass("Customer");
-			final Class projectType    = StructrApp.getConfiguration().getNodeEntityClass("Project");
-			final PropertyKey projects = StructrApp.getConfiguration().getPropertyKeyForJSONName(customerType, "projects");
-
-			final List<NodeInterface> projectList = new LinkedList<>();
-
-			projectList.add(app.create(projectType, "Project 1"));
-			projectList.add(app.create(projectType, "Project 2"));
-
-			// create a customer with the two projects
-			customerId = app.create(customerType,
-				new NodeAttribute<>(AbstractNode.name, "Customer 1"),
-				new NodeAttribute<>(projects, projectList)
-			).getUuid();
-
-			// create a second customer without projects
-			app.create(customerType, "Customer 2");
-
-			tx.success();
-
-		} catch (FrameworkException ex) {
-
-			logger.warn("", ex);
-			fail("Unexpected exception");
-
-		}
-
+		// test simple related node search with range query
 		RestAssured
 
 			.given()
@@ -1155,51 +1144,119 @@ public class AdvancedSearchTest extends StructrRestTest {
 
 				.body("result",	      hasSize(2))
 				.body("result_count", equalTo(2))
+				.body("result[0].id", equalTo(test14))
+				.body("result[1].id", equalTo(test15))
 
 			.when()
-				.get(concat("/Customer/ui"));
-
-		RestAssured
-
-			.given()
-				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-
-			.expect()
-				.statusCode(200)
-
-				.body("result",	      hasSize(1))
-				.body("result_count", equalTo(1))
-				.body("result[0].id", equalTo(customerId))
-
-			.when()
-				.get(concat("/Customer?hasProjects=true"));
-
-		RestAssured
-
-			.given()
-				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-
-			.expect()
-				.statusCode(200)
-
-				.body("result",	      hasSize(1))
-				.body("result_count", equalTo(1))
-				.body("result[0].id", equalTo(customerId))
-
-			.when()
-				.get(concat("/Customer?projectCount=2"));
+				.get(concat("/test_sixs/", test03, "/testEights?anInt=[14 TO 18]"));
 	}
-	*/
+
+	/**
+	 * Tests {@link TypeAndPropertySetDeserializationStrategy} for ambiguity avoidance.
+	 *
+	 * Before fixing a bug in {@link TypeAndPropertySetDeserializationStrategy}, the creation
+	 * of test03 was not possible because the a search was conducted internally with the values
+	 * given in the 'testSeven' object, and the result was ambiguous.
+	 */
+	@Test
+	public void testAmbiguity() {
+
+		// Create a TestTen with a TestSeven on the fly with {'aString':'test'}
+		createEntity("/test_tens", "{ 'name': 'test01', 'testSeven':{ 'aString' : 'test' } }");
+
+		// Create another TestSeven with {'aString':'test'}
+		createEntity("/test_sevens", "{ 'aString': 'test' }");
+
+		// Create another TestTen with another TestSeven on the fly
+		createEntity("/test_tens", "{ 'name': 'test02', 'testSeven':{ 'aString' : 'test' } }");
+	}
+
+	@Test
+	public void testPropertyViewsAndResultSetLayout() {
+
+		String resource = "/test_twos";
+
+		// create entity
+		final String uuid = getUuidFromLocation(RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.header("Accept", "application/json; charset=UTF-8")
+				.body(" { 'name' : 'TestTwo-0', 'anInt' : 0, 'aLong' : 0, 'aDate' : '2012-09-18T00:33:12+0200' } ")
+
+			.expect()
+				.statusCode(201)
+
+			.when()
+				.post(resource).getHeader("Location")
+		);
+
+		// test default view with properties in it
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.header("Accept", "application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+
+			.expect()
+				.statusCode(200)
+				.body("query_time",                 notNullValue())
+				.body("serialization_time",         notNullValue())
+				.body("result_count",               equalTo(1))
+				.body("result",                     hasSize(1))
+
+				.body("result[0]",                  isEntity(TestTwo.class))
+
+				.body("result[0].id",               equalTo(uuid))
+				.body("result[0].type",	            equalTo(TestTwo.class.getSimpleName()))
+				.body("result[0].name",             equalTo("TestTwo-0"))
+				.body("result[0].anInt",            equalTo(0))
+				.body("result[0].aLong",            equalTo(0))
+				.body("result[0].aDate",            equalTo("2012-09-17T22:33:12+0000"))
+
+			.when()
+				.get(resource);
+
+
+		// test all view with properties in it
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.header("Accept", "application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+
+			.expect()
+				.statusCode(200)
+				.body("query_time",                            notNullValue())
+				.body("serialization_time",                    notNullValue())
+				.body("result_count",                          equalTo(1))
+				.body("result",                                hasSize(1))
+
+				.body("result[0]",                             isEntity(TestTwo.class))
+
+				.body("result[0].id",                          equalTo(uuid))
+				.body("result[0].type",	                       equalTo(TestTwo.class.getSimpleName()))
+				.body("result[0].name",                        equalTo("TestTwo-0"))
+				.body("result[0].anInt",                       equalTo(0))
+				.body("result[0].aLong",                       equalTo(0))
+				.body("result[0].aDate",                       equalTo("2012-09-17T22:33:12+0000"))
+				.body("result[0].test_ones",                   notNullValue())
+				.body("result[0].base",                        nullValue())
+				.body("result[0].createdDate",                 notNullValue())
+				.body("result[0].lastModifiedDate",            notNullValue())
+				.body("result[0].visibleToPublicUsers",        equalTo(false))
+				.body("result[0].visibleToAuthenticatedUsers", equalTo(false))
+				.body("result[0].visibilityStartDate",         nullValue())
+				.body("result[0].visibilityEndDate",           nullValue())
+				.body("result[0].createdBy",                   nullValue())
+				.body("result[0].deleted",                     equalTo(false))
+				.body("result[0].hidden",                      equalTo(false))
+				.body("result[0].owner",                       nullValue())
+				.body("result[0].ownerId",                     nullValue())
+
+			.when()
+				.get(concat(resource, "/all"));
+	}
 }
