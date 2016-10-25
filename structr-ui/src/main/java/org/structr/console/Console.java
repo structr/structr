@@ -180,6 +180,18 @@ public class Console {
 		return this.password;
 	}
 
+	public Map<String, Object> getVariables() {
+		return actionContext.getAllVariables();
+	}
+
+	public void store(final String key, final Object value) {
+		actionContext.store(key, value);
+	}
+
+	public Object retrieve(final String key) {
+		return actionContext.retrieve(key);
+	}
+
 	// ----- private methods -----
 	private void runCypher(final String line, final Writable writable) throws FrameworkException, IOException {
 

@@ -140,7 +140,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 			if (terminalType.startsWith("xterm") || terminalType.startsWith("vt100") || terminalType.startsWith("vt220")) {
 
 				term = new XTermTerminalEmulator(in, out, this);
-				
+
 			} else {
 
 				logger.warn("Unsupported terminal type {}, aborting.", terminalType);
@@ -217,34 +217,41 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 				buf.append(line);
 			}
 
-			checkForBlockChars(line.trim());
+			if ("exit".equals(line) || "quit".equals(line)) {
 
-			if (!insideOfBlockOrStructure()) {
+					term.stopEmulator();
 
-				commandHistory.add(buf.toString());
+			} else {
 
-				try (final Tx tx = StructrApp.getInstance(console.getSecurityContext()).tx()) {
+				checkForBlockChars(line.trim());
 
-					console.run(buf.toString(), term);
+				if (!insideOfBlockOrStructure()) {
 
-					tx.success();
+					commandHistory.add(buf.toString());
 
-				} catch (Throwable t) {
+					try (final Tx tx = StructrApp.getInstance(console.getSecurityContext()).tx()) {
 
-					final String message = t.getMessage();
-					if (message != null) {
+						console.run(buf.toString(), term);
 
-						term.println(message);
+						tx.success();
 
-					} else {
+					} catch (Throwable t) {
 
-						t.printStackTrace();
-						term.println(t.getClass().getSimpleName() + " encountered.");
+						final String message = t.getMessage();
+						if (message != null) {
+
+							term.println(message);
+
+						} else {
+
+							t.printStackTrace();
+							term.println(t.getClass().getSimpleName() + " encountered.");
+						}
 					}
+
+					clearBlockStatus();
+
 				}
-
-				clearBlockStatus();
-
 			}
 		}
 	}

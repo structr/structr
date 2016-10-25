@@ -87,7 +87,7 @@ public abstract class RestCommand {
 	}
 
 	protected String getBasePath() {
-		return "/structr/rest";
+		return "/structr/rest/";
 	}
 
 	// ----- public static methods -----

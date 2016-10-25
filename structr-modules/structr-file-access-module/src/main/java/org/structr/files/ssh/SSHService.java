@@ -200,13 +200,32 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 				securityContext = SecurityContext.getInstance(principal, AccessMode.Backend);
 
+				// check single (main) pubkey
 				final String pubKeyData = principal.getProperty(Principal.publicKey);
-
 				if (pubKeyData != null) {
 
 					final PublicKey pubKey = PublicKeyEntry.parsePublicKeyEntry(pubKeyData).resolvePublicKey(PublicKeyEntryResolver.FAILING);
 
 					isValid = KeyUtils.compareKeys(pubKey, key);
+
+				}
+
+				// check array of pubkeys for this user
+				final String[] pubKeysData = principal.getProperty(Principal.publicKeys);
+				if (pubKeysData != null) {
+
+					for (final String k : pubKeysData) {
+
+						if (k != null) {
+							final PublicKey pubKey = PublicKeyEntry.parsePublicKeyEntry(k).resolvePublicKey(PublicKeyEntryResolver.FAILING);
+							if (KeyUtils.compareKeys(pubKey, key)) {
+
+								isValid = true;
+								break;
+							}
+						}
+					}
+
 				}
 			}
 
@@ -224,7 +243,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 			}
 
 		} catch (IOException ex) {
-			logger.error("", ex);
+			logger.error("Unable to authenticate session", ex);
 		}
 
 		return isValid;

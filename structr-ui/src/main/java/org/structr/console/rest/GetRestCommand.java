@@ -40,7 +40,7 @@ public class GetRestCommand extends RestCommand {
 	@Override
 	public void run(final Console console, final Writable writable) throws FrameworkException, IOException {
 
-		final String requestUrl = "http://localhost:8082/structr/rest/" + uri;
+		final String requestUrl = getBaseUrl() + getBasePath() + uri;
 		final String trimmed    = body != null ? body.trim() : null;
 		final Response response = request(console).get(requestUrl);
 
