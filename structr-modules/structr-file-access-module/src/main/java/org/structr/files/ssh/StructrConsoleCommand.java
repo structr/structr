@@ -203,56 +203,68 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 	@Override
 	public void handleLine(final String line) throws IOException {
 
-		term.flush();
+		try {
+			term.flush();
 
-		if (StringUtils.isNotBlank(line)) {
+			if (StringUtils.isNotBlank(line)) {
 
-			if (insideOfBlockOrStructure()) {
+				if (insideOfBlockOrStructure()) {
 
-				buf.append(line);
-				buf.append("\r\n");
+					buf.append(line);
+					buf.append("\r\n");
 
-			} else {
+				} else {
 
-				buf.append(line);
-			}
+					buf.append(line);
+				}
 
-			if ("exit".equals(line) || "quit".equals(line)) {
+				if ("exit".equals(line) || "quit".equals(line)) {
 
-					term.stopEmulator();
+						term.stopEmulator();
 
-			} else {
+				} else {
 
-				checkForBlockChars(line.trim());
+					checkForBlockChars(line.trim());
 
-				if (!insideOfBlockOrStructure()) {
+					if (!insideOfBlockOrStructure()) {
 
-					commandHistory.add(buf.toString());
+						final String command = buf.toString();
 
-					try (final Tx tx = StructrApp.getInstance(console.getSecurityContext()).tx()) {
+						clearBlockStatus();
 
-						console.run(buf.toString(), term);
+						commandHistory.add(command);
 
-						tx.success();
+						try (final Tx tx = StructrApp.getInstance(console.getSecurityContext()).tx()) {
 
-					} catch (Throwable t) {
+							console.run(command, term);
 
-						final String message = t.getMessage();
-						if (message != null) {
+							tx.success();
 
-							term.println(message);
+						} catch (Throwable t) {
 
-						} else {
+							final String message = t.getMessage();
+							if (message != null) {
 
-							t.printStackTrace();
-							term.println(t.getClass().getSimpleName() + " encountered.");
+								term.println(message);
+
+							} else {
+
+								t.printStackTrace();
+								term.println(t.getClass().getSimpleName() + " encountered.");
+							}
 						}
 					}
-
-					clearBlockStatus();
-
 				}
 			}
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			term.println(t.getClass().getSimpleName() + " encountered.");
+
+		} finally {
+
+			term.flush();
 		}
 	}
 
@@ -401,59 +413,63 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 	private void checkForBlockChars(final String line) {
 
-		for (final char c : line.toCharArray()) {
+		try {
 
-			switch (c) {
+			for (final char c : line.toCharArray()) {
 
-				case '{':
-					lastBlockChars.append("{");
-					inBlock++;
-					break;
+				switch (c) {
 
-				case '}':
-					lastBlockChars.setLength(lastBlockChars.length() - 1);
-					inBlock--;
-					break;
+					case '{':
+						lastBlockChars.append("{");
+						inBlock++;
+						break;
 
-				case '[':
-					lastBlockChars.append("[");
-					inArray++;
-					break;
+					case '}':
+						lastBlockChars.setLength(Math.max(0, lastBlockChars.length() - 1));
+						inBlock--;
+						break;
 
-				case ']':
-					lastBlockChars.setLength(lastBlockChars.length() - 1);
-					inArray--;
-					break;
+					case '[':
+						lastBlockChars.append("[");
+						inArray++;
+						break;
 
-				case '(':
-					lastBlockChars.append("(");
-					inBraces++;
-					break;
+					case ']':
+						lastBlockChars.setLength(Math.max(0, lastBlockChars.length() - 1));
+						inArray--;
+						break;
 
-				case ')':
-					lastBlockChars.setLength(lastBlockChars.length() - 1);
-					inBraces--;
-					break;
+					case '(':
+						lastBlockChars.append("(");
+						inBraces++;
+						break;
 
-				case '"':
-					inDoubleQuotes++;
-					if ((inDoubleQuotes % 2) == 0) {
-						lastBlockChars.setLength(lastBlockChars.length() - 1);
-					} else {
-						lastBlockChars.append("\"");
-					}
-					break;
+					case ')':
+						lastBlockChars.setLength(Math.max(0, lastBlockChars.length() - 1));
+						inBraces--;
+						break;
 
-				case '\'':
-					inSingleQuotes++;
-					if ((inSingleQuotes % 2) == 0) {
-						lastBlockChars.setLength(lastBlockChars.length() - 1);
-					} else {
-						lastBlockChars.append("'");
-					}
-					break;
+					case '"':
+						inDoubleQuotes++;
+						if ((inDoubleQuotes % 2) == 0) {
+							lastBlockChars.setLength(Math.max(0, lastBlockChars.length() - 1));
+						} else {
+							lastBlockChars.append("\"");
+						}
+						break;
+
+					case '\'':
+						inSingleQuotes++;
+						if ((inSingleQuotes % 2) == 0) {
+							lastBlockChars.setLength(Math.max(0, lastBlockChars.length() - 1));
+						} else {
+							lastBlockChars.append("'");
+						}
+						break;
+				}
 			}
-		}
+
+		} catch (Throwable t) {}
 	}
 
 	private void clearBlockStatus() {

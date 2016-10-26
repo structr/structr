@@ -106,6 +106,8 @@ public class XTermTerminalEmulator extends AbstractTerminalEmulator {
 				if (cursorPosition < lineLength) {
 
 					writer.write(8);
+					cursorPosition--;
+
 					handleDelete();
 
 				} else {
@@ -114,12 +116,8 @@ public class XTermTerminalEmulator extends AbstractTerminalEmulator {
 					writer.write(' ');
 					writer.write(8);
 
-					if (cursorPosition > 0) {
-						cursorPosition--;
-					}
-
+					cursorPosition--;
 					lineBuffer.deleteCharAt(cursorPosition);
-
 				}
 			}
 
@@ -139,7 +137,7 @@ public class XTermTerminalEmulator extends AbstractTerminalEmulator {
 	@Override
 	public void handleDelete() throws IOException {
 
-		if (cursorPosition > 0 && cursorPosition < lineLength) {
+		if (cursorPosition >= 0 && cursorPosition < lineLength) {
 
 			if (echo) {
 
@@ -228,7 +226,7 @@ public class XTermTerminalEmulator extends AbstractTerminalEmulator {
 	public void handleCharacter(final int c) throws IOException {
 
 		// "insert" behaviour when not at end of line
-		if (cursorPosition < lineLength-1) {
+		if (cursorPosition < lineLength) {
 
 			if (echo) {
 
