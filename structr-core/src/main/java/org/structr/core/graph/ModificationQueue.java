@@ -112,8 +112,8 @@ public class ModificationQueue {
 		}
 
 		long t = System.currentTimeMillis() - t0;
-		if (t > 1000) {
-			logger.info("{} ms", t);
+		if (t > 3000) {
+			logger.info("doValidation: {} ms", t);
 		}
 
 		return valid;
@@ -141,8 +141,8 @@ public class ModificationQueue {
 		}
 
 		long t = System.currentTimeMillis() - t0;
-		if (t > 1000) {
-			logger.info("{} ms", t);
+		if (t > 3000) {
+			logger.info("doOutCallbacks: {} ms", t);
 		}
 	}
 
