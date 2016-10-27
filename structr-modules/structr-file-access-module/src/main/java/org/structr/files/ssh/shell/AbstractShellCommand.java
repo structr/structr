@@ -54,6 +54,10 @@ public abstract class AbstractShellCommand implements ShellCommand {
 	}
 
 	@Override
+	public void handleShiftTab() throws IOException {
+	}
+
+	@Override
 	public void handleTab(final int tabCount) throws IOException {
 	}
 

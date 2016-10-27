@@ -50,6 +50,7 @@ public interface TerminalEmulator extends Writable {
 	void handleDelete() throws IOException;
 	void handleNewline() throws IOException;
 	void handleTab(final int tabCount) throws IOException;
+	void handleShiftTab() throws IOException;
 
 	void handleString(final String text) throws IOException;
 	void handleCharacter(final int c) throws IOException;

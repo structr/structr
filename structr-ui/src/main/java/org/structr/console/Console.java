@@ -18,9 +18,11 @@
  */
 package org.structr.console;
 
+import org.structr.console.tabcompletion.TabCompletionResult;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
@@ -30,6 +32,12 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.console.rest.RestCommand;
 import org.structr.console.shell.ConsoleCommand;
+import org.structr.console.tabcompletion.AdminTabCompletionProvider;
+import org.structr.console.tabcompletion.CypherTabCompletionProvider;
+import org.structr.console.tabcompletion.JavaScriptTabCompletionProvider;
+import org.structr.console.tabcompletion.RestTabCompletionProvider;
+import org.structr.console.tabcompletion.StructrScriptTabCompletionProvider;
+import org.structr.console.tabcompletion.TabCompletionProvider;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -48,12 +56,13 @@ public class Console {
 		cypher, javascript, structrscript, admin, rest
 	};
 
-	private ConsoleMode mode             = ConsoleMode.javascript;
-	private StructrScriptable scriptable = null;
-	private ActionContext actionContext  = null;
-	private ScriptableObject scope       = null;
-	private String username              = null;
-	private String password              = null;
+	private final Map<ConsoleMode, TabCompletionProvider> tabCompletionProviders = new HashMap<>();
+	private ConsoleMode mode                                                     = ConsoleMode.javascript;
+	private StructrScriptable scriptable                                         = null;
+	private ActionContext actionContext                                          = null;
+	private ScriptableObject scope                                               = null;
+	private String username                                                      = null;
+	private String password                                                      = null;
 
 	public Console(final SecurityContext securityContext, final Map<String, Object> parameters) {
 		this(securityContext, ConsoleMode.javascript, parameters);
@@ -63,6 +72,12 @@ public class Console {
 
 		this.actionContext = new ActionContext(securityContext, parameters);
 		this.mode          = consoleMode;
+
+		tabCompletionProviders.put(ConsoleMode.cypher,        new CypherTabCompletionProvider());
+		tabCompletionProviders.put(ConsoleMode.javascript,    new JavaScriptTabCompletionProvider());
+		tabCompletionProviders.put(ConsoleMode.structrscript, new StructrScriptTabCompletionProvider());
+		tabCompletionProviders.put(ConsoleMode.admin,         new AdminTabCompletionProvider());
+		tabCompletionProviders.put(ConsoleMode.rest,          new RestTabCompletionProvider());
 	}
 
 	public String runForTest(final String line) throws FrameworkException {
@@ -127,6 +142,17 @@ public class Console {
 					break;
 			}
 		}
+	}
+
+	public List<TabCompletionResult> getTabCompletion(final String line) {
+
+		final TabCompletionProvider provider = tabCompletionProviders.get(mode);
+		if (provider != null) {
+
+			return provider.getTabCompletion(actionContext.getSecurityContext(), line);
+		}
+
+		return Collections.emptyList();
 	}
 
 	public SecurityContext getSecurityContext() {

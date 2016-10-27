@@ -253,6 +253,10 @@ public abstract class AbstractTerminalEmulator extends Thread implements Termina
 
 										handleHome();
 										break;
+
+									case 90:
+										handleShiftTab();
+										break;
 								}
 								break;
 

@@ -181,6 +181,11 @@ public class XTermTerminalEmulator extends AbstractTerminalEmulator {
 	}
 
 	@Override
+	public void handleShiftTab() throws IOException {
+		terminalHandler.handleShiftTab();
+	}
+
+	@Override
 	public void setBold(final boolean bold) throws IOException {
 
 		writer.write(27);

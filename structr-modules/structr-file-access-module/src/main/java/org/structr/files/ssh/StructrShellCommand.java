@@ -391,6 +391,11 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 	}
 
 	@Override
+	public void handleShiftTab() throws IOException {
+
+	}
+
+	@Override
 	public void handleTab(final int tabCount) throws IOException {
 
 		final String line = term.getLineBuffer().toString();

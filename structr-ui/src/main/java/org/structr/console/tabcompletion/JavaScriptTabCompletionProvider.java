@@ -16,29 +16,23 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.files.ssh;
+package org.structr.console.tabcompletion;
 
-import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
-import org.structr.web.entity.User;
+import org.structr.common.SecurityContext;
 
 /**
  *
- *
  */
-public interface TerminalHandler {
+public class JavaScriptTabCompletionProvider extends AbstractTabCompletionProvider {
 
-	public List<String> getCommandHistory();
+	@Override
+	public List<TabCompletionResult> getTabCompletion(final SecurityContext securityContext, final String line) {
 
-	public void displayPrompt() throws IOException;
+		final List<TabCompletionResult> result = new LinkedList<>();
 
-	public void handleExit();
-	public void handleLine(final String line) throws IOException;
-	public void handleLogoutRequest() throws IOException;
-	public void handleCtrlC() throws IOException;
-	public void handleTab(final int tabCount) throws IOException;
-	public void handleShiftTab() throws IOException;
 
-	public void setUser(final User user);
-	public User getUser();
+		return result;
+	}
 }

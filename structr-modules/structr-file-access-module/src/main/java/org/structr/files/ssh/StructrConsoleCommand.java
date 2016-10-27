@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
@@ -39,6 +40,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.console.Console;
 import org.structr.console.Console.ConsoleMode;
+import org.structr.console.tabcompletion.TabCompletionResult;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
@@ -157,7 +159,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 			term.setBold(true);
 			term.print("Structr 2.1");
 			term.setBold(false);
-			term.print(" JavaScript console. Use the <tab> key to switch modes.");
+			term.print(" JavaScript console. Use <Shift>+<Tab> to switch modes.");
 			term.println();
 
 			// display first prompt
@@ -359,9 +361,9 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 	}
 
 	@Override
-	public void handleTab(final int tabCount) throws IOException {
+	public void handleShiftTab() throws IOException {
 
-		if (tabCount == 1 && !insideOfBlockOrStructure()) {
+		if (!insideOfBlockOrStructure()) {
 
 			switch (consoleMode) {
 
@@ -392,6 +394,52 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 			term.setBold(true);
 			term.setTextColor(3);
 			term.handleNewline();
+		}
+	}
+
+	@Override
+	public void handleTab(final int tabCount) throws IOException {
+
+		if (!insideOfBlockOrStructure()) {
+
+			final StringBuilder lineBuffer                = term.getLineBuffer();
+			final List<TabCompletionResult> tabCompletion = console.getTabCompletion(lineBuffer.toString());
+
+			if (!tabCompletion.isEmpty()) {
+
+				// exactly one result => success
+				if (tabCompletion.size() == 1) {
+
+					final TabCompletionResult result = tabCompletion.iterator().next();
+					term.handleString(result.getCompletion());
+					term.handleString(result.getSuffix());
+					term.clearTabCount();
+
+				} else {
+
+					if (tabCount > 1) {
+
+						// display alternatives
+						term.println();
+
+						for (final Iterator<TabCompletionResult> it = tabCompletion.iterator(); it.hasNext();) {
+
+							final TabCompletionResult result = it.next();
+
+							term.print(result.getCommand());
+
+							if (it.hasNext()) {
+
+								term.print(" ");
+							}
+						}
+
+						term.println();
+						term.print(getPrompt());
+						term.print(term.getLineBuffer().toString());
+					}
+				}
+			}
 		}
 	}
 
