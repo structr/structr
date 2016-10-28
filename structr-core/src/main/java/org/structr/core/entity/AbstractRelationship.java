@@ -527,13 +527,14 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	public void propagatedModification(SecurityContext securityContext) {
 	}
 
+	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 
-		boolean error = false;
+		boolean valid = true;
 
-		error |= ValidationHelper.checkStringNotBlank(this, AbstractRelationship.id, errorBuffer);
+		valid &= ValidationHelper.isValidStringNotBlank(this, AbstractRelationship.id, errorBuffer);
 
-		return !error;
+		return valid;
 
 	}
 

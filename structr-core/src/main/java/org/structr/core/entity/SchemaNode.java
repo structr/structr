@@ -55,7 +55,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
-import org.structr.core.validator.TypeUniquenessValidator;
 import org.structr.module.StructrModule;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionEntry;
@@ -79,11 +78,6 @@ public class SchemaNode extends AbstractSchemaNode {
 	public static final Property<Integer>                      hierarchyLevel   = new IntProperty("hierarchyLevel").indexed();
 	public static final Property<Integer>                      relCount         = new IntProperty("relCount").indexed();
 	public static final Property<Boolean>                      shared           = new BooleanProperty("shared").indexed();
-
-	static {
-
-		name.addValidator(new TypeUniquenessValidator<>(SchemaNode.class));
-	}
 
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
 		extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount
@@ -296,8 +290,12 @@ public class SchemaNode extends AbstractSchemaNode {
 	@Override
 	public boolean isValid(final ErrorBuffer errorBuffer) {
 
-		return ValidationHelper.checkStringMatchesRegex(this, name, "[A-Z][a-zA-Z0-9_]+", errorBuffer);
+		boolean valid = super.isValid(errorBuffer);
 
+		valid &= ValidationHelper.isValidUniqueProperty(this, name, errorBuffer);
+		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, "[A-Z][a-zA-Z0-9_]+", errorBuffer);
+
+		return valid;
 	}
 
 	@Override

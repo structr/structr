@@ -22,14 +22,11 @@ import java.util.Iterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
-import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
-import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 
 
 //~--- classes ----------------------------------------------------------------
@@ -54,22 +51,22 @@ public class ClearDatabase extends NodeServiceCommand {
 
 		if (graphDb != null) {
 
-			Iterator<AbstractNode> nodeIterator = null;
+			Iterator<NodeInterface> nodeIterator = null;
 			final App app = StructrApp.getInstance();
 
 			try (final Tx tx = app.tx()) {
 
-				nodeIterator = Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getAllNodes())).iterator();
+				nodeIterator = app.nodeQuery(NodeInterface.class).getAsList().iterator();
 				tx.success();
 
 			} catch (FrameworkException fex) {
 				logger.warn("Exception while creating all nodes iterator.", fex);
 			}
 
-			final long deletedNodes = bulkGraphOperation(securityContext, nodeIterator, 1000, "ClearDatabase", new BulkGraphOperation<AbstractNode>() {
+			final long deletedNodes = bulkGraphOperation(securityContext, nodeIterator, 1000, "ClearDatabase", new BulkGraphOperation<NodeInterface>() {
 
 				@Override
-				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
+				public void handleGraphObject(SecurityContext securityContext, NodeInterface node) {
 
 					// Delete only "our" nodes
 					if (node.getProperty(GraphObject.id) != null) {
@@ -84,7 +81,7 @@ public class ClearDatabase extends NodeServiceCommand {
 				}
 
 				@Override
-				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
+				public void handleThrowable(SecurityContext securityContext, Throwable t, NodeInterface node) {
 					logger.warn("Unable to delete node {}: {}", new Object[] { node.getUuid(), t.getMessage() } );
 				}
 

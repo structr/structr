@@ -46,7 +46,7 @@ public class Tag extends ValidatedNode {
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 
-		boolean valid = true;
+		boolean valid = super.isValid(errorBuffer);
 
 		valid &= nonEmpty(AbstractNode.name, errorBuffer);
 

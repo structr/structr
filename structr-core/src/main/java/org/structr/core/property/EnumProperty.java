@@ -26,7 +26,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ValueToken;
 import org.structr.core.GraphObject;
-import org.structr.core.PropertyValidator;
 import org.structr.core.converter.PropertyConverter;
 
 /**
@@ -39,28 +38,24 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 	private static final Logger logger = LoggerFactory.getLogger(EnumProperty.class.getName());
 	private Class<T> enumType          = null;
 
-	public EnumProperty(final String name, final Class<T> enumType, final PropertyValidator<T>... validators) {
-		this(name, enumType, null, validators);
+	public EnumProperty(final String name, final Class<T> enumType) {
+		this(name, enumType, null);
 	}
 
-	public EnumProperty(final String jsonName, final String dbName, final Class<T> enumType, final PropertyValidator<T>... validators) {
-		this(jsonName, dbName, enumType, null, validators);
+	public EnumProperty(final String jsonName, final String dbName, final Class<T> enumType) {
+		this(jsonName, dbName, enumType, null);
 	}
 
-	public EnumProperty(final String name, final Class<T> enumType, final T defaultValue, final PropertyValidator<T>... validators) {
-		this(name, name, enumType, defaultValue, validators);
+	public EnumProperty(final String name, final Class<T> enumType, final T defaultValue) {
+		this(name, name, enumType, defaultValue);
 	}
 
-	public EnumProperty(final String jsonName, final String dbName, final Class<T> enumType, final T defaultValue, final PropertyValidator<T>... validators) {
+	public EnumProperty(final String jsonName, final String dbName, final Class<T> enumType, final T defaultValue) {
 
 		super(jsonName, dbName, defaultValue);
 
 		this.enumType = enumType;
 		addEnumValuesToFormat();
-
-		for (final PropertyValidator<T> validator : validators) {
-			addValidator(validator);
-		}
 	}
 
 	@Override

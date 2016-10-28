@@ -285,6 +285,8 @@ public class RenderDataTest extends DOMTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
+			ex.printStackTrace();
 			logger.warn("", ex);
 			fail("Unexpected exception");
 		}

@@ -72,8 +72,7 @@ public class StringPropertySourceGenerator extends PropertySourceGenerator {
 
 		if (StringUtils.isNotBlank(expression) && !("multi-line".equals(expression))) {
 
-			setLocalValidator(", new SimpleRegexValidator(\""  + expression + "\")");
-
+			addGlobalValidator(new Validator("isValidStringMatchingRegex", className, source.getPropertyName(), expression));
 		}
 	}
 

@@ -22,6 +22,7 @@ import java.util.List;
 import org.structr.common.KeyAndClass;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.ValidationHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
@@ -42,9 +43,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
-import org.structr.core.validator.SimpleNonEmptyValueValidator;
-import org.structr.core.validator.SimpleRegexValidator;
-import org.structr.core.validator.TypeUniquenessValidator;
 import org.structr.schema.SchemaService;
 import org.structr.web.entity.relation.UserFavoriteFile;
 import org.structr.web.entity.relation.UserHomeDir;
@@ -75,7 +73,7 @@ public class User extends AbstractUser {
 	public static final Property<String>         eMail            = new LowercaseStringProperty("eMail").cmis().indexed();
 	public static final Property<String>         twitterName      = new StringProperty("twitterName").cmis().indexed();
 	public static final Property<String>         localStorage     = new StringProperty("localStorage");
-	public static final Property<List<FileBase>> favoriteFiles    = new EndNodes<>("favoriteFiles", UserFavoriteFile.class);  	
+	public static final Property<List<FileBase>> favoriteFiles    = new EndNodes<>("favoriteFiles", UserFavoriteFile.class);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
 		type, name, eMail, isAdmin, password, publicKey, blocked, sessionIds, confirmationKey, backendUser, frontendUser,
@@ -91,11 +89,20 @@ public class User extends AbstractUser {
 
 		// register this type as an overridden builtin type
 		SchemaService.registerBuiltinTypeOverride("User", User.class.getName());
+	}
 
-		User.name.addValidator(new SimpleNonEmptyValueValidator(User.class));
-		User.name.addValidator(new TypeUniquenessValidator(User.class));
-		User.eMail.addValidator(new TypeUniquenessValidator(User.class));
-		User.eMail.addValidator(new SimpleRegexValidator("[A-Za-z0-9!#$%&'*+-/=?^_`{|}~]+@[A-Za-z0-9-]+(.[A-Za-z0-9-]+)*"));
+
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+
+		boolean valid = super.isValid(errorBuffer);
+
+		valid &= ValidationHelper.isValidStringNotBlank(this, name, errorBuffer);
+		valid &= ValidationHelper.isValidUniqueProperty(this, name, errorBuffer);
+		valid &= ValidationHelper.isValidUniqueProperty(this, eMail, errorBuffer);
+		//valid &= ValidationHelper.isValidStringMatchingRegex(this, eMail, "[A-Za-z0-9!#$%&'*+-/=?^_`{|}~]+@[A-Za-z0-9-]+(.[A-Za-z0-9-]+)*", errorBuffer);
+
+		return valid;
 	}
 
 	@Override

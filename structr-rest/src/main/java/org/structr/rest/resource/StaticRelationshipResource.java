@@ -60,7 +60,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
-import org.structr.core.validator.TypeValidator;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
@@ -175,7 +174,7 @@ public class StaticRelationshipResource extends SortableResource {
                                                 if (!iterableContainsGraphObject) {
 
                                                         GraphObjectMap gObject = new GraphObjectMap();
-                                                        gObject.setProperty(new ArrayProperty(this.typeResource.rawType, Object.class, new TypeValidator(Object.class)), propertyResults.toArray());
+                                                        gObject.setProperty(new ArrayProperty(this.typeResource.rawType, Object.class), propertyResults.toArray());
                                                         Result r = new Result(gObject, true);
                                                         r.setRawResultCount(rawResultCount);
                                                         return r;
@@ -224,7 +223,7 @@ public class StaticRelationshipResource extends SortableResource {
                                                         key = new DateProperty(keyName);
                                                 } else if (value instanceof String[]) {
 
-                                                        key = new ArrayProperty(keyName, String.class, new TypeValidator(String.class));
+                                                        key = new ArrayProperty(keyName, String.class);
                                                         resultCount = ((String[])value).length;
 
                                                 } else {

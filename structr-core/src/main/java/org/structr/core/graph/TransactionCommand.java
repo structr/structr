@@ -100,20 +100,10 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 			}
 
 			// 1. do inner callbacks (may cause transaction to fail)
-			if (doValidation) {
+			if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
 
-				if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
-
-					tx.failure();
-					throw new FrameworkException(422, "Unable to commit transaction, validation failed", errorBuffer);
-				}
-
-				// 1.5: execute validatable post-transaction action
-				if (!modificationQueue.doPostProcessing(securityContext, errorBuffer)) {
-
-					tx.failure();
-					throw new FrameworkException(422, "Unable to commit transaction, transaction post processing failed", errorBuffer);
-				}
+				tx.failure();
+				throw new FrameworkException(422, "Unable to commit transaction, validation failed", errorBuffer);
 			}
 
 			// 2. fetch all types of entities modified in this tx
@@ -124,8 +114,8 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 			// 3. acquire semaphores for each modified type
 			try { semaphore.acquire(synchronizationKeys); } catch (InterruptedException iex) { return; }
 
-			// finally, do validation under the protection of the semaphores for each type
-			if (!modificationQueue.doValidation(securityContext, errorBuffer, doValidation)) {
+			// do validation under the protection of the semaphores for each type
+			if (doValidation && !modificationQueue.doValidation(securityContext, errorBuffer, doValidation)) {
 
 				tx.failure();
 
@@ -133,11 +123,18 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 				throw new FrameworkException(422, "Unable to commit transaction, validation failed", errorBuffer);
 			}
 
+			// finally: execute validatable post-transaction action
+			if (!modificationQueue.doPostProcessing(securityContext, errorBuffer)) {
+
+				tx.failure();
+				throw new FrameworkException(422, "Unable to commit transaction, transaction post processing failed", errorBuffer);
+			}
+
 			try {
 				tx.success();
 
 			} catch (Throwable t) {
-				logger.warn("", t);
+				logger.error("Unable to commit transaction", t);
 			}
 		}
 	}

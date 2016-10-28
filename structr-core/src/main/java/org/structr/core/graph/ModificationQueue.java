@@ -73,7 +73,6 @@ public class ModificationQueue {
 
 		long t0                  = System.currentTimeMillis();
 		boolean hasModifications = true;
-		boolean valid = true;
 
 		// collect all modified nodes
 		while (hasModifications) {
@@ -85,7 +84,10 @@ public class ModificationQueue {
 				if (state.wasModified()) {
 
 					// do callback according to entry state
-					valid &= state.doInnerCallback(this, securityContext, errorBuffer);
+					if (!state.doInnerCallback(this, securityContext, errorBuffer)) {
+						return false;
+					}
+
 					hasModifications = true;
 				}
 			}
@@ -96,19 +98,20 @@ public class ModificationQueue {
 			logger.info("{} ms", t);
 		}
 
-		return valid;
+		return true;
 	}
 
 	public boolean doValidation(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final boolean doValidation) throws FrameworkException {
 
-		long t0       = System.currentTimeMillis();
-		boolean valid = true;
+		long t0 = System.currentTimeMillis();
 
 		// do validation and indexing
 		for (Entry<String, GraphObjectModificationState> entry : modifications.entrySet()) {
 
 			// do callback according to entry state
-			valid &= entry.getValue().doValidationAndIndexing(this, securityContext, errorBuffer, doValidation);
+			if (!entry.getValue().doValidationAndIndexing(this, securityContext, errorBuffer, doValidation)) {
+				return false;
+			}
 		}
 
 		long t = System.currentTimeMillis() - t0;
@@ -116,19 +119,19 @@ public class ModificationQueue {
 			logger.info("doValidation: {} ms", t);
 		}
 
-		return valid;
+		return true;
 	}
 
 	public boolean doPostProcessing(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		boolean valid = true;
-
 		for (final TransactionPostProcess process : postProcesses.values()) {
 
-			valid &= process.execute(securityContext, errorBuffer);
+			if (!process.execute(securityContext, errorBuffer)) {
+				return false;
+			}
 		}
 
-		return valid;
+		return true;
 	}
 
 	public void doOuterCallbacks(final SecurityContext securityContext) {
@@ -229,7 +232,7 @@ public class ModificationQueue {
 		getState(node).modify(user, key, previousValue, newValue);
 
 		if (key != null&& key.requiresSynchronization()) {
-			synchronizationKeys.add(node.getClass().getSimpleName().concat(".").concat(key.getSynchronizationKey()));
+			synchronizationKeys.add(key.getSynchronizationKey());
 		}
 	}
 
@@ -237,7 +240,7 @@ public class ModificationQueue {
 		getState(relationship).modify(user, key, previousValue, newValue);
 
 		if (key != null && key.requiresSynchronization()) {
-			synchronizationKeys.add(relationship.getClass().getSimpleName().concat(".").concat(key.getSynchronizationKey()));
+			synchronizationKeys.add(key.getSynchronizationKey());
 		}
 	}
 

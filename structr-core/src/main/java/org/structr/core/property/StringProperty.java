@@ -27,7 +27,6 @@ import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.PropertyValidator;
 import org.structr.core.converter.PropertyConverter;
 
 /**
@@ -50,20 +49,6 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 	public StringProperty(final String jsonName, final String dbName) {
 		super(jsonName);
 		this.dbName = dbName;
-	}
-
-	public StringProperty(final String jsonName, final PropertyValidator<String>... validators) {
-		this(jsonName, jsonName, validators);
-	}
-
-	public StringProperty(final String jsonName, final String dbName, final PropertyValidator<String>... validators) {
-
-		super(jsonName);
-		this.dbName = dbName;
-
-		for (PropertyValidator<String> validator : validators) {
-			addValidator(validator);
-		}
 	}
 
 	@Override

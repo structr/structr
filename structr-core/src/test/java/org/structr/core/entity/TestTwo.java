@@ -38,14 +38,19 @@ public class TestTwo extends AbstractNode {
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 
-		if (getTestOne() == null) {
+		if (super.isValid(errorBuffer)) {
 
-			errorBuffer.add(new EmptyPropertyToken(TestTwo.class.getSimpleName(), testOne));
+			if (getTestOne() == null) {
 
-			return false;
+				errorBuffer.add(new EmptyPropertyToken(TestTwo.class.getSimpleName(), testOne));
+
+				return false;
+			}
+
+			return true;
 		}
 
-		return true;
+		return false;
 	}
 
 	private TestOne getTestOne() {

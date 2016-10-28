@@ -25,7 +25,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NumberToken;
 import org.structr.core.GraphObject;
-import org.structr.core.PropertyValidator;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 
@@ -44,15 +43,11 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 		this(jsonName, dbName, null);
 	}
 
-	public DoubleProperty(final String name, final PropertyValidator<Double>... validators) {
-		this(name, name, null, validators);
+	public DoubleProperty(final String name, final Double defaultValue) {
+		this(name, name, defaultValue);
 	}
 
-	public DoubleProperty(final String name, final Double defaultValue, final PropertyValidator<Double>... validators) {
-		this(name, name, defaultValue, validators);
-	}
-
-	public DoubleProperty(final String jsonName, final String dbName, final Double defaultValue, final PropertyValidator<Double>... validators) {
+	public DoubleProperty(final String jsonName, final String dbName, final Double defaultValue) {
 
 		super(jsonName, dbName, defaultValue);
 
@@ -63,10 +58,6 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 			// end of the transaction instead
 			// of on setProperty
 			passivelyIndexed();
-		}
-
-		for (PropertyValidator<Double> validator : validators) {
-			addValidator(validator);
 		}
 	}
 

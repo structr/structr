@@ -55,11 +55,11 @@ public class TestSeven extends AbstractNode {
 	@Override
 	public boolean isValid(final ErrorBuffer errorBuffer) {
 
-		boolean error = false;
+		boolean valid = super.isValid(errorBuffer);
 
-		error |= ValidationHelper.checkStringNotBlank(this, name, errorBuffer);
+		valid &= ValidationHelper.isValidStringNotBlank(this, name, errorBuffer);
 
-		return !error;
+		return valid;
 	}
 
 }

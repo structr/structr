@@ -25,7 +25,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.structr.api.graph.RelationshipType;
@@ -35,7 +34,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.PropertyValidator;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -348,7 +346,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 			case 4: // created => creation callback
 			case 2: // modified => modification callback
 				if (doValidation) {
-					valid &= validate(securityContext, errorBuffer);
+					valid &= object.isValid(errorBuffer);
 				}
 				object.indexPassiveProperties();
 				break;
@@ -597,32 +595,5 @@ public class GraphObjectModificationState implements ModificationEvent {
 	@Override
 	public RelationshipType getRelationshipType() {
 		return relType;
-	}
-
-	// ----- private methods -----
-	/**
-	 * Call validators. This must be synchronized globally
-	 *
-	 * @param securityContext
-	 * @param errorBuffer
-	 * @return valid
-	 */
-	private boolean validate(SecurityContext securityContext, ErrorBuffer errorBuffer) {
-
-		boolean valid = true;
-
-		for (PropertyKey key : removedProperties.keySet()) {
-
-			List<PropertyValidator> validators = key.getValidators();
-			for (PropertyValidator validator : validators) {
-
-				Object value = object.getProperty(key);
-
-				valid &= validator.isValid(securityContext, object, key, value, errorBuffer);
-			}
-		}
-
-		// explicitly call isValid()
-		return valid && object.isValid(errorBuffer);
 	}
 }

@@ -1266,12 +1266,14 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 
-		boolean error = false;
+		boolean valid = true;
 
-		error |= ValidationHelper.checkStringNotBlank(this, id, errorBuffer);
-		error |= ValidationHelper.checkStringNotBlank(this, type, errorBuffer);
+		valid &= ValidationHelper.isValidStringNotBlank(this, id, errorBuffer);
+		valid &= ValidationHelper.isValidGloballyUniqueProperty(this, id, errorBuffer);
+		valid &= ValidationHelper.isValidStringMatchingRegex(this, id, "[a-fA-F0-9]{32}", errorBuffer);
+		valid &= ValidationHelper.isValidStringNotBlank(this, type, errorBuffer);
 
-		return !error;
+		return valid;
 
 	}
 

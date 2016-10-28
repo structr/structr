@@ -95,6 +95,9 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		final File confFile                            = new File(confPath);
 		boolean tryAgain                               = true;
 
+		// create db directory if it does not exist
+		new File(databasePath).mkdirs();
+
 		if (!"remote".equals(driverMode)) {
 
 			final GraphDatabaseBuilder builder = new GraphDatabaseFactory()

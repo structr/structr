@@ -50,25 +50,39 @@ public class KeywordQueryFactory extends AbstractQueryFactory {
 	@Override
 	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final CypherQuery query, final boolean isFirst) {
 
-		final Object value = getReadValue(predicate.getValue());
-		final String name  = predicate.getName();
+		final boolean isString = predicate.getType().equals(String.class);
+		final Object value     = getReadValue(predicate.getValue());
+		final String name      = predicate.getName();
 
 		checkOccur(query, predicate.getOccurrence(), isFirst);
 
 		// only String properties can be used for inexact search
-		if (!predicate.getType().equals(String.class) || predicate.isExactMatch()) {
+		if (predicate.isExactMatch() || !isString) {
 
-			query.addSimpleParameter(name, value != null ? "=" : "is", value);
+			if (isString && value == null) {
+
+				// special handling for string attributes
+				// (empty string is equal to null)
+				query.addSimpleParameter(name, "is", null);
+				query.or();
+				query.addSimpleParameter(name, "=", "");
+
+			} else {
+
+				query.addSimpleParameter(name, value != null ? "=" : "is", value);
+			}
 
 		} else {
 
-			if (value != null) {
+			if (value != null && isString) {
 
 				query.addSimpleParameter(name, "=~", "(?i).*" + escape(value) + ".*");
 
 			} else {
 
 				query.addSimpleParameter(name, "is", null);
+				query.or();
+				query.addSimpleParameter(name, "=", "");
 			}
 		}
 

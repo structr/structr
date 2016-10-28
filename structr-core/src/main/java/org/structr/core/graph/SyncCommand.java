@@ -821,7 +821,6 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				logger.info("Imported {} nodes and {} rels, committing transaction..", new Object[] { totalNodeCount, totalRelCount } );
 
 				tx.success();
-
 			}
 
 		} while (!finished);

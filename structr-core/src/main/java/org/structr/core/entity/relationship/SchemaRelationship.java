@@ -132,11 +132,11 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> {
 	@Override
 	public boolean isValid(final ErrorBuffer errorBuffer) {
 
-		boolean error = false;
+		boolean valid = super.isValid(errorBuffer);
 
-		error |= ValidationHelper.checkStringNotBlank(this, relationshipType, errorBuffer);
+		valid &= ValidationHelper.isValidStringNotBlank(this, relationshipType, errorBuffer);
 
-		return !error && super.isValid(errorBuffer);
+		return valid;
 	}
 
 	@Override

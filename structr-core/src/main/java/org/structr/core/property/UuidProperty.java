@@ -18,9 +18,6 @@
  */
 package org.structr.core.property;
 
-import org.structr.core.validator.GlobalPropertyUniquenessValidator;
-import org.structr.core.validator.SimpleRegexValidator;
-
 /**
  *
  *
@@ -29,7 +26,7 @@ public class UuidProperty extends StringProperty {
 
 	public UuidProperty() {
 
-		super("id", new GlobalPropertyUniquenessValidator(), new SimpleRegexValidator("[a-fA-F0-9]{32}"));
+		super("id");
 
 		indexed();
 		systemInternal();

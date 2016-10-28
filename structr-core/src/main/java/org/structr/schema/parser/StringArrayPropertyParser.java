@@ -68,10 +68,6 @@ public class StringArrayPropertyParser extends PropertySourceGenerator {
 			reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), expression, "invalid_validation_expression", "Empty validation expression."));
 			return;
 		}
-
-		// ArrayProperty cannot have validator here because the validator
-		// doesn't support array types
-		// setLocalValidator(", new SimpleRegexValidator(\""  + expression + "\")");
 	}
 
 	@Override

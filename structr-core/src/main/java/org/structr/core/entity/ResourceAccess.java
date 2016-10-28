@@ -40,7 +40,6 @@ import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
-import org.structr.core.validator.TypeUniquenessValidator;
 
 /**
  * Controls access to REST resources.
@@ -77,7 +76,7 @@ public class ResourceAccess extends AbstractNode {
 	private static final Map<String, ResourceAccess> grantCache = new ConcurrentHashMap<>();
 	private static final Logger logger                          = LoggerFactory.getLogger(ResourceAccess.class.getName());
 
-	public static final Property<String>               signature          = new StringProperty("signature", new TypeUniquenessValidator(ResourceAccess.class)).cmis().indexed();
+	public static final Property<String>               signature          = new StringProperty("signature").cmis().unique().indexed();
 	public static final Property<Long>                 flags              = new LongProperty("flags").cmis().indexed();
 	public static final Property<Integer>              position           = new IntProperty("position").cmis().indexed();
 	public static final Property<List<PropertyAccess>> propertyAccess     = new EndNodes<>("propertyAccess", Access.class, new PropertySetNotion(id, name));
@@ -182,12 +181,13 @@ public class ResourceAccess extends AbstractNode {
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 
-		boolean error = false;
+		boolean valid = super.isValid(errorBuffer);
 
-		error |= ValidationHelper.checkStringNotBlank(this,  ResourceAccess.signature, errorBuffer);
-		error |= ValidationHelper.checkPropertyNotNull(this, ResourceAccess.flags, errorBuffer);
+		valid &= ValidationHelper.isValidUniqueProperty(this, ResourceAccess.signature, errorBuffer);
+		valid &= ValidationHelper.isValidStringNotBlank(this,  ResourceAccess.signature, errorBuffer);
+		valid &= ValidationHelper.isValidPropertyNotNull(this, ResourceAccess.flags, errorBuffer);
 
-		return !error;
+		return valid;
 	}
 
 	@Override

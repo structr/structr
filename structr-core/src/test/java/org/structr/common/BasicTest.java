@@ -1292,7 +1292,6 @@ public class BasicTest extends StructrTest {
 			fail("Unexpected exception");
 
 		}
-
 	}
 
 	// ----- private methods -----

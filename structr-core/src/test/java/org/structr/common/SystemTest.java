@@ -34,7 +34,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -49,7 +48,6 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.IntProperty;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
@@ -237,175 +235,6 @@ public class SystemTest extends StructrTest {
 		}
 	}
 
-	@Test
-	public void testConcurrentValidation() {
-
-		final int count = 100;
-
-		try (final Tx tx = app.tx()) {
-
-			app.create(SchemaNode.class,
-				new NodeAttribute(SchemaNode.name, "Item"),
-				new NodeAttribute(new StringProperty("_name"), "+String!")
-			);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-			fail("Unexpected exception.");
-		}
-
-
-		final Class type = StructrApp.getConfiguration().getNodeEntityClass("Item");
-		assertNotNull(type);
-
-
-		final PropertyKey name = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "name", false);
-		assertNotNull(name);
-
-		final Runnable tester = new Runnable() {
-
-			@Override
-			public void run() {
-
-				for (int i=0; i<count; i++) {
-
-					// testing must be done in an isolated transaction
-					try (final Tx tx = app.tx()) {
-
-						app.create(type, "Item" + i);
-
-						tx.success();
-
-					} catch (FrameworkException fex) {}
-
-				}
-			}
-		};
-
-		// submit three test instances
-		final ExecutorService executor = Executors.newCachedThreadPool();
-		final Future f1                = executor.submit(tester);
-		final Future f2                = executor.submit(tester);
-		final Future f3                = executor.submit(tester);
-
-		try {
-			f1.get();
-			f2.get();
-			f3.get();
-
-		} catch (Throwable ex) {}
-
-
-		List<GraphObject> result = null;
-
-		try (final Tx tx = app.tx()) {
-
-			result = app.nodeQuery(type).getAsList();
-
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-			fail("Unexpected exception.");
-		}
-
-
-		// verify that only count entities have been created.
-		assertEquals("Invalid concurrent validation result", count, result.size());
-
-
-		executor.shutdownNow();
-	}
-
-	@Test
-	public void testConcurrentValidationOnDynamicProperty() {
-
-		final int count = 100;
-
-		try (final Tx tx = app.tx()) {
-
-			app.create(SchemaNode.class,
-				new NodeAttribute(SchemaNode.name, "Item"),
-				new NodeAttribute(new StringProperty("_testXYZ"), "+String!")
-			);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-			fail("Unexpected exception.");
-		}
-
-
-		final Class type = StructrApp.getConfiguration().getNodeEntityClass("Item");
-		assertNotNull(type);
-
-
-		final PropertyKey testXYZ = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "testXYZ", false);
-		assertNotNull(testXYZ);
-
-		final Runnable tester = new Runnable() {
-
-			@Override
-			public void run() {
-
-				for (int i=0; i<count; i++) {
-
-					// testing must be done in an isolated transaction
-					try (final Tx tx = app.tx()) {
-
-						app.create(type, new NodeAttribute(testXYZ, "Item" + i));
-
-						tx.success();
-
-					} catch (FrameworkException fex) {}
-
-				}
-			}
-		};
-
-		// submit three test instances
-		final ExecutorService executor = Executors.newCachedThreadPool();
-		final Future f1                = executor.submit(tester);
-		final Future f2                = executor.submit(tester);
-		final Future f3                = executor.submit(tester);
-
-		try {
-			f1.get();
-			f2.get();
-			f3.get();
-
-		} catch (Throwable ex) {}
-
-
-		List<GraphObject> result = null;
-
-		try (final Tx tx = app.tx()) {
-
-			result = app.nodeQuery(type).getAsList();
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-			fail("Unexpected exception.");
-		}
-
-
-		// verify that only count entities have been created.
-		assertEquals("Invalid concurrent validation result", count, result.size());
-
-		executor.shutdownNow();
-	}
-
-
 	/**
 	 * disabled, failing test to check for (existing, confirmed) flaw in parallel node instantiation)
 	 */
@@ -454,6 +283,7 @@ public class SystemTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
+			fex.printStackTrace();
 			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
@@ -471,6 +301,7 @@ public class SystemTest extends StructrTest {
 		} catch (FrameworkException fex) {
 
 			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 

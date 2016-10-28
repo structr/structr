@@ -64,11 +64,11 @@ public class Localization extends AbstractNode {
 	@Override
 	public boolean isValid(final ErrorBuffer errorBuffer) {
 
-			boolean error = !super.isValid(errorBuffer);
+		boolean valid = super.isValid(errorBuffer);
 
-			error |= ValidationHelper.checkStringNotBlank(this, Localization.name, errorBuffer);
-			error |= ValidationHelper.checkStringNotBlank(this, Localization.locale, errorBuffer);
+		valid &= ValidationHelper.isValidStringNotBlank(this, Localization.name, errorBuffer);
+		valid &= ValidationHelper.isValidStringNotBlank(this, Localization.locale, errorBuffer);
 
-			return !error;
+		return valid;
 	}
 }

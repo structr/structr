@@ -24,15 +24,15 @@ import org.structr.core.property.StartNode;
 
 /**
  * A simple entity for testing constraint-based cascading delete.
- * 
+ *
  *
  */
 public class TestNine extends AbstractNode {
-	
+
 	public static final Property<TestSix>  oneToManyTestSixConstraint  = new StartNode<>("oneToManyTestSixConstraint", SixNineOneToManyCascadeConstraint.class);
-	
+
 	@Override
 	public boolean isValid(final ErrorBuffer errorBuffer) {
-		return getProperty(oneToManyTestSixConstraint) != null;
+		return super.isValid(errorBuffer) && getProperty(oneToManyTestSixConstraint) != null;
 	}
 }

@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -43,8 +44,6 @@ import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
-import org.structr.core.validator.SimpleNonEmptyValueValidator;
-import org.structr.core.validator.TypeUniquenessValidator;
 import org.structr.schema.SchemaService;
 import org.structr.rest.common.HttpHelper;
 import org.structr.web.entity.relation.FeedItemContents;
@@ -81,10 +80,15 @@ public class FeedItem extends AbstractNode implements Indexable {
 		url, feed, author, comments, contents, pubDate, description, enclosures);
 
 
-	static {
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
 
-		FeedItem.url.addValidator(new SimpleNonEmptyValueValidator(FeedItem.class));
-		FeedItem.url.addValidator(new TypeUniquenessValidator(FeedItem.class));
+		boolean valid = super.isValid(errorBuffer);
+
+		valid &= ValidationHelper.isValidStringNotBlank(this, url, errorBuffer);
+		valid &= ValidationHelper.isValidUniqueProperty(this, url, errorBuffer);
+
+		return valid;
 	}
 
 	@Override

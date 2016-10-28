@@ -48,7 +48,6 @@ import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestTwo;
 import org.structr.core.graph.BulkCreateLabelsCommand;
 import org.structr.core.graph.BulkSetNodePropertiesCommand;
-import org.structr.core.graph.ClearDatabase;
 import org.structr.core.graph.SyncCommand;
 import org.structr.core.graph.Tx;
 
@@ -116,7 +115,7 @@ public class MaintenanceTest extends StructrTest {
  			assertTrue("Export file doesn't exist!", Files.exists(exportFile));
 
 			// clear database
-			app.command(ClearDatabase.class).execute();
+			cleanDatabase();
 
 			// test import
 			app.command(SyncCommand.class).execute(toMap("mode", "import", "file", EXPORT_FILENAME));
@@ -149,8 +148,7 @@ public class MaintenanceTest extends StructrTest {
 
  			assertTrue("Export file doesn't exist!", Files.exists(exportFile));
 
-			// clear database
-			app.command(ClearDatabase.class).execute();
+			cleanDatabase();
 
 			// test import
 			app.command(SyncCommand.class).execute(toMap("mode", "import", "file", EXPORT_FILENAME, "batchSize", 20L));

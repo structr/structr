@@ -19,8 +19,6 @@
 package org.structr.core.property;
 
 import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,7 +35,6 @@ import org.structr.api.search.Occurrence;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.PropertyValidator;
 import org.structr.core.Services;
 import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
@@ -58,7 +55,6 @@ public abstract class Property<T> implements PropertyKey<T> {
 	private static final Logger logger             = LoggerFactory.getLogger(Property.class.getName());
 	private static final Pattern rangeQueryPattern = Pattern.compile("\\[(.+) TO (.+)\\]");
 
-	protected List<PropertyValidator<T>> validators        = new LinkedList<>();
 	protected Class<? extends GraphObject> declaringClass  = null;
 	protected T defaultValue                               = null;
 	protected boolean readOnly                             = false;
@@ -200,34 +196,19 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public void addValidator(final PropertyValidator<T> validator) {
-
-		validators.add(validator);
-
-		// fetch synchronization requirement from validator
-		if (validator.requiresSynchronization()) {
-			this.requiresSynchronization = true;
-		}
-	}
-
-	public Property<T> validator(final PropertyValidator<T> validator) {
-		addValidator(validator);
-		return this;
-	}
-
-	@Override
-	public List<PropertyValidator<T>> getValidators() {
-		return validators;
-	}
-
-	@Override
 	public boolean requiresSynchronization() {
 		return requiresSynchronization;
 	}
 
 	@Override
 	public String getSynchronizationKey() {
-		return dbName;
+
+		if (declaringClass != null) {
+
+			return declaringClass.getSimpleName() + "." + dbName;
+		}
+
+		return "GraphObject." + dbName;
 	}
 
 	@Override

@@ -75,13 +75,11 @@ public class Location extends AbstractNode {
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 
-		boolean error = false;
+		boolean valid = super.isValid(errorBuffer);
 
-//              error |= ValidationHelper.checkPropertyNotNull(this, Key.latitude, errorBuffer);
-//              error |= ValidationHelper.checkPropertyNotNull(this, Key.longitude, errorBuffer);
-		error |= notifyLocatables();
+		valid &= notifyLocatables();
 
-		return !error;
+		return valid;
 
 	}
 

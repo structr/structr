@@ -21,12 +21,10 @@ package org.structr.core.entity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
@@ -123,23 +121,13 @@ public class PropertyAccess extends AbstractNode {
 	}
 
 	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) {
-		return isValid(errorBuffer);
-	}
-
-	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) {
-		return isValid(errorBuffer);
-	}
-
-	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 
-		boolean error = false;
+		boolean valid = super.isValid(errorBuffer);
 
-		error |= ValidationHelper.checkStringNotBlank(this,  PropertyAccess.name, errorBuffer);
-		error |= ValidationHelper.checkPropertyNotNull(this, PropertyAccess.flags, errorBuffer);
-//		error |= checkPropertyNotNull(Key.city, errorBuffer);
+		valid &= ValidationHelper.isValidStringNotBlank(this,  PropertyAccess.name, errorBuffer);
+		valid &= ValidationHelper.isValidPropertyNotNull(this, PropertyAccess.flags, errorBuffer);
 
-		return !error;
-	}}
+		return valid;
+	}
+}

@@ -28,7 +28,6 @@ import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.PropertyValidator;
 import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.ArraySearchAttribute;
@@ -46,15 +45,11 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 	private Class<T> componentType = null;
 
-	public ArrayProperty(String name, Class<T> componentType, final PropertyValidator<T[]>... validators) {
+	public ArrayProperty(String name, Class<T> componentType) {
 
 		super(name);
 
 		this.componentType = componentType;
-
-		for (final PropertyValidator<T[]> validator : validators) {
-			addValidator(validator);
-		}
 	}
 
 	@Override

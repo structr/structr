@@ -78,7 +78,7 @@ public abstract class NumericalPropertyParser extends PropertySourceGenerator {
 
 				if (!error) {
 
-					addGlobalValidator(new Validator("check" + getUnqualifiedValueType() + "InRangeError", getClassName(), getSourcePropertyName(), expression));
+					addGlobalValidator(new Validator("isValid" + getUnqualifiedValueType() + "InRange", getClassName(), getSourcePropertyName(), expression));
 				}
 
 			} else {

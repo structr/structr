@@ -144,12 +144,10 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 
-		boolean valid = true;
+		boolean valid = super.isValid(errorBuffer);
 
 		valid &= nonEmpty(AbstractNode.name, errorBuffer);
-                //valid &= ValidationHelper.checkStringMatchesRegex(this, name, "[_a-zA-Z0-9\\s\\-\\.]+", errorBuffer);
-		valid &= ValidationHelper.checkStringMatchesRegex(this, name, "[_\\p{L}0-9\\s\\-\\.]+", errorBuffer);
-		valid &= super.isValid(errorBuffer);
+		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, "[_\\p{L}0-9\\s\\-\\.]+", errorBuffer);
 
 		return valid;
 	}
@@ -288,7 +286,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public void increaseVersion() throws FrameworkException {
 
 		final Integer _version = getProperty(Page.version);
-		
+
 		unlockReadOnlyPropertiesOnce();
 		if (_version == null) {
 

@@ -80,19 +80,6 @@ public class ActionEntry implements Comparable<ActionEntry> {
 
 		final StringBuilder buf = new StringBuilder();
 
-		switch (type) {
-
-			case Create:
-			case Save:
-			case Delete:
-				// prepend boolean evaluation for passive actions
-				buf.append("Boolean.TRUE.equals(");
-				break;
-
-			case Custom:
-				break;
-		}
-
 		buf.append(Actions.class.getSimpleName());
 		buf.append(".execute(securityContext, ").append(objVariable).append(", \"${");
 		buf.append(StringEscapeUtils.escapeJava(call));
@@ -102,19 +89,6 @@ public class ActionEntry implements Comparable<ActionEntry> {
 			buf.append(", parameters");
 		}
 		buf.append(")");
-
-		switch (type) {
-
-			case Create:
-			case Save:
-			case Delete:
-				// append closing brace for passive actions
-				buf.append(")");
-				break;
-
-			case Custom:
-				break;
-		}
 
 		return buf.toString();
 	}

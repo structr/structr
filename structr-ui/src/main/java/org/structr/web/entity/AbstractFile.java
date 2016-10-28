@@ -117,10 +117,10 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 
-		boolean valid = true;
+		boolean valid = super.isValid(errorBuffer);
 
-		valid &= (super.isValid(errorBuffer) && nonEmpty(AbstractFile.name, errorBuffer));
-		valid &= ValidationHelper.checkStringMatchesRegex(this, name, "[^\\/\\x00]+", errorBuffer);
+		valid &= nonEmpty(AbstractFile.name, errorBuffer);
+		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, "[^\\/\\x00]+", errorBuffer);
 
 		return valid;
 	}

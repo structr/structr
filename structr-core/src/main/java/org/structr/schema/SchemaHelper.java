@@ -854,7 +854,6 @@ public class SchemaHelper {
 			src.append("import org.structr.rest.RestMethodResult;\n");
 		}
 
-		src.append("import org.structr.core.validator.*;\n");
 		src.append("import org.structr.core.property.*;\n");
 
 		if (hasUiClasses()) {
@@ -905,13 +904,13 @@ public class SchemaHelper {
 
 			src.append("\n\t@Override\n");
 			src.append("\tpublic boolean isValid(final ErrorBuffer errorBuffer) {\n\n");
-			src.append("\t\tboolean error = !super.isValid(errorBuffer);\n\n");
+			src.append("\t\tboolean valid = super.isValid(errorBuffer);\n\n");
 
 			for (final Validator validator : validators) {
-				src.append("\t\terror |= ").append(validator.getSource("this", true)).append(";\n");
+				src.append("\t\tvalid &= ").append(validator.getSource("this", true)).append(";\n");
 			}
 
-			src.append("\n\t\treturn !error;\n");
+			src.append("\n\t\treturn valid;\n");
 			src.append("\t}\n");
 		}
 
@@ -922,13 +921,13 @@ public class SchemaHelper {
 		if (!validators.isEmpty()) {
 
 			src.append("\tpublic static boolean isValid(final AbstractNode obj, final ErrorBuffer errorBuffer) {\n\n");
-			src.append("\t\tboolean error = false;\n\n");
+			src.append("\t\tboolean valid = true;\n\n");
 
 			for (final Validator validator : validators) {
-				src.append("\t\terror |= ").append(validator.getSource("obj", false)).append(";\n");
+				src.append("\t\tvalid &= ").append(validator.getSource("obj", false)).append(";\n");
 			}
 
-			src.append("\n\t\treturn !error;\n");
+			src.append("\n\t\treturn valid;\n");
 			src.append("\t}\n\n");
 		}
 	}
@@ -1028,7 +1027,7 @@ public class SchemaHelper {
 		src.append("(");
 		src.append(type.getSignature());
 		src.append(") throws FrameworkException {\n\n");
-		src.append("\t\tboolean error = !super.");
+		src.append("\t\tboolean valid = super.");
 		src.append(type.getMethod());
 		src.append("(");
 		src.append(type.getParameters());
@@ -1038,17 +1037,12 @@ public class SchemaHelper {
 			module.insertSaveAction(schemaNode, src, type);
 		}
 
-		if (!actionList.isEmpty()) {
+		for (final ActionEntry action : actionList) {
 
-			for (final ActionEntry action : actionList) {
-
-				src.append("\t\tif (!error) {\n");
-				src.append("\t\t\terror |= ").append(action.getSource("this")).append(";\n");
-				src.append("\t\t}\n");
-			}
+			src.append("\t\t").append(action.getSource("this")).append(";\n");
 		}
 
-		src.append("\n\t\treturn !error;\n");
+		src.append("\n\t\treturn valid;\n");
 		src.append("\t}\n");
 
 	}
@@ -1058,19 +1052,14 @@ public class SchemaHelper {
 		src.append("\tpublic static boolean ");
 		src.append(type.getMethod());
 		src.append("(final AbstractNode obj, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {\n\n");
-		src.append("\t\tboolean error = !obj.isValid(errorBuffer);\n\n");
+		src.append("\t\tboolean valid = obj.isValid(errorBuffer);\n\n");
 
-		if (!actionList.isEmpty()) {
+		for (final ActionEntry action : actionList) {
 
-			for (final ActionEntry action : actionList) {
-
-				src.append("\t\tif (!error) {\n");
-				src.append("\t\t\terror |= ").append(action.getSource("obj")).append(";\n");
-				src.append("\t\t}\n");
-			}
+			src.append("\t\t").append(action.getSource("obj")).append(";\n");
 		}
 
-		src.append("\n\t\treturn !error;\n");
+		src.append("\n\t\treturn valid;\n");
 		src.append("\t}\n\n");
 
 	}

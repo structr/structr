@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.structr.api.Predicate;
@@ -27,7 +26,6 @@ import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.PropertyValidator;
 import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.SearchAttribute;
@@ -160,8 +158,6 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext);
 	public Object fixDatabaseProperty(final Object value);
 
-	public void addValidator(final PropertyValidator<T> validator);
-	public List<PropertyValidator<T>> getValidators();
 	public boolean requiresSynchronization();
 	public String getSynchronizationKey();
 

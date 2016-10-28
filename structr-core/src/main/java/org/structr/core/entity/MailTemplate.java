@@ -63,24 +63,24 @@ public class MailTemplate extends AbstractNode {
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 
-		boolean hasError = false;
+		boolean valid = super.isValid(errorBuffer);
 
 		String _name	= getProperty(name);
 		String _locale	= getProperty(locale);
 		String _uuid	= getProperty(id);
 
-		hasError |= ValidationHelper.checkStringNotBlank(this, name, errorBuffer);
-		hasError |= ValidationHelper.checkStringNotBlank(this, locale, errorBuffer);
+		valid &= ValidationHelper.isValidStringNotBlank(this, name, errorBuffer);
+		valid &= ValidationHelper.isValidStringNotBlank(this, locale, errorBuffer);
 
 		try {
 			Result<MailTemplate> res = StructrApp.getInstance(securityContext).nodeQuery(MailTemplate.class).andName(_name).and(locale, _locale).getResult();
-			if (!res.isEmpty() && res.size() > 1) {
+			if (res.size() > 1) {
 
-				hasError = true;
 				errorBuffer.add(new UniqueToken(MailTemplate.class.getName(), name, _uuid));
 				errorBuffer.add(new UniqueToken(MailTemplate.class.getName(), locale, _uuid));
+				
+				valid = false;
 			}
-
 
 		} catch (FrameworkException fe) {
 
@@ -88,8 +88,7 @@ public class MailTemplate extends AbstractNode {
 
 		}
 
-
-		return !hasError;
+		return valid;
 
 	}
 }

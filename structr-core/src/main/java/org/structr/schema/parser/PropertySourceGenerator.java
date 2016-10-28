@@ -44,10 +44,9 @@ public abstract class PropertySourceGenerator {
 
 	private final Set<Validator> globalValidators = new LinkedHashSet<>();
 	private final Set<String> enumDefinitions     = new LinkedHashSet<>();
-	private ErrorBuffer errorBuffer               = null;
 	protected PropertyDefinition source           = null;
-	private String localValidator                 = "";
-	private String className                      = "";
+	protected ErrorBuffer errorBuffer             = null;
+	protected String className                    = "";
 
 
 	public abstract Type getKey();
@@ -67,12 +66,12 @@ public abstract class PropertySourceGenerator {
 
 		if (source.isNotNull()) {
 
-			globalValidators.add(new Validator("checkPropertyNotNull", className, source.getPropertyName()));
+			globalValidators.add(new Validator("isValidPropertyNotNull", className, source.getPropertyName()));
 		}
 
 		if (source.isUnique()) {
 
-			globalValidators.add(new Validator("checkPropertyUniquenessError", className, source.getPropertyName()));
+			globalValidators.add(new Validator("isValidUniqueProperty", className, source.getPropertyName()));
 		}
 
 		parseFormatString(entity, source.getFormat());
@@ -106,10 +105,6 @@ public abstract class PropertySourceGenerator {
 
 	public ErrorBuffer getErrorBuffer() {
 		return errorBuffer;
-	}
-
-	public void setLocalValidator(final String localValidator) {
-		this.localValidator = localValidator;
 	}
 
 	public void addEnumDefinition(final String item) {
@@ -161,8 +156,6 @@ public abstract class PropertySourceGenerator {
 		}
 
 		buf.append(getPropertyParameters());
-
-		buf.append(localValidator);
 
 		buf.append(")");
 

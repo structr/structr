@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.structr.api.Predicate;
@@ -27,7 +26,6 @@ import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.PropertyValidator;
 import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
@@ -239,23 +237,13 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public void addValidator(PropertyValidator<T> validator) {
-		propertyKey.addValidator(validator);
-	}
-
-	@Override
-	public List<PropertyValidator<T>> getValidators() {
-		return propertyKey.getValidators();
-	}
-
-	@Override
 	public boolean requiresSynchronization() {
-		return false;
+		return propertyKey.requiresSynchronization();
 	}
 
 	@Override
 	public String getSynchronizationKey() {
-		return null;
+		return propertyKey.getSynchronizationKey();
 	}
 
 	@Override

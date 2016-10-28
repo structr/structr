@@ -41,7 +41,6 @@ import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
-import org.structr.core.validator.TypeUniquenessValidator;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.Schema;
 
@@ -75,8 +74,6 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 	);
 
 	static {
-
-		AbstractNode.name.addValidator(new TypeUniquenessValidator<String>(AbstractSchemaNode.class));
 
 		hiddenPropertyNames.add("visibilityStartDate");
 		hiddenPropertyNames.add("visibilityEndDate");

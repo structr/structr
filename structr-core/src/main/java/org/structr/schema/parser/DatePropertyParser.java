@@ -68,14 +68,9 @@ public class DatePropertyParser extends PropertySourceGenerator {
 	@Override
 	public void parseFormatString(final Schema entity, final String expression) throws FrameworkException {
 
-		if (expression != null) {
+		if (expression != null && !expression.isEmpty()) {
 
-			if (!expression.isEmpty()) {
-
-				pattern = expression;
-
-			}
-
+			pattern = expression;
 		}
 	}
 
