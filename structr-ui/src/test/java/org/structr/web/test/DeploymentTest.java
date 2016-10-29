@@ -54,6 +54,12 @@ public class DeploymentTest extends StructrUiTest {
 		doImportExportRoundtrip(readFileFromJar("/test/deployment/test02.html"));
 	}
 
+	@Test
+	public void test02NewlinesInScripts() {
+
+		doImportExportRoundtrip(readFileFromJar("/test/deployment/test03.html"));
+	}
+
 	// ----- private methods -----
 	private String readFileFromJar(final String name) {
 
@@ -100,6 +106,9 @@ public class DeploymentTest extends StructrUiTest {
 				final Map<String, Object> initialImportParams = new HashMap<>();
 				initialImportParams.put("source", tmp.toString());
 
+				System.out.println("############################################");
+				System.out.println(source);
+
 				// execute deploy command
 				app.command(DeployCommand.class).execute(initialImportParams);
 
@@ -116,6 +125,9 @@ public class DeploymentTest extends StructrUiTest {
 
 				// obtain exported source file
 				final String firstExportedSource = new String(Files.readAllBytes(pages.resolve("test.html")), Charset.forName("utf-8")).trim();
+
+				System.out.println("############################################");
+				System.out.println(firstExportedSource);
 
 				// import from exported source
 				final Map<String, Object> secondImportParams = new HashMap<>();
@@ -137,6 +149,9 @@ public class DeploymentTest extends StructrUiTest {
 
 				// obtain exported source file
 				final String secondExportedSource = new String(Files.readAllBytes(pages.resolve("test.html")), Charset.forName("utf-8")).trim();
+
+				System.out.println("############################################");
+				System.out.println(secondExportedSource);
 
 				assertEquals("Invalid import/export roundtrip for DeployCommand from source to first export",  source, firstExportedSource);
 				assertEquals("Invalid import/export roundtrip for DeployCommand from first to second export",  firstExportedSource, secondExportedSource);

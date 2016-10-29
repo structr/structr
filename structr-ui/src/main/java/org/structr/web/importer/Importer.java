@@ -615,7 +615,7 @@ public class Importer {
 				if (type.equals("#text")) {
 
 					tag = "";
-					content = ((TextNode) node).text();
+					content = ((TextNode) node).getWholeText();
 
 					// Add content node for whitespace within <p> elements only
 					if (!("p".equals(startNode.nodeName().toLowerCase())) && StringUtils.isWhitespace(content)) {

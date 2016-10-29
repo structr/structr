@@ -284,7 +284,7 @@ public class Content extends DOMNode implements Text {
 				renderDeploymentExportComments(buf, true);
 
 				// EditMode "deployment" means "output raw content, do not interpret in any way
-				buf.append(escapeForHtmlAttributes(getProperty(Content.content)));
+				buf.append(getProperty(Content.content));
 
 				return;
 			}

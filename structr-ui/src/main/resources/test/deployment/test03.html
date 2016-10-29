@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>${capitalize(page.name)}</title>
+	</head>
+	<body>
+		<h1>${capitalize(page.name)}</h1>
+		<div>
+			<script type="text/javascript"><!-- @structr:content(text/javascript) -->$(function () {
+
+				$('a[data-toggle="tab"]').on('click', function (e) {
+
+					var id = $(e.target).attr("href").substr(1) // activated tab
+					window.location.hash = id;
+				});
+
+			});
+			</script>
+		</div>
+	</body>
+</html>
