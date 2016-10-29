@@ -80,6 +80,128 @@ public class UiTest extends StructrUiTest {
 	}
 
 	@Test
+	public void test01AutoRenameThumbnail() {
+
+		final String initialImageName = "initial_image_name.png";
+		final String renamedImageName = "image_name_after_rename.png";
+		Image testImage = null;
+
+		try (final Tx tx = app.tx()) {
+
+			testImage = (Image) ImageHelper.createFileBase64(securityContext, base64Image, Image.class);
+
+			testImage.setProperty(Image.name, initialImageName);
+
+			assertNotNull(testImage);
+			assertTrue(testImage instanceof Image);
+
+			final Image tnSmall = testImage.getProperty(Image.tnSmall);
+			final Image tnMid = testImage.getProperty(Image.tnMid);
+
+			assertEquals("Initial small thumbnail name not as expected", testImage.getThumbnailName(initialImageName, tnSmall.getWidth(), tnSmall.getHeight()), tnSmall.getProperty(Image.name));
+			assertEquals("Initial mid thumbnail name not as expected", testImage.getThumbnailName(initialImageName, tnMid.getWidth(), tnMid.getHeight()), tnMid.getProperty(Image.name));
+
+			tx.success();
+
+		} catch (Exception ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			testImage.setProperty(Image.name, renamedImageName);
+			tx.success();
+
+		} catch (Exception ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Image tnSmall = testImage.getProperty(Image.tnSmall);
+			final Image tnMid = testImage.getProperty(Image.tnMid);
+
+			assertEquals("Small Thumbnail name not auto-renamed as expected", testImage.getThumbnailName(renamedImageName, tnSmall.getWidth(), tnSmall.getHeight()), tnSmall.getProperty(Image.name));
+			assertEquals("Mid Thumbnail name not auto-renamed as expected", testImage.getThumbnailName(renamedImageName, tnMid.getWidth(), tnMid.getHeight()), tnMid.getProperty(Image.name));
+
+			tx.success();
+
+		} catch (Exception ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+		}
+
+	}
+
+	@Test
+	public void test01AutoRenameThumbnailForImageSubclass() {
+
+		TestImage subclassTestImage = null;
+		final String initialImageName = "initial_image_name.png";
+		final String renamedImageName = "image_name_after_rename.png";
+
+		try (final Tx tx = app.tx()) {
+
+			subclassTestImage = (TestImage) ImageHelper.createFileBase64(securityContext, base64Image, TestImage.class);
+
+			subclassTestImage.setProperty(TestImage.name, initialImageName);
+
+			assertNotNull(subclassTestImage);
+			assertTrue(subclassTestImage instanceof TestImage);
+
+			final Image tnSmall = subclassTestImage.getProperty(Image.tnSmall);
+			final Image tnMid = subclassTestImage.getProperty(Image.tnMid);
+			final Image tnCustom = subclassTestImage.getProperty(TestImage.thumbnail);
+
+			assertEquals("Initial small thumbnail name not as expected", subclassTestImage.getThumbnailName(initialImageName, tnSmall.getWidth(), tnSmall.getHeight()), tnSmall.getProperty(Image.name));
+			assertEquals("Initial mid thumbnail name not as expected", subclassTestImage.getThumbnailName(initialImageName, tnMid.getWidth(), tnMid.getHeight()), tnMid.getProperty(Image.name));
+			assertEquals("Initial custom thumbnail name not as expected", subclassTestImage.getThumbnailName(initialImageName, tnCustom.getWidth(), tnCustom.getHeight()), tnCustom.getProperty(Image.name));
+
+			tx.success();
+
+		} catch (Exception ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			subclassTestImage.setProperty(Image.name, renamedImageName);
+			tx.success();
+
+		} catch (Exception ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Image tnSmall = subclassTestImage.getProperty(Image.tnSmall);
+			final Image tnMid = subclassTestImage.getProperty(Image.tnMid);
+			final Image tnCustom = subclassTestImage.getProperty(TestImage.thumbnail);
+
+			assertEquals("Small Thumbnail name not auto-renamed as expected for image subclass", subclassTestImage.getThumbnailName(renamedImageName, tnSmall.getWidth(), tnSmall.getHeight()), tnSmall.getProperty(Image.name));
+			assertEquals("Mid Thumbnail name not auto-renamed as expected for image subclass", subclassTestImage.getThumbnailName(renamedImageName, tnMid.getWidth(), tnMid.getHeight()), tnMid.getProperty(Image.name));
+			assertEquals("Custom Thumbnail name not auto-renamed as expected for image subclass", subclassTestImage.getThumbnailName(renamedImageName, tnCustom.getWidth(), tnCustom.getHeight()), tnCustom.getProperty(Image.name));
+
+			tx.success();
+
+		} catch (Exception ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+		}
+
+	}
+
+	@Test
 	public void testFolderPath() {
 
 		try (final Tx tx = app.tx()) {
