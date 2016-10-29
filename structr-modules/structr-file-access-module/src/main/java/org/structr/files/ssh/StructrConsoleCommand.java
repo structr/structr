@@ -58,7 +58,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 	private final List<String> commandHistory  = new LinkedList<>();
 	private final StringBuilder lastBlockChars = new StringBuilder();
 	private final StringBuilder buf            = new StringBuilder();
-	private ConsoleMode consoleMode            = ConsoleMode.javascript;
+	private ConsoleMode consoleMode            = ConsoleMode.JavaScript;
 	private String command                     = null;
 	private Console console                    = null;
 	private TerminalEmulator term              = null;
@@ -73,7 +73,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 	private int inBraces                       = 0;
 
 	public StructrConsoleCommand(final SecurityContext securityContext) {
-		this(securityContext, ConsoleMode.javascript, null);
+		this(securityContext, ConsoleMode.JavaScript, null);
 	}
 
 	public StructrConsoleCommand(final SecurityContext securityContext, final ConsoleMode consoleMode, final String command) {
@@ -367,24 +367,24 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 			switch (consoleMode) {
 
-				case rest:
-					consoleMode = ConsoleMode.javascript;
+				case REST:
+					consoleMode = ConsoleMode.JavaScript;
 					break;
 
-				case javascript:
-					consoleMode = ConsoleMode.structrscript;
+				case JavaScript:
+					consoleMode = ConsoleMode.StructrScript;
 					break;
 
-				case structrscript:
-					consoleMode = ConsoleMode.cypher;
+				case StructrScript:
+					consoleMode = ConsoleMode.Cypher;
 					break;
 
-				case cypher:
-					consoleMode = ConsoleMode.admin;
+				case Cypher:
+					consoleMode = ConsoleMode.AdminShell;
 					break;
 
-				case admin:
-					consoleMode = ConsoleMode.rest;
+				case AdminShell:
+					consoleMode = ConsoleMode.REST;
 					break;
 			}
 

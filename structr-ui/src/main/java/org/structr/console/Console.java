@@ -53,11 +53,11 @@ import org.structr.util.Writable;
 public class Console {
 
 	public enum ConsoleMode {
-		cypher, javascript, structrscript, admin, rest
+		Cypher, JavaScript, StructrScript, AdminShell, REST
 	};
 
 	private final Map<ConsoleMode, TabCompletionProvider> tabCompletionProviders = new HashMap<>();
-	private ConsoleMode mode                                                     = ConsoleMode.javascript;
+	private ConsoleMode mode                                                     = ConsoleMode.JavaScript;
 	private StructrScriptable scriptable                                         = null;
 	private ActionContext actionContext                                          = null;
 	private ScriptableObject scope                                               = null;
@@ -65,7 +65,7 @@ public class Console {
 	private String password                                                      = null;
 
 	public Console(final SecurityContext securityContext, final Map<String, Object> parameters) {
-		this(securityContext, ConsoleMode.javascript, parameters);
+		this(securityContext, ConsoleMode.JavaScript, parameters);
 	}
 
 	public Console(final SecurityContext securityContext, final ConsoleMode consoleMode, final Map<String, Object> parameters) {
@@ -73,11 +73,11 @@ public class Console {
 		this.actionContext = new ActionContext(securityContext, parameters);
 		this.mode          = consoleMode;
 
-		tabCompletionProviders.put(ConsoleMode.cypher,        new CypherTabCompletionProvider());
-		tabCompletionProviders.put(ConsoleMode.javascript,    new JavaScriptTabCompletionProvider());
-		tabCompletionProviders.put(ConsoleMode.structrscript, new StructrScriptTabCompletionProvider());
-		tabCompletionProviders.put(ConsoleMode.admin,         new AdminTabCompletionProvider());
-		tabCompletionProviders.put(ConsoleMode.rest,          new RestTabCompletionProvider());
+		tabCompletionProviders.put(ConsoleMode.Cypher,        new CypherTabCompletionProvider());
+		tabCompletionProviders.put(ConsoleMode.JavaScript,    new JavaScriptTabCompletionProvider());
+		tabCompletionProviders.put(ConsoleMode.StructrScript, new StructrScriptTabCompletionProvider());
+		tabCompletionProviders.put(ConsoleMode.AdminShell,         new AdminTabCompletionProvider());
+		tabCompletionProviders.put(ConsoleMode.REST,          new RestTabCompletionProvider());
 	}
 
 	public String runForTest(final String line) throws FrameworkException {
@@ -92,52 +92,56 @@ public class Console {
 
 	public void run(final String line, final Writable output) throws FrameworkException, IOException {
 
-		if (line.startsWith("Console.setMode('javascript')") || line.startsWith("Console.setMode(\"javascript\")")) {
+		if (line.startsWith("Console.getMode()")) {
+			
+			output.println("Mode is '" + getMode() + "'.");
+		
+		} else if (line.startsWith("Console.setMode('" + ConsoleMode.JavaScript.name() + "')") || line.startsWith("Console.setMode(\"" + ConsoleMode.JavaScript.name() + "\")")) {
 
-			mode = ConsoleMode.javascript;
-			output.println("Mode set to 'JavaScript'.");
+			mode = ConsoleMode.JavaScript;
+			output.println("Mode set to '" + ConsoleMode.JavaScript.name() + "'.");
 
-		} else if (line.startsWith("Console.setMode('cypher')") || line.startsWith("Console.setMode(\"cypher\")")) {
+		} else if (line.startsWith("Console.setMode('" + ConsoleMode.Cypher.name() + "')") || line.startsWith("Console.setMode(\"" + ConsoleMode.Cypher.name() + "\")")) {
 
-			mode = ConsoleMode.cypher;
-			output.println("Mode set to 'Cypher'.");
+			mode = ConsoleMode.Cypher;
+			output.println("Mode set to '" + ConsoleMode.Cypher.name() + "'.");
 
-		} else if (line.startsWith("Console.setMode('structrscript')") || line.startsWith("Console.setMode(\"structrscript\")")) {
+		} else if (line.startsWith("Console.setMode('" + ConsoleMode.StructrScript.name() + "')") || line.startsWith("Console.setMode(\"" + ConsoleMode.StructrScript.name() + "\")")) {
 
-			mode = ConsoleMode.structrscript;
-			output.println("Mode set to 'StructrScript'.");
+			mode = ConsoleMode.StructrScript;
+			output.println("Mode set to '" + ConsoleMode.StructrScript.name() + "'.");
 
-		} else if (line.startsWith("Console.setMode('admin')") || line.startsWith("Console.setMode(\"admin\")")) {
+		} else if (line.startsWith("Console.setMode('" + ConsoleMode.AdminShell.name() + "')") || line.startsWith("Console.setMode(\"" + ConsoleMode.AdminShell.name() + "\")")) {
 
-			mode = ConsoleMode.admin;
-			output.println("Mode set to 'AdminShell'. Type 'help' to get a list of commands.");
+			mode = ConsoleMode.AdminShell;
+			output.println("Mode set to '" + ConsoleMode.AdminShell.name() + "'. Type 'help' to get a list of commands.");
 
-		} else if (line.startsWith("Console.setMode('rest')") || line.startsWith("Console.setMode(\"rest\")")) {
+		} else if (line.startsWith("Console.setMode('" + ConsoleMode.REST.name() + "')") || line.startsWith("Console.setMode(\"" + ConsoleMode.REST.name() + "\")")) {
 
-			mode = ConsoleMode.rest;
-			output.println("Mode set to 'REST'. Type 'help' to get a list of commands.");
+			mode = ConsoleMode.REST;
+			output.println("Mode set to '" + ConsoleMode.REST.name() + "'. Type 'help' to get a list of commands.");
 
 		} else {
 
 			switch (mode) {
 
-				case cypher:
+				case Cypher:
 					runCypher(line, output);
 					break;
 
-				case javascript:
+				case JavaScript:
 					runJavascript(line, output);
 					break;
 
-				case structrscript:
+				case StructrScript:
 					runStructrScript(line, output);
 					break;
 
-				case admin:
+				case AdminShell:
 					runAdminShell(line, output);
 					break;
 
-				case rest:
+				case REST:
 					RestCommand.run(this, line, output);
 					break;
 			}
@@ -159,6 +163,10 @@ public class Console {
 		return actionContext.getSecurityContext();
 	}
 
+	public String getMode() {
+		return mode.name();
+	}
+
 	public String getPrompt() {
 
 		final Principal principal = actionContext.getSecurityContext().getUser(false);
@@ -166,16 +174,16 @@ public class Console {
 
 		switch (mode) {
 
-			case cypher:
-			case javascript:
-			case structrscript:
-			case admin:
+			case Cypher:
+			case JavaScript:
+			case StructrScript:
+			case AdminShell:
 				if (principal != null) {
 					buf.append(principal.getName());
 				}
 				break;
 
-			case rest:
+			case REST:
 				if (username != null) {
 					buf.append(username);
 				} else {
@@ -292,7 +300,7 @@ public class Console {
 
 	private void runAdminShell(final String line, final Writable writable) throws FrameworkException, IOException {
 
-		final List<String> parts = splitAnClean(line);
+		final List<String> parts = splitAndClean(line);
 		if (!parts.isEmpty()) {
 
 			final ConsoleCommand cmd = ConsoleCommand.getCommand(parts.get(0));
@@ -340,7 +348,7 @@ public class Console {
 		actionContext.clear();
 	}
 
-	private List<String> splitAnClean(final String src) {
+	private List<String> splitAndClean(final String src) {
 
 		final List<String> parts = new ArrayList<>();
 

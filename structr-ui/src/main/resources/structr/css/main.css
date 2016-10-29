@@ -3530,3 +3530,13 @@ input#element-class {
 .duplicate-obj-edit-name input {
 	width: calc(100% - 12px);
 }
+
+#structr-console {
+	position: absolute;
+	top: 60px;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 10;
+	opacity: .9;
+}

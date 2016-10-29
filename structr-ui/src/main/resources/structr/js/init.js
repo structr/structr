@@ -21,7 +21,7 @@ var sessionId, user;
 var lastMenuEntry, activeTab, menuBlocked;
 var dmp;
 var editorCursor, ignoreKeyUp;
-var dialog, isMax = false;
+var dialog, isMax = false, terminal, consoleDisabled = true;
 var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, saveAndClose, loginButton, loginBox, dialogCloseButton;
 var dialogId;
 var pagerType = {}, page = {}, pageSize = {}, sortKey = {}, sortOrder = {}, pagerFilters = {};
@@ -171,6 +171,9 @@ $(function() {
 				dialogSaveButton.click();
 			}
 		}
+		if (k === 67 && altKey && ctrlKey) {
+			Structr.toggleConsole();
+		}
 		//console.log(e.which, shiftKey, ctrlKey, altKey, eKey, cmdKey);
 	});
 
@@ -318,6 +321,7 @@ var Structr = {
 			}
 		}
 		hideLoadingSpinner();
+		Structr.initConsole();
 	},
 	updateUsername:function(name) {
 		if (name !== user) {
@@ -387,6 +391,11 @@ var Structr = {
 		});
 	},
 	doLogout: function(text) {
+		consoleDisabled = true;
+		Command.console('clear');
+		Command.console('exit');
+		terminal.clear();
+		$('#structr-console').hide();
 		Structr.saveLocalStorage();
 		if (Command.logout(user)) {
 			Cookies.remove('JSESSIONID');
@@ -1310,7 +1319,7 @@ var Structr = {
 			}
 		});
 	},
-	isModulePresent:function(moduleName) {
+	isModulePresent: function(moduleName) {
 		return Structr.activeModules[moduleName] !== undefined;
 	},
 	guardExecution:function (callbackToGuard) {
@@ -1328,6 +1337,117 @@ var Structr = {
 		};
 
 		return guardedFunction;
+	},
+	initConsole: function() {
+		consoleDisabled = false;
+		var greetings =   '        _                          _         \n'
+						+ ' ____  | |_   ___   _   _   ____  | |_   ___ \n'
+						+ '(  __| | __| |  _| | | | | |  __| | __| |  _|\n'
+						+ ' \\ \\   | |   | |   | | | | | |    | |   | |  \n'
+						+ ' _\\ \\  | |_  | |   | |_| | | |__  | |_  | |  \n'
+						+ '|____) |___| |_|   |_____| |____| |___| |_|  \n\n';
+
+		// Get initial mode and prompt from backend
+		Command.console('Console.getMode()', function(data) {
+
+			var message = data.message;
+			var mode = data.data.mode;
+			var prompt = data.data.prompt;
+			var versionInfo = data.data.versionInfo;
+			//console.log(message, mode, prompt, versionInfo);
+
+			var consoleEl = $('#structr-console');
+			terminal = consoleEl.terminal(function(command, term) {
+				if (command !== '') {
+					try {
+
+						Command.console(command, function(data) {
+							var prompt = data.data.prompt;
+							if (prompt) {
+								term.set_prompt(prompt + '> ');
+							}
+							
+							var result = data.message;
+							if (result !== undefined) {
+								term.echo(new String(result));
+							}
+						});
+
+					} catch (e) {
+						term.error(new String(e));
+					}
+				} else {
+					term.echo('');
+				}
+			}, {
+				greetings: greetings + 'Welcome to Structr (' + versionInfo + '). Use <Shift>+<Tab> to switch modes.',
+				name: 'structr-console',
+				height: 470,
+				prompt: prompt + '> ',
+				keydown: function(e) {
+					if (e.which === 17) {
+						return true;
+					}
+				},
+				completion: function(term, lineToBeCompleted, callback) {
+
+					if (shiftKey) {
+
+						switch (term.consoleMode) {
+
+							case 'REST':
+								mode = 'JavaScript';
+								break;
+
+							case 'JavaScript':
+								mode = 'StructrScript';
+								break;
+
+							case 'StructrScript':
+								mode = 'Cypher';
+								break;
+
+							case 'Cypher':
+								mode = 'AdminShell';
+								break;
+
+							case 'AdminShell':
+								mode = 'REST';
+								break;
+						}
+
+						var line = 'Console.setMode("' + mode + '")';
+						term.consoleMode = mode;
+
+						Command.console(line, function(data) {
+							var prompt = data.data.prompt;
+							if (prompt) {
+								term.set_prompt(prompt + '> ');
+							}
+							var result = data.message;
+							if (result !== undefined) {
+								term.echo(new String(result));
+							}
+						});
+
+					} else {
+						Command.console(lineToBeCompleted, function(data) {
+							var commands = JSON.parse(data.data.commands);
+							callback(commands);
+						}, true);
+					}
+				}
+			});
+			terminal.consoleMode = mode;
+			terminal.echo(message);
+		});
+	},
+	toggleConsole: function() {
+		if (consoleDisabled) {
+			return;
+		}
+		$('#structr-console').slideToggle('fast');
+		terminal.focus(true);
 	}
 };
 

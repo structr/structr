@@ -388,23 +388,23 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 		}
 
 		if (command.startsWith("javascript ")) {
-			return new StructrConsoleCommand(securityContext, ConsoleMode.javascript, command.substring(11));
+			return new StructrConsoleCommand(securityContext, ConsoleMode.JavaScript, command.substring(11));
 		}
 
 		if (command.startsWith("structrscript ")) {
-			return new StructrConsoleCommand(securityContext, ConsoleMode.structrscript, command.substring(14));
+			return new StructrConsoleCommand(securityContext, ConsoleMode.StructrScript, command.substring(14));
 		}
 
 		if (command.startsWith("cypher ")) {
-			return new StructrConsoleCommand(securityContext, ConsoleMode.cypher, command.substring(7));
+			return new StructrConsoleCommand(securityContext, ConsoleMode.Cypher, command.substring(7));
 		}
 
 		if (command.startsWith("admin ")) {
-			return new StructrConsoleCommand(securityContext, ConsoleMode.admin, command.substring(6));
+			return new StructrConsoleCommand(securityContext, ConsoleMode.AdminShell, command.substring(6));
 		}
 
 		if (command.startsWith("rest ")) {
-			return new StructrConsoleCommand(securityContext, ConsoleMode.rest, command.substring(5));
+			return new StructrConsoleCommand(securityContext, ConsoleMode.REST, command.substring(5));
 		}
 
 		throw new IllegalStateException("Unknown subsystem for command '" + command + "'");

@@ -77,6 +77,24 @@ var Command = {
 		return sendObj(obj, callback);
 	},
 	/**
+	 * Send a CONSOLE command with a single line as payload to the server.
+	 *
+	 * The server will return the result returned from the underlying
+	 * console infrastructure to the sending client (no broadcast).
+	 */
+	console: function(line, callback, completion) {
+		var obj = {};
+		obj.command = 'CONSOLE';
+		var data = {};
+		data.line = line;
+		if (completion) {
+			data.completion = true;
+		}
+		obj.data = data;
+		_Logger.log(_LogType.WS[obj.command], 'console()', obj, callback);
+		return sendObj(obj, callback);
+	},
+	/**
 	 * Send a single GET command to the server.
 	 *
 	 * The server will return a single relationship with all properties

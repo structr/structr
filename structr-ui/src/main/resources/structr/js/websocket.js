@@ -172,7 +172,11 @@ function wsConnect() {
 				}
 
 				StructrModel.callCallback(data.callback, data.data[data.data['key']]);
-
+				
+			} else if (command === 'CONSOLE') { /*********************** CONSOLE ************************/
+				
+				StructrModel.callCallback(data.callback, data);
+				
 			} else if (command === 'STATUS') { /*********************** STATUS ************************/
 
 				_Logger.log(_LogType.WS[command], 'Error code: ' + code, message);

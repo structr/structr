@@ -40,11 +40,11 @@ public class ConsoleTest extends StructrUiTest {
 
 			final Console console = new Console(securityContext, Collections.emptyMap());
 
-			assertEquals("Invalid console execution result", "Mode set to 'StructrScript'.\r\n", console.runForTest("Console.setMode('" + ConsoleMode.structrscript.name() + "')"));
-			assertEquals("Invalid console execution result", "Mode set to 'Cypher'.\r\n",        console.runForTest("Console.setMode('" + ConsoleMode.cypher.name() + "')"));
-			assertEquals("Invalid console execution result", "Mode set to 'JavaScript'.\r\n",    console.runForTest("Console.setMode('" + ConsoleMode.javascript.name() + "')"));
-			assertEquals("Invalid console execution result", "Mode set to 'AdminShell'. Type 'help' to get a list of commands.\r\n", console.runForTest("Console.setMode('" + ConsoleMode.admin.name() + "')"));
-			assertEquals("Invalid console execution result", "Mode set to 'REST'. Type 'help' to get a list of commands.\r\n", console.runForTest("Console.setMode('" + ConsoleMode.rest.name() + "')"));
+			assertEquals("Invalid console execution result", "Mode set to 'StructrScript'.\r\n", console.runForTest("Console.setMode('" + ConsoleMode.StructrScript.name() + "')"));
+			assertEquals("Invalid console execution result", "Mode set to 'Cypher'.\r\n",        console.runForTest("Console.setMode('" + ConsoleMode.Cypher.name() + "')"));
+			assertEquals("Invalid console execution result", "Mode set to 'JavaScript'.\r\n",    console.runForTest("Console.setMode('" + ConsoleMode.JavaScript.name() + "')"));
+			assertEquals("Invalid console execution result", "Mode set to 'AdminShell'. Type 'help' to get a list of commands.\r\n", console.runForTest("Console.setMode('" + ConsoleMode.AdminShell.name() + "')"));
+			assertEquals("Invalid console execution result", "Mode set to 'REST'. Type 'help' to get a list of commands.\r\n", console.runForTest("Console.setMode('" + ConsoleMode.REST.name() + "')"));
 
 
 		} catch (FrameworkException fex) {
@@ -61,7 +61,7 @@ public class ConsoleTest extends StructrUiTest {
 
 		try {
 
-			assertEquals("Invalid console execution result", "Mode set to 'AdminShell'. Type 'help' to get a list of commands.\r\n", console.runForTest("Console.setMode('" + ConsoleMode.admin.name() + "')"));
+			assertEquals("Invalid console execution result", "Mode set to 'AdminShell'. Type 'help' to get a list of commands.\r\n", console.runForTest("Console.setMode('" + ConsoleMode.AdminShell.name() + "')"));
 			assertEquals("Invalid console execution result", "\r\n", console.runForTest("user list"));
 
 			// create a user
@@ -206,7 +206,7 @@ public class ConsoleTest extends StructrUiTest {
 
 		try {
 
-			assertEquals("Invalid console execution result", "Mode set to 'AdminShell'. Type 'help' to get a list of commands.\r\n", console.runForTest("Console.setMode('" + ConsoleMode.admin.name() + "')"));
+			assertEquals("Invalid console execution result", "Mode set to 'AdminShell'. Type 'help' to get a list of commands.\r\n", console.runForTest("Console.setMode('" + ConsoleMode.AdminShell.name() + "')"));
 
 			// test syntax parser
 			assertEquals("Invalid console execution result", "Please specify what to initialize.\r\n", console.runForTest("init"));

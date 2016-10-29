@@ -18,24 +18,18 @@
  */
 package org.structr.rest.resource;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
+import org.structr.common.VersionHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Result;
-import org.structr.core.Services;
-import org.structr.core.app.StructrApp;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
-import org.structr.module.StructrModule;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
@@ -66,54 +60,16 @@ public class EnvResource extends Resource {
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
-		final Map<String, Map<String, Object>> modules    = new HashMap<>();
-		final Map<String, Map<String, String>> components = new HashMap<>();
 		final List<GraphObjectMap> resultList             = new LinkedList<>();
 		final GraphObjectMap info                         = new GraphObjectMap();
-		final String classPath                            = System.getProperty("java.class.path");
-		final Pattern outerPattern                        = Pattern.compile("(structr-.+?(?=.jar))");
-		final Matcher outerMatcher                        = outerPattern.matcher(classPath);
+		
+		VersionHelper versionHelper = new VersionHelper();
 
-		while (outerMatcher.find()) {
-
-			final String group               = outerMatcher.group();
-			final Pattern innerPattern       = Pattern.compile("(structr-core|structr-rest|structr-ui)-([^-]*(?:-SNAPSHOT){0,1})-{0,1}(?:([0-9]{0,12})\\.{0,1}([0-9a-f]{0,5})).*");
-			final Matcher innerMatcher       = innerPattern.matcher(group);
-			final Map<String, String> module = new HashMap<>();
-
-			if (innerMatcher.matches()) {
-
-				module.put("version", innerMatcher.group(2));
-				module.put("date", innerMatcher.group(3));
-				module.put("build", innerMatcher.group(4));
-
-				components.put(innerMatcher.group(1), module);
-			}
-		}
-
-		// collect StructrModules
-		for (final StructrModule module : StructrApp.getConfiguration().getModules().values())  {
-
-			final Map<String, Object> map = new LinkedHashMap<>();
-
-			map.put("source", module.getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
-
-			if (module.getDependencies() != null) {
-				map.put("dependencies", module.getDependencies());
-			}
-
-			if (module.getFeatures() != null) {
-				map.put("features", module.getFeatures());
-			}
-
-			modules.put(module.getName(), map);
-		}
-
-		info.setProperty(new GenericProperty("modules"), modules);
-		info.setProperty(new GenericProperty("components"), components);
-		info.setProperty(new StringProperty("classPath"), classPath);
-		info.setProperty(new StringProperty("instanceName"), StructrApp.getConfigurationValue(Services.APPLICATION_INSTANCE_NAME, ""));
-		info.setProperty(new StringProperty("instanceStage"), StructrApp.getConfigurationValue(Services.APPLICATION_INSTANCE_STAGE, ""));
+		info.setProperty(new GenericProperty("modules"),      versionHelper.getModules());
+		info.setProperty(new GenericProperty("components"),   versionHelper.getComponents());
+		info.setProperty(new StringProperty("classPath"),     versionHelper.getClassPath());
+		info.setProperty(new StringProperty("instanceName"),  versionHelper.getInstanceName());
+		info.setProperty(new StringProperty("instanceStage"), versionHelper.getInstanceStage());
 
 		resultList.add(info);
 
