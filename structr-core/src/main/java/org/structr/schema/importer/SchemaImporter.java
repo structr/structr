@@ -420,16 +420,30 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			@Override
 			public void handleGraphObject(SecurityContext securityContext, RelationshipInfo template) throws FrameworkException {
 
-				final SchemaNode startNode    = schemaNodes.get(template.getStartNodeType());
-				final SchemaNode endNode      = schemaNodes.get(template.getEndNodeType());
-				final String relationshipType = template.getRelType();
-				final PropertyMap propertyMap = new PropertyMap();
+				final String startNodeType    = template.getStartNodeType();
+				final String endNodeType      = template.getEndNodeType();
 
-				propertyMap.put(SchemaRelationshipNode.sourceId, startNode.getUuid());
-				propertyMap.put(SchemaRelationshipNode.targetId, endNode.getUuid());
-				propertyMap.put(SchemaRelationshipNode.relationshipType, relationshipType);
+				if (startNodeType != null && endNodeType != null) {
 
-				app.create(SchemaRelationshipNode.class, propertyMap);
+					final SchemaNode startNode    = schemaNodes.get(startNodeType);
+					final SchemaNode endNode      = schemaNodes.get(endNodeType);
+
+					if (startNode != null && endNode != null) {
+
+						final String relationshipType = template.getRelType();
+						final PropertyMap propertyMap = new PropertyMap();
+
+						propertyMap.put(SchemaRelationshipNode.sourceId, startNode.getUuid());
+						propertyMap.put(SchemaRelationshipNode.targetId, endNode.getUuid());
+						propertyMap.put(SchemaRelationshipNode.relationshipType, relationshipType);
+
+						app.create(SchemaRelationshipNode.class, propertyMap);
+
+					} else {
+
+						info("Unable to create schema relationship node for ", startNodeType, " -> ", endNodeType, " no schema nodes found.");
+					}
+				}
 			}
 		});
 
