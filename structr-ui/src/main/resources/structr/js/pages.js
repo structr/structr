@@ -993,8 +993,7 @@ var _Pages = {
 
 		var parentId = entity.parent && entity.parent.id;
 		if (parentId) {
-			$('.delete_icon', div).replaceWith('<img title="Remove" '
-					+ 'alt="Remove" class="delete_icon button" src="' + _Icons.delete_brick_icon + '">');
+			$('.delete_icon', div).replaceWith('<img title="Remove" alt="Remove" class="delete_icon button" src="' + _Icons.delete_brick_icon + '">');
 			$('.button', div).on('mousedown', function(e) {
 				e.stopPropagation();
 			});

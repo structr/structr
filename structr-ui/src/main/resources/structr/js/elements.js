@@ -278,12 +278,12 @@ var _Elements = {
 					// Create shadow page if not existing
 					Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entities) {
 						shadowPage = entities[0];
-						_Elements.createComponend(ui);
+						_Elements.createComponent(ui);
 					});
 				} else {
-					_Elements.createComponend(ui);
+					_Elements.createComponent(ui);
 				}
-				
+
 			}
 
 		});
@@ -314,8 +314,8 @@ var _Elements = {
 		});
 
 	},
-	createComponend: function(el) {
-		
+	createComponent: function(el) {
+
 		dropBlocked = true;
 		var sourceEl = $(el.draggable);
 		var sourceId = Structr.getId(sourceEl);
@@ -1174,7 +1174,8 @@ var _Elements = {
 		div.append('<img title="Clone content node ' + entity.id + '" alt="Clone content node ' + entity.id + '" class="clone_icon button" src="' + _Icons.clone_icon + '">');
 		$('.clone_icon', div).on('click', function(e) {
 			e.stopPropagation();
-			Command.cloneNode(entity.id, entity.parent.id, true);
+			_Logger.log(_LogType.ELEMENTS, 'Cloning node (div, parent)', entity, entity.parent);
+			Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
 		});
 
 		div.append('<img title="Delete content \'' + (entity.name ? entity.name : entity.id) + '\'" alt="Delete content \'' + (entity.name ? entity.name : entity.id) + '\'" class="delete_icon button" src="' + _Icons.delete_content_icon + '">');

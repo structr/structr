@@ -63,7 +63,7 @@ var _Entities = {
 				}
 			});
 	},
-        deleteEdge: function(button, entity, rec, callback) {
+	deleteEdge: function(button, entity, rec, callback) {
 		buttonClicked = button;
 		if (isDisabled(button))
 			return;
