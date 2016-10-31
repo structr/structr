@@ -733,6 +733,8 @@ var _Pages = {
 			Command.clonePage(entity.id);
 		});
 
+		_Elements.appendContextMenu(div, entity);
+
 		div.append('<img title="Sync page \'' + entity.name + '\' to remote instance" alt="Sync page \'' + entity.name + '\' to remote instance" class="push_icon button" src="' + _Icons.push_file_icon + '">');
 		div.children('.push_icon').on('click', function() {
 			Structr.pushDialog(entity.id, true);

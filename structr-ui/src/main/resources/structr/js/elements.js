@@ -795,23 +795,22 @@ var _Elements = {
 	},
 	appendContextMenu: function(div, entity) {
 
-		$('#menu-area').on("contextmenu",function(e){
+		$('#menu-area').on("contextmenu", function(e) {
 			e.stopPropagation();
 			e.preventDefault();
 		});
 
-		$(div).on("contextmenu",function(e){
+		$(div).on("contextmenu", function(e) {
 			e.stopPropagation();
 			e.preventDefault();
 		});
 
 		$(div).on('mouseup', function(e) {
+			e.stopPropagation();
 
-			if (e.button !== 2 || $(e.target).hasClass('content')) {
+			if (e.button !== 2) {
 				return;
 			}
-
-			e.stopPropagation();
 
 			$('#add-child-dialog').remove();
 			$('#menu-area').append('<div id="add-child-dialog"></div>');
@@ -853,27 +852,32 @@ var _Elements = {
 
 			var menu = [
 				{
+					visible: (entity.type !== 'Content'),
 					name: 'Insert HTML element',
-					elements: _Elements.sortedElementGroups
+					elements: (entity.type !== 'Page') ? _Elements.sortedElementGroups : ['html'],
 				},
 				{
+					visible: (entity.type !== 'Content'),
 					name: 'Insert content element',
-					elements: ['content', 'template'],
+					elements: (entity.type !== 'Page') ? ['content', 'template'] : ['template'],
 					separator: true
 				},
 				{
+					visible: (entity.type !== 'Page'),
 					name: 'Query and Data Binding...',
 					func: function() {
 						_Entities.showProperties(entity, 'query');
 					}
 				},
 				{
+					visible: (entity.type !== 'Page'),
 					name: 'Edit Mode Binding...',
 					func: function() {
 						_Entities.showProperties(entity, 'editBinding');
 					}
 				},
 				{
+					visible: (entity.type !== 'Page'),
 					name: 'HTML Attributes...',
 					func: function() {
 						_Entities.showProperties(entity, '_html_');
@@ -961,6 +965,7 @@ var _Elements = {
 					separator: true
 				},
 				{
+					visible: (entity.type !== 'Content'),
 					name: 'Expand / Collapse',
 					elements: [
 						{
@@ -991,19 +996,21 @@ var _Elements = {
 						}
 					],
 					separator: true
-				}
-			];
-
-			// information about most used elements in this page from backend
-			if (entity.mostUsedTags && entity.mostUsedTags.length) {
-				menu.push({
+				},
+				{
+					// information about most used elements in this page from backend
+					visible: (entity.mostUsedTags !== undefined && entity.mostUsedTags.length > 0),
 					name: 'Most used elements',
 					elements: entity.mostUsedTags,
 					separator: true
-				});
-			}
+				}
+			];
 
 			menu.forEach(function(item, i) {
+
+				if (item.visible !== undefined && item.visible === false) {
+					return;
+				}
 
 				var isSubmenu = item.elements && item.elements.length;
 
@@ -1089,7 +1096,11 @@ var _Elements = {
 									if (subitem === 'content') {
 										Command.createAndAppendDOMNode(entity.pageId, entity.id, null, {});
 									} else {
-										Command.createAndAppendDOMNode(entity.pageId, entity.id, subitem, {});
+										if (entity.type === 'Page') {
+											Command.createAndAppendDOMNode(entity.id, entity.id, subitem, {});
+										} else {
+											Command.createAndAppendDOMNode(entity.pageId, entity.id, subitem, {});
+										}
 									}
 								}
 								$('#add-child-dialog').remove();
@@ -1177,6 +1188,8 @@ var _Elements = {
 			_Logger.log(_LogType.ELEMENTS, 'Cloning node (div, parent)', entity, entity.parent);
 			Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
 		});
+
+		_Elements.appendContextMenu(div, entity);
 
 		div.append('<img title="Delete content \'' + (entity.name ? entity.name : entity.id) + '\'" alt="Delete content \'' + (entity.name ? entity.name : entity.id) + '\'" class="delete_icon button" src="' + _Icons.delete_content_icon + '">');
 		$('.delete_icon', div).on('click', function(e) {
@@ -1477,4 +1490,5 @@ var _Elements = {
 		editor.focus();
 		//editor.execCommand('goDocEnd');
 
-	}};
+	}
+};

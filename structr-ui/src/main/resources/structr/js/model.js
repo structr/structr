@@ -475,7 +475,7 @@ var StructrModel = {
 				} else {
 					element.children('.name_').attr('title', displayName).html(fitStringToWidth(displayName, 200));
 				}
-				
+
 			}
 
 		}
