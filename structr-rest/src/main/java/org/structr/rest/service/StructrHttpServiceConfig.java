@@ -107,7 +107,7 @@ public class StructrHttpServiceConfig {
 			authenticatorClass = loadClass(authenticatorValue);
 			if (authenticatorClass == null) {
 
-				logger.error("Unable	 to instantiate authenticator {}", authenticatorValue );
+				logger.error("Unable to instantiate authenticator {}", authenticatorValue );
 			}
 
 		}
@@ -132,6 +132,13 @@ public class StructrHttpServiceConfig {
 	public Authenticator getAuthenticator() {
 
 		Authenticator authenticator = null;
+
+		if (authenticatorClass == null) {
+			
+			logger.error("No authenticator class loaded. Check log for 'Missing authenticator key'." );
+			
+			return null;
+		}
 
 		try {
 			authenticator = (Authenticator) authenticatorClass.newInstance();

@@ -206,6 +206,7 @@ UploadServlet.maxFileSize = 1000
 UploadServlet.maxRequestSize = 1200
 
 # Proxy servlet
+ProxyServlet.authenticator = org.structr.web.auth.UiAuthenticator
 ProxyServlet.class = org.structr.web.servlet.ProxyServlet
 ProxyServlet.path = /structr/proxy
 ProxyServlet.resourceprovider = org.structr.web.common.UiResourceProvider

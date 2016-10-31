@@ -141,10 +141,28 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
 
-		final Authenticator auth      = getConfig().getAuthenticator();
+		final Authenticator auth = getConfig().getAuthenticator();
+		
 		SecurityContext securityContext;
 		String content;
-		
+
+		if (auth == null) {
+			
+			final String errorMessage = "No authenticator class found. Check log for 'Missing authenticator key " + this.getClass().getSimpleName() + ".authenticator'";
+			logger.error(errorMessage);
+			
+			try {
+				final ServletOutputStream out = response.getOutputStream();
+				content = errorPage(new Throwable(errorMessage));
+				IOUtils.write(content, out);
+
+			} catch (IOException ex) {
+				logger.error("Could not write to response", ex);
+			}
+			
+			return;
+		}		
+
 		try {
 
 			// isolate request authentication in a transaction
