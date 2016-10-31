@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -320,6 +321,9 @@ public class StructrRestTest {
 			for (final NodeInterface node : app.nodeQuery().getAsList()) {
 				app.delete(node);
 			}
+
+			// delete remaining nodes without UUIDs etc.
+			app.cypher("MATCH (n)-[r]-(m) DELETE n, r, m", Collections.emptyMap());
 
 			tx.success();
 

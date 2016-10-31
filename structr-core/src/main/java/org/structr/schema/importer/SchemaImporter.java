@@ -454,20 +454,26 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 
 	public void importCypher(final List<String> sources) {
 
-		final App app                 = StructrApp.getInstance();
-		final DatabaseService graphDb = app.getDatabaseService();
+		final App app = StructrApp.getInstance();
 
 		// nothing to do
 		if (sources.isEmpty()) {
 			return;
 		}
 
-		// first step: execute cypher queries
-		for (final String source : sources) {
+		//
+		try (final Tx tx = app.tx(true, false, false)) {
 
-			// be very tolerant here, just execute everything
-			graphDb.execute(source);
-		}
+			// first step: execute cypher queries
+			for (final String source : sources) {
+
+				// be very tolerant here, just execute everything
+				app.cypher(source, Collections.emptyMap());
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {}
 	}
 
 	// ----- private static methods -----

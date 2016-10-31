@@ -98,6 +98,9 @@ public class StructrTest {
 				app.delete(node);
 			}
 
+			// delete remaining nodes without UUIDs etc.
+			app.cypher("MATCH (n)-[r]-(m) DELETE n, r, m", Collections.emptyMap());
+
 			tx.success();
 
 		} catch (FrameworkException fex) {

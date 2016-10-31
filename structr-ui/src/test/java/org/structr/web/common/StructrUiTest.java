@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -228,6 +229,9 @@ public abstract class StructrUiTest {
 			for (final NodeInterface node : app.nodeQuery().getAsList()) {
 				app.delete(node);
 			}
+
+			// delete remaining nodes without UUIDs etc.
+			app.cypher("MATCH (n)-[r]-(m) DELETE n, r, m", Collections.emptyMap());
 
 			tx.success();
 
