@@ -184,7 +184,7 @@ public class HttpHelper {
 			}
 
 		} catch (final Throwable t) {
-			t.printStackTrace();
+			//t.printStackTrace();
 			throw new FrameworkException(422, "Unable to fetch content from address " + address + ": " + t.getMessage());
 		}
 		
