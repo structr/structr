@@ -48,7 +48,6 @@ var _Entities = {
 
 	},
 	deleteNode: function(button, entity, recursive, callback) {
-		debugger;
 		buttonClicked = button;
 		if (isDisabled(button))
 			return;
