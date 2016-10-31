@@ -441,7 +441,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 
 					} else {
 
-						info("Unable to create schema relationship node for ", startNodeType, " -> ", endNodeType, " no schema nodes found.");
+						info("Unable to create schema relationship node for {} -> {}, no schema nodes found", startNodeType, endNodeType);
 					}
 				}
 			}
