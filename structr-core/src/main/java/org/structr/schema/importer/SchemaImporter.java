@@ -37,7 +37,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
-import org.structr.api.Transaction;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
@@ -466,16 +465,8 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		// first step: execute cypher queries
 		for (final String source : sources) {
 
-			try (final Transaction tx = graphDb.beginTx()) {
-
-				// be very tolerant here, just execute everything
-				graphDb.execute(source);
-				tx.success();
-
-			} catch (Throwable t) {
-				// ignore
-				logger.warn("", t);
-			}
+			// be very tolerant here, just execute everything
+			graphDb.execute(source);
 		}
 	}
 

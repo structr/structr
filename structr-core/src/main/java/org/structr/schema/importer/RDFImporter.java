@@ -19,7 +19,6 @@
 package org.structr.schema.importer;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,7 +51,7 @@ import org.xml.sax.SAXException;
 public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(RDFImporter.class.getName());
-	
+
 	private static String separator = null;
 
 	@Override
@@ -62,7 +61,7 @@ public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 		final String source   = (String)attributes.get("source");
 		final String url      = (String)attributes.get("url");
 		separator             = (String)attributes.get("separator");
-		
+
 		if (StringUtils.isBlank(separator)) {
 			separator = "#";
 		}
@@ -156,10 +155,10 @@ public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 			}
 
 			cypher.append(" { ");
-			
+
 			cypher.append("name: '").append(rdfClass.name).append("' ");
 			if (StringUtils.isNotBlank(rdfClass.comment)) { cypher.append(", comment: '").append(rdfClass.comment).append("' "); }
-			
+
 			cypher.append("})\n");
 		}
 
@@ -183,7 +182,7 @@ public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 		// cross references in the output of this importer.
 
 		logger.info(cypher.toString());
-		
+
 		cypherStatements.add(cypher.toString());
 
 		return cypherStatements;
@@ -320,43 +319,43 @@ public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 	}
 
 	private static class RdfClass {
-		
+
 		public String comment = null;
 		public String name    = null;
 		public String id      = null;
 		public String type    = null;
-		
+
 		public RdfClass(final String rawAttribueValue, final String comment) {
-			
+
 			final int position = rawAttribueValue.lastIndexOf(separator);
-			
+
 			this.name    = rawAttribueValue;
 			this.id      = rawAttribueValue.replaceAll("[\\W_]+", "");
 			this.type    = rawAttribueValue.substring(position+1).replaceAll("[\\W_]+", "");
 			this.comment = comment;
-			
+
 		}
 	}
 
 	private static class RdfProperty {
-		
+
 		public String comment = null;
 		public String name    = null;
 		public String id      = null;
 		public String type    = null;
-		
+
 		public RdfProperty(final String rawAttribueValue, final String comment) {
-			
+
 			final int position = rawAttribueValue.lastIndexOf(separator);
-			
+
 			this.name    = rawAttribueValue;
 			this.id      = rawAttribueValue.replaceAll("[\\W_]+", "");
 			this.type    = rawAttribueValue.substring(position+1).replaceAll("[\\W_]+", "");
 			this.comment = comment;
-			
+
 		}
 	}
-	
+
 	private static class Triple {
 
 		public String relationship = null;
