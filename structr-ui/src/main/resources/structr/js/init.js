@@ -1024,6 +1024,7 @@ var Structr = {
 				$('.node.page', s).width(w - 25);
 
 				if (dragCallback) {
+					LSWrapper.setItem(leftSlideoutWidthKey, s.width());
 					dragCallback({sw: (sw - oldLsw)});
 				}
 			},
@@ -1366,7 +1367,7 @@ var Structr = {
 							if (prompt) {
 								term.set_prompt(prompt + '> ');
 							}
-							
+
 							var result = data.message;
 							if (result !== undefined) {
 								term.echo(new String(result));
