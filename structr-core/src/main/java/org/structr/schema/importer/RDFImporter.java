@@ -19,6 +19,7 @@
 package org.structr.schema.importer;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,6 +34,7 @@ import java.util.Set;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.CaseHelper;
@@ -50,6 +52,8 @@ import org.xml.sax.SAXException;
 public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(RDFImporter.class.getName());
+	
+	private static String separator = null;
 
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
@@ -57,6 +61,11 @@ public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 		final String fileName = (String)attributes.get("file");
 		final String source   = (String)attributes.get("source");
 		final String url      = (String)attributes.get("url");
+		separator             = (String)attributes.get("separator");
+		
+		if (StringUtils.isBlank(separator)) {
+			separator = "#";
+		}
 
 		if (fileName == null && source == null && url == null) {
 			throw new FrameworkException(422, "Please supply file, url or source parameter.");
@@ -106,9 +115,8 @@ public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 
 		final Document doc                            = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is);
 		final Set<HasSubclassRelationship> subclasses = new LinkedHashSet<>();
-		final Map<String, String> comments            = new LinkedHashMap<>();
-		final Map<String, String> properties          = new LinkedHashMap<>();
-		final Map<String, String> classes             = new LinkedHashMap<>();
+		final Map<String, RdfProperty> properties     = new LinkedHashMap<>();
+		final Map<String, RdfClass> classes           = new LinkedHashMap<>();
 		final Set<Triple> triples                     = new LinkedHashSet<>();
 		final StringBuilder cypher                    = new StringBuilder();
 		final List<String> cypherStatements           = new LinkedList<>();
@@ -118,36 +126,41 @@ public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 			final String type = node.getNodeName();
 
 			if ("rdfs:Class".equals(type)) {
-				handleClass(classes, subclasses, comments, node);
+				handleClass(classes, subclasses, node);
 			}
 
 			if ("rdf:Property".equals(type)) {
-				handleProperty(properties, triples, comments, node);
+				handleProperty(properties, triples, node);
 			}
 		}
 
-		for (final Entry<String, String> entry : classes.entrySet()) {
+		for (final Entry<String, RdfClass> entry : classes.entrySet()) {
 
 			final Set<String> superclasses = new LinkedHashSet<>();
 			final String id                = entry.getKey();
-			final String name              = entry.getValue();
+			final RdfClass rdfClass        = entry.getValue();
 
-			superclasses.add(name);
+			superclasses.add(rdfClass.name);
 
 			for (final HasSubclassRelationship rel : subclasses) {
 
 				if (rel.child.equals(id)) {
-					superclasses.add(classes.get(rel.parent));
+					superclasses.add(classes.get(rel.parent).id);
 				}
 			}
 
-			cypher.append("CREATE (").append(id);
+			cypher.append("CREATE (").append(rdfClass.id.replaceAll("[\\W_]+", ""));
 
 			for (final String cl : superclasses) {
-				cypher.append(" : ").append(cl.replaceAll("[\\W_]+", ""));
+				cypher.append(":").append(rdfClass.type);
 			}
 
-			cypher.append(" { name: '").append(id).append("_").append(name).append("'})\n");
+			cypher.append(" { ");
+			
+			cypher.append("name: '").append(rdfClass.name).append("' ");
+			if (StringUtils.isNotBlank(rdfClass.comment)) { cypher.append(", comment: '").append(rdfClass.comment).append("' "); }
+			
+			cypher.append("})\n");
 		}
 
 		for (final Triple triple : triples) {
@@ -156,7 +169,7 @@ public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 
 				cypher.append("CREATE (").append(triple.source).append("-[:");
 
-				final String relType = properties.get(triple.relationship);
+				final String relType = properties.get(triple.relationship).id;
 				cypher.append(CaseHelper.toLowerCamelCase(relType).replaceAll("[\\W_]+", ""));
 
 				cypher.append("]->");
@@ -169,25 +182,20 @@ public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 		// the individual elements are executed separately and there are
 		// cross references in the output of this importer.
 
+		logger.info(cypher.toString());
+		
 		cypherStatements.add(cypher.toString());
 
 		return cypherStatements;
 	}
 
-	private static void handleClass(final Map<String, String> classes, final Set<HasSubclassRelationship> subclasses, final Map<String, String> comments, final Node classNode) {
+	private static void handleClass(final Map<String, RdfClass> classes, final Set<HasSubclassRelationship> subclasses, final Node classNode) {
 
 		final NamedNodeMap attributes = classNode.getAttributes();
 		final String comment          = getChildString(classNode, "rdfs:comment");
-		final String rawName          = getString(attributes, "rdf:about");
-		final int position            = rawName.indexOf("_");
-		final String name             = rawName.substring(position+1);
-		final String id               = rawName.substring(0, position);
+		final String rawName          = getString(attributes, "rdf:ID") != null ? getString(attributes, "rdf:ID") : getString(attributes, "rdf:about");
 
-		classes.put(id, name);
-
-		if (comment != null) {
-			comments.put(id, comment);
-		}
+		classes.put(rawName, new RdfClass(rawName, comment));
 
 		for (Node node = classNode.getChildNodes().item(0); node != null; node = node.getNextSibling()) {
 
@@ -196,38 +204,29 @@ public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 			if ("rdfs:subClassOf".equals(type)) {
 
 				final String parent = handleSubclass(classes, node);
-				subclasses.add(new HasSubclassRelationship(parent, id));
+				subclasses.add(new HasSubclassRelationship(parent, rawName));
 			}
 		}
 	}
 
-	private static String handleSubclass(final Map<String, String> classes, final Node classNode) {
+	private static String handleSubclass(final Map<String, RdfClass> classes, final Node classNode) {
 
 		final NamedNodeMap attributes = classNode.getAttributes();
+		final String comment          = getChildString(classNode, "rdfs:comment");
 		final String rawName          = getString(attributes, "rdf:resource");
-		final int position            = rawName.indexOf("_");
-		final String name             = rawName.substring(position+1);
-		final String id               = rawName.substring(0, position);
 
-		classes.put(id, name);
+		classes.put(rawName, new RdfClass(rawName, comment));
 
-		return id;
+		return rawName;
 	}
 
-	private static void handleProperty(final Map<String, String> properties, final Set<Triple> triples, final Map<String, String> comments, final Node propertyNode) {
+	private static void handleProperty(final Map<String, RdfProperty> properties, final Set<Triple> triples, final Node propertyNode) {
 
 		final NamedNodeMap attributes = propertyNode.getAttributes();
 		final String comment          = getChildString(propertyNode, "rdfs:comment");
-		final String rawName          = getString(attributes, "rdf:about");
-		final int position            = rawName.indexOf("_");
-		final String name             = rawName.substring(position+1);
-		final String id               = rawName.substring(0, position);
+		final String rawName          = getString(attributes, "rdf:ID") != null ? getString(attributes, "rdf:ID") : getString(attributes, "rdf:about");
 
-		properties.put(id, name);
-
-		if (comment != null) {
-			comments.put(id, comment);
-		}
+		properties.put(rawName, new RdfProperty(rawName, comment));
 
 		String domain = null;
 		String range  = null;
@@ -247,14 +246,14 @@ public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 			}
 		}
 
-		triples.add(new Triple(domain, id, range));
+		triples.add(new Triple(domain, rawName, range));
 	}
 
 	private static String handleDomain(final Node propertyNode) {
 
 		final NamedNodeMap attributes = propertyNode.getAttributes();
 		final String rawName          = getString(attributes, "rdf:resource");
-		final int position            = rawName.indexOf("_");
+		final int position            = rawName.lastIndexOf(separator);
 
 		if (position >= 0) {
 
@@ -272,7 +271,7 @@ public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 
 		final NamedNodeMap attributes = propertyNode.getAttributes();
 		final String rawName          = getString(attributes, "rdf:resource");
-		final int position            = rawName.indexOf("_");
+		final int position            = rawName.lastIndexOf(separator);
 
 		if (position >= 0) {
 
@@ -287,7 +286,8 @@ public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 	}
 
 	private static String getString(final NamedNodeMap attributes, final String key) {
-		return attributes.getNamedItem(key).getNodeValue();
+		final Node node = attributes.getNamedItem(key);
+		return node != null ? attributes.getNamedItem(key).getNodeValue() : null;
 	}
 
 	private static String getChildString(final Node parent, final String key) {
@@ -319,6 +319,44 @@ public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 		}
 	}
 
+	private static class RdfClass {
+		
+		public String comment = null;
+		public String name    = null;
+		public String id      = null;
+		public String type    = null;
+		
+		public RdfClass(final String rawAttribueValue, final String comment) {
+			
+			final int position = rawAttribueValue.lastIndexOf(separator);
+			
+			this.name    = rawAttribueValue;
+			this.id      = rawAttribueValue.replaceAll("[\\W_]+", "");
+			this.type    = rawAttribueValue.substring(position+1).replaceAll("[\\W_]+", "");
+			this.comment = comment;
+			
+		}
+	}
+
+	private static class RdfProperty {
+		
+		public String comment = null;
+		public String name    = null;
+		public String id      = null;
+		public String type    = null;
+		
+		public RdfProperty(final String rawAttribueValue, final String comment) {
+			
+			final int position = rawAttribueValue.lastIndexOf(separator);
+			
+			this.name    = rawAttribueValue;
+			this.id      = rawAttribueValue.replaceAll("[\\W_]+", "");
+			this.type    = rawAttribueValue.substring(position+1).replaceAll("[\\W_]+", "");
+			this.comment = comment;
+			
+		}
+	}
+	
 	private static class Triple {
 
 		public String relationship = null;
