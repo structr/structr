@@ -464,7 +464,7 @@ var _Elements = {
 		div.append('<img title="Delete ' + displayName + ' element ' + entity.id + '" alt="Delete ' + entity.tag + ' element ' + entity.id + '" class="delete_icon button" src="' + _Icons.delete_icon + '">');
 		$('.delete_icon', div).on('click', function(e) {
 			e.stopPropagation();
-			_Entities.deleteNode(this, entity, function() {
+			_Entities.deleteNode(this, entity, true, function() {
 				var synced = entity.syncedNodes;
 				if (synced && synced.length) {
 					synced.forEach(function(id) {

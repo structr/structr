@@ -47,14 +47,15 @@ var _Entities = {
 		Command.children(id);
 
 	},
-	deleteNode: function(button, entity, rec, callback) {
+	deleteNode: function(button, entity, recursive, callback) {
+		debugger;
 		buttonClicked = button;
 		if (isDisabled(button))
 			return;
 
-		Structr.confirmation('<p>Delete ' + entity.type + ' \'' + entity.name + '\' [' + entity.id + ']' + (rec ? ' recursively' : '') + '?</p>',
+		Structr.confirmation('<p>Delete ' + entity.type + ' \'' + entity.name + '\' [' + entity.id + ']' + (recursive ? ' recursively' : '') + '?</p>',
 			function() {
-				Command.deleteNode(entity.id, rec);
+				Command.deleteNode(entity.id, recursive);
 				$.unblockUI({
 					fadeOut: 25
 				});
@@ -63,14 +64,14 @@ var _Entities = {
 				}
 			});
 	},
-	deleteEdge: function(button, entity, rec, callback) {
+	deleteEdge: function(button, entity, recursive, callback) {
 		buttonClicked = button;
 		if (isDisabled(button))
 			return;
 
-		Structr.confirmation('<p>Delete Relationship</p><p>(' + entity.sourceId + ')-[' + entity.type + ']->(' + entity.targetId + ')' + (rec ? ' recursively' : '') + '?</p>',
+		Structr.confirmation('<p>Delete Relationship</p><p>(' + entity.sourceId + ')-[' + entity.type + ']->(' + entity.targetId + ')' + (recursive ? ' recursively' : '') + '?</p>',
 			function() {
-				Command.deleteRelationship(entity.id, rec);
+				Command.deleteRelationship(entity.id, recursive);
 				$.unblockUI({
 					fadeOut: 25
 				});
