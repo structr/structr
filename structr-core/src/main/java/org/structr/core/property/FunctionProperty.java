@@ -42,6 +42,15 @@ public class FunctionProperty<T> extends Property<T> {
 	}
 
 	@Override
+	public Property<T> indexed() {
+
+		super.indexed();
+		super.passivelyIndexed();
+
+		return this;
+	}
+
+	@Override
 	public Class relatedType() {
 		return null;
 	}

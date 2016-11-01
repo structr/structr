@@ -41,13 +41,17 @@ public class CreationContainer implements GraphObject, PropertyContainer {
 
 	private final Map<String, Object> data = new LinkedHashMap<>();
 	private GraphObject         wrappedObj = null;
-	
+
 	public CreationContainer() {}
-	
+
 	public CreationContainer(final GraphObject obj) {
 		this.wrappedObj = obj;
 	}
-	
+
+	public GraphObject getWrappedObject() {
+		return wrappedObj;
+	}
+
 	public Map<String, Object> getData() {
 		return data;
 	}

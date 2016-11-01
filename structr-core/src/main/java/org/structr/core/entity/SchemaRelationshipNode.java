@@ -169,6 +169,8 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		boolean valid = super.isValid(errorBuffer);
 
 		valid &= ValidationHelper.isValidStringNotBlank(this, relationshipType, errorBuffer);
+		valid &= ValidationHelper.isValidPropertyNotNull(this, sourceNode, errorBuffer);
+		valid &= ValidationHelper.isValidPropertyNotNull(this, targetNode, errorBuffer);
 
 		return valid;
 	}

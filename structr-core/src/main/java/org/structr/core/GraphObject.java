@@ -151,7 +151,7 @@ public interface GraphObject {
 			final Object value    = attr.getValue();
 
 			if (value != null && AbstractCypherIndex.INDEXABLE.contains(valueType)) {
-				
+
 				final Object oldValue = getProperty(key);
 				if (oldValue != value) {
 
@@ -171,6 +171,10 @@ public interface GraphObject {
 			} else {
 
 				// bulk set NOT possible, set on entity
+				if (key.isSystemInternal()) {
+					unlockSystemPropertiesOnce();
+				}
+
 				setProperty(key, value);
 			}
 		}

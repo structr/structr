@@ -45,13 +45,16 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.OneFourOneToOne;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.TestEnum;
 import org.structr.core.entity.TestFive;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSix;
 import org.structr.core.entity.TestThree;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.schema.ConfigurationProvider;
 
 /**
  *
@@ -1654,4 +1657,139 @@ public class PropertyTest extends StructrTest {
 			fail("Unexpected exception");
 		}
 	}
+
+	// ----- function property tests -----
+	@Test
+	public void testFunctionPropertyIndexing() {
+
+		/* This test creates a new type "Test" and links it to
+		 * the built-in type "Group". It then creates a function
+		 * property that references the name of the related group
+		 * and assumes that a test entity is found by its related
+		 * group name.
+		 */
+
+		// schema setup
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode group = app.nodeQuery(SchemaNode.class).andName("Group").getFirst();
+			final SchemaNode test  = app.create(SchemaNode.class,
+				new NodeAttribute<>(SchemaNode.name, "Test"),
+				new NodeAttribute<>(new StringProperty("_testFunction"), "Function(this.group.name)")
+			);
+
+			assertNotNull("Invalid schema setup result", group);
+			assertNotNull("Invalid schema setup result", test);
+
+			app.create(SchemaRelationshipNode.class,
+				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, test),
+				new NodeAttribute<>(SchemaRelationshipNode.targetNode, group),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceMultiplicity, "*"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetMultiplicity, "1"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "tests"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "group"),
+				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "group")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception");
+		}
+
+		// entity setup
+		try (final Tx tx = app.tx()) {
+
+			final ConfigurationProvider config = StructrApp.getConfiguration();
+
+			final Class testType = config.getNodeEntityClass("Test");
+
+			// create test type without link to group!
+			app.create(testType);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception");
+		}
+
+		// entity setup
+		try (final Tx tx = app.tx()) {
+
+			final ConfigurationProvider config = StructrApp.getConfiguration();
+
+			final Class testType    = config.getNodeEntityClass("Test");
+			final Class groupType   = config.getNodeEntityClass("Group");
+			final GraphObject group = app.create(groupType, "testgroup");
+			final GraphObject test  = app.nodeQuery(testType).getFirst();
+
+			// create Test with link to Group
+			test.setProperty(config.getPropertyKeyForJSONName(testType, "group"), group);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception");
+		}
+
+		// test
+		try (final Tx tx = app.tx()) {
+
+			final ConfigurationProvider config = StructrApp.getConfiguration();
+			final Class testType  = config.getNodeEntityClass("Test");
+			final PropertyKey key = config.getPropertyKeyForJSONName(testType, "testFunction");
+
+			// fetch test node
+			final GraphObject testNode = app.nodeQuery(testType).getFirst();
+			final GraphObject result   = app.nodeQuery(testType).and(key, "testgroup").getFirst();
+
+			// test indexing
+			assertEquals("Invalid FunctionProperty indexing result", testNode, result);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception");
+		}
+
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

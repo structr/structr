@@ -37,6 +37,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.TestOne;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -1740,6 +1741,128 @@ public class ValidationTest extends StructrTest {
 		try { checkRangeError(testType, range1, 0); } catch (FrameworkException fex) { checkException(fex, 1, 422, "Test", "range1", "must_be_in_range"); }
 		try { checkRangeError(testType, range1, 5); } catch (FrameworkException fex) { checkException(fex, 1, 422, "Test", "range1", "must_be_in_range"); }
 		try { checkRangeError(testType, range1, 6); } catch (FrameworkException fex) { checkException(fex, 1, 422, "Test", "range1", "must_be_in_range"); }
+	}
+
+	// schema relationship node validation
+	@Test
+	public void testSchemaRelationshipNodeValidation() {
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(SchemaRelationshipNode.class,
+				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, null),
+				new NodeAttribute<>(SchemaRelationshipNode.targetNode, null)
+			);
+
+			tx.success();
+
+			fail("SchemaRelationshipNode constraint violation, source and target node must not be null.");
+
+		} catch (FrameworkException fex) {
+
+			final List<ErrorToken> tokens = fex.getErrorBuffer().getErrorTokens();
+
+			assertEquals("Invalid SchemaRelationshipNode validation result", 3, tokens.size());
+			assertEquals("Invalid SchemaRelationshipNode validation result", 422, fex.getStatus());
+
+			final ErrorToken token1 = tokens.get(0);
+			final ErrorToken token2 = tokens.get(1);
+			final ErrorToken token3 = tokens.get(2);
+
+			assertEquals("Invalid SchemaRelationshipNode validation result", "SchemaRelationshipNode", token1.getType());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "relationshipType", token1.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token1.getToken());
+
+			assertEquals("Invalid SchemaRelationshipNode validation result", "SchemaRelationshipNode", token2.getType());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "sourceNode", token2.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token2.getToken());
+
+			assertEquals("Invalid SchemaRelationshipNode validation result", "SchemaRelationshipNode", token3.getType());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "targetNode", token3.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token3.getToken());
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(SchemaRelationshipNode.class,
+				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "test"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, null),
+				new NodeAttribute<>(SchemaRelationshipNode.targetNode, null)
+			);
+
+			tx.success();
+
+			fail("SchemaRelationshipNode constraint violation, source and target node must not be null.");
+
+		} catch (FrameworkException fex) {
+
+			final List<ErrorToken> tokens = fex.getErrorBuffer().getErrorTokens();
+
+			assertEquals("Invalid SchemaRelationshipNode validation result", 2, tokens.size());
+			assertEquals("Invalid SchemaRelationshipNode validation result", 422, fex.getStatus());
+
+			final ErrorToken token1 = tokens.get(0);
+			final ErrorToken token2 = tokens.get(1);
+
+			assertEquals("Invalid SchemaRelationshipNode validation result", "SchemaRelationshipNode", token1.getType());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "sourceNode", token1.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token1.getToken());
+
+			assertEquals("Invalid SchemaRelationshipNode validation result", "SchemaRelationshipNode", token2.getType());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "targetNode", token2.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token2.getToken());
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(SchemaRelationshipNode.class,
+				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "test"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, app.nodeQuery(SchemaNode.class).andName("Group").getFirst()),
+				new NodeAttribute<>(SchemaRelationshipNode.targetNode, null)
+			);
+
+			tx.success();
+
+			fail("SchemaRelationshipNode constraint violation, target node must not be null.");
+
+		} catch (FrameworkException fex) {
+
+			final List<ErrorToken> tokens = fex.getErrorBuffer().getErrorTokens();
+			final ErrorToken token = tokens.get(0);
+
+			assertEquals("Invalid SchemaRelationshipNode validation result", 1, tokens.size());
+
+			assertEquals("Invalid SchemaRelationshipNode validation result", 422, fex.getStatus());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "SchemaRelationshipNode", token.getType());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "targetNode", token.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token.getToken());
+		}
+
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(SchemaRelationshipNode.class,
+				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "test"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, null),
+				new NodeAttribute<>(SchemaRelationshipNode.targetNode, app.nodeQuery(SchemaNode.class).andName("Group").getFirst())
+			);
+
+			tx.success();
+
+			fail("SchemaRelationshipNode constraint violation, source node must not be null.");
+
+		} catch (FrameworkException fex) {
+
+			final List<ErrorToken> tokens = fex.getErrorBuffer().getErrorTokens();
+			final ErrorToken token = tokens.get(0);
+
+			assertEquals("Invalid SchemaRelationshipNode validation result", 1, tokens.size());
+
+			assertEquals("Invalid SchemaRelationshipNode validation result", 422, fex.getStatus());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "SchemaRelationshipNode", token.getType());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "sourceNode", token.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token.getToken());
+		}
 	}
 
 	// ----- private methods -----

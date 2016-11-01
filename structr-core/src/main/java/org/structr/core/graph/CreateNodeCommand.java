@@ -22,10 +22,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeResult;
 import org.structr.api.graph.Node;
@@ -38,7 +35,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
 import org.structr.core.entity.SuperUser;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.TypeProperty;
 import org.structr.schema.SchemaHelper;
@@ -51,8 +47,6 @@ import org.structr.schema.SchemaHelper;
  *
  */
 public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceCommand {
-
-	private static final Logger logger = LoggerFactory.getLogger(CreateNodeCommand.class.getName());
 
 	public T execute(final Collection<NodeAttribute<?>> attributes) throws FrameworkException {
 
@@ -129,18 +123,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 				TransactionCommand.nodeCreated(user, node);
 
-				// set non-primitive properties
-				for (final Entry<PropertyKey, Object> attr : properties.entrySet()) {
-
-					final Object value    = attr.getValue();
-					final PropertyKey key = attr.getKey();
-
-					if (key.isSystemInternal()) {
-						node.unlockSystemPropertiesOnce();
-					}
-
-					node.setProperty(key, value);
-				}
+				node.setProperties(securityContext, properties);
 
 				properties.clear();
 

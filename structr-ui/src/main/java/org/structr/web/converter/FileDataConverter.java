@@ -32,6 +32,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.CreationContainer;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.FileHelper.Base64URIData;
 import org.structr.web.common.ImageHelper;
@@ -65,7 +66,7 @@ public class FileDataConverter extends PropertyConverter {
 			return false;
 		}
 
-		final FileBase currentFile = (FileBase)currentObject;
+		final FileBase currentFile = (FileBase)getCurrentObject();
 
 		if (source instanceof byte[]) {
 
@@ -124,4 +125,14 @@ public class FileDataConverter extends PropertyConverter {
 		}
 	}
 
+	// ----- private methods -----
+	private FileBase getCurrentObject() {
+
+		if (currentObject instanceof CreationContainer) {
+
+			return (FileBase)((CreationContainer)currentObject).getWrappedObject();
+		}
+
+		return (FileBase)currentObject;
+	}
 }
