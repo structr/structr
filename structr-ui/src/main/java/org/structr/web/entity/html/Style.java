@@ -38,38 +38,44 @@ import org.w3c.dom.Node;
 public class Style extends DOMElement {
 
 	private static final Logger logger = LoggerFactory.getLogger(Style.class.getName());
-	
+
 	public static final Property<String> _media  = new HtmlProperty("media");
 	public static final Property<String> _type   = new HtmlProperty("type");
 	public static final Property<String> _scoped = new HtmlProperty("scoped");
-	
-//	public static final EndNodes<Content> contents = new EndNodes<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
-//	public static final EndNodes<Head>    heads    = new EndNodes<Head>("heads", Head.class, RelType.CONTAINS, Direction.INCOMING, false);
 
 	public static final View htmlView = new View(Style.class, PropertyView.Html,
 		_media, _type, _scoped
 	);
 
-	
+
 	@Override
 	public Property[] getHtmlAttributes() {
 
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 
 	}
-	
+
 	@Override
 	protected void handleNewChild(final Node newChild) {
-		
+
 		if (newChild instanceof Content) {
 
+			final Content content = (Content)newChild;
+
 			try {
-				((Content)newChild).setProperty(Content.contentType, getProperty(_type));
-				
+
+				final String childContentType = content.getProperty(Content.contentType);
+				final String thisContentType  = getProperty(_type);
+
+				if (childContentType == null && thisContentType != null) {
+
+					content.setProperty(Content.contentType, thisContentType);
+				}
+
 			} catch (FrameworkException fex) {
-				
+
 				logger.warn("Unable to set property on new child: {}", fex.getMessage());
-				
+
 			}
 		}
 	}
