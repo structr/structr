@@ -42,6 +42,10 @@
 			<unpack>true</unpack>
 			<includes>
 				<include>org.structr:structr-text-search-module</include>
+				<include>com.rometools:rome</include>
+				<include>com.rometools:rome-utils</include>
+				<include>org.jdom:jdom2</include>
+				<include>org.slf4j:slf4j-api</include>
 			</includes>
 		</dependencySet>
 	</dependencySets>

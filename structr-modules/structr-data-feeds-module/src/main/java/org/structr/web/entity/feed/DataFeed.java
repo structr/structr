@@ -18,14 +18,14 @@
  */
 package org.structr.web.entity.feed;
 
-import com.rometools.fetcher.FeedFetcher;
 import com.rometools.fetcher.FetcherException;
-import com.rometools.fetcher.impl.HttpURLFeedFetcher;
 import com.rometools.rome.feed.synd.SyndContent;
 import com.rometools.rome.feed.synd.SyndEnclosure;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
+import com.rometools.rome.io.SyndFeedInput;
+import com.rometools.rome.io.XmlReader;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Date;
@@ -165,8 +165,9 @@ public class DataFeed extends AbstractNode {
 
 			try {
 
-				final FeedFetcher     feedFetcher = new HttpURLFeedFetcher();
-				final SyndFeed        feed        = feedFetcher.retrieveFeed(new URL(remoteUrl));
+                                final URL remote = new URL(remoteUrl);
+                                final SyndFeedInput input = new SyndFeedInput();
+				final SyndFeed      feed  = input.build(new XmlReader(remote));
 				final List<SyndEntry> entries     = feed.getEntries();
 
 				setProperty(feedType,    feed.getFeedType());
@@ -228,7 +229,7 @@ public class DataFeed extends AbstractNode {
 				setProperty(items, newItems);
 				setProperty(lastUpdated, new Date());
 
-			} catch (IllegalArgumentException | IOException | FetcherException | FeedException | FrameworkException ex) {
+			} catch (IllegalArgumentException | IOException | FeedException | FrameworkException ex) {
 				logger.error("Error while updating feed", ex);
 			}
 
