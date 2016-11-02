@@ -42,7 +42,8 @@ var _Pages = {
 	autoRefresh: [],
 	init: function() {
 
-		_Pager.initPager('pages',   'Page', 1, 25, 'name', 'asc', { hidden: false });
+		_Pager.initPager('pages',   'Page', 1, 25, 'name', 'asc');
+		_Pager.forceAddFilters('pages', 'Page', { hidden: false });
 		_Pager.initPager('files',   'File', 1, 25, 'name', 'asc');
 		_Pager.initPager('folders', 'Folder', 1, 25, 'name', 'asc');
 		_Pager.initPager('images',  'Image', 1, 25, 'name', 'asc');

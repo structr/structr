@@ -45,6 +45,10 @@ var _Pager = {
 		_Pager.storePagerData(id, type, page[id], pageSize[id], sortKey[id], sortOrder[id], pagerFilters[id]);
 	},
 
+	forceAddFilters: function(id, type, filters) {
+		_Pager.initFilters(id, type, $.extend(pagerFilters[id], filters));
+	},
+
 	storePagerData: function(id, type, page, pageSize, sort, order, filters) {
 		var data = {
 			id: id,
