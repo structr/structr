@@ -31,6 +31,7 @@ import org.structr.common.error.TooShortToken;
 import org.structr.common.error.UniqueToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.GenericProperty;
@@ -339,10 +340,10 @@ public class ValidationHelper {
 
 				// use declaring class for inheritance-aware uniqueness
 				Class type = key.getDeclaringClass();
-				if (type == null) {
+				if (type == null || (AbstractNode.name.equals(key) && NodeInterface.class.equals(type))) {
 
 					// fallback: object type
-					object.getClass();
+					type = object.getClass();
 				}
 
 				try {

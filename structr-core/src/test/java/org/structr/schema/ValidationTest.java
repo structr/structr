@@ -36,9 +36,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Group;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.TestOne;
+import org.structr.core.entity.TestTwelve;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -651,6 +653,38 @@ public class ValidationTest extends StructrTest {
 		executor.shutdownNow();
 	}
 
+	@Test
+	public void testNamePropertyValidation() {
+
+		// The goal of this test is to ensure that validation
+		// only includes actual derived classes.
+
+		// override name property
+		try (final Tx tx = app.tx()) {
+
+			// create some nodes with identical names
+			app.create(Group.class,   "unique");
+			app.create(TestOne.class, "unique");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			// should succeed
+			app.create(TestTwelve.class, new NodeAttribute<>(AbstractNode.name, "unique"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Uniqueness constraint includes wrong type(s)!");
+		}
+	}
 
 	// ----- string property validation tests -----
 	@Test
