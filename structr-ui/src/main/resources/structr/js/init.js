@@ -256,7 +256,8 @@ var _Icons = {
 	search_icon: 'icon/zoom.png',
 	star_icon: 'icon/star.png',
 	star_delete_icon: 'icon/star_delete.png',
-	image_icon: 'icon/image.png'
+	image_icon: 'icon/image.png',
+	arrow_up_down: 'icon/arrow_up_down.png'
 };
 
 var Structr = {

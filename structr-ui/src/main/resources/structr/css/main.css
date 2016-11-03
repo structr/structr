@@ -1667,7 +1667,24 @@ button.add_property {
 }
 
 .actions.schema-props .cm-schema-methods {
-    height: 100px;
+    min-height: 20px;
+	height: 100px;
+}
+
+.actions.schema-props .name-col {
+	vertical-align: top;
+	height: 100px;
+}
+
+.actions.schema-props .abs-pos-helper {
+	position: relative;
+	height: 100%;
+}
+
+.actions.schema-props .abs-pos-helper .resize-handle {
+	position: absolute;
+	right: 8px;
+	bottom: 8px;
 }
 
 .actions.schema-props .cm-schema-methods .CodeMirror-scroll {
@@ -1677,7 +1694,7 @@ button.add_property {
 }
 
 .actions.schema-props .cm-schema-methods .CodeMirror-gutters {
-    height: 97% !important;
+    height: calc(100% - 3px) !important;
     padding-bottom: 0;
 }
 

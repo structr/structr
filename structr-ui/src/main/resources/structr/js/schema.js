@@ -1077,15 +1077,21 @@ var _Schema = {
 
 		$('.add-action-attribute', el).on('click', function() {
 
-			actionsTable.append('<tr class="new"><td style="vertical-align:top;"><input size="15" type="text" class="action property-name" placeholder="Enter method name"></td>'
-					+ '<td><textarea rows="4" class="action property-code" placeholder="Enter Code"></textarea></td><td><textarea rows="4" class="action property-comment" placeholder="Enter comment"></textarea></td>'
+			actionsTable.append('<tr class="new">'
+					+ '<td class="name-col"><div class="abs-pos-helper">'
+						+ '<input size="15" type="text" class="action property-name" placeholder="Enter method name">'
+						+ '<img alt="Drag to resize" title="Drag to resize" class="resize-handle" src="' + _Icons.arrow_up_down + '">'
+					+ '</div></td>'
+					+ '<td><textarea rows="4" class="action property-code" placeholder="Enter Code"></textarea></td>'
+					+ '<td><textarea rows="4" class="action property-comment" placeholder="Enter comment"></textarea></td>'
 					+ '<td>'
-					+ '<img alt="Accept" title="Save changes" class="create-icon create-action" src="' + _Icons.tick_icon + '">'
-					+ '<img alt="Cancel" title="Discard changes" class="remove-icon remove-action" src="' + _Icons.cross_icon + '">'
+						+ '<img alt="Accept" title="Save changes" class="create-icon create-action" src="' + _Icons.tick_icon + '">'
+						+ '<img alt="Cancel" title="Discard changes" class="remove-icon remove-action" src="' + _Icons.cross_icon + '">'
 					+ '</td>'
-					+ '</div>');
+					+ '</tr>');
 
 			var tr = $('tr:last-of-type', el);
+			_Schema.makeRowResizable(tr);
 
 			// Intitialize editor(s)
 			$('textarea.property-code', tr).each(function (i, txtarea) {
@@ -1749,17 +1755,21 @@ var _Schema = {
 	appendMethod: function(el, method) {
 
 		// append default actions
-		el.append('<tr class="' + method.name + '"><td style="vertical-align:top;"><input size="15" type="text" class="property-name action" value="'
-				+ escapeForHtmlAttributes(method.name) + '"></td><td><textarea rows="4" class="property-code action">'
-				+ escapeForHtmlAttributes(method.source) + '</textarea></td><td><textarea rows="4" class="property-comment action">'
-				+ escapeForHtmlAttributes(method.comment || '') + '</textarea></td>'
+		el.append('<tr class="' + method.name + '">'
+				+ '<td class="name-col"><div class="abs-pos-helper">'
+					+ '<input size="15" type="text" class="property-name action" value="' + escapeForHtmlAttributes(method.name) + '">'
+					+ '<img alt="Drag to resize" title="Drag to resize" class="resize-handle" src="' + _Icons.arrow_up_down + '">'
+				+ '</div></td>'
+				+ '<td><textarea rows="4" class="property-code action">' + escapeForHtmlAttributes(method.source || '') + '</textarea></td>'
+				+ '<td><textarea rows="4" class="property-comment action">' + escapeForHtmlAttributes(method.comment || '') + '</textarea></td>'
 				+ '<td>'
-				+ '<img alt="Accept" title="Save changes" class="create-icon save-action hidden" src="' + _Icons.tick_icon + '">'
-				+ '<img alt="Cancel" title="Discard changes" class="remove-icon cancel-action hidden" src="' + _Icons.cross_icon + '">'
-				+ '<img alt="Remove" title="Remove method" class="remove-icon remove-action" src="' + _Icons.delete_icon + '">'
+					+ '<img alt="Accept" title="Save changes" class="create-icon save-action hidden" src="' + _Icons.tick_icon + '">'
+					+ '<img alt="Cancel" title="Discard changes" class="remove-icon cancel-action hidden" src="' + _Icons.cross_icon + '">'
+					+ '<img alt="Remove" title="Remove method" class="remove-icon remove-action" src="' + _Icons.delete_icon + '">'
 				+ '</td></tr>');
 
 		var tr = $('tr:last-of-type', el);
+		_Schema.makeRowResizable(tr);
 
 		var activate = function() {
 			$('.save-action', tr).removeClass('hidden');
@@ -3429,5 +3439,35 @@ var _Schema = {
 	},
 	senseCodeMirrorMode: function (contentText) {
 		return (contentText.substring(0, 1) === "{") ? 'javascript' : 'none';
+	},
+	makeRowResizable: function ($tr) {
+		var schemaMethodDrag = {};
+
+		$('.resize-handle', $tr).draggable({
+			axis: 'y',
+			start: function(event, ui) {
+				schemaMethodDrag.initialHeight = $(this).closest('td').height();
+				schemaMethodDrag.begin = event.pageY;
+			},
+			drag: function(event, ui) {
+				ui.position.top = Math.max( 0, ui.position.top );
+
+				var newHeight = schemaMethodDrag.initialHeight + (event.pageY - schemaMethodDrag.begin);
+
+				var tds = $(this).closest('tr').find('td');
+				var cms = tds.find('.CodeMirror');
+
+				tds.height( newHeight );
+				cms.height( newHeight );
+
+				cms.each(function (idx, cm) {
+					cm.CodeMirror.refresh();
+				});
+			},
+			stop: function() {
+				$(this).attr('style', null);
+			}
+		});
+
 	}
 };
