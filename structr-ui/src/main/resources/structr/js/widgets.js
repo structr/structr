@@ -348,7 +348,7 @@ var _Widgets = {
 		dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
 
 		dialogSaveButton = $('#editorSave', dialogBtn);
-		var saveAndClose = $('#saveAndClose', dialogBtn);
+		saveAndClose = $('#saveAndClose', dialogBtn);
 
 		text1 = text;
 

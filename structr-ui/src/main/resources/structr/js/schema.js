@@ -1579,7 +1579,7 @@ var _Schema = {
 		dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
 
 		dialogSaveButton = $('#editorSave', dialogBtn);
-		var saveAndClose = $('#saveAndClose', dialogBtn);
+		saveAndClose = $('#saveAndClose', dialogBtn);
 
 		saveAndClose.on('click', function(e) {
 			e.stopPropagation();
@@ -1599,7 +1599,7 @@ var _Schema = {
 			} else {
 				dialogSaveButton.prop("disabled", false).removeClass('disabled');
 				saveAndClose.prop("disabled", false).removeClass('disabled');
-			}
+			} 
 
 			$('#chars').text(editor.getValue().length);
 			$('#words').text(editor.getValue().match(/\S+/g).length);
@@ -1621,6 +1621,10 @@ var _Schema = {
 			if (callback) {
 				callback();
 			}
+			dialogSaveButton = $('#editorSave', dialogBtn);
+			saveAndClose = $('#saveAndClose', dialogBtn);
+			dialogSaveButton.remove();
+			saveAndClose.remove();
 			return false;
 		});
 
@@ -1672,7 +1676,7 @@ var _Schema = {
 		});
 
 		dialogMeta.append('<span class="editor-info">Characters: <span id="chars">' + editor.getValue().length + '</span></span>');
-		dialogMeta.append('<span class="editor-info">Words: <span id="chars">' + editor.getValue().match(/\S+/g).length + '</span></span>');
+		dialogMeta.append('<span class="editor-info">Words: <span id="chars">' + (editor.getValue().match(/\S+/g) ? editor.getValue().match(/\S+/g).length : 0) + '</span></span>');
 
 		editor.id = entity.id;
 

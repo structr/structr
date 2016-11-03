@@ -1382,12 +1382,14 @@ var _Elements = {
 		}
 
 		dialogSaveButton = $('#editorSave', dialogBtn);
-		var saveAndClose = $('#saveAndClose', dialogBtn);
+		saveAndClose = $('#saveAndClose', dialogBtn);
 
 		saveAndClose.on('click', function(e) {
 			e.stopPropagation();
 			dialogSaveButton.click();
 			setTimeout(function() {
+				dialogSaveButton = $('#editorSave', dialogBtn);
+				saveAndClose = $('#saveAndClose', dialogBtn);
 				dialogSaveButton.remove();
 				saveAndClose.remove();
 				dialogCancelButton.click();
