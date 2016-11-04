@@ -401,6 +401,7 @@ var Structr = {
 		if (Command.logout(user)) {
 			Cookies.remove('JSESSIONID');
 			sessionId.length = 0;
+			LSWrapper.clear();
 			Structr.renewSessionId();
 			Structr.clearMain();
 			Structr.login(text);
