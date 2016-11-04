@@ -582,7 +582,7 @@ var Command = {
 		var obj = {};
 		obj.command = 'SAVE_LOCAL_STORAGE';
 		var data = {};
-		data.localStorageString = JSON.stringify(localStorageObject);
+		data.localStorageString = LSWrapper.getAsJSON();
 		obj.data = data;
 		//_Logger.log(_LogType.WS[obj.command], 'saveLocalStorage()', data.localStorageString);
 		return sendObj(obj, callback);

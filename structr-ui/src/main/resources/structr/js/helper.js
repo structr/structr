@@ -461,27 +461,41 @@ jQuery.isBlank = function (obj) {
  * thin wrapper for localStorage with a success-check and error display
  */
 
-var localStorageObject = {};
+var LSWrapper = new (function() {
 
-var LSWrapper = {
+	var _localStorageObject = {};
 
-	setItem: function(key, value) {
-		localStorageObject[key] = value;
-	},
+	this.isLoaded = function () {
+		console.log(!_localStorageObject, Object.keys(_localStorageObject).length, _localStorageObject.constructor)
+		return !(!_localStorageObject || (Object.keys(_localStorageObject).length === 0 && _localStorageObject.constructor === Object));
+	};
 
-	getItem: function (key) {
-		return localStorageObject[key] || null;
-	},
+	this.setItem = function(key, value) {
+		_localStorageObject[key] = value;
+	};
 
-	removeItem: function (key) {
-		delete localStorageObject[key];
-	},
+	this.getItem = function (key) {
+		return _localStorageObject[key] || null;
+	};
 
-	clear: function () {
-		localStorageObject = {};
-	}
+	this.removeItem = function (key) {
+		delete _localStorageObject[key];
+	};
 
-};
+	this.clear = function () {
+		console.log('clear')
+		_localStorageObject = {};
+	};
+
+	this.getAsJSON = function () {
+		return JSON.stringify(_localStorageObject);
+	};
+
+	this.setAsJSON = function (json) {
+		_localStorageObject = JSON.parse(json);
+	};
+
+});
 
 function fastRemoveAllChildren(el) {
 	if (!el) return;

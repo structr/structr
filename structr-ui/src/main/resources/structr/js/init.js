@@ -506,7 +506,7 @@ var Structr = {
 		Command.saveLocalStorage();
 	},
 	restoreLocalStorage: function(callback) {
-		if (!localStorageObject || (Object.keys(localStorageObject).length === 0 && localStorageObject.constructor === Object)) {
+		if (!LSWrapper.isLoaded()) {
 			_Logger.log(_LogType.INIT, "Restoring localstorage");
 			Command.getLocalStorage(callback);
 		} else {

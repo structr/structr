@@ -1605,7 +1605,7 @@ var _Schema = {
 			} else {
 				dialogSaveButton.prop("disabled", false).removeClass('disabled');
 				saveAndClose.prop("disabled", false).removeClass('disabled');
-			} 
+			}
 
 			$('#chars').text(editor.getValue().length);
 			$('#words').text(editor.getValue().match(/\S+/g).length);

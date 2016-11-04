@@ -136,13 +136,13 @@ var _Dashboard = {
 			Command.rest("/me/ui", function (result) {
 				Command.setProperty(result[0].id, 'localStorage', null, false, function() {
 					blinkGreen($('#clear-local-storage-on-server'));
-					localStorageObject = {};
+					LSWrapper.clear();
 				});
 			});
 		} else {
 			Command.setProperty(meObj.id, 'localStorage', null, false, function() {
 				blinkGreen($('#clear-local-storage-on-server'));
-				localStorageObject = {};
+				LSWrapper.clear();
 			});
 		}
 	}
