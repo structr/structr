@@ -466,7 +466,6 @@ var LSWrapper = new (function() {
 	var _localStorageObject = {};
 
 	this.isLoaded = function () {
-		console.log(!_localStorageObject, Object.keys(_localStorageObject).length, _localStorageObject.constructor)
 		return !(!_localStorageObject || (Object.keys(_localStorageObject).length === 0 && _localStorageObject.constructor === Object));
 	};
 
@@ -483,7 +482,6 @@ var LSWrapper = new (function() {
 	};
 
 	this.clear = function () {
-		console.log('clear')
 		_localStorageObject = {};
 	};
 
