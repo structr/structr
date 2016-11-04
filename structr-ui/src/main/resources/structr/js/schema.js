@@ -18,8 +18,7 @@
  */
 var canvas, instance, res, nodes = {}, rels = {}, localStorageSuffix = '_schema_' + port, undefinedRelType = 'UNDEFINED_RELATIONSHIP_TYPE', initialRelType = undefinedRelType;
 var radius = 20, stub = 30, offset = 0, maxZ = 0, reload = false;
-var connectorStyle = LSWrapper.getItem(localStorageSuffix + 'connectorStyle') || 'Flowchart';
-var zoomLevel = parseFloat(LSWrapper.getItem(localStorageSuffix + 'zoomLevel')) || 1.0;
+var connectorStyle, zoomLevel;
 var remotePropertyKeys = [];
 var hiddenSchemaNodes = [];
 var hiddenSchemaNodesKey = 'structrHiddenSchemaNodes_' + port;
@@ -99,6 +98,9 @@ var _Schema = {
 		var schemaInputContainer = $('.schema-input-container');
 
 		Structr.ensureIsAdmin(schemaInputContainer, function() {
+
+			connectorStyle = LSWrapper.getItem(localStorageSuffix + 'connectorStyle') || 'Flowchart';
+			zoomLevel = parseFloat(LSWrapper.getItem(localStorageSuffix + 'zoomLevel')) || 1.0;
 
 			schemaInputContainer.append('<div class="input-and-button"><input class="schema-input" id="type-name" type="text" size="10" placeholder="New type"><button id="create-type" class="btn"><img src="' + _Icons.add_icon + '"> Add</button></div>');
 			schemaInputContainer.append('<div class="input-and-button"><input class="schema-input" id="ggist-url" type="text" size="20" placeholder="Enter GraphGist URL"><button id="gg-import" class="btn">Start Import</button></div>');
