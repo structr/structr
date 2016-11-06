@@ -73,7 +73,7 @@ public class DataFeed extends AbstractNode {
 
 	public static final View uiView = new View(DataFeed.class, PropertyView.Ui,
 		id, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate,
-                url, items, feedType, description, lastUpdated, maxAge, maxItems
+                url, items, feedType, description, lastUpdated, maxAge, maxItems, updateInterval
 	);
 
         static {
