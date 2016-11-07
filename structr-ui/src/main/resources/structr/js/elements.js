@@ -828,7 +828,7 @@ var _Elements = {
 				topOrBottom = 'bottom';
 				y -= 175;
 
-				if (entity.mostUsedTags.length) {
+				if (entity.mostUsedTags && entity.mostUsedTags.length) {
 					y -= 24;
 				}
 			}
