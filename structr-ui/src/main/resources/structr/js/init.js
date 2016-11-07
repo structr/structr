@@ -172,6 +172,7 @@ $(function() {
 			}
 		}
 		if (k === 67 && altKey && ctrlKey) {
+			e.preventDefault();
 			_Console.toggleConsole();
 		}
 		//console.log(e.which, shiftKey, ctrlKey, altKey, eKey, cmdKey);
