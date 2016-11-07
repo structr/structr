@@ -1506,7 +1506,7 @@ var _Entities = {
 			_Entities.setNewAttributeValue(parentElement, id, attributeName, newValue, callback);
 		});
 
-		input.keypress(function(e) {
+		input.keydown(function(e) {
 			if (e.keyCode === 13) {
 				var self = $(this);
 				var newValue = self.val();
