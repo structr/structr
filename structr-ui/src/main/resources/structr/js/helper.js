@@ -851,14 +851,15 @@ var _Console = new (function () {
 
 	// private methods
 	var _getBanner = function () {
-		return
-		  '        _                          _         \n'
+		return ''
+		+ '        _                          _         \n'
 		+ ' ____  | |_   ___   _   _   ____  | |_   ___ \n'
 		+ '(  __| | __| |  _| | | | | |  __| | __| |  _|\n'
 		+ ' \\ \\   | |   | |   | | | | | |    | |   | |\n'
 		+ ' _\\ \\  | |_  | |   | |_| | | |__  | |_  | |\n'
 		+ '|____) |___| |_|   |_____| |____| |___| |_|  \n\n';
 	};
+
 	var _showConsole = function () {
 		_consoleVisible = true;
 		_terminal.enable();
