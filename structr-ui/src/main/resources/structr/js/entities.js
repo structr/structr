@@ -1520,7 +1520,7 @@ var _Entities = {
 				e.stopPropagation();
 				var self = $(this);
 				var newValue = self.val();
-				self.replaceWith('<' + attributeElementTagName + ' title="' + newValue + '" class="' + attributeName + '_">' + fitStringToWidth(oldValue, w) + '</' + attributeElementTagName + '>');
+				self.replaceWith('<' + attributeElementTagName + ' title="' + oldValue + '" class="' + attributeName + '_">' + fitStringToWidth(oldValue, w) + '</' + attributeElementTagName + '>');
 				parentElement.find(attributeSelector).first().on('click', function(e) {
 					e.stopPropagation();
 					_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName, w);
