@@ -1492,39 +1492,31 @@ var _Entities = {
 		attributeElement.replaceWith('<input type="text" size="' + (oldValue.length + 4) + '" class="new-' + attributeName + '" value="' + oldValue + '">');
 
 		var input = $('input', parentElement);
-
 		input.focus().select();
 
-		input.on('blur', function() {
-			var self = $(this);
-			var newValue = self.val();
-			self.replaceWith('<' + attributeElementTagName + ' title="' + newValue + '" class="' + attributeName + '_">' + fitStringToWidth(newValue, w) + '</' + attributeElementTagName + '>');
+		var makeNonEditable = function (el, commitChanges) {
+			var displayValue = (commitChanges === true) ? el.val() : oldValue;
+			el.replaceWith('<' + attributeElementTagName + ' title="' + displayValue + '" class="' + attributeName + '_">' + fitStringToWidth(displayValue, w) + '</' + attributeElementTagName + '>');
 			parentElement.find(attributeSelector).first().on('click', function(e) {
 				e.stopPropagation();
 				_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName, w);
 			});
-			_Entities.setNewAttributeValue(parentElement, id, attributeName, newValue, callback);
+			if (commitChanges === true) {
+				_Entities.setNewAttributeValue(parentElement, id, attributeName, displayValue, callback);
+			}
+		};
+
+		input.on('blur', function() {
+			makeNonEditable($(this), true);
 		});
 
 		input.keydown(function(e) {
 			if (e.keyCode === 13) {
-				var self = $(this);
-				var newValue = self.val();
-				self.replaceWith('<' + attributeElementTagName + ' title="' + newValue + '" class="' + attributeName + '_">' + fitStringToWidth(newValue, w) + '</' + attributeElementTagName + '>');
-				parentElement.find(attributeSelector).first().on('click', function(e) {
-					e.stopPropagation();
-					_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName, w);
-				});
-				_Entities.setNewAttributeValue(parentElement, id, attributeName, newValue, callback);
+				makeNonEditable($(this), true);
+
 			} else if (e.keyCode === 27) {
 				e.stopPropagation();
-				var self = $(this);
-				var newValue = self.val();
-				self.replaceWith('<' + attributeElementTagName + ' title="' + oldValue + '" class="' + attributeName + '_">' + fitStringToWidth(oldValue, w) + '</' + attributeElementTagName + '>');
-				parentElement.find(attributeSelector).first().on('click', function(e) {
-					e.stopPropagation();
-					_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName, w);
-				});
+				makeNonEditable($(this), false);
 			}
 		});
 	},
