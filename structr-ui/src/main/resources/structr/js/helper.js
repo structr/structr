@@ -723,31 +723,25 @@ var _Logger = {
 var _Console = new (function () {
 
 	// private variables
-	var _$terminal;
-	var _consoleDisabled = true;
+	var _terminal;
+	var _initialized = false;
+	var _consoleVisible = false;
 
 
 	// public methods
 	this.logoutAction = function () {
 		Command.console('clear');
 		Command.console('exit');
-		_consoleDisabled = true;
 
-		if (_$terminal) {
-			_$terminal.clear();
-		}
-
-		$('#structr-console').hide();
+		_terminal.reset();
+		_initialized = false;
+		_hideConsole();
 	};
 
 	this.initConsole = function() {
-		_consoleDisabled = false;
-		var greetings =   '        _                          _         \n'
-						+ ' ____  | |_   ___   _   _   ____  | |_   ___ \n'
-						+ '(  __| | __| |  _| | | | | |  __| | __| |  _|\n'
-						+ ' \\ \\   | |   | |   | | | | | |    | |   | |\n'
-						+ ' _\\ \\  | |_  | |   | |_| | | |__  | |_  | |\n'
-						+ '|____) |___| |_|   |_____| |____| |___| |_|  \n\n';
+		if (_initialized) {
+			return;
+		}
 
 		// Get initial mode and prompt from backend
 		Command.console('Console.getMode()', function(data) {
@@ -759,7 +753,7 @@ var _Console = new (function () {
 			//console.log(message, mode, prompt, versionInfo);
 
 			var consoleEl = $('#structr-console');
-			_$terminal = consoleEl.terminal(function(command, term) {
+			_terminal = consoleEl.terminal(function(command, term) {
 				if (command !== '') {
 					try {
 
@@ -782,7 +776,7 @@ var _Console = new (function () {
 					term.echo('');
 				}
 			}, {
-				greetings: greetings + 'Welcome to Structr (' + versionInfo + '). Use <Shift>+<Tab> to switch modes.',
+				greetings: _getBanner() + 'Welcome to Structr (' + versionInfo + '). Use <Shift>+<Tab> to switch modes.',
 				name: 'structr-console',
 				height: 470,
 				prompt: prompt + '> ',
@@ -840,19 +834,41 @@ var _Console = new (function () {
 					}
 				}
 			});
-			_$terminal.consoleMode = mode;
-			_$terminal.echo(message);
+			_terminal.consoleMode = mode;
+			_terminal.echo(message);
+
+			_initialized = true;
 		});
 	};
 
 	this.toggleConsole = function() {
-		if (_consoleDisabled) {
-			return;
+		if (_consoleVisible === true) {
+			_hideConsole();
+		} else {
+			_showConsole();
 		}
-		$('#structr-console').slideToggle('fast');
-		if (_$terminal) {
-			_$terminal.focus(true);
-		}
+	};
+
+	// private methods
+	var _getBanner = function () {
+		return
+		  '        _                          _         \n'
+		+ ' ____  | |_   ___   _   _   ____  | |_   ___ \n'
+		+ '(  __| | __| |  _| | | | | |  __| | __| |  _|\n'
+		+ ' \\ \\   | |   | |   | | | | | |    | |   | |\n'
+		+ ' _\\ \\  | |_  | |   | |_| | | |__  | |_  | |\n'
+		+ '|____) |___| |_|   |_____| |____| |___| |_|  \n\n';
+	};
+	var _showConsole = function () {
+		_consoleVisible = true;
+		_terminal.enable();
+		$('#structr-console').slideDown('fast');
+	};
+
+	var _hideConsole = function () {
+		_consoleVisible = false;
+		_terminal.disable();
+		$('#structr-console').slideUp('fast');
 	};
 
 });
