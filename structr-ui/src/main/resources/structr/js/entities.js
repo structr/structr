@@ -1318,7 +1318,7 @@ var _Entities = {
 			});
 		}
 
-		node.children('b.name_').on('click', function(e) {
+		node.children('b.name_').off('click').on('click', function(e) {
 			e.stopPropagation();
 			_Entities.makeNameEditable(node);
 		});
@@ -1497,7 +1497,7 @@ var _Entities = {
 		var makeNonEditable = function (el, commitChanges) {
 			var displayValue = (commitChanges === true) ? el.val() : oldValue;
 			el.replaceWith('<' + attributeElementTagName + ' title="' + displayValue + '" class="' + attributeName + '_">' + fitStringToWidth(displayValue, w) + '</' + attributeElementTagName + '>');
-			parentElement.find(attributeSelector).first().on('click', function(e) {
+			parentElement.find(attributeSelector).first().off('click').on('click', function(e) {
 				e.stopPropagation();
 				_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName, w);
 			});

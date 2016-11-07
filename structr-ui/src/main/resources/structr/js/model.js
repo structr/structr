@@ -459,13 +459,13 @@ var StructrModel = {
 				if ((obj.type === 'Template' || obj.isContent)) {
 					if (obj.name) {
 						element.children('.content_').replaceWith('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>');
-						element.children('.content_').on('click', function (e) {
+						element.children('.content_').off('click').on('click', function (e) {
 							e.stopPropagation();
 							_Entities.makeNameEditable(element, 200);
 						});
 
 						element.children('.name_').replaceWith('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>');
-						element.children('b.name_').on('click', function (e) {
+						element.children('b.name_').off('click').on('click', function (e) {
 							e.stopPropagation();
 							_Entities.makeNameEditable(element, 200);
 						});
