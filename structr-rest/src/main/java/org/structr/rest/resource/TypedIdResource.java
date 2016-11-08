@@ -124,7 +124,17 @@ public class TypedIdResource extends FilterableResource {
 	// ----- public methods -----
 	public GraphObject getEntity() throws FrameworkException {
 
-		final GraphObject entity = idResource.getEntity();
+		final GraphObject entity;
+		final Class entityClass = getEntityClass();
+		if (entityClass!= null) {
+			
+			entity = idResource.getEntity(entityClass);
+
+		} else {
+		
+			entity = idResource.getEntity();
+		}
+		
 		if (entity != null) {
 
 			final String type       = SchemaHelper.normalizeEntityName(typeResource.getRawType());
@@ -136,6 +146,5 @@ public class TypedIdResource extends FilterableResource {
 		}
 
 		throw new NotFoundException("Entity with ID " + idResource.getUuid() + " not found");
-
 	}
 }
