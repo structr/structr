@@ -305,6 +305,9 @@ StructrUiHandler.welcomeFiles = index.html
 log.requests = false
 log.name = structr-yyyy_mm_dd.request.log
 
+# Set to true to enable logging of Cypher requests
+# log.cypher.debug = true
+
 # Log code generated for custom schema
 #NodeExtender.log = true
 

@@ -53,6 +53,7 @@ if (browser) {
 var _Crud = {
 	types: {},
 	keys: {},
+	crudCache: new CacheWithCallbacks(),
 	getProperties: function(type, callback) {
 
 		var url = rootUrl + '_schema/' + type + '/ui';
@@ -684,7 +685,7 @@ var _Crud = {
 	updateCellPager: function(el, id, type, key, page, pageSize) {
 		//console.log('updateCellPager', id, el, type, key, page, pageSize);
 		$.ajax({
-			url: rootUrl + type + '/' + id + '/' + key + '?page=' + page + '&pageSize=' + pageSize,
+			url: rootUrl + type + '/' + id + '/' + key + '/ui?page=' + page + '&pageSize=' + pageSize,
 			contentType: 'application/json; charset=UTF-8',
 			dataType: 'json',
 			statusCode: {
@@ -711,10 +712,9 @@ var _Crud = {
 
 					el.children('.node').remove();
 
-					data.result.forEach(function(obj) {
-						_Crud.getAndAppendNode(type, id, key, obj, el);
+					data.result.forEach(function(preloadedNode) {
+						_Crud.getAndAppendNode(type, id, key, preloadedNode.id, el, preloadedNode);
 					});
-
 				}
 			}
 
@@ -722,12 +722,10 @@ var _Crud = {
 	},
 	appendCellPager: function(el, id, type, key) {
 
-		// console.log('appendCellPager', id, el, type, key);
-
 		var pageSize = _Crud.getCollectionPageSize(type, key) || defaultCollectionPageSize;
 
 		$.ajax({
-			url: rootUrl + type + '/' + id + '/' + key + '?pageSize=' + pageSize,
+			url: rootUrl + type + '/' + id + '/' + key + '/ui?pageSize=' + pageSize,
 			contentType: 'application/json; charset=UTF-8',
 			dataType: 'json',
 			statusCode: {
@@ -735,6 +733,10 @@ var _Crud = {
 
 					var resultCount = data.result_count;
 					var pageCount   = data.page_count;
+
+					data.result.forEach(function(preloadedNode) {
+						_Crud.getAndAppendNode(type, id, key, preloadedNode.id, el, preloadedNode);
+					});
 
 					//console.log('result count', resultCount, 'page count', pageCount, 'page', page, 'pageSize', pageSize);
 
@@ -839,6 +841,9 @@ var _Crud = {
 				if (!data) {
 					return;
 				}
+
+				_Crud.crudCache.clear();
+
 				data.result.forEach(function(item) {
 					//console.log('calling appendRow', type, item);
 					_Crud.appendRow(type, properties, item);
@@ -1729,18 +1734,13 @@ var _Crud = {
 
 			simpleType = lastPart(relatedType, '.');
 
-			if (value && value.length) {
-				value.forEach(function(relatedId) {
-					_Crud.getAndAppendNode(type, id, key, relatedId, cell);
-				});
-			}
-
 			cell.append('<img class="add" src="' + _Icons.add_grey_icon + '">');
+
 			$('.add', cell).on('click', function() {
-				_Crud.dialog('Add ' + simpleType, function() {
-				}, function() {
-				});
+
+				_Crud.dialog('Add ' + simpleType, function() { }, function() { });
 				_Crud.displaySearch(type, id, key, simpleType, dialogText);
+
 			});
 
 			if (_Crud.keys[type][key] && _Crud.keys[type][key].className.indexOf('CollectionIdProperty') === -1 && _Crud.keys[type][key].className.indexOf("CollectionNotionProperty") === -1) {
@@ -1779,7 +1779,6 @@ var _Crud = {
 			});
 		}
 
-
 		//searchField.focus();
 	},
 	appendEnumSelect: function(cell, id, key, format) {
@@ -1807,8 +1806,7 @@ var _Crud = {
 			_Crud.resetCell(id, key, oldValue);
 		});
 	},
-	getAndAppendNode: function(parentType, parentId, key, obj, cell) {
-		//console.log(parentType, parentId, key, obj, cell);
+	getAndAppendNode: function(parentType, parentId, key, obj, cell, preloadedNode) {
 		if (!obj) {
 			return;
 		}
@@ -1837,83 +1835,102 @@ var _Crud = {
 			return;
 		}
 
-		$.ajax({
-			url: rootUrl + id + '/ui',
-			type: 'GET',
-			dataType: 'json',
-			contentType: 'application/json; charset=utf-8;',
-			headers: {
-				Accept: 'application/json; charset=utf-8; properties=id,name,type,contentType,isThumbnail,isImage,tnSmall,tnMid'
-			},
-			//async: false,
-			success: function(data) {
-				if (!data)
-					return;
-				var node = data.result;
-				//console.log('node', node);
+		var nodeHandler = function (node) {
 
-				var displayName = _Crud.displayName(node);
+			_Crud.crudCache.addObject(node);
 
-				cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.isImage? 'image ' : '') + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80));
-				var nodeEl = $('#_' + node.id, cell);
+			var displayName = _Crud.displayName(node);
 
-				//console.log('Schema types', _Crud.types);
+			cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.isImage? 'image ' : '') + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80));
+			var nodeEl = $('#_' + node.id, cell);
 
-				var isSourceOrTarget = _Crud.types[parentType].isRel && (key === 'sourceId' || key === 'targetId');
-				if (!isSourceOrTarget) {
-					nodeEl.append('<img class="remove" src="' + _Icons.grey_cross_icon + '"></div>');
+			//console.log('Schema types', _Crud.types);
+
+			var isSourceOrTarget = _Crud.types[parentType].isRel && (key === 'sourceId' || key === 'targetId');
+			if (!isSourceOrTarget) {
+				nodeEl.append('<img class="remove" src="' + _Icons.grey_cross_icon + '"></div>');
+			}
+
+			//console.log(node);
+			if (node.isImage) {
+
+				if (node.isThumbnail) {
+					nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
+				} else if (node.tnSmall) {
+					nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.tnSmall.id + '"></div>');
+				} else if (node.contentType === 'image/svg+xml') {
+					nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
 				}
 
-				//console.log(node);
-				if (node.isImage) {
-
-					if (node.isThumbnail) {
-						nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
-					} else if (node.tnSmall) {
-						nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.tnSmall.id + '"></div>');
-					} else if (node.contentType === 'image/svg+xml') {
-						nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
-					}
-
-					$('.thumbnail', nodeEl).on('click', function(e) {
-						e.stopPropagation();
-						e.preventDefault();
-						_Crud.showDetails(node, node.type);
-						return false;
-					});
-
-					if (node.tnMid || node.contentType === 'image/svg+xml') {
-						$('.thumbnail', nodeEl).on('mouseenter', function(e) {
-							e.stopPropagation();
-							$('.thumbnailZoom').remove();
-							nodeEl.parent().append('<img class="thumbnailZoom" src="/' + (node.tnMid ? node.tnMid.id : node.id) + '">');
-							var tnZoom = $($('.thumbnailZoom', nodeEl.parent())[0]);
-							tnZoom.css({
-								top: (nodeEl.position().top) + 'px',
-								left: (nodeEl.position().left - 42) + 'px'
-							});
-							tnZoom.on('mouseleave', function(e) {
-								e.stopPropagation();
-								$('.thumbnailZoom').remove();
-							});
-						});
-					}
-				}
-
-				$('.remove', nodeEl).on('click', function(e) {
-					e.preventDefault();
-					Command.get(parentId, function(parentObj) {
-						_Crud.removeRelatedObject(parentObj, key, obj);
-					});
-					return false;
-				});
-				nodeEl.on('click', function(e) {
+				$('.thumbnail', nodeEl).on('click', function(e) {
+					e.stopPropagation();
 					e.preventDefault();
 					_Crud.showDetails(node, node.type);
 					return false;
 				});
+
+				if (node.tnMid || node.contentType === 'image/svg+xml') {
+					$('.thumbnail', nodeEl).on('mouseenter', function(e) {
+						e.stopPropagation();
+						$('.thumbnailZoom').remove();
+						nodeEl.parent().append('<img class="thumbnailZoom" src="/' + (node.tnMid ? node.tnMid.id : node.id) + '">');
+						var tnZoom = $($('.thumbnailZoom', nodeEl.parent())[0]);
+						tnZoom.css({
+							top: (nodeEl.position().top) + 'px',
+							left: (nodeEl.position().left - 42) + 'px'
+						});
+						tnZoom.on('mouseleave', function(e) {
+							e.stopPropagation();
+							$('.thumbnailZoom').remove();
+						});
+					});
+				}
 			}
-		});
+
+			$('.remove', nodeEl).on('click', function(e) {
+				e.preventDefault();
+				Command.get(parentId, function(parentObj) {
+					_Crud.removeRelatedObject(parentObj, key, obj);
+				});
+				return false;
+			});
+			nodeEl.on('click', function(e) {
+				e.preventDefault();
+				_Crud.showDetails(node, node.type);
+				return false;
+			});
+		};
+
+		if (preloadedNode) {
+
+			nodeHandler(preloadedNode);
+
+		} else {
+
+			if (_Crud.crudCache.registerCallbackForId(id, nodeHandler)) {
+
+				$.ajax({
+					url: rootUrl + id + '/ui',
+					type: 'GET',
+					dataType: 'json',
+					contentType: 'application/json; charset=utf-8;',
+					headers: {
+						Accept: 'application/json; charset=utf-8; properties=id,name,type,contentType,isThumbnail,isImage,tnSmall,tnMid'
+					},
+					//async: false,
+					success: function(data) {
+						if (!data)
+							return;
+
+						var node = data.result;
+
+						_Crud.crudCache.addObject(node);
+					}
+				});
+
+			};
+
+		}
 
 	},
 	clearSearch: function(el) {
@@ -2690,29 +2707,6 @@ var _Crud = {
 
 		// default
 		return false;
-	},
-
-	loadDetails : function(id, parentType) {
-
-		var node;
-
-		$.ajax({
-			url: rootUrl + id + '/' + _Crud.view[parentType],
-			type: 'GET',
-			dataType: 'json',
-			contentType: 'application/json; charset=utf-8;',
-			success: function(data) {
-				if (!data)
-					return;
-				node = data.result;
-				//console.log(node);
-				//console.log(data.result);
-			}
-		});
-
-		//console.log(node);
-
-		return node;
 	}
 
 };

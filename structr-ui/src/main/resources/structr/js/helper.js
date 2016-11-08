@@ -873,3 +873,79 @@ var _Console = new (function () {
 	};
 
 });
+
+var CacheWithCallbacks = function () {
+
+	// private properties
+	var _cache = {};
+
+	// public api
+	/**
+	 * This methods registers a callback for an object ID.
+	 * returns true if that ID has not seen before => needs to be fetched from server
+	 * returns false if that ID or value is already present and thus the object does not need to be fetched
+	 */
+	this.registerCallbackForId = function (id, callback) {
+
+		if (_cache[id] === undefined) {
+
+			_cache[id] = {
+				callbacks: [callback]
+			};
+
+			return true;
+
+		} else if (_cache[id].value === undefined) {
+
+			_cache[id].callbacks.push(callback);
+
+			return false;
+
+		} else {
+
+			if (typeof callback === "function") {
+				callback(_cache[id].value);
+			}
+
+			return false;
+
+		}
+
+	};
+
+	this.addObject = function(obj) {
+		if (_cache[obj.id] === undefined) {
+
+			_cache[obj.id] = {
+				value: obj
+			};
+
+		} else if (_cache[obj.id].value === undefined) {
+
+			_cache[obj.id].value = obj;
+			_runRegisteredCacheCallbacks(obj.id);
+
+		}
+	};
+
+	this.clear = function () {
+		_cache = {};
+	};
+
+	// private methods
+	function _runRegisteredCacheCallbacks (id) {
+
+		if (_cache[id] !== undefined && _cache[id].callbacks) {
+
+			_cache[id].callbacks.forEach(function(callback) {
+				if (typeof callback === "function") {
+					callback(_cache[id].value);
+				}
+			});
+
+			_cache[id].callbacks = [];
+		}
+
+	}
+
+};
