@@ -812,7 +812,8 @@ var _Elements = {
 				return;
 			}
 
-			$('#add-child-dialog').remove();
+			_Elements.removeContextMenu();
+			div.addClass('contextMenuActive');
 			$('#menu-area').append('<div id="add-child-dialog"></div>');
 
 			var leftOrRight = 'left';
@@ -837,18 +838,6 @@ var _Elements = {
 
 			$('#add-child-dialog').css('left', x + 'px');
 			$('#add-child-dialog').css('top', y + 'px');
-
-			// FIXME: its either this or accept that the div will not be highlighted any more when the menu appears. This is
-			// due to the fact that the menu has to be outside of the actual div to be visible even with overflow: hidden,
-			// which is needed to hide the vertical scroll bar in the pages tree view and others.
-			var setHover = function() {
-				$(div).addClass('nodeHover');
-				if ($('#add-child-dialog').length) {
-					window.setTimeout(setHover, 200);
-				}
-			};
-
-			window.setTimeout(setHover, 10);
 
 			var menu = [
 				{
@@ -1077,8 +1066,7 @@ var _Elements = {
 											} else {
 												Command.createAndAppendDOMNode(entity.pageId, entity.id, subsubitem, {});
 											}
-											$('#add-child-dialog').remove();
-											$(div).removeClass('nodeHover');
+											_Elements.removeContextMenu();
 										});
 									}
 								}
@@ -1103,8 +1091,7 @@ var _Elements = {
 										}
 									}
 								}
-								$('#add-child-dialog').remove();
-								$(div).removeClass('nodeHover');
+								_Elements.removeContextMenu();
 							});
 						}
 
@@ -1124,8 +1111,7 @@ var _Elements = {
 							item.func();
 						}
 
-						$('#add-child-dialog').remove();
-						$(div).removeClass('nodeHover');
+						_Elements.removeContextMenu();
 					});
 				}
 
@@ -1135,6 +1121,10 @@ var _Elements = {
 				}, function() {});
 			});
 		});
+	},
+	removeContextMenu: function() {
+		$('#add-child-dialog').remove();
+		$('.contextMenuActive').removeClass('contextMenuActive');
 	},
 	appendContentElement: function(entity, refNode, refNodeIsParent) {
 		_Logger.log(_LogType.CONTENTS, 'Contents.appendContentElement', entity, refNode);

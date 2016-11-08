@@ -49,7 +49,7 @@ var _Pages = {
 		_Pager.initPager('images',  'Image', 1, 25, 'name', 'asc');
 
 		$(window.document).on('mouseup', function() {
-			$('#add-child-dialog').remove();
+			_Elements.removeContextMenu();
 		});
 
 		Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entities) {
