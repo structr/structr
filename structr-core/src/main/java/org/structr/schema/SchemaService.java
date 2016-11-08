@@ -23,6 +23,7 @@
 
 package org.structr.schema;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -32,6 +33,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.service.Command;
@@ -48,8 +50,10 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.RelationshipFactory;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.property.PropertyKey;
 import org.structr.schema.compiler.NodeExtender;
 
 /**
@@ -60,6 +64,7 @@ public class SchemaService implements Service {
 
 	private static final Logger logger                            = LoggerFactory.getLogger(SchemaService.class.getName());
 	private static final AtomicBoolean compiling                  = new AtomicBoolean(false);
+	private static final AtomicBoolean updating                   = new AtomicBoolean(false);
 	private static final Map<String, String> builtinTypeMap       = new LinkedHashMap<>();
 
 	@Override
@@ -180,6 +185,7 @@ public class SchemaService implements Service {
 				}
 
 				calculateHierarchy();
+				updateIndexConfiguration();
 
 			} finally {
 
@@ -293,5 +299,66 @@ public class SchemaService implements Service {
 		}
 
 		return 0;
+	}
+
+	private static void updateIndexConfiguration() {
+
+		final Thread indexUpdater = new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+
+				if (updating.compareAndSet(false, true)) {
+
+					try {
+
+						final Map<String, Object> params = new HashMap<>();
+						final App app                    = StructrApp.getInstance();
+
+						try (final Tx tx = app.tx()) {
+
+							for (final Entry<String, Map<String, PropertyKey>> entry : StructrApp.getConfiguration().getTypeAndPropertyMapping().entrySet()) {
+
+								final String type = StringUtils.substringAfterLast(entry.getKey(), ".");
+
+								for (final PropertyKey key : entry.getValue().values()) {
+
+									if (key.isIndexed() || key.isIndexedWhenEmpty()) {
+
+										final Class declaringClass = key.getDeclaringClass();
+										if (declaringClass != null) {
+
+											// do not create indexes for relationship classes
+											if (!RelationshipInterface.class.isAssignableFrom(declaringClass)) {
+
+												app.cypher("CREATE INDEX ON :" + type + "(" + key.dbName() + ")", params);
+											}
+
+										} else {
+
+											app.cypher("CREATE INDEX ON :NodeInterface(" + key.dbName() + ")", params);
+										}
+									}
+								}
+
+							}
+
+							tx.success();
+						}
+
+					} catch (Throwable ignore) {
+
+						// ignore for now..
+
+					} finally {
+
+						updating.set(false);
+					}
+				}
+			}
+		});
+
+		indexUpdater.setDaemon(true);
+		indexUpdater.start();
 	}
 }

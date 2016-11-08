@@ -122,4 +122,5 @@ public interface ConfigurationProvider {
 	public void registerDynamicProperty(final Class type, final PropertyKey propertyKey);
 
 	Map<String, StructrModule> getModules();
+	Map<String, Map<String, PropertyKey>> getTypeAndPropertyMapping();
 }

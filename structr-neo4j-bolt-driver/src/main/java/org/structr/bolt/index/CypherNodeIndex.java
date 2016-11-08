@@ -42,7 +42,7 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 			return "MATCH (n:" + typeLabel + ")";
 		}
 
-		return "MATCH (n)";
+		return "MATCH (n:NodeInterface)";
 	}
 
 	@Override

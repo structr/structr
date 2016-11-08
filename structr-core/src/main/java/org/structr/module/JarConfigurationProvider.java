@@ -980,6 +980,12 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	public Map<String, StructrModule> getModules() {
 		return modules;
 	}
+
+	@Override
+	public Map<String, Map<String, PropertyKey>> getTypeAndPropertyMapping() {
+		return Collections.unmodifiableMap(globalClassJSNamePropertyMap);
+	}
+
 	// ----- private methods -----
 	private void scanResources() {
 
