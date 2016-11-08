@@ -53,6 +53,7 @@ if (browser) {
 var _Crud = {
 	types: {},
 	keys: {},
+	crudCache: new CacheWithCallbacks(),
 	getProperties: function(type, callback) {
 
 		var url = rootUrl + '_schema/' + type + '/ui';
@@ -840,6 +841,9 @@ var _Crud = {
 				if (!data) {
 					return;
 				}
+
+				_Crud.crudCache.clear();
+
 				data.result.forEach(function(item) {
 					//console.log('calling appendRow', type, item);
 					_Crud.appendRow(type, properties, item);
@@ -1832,6 +1836,9 @@ var _Crud = {
 		}
 
 		var nodeHandler = function (node) {
+
+			_Crud.crudCache.addObject(node);
+
 			var displayName = _Crud.displayName(node);
 
 			cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.isImage? 'image ' : '') + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80));
@@ -1900,23 +1907,28 @@ var _Crud = {
 
 		} else {
 
-			$.ajax({
-				url: rootUrl + id + '/ui',
-				type: 'GET',
-				dataType: 'json',
-				contentType: 'application/json; charset=utf-8;',
-				headers: {
-					Accept: 'application/json; charset=utf-8; properties=id,name,type,contentType,isThumbnail,isImage,tnSmall,tnMid'
-				},
-				//async: false,
-				success: function(data) {
-					if (!data)
-						return;
+			if (_Crud.crudCache.registerCallbackForId(id, nodeHandler)) {
 
-					var node = data.result;
-					nodeHandler(node);
-				}
-			});
+				$.ajax({
+					url: rootUrl + id + '/ui',
+					type: 'GET',
+					dataType: 'json',
+					contentType: 'application/json; charset=utf-8;',
+					headers: {
+						Accept: 'application/json; charset=utf-8; properties=id,name,type,contentType,isThumbnail,isImage,tnSmall,tnMid'
+					},
+					//async: false,
+					success: function(data) {
+						if (!data)
+							return;
+
+						var node = data.result;
+
+						_Crud.crudCache.addObject(node);
+					}
+				});
+
+			};
 
 		}
 
@@ -2695,29 +2707,6 @@ var _Crud = {
 
 		// default
 		return false;
-	},
-
-	loadDetails : function(id, parentType) {
-
-		var node;
-
-		$.ajax({
-			url: rootUrl + id + '/' + _Crud.view[parentType],
-			type: 'GET',
-			dataType: 'json',
-			contentType: 'application/json; charset=utf-8;',
-			success: function(data) {
-				if (!data)
-					return;
-				node = data.result;
-				//console.log(node);
-				//console.log(data.result);
-			}
-		});
-
-		//console.log(node);
-
-		return node;
 	}
 
 };
