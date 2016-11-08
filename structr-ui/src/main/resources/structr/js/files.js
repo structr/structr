@@ -298,19 +298,14 @@ var _Files = {
 
 						case '#':
 
-							Command.list('Folder', true, folderPageSize, folderPage, 'name', 'asc', null, function(folders) {
-
-								var children = [];
-								var list = [];
-
-								list.push({
+							var defaultFilesystemEntries = [
+								{
 									id: 'favorites',
 									text: 'Favorite Files',
 									children: false,
 									icon: _Icons.star_icon
-								});
-
-								list.push({
+								},
+								{
 									id: 'root',
 									text: '/',
 									children: true,
@@ -320,21 +315,11 @@ var _Files = {
 										opened: true,
 										selected: true
 									}
-								});
+								}
+							];
 
-								folders.forEach(function(d) {
+							callback(defaultFilesystemEntries);
 
-									children.push({
-										id: d.id,
-										text: d.name ? d.name : '[unnamed]',
-										children: d.isFolder && d.folders.length > 0,
-										icon: 'fa fa-folder'
-									});
-								});
-
-								callback(list);
-
-							});
 							break;
 
 						case 'root':
