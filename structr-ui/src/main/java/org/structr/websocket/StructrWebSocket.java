@@ -404,7 +404,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 					AuthHelper.sendLogoutNotification(user);
 
-                                        invalidateConsole();
+                    invalidateConsole();
 
 				}
 
@@ -484,7 +484,7 @@ public class StructrWebSocket implements WebSocketListener {
 	public Authenticator getAuthenticator() {
 
 		return authenticator;
-        
+
 	}
 
     public void invalidateConsole(){
@@ -517,7 +517,6 @@ public class StructrWebSocket implements WebSocketListener {
 	//~--- set methods ----------------------------------------------------
 	public void setAuthenticated(final String sessionId, final Principal user) {
 		this.securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
-                invalidateConsole();
 	}
 
 	@Override
