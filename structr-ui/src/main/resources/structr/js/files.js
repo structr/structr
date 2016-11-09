@@ -1525,11 +1525,11 @@ var _Files = {
 		var archiveExtensions = ['zip', 'tar', 'cpio', 'dump', 'jar'];
 
 		return isIn(contentType, archiveTypes) || isIn(extension, archiveExtensions);
-    },
+	},
 	isMinificationTarget: function(file) {
 		var minifyTypes = [ 'MinifiedCssFile', 'MinifiedJavaScriptFile' ];
 		return isIn(file.type, minifyTypes);
-    },
+	},
 	getMinificationIcon: function(file) {
 		switch(file.type) {
 			case 'MinifiedCssFile':
