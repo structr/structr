@@ -1400,6 +1400,35 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		return null;
 	}
 
+	@Override
+	public void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
+
+		if (!isGranted(Permission.write, securityContext)) {
+
+			internalSystemPropertiesUnlocked = false;
+			readOnlyPropertiesUnlocked       = false;
+
+			throw new FrameworkException(403, "Modification not permitted.");
+		}
+
+		for (PropertyKey key : properties.keySet()) {
+
+			// check for system properties
+			if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
+
+				throw new FrameworkException(422, "Property " + key.jsonName() + " is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key));
+			}
+
+			// check for read-only properties
+			if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
+
+				throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
+			}
+		}
+
+		NodeInterface.super.setProperties(securityContext, properties);
+	}
+
 	private <T> Object setPropertyInternal(final PropertyKey<T> key, final T value) throws FrameworkException {
 
 		if (key == null) {

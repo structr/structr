@@ -538,15 +538,25 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	}
 
-	//~--- set methods ----------------------------------------------------
+	@Override
+	public void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
 
-	public void setProperties(final PropertyMap properties) throws FrameworkException {
+		for (PropertyKey key : properties.keySet()) {
 
-		for (Entry<PropertyKey, Object> prop : properties.entrySet()) {
+			// check for system properties
+			if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
 
-			setProperty(prop.getKey(), prop.getValue());
+				throw new FrameworkException(422, "Property " + key.jsonName() + " is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key));
+			}
+
+			// check for read-only properties
+			if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
+
+				throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
+			}
 		}
 
+		RelationshipInterface.super.setProperties(securityContext, properties);
 	}
 
 	@Override
