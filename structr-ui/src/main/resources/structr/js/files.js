@@ -24,7 +24,6 @@ var sizeLimit = 1024 * 1024 * 1024;
 var win = $(window);
 var selectedElements = [];
 var activeFileId, fileContents = {};
-var counter = 0;
 var currentWorkingDir;
 var folderPageSize = 10000, folderPage = 1;
 var filesViewModeKey = 'structrFilesViewMode_' + port;

@@ -19,7 +19,6 @@
 var main, contentsMain, contentTree, contentsContents;
 var win = $(window);
 var selectedElements = [];
-var counter = 0;
 var currentContentContainer;
 var containerPageSize = 10000, containerPage = 1;
 var currentContentContainerKey = 'structrCurrentContentContainer_' + port;
@@ -651,7 +650,7 @@ var _Contents = {
 					var oldVal = entity[key];
 
 					if (prop.propertyType === 'Boolean') {
-						
+
 						div.removeClass('value').append('<div class="value-container"><input type="checkbox" class="' + key + '_"></div>');
 						var checkbox = div.find('input[type="checkbox"].' + key + '_');
 						Command.getProperty(entity.id, key, function(val) {
@@ -677,7 +676,7 @@ var _Contents = {
 							}
 						});
 					} else if (prop.propertyType === 'Date' && !isReadOnly) {
-						
+
 						$.get(rootUrl + '_schema/' + entity.type + '/ui', function(data) {
 
 							var typeInfo = data.result.filter(function(obj) { return obj.jsonName === prop.name; })[0];
@@ -717,7 +716,7 @@ var _Contents = {
 							div.append('<div class="value-container"><input value="' + (oldVal || '') + '">');
 							var valueInput = $('.value-container input', div);
 							valueInput.on('keyup', function(e) {
-								
+
 								if (e.keyCode !== 27) {
 									Command.get(entity.id, function(newEntity) {
 										_Contents.checkValueHasChanged(newEntity[prop.name], valueInput.val() || null, [dialogSaveButton, saveAndClose]);
@@ -727,11 +726,11 @@ var _Contents = {
 						}
 					}
 				});
-				
+
 				schemaNodes[0].relatedTo.reverse().forEach(function(prop) {
-					
+
 					var key = prop.targetJsonName;
-					
+
 					var type = typeInfo[key].type;
 					var isRelated    = false;
 					var isCollection = false;
@@ -742,7 +741,7 @@ var _Contents = {
 							isCollection = typeInfo[key].isCollection;
 						}
 					}
-					
+
 					if (isRelated) {
 
 						dialogText.append('<div id="prop-' + prop.id + '" class="prop"><label for="' + prop.id + '"><h3>' + formatKey(key) + '</h3></label><img class="add" src="' + _Icons.add_grey_icon + '"><div class="related-nodes"></div></div>');
