@@ -750,25 +750,13 @@ var _Console = new (function () {
 			var mode = data.data.mode;
 			var prompt = data.data.prompt;
 			var versionInfo = data.data.versionInfo;
-			//console.log(message, mode, prompt, versionInfo);
+//			console.log(message, mode, prompt, versionInfo);
 
 			var consoleEl = $('#structr-console');
 			_terminal = consoleEl.terminal(function(command, term) {
 				if (command !== '') {
 					try {
-
-						Command.console(command, function(data) {
-							var prompt = data.data.prompt;
-							if (prompt) {
-								term.set_prompt(prompt + '> ');
-							}
-
-							var result = data.message;
-							if (result !== undefined) {
-								term.echo(new String(result));
-							}
-						});
-
+						_runCommand(command, term);
 					} catch (e) {
 						term.error(new String(e));
 					}
@@ -815,16 +803,7 @@ var _Console = new (function () {
 						var line = 'Console.setMode("' + mode + '")';
 						term.consoleMode = mode;
 
-						Command.console(line, function(data) {
-							var prompt = data.data.prompt;
-							if (prompt) {
-								term.set_prompt(prompt + '> ');
-							}
-							var result = data.message;
-							if (result !== undefined) {
-								term.echo(new String(result));
-							}
-						});
+						_runCommand(line, term);
 
 					} else {
 						Command.console(lineToBeCompleted, function(data) {
@@ -870,6 +849,25 @@ var _Console = new (function () {
 		_consoleVisible = false;
 		_terminal.disable();
 		$('#structr-console').slideUp('fast');
+	};
+
+	var _runCommand = function (command, term) {
+
+		if (!term) {
+			term = _terminal;
+		}
+
+		Command.console(command, function(data) {
+			var prompt = data.data.prompt;
+			if (prompt) {
+				term.set_prompt(prompt + '> ');
+			}
+			var result = data.message;
+			if (result !== undefined) {
+				term.echo(new String(result));
+			}
+		});
+
 	};
 
 });
