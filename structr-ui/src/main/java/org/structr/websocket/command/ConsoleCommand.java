@@ -24,12 +24,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.SecurityContext;
 import org.structr.common.VersionHelper;
 import org.structr.console.Console;
 import org.structr.console.tabcompletion.TabCompletionResult;
@@ -62,9 +60,7 @@ public class ConsoleCommand extends AbstractCommand {
 		final String line                     = (String) webSocketData.getNodeData().get("line");
 		final Boolean completion              = (Boolean) webSocketData.getNodeData().get("completion");
 
-		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-
-                Console console = getWebSocket().getConsole();
+        Console console = getWebSocket().getConsole();
 
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		OutputStreamWritable writeable = new OutputStreamWritable(out);

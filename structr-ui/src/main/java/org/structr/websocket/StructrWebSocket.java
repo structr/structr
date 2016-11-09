@@ -482,36 +482,37 @@ public class StructrWebSocket implements WebSocketListener {
 	}
 
 	public Authenticator getAuthenticator() {
+
 		return authenticator;
+        
 	}
 
-        public void invalidateConsole(){
+    public void invalidateConsole(){
 
-                this.console = null;
+        this.console = null;
 
-        }
+    }
 
-        public Console getConsole(){
+    public Console getConsole(){
 
-                if(this.securityContext != null){
+        if(this.securityContext != null){
 
-                        if(this.console != null){
+            if(this.console != null){
 
-                                return this.console;
+                return this.console;
 
-                        } else {
+            } else {
 
-                                this.console = new Console(securityContext, null);
-                                return this.console;
+                this.console = new Console(securityContext, null);
+                return this.console;
 
-                        }
-
-
-                }
-
-                return null;
+            }
 
         }
+
+        return null;
+
+    }
 
 	//~--- set methods ----------------------------------------------------
 	public void setAuthenticated(final String sessionId, final Principal user) {
