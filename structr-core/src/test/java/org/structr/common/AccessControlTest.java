@@ -20,6 +20,7 @@ package org.structr.common;
 
 import java.util.List;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -940,18 +941,65 @@ public class AccessControlTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void test09PrivilegeEscalation() {
 
+		// remove auto-generated resource access objects
+		clearResourceAccess();
 
+		try {
 
+			TestUser nonAdmin  = createTestNode(TestUser.class);
 
+			final SecurityContext userContext           = SecurityContext.getInstance(nonAdmin, AccessMode.Frontend);
+            nonAdmin.setSecurityContext(userContext);
+			App userApp                                 = StructrApp.getInstance(userContext);
 
+			try (final Tx tx = userApp.tx()) {
 
+                assertFalse(nonAdmin.isAdmin());
 
+				nonAdmin.setProperty(TestUser.isAdmin, true);
 
+                fail("Privilege escalation using setProperty()-method! Non-admin may not set an admin flag!");
 
+				tx.success();
 
+			} catch (FrameworkException ex) {
 
+                assertFalse("Privilege escalation using setProperty()-method! Non-admin may not set an admin flag!", nonAdmin.isAdmin());
+                logger.warn("", ex);
 
+            }
+
+			try (final Tx tx = userApp.tx()) {
+
+				assertFalse(nonAdmin.isAdmin());
+
+                PropertyMap props = new PropertyMap();
+                props.put(TestUser.isAdmin, true);
+                nonAdmin.setProperties(userContext, props);
+
+                fail("Privilege escalation using setProperties()-method! Non-admin may not set an admin flag!");
+
+                tx.success();
+
+			} catch (FrameworkException ex) {
+
+                logger.warn("", ex);
+                assertFalse("Privilege escalation using setProperties()-method! Non-admin may not set an admin flag!", nonAdmin.isAdmin());
+
+            }
+
+		} catch (FrameworkException ex) {
+
+			logger.warn("", ex);
+			fail("Unexpected Exception");
+
+		}
+
+	}
+    
 	// ----- private methods -----
 	public static void clearResourceAccess() {
 

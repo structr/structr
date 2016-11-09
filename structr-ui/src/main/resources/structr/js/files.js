@@ -683,70 +683,59 @@ var _Files = {
 
 	},
 	appendFileOrFolder: function(d) {
-		if (viewMode === 'list') {
-			_Files.appendFileOrFolderRow(d);
-		} else {
-			_Files.appendFileOrFolderTile(d);
-		}
-		_Files.resize();
-	},
-	appendFileOrFolderRow: function(d) {
 
 		// add folder/file to global model
 		StructrModel.createFromData(d, null, false);
 
-		var tableBody = $('#files-table-body');
-
-		$('#row' + d.id, tableBody).remove();
-
 		var files = d.files || [];
 		var folders = d.folders || [];
 		var size = d.isFolder ? folders.length + files.length : (d.size ? d.size : '-');
-
-		var rowId = 'row' + d.id;
-		tableBody.append('<tr id="' + rowId + '"' + (d.isThumbnail ? ' class="thumbnail"' : '') + '></tr>');
-		var row = $('#' + rowId);
 		var icon = d.isFolder ? 'fa-folder' : _Files.getIcon(d);
 
-		if (d.isFolder) {
-			row.append('<td class="file-type"><i class="fa ' + icon + '"></i></td>');
-			row.append('<td><div id="id_' + d.id + '" data-structr_type="folder" class="node folder"><b title="' + d.name + '" class="name_">' + fitStringToWidth(d.name, 200) + '</b> <span class="id">' + d.id + '</span></div></td>');
-		} else {
-			row.append('<td class="file-type"><a href="' + d.path + '" target="_blank"><i class="fa ' + icon + '"></i></a></td>');
-			row.append('<td><div id="id_' + d.id + '" data-structr_type="file" class="node file">'
-			+ '<b title="' +  (d.name ? d.name : '[unnamed]') + '" class="name_">' + fitStringToWidth(d.name ? d.name : '[unnamed]', 200) + '</b>'
-			+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + d.size + '</span></div></div></div><span class="id">' + d.id + '</span></div></td>');
-		}
+		if (viewMode === 'list') {
 
-		row.append('<td>' + size + '</td>');
-		row.append('<td>' + d.type + (d.isThumbnail ? ' thumbnail' : '') + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td>');
-		row.append('<td>' + (d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '') + '</td>');
+			var tableBody = $('#files-table-body');
 
-		// Change working dir by click on folder icon
-		$('#id_' + d.id + '.folder').parent().prev().on('click', function(e) {
+			$('#row' + d.id, tableBody).remove();
 
-			e.preventDefault();
-			e.stopPropagation();
+			var rowId = 'row' + d.id;
+			tableBody.append('<tr id="' + rowId + '"' + (d.isThumbnail ? ' class="thumbnail"' : '') + '></tr>');
+			var row = $('#' + rowId);
 
-			if (d.parentId) {
-
-				fileTree.jstree('open_node', $('#' + d.parentId), function() {
-
-					if (d.name === '..') {
-						$('#' + d.parentId + '_anchor').click();
-					} else {
-						$('#' + d.id + '_anchor').click();
-					}
-
-				});
-
+			if (d.isFolder) {
+				row.append('<td class="file-type"><i class="fa ' + icon + '"></i></td>');
+				row.append('<td><div id="id_' + d.id + '" data-structr_type="folder" class="node folder"><b title="' + d.name + '" class="name_">' + fitStringToWidth(d.name, 200) + '</b> <span class="id">' + d.id + '</span></div></td>');
 			} else {
-
-				$('#' + d.id + '_anchor').click();
+				row.append('<td class="file-type"><a href="' + d.path + '" target="_blank"><i class="fa ' + icon + '"></i></a></td>');
+				row.append('<td><div id="id_' + d.id + '" data-structr_type="file" class="node file">'
+				+ '<b title="' +  (d.name ? d.name : '[unnamed]') + '" class="name_">' + fitStringToWidth(d.name ? d.name : '[unnamed]', 200) + '</b>'
+				+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + d.size + '</span></div></div></div><span class="id">' + d.id + '</span></div></td>');
 			}
 
-			return false;
-		});
+			row.append('<td>' + size + '</td>');
+			row.append('<td>' + d.type + (d.isThumbnail ? ' thumbnail' : '') + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td>');
+			row.append('<td>' + (d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '') + '</td>');
+
+			_Files.registerParentLink(d, $('#id_' + d.id + '.folder').parent().prev());
+
+		} else {
+
+			var tileId = 'tile' + d.id;
+			folderContents.append('<div id="' + tileId + '" class="tile' + (d.isThumbnail ? ' thumbnail' : '') + '"></div>');
+			var tile = $('#' + tileId);
+
+			if (d.isFolder) {
+				tile.append('<div id="id_' + d.id + '" data-structr_type="folder" class="node folder"><div class="file-type"><i class="fa ' + icon + '"></i></div>'
+						+ '<b title="' + d.name + '" class="name_">' + fitStringToWidth(d.name, 80) + '</b><span class="id">' + d.id + '</span></div>');
+			} else {
+				tile.append('<div id="id_' + d.id + '" data-structr_type="file" class="node file"><div class="file-type"><a href="' + d.path + '" target="_blank"><i class="fa ' + icon + '"></i></a></div>'
+					+ '<b title="' +  (d.name ? d.name : '[unnamed]') + '" class="name_">' + fitStringToWidth(d.name ? d.name : '[unnamed]', 80) + '</b>'
+					+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + size + '</span></div></div></div><span class="id">' + d.id + '</span></div>');
+			}
+
+			_Files.registerParentLink(d, $('#id_' + d.id + '.folder .file-type i'));
+
+		}
 
 		var div = Structr.node(d.id);
 
@@ -758,6 +747,7 @@ var _Files = {
 		});
 
 		_Entities.appendAccessControlIcon(div, d);
+
 		if (d.isFolder) {
 
 			_Files.handleFolder(div, d);
@@ -770,7 +760,6 @@ var _Files = {
 
 		div.draggable({
 			revert: 'invalid',
-			//helper: 'clone',
 			containment: 'body',
 			stack: '.jstree-node',
 			appendTo: '#main',
@@ -779,7 +768,6 @@ var _Files = {
 			distance: 5,
 			cursorAt: { top: 8, left: 25 },
 			zIndex: 99,
-			//containment: 'body',
 			stop: function(e, ui) {
 				$(this).show();
 				$(e.toElement).one('click', function(e) {
@@ -791,7 +779,7 @@ var _Files = {
 				selectedElements = $('.node.selected');
 				if (selectedElements.length > 1) {
 					selectedElements.removeClass('selected');
-					return $('<img class="node-helper" src="' + _Icons.page_white_stack_icon + '">');//.css("margin-left", event.clientX - $(event.target).offset().left);
+					return $('<img class="node-helper" src="' + _Icons.page_white_stack_icon + '">');
 				}
 				var hlp = helperEl.clone();
 				hlp.find('.button').remove();
@@ -800,8 +788,34 @@ var _Files = {
 		});
 
 		_Entities.appendEditPropertiesIcon(div, d);
-		//_Entities.setMouseOver(div);
 		_Entities.makeSelectable(div);
+
+		_Files.resize();
+	},
+	registerParentLink: function(d, triggerEl) {
+
+		// Change working dir by click on folder icon
+		triggerEl.on('click', function(e) {
+
+			e.preventDefault();
+			e.stopPropagation();
+
+			if (d.parentId) {
+
+				fileTree.jstree('open_node', $('#' + d.parentId), function() {
+					if (d.name === '..') {
+						$('#' + d.parentId + '_anchor').click();
+					} else {
+						$('#' + d.id + '_anchor').click();
+					}
+				});
+
+			} else {
+				$('#' + d.id + '_anchor').click();
+			}
+
+			return false;
+		});
 
 	},
 	handleFolder: function(div, d) {
@@ -976,111 +990,6 @@ var _Files = {
 				}
 			}
 		}
-
-	},
-	appendFileOrFolderTile: function(d) {
-
-		// add folder/file to global model
-		StructrModel.createFromData(d, null, false);
-
-		var tileId = 'tile' + d.id;
-		folderContents.append('<div id="' + tileId + '" class="tile' + (d.isThumbnail ? ' thumbnail' : '') + '"></div>');
-		var tile = $('#' + tileId);
-		var icon = d.isFolder ? 'fa-folder' : _Files.getIcon(d);
-
-		var files = d.files || [];
-		var folders = d.folders || [];
-		var size = d.isFolder ? folders.length + files.length : (d.size ? d.size : '-');
-
-		if (d.isFolder) {
-			tile.append('<div id="id_' + d.id + '" data-structr_type="folder" class="node folder"><div class="file-type"><i class="fa ' + icon + '"></i></div>'
-					+ '<b title="' + d.name + '" class="name_">' + fitStringToWidth(d.name, 80) + '</b><span class="id">' + d.id + '</span></div>');
-		} else {
-			tile.append('<div id="id_' + d.id + '" data-structr_type="file" class="node file"><div class="file-type"><a href="' + d.path + '" target="_blank"><i class="fa ' + icon + '"></i></a></div>'
-				+ '<b title="' +  (d.name ? d.name : '[unnamed]') + '" class="name_">' + fitStringToWidth(d.name ? d.name : '[unnamed]', 80) + '</b>'
-				+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + size + '</span></div></div></div><span class="id">' + d.id + '</span></div>');
-		}
-
-		// Change working dir by click on folder icon
-		$('#id_' + d.id + '.folder .file-type i').on('click', function(e) {
-
-			e.preventDefault();
-			e.stopPropagation();
-
-			if (d.parentId) {
-
-				fileTree.jstree('open_node', $('#' + d.parentId), function() {
-
-					if (d.name === '..') {
-						$('#' + d.parentId + '_anchor').click();
-					} else {
-						$('#' + d.id + '_anchor').click();
-					}
-
-				});
-
-			} else {
-
-				$('#' + d.id + '_anchor').click();
-			}
-
-			return false;
-		});
-
-		var div = Structr.node(d.id);
-
-		if (!div || !div.length)
-			return;
-
-		div.on('remove', function() {
-			div.closest('tr').remove();
-		});
-
-		_Entities.appendAccessControlIcon(div, d);
-
-		if (d.isFolder) {
-
-			_Files.handleFolder(div, d);
-
-		} else {
-
-			_Files.handleFile(div, d);
-		}
-
-		div.draggable({
-			revert: 'invalid',
-			//helper: 'clone',
-			containment: 'body',
-			stack: '.jstree-node',
-			appendTo: '#main',
-			forceHelperSize: true,
-			forcePlaceholderSize: true,
-			distance: 5,
-			cursorAt: { top: 8, left: 25 },
-			zIndex: 99,
-			//containment: 'body',
-			stop: function(e, ui) {
-				$(this).show();
-				$(e.toElement).one('click', function(e) {
-					e.stopImmediatePropagation();
-				});
-			},
-			helper: function(event) {
-				var helperEl = $(this);
-				selectedElements = $('.node.selected');
-				if (selectedElements.length > 1) {
-					selectedElements.removeClass('selected');
-					return $('<img class="node-helper" src="' + _Icons.page_white_stack_icon + '">');//.css("margin-left", event.clientX - $(event.target).offset().left);
-				}
-				var hlp = helperEl.clone();
-				hlp.find('.button').remove();
-				return hlp;
-			}
-		});
-
-		_Entities.appendEditPropertiesIcon(div, d);
-		//_Entities.setMouseOver(div, true);
-		_Entities.makeSelectable(div);
 
 	},
 	showThumbnails: function(img, el) {
@@ -1616,11 +1525,11 @@ var _Files = {
 		var archiveExtensions = ['zip', 'tar', 'cpio', 'dump', 'jar'];
 
 		return isIn(contentType, archiveTypes) || isIn(extension, archiveExtensions);
-    },
+	},
 	isMinificationTarget: function(file) {
 		var minifyTypes = [ 'MinifiedCssFile', 'MinifiedJavaScriptFile' ];
 		return isIn(file.type, minifyTypes);
-    },
+	},
 	getMinificationIcon: function(file) {
 		switch(file.type) {
 			case 'MinifiedCssFile':

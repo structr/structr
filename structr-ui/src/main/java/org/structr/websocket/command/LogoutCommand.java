@@ -59,6 +59,8 @@ public class LogoutCommand extends AbstractCommand {
 			getWebSocket().setAuthenticated(null, null);
 
 			getWebSocket().send(MessageBuilder.status().code(401).build(), true);
+
+            getWebSocket().invalidateConsole();
 		}
 	}
 

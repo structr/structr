@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.console.Console;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -67,6 +68,7 @@ public class StructrWebSocket implements WebSocketListener {
 	private Map<String, FileUploadHandler> uploads = null;
 	private Authenticator authenticator = null;
 	private String pagePath = null;
+	private Console console = null;
 
 	//~--- constructors ---------------------------------------------------
 	public StructrWebSocket() {}
@@ -402,6 +404,8 @@ public class StructrWebSocket implements WebSocketListener {
 
 					AuthHelper.sendLogoutNotification(user);
 
+                    invalidateConsole();
+
 				}
 
 			} catch (FrameworkException ex) {
@@ -478,7 +482,36 @@ public class StructrWebSocket implements WebSocketListener {
 	}
 
 	public Authenticator getAuthenticator() {
+
 		return authenticator;
+
+	}
+
+	public void invalidateConsole() {
+
+		this.console = null;
+
+	}
+
+	public Console getConsole() {
+
+		if (this.securityContext != null) {
+
+			if (this.console != null) {
+
+				return this.console;
+
+			} else {
+
+				this.console = new Console(securityContext, null);
+				return this.console;
+
+			}
+
+		}
+
+		return null;
+
 	}
 
 	//~--- set methods ----------------------------------------------------

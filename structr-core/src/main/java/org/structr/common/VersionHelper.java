@@ -31,14 +31,14 @@ import org.structr.module.StructrModule;
  * Helper class to gather and provide information about the running Structr version.
  */
 public class VersionHelper {
-	
-	private static String classPath;
-	private static String instanceName;
-	private static String instanceStage;
-	private static Map<String, Map<String, Object>> modules    = new HashMap<>();
-	private static Map<String, Map<String, String>> components = new HashMap<>();
-	
-	public VersionHelper() {
+
+	private static final String classPath;
+	private static final String instanceName;
+	private static final String instanceStage;
+	private static final Map<String, Map<String, Object>> modules    = new HashMap<>();
+	private static final Map<String, Map<String, String>> components = new HashMap<>();
+
+	static {
 
 		classPath                            = System.getProperty("java.class.path");
 		instanceName                         = StructrApp.getConfigurationValue(Services.APPLICATION_INSTANCE_NAME, "");
@@ -80,46 +80,40 @@ public class VersionHelper {
 
 			modules.put(module.getName(), map);
 		}
+
 	}
 
 	public static String getFullVersionInfo() {
-		return getVersion() + " " + getBuild() + " " + getDate();
-	}
-	
-	public static String getVersion() {
-		Map<String, String> structrUiModule = components.get("structr-ui");
-		return (structrUiModule != null ? structrUiModule.get("version") : null);
+
+		Map<String, String> structrUiModule = getComponents().get("structr-ui");
+
+		if (structrUiModule != null) {
+			return structrUiModule.get("version") + " " + structrUiModule.get("build") + " " + structrUiModule.get("date");
+		}
+
+		return "Could not determine version string";
+
 	}
 
-	public static String getDate() {
-		Map<String, String> structrUiModule = components.get("structr-ui");
-		return (structrUiModule != null ? structrUiModule.get("date") : null);
-	}
-	
-	public static String getBuild() {
-		Map<String, String> structrUiModule = components.get("structr-ui");
-		return (structrUiModule != null ? structrUiModule.get("build") : null);
-	}
-	
 	public static String getClassPath() {
 		return classPath;
 	}
-	
+
 	public static String getInstanceName() {
 		return instanceName;
 	}
-	
+
 	public static String  getInstanceStage() {
 		return instanceStage;
 	}
-	
+
 	public static Map<String, Map<String, Object>> getModules() {
 		return modules;
 	}
-	
+
 	public static Map<String, Map<String, String>> getComponents() {
 		return components;
 	}
-	
+
 }
 

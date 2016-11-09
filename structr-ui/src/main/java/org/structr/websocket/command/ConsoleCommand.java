@@ -24,12 +24,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.SecurityContext;
 import org.structr.common.VersionHelper;
 import org.structr.console.Console;
 import org.structr.console.tabcompletion.TabCompletionResult;
@@ -46,8 +44,6 @@ import org.structr.websocket.message.WebSocketMessage;
 public class ConsoleCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(ConsoleCommand.class.getName());
-	
-	private static Console console = null;
 
 	static {
 
@@ -57,23 +53,19 @@ public class ConsoleCommand extends AbstractCommand {
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
-		
+
 		final String sessionId = webSocketData.getSessionId();
 		logger.debug("CONSOLE received from session {}", sessionId);
 
 		final String line                     = (String) webSocketData.getNodeData().get("line");
 		final Boolean completion              = (Boolean) webSocketData.getNodeData().get("completion");
-		
-		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		
-		if (console == null) {
-			console = new Console(securityContext, null);
-		}
+
+        Console console = getWebSocket().getConsole();
 
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		OutputStreamWritable writeable = new OutputStreamWritable(out);
-		
-		
+
+
 		try {
 
 			if (Boolean.TRUE.equals(completion)) {
@@ -81,11 +73,11 @@ public class ConsoleCommand extends AbstractCommand {
 				final List<TabCompletionResult> tabCompletionResult = console.getTabCompletion(line);
 
 				final JsonArray commands = new JsonArray();
-				
+
 				for (final TabCompletionResult res : tabCompletionResult) {
 					commands.add(new JsonPrimitive(res.getCommand()));
 				}
-				
+
 				getWebSocket().send(MessageBuilder.forName(getCommand())
 						.callback(webSocketData.getCallback())
 						.data("commands", commands)
@@ -94,7 +86,7 @@ public class ConsoleCommand extends AbstractCommand {
 						.data("versionInfo", VersionHelper.getFullVersionInfo())
 						.message(out.toString("UTF-8"))
 						.build(), true);
-				
+
 			} else {
 
 				console.run(line, writeable);
@@ -107,8 +99,8 @@ public class ConsoleCommand extends AbstractCommand {
 						.message(out.toString("UTF-8"))
 						.build(), true);
 			}
-			
-			
+
+
 		} catch (Exception ex) {
 
 			logger.debug("Error while executing console line {}", line, ex);
@@ -179,5 +171,5 @@ public class ConsoleCommand extends AbstractCommand {
 		public void flush() throws IOException {
 			writer.flush();
 		}
-	}	
+	}
 }
