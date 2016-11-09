@@ -841,9 +841,11 @@ var _Console = new (function () {
 	};
 
 	var _showConsole = function () {
-		_consoleVisible = true;
-		_terminal.enable();
-		$('#structr-console').slideDown('fast');
+		if (user !== null) {
+			_consoleVisible = true;
+			_terminal.enable();
+			$('#structr-console').slideDown('fast');
+		}
 	};
 
 	var _hideConsole = function () {
