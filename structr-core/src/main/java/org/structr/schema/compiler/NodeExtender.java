@@ -74,6 +74,10 @@ public class NodeExtender {
 		return classes.get(fqcn);
 	}
 
+	public static Map<String, Class> getClasses() {
+		return classes;
+	}
+
 	public void addClass(final String className, final String content) throws ClassNotFoundException {
 
 		if (className != null && content != null) {

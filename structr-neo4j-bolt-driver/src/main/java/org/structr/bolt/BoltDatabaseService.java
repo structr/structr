@@ -72,6 +72,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	private static final Map<String, RelationshipType> relTypeCache   = new ConcurrentHashMap<>();
 	private static final Map<String, Label> labelCache                = new ConcurrentHashMap<>();
 	private static final ThreadLocal<SessionTransaction> sessions     = new ThreadLocal<>();
+	private Properties globalGraphProperties                          = null;
 	private CypherRelationshipIndex relationshipIndex                 = null;
 	private CypherNodeIndex nodeIndex                                 = null;
 	private GraphDatabaseService graphDb                              = null;
@@ -187,12 +188,6 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		// make properties available to Cypher statement
 		map.put("properties", properties);
 
-		/*
-		System.out.println("########################################################");
-		System.out.println(labels);
-		System.out.println(properties);
-		*/
-
 		return NodeWrapper.newInstance(this, getCurrentTransaction().getNode(buf.toString(), map));
 	}
 
@@ -292,34 +287,41 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	@Override
 	public void setProperty(final String name, final Object value) {
 
-		final Properties properties = new Properties();
-		final File propertiesFile   = new File(databasePath + "/graph.properties");
+		final Properties properties = getProperties();
+		boolean hasChanges          = false;
 
-		try (final Reader reader = new FileReader(propertiesFile)) {
-			properties.load(reader);
-		} catch (IOException ioex) {}
+		if (value == null) {
 
-		properties.setProperty(name, value.toString());
+			if (properties.containsKey(name)) {
 
-		try (final Writer writer = new FileWriter(propertiesFile)) {
-			properties.store(writer, "Created by Structr at " + new Date());
-		} catch (IOException ioex) {
-			ioex.printStackTrace();
-			logger.warn("Unable to write properties file");
+				properties.remove(name);
+				hasChanges = true;
+			}
+
+		} else {
+
+			properties.setProperty(name, value.toString());
+			hasChanges = true;
+		}
+
+		if (hasChanges) {
+
+			final File propertiesFile   = new File(databasePath + "/graph.properties");
+
+			try (final Writer writer = new FileWriter(propertiesFile)) {
+
+				properties.store(writer, "Created by Structr at " + new Date());
+
+			} catch (IOException ioex) {
+
+				logger.warn("Unable to write properties file", ioex);
+			}
 		}
 	}
 
 	@Override
 	public Object getProperty(final String name) {
-
-		final Properties properties = new Properties();
-		final File propertiesFile   = new File(databasePath + "/graph.properties");
-
-		try (final Reader reader = new FileReader(propertiesFile)) {
-			properties.load(reader);
-		} catch (IOException ioex) {}
-
-		return properties.getProperty(name);
+		return getProperties().getProperty(name);
 	}
 
 	@Override
@@ -352,6 +354,23 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	}
 
 	// ----- private methods -----
+	private Properties getProperties() {
+
+		if (globalGraphProperties == null) {
+
+			globalGraphProperties = new Properties();
+			final File propertiesFile   = new File(databasePath + "/graph.properties");
+
+			try (final Reader reader = new FileReader(propertiesFile)) {
+
+				globalGraphProperties.load(reader);
+
+			} catch (IOException ioex) {}
+		}
+
+		return globalGraphProperties;
+	}
+
 	private boolean handleMigration(final Throwable t) {
 
 		final List<String> messages = collectMessages(t);

@@ -43,6 +43,8 @@ import org.structr.api.service.StructrServices;
 import org.structr.common.AccessPathCache;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -50,7 +52,6 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.RelationshipFactory;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
@@ -97,8 +98,9 @@ public class SchemaService implements Service {
 
 			try {
 
-				final Set<String> dynamicViews  = new LinkedHashSet<>();
-				final NodeExtender nodeExtender = new NodeExtender();
+				final Map<String, Map<String, PropertyKey>> removedClasses = new HashMap<>(StructrApp.getConfiguration().getTypeAndPropertyMapping());
+				final Set<String> dynamicViews                             = new LinkedHashSet<>();
+				final NodeExtender nodeExtender                            = new NodeExtender();
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 
@@ -151,6 +153,9 @@ public class SchemaService implements Service {
 							// static initializer of helpers
 							try { newType.newInstance(); } catch (Throwable t) {}
 						}
+
+						// calculate difference between previous and new classes
+						removedClasses.keySet().removeAll(StructrApp.getConfiguration().getTypeAndPropertyMapping().keySet());
 					}
 
 					// create properties and views etc.
@@ -160,7 +165,6 @@ public class SchemaService implements Service {
 
 					success = !errorBuffer.hasError();
 
-					// inject views in configuration provider
 					if (success) {
 
 						// prevent inheritance map from leaking
@@ -172,8 +176,9 @@ public class SchemaService implements Service {
 						// clear relationship instance cache
 						AbstractNode.clearRelationshipTemplateInstanceCache();
 
-
+						// inject views in configuration provider
 						config.registerDynamicViews(dynamicViews);
+
 						tx.success();
 					}
 
@@ -184,8 +189,12 @@ public class SchemaService implements Service {
 					success = false;
 				}
 
-				calculateHierarchy();
-				updateIndexConfiguration();
+				// disable hierarchy calculation and automatic index creation for testing runs
+				if (!Boolean.parseBoolean(StructrApp.getConfigurationValue(Services.TESTING, "false"))) {
+
+					calculateHierarchy();
+					updateIndexConfiguration(removedClasses);
+				}
 
 			} finally {
 
@@ -301,13 +310,14 @@ public class SchemaService implements Service {
 		return 0;
 	}
 
-	private static void updateIndexConfiguration() {
+	private static void updateIndexConfiguration(final Map<String, Map<String, PropertyKey>> removedClasses) {
 
 		final Thread indexUpdater = new Thread(new Runnable() {
 
 			@Override
 			public void run() {
 
+				// critical section, only one thread should update the index at a time
 				if (updating.compareAndSet(false, true)) {
 
 					try {
@@ -315,40 +325,104 @@ public class SchemaService implements Service {
 						final Map<String, Object> params = new HashMap<>();
 						final App app                    = StructrApp.getInstance();
 
-						try (final Tx tx = app.tx()) {
+						// create indices for properties of existing classes
+						for (final Entry<String, Map<String, PropertyKey>> entry : StructrApp.getConfiguration().getTypeAndPropertyMapping().entrySet()) {
 
-							for (final Entry<String, Map<String, PropertyKey>> entry : StructrApp.getConfiguration().getTypeAndPropertyMapping().entrySet()) {
+							final Class type = getType(entry.getKey());
+							if (type != null) {
 
-								final String type = StringUtils.substringAfterLast(entry.getKey(), ".");
+								final String typeName = type.getSimpleName();
 
-								for (final PropertyKey key : entry.getValue().values()) {
+								try (final Tx tx = app.tx()) {
 
-									if (key.isIndexed() || key.isIndexedWhenEmpty()) {
+									for (final PropertyKey key : entry.getValue().values()) {
 
-										final Class declaringClass = key.getDeclaringClass();
-										if (declaringClass != null) {
+										final String indexKey    = "index." + typeName + "." + key.dbName();
+										final String value       = app.getGlobalSetting(indexKey, null);
+										final boolean alreadySet = "true".equals(value);
+										boolean createIndex      = key.isIndexed() || key.isIndexedWhenEmpty();
 
-											// do not create indexes for relationship classes
-											if (!RelationshipInterface.class.isAssignableFrom(declaringClass)) {
+										createIndex &= !NonIndexed.class.isAssignableFrom(type);
+										createIndex &= !GraphObject.id.equals(key);
 
-												app.cypher("CREATE INDEX ON :" + type + "(" + key.dbName() + ")", params);
+										if (createIndex) {
+
+											if (!alreadySet) {
+
+												try {
+
+													// create index
+													app.cypher("CREATE INDEX ON :" + typeName + "(" + key.dbName() + ")", params);
+
+												} catch (Throwable t) {
+													t.printStackTrace();
+												}
+
+												// store the information that we already created this index
+												app.setGlobalSetting(indexKey, "true");
 											}
 
-										} else {
+										} else if (alreadySet) {
 
-											app.cypher("CREATE INDEX ON :NodeInterface(" + key.dbName() + ")", params);
+											try {
+
+												// drop index
+												app.cypher("DROP INDEX ON :" + typeName + "(" + key.dbName() + ")", params);
+
+											} catch (Throwable t) {
+												t.printStackTrace();
+											}
+
+											// remove entry from config file
+											app.setGlobalSetting(indexKey, null);
 										}
+
 									}
+
+									tx.success();
+
+								} catch (Throwable ignore) {
+									ignore.printStackTrace();
 								}
-
 							}
-
-							tx.success();
 						}
 
-					} catch (Throwable ignore) {
+						// drop indices for all indexed properties of removed classes
+						for (final Entry<String, Map<String, PropertyKey>> entry : removedClasses.entrySet()) {
 
-						// ignore for now..
+							final String typeName = StringUtils.substringAfterLast(entry.getKey(), ".");
+
+							for (final PropertyKey key : entry.getValue().values()) {
+
+								try {
+
+									final String indexKey = "index." + typeName + "." + key.dbName();
+									final String value    = app.getGlobalSetting(indexKey, null);
+									final boolean exists  = "true".equals(value);
+									boolean dropIndex     = key.isIndexed() || key.isIndexedWhenEmpty();
+
+									dropIndex &= !GraphObject.id.equals(key);
+
+									if (dropIndex && exists) {
+
+										try (final Tx tx = app.tx()) {
+
+											// drop index
+											app.cypher("DROP INDEX ON :" + typeName + "(" + key.dbName() + ")", params);
+
+											tx.success();
+
+										} catch (Throwable t) {
+											t.printStackTrace();
+										}
+
+										// remove entry from config file
+										app.setGlobalSetting(indexKey, null);
+									}
+
+								} catch (FrameworkException ignore) {}
+							}
+						}
 
 					} finally {
 
@@ -360,5 +434,13 @@ public class SchemaService implements Service {
 
 		indexUpdater.setDaemon(true);
 		indexUpdater.start();
+	}
+
+	private static Class getType(final String name) {
+
+		try { return Class.forName(name); } catch (ClassNotFoundException ignore) {}
+
+		// fallback: use dynamic class from simple name
+		return StructrApp.getConfiguration().getNodeEntityClass(StringUtils.substringAfterLast(name, "."));
 	}
 }

@@ -33,6 +33,7 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.schema.NonIndexed;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -42,7 +43,7 @@ import org.structr.core.property.PropertyMap;
  *
  *
  */
-public class GenericNode extends AbstractNode {
+public class GenericNode extends AbstractNode implements NonIndexed {
 
 	private static final FixedSizeCache<Long, Set<PropertyKey>> propertyKeys = new FixedSizeCache<>(1000);
 

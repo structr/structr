@@ -46,6 +46,7 @@ import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.NonIndexed;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
@@ -67,7 +68,7 @@ import org.w3c.dom.Text;
  *
  *
  */
-public class Content extends DOMNode implements Text {
+public class Content extends DOMNode implements Text, NonIndexed {
 
 	private static final Logger logger                                                   = LoggerFactory.getLogger(Content.class.getName());
 	public static final Property<String> contentType                                     = new StringProperty("contentType").indexed();

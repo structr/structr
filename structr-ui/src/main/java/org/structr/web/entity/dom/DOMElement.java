@@ -44,6 +44,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.NonIndexed;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
@@ -66,7 +67,7 @@ import org.w3c.dom.TypeInfo;
  *
  *
  */
-public class DOMElement extends DOMNode implements Element, NamedNodeMap {
+public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonIndexed {
 
 	private static final Logger logger = LoggerFactory.getLogger(DOMElement.class.getName());
 	private static final int HtmlPrefixLength = PropertyView.Html.length();

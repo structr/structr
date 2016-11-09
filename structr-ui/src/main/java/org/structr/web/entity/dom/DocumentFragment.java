@@ -19,6 +19,7 @@
 package org.structr.web.entity.dom;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.schema.NonIndexed;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.Renderable;
 import org.w3c.dom.DOMException;
@@ -31,7 +32,7 @@ import org.w3c.dom.NodeList;
  *
  */
 
-public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFragment {
+public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFragment, NonIndexed {
 
 	// ----- interface org.w3c.dom.Node -----
 	@Override

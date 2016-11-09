@@ -428,7 +428,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		// Check direct equality
 		if (type.equals(candidateType)) {
-			//System.out.print("MATCH<" + distance + ">!");
 			return distance + 1000;
 		}
 

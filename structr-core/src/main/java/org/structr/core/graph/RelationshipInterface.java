@@ -24,12 +24,13 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyMap;
+import org.structr.schema.NonIndexed;
 
 /**
  *
  *
  */
-public interface RelationshipInterface extends GraphObject {
+public interface RelationshipInterface extends GraphObject, NonIndexed {
 
 	public void init(final SecurityContext securityContext, final Relationship dbRel, final Class entityType);
 

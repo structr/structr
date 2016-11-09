@@ -19,6 +19,7 @@
 package org.structr.web.entity.dom;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.schema.NonIndexed;
 import org.structr.web.common.RenderContext;
 import org.w3c.dom.CDATASection;
 
@@ -27,7 +28,7 @@ import org.w3c.dom.CDATASection;
  *
  */
 
-public class Cdata extends Content implements CDATASection {
+public class Cdata extends Content implements CDATASection, NonIndexed {
 
 	@Override
 	public void render(RenderContext renderContext, int depth) throws FrameworkException {

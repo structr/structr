@@ -19,13 +19,14 @@
 package org.structr.web.entity.dom;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.schema.NonIndexed;
 import org.structr.web.common.RenderContext;
 
 /**
  *
  *
  */
-public class Comment extends Content implements org.w3c.dom.Comment {
+public class Comment extends Content implements org.w3c.dom.Comment, NonIndexed {
 
 	@Override
 	public void render(RenderContext renderContext, int depth) throws FrameworkException {
