@@ -709,7 +709,7 @@ StructrImage.prototype.append = function(refNode) {
 	if (images && images.length) {
 		StructrModel.expand(_Images.appendImageElement(this, parentFolder), this);
 	} else {
-		_Files.appendFileOrFolderRow(this);
+		_Files.appendFileOrFolder(this);
 	}
 };
 
