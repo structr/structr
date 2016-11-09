@@ -62,14 +62,12 @@ public class EnvResource extends Resource {
 
 		final List<GraphObjectMap> resultList             = new LinkedList<>();
 		final GraphObjectMap info                         = new GraphObjectMap();
-		
-		VersionHelper versionHelper = new VersionHelper();
 
-		info.setProperty(new GenericProperty("modules"),      versionHelper.getModules());
-		info.setProperty(new GenericProperty("components"),   versionHelper.getComponents());
-		info.setProperty(new StringProperty("classPath"),     versionHelper.getClassPath());
-		info.setProperty(new StringProperty("instanceName"),  versionHelper.getInstanceName());
-		info.setProperty(new StringProperty("instanceStage"), versionHelper.getInstanceStage());
+		info.setProperty(new GenericProperty("modules"),      VersionHelper.getModules());
+		info.setProperty(new GenericProperty("components"),   VersionHelper.getComponents());
+		info.setProperty(new StringProperty("classPath"),     VersionHelper.getClassPath());
+		info.setProperty(new StringProperty("instanceName"),  VersionHelper.getInstanceName());
+		info.setProperty(new StringProperty("instanceStage"), VersionHelper.getInstanceStage());
 
 		resultList.add(info);
 
