@@ -814,6 +814,7 @@ var _Console = new (function () {
 				}
 			});
 			_terminal.consoleMode = mode;
+			_terminal.set_prompt(prompt + '> ');
 			_terminal.echo(message);
 
 			_initialized = true;
