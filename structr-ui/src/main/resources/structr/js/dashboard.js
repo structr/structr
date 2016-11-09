@@ -131,19 +131,20 @@ var _Dashboard = {
 		return fitStringToWidth(obj.name, 160);
 	},
 	clearLocalStorageOnServer: function() {
-//		console.log(meObj)
-		if (!meObj) {
-			Command.rest("/me/ui", function (result) {
-				Command.setProperty(result[0].id, 'localStorage', null, false, function() {
-					blinkGreen($('#clear-local-storage-on-server'));
-					LSWrapper.clear();
-				});
-			});
-		} else {
-			Command.setProperty(meObj.id, 'localStorage', null, false, function() {
+
+		var clear = function (userId) {
+			Command.setProperty(userId, 'localStorage', null, false, function() {
 				blinkGreen($('#clear-local-storage-on-server'));
 				LSWrapper.clear();
 			});
+		};
+
+		if (!meObj) {
+			Command.rest("/me/ui", function (result) {
+				clear(result[0].id);
+			});
+		} else {
+			clear(meObj.id);
 		}
 	}
 };
