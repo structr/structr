@@ -85,23 +85,6 @@ public class UuidResource extends FilterableResource {
 		return super.tryCombineWith(next);
 	}
 
-	public GraphObject getEntity(final Class entityClass) throws FrameworkException {
-		
-		final App app = StructrApp.getInstance(securityContext);
-
-		GraphObject entity = app.nodeQuery(entityClass).uuid(uuid).getFirst();
-		if (entity == null) {
-
-			entity = app.relationshipQuery(entityClass).uuid(uuid).getFirst();
-		}
-
-		if (entity == null) {
-			throw new NotFoundException("Entity with ID " + uuid + " and type " + entityClass.getSimpleName() + " not found");
-		}
-
-		return entity;
-	}
-	
 	public GraphObject getEntity() throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);

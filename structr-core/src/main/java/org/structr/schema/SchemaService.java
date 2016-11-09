@@ -51,6 +51,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
@@ -343,7 +344,7 @@ public class SchemaService implements Service {
 										boolean createIndex      = key.isIndexed() || key.isIndexedWhenEmpty();
 
 										createIndex &= !NonIndexed.class.isAssignableFrom(type);
-										createIndex &= !GraphObject.id.equals(key);
+										createIndex &= NodeInterface.class.equals(type) || !GraphObject.id.equals(key);
 
 										if (createIndex) {
 
