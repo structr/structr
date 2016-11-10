@@ -542,7 +542,7 @@ var _Dragndrop = {
 		//nodeData.name = '${link.name}';
 		tag = 'img';
 
-		Structr.modules['images'].unload();
+		Structr.modules['files'].unload();
 		Command.createAndAppendDOMNode(pageId, target.id, tag, nodeData);
 
 		return true;
