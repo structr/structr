@@ -16,35 +16,17 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.property;
-
-import org.structr.api.search.Occurrence;
-import org.structr.common.SecurityContext;
-import org.structr.core.app.Query;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.UuidSearchAttribute;
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package org.structr.api.search;
 
 /**
  *
- *
  */
-public class UuidProperty extends StringProperty {
+public interface UuidQuery extends QueryPredicate {
 
-	public UuidProperty() {
-
-		super("id");
-
-		indexed();
-		systemInternal();
-		readOnly();
-		writeOnce();
-		unique(true);
-		notNull(true);
-
-	}
-
-	@Override
-	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final String searchValue, final boolean exactMatch, final Query query) {
-		return new UuidSearchAttribute(searchValue, occur);
-	}
+	String getUuid();
 }
