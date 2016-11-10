@@ -3339,7 +3339,7 @@ i.fa.ps {
     text-decoration: underline;
 }
 
-#localizations-list, #localization-detail {
+.full-height-box {
     display: inline-block;
     vertical-align: top;
     padding: 10px;

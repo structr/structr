@@ -18,12 +18,80 @@
  */
 @charset "UTF-8";
 
+#crud-main {
+    border: none;
+    background: none;
+    padding: 0;
+    font-family: 'Open Sans', Arial, Helvetica, Sans-serif;
+}
+
+#crud-left {
+	width: 210px;
+	margin: 10px 5px 10px 10px;
+	display: inline-block;
+	padding: 10px;
+}
+
+#crud-left h2 {
+	margin-top: 0px;
+}
+
+#crud-types {
+	width: 210px;
+	display: inline-block;
+	vertical-align: top;
+	padding: 10px;
+	margin: -10px -10px 3px -10px;
+	height: calc(50vh - 75px);
+	overflow: auto;
+	border-radius: 3px;
+}
+
+#crudTypesFilter {
+	margin: 2px;
+}
+
+#crud-left p {
+	margin: 2px;
+	border: 1px solid #a5a5a5;
+	border-radius: 2px;
+	padding: 2px 4px 2px 6px;
+	cursor: pointer;
+}
+
+#crud-left p.active {
+	background-color: #81ce25;
+}
+
+#crud-left p:hover {
+	background-color: #81ce25;
+}
+
+#crud-recent-types {
+	display: inline-block;
+	vertical-align: top;
+	padding: 10px;
+	margin: 4px -10px -10px -10px;
+	height: calc(50vh - 75px);
+	overflow: auto;
+	width: 210px;
+	border-radius: 3px;
+}
+
+#crud-right {
+	width: calc(100% - 300px);
+	margin: 10px 10px 10px 5px;
+}
 .resourceBox {
     border: 1px solid #999 ! important;
     background: #fff ! important;
     font-family: 'Open Sans', Arial, Helvetica, Sans-serif ! important;
     font-size: 9pt;
     position: relative;
+}
+
+.crud-table {
+	height: calc(100% - 80px);
 }
 
 .resourceBox table {
@@ -77,52 +145,6 @@
     color: #f33;
 }
 
-#resourceTabs {
-    margin: 12px;
-    border: none;
-    background: none;
-    padding: 0;
-    font-family: 'Open Sans', Arial, Helvetica, Sans-serif;
-}
-
-#resourceTabs li.ui-corner-top {
-    font-weight: bold;
-    border-top: 1px solid #999;
-    border-left: 1px solid #999;
-    border-right: 1px solid #999;
-    background-color: #e9e9e9;
-}
-
-#resourceTabs .ui-state-default a,
-#resourceTabs .ui-state-default a:visited {
-    color: #505050 ! important;
-}
-
-#resourceTabs li.ui-state-active {
-    color: #333 ! important;
-    background-color: #81ce25;
-}
-
-#resourceTabs li.ui-state-active a,
-#resourceTabs li.ui-state-active a:visited {
-    color: #333 ! important;
-}
-
-#resourceTabsMenu {
-    border: none;
-    background: none;
-    padding: 0;
-}
-
-#resourceTabsMenu li input[type="checkbox"] {
-    margin: 0 0 2px 4px;
-    padding: 0;
-}
-#resourceTabsMenu li.last {
-    margin-top: 8px;
-    color: #333;
-}
-
 #addResourceTab {
     cursor: pointer;
 }
@@ -136,10 +158,16 @@ input.readonly {
     color: #333;
 }
 
-.infoFooter {
-    clear: both;
-    width: 100%;
-    text-align: right;
+#crud-buttons {
+	position: absolute;
+	bottom: 10px;
+}
+
+#query-info {
+    position: absolute;
+	bottom: 10px;
+	right: 10px;
+	text-align: right;
 }
 
 .exportArea, .importArea {

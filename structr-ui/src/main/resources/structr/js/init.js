@@ -35,8 +35,6 @@ var dialogDataKey = 'structrDialogData_' + port;
 var dialogHtmlKey = 'structrDialogHtml_' + port;
 var pushConfigKey = 'structrPushConfigKey_' + port;
 var scrollInfoKey = 'structrScrollInfoKey_' + port;
-var hideInactiveTabsKey = 'structrHideInactiveTabs_' + port;
-var autoHideInactiveTabsKey = 'structrAutoHideInactiveTabs_' + port;
 
 var altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
 
@@ -267,8 +265,6 @@ var Structr = {
 	classes: [],
 	expanded: {},
 	msgCount: 0,
-	hideInactiveTabs: false,
-	autoHideInactiveTabs: undefined,
 
 	reconnect: function() {
 		_Logger.log(_LogType.INIT, 'deactivated ping');
@@ -1212,85 +1208,6 @@ var Structr = {
 				Structr.activeModules = envInfo.result.modules;
 				Structr.adaptUiToPresentModules();
 			}
-		});
-	},
-	getAutoHideInactiveTabs: function () {
-		if (this.autoHideInactiveTabs) {
-			return this.autoHideInactiveTabs;
-		} else {
-			this.autoHideInactiveTabs = (LSWrapper.getItem(autoHideInactiveTabsKey));
-			if (!this.autoHideInactiveTabs) {
-				this.setAutoHideInactiveTabs(false);
-			}
-			return this.autoHideInactiveTabs;
-		}
-	},
-	setAutoHideInactiveTabs: function (val) {
-		this.autoHideInactiveTabs = val;
-		LSWrapper.setItem(autoHideInactiveTabsKey, val);
-		if (val) {
-			this.doHideInactiveTabs();
-			this.doHideSelectAllCheckbox();
-		}
-	},
-	getHideInactiveTabs: function () {
-		if (this.hideInactiveTabs) {
-			return this.hideInactiveTabs;
-		} else {
-			this.hideInactiveTabs = (LSWrapper.getItem(hideInactiveTabsKey));
-			if (!this.hideInactiveTabs) {
-				this.setHideInactiveTabs(false);
-			}
-			return this.hideInactiveTabs;
-		}
-	},
-	setHideInactiveTabs: function (val) {
-		this.hideInactiveTabs = val;
-		LSWrapper.setItem(hideInactiveTabsKey, val);
-
-		if (val) {
-			this.doHideInactiveTabs();
-			this.doHideSelectAllCheckbox();
-		} else {
-			this.doShowAllTabs();
-			this.doShowSelectAllCheckbox();
-		}
-	},
-	doHideInactiveTabs: function () {
-		$('#resourceTabsMenu li:not(.last) input[type="checkbox"]').hide();
-		$('.ui-state-default.ui-corner-top:not(.ui-tabs-active.ui-state-active):not(.last) input[type="checkbox"]:not(:checked)').closest('li').hide();
-	},
-	doShowAllTabs: function () {
-		$('#resourceTabsMenu input[type="checkbox"]').show();
-		$('.ui-state-default.ui-corner-top:not(.ui-tabs-active.ui-state-active)').show();
-	},
-	doHideSelectAllCheckbox: function () {
-		$('#resourceTabsSelectAllWrapper').hide();
-	},
-	doShowSelectAllCheckbox: function () {
-		$('#resourceTabsSelectAllWrapper').show();
-	},
-	determineSelectAllCheckboxState: function () {
-		if ( $('#resourceTabsMenu li:not(.last) input[type="checkbox"]').length === $('#resourceTabsMenu li:not(.last) input[type="checkbox"]:checked').length ) {
-			$('#resourceTabsSelectAll').prop('checked', true);
-		} else {
-			$('#resourceTabsSelectAll').prop('checked', false);
-		}
-	},
-	doSelectAllTabs: function () {
-		$('#resourceTabsMenu li:not(.last) input[type="checkbox"]:not(:checked)').click();
-	},
-	doDeselectAllTabs: function () {
-		$('#resourceTabsMenu li:not(.last) input[type="checkbox"]:checked').click();
-	},
-	doSelectTabs: function (types) {
-		types.forEach(function(type) {
-			$('#resourceTabsMenu li:not(.last) a[href="#' + type + '"] input[type="checkbox"]:not(:checked)').click();
-		});
-	},
-	doDeselectTabs: function (types) {
-		types.forEach(function(type) {
-			$('#resourceTabsMenu li:not(.last) a[href="#' + type + '"] input[type="checkbox"]:checked').click();
 		});
 	},
 	getId: function(element) {

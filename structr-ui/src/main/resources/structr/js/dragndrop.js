@@ -156,7 +156,6 @@ var _Dragndrop = {
 
 		var sortableOptions = {
 			iframeFix: true,
-			//sortable: '.node',
 			appendTo: '#main',
 			forceHelperSize: true,
 			forcePlaceholderSize: true,
@@ -367,7 +366,7 @@ var _Dragndrop = {
 
 				if (matches && matches.length) {
 
-					Structr.dialog('Configure Widget', function() { }, function() { });
+					Structr.dialog('Configure Widget', function() {}, function() {});
 
 					dialogText.append('<p>Fill out the following parameters to correctly configure the widget.</p><table class="props"></table>');
 					var table = $('table', dialogText);
@@ -389,7 +388,7 @@ var _Dragndrop = {
 							}
 						}
 
-						var label = _Crud.formatKey(propertyKey);
+						var label = propertyKey;
 
 						if (hasOptions) {
 
@@ -487,7 +486,6 @@ var _Dragndrop = {
 
 		var nodeData = {}, tag;
 
-		//name = $(ui.draggable).children('.name_').attr('title');
 		name = source.name;
 
 		var parentTag = target.tag;
@@ -513,7 +511,6 @@ var _Dragndrop = {
 			} else if (name.endsWith('.js')) {
 
 				_Logger.log(_LogType.DND, 'JS file dropped in <head>, creating <script>');
-
 				tag = 'script';
 				nodeData._html_src = '${link.path}?${link.version}';
 			}
@@ -539,7 +536,6 @@ var _Dragndrop = {
 		_Logger.log(_LogType.DND, 'Image dropped, creating <img> node', name);
 		nodeData._html_src = '${link.path}?${link.version}';
 		nodeData.linkableId = source.id;
-		//nodeData.name = '${link.name}';
 		tag = 'img';
 
 		Structr.modules['files'].unload();
@@ -548,8 +544,6 @@ var _Dragndrop = {
 		return true;
 	},
 	contentItemDropped: function(source, target) {
-		var refreshTimeout;
-
 		if (source.id === target.id) {
 			return false;
 		}
@@ -559,6 +553,5 @@ var _Dragndrop = {
 		});
 
 		return true;
-
-	},
+	}
 };
