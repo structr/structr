@@ -28,6 +28,7 @@ import java.util.TreeMap;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.console.Console;
+import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.rest.service.HttpService;
 import org.structr.util.Writable;
@@ -87,7 +88,7 @@ public abstract class RestCommand {
 	}
 
 	protected String getBasePath() {
-		return "/structr/rest/";
+		return StringUtils.removeEnd(Services.getBaseConfiguration().getProperty("JsonRestServlet.path", "/structr/rest"), "/*");
 	}
 
 	// ----- public static methods -----
