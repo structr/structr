@@ -1223,7 +1223,7 @@ var Command = {
 				cursorPosition: cursorPosition
 			}
 		};
-		console.log(_LogType.WS[obj.command], 'autocomplete()', obj, callback);
+		_Logger.log(_LogType.WS[obj.command], 'autocomplete()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
