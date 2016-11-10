@@ -125,7 +125,10 @@ var _Crud = {
 	displayUiTypes: false,
 	displayLogTypes: false,
 	displayOtherTypes: false,
+	schemaInfoCache: undefined,
 	init: function() {
+
+		_Crud.schemaInfoCache = undefined;
 
 		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Search"><img class="clearSearchIcon" src="' + _Icons.grey_cross_icon + '"></div>');
 		main.append('<div id="resourceTabs">'
@@ -369,13 +372,7 @@ var _Crud = {
 	},
 	filterTabs: function() {
 
-		Command.getSchemaInfo(null, function(nodes) {
-
-			nodes.sort(function(a, b) {
-				var aName = a.name.toLowerCase();
-				var bName = b.name.toLowerCase();
-				return aName < bName ? -1 : aName > bName ? 1 : 0;
-			});
+		var doFilterTabs = function (nodes) {
 
 			nodes.forEach(function(node) {
 
@@ -400,7 +397,36 @@ var _Crud = {
 
 			});
 
-		});
+		};
+
+		if ( typeof _Crud.schemaInfoCache === "object" && typeof _Crud.schemaInfoCache.nodes === "object" && (new Date()) - _Crud.schemaInfoCache.timestamp <= 60 * 1000) {
+
+			_Logger.log(_LogType.CRUD, 'Using cached schemaInfo to update tab visibility');
+
+			doFilterTabs(_Crud.schemaInfoCache.nodes);
+
+		} else {
+
+			_Logger.log(_LogType.CRUD, 'Updating schemaInfo cache to update tab visibility');
+
+			Command.getSchemaInfo(null, function(nodes) {
+
+				nodes.sort(function(a, b) {
+					var aName = a.name.toLowerCase();
+					var bName = b.name.toLowerCase();
+					return aName < bName ? -1 : aName > bName ? 1 : 0;
+				});
+
+				_Crud.schemaInfoCache = {
+					timestamp: new Date(),
+					nodes: nodes
+				};
+
+				doFilterTabs(nodes);
+
+			});
+
+		}
 
 	},
 	updateUrl: function(type) {
