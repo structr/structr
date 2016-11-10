@@ -144,96 +144,93 @@ public class StaticRelationshipResource extends SortableResource {
 				final Predicate<GraphObject> predicate = query.toPredicate();
 				final Object value = sourceEntity.getProperty(propertyKey, predicate);
 
-    				if (value != null) {
+				if (value != null) {
 
 					if (value instanceof Iterable) {
 
 						final Set<Object> propertyResults = new LinkedHashSet<>();
-                                                Iterator<Object> iter = ((Iterable<Object>) value).iterator();
-                                                boolean iterableContainsGraphObject = false;
+						Iterator<Object> iter = ((Iterable<Object>) value).iterator();
+						boolean iterableContainsGraphObject = false;
 
-                                                while (iter.hasNext()) {
+						while (iter.hasNext()) {
 
-                                                        Object obj = iter.next();
-                                                        propertyResults.add(obj);
+							Object obj = iter.next();
+							propertyResults.add(obj);
 
-                                                        if (obj != null && !iterableContainsGraphObject) {
+							if (obj != null && !iterableContainsGraphObject) {
 
-                                                                if (obj instanceof GraphObject) {
+								if (obj instanceof GraphObject) {
 
-                                                                        iterableContainsGraphObject = true;
+									iterableContainsGraphObject = true;
 
-                                                                }
+								}
 
-                                                        }
+							}
 
-                                                }
+						}
 
-                                                int rawResultCount = propertyResults.size();
+						int rawResultCount = propertyResults.size();
 
-                                                if (!iterableContainsGraphObject) {
+						if (!iterableContainsGraphObject) {
 
-                                                        GraphObjectMap gObject = new GraphObjectMap();
-                                                        gObject.setProperty(new ArrayProperty(this.typeResource.rawType, Object.class), propertyResults.toArray());
-                                                        Result r = new Result(gObject, true);
-                                                        r.setRawResultCount(rawResultCount);
-                                                        return r;
+							GraphObjectMap gObject = new GraphObjectMap();
+							gObject.setProperty(new ArrayProperty(this.typeResource.rawType, Object.class), propertyResults.toArray());
+							Result r = new Result(gObject, true);
+							r.setRawResultCount(rawResultCount);
+							return r;
 
-                                                }
+						}
 
 						final List<GraphObject> finalResult = new LinkedList<>();
 
-                                                propertyResults.forEach(
-
-                                                        v -> finalResult.add((GraphObject)v)
-
-                                                );
-
+						propertyResults.forEach(
+								v -> finalResult.add((GraphObject) v)
+						);
 
 						applyDefaultSorting(finalResult, sortKey, sortDescending);
 
 						// return result
-                                                Result r = new Result(PagingHelper.subList(finalResult, pageSize, page, offsetId), finalResult.size(), isCollectionResource(), isPrimitiveArray());
-                                                r.setRawResultCount(rawResultCount);
+						Result r = new Result(PagingHelper.subList(finalResult, pageSize, page, offsetId), finalResult.size(), isCollectionResource(), isPrimitiveArray());
+						r.setRawResultCount(rawResultCount);
 						return r;
 
 					} else if (value instanceof GraphObject) {
 
-						return new Result((GraphObject)value, isPrimitiveArray());
+						return new Result((GraphObject) value, isPrimitiveArray());
 
-                                        } else if (value != null) {
+					} else if (value != null) {
 
-                                                GraphObjectMap gObject = new GraphObjectMap();
-                                                PropertyKey key;
-                                                String keyName = this.typeResource.rawType;
-                                                int resultCount = 1;
+						GraphObjectMap gObject = new GraphObjectMap();
+						PropertyKey key;
+						String keyName = this.typeResource.rawType;
+						int resultCount = 1;
 
-                                                //FIXME: Dynamically resolve all property types and their result count
-                                                if (value instanceof String) {
-                                                        key = new StringProperty(keyName);
-                                                } else if (value instanceof Integer) {
-                                                        key = new IntProperty(keyName);
-                                                } else if (value instanceof Long) {
-                                                        key = new LongProperty(keyName);
-                                                } else if (value instanceof Double) {
-                                                        key = new DoubleProperty(keyName);
-                                                } else if (value instanceof Boolean) {
-                                                        key = new BooleanProperty(keyName);
-                                                } else if (value instanceof Date) {
-                                                        key = new DateProperty(keyName);
-                                                } else if (value instanceof String[]) {
+						//FIXME: Dynamically resolve all property types and their result count
+						if (value instanceof String) {
+							key = new StringProperty(keyName);
+						} else if (value instanceof Integer) {
+							key = new IntProperty(keyName);
+						} else if (value instanceof Long) {
+							key = new LongProperty(keyName);
+						} else if (value instanceof Double) {
+							key = new DoubleProperty(keyName);
+						} else if (value instanceof Boolean) {
+							key = new BooleanProperty(keyName);
+						} else if (value instanceof Date) {
+							key = new DateProperty(keyName);
+						} else if (value instanceof String[]) {
 
-                                                        key = new ArrayProperty(keyName, String.class);
-                                                        resultCount = ((String[])value).length;
+							key = new ArrayProperty(keyName, String.class);
+							resultCount = ((String[]) value).length;
 
-                                                } else {
-                                                        key = new GenericProperty(keyName);
-                                                }
+						} else {
+							key = new GenericProperty(keyName);
+						}
 
-                                                gObject.setProperty(key, value);
-                                                Result r = new Result(gObject, true);
-                                                r.setRawResultCount(resultCount);
-                                                return r;
+						gObject.setProperty(key, value);
+						Result r = new Result(gObject, true);
+						r.setRawResultCount(resultCount);
+						return r;
 
 					} else {
 
@@ -243,12 +240,12 @@ public class StaticRelationshipResource extends SortableResource {
 
 				}
 
-                                // check propertyKey to return the right variant of empty result
-                                if (!(propertyKey instanceof StartNode || propertyKey instanceof EndNode)) {
+				// check propertyKey to return the right variant of empty result
+				if (!(propertyKey instanceof StartNode || propertyKey instanceof EndNode)) {
 
-                                        return new Result(Collections.EMPTY_LIST, 1, false, true);
+					return new Result(Collections.EMPTY_LIST, 1, false, true);
 
-                                }
+				}
 
 			}
 		}

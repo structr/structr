@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaNode;
@@ -60,11 +61,12 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	private SecurityContext securityContext = null;
 	private Document doc                    = null;
 	private Tag currentElement              = null;
+	private GraphObject currentObject       = null;
 	private Tag previousElement             = null;
 	private boolean hasName                 = false;
 	private String lastName                 = null;
-	private final String restPath    = "/structr/rest";
-	private String propertyView	     = "";
+	private final String restPath           = StringUtils.removeEnd(Services.getBaseConfiguration().getProperty("JsonRestServlet.path", "/structr/rest"), "/*");
+	private String propertyView	        = "";
 
 	static {
 
@@ -191,6 +193,8 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	@Override
 	public RestWriter beginObject(final GraphObject graphObject) throws IOException {
 
+		currentObject = graphObject;
+		
 		if (!hasName) {
 			currentElement = currentElement.block(LI);
 		}
@@ -221,7 +225,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	}
 
 	@Override
-	public RestWriter name(String name) throws IOException {
+	public RestWriter name(final String name) throws IOException {
 
 		if (previousElement != null) {
 			previousElement.appendComma();
@@ -248,7 +252,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 		if ("id".equals(lastName)) {
 
-			currentElement.inline("a").css("id").attr(new Href(restPath + "/" + value + propertyView)).text("\"", value, "\"");
+			currentElement.inline("a").css("id").attr(new Href(restPath + "/" + currentObject.getType() + "/" + value + propertyView)).text("\"", value, "\"");
 
 		} else {
 
