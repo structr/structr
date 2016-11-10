@@ -175,28 +175,28 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public void setSecurityContext(final SecurityContext securityContext) {
+	public final void setSecurityContext(final SecurityContext securityContext) {
 		this.securityContext = securityContext;
 	}
 
 	@Override
-	public SecurityContext getSecurityContext() {
+	public final SecurityContext getSecurityContext() {
 		return this.securityContext;
 	}
 
 	@Override
-	public void unlockSystemPropertiesOnce() {
+	public final void unlockSystemPropertiesOnce() {
 		this.internalSystemPropertiesUnlocked = true;
 		unlockReadOnlyPropertiesOnce();
 	}
 
 	@Override
-	public void unlockReadOnlyPropertiesOnce() {
+	public final void unlockReadOnlyPropertiesOnce() {
 		this.readOnlyPropertiesUnlocked = true;
 	}
 
 	@Override
-	public void removeProperty(final PropertyKey key) throws FrameworkException {
+	public final void removeProperty(final PropertyKey key) throws FrameworkException {
 
 		dbRelationship.removeProperty(key.dbName());
 
@@ -224,7 +224,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public int compareTo(final AbstractRelationship rel) {
+	public final int compareTo(final AbstractRelationship rel) {
 
 		// TODO: implement finer compare methods, e.g. taking title and position into account
 		if (rel == null) {
@@ -256,48 +256,46 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		return false;
 	}
 
-	//~--- get methods ----------------------------------------------------
-
 	@Override
-	public PropertyKey getDefaultSortKey() {
+	public final PropertyKey getDefaultSortKey() {
 
 		return null;
 
 	}
 
 	@Override
-	public String getDefaultSortOrder() {
+	public final String getDefaultSortOrder() {
 
 		return GraphObjectComparator.ASCENDING;
 
 	}
 
 	@Override
-	public long getId() {
+	public final long getId() {
 
 		return getInternalId();
 
 	}
 
 	@Override
-	public String getUuid() {
+	public final String getUuid() {
 		return getProperty(AbstractRelationship.id);
 	}
 
-	public long getRelationshipId() {
+	public final long getRelationshipId() {
 
 		return getInternalId();
 
 	}
 
-	public long getInternalId() {
+	public final long getInternalId() {
 
 		return dbRelationship.getId();
 
 	}
 
 	@Override
-	public PropertyMap getProperties() throws FrameworkException {
+	public final PropertyMap getProperties() throws FrameworkException {
 
 		Map<String, Object> properties = new LinkedHashMap<>();
 
@@ -332,7 +330,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public <T> Comparable getComparableProperty(final PropertyKey<T> key) {
+	public final <T> Comparable getComparableProperty(final PropertyKey<T> key) {
 
 		if (key != null) {
 
@@ -381,42 +379,42 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public T getTargetNode() {
+	public final T getTargetNode() {
 		NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
 		return nodeFactory.instantiate(dbRelationship.getEndNode());
 	}
 
 	@Override
-	public T getTargetNodeAsSuperUser() {
+	public final T getTargetNodeAsSuperUser() {
 		NodeFactory<T> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
 		return nodeFactory.instantiate(dbRelationship.getEndNode());
 	}
 
 	@Override
-	public S getSourceNode() {
+	public final S getSourceNode() {
 		NodeFactory<S> nodeFactory = new NodeFactory<>(securityContext);
 		return nodeFactory.instantiate(dbRelationship.getStartNode());
 	}
 
 	@Override
-	public S getSourceNodeAsSuperUser() {
+	public final S getSourceNodeAsSuperUser() {
 		NodeFactory<S> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
 		return nodeFactory.instantiate(dbRelationship.getStartNode());
 	}
 
 	@Override
-	public NodeInterface getOtherNode(final NodeInterface node) {
+	public final NodeInterface getOtherNode(final NodeInterface node) {
 		NodeFactory nodeFactory = new NodeFactory(securityContext);
 		return nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
 	}
 
-	public NodeInterface getOtherNodeAsSuperUser(final NodeInterface node) {
+	public final NodeInterface getOtherNodeAsSuperUser(final NodeInterface node) {
 		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
 		return nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
 	}
 
 	@Override
-	public RelationshipType getRelType() {
+	public final RelationshipType getRelType() {
 
 		if (dbRelationship != null) {
 
@@ -431,54 +429,46 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	 *
 	 * @return property keys
 	 */
-	public Iterable<PropertyKey> getPropertyKeys() {
-
+	public final Iterable<PropertyKey> getPropertyKeys() {
 		return getPropertyKeys(PropertyView.All);
-
 	}
 
 	// ----- interface GraphObject -----
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
-
 		return StructrApp.getConfiguration().getPropertySet(this.getClass(), propertyView);
-
 	}
 
-	public Map<String, Long> getRelationshipInfo(Direction direction) {
-
+	public final Map<String, Long> getRelationshipInfo(Direction direction) {
 		return null;
-
 	}
 
-	public List<AbstractRelationship> getRelationships(String type, Direction dir) {
-
+	public final List<AbstractRelationship> getRelationships(String type, Direction dir) {
 		return null;
-
 	}
 
 	@Override
-	public String getType() {
+	public final String getType() {
 		return getRelType().name();
 	}
 
 	@Override
-	public PropertyContainer getPropertyContainer() {
+	public final PropertyContainer getPropertyContainer() {
 		return dbRelationship;
 	}
 
 	@Override
-	public String getSourceNodeId() {
+	public final String getSourceNodeId() {
 		return cachedStartNodeId;
 	}
 
 	@Override
-	public String getTargetNodeId() {
+	public final String getTargetNodeId() {
 		return cachedEndNodeId;
 
 	}
 
-	public String getOtherNodeId(final AbstractNode node) {
+	public final String getOtherNodeId(final AbstractNode node) {
 
 		return getOtherNode(node).getProperty(AbstractRelationship.id);
 
@@ -541,18 +531,24 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
 
-		for (PropertyKey key : properties.keySet()) {
+		for (final PropertyKey key : properties.keySet()) {
 
-			// check for system properties
-			if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
+			if (dbRelationship != null && dbRelationship.hasProperty(key.dbName())) {
 
-				throw new FrameworkException(422, "Property " + key.jsonName() + " is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key));
-			}
+				// check for system properties
+				if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
 
-			// check for read-only properties
-			if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
+					throw new FrameworkException(422, "Property " + key.jsonName() + " is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key));
 
-				throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
+				}
+
+				// check for read-only properties
+				if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
+
+					throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
+
+				}
+
 			}
 		}
 
@@ -560,7 +556,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public <T> Object setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
+	public final <T> Object setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
 
 		if (key == null) {
 
@@ -603,7 +599,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public void addToIndex() {
+	public final void addToIndex() {
 
 		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All)) {
 
@@ -615,27 +611,27 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public void updateInIndex() {
+	public final void updateInIndex() {
 
 		removeFromIndex();
 		addToIndex();
 	}
 
 	@Override
-	public void removeFromIndex() {
+	public final void removeFromIndex() {
 
 		final Index<Relationship> index = Services.getInstance().getService(NodeService.class).getRelationshipIndex();
 		index.remove(dbRelationship);
 	}
 
-	public void removeFromIndex(PropertyKey key) {
+	public final void removeFromIndex(final PropertyKey key) {
 
 		final Index<Relationship> index = Services.getInstance().getService(NodeService.class).getRelationshipIndex();
 		index.remove(dbRelationship, key.dbName());
 	}
 
 	@Override
-	public void indexPassiveProperties() {
+	public final void indexPassiveProperties() {
 
 		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All)) {
 
@@ -647,7 +643,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public void setSourceNodeId(final String sourceNodeId) throws FrameworkException {
+	public final void setSourceNodeId(final String sourceNodeId) throws FrameworkException {
 
 		// Do nothing if new id equals old
 		if (getSourceNodeId().equals(sourceNodeId)) {
@@ -674,7 +670,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public void setTargetNodeId(final String targetNodeId) throws FrameworkException {
+	public final void setTargetNodeId(final String targetNodeId) throws FrameworkException {
 
 		// Do nothing if new id equals old
 		if (getTargetNodeId().equals(targetNodeId)) {
@@ -701,12 +697,12 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public String getPropertyWithVariableReplacement(ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
+	public final String getPropertyWithVariableReplacement(final ActionContext renderContext, final PropertyKey<String> key) throws FrameworkException {
 		return Scripting.replaceVariables(renderContext, this, getProperty(key));
 	}
 
 	@Override
-	public Object evaluate(final SecurityContext securityContext, final String key, final String defaultValue) throws FrameworkException {
+	public final Object evaluate(final SecurityContext securityContext, final String key, final String defaultValue) throws FrameworkException {
 
 		switch (key) {
 
@@ -734,7 +730,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	// ----- protected methods -----
-	protected Direction getDirectionForType(final Class<S> sourceType, final Class<T> targetType, final Class<? extends NodeInterface> type) {
+	protected final Direction getDirectionForType(final Class<S> sourceType, final Class<T> targetType, final Class<? extends NodeInterface> type) {
 
 		if (sourceType.equals(type) && targetType.equals(type)) {
 			return Direction.BOTH;
@@ -760,7 +756,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public CMISInfo getCMISInfo() {
+	public final CMISInfo getCMISInfo() {
 		return null;
 	}
 
