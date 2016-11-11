@@ -44,8 +44,8 @@ if (browser) {
 
 		_Crud.resize();
 
-		$(document).on('click', '#crud-left p', function() {
-			$('#crud-left p').removeClass('active');
+		$(document).on('click', '#crud-left li', function() {
+			$('#crud-left li').removeClass('active');
 			_Crud.typeSelected($(this).data('type'));
 		});
 
@@ -122,8 +122,8 @@ var _Crud = {
 
 		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Search"><img class="clearSearchIcon" src="' + _Icons.grey_cross_icon + '"></div>');
 		main.append('<div id="crud-main"><div id="crud-left">'
-				+ '<div id="crud-types" class="resourceBox"><h2>All Types</h2><input placeholder="Filter types..." id="crudTypesFilter"></div>'
-				+ '<div id="crud-recent-types" class="resourceBox"><h2>Recent</h2></div></div>'
+				+ '<div id="crud-types" class="resourceBox"><h2>All Types</h2><input placeholder="Filter types..." id="crudTypesFilter"><ul id="crud-types-list"></ul></div>'
+				+ '<div id="crud-recent-types" class="resourceBox"><h2>Recent</h2><ul id="crud-recent-types-list"></ul></div></div>'
 				+ '<div id="crud-right" class="resourceBox full-height-box"></div></div>');
 
 		$('#crudTypesFilter').keyup(function (e) {
@@ -219,9 +219,9 @@ var _Crud = {
 	},
 	updateTypeList: function () {
 
-		var $typesList = $('#crud-types');
+		var $typesList = $('#crud-types-list');
 		Object.keys(_Crud.types).sort().forEach(function(type) {
-			$typesList.append('<p class="crud-type' + (_Crud.type === type ? ' active' : '') + '" data-type="' + type + '">' + type + '</p>');
+			$typesList.append('<li class="crud-type' + (_Crud.type === type ? ' active' : '') + '" data-type="' + type + '">' + type + '</li>');
 		});
 
 		_Crud.typeSelected(_Crud.type);
@@ -232,7 +232,7 @@ var _Crud = {
 
 		_Crud.updateRecentTypeList(selectedType);
 
-		$('#crud-left p[data-type="' + selectedType + '"]').addClass('active');
+		$('#crud-left li[data-type="' + selectedType + '"]').addClass('active');
 
 		_Crud.getProperties(selectedType, function(type, properties) {
 
@@ -281,7 +281,7 @@ var _Crud = {
 		});
 	},
 	filterTypes: function (filterVal) {
-		$('#crud-types p').each(function (i, el) {
+		$('#crud-types-list li').each(function (i, el) {
 			var $el = $(el);
 			($el.data('type').toLowerCase().indexOf(filterVal) === -1) ? $el.hide() : $el.show();
 		});
@@ -306,12 +306,12 @@ var _Crud = {
 		recentTypes = recentTypes.slice(0, 12);
 
 		if (recentTypes) {
-			var $recentTypesList = $('#crud-recent-types');
+			var $recentTypesList = $('#crud-recent-types-list');
 
-			$('p', $recentTypesList).remove();
+			$('li', $recentTypesList).remove();
 
 			recentTypes.forEach(function (type) {
-				$recentTypesList.append('<p class="crud-type' + (selectedType === type ? ' active' : '') + '" data-type="' + type + '">' + type + '</p>');
+				$recentTypesList.append('<li class="crud-type' + (selectedType === type ? ' active' : '') + '" data-type="' + type + '">' + type + '</li>');
 			});
 
 		}
