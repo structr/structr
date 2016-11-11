@@ -131,7 +131,7 @@ var _Crud = {
 				$(this).val('');
 			}
 
-			_Crud.filterTypes($(this).val());
+			_Crud.filterTypes($(this).val().toLowerCase());
 		});
 
 		Structr.ensureIsAdmin($('#crud-main'), function() {
