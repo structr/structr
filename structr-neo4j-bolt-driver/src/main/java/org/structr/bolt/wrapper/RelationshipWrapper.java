@@ -34,8 +34,6 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 
 	private long sourceNodeId = -1L;
 	private long targetNodeId = -1L;
-	private Node sourceNode   = null;
-	private Node targetNode   = null;
 	private String type       = null;
 
 	private RelationshipWrapper(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Relationship relationship) {
@@ -60,22 +58,12 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 
 	@Override
 	public Node getStartNode() {
-
-		if (sourceNode == null) {
-			sourceNode = db.getNodeById(sourceNodeId);
-		}
-
-		return sourceNode;
+		return db.getNodeById(sourceNodeId);
 	}
 
 	@Override
 	public Node getEndNode() {
-
-		if (targetNode == null) {
-			targetNode = db.getNodeById(targetNodeId);
-		}
-
-		return targetNode;
+		return db.getNodeById(targetNodeId);
 	}
 
 	@Override
