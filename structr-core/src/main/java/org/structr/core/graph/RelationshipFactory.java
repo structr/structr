@@ -70,12 +70,8 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 	@Override
 	public T instantiate(final Relationship relationship, final Relationship pathSegment) {
 
-		if (relationship == null) {
+		if (relationship == null || TransactionCommand.isDeleted(relationship)) {
 			return null;
-		}
-
-		if (TransactionCommand.isDeleted(relationship)) {
-			return (T) instantiateWithType(relationship, null, null, false);
 		}
 
 		Class type = idTypeMap.get(relationship.getId());

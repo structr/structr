@@ -38,11 +38,15 @@ import org.structr.bolt.mapper.RelationshipRelationshipMapper;
  */
 public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implements Node {
 
-	private static final FixedSizeCache<Long, NodeWrapper> nodeCache             = new FixedSizeCache<>(100000);
 	private final Map<String, Map<String, List<Relationship>>> relationshipCache = new HashMap<>();
+	private static FixedSizeCache<Long, NodeWrapper> nodeCache                   = null;
 
 	private NodeWrapper(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Node node) {
 		super(db, node);
+	}
+
+	public static void initialize(final int cacheSize) {
+		nodeCache = new FixedSizeCache<>(cacheSize);
 	}
 
 	@Override
@@ -157,7 +161,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 			map.put("id", id);
 
-			list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r]-(m) WHERE ID(n) = {id} RETURN r", map)));
+			list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r]-() WHERE ID(n) = {id} RETURN r", map)));
 
 			// store in cache
 			setList(null, null, list);
@@ -187,11 +191,11 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 					return getRelationships();
 
 				case OUTGOING:
-					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r]->(m) WHERE ID(n) = {id} RETURN r", map)));
+					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r]->() WHERE ID(n) = {id} RETURN r", map)));
 					break;
 
 				case INCOMING:
-					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)<-[r]-(m) WHERE ID(n) = {id} RETURN r", map)));
+					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)<-[r]-() WHERE ID(n) = {id} RETURN r", map)));
 					break;
 			}
 
@@ -220,15 +224,15 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 			switch (direction) {
 
 				case BOTH:
-					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r:" + relationshipType.name() + "]-(m) WHERE ID(n) = {id} RETURN r", map)));
+					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r:" + relationshipType.name() + "]-() WHERE ID(n) = {id} RETURN r", map)));
 					break;
 
 				case OUTGOING:
-					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r:" + relationshipType.name() + "]->(m) WHERE ID(n) = {id} RETURN r", map)));
+					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r:" + relationshipType.name() + "]->() WHERE ID(n) = {id} RETURN r", map)));
 					break;
 
 				case INCOMING:
-					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)<-[r:" + relationshipType.name() + "]-(m) WHERE ID(n) = {id} RETURN r", map)));
+					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)<-[r:" + relationshipType.name() + "]-() WHERE ID(n) = {id} RETURN r", map)));
 					break;
 			}
 

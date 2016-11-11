@@ -129,6 +129,15 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 			AuthTokens.basic(username, password),
 			Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()
 		);
+
+		final int relCacheSize  = Integer.valueOf(configuration.getProperty(Structr.RELATIONSHIP_CACHE_SIZE, "100000"));
+		final int nodeCacheSize = Integer.valueOf(configuration.getProperty(Structr.NODE_CACHE_SIZE, "100000"));
+
+		NodeWrapper.initialize(nodeCacheSize);
+		logger.info("Node cache size set to {}", nodeCacheSize);
+
+		RelationshipWrapper.initialize(relCacheSize);
+		logger.info("Relationship cache size set to {}", relCacheSize);
 	}
 
 	@Override

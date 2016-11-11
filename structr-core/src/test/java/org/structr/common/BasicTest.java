@@ -46,6 +46,7 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.Localization;
 import org.structr.core.entity.Location;
 import org.structr.core.entity.MailTemplate;
+import org.structr.core.entity.OneTwoOneToOne;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.PropertyAccess;
 import org.structr.core.entity.Relation;
@@ -62,6 +63,7 @@ import org.structr.core.entity.TestTen;
 import org.structr.core.entity.TestThree;
 import org.structr.core.entity.TestTwo;
 import org.structr.core.entity.relationship.NodeHasLocation;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
@@ -1292,6 +1294,57 @@ public class BasicTest extends StructrTest {
 			fail("Unexpected exception");
 
 		}
+	}
+
+	@Test
+	public void testNodeCacheInvalidationInRelationshipWrapper() {
+
+		try (final Tx tx = app.tx()) {
+
+			final TestOne testOne    = createTestNode(TestOne.class);
+			final TestTwo testTwo1   = createTestNode(TestTwo.class, new NodeAttribute<>(TestTwo.testOne, testOne));
+			final OneTwoOneToOne rel = testOne.getOutgoingRelationship(OneTwoOneToOne.class);
+			final TestTwo testTwo2   = rel.getTargetNode();
+
+			testTwo1.setProperty(AbstractNode.name, "test");
+
+			assertEquals("Cache invalidation failure!", "test", testTwo2.getProperty(AbstractNode.name));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// fill cache with other nodes
+		try {
+
+			createTestNodes(TestSix.class, 1000);
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final TestOne testOne    = app.nodeQuery(TestOne.class).getFirst();
+			final TestTwo testTwo1   = app.nodeQuery(TestTwo.class).getFirst();
+			final OneTwoOneToOne rel = testOne.getOutgoingRelationship(OneTwoOneToOne.class);
+			final TestTwo testTwo2   = rel.getTargetNode();
+
+			testTwo1.setProperty(AbstractNode.name, "test2");
+
+			assertEquals("Cache invalidation failure!", "test2", testTwo2.getProperty(AbstractNode.name));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
 	}
 
 	// ----- private methods -----

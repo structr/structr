@@ -24,7 +24,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 /**
+ * A map with a fixed maximum size that removes the eldest entry
+ * when the insertion of a new entry causes the map to exceed the
+ * specified maximum size.
  *
+ * @param <K>
+ * @param <V>
  */
 public class FixedSizeCache<K, V> {
 
@@ -67,6 +72,7 @@ public class FixedSizeCache<K, V> {
 		protected boolean removeEldestEntry(final Entry<K, V> entry) {
 
 			if (currentSize >= maxSize) {
+
 				currentSize--;
 				return true;
 			}

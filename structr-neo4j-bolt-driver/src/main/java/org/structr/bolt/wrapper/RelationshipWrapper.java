@@ -20,6 +20,7 @@ package org.structr.bolt.wrapper;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.structr.api.NotFoundException;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
@@ -31,6 +32,8 @@ import org.structr.bolt.SessionTransaction;
  *
  */
 public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Relationship> implements Relationship {
+
+	private static FixedSizeCache<Long, RelationshipWrapper> relationshipCache = null;
 
 	private long sourceNodeId = -1L;
 	private long targetNodeId = -1L;
@@ -45,6 +48,10 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 		this.type         = relationship.type();
 	}
 
+	public static void initialize(final int cacheSize) {
+		relationshipCache = new FixedSizeCache<>(cacheSize);
+	}
+
 	@Override
 	protected String getQueryPrefix() {
 		return "MATCH ()-[n]-()";
@@ -52,18 +59,44 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 
 	@Override
 	public void invalidate() {
-		((NodeWrapper)getStartNode()).invalidate();
-		((NodeWrapper)getEndNode()).invalidate();
+
+		try {
+
+			final NodeWrapper startNode = (NodeWrapper)getStartNode();
+			if (startNode != null) {
+
+				startNode.invalidate();
+			}
+
+			final NodeWrapper endNode = (NodeWrapper)getEndNode();
+			if (endNode != null) {
+
+				endNode.invalidate();
+			}
+
+		} catch (Throwable t) {}
+
+		stale = true;
 	}
 
 	@Override
 	public Node getStartNode() {
-		return db.getNodeById(sourceNodeId);
+
+		try {
+			return db.getNodeById(sourceNodeId);
+		} catch (NotFoundException nfex) {}
+
+		return null;
 	}
 
 	@Override
 	public Node getEndNode() {
-		return db.getNodeById(targetNodeId);
+
+		try {
+			return db.getNodeById(targetNodeId);
+		} catch (NotFoundException nfex) {}
+
+		return null;
 	}
 
 	@Override
@@ -127,6 +160,4 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 			return wrapper;
 		}
 	}
-
-	private static final FixedSizeCache<Long, RelationshipWrapper> relationshipCache = new FixedSizeCache<>(100000);
 }

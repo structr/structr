@@ -28,13 +28,14 @@ import org.neo4j.driver.v1.types.Entity;
 import org.structr.api.NotFoundException;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.graph.PropertyContainer;
+import org.structr.api.util.Cachable;
 import org.structr.bolt.BoltDatabaseService;
 import org.structr.bolt.SessionTransaction;
 
 /**
  *
  */
-public abstract class EntityWrapper<T extends Entity> implements PropertyContainer {
+public abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cachable {
 
 	protected final Map<String, Object> data = new ConcurrentHashMap<>();
 	protected BoltDatabaseService db         = null;
@@ -49,7 +50,6 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 	}
 
 	protected abstract String getQueryPrefix();
-	public abstract void invalidate();
 
 	@Override
 	public long getId() {

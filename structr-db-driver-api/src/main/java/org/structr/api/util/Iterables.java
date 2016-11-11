@@ -36,7 +36,12 @@ public class Iterables {
 
 		try {
 			while (iterator.hasNext()) {
-				collection.add(iterator.next());
+
+				final T next = iterator.next();
+				if (next != null) {
+
+					collection.add(next);
+				}
 			}
 
 		} finally {
@@ -88,10 +93,17 @@ public class Iterables {
 	}
 
 	public static <T> List<T> toList(Iterator<T> iterator) {
-		List<T> list = new ArrayList<>();
+
+		final List<T> list = new ArrayList<>();
 		while (iterator.hasNext()) {
-			list.add(iterator.next());
+
+			final T value = iterator.next();
+			if (value != null) {
+
+				list.add(value);
+			}
 		}
+
 		return list;
 	}
 
@@ -114,15 +126,15 @@ public class Iterables {
 			return new MapIterator<>(from.iterator(), function);
 		}
 
-		static class MapIterator<FROM, TO>
-			implements Iterator<TO> {
+		static class MapIterator<FROM, TO> implements Iterator<TO> {
 
-			private final Iterator<FROM> fromIterator;
 			private final Function<? super FROM, ? extends TO> function;
+			private final Iterator<FROM> fromIterator;
 
 			public MapIterator(Iterator<FROM> fromIterator, Function<? super FROM, ? extends TO> function) {
+
 				this.fromIterator = fromIterator;
-				this.function = function;
+				this.function     = function;
 			}
 
 			@Override
@@ -132,8 +144,8 @@ public class Iterables {
 
 			@Override
 			public TO next() {
-				FROM from = fromIterator.next();
 
+				final FROM from = fromIterator.next();
 				return function.apply(from);
 			}
 
@@ -144,16 +156,15 @@ public class Iterables {
 		}
 	}
 
-	private static class FilterIterable<T>
-		implements Iterable<T> {
-
-		private final Iterable<T> iterable;
+	private static class FilterIterable<T> implements Iterable<T> {
 
 		private final Predicate<? super T> specification;
+		private final Iterable<T> iterable;
 
 		public FilterIterable(Iterable<T> iterable, Predicate<? super T> specification) {
-			this.iterable = iterable;
+
 			this.specification = specification;
+			this.iterable      = iterable;
 		}
 
 		@Override
@@ -161,12 +172,10 @@ public class Iterables {
 			return new FilterIterator<>(iterable.iterator(), specification);
 		}
 
-		static class FilterIterator<T>
-			implements Iterator<T> {
-
-			private final Iterator<T> iterator;
+		static class FilterIterator<T> implements Iterator<T> {
 
 			private final Predicate<? super T> specification;
+			private final Iterator<T> iterator;
 
 			private T currentValue;
 			boolean finished = false;
@@ -178,36 +187,48 @@ public class Iterables {
 			}
 
 			public boolean moveToNextValid() {
-				boolean found = false;
-				while (!found && iterator.hasNext()) {
-					T currentValue = iterator.next();
-					boolean satisfies = specification.accept(currentValue);
 
-					if (satisfies) {
-						found = true;
+				boolean found = false;
+
+				while (!found && iterator.hasNext()) {
+
+					final T currentValue = iterator.next();
+
+					if (currentValue != null && specification.accept(currentValue)) {
+
+						found             = true;
 						this.currentValue = currentValue;
-						nextConsumed = false;
+						nextConsumed      = false;
 					}
 				}
+
 				if (!found) {
 					finished = true;
 				}
+
 				return found;
 			}
 
 			@Override
 			public T next() {
+
 				if (!nextConsumed) {
+
 					nextConsumed = true;
 					return currentValue;
+
 				} else {
+
 					if (!finished) {
+
 						if (moveToNextValid()) {
+
 							nextConsumed = true;
 							return currentValue;
 						}
 					}
 				}
+
 				throw new NoSuchElementException("This iterator is exhausted.");
 			}
 
