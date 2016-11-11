@@ -36,12 +36,11 @@
 	display: inline-block;
 	vertical-align: top;
 	height: calc(50vh - 55px);
-	overflow: auto;
 	border-radius: 3px;
 }
 
 #crud-left h2 {
-	margin: 6px 0 8px 10px;
+	margin: 6px 0 6px 10px;
 }
 
 #crud-types {
@@ -53,13 +52,15 @@
 }
 
 #crudTypesFilter {
-	margin: 0px 10px 5px 10px;
+	margin: 0px 10px 5px 8px;
 }
 
 #crud-left ul {
-	padding: 0;
+	padding: 0 1px 0 0;
 	margin: 0;
 	overflow-wrap: break-word;
+	height: calc(100% - 70px);
+	overflow: auto;
 }
 
 #crud-left li {

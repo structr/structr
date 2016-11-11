@@ -234,6 +234,13 @@ var _Crud = {
 
 		$('#crud-left li[data-type="' + selectedType + '"]').addClass('active');
 
+		// scroll to selected element
+		var $crudTypesList = $('#crud-types-list');
+		var positionOfList = $crudTypesList.position().top;
+		var scrollTopOfList = $crudTypesList.scrollTop();
+		var positionOfElement = $('li[data-type="' + selectedType + '"]', $crudTypesList).position().top;
+		$crudTypesList.animate({scrollTop: positionOfElement + scrollTopOfList - positionOfList });
+
 		_Crud.getProperties(selectedType, function(type, properties) {
 
 			var crudRight = $('#crud-right');
