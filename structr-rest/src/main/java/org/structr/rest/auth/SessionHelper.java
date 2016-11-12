@@ -146,7 +146,7 @@ public class SessionHelper {
 
 		if (sessionIds != null && sessionIds.length > 0) {
 
-			for (String sessionId : user.getProperty(Principal.sessionIds)) {
+			for (String sessionId : sessionIds) {
 				final HttpSession session = sessionManager.getSession(sessionId);
 
 				if (session == null || SessionHelper.isSessionTimedOut(session)) {
