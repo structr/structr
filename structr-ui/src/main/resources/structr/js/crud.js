@@ -45,7 +45,6 @@ if (browser) {
 		_Crud.resize();
 
 		$(document).on('click', '#crud-left li', function() {
-			$('#crud-left li').removeClass('active');
 			_Crud.typeSelected($(this).data('type'));
 		});
 
@@ -128,7 +127,20 @@ var _Crud = {
 
 		$('#crudTypesFilter').keyup(function (e) {
 			if (e.keyCode === 27) {
+
 				$(this).val('');
+
+			} else if (e.keyCode === 13) {
+
+				var filterVal = $(this).val().toLowerCase();
+				var matchingTypes = Object.keys(_Crud.types).filter(function(type) {
+					return type.toLowerCase() === filterVal;
+				});
+
+				if (matchingTypes.length === 1) {
+					_Crud.typeSelected(matchingTypes[0]);
+				}
+
 			}
 
 			_Crud.filterTypes($(this).val().toLowerCase());
@@ -221,7 +233,7 @@ var _Crud = {
 
 		var $typesList = $('#crud-types-list');
 		Object.keys(_Crud.types).sort().forEach(function(type) {
-			$typesList.append('<li class="crud-type' + (_Crud.type === type ? ' active' : '') + '" data-type="' + type + '">' + type + '</li>');
+			$typesList.append('<li class="crud-type" data-type="' + type + '">' + type + '</li>');
 		});
 
 		_Crud.typeSelected(_Crud.type);
@@ -232,6 +244,7 @@ var _Crud = {
 
 		_Crud.updateRecentTypeList(selectedType);
 
+		$('#crud-left li').removeClass('active');
 		$('#crud-left li[data-type="' + selectedType + '"]').addClass('active');
 
 		// scroll to selected element
