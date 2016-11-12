@@ -150,9 +150,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
-			if (db.logQueries()) {
-				System.out.println(statement);
-			}
+			logQuery(statement, map);
 
 			return tx.run(statement, map).next().get(0).asLong();
 
@@ -168,9 +166,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
-			if (db.logQueries()) {
-				System.out.println(statement);
-			}
+			logQuery(statement, map);
 
 			final StatementResult result = tx.run(statement, map);
 			if (result.hasNext()) {
@@ -192,9 +188,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
-			if (db.logQueries()) {
-				System.out.println(statement);
-			}
+			logQuery(statement, map);
 
 			return tx.run(statement, map).next().get(0).asEntity();
 
@@ -210,9 +204,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
-			if (db.logQueries()) {
-				System.out.println(statement);
-			}
+			logQuery(statement, map);
 
 			return tx.run(statement, map).next().get(0).asNode();
 
@@ -228,9 +220,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
-			if (db.logQueries()) {
-				System.out.println(statement);
-			}
+			logQuery(statement, map);
 
 			return tx.run(statement, map).next().get(0).asRelationship();
 
@@ -246,9 +236,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
-			if (db.logQueries()) {
-				System.out.println(statement);
-			}
+			logQuery(statement, map);
 
 			return Iterables.map(new RecordNodeMapper(), new StatementIterable(tx.run(statement, map)));
 
@@ -264,9 +252,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
-			if (db.logQueries()) {
-				System.out.println(statement);
-			}
+			logQuery(statement, map);
 
 			return Iterables.map(new RecordRelationshipMapper(), new StatementIterable(tx.run(statement, map)));
 
@@ -282,9 +268,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
-			if (db.logQueries()) {
-				System.out.println(statement);
-			}
+			logQuery(statement, map);
 
 			return Iterables.map(new RecordLongMapper(), new StatementIterable(tx.run(statement, map)));
 
@@ -300,9 +284,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
-			if (db.logQueries()) {
-				System.out.println(statement);
-			}
+			logQuery(statement, map);
 
 			final StatementResult result = tx.run(statement, map);
 			final Record record = result.next();
@@ -322,9 +304,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
-			if (db.logQueries()) {
-				System.out.println(statement);
-			}
+			logQuery(statement, map);
 
 			return new StatementResultWrapper(db, tx.run(statement, map));
 
@@ -340,9 +320,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
-			if (db.logQueries()) {
-				System.out.println(statement);
-			}
+			logQuery(statement, map);
 
 			tx.run(statement, map).consume();
 
@@ -352,6 +330,30 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
 		}
+	}
+
+	public void logQuery(final String statement) {
+
+		logQuery(statement, null);
+
+	}
+
+	public void logQuery(final String statement, final Map<String, Object> map) {
+
+		if (db.logQueries()) {
+
+			if (map != null && map.size() > 0) {
+
+				System.out.println(statement + "\t\t Parameters: " + map.toString());
+
+			} else {
+
+				System.out.println(statement);
+
+			}
+
+		}
+
 	}
 
 	public void modified(final EntityWrapper wrapper) {
