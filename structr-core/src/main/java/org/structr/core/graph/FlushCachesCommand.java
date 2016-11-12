@@ -36,7 +36,7 @@ import org.structr.core.app.StructrApp;
  */
 public class FlushCachesCommand extends NodeServiceCommand implements MaintenanceCommand {
 
-	private static final Logger logger = LoggerFactory.getLogger(BulkRebuildIndexCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(FlushCachesCommand.class.getName());
 
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
