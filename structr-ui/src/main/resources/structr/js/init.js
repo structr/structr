@@ -18,7 +18,7 @@
  */
 var header, main, footer;
 var sessionId, user;
-var lastMenuEntry, activeTab, menuBlocked;
+var lastMenuEntry, menuBlocked;
 var dmp;
 var editorCursor, ignoreKeyUp;
 var dialog, isMax = false;

@@ -95,7 +95,7 @@ var _Crawler = {
 	onload: function() {
 
 		$.get(rootUrl + '/me/ui', function(data) {
-			meObj = data.result;
+			_Dashboard.meObj = data.result;
 			_Crawler.init();
 		});
 
@@ -553,8 +553,8 @@ var _Crawler = {
 					}
 				}
 
-//				if (meObj && meObj.proxyUrl) {
-//					proxyUrl += '&proxyUrl=' + meObj.proxyUrl;
+//				if (_Dashboard.meObj && _Dashboard.meObj.proxyUrl) {
+//					proxyUrl += '&proxyUrl=' + _Dashboard.meObj.proxyUrl;
 //				}
 
 				//console.log(url);
