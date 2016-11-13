@@ -31,6 +31,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.auth.HashHelper;
 import org.structr.core.entity.relationship.Groups;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 
 //~--- interfaces -------------------------------------------------------------
 
@@ -91,7 +92,7 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 				}
 			}
 
-			setProperty(Principal.sessionIds, (String[]) newSessionIds.toArray(new String[newSessionIds.size()]));
+			setProperties(securityContext, new PropertyMap(Principal.sessionIds, (String[]) newSessionIds.toArray(new String[newSessionIds.size()])));
 
 		} catch (FrameworkException ex) {
 			logger.error("Could not remove sessionId " + sessionId + " from array of sessionIds", ex);
