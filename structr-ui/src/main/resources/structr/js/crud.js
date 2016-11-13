@@ -196,7 +196,7 @@ var _Crud = {
 	},
 	onload: function() {
 
-		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Data');
+		Structr.updateMainHelpLink('http://docs.structr.org/frontend-user-guide#Data');
 
 		if (!_Crud.type) {
 			_Crud.restoreType();

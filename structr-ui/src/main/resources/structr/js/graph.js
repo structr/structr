@@ -220,7 +220,7 @@ var _Graph = {
 
     onload: function() {
 
-        $('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Graph');
+        Structr.updateMainHelpLink('http://docs.structr.org/frontend-user-guide#Graph');
 
         activeTabLeftGraph = LSWrapper.getItem(activeTabRightGraphKey);
         activeTabRightGraph = LSWrapper.getItem(activeTabLeftGraphKey);

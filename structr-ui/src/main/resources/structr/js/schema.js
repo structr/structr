@@ -417,7 +417,7 @@ var _Schema = {
 		});
 
 		_Schema.init();
-		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Schema');
+		Structr.updateMainHelpLink('http://docs.structr.org/frontend-user-guide#Schema');
 
 		$(window).off('resize');
 		$(window).on('resize', function() {

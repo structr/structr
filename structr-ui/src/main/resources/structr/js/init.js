@@ -1254,6 +1254,9 @@ var Structr = {
 		};
 
 		return guardedFunction;
+	},
+	updateMainHelpLink: function (newUrl) {
+		$('#main-help a').attr('href', newUrl);
 	}
 };
 

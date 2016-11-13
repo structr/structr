@@ -120,7 +120,7 @@ var _Pages = {
 
 		_Pages.init();
 
-		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Pages');
+		Structr.updateMainHelpLink('http://docs.structr.org/frontend-user-guide#Pages');
 
 		activeTab = LSWrapper.getItem(activeTabKey);
 		activeTabLeft = LSWrapper.getItem(activeTabLeftKey);

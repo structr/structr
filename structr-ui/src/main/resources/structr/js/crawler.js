@@ -99,7 +99,7 @@ var _Crawler = {
 			_Crawler.init();
 		});
 
-		$('#main-help a').attr('href', 'https://support.structr.com/knowledge-graph');
+		Structr.updateMainHelpLink('https://support.structr.com/knowledge-graph');
 
 		main.append('<div id="crawler-main"><div class="fit-to-height" id="crawler-tree-container"><div id="crawler-tree"></div></div><div class="fit-to-height" id="crawler-list-container"><div id="crawler-list"></div></div>');
 		crawlerMain = $('#crawler-main');
