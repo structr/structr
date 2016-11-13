@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import java.util.List;
 import java.util.Locale;
+import org.structr.api.util.FixedSizeCache;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -47,93 +48,95 @@ public class LocalizeFunction extends Function<Object, Object> {
 
 		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
 
-			final SecurityContext superUserSecurityContext = SecurityContext.getSuperUserInstance();
-			Query query = StructrApp.getInstance(superUserSecurityContext).nodeQuery(Localization.class).and(Localization.locale, ctx.getLocale().toString()).and(Localization.name, sources[0].toString());
-			List<Localization> localizations;
+			final String cacheKey = cacheKey(sources);
+			String value          = getCachedValue(cacheKey);
 
-			final Locale ctxLocale  = ctx.getLocale();
-			final String fullLocale = ctxLocale.toString();
-			final String lang       = ctxLocale.getLanguage();
-			
-			if (sources.length == 2) {
+			if (value == null) {
 
-				// with domain
-				query.and(Localization.domain, sources[1].toString());
+				final SecurityContext superUserSecurityContext = SecurityContext.getSuperUserInstance();
+				final String locale                            = ctx.getLocale().toString();
+				final String name                              = sources[0].toString();
 
-				localizations = query.getAsList();
+				Query query = StructrApp.getInstance(superUserSecurityContext).nodeQuery(Localization.class).and(Localization.locale, locale).and(Localization.name, name);
+				List<Localization> localizations;
 
-				if (localizations.isEmpty() && fullLocale.contains("_")) {
+				final Locale ctxLocale  = ctx.getLocale();
+				final String fullLocale = ctxLocale.toString();
+				final String lang       = ctxLocale.getLanguage();
 
-					// no language-specific localization found, try language code only
-					
-					query = StructrApp.getInstance(superUserSecurityContext)
-						.nodeQuery(Localization.class)
-						.and(Localization.locale, lang)
-						.and(Localization.name, sources[0].toString())
-						.and(Localization.domain, sources[1].toString());
+				if (sources.length == 2) {
+
+					final String domain = sources[1].toString();
+
+					// with domain
+					query.and(Localization.domain, domain);
 
 					localizations = query.getAsList();
-				}
 
+					if (localizations.isEmpty() && fullLocale.contains("_")) {
 
-			} else {
+						// no language-specific localization found, try language code only
 
-				// without domain
-				query.blank(Localization.domain);
+						query = StructrApp.getInstance(superUserSecurityContext)
+							.nodeQuery(Localization.class)
+							.and(Localization.locale, lang)
+							.and(Localization.name, name)
+							.and(Localization.domain, domain);
 
-				localizations = query.getAsList();
+						localizations = query.getAsList();
+					}
 
-				if (localizations.isEmpty() && fullLocale.contains("_")) {
-
-					// no language-specific localization found, try language code only
-					
-					query = StructrApp.getInstance(superUserSecurityContext)
-						.nodeQuery(Localization.class)
-						.and(Localization.locale, lang)
-						.and(Localization.name, sources[0].toString())
-						.blank(Localization.domain);
-
-					localizations = query.getAsList();
-				}
-
-			}
-
-			if (localizations.isEmpty()) {
-				
-				// no domain-specific localization found. fall back to no domain
-
-				query = StructrApp.getInstance(superUserSecurityContext)
-					.nodeQuery(Localization.class)
-					.and(Localization.locale, fullLocale)
-					.and(Localization.name, sources[0].toString())
-					.blank(Localization.domain);
-
-			}
-			
-			if (localizations.size() > 1) {
-				// Ambiguous localization found
-
-				if (sources.length > 1) {
-
-					logger.warn("Found ambiguous localization for key \"{}\" and domain \"{}\". Please fix. Parameters: {}", new Object[] { sources[0].toString(), sources[1].toString(), getParametersAsString(sources) });
-					return localizations.get(0).getProperty(Localization.localizedName);
 
 				} else {
 
-					logger.warn("Found ambiguous localization for key \"{}\". Please fix. Parameters: {}", new Object[] { sources[0].toString(), getParametersAsString(sources) });
-					return localizations.get(0).getProperty(Localization.localizedName);
+					// without domain
+					query.blank(Localization.domain);
+
+					localizations = query.getAsList();
+
+					if (localizations.isEmpty() && fullLocale.contains("_")) {
+
+						// no language-specific localization found, try language code only
+
+						query = StructrApp.getInstance(superUserSecurityContext)
+							.nodeQuery(Localization.class)
+							.and(Localization.locale, lang)
+							.and(Localization.name, name)
+							.blank(Localization.domain);
+
+						localizations = query.getAsList();
+					}
 
 				}
 
-			} else if (localizations.size() == 1) {
-				// The desired outcome: Exactly one localization found
+				if (localizations.size() > 1) {
 
-				return localizations.get(0).getProperty(Localization.localizedName);
+					// Ambiguous localization found
+					if (sources.length > 1) {
 
+						logger.warn("Found ambiguous localization for key \"{}\" and domain \"{}\". Please fix. Parameters: {}", new Object[] { sources[0].toString(), sources[1].toString(), getParametersAsString(sources) });
+
+					} else {
+
+						logger.warn("Found ambiguous localization for key \"{}\". Please fix. Parameters: {}", new Object[] { sources[0].toString(), getParametersAsString(sources) });
+					}
+				}
+
+				// return first localization
+				if (localizations.isEmpty()) {
+
+					// no localization found - return the key
+					value = name;
+
+				} else {
+
+					value = localizations.get(0).getProperty(Localization.localizedName);
+				}
+
+				cacheValue(cacheKey, value);
 			}
 
-			// no localization found - return the key
-			return sources[0];
+			return value;
 
 		} else if (sources.length == 1 || sources.length == 2) {
 
@@ -150,9 +153,7 @@ public class LocalizeFunction extends Function<Object, Object> {
 			return usage(ctx.isJavaScriptContext());
 
 		}
-
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
@@ -164,4 +165,30 @@ public class LocalizeFunction extends Function<Object, Object> {
 		return "";
 	}
 
+	// ----- caching -----
+	private static final FixedSizeCache<String, String> localizationCache = new FixedSizeCache<>(10000);
+
+	public static synchronized void invalidateCache() {
+		localizationCache.clear();
+	}
+
+	private String cacheKey(final Object[] sources) {
+
+		final StringBuilder buf = new StringBuilder();
+
+		for (final Object src : sources) {
+			buf.append("||");
+			buf.append(src);
+		}
+
+		return buf.toString();
+	}
+
+	private synchronized String getCachedValue(final String cacheKey) {
+		return localizationCache.get(cacheKey);
+	}
+
+	private synchronized void cacheValue(final String cacheKey, final String value) {
+		localizationCache.put(cacheKey, value);
+	}
 }

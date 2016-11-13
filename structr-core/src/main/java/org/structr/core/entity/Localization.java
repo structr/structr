@@ -24,6 +24,8 @@ import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.function.LocalizeFunction;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -48,13 +50,27 @@ public class Localization extends AbstractNode {
 	);
 
 	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		if (super.onCreation(securityContext, errorBuffer)) {
 
 			setProperty(visibleToPublicUsers, true);
 			setProperty(visibleToAuthenticatedUsers, true);
 
+			LocalizeFunction.invalidateCache();
+
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
+
+			LocalizeFunction.invalidateCache();
 			return true;
 		}
 
