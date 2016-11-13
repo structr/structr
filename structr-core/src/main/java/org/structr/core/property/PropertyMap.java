@@ -69,6 +69,12 @@ public class PropertyMap {
 		}
 	}
 
+	public <T> PropertyMap(final PropertyKey<T> key, final T value) {
+
+		properties.put(key, value);
+
+	}
+
 	@Override
 	public String toString() {
 		return properties.toString();
