@@ -16,9 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var groups, users, resourceAccesses;
-var securityTabKey = 'structrSecurityTab_' + port;
-
 $(document).ready(function() {
 	Structr.registerModule('security', _Security);
 	Structr.classes.push('user');
@@ -27,6 +24,11 @@ $(document).ready(function() {
 });
 
 var _Security = {
+
+	groups: undefined,
+	users: undefined,
+	resourceAccesses: undefined,
+	securityTabKey: 'structrSecurityTab_' + port,
 
 	init : function() {
 		_Pager.initPager('users',           'User', 1, 25, 'name', 'asc');
@@ -45,15 +47,14 @@ var _Security = {
 		$('#usersAndGroups').append('<div><div class="fit-to-height" id="users"></div><div class="fit-to-height" id="groups"></div></div>');
 		$('#resourceAccess').append('<div><div class="" id="resourceAccesses"></div></div>');
 
-		groups = $('#groups');
-		users = $('#users');
-
-		resourceAccesses = $('#resourceAccesses');
+		_Security.groups = $('#groups');
+		_Security.users = $('#users');
+		_Security.resourceAccesses = $('#resourceAccesses');
 
 		$('#securityTabs').tabs({
 			activate: function(event, ui) {
 				var activeTab = ui.newPanel[0].id;
-				LSWrapper.setItem(securityTabKey, activeTab);
+				LSWrapper.setItem(_Security.securityTabKey, activeTab);
 
 				if (activeTab === 'usersAndGroups') {
 					_Security.refreshGroups();
@@ -65,13 +66,12 @@ var _Security = {
 			}
 		});
 
-		var activeTab = LSWrapper.getItem(securityTabKey);
-		if (activeTab === null || activeTab === 'usersAndGroups') {
+		var activeTab = LSWrapper.getItem(_Security.securityTabKey) || 'usersAndGroups';
+		if (activeTab === 'usersAndGroups') {
 			_Security.refreshGroups();
 			_Security.refreshUsers();
 		} else {
-			var t = $('a[href="#' + activeTab + '"]');
-			t.click();
+			$('a[href="#' + activeTab + '"]').click();
 		}
 
 		_Security.resize();
@@ -84,29 +84,35 @@ var _Security = {
 
 	},
 
+	activateTab: function (activeTab) {
+
+
+
+	},
+
 	refreshResourceAccesses : function() {
-		resourceAccesses.empty();
+		_Security.resourceAccesses.empty();
 
-		Structr.ensureIsAdmin(resourceAccesses, function() {
+		Structr.ensureIsAdmin(_Security.resourceAccesses, function() {
 
-			var raPager = _Pager.addPager('resource-access', resourceAccesses, true, 'ResourceAccess', 'public');
+			var raPager = _Pager.addPager('resource-access', _Security.resourceAccesses, true, 'ResourceAccess', 'public');
 
 			// set specialized cleanup function
 			raPager.cleanupFunction = function () {
 				$('#resourceAccesses table tbody tr').remove();
 			};
 
-			resourceAccesses.append('<table id="resourceAccessesTable"><thead><tr><th></th><th colspan="6" class="center">Authenticated users</th><th colspan="6" class="center">Non-authenticated (public) users</th><th colspan="3"></th></tr><tr><th class="title-cell">Signature</th><th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th>'
+			_Security.resourceAccesses.append('<table id="resourceAccessesTable"><thead><tr><th></th><th colspan="6" class="center">Authenticated users</th><th colspan="6" class="center">Non-authenticated (public) users</th><th colspan="3"></th></tr><tr><th class="title-cell">Signature</th><th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th>'
 					+ '<th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th><th>Bitmask</th><th></th></tr><tr><th><input type="text" class="filter" data-attribute="signature" placeholder="Filter..."></th><th colspan="15"></th></tr></thead></table>');
-			resourceAccesses.append('Signature: <input type="text" size="20" id="resource-signature"> <button class="add_grant_icon button"><img title="Add Resource Grant" alt="Add Grant" src="' + _Icons.key_add_icon + '"> Add Grant</button>');
+			_Security.resourceAccesses.append('Signature: <input type="text" size="20" id="resource-signature"> <button class="add_grant_icon button"><img title="Add Resource Grant" alt="Add Grant" src="' + _Icons.key_add_icon + '"> Add Grant</button>');
 
-			raPager.activateFilterElements(resourceAccesses);
+			raPager.activateFilterElements(_Security.resourceAccesses);
 
-			$('.add_grant_icon', resourceAccesses).on('click', function (e) {
+			$('.add_grant_icon', _Security.resourceAccesses).on('click', function (e) {
 				_Security.addResourceGrant(e);
 			});
 
-			$('#resource-signature', resourceAccesses).on('keyup', function (e) {
+			$('#resource-signature', _Security.resourceAccesses).on('keyup', function (e) {
 				if (e.keyCode === 13) {
 					_Security.addResourceGrant(e);
 				}
@@ -121,10 +127,10 @@ var _Security = {
 
 		var inp = $('#resource-signature');
 		inp.prop('disabled', 'disabled').addClass('disabled').addClass('read-only');
-		$('.add_grant_icon', resourceAccesses).prop('disabled', 'disabled').addClass('disabled').addClass('read-only');
+		$('.add_grant_icon', _Security.resourceAccesses).prop('disabled', 'disabled').addClass('disabled').addClass('read-only');
 
 		var reEnableInput = function () {
-			$('.add_grant_icon', resourceAccesses).removeProp('disabled').removeClass('disabled').removeClass('readonly');
+			$('.add_grant_icon', _Security.resourceAccesses).removeProp('disabled').removeClass('disabled').removeClass('readonly');
 			inp.removeProp('disabled').removeClass('disabled').removeClass('readonly');
 		};
 
@@ -142,26 +148,26 @@ var _Security = {
 	},
 
 	refreshGroups : function() {
-		groups.empty();
-		groups.append('<button class="add_group_icon button"><img title="Add Group" alt="Add Group" src="' + _Icons.group_add_icon + '"> Add Group</button>');
+		_Security.groups.empty();
+		_Security.groups.append('<button class="add_group_icon button"><img title="Add Group" alt="Add Group" src="' + _Icons.group_add_icon + '"> Add Group</button>');
 		$('.add_group_icon', main).on('click', function(e) {
 			e.stopPropagation();
 			return Command.create({'type':'Group'});
 		});
-		var grpPager = _Pager.addPager('groups', groups, true, 'Group', 'public');
+		var grpPager = _Pager.addPager('groups', _Security.groups, true, 'Group', 'public');
 		grpPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
 		grpPager.activateFilterElements();
 
 	},
 
 	refreshUsers : function() {
-		users.empty();
-		users.append('<button class="add_user_icon button"><img title="Add User" alt="Add User" src="' + _Icons.user_add_icon + '"> Add User</button>');
+		_Security.users.empty();
+		_Security.users.append('<button class="add_user_icon button"><img title="Add User" alt="Add User" src="' + _Icons.user_add_icon + '"> Add User</button>');
 		$('.add_user_icon', main).on('click', function(e) {
 			e.stopPropagation();
 			return Command.create({'type':'User'});
 		});
-		var usrPager = _Pager.addPager('users', users, true, 'User', 'public');
+		var usrPager = _Pager.addPager('users', _Security.users, true, 'User', 'public');
 		usrPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></th></div>');
 		usrPager.activateFilterElements();
 	},
@@ -183,7 +189,7 @@ var _Security = {
 
 	appendResourceAccessElement : function(resourceAccess, replaceElement) {
 
-		if (!resourceAccesses || !resourceAccesses.is(':visible')) {
+		if (!_Security.resourceAccesses || !_Security.resourceAccesses.is(':visible')) {
 			return;
 		}
 
@@ -278,13 +284,13 @@ var _Security = {
 
 	appendGroupElement : function(group) {
 
-		if (!groups || !groups.is(':visible')) {
+		if (!_Security.groups || !_Security.groups.is(':visible')) {
 			return;
 		}
 
 		var hasChildren = group.members && group.members.length;
 		_Logger.log(_LogType.SECURTIY, 'appendGroupElement', group, hasChildren);
-		groups.append('<div id="id_' + group.id + '" class="node group">'
+		_Security.groups.append('<div id="id_' + group.id + '" class="node group">'
 			+ '<img class="typeIcon" src="' + _Icons.group_icon + '">'
 			+ '<b title="' + group.name + '" class="name_">' + group.name + '</b> <span class="id">' + group.id + '</span>'
 			+ '</div>');
@@ -322,7 +328,7 @@ var _Security = {
 	appendUserElement : function(user, group) {
 		_Logger.log(_LogType.SECURTIY, 'appendUserElement', user);
 
-		if (!users || !users.is(':visible')) {
+		if (!_Security.users || !_Security.users.is(':visible')) {
 			return;
 		}
 
@@ -340,7 +346,7 @@ var _Security = {
 		return _Security.appendUserToUserList(user);
 	},
 	appendUserToUserList: function (user) {
-		users.append(_Security.getUserElementMarkup(user));
+		_Security.users.append(_Security.getUserElementMarkup(user));
 
 		var name = _Security.getUserName(user);
 		var div = Structr.node(user.id);
