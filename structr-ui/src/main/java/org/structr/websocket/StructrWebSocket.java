@@ -173,6 +173,8 @@ public class StructrWebSocket implements WebSocketListener {
 					// send 401 Authentication Required
 					send(MessageBuilder.status().code(401).message("").build(), true);
 
+					tx.success();
+
 					return;
 				}
 
