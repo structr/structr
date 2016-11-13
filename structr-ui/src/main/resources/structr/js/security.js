@@ -52,7 +52,6 @@ var _Security = {
 
 		$('#securityTabs').tabs({
 			activate: function(event, ui) {
-				//_Types.clearList(_Types.type);
 				var activeTab = ui.newPanel[0].id;
 				LSWrapper.setItem(securityTabKey, activeTab);
 
@@ -97,9 +96,9 @@ var _Security = {
 				$('#resourceAccesses table tbody tr').remove();
 			};
 
-			resourceAccesses.append('<table id="resourceAccessesTable"><thead><tr><th></th><th colspan="6" class="center">Authenticated users</th><th colspan="6" class="center">Non-authenticated (public) users</th><th colspan="3"></th></tr><tr><th>Signature</th><th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th>'
-					+ '<th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th><th>Bitmask</th><th>Del</th></tr><tr><th><input type="text" class="filter" data-attribute="signature"></th><th colspan="15"></th></tr></thead></table>');
-			resourceAccesses.append('Signature: <input class="" type="text" size="20" id="resource-signature"> <button class="add_grant_icon button"><img title="Add Resource Grant" alt="Add Grant" src="' + _Icons.key_add_icon + '"> Add Grant</button>');
+			resourceAccesses.append('<table id="resourceAccessesTable"><thead><tr><th></th><th colspan="6" class="center">Authenticated users</th><th colspan="6" class="center">Non-authenticated (public) users</th><th colspan="3"></th></tr><tr><th class="title-cell">Signature</th><th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th>'
+					+ '<th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th><th>Bitmask</th><th></th></tr><tr><th><input type="text" class="filter" data-attribute="signature" placeholder="Filter..."></th><th colspan="15"></th></tr></thead></table>');
+			resourceAccesses.append('Signature: <input type="text" size="20" id="resource-signature"> <button class="add_grant_icon button"><img title="Add Resource Grant" alt="Add Grant" src="' + _Icons.key_add_icon + '"> Add Grant</button>');
 
 			raPager.activateFilterElements(resourceAccesses);
 
@@ -119,25 +118,27 @@ var _Security = {
 
 	addResourceGrant: function(e) {
 		e.stopPropagation();
+
 		var inp = $('#resource-signature');
 		inp.prop('disabled', 'disabled').addClass('disabled').addClass('read-only');
 		$('.add_grant_icon', resourceAccesses).prop('disabled', 'disabled').addClass('disabled').addClass('read-only');
+
+		var reEnableInput = function () {
+			$('.add_grant_icon', resourceAccesses).removeProp('disabled').removeClass('disabled').removeClass('readonly');
+			inp.removeProp('disabled').removeClass('disabled').removeClass('readonly');
+		};
+
 		var sig = inp.val();
 		if (sig) {
 			Command.create({type: 'ResourceAccess', signature: sig, flags: 0}, function() {
-				$('.add_grant_icon', resourceAccesses).removeProp('disabled').removeClass('disabled').removeClass('readonly');
-				inp.removeProp('disabled').removeClass('disabled').removeClass('readonly');
+				reEnableInput();
 				inp.focus();
 			});
 		} else {
-			$('.add_grant_icon', resourceAccesses).removeProp('disabled').removeClass('disabled').removeClass('readonly');
-			inp.removeProp('disabled').removeClass('disabled').removeClass('readonly');
+			reEnableInput();
 			blinkRed(inp);
 		}
-		window.setTimeout(function() {
-			$('.add_grant_icon', resourceAccesses).removeProp('disabled').removeClass('disabled').removeClass('readonly');
-			inp.removeProp('disabled').removeClass('disabled').removeClass('readonly');
-		}, 250);
+		window.setTimeout(reEnableInput, 250);
 	},
 
 	refreshGroups : function() {
@@ -214,7 +215,7 @@ var _Security = {
 
 		var tr = $('#resourceAccessesTable tr#id_' + resourceAccess.id);
 
-		tr.append('<td><b title="' + resourceAccess.signature + '" class="name_">' + resourceAccess.signature + '</b></td>');
+		tr.append('<td class="title-cell"><b title="' + resourceAccess.signature + '" class="name_">' + resourceAccess.signature + '</b></td>');
 
 		Object.keys(mask).forEach(function(key) {
 			tr.append('<td><input type="checkbox" ' + (flags & mask[key] ? 'checked="checked"' : '') + ' data-flag="' + mask[key] + '" class="resource-access-flag ' + key + '"></td>');
@@ -244,18 +245,6 @@ var _Security = {
 			}
 		});
 
-//        tr.append('<td><input class="resource-visibility" type="checkbox" ' + (resourceAccess.visibleToAuthenticatedUsers ? 'checked="checked"' : '') + '</td>');
-//        $('.resource-visibility', tr).on('change', function() {
-//            var id = tr.attr('id').substring(3);
-//            var inp = $(this);
-//            console.log(inp, id);
-//            Command.setProperty(id, 'visibleToAuthenticatedUsers', inp.is(':checked'), false, function() {
-//                Command.get(id, function(obj) {
-//                    _Security.appendResourceAccessElement(obj, tr);
-//                });
-//            });
-//        });
-
 		tr.append('<td><img title="Delete Resource Access ' + resourceAccess.id + '" alt="Delete Resource Access    ' + resourceAccess.id + '" class="delete-resource-access button" src="' + _Icons.delete_icon + '"></td>');
 		$('.delete-resource-access', tr).on('click', function(e) {
 			e.stopPropagation();
@@ -283,9 +272,6 @@ var _Security = {
 				});
 			});
 		});
-
-		//_Entities.appendEditPropertiesIcon(div, resourceAccess);
-		//_Entities.setMouseOver(div);
 
 		return div;
 	},
@@ -321,12 +307,8 @@ var _Security = {
 				var self = $(this);
 				var userId = Structr.getId(ui.draggable);
 				var groupId = Structr.getId(self);
-				var nodeData = {};
-				nodeData.id = userId;
-				//console.log('addExpandedNode(groupId)', groupId);
 				addExpandedNode(groupId);
 				Command.appendUser(userId, groupId);
-				//Command.createAndAdd(groupId, nodeData);
 				$(ui.draggable).remove();
 			}
 		});
@@ -383,13 +365,9 @@ var _Security = {
 		div.draggable({
 			revert: 'invalid',
 			helper: 'clone',
-			//containment: '#main',
 			stack: '.node',
 			appendTo: '#main',
 			zIndex: 99
-//			stop : function(e,ui) {
-//				$('#pages_').droppable('enable').removeClass('nodeHover');
-//			}
 		});
 
 		_Entities.appendEditPropertiesIcon(div, user);

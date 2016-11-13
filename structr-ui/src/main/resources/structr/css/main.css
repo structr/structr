@@ -2265,24 +2265,32 @@ table.push {
     width: 100%;
 }
 
-#resourceAccessesTable td {
-    padding: 2px 8px 2px 0;
-}
-
 #resourceAccessesTable .node {
     border: none;
 }
 
-#resourceAccessesTable .node:hover {
-    background-color: #f5f5f5 ! important;
+#resourceAccessesTable tbody tr:hover {
+    background-color: #a5e25a ! important;
 }
 
 #resourceAccessesTable td, #resourceAccessesTable th {
-    padding: 4px;
+    padding: 3px;
     border: 1px solid #b5b5b5;
-    text-align: left;
-    vertical-align: top;
+    text-align: center;
+    vertical-align: middle;
     height: 1em;
+}
+
+#resourceAccessesTable .title-cell {
+    text-align: left;
+}
+
+#resourceAccessesTable thead th input {
+    width: calc(100% - 14px);
+}
+
+#resourceAccessesTable td img {
+	vertical-align: middle;
 }
 
 #resourceAccessesTable tr:nth-child(odd) {
@@ -2350,6 +2358,7 @@ th.center {
 
 input.bitmask {
     text-align: right;
+	width: calc(100% - 14px);
 }
 
 #resource-signature {
