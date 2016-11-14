@@ -48,6 +48,11 @@ if (browser) {
 			_Crud.typeSelected($(this).data('type'));
 		});
 
+		$(document).on('click', '#crud-recent-types .remove-recent-type', function (e) {
+			e.stopPropagation();
+			_Crud.removeRecentType($(this).closest('li').data('type'));
+		});
+
 	});
 
 } else {
@@ -121,11 +126,11 @@ var _Crud = {
 
 		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Search"><img class="clearSearchIcon" src="' + _Icons.grey_cross_icon + '"></div>');
 		main.append('<div id="crud-main"><div id="crud-left">'
-				+ '<div id="crud-types" class="resourceBox"><h2>All Types</h2><input placeholder="Filter types..." id="crudTypesFilter"><ul id="crud-types-list"></ul></div>'
+				+ '<div id="crud-types" class="resourceBox"><h2>All Types</h2><input placeholder="Filter types..." id="crudTypesSearch"><ul id="crud-types-list"></ul></div>'
 				+ '<div id="crud-recent-types" class="resourceBox"><h2>Recent</h2><ul id="crud-recent-types-list"></ul></div></div>'
 				+ '<div id="crud-right" class="resourceBox full-height-box"></div></div>');
 
-		$('#crudTypesFilter').keyup(function (e) {
+		$('#crudTypesSearch').keyup(function (e) {
 			if (e.keyCode === 27) {
 
 				$(this).val('');
@@ -331,13 +336,27 @@ var _Crud = {
 			$('li', $recentTypesList).remove();
 
 			recentTypes.forEach(function (type) {
-				$recentTypesList.append('<li class="crud-type' + (selectedType === type ? ' active' : '') + '" data-type="' + type + '">' + type + '</li>');
+				$recentTypesList.append('<li class="crud-type' + (selectedType === type ? ' active' : '') + '" data-type="' + type + '">' + type + '<img src="' + _Icons.grey_cross_icon + '" class="remove-recent-type"></li>');
 			});
 
 		}
 
 		LSWrapper.setItem(crudRecentTypesKey, recentTypes);
 
+	},
+	removeRecentType: function (typeToRemove) {
+
+		var recentTypes = LSWrapper.getItem(crudRecentTypesKey);
+
+		if (recentTypes) {
+			recentTypes = recentTypes.filter(function(type) {
+				return (type !== typeToRemove);
+			});
+		}
+
+		LSWrapper.setItem(crudRecentTypesKey, recentTypes);
+
+		_Crud.updateRecentTypeList();
 	},
 	updateUrl: function(type) {
 

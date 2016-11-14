@@ -51,7 +51,31 @@
 	margin-top: 4px;
 }
 
+#crud-recent-types .remove-recent-type {
+    position: absolute;
+    right: 10px;
+    vertical-align: middle;
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-top: 2px;
+}
+
+#crud-recent-types .remove-recent-type:hover {
+    margin-top: 0px;
+    margin-right: -1px;
+    border: 1px solid gray;
+    border-radius: 4px;
+    background: lightgray;
+}
+
 #crudTypesFilter {
+	position: absolute;
+	top: 5px;
+	right: 5px;
+}
+
+#crudTypesSearch {
 	margin: 0px 10px 5px 8px;
 }
 
