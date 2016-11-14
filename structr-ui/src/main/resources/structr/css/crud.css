@@ -51,22 +51,17 @@
 	margin-top: 4px;
 }
 
-#crud-recent-types .remove-recent-type {
+#crud-recent-types li .remove-recent-type {
+	display: none;
+}
+
+#crud-recent-types li:hover .remove-recent-type {
     position: absolute;
-    right: 10px;
-    vertical-align: middle;
+    right: 4px;
     display: inline-block;
     width: 14px;
     height: 14px;
-    margin-top: 2px;
-}
-
-#crud-recent-types .remove-recent-type:hover {
-    margin-top: 0px;
-    margin-right: -1px;
-    border: 1px solid gray;
-    border-radius: 4px;
-    background: lightgray;
+    padding: 2px;
 }
 
 #crudTypesFilter {
@@ -94,6 +89,7 @@
     list-style: none;
     padding: 2px 5px 2px 10px;
 	cursor: pointer;
+	height: 18px;
 }
 
 #crud-left li.active {
