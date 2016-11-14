@@ -80,6 +80,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	private boolean needsIndexRebuild                                 = false;
 	private String databasePath                                       = null;
 	private Driver driver                                             = null;
+	private int queryCacheSize                                        = 1000;
 
 	@Override
 	public void initialize(final Properties configuration) {
@@ -132,6 +133,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 		final int relCacheSize  = Integer.valueOf(configuration.getProperty(Structr.RELATIONSHIP_CACHE_SIZE, "100000"));
 		final int nodeCacheSize = Integer.valueOf(configuration.getProperty(Structr.NODE_CACHE_SIZE, "100000"));
+		this.queryCacheSize     = Integer.valueOf(configuration.getProperty(Structr.QUERY_CACHE_SIZE, "1000"));
 
 		NodeWrapper.initialize(nodeCacheSize);
 		logger.info("Node cache size set to {}", nodeCacheSize);
@@ -246,7 +248,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	public Index<Node> nodeIndex() {
 
 		if (nodeIndex == null) {
-			nodeIndex = new CypherNodeIndex(this);
+			nodeIndex = new CypherNodeIndex(this, queryCacheSize);
 		}
 
 		return nodeIndex;
@@ -256,7 +258,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	public Index<Relationship> relationshipIndex() {
 
 		if (relationshipIndex == null) {
-			relationshipIndex = new CypherRelationshipIndex(this);
+			relationshipIndex = new CypherRelationshipIndex(this, queryCacheSize);
 		}
 
 		return relationshipIndex;
@@ -273,8 +275,15 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	}
 
 	@Override
-	public void invalidateCache() {
-		// noop
+	public void invalidateQueryCache() {
+
+		if (nodeIndex != null) {
+			nodeIndex.invalidateCache();
+		}
+
+		if (relationshipIndex != null) {
+			relationshipIndex.invalidateCache();
+		}
 	}
 
 	public SessionTransaction getCurrentTransaction() {

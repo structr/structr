@@ -19,33 +19,28 @@
 package org.structr.api.util;
 
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Map.Entry;
+import org.apache.commons.collections4.map.LRUMap;
 
 /**
- * A map with a fixed maximum size that removes the eldest entry
- * when the insertion of a new entry causes the map to exceed the
- * specified maximum size.
+ * A map-like storage structure with a fixed maximum size that
+ * removes the least recently used entry when the insertion of
+ * a new entry causes the map to exceed the specified maximum
+ * size.
  *
  * @param <K>
  * @param <V>
  */
 public class FixedSizeCache<K, V> {
 
-	private int maxSize      = 100000;
 	private Map<K, V> cache  = null;
-	private int currentSize  = 0;
 
 	public FixedSizeCache(final int maxSize) {
-
-		this.cache   = Collections.synchronizedMap(new LRUMap());
-		this.maxSize = maxSize;
+		this.cache   = Collections.synchronizedMap(new LRUMap(maxSize, true));
 	}
 
 	public synchronized void put(final K key, final V value) {
 		cache.put(key, value);
-		currentSize++;
 	}
 
 	public synchronized V get(final K key) {
@@ -54,30 +49,17 @@ public class FixedSizeCache<K, V> {
 
 	public synchronized void remove(final K key) {
 		cache.remove(key);
-		currentSize--;
 	}
 
 	public synchronized void clear() {
 		cache.clear();
-		currentSize = 0;
 	}
 
 	public synchronized int size() {
-		return currentSize;
+		return cache.size();
 	}
 
-	private class LRUMap extends LinkedHashMap<K, V> {
-
-		@Override
-		protected boolean removeEldestEntry(final Entry<K, V> entry) {
-
-			if (currentSize >= maxSize) {
-
-				currentSize--;
-				return true;
-			}
-
-			return false;
-		}
+	public synchronized boolean isEmpty() {
+		return cache.isEmpty();
 	}
 }

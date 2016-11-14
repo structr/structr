@@ -90,6 +90,12 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		} else {
 
+			if (!modifiedEntities.isEmpty()) {
+
+				// data was written, invalidate query cache
+				db.invalidateQueryCache();
+			}
+
 			// Invalidate all nodes that are modified in this transaction
 			// so that the relationship caches are rebuilt.
 			for (final EntityWrapper entity : modifiedEntities) {
@@ -357,6 +363,10 @@ public class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	public void modified(final EntityWrapper wrapper) {
+
+		// data was written, invalidate query cache
+		db.invalidateQueryCache();
+
 		modifiedEntities.add(wrapper);
 	}
 

@@ -19,9 +19,11 @@
 package org.structr.bolt.index;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -41,6 +43,8 @@ import org.structr.api.search.SpatialQuery;
 import org.structr.api.search.TypeConverter;
 import org.structr.api.search.TypeQuery;
 import org.structr.api.search.UuidQuery;
+import org.structr.api.util.FixedSizeCache;
+import org.structr.api.util.Iterables;
 import org.structr.bolt.*;
 import org.structr.bolt.index.converter.BooleanTypeConverter;
 import org.structr.bolt.index.converter.DateTypeConverter;
@@ -63,6 +67,7 @@ import org.structr.bolt.index.factory.UuidQueryFactory;
  *
  */
 public abstract class AbstractCypherIndex<T extends PropertyContainer> implements Index<T>, QueryFactory {
+
 
 	private static final Logger logger                       = LoggerFactory.getLogger(AbstractCypherIndex.class.getName());
 	public static final TypeConverter DEFAULT_CONVERTER      = new StringTypeConverter();
@@ -94,10 +99,13 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 		CONVERTERS.put(Double.class,  new DoubleTypeConverter());
 	}
 
-	protected BoltDatabaseService db = null;
+	protected final FixedSizeCache<Integer, CachedQueryResult> queryCache;
+	protected final BoltDatabaseService db;
 
-	public AbstractCypherIndex(final BoltDatabaseService db) {
-		this.db = db;
+	public AbstractCypherIndex(final BoltDatabaseService db, final int queryCacheSize) {
+
+		this.queryCache = new FixedSizeCache<>(queryCacheSize);
+		this.db         = db;
 	}
 
 	public abstract QueryResult<T> getResult(final CypherQuery query);
@@ -146,6 +154,15 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 		return getResult(query);
 	}
 
+	public void invalidateCache() {
+
+		if (!queryCache.isEmpty()) {
+
+			System.out.println("clearing cache with " + queryCache.size() + " entries..");
+			queryCache.clear();
+		}
+	}
+
 	// ----- interface QueryFactory -----
 	@Override
 	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final CypherQuery query, final boolean isFirst) {
@@ -165,5 +182,33 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 		}
 
 		return false;
+	}
+
+	// ----- nested classes -----
+	protected class CachedQueryResult implements QueryResult<T> {
+
+		private Collection<T> result = null;
+
+		public CachedQueryResult(final Iterable<T> source) {
+
+			if (source instanceof Collection) {
+
+				this.result = (Collection)source;
+
+			} else {
+
+				this.result = Iterables.toList(source);
+
+			}
+		}
+
+		@Override
+		public void close() {
+		}
+
+		@Override
+		public Iterator<T> iterator() {
+			return result.iterator();
+		}
 	}
 }

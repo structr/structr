@@ -18,7 +18,6 @@
  */
 package org.structr.bolt.index;
 
-import java.util.Iterator;
 import org.structr.api.QueryResult;
 import org.structr.api.graph.Node;
 import org.structr.api.util.Iterables;
@@ -31,8 +30,8 @@ import org.structr.bolt.mapper.NodeNodeMapper;
  */
 public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 
-	public CypherNodeIndex(final BoltDatabaseService db) {
-		super(db);
+	public CypherNodeIndex(final BoltDatabaseService db, final int queryCacheSize) {
+		super(db, queryCacheSize);
 	}
 
 	@Override
@@ -53,20 +52,20 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	@Override
 	public QueryResult<Node> getResult(final CypherQuery query) {
 
-		final SessionTransaction tx = db.getCurrentTransaction();
-		final NodeNodeMapper mapper = new NodeNodeMapper(db);
-		final Iterable<Node> mapped = Iterables.map(mapper, tx.getNodes(query.getStatement(), query.getParameters()));
+		final int queryHashCode  = query.getHashCode();
+		CachedQueryResult result = queryCache.get(queryHashCode);
 
-		return new QueryResult<Node>() {
+		if (result == null) {
 
-			@Override
-			public void close() {
-			}
+			final SessionTransaction tx = db.getCurrentTransaction();
+			final NodeNodeMapper mapper = new NodeNodeMapper(db);
+			final Iterable<Node> mapped = Iterables.map(mapper, tx.getNodes(query.getStatement(), query.getParameters()));
 
-			@Override
-			public Iterator<Node> iterator() {
-				return mapped.iterator();
-			}
-		};
+			result = new CachedQueryResult(mapped);
+
+			queryCache.put(queryHashCode, result);
+		}
+
+		return result;
 	}
 }

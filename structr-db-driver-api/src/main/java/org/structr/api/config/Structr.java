@@ -32,6 +32,7 @@ public interface Structr {
 	public static final String DATABASE_PATH                 = "database.path";
 	public static final String RELATIONSHIP_CACHE_SIZE       = "database.cache.relationship.size";
 	public static final String NODE_CACHE_SIZE               = "database.cache.node.size";
+	public static final String QUERY_CACHE_SIZE              = "database.cache.query.size";
 
 	public static final String LOG_CYPHER_DEBUG              = "log.cypher.debug";
 

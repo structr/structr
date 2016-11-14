@@ -48,7 +48,7 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 		App app = StructrApp.getInstance(securityContext);
 
 		app.invalidateCache();
-		app.getDatabaseService().invalidateCache();
+		app.getDatabaseService().invalidateQueryCache();
 
 		logger.info("Caches cleared.");
 	}
