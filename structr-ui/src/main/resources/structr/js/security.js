@@ -39,7 +39,7 @@ var _Security = {
 	onload : function() {
 		_Security.init();
 
-		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Users and Groups');
+		Structr.updateMainHelpLink('http://docs.structr.org/frontend-user-guide#Users and Groups');
 		_Logger.log(_LogType.SECURTIY, 'onload');
 
 		main.append('<div id="securityTabs"><ul id="securityTabsMenu"><li><a id="usersAndGroups_" href="#usersAndGroups"><span>Users and Groups</span></a></li><li><a id="resourceAccess_" href="#resourceAccess"><span>Resource Access Grants</span></a></li></ul><div id="usersAndGroups"></div><div id="resourceAccess"></div></div>');

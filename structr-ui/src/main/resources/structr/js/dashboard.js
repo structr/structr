@@ -16,41 +16,42 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var dashboard;
-var aboutMe, meObj;
 
 $(document).ready(function() {
 	Structr.registerModule('dashboard', _Dashboard);
 });
 
 var _Dashboard = {
+	dashboard: undefined,
+	aboutMe: undefined,
+	meObj: undefined,
+
 	init: function() {},
 	unload: function() {},
 	onload: function() {
 		_Dashboard.init();
-		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Dashboard');
+		Structr.updateMainHelpLink('http://docs.structr.org/frontend-user-guide#Dashboard');
 
 		main.append('<div id="dashboard"></div>');
-		dashboard = $('#dashboard', main);
+		_Dashboard.dashboard = $('#dashboard', main);
 
-		aboutMe = _Dashboard.appendBox('About Me', 'about-me');
-		aboutMe.append('<div class="dashboard-info">You are currently logged in as <b>' + me.username + '<b>.</div>');
-		aboutMe.append('<div class="dashboard-info admin red"></div>');
-		aboutMe.append('<table class="props"></table>');
+		_Dashboard.aboutMe = _Dashboard.appendBox('About Me', 'about-me');
+		_Dashboard.aboutMe.append('<div class="dashboard-info">You are currently logged in as <b>' + me.username + '<b>.</div>');
+		_Dashboard.aboutMe.append('<div class="dashboard-info admin red"></div>');
+		_Dashboard.aboutMe.append('<table class="props"></table>');
 		$.get(rootUrl + '/me/ui', function(data) {
-			meObj = data.result;
-			//console.log(me);
-			var t = $('table', aboutMe);
-			t.append('<tr><td class="key">ID</td><td>' + meObj.id + '</td></tr>');
-			t.append('<tr><td class="key">E-Mail</td><td>' + (meObj.eMail || '') + '</td></tr>');
-			t.append('<tr><td class="key">Working Directory</td><td>' + (meObj.workingDirectory ? meObj.workingDirectory.name : '') + '</td></tr>');
-			t.append('<tr><td class="key">Session ID(s)</td><td>' + meObj.sessionIds.join('<br>') + '</td></tr>');
-			t.append('<tr><td class="key">Groups</td><td>' + meObj.groups.map(function(g) { return g.name; }).join(', ') + '</td></tr>');
+			_Dashboard.meObj = data.result;
+			var t = $('table', _Dashboard.aboutMe);
+			t.append('<tr><td class="key">ID</td><td>' + _Dashboard.meObj.id + '</td></tr>');
+			t.append('<tr><td class="key">E-Mail</td><td>' + (_Dashboard.meObj.eMail || '') + '</td></tr>');
+			t.append('<tr><td class="key">Working Directory</td><td>' + (_Dashboard.meObj.workingDirectory ? _Dashboard.meObj.workingDirectory.name : '') + '</td></tr>');
+			t.append('<tr><td class="key">Session ID(s)</td><td>' + _Dashboard.meObj.sessionIds.join('<br>') + '</td></tr>');
+			t.append('<tr><td class="key">Groups</td><td>' + _Dashboard.meObj.groups.map(function(g) { return g.name; }).join(', ') + '</td></tr>');
 
 		});
 		_Dashboard.checkAdmin();
 
-		aboutMe.append('<button id="clear-local-storage-on-server">Reset stored UI settings</button>');
+		_Dashboard.aboutMe.append('<button id="clear-local-storage-on-server">Reset stored UI settings</button>');
 		$('#clear-local-storage-on-server').on('click', function() {
 			_Dashboard.clearLocalStorageOnServer();
 		});
@@ -116,12 +117,12 @@ var _Dashboard = {
 
 	},
 	appendBox: function(heading, id) {
-		dashboard.append('<div id="' + id + '" class="dashboard-box"><div class="dashboard-header"><h2>' + heading + '</h2></div></div>');
+		_Dashboard.dashboard.append('<div id="' + id + '" class="dashboard-box"><div class="dashboard-header"><h2>' + heading + '</h2></div></div>');
 		return $('#' + id, main);
 	},
 	checkAdmin: function() {
-		if (me.isAdmin && aboutMe && aboutMe.length && aboutMe.find('admin').length === 0) {
-			$('.dashboard-info.admin', aboutMe).text('You have admin rights.');
+		if (me.isAdmin && _Dashboard.aboutMe && _Dashboard.aboutMe.length && _Dashboard.aboutMe.find('admin').length === 0) {
+			$('.dashboard-info.admin', _Dashboard.aboutMe).text('You have admin rights.');
 		}
 	},
 	displayVersion: function(obj) {
@@ -139,12 +140,12 @@ var _Dashboard = {
 			});
 		};
 
-		if (!meObj) {
+		if (!_Dashboard.meObj) {
 			Command.rest("/me/ui", function (result) {
 				clear(result[0].id);
 			});
 		} else {
-			clear(meObj.id);
+			clear(_Dashboard.meObj.id);
 		}
 	}
 };

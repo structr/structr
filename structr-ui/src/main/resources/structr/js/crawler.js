@@ -95,11 +95,11 @@ var _Crawler = {
 	onload: function() {
 
 		$.get(rootUrl + '/me/ui', function(data) {
-			meObj = data.result;
+			_Dashboard.meObj = data.result;
 			_Crawler.init();
 		});
 
-		$('#main-help a').attr('href', 'https://support.structr.com/knowledge-graph');
+		Structr.updateMainHelpLink('https://support.structr.com/knowledge-graph');
 
 		main.append('<div id="crawler-main"><div class="fit-to-height" id="crawler-tree-container"><div id="crawler-tree"></div></div><div class="fit-to-height" id="crawler-list-container"><div id="crawler-list"></div></div>');
 		crawlerMain = $('#crawler-main');
@@ -553,8 +553,8 @@ var _Crawler = {
 					}
 				}
 
-//				if (meObj && meObj.proxyUrl) {
-//					proxyUrl += '&proxyUrl=' + meObj.proxyUrl;
+//				if (_Dashboard.meObj && _Dashboard.meObj.proxyUrl) {
+//					proxyUrl += '&proxyUrl=' + _Dashboard.meObj.proxyUrl;
 //				}
 
 				//console.log(url);

@@ -86,7 +86,7 @@ var _Contents = {
 
 		_Contents.init();
 
-		$('#main-help a').attr('href', 'https://support.structr.com/knowledge-graph');
+		Structr.updateMainHelpLink('https://support.structr.com/knowledge-graph');
 
 		main.append('<div id="contents-main"><div class="fit-to-height" id="content-tree-container"><div id="contents-tree"></div></div><div class="fit-to-height" id="contents-contents-container"><div id="contents-contents"></div></div>');
 		contentsMain = $('#contents-main');

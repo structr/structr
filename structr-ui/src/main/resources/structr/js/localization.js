@@ -44,7 +44,7 @@ var _Localization = {
 	onload: function() {
 		_Localization.init();
 
-		$('#main-help a').attr('href', 'https://support.structr.com/article/135');
+		Structr.updateMainHelpLink('https://support.structr.com/article/135');
 
 		main.append(
 			'<div id="localization-main">' +

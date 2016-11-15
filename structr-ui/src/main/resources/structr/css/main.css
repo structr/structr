@@ -2309,7 +2309,7 @@ table.push {
 }
 
 #securityTabs {
-    margin: 12px;
+    margin: 12px 24px 12px 12px;
     border: none;
     background: none;
     padding: 0;

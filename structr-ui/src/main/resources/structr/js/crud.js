@@ -48,6 +48,24 @@ if (browser) {
 			_Crud.typeSelected($(this).data('type'));
 		});
 
+		$(document).on('click', '#crud-recent-types .remove-recent-type', function (e) {
+			e.stopPropagation();
+			_Crud.removeRecentType($(this).closest('li').data('type'));
+		});
+
+		$(document).on('click', '#crudTypesFilterToggle', function (e) {
+			$('#crudTypeFilterSettings').toggleClass('hidden');
+		});
+
+		$(document).on('change', '#crudTypeFilterSettings input', function(e) {
+			_Crud.updateTypeList();
+			LSWrapper.setItem(_Crud.displayTypeConfigKey, _Crud.getTypeVisibilityConfig());
+		});
+
+		$(document).on('click', '#crudTypeFilterSettings .close-button', function (e) {
+			_Crud.hideTypeVisibilityConfig();
+		});
+
 	});
 
 } else {
@@ -55,6 +73,7 @@ if (browser) {
 }
 
 var _Crud = {
+	displayTypeConfigKey: 'structrCrudDisplayTypes_' + port,
 	types: {},
 	keys: {},
 	crudCache: new CacheWithCallbacks(),
@@ -121,11 +140,29 @@ var _Crud = {
 
 		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Search"><img class="clearSearchIcon" src="' + _Icons.grey_cross_icon + '"></div>');
 		main.append('<div id="crud-main"><div id="crud-left">'
-				+ '<div id="crud-types" class="resourceBox"><h2>All Types</h2><input placeholder="Filter types..." id="crudTypesFilter"><ul id="crud-types-list"></ul></div>'
+				+ '<div id="crud-types" class="resourceBox"><h2>All Types</h2><img src="' + _Icons.wrench_icon + '" id="crudTypesFilterToggle" title="Auto-filter types"><div id="crudTypeFilterSettings" class="hidden"></div><input placeholder="Filter types..." id="crudTypesSearch"><ul id="crud-types-list"></ul></div>'
 				+ '<div id="crud-recent-types" class="resourceBox"><h2>Recent</h2><ul id="crud-recent-types-list"></ul></div></div>'
 				+ '<div id="crud-right" class="resourceBox full-height-box"></div></div>');
 
-		$('#crudTypesFilter').keyup(function (e) {
+		$('#crudTypeFilterSettings').append(
+			'<div><input type="checkbox" id="crudTypeToggleCustom"><label for="crudTypeToggleCustom"> Show Custom Types</label></div>' +
+			'<div><input type="checkbox" id="crudTypeToggleCore"><label for="crudTypeToggleCore"> Show Core Types</label></div>' +
+			'<div><input type="checkbox" id="crudTypeToggleHtml"><label for="crudTypeToggleHtml"> Show HTML Types</label></div>' +
+			'<div><input type="checkbox" id="crudTypeToggleUi"><label for="crudTypeToggleUi"> Show UI Types</label></div>' +
+			'<div><input type="checkbox" id="crudTypeToggleLog"><label for="crudTypeToggleLog"> Show Log Types</label></div>' +
+			'<div><input type="checkbox" id="crudTypeToggleOther"><label for="crudTypeToggleOther"> Show Other Types</label></div>' +
+			'<div><button class="close-button">Close</button></div>'
+		);
+
+		var savedTypeVisibility = LSWrapper.getItem(_Crud.displayTypeConfigKey) || {};
+		$('#crudTypeToggleCustom').prop('checked', (savedTypeVisibility.custom === undefined ? true : savedTypeVisibility.custom));
+		$('#crudTypeToggleCore').prop('checked', (savedTypeVisibility.core === undefined ? true : savedTypeVisibility.core));
+		$('#crudTypeToggleHtml').prop('checked', (savedTypeVisibility.html === undefined ? true : savedTypeVisibility.html));
+		$('#crudTypeToggleUi').prop('checked', (savedTypeVisibility.ui === undefined ? true : savedTypeVisibility.ui));
+		$('#crudTypeToggleLog').prop('checked', (savedTypeVisibility.log === undefined ? true : savedTypeVisibility.log));
+		$('#crudTypeToggleOther').prop('checked', (savedTypeVisibility.other === undefined ? true : savedTypeVisibility.other));
+
+		$('#crudTypesSearch').keyup(function (e) {
 			if (e.keyCode === 27) {
 
 				$(this).val('');
@@ -156,6 +193,7 @@ var _Crud = {
 
 				if (browser) {
 					_Crud.updateTypeList();
+					_Crud.typeSelected(_Crud.type);
 					_Crud.updateRecentTypeList(_Crud.type);
 				}
 				_Crud.resize();
@@ -196,7 +234,7 @@ var _Crud = {
 	},
 	onload: function() {
 
-		$('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Data');
+		Structr.updateMainHelpLink('http://docs.structr.org/frontend-user-guide#Data');
 
 		if (!_Crud.type) {
 			_Crud.restoreType();
@@ -232,27 +270,37 @@ var _Crud = {
 	updateTypeList: function () {
 
 		var $typesList = $('#crud-types-list');
-		Object.keys(_Crud.types).sort().forEach(function(type) {
-			$typesList.append('<li class="crud-type" data-type="' + type + '">' + type + '</li>');
+		$typesList.empty();
+
+		var typeVisibility = _Crud.getTypeVisibilityConfig();
+
+		Object.keys(_Crud.types).sort().forEach(function(typeName) {
+
+			var type = _Crud.types[typeName];
+
+			var isDynamicType = type.className.startsWith('org.structr.dynamic');
+			var isCoreType    = type.className.startsWith('org.structr.core.entity');
+			var isHtmlType    = type.className.startsWith('org.structr.web.entity.html');
+			var isUiType      = type.className.startsWith('org.structr.web.entity') && !type.className.startsWith('org.structr.web.entity.html');
+			var isLogType     = type.className.startsWith('org.structr.rest.logging.entity');
+			var isOtherType   = !(isDynamicType || isCoreType || isHtmlType || isUiType || isLogType);
+
+			var hide =	(!typeVisibility.custom && isDynamicType) || (!typeVisibility.core && isCoreType) || (!typeVisibility.html && isHtmlType) ||
+						(!typeVisibility.ui && isUiType) || (!typeVisibility.log && isLogType) || (!typeVisibility.other && isOtherType);
+
+			if (!hide) {
+				$typesList.append('<li class="crud-type" data-type="' + typeName + '">' + typeName + '</li>');
+			}
 		});
 
-		_Crud.typeSelected(_Crud.type);
-
+		_Crud.highlightCurrentType(_Crud.type);
 		_Crud.resize();
 	},
 	typeSelected: function (selectedType) {
 
+		_Crud.hideTypeVisibilityConfig();
 		_Crud.updateRecentTypeList(selectedType);
-
-		$('#crud-left li').removeClass('active');
-		$('#crud-left li[data-type="' + selectedType + '"]').addClass('active');
-
-		// scroll to selected element
-		var $crudTypesList = $('#crud-types-list');
-		var positionOfList = $crudTypesList.position().top;
-		var scrollTopOfList = $crudTypesList.scrollTop();
-		var positionOfElement = $('li[data-type="' + selectedType + '"]', $crudTypesList).position().top;
-		$crudTypesList.animate({scrollTop: positionOfElement + scrollTopOfList - positionOfList });
+		_Crud.highlightCurrentType(selectedType);
 
 		_Crud.getProperties(selectedType, function(type, properties) {
 
@@ -300,6 +348,39 @@ var _Crud = {
 			_Crud.updateUrl(type);
 		});
 	},
+	getTypeVisibilityConfig: function () {
+
+		return {
+			custom: $('#crudTypeToggleCustom').prop('checked'),
+			core:   $('#crudTypeToggleCore').prop('checked'),
+			html:   $('#crudTypeToggleHtml').prop('checked'),
+			ui:     $('#crudTypeToggleUi').prop('checked'),
+			log:    $('#crudTypeToggleLog').prop('checked'),
+			other:  $('#crudTypeToggleOther').prop('checked')
+		};
+
+	},
+	hideTypeVisibilityConfig: function () {
+		$('#crudTypeFilterSettings').addClass('hidden');
+	},
+	highlightCurrentType: function (selectedType) {
+
+		$('#crud-left li').removeClass('active');
+		$('#crud-left li[data-type="' + selectedType + '"]').addClass('active');
+
+		var $crudTypesList = $('#crud-types-list');
+		var $selectedElementInTypeList = $('li[data-type="' + selectedType + '"]', $crudTypesList);
+
+		if ($selectedElementInTypeList && $selectedElementInTypeList.length > 0) {
+			var positionOfList = $crudTypesList.position().top;
+			var scrollTopOfList = $crudTypesList.scrollTop();
+			var positionOfElement = $selectedElementInTypeList.position().top;
+			$crudTypesList.animate({scrollTop: positionOfElement + scrollTopOfList - positionOfList });
+		} else {
+			$crudTypesList.animate({scrollTop: 0});
+		}
+
+	},
 	filterTypes: function (filterVal) {
 		$('#crud-types-list li').each(function (i, el) {
 			var $el = $(el);
@@ -331,13 +412,27 @@ var _Crud = {
 			$('li', $recentTypesList).remove();
 
 			recentTypes.forEach(function (type) {
-				$recentTypesList.append('<li class="crud-type' + (selectedType === type ? ' active' : '') + '" data-type="' + type + '">' + type + '</li>');
+				$recentTypesList.append('<li class="crud-type' + (selectedType === type ? ' active' : '') + '" data-type="' + type + '">' + type + '<img src="' + _Icons.grey_cross_icon + '" class="remove-recent-type"></li>');
 			});
 
 		}
 
 		LSWrapper.setItem(crudRecentTypesKey, recentTypes);
 
+	},
+	removeRecentType: function (typeToRemove) {
+
+		var recentTypes = LSWrapper.getItem(crudRecentTypesKey);
+
+		if (recentTypes) {
+			recentTypes = recentTypes.filter(function(type) {
+				return (type !== typeToRemove);
+			});
+		}
+
+		LSWrapper.setItem(crudRecentTypesKey, recentTypes);
+
+		_Crud.updateRecentTypeList();
 	},
 	updateUrl: function(type) {
 

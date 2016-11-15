@@ -47,16 +47,70 @@
 	margin-bottom: 3px;
 }
 
+#crudTypesFilterToggle {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    padding: 4px;
+    cursor: pointer;
+}
+
+#crudTypeFilterSettings {
+	position: absolute;
+	border: 1px solid #999 ! important;
+	left: calc(100% + 5px);
+	top: 0;
+	z-index: 100;
+	border-radius: 3px;
+	background-color: #fff ! important;
+	margin-top: -1px;
+	padding: 8px 20px 6px 10px;
+}
+
+#crudTypeFilterSettings div {
+	white-space: nowrap;
+}
+
+#crudTypeFilterSettings label {
+	vertical-align: middle;
+}
+
+#crudTypeFilterSettings button.close-button {
+	margin-top: 10px;
+}
+
+#crudTypesSearch {
+	margin: 0px 10px 5px 8px;
+}
+
 #crud-recent-types {
 	margin-top: 4px;
 }
 
-#crudTypesFilter {
-	margin: 0px 10px 5px 8px;
+#crud-recent-types li .remove-recent-type {
+	display: none;
+}
+
+#crud-recent-types li:hover .remove-recent-type {
+    position: absolute;
+    right: 4px;
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    padding: 2px;
+}
+
+#crudTypesFilterToggle:hover,
+#crudTypesFilterToggle.active,
+#crud-recent-types li .remove-recent-type:hover {
+    filter: alpha(opacity=60);
+    -khtml-opacity: 0.6;
+    -moz-opacity: 0.6;
+    opacity: 0.6;
 }
 
 #crud-left ul {
-	padding: 0 1px 0 0;
+	padding: 1px 0 0 0;
 	margin: 0;
 	overflow-wrap: break-word;
 	height: calc(100% - 70px);
@@ -70,6 +124,7 @@
     list-style: none;
     padding: 2px 5px 2px 10px;
 	cursor: pointer;
+	height: 18px;
 }
 
 #crud-left li.active {

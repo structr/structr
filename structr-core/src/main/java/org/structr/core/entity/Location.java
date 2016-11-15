@@ -87,7 +87,7 @@ public class Location extends AbstractNode {
 
 		// FIXME: LocationRelationship has a direction. but it is ignored here
 
-		boolean allLocatablesAreValid = false;
+		boolean allLocatablesAreValid = true;
 
 		for(RelationshipInterface rel : this.getRelationships(NodeHasLocation.class)) {
 
@@ -95,7 +95,7 @@ public class Location extends AbstractNode {
 			if(otherNode != null && otherNode instanceof Locatable) {
 
 				// notify other node of location change
-				allLocatablesAreValid |= !((Locatable)otherNode).locationChanged();
+				allLocatablesAreValid &= !((Locatable)otherNode).locationChanged();
 			}
 		}
 
