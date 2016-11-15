@@ -1299,19 +1299,14 @@ var _Elements = {
 			var speechBtn = $('.speechToText', dialogBox);
 
 			_Speech.init(speechBtn, function(interim, finalResult) {
-				//console.log('Interim:', interim);
-				//console.log('Final:', finalResult);
 
 				if (_Speech.isCommand('save', interim)) {
-					//console.log('Save command detected');
 					dialogSaveButton.click();
 				} else if (_Speech.isCommand('saveAndClose', interim)) {
-					//console.log('Save and close command detected');
 					_Speech.toggleStartStop(speechBtn, function() {
 						$('#saveAndClose', dialogBtn).click();
 					});
 				} else if (_Speech.isCommand('close', interim)) {
-					//console.log('Close command detected');
 					_Speech.toggleStartStop(speechBtn, function() {
 						dialogCancelButton.click();
 					});
@@ -1344,7 +1339,6 @@ var _Elements = {
 					editor.execCommand('deleteLineLeft');
 				} else if (_Speech.isCommand('deleteLineRight', interim)) {
 					editor.execCommand('killLine');
-
 				} else if (_Speech.isCommand('lineUp', interim)) {
 					editor.execCommand('goLineUp');
 				} else if (_Speech.isCommand('lineDown', interim)) {
@@ -1357,15 +1351,8 @@ var _Elements = {
 					editor.execCommand('goCharLeft');
 				} else if (_Speech.isCommand('right', interim)) {
 					editor.execCommand('goCharRight');
-
-
 				} else {
-					//editor.setValue(editor.getValue() + interim);
-
 					editor.replaceSelection(interim);
-
-					//editor.focus();
-					//editor.execCommand('goDocEnd');
 				}
 
 			});
@@ -1421,11 +1408,6 @@ var _Elements = {
 			if (!text2)
 				text2 = '';
 
-//			var contentNode = Structr.node(entity.id)[0];
-//			_Logger.consoleLog('Element', contentNode);
-//			_Logger.consoleLog('text1', text1);
-//			_Logger.consoleLog('text2', text2);
-
 			if (text1 === text2) {
 				return;
 			}
@@ -1442,8 +1424,6 @@ var _Elements = {
 			});
 
 		});
-
-		//_Entities.appendBooleanSwitch(dialogMeta, entity, 'editable', 'Editable', 'If enabled, data fields in this content element are editable in edit mode.');
 
 		var values = ['text/plain', 'text/html', 'text/xml', 'text/css', 'text/javascript', 'text/markdown', 'text/textile', 'text/mediawiki', 'text/tracwiki', 'text/confluence', 'text/asciidoc'];
 
@@ -1480,7 +1460,6 @@ var _Elements = {
 		editor.id = entity.id;
 
 		editor.focus();
-		//editor.execCommand('goDocEnd');
 
 	}
 };
