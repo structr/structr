@@ -143,7 +143,7 @@ var _Schema = {
 				}
 			});
 
-			schemaInputContainer.append('<button class="btn" id="admin-tools"><img src="' + _Icons.edit_ui_properties_icon + '"> Tools</button>');
+			schemaInputContainer.append('<button class="btn" id="admin-tools"><img src="' + _Icons.wrench_icon + '"> Tools</button>');
 			$('#admin-tools').on('click', function() {
 				_Schema.openAdminTools();
 			});
