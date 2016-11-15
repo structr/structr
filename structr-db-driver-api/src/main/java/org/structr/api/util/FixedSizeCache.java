@@ -36,7 +36,7 @@ public class FixedSizeCache<K, V> {
 	private Map<K, V> cache  = null;
 
 	public FixedSizeCache(final int maxSize) {
-		this.cache   = Collections.synchronizedMap(new LRUMap(maxSize, true));
+		this.cache   = Collections.synchronizedMap(new InvalidatingLRUMap<>(maxSize));
 	}
 
 	public synchronized void put(final K key, final V value) {
@@ -61,5 +61,24 @@ public class FixedSizeCache<K, V> {
 
 	public synchronized boolean isEmpty() {
 		return cache.isEmpty();
+	}
+
+	private static class InvalidatingLRUMap<K, V> extends LRUMap<K, V> {
+
+		public InvalidatingLRUMap(final int maxSize) {
+			super(maxSize, true);
+		}
+
+		@Override
+		protected boolean removeLRU(final LinkEntry<K, V> entry) {
+
+			final V value = entry.getValue();
+			if (value != null && value instanceof Cachable) {
+
+				((Cachable)value).invalidate();
+			}
+
+			return true;
+		}
 	}
 }

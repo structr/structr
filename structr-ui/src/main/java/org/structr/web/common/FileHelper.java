@@ -442,7 +442,7 @@ public class FileHelper {
 
 			} catch (IOException ex) {
 
-				logger.warn("Could not calculate checksum of file {}", filePath);
+				logger.warn("Could not calculate checksum of file {}: {}", filePath, ex);
 			}
 		}
 
@@ -478,7 +478,7 @@ public class FileHelper {
 
 			} catch (Exception ex) {
 
-				logger.warn("Could not calculate file size{}", filePath);
+				logger.warn("Could not calculate file size of file {}: {}", filePath, ex);
 
 			}
 
@@ -503,46 +503,6 @@ public class FileHelper {
 
 			return StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).and(AbstractFile.path, absolutePath).getFirst();
 
-//		String[] parts = PathHelper.getParts(absolutePath);
-//
-//		if (parts == null || parts.length == 0) {
-//			return null;
-//		}
-//
-//		// Find root folder
-//		if (parts[0].length() == 0) {
-//			return null;
-//		}
-//
-//		AbstractFile currentFile = getFirstRootFileByName(securityContext, parts[0]);
-//		if (currentFile == null) {
-//			return null;
-//		}
-//
-//		for (int i = 1; i < parts.length; i++) {
-//
-//			List<AbstractFile> children = currentFile.getProperty(AbstractFile.children);
-//
-//			currentFile = null;
-//
-//			for (AbstractFile child : children) {
-//
-//				if (child.getProperty(AbstractFile.name).equals(parts[i])) {
-//
-//					// Child with matching name found
-//					currentFile = child;
-//					break;
-//				}
-//
-//			}
-//
-//			if (currentFile == null) {
-//				return null;
-//			}
-//
-//		}
-//
-//		return currentFile;
 		} catch (FrameworkException ex) {
 			logger.warn("File not found: {}", new Object[] { absolutePath });
 		}
@@ -559,7 +519,7 @@ public class FileHelper {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("Unable to find a file by UUID {}: {}", new Object[]{uuid, fex.getMessage()});
+			logger.warn("Unable to find a file by UUID {}: {}", uuid, fex.getMessage());
 		}
 
 		return null;
@@ -574,7 +534,7 @@ public class FileHelper {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("Unable to find a file for name {}: {}", new Object[]{name, fex.getMessage()});
+			logger.warn("Unable to find a file for name {}: {}", name, fex.getMessage());
 		}
 
 		return null;
@@ -604,7 +564,7 @@ public class FileHelper {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("Unable to find a file for name {}: {}", new Object[]{name, fex.getMessage()});
+			logger.warn("Unable to find a file for name {}: {}", name, fex.getMessage());
 		}
 
 		return null;

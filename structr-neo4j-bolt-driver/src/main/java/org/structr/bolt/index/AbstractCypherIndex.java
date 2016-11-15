@@ -158,7 +158,6 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 
 		if (!queryCache.isEmpty()) {
 
-			System.out.println("clearing cache with " + queryCache.size() + " entries..");
 			queryCache.clear();
 		}
 	}
