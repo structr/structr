@@ -25,12 +25,12 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
-import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.property.TypeProperty;
 
 
 //~--- classes ----------------------------------------------------------------
@@ -68,13 +68,13 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 				if (Boolean.TRUE.equals(allNodes)) {
 
-					nodeIterator = Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(false, false, true), graphDb.getAllNodes())).iterator();
+					nodeIterator = Iterables.map(nodeFactory, graphDb.getAllNodes()).iterator();
 
 					info("Start setting UUID on all nodes");
 
 				} else {
 
-					nodeIterator = Iterables.filter(new TypePredicate<>(nodeType), Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(false, false, true), graphDb.getAllNodes()))).iterator();
+					nodeIterator = Iterables.filter(new TypePredicate<>(nodeType), Iterables.map(nodeFactory, graphDb.getAllNodes())).iterator();
 
 					info("Start setting UUID on nodes of type {}", new Object[] { nodeType });
 				}
@@ -91,8 +91,15 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 				public void handleGraphObject(final SecurityContext securityContext, final AbstractNode node) {
 
 					try {
-						node.unlockSystemPropertiesOnce();
-						node.setProperty(GraphObject.id, NodeServiceCommand.getNextUuid());
+
+						if (node.getProperty(GraphObject.id) == null) {
+
+							node.unlockSystemPropertiesOnce();
+							node.setProperty(GraphObject.id, NodeServiceCommand.getNextUuid());
+						}
+
+						// update labels as well
+						TypeProperty.updateLabels(graphDb, node, node.getClass());
 
 					} catch (FrameworkException fex) {
 
@@ -132,13 +139,13 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 				if (Boolean.TRUE.equals(allRels)) {
 
-					relIterator = Iterables.map(relFactory,Iterables.filter(new StructrAndSpatialPredicate(false, false, true), graphDb.getAllRelationships())).iterator();
+					relIterator = Iterables.map(relFactory, graphDb.getAllRelationships()).iterator();
 
 					info("Start setting UUID on all rels", new Object[] { relType });
 
 				} else {
 
-					relIterator = Iterables.filter(new TypePredicate<>(relType), Iterables.map(relFactory,Iterables.filter(new StructrAndSpatialPredicate(false, false, true), graphDb.getAllRelationships()))).iterator();
+					relIterator = Iterables.filter(new TypePredicate<>(relType), Iterables.map(relFactory, graphDb.getAllRelationships())).iterator();
 
 					info("Start setting UUID on rels of type {}", new Object[] { relType });
 				}
@@ -155,8 +162,12 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
 
 					try {
-						rel.unlockSystemPropertiesOnce();
-						rel.setProperty(GraphObject.id, NodeServiceCommand.getNextUuid());
+
+						if (rel.getProperty(GraphObject.id) == null) {
+
+							rel.unlockSystemPropertiesOnce();
+							rel.setProperty(GraphObject.id, NodeServiceCommand.getNextUuid());
+						}
 
 					} catch (FrameworkException fex) {
 

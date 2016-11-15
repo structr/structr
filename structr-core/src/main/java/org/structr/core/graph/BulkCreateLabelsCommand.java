@@ -20,12 +20,8 @@ package org.structr.core.graph;
 
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 import org.structr.api.DatabaseService;
-import org.structr.api.graph.Label;
-import org.structr.api.graph.Node;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrAndSpatialPredicate;
@@ -33,7 +29,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.property.TypeProperty;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -74,43 +70,7 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 			@Override
 			public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
-				final Set<Label> intersection = new LinkedHashSet<>();
-				final Set<Label> toRemove     = new LinkedHashSet<>();
-				final Set<Label> toAdd        = new LinkedHashSet<>();
-				final Node dbNode             = node.getNode();
-
-				// collect labels that are already present on a node
-				for (final Label label : dbNode.getLabels()) {
-					toRemove.add(label);
-				}
-
-				// collect new labels
-				for (final Class supertype : SearchCommand.typeAndAllSupertypes(node.getClass())) {
-
-					final String supertypeName = supertype.getName();
-
-					if (supertypeName.startsWith("org.structr.") || supertypeName.startsWith("com.structr.")) {
-						toAdd.add(graphDb.forName(Label.class, supertype.getSimpleName()));
-					}
-				}
-
-				// calculate intersection
-				intersection.addAll(toAdd);
-				intersection.retainAll(toRemove);
-
-				// calculate differences
-				toAdd.removeAll(intersection);
-				toRemove.removeAll(intersection);
-
-				// remove difference
-				for (final Label remove : toRemove) {
-					dbNode.removeLabel(remove);
-				}
-
-				// add difference
-				for (final Label add : toAdd) {
-					dbNode.addLabel(add);
-				}
+				TypeProperty.updateLabels(graphDb, node, node.getClass());
 			}
 
 			@Override

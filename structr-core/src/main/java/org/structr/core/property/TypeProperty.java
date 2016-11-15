@@ -59,45 +59,9 @@ public class TypeProperty extends StringProperty {
 
 		if (obj instanceof NodeInterface) {
 
-			final Class type              = StructrApp.getConfiguration().getNodeEntityClass(value);
-			final DatabaseService db      = StructrApp.getInstance().getDatabaseService();
-			final Set<Label> intersection = new LinkedHashSet<>();
-			final Set<Label> toRemove     = new LinkedHashSet<>();
-			final Set<Label> toAdd        = new LinkedHashSet<>();
-			final Node dbNode             = ((NodeInterface)obj).getNode();
+			final Class type = StructrApp.getConfiguration().getNodeEntityClass(value);
 
-			// collect labels that are already present on a node
-			for (final Label label : dbNode.getLabels()) {
-				toRemove.add(label);
-			}
-
-			// collect new labels
-			for (final Class supertype : SearchCommand.typeAndAllSupertypes(type)) {
-
-				final String supertypeName = supertype.getName();
-
-				if (supertypeName.startsWith("org.structr.") || supertypeName.startsWith("com.structr.")) {
-					toAdd.add(db.forName(Label.class, supertype.getSimpleName()));
-				}
-			}
-
-			// calculate intersection
-			intersection.addAll(toAdd);
-			intersection.retainAll(toRemove);
-
-			// calculate differences
-			toAdd.removeAll(intersection);
-			toRemove.removeAll(intersection);
-
-			// remove difference
-			for (final Label remove : toRemove) {
-				dbNode.removeLabel(remove);
-			}
-
-			// add difference
-			for (final Label add : toAdd) {
-				dbNode.addLabel(add);
-			}
+			TypeProperty.updateLabels(StructrApp.getInstance().getDatabaseService(), (NodeInterface)obj, type);
 		}
 
 		return null;
@@ -118,5 +82,46 @@ public class TypeProperty extends StringProperty {
 		}
 
 		return result;
+	}
+
+	public static void updateLabels(final DatabaseService graphDb, final NodeInterface node, final Class newType) {
+
+		final Set<Label> intersection = new LinkedHashSet<>();
+		final Set<Label> toRemove     = new LinkedHashSet<>();
+		final Set<Label> toAdd        = new LinkedHashSet<>();
+		final Node dbNode             = node.getNode();
+
+		// collect labels that are already present on a node
+		for (final Label label : dbNode.getLabels()) {
+			toRemove.add(label);
+		}
+
+		// collect new labels
+		for (final Class supertype : SearchCommand.typeAndAllSupertypes(newType)) {
+
+			final String supertypeName = supertype.getName();
+
+			if (supertypeName.startsWith("org.structr.") || supertypeName.startsWith("com.structr.")) {
+				toAdd.add(graphDb.forName(Label.class, supertype.getSimpleName()));
+			}
+		}
+
+		// calculate intersection
+		intersection.addAll(toAdd);
+		intersection.retainAll(toRemove);
+
+		// calculate differences
+		toAdd.removeAll(intersection);
+		toRemove.removeAll(intersection);
+
+		// remove difference
+		for (final Label remove : toRemove) {
+			dbNode.removeLabel(remove);
+		}
+
+		// add difference
+		for (final Label add : toAdd) {
+			dbNode.addLabel(add);
+		}
 	}
 }
