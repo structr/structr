@@ -1456,19 +1456,15 @@ var _Files = {
 					editor.refresh();
 				});
 
-				dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled"> Save </button>');
-				dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
+				dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled">Save</button>');
+				dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled">Save and close</button>');
 
 				dialogSaveButton = $('#saveFile', dialogBtn);
 				saveAndClose = $('#saveAndClose', dialogBtn);
 
-				text1 = text;
-
 				editor.on('change', function(cm, change) {
 
-					text2 = editor.getValue();
-
-					if (text2 === data) {
+					if (text === editor.getValue()) {
 						dialogSaveButton.prop("disabled", true).addClass('disabled');
 						saveAndClose.prop("disabled", true).addClass('disabled');
 					} else {
@@ -1477,23 +1473,15 @@ var _Files = {
 					}
 				});
 
-				if (text1 === data) {
-					dialogSaveButton.prop("disabled", true).addClass('disabled');
-					saveAndClose.prop("disabled", true).addClass('disabled');
-				} else {
-					dialogSaveButton.prop("disabled", false).removeClass('disabled');
-					saveAndClose.prop("disabled", false).removeClass('disabled');
-				}
-
 				$('button#saveFile', dialogBtn).on('click', function(e) {
 					e.preventDefault();
 					e.stopPropagation();
 					var newText = editor.getValue();
-					if (data === newText) {
+					if (text === newText) {
 						return;
 					}
 					_Files.updateTextFile(file, newText);
-					text1 = newText;
+					text = newText;
 					dialogSaveButton.prop("disabled", true).addClass('disabled');
 					saveAndClose.prop("disabled", true).addClass('disabled');
 				});
