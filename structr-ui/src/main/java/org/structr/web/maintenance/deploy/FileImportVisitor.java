@@ -194,7 +194,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 				boolean isImage     = createdFile.getProperty(Image.isImage);
 				boolean isThumbnail = createdFile.getProperty(Image.isThumbnail);
 				
-				logger.info("File {}: {}, isImage? {}, isThumbnail? {}", new Object[] { createdFile.getName(), type, isImage, isThumbnail});
+				logger.debug("File {}: {}, isImage? {}, isThumbnail? {}", new Object[] { createdFile.getName(), type, isImage, isThumbnail});
 
 				if (isImage) {
 					ImageHelper.updateMetadata(createdFile);
