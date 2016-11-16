@@ -631,6 +631,7 @@ public class BasicTest extends StructrTest {
 
 	}
 
+	@Test
 	public void test01CreateNode() {
 
 		try {
@@ -670,6 +671,8 @@ public class BasicTest extends StructrTest {
 		}
 
 	}
+
+	@Test
 	public void test02CreateNodeWithExistingUuid() {
 
 		try {
@@ -700,9 +703,82 @@ public class BasicTest extends StructrTest {
 			fail("Unexpected exception");
 
 		}
+	}
+
+	@Test
+	public void test02CreateTwoNodesWithSameUuidInSameTx() {
+
+		try {
+
+			final PropertyMap props = new PropertyMap();
+			TestOne node            = null;
+
+			final String uuid = StringUtils.replace(UUID.randomUUID().toString(), "-", "");
+
+			props.put(GraphObject.id, uuid);
+
+			try (final Tx tx = app.tx()) {
+
+				node = app.create(TestOne.class, props);
+
+				assertTrue(node != null);
+				assertTrue(node instanceof TestOne);
+				assertEquals(node.getUuid(), uuid);
+				
+				node = app.create(TestOne.class, props);
+				
+				tx.success();
+				
+				fail("Validation failed!");
+			}
+
+		} catch (FrameworkException ex) {
+		}
 
 	}
 
+	@Test
+	public void test02CreateTwoNodesWithSameUuidInTwoTx() {
+
+		try {
+
+			final PropertyMap props = new PropertyMap();
+			TestOne node            = null;
+
+			final String uuid = StringUtils.replace(UUID.randomUUID().toString(), "-", "");
+
+			props.put(GraphObject.id, uuid);
+
+			try (final Tx tx = app.tx()) {
+
+				node = app.create(TestOne.class, props);
+
+				assertTrue(node != null);
+				assertTrue(node instanceof TestOne);
+				assertEquals(node.getUuid(), uuid);
+				
+				tx.success();
+				
+			} catch (FrameworkException ex) {
+				logger.error(ex.toString());
+				fail("Unexpected exception");
+			}
+
+			try (final Tx tx = app.tx()) {
+				
+				node = app.create(TestOne.class, props);
+				
+				tx.success();
+				
+				fail("Validation failed!");
+			}
+
+		} catch (FrameworkException ex) {
+		}
+
+	}
+
+	@Test
 	public void test03CreateRelationship() {
 
 		try {
@@ -741,6 +817,7 @@ public class BasicTest extends StructrTest {
 	/**
 	 * Create a node for each configured entity class and check the type
 	 */
+	@Test
 	public void test04CheckNodeEntities() {
 
 		AccessControlTest.clearResourceAccess();
@@ -858,6 +935,7 @@ public class BasicTest extends StructrTest {
 	/**
 	 * Create a node for each configured entity class and check the type
 	 */
+	@Test
 	public void test05CheckRelationshipEntities() {
 
 		try (final Tx tx = app.tx()) {
