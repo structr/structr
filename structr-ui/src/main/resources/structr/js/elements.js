@@ -287,29 +287,12 @@ var _Elements = {
 			}
 
 		});
+
 		_Dragndrop.makeSortable(components);
 
 		Command.listComponents(1000, 1, 'name', 'asc', function(result) {
 
-			result.forEach(function(entity) {
-
-				if (!entity) {
-					return false;
-				}
-
-				var obj = StructrModel.create(entity, null, false);
-				var el;
-				if (obj.isContent || obj.type === 'Template') {
-					el = _Elements.appendContentElement(obj, components, true);
-				} else {
-					el = _Pages.appendElementElement(obj, components, true);
-				}
-
-				if (isExpanded(entity.id)) {
-					_Entities.ensureExpanded(el);
-				}
-
-			});
+			_Elements.appendEntitiesToDOMElement(result, components);
 
 		});
 
@@ -327,6 +310,7 @@ var _Elements = {
 		}
 		Command.createComponent(sourceId);
 		dropBlocked = false;
+
 	},
 	reloadUnattachedNodes: function() {
 
@@ -349,29 +333,29 @@ var _Elements = {
 		});
 
 		_Dragndrop.makeSortable(elements);
+
 		Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(result) {
 
-			result.forEach(function(entity) {
+			_Elements.appendEntitiesToDOMElement(result, elements);
 
-				if (!entity) {
-					return;
-				}
+		});
+
+	},
+	appendEntitiesToDOMElement: function (entities, domElement) {
+
+		entities.forEach(function(entity) {
+
+			if (entity) {
 
 				var obj = StructrModel.create(entity, null, false);
-				var el;
-				if (obj.isContent) {
-					el = _Elements.appendContentElement(obj, elements, true);
-				} else {
-					el = _Pages.appendElementElement(obj, elements, true);
-				}
+				var el = (obj.isContent) ? _Elements.appendContentElement(obj, domElement, true) : _Pages.appendElementElement(obj, domElement, true);
 
 				if (isExpanded(entity.id)) {
 					_Entities.ensureExpanded(el);
 				}
-			});
+			}
 
 		});
-
 	},
 	componentNode: function(id) {
 		return $($('#componentId_' + id)[0]);
@@ -417,8 +401,9 @@ var _Elements = {
 
 		_Logger.log(_LogType.ELEMENTS, 'Element appended (div, parent)', div, parent);
 
-		if (!div)
+		if (!div) {
 			return false;
+		}
 
 		var displayName = getElementDisplayName(entity);
 
