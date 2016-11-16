@@ -22,12 +22,7 @@ import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PagingHelper;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.Result;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
@@ -41,11 +36,11 @@ import org.structr.websocket.message.WebSocketMessage;
 /**
  * Websocket command to retrieve nodes which are in use on more than
  * one page.
- * 
+ *
  *
  */
 public class ListComponentsCommand extends AbstractCommand {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(ListComponentsCommand.class.getName());
 
 	static {
@@ -57,51 +52,32 @@ public class ListComponentsCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
-
 		final int pageSize       = webSocketData.getPageSize();
 		final int page           = webSocketData.getPage();
 
 		try {
 
-			// get shadow document
-			Result result                      = StructrApp.getInstance(securityContext).nodeQuery(ShadowDocument.class).includeDeletedAndHidden().getResult();
-			List<AbstractNode> filteredResults = new LinkedList();
-			List<AbstractNode> resultList      = result.getResults();
+			final ShadowDocument hiddenDoc     = CreateComponentCommand.getOrCreateHiddenDocument();
+			List<DOMNode> filteredResults      = new LinkedList();
+			List<DOMNode> resultList           = hiddenDoc.getProperty(Page.elements);
 
-			if (result.isEmpty()) {
-				
-				logger.warn("No shadow document found, creating one.");
-				resultList.add(CreateComponentCommand.getOrCreateHiddenDocument());
-			}
-			
-			ShadowDocument doc = (ShadowDocument) resultList.get(0);
-			
-			resultList.addAll(doc.getProperty(Page.elements));
-			
 			// Filter list and return only top level nodes
-			for (GraphObject obj : resultList) {
+			for (DOMNode node : resultList) {
 
-				if (obj instanceof DOMNode) {
+				if (Boolean.FALSE.equals(node.hasIncomingRelationships(DOMChildren.class))) {
 
-					DOMNode node = (DOMNode) obj;
-
-					if (!doc.equals(node) && !node.hasIncomingRelationships(DOMChildren.class)) {
-						
-						filteredResults.add(node);
-
-					}
+					filteredResults.add(node);
 
 				}
 
 			}
 
 			// Sort the components by name
-			Collections.sort(filteredResults, new Comparator<AbstractNode>() {
+			Collections.sort(filteredResults, new Comparator<DOMNode>() {
 				@Override
-				public int compare(AbstractNode node1, AbstractNode node2) {
-					final String nameNode1 = node1.getProperty(AbstractNode.name);
-					final String nameNode2 = node2.getProperty(AbstractNode.name);
+				public int compare(DOMNode node1, DOMNode node2) {
+					final String nameNode1 = node1.getProperty(DOMNode.name);
+					final String nameNode2 = node2.getProperty(DOMNode.name);
 
 					if (nameNode1 != null && nameNode2 != null) {
 
@@ -126,14 +102,14 @@ public class ListComponentsCommand extends AbstractCommand {
 
 			// save raw result count
 			int resultCountBeforePaging = filteredResults.size();
-			
+
 			// set full result list
 			webSocketData.setResult(PagingHelper.subList(filteredResults, pageSize, page, null));
 			webSocketData.setRawResultCount(resultCountBeforePaging);
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);
-			
+
 		} catch (FrameworkException fex) {
 
 			logger.warn("Exception occured", fex);
