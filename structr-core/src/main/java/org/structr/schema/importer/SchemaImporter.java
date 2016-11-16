@@ -229,7 +229,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 
 
 		info("Sorting result..");
-		try (final Tx tx = app.tx(false, false, false)) {
+		try (final Tx tx = app.tx(true, false, false)) {
 
 			// sort type infos
 			Collections.sort(reducedTypeInfos, new HierarchyComparator(false));
@@ -266,7 +266,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 
 		info("Fetching all relationships iterator..");
 
-		try (final Tx tx = app.tx(false, false, false)) {
+		try (final Tx tx = app.tx(true, false, false)) {
 
 			relIterator = Iterables.filter(new StructrAndSpatialPredicate(false, false, true), graphDb.getAllRelationships()).iterator();
 			tx.success();

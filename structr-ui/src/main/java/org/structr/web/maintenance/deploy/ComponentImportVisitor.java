@@ -174,7 +174,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 		final PropertyMap properties    = getPropertiesForComponent(name);
 		final DOMNode existingComponent = getExistingComponent(name);
 
-		try (final Tx tx = app.tx(false, false, false)) {
+		try (final Tx tx = app.tx(true, false, false)) {
 
 			if (existingComponent != null) {
 

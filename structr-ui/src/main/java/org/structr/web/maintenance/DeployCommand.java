@@ -61,6 +61,7 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.Image;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
@@ -616,23 +617,35 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		putIf(config, "visibleToPublicUsers",        node.isVisibleToPublicUsers());
 		putIf(config, "visibleToAuthenticatedUsers", node.isVisibleToAuthenticatedUsers());
-		putIf(config, "contentType",                 node.getProperty(Content.contentType));
-		putIf(config, "position",                    node.getProperty(Page.position));
-		putIf(config, "showOnErrorCodes",            node.getProperty(Page.showOnErrorCodes));
-		putIf(config, "showConditions",              node.getProperty(Page.showConditions));
-		putIf(config, "hideConditions",              node.getProperty(Page.hideConditions));
-		putIf(config, "dontCache",                   node.getProperty(Page.dontCache));
-		putIf(config, "cacheForSeconds",             node.getProperty(Page.cacheForSeconds));
-		putIf(config, "pageCreatesRawData",          node.getProperty(Page.pageCreatesRawData));
+		
+		if (node instanceof Content) {
+			putIf(config, "contentType",             node.getProperty(Content.contentType));
+		}
+		
+		if (node instanceof Page) {
+			putIf(config, "position",                node.getProperty(Page.position));
+			putIf(config, "showOnErrorCodes",        node.getProperty(Page.showOnErrorCodes));
+			putIf(config, "showConditions",          node.getProperty(Page.showConditions));
+			putIf(config, "hideConditions",          node.getProperty(Page.hideConditions));
+			putIf(config, "dontCache",               node.getProperty(Page.dontCache));
+			putIf(config, "cacheForSeconds",         node.getProperty(Page.cacheForSeconds));
+			putIf(config, "pageCreatesRawData",      node.getProperty(Page.pageCreatesRawData));
+		}
 	}
 
 	private void exportFileConfiguration(final AbstractFile file, final Map<String, Object> config) {
 
 		putIf(config, "visibleToPublicUsers",        file.isVisibleToPublicUsers());
 		putIf(config, "visibleToAuthenticatedUsers", file.isVisibleToAuthenticatedUsers());
-		putIf(config, "contentType",                 file.getProperty(Content.contentType));
-		putIf(config, "dontCache",                   file.getProperty(Page.dontCache));
-		putIf(config, "cacheForSeconds",             file.getProperty(Page.cacheForSeconds));
+		putIf(config, "contentType",                 file.getProperty(FileBase.contentType));
+		putIf(config, "cacheForSeconds",             file.getProperty(FileBase.cacheForSeconds));
+		
+		if (file instanceof Image) {
+			putIf(config, "isThumbnail",             file.getProperty(Image.isThumbnail));
+			putIf(config, "isImage",                 file.getProperty(Image.isImage));
+			putIf(config, "width",                   file.getProperty(Image.width));
+			putIf(config, "height",                  file.getProperty(Image.height));
+		}
 	}
 
 	private void putIf(final Map<String, Object> target, final String key, final Object value) {

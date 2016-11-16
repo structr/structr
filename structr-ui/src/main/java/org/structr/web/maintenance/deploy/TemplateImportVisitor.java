@@ -144,31 +144,75 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 
 		}
 
-		return null;
+		return new PropertyMap();
 	}
 
 	private void createTemplate(final Path file, final String fileName) throws IOException, FrameworkException {
 
-		final String name              = StringUtils.substringBeforeLast(fileName, ".html");
-		final PropertyMap properties   = getPropertiesForTemplate(name);
+		final String templateName      = StringUtils.substringBeforeLast(fileName, ".html");
+		
+		final boolean byId = templateName.matches("[a-f0-9]{32}");
+		
+		// don't set template name if template name is a UUID in the deployment
+		final String name              = byId ? null : templateName;
+		final PropertyMap properties   = getPropertiesForTemplate(templateName);
+		
+		try (final Tx tx = app.tx(true, false, false)) {
+			
+			final DOMNode existingTemplate = byId ? (DOMNode) app.get(templateName) : getExistingTemplate(name);
 
-		try (final Tx tx = app.tx(false, false, false)) {
-
-			logger.info("Importing template {} from {}..", new Object[] { name, fileName } );
-
-			final String src = new String (Files.readAllBytes(file),Charset.forName("UTF-8"));
-
-			final Template template = app.create(Template.class,
-				new NodeAttribute(AbstractNode.name, name),
-				new NodeAttribute(Template.content, src)
-			);
-
-			// store properties from templates.json if present
-			if (properties != null) {
-				template.setProperties(securityContext, properties);
+			if (existingTemplate != null) {
+				deleteTemplate(app, name);
 			}
 
 			tx.success();
+
+		} catch (Exception ex) {
+			
+			logger.debug("Error trying to delete existing template {}", fileName);
+		}
+		
+		
+		try (final Tx tx = app.tx(true, false, false)) {
+
+			logger.info("Importing template {} from {}..", new Object[] { templateName, fileName } );
+
+			final String src = new String (Files.readAllBytes(file),Charset.forName("UTF-8"));
+
+			final Template template;
+			
+			if (byId) {
+			
+				final DOMNode existingTemplate = (DOMNode) app.get(templateName);
+
+				if (existingTemplate != null) {
+					deleteTemplate(app, name);
+				}
+
+				template = app.create(Template.class, new NodeAttribute(AbstractNode.id, templateName));
+				
+			} else {
+
+				final DOMNode existingTemplate = getExistingTemplate(name);
+				
+				if (existingTemplate != null) {
+					deleteTemplate(app, name);
+				}
+				
+				template = app.create(Template.class);
+				properties.put(Template.name, name);
+			}
+
+			properties.put(Template.content, src);
+
+			// store properties from templates.json if present
+			template.setProperties(securityContext, properties);
+
+			tx.success();
+
+		} catch (Exception ex) {
+			
+			logger.debug("Error trying to create template {}", fileName);
 		}
 	}
 }

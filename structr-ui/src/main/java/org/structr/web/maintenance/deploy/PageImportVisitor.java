@@ -112,7 +112,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 	private Page getExistingPage(final String name) {
 
 		final App app = StructrApp.getInstance();
-		try (final Tx tx = app.tx(false, false, false)) {
+		try (final Tx tx = app.tx(true, false, false)) {
 
 			return app.nodeQuery(Page.class).andName(name).getFirst();
 
@@ -164,7 +164,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 
 	private void createFolder(final Path file) {
 
-		try (final Tx tx = app.tx(false, false, false)) {
+		try (final Tx tx = app.tx(true, false, false)) {
 
 			// create folder
 			FileHelper.createFolderPath(securityContext, basePath.relativize(file).toString());
@@ -182,7 +182,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 		final PropertyMap properties = getPropertiesForPage(name);
 		final Page existingPage      = getExistingPage(name);
 
-		try (final Tx tx = app.tx(false, false, false)) {
+		try (final Tx tx = app.tx(true, false, false)) {
 
 			if (existingPage != null) {
 
