@@ -46,6 +46,7 @@ import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
+import org.structr.web.entity.relation.Thumbnails;
 
 /**
  *
@@ -103,7 +104,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	// ----- private methods -----
 	private void createFolder(final Path file) {
 
-		try (final Tx tx = app.tx(false, false, false)) {
+		try (final Tx tx = app.tx(true, false, false)) {
 
 			// create folder
 			final Folder folder = createFolders(basePath.relativize(file));
@@ -119,14 +120,15 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 			tx.success();
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+		} catch (Exception ex) {
+			logger.error("Error occured while importing folder " + file, ex);
 		}
 	}
 
 	private void createFile(final Path file, final String fileName) throws IOException {
 
-		try (final Tx tx = app.tx(false, false, false)) {
+		String newFileUuid = null;
+		try (final Tx tx = app.tx(true, false, false)) {
 
 			final Path parentPath   = basePath.relativize(file).getParent();
 			final Folder parent     = createFolders(parentPath);
@@ -148,7 +150,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 				app.delete(existing);
 			}
 
-			logger.info("Importing {}..", fullPath);
+			logger.info("Importing {}...", fullPath);
 
 			// close input stream
 			try (final FileInputStream fis = new FileInputStream(file.toFile())) {
@@ -173,15 +175,65 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 					newFile.setProperties(securityContext, properties);
 				}
+				
+				newFileUuid = newFile.getUuid();
 			}
-
+			
 			tx.success();
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+		} catch (Exception ex) {
+			logger.error("Error occured while importing file " + fileName, ex);
 		}
+		
+		try (final Tx tx = app.tx(true, false, false)) {
+			
+			if (newFileUuid != null) {
+
+				final FileBase createdFile = (FileBase) app.get(newFileUuid);
+				String type = createdFile.getType();
+				boolean isImage     = createdFile.getProperty(Image.isImage);
+				boolean isThumbnail = createdFile.getProperty(Image.isThumbnail);
+				
+				logger.info("File {}: {}, isImage? {}, isThumbnail? {}", new Object[] { createdFile.getName(), type, isImage, isThumbnail});
+
+				if (isImage) {
+					ImageHelper.updateMetadata(createdFile);
+					handleThumbnails((Image) createdFile);
+				}
+
+			}
+			
+			tx.success();
+			
+		} catch (Exception ex) {
+			logger.error("Error occured while importing file " + fileName, ex);
+		}
+		
 	}
 
+	private void handleThumbnails(final Image img) {
+		
+		
+		if (img.getProperty(Image.isThumbnail)) {
+
+			// thumbnail image
+			if (img.getIncomingRelationship(Thumbnails.class) == null) {
+
+				ImageHelper.findAndReconnectOriginalImage(img);
+			}
+
+		} else {
+
+			// original image
+			if (!img.getOutgoingRelationships(Thumbnails.class).iterator().hasNext()) {
+
+				ImageHelper.findAndReconnectThumbnails(img);
+
+			}						
+		}
+		
+	}
+	
 	private PropertyMap getPropertiesForFileOrFolder(final String path) throws FrameworkException {
 
 		final Object data = config.get(path);

@@ -100,4 +100,17 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 
 		return this;
 	}
+	
+	public int getWidth() {
+		return width;
+	}
+
+	public int getHeight() {
+		return height;
+	}
+
+	public boolean getCrop() {
+		return crop;
+	}
+
 }
