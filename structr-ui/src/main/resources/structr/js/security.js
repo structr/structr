@@ -84,12 +84,6 @@ var _Security = {
 
 	},
 
-	activateTab: function (activeTab) {
-
-
-
-	},
-
 	refreshResourceAccesses : function() {
 		_Security.resourceAccesses.empty();
 
@@ -97,7 +91,6 @@ var _Security = {
 
 			var raPager = _Pager.addPager('resource-access', _Security.resourceAccesses, true, 'ResourceAccess', 'public');
 
-			// set specialized cleanup function
 			raPager.cleanupFunction = function () {
 				$('#resourceAccesses table tbody tr').remove();
 			};
