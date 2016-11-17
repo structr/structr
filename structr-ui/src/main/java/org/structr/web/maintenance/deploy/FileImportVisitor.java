@@ -175,45 +175,51 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 					newFile.setProperties(securityContext, properties);
 				}
-				
+
 				newFileUuid = newFile.getUuid();
 			}
-			
+
 			tx.success();
 
 		} catch (Exception ex) {
 			logger.error("Error occured while importing file " + fileName, ex);
 		}
-		
+
 		try (final Tx tx = app.tx(true, false, false)) {
-			
+
 			if (newFileUuid != null) {
 
 				final FileBase createdFile = (FileBase) app.get(newFileUuid);
 				String type = createdFile.getType();
 				boolean isImage     = createdFile.getProperty(Image.isImage);
 				boolean isThumbnail = createdFile.getProperty(Image.isThumbnail);
-				
+
 				logger.debug("File {}: {}, isImage? {}, isThumbnail? {}", new Object[] { createdFile.getName(), type, isImage, isThumbnail});
 
 				if (isImage) {
-					ImageHelper.updateMetadata(createdFile);
-					handleThumbnails((Image) createdFile);
+
+					try {
+						ImageHelper.updateMetadata(createdFile);
+						handleThumbnails((Image) createdFile);
+
+					} catch (Throwable t) {
+						logger.warn("Unable to update metadata: {}", t.getMessage());
+					}
 				}
 
 			}
-			
+
 			tx.success();
-			
+
 		} catch (Exception ex) {
 			logger.error("Error occured while importing file " + fileName, ex);
 		}
-		
+
 	}
 
 	private void handleThumbnails(final Image img) {
-		
-		
+
+
 		if (img.getProperty(Image.isThumbnail)) {
 
 			// thumbnail image
@@ -229,11 +235,11 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 				ImageHelper.findAndReconnectThumbnails(img);
 
-			}						
+			}
 		}
-		
+
 	}
-	
+
 	private PropertyMap getPropertiesForFileOrFolder(final String path) throws FrameworkException {
 
 		final Object data = config.get(path);

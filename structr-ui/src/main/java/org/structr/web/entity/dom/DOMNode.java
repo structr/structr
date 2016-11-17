@@ -1059,6 +1059,15 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			// Shadow doc is neutral
 			if (otherDoc != null && !doc.equals(otherDoc) && !(doc instanceof ShadowDocument)) {
 
+				logger.warn("{} node with UUID {} has owner document {} with UUID {} whereas this node has owner document {} with UUID {}",
+					otherNode.getClass().getSimpleName(),
+					((NodeInterface)otherNode).getUuid(),
+					otherDoc.getClass().getSimpleName(),
+					((NodeInterface)otherDoc).getUuid(),
+					doc.getClass().getSimpleName(),
+					((NodeInterface)doc).getUuid()
+				);
+
 				throw new DOMException(DOMException.WRONG_DOCUMENT_ERR, WRONG_DOCUMENT_ERR_MESSAGE);
 			}
 
@@ -1074,6 +1083,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		if (!isGranted(Permission.write, securityContext)) {
 
+			logger.warn("User {} has no write access to {} node with UUID {}", securityContext.getUser(false), this.getClass().getSimpleName(), getUuid());
+
 			throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, NO_MODIFICATION_ALLOWED_MESSAGE);
 		}
 	}
@@ -1083,6 +1094,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		if (securityContext.isVisible(this) || isGranted(Permission.read, securityContext)) {
 			return;
 		}
+
+		logger.warn("User {} has no read access to {} node with UUID {}", securityContext.getUser(false), this.getClass().getSimpleName(), getUuid());
 
 		throw new DOMException(DOMException.INVALID_ACCESS_ERR, INVALID_ACCESS_ERR_MESSAGE);
 	}

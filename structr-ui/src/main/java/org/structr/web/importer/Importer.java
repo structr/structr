@@ -241,7 +241,7 @@ public class Importer {
 			} else {
 
 				if (isDeployment) {
-					
+
 					// a trailing slash to all void/self-closing tags so the XML parser can parse it correctly
 					code = code.replaceAll("<(area|base|br|col|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)([^>]*)>", "<$1$2/>");
 
@@ -651,19 +651,19 @@ public class Importer {
 
 				final String src = node.attr("src");
 				if (src != null) {
-					
+
 					final DOMNode template;
-					
+
 					if (src.matches("[a-f0-9]{32}")) {
-						
+
 						template = (DOMNode) StructrApp.getInstance().get(src);
-						
+
 					} else {
-						
+
 						template = Importer.findTemplateByName(src);
 					}
 
-					
+
 					if (template != null) {
 
 						newNode = template;
@@ -868,7 +868,7 @@ public class Importer {
 						if (lastCommentNode != null) {
 
 							// remove comment node from parent (if there is a parent)
-							if (parent != null) {
+							if (parent != null && lastCommentNode.getParentNode().equals(parent)) {
 								parent.removeChild(lastCommentNode);
 							}
 							app.delete(lastCommentNode);
