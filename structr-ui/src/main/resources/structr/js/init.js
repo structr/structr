@@ -256,7 +256,13 @@ var _Icons = {
 	star_icon: 'icon/star.png',
 	star_delete_icon: 'icon/star_delete.png',
 	image_icon: 'icon/image.png',
-	arrow_up_down: 'icon/arrow_up_down.png'
+	arrow_up_down: 'icon/arrow_up_down.png',
+
+
+	getImageIcon: function(file) {
+		var icon = (file.contentType.startsWith('image/svg') ? file.path : (file.tnSmall ? file.tnSmall.path : _Icons.image_icon));
+		return icon;
+	}
 };
 
 var Structr = {
