@@ -459,7 +459,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				for (final DOMNode node : shadowDocument.getProperty(Page.elements)) {
 
 					// skip templates, nodes in trash and non-toplevel nodes
-					if (node.inTrash() || node.getProperty(DOMNode.parent) != null) {
+					if (node instanceof Content || node.inTrash() || node.getProperty(DOMNode.parent) != null) {
 						continue;
 					}
 
@@ -617,11 +617,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		putIf(config, "visibleToPublicUsers",        node.isVisibleToPublicUsers());
 		putIf(config, "visibleToAuthenticatedUsers", node.isVisibleToAuthenticatedUsers());
-		
+
 		if (node instanceof Content) {
 			putIf(config, "contentType",             node.getProperty(Content.contentType));
 		}
-		
+
 		if (node instanceof Page) {
 			putIf(config, "position",                node.getProperty(Page.position));
 			putIf(config, "showOnErrorCodes",        node.getProperty(Page.showOnErrorCodes));
@@ -639,7 +639,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		putIf(config, "visibleToAuthenticatedUsers", file.isVisibleToAuthenticatedUsers());
 		putIf(config, "contentType",                 file.getProperty(FileBase.contentType));
 		putIf(config, "cacheForSeconds",             file.getProperty(FileBase.cacheForSeconds));
-		
+		putIf(config, "useAsJavascriptLibrary",      file.getProperty(FileBase.useAsJavascriptLibrary));
+
 		if (file instanceof Image) {
 			putIf(config, "isThumbnail",             file.getProperty(Image.isThumbnail));
 			putIf(config, "isImage",                 file.getProperty(Image.isImage));

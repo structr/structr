@@ -654,27 +654,38 @@ public class Importer {
 
 					final DOMNode template;
 
+					// match by UUID (=> template can not be reused in other pages)
 					if (src.matches("[a-f0-9]{32}")) {
 
 						template = (DOMNode) StructrApp.getInstance().get(src);
+						if (template != null) {
 
-					} else {
+							newNode = template;
 
-						template = Importer.findTemplateByName(src);
-					}
+							if (page != null) {
 
+								newNode.setProperty(DOMNode.ownerDocument, page);
+							}
 
-					if (template != null) {
+						} else {
 
-						newNode = template;
-
-						if (page != null) {
-							newNode.setProperty(DOMNode.ownerDocument, page);
+							logger.warn("Unable to find template {}, ignored!", src);
 						}
 
 					} else {
 
-						logger.warn("Unable to find shared component {}, template ignored!", src);
+						// match by name (template can be re-used in other pages => needs to be referenced as a shared component)
+						final DOMNode component = Importer.findTemplateByName(src);
+						if (component != null) {
+
+							newNode = (DOMNode) component.cloneNode(false);
+							newNode.setProperty(DOMNode.sharedComponent, component);
+							newNode.setProperty(DOMNode.ownerDocument, page);
+
+						} else {
+
+							logger.warn("Unable to find template {} - ignored!", src);
+						}
 					}
 
 				} else {
@@ -687,7 +698,7 @@ public class Importer {
 				final String src = node.attr("src");
 				if (src != null) {
 
-					final DOMNode component = Importer.findSharedComponentByName(src);
+					DOMNode component = Importer.findSharedComponentByName(src, true);
 					if (component != null) {
 
 						newNode = (DOMNode) component.cloneNode(false);
@@ -696,7 +707,18 @@ public class Importer {
 
 					} else {
 
-						logger.warn("Unable to find shared component {} - ignored!", src);
+						// fallback: find by UUID
+						component = StructrApp.getInstance().get(DOMNode.class, src);
+						if (component != null) {
+							
+							newNode = (DOMNode) component.cloneNode(false);
+							newNode.setProperty(DOMNode.sharedComponent, component);
+							newNode.setProperty(DOMNode.ownerDocument, page);
+
+						} else {
+
+							logger.warn("Unable to find shared component {} - ignored!", src);
+						}
 					}
 
 				} else {
@@ -1188,6 +1210,10 @@ public class Importer {
 	}
 
 	public static DOMNode findSharedComponentByName(final String name) throws FrameworkException {
+		return findSharedComponentByName(name, false);
+	}
+
+	public static DOMNode findSharedComponentByName(final String name, final boolean includeTemplates) throws FrameworkException {
 
 		for (final DOMNode n : StructrApp.getInstance().nodeQuery(DOMNode.class).andName(name).getAsList()) {
 
@@ -1197,7 +1223,7 @@ public class Importer {
 			}
 
 			// IGNORE everything that REFERENCES a shared component!
-			if (n.getProperty(DOMNode.sharedComponent) == null) {
+			if (n.getProperty(DOMNode.sharedComponent) == null && (includeTemplates || !(n instanceof Template))) {
 
 				return n;
 			}

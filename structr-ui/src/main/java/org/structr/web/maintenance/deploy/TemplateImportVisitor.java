@@ -39,8 +39,10 @@ import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.dom.Template;
 import org.structr.web.importer.Importer;
+import org.structr.websocket.command.CreateComponentCommand;
 
 /**
  *
@@ -108,7 +110,7 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 		final App app = StructrApp.getInstance();
 		try (final Tx tx = app.tx()) {
 
-			return Importer.findSharedComponentByName(name);
+			return Importer.findTemplateByName(name);
 
 		} catch (FrameworkException fex) {
 			logger.warn("Unable to determine if template {} already exists, ignoring.", name);
@@ -150,15 +152,15 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 	private void createTemplate(final Path file, final String fileName) throws IOException, FrameworkException {
 
 		final String templateName      = StringUtils.substringBeforeLast(fileName, ".html");
-		
+
 		final boolean byId = templateName.matches("[a-f0-9]{32}");
-		
+
 		// don't set template name if template name is a UUID in the deployment
 		final String name              = byId ? null : templateName;
 		final PropertyMap properties   = getPropertiesForTemplate(templateName);
-		
+
 		try (final Tx tx = app.tx(true, false, false)) {
-			
+
 			final DOMNode existingTemplate = byId ? (DOMNode) app.get(templateName) : getExistingTemplate(name);
 
 			if (existingTemplate != null) {
@@ -168,11 +170,11 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 			tx.success();
 
 		} catch (Exception ex) {
-			
+
 			logger.debug("Error trying to delete existing template {}", fileName);
 		}
-		
-		
+
+
 		try (final Tx tx = app.tx(true, false, false)) {
 
 			logger.info("Importing template {} from {}..", new Object[] { templateName, fileName } );
@@ -180,9 +182,9 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 			final String src = new String (Files.readAllBytes(file),Charset.forName("UTF-8"));
 
 			final Template template;
-			
+
 			if (byId) {
-			
+
 				final DOMNode existingTemplate = (DOMNode) app.get(templateName);
 
 				if (existingTemplate != null) {
@@ -190,17 +192,21 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 				}
 
 				template = app.create(Template.class, new NodeAttribute(AbstractNode.id, templateName));
-				
+
 			} else {
 
-				final DOMNode existingTemplate = getExistingTemplate(name);
-				
+				final ShadowDocument shadowDocument = CreateComponentCommand.getOrCreateHiddenDocument();
+				final DOMNode existingTemplate      = getExistingTemplate(name);
+
 				if (existingTemplate != null) {
 					deleteTemplate(app, name);
 				}
-				
-				template = app.create(Template.class);
-				properties.put(Template.name, name);
+
+				// named templates need to sit in the shadow document
+				template = app.create(Template.class,
+					new NodeAttribute(Template.ownerDocument, shadowDocument),
+					new NodeAttribute(AbstractNode.name, name)
+				);
 			}
 
 			properties.put(Template.content, src);
@@ -211,7 +217,7 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 			tx.success();
 
 		} catch (Exception ex) {
-			
+
 			logger.debug("Error trying to create template {}", fileName);
 		}
 	}
