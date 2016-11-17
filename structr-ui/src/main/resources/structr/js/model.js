@@ -423,7 +423,7 @@ var StructrModel = {
 
 			} else if (element.hasClass('file')) {
 
-				icon = _Files.getIcon(obj);
+				icon = _Icons.getFileIconClass(obj);
 
 			} else if (element.hasClass('folder')) {
 

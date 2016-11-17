@@ -259,10 +259,106 @@ var _Icons = {
 	arrow_up_down: 'icon/arrow_up_down.png',
 
 
-	getImageIcon: function(file) {
-		var icon = (file.contentType.startsWith('image/svg') ? file.path : (file.tnSmall ? file.tnSmall.path : _Icons.image_icon));
-		return icon;
+	getImageIcon: function(image) {
+
+		return (image.contentType.startsWith('image/svg') ? image.path : (image.tnSmall ? image.tnSmall.path : _Icons.image_icon));
+
+	},
+
+	getFileIconClass: function(file) {
+
+		var fileName = file.name;
+		var contentType = file.contentType;
+
+		var result = 'fa-file-o';
+
+		if (contentType) {
+
+			switch (contentType) {
+
+				case 'text/plain':
+					result = 'fa-file-text-o';
+					break;
+
+				case 'application/pdf':
+				case 'application/postscript':
+					result = 'fa-file-pdf-o';
+					break;
+
+				case 'application/x-pem-key':
+				case 'application/pkix-cert+pem':
+				case 'application/x-iwork-keynote-sffkey':
+					result = 'fa-key';
+					break;
+
+				case 'application/x-trash':
+					result = 'fa-trash-o';
+					break;
+
+				case 'application/octet-stream':
+					result = 'fa-terminal';
+					break;
+
+				case 'application/x-shellscript':
+				case 'application/javascript':
+				case 'application/xml':
+				case 'text/html':
+				case 'text/xml':
+					result = 'fa-file-code-o';
+					break;
+
+				case 'application/java-archive':
+				case 'application/zip':
+				case 'application/rar':
+				case 'application/x-bzip':
+					result = 'fa-file-archive-o';
+					break;
+
+				case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+				case 'application/vnd.oasis.opendocument.text':
+				case 'application/msword':
+					result = 'fa-file-word-o';
+					break;
+
+				case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+				case 'application/vnd.oasis.opendocument.spreadsheet':
+				case 'application/vnd.ms-excel':
+					result = 'fa-file-excel-o';
+					break;
+
+				case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
+					result = 'fa-file-powerpoint-o';
+					break;
+
+				case 'image/jpeg':
+					result = 'fa-picture-o';
+					break;
+
+				case 'application/vnd.oasis.opendocument.chart':
+					result = 'fa-line-chart';
+					break;
+
+				default:
+					if (contentType.startsWith('image/')) {
+						result = 'fa-file-image-o';
+					} else if (contentType.startsWith('text/')) {
+						result = 'fa-file-text-o';
+					}
+			}
+
+			if (fileName && fileName.contains('.')) {
+
+				var fileExtensionPosition = fileName.lastIndexOf('.') + 1;
+				var fileExtension = fileName.substring(fileExtensionPosition);
+
+				// add file extension css class to control colors
+				result = fileExtension + ' ' + result;
+			}
+		}
+
+		return result;
 	}
+
 };
 
 var Structr = {
