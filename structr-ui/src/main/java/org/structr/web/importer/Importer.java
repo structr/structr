@@ -99,6 +99,8 @@ import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.Template;
 import org.structr.web.entity.html.Body;
 import org.structr.web.entity.html.Head;
+import org.structr.web.maintenance.DeployCommand;
+import org.structr.websocket.command.CreateComponentCommand;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -116,7 +118,6 @@ public class Importer {
 	private static final String[] srcElements        = new String[]{"img", "script", "audio", "video", "input", "source", "track"};
 
 	private static final Map<String, String> contentTypeForExtension = new HashMap<>();
-	private static final Pattern pattern     = Pattern.compile("[a-f0-9]{32}");
 
 	private static App app;
 	private static ConfigurationProvider config;
@@ -655,38 +656,34 @@ public class Importer {
 
 					final DOMNode template;
 
-					// match by UUID (=> template can not be reused in other pages)
-					if (src.matches("[a-f0-9]{32}")) {
+					if (DeployCommand.isUuid(src)) {
 
 						template = (DOMNode) StructrApp.getInstance().get(src);
-						if (template != null) {
 
-							newNode = template;
+					} else {
 
-							if (page != null) {
+						template = Importer.findTemplateByName(src);
+					}
 
-								newNode.setProperty(DOMNode.ownerDocument, page);
-							}
+					if (template != null) {
 
-						} else {
+						newNode = template;
 
-							logger.warn("Unable to find template {}, ignored!", src);
+						final org.w3c.dom.Document ownerDocument = template.getOwnerDocument();
+						if (ownerDocument != null && ownerDocument.equals(CreateComponentCommand.getOrCreateHiddenDocument())) {
+
+							newNode = (DOMNode) template.cloneNode(false);
+							newNode.setProperty(DOMNode.sharedComponent, template);
+							newNode.setProperty(DOMNode.ownerDocument, page);
+
+						} else if (page != null) {
+
+							newNode.setProperty(DOMNode.ownerDocument, page);
 						}
 
 					} else {
 
-						// match by name (template can be re-used in other pages => needs to be referenced as a shared component)
-						final DOMNode component = Importer.findTemplateByName(src);
-						if (component != null) {
-
-							newNode = (DOMNode) component.cloneNode(false);
-							newNode.setProperty(DOMNode.sharedComponent, component);
-							newNode.setProperty(DOMNode.ownerDocument, page);
-
-						} else {
-
-							logger.warn("Unable to find template {} - ignored!", src);
-						}
+						logger.warn("Unable to find shared component {}, template ignored!", src);
 					}
 
 				} else {
@@ -699,7 +696,16 @@ public class Importer {
 				final String src = node.attr("src");
 				if (src != null) {
 
-					DOMNode component = Importer.findSharedComponentByName(src, true);
+					DOMNode component = null;
+					if (DeployCommand.isUuid(src)) {
+
+						component = app.get(DOMNode.class, src);
+
+					} else {
+
+						component = Importer.findSharedComponentByName(src);
+					}
+
 					if (component != null) {
 
 						newNode = (DOMNode) component.cloneNode(false);
@@ -708,18 +714,7 @@ public class Importer {
 
 					} else {
 
-						// fallback: find by UUID
-						component = StructrApp.getInstance().get(DOMNode.class, src);
-						if (component != null) {
-
-							newNode = (DOMNode) component.cloneNode(false);
-							newNode.setProperty(DOMNode.sharedComponent, component);
-							newNode.setProperty(DOMNode.ownerDocument, page);
-
-						} else {
-
-							logger.warn("Unable to find shared component {} - ignored!", src);
-						}
+						logger.warn("Unable to find shared component {} - ignored!", src);
 					}
 
 				} else {
@@ -891,7 +886,7 @@ public class Importer {
 						if (lastCommentNode != null) {
 
 							// remove comment node from parent (if there is a parent)
-							if (parent != null && lastCommentNode.getParentNode().equals(parent)) {
+							if (parent != null) {
 								parent.removeChild(lastCommentNode);
 							}
 							app.delete(lastCommentNode);
@@ -1211,10 +1206,6 @@ public class Importer {
 	}
 
 	public static DOMNode findSharedComponentByName(final String name) throws FrameworkException {
-		return findSharedComponentByName(name, false);
-	}
-
-	public static DOMNode findSharedComponentByName(final String name, final boolean includeTemplates) throws FrameworkException {
 
 		for (final DOMNode n : StructrApp.getInstance().nodeQuery(DOMNode.class).andName(name).getAsList()) {
 
@@ -1224,7 +1215,7 @@ public class Importer {
 			}
 
 			// IGNORE everything that REFERENCES a shared component!
-			if (n.getProperty(DOMNode.sharedComponent) == null && (includeTemplates || !(n instanceof Template))) {
+			if (n.getProperty(DOMNode.sharedComponent) == null) {
 
 				return n;
 			}

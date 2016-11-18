@@ -30,11 +30,6 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 
-/**
- * Content element that can act as an outer template.
- *
- *
- */
 
 
 public class Template extends Content {
@@ -63,11 +58,7 @@ public class Template extends Content {
 				out.append(DOMNode.indent(depth, renderContext));
 			}
 
-			if (_syncedNode == null) {
-				out.append("<structr:template src=\"");
-			} else {
-				out.append("<structr:component src=\"");
-			}
+			out.append("<structr:template src=\"");
 
 			if (_syncedNode != null) {
 
@@ -106,13 +97,7 @@ public class Template extends Content {
 			}
 
 			out.append(DOMNode.indent(depth, renderContext));
-
-			if (_syncedNode == null) {
-				out.append("</structr:template>");
-			} else {
-				out.append("</structr:component>");
-			}
-
+			out.append("</structr:template>");
 			out.append(DOMNode.indent(depth-1, renderContext));
 
 		} else {

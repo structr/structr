@@ -74,23 +74,30 @@ public class PageImportVisitor implements FileVisitor<Path> {
 	@Override
 	public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
 
-		if (attrs.isDirectory()) {
+		try {
 
-			createFolder(file);
+			if (attrs.isDirectory()) {
 
-		} else if (attrs.isRegularFile()) {
+				createFolder(file);
 
-			final String fileName = file.getFileName().toString();
-			if (fileName.endsWith(".html")) {
+			} else if (attrs.isRegularFile()) {
 
-				try {
+				final String fileName = file.getFileName().toString();
+				if (fileName.endsWith(".html")) {
 
-					createPage(file, fileName);
+					try {
 
-				} catch (FrameworkException fex) {
-					logger.warn("Exception while importing page {}: {}", new Object[] { name, fex.getMessage() });
+						createPage(file, fileName);
+
+					} catch (FrameworkException fex) {
+						logger.warn("Exception while importing page {}: {}", new Object[] { name, fex.getMessage() });
+					}
 				}
 			}
+
+		} catch (Throwable t) {
+			
+			t.printStackTrace();
 		}
 
 		return FileVisitResult.CONTINUE;

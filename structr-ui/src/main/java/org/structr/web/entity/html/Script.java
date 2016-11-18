@@ -31,8 +31,6 @@ import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.dom.Content;
 import org.w3c.dom.Node;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  *
  */
@@ -70,11 +68,11 @@ public class Script extends LinkSource {
 
 			try {
 				final String scriptType = getProperty(_type);
-				
+
 				if (StringUtils.isNotBlank(scriptType)) {
-				
+
 					((Content)newChild).setProperty(Content.contentType, scriptType);
-				
+
 				}
 
 			} catch (FrameworkException fex) {

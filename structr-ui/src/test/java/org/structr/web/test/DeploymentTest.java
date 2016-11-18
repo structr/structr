@@ -38,21 +38,24 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.common.StructrUiTest;
-import org.structr.web.entity.dom.Comment;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.dom.Template;
 import org.structr.web.entity.html.Body;
 import org.structr.web.entity.html.Div;
-import org.structr.web.entity.html.H1;
 import org.structr.web.entity.html.Head;
 import org.structr.web.entity.html.Html;
 import org.structr.web.entity.html.Link;
 import org.structr.web.entity.html.Script;
-import org.structr.web.entity.html.Title;
+import org.structr.web.entity.html.Table;
+import org.structr.web.entity.html.Tbody;
 import org.structr.web.maintenance.DeployCommand;
+import org.structr.websocket.command.CloneComponentCommand;
+import org.structr.websocket.command.CreateComponentCommand;
+import org.w3c.dom.Node;
 
 public class DeploymentTest extends StructrUiTest {
 
@@ -71,7 +74,7 @@ public class DeploymentTest extends StructrUiTest {
 		}
 
 		// test
-		compare(calculateHash());
+		compare(calculateHash(), true);
 	}
 
 	@Test
@@ -83,34 +86,30 @@ public class DeploymentTest extends StructrUiTest {
 			final Page page       = Page.createNewPage(securityContext,   "test02");
 			final Html html       = createElement(page, page, "html");
 			final Head head       = createElement(page, html, "head");
-			final Title title     = createElement(page, head, "title");
-			final Body body       = createElement(page, html, "body");
+			createElement(page, head, "title", "test02");
 
-			createContent(page, title, "test02");
+			final Body body       = createElement(page, html, "body");
 
 			// create a div for admin only
 			{
-				final Div div1        = createElement(page, body, "div");
-				final H1 h1           = createElement(page, div1, "h1");
-				createContent(page, h1, "private - ${find('User')}");
+				final Div div1 = createElement(page, body, "div");
+				createElement(page, div1, "h1", "private - ${find('User')}");
 
 				div1.setProperty(DOMNode.showConditions, "me.isAdmin");
 			}
 
 			// create a private div
 			{
-				final Div div1        = createElement(page, body, "div");
-				final H1 h1           = createElement(page, div1, "h1");
-				createContent(page, h1, "private - test abcdefghjiklmnopqrstuvwyzöäüßABCDEFGHIJKLMNOPQRSTUVWXYZÖÄÜ?\"'");
+				final Div div1 = createElement(page, body, "div");
+				 createElement(page, div1, "h1", "private - test abcdefghjiklmnopqrstuvwyzöäüßABCDEFGHIJKLMNOPQRSTUVWXYZÖÄÜ?\"'");
 
 				div1.setProperty(DOMNode.showConditions, "me.isAdmin");
 			}
 
 			// create a protected div
 			{
-				final Div div1        = createElement(page, body, "div");
-				final H1 h1           = createElement(page, div1, "h1");
-				createContent(page, h1, "protected - $%&/()=?¼½¬{[]}");
+				final Div div1 = createElement(page, body, "div");
+				createElement(page, div1, "h1", "protected - $%&/()=?¼½¬{[]}");
 
 				div1.setProperty(DOMNode.visibleToPublicUsers,        false);
 				div1.setProperty(DOMNode.visibleToAuthenticatedUsers,  true);
@@ -118,9 +117,8 @@ public class DeploymentTest extends StructrUiTest {
 
 			// create a public div
 			{
-				final Div div1        = createElement(page, body, "div");
-				final H1 h1           = createElement(page, div1, "h1");
-				createContent(page, h1, "public");
+				final Div div1 = createElement(page, body, "div");
+				createElement(page, div1, "h1", "public");
 
 				div1.setProperty(DOMNode.visibleToPublicUsers,        true);
 				div1.setProperty(DOMNode.visibleToAuthenticatedUsers, true);
@@ -128,9 +126,8 @@ public class DeploymentTest extends StructrUiTest {
 
 			// create a public only div
 			{
-				final Div div1        = createElement(page, body, "div");
-				final H1 h1           = createElement(page, div1, "h1");
-				createContent(page, h1, "public only");
+				final Div div1 = createElement(page, body, "div");
+				createElement(page, div1, "h1", "public only");
 
 				div1.setProperty(DOMNode.visibleToPublicUsers,         true);
 				div1.setProperty(DOMNode.visibleToAuthenticatedUsers, false);
@@ -143,7 +140,7 @@ public class DeploymentTest extends StructrUiTest {
 		}
 
 		// test
-		compare(calculateHash());
+		compare(calculateHash(), true);
 	}
 
 	@Test
@@ -152,10 +149,11 @@ public class DeploymentTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final Page page       = Page.createNewPage(securityContext,   "test03");
-			final Html html       = createElement(page, page, "html");
-			final Head head       = createElement(page, html, "head");
-			final Title title     = createElement(page, head, "title");
+			final Page page = Page.createNewPage(securityContext,   "test03");
+			final Html html = createElement(page, page, "html");
+			final Head head = createElement(page, html, "head");
+			createElement(page, head, "title", "test03");
+
 			final Body body       = createElement(page, html, "body");
 			final Div div1        = createElement(page, body, "div");
 			final Script script   = createElement(page, div1, "script");
@@ -168,9 +166,9 @@ public class DeploymentTest extends StructrUiTest {
 				"});"
 			);
 
-			content.setProperty(Content.contentType, "application/javascript");
-
-			createContent(page, title, "test03");
+			// workaround for strange importer behaviour
+			script.setProperty(Script._type, "text/javascript");
+			content.setProperty(Content.contentType, "text/javascript");
 
 			tx.success();
 
@@ -179,7 +177,7 @@ public class DeploymentTest extends StructrUiTest {
 		}
 
 		// test
-		compare(calculateHash());
+		compare(calculateHash(), true);
 	}
 
 	@Test
@@ -188,14 +186,15 @@ public class DeploymentTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final Page page       = Page.createNewPage(securityContext,   "test04");
-			final Html html       = createElement(page, page, "html");
-			final Head head       = createElement(page, html, "head");
-			final Title title     = createElement(page, head, "title");
-			final Link link1      = createElement(page, head, "link");
-			final Link link2      = createElement(page, head, "link");
-			final Comment comment = createComment(page, head, "commentöäüÖÄÜß+#");
-			final Link link3      = createElement(page, head, "link");
+			final Page page = Page.createNewPage(securityContext,   "test04");
+			final Html html = createElement(page, page, "html");
+			final Head head = createElement(page, html, "head");
+			createElement(page, head, "title", "test04");
+			createElement(page, head, "link");
+			createElement(page, head, "link");
+			createComment(page, head, "commentöäüÖÄÜß+#");
+
+			final Link link3  = createElement(page, head, "link");
 
 			link3.setProperty(Link._href, "/");
 			link3.setProperty(Link._media, "screen");
@@ -203,10 +202,7 @@ public class DeploymentTest extends StructrUiTest {
 
 			final Body body       = createElement(page, html, "body");
 			final Div div1        = createElement(page, body, "div");
-			final H1 h1           = createElement(page, div1, "h1");
-
-			createContent(page,    h1, "private");
-			createContent(page, title, "test04");
+			createElement(page, div1, "h1", "private");
 
 			tx.success();
 
@@ -215,29 +211,32 @@ public class DeploymentTest extends StructrUiTest {
 		}
 
 		// test
-		compare(calculateHash());
+		compare(calculateHash(), true);
 	}
 
 	@Test
-	public void test05SimpleTemplate() {
+	public void test05SimpleTemplateInPage() {
 
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final Page page       = Page.createNewPage(securityContext,   "test04");
-			final Html html       = createElement(page, page, "html");
-			final Head head       = createElement(page, html, "head");
-			final Title title     = createElement(page, head, "title");
-			final Body body       = createElement(page, html, "body");
-			final Div div1        = createElement(page, body, "div");
+			final Page page = Page.createNewPage(securityContext,   "test05");
+			final Html html = createElement(page, page, "html");
+			final Head head = createElement(page, html, "head");
+			createElement(page, head, "title", "test05");
 
-			createContent(page, title, "test04");
+			final Body body = createElement(page, html, "body");
+			final Div div1  = createElement(page, body, "div");
 
 			final Template template = createTemplate(page, div1, "template source - öäüÖÄÜß'\"'`");
 
 			template.setProperty(Template.functionQuery, "find('User')");
 			template.setProperty(Template.dataKey, "user");
 
+			// append children to template object
+			createElement(page, template, "div");
+			createElement(page, template, "div");
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -245,20 +244,231 @@ public class DeploymentTest extends StructrUiTest {
 		}
 
 		// test
-		compare(calculateHash());
+		compare(calculateHash(), true);
+	}
+
+	@Test
+	public void test06SimpleTemplateInSharedComponents() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createNewPage(securityContext,   "test06");
+			final Html html = createElement(page, page, "html");
+			final Head head = createElement(page, html, "head");
+			createElement(page, head, "title", "test06");
+
+			final Body body = createElement(page, html, "body");
+			createElement(page, body, "div");
+
+			final ShadowDocument shadowDocument = CreateComponentCommand.getOrCreateHiddenDocument();
+			createTemplate(shadowDocument, null, "template source - öäüÖÄÜß'\"'`");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+	}
+
+	@Test
+	public void test07SimpleSharedTemplate() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createNewPage(securityContext,   "test07");
+			final Html html = createElement(page, page, "html");
+			final Head head = createElement(page, html, "head");
+			createElement(page, head, "title", "test07");
+
+			final Body body = createElement(page, html, "body");
+			final Div div1  = createElement(page, body, "div");
+
+			final Template template = createTemplate(page, div1, "template source - öäüÖÄÜß'\"'`");
+
+			createComponent(template);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+	}
+
+	@Test
+	public void test08SharedTemplateInTwoPages() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			// create first page
+			final Page page1 = Page.createNewPage(securityContext,   "test08_1");
+			final Html html1 = createElement(page1, page1, "html");
+			final Head head1 = createElement(page1, html1, "head");
+			createElement(page1, head1, "title", "test08_1");
+
+			final Body body1 = createElement(page1, html1, "body");
+			final Div div1   = createElement(page1, body1, "div");
+
+			final Template template1 = createTemplate(page1, div1, "template source - öäüÖÄÜß'\"'`");
+			final Template component = createComponent(template1);
+
+
+			// create second page
+			final Page page2 = Page.createNewPage(securityContext,   "test08_2");
+			final Html html2 = createElement(page2, page2, "html");
+			final Head head2 = createElement(page2, html2, "head");
+			createElement(page2, head2, "title", "test08_2");
+
+			final Body body2 = createElement(page2, html2, "body");
+			final Div div2   = createElement(page2, body2, "div");
+
+			// re-use template from above
+			cloneComponent(component, div2);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+	}
+
+	@Test
+	public void test08SharedTemplatesWithChildren() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			// create first page
+			final Page page1 = Page.createNewPage(securityContext,   "test08_1");
+			final Html html1 = createElement(page1, page1, "html");
+			final Head head1 = createElement(page1, html1, "head");
+			createElement(page1, head1, "title", "test08_1");
+
+			final Body body1 = createElement(page1, html1, "body");
+			final Div div1   = createElement(page1, body1, "div");
+
+			final Template template1 = createTemplate(page1, div1, "template source - öäüÖÄÜß'\"'`");
+			createElement(page1, template1, "div", "test1");
+			createElement(page1, template1, "div", "test1");
+
+			final Template component = createComponent(template1);
+
+			// create second page
+			final Page page2 = Page.createNewPage(securityContext,   "test08_2");
+			final Html html2 = createElement(page2, page2, "html");
+			final Head head2 = createElement(page2, html2, "head");
+			createElement(page2, head2, "title", "test08_2");
+
+			final Body body2 = createElement(page2, html2, "body");
+			final Div div2   = createElement(page2, body2, "div");
+
+			// re-use template from above
+			cloneComponent(component, div2);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+	}
+
+	@Test
+	public void test09SharedComponent() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			// create first page
+			final Page page1 = Page.createNewPage(securityContext,   "test09_1");
+			final Html html1 = createElement(page1, page1, "html");
+			final Head head1 = createElement(page1, html1, "head");
+			createElement(page1, head1, "title", "test09_1");
+
+			final Body body1 = createElement(page1, html1, "body");
+			final Div div1   = createElement(page1, body1, "div");
+
+			createElement(page1, div1, "div", "test1");
+			createElement(page1, div1, "div", "test1");
+
+			final Div component = createComponent(div1);
+
+			// create second page
+			final Page page2 = Page.createNewPage(securityContext,   "test09_2");
+			final Html html2 = createElement(page2, page2, "html");
+			final Head head2 = createElement(page2, html2, "head");
+			createElement(page2, head2, "title", "test09_2");
+
+			final Body body2 = createElement(page2, html2, "body");
+			final Div div2   = createElement(page2, body2, "div");
+
+			// re-use template from above
+			cloneComponent(component, div2);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+	}
+
+	@Test
+	public void test10TemplateInTbody() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			// create first page
+			final Page page1 = Page.createNewPage(securityContext,   "test10");
+			final Html html1 = createElement(page1, page1, "html");
+			final Head head1 = createElement(page1, html1, "head");
+			createElement(page1, head1, "title", "test09_1");
+
+			final Body body1  = createElement(page1, html1, "body");
+			final Table table = createElement(page1, body1, "table");
+			final Tbody tbody = createElement(page1, table, "tbody");
+
+			final Template template1 = createTemplate(page1, tbody, "<tr><td>${user.name}</td></tr>");
+
+			template1.setProperty(DOMNode.functionQuery, "find('User')");
+			template1.setProperty(DOMNode.dataKey, "user");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
 	}
 
 	// ----- private methods -----
-	private void compare(final String sourceHash) {
+	private void compare(final String sourceHash, final boolean deleteTestDirectory) {
 
-		doImportExportRoundtrip();
+		doImportExportRoundtrip(deleteTestDirectory);
 
-		//assertTrue("Invalid deployment roundtrip result", sourceHash.equals(calculateHash()));
 		assertEquals("Invalid deployment roundtrip result", sourceHash, calculateHash());
 	}
 
 
-	private void doImportExportRoundtrip() {
+	private void doImportExportRoundtrip(final boolean deleteTestDirectory) {
 
 		final DeployCommand cmd = app.command(DeployCommand.class);
 		final Path tmp          = Paths.get("/tmp/structr-deployment-test" + System.currentTimeMillis() + System.nanoTime());
@@ -305,12 +515,15 @@ public class DeploymentTest extends StructrUiTest {
 
 		} finally {
 
-			try {
-				// clean directories
-				Files.walkFileTree(tmp, new DeletingFileVisitor());
-				Files.delete(tmp);
+			if (deleteTestDirectory) {
 
-			} catch (IOException ioex) {}
+				try {
+					// clean directories
+					Files.walkFileTree(tmp, new DeletingFileVisitor());
+					Files.delete(tmp);
+
+				} catch (IOException ioex) {}
+			}
 		}
 	}
 
@@ -322,7 +535,7 @@ public class DeploymentTest extends StructrUiTest {
 
 			for (final Page page : app.nodeQuery(Page.class).sort(AbstractNode.name).getAsList()) {
 
-				System.out.println("#############################");
+				System.out.print("############################# ");
 
 				calculateHash(page, buf, 0);
 			}
@@ -350,9 +563,23 @@ public class DeploymentTest extends StructrUiTest {
 
 		System.out.println(start.getType());
 
-		for (final DOMNode child : start.getProperty(DOMNode.children)) {
+		if (start instanceof ShadowDocument) {
 
-			calculateHash(child, buf, depth+1);
+			for (final DOMNode child : ((ShadowDocument)start).getProperty(Page.elements)) {
+
+				// only include toplevel elements of the shadow document
+				if (child.getProperty(DOMNode.parent) == null) {
+
+					calculateHash(child, buf, depth+1);
+				}
+			}
+
+		} else {
+
+			for (final DOMNode child : start.getProperty(DOMNode.children)) {
+
+				calculateHash(child, buf, depth+1);
+			}
 		}
 
 		buf.append("}");
@@ -419,10 +646,19 @@ public class DeploymentTest extends StructrUiTest {
 		return "";
 	}
 
-	private <T> T createElement(final Page page, final DOMNode parent, final String tag) {
+	private <T extends Node> T createElement(final Page page, final DOMNode parent, final String tag, final String... content) {
 
 		final T child = (T)page.createElement(tag);
 		parent.appendChild((DOMNode)child);
+
+		if (content != null && content.length > 0) {
+
+			for (final String text : content) {
+
+				final Node node = page.createTextNode(text);
+				child.appendChild(node);
+			}
+		}
 
 		return child;
 	}
@@ -434,7 +670,9 @@ public class DeploymentTest extends StructrUiTest {
 			new NodeAttribute<>(Template.ownerDocument, page)
 		);
 
-		parent.appendChild((DOMNode)template);
+		if (parent != null) {
+			parent.appendChild((DOMNode)template);
+		}
 
 		return template;
 	}
@@ -453,6 +691,14 @@ public class DeploymentTest extends StructrUiTest {
 		parent.appendChild((DOMNode)child);
 
 		return child;
+	}
+
+	private <T> T createComponent(final DOMNode node) throws FrameworkException {
+		return (T) new CreateComponentCommand().create(node);
+	}
+
+	private <T> T cloneComponent(final DOMNode node, final DOMNode parentNode) throws FrameworkException {
+		return (T) new CloneComponentCommand().cloneComponent(node, parentNode);
 	}
 
 	// ----- nested classes -----

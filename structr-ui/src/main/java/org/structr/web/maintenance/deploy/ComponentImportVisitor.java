@@ -171,11 +171,10 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 
 	private void createComponent(final Path file, final String fileName) throws IOException, FrameworkException {
 
-		final String componentName      = StringUtils.substringBeforeLast(fileName, ".html");
-		final boolean byId              = DeployCommand.isUuid(componentName);
-		final String name               = byId ? null : componentName;
-		final PropertyMap properties    = getPropertiesForComponent(componentName);
+		final String name               = StringUtils.substringBeforeLast(fileName, ".html");
+		final PropertyMap properties    = getPropertiesForComponent(name);
 		final DOMNode existingComponent = getExistingComponent(name);
+		final boolean byId              = DeployCommand.isUuid(name);
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
@@ -210,7 +209,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 
 						// set UUID
 						rootElement.unlockSystemPropertiesOnce();
-						rootElement.setProperty(GraphObject.id, componentName);
+						rootElement.setProperty(GraphObject.id, name);
 
 					} else {
 

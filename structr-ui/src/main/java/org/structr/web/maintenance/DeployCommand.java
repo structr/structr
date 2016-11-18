@@ -74,6 +74,7 @@ import org.structr.web.maintenance.deploy.FileImportVisitor;
 import org.structr.web.maintenance.deploy.PageImportVisitor;
 import org.structr.web.maintenance.deploy.SchemaImportVisitor;
 import org.structr.web.maintenance.deploy.TemplateImportVisitor;
+import org.structr.websocket.command.CreateComponentCommand;
 
 /**
  *
@@ -490,7 +491,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					final boolean inTrash   = node.inTrash();
 
 					// skip templates, nodes in trash and non-toplevel nodes
-					if (inTrash || hasParent) {
+					if (node instanceof Template || inTrash || hasParent) {
 						continue;
 					}
 
@@ -571,7 +572,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void exportTemplateSource(final Path target, final DOMNode template, final Map<String, Object> configuration) {
+	private void exportTemplateSource(final Path target, final DOMNode template, final Map<String, Object> configuration) throws FrameworkException {
 
 		final Map<String, Object> properties = new LinkedHashMap<>();
 
@@ -651,7 +652,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void exportConfiguration(final DOMNode node, final Map<String, Object> config) {
+	private void exportConfiguration(final DOMNode node, final Map<String, Object> config) throws FrameworkException {
 
 		putIf(config, "visibleToPublicUsers",        node.isVisibleToPublicUsers());
 		putIf(config, "visibleToAuthenticatedUsers", node.isVisibleToAuthenticatedUsers());
@@ -661,7 +662,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		if (node instanceof Template) {
-			putIf(config, "type", node.getProperty(AbstractNode.type));
+
+			// mark this template as being shared
+			if (node.getOwnerDocument().equals(CreateComponentCommand.getOrCreateHiddenDocument())) {
+				putIf(config, "shared", "true");
+			}
 		}
 
 		if (node instanceof Page) {
