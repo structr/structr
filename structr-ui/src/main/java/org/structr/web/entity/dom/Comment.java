@@ -18,6 +18,8 @@
  */
 package org.structr.web.entity.dom;
 
+import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.NonIndexed;
 import org.structr.web.common.RenderContext;
@@ -27,6 +29,18 @@ import org.structr.web.common.RenderContext;
  *
  */
 public class Comment extends Content implements org.w3c.dom.Comment, NonIndexed {
+
+	@Override
+	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		if (super.isValid(errorBuffer)) {
+
+			setProperty(Comment.contentType, "text/html");
+			return true;
+		}
+
+		return false;
+	}
 
 	@Override
 	public void render(RenderContext renderContext, int depth) throws FrameworkException {

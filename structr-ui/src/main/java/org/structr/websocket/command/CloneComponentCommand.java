@@ -49,7 +49,7 @@ public class CloneComponentCommand extends AbstractCommand {
 		String id				= webSocketData.getId();
 		Map<String, Object> nodeData		= webSocketData.getNodeData();
 		String parentId				= (String) nodeData.get("parentId");
-		
+
 		// check node to append
 		if (id == null) {
 
@@ -84,16 +84,13 @@ public class CloneComponentCommand extends AbstractCommand {
 
 		try {
 
-			DOMNode clonedNode = (DOMNode) node.cloneNode(false);
-			parentNode.appendChild(clonedNode);
-			clonedNode.setProperty(DOMNode.sharedComponent, node);
-			clonedNode.setProperty(DOMNode.ownerDocument, (parentNode instanceof Page ? (Page) parentNode : parentNode.getProperty(DOMNode.ownerDocument)));
-			
+			cloneComponent(node, parentNode);
+
 		} catch (DOMException | FrameworkException ex) {
 
 			// send DOM exception
 			getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);
-			
+
 		}
 
 
@@ -105,5 +102,15 @@ public class CloneComponentCommand extends AbstractCommand {
 		return "CLONE_COMPONENT";
 
 	}
-	
+
+	public DOMNode cloneComponent(final DOMNode node, final DOMNode parentNode) throws FrameworkException {
+
+		final DOMNode clonedNode = (DOMNode) node.cloneNode(false);
+
+		parentNode.appendChild(clonedNode);
+		clonedNode.setProperty(DOMNode.sharedComponent, node);
+		clonedNode.setProperty(DOMNode.ownerDocument, (parentNode instanceof Page ? (Page) parentNode : parentNode.getProperty(DOMNode.ownerDocument)));
+
+		return clonedNode;
+	}
 }

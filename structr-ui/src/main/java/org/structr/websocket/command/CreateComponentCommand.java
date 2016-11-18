@@ -55,24 +55,7 @@ public class CreateComponentCommand extends AbstractCommand {
 
 			try {
 
-				final DOMNode clonedNode = (DOMNode) node.cloneNode(false);
-
-				// Child nodes of a template must stay in page tree
-				if (!(clonedNode instanceof Template)) {
-
-					moveChildNodes(node, clonedNode);
-
-				}
-
-				final ShadowDocument hiddenDoc = CreateComponentCommand.getOrCreateHiddenDocument();
-				clonedNode.setProperty(DOMNode.ownerDocument, hiddenDoc);
-
-				// Change page (owner document) of all children recursively
-				for (DOMNode child : DOMNode.getAllChildNodes(clonedNode)) {
-					child.setProperty((DOMNode.ownerDocument), hiddenDoc);
-				}
-
-				node.setProperty(DOMNode.sharedComponent, clonedNode);
+				final DOMNode clonedNode = create(node);
 
 				TransactionCommand.registerNodeCallback(clonedNode, callback);
 
@@ -98,5 +81,26 @@ public class CreateComponentCommand extends AbstractCommand {
 
 	}
 
+	public DOMNode create(final DOMNode node) throws FrameworkException {
 
+		final DOMNode clonedNode = (DOMNode) node.cloneNode(false);
+
+		// Child nodes of a template must stay in page tree
+		if (!(clonedNode instanceof Template)) {
+
+			moveChildNodes(node, clonedNode);
+		}
+
+		final ShadowDocument hiddenDoc = CreateComponentCommand.getOrCreateHiddenDocument();
+		clonedNode.setProperty(DOMNode.ownerDocument, hiddenDoc);
+
+		// Change page (owner document) of all children recursively
+		for (DOMNode child : DOMNode.getAllChildNodes(clonedNode)) {
+			child.setProperty((DOMNode.ownerDocument), hiddenDoc);
+		}
+
+		node.setProperty(DOMNode.sharedComponent, clonedNode);
+
+		return clonedNode;
+	}
 }

@@ -37,11 +37,13 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.dom.Template;
 import org.structr.web.importer.Importer;
+import org.structr.web.maintenance.DeployCommand;
 import org.structr.websocket.command.CreateComponentCommand;
 
 /**
@@ -49,7 +51,8 @@ import org.structr.websocket.command.CreateComponentCommand;
  */
 public class TemplateImportVisitor implements FileVisitor<Path> {
 
-	private static final Logger logger       = LoggerFactory.getLogger(TemplateImportVisitor.class.getName());
+	private static final Logger logger          = LoggerFactory.getLogger(TemplateImportVisitor.class.getName());
+	private static final GenericProperty internalSharedTemplateKey = new GenericProperty("shared");
 
 	private Map<String, Object> configuration = null;
 	private SecurityContext securityContext   = null;
@@ -110,7 +113,7 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 		final App app = StructrApp.getInstance();
 		try (final Tx tx = app.tx()) {
 
-			return Importer.findTemplateByName(name);
+			return Importer.findSharedComponentByName(name);
 
 		} catch (FrameworkException fex) {
 			logger.warn("Unable to determine if template {} already exists, ignoring.", name);
@@ -143,7 +146,6 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 		if (data != null && data instanceof Map) {
 
 			return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), DOMNode.class, (Map<String, Object>)data);
-
 		}
 
 		return new PropertyMap();
@@ -151,29 +153,12 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 
 	private void createTemplate(final Path file, final String fileName) throws IOException, FrameworkException {
 
-		final String templateName      = StringUtils.substringBeforeLast(fileName, ".html");
-
-		final boolean byId = templateName.matches("[a-f0-9]{32}");
+		final String templateName = StringUtils.substringBeforeLast(fileName, ".html");
+		final boolean byId        = DeployCommand.isUuid(templateName);
 
 		// don't set template name if template name is a UUID in the deployment
 		final String name              = byId ? null : templateName;
 		final PropertyMap properties   = getPropertiesForTemplate(templateName);
-
-		try (final Tx tx = app.tx(true, false, false)) {
-
-			final DOMNode existingTemplate = byId ? (DOMNode) app.get(templateName) : getExistingTemplate(name);
-
-			if (existingTemplate != null) {
-				deleteTemplate(app, name);
-			}
-
-			tx.success();
-
-		} catch (Exception ex) {
-
-			logger.debug("Error trying to delete existing template {}", fileName);
-		}
-
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
@@ -195,21 +180,26 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 
 			} else {
 
-				final ShadowDocument shadowDocument = CreateComponentCommand.getOrCreateHiddenDocument();
-				final DOMNode existingTemplate      = getExistingTemplate(name);
+				final DOMNode existingTemplate = getExistingTemplate(name);
 
 				if (existingTemplate != null) {
 					deleteTemplate(app, name);
 				}
 
-				// named templates need to sit in the shadow document
-				template = app.create(Template.class,
-					new NodeAttribute(Template.ownerDocument, shadowDocument),
-					new NodeAttribute(AbstractNode.name, name)
-				);
+				template = app.create(Template.class);
+				properties.put(Template.name, name);
 			}
 
 			properties.put(Template.content, src);
+
+			// insert "shared" templates into ShadowDocument
+			final Object value = properties.get(internalSharedTemplateKey);
+			if (value != null && "true".equals(value)) {
+
+				final ShadowDocument shadowDocument = CreateComponentCommand.getOrCreateHiddenDocument();
+				template.setProperty(DOMNode.ownerDocument, shadowDocument);
+				properties.remove(internalSharedTemplateKey);
+			}
 
 			// store properties from templates.json if present
 			template.setProperties(securityContext, properties);
