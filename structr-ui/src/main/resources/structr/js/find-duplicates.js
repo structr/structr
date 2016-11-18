@@ -49,8 +49,11 @@ var _DuplicateFinder = new (function () {
 			if ($tr && $tr.length) {
 
 				var $input = $tr.find('.duplicate-obj-edit-name input');
-				$input.val(obj.name);
-				blinkGreen($input);
+
+				if (obj.name !== $input.val()) {
+					$input.val(obj.name);
+					blinkGreen($input);
+				}
 
 				_checkTableForConflicts($tr.closest('table'));
 
