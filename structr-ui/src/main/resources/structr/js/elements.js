@@ -791,11 +791,11 @@ var _Elements = {
 		});
 
 		$(div).on('mouseup', function(e) {
-			e.stopPropagation();
-
 			if (e.button !== 2) {
 				return;
 			}
+
+			e.stopPropagation();
 
 			_Elements.removeContextMenu();
 			div.addClass('contextMenuActive');
