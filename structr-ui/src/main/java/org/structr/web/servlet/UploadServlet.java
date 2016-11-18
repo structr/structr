@@ -350,7 +350,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
 
-		try (final Tx tx = StructrApp.getInstance().tx(false, false, false)) {
+		try (final Tx tx = StructrApp.getInstance().tx(true, false, false)) {
 
 			final String uuid = PathHelper.getName(request.getPathInfo());
 

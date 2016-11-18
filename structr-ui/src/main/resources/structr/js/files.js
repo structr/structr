@@ -690,7 +690,7 @@ var _Files = {
 		var files = d.files || [];
 		var folders = d.folders || [];
 		var size = d.isFolder ? folders.length + files.length : (d.size ? d.size : '-');
-		var icon = d.isFolder ? 'fa-folder' : _Files.getIcon(d);
+		var icon = d.isFolder ? 'fa-folder' : _Icons.getFileIconClass(d);
 
 		if (viewMode === 'list') {
 
@@ -1199,29 +1199,30 @@ var _Files = {
 
 		});
 
-		//console.log('Search string:', searchString, url);
-
 		$.ajax({
 			url: url,
 			statusCode: {
 				200: function(data) {
 
-					//console.log(data.result);
-
 					if (!data.result || data.result.length === 0) {
+
 						container.append('<h1>No results for "' + searchString + '"</h1>');
 						container.append('<h2>Press ESC or click <a href="#filesystem" class="clear-results">here to clear</a> empty result list.</h2>');
 						$('.clear-results', container).on('click', function() {
 							_Files.clearSearch();
 						});
+
 						return;
+
 					} else {
+
 						container.append('<h1>' + data.result.length + ' search results:</h1><table class="props"><thead><th class="_type">Type</th><th>Name</th><th>Size</th></thead><tbody></tbody></table>');
 						data.result.forEach(function(d) {
-							var icon = _Files.getIcon(d);
-							$('tbody', container).append('<tr><td><i class="fa ' + icon + '"></i> ' + d.type + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td><td><a href="#results' + d.id + '">' + d.name + '</a></td><td>' + d.size + '</td></tr>');
+
+							$('tbody', container).append('<tr><td><i class="fa ' + _Icons.getFileIconClass(d) + '"></i> ' + d.type + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td><td><a href="#results' + d.id + '">' + d.name + '</a></td><td>' + d.size + '</td></tr>');
 
 						});
+
 					}
 
 					data.result.forEach(function(d) {
@@ -1234,16 +1235,15 @@ var _Files = {
 							statusCode: {
 								200: function(data) {
 
-									if (!data.result) return;
-
-									//console.log(data.result);
+									if (!data.result) {
+										return;
+									}
 
 									container.append('<div class="search-result collapsed" id="results' + d.id + '"></div>');
 
 									var div = $('#results' + d.id);
-									var icon = _Files.getIcon(d);
-									//div.append('<h2><img id="preview' + d.id + '" src="' + icon + '" style="margin-left: 6px;" title="' + d.extractedContent + '" />' + d.path + '</h2>');
-									div.append('<h2><i class="fa ' + icon + '"></i> ' + d.name + '<img id="preview' + d.id + '" src="' + _Icons.eye_icon + '" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
+
+									div.append('<h2><i class="fa ' + _Icons.getFileIconClass(d) + '"></i> ' + d.name + '<img id="preview' + d.id + '" src="' + _Icons.eye_icon + '" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
 									div.append('<i class="toggle-height fa fa-expand"></i>').append('<i class="go-to-top fa fa-chevron-up"></i>');
 
 									$('.toggle-height', div).on('click', function() {
@@ -1284,99 +1284,6 @@ var _Files = {
 			}
 
 		});
-	},
-	getIcon: function(file) {
-
-		var fileName = file.name;
-		var contentType = file.contentType;
-
-		var result = 'fa-file-o';
-
-		if (contentType) {
-
-			switch (contentType) {
-
-				case 'text/plain':
-					result = 'fa-file-text-o';
-					break;
-
-				case 'application/pdf':
-				case 'application/postscript':
-					result = 'fa-file-pdf-o';
-					break;
-
-				case 'application/x-pem-key':
-				case 'application/pkix-cert+pem':
-				case 'application/x-iwork-keynote-sffkey':
-					result = 'fa-key';
-					break;
-
-				case 'application/x-trash':
-					result = 'fa-trash-o';
-					break;
-
-				case 'application/octet-stream':
-					result = 'fa-terminal';
-					break;
-
-				case 'application/x-shellscript':
-				case 'application/javascript':
-				case 'application/xml':
-				case 'text/html':
-				case 'text/xml':
-					result = 'fa-file-code-o';
-					break;
-
-				case 'application/java-archive':
-				case 'application/zip':
-				case 'application/rar':
-				case 'application/x-bzip':
-					result = 'fa-file-archive-o';
-					break;
-
-				case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
-				case 'application/vnd.oasis.opendocument.text':
-				case 'application/msword':
-					result = 'fa-file-word-o';
-					break;
-
-				case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
-				case 'application/vnd.oasis.opendocument.spreadsheet':
-				case 'application/vnd.ms-excel':
-					result = 'fa-file-excel-o';
-					break;
-
-				case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
-					result = 'fa-file-powerpoint-o';
-					break;
-
-				case 'image/jpeg':
-					result = 'fa-picture-o';
-					break;
-
-				case 'application/vnd.oasis.opendocument.chart':
-					result = 'fa-line-chart';
-					break;
-
-				default:
-					if (contentType.startsWith('image/')) {
-						result = 'fa-file-image-o';
-					} else if (contentType.startsWith('text/')) {
-						result = 'fa-file-text-o';
-					}
-			}
-
-			if (fileName && fileName.contains('.')) {
-
-				var fileExtensionPosition = fileName.lastIndexOf('.') + 1;
-				var fileExtension = fileName.substring(fileExtensionPosition);
-
-				// add file extension css class to control colors
-				result = fileExtension + ' ' + result;
-			}
-		}
-
-		return result;
 	},
 	updateTextFile: function(file, text) {
 		var chunks = Math.ceil(text.length / chunkSize);

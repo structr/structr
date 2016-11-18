@@ -470,7 +470,6 @@ var _Elements = {
 		}
 
 		_Entities.appendEditPropertiesIcon(div, entity);
-		//_Entities.appendDataIcon(div, entity);
 
 		if (entity.tag === 'a' || entity.tag === 'link' || entity.tag === 'script' || entity.tag === 'img' || entity.tag === 'video' || entity.tag === 'object') {
 
@@ -527,30 +526,8 @@ var _Elements = {
 
 							var div = $('.' + page.id + '_', pagesToLink);
 
-							if (isIn(entity.id, page.linkingElements)) {
-								div.addClass('nodeActive');
-							}
+							_Elements.handleLinkableElement(div, entity, page);
 
-							div.on('click', function(e) {
-								e.stopPropagation();
-								if (div.hasClass('nodeActive')) {
-									Command.setProperty(entity.id, 'linkableId', null);
-								} else {
-									Command.link(entity.id, page.id);
-								}
-								_Entities.reloadChildren(entity.parent.id);
-								$('#dialogBox .dialogText').empty();
-								_Pages.reloadPreviews();
-								$.unblockUI({
-									fadeOut: 25
-								});
-							}).css({
-								cursor: 'pointer'
-							}).hover(function() {
-								$(this).addClass('nodeHover');
-							}, function() {
-								$(this).removeClass('nodeHover');
-							});
 						});
 
 					});
@@ -561,9 +538,7 @@ var _Elements = {
 					var foldersToLink = $('#foldersToLink');
 
 					_Pager.initPager('folders-to-link', 'Folder', 1, 25);
-					_Pager.initFilters('folders-to-link', 'Folder', {
-						hasParent: false
-					});
+					_Pager.initFilters('folders-to-link', 'Folder', { hasParent: false });
 					var linkFolderPager = _Pager.addPager('folders-to-link', foldersToLink, true, 'Folder', 'public', function(folders) {
 
 						folders.forEach(function(folder) {
@@ -602,35 +577,12 @@ var _Elements = {
 
 						files.forEach(function(file) {
 
-							filesToLink.append('<div class="node file ' + file.id + '_"><i class="fa ' + _Files.getIcon(file) + '"></i> '
+							filesToLink.append('<div class="node file ' + file.id + '_"><i class="fa ' + _Icons.getFileIconClass(file) + '"></i> '
 									+ '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
 
 							var div = $('.' + file.id + '_', filesToLink);
 
-							if (isIn(entity.id, file.linkingElements)) {
-								div.addClass('nodeActive');
-							}
-
-							div.on('click', function(e) {
-								e.stopPropagation();
-								if (div.hasClass('nodeActive')) {
-									Command.setProperty(entity.id, 'linkableId', null);
-								} else {
-									Command.link(entity.id, file.id);
-								}
-								_Entities.reloadChildren(entity.parent.id);
-								$('#dialogBox .dialogText').empty();
-								_Pages.reloadPreviews();
-								$.unblockUI({
-									fadeOut: 25
-								});
-							}).css({
-								cursor: 'pointer'
-							}).hover(function() {
-								$(this).addClass('nodeHover');
-							}, function() {
-								$(this).removeClass('nodeHover');
-							});
+							_Elements.handleLinkableElement(div, entity, file);
 
 						});
 
@@ -652,36 +604,12 @@ var _Elements = {
 
 						images.forEach(function(image) {
 
-							imagesToLink.append('<div class="node file ' + image.id + '_"><img class="typeIcon" src="' + _Images.getIcon(image) + '">'
+							imagesToLink.append('<div class="node file ' + image.id + '_"><img class="typeIcon" src="' + _Icons.getImageIcon(image) + '">'
 									+ '<b title="' + image.name + '" class="name_">' + image.name + '</b></div>');
 
 							var div = $('.' + image.id + '_', imagesToLink);
 
-							if (isIn(entity.id, image.linkingElements)) {
-								div.addClass('nodeActive');
-							}
-
-							div.on('click', function(e) {
-								e.stopPropagation();
-								if (div.hasClass('nodeActive')) {
-									//console.log('removing')
-									Command.setProperty(entity.id, 'linkableId', null);
-								} else {
-									Command.link(entity.id, image.id);
-								}
-								_Entities.reloadChildren(entity.parent.id);
-								$('#dialogBox .dialogText').empty();
-								_Pages.reloadPreviews();
-								$.unblockUI({
-									fadeOut: 25
-								});
-							}).css({
-								cursor: 'pointer'
-							}).hover(function() {
-								$(this).addClass('nodeHover');
-							}, function() {
-								$(this).removeClass('nodeHover');
-							});
+							_Elements.handleLinkableElement(div, entity, image);
 
 						});
 
@@ -705,12 +633,12 @@ var _Elements = {
 		return classIdString;
 	},
 	expandFolder: function(e, entity, folder, callback) {
+
 		if (folder.files.length + folder.folders.length === 0) {
 			return;
 		}
 
 		var div = $('.' + folder.id + '_');
-		//div.css({'border': '1px solid #ccc', 'backgroundColor': '#f5f5f5'});
 
 		div.children('b').on('click', function() {
 			$(this).siblings('.node.sub').remove();
@@ -718,8 +646,10 @@ var _Elements = {
 
 		$.each(folder.folders, function(i, subFolder) {
 			e.stopPropagation();
+
 			$('.' + folder.id + '_').append('<div class="clear"></div><div class="node folder sub ' + subFolder.id + '_"><i class="fa fa-folder"></i> '
 					+ '<b title="' + subFolder.name + '" class="name_">' + subFolder.name + '</b></div>');
+
 			var subDiv = $('.' + subFolder.id + '_');
 
 			subDiv.on('click', function(e) {
@@ -746,37 +676,49 @@ var _Elements = {
 
 			Command.get(f.id, function(file) {
 
-				$('.' + folder.id + '_').append('<div class="clear"></div><div class="node file sub ' + file.id + '_"><i class="fa ' + _Files.getIcon(file) + '"></i> '
+				$('.' + folder.id + '_').append('<div class="clear"></div><div class="node file sub ' + file.id + '_"><i class="fa ' + _Icons.getFileIconClass(file) + '"></i> '
 						+ '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
+
 				var div = $('.' + file.id + '_');
 
-				if (isIn(entity.id, file.linkingElements)) {
-					div.addClass('nodeActive');
-				}
+				_Elements.handleLinkableElement(div, entity, file);
 
-				div.on('click', function(e) {
-					e.stopPropagation();
-					if (div.hasClass('nodeActive')) {
-						Command.setProperty(entity.id, 'linkableId', null);
-					} else {
-						Command.link(entity.id, file.id);
-					}
-					_Entities.reloadChildren(entity.parent.id);
-					$('#dialogBox .dialogText').empty();
-					_Pages.reloadPreviews();
-					$.unblockUI({
-						fadeOut: 25
-					});
-				}).css({
-					cursor: 'pointer'
-				}).hover(function() {
-					$(this).addClass('nodeHover');
-				}, function() {
-					$(this).removeClass('nodeHover');
-				});
 			});
 
 		});
+	},
+	handleLinkableElement: function (div, entityToLinkTo, linkableObject) {
+
+		if (isIn(entityToLinkTo.id, linkableObject.linkingElements)) {
+			div.addClass('nodeActive');
+		}
+
+		div.on('click', function(event) {
+
+			event.stopPropagation();
+
+			if (div.hasClass('nodeActive')) {
+				Command.setProperty(entityToLinkTo.id, 'linkableId', null);
+			} else {
+				Command.link(entityToLinkTo.id, linkableObject.id);
+			}
+
+			_Entities.reloadChildren(entityToLinkTo.parent.id);
+
+			$('#dialogBox .dialogText').empty();
+			_Pages.reloadPreviews();
+
+			$.unblockUI({
+				fadeOut: 25
+			});
+		}).css({
+			cursor: 'pointer'
+		}).hover(function() {
+			$(this).addClass('nodeHover');
+		}, function() {
+			$(this).removeClass('nodeHover');
+		});
+
 	},
 	appendContextMenu: function(div, entity) {
 
@@ -828,7 +770,7 @@ var _Elements = {
 				{
 					visible: (entity.type !== 'Content'),
 					name: 'Insert HTML element',
-					elements: (entity.type !== 'Page') ? _Elements.sortedElementGroups : ['html'],
+					elements: (entity.type !== 'Page') ? _Elements.sortedElementGroups : ['html']
 				},
 				{
 					visible: (entity.type !== 'Content'),
@@ -990,13 +932,7 @@ var _Elements = {
 
 				$('#add-child-dialog').append(
 					'<ul class="' + cssPositionClasses + '" id="element-menu-' + i + '"><li id="element-group-switch-' + i + '">' + item.name +
-					(isSubmenu ?
-						'<i class="fa fa-caret-right pull-right"></i>' +
-						'<ul class="element-group hidden ' +
-						cssPositionClasses +
-						'" id="element-group-' + i + '"></ul>'
-						: ''
-					) +
+					(isSubmenu ? '<i class="fa fa-caret-right pull-right"></i><ul class="element-group hidden ' + cssPositionClasses + '" id="element-group-' + i + '"></ul>' : '' ) +
 					'</li></ul>'
 				);
 

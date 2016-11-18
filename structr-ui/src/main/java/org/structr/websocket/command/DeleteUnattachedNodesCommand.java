@@ -58,7 +58,7 @@ public class DeleteUnattachedNodesCommand extends AbstractCommand {
 
 		final List<AbstractNode> filteredResults = new LinkedList<>();
 		
-		try (final Tx tx = app.tx(false, false, false)) {
+		try (final Tx tx = app.tx(true, false, false)) {
 
 			// Get all top nodes, use method from list command
 			final List<AbstractNode> topNodes = ListUnattachedNodesCommand.getUnattachedNodes(app, securityContext, webSocketData);

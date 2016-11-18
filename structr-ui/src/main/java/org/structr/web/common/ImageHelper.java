@@ -29,15 +29,20 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.util.Base64;
 import static org.structr.web.common.FileHelper.setFileData;
+import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Image;
+import org.structr.web.entity.relation.Thumbnails;
+import org.structr.web.property.ThumbnailProperty;
 
 public abstract class ImageHelper extends FileHelper {
 
@@ -116,10 +121,106 @@ public abstract class ImageHelper extends FileHelper {
 
 	}
 
+	public static void findAndReconnectThumbnails(final Image originalImage) {
+		
+		final App app = StructrApp.getInstance();
+		
+		final Integer origWidth  = originalImage.getWidth();
+		final Integer origHeight = originalImage.getHeight();
+		
+		if (origWidth == null || origHeight == null) {
+			logger.info("Could not determine width and heigth for {}", originalImage.getName());
+			return;
+		}
+		
+		for (ThumbnailProperty tnProp : new ThumbnailProperty[]{ (ThumbnailProperty) Image.tnSmall, (ThumbnailProperty) Image.tnMid }) {
+		
+			int maxWidth  = tnProp.getWidth();
+			int maxHeight = tnProp.getHeight();
+			boolean crop  = tnProp.getCrop();
+
+			final String tnName = originalImage.getThumbnailName(originalImage.getName(),
+					getThumbnailWidth(origWidth, origHeight, maxWidth, maxHeight, crop),
+					getThumbnailHeight(origWidth, origHeight, maxWidth, maxHeight, crop));
+
+			try {
+
+				final Image thumbnail = (Image) app.nodeQuery(Image.class).and(Image.path, PathHelper.getFolderPath(originalImage.getProperty(Image.path)) + PathHelper.PATH_SEP + tnName).getFirst();
+				
+				if (thumbnail != null) {
+					app.create(originalImage, thumbnail, Thumbnails.class);
+				}
+
+			} catch (FrameworkException ex) {
+				logger.debug("Error reconnecting thumbnail " + tnName + " to original image " + originalImage.getName(), ex);
+			}
+		
+		}
+	}
+	
+	public static void findAndReconnectOriginalImage(final Image thumbnail) {
+		
+		final String originalImageName = thumbnail.getOriginalImageName();
+		try {
+			
+			final App app = StructrApp.getInstance();
+			final Image originalImage = (Image) app.nodeQuery(Image.class).and(Image.path, PathHelper.getFolderPath(thumbnail.getProperty(Image.path)) + PathHelper.PATH_SEP + originalImageName).getFirst();
+			
+			if (originalImage != null) {
+				
+				final PropertyMap relProperties = new PropertyMap();
+				relProperties.put(Image.width,                  thumbnail.getWidth());
+				relProperties.put(Image.height,                 thumbnail.getHeight());
+				relProperties.put(Image.checksum,               originalImage.getChecksum());
+
+				app.create(originalImage, thumbnail, Thumbnails.class, relProperties);
+			}
+			
+		} catch (FrameworkException ex) {
+			logger.debug("Error reconnecting thumbnail " + thumbnail.getName() + " to original image " + originalImageName, ex);
+		}
+		
+	}
+
 	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight) {
 
 		return createThumbnail(originalImage, maxWidth, maxHeight, false);
 
+	}
+
+	public static float getScale(final int sourceWidth, final int sourceHeight, final int maxWidth, final int maxHeight, final boolean crop) {
+		
+		// float aspectRatio = sourceWidth/sourceHeight;
+		final float scaleX = 1.0f * sourceWidth / maxWidth;
+		final float scaleY = 1.0f * sourceHeight / maxHeight;
+		final float scale;
+
+		if (crop) {
+
+			scale = Math.min(scaleX, scaleY);
+
+		} else {
+
+			scale = Math.max(scaleX, scaleY);
+		}
+	
+		return scale;
+	}
+	
+	public static int getThumbnailWidth(final int sourceWidth, final int sourceHeight, final int maxWidth, final int maxHeight, final boolean crop) {
+		return Math.max(4, Math.round(sourceWidth / getScale(sourceWidth, sourceHeight, maxWidth, maxHeight, crop)));
+	}
+	
+	public static int getThumbnailHeight(final int sourceWidth, final int sourceHeight, final int maxWidth, final int maxHeight, final boolean crop) {
+		return Math.max(4, Math.round(sourceHeight / getScale(sourceWidth, sourceHeight, maxWidth, maxHeight, crop)));
+	}
+
+	public static int getThumbnailWidth(final Image originalImage, final int maxWidth, final int maxHeight, final boolean crop) {
+		return getThumbnailWidth(originalImage.getWidth(), originalImage.getHeight(), maxWidth, maxHeight, crop);
+	}
+	
+	public static int getThumbnailHeight(final Image originalImage, final int maxWidth, final int maxHeight, final boolean crop) {
+		return getThumbnailHeight(originalImage.getWidth(), originalImage.getHeight(), maxWidth, maxHeight, crop);
 	}
 
 	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight, final boolean crop) {
@@ -149,24 +250,13 @@ public abstract class ImageHelper extends FileHelper {
 				originalImage.setProperty(Image.height, sourceHeight);
 
 				// float aspectRatio = sourceWidth/sourceHeight;
-				final float scaleX = 1.0f * sourceWidth / maxWidth;
-				final float scaleY = 1.0f * sourceHeight / maxHeight;
-				final float scale;
-
-				if (crop) {
-
-					scale = Math.min(scaleX, scaleY);
-
-				} else {
-
-					scale = Math.max(scaleX, scaleY);
-				}
+				final float scale = getScale(sourceWidth, sourceHeight, maxWidth, maxHeight, crop);
 
 				// Don't scale up
 				if (scale > 1.0) {
 
-					final int destWidth  = Math.max(4, Math.round(sourceWidth / scale));
-					final int destHeight = Math.max(4, Math.round(sourceHeight / scale));
+					final int destWidth  = getThumbnailWidth(sourceWidth, sourceHeight, maxWidth, maxHeight, crop);
+					final int destHeight = getThumbnailHeight(sourceWidth, sourceHeight, maxWidth, maxHeight, crop);
 
 					//System.out.println(destWidth + " / " + destHeight);
 
@@ -293,6 +383,45 @@ public abstract class ImageHelper extends FileHelper {
 
 		return out.toByteArray();
 
+	}
+
+	/**
+	 * Update width and height
+	 *
+	 * @param image the image
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	public static void updateMetadata(final FileBase image) throws FrameworkException, IOException {
+
+		updateMetadata(image, image.getInputStream());
+	}
+
+	/**
+	 * Update width and height
+	 *
+	 * @param image the image
+	 * @param fis file input stream
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	public static void updateMetadata(final FileBase image, final InputStream fis) throws FrameworkException, IOException {
+
+		final BufferedImage source = ImageIO.read(fis);
+
+		if (source != null) {
+
+			final int sourceWidth  = source.getWidth();
+			final int sourceHeight = source.getHeight();		
+
+			final PropertyMap map = new PropertyMap();
+
+			map.put(Image.width, sourceWidth);
+			map.put(Image.height, sourceHeight);
+
+			image.setProperties(image.getSecurityContext(), map);
+			
+		}
 	}
 
 	//~--- get methods ----------------------------------------------------

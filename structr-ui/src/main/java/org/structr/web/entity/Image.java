@@ -18,6 +18,7 @@
  */
 package org.structr.web.entity;
 
+import groovyjarjarantlr.StringUtils;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -421,4 +422,15 @@ public class Image extends org.structr.dynamic.File {
 
 	}
 
+	/**
+	 * @return the name of the original image
+	 */
+	public String getOriginalImageName() {
+
+		final Integer tnWidth =  getWidth();
+		final Integer tnHeight = getHeight();
+
+		return StringUtils.stripBack(getName(),  "_thumb_" + tnWidth + "x" + tnHeight);
+
+	}
 }
