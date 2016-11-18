@@ -42,6 +42,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.importer.Importer;
+import org.structr.web.maintenance.DeployCommand;
 import org.structr.websocket.command.CreateComponentCommand;
 
 /**
@@ -170,8 +171,10 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 
 	private void createComponent(final Path file, final String fileName) throws IOException, FrameworkException {
 
-		final String name               = StringUtils.substringBeforeLast(fileName, ".html");
-		final PropertyMap properties    = getPropertiesForComponent(name);
+		final String componentName      = StringUtils.substringBeforeLast(fileName, ".html");
+		final boolean byId              = DeployCommand.isUuid(componentName);
+		final String name               = byId ? null : componentName;
+		final PropertyMap properties    = getPropertiesForComponent(componentName);
 		final DOMNode existingComponent = getExistingComponent(name);
 
 		try (final Tx tx = app.tx(true, false, false)) {
@@ -203,8 +206,17 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 
 				if (rootElement != null) {
 
-					// set name
-					rootElement.setProperty(AbstractNode.name, name);
+					if (byId) {
+
+						// set UUID
+						rootElement.unlockSystemPropertiesOnce();
+						rootElement.setProperty(GraphObject.id, componentName);
+
+					} else {
+
+						// set name
+						rootElement.setProperty(AbstractNode.name, name);
+					}
 
 					// store properties from pages.json if present
 					if (properties != null) {

@@ -112,7 +112,7 @@ public class Template extends Content {
 			} else {
 				out.append("</structr:component>");
 			}
-			
+
 			out.append(DOMNode.indent(depth-1, renderContext));
 
 		} else {

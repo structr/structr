@@ -116,6 +116,7 @@ public class Importer {
 	private static final String[] srcElements        = new String[]{"img", "script", "audio", "video", "input", "source", "track"};
 
 	private static final Map<String, String> contentTypeForExtension = new HashMap<>();
+	private static final Pattern pattern     = Pattern.compile("[a-f0-9]{32}");
 
 	private static App app;
 	private static ConfigurationProvider config;
@@ -710,7 +711,7 @@ public class Importer {
 						// fallback: find by UUID
 						component = StructrApp.getInstance().get(DOMNode.class, src);
 						if (component != null) {
-							
+
 							newNode = (DOMNode) component.cloneNode(false);
 							newNode.setProperty(DOMNode.sharedComponent, component);
 							newNode.setProperty(DOMNode.ownerDocument, page);

@@ -38,6 +38,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,7 +80,8 @@ import org.structr.web.maintenance.deploy.TemplateImportVisitor;
  */
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
 
-	private static final Logger logger = LoggerFactory.getLogger(BulkMoveUnusedFilesCommand.class.getName());
+	private static final Logger logger   = LoggerFactory.getLogger(BulkMoveUnusedFilesCommand.class.getName());
+	private static final Pattern pattern = Pattern.compile("[a-f0-9]{32}");
 
 	static {
 
@@ -105,6 +107,32 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	public boolean requiresEnclosingTransaction() {
 		return false;
 	}
+
+	public Map<String, Object> readConfigMap(final Path pagesConf) {
+
+		if (Files.exists(pagesConf)) {
+
+			try (final Reader reader = Files.newBufferedReader(pagesConf, Charset.forName("utf-8"))) {
+
+				return new HashMap<>(getGson().fromJson(reader, Map.class));
+
+			} catch (IOException ioex) {
+				ioex.printStackTrace();
+			}
+		}
+
+		return new HashMap<>();
+	}
+
+	public Gson getGson() {
+		return new GsonBuilder().setPrettyPrinting().create();
+	}
+
+	// ----- public static methods -----
+	public static boolean isUuid(final String name) {
+		return pattern.matcher(name).matches();
+	}
+
 
 	// ----- private methods -----
 	private void doImport(final Map<String, Object> attributes) throws FrameworkException {
@@ -458,8 +486,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				for (final DOMNode node : shadowDocument.getProperty(Page.elements)) {
 
+					final boolean hasParent = node.getProperty(DOMNode.parent) != null;
+					final boolean inTrash   = node.inTrash();
+
 					// skip templates, nodes in trash and non-toplevel nodes
-					if (node instanceof Content || node.inTrash() || node.getProperty(DOMNode.parent) != null) {
+					if (inTrash || hasParent) {
 						continue;
 					}
 
@@ -514,7 +545,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// export template nodes anywhere in the pages tree which are not related to shared components
 			for (final Template template : app.nodeQuery(Template.class).getAsList()) {
 
-				if (template.inTrash() || template.getProperty(DOMNode.sharedComponent) != null) {
+				final boolean inTrash     = template.inTrash();
+				final boolean isShared    = template.getProperty(DOMNode.sharedComponent) != null;
+
+				// FIXME: the below statement selects the exact same node for export that
+				// has already been exported as a shared component. Shouldn't we rather
+				// export the actual node in the pages tree?
+
+				if (inTrash || isShared) {
 					continue;
 				}
 
@@ -622,6 +660,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putIf(config, "contentType",             node.getProperty(Content.contentType));
 		}
 
+		if (node instanceof Template) {
+			putIf(config, "type", node.getProperty(AbstractNode.type));
+		}
+
 		if (node instanceof Page) {
 			putIf(config, "position",                node.getProperty(Page.position));
 			putIf(config, "showOnErrorCodes",        node.getProperty(Page.showOnErrorCodes));
@@ -654,19 +696,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (value != null) {
 			target.put(key, value);
 		}
-	}
-
-	private Map<String, Object> readConfigMap(final Path pagesConf) {
-
-		try (final Reader reader = Files.newBufferedReader(pagesConf, Charset.forName("utf-8"))) {
-
-			return getGson().fromJson(reader, Map.class);
-
-		} catch (IOException ioex) {
-			ioex.printStackTrace();
-		}
-
-		return Collections.emptyMap();
 	}
 
 	private List<Map<String, Object>> readConfigList(final Path pagesConf) {
@@ -731,9 +760,5 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			tx.success();
 		}
-	}
-
-	private Gson getGson() {
-		return new GsonBuilder().setPrettyPrinting().create();
 	}
 }

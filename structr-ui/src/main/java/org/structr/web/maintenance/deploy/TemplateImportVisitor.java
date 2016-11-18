@@ -42,6 +42,7 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.dom.Template;
 import org.structr.web.importer.Importer;
+import org.structr.web.maintenance.DeployCommand;
 import org.structr.websocket.command.CreateComponentCommand;
 
 /**
@@ -143,7 +144,6 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 		if (data != null && data instanceof Map) {
 
 			return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), DOMNode.class, (Map<String, Object>)data);
-
 		}
 
 		return new PropertyMap();
@@ -151,29 +151,10 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 
 	private void createTemplate(final Path file, final String fileName) throws IOException, FrameworkException {
 
-		final String templateName      = StringUtils.substringBeforeLast(fileName, ".html");
-
-		final boolean byId = templateName.matches("[a-f0-9]{32}");
-
-		// don't set template name if template name is a UUID in the deployment
-		final String name              = byId ? null : templateName;
-		final PropertyMap properties   = getPropertiesForTemplate(templateName);
-
-		try (final Tx tx = app.tx(true, false, false)) {
-
-			final DOMNode existingTemplate = byId ? (DOMNode) app.get(templateName) : getExistingTemplate(name);
-
-			if (existingTemplate != null) {
-				deleteTemplate(app, name);
-			}
-
-			tx.success();
-
-		} catch (Exception ex) {
-
-			logger.debug("Error trying to delete existing template {}", fileName);
-		}
-
+		final String templateName    = StringUtils.substringBeforeLast(fileName, ".html");
+		final boolean byId           = DeployCommand.isUuid(templateName);
+		final String name            = byId ? null : templateName;
+		final PropertyMap properties = getPropertiesForTemplate(templateName);
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
