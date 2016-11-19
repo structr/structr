@@ -147,6 +147,8 @@ public interface GraphObject {
 
 		final CreationContainer container = new CreationContainer(this);
 
+		boolean atLeastOnePropertyChanged = false;
+
 		for (final Entry<PropertyKey, Object> attr : properties.entrySet()) {
 
 			final PropertyKey key = attr.getKey();
@@ -156,7 +158,9 @@ public interface GraphObject {
 			if (value != null && AbstractCypherIndex.INDEXABLE.contains(valueType)) {
 
 				final Object oldValue = getProperty(key);
-				if (oldValue != value) {
+				if ( !value.equals(oldValue) ) {
+
+					atLeastOnePropertyChanged = true;
 
 					// bulk set possible, store in container
 					key.setProperty(securityContext, container, value);
@@ -206,8 +210,10 @@ public interface GraphObject {
 			}
 		}
 
-		// set primitive values directly for better performance
-		getPropertyContainer().setProperties(container.getData());
+		if (atLeastOnePropertyChanged) {
+			// set primitive values directly for better performance
+			getPropertyContainer().setProperties(container.getData());
+		}
 	}
 
 	/**
