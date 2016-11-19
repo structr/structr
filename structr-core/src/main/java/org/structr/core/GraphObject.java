@@ -167,7 +167,11 @@ public interface GraphObject {
 
 					if (isNode()) {
 
-						TransactionCommand.nodeModified(securityContext.getCachedUser(), (AbstractNode)this, key, getProperty(key), value);
+						if (!key.isUnvalidated()) {
+
+							TransactionCommand.nodeModified(securityContext.getCachedUser(), (AbstractNode)this, key, getProperty(key), value);
+
+						}
 
 						if (key instanceof TypeProperty) {
 							NodeFactory.invalidateCache();
@@ -183,7 +187,12 @@ public interface GraphObject {
 
 					} else if (isRelationship()) {
 
-						TransactionCommand.relationshipModified(securityContext.getCachedUser(), (AbstractRelationship)this, key, getProperty(key), value);
+						if (!key.isUnvalidated()) {
+
+							TransactionCommand.relationshipModified(securityContext.getCachedUser(), (AbstractRelationship)this, key, getProperty(key), value);
+
+						}
+
 
 						if (key instanceof TypeProperty) {
 							RelationshipFactory.invalidateCache();
