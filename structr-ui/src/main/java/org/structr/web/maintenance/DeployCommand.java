@@ -74,7 +74,6 @@ import org.structr.web.maintenance.deploy.FileImportVisitor;
 import org.structr.web.maintenance.deploy.PageImportVisitor;
 import org.structr.web.maintenance.deploy.SchemaImportVisitor;
 import org.structr.web.maintenance.deploy.TemplateImportVisitor;
-import org.structr.websocket.command.CreateComponentCommand;
 
 /**
  *
@@ -664,9 +663,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (node instanceof Template) {
 
 			// mark this template as being shared
-			if (node.getOwnerDocument().equals(CreateComponentCommand.getOrCreateHiddenDocument())) {
-				putIf(config, "shared", "true");
-			}
+			putIf(config, "shared", Boolean.toString(node.isSharedComponent()));
 		}
 
 		if (node instanceof Page) {

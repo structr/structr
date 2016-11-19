@@ -40,7 +40,6 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.dom.Template;
 import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.DeployCommand;
@@ -194,10 +193,13 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 
 			// insert "shared" templates into ShadowDocument
 			final Object value = properties.get(internalSharedTemplateKey);
-			if (value != null && "true".equals(value)) {
+			if (value != null) {
 
-				final ShadowDocument shadowDocument = CreateComponentCommand.getOrCreateHiddenDocument();
-				template.setProperty(DOMNode.ownerDocument, shadowDocument);
+				if ("true".equals(value)) {
+
+					template.setProperty(DOMNode.ownerDocument, CreateComponentCommand.getOrCreateHiddenDocument());
+				}
+
 				properties.remove(internalSharedTemplateKey);
 			}
 

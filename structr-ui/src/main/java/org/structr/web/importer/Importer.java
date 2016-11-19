@@ -101,7 +101,6 @@ import org.structr.web.entity.dom.Template;
 import org.structr.web.entity.html.Body;
 import org.structr.web.entity.html.Head;
 import org.structr.web.maintenance.DeployCommand;
-import org.structr.websocket.command.CreateComponentCommand;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -673,8 +672,7 @@ public class Importer {
 
 						newNode = template;
 
-						final org.w3c.dom.Document ownerDocument = template.getOwnerDocument();
-						if (ownerDocument != null && ownerDocument.equals(CreateComponentCommand.getOrCreateHiddenDocument())) {
+						if (template.isSharedComponent()) {
 
 							newNode = (DOMNode) template.cloneNode(false);
 							newNode.setProperty(DOMNode.sharedComponent, template);

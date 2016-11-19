@@ -115,6 +115,7 @@ import org.structr.web.function.SetResponseHeaderFunction;
 import org.structr.web.function.SetSessionAttributeFunction;
 import org.structr.web.function.StripHtmlFunction;
 import org.structr.web.function.ToJsonFunction;
+import org.structr.websocket.command.CreateComponentCommand;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -254,29 +255,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		return idHash;
 	}
 
-	/**
-	 * This method will be called by the DOM logic when this node gets a new child. Override this method if you need to set properties on the child depending on its type etc.
-	 *
-	 * @param newChild
-	 */
-	protected void handleNewChild(Node newChild) {
-
-		final Page page = (Page)getOwnerDocument();
-
-		for (final DOMNode child : getAllChildNodes()) {
-
-			try {
-
-				child.setProperty(ownerDocument, page);
-
-			} catch (FrameworkException ex) {
-				logger.warn("", ex);
-			}
-
-		}
-
-	}
-
 	@Override
 	public Class<DOMChildren> getChildLinkType() {
 		return DOMChildren.class;
@@ -286,6 +264,25 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	public Class<DOMSiblings> getSiblingLinkType() {
 		return DOMSiblings.class;
 	}
+
+	public boolean isSharedComponent() {
+
+		final Document _ownerDocument = getOwnerDocumentAsSuperUser();
+		if (_ownerDocument != null) {
+
+			try {
+
+				return _ownerDocument.equals(CreateComponentCommand.getOrCreateHiddenDocument());
+
+			} catch (FrameworkException fex) {
+
+				logger.warn("Unable fetch ShadowDocument node: {}", fex.getMessage());
+			}
+		}
+
+		return false;
+	}
+
 
 	// ----- public methods -----
 	public List<DOMChildren> getChildRelationships() {
@@ -587,6 +584,29 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	}
 
 	// ----- protected methods -----
+	/**
+	 * This method will be called by the DOM logic when this node gets a new child. Override this method if you need to set properties on the child depending on its type etc.
+	 *
+	 * @param newChild
+	 */
+	protected void handleNewChild(Node newChild) {
+
+		final Page page = (Page)getOwnerDocument();
+
+		for (final DOMNode child : getAllChildNodes()) {
+
+			try {
+
+				child.setProperty(ownerDocument, page);
+
+			} catch (FrameworkException ex) {
+				logger.warn("", ex);
+			}
+
+		}
+
+	}
+
 	protected boolean renderDeploymentExportComments(final AsyncBuffer out, final boolean isContentNode) {
 
 		final Set<String> instructions = new LinkedHashSet<>();
