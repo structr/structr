@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.User;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -54,7 +55,7 @@ public class SaveLocalStorageCommand extends AbstractCommand {
 			try {
 
 				final Principal me = securityContext.getUser(false);
-				me.setProperty(User.localStorage, localStorageString);
+				me.setProperties(securityContext, new PropertyMap(User.localStorage, localStorageString));
 
 				TransactionCommand.registerNodeCallback(me, callback);
 

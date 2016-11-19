@@ -246,8 +246,10 @@ public abstract class ImageHelper extends FileHelper {
 				final int sourceHeight = source.getHeight();
 
 				// Update image dimensions
-				originalImage.setProperty(Image.width, sourceWidth);
-				originalImage.setProperty(Image.height, sourceHeight);
+				final PropertyMap properties = new PropertyMap();
+				properties.put(Image.width, sourceWidth);
+				properties.put(Image.height, sourceHeight);
+				originalImage.setProperties(originalImage.getSecurityContext(), properties);
 
 				// float aspectRatio = sourceWidth/sourceHeight;
 				final float scale = getScale(sourceWidth, sourceHeight, maxWidth, maxHeight, crop);

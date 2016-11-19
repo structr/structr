@@ -73,6 +73,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.service.HttpService;
@@ -262,15 +263,15 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					// In case of a file, try to find a file with the query string in the filename
 					final String queryString = request.getQueryString();
-					
+
 					// Look for a file, first include the query string
 					FileBase file = findFile(securityContext, request, path + (queryString != null ? "?" + queryString : ""));
-					
+
 					// If no file with query string in the file name found, try without query string
 					if (file == null) {
 						file = findFile(securityContext, request, path);
 					}
-					
+
 					if (file != null) {
 
 						streamFile(securityContext, file, request, response, edit);
@@ -865,15 +866,15 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		final List<Page> errorPages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).and(Page.showOnErrorCodes, "404", false).getAsList();
 
 		for (final Page errorPage : errorPages) {
-			
+
 			if (isVisibleForSite(securityContext.getRequest(), errorPage)) {
 
 				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 				return errorPage;
 			}
-			
+
 		}
-		
+
 		response.sendError(HttpServletResponse.SC_NOT_FOUND);
 
 		return null;
@@ -1075,7 +1076,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				try (final Tx tx = app.tx()) {
 
 					// Clear confirmation key and set session id
-					user.setProperty(User.confirmationKey, null);
+					user.setProperties(user.getSecurityContext(), new PropertyMap(User.confirmationKey, null));
 
 					if (auth.getUserAutoLogin()) {
 
@@ -1146,7 +1147,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				try (final Tx tx = app.tx()) {
 
 					// Clear confirmation key and set session id
-					user.setProperty(User.confirmationKey, null);
+					user.setProperties(user.getSecurityContext(), new PropertyMap(User.confirmationKey, null));
 
 					if (auth.getUserAutoLogin()) {
 
@@ -1218,12 +1219,12 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			fileQuery.and(AbstractFile.path, path).andTypes(File.class);
 
 			final Result files = fileQuery.getResult();
-			
+
 			logger.debug("Found {} pages and {} files/folders", new Object[] { pages.size(), files.size() });
-			
+
 			final List<Linkable> linkables = (List<Linkable>) pages.getResults();
 			linkables.addAll(files.getResults());
-			
+
 			request.setAttribute(POSSIBLE_ENTRY_POINTS_KEY, linkables);
 
 			return linkables;

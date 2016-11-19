@@ -62,6 +62,7 @@ import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.files.cmis.config.StructrFileActions;
@@ -105,16 +106,20 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		if (super.onCreation(securityContext, errorBuffer)) {
 
+			final PropertyMap changedProperties = new PropertyMap();
+
 			if ("true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_ENABLED, "false")) && !getProperty(AbstractFile.hasParent)) {
 
 				final Folder workingOrHomeDir = getCurrentWorkingDir();
 				if (workingOrHomeDir != null && getProperty(AbstractFile.parent) == null) {
 
-					setProperty(AbstractFile.parent, workingOrHomeDir);
+					changedProperties.put(AbstractFile.parent, workingOrHomeDir);
 				}
 			}
 
-			setProperty(hasParent, getProperty(parentId) != null);
+			changedProperties.put(hasParent, getProperty(parentId) != null);
+
+			setProperties(securityContext, changedProperties);
 
 			return true;
 		}
@@ -136,7 +141,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 				this.securityContext = SecurityContext.getSuperUserInstance();
 
 				// set property as super user
-				setProperty(hasParent, getProperty(parentId) != null);
+				setProperties(this.securityContext, new PropertyMap(hasParent, getProperty(parentId) != null));
 
 				// restore previous security context
 				this.securityContext = previousSecurityContext;
@@ -158,7 +163,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		try {
 			unlockSystemPropertiesOnce();
-			setProperty(relativeFilePath, filePath);
+			setProperties(securityContext, new PropertyMap(relativeFilePath, filePath));
 
 		} catch (Throwable t) {
 
@@ -218,17 +223,17 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 				return;
 			}
 
-			unlockSystemPropertiesOnce();
-			setProperty(checksum, FileHelper.getChecksum(FileBase.this));
-
-			unlockSystemPropertiesOnce();
-			setProperty(version, 0);
+			final PropertyMap changedProperties = new PropertyMap();
+			changedProperties.put(checksum, FileHelper.getChecksum(FileBase.this));
+			changedProperties.put(version, 0);
 
 			long fileSize = FileHelper.getSize(FileBase.this);
 			if (fileSize > 0) {
-				unlockSystemPropertiesOnce();
-				setProperty(size, fileSize);
+				changedProperties.put(size, fileSize);
 			}
+
+			unlockSystemPropertiesOnce();
+			setProperties(securityContext, changedProperties);
 
 		} catch (FrameworkException ex) {
 
@@ -322,11 +327,11 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 		unlockSystemPropertiesOnce();
 		if (_version == null) {
 
-			setProperty(FileBase.version, 1);
+			setProperties(securityContext, new PropertyMap(FileBase.version, 1));
 
 		} else {
 
-			setProperty(FileBase.version, _version + 1);
+			setProperties(securityContext, new PropertyMap(FileBase.version, _version + 1));
 		}
 	}
 
@@ -439,17 +444,17 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 							final String _contentType = FileHelper.getContentMimeType(FileBase.this);
 
-							unlockSystemPropertiesOnce();
-							setProperty(checksum, FileHelper.getChecksum(FileBase.this));
-
-							unlockSystemPropertiesOnce();
-							setProperty(size, FileHelper.getSize(FileBase.this));
-							setProperty(contentType, _contentType);
+							final PropertyMap changedProperties = new PropertyMap();
+							changedProperties.put(checksum, FileHelper.getChecksum(FileBase.this));
+							changedProperties.put(size, FileHelper.getSize(FileBase.this));
+							changedProperties.put(contentType, _contentType);
 
 							if (StringUtils.startsWith(_contentType, "image") || ImageHelper.isImageType(getProperty(name))) {
-								unlockSystemPropertiesOnce();
-								setProperty(NodeInterface.type, Image.class.getSimpleName());
+								changedProperties.put(NodeInterface.type, Image.class.getSimpleName());
 							}
+
+							unlockSystemPropertiesOnce();
+							setProperties(securityContext, changedProperties);
 
 							increaseVersion();
 

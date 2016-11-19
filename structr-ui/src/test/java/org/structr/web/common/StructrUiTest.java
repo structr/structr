@@ -529,7 +529,7 @@ public abstract class StructrUiTest {
 	protected void makePublic(final Object... objects) throws FrameworkException {
 
 		for (Object obj : objects) {
-			((GraphObject) obj).setProperty(GraphObject.visibleToPublicUsers, true);
+			((GraphObject) obj).setProperties(((GraphObject) obj).getSecurityContext(), new PropertyMap(GraphObject.visibleToPublicUsers, true));
 		}
 
 	}

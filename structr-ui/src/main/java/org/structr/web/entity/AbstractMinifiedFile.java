@@ -33,6 +33,7 @@ import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
+import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.web.entity.relation.MinificationSource;
 
@@ -90,18 +91,21 @@ public abstract class AbstractMinifiedFile extends File {
 	}
 
 	public String getConcatenatedSource () throws FrameworkException, IOException {
-		final StringBuilder concatenatedSource = new StringBuilder();
 
+		final StringBuilder concatenatedSource = new StringBuilder();
 		int cnt = 0;
+
 		for (MinificationSource rel : getSortedRelationships()) {
+
 			final FileBase src = rel.getTargetNode();
 
 			concatenatedSource.append(FileUtils.readFileToString(src.getFileOnDisk()));
 
 			// compact the relationships (if necessary)
 			if (rel.getProperty(MinificationSource.position) != cnt) {
-				rel.setProperty(MinificationSource.position, cnt);
+				rel.setProperties(securityContext, new PropertyMap(MinificationSource.position, cnt));
 			}
+
 			cnt++;
 		}
 
@@ -141,15 +145,15 @@ public abstract class AbstractMinifiedFile extends File {
 
 			if (currentPosition > from && currentPosition <= to) {
 
-				rel.setProperty(MinificationSource.position, currentPosition + change);
+				rel.setProperties(securityContext, new PropertyMap(MinificationSource.position, currentPosition + change));
 
 			} else if (currentPosition >= to && currentPosition < from) {
 
-				rel.setProperty(MinificationSource.position, currentPosition + change);
+				rel.setProperties(securityContext, new PropertyMap(MinificationSource.position, currentPosition + change));
 
 			} else if (currentPosition == from) {
 
-				rel.setProperty(MinificationSource.position, to);
+				rel.setProperties(securityContext, new PropertyMap(MinificationSource.position, to));
 
 			}
 

@@ -28,6 +28,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.User;
 import org.structr.websocket.StructrWebSocket;
@@ -79,7 +80,7 @@ public class FavoritesCommand extends AbstractCommand {
 
 							final List<FileBase> favorites = currentUser.getProperty(User.favoriteFiles);
 							favorites.add((FileBase)file);
-							currentUser.setProperty(User.favoriteFiles, favorites);
+							currentUser.setProperties(currentUser.getSecurityContext(), new PropertyMap(User.favoriteFiles, favorites));
 
 							getWebSocket().send(MessageBuilder.finished().callback(callback).build(), true);
 
@@ -91,7 +92,7 @@ public class FavoritesCommand extends AbstractCommand {
 
 							final List<FileBase> favorites = currentUser.getProperty(User.favoriteFiles);
 							favorites.remove((FileBase)file);
-							currentUser.setProperty(User.favoriteFiles, favorites);
+							currentUser.setProperties(currentUser.getSecurityContext(), new PropertyMap(User.favoriteFiles, favorites));
 
 							getWebSocket().send(MessageBuilder.finished().callback(callback).build(), true);
 

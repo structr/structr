@@ -39,6 +39,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.Property;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.relation.MinificationSource;
@@ -96,8 +97,11 @@ public class MinifiedJavaScriptFile extends AbstractMinifiedFile {
 
 		FileHelper.setFileData(this, compiler.toSource().getBytes(), getProperty(contentType));
 
-		setProperty(warnings, StringUtils.join(compiler.getWarnings(), System.lineSeparator()));
-		setProperty(errors, StringUtils.join(compiler.getErrors(), System.lineSeparator()));
+		final PropertyMap changedProperties = new PropertyMap();
+		changedProperties.put(warnings, StringUtils.join(compiler.getWarnings(), System.lineSeparator()));
+		changedProperties.put(errors, StringUtils.join(compiler.getErrors(), System.lineSeparator()));
+		setProperties(securityContext, changedProperties);
+
 	}
 
 	private ArrayList<SourceFile> getSourceFileList() throws FrameworkException, IOException {
@@ -113,7 +117,7 @@ public class MinifiedJavaScriptFile extends AbstractMinifiedFile {
 
 			// compact the relationships (if necessary)
 			if (rel.getProperty(MinificationSource.position) != cnt) {
-				rel.setProperty(MinificationSource.position, cnt);
+				rel.setProperties(securityContext, new PropertyMap(MinificationSource.position, cnt));
 			}
 			cnt++;
 		}

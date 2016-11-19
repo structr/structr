@@ -133,7 +133,7 @@ public class RegistrationResource extends Resource {
 				user = (Principal) result.get(0);
 
 				// For existing users, update confirmation key
-				user.setProperty(User.confirmationKey, confKey);
+				user.setProperties(securityContext, new PropertyMap(User.confirmationKey, confKey));
 
 				existingUser = true;
 
@@ -408,8 +408,11 @@ public class RegistrationResource extends Resource {
 
 				// convert to user
 				user.unlockSystemPropertiesOnce();
-				user.setProperty(AbstractNode.type, User.class.getSimpleName());
-				user.setProperty(User.confirmationKey, confKey);
+
+				final PropertyMap changedProperties = new PropertyMap();
+				changedProperties.put(AbstractNode.type, User.class.getSimpleName());
+				changedProperties.put(User.confirmationKey, confKey);
+				user.setProperties(securityContext, changedProperties);
 
 			} else if (autoCreate) {
 

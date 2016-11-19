@@ -28,6 +28,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.User;
@@ -49,9 +50,12 @@ public class SchemaMethodsTest extends FrontendTest {
 			// Add schema method "testFileMethod" to built-in File class
 			SchemaNode fileNodeDef = app.nodeQuery(SchemaNode.class).andName(builtinTypeName).getFirst();
 
-			SchemaMethod testFileMethod = app.create(SchemaMethod.class, schemaMethodName);
-			testFileMethod.setProperty(SchemaMethod.source, "()");
-			testFileMethod.setProperty(SchemaMethod.schemaNode, fileNodeDef);
+			final PropertyMap testFileMethodProperties = new PropertyMap();
+			testFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
+			testFileMethodProperties.put(SchemaMethod.source, "()");
+			testFileMethodProperties.put(SchemaMethod.schemaNode, fileNodeDef);
+
+			SchemaMethod testFileMethod = app.create(SchemaMethod.class, testFileMethodProperties);
 
 			tx.success();
 
@@ -109,9 +113,12 @@ public class SchemaMethodsTest extends FrontendTest {
 			// Add schema method "testFileMethod" to built-in File class
 			SchemaNode fooFileDef = app.create(SchemaNode.class, customTypeName);
 
-			SchemaMethod testFooFileMethod = app.create(SchemaMethod.class, schemaMethodName);
-			testFooFileMethod.setProperty(SchemaMethod.source, "()");
-			testFooFileMethod.setProperty(SchemaMethod.schemaNode, fooFileDef);
+			final PropertyMap testFooFileMethodProperties = new PropertyMap();
+			testFooFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
+			testFooFileMethodProperties.put(SchemaMethod.source, "()");
+			testFooFileMethodProperties.put(SchemaMethod.schemaNode, fooFileDef);
+
+			SchemaMethod testFooFileMethod = app.create(SchemaMethod.class, testFooFileMethodProperties);
 
 			tx.success();
 
@@ -178,9 +185,12 @@ public class SchemaMethodsTest extends FrontendTest {
 			// Add schema method "testFileMethod" to built-in File class
 			SchemaNode fileNodeDef = app.nodeQuery(SchemaNode.class).andName(builtinTypeName).getFirst();
 
-			SchemaMethod testFileMethod = app.create(SchemaMethod.class, schemaMethodName);
-			testFileMethod.setProperty(SchemaMethod.source, "()");
-			testFileMethod.setProperty(SchemaMethod.schemaNode, fileNodeDef);
+			final PropertyMap testFileMethodProperties = new PropertyMap();
+			testFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
+			testFileMethodProperties.put(SchemaMethod.source, "()");
+			testFileMethodProperties.put(SchemaMethod.schemaNode, fileNodeDef);
+
+			SchemaMethod testFileMethod = app.create(SchemaMethod.class, testFileMethodProperties);
 
 			tx.success();
 
@@ -241,9 +251,12 @@ public class SchemaMethodsTest extends FrontendTest {
 			// Add schema method "testFileMethod" to built-in File class
 			SchemaNode fooFileDef = app.create(SchemaNode.class, customTypeName);
 
-			SchemaMethod testFooFileMethod = app.create(SchemaMethod.class, schemaMethodName);
-			testFooFileMethod.setProperty(SchemaMethod.source, "()");
-			testFooFileMethod.setProperty(SchemaMethod.schemaNode, fooFileDef);
+			final PropertyMap testFooFileMethodProperties = new PropertyMap();
+			testFooFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
+			testFooFileMethodProperties.put(SchemaMethod.source, "()");
+			testFooFileMethodProperties.put(SchemaMethod.schemaNode, fooFileDef);
+
+			SchemaMethod testFooFileMethod = app.create(SchemaMethod.class, testFooFileMethodProperties);
 
 			tx.success();
 
@@ -312,9 +325,12 @@ public class SchemaMethodsTest extends FrontendTest {
 			// Add schema method "testFileMethod" to built-in File class
 			SchemaNode fileNodeDef = app.nodeQuery(SchemaNode.class).andName(builtinTypeName).getFirst();
 
-			SchemaMethod testFileMethod = app.create(SchemaMethod.class, schemaMethodName);
-			testFileMethod.setProperty(SchemaMethod.source, "()");
-			testFileMethod.setProperty(SchemaMethod.schemaNode, fileNodeDef);
+			final PropertyMap testFileMethodProperties = new PropertyMap();
+			testFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
+			testFileMethodProperties.put(SchemaMethod.source, "()");
+			testFileMethodProperties.put(SchemaMethod.schemaNode, fileNodeDef);
+
+			SchemaMethod testFileMethod = app.create(SchemaMethod.class, testFileMethodProperties);
 
 			tx.success();
 
@@ -373,9 +389,12 @@ public class SchemaMethodsTest extends FrontendTest {
 			// Add schema method "testFileMethod" to built-in File class
 			SchemaNode fileNodeDef = app.nodeQuery(SchemaNode.class).andName(builtinTypeName).getFirst();
 
-			SchemaMethod testFileMethod = app.create(SchemaMethod.class, schemaMethodName);
-			testFileMethod.setProperty(SchemaMethod.source, "()");
-			testFileMethod.setProperty(SchemaMethod.schemaNode, fileNodeDef);
+			final PropertyMap testFileMethodProperties = new PropertyMap();
+			testFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
+			testFileMethodProperties.put(SchemaMethod.source, "()");
+			testFileMethodProperties.put(SchemaMethod.schemaNode, fileNodeDef);
+
+			SchemaMethod testFileMethod = app.create(SchemaMethod.class, testFileMethodProperties);
 
 			tx.success();
 

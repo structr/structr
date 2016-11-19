@@ -25,6 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.ManyToMany;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.AbstractMinifiedFile;
 import org.structr.web.entity.FileBase;
 
@@ -56,10 +57,16 @@ public class MinificationSource extends ManyToMany<AbstractMinifiedFile, FileBas
 
 	@Override
 	public void onRelationshipCreation() {
+
 		try {
-			setProperty(position, getSourceNode().getMaxPosition() + 1);
+
+			setProperties(securityContext, new PropertyMap(position, getSourceNode().getMaxPosition() + 1));
+
 		} catch (FrameworkException ex) {
+
 			LoggerFactory.getLogger(MinificationSource.class.getName()).error("Failed setting minification position!", ex);
+
 		}
+
 	}
 }

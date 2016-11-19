@@ -32,6 +32,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
 import org.structr.util.Writable;
 
 /**
@@ -155,12 +156,12 @@ public class UserConsoleCommand extends ConsoleCommand {
 
 				// set e-mail address
 				if (eMail != null && !"isAdmin".equals(eMail)) {
-					user.setProperty(Person.eMail, eMail);
+					user.setProperties(securityContext, new PropertyMap(Person.eMail, eMail));
 				}
 
 				// set isAdmin flag
 				if ("isAdmin".equals(eMail) || "isAdmin".equals(isAdmin)) {
-					user.setProperty(Principal.isAdmin, true);
+					user.setProperties(securityContext, new PropertyMap(Principal.isAdmin, true));
 				}
 
 				writable.println("User created.");
@@ -255,7 +256,7 @@ public class UserConsoleCommand extends ConsoleCommand {
 
 					if (StringUtils.isNotBlank(password)) {
 
-						user.setProperty(Principal.password, password);
+						user.setProperties(securityContext, new PropertyMap(Principal.password, password));
 
 						writable.println("Password changed.");
 

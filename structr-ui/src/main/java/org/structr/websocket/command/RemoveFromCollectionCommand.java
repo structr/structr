@@ -30,6 +30,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -100,8 +101,8 @@ public class RemoveFromCollectionCommand extends AbstractCommand {
 
 					List collection = (List) obj.getProperty(key);
 					collection.remove(objToRemove);
-					obj.setProperty(key, collection);
-					
+					obj.setProperties(obj.getSecurityContext(), new PropertyMap(key, collection));
+
 					if (obj instanceof NodeInterface) {
 
 						TransactionCommand.registerNodeCallback((NodeInterface) obj, callback);

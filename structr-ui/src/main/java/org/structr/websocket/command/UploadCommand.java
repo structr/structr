@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.web.common.FileHelper;
 import org.structr.websocket.StructrWebSocket;
@@ -61,7 +62,7 @@ public class UploadCommand extends AbstractCommand {
 			final String rawData = (String) webSocketData.getNodeData().get("fileData");
 			File newFile     = FileHelper.createFileBase64(securityContext, rawData, null);
 
-			newFile.setProperty(AbstractNode.name, name);
+			newFile.setProperties(securityContext, new PropertyMap(AbstractNode.name, name));
 
 		} catch (Throwable t) {
 

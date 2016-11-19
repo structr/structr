@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.ClearDatabase;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.web.common.StructrUiTest;
 import org.structr.web.entity.FileBase;
@@ -121,16 +122,19 @@ public class UiSyncCommandTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			textFile.setProperty(File.contentType, "text/plain");
+			textFile.setProperties(textFile.getSecurityContext(), new PropertyMap(File.contentType, "text/plain"));
 			IOUtils.write("This is a test file", textFile.getOutputStream());
 
-			jsFile.setProperty(File.contentType, "application/javascript");
+			jsFile.setProperties(jsFile.getSecurityContext(), new PropertyMap(File.contentType, "application/javascript"));
 			IOUtils.write("function test() {\n\tconsole.log('Test!');\n}", jsFile.getOutputStream());
 
 			// link script to JS file
 			final Script script = (Script)testPage.createElement("script");
-			script.setProperty(Script._src, "${link.name}?${link.version}");
-			script.setProperty(Script.linkable, jsFile);
+
+			final PropertyMap changedProperties = new PropertyMap();
+			changedProperties.put(Script._src, "${link.name}?${link.version}");
+			changedProperties.put(Script.linkable, jsFile);
+			script.setProperties(script.getSecurityContext(), changedProperties);
 
 			// link script into head
 			head.appendChild(script);

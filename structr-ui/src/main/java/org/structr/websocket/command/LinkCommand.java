@@ -20,6 +20,7 @@ package org.structr.websocket.command;
 
 import java.util.Map;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
 import org.structr.websocket.StructrWebSocket;
@@ -30,7 +31,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 /**
  * Websocket command to create a LINK relationship between a LinkSource and a Linkable.
- * 
+ *
  *
  */
 public class LinkCommand extends AbstractCommand {
@@ -39,7 +40,7 @@ public class LinkCommand extends AbstractCommand {
 
 		StructrWebSocket.addCommand(LinkCommand.class);
 	}
-	
+
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
@@ -52,7 +53,7 @@ public class LinkCommand extends AbstractCommand {
 		if ((sourceNode != null) && (targetNode != null)) {
 
 			try {
-				sourceNode.setProperty(LinkSource.linkable, targetNode);
+				sourceNode.setProperties(sourceNode.getSecurityContext(), new PropertyMap(LinkSource.linkable, targetNode));
 
 			} catch (FrameworkException t) {
 

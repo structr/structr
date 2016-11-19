@@ -30,6 +30,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.auth.UiAuthenticator;
 import static org.structr.web.test.ResourceAccessTest.createResourceAccess;
 
@@ -59,9 +60,12 @@ public class SchemaAttributesInheritanceTest extends FrontendTest {
 			SchemaNode fileNodeDef = app.nodeQuery(SchemaNode.class).andName("File").getFirst();
 
 			SchemaProperty testFileProperty = app.create(SchemaProperty.class);
-			testFileProperty.setProperty(SchemaProperty.name, "testFile");
-			testFileProperty.setProperty(SchemaProperty.propertyType, "String");
-			testFileProperty.setProperty(SchemaProperty.schemaNode, fileNodeDef);
+
+			final PropertyMap testFileProperties = new PropertyMap();
+			testFileProperties.put(SchemaProperty.name, "testFile");
+			testFileProperties.put(SchemaProperty.propertyType, "String");
+			testFileProperties.put(SchemaProperty.schemaNode, fileNodeDef);
+			testFileProperty.setProperties(testFileProperty.getSecurityContext(), testFileProperties);
 
 			tx.success();
 
@@ -152,9 +156,12 @@ public class SchemaAttributesInheritanceTest extends FrontendTest {
 			SchemaNode fileNodeDef = app.nodeQuery(SchemaNode.class).andName("File").getFirst();
 
 			SchemaProperty testFileProperty = app.create(SchemaProperty.class);
-			testFileProperty.setProperty(SchemaProperty.name, "testFile");
-			testFileProperty.setProperty(SchemaProperty.propertyType, "String");
-			testFileProperty.setProperty(SchemaProperty.schemaNode, fileNodeDef);
+
+			final PropertyMap changedProperties = new PropertyMap();
+			changedProperties.put(SchemaProperty.name, "testFile");
+			changedProperties.put(SchemaProperty.propertyType, "String");
+			changedProperties.put(SchemaProperty.schemaNode, fileNodeDef);
+			testFileProperty.setProperties(testFileProperty.getSecurityContext(), changedProperties);
 
 			tx.success();
 
@@ -166,14 +173,21 @@ public class SchemaAttributesInheritanceTest extends FrontendTest {
 
 			// Create new schema node for dynamic class SubFile which extends File
 			SchemaNode subFile = app.create(SchemaNode.class);
-			subFile.setProperty(SchemaNode.name, "SubFile");
-			subFile.setProperty(SchemaNode.extendsClass, "File");
+
+			final PropertyMap subFileProperties = new PropertyMap();
+			subFileProperties.put(SchemaNode.name, "SubFile");
+			subFileProperties.put(SchemaNode.extendsClass, "File");
+			subFile.setProperties(subFile.getSecurityContext(), subFileProperties);
+
 
 			// Add String property "testSubFile" to new dynamic class
 			SchemaProperty testFileProperty = app.create(SchemaProperty.class);
-			testFileProperty.setProperty(SchemaProperty.name, "testSubFile");
-			testFileProperty.setProperty(SchemaProperty.propertyType, "String");
-			testFileProperty.setProperty(SchemaProperty.schemaNode, subFile);
+
+			final PropertyMap testFileProperties = new PropertyMap();
+			testFileProperties.put(SchemaProperty.name, "testSubFile");
+			testFileProperties.put(SchemaProperty.propertyType, "String");
+			testFileProperties.put(SchemaProperty.schemaNode, subFile);
+			testFileProperty.setProperties(testFileProperty.getSecurityContext(), testFileProperties);
 
 			tx.success();
 
@@ -236,9 +250,12 @@ public class SchemaAttributesInheritanceTest extends FrontendTest {
 			SchemaNode fileNodeDef = app.nodeQuery(SchemaNode.class).andName("File").getFirst();
 
 			SchemaProperty testFileProperty = app.create(SchemaProperty.class);
-			testFileProperty.setProperty(SchemaProperty.name, "testFile");
-			testFileProperty.setProperty(SchemaProperty.propertyType, "String");
-			testFileProperty.setProperty(SchemaProperty.schemaNode, fileNodeDef);
+
+			final PropertyMap testFileProperties = new PropertyMap();
+			testFileProperties.put(SchemaProperty.name, "testFile");
+			testFileProperties.put(SchemaProperty.propertyType, "String");
+			testFileProperties.put(SchemaProperty.schemaNode, fileNodeDef);
+			testFileProperty.setProperties(testFileProperty.getSecurityContext(), testFileProperties);
 
 			tx.success();
 
@@ -250,14 +267,21 @@ public class SchemaAttributesInheritanceTest extends FrontendTest {
 
 			// Create new schema node for dynamic class SubFile which extends File
 			SchemaNode subFile = app.create(SchemaNode.class);
-			subFile.setProperty(SchemaNode.name, "SubFile");
-			subFile.setProperty(SchemaNode.extendsClass, "Image");
+
+			final PropertyMap subFileProperties = new PropertyMap();
+			subFileProperties.put(SchemaNode.name, "SubFile");
+			subFileProperties.put(SchemaNode.extendsClass, "Image");
+			subFile.setProperties(subFile.getSecurityContext(), subFileProperties);
+
 
 			// Add String property "testSubFile" to new dynamic class
 			SchemaProperty testFileProperty = app.create(SchemaProperty.class);
-			testFileProperty.setProperty(SchemaProperty.name, "testSubFile");
-			testFileProperty.setProperty(SchemaProperty.propertyType, "String");
-			testFileProperty.setProperty(SchemaProperty.schemaNode, subFile);
+
+			final PropertyMap testFileProperties = new PropertyMap();
+			testFileProperties.put(SchemaProperty.name, "testSubFile");
+			testFileProperties.put(SchemaProperty.propertyType, "String");
+			testFileProperties.put(SchemaProperty.schemaNode, subFile);
+			testFileProperty.setProperties(testFileProperty.getSecurityContext(), testFileProperties);
 
 			tx.success();
 

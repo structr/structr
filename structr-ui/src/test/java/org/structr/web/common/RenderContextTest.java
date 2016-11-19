@@ -109,7 +109,7 @@ public class RenderContextTest extends StructrUiTest {
 			children.add(child1);
 			children.add(child2);
 
-			parent.setProperty(childrenProperty, children);
+			parent.setProperties(parent.getSecurityContext(), new PropertyMap(childrenProperty, children));
 
 			tx.success();
 
@@ -294,10 +294,11 @@ public class RenderContextTest extends StructrUiTest {
 			tasks.add(task1);
 			tasks.add(task2);
 			tasks.add(task3);
-			project.setProperty(tasksKey, tasks);
 
-			// set current task as well
-			project.setProperty(currentTaskKey, task3);
+			final PropertyMap projectProperties = new PropertyMap();
+			projectProperties.put(tasksKey, tasks);
+			projectProperties.put(currentTaskKey, task3);
+			project.setProperties(project.getSecurityContext(), projectProperties);
 
 			tx.success();
 
@@ -364,7 +365,7 @@ public class RenderContextTest extends StructrUiTest {
 			detailsDataObject = app.create(TestOne.class, "TestOne");
 			page              = Page.createNewPage(securityContext, "testpage");
 
-			page.setProperty(Page.visibleToPublicUsers, true);
+			page.setProperties(page.getSecurityContext(), new PropertyMap(Page.visibleToPublicUsers, true));
 
 			assertTrue(page != null);
 			assertTrue(page instanceof Page);
@@ -411,13 +412,15 @@ public class RenderContextTest extends StructrUiTest {
 
 			// add link to p3
 			p3.appendChild(a);
-			a.setProperty(LinkSource.linkable, page);
+			a.setProperties(a.getSecurityContext(), new PropertyMap(LinkSource.linkable, page));
 
 			body.appendChild(div4);
 			div4.appendChild(p4);
 
-			p4.setProperty(DOMElement.restQuery, "/divs");
-			p4.setProperty(DOMElement.dataKey, "div");
+			final PropertyMap p4Properties = new PropertyMap();
+			p4Properties.put(DOMElement.restQuery, "/divs");
+			p4Properties.put(DOMElement.dataKey, "div");
+			p4.setProperties(p4.getSecurityContext(), p4Properties);
 
 			NodeList paragraphs = page.getElementsByTagName("p");
 			assertEquals(p1, paragraphs.item(0));
@@ -433,9 +436,11 @@ public class RenderContextTest extends StructrUiTest {
 			assertNotNull("User tester2 should exist.", tester2);
 
 			// create admin user for later use
-			final User admin = app.create(User.class, "admin");
-			admin.setProperty(User.password, "admin");
-			admin.setProperty(User.isAdmin, true);
+			final PropertyMap adminProperties = new PropertyMap();
+			adminProperties.put(User.name, "admin");
+			adminProperties.put(User.password, "admin");
+			adminProperties.put(User.isAdmin, true);
+			final User admin = app.create(User.class, adminProperties);
 
 			tx.success();
 

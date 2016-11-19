@@ -35,6 +35,7 @@ import org.structr.core.graph.BulkGraphOperation;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.RelationshipFactory;
+import org.structr.core.property.PropertyMap;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.dom.relationship.DOMSiblings;
@@ -88,31 +89,31 @@ public class BulkMigrateRelationships extends NodeServiceCommand implements Main
 
 							if ("CONTAINS".equals(relType)) {
 
-								rel.setProperty(AbstractRelationship.type, DOMChildren.class.getSimpleName());
+								rel.setProperties(securityContext, new PropertyMap(AbstractRelationship.type, DOMChildren.class.getSimpleName()));
 
 							} else if ("CONTAINS_NEXT_SIBLING".equals(relType)) {
 
-								rel.setProperty(AbstractRelationship.type, DOMSiblings.class.getSimpleName());
+								rel.setProperties(securityContext, new PropertyMap(AbstractRelationship.type, DOMSiblings.class.getSimpleName()));
 
 							} else if ("OWNS".equals(relType)) {
 
-								rel.setProperty(AbstractRelationship.type, PrincipalOwnsNode.class.getSimpleName());
+								rel.setProperties(securityContext, new PropertyMap(AbstractRelationship.type, PrincipalOwnsNode.class.getSimpleName()));
 
 							} else if ("SECURITY".equals(relType)) {
 
-								rel.setProperty(AbstractRelationship.type, Security.class.getSimpleName());
+								rel.setProperties(securityContext, new PropertyMap(AbstractRelationship.type, Security.class.getSimpleName()));
 
 							} else if ("PAGE".equals(relType)) {
 
-								rel.setProperty(AbstractRelationship.type, PageLink.class.getSimpleName());
+								rel.setProperties(securityContext, new PropertyMap(AbstractRelationship.type, PageLink.class.getSimpleName()));
 
 							} else if ("LINK".equals(relType)) {
 
-								rel.setProperty(AbstractRelationship.type, ResourceLink.class.getSimpleName());
+								rel.setProperties(securityContext, new PropertyMap(AbstractRelationship.type, ResourceLink.class.getSimpleName()));
 
 							} else if ("SYNC".equals(relType)) {
 
-								rel.setProperty(AbstractRelationship.type, Sync.class.getSimpleName());
+								rel.setProperties(securityContext, new PropertyMap(AbstractRelationship.type, Sync.class.getSimpleName()));
 
 							}
 

@@ -38,6 +38,7 @@ import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.SyncCommand;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
@@ -158,7 +159,7 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 				app.delete(previousShadowDoc);
 
 				// add children to new shadow document
-				newShadowDoc.setProperty(Page.elements, collectiveChildren);
+				newShadowDoc.setProperties(securityContext, new PropertyMap(Page.elements, collectiveChildren));
 			}
 
 			tx.success();

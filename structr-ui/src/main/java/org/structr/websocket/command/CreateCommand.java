@@ -68,7 +68,7 @@ public class CreateCommand extends AbstractCommand {
 			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, nodeData);
 			Class type                   = SchemaHelper.getEntityClassForRawType(properties.get(AbstractNode.type));
 			final NodeInterface newNode  = app.create(type, properties);
-			
+
 			TransactionCommand.registerNodeCallback(newNode, callback);
 
 			// check for File node and store in WebSocket to receive chunks
@@ -80,9 +80,11 @@ public class CreateCommand extends AbstractCommand {
 
 				FileBase fileNode = (FileBase) newNode;
 
-				fileNode.setProperty(File.size, size != null ? size : 0L);
-				fileNode.setProperty(File.contentType, contentType);
-				fileNode.setProperty(AbstractNode.name, name);
+				final PropertyMap changedProperties = new PropertyMap();
+				changedProperties.put(File.size, size != null ? size : 0L);
+				changedProperties.put(File.contentType, contentType);
+				changedProperties.put(AbstractNode.name, name);
+				fileNode.setProperties(securityContext, changedProperties);
 
 				if (!fileNode.validatePath(securityContext, null)) {
 					fileNode.setProperty(AbstractNode.name, name.concat("_").concat(FileHelper.getDateString()));

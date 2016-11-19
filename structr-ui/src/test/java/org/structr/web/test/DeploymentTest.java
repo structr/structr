@@ -37,6 +37,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.common.StructrUiTest;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
@@ -95,7 +96,7 @@ public class DeploymentTest extends StructrUiTest {
 				final Div div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "private - ${find('User')}");
 
-				div1.setProperty(DOMNode.showConditions, "me.isAdmin");
+				div1.setProperties(div1.getSecurityContext(), new PropertyMap(DOMNode.showConditions, "me.isAdmin"));
 			}
 
 			// create a private div
@@ -103,7 +104,7 @@ public class DeploymentTest extends StructrUiTest {
 				final Div div1 = createElement(page, body, "div");
 				 createElement(page, div1, "h1", "private - test abcdefghjiklmnopqrstuvwyzöäüßABCDEFGHIJKLMNOPQRSTUVWXYZÖÄÜ?\"'");
 
-				div1.setProperty(DOMNode.showConditions, "me.isAdmin");
+				div1.setProperties(div1.getSecurityContext(), new PropertyMap(DOMNode.showConditions, "me.isAdmin"));
 			}
 
 			// create a protected div
@@ -111,8 +112,10 @@ public class DeploymentTest extends StructrUiTest {
 				final Div div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "protected - $%&/()=?¼½¬{[]}");
 
-				div1.setProperty(DOMNode.visibleToPublicUsers,        false);
-				div1.setProperty(DOMNode.visibleToAuthenticatedUsers,  true);
+				final PropertyMap div1Properties = new PropertyMap();
+				div1Properties.put(DOMNode.visibleToPublicUsers,        false);
+				div1Properties.put(DOMNode.visibleToAuthenticatedUsers,  true);
+				div1.setProperties(div1.getSecurityContext(), div1Properties);
 			}
 
 			// create a public div
@@ -120,8 +123,10 @@ public class DeploymentTest extends StructrUiTest {
 				final Div div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "public");
 
-				div1.setProperty(DOMNode.visibleToPublicUsers,        true);
-				div1.setProperty(DOMNode.visibleToAuthenticatedUsers, true);
+				final PropertyMap div1Properties = new PropertyMap();
+				div1Properties.put(DOMNode.visibleToPublicUsers,         true);
+				div1Properties.put(DOMNode.visibleToAuthenticatedUsers,  true);
+				div1.setProperties(div1.getSecurityContext(), div1Properties);
 			}
 
 			// create a public only div
@@ -129,8 +134,10 @@ public class DeploymentTest extends StructrUiTest {
 				final Div div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "public only");
 
-				div1.setProperty(DOMNode.visibleToPublicUsers,         true);
-				div1.setProperty(DOMNode.visibleToAuthenticatedUsers, false);
+				final PropertyMap div1Properties = new PropertyMap();
+				div1Properties.put(DOMNode.visibleToPublicUsers,         true);
+				div1Properties.put(DOMNode.visibleToAuthenticatedUsers,  false);
+				div1.setProperties(div1.getSecurityContext(), div1Properties);
 			}
 
 			tx.success();
@@ -167,8 +174,8 @@ public class DeploymentTest extends StructrUiTest {
 			);
 
 			// workaround for strange importer behaviour
-			script.setProperty(Script._type, "text/javascript");
-			content.setProperty(Content.contentType, "text/javascript");
+			script.setProperties(script.getSecurityContext(), new PropertyMap(Script._type, "text/javascript"));
+			content.setProperties(content.getSecurityContext(), new PropertyMap(Content.contentType, "text/javascript"));
 
 			tx.success();
 
@@ -196,9 +203,11 @@ public class DeploymentTest extends StructrUiTest {
 
 			final Link link3  = createElement(page, head, "link");
 
-			link3.setProperty(Link._href, "/");
-			link3.setProperty(Link._media, "screen");
-			link3.setProperty(Link._type, "stylesheet");
+			final PropertyMap link3Properties = new PropertyMap();
+			link3Properties.put(Link._href, "/");
+			link3Properties.put(Link._media, "screen");
+			link3Properties.put(Link._type, "stylesheet");
+			link3.setProperties(link3.getSecurityContext(), link3Properties);
 
 			final Body body       = createElement(page, html, "body");
 			final Div div1        = createElement(page, body, "div");
@@ -230,8 +239,10 @@ public class DeploymentTest extends StructrUiTest {
 
 			final Template template = createTemplate(page, div1, "template source - öäüÖÄÜß'\"'`");
 
-			template.setProperty(Template.functionQuery, "find('User')");
-			template.setProperty(Template.dataKey, "user");
+			final PropertyMap templateProperties = new PropertyMap();
+			templateProperties.put(Template.functionQuery, "find('User')");
+			templateProperties.put(Template.dataKey, "user");
+			template.setProperties(template.getSecurityContext(), templateProperties);
 
 			// append children to template object
 			createElement(page, template, "div");
@@ -446,8 +457,10 @@ public class DeploymentTest extends StructrUiTest {
 
 			final Template template1 = createTemplate(page1, tbody, "<tr><td>${user.name}</td></tr>");
 
-			template1.setProperty(DOMNode.functionQuery, "find('User')");
-			template1.setProperty(DOMNode.dataKey, "user");
+			final PropertyMap template1Properties = new PropertyMap();
+			template1Properties.put(DOMNode.functionQuery, "find('User')");
+			template1Properties.put(DOMNode.dataKey, "user");
+			template1.setProperties(template1.getSecurityContext(), template1Properties);
 
 			tx.success();
 
