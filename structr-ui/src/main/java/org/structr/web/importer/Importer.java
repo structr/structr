@@ -74,6 +74,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.dynamic.File;
 import org.structr.rest.common.HttpHelper;
@@ -280,8 +281,11 @@ public class Importer {
 		Page page = Page.createNewPage(securityContext, uuid, name);
 		if (page != null) {
 
-			page.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
-			page.setProperty(AbstractNode.visibleToPublicUsers, publicVisible);
+			final PropertyMap changedProperties = new PropertyMap();
+			changedProperties.put(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+			changedProperties.put(AbstractNode.visibleToPublicUsers, publicVisible);
+			page.setProperties(securityContext, changedProperties);
+
 			createChildNodes(parsedDocument, page, page);
 
 			if (!isDeployment) {
