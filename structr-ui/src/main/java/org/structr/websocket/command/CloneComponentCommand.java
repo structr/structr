@@ -21,6 +21,7 @@ package org.structr.websocket.command;
 
 import java.util.Map;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
@@ -107,9 +108,10 @@ public class CloneComponentCommand extends AbstractCommand {
 
 		final DOMNode clonedNode = (DOMNode) node.cloneNode(false);
 
-		parentNode.appendChild(clonedNode);
-		clonedNode.setProperty(DOMNode.sharedComponent, node);
-		clonedNode.setProperty(DOMNode.ownerDocument, (parentNode instanceof Page ? (Page) parentNode : parentNode.getProperty(DOMNode.ownerDocument)));
+		final PropertyMap changedProperties = new PropertyMap();
+		changedProperties.put(DOMNode.sharedComponent, node);
+		changedProperties.put(DOMNode.ownerDocument, (parentNode instanceof Page ? (Page) parentNode : parentNode.getProperty(DOMNode.ownerDocument)));
+		clonedNode.setProperties(clonedNode.getSecurityContext(), changedProperties);
 
 		return clonedNode;
 	}

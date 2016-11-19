@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
@@ -48,23 +49,31 @@ public class DeploymentCommentHandler implements CommentHandler {
 	static {
 
 		handlers.put("public-only", (Page page, DOMNode node, final String parameters) -> {
-			node.setProperty(AbstractNode.visibleToPublicUsers, true);
-			node.setProperty(AbstractNode.visibleToAuthenticatedUsers, false);
+			final PropertyMap changedProperties = new PropertyMap();
+			changedProperties.put(AbstractNode.visibleToPublicUsers,        true);
+			changedProperties.put(AbstractNode.visibleToAuthenticatedUsers, false);
+			node.setProperties(node.getSecurityContext(), changedProperties);
 		});
 
 		handlers.put("public", (Page page, DOMNode node, final String parameters) -> {
-			node.setProperty(AbstractNode.visibleToPublicUsers, true);
-			node.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+			final PropertyMap changedProperties = new PropertyMap();
+			changedProperties.put(AbstractNode.visibleToPublicUsers,        true);
+			changedProperties.put(AbstractNode.visibleToAuthenticatedUsers, true);
+			node.setProperties(node.getSecurityContext(), changedProperties);
 		});
 
 		handlers.put("protected", (Page page, DOMNode node, final String parameters) -> {
-			node.setProperty(AbstractNode.visibleToPublicUsers, false);
-			node.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+			final PropertyMap changedProperties = new PropertyMap();
+			changedProperties.put(AbstractNode.visibleToPublicUsers,        false);
+			changedProperties.put(AbstractNode.visibleToAuthenticatedUsers, true);
+			node.setProperties(node.getSecurityContext(), changedProperties);
 		});
 
 		handlers.put("private", (Page page, DOMNode node, final String parameters) -> {
-			node.setProperty(AbstractNode.visibleToPublicUsers, false);
-			node.setProperty(AbstractNode.visibleToAuthenticatedUsers, false);
+			final PropertyMap changedProperties = new PropertyMap();
+			changedProperties.put(AbstractNode.visibleToPublicUsers,        false);
+			changedProperties.put(AbstractNode.visibleToAuthenticatedUsers, false);
+			node.setProperties(node.getSecurityContext(), changedProperties);
 		});
 
 		handlers.put("link", (Page page, DOMNode node, final String parameters) -> {
@@ -75,21 +84,21 @@ public class DeploymentCommentHandler implements CommentHandler {
 				if (file != null) {
 
 					final LinkSource linkSource = (LinkSource)node;
-					linkSource.setProperty(LinkSource.linkable, file);
+					linkSource.setProperties(linkSource.getSecurityContext(), new PropertyMap(LinkSource.linkable, file));
 				}
 			}
 		});
 
 		handlers.put("content", (Page page, DOMNode node, final String parameters) -> {
-			node.setProperty(Content.contentType, parameters);
+			node.setProperties(node.getSecurityContext(), new PropertyMap(Content.contentType, parameters));
 		});
 
 		handlers.put("show", (Page page, DOMNode node, final String parameters) -> {
-			node.setProperty(DOMNode.showConditions, parameters);
+			node.setProperties(node.getSecurityContext(), new PropertyMap(DOMNode.showConditions, parameters));
 		});
 
 		handlers.put("hide", (Page page, DOMNode node, final String parameters) -> {
-			node.setProperty(DOMNode.hideConditions, parameters);
+			node.setProperties(node.getSecurityContext(), new PropertyMap(DOMNode.hideConditions, parameters));
 		});
 	}
 
