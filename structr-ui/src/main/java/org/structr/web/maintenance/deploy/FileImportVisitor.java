@@ -159,22 +159,23 @@ public class FileImportVisitor implements FileVisitor<Path> {
 				final FileBase newFile   = FileHelper.createFile(securityContext, fis, null, File.class, fileName);
 				final String contentType = newFile.getContentType();
 
+				final PropertyMap changedProperties = new PropertyMap();
+
 				// modify file type according to content
 				if (StringUtils.startsWith(contentType, "image") || ImageHelper.isImageType(newFile.getProperty(name))) {
 
-					newFile.unlockSystemPropertiesOnce();
-					newFile.setProperty(NodeInterface.type, Image.class.getSimpleName());
+					changedProperties.put(NodeInterface.type, Image.class.getSimpleName());
 				}
 
 				// move file to folder
-				newFile.setProperty(FileBase.parent, parent);
+				changedProperties.put(FileBase.parent, parent);
 
 				// set properties from files.json
 				final PropertyMap properties = getPropertiesForFileOrFolder(newFile.getPath());
-				if (properties != null) {
+				changedProperties.putAll(properties);
 
-					newFile.setProperties(securityContext, properties);
-				}
+				newFile.unlockSystemPropertiesOnce();
+				newFile.setProperties(securityContext, changedProperties);
 
 				newFileUuid = newFile.getUuid();
 			}
