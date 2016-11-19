@@ -681,7 +681,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		putIf(config, "contentType",                 file.getProperty(FileBase.contentType));
 		putIf(config, "cacheForSeconds",             file.getProperty(FileBase.cacheForSeconds));
 
-		fixme: test this
+		//fixme: test this
 		putIf(config, "useAsJavascriptLibrary",      file.getProperty(FileBase.useAsJavascriptLibrary));
 
 		if (file instanceof Image) {
