@@ -64,9 +64,8 @@ public class PropertyMap {
 
 	public PropertyMap(final PropertyMap source) {
 
-		for (Entry<PropertyKey, Object> entry : source.entrySet()) {
-			properties.put(entry.getKey(), entry.getValue());
-		}
+		putAll(source);
+
 	}
 
 	public <T> PropertyMap(final PropertyKey<T> key, final T value) {
@@ -102,6 +101,18 @@ public class PropertyMap {
 
 	public <T> T put(PropertyKey<T> key, T value) {
 		return (T)properties.put(key, value);
+	}
+
+	public final void putAll(PropertyMap source) {
+
+		if (source != null) {
+
+			for (Entry<PropertyKey, Object> entry : source.entrySet()) {
+				properties.put(entry.getKey(), entry.getValue());
+			}
+
+		}
+
 	}
 
 	public <T> T remove(PropertyKey<T> key) {
