@@ -37,6 +37,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
@@ -207,9 +208,9 @@ public class UnarchiveCommand extends AbstractCommand {
 						final Folder parentFolder = FileHelper.createFolderPath(securityContext, folderPath);
 
 						if (parentFolder != null) {
-							newFile.setProperty(AbstractFile.parent, parentFolder);
+							newFile.setProperties(securityContext, new PropertyMap(AbstractFile.parent, parentFolder));
 						}
-													// create thumbnails while importing data
+						// create thumbnails while importing data
 //						if (newFile instanceof Image) {
 //							newFile.getProperty(Image.tnMid);
 //							newFile.getProperty(Image.tnSmall);

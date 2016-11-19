@@ -27,6 +27,7 @@ import org.structr.common.KeyAndClass;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.Image;
 
@@ -124,7 +125,7 @@ public class ImageConverter extends PropertyConverter {
 
 				// manual indexing of UUID needed here to avoid a 404 in the following setProperty call
 				img.updateInIndex();
-				currentObject.setProperty(keyAndClass.getPropertyKey(), img);
+				currentObject.setProperties(securityContext, new PropertyMap(keyAndClass.getPropertyKey(), img));
 			}
 
 

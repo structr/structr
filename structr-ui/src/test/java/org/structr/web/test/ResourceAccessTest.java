@@ -87,7 +87,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().get("/folders");
 
 			// allow GET for authenticated users => access without user/pass should be still forbidden
-			folderGrant.setProperty(GraphObject.visibleToPublicUsers, true);
+			folderGrant.setProperties(folderGrant.getSecurityContext(), new PropertyMap(GraphObject.visibleToPublicUsers, true));
 			folderGrant.setFlag(UiAuthenticator.AUTH_USER_GET);
 
 			tx.success();
@@ -155,7 +155,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().post("/folders");
 
 			// allow POST for non-authenticated users => access without user/pass should be allowed
-			folderGrant.setProperty(GraphObject.visibleToPublicUsers, true);
+			folderGrant.setProperties(folderGrant.getSecurityContext(), new PropertyMap(GraphObject.visibleToPublicUsers, true));
 			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_POST);
 
 			tx.success();
@@ -234,7 +234,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/folder/" + testFolder.getUuid());
 
 			// allow PUT for non-authenticated users =>
-			folderGrant.setProperty(GraphObject.visibleToPublicUsers, true);
+			folderGrant.setProperties(folderGrant.getSecurityContext(), new PropertyMap(GraphObject.visibleToPublicUsers, true));
 			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_PUT);
 
 			tx.success();
@@ -250,11 +250,13 @@ public class ResourceAccessTest extends StructrUiTest {
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(404).when().put("/folder/" + testFolder.getUuid());
 
 			// Prepare for next test
-			testUser.setProperty(AbstractNode.name, name);
-			testUser.setProperty(User.password, password);
+			final PropertyMap testUserProperties = new PropertyMap();
+			testUserProperties.put(AbstractNode.name, name);
+			testUserProperties.put(User.password, password);
+			testUser.setProperties(testUser.getSecurityContext(), testUserProperties);
 
 			// now we give the user ownership and expect a 200
-			testFolder.setProperty(AbstractNode.owner, testUser);
+			testFolder.setProperties(testFolder.getSecurityContext(), new PropertyMap(AbstractNode.owner, testUser));
 
 			tx.success();
 		} catch (FrameworkException fex) {
@@ -339,7 +341,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
 
-			folderGrant.setProperty(GraphObject.visibleToPublicUsers, true);
+			folderGrant.setProperties(folderGrant.getSecurityContext(), new PropertyMap(GraphObject.visibleToPublicUsers, true));
 			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_DELETE);
 
 			tx.success();
@@ -353,11 +355,13 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(404).when().delete("/folder/" + testFolder.getUuid());
 
-			testUser.setProperty(AbstractNode.name, name);
-			testUser.setProperty(User.password, password);
+			final PropertyMap changedProperties = new PropertyMap();
+			changedProperties.put(AbstractNode.name, name);
+			changedProperties.put(User.password, password);
+			testUser.setProperties(testUser.getSecurityContext(), changedProperties);
 
 			// make user own folder
-			testFolder.setProperty(AbstractNode.owner, testUser);
+			testFolder.setProperties(testFolder.getSecurityContext(), new PropertyMap(AbstractNode.owner, testUser));
 
 			tx.success();
 		} catch (FrameworkException fex) {

@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.ContentContainer;
 import org.structr.web.entity.ContentItem;
 import org.structr.websocket.StructrWebSocket;
@@ -33,12 +34,12 @@ import org.structr.websocket.message.WebSocketMessage;
 
 /**
  * Append a content item to a content container.
- * 
+ *
  * Note that - unlike folders/files - content items can be contained in multiple containers.
  *
  */
 public class AppendContentItemCommand extends AbstractCommand {
-		
+
 	private static final Logger logger     = LoggerFactory.getLogger(AppendContentItemCommand.class.getName());
 
 	static {
@@ -70,7 +71,7 @@ public class AppendContentItemCommand extends AbstractCommand {
 			return;
 
 		}
-		
+
 		// never append to self
 		if (parentId.equals(id)) {
 
@@ -79,7 +80,7 @@ public class AppendContentItemCommand extends AbstractCommand {
 			return;
 
 		}
-		
+
 
 		// check if parent node with given ID exists
 		AbstractNode parentNode = getNode(parentId);
@@ -95,24 +96,24 @@ public class AppendContentItemCommand extends AbstractCommand {
 		if (parentNode instanceof ContentContainer) {
 
 			ContentContainer container = (ContentContainer) parentNode;
-			
+
 			ContentItem item = (ContentItem) getNode(id);
 
 			if (item != null) {
-				
+
 				try {
 					final List<ContentItem> items = container.getProperty(ContentContainer.items);
 					items.add(item);
-					container.setProperty(ContentContainer.items, items);
-					
+					container.setProperties(container.getSecurityContext(), new PropertyMap(ContentContainer.items, items));
+
 					TransactionCommand.registerNodeCallback(item, callback);
-					
+
 				} catch (FrameworkException ex) {
 					logger.error("", ex);
 					getWebSocket().send(MessageBuilder.status().code(422).message("Cannot append content item").build(), true);
 				}
 			}
-			
+
 
 		} else {
 

@@ -66,34 +66,34 @@ public class RenderDataTest extends DOMTest {
 			assertEquals(7, folders.size());
 
 			Folder rootNode = folders.get(0);
-			rootNode.setProperty(AbstractNode.name, "rootNode");
+			rootNode.setProperties(rootNode.getSecurityContext(), new PropertyMap(AbstractNode.name, "rootNode"));
 			Folder folderA = folders.get(1);
-			folderA.setProperty(AbstractNode.name, "folderA");
+			folderA.setProperties(folderA.getSecurityContext(), new PropertyMap(AbstractNode.name, "folderA"));
 			Folder folderB = folders.get(2);
-			folderB.setProperty(AbstractNode.name, "folderB");
+			folderB.setProperties(folderB.getSecurityContext(), new PropertyMap(AbstractNode.name, "folderB"));
 			Folder folderC = folders.get(3);
-			folderC.setProperty(AbstractNode.name, "folderC");
+			folderC.setProperties(folderC.getSecurityContext(), new PropertyMap(AbstractNode.name, "folderC"));
 			Folder folderD = folders.get(4);
-			folderD.setProperty(AbstractNode.name, "folderD");
+			folderD.setProperties(folderD.getSecurityContext(), new PropertyMap(AbstractNode.name, "folderD"));
 			Folder folderE = folders.get(5);
-			folderE.setProperty(AbstractNode.name, "folderE");
+			folderE.setProperties(folderE.getSecurityContext(), new PropertyMap(AbstractNode.name, "folderE"));
 			Folder folderF = folders.get(6);
-			folderF.setProperty(AbstractNode.name, "folderF");
+			folderF.setProperties(folderF.getSecurityContext(), new PropertyMap(AbstractNode.name, "folderF"));
 
 			FileBase file1 = files.get(0);
-			file1.setProperty(AbstractNode.name, "file1");
+			file1.setProperties(file1.getSecurityContext(), new PropertyMap(AbstractNode.name, "file1"));
 			FileBase file2 = files.get(1);
-			file2.setProperty(AbstractNode.name, "file2");
+			file2.setProperties(file2.getSecurityContext(), new PropertyMap(AbstractNode.name, "file2"));
 			FileBase file3 = files.get(2);
-			file3.setProperty(AbstractNode.name, "file3");
+			file3.setProperties(file3.getSecurityContext(), new PropertyMap(AbstractNode.name, "file3"));
 			FileBase file4 = files.get(3);
-			file4.setProperty(AbstractNode.name, "file4");
+			file4.setProperties(file4.getSecurityContext(), new PropertyMap(AbstractNode.name, "file4"));
 			FileBase file5 = files.get(4);
-			file5.setProperty(AbstractNode.name, "file5");
+			file5.setProperties(file5.getSecurityContext(), new PropertyMap(AbstractNode.name, "file5"));
 			FileBase file6 = files.get(5);
-			file6.setProperty(AbstractNode.name, "file6");
+			file6.setProperties(file6.getSecurityContext(), new PropertyMap(AbstractNode.name, "file6"));
 			FileBase file7 = files.get(6);
-			file7.setProperty(AbstractNode.name, "file7");
+			file7.setProperties(file7.getSecurityContext(), new PropertyMap(AbstractNode.name, "file7"));
 
 			rootNode.treeAppendChild(folderA);
 			rootNode.treeAppendChild(folderB);
@@ -164,12 +164,12 @@ public class RenderDataTest extends DOMTest {
 			//properties.put(LinkedListNode.keyProperty, key);
 			StructrApp.getInstance(securityContext).command(CreateRelationshipCommand.class).execute((DOMElement) div, (NodeInterface) rootNode, RenderNode.class, properties);
 
-			((DOMElement) div).setProperty(DOMElement.dataKey, "root");
+			((DOMElement) div).setProperties(((DOMElement) div).getSecurityContext(), new PropertyMap(DOMElement.dataKey, "root"));
 
-			((DOMElement) li1).setProperty(DOMElement.dataKey, "folders");
-			((DOMElement) li2).setProperty(DOMElement.dataKey, "files");
-			((DOMElement) li3).setProperty(DOMElement.dataKey, "files");
-			((DOMElement) li4).setProperty(DOMElement.dataKey, "folders");
+			((DOMElement) li1).setProperties(((DOMElement) li1).getSecurityContext(), new PropertyMap(DOMElement.dataKey, "folders"));
+			((DOMElement) li2).setProperties(((DOMElement) li2).getSecurityContext(), new PropertyMap(DOMElement.dataKey, "files"));
+			((DOMElement) li3).setProperties(((DOMElement) li3).getSecurityContext(), new PropertyMap(DOMElement.dataKey, "files"));
+			((DOMElement) li4).setProperties(((DOMElement) li4).getSecurityContext(), new PropertyMap(DOMElement.dataKey, "folders"));
 
 			makePublic(doc, html, body, div, ul1, ul2, li1, li2, li3, li4);
 
@@ -224,28 +224,28 @@ public class RenderDataTest extends DOMTest {
 			assertEquals(3, users.size());
 
 			User user1 = users.get(0);
-			user1.setProperty(AbstractNode.name, "user1");
+			user1.setProperties(user1.getSecurityContext(), new PropertyMap(AbstractNode.name, "user1"));
 			User user2 = users.get(1);
-			user2.setProperty(AbstractNode.name, "user2");
+			user2.setProperties(user2.getSecurityContext(), new PropertyMap(AbstractNode.name, "user2"));
 			User user3 = users.get(2);
-			user3.setProperty(AbstractNode.name, "user3");
+			user3.setProperties(user3.getSecurityContext(), new PropertyMap(AbstractNode.name, "user3"));
 
 			final List<File> files = createTestNodes(File.class, 6);
 
 			assertEquals(6, files.size());
 
 			FileBase nodeA = files.get(0);
-			nodeA.setProperty(AbstractNode.name, "fileA");
+			nodeA.setProperties(nodeA.getSecurityContext(), new PropertyMap(AbstractNode.name, "fileA"));
 			FileBase nodeB = files.get(1);
-			nodeB.setProperty(AbstractNode.name, "fileB");
+			nodeB.setProperties(nodeB.getSecurityContext(), new PropertyMap(AbstractNode.name, "fileB"));
 			FileBase nodeC = files.get(2);
-			nodeC.setProperty(AbstractNode.name, "fileC");
+			nodeC.setProperties(nodeC.getSecurityContext(), new PropertyMap(AbstractNode.name, "fileC"));
 			FileBase nodeD = files.get(3);
-			nodeD.setProperty(AbstractNode.name, "fileD");
+			nodeD.setProperties(nodeD.getSecurityContext(), new PropertyMap(AbstractNode.name, "fileD"));
 			FileBase nodeE = files.get(4);
-			nodeE.setProperty(AbstractNode.name, "fileE");
+			nodeE.setProperties(nodeE.getSecurityContext(), new PropertyMap(AbstractNode.name, "fileE"));
 			FileBase nodeF = files.get(5);
-			nodeF.setProperty(AbstractNode.name, "fileF");
+			nodeF.setProperties(nodeF.getSecurityContext(), new PropertyMap(AbstractNode.name, "fileF"));
 
 			// create dom tree
 			Element html = doc.createElement("html");
@@ -253,8 +253,10 @@ public class RenderDataTest extends DOMTest {
 			Element b = doc.createElement("b");
 			final Element p1 = doc.createElement("p");
 
-			((DOMElement) p1).setProperty(DOMElement.restQuery, "users?sort=name");
-			((DOMElement) p1).setProperty(DOMElement.dataKey, "user");
+			final PropertyMap p1Properties = new PropertyMap();
+			p1Properties.put(DOMElement.restQuery, "users?sort=name");
+			p1Properties.put(DOMElement.dataKey, "user");
+			((DOMElement) p1).setProperties(((DOMElement) p1).getSecurityContext(), p1Properties);
 
 			Content userNameContentNode = (Content) doc.createTextNode("${user.name}");
 
@@ -263,8 +265,10 @@ public class RenderDataTest extends DOMTest {
 			Element div = doc.createElement("div");
 			final Element p2 = doc.createElement("p");
 
-			((DOMElement) p2).setProperty(DOMElement.restQuery, "files?sort=name");
-			((DOMElement) p2).setProperty(DOMElement.dataKey, "file");
+			final PropertyMap p2Properties = new PropertyMap();
+			p2Properties.put(DOMElement.restQuery, "files?sort=name");
+			p2Properties.put(DOMElement.dataKey, "file");
+			((DOMElement) p2).setProperties(((DOMElement) p2).getSecurityContext(), p2Properties);
 
 			Content fileNameContentNode = (Content) doc.createTextNode("${file.name}");
 

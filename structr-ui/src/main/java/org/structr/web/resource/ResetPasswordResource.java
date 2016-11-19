@@ -38,6 +38,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
@@ -120,7 +121,7 @@ public class ResetPasswordResource extends Resource {
 				user = (Principal) result.get(0);
 
 				// For existing users, update confirmation key
-				user.setProperty(User.confirmationKey, confKey);
+				user.setProperties(securityContext, new PropertyMap(User.confirmationKey, confKey));
 
 				existingUser = true;
 

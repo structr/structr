@@ -23,7 +23,6 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map.Entry;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
@@ -62,7 +61,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.files.cmis.wrapper.CMISContentStream;
@@ -114,7 +112,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 						final Folder parent = app.get(Folder.class, folderId);
 						if (parent != null) {
 
-							newFile.setProperty(Folder.parent, parent);
+							newFile.setProperties(securityContext, new PropertyMap(Folder.parent, parent));
 
 						} else {
 
@@ -230,7 +228,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 						final Folder parent = app.get(Folder.class, folderId);
 						if (parent != null) {
 
-							newFolder.setProperty(Folder.parent, parent);
+							newFolder.setProperties(securityContext, new PropertyMap(Folder.parent, parent));
 
 						} else {
 
@@ -403,10 +401,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 				final PropertyMap propertyMap = PropertyMap.cmisTypeToJavaType(securityContext, obj.getClass(), properties);
 				if (propertyMap != null) {
 
-					for (final Entry<PropertyKey, Object> entry : propertyMap.entrySet()) {
-
-						obj.setProperty(entry.getKey(), entry.getValue());
-					}
+					obj.setProperties(securityContext, propertyMap);
 				}
 
 			} else {
@@ -438,10 +433,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 					final PropertyMap propertyMap = PropertyMap.cmisTypeToJavaType(securityContext, obj.getClass(), properties);
 					if (propertyMap != null) {
 
-						for (final Entry<PropertyKey, Object> entry : propertyMap.entrySet()) {
-
-							obj.setProperty(entry.getKey(), entry.getValue());
-						}
+						obj.setProperties(securityContext, propertyMap);
 					}
 
 					result.add(token);
@@ -487,12 +479,12 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 				if (CMISInfo.ROOT_FOLDER_ID.equals(targetFolderId)) {
 
 					// root folder => null parent
-					file.setProperty(FileBase.parent, null);
+					file.setProperties(securityContext, new PropertyMap(FileBase.parent, null));
 
 				} else {
 
 					// get will throw an exception if the folder doesn't exist
-					file.setProperty(FileBase.parent, get(app, Folder.class, targetFolderId));
+					file.setProperties(securityContext, new PropertyMap(FileBase.parent, get(app, Folder.class, targetFolderId)));
 
 				}
 

@@ -20,6 +20,7 @@ package org.structr.websocket.command.dom;
 
 import java.util.Map;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.AbstractCommand;
@@ -47,7 +48,7 @@ public class CloneNodeCommand extends AbstractCommand {
 		final Map<String, Object> nodeData          = webSocketData.getNodeData();
 		final String parentId                       = (String) nodeData.get("parentId");
 		final boolean deep                          = (Boolean) nodeData.get("deep");
-		
+
 		DOMNode parent = null;
 		if (id != null) {
 
@@ -66,15 +67,15 @@ public class CloneNodeCommand extends AbstractCommand {
 
 				}
 			}
-			
+
 			try {
 				DOMNode clonedNode = (DOMNode) node.cloneNode(deep);
-				
+
 				if (parent != null) {
 					parent.appendChild(clonedNode);
 				}
 
-				clonedNode.setProperty(DOMNode.ownerDocument, (parent != null ? parent : node).getProperty(DOMNode.ownerDocument));
+				clonedNode.setProperties(clonedNode.getSecurityContext(), new PropertyMap(DOMNode.ownerDocument, (parent != null ? parent : node).getProperty(DOMNode.ownerDocument)));
 
 			} catch (DOMException | FrameworkException ex) {
 
@@ -96,5 +97,5 @@ public class CloneNodeCommand extends AbstractCommand {
 
 	}
 
-	
+
 }

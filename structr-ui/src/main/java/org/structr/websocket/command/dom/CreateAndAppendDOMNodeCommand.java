@@ -29,6 +29,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Template;
 import org.structr.websocket.StructrWebSocket;
@@ -102,7 +103,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 							newNode.unlockSystemPropertiesOnce();
 
-							newNode.setProperty(NodeInterface.type, Template.class.getSimpleName());
+							newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(NodeInterface.type, Template.class.getSimpleName()));
 
 						} catch (FrameworkException fex) {
 
@@ -144,8 +145,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 										convertedValue = inputConverter.convert(val);
 									}
 
-									//newNode.unlockReadOnlyPropertiesOnce();
-									newNode.setProperty(propertyKey, convertedValue);
+									newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(propertyKey, convertedValue));
 
 								} catch (FrameworkException fex) {
 

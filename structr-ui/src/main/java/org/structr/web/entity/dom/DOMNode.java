@@ -597,7 +597,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			try {
 
-				child.setProperty(ownerDocument, page);
+				child.setProperties(child.getSecurityContext(), new PropertyMap(ownerDocument, page));
 
 			} catch (FrameworkException ex) {
 				logger.warn("", ex);
@@ -1755,7 +1755,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		if (_page != null) {
 
 			try {
-				setProperty(ownerDocument, _page);
+
+				setProperties(securityContext, new PropertyMap(ownerDocument, _page));
 
 			} catch (FrameworkException fex) {
 

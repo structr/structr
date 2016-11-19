@@ -26,6 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.relation.Sync;
@@ -100,7 +101,7 @@ public class FixComponentsCommand extends AbstractCommand {
 					DOMNode clonedNode = (DOMNode) node.cloneNode(false);
 
 					moveChildNodes(node, clonedNode);
-					clonedNode.setProperty(DOMNode.ownerDocument, hiddenDoc);
+					clonedNode.setProperties(securityContext, new PropertyMap(DOMNode.ownerDocument, hiddenDoc));
 
 					createRel.execute((DOMNode) node, clonedNode, Sync.class);
 					createRel.execute(clonedNode, (DOMNode) node, Sync.class);

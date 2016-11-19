@@ -684,7 +684,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 		checkWriteAccess();
 
 		try {
-			setProperty(DOMElement._id, idString);
+			setProperties(securityContext, new PropertyMap(DOMElement._id, idString));
 
 		} catch (FrameworkException fex) {
 

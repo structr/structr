@@ -278,8 +278,11 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 							try (final Tx tx = StructrApp.getInstance().tx()) {
 
 								newFile = FileHelper.createFile(securityContext, IOUtils.toByteArray(item.getInputStream()), contentType, cls);
-								newFile.setProperty(AbstractNode.name, PathHelper.getName(name));
-								newFile.setProperties(newFile.getSecurityContext(), PropertyMap.inputTypeToJavaType(securityContext, cls, params));
+
+								final PropertyMap changedProperties = new PropertyMap();
+
+								changedProperties.put(AbstractNode.name, PathHelper.getName(name));
+								changedProperties.putAll(PropertyMap.inputTypeToJavaType(securityContext, cls, params));
 
 								final String defaultUploadFolderConfigValue = StructrApp.getConfigurationValue(Services.APPLICATION_DEFAULT_UPLOAD_FOLDER, null);
 								if (defaultUploadFolderConfigValue != null) {
@@ -289,13 +292,15 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 									// can only happen if the configuration value is invalid or maps to the root folder
 									if (defaultUploadFolder != null) {
 
-										newFile.setProperty(FileBase.hasParent, true);
-										newFile.setProperty(FileBase.parent, defaultUploadFolder);
+										changedProperties.put(FileBase.hasParent, true);
+										changedProperties.put(FileBase.parent, defaultUploadFolder);
 									}
 								}
 
+								newFile.setProperties(securityContext, changedProperties);
+
 								if (!newFile.validatePath(securityContext, null)) {
-									newFile.setProperty(AbstractNode.name, name.concat("_").concat(FileHelper.getDateString()));
+									newFile.setProperty(AbstractNode.name, PathHelper.getName(name).concat("_").concat(FileHelper.getDateString()));
 								}
 
 								uuid = newFile.getUuid();

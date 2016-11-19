@@ -435,7 +435,7 @@ public class Content extends DOMNode implements Text, NonIndexed {
 					try {
 
 						// first part goes into existing text element
-						setProperty(content, firstPart);
+						setProperties(securityContext, new PropertyMap(content, firstPart));
 
 						// second part goes into new text element
 						Text newNode = document.createTextNode(secondPart);
@@ -500,7 +500,7 @@ public class Content extends DOMNode implements Text, NonIndexed {
 
 		checkWriteAccess();
 		try {
-			setProperty(content, data);
+			setProperties(securityContext, new PropertyMap(content, data));
 
 		} catch (FrameworkException fex) {
 
@@ -551,7 +551,7 @@ public class Content extends DOMNode implements Text, NonIndexed {
 
 		try {
 			String text = getProperty(content);
-			setProperty(content, text.concat(data));
+			setProperties(securityContext, new PropertyMap(content, text.concat(data)));
 
 		} catch (FrameworkException fex) {
 
@@ -578,7 +578,7 @@ public class Content extends DOMNode implements Text, NonIndexed {
 			buf.append(rightPart);
 
 			// finally, set content to concatenated left, data and right parts
-			setProperty(content, buf.toString());
+			setProperties(securityContext, new PropertyMap(content, buf.toString()));
 
 
 		} catch (FrameworkException fex) {
@@ -601,7 +601,7 @@ public class Content extends DOMNode implements Text, NonIndexed {
 			String leftPart  = text.substring(0, offset);
 			String rightPart = text.substring(offset + count);
 
-			setProperty(content, leftPart.concat(rightPart));
+			setProperties(securityContext, new PropertyMap(content, leftPart.concat(rightPart)));
 
 		} catch (FrameworkException fex) {
 
@@ -628,7 +628,7 @@ public class Content extends DOMNode implements Text, NonIndexed {
 			buf.append(data);
 			buf.append(rightPart);
 
-			setProperty(content, buf.toString());
+			setProperties(securityContext, new PropertyMap(content, buf.toString()));
 
 		} catch (FrameworkException fex) {
 

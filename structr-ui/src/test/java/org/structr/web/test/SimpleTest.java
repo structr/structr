@@ -51,6 +51,7 @@ import org.structr.core.graph.DummyNodeServiceCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.schema.importer.GraphGistImporter;
 import org.structr.web.common.StructrUiTest;
@@ -261,10 +262,10 @@ public class SimpleTest extends StructrUiTest {
 
 			try {
 				final Element html = pageOne.createElement("html");
-				((DOMNode) html).setProperty(DOMNode.visibleToPublicUsers, true);
+				((DOMNode) html).setProperties(((DOMNode) html).getSecurityContext(), new PropertyMap(DOMNode.visibleToPublicUsers, true));
 
 				final Text textNode = pageOne.createTextNode("page-1");
-				((DOMNode) textNode).setProperty(DOMNode.visibleToPublicUsers, true);
+				((DOMNode) textNode).setProperties(((DOMNode) textNode).getSecurityContext(), new PropertyMap(DOMNode.visibleToPublicUsers, true));
 
 				pageOne.appendChild(html);
 				html.appendChild(textNode);
@@ -278,10 +279,10 @@ public class SimpleTest extends StructrUiTest {
 
 			try {
 				final Element html = pageTwo.createElement("html");
-				((DOMNode) html).setProperty(DOMNode.visibleToPublicUsers, true);
+				((DOMNode) html).setProperties(((DOMNode) html).getSecurityContext(), new PropertyMap(DOMNode.visibleToPublicUsers, true));
 
 				final Text textNode = pageTwo.createTextNode("page-2");
-				((DOMNode) textNode).setProperty(DOMNode.visibleToPublicUsers, true);
+				((DOMNode) textNode).setProperties(((DOMNode) textNode).getSecurityContext(), new PropertyMap(DOMNode.visibleToPublicUsers, true));
 
 				pageTwo.appendChild(html);
 				html.appendChild(textNode);
@@ -291,25 +292,32 @@ public class SimpleTest extends StructrUiTest {
 				throw new FrameworkException(422, dex.getMessage());
 			}
 
-			final Site siteOne = app.create(Site.class, "site-one");
-			siteOne.setProperty(Site.visibleToPublicUsers, true);
+			final PropertyMap siteOneProperties = new PropertyMap();
+			siteOneProperties.put(Site.name, "site-one");
+			siteOneProperties.put(Site.visibleToPublicUsers, true);
+			siteOneProperties.put(Site.hostname, "localhost");
+			siteOneProperties.put(Site.port, 8875);
 
-			final Site siteTwo = app.create(Site.class, "site-two");
-			siteTwo.setProperty(Site.visibleToPublicUsers, true);
+			final PropertyMap siteTwoProperties = new PropertyMap();
+			siteTwoProperties.put(Site.name, "site-two");
+			siteTwoProperties.put(Site.visibleToPublicUsers, true);
+			siteTwoProperties.put(Site.hostname, "127.0.0.1");
+			siteTwoProperties.put(Site.port, 8875);
 
-			pageOne.setProperty(Page.site, siteOne);
-			pageOne.setProperty(Page.visibleToPublicUsers, true);
-			pageOne.setProperty(Page.position, 10);
+			final Site siteOne = app.create(Site.class, siteOneProperties);
+			final Site siteTwo = app.create(Site.class, siteTwoProperties);
 
-			pageTwo.setProperty(Page.site, siteTwo);
-			pageTwo.setProperty(Page.visibleToPublicUsers, true);
-			pageTwo.setProperty(Page.position, 10);
+			final PropertyMap pageOneProperties = new PropertyMap();
+			pageOneProperties.put(Page.site, siteOne);
+			pageOneProperties.put(Page.visibleToPublicUsers, true);
+			pageOneProperties.put(Page.position, 10);
+			pageOne.setProperties(pageOne.getSecurityContext(), pageOneProperties);
 
-			siteOne.setProperty(Site.hostname, "localhost");
-			siteOne.setProperty(Site.port, 8875);
-
-			siteTwo.setProperty(Site.hostname, "127.0.0.1");
-			siteTwo.setProperty(Site.port, 8875);
+			final PropertyMap pageTwoProperties = new PropertyMap();
+			pageTwoProperties.put(Page.site, siteTwo);
+			pageTwoProperties.put(Page.visibleToPublicUsers, true);
+			pageTwoProperties.put(Page.position, 10);
+			pageTwo.setProperties(pageTwo.getSecurityContext(), pageTwoProperties);
 
 			tx.success();
 
@@ -618,8 +626,10 @@ public class SimpleTest extends StructrUiTest {
 
 				makePublic(page, html, head, body, title, h1, div, titleText, heading, bodyContent);
 
-				page.setProperty(Page.showOnErrorCodes, "404");
-				page.setProperty(Page.position, 0);
+				final PropertyMap pageProperties = new PropertyMap();
+				pageProperties.put(Page.showOnErrorCodes, "404");
+				pageProperties.put(Page.position, 0);
+				page.setProperties(page.getSecurityContext(), pageProperties);
 
 				tx.success();
 			}
@@ -870,7 +880,7 @@ public class SimpleTest extends StructrUiTest {
 			// modify file name to move the first file to the end of the sorted list
 			try (final Tx tx = app.tx()) {
 
-				test1.setProperty(AbstractNode.name, "zzzzz");
+				test1.setProperties(test1.getSecurityContext(), new PropertyMap(AbstractNode.name, "zzzzz"));
 
 				tx.success();
 			}

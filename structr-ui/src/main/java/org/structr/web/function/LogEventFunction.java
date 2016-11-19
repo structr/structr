@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.property.PropertyMap;
 import org.structr.rest.logging.entity.LogEvent;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
@@ -59,12 +60,12 @@ public class LogEventFunction extends UiFunction {
 
 				case 4:
 					final String object = sources[3].toString();
-					logEvent.setProperty(LogEvent.objectProperty, object);
+					logEvent.setProperties(logEvent.getSecurityContext(), new PropertyMap(LogEvent.objectProperty, object));
 					// no break, next case should be included
 
 				case 3:
 					final String subject = sources[2].toString();
-					logEvent.setProperty(LogEvent.subjectProperty, subject);
+					logEvent.setProperties(logEvent.getSecurityContext(), new PropertyMap(LogEvent.subjectProperty, subject));
 					break;
 			}
 

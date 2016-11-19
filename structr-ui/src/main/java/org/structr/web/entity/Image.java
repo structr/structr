@@ -359,15 +359,12 @@ public class Image extends org.structr.dynamic.File {
 						properties.put(AbstractNode.hidden,                      originalImage.getProperty(AbstractNode.hidden));
 						properties.put(AbstractNode.visibleToAuthenticatedUsers, originalImage.getProperty(AbstractNode.visibleToAuthenticatedUsers));
 						properties.put(AbstractNode.visibleToPublicUsers,        originalImage.getProperty(AbstractNode.visibleToPublicUsers));
-
-
-						thumbnail.setProperties(securityContext, properties);
-
-						thumbnail.setProperty(AbstractNode.owner, originalImage.getProperty(AbstractNode.owner));
-						thumbnail.setProperty(File.parent, originalImage.getProperty(File.parent));
+						properties.put(File.size,                                Long.valueOf(data.length));
+						properties.put(AbstractNode.owner,                       originalImage.getProperty(AbstractNode.owner));
+						properties.put(File.parent,                              originalImage.getProperty(File.parent));
 
 						thumbnail.unlockSystemPropertiesOnce();
-						thumbnail.setProperty(File.size, Long.valueOf(data.length));
+						thumbnail.setProperties(securityContext, properties);
 
 						// Delete outdated thumbnails
 						for (final Image tn : oldThumbnails) {

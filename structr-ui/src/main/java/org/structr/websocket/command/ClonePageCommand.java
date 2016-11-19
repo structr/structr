@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
@@ -75,17 +76,17 @@ public class ClonePageCommand extends AbstractCommand {
 				if (pageToClone != null) {
 
 					//final List<DOMNode> elements = pageToClone.getProperty(Page.elements);
-					
+
 					DOMNode firstChild = (DOMNode) pageToClone.getFirstChild().getNextSibling();
-					
+
 					if (firstChild == null) {
 						firstChild = (DOMNode) pageToClone.treeGetFirstChild();
 					}
-					
+
 					final DOMNode newHtmlNode = DOMNode.cloneAndAppendChildren(securityContext, firstChild);
 					final Page newPage = (Page) pageToClone.cloneNode(false);
-					newPage.setProperty(Page.name, pageToClone.getProperty(Page.name) + "-" + newPage.getIdString());
-					
+					newPage.setProperties(securityContext, new PropertyMap(Page.name, pageToClone.getProperty(Page.name) + "-" + newPage.getIdString()));
+
 					newPage.appendChild(newHtmlNode);
 
 				}

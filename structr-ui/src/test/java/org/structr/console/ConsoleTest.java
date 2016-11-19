@@ -27,6 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.console.Console.ConsoleMode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.common.StructrUiTest;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
@@ -114,7 +115,7 @@ public class ConsoleTest extends StructrUiTest {
 				assertEquals("Invalid console execution result", Boolean.TRUE,      admin.getProperty(User.isAdmin));
 
 				final Folder folder = app.create(Folder.class, "folder");
-				folder.setProperty(Folder.owner, admin);
+				folder.setProperties(folder.getSecurityContext(), new PropertyMap(Folder.owner, admin));
 
 				tx.success();
 			}

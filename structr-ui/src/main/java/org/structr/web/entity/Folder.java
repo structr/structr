@@ -42,6 +42,7 @@ import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.files.cmis.config.StructrFolderActions;
 import org.structr.schema.SchemaService;
@@ -82,7 +83,7 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		if (super.onCreation(securityContext, errorBuffer)) {
-			setProperty(hasParent, getProperty(parentId) != null);
+			setProperties(securityContext, new PropertyMap(hasParent, getProperty(parentId) != null));
 			return true;
 		}
 
@@ -103,7 +104,7 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 				this.securityContext = SecurityContext.getSuperUserInstance();
 
 				// set property as super user
-				setProperty(hasParent, getProperty(parentId) != null);
+				setProperties(this.securityContext, new PropertyMap(hasParent, getProperty(parentId) != null));
 
 				// restore previous security context
 				this.securityContext = previousSecurityContext;

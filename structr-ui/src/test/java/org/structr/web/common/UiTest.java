@@ -35,6 +35,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.web.common.ImageHelper.Thumbnail;
 import org.structr.web.entity.FileBase;
@@ -58,7 +59,7 @@ public class UiTest extends StructrUiTest {
 
 			TestImage img = (TestImage) ImageHelper.createFileBase64(securityContext, base64Image, TestImage.class);
 
-			img.setProperty(AbstractNode.name, "test-image.png");
+			img.setProperties(img.getSecurityContext(), new PropertyMap(AbstractNode.name, "test-image.png"));
 
 			assertNotNull(img);
 			assertTrue(img instanceof TestImage);
@@ -90,7 +91,7 @@ public class UiTest extends StructrUiTest {
 
 			testImage = (Image) ImageHelper.createFileBase64(securityContext, base64Image, Image.class);
 
-			testImage.setProperty(Image.name, initialImageName);
+			testImage.setProperties(testImage.getSecurityContext(), new PropertyMap(Image.name, initialImageName));
 
 			assertNotNull(testImage);
 			assertTrue(testImage instanceof Image);
@@ -111,7 +112,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			testImage.setProperty(Image.name, renamedImageName);
+			testImage.setProperties(testImage.getSecurityContext(), new PropertyMap(Image.name, renamedImageName));
 			tx.success();
 
 		} catch (Exception ex) {
@@ -149,7 +150,7 @@ public class UiTest extends StructrUiTest {
 
 			subclassTestImage = (TestImage) ImageHelper.createFileBase64(securityContext, base64Image, TestImage.class);
 
-			subclassTestImage.setProperty(TestImage.name, initialImageName);
+			subclassTestImage.setProperties(subclassTestImage.getSecurityContext(), new PropertyMap(TestImage.name, initialImageName));
 
 			assertNotNull(subclassTestImage);
 			assertTrue(subclassTestImage instanceof TestImage);
@@ -172,7 +173,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			subclassTestImage.setProperty(Image.name, renamedImageName);
+			subclassTestImage.setProperties(subclassTestImage.getSecurityContext(), new PropertyMap(Image.name, renamedImageName));
 			tx.success();
 
 		} catch (Exception ex) {
@@ -331,7 +332,7 @@ public class UiTest extends StructrUiTest {
 			assertNotNull(file1);
 			assertEquals(FileHelper.getFolderPath(file1), "/file1");
 
-			file1.setProperty(File.parent, folder1);
+			file1.setProperties(file1.getSecurityContext(), new PropertyMap(File.parent, folder1));
 			assertEquals(FileHelper.getFolderPath(file1), "/folder1/file1");
 
 			tx.success();
@@ -346,7 +347,7 @@ public class UiTest extends StructrUiTest {
 			assertNotNull(image1);
 			assertEquals(FileHelper.getFolderPath(image1), "/image1");
 
-			image1.setProperty(File.parent, folder1);
+			image1.setProperties(image1.getSecurityContext(), new PropertyMap(File.parent, folder1));
 			assertEquals(FileHelper.getFolderPath(image1), "/folder1/image1");
 
 			tx.success();

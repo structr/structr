@@ -27,6 +27,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -66,12 +67,14 @@ public class RemoveCommand extends AbstractCommand {
 					DOMNode domNode = (DOMNode) node;
 
 					try {
-	
+
 						domNode.getParentNode().removeChild(domNode);
 
 						// Remove node from page
-						domNode.setProperty(DOMNode.syncedNodes, Collections.EMPTY_LIST);
-						domNode.setProperty(DOMNode.pageId, null);
+						final PropertyMap changedProperties = new PropertyMap();
+						changedProperties.put(DOMNode.syncedNodes, Collections.EMPTY_LIST);
+						changedProperties.put(DOMNode.pageId, null);
+						domNode.setProperties(securityContext, changedProperties);
 
 					} catch (DOMException | FrameworkException ex) {
 

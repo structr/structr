@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.Content;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -41,7 +42,7 @@ import org.structr.websocket.message.WebSocketMessage;
 public class PatchCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(PatchCommand.class.getName());
-	
+
 	static {
 		StructrWebSocket.addCommand(PatchCommand.class);
 	}
@@ -63,10 +64,10 @@ public class PatchCommand extends AbstractCommand {
 			final Object[] results    = dmp.patchApply(patches, oldText);
 
 			try {
-				node.setProperty(Content.content, results[0].toString());
-				
+				node.setProperties(node.getSecurityContext(), new PropertyMap(Content.content, results[0].toString()));
+
 				TransactionCommand.registerNodeCallback(node, callback);
-				
+
 			} catch (Throwable t) {
 
 				logger.warn("Could not apply patch {}", patch);

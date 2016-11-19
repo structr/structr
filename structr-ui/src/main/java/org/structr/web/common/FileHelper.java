@@ -85,7 +85,7 @@ public class FileHelper {
 		if (existingFile != null) {
 
 			existingFile.unlockSystemPropertiesOnce();
-			existingFile.setProperty(AbstractNode.type, fileType == null ? org.structr.dynamic.File.class.getSimpleName() : fileType.getSimpleName());
+			existingFile.setProperties(securityContext, new PropertyMap(AbstractNode.type, fileType == null ? org.structr.dynamic.File.class.getSimpleName() : fileType.getSimpleName()));
 
 			existingFile = getFileByUuid(securityContext, uuid);
 
@@ -333,6 +333,8 @@ public class FileHelper {
 	 */
 	public static File writeToFile(final FileBase fileNode, final byte[] data) throws FrameworkException, IOException {
 
+		final PropertyMap properties = new PropertyMap();
+
 		String id = fileNode.getProperty(GraphObject.id);
 		if (id == null) {
 
@@ -340,11 +342,13 @@ public class FileHelper {
 			id = newUuid;
 
 			fileNode.unlockSystemPropertiesOnce();
-			fileNode.setProperty(GraphObject.id, newUuid);
+			properties.put(GraphObject.id, newUuid);
 		}
 
+		properties.put(FileBase.relativeFilePath, FileBase.getDirectoryPath(id) + "/" + id);
+
 		fileNode.unlockSystemPropertiesOnce();
-		fileNode.setProperty(FileBase.relativeFilePath, FileBase.getDirectoryPath(id) + "/" + id);
+		fileNode.setProperties(fileNode.getSecurityContext(), properties);
 
 		final String filesPath = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
 
@@ -662,7 +666,7 @@ public class FileHelper {
 
 			if (parent != null) {
 
-				folder.setProperty(AbstractFile.parent, parent);
+				folder.setProperties(securityContext, new PropertyMap(AbstractFile.parent, parent));
 
 			}
 		}

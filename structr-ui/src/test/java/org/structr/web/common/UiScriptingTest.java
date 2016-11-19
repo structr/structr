@@ -56,6 +56,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.TestOne;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -87,7 +88,7 @@ public class UiScriptingTest extends StructrUiTest {
 			detailsDataObject = app.create(TestOne.class, "TestOne");
 			page              = Page.createNewPage(securityContext, "testpage");
 
-			page.setProperty(Page.visibleToPublicUsers, true);
+			page.setProperties(page.getSecurityContext(), new PropertyMap(Page.visibleToPublicUsers, true));
 
 			assertTrue(page != null);
 			assertTrue(page instanceof Page);
@@ -113,8 +114,11 @@ public class UiScriptingTest extends StructrUiTest {
 			body.appendChild(div);
 			div.appendChild(p);
 
-			p.setProperty(DOMElement.restQuery, "/divs");
-			p.setProperty(DOMElement.dataKey, "div");
+			final PropertyMap changedProperties = new PropertyMap();
+			changedProperties.put(DOMElement.restQuery, "/divs");
+			changedProperties.put(DOMElement.dataKey, "div");
+			p.setProperties(p.getSecurityContext(), changedProperties);
+
 			p.appendChild(text);
 
 			tx.success();

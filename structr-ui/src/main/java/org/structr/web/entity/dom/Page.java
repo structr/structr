@@ -290,11 +290,11 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		unlockReadOnlyPropertiesOnce();
 		if (_version == null) {
 
-			setProperty(Page.version, 1);
+			setProperties(securityContext, new PropertyMap(Page.version, 1));
 
 		} else {
 
-			setProperty(Page.version, _version + 1);
+			setProperties(securityContext, new PropertyMap(Page.version, _version + 1));
 		}
 	}
 
@@ -345,7 +345,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 			try {
 
-				child.setProperty(ownerDocument, this);
+				child.setProperties(securityContext, new PropertyMap(ownerDocument, this));
 
 			} catch (FrameworkException ex) {
 				logger.warn("", ex);

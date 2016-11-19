@@ -25,6 +25,7 @@ import java.nio.channels.FileChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.FileBase;
@@ -107,7 +108,8 @@ public class FileUploadHandler {
 
 		try {
 
-			file.setProperty(File.size, size);
+			file.unlockSystemPropertiesOnce();
+			file.setProperties(file.getSecurityContext(), new PropertyMap(File.size, size));
 
 		} catch (FrameworkException ex) {
 
