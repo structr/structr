@@ -107,12 +107,26 @@ public class DeploymentCommentHandler implements CommentHandler {
 	private int sourceLength    = 0;
 
 	@Override
-	public boolean handleComment(final Page page, final DOMNode node, final String comment) throws FrameworkException {
-		return parseInstructions(page, node, comment.trim());
+	public boolean containsInstructions(final String comment) {
+
+		try {
+
+			return parseInstructions(null, null, comment, false);
+
+		} catch (FrameworkException fex) {
+			logger.warn("Unexpected exception, no changes should be made in this method: {}", fex.getMessage());
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean handleComment(final Page page, final DOMNode node, final String comment, final boolean apply) throws FrameworkException {
+		return parseInstructions(page, node, comment.trim(), apply);
 	}
 
 	// ----- private methods -----
-	private boolean parseInstructions(final Page page, final DOMNode node, final String src) throws FrameworkException {
+	private boolean parseInstructions(final Page page, final DOMNode node, final String src, final boolean apply) throws FrameworkException {
 
 		this.source          = src.toCharArray();
 		this.sourceLength    = src.length();
@@ -149,7 +163,12 @@ public class DeploymentCommentHandler implements CommentHandler {
 						}
 					}
 
-					handler.apply(page, node, parameters);
+					// only apply if instructed to (can be used to check
+					// if the comment source actually contains instructions)
+					if (apply) {
+
+						handler.apply(page, node, parameters);
+					}
 
 				} else {
 
@@ -190,10 +209,6 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 				sequenceStarted = true;
 				buf.append(c);
-
-			} else {
-
-				logger.warn("Premature end of sequence, expected {}, got {}", new Object[] { sequence, buf.toString() });
 			}
 		}
 

@@ -139,11 +139,8 @@ public class Importer {
 	private final boolean publicVisible;
 	private final boolean authVisible;
 	private CommentHandler commentHandler;
-	private boolean processComment  = false;
 	private boolean isDeployment    = false;
 	private Document parsedDocument = null;
-	private DOMNode lastCommentNode = null;
-	private String lastComment;
 	private final String name;
 	private URL originalUrl;
 	private String address;
@@ -326,12 +323,12 @@ public class Importer {
 
 	public void createChildNodes(final DOMNode parent, final Page page, final boolean removeHashAttribute) throws FrameworkException {
 
-		createChildNodes(parsedDocument.body(), parent, page, removeHashAttribute);
+		createChildNodes(parsedDocument.body(), parent, page, removeHashAttribute, 0);
 	}
 
 	public void createChildNodesWithHtml(final DOMNode parent, final Page page, final boolean removeHashAttribute) throws FrameworkException {
 
-		createChildNodes(parsedDocument, parent, page, removeHashAttribute);
+		createChildNodes(parsedDocument, parent, page, removeHashAttribute, 0);
 	}
 
 	public void importDataComments() throws FrameworkException {
@@ -525,13 +522,14 @@ public class Importer {
 
 	// ----- private methods -----
 	private DOMNode createChildNodes(final Node startNode, final DOMNode parent, final Page page) throws FrameworkException {
-		return createChildNodes(startNode, parent, page, false);
+		return createChildNodes(startNode, parent, page, false, 0);
 	}
 
-	private DOMNode createChildNodes(final Node startNode, final DOMNode parent, final Page page, final boolean removeHashAttribute) throws FrameworkException {
+	private DOMNode createChildNodes(final Node startNode, final DOMNode parent, final Page page, final boolean removeHashAttribute, final int depth) throws FrameworkException {
 
-		DOMNode rootElement = null;
-		Linkable res        = null;
+		DOMNode rootElement     = null;
+		Linkable res            = null;
+		String instructions     = null;
 
 		final List<Node> children = startNode.childNodes();
 		for (Node node : children) {
@@ -577,7 +575,6 @@ public class Importer {
 
 						String downloadAddress = node.attr(downloadAddressAttr);
 						res = downloadFile(downloadAddress, originalUrl);
-
 					}
 				}
 
@@ -585,18 +582,14 @@ public class Importer {
 
 					// Remove data-structr-hash attribute
 					node.removeAttr(DOMNode.dataHashProperty.jsonName());
-
 				}
-
 			}
 
 			// Data and comment nodes: Trim the text and put it into the "content" field without changes
 			if (type.equals("#comment")) {
 
-				comment         = ((Comment) node).getData();
-				processComment  = false; // do not process the comment until next node
-				lastComment     = comment;
-				tag             = "";
+				comment = ((Comment) node).getData();
+				tag     = "";
 
 				// Don't add content node for whitespace
 				if (StringUtils.isBlank(comment)) {
@@ -606,6 +599,13 @@ public class Importer {
 
 				// store for later use
 				commentSource.append(comment).append("\n");
+
+				// check if comment contains instructions
+				if (commentHandler != null && commentHandler.containsInstructions(comment)) {
+
+					instructions = comment;
+					continue;
+				}
 
 			} else if (type.equals("#data")) {
 
@@ -643,9 +643,6 @@ public class Importer {
 
 					newNode = (DOMNode) page.createComment(comment);
 					newNode.setProperty(org.structr.web.entity.dom.Comment.contentType, "text/html");
-
-					// allow deletion of comment nodes that contain @structr instructions
-					lastCommentNode = newNode;
 
 				} else {
 
@@ -723,7 +720,6 @@ public class Importer {
 
 					logger.warn("Invalid component definition, missing src attribute!");
 				}
-
 
 			} else {
 
@@ -879,38 +875,35 @@ public class Importer {
 					}
 				}
 
-				// let comment handler process newly created node
-				// (allow special comments to modify node)
-				if (processComment && commentHandler != null && StringUtils.isNotBlank(lastComment)) {
+				if (instructions != null) {
 
-					if (commentHandler.handleComment(page, newNode, lastComment)) {
+					if (commentHandler != null) {
 
-						if (lastCommentNode != null) {
-
-							// remove comment node from parent (if there is a parent)
-							if (parent != null) {
-								parent.removeChild(lastCommentNode);
-							}
-							app.delete(lastCommentNode);
-						}
+						commentHandler.handleComment(page, newNode, instructions, true);
 					}
 
-					// clear comment fields
-					lastCommentNode = null;
-					lastComment     = null;
+					instructions = null;
 				}
-
-				// We enable processing of special Structr comments for the next loop
-				// here, to prevent the actual #comment node from receiving modifications
-				// that are meant for the following node.
-				processComment = true;
 
 				// Link new node to its parent node
 				// linkNodes(parent, newNode, page, localIndex);
 				// Step down and process child nodes
-				createChildNodes(node, newNode, page, removeHashAttribute);
-
+				createChildNodes(node, newNode, page, removeHashAttribute, depth + 1);
 			}
+		}
+
+		// reset instructions when leaving a level
+		if (instructions != null) {
+
+			final Content contentNode = (Content)page.createTextNode("");
+			parent.appendChild(contentNode);
+			
+			if (commentHandler != null) {
+
+				commentHandler.handleComment(page, contentNode, instructions, true);
+			}
+
+			instructions = null;
 		}
 
 		return rootElement;

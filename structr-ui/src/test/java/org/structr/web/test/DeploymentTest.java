@@ -27,7 +27,6 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.structr.common.error.FrameworkException;
@@ -459,12 +458,75 @@ public class DeploymentTest extends StructrUiTest {
 		compare(calculateHash(), true);
 	}
 
+	@Test
+	public void test11EmptyContentElementWithContentType() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			// create first page
+			final Page page = Page.createNewPage(securityContext,   "test11");
+			final Html html = createElement(page, page, "html");
+			final Head head = createElement(page, html, "head");
+			createElement(page, head, "title", "test11");
+
+			final Body body      = createElement(page, html, "body");
+			final Script script1 = createElement(page, body, "script");
+			final Script script2 = createElement(page, body, "script");
+
+			script1.setProperty(Script._type, "text/javascript");
+
+			createContent(page, script1, "");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+	}
+
+	@Test
+	public void test12EmptyContentElement() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			// create first page
+			final Page page = Page.createNewPage(securityContext,   "test12");
+			final Html html = createElement(page, page, "html");
+			final Head head = createElement(page, html, "head");
+			createElement(page, head, "title", "test12");
+
+			final Body body      = createElement(page, html, "body");
+			final Script script1 = createElement(page, body, "script", "");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), false);
+	}
+
 	// ----- private methods -----
 	private void compare(final String sourceHash, final boolean deleteTestDirectory) {
 
 		doImportExportRoundtrip(deleteTestDirectory);
 
-		assertEquals("Invalid deployment roundtrip result", sourceHash, calculateHash());
+		final String roundtripHash = calculateHash();
+
+		if (!sourceHash.equals(roundtripHash)) {
+
+			System.out.println("Expected: " + sourceHash);
+			System.out.println("Actual:   " + roundtripHash);
+
+			fail("Invalid deployment roundtrip result");
+		}
 	}
 
 
@@ -561,7 +623,7 @@ public class DeploymentTest extends StructrUiTest {
 			System.out.print("    ");
 		}
 
-		System.out.println(start.getType());
+		System.out.println(start.getType() + ": " + start.getUuid().substring(0, 5));
 
 		if (start instanceof ShadowDocument) {
 
@@ -588,6 +650,7 @@ public class DeploymentTest extends StructrUiTest {
 	private void hash(final DOMNode node, final StringBuilder buf) {
 
 		// AbstractNode
+		buf.append(valueOrEmpty(node, AbstractNode.type));
 		buf.append(valueOrEmpty(node, AbstractNode.name));
 		buf.append(valueOrEmpty(node, AbstractNode.visibleToPublicUsers));
 		buf.append(valueOrEmpty(node, AbstractNode.visibleToAuthenticatedUsers));

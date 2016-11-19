@@ -20,9 +20,7 @@ package org.structr.web.entity.dom;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 import net.java.textilej.parser.MarkupParser;
 import net.java.textilej.parser.markup.confluence.ConfluenceDialect;
 import net.java.textilej.parser.markup.mediawiki.MediaWikiDialect;
@@ -179,6 +177,21 @@ public class Content extends DOMNode implements Text, NonIndexed {
 			}
 
 		});
+	}
+
+	@Override
+	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		if (super.isValid(errorBuffer)) {
+
+			if (getProperty(Content.contentType) == null) {
+				setProperty(Content.contentType, "text/plain");
+			}
+
+			return true;
+		}
+
+		return false;
 	}
 
 	@Override
@@ -743,49 +756,5 @@ public class Content extends DOMNode implements Text, NonIndexed {
 
 			return Factory.create();
 		}
-	}
-
-	private static final Set<Character> SPECIAL_CHARS = new LinkedHashSet<>();
-
-	static {
-
-		SPECIAL_CHARS.add('\\');
-		SPECIAL_CHARS.add('+');
-		SPECIAL_CHARS.add('-');
-		SPECIAL_CHARS.add('!');
-		SPECIAL_CHARS.add('(');
-		SPECIAL_CHARS.add(')');
-		SPECIAL_CHARS.add(':');
-		SPECIAL_CHARS.add('^');
-		SPECIAL_CHARS.add('[');
-		SPECIAL_CHARS.add(']');
-		SPECIAL_CHARS.add('"');
-		SPECIAL_CHARS.add('{');
-		SPECIAL_CHARS.add('}');
-		SPECIAL_CHARS.add('~');
-		SPECIAL_CHARS.add('*');
-		SPECIAL_CHARS.add('?');
-		SPECIAL_CHARS.add('|');
-		SPECIAL_CHARS.add('&');
-		SPECIAL_CHARS.add(';');
-	}
-
-	private String escape(String input) {
-
-		StringBuilder output = new StringBuilder();
-
-		for (int i = 0; i < input.length(); i++) {
-
-			char c = input.charAt(i);
-
-			if (SPECIAL_CHARS.contains(c) || Character.isWhitespace(c)) {
-
-				output.append('\\');
-			}
-
-			output.append(c);
-		}
-
-		return output.toString();
 	}
 }

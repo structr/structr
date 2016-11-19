@@ -23,7 +23,9 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.Property;
 import org.structr.web.common.HtmlProperty;
@@ -52,7 +54,17 @@ public class Script extends LinkSource {
 		_src, _async, _defer, _type, _charset
 	);
 
-	//~--- get methods ----------------------------------------------------
+	@Override
+	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		if (super.isValid(errorBuffer)) {
+
+			setProperty(Script._type, "text/javascript");
+			return true;
+		}
+
+		return false;
+	}
 
 	@Override
 	public Property[] getHtmlAttributes() {

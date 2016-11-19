@@ -655,10 +655,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		putIf(config, "visibleToPublicUsers",        node.isVisibleToPublicUsers());
 		putIf(config, "visibleToAuthenticatedUsers", node.isVisibleToAuthenticatedUsers());
-
-		if (node instanceof Content) {
-			putIf(config, "contentType",             node.getProperty(Content.contentType));
-		}
+		putIf(config, "contentType",             node.getProperty(Content.contentType));
 
 		if (node instanceof Template) {
 
@@ -683,6 +680,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		putIf(config, "visibleToAuthenticatedUsers", file.isVisibleToAuthenticatedUsers());
 		putIf(config, "contentType",                 file.getProperty(FileBase.contentType));
 		putIf(config, "cacheForSeconds",             file.getProperty(FileBase.cacheForSeconds));
+
+		fixme: test this
 		putIf(config, "useAsJavascriptLibrary",      file.getProperty(FileBase.useAsJavascriptLibrary));
 
 		if (file instanceof Image) {

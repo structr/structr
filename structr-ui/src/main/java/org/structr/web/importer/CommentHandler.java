@@ -28,5 +28,6 @@ import org.structr.web.entity.dom.Page;
 
 public interface CommentHandler {
 
-	boolean handleComment(final Page page, final DOMNode node, final String comment) throws FrameworkException;
+	boolean containsInstructions(final String comment);
+	boolean handleComment(final Page page, final DOMNode node, final String comment, final boolean apply) throws FrameworkException;
 }
