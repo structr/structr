@@ -155,9 +155,8 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 		final Map<String, Object> ownsProperties     = new HashMap<>();
 		final Map<String, Object> securityProperties = new HashMap<>();
 		final StringBuilder buf                      = new StringBuilder();
-		final boolean canHaveOwner                   = canHaveOwner(nodeType);
 
-		if (canHaveOwner && user != null && !(user instanceof SuperUser)) {
+		if (user != null && !(user instanceof SuperUser)) {
 
 			buf.append("MATCH (u:Principal) WHERE id(u) = {userId}");
 			buf.append(" CREATE (u)-[o:OWNS {ownsProperties}]->(n");
@@ -211,17 +210,6 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 		}
 
 		throw new RuntimeException("Unable to create new node.");
-	}
-
-	private boolean canHaveOwner(final Class nodeType) {
-
-		final NodeInterface template = getTemplate(nodeType);
-		if (template != null) {
-
-			return template.canHaveOwner();
-		}
-
-		return true;
 	}
 
 	private NodeInterface getTemplate(final Class nodeType) {

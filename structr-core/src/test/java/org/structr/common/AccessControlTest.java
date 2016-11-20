@@ -41,6 +41,7 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestUser;
+import org.structr.core.entity.TestUserExtendsUser;
 import org.structr.core.entity.relationship.Ownership;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
@@ -835,7 +836,37 @@ public class AccessControlTest extends StructrTest {
 
 	}
 
+	@Test
+	public void test00CreatePrincipal() {
 
+		TestUser user1 = null;
+
+		try (final Tx tx = app.tx()) {
+
+			List<TestUser> users = createTestNodes(TestUser.class, 1);
+			user1 = (TestUser) users.get(0);
+			user1.setProperty(AbstractNode.name, "user1");
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			logger.error(ex.toString());
+		}		
+
+		// Switch user context to user1
+		final App user1App = StructrApp.getInstance(SecurityContext.getInstance(user1, AccessMode.Frontend));
+		try (final Tx tx = user1App.tx()) {
+
+			final TestUserExtendsUser user2 = user1App.create(TestUserExtendsUser.class);
+
+			assertNotNull(user2);
+
+		} catch (FrameworkException ex) {
+			logger.error(ex.toString());
+			fail("Unexpected exception: " + ex.toString());
+		}		
+	}
+	
 	@Test
 	public void test01SetOwner() {
 

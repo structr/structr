@@ -106,11 +106,6 @@ public class User extends AbstractUser {
 	}
 
 	@Override
-	public boolean canHaveOwner() {
-		return false;
-	}
-
-	@Override
 	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
 		if (super.onCreation(securityContext, errorBuffer)) {

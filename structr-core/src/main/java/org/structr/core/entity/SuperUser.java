@@ -213,11 +213,6 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 
 	}
 
-	@Override
-	public boolean canHaveOwner() {
-		return false;
-	}
-
 	//~--- set methods ----------------------------------------------------
 
 	public void setPassword(final String passwordValue) {

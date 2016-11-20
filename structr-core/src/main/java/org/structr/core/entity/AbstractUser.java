@@ -213,8 +213,4 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 		return null;
 	}
 
-	@Override
-	public boolean canHaveOwner() {
-		return false;
-	}
 }

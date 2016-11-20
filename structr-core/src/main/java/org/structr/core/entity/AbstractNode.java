@@ -727,19 +727,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		if (cachedOwnerNode == null) {
 
-			if (this instanceof Principal && !(this instanceof Group)) {
+			final Ownership ownership = getIncomingRelationshipAsSuperUser(PrincipalOwnsNode.class);
+			if (ownership != null) {
 
-				// a user is its own owner
-				cachedOwnerNode = (Principal)this;
-
-			} else {
-
-				final Ownership ownership = getIncomingRelationshipAsSuperUser(PrincipalOwnsNode.class);
-				if (ownership != null) {
-
-					Principal principal = ownership.getSourceNode();
-					cachedOwnerNode = (Principal) principal;
-				}
+				Principal principal = ownership.getSourceNode();
+				cachedOwnerNode = (Principal) principal;
 			}
 		}
 
@@ -818,9 +810,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			return false;
 		}
 
-
 		// use quick checks for maximum performance
-		if (isCreation && (accessingUser == null || accessingUser.equals(getOwnerNode()) ) ) {
+		if (isCreation && (accessingUser == null || accessingUser.equals(this) || accessingUser.equals(getOwnerNode()) ) ) {
 			return true;
 		}
 
@@ -1354,11 +1345,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		return securityContext.isVisible(this);
 
-	}
-
-	@Override
-	public boolean canHaveOwner() {
-		return true;
 	}
 
 	/**

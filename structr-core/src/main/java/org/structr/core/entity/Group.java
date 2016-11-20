@@ -110,8 +110,4 @@ public class Group extends AbstractUser implements Principal {
 		return SecurityDelegate.getPermissionSet(dbNode, Principal.denied);
 	}
 
-	@Override
-	public boolean canHaveOwner() {
-		return true;
-	}
 }

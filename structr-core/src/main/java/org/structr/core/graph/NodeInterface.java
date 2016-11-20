@@ -70,8 +70,6 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 
 	public String getName();
 
-	public boolean canHaveOwner();
-
 	public boolean isDeleted();
 
 	public <R extends AbstractRelationship> Iterable<R> getRelationships();
