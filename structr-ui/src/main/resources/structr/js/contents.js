@@ -229,36 +229,20 @@ var _Contents = {
 
 						case '#':
 
-							Command.list('ContentContainer', true, containerPageSize, containerPage, 'name', 'asc', null, function(folders) {
+							var defaultEntries = [{
+								id: 'root',
+								text: '/',
+								children: true,
+								icon: _Icons.structr_logo_small,
+								path: '/',
+								state: {
+									opened: true,
+									selected: true
+								}
+							}];
 
-								var children = [];
-								var list = [];
+							callback(defaultEntries);
 
-								list.push({
-									id: 'root',
-									text: '/',
-									children: true,
-									icon: _Icons.structr_logo_small,
-									path: '/',
-									state: {
-										opened: true,
-										selected: true
-									}
-								});
-
-								folders.forEach(function(d) {
-									var i = d.items && d.items.length > 0 ? d.items.length : undefined;
-									children.push({
-										id: d.id,
-										text: (d.name ? d.name : '[unnamed]') + (i ? ' (' + i + ')' : ''),
-										children: d.isContentContainer && d.childContainers.length > 0,
-										icon: 'fa fa-folder-o'
-									});
-								});
-
-								callback(list);
-
-							});
 							break;
 
 						case 'root':
@@ -335,7 +319,6 @@ var _Contents = {
 	},
 	setWorkingDirectory: function(id) {
 
-
 		if (id === 'root') {
 			currentContentContainer = null;
 		} else {
@@ -369,7 +352,6 @@ var _Contents = {
 		} else {
 			Command.query('ContentContainer', 1000, 1, 'name', 'asc', {parent: id}, handleChildren, true, 'ui');
 		}
-
 
 		_Pager.initPager('contents-items', 'ContentItem', 1, 25, 'name', 'asc');
 		page['ContentItem'] = 1;
@@ -410,7 +392,6 @@ var _Contents = {
 				$('#' + parentId + '_anchor').click();
 			}
 		});
-
 
 	},
 	appendItemOrContainerRow: function(d) {
