@@ -149,15 +149,12 @@ var _Contents = {
 		$.jstree.defaults.dnd.large_drop_target = true;
 
 		contentTree.on('ready.jstree', function() {
-			var rootEl = $('#root > .jstree-wholerow');
-			_Dragndrop.makeDroppable(rootEl);
+			_TreeHelper.makeTreeElementDroppable(contentTree, 'root');
+
 			_Contents.loadAndSetWorkingDir(function() {
 				if (currentContentContainer) {
 					_Contents.deepOpen(currentContentContainer);
 				}
-//				window.setTimeout(function() {
-//					contentTree.jstree('select_node', currentContentContainer ? currentContentContainer.id : 'root');
-//				}, 100);
 			});
 		});
 
@@ -172,7 +169,7 @@ var _Contents = {
 
 		});
 
-		_Contents.initTree();
+		_TreeHelper.initTree(contentTree, _Contents.treeInitFunction, 'structr-ui-contents');
 
 		win.off('resize');
 		win.resize(function() {
@@ -185,77 +182,48 @@ var _Contents = {
 
 	},
 	deepOpen: function(d, dirs) {
-		dirs = dirs || [];
-		if (d && d.id) {
-			dirs.unshift(d);
-			Command.get(d.id, function(dir) {
-				if (dir && dir.parent) {
-					_Contents.deepOpen(dir.parent, dirs);
-				} else {
-					_Contents.open(dirs);
-				}
-			});
-		}
-	},
-	open: function(dirs) {
-		if (!dirs.length) return;
-		var d = dirs.shift();
-		contentTree.jstree('deselect_node', d.id);
-		contentTree.jstree('open_node', d.id, function() {
-			contentTree.jstree('select_node', currentContentContainer ? currentContentContainer.id : 'root');
-			//_Contents.open(dirs);
-		});
+
+		_TreeHelper.deepOpen(contentTree, d, dirs, 'parent', (currentContentContainer ? currentContentContainer.id : 'root'));
 
 	},
 	refreshTree: function() {
-		//$.jstree.destroy();
-		contentTree.jstree('refresh');
-		window.setTimeout(function() {
-			var rootEl = $('#root > .jstree-wholerow');
-			_Dragndrop.makeDroppable(rootEl);
-		}, 500);
-	},
-	initTree: function() {
-		//$.jstree.destroy();
-		contentTree.jstree({
-			plugins: ["themes", "dnd", "search", "state", "types", "wholerow"],
-			core: {
-				animation: 0,
-				state: { key: 'structr-ui-contents' },
-				async: true,
-				data: function(obj, callback) {
 
-					switch (obj.id) {
-
-						case '#':
-
-							var defaultEntries = [{
-								id: 'root',
-								text: '/',
-								children: true,
-								icon: _Icons.structr_logo_small,
-								path: '/',
-								state: {
-									opened: true,
-									selected: true
-								}
-							}];
-
-							callback(defaultEntries);
-
-							break;
-
-						case 'root':
-							_Contents.load(null, callback);
-							break;
-
-						default:
-							_Contents.load(obj.id, callback);
-							break;
-					}
-				}
-			}
+		_TreeHelper.refreshTree(contentTree, function() {
+			_TreeHelper.makeTreeElementDroppable(contentTree, 'root');
 		});
+
+	},
+	treeInitFunction: function(obj, callback) {
+
+		switch (obj.id) {
+
+			case '#':
+
+				var defaultEntries = [{
+					id: 'root',
+					text: '/',
+					children: true,
+					icon: _Icons.structr_logo_small,
+					path: '/',
+					state: {
+						opened: true,
+						selected: true
+					}
+				}];
+
+				callback(defaultEntries);
+
+				break;
+
+			case 'root':
+				_Contents.load(null, callback);
+				break;
+
+			default:
+				_Contents.load(obj.id, callback);
+				break;
+		}
+
 	},
 	unload: function() {
 		fastRemoveAllChildren($('.searchBox', main));
@@ -294,10 +262,10 @@ var _Contents = {
 			var list = [];
 
 			folders.forEach(function(d) {
-				var i = d.items && d.items.length > 0 ? d.items.length : undefined;
+				var childCount = (d.items && d.items.length > 0) ? ' (' + d.items.length + ')' : '';
 				list.push({
 					id: d.id,
-					text: (d.name ? d.name : '[unnamed]') + (i ? ' (' + i + ')' : ''),
+					text: (d.name ? d.name : '[unnamed]') + childCount,
 					children: d.isContentContainer && d.childContainers.length > 0,
 					icon: 'fa fa-folder-o',
 					path: d.path
@@ -306,13 +274,7 @@ var _Contents = {
 
 			callback(list);
 
-			window.setTimeout(function() {
-				list.forEach(function(obj) {
-					var el = $('#' + obj.id + ' > .jstree-wholerow', contentTree);
-					StructrModel.create({id: obj.id}, null, false);
-					_Dragndrop.makeDroppable(el);
-				});
-			}, 500);
+			_TreeHelper.makeDroppable(contentTree, list);
 
 		}, true);
 

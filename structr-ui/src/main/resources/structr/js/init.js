@@ -1362,6 +1362,67 @@ var Structr = {
 	}
 };
 
+var _TreeHelper = {
+	initTree: function (tree, initFunction, stateKey) {
+		tree.jstree({
+			plugins: ["themes", "dnd", "search", "state", "types", "wholerow"],
+			core: {
+				animation: 0,
+				state: {
+					key: stateKey
+				},
+				async: true,
+				data: initFunction
+			}
+		});
+	},
+	deepOpen: function(tree, element, parentElements, parentKey, selectedNode) {
+		if (element && element.id) {
+
+			parentElements = parentElements || [];
+			parentElements.unshift(element);
+
+			Command.get(element.id, function(loadedElement) {
+				if (loadedElement && loadedElement[parentKey]) {
+					_TreeHelper.deepOpen(tree, loadedElement[parentKey], parentElements, selectedNode);
+				} else {
+					_TreeHelper.open(tree, parentElements, selectedNode);
+				}
+			});
+		}
+	},
+	open: function(tree, dirs, selectedNode) {
+		if (dirs.length) {
+			var d = dirs.shift();
+			tree.jstree('deselect_node', d.id);
+			tree.jstree('open_node', d.id, function() {
+				tree.jstree('select_node', selectedNode);
+			});
+		}
+	},
+	refreshTree: function(tree, callback) {
+		tree.jstree('refresh');
+
+		if (typeof callback === "function") {
+			window.setTimeout(function() {
+				callback();
+			}, 500);
+		}
+	},
+	makeDroppable: function (tree, list) {
+		window.setTimeout(function() {
+			list.forEach(function(obj) {
+				StructrModel.create({id: obj.id}, null, false);
+				_TreeHelper.makeTreeElementDroppable(tree, obj.id);
+			});
+		}, 500);
+	},
+	makeTreeElementDroppable: function (tree, id) {
+		var el = $('#' + id + ' > .jstree-wholerow', tree);
+		_Dragndrop.makeDroppable(el);
+	}
+};
+
 function MessageBuilder () {
 	this.params = {
 		// defaults

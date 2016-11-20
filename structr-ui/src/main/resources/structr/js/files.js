@@ -188,11 +188,8 @@ var _Files = {
 		$.jstree.defaults.dnd.large_drop_target = true;
 
 		fileTree.on('ready.jstree', function() {
-			var rootEl = $('#root > .jstree-wholerow');
-			_Dragndrop.makeDroppable(rootEl);
-
-			var favEl = $('#favorites > .jstree-wholerow');
-			_Dragndrop.makeDroppable(favEl);
+			_TreeHelper.makeTreeElementDroppable(fileTree, 'root');
+			_TreeHelper.makeTreeElementDroppable(fileTree, 'favorites');
 
 			_Files.loadAndSetWorkingDir(function() {
 
@@ -224,7 +221,7 @@ var _Files = {
 			} else {
 
 				if (data.node.id === 'root') {
-					_Files.deepOpen(currentWorkingDir, []);
+					_Files.deepOpen(currentWorkingDir);
 				}
 
 				_Files.setWorkingDirectory(data.node.id);
@@ -234,7 +231,7 @@ var _Files = {
 
 		});
 
-		_Files.initTree();
+		_TreeHelper.initTree(fileTree, _Files.treeInitFunction, 'structr-ui-filesystem');
 
 		_Files.activateUpload();
 
@@ -250,88 +247,56 @@ var _Files = {
 
 	},
 	deepOpen: function(d, dirs) {
-		dirs = dirs || [];
-		if (d && d.id) {
-			dirs.unshift(d);
-			Command.get(d.id, function(dir) {
-				if (dir && dir.parent) {
-					_Files.deepOpen(dir.parent, dirs);
-				} else {
-					_Files.open(dirs);
-				}
-			});
-		}
-	},
-	open: function(dirs) {
-		if (!dirs.length) return;
-		var d = dirs.shift();
-		fileTree.jstree('deselect_node', d.id);
-		fileTree.jstree('open_node', d.id, function() {
-			fileTree.jstree('select_node', currentWorkingDir ? currentWorkingDir.id : 'root');
-		});
+
+		_TreeHelper.deepOpen(fileTree, d, dirs, 'parent', (currentWorkingDir ? currentWorkingDir.id : 'root'));
 
 	},
 	refreshTree: function() {
-		//$.jstree.destroy();
-		fileTree.jstree('refresh');
-		window.setTimeout(function() {
-			var rootEl = $('#root > .jstree-wholerow');
-			_Dragndrop.makeDroppable(rootEl);
 
-			var favEl = $('#favorites > .jstree-wholerow');
-			_Dragndrop.makeDroppable(favEl);
-
-		}, 500);
-	},
-	initTree: function() {
-		//$.jstree.destroy();
-		fileTree.jstree({
-			plugins: ["themes", "dnd", "search", "state", "types", "wholerow"],
-			core: {
-				animation: 0,
-				state: { key: 'structr-ui-filesystem' },
-				async: true,
-				data: function(obj, callback) {
-
-					switch (obj.id) {
-
-						case '#':
-
-							var defaultFilesystemEntries = [
-								{
-									id: 'favorites',
-									text: 'Favorite Files',
-									children: false,
-									icon: _Icons.star_icon
-								},
-								{
-									id: 'root',
-									text: '/',
-									children: true,
-									icon: _Icons.structr_logo_small,
-									path: '/',
-									state: {
-										opened: true,
-										selected: true
-									}
-								}
-							];
-
-							callback(defaultFilesystemEntries);
-
-							break;
-
-						case 'root':
-							_Files.load(null, callback);
-							break;
-
-						default:
-							_Files.load(obj.id, callback);
-							break;
-					}
-				}
-			}
+		_TreeHelper.refreshTree(fileTree, function() {
+			_TreeHelper.makeTreeElementDroppable(fileTree, 'root');
+			_TreeHelper.makeTreeElementDroppable(fileTree, 'favorites');
 		});
+
+	},
+	treeInitFunction: function(obj, callback) {
+
+		switch (obj.id) {
+
+			case '#':
+
+				var defaultFilesystemEntries = [
+					{
+						id: 'favorites',
+						text: 'Favorite Files',
+						children: false,
+						icon: _Icons.star_icon
+					},
+					{
+						id: 'root',
+						text: '/',
+						children: true,
+						icon: _Icons.structr_logo_small,
+						path: '/',
+						state: {
+							opened: true,
+							selected: true
+						}
+					}
+				];
+
+				callback(defaultFilesystemEntries);
+				break;
+
+			case 'root':
+				_Files.load(null, callback);
+				break;
+
+			default:
+				_Files.load(obj.id, callback);
+				break;
+		}
+
 	},
 	unload: function() {
 		fastRemoveAllChildren($('.searchBox', main));
@@ -491,13 +456,7 @@ var _Files = {
 
 			callback(list);
 
-			window.setTimeout(function() {
-				list.forEach(function(obj) {
-					var el = $('#file-tree #' + obj.id + ' > .jstree-wholerow');
-					StructrModel.create({id: obj.id}, null, false);
-					_Dragndrop.makeDroppable(el);
-				});
-			}, 500);
+			_TreeHelper.makeDroppable(fileTree, list);
 
 		};
 
