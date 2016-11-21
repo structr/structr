@@ -20,7 +20,6 @@ package org.structr.web.entity.dom;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -201,16 +200,16 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 
 		if (newNode instanceof DOMElement) {
 
-			final Map<String, Object> properties = new HashMap<>();
-			for (final Property key : htmlView.properties()) {
+			final PropertyMap properties = new PropertyMap();
 
-				properties.put(key.jsonName(), newNode.getProperty(key));
+			for (Property htmlProp : getHtmlAttributes()) {
+				properties.put(htmlProp, newNode.getProperty(htmlProp));
 			}
 
 			// copy tag
-			properties.put(DOMElement.tag.jsonName(), newNode.getProperty(DOMElement.tag));
+			properties.put(DOMElement.tag, newNode.getProperty(DOMElement.tag));
 
-			updateFromPropertyMap(properties);
+			setProperties(securityContext, properties);
 		}
 	}
 

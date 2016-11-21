@@ -270,11 +270,6 @@ public class CreationContainer implements GraphObject, PropertyContainer {
 	}
 
 	@Override
-	public void updateFromPropertyMap(Map<String, Object> properties) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
 	public CMISInfo getCMISInfo() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}

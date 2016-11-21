@@ -261,11 +261,10 @@ public class Content extends DOMNode implements Text, NonIndexed {
 
 		if (newNode instanceof Content) {
 
-			final Map<String, Object> properties = new HashMap<>();
-			properties.put("content", newNode.getProperty(Content.content));
+			setProperties(securityContext, new PropertyMap(content, newNode.getProperty(Content.content)));
 
-			updateFromPropertyMap(properties);
 		}
+
 	}
 
 	@Override

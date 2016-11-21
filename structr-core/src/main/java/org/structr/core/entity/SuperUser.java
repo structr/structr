@@ -458,10 +458,6 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public void updateFromPropertyMap(final Map<String, Object> properties) throws FrameworkException {
-	}
-
-	@Override
 	public Set<String> getAllowedPermissions() {
 		return null;
 	}

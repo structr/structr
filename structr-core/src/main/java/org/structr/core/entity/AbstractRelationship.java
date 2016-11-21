@@ -26,7 +26,6 @@ import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -790,15 +789,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public RelationshipInterface getSyncRelationship() {
 		return this;
-	}
-
-	@Override
-	public void updateFromPropertyMap(final Map<String, Object> properties) throws FrameworkException {
-
-		// update all properties that exist in the source map
-		for (final Entry<String, Object> entry : properties.entrySet()) {
-			getRelationship().setProperty(entry.getKey(), entry.getValue());
-		}
 	}
 
 	// ----- CMIS support methods -----
