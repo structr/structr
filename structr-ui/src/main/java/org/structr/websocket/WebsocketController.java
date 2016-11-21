@@ -277,11 +277,17 @@ public class WebsocketController implements StructrTransactionListener {
 					final NodeInterface startNode = relationship.getSourceNode();
 					final NodeInterface endNode = relationship.getTargetNode();
 
+					// If either start or end node are not visible for the user to be notified,
+					// don't send a notification
+					if (startNode == null || endNode == null) {
+						return null;
+					}
+
 					message.setResult(Arrays.asList(new GraphObject[]{endNode}));
 					message.setId(endNode.getUuid());
 					message.setNodeData("parentId", startNode.getUuid());
-					message.setCode(200);
 
+					message.setCode(200);
 					message.setCommand("APPEND_CHILD");
 
 					if (endNode instanceof DOMNode) {
