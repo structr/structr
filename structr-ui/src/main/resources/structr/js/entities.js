@@ -102,7 +102,7 @@ var _Entities = {
 
 		// General
 		_Entities.appendRowWithInputField(entity, t, 'data-structr-id', 'Element ID (set to ${this.id})');
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-attr', 'Attribute Key (if set, render input field in edit mode)');
+		_Entities.appendRowWithInputField(entity, t, 'data-structr-attr', 'Attribute Key (if set, render input field in auto-edit mode)');
 		_Entities.appendRowWithInputField(entity, t, 'data-structr-type', 'Data type (e.g. Date, Boolean; default: String)');
 		_Entities.appendRowWithInputField(entity, t, 'data-structr-placeholder', 'Placeholder text in edit mode');
 		_Entities.appendRowWithInputField(entity, t, 'data-structr-custom-options-query', 'Custom REST query for value options');
@@ -115,7 +115,7 @@ var _Entities = {
 
 			// Buttons
 			_Entities.appendRowWithInputField(entity, t, 'data-structr-action', 'Action [create:&lt;Type&gt;|delete:&lt;Type&gt;|edit|login|logout]');
-			_Entities.appendRowWithInputField(entity, t, 'data-structr-attributes', 'Attributes (for create, edit, login or registration actions)');
+			_Entities.appendRowWithInputField(entity, t, 'data-structr-attributes', 'Attributes (for create, edit/save, login or registration actions)');
 
 			t.append('<tr><td class="key">Reload</td><td class="value" id="reload"></td><td></td></tr>');
 			_Entities.appendBooleanSwitch($('#reload', t), entity, 'data-structr-reload', '', 'If active, the page will refresh after a successfull action.');
@@ -132,7 +132,7 @@ var _Entities = {
 
 		} else if (entity.type === 'Input' || entity.type === 'Select' || entity.type === 'Textarea') {
 			// Input fields
-			_Entities.appendRowWithInputField(entity, t, 'data-structr-name', 'Field name (for create action)');
+			_Entities.appendRowWithInputField(entity, t, 'data-structr-name', 'Field name (for create/save actions with custom form)');
 
 		}
 

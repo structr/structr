@@ -115,7 +115,7 @@ function StructrApp(baseUrl) {
 			var action = a[0], type = a[1], suffix = a[2];
 			var reload = btn.attr('data-structr-reload') === 'true';
 			var appendId = btn.attr('data-structr-append-id') === 'true';
-			var returnUrl = btn.attr('data-structr-return') || reload;
+			var returnUrl = btn.attr('data-structr-return');
 			var attrString = btn.attr('data-structr-attributes');
 			var attrs = (attrString ? attrString.split(',') : []).map(function(s) {
 				return s.trim();
@@ -129,13 +129,18 @@ function StructrApp(baseUrl) {
 				s.create(btn, type, data, returnUrl, appendId, function() {enableButton(btn);}, function() {enableButton(btn);});
 
 			} else if (action === 'save') {
-				//s.saveAction(btn, id, attrs, type, suffix, returnUrl, 'Unable to save values', 'Successfully updated object ' + id, function() {enableButton(btn);}, function() {enableButton(btn);});
+				s.saveAction(btn, id, attrs, type, suffix, returnUrl || reload, 'Successfully updated ' + id, 'Could not update ' + id, function() {
+					enableButton(btn);
+					//s.cancelEditAction(btn, id, attrs, suffix, reload);
+				}, function() {
+					s.cancelEditAction(btn, id, attrs, suffix, returnUrl);
+				});
 
 			} else if (action === 'edit') {
-				s.editAction(btn, id, attrs, type, suffix, returnUrl);
+				s.editAction(btn, id, attrs, type, suffix, reload, returnUrl);
 
 			} else if (action === 'cancel-edit') {
-				s.cancelEditAction(btn, id, attrs, type, suffix, returnUrl);
+				s.cancelEditAction(btn, id, attrs, type, suffix, reload, returnUrl);
 
 			} else if (action === 'delete') {
 				var f = s.field($('[data-structr-attr="name"]', container));
@@ -219,7 +224,7 @@ function StructrApp(baseUrl) {
 		});
 		return data;
 	},
-	this.editAction = function(btn, id, attrs, type, suffix, reload) {
+	this.editAction = function(btn, id, attrs, type, suffix, reload, returnUrl) {
 		var container = s.container(btn, id);
 
 		//show edit elements and hide non-edit elements
@@ -239,7 +244,7 @@ function StructrApp(baseUrl) {
 			var anchor = el[0].tagName.toLowerCase() === 'a' ? el : el.parent('a');
 			if (anchor.length) {
 				var href = anchor.attr('href');
-				anchor.attr('href', '').css({textDecoration: 'none'}).on('click', function() {
+				anchor.attr('href', '').css({textDecoration: 'none'}).off('click').on('click', function() {
 					return false;
 				});
 				anchor.attr('data-structr-href', href);
@@ -347,19 +352,15 @@ function StructrApp(baseUrl) {
 
 		});
 		var clazz = btn.attr('data-structr-edit-class');
-		$('<button data-structr-action="save" data-structr-id="' + id + '">Save</button>').insertBefore(btn);
+		$('<button data-structr-action="save" data-structr-id="' + id
+			+ '" data-structr-attributes="' + attrs.join(',')
+			+ '" data-structr-reload="' + reload
+			+ (returnUrl ? '" data-structr-return="' + returnUrl : '')
+			+ '">Save</button>').insertBefore(btn);
 		var saveButton = $('button[data-structr-action="save"][data-structr-id="' + id + '"]', container);
 		saveButton.prop('class', btn.prop('class')).after(' ');
 		saveButton.addClass(clazz);
 		enableButton(saveButton);
-		saveButton.on('click', function() {
-			s.saveAction(btn, id, attrs, type, suffix, reload, 'Successfully updated ' + id, 'Could not update ' + id, function() {
-				enableButton(saveButton);
-				//s.cancelEditAction(btn, id, attrs, suffix, reload);
-			}, function() {
-				s.cancelEditAction(btn, id, attrs, suffix, reload);
-			});
-		});
 		btn.text('Cancel').attr('data-structr-action', 'cancel-edit');
 		enableButton(btn);
 	},
