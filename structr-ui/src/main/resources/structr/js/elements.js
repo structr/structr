@@ -350,7 +350,7 @@ var _Elements = {
 				var obj = StructrModel.create(entity, null, false);
 				var el = (obj.isContent) ? _Elements.appendContentElement(obj, domElement, true) : _Pages.appendElementElement(obj, domElement, true);
 
-				if (isExpanded(entity.id)) {
+				if (Structr.isExpanded(entity.id)) {
 					_Entities.ensureExpanded(el);
 				}
 			}
@@ -1182,9 +1182,11 @@ var _Elements = {
 
     },
 	editContent: function(button, entity, text, element) {
-		if (isDisabled(button)) {
+
+		if (Structr.isButtonDisabled(button)) {
 			return;
 		}
+
 		var div = element.append('<div class="editor"></div>');
 		_Logger.log(_LogType.CONTENTS, div);
 		var contentBox = $('.editor', element);

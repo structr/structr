@@ -2091,9 +2091,7 @@ var _Crud = {
 				}
 			});
 		} else {
-			Command.get(obj.id, function(data) {
-				_Crud.crudRemoveProperty(data.id, key);
-			});
+			_Crud.crudRemoveProperty(obj.id, key);
 		}
 	},
 	addRelatedObject: function(type, id, key, relatedObj, callback) {

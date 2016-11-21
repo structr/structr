@@ -22,7 +22,6 @@ import groovyjarjarantlr.StringUtils;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
@@ -109,14 +108,9 @@ public class Image extends org.structr.dynamic.File {
 
 		if ( !isThumbnail() ) {
 
-			final List<Image> thumbnails = getThumbnails();
+			final PropertyMap propertiesCopiedToAllThumbnails = new PropertyMap();
 
-			for (final Map.Entry<PropertyKey, Object> attr : properties.entrySet()) {
-
-				final PropertyKey key = attr.getKey();
-				final Object value    = attr.getValue();
-
-				for (Image tn : thumbnails) {
+			for (final PropertyKey key : properties.keySet()) {
 
 					if (visibleToPublicUsers.equals(key) ||
 						visibleToAuthenticatedUsers.equals(key) ||
@@ -124,9 +118,17 @@ public class Image extends org.structr.dynamic.File {
 						visibilityEndDate.equals(key) ||
 						owner.equals(key)) {
 
-						tn.setProperty(key, value);
-
+						propertiesCopiedToAllThumbnails.put(key, properties.get(key));
 					}
+			}
+
+			if ( !propertiesCopiedToAllThumbnails.isEmpty() ) {
+
+				final List<Image> thumbnails = getThumbnails();
+
+				for (Image tn : thumbnails) {
+
+					tn.setProperties(tn.getSecurityContext(), propertiesCopiedToAllThumbnails);
 
 				}
 

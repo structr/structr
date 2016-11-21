@@ -49,35 +49,38 @@ var _Entities = {
 	},
 	deleteNode: function(button, entity, recursive, callback) {
 		buttonClicked = button;
-		if (isDisabled(button))
-			return;
-
-		Structr.confirmation('<p>Delete ' + entity.type + ' \'' + entity.name + '\' [' + entity.id + ']' + (recursive ? ' recursively' : '') + '?</p>',
-			function() {
-				Command.deleteNode(entity.id, recursive);
-				$.unblockUI({
-					fadeOut: 25
+		if ( !Structr.isButtonDisabled(button) ) {
+			Structr.confirmation('<p>Delete ' + entity.type + ' \'' + entity.name + '\' [' + entity.id + ']' + (recursive ? ' recursively' : '') + '?</p>',
+				function() {
+					Command.deleteNode(entity.id, recursive);
+					$.unblockUI({
+						fadeOut: 25
+					});
+					if (callback) {
+						callback(entity);
+					}
 				});
-				if (callback) {
-					callback(entity);
-				}
-			});
+		}
+
 	},
 	deleteEdge: function(button, entity, recursive, callback) {
 		buttonClicked = button;
-		if (isDisabled(button))
-			return;
 
-		Structr.confirmation('<p>Delete Relationship</p><p>(' + entity.sourceId + ')-[' + entity.type + ']->(' + entity.targetId + ')' + (recursive ? ' recursively' : '') + '?</p>',
-			function() {
-				Command.deleteRelationship(entity.id, recursive);
-				$.unblockUI({
-					fadeOut: 25
+		if ( !Structr.isButtonDisabled(button) ) {
+
+			Structr.confirmation('<p>Delete Relationship</p><p>(' + entity.sourceId + ')-[' + entity.type + ']->(' + entity.targetId + ')' + (recursive ? ' recursively' : '') + '?</p>',
+				function() {
+					Command.deleteRelationship(entity.id, recursive);
+					$.unblockUI({
+						fadeOut: 25
+					});
+					if (callback) {
+						callback(entity);
+					}
 				});
-				if (callback) {
-					callback(entity);
-				}
-			});
+
+		}
+
 	},
 	showSyncDialog: function(source, target) {
 		Structr.dialog('Sync between ' + source.id + ' and ' + target.id, function() {
@@ -1409,7 +1412,7 @@ var _Entities = {
 			return;
 		}
 
-		addExpandedNode(id);
+		Structr.addExpandedNode(id);
 
 		if (_Entities.isExpanded(element)) {
 			return;
@@ -1467,7 +1470,7 @@ var _Entities = {
 				.prop('alt', 'Expand ' + displayName)
 				.prop('title', 'Expand ' + displayName);
 
-			removeExpandedNode(id);
+			Structr.removeExpandedNode(id);
 		} else {
 
 			if (!expanded) {
@@ -1479,7 +1482,7 @@ var _Entities = {
 				.prop('alt', 'Collapse ' + displayName)
 				.prop('title', 'Collapse ' + displayName);
 
-			addExpandedNode(id);
+			Structr.addExpandedNode(id);
 		}
 
 	},

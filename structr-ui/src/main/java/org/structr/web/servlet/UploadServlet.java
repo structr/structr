@@ -60,7 +60,6 @@ import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
-import org.structr.web.entity.Image;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -250,7 +249,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 							if (isImage) {
 
-								cls = Image.class;
+								cls = org.structr.dynamic.Image.class;
 
 							} else if (isVideo) {
 

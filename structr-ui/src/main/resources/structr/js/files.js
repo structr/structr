@@ -220,10 +220,6 @@ var _Files = {
 
 			} else {
 
-				if (data.node.id === 'root') {
-					_Files.deepOpen(currentWorkingDir);
-				}
-
 				_Files.setWorkingDirectory(data.node.id);
 				_Files.displayFolderContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
 
@@ -819,9 +815,7 @@ var _Files = {
 				if (!(fileId === folderId)) {
 					var nodeData = {};
 					nodeData.id = fileId;
-					//addExpandedNode(folderId);
 
-					//selectedElements = $('.node.selected');
 					if (selectedElements.length > 1) {
 
 						$.each(selectedElements, function(i, fileEl) {
@@ -1280,8 +1274,9 @@ var _Files = {
 			success: function(data) {
 				_Logger.log(_LogType.FILES, file.id, fileContents);
 				text = fileContents[file.id] || data;
-				if (isDisabled(button))
+				if (Structr.isButtonDisabled(button)) {
 					return;
+				}
 				element.append('<div class="editor"></div>');
 				var contentBox = $('.editor', element);
 				var lineWrapping = LSWrapper.getItem(lineWrappingKey);

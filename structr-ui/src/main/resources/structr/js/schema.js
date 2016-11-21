@@ -1555,7 +1555,7 @@ var _Schema = {
 
 		var text = entity[key] || '';
 
-		if (isDisabled(button)) {
+		if (Structr.isButtonDisabled(button)) {
 			return;
 		}
 		var div = element.append('<div class="editor"></div>');

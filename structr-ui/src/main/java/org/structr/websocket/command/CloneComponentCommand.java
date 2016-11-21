@@ -108,6 +108,8 @@ public class CloneComponentCommand extends AbstractCommand {
 
 		final DOMNode clonedNode = (DOMNode) node.cloneNode(false);
 
+		parentNode.appendChild(clonedNode);
+
 		final PropertyMap changedProperties = new PropertyMap();
 		changedProperties.put(DOMNode.sharedComponent, node);
 		changedProperties.put(DOMNode.ownerDocument, (parentNode instanceof Page ? (Page) parentNode : parentNode.getProperty(DOMNode.ownerDocument)));

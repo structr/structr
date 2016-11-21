@@ -1359,6 +1359,74 @@ var Structr = {
 	},
 	updateMainHelpLink: function (newUrl) {
 		$('#main-help a').attr('href', newUrl);
+	},
+	isButtonDisabled: function (button) {
+		return $(button).data('disabled');
+	},
+	disableButton: function (button, newClickHandler) {
+		var b = $(button);
+		b.data('disabled', true);
+		b.addClass('disabled');
+
+		if (newClickHandler) {
+			b.off('click');
+			b.on('click', newClickHandler);
+			b.data('disabled', false);
+		}
+	},
+	enableButton: function (button, newClickHandler) {
+		var b = $(button);
+		b.data('disabled', false);
+		b.removeClass('disabled');
+
+		if (newClickHandler) {
+			b.off('click');
+			b.on('click', newClickHandler);
+		}
+	},
+	addExpandedNode: function (id) {
+		_Logger.log(_LogType.INIT, 'addExpandedNode', id);
+
+		if (id) {
+			var alreadyStored = Structr.getExpanded()[id];
+			if (!alreadyStored) {
+
+				Structr.getExpanded()[id] = true;
+				LSWrapper.setItem(expandedIdsKey, JSON.stringify(Structr.expanded));
+
+			}
+		}
+	},
+	removeExpandedNode: function (id) {
+		_Logger.log(_LogType.INIT, 'removeExpandedNode', id);
+
+		if (id) {
+			delete Structr.getExpanded()[id];
+			LSWrapper.setItem(expandedIdsKey, JSON.stringify(Structr.expanded));
+		}
+	},
+	isExpanded: function (id) {
+		_Logger.log(_LogType.INIT, 'id, Structr.getExpanded()[id]', id, Structr.getExpanded()[id]);
+
+		if (id) {
+			var isExpanded = (Structr.getExpanded()[id] === true) ? true : false;
+
+			_Logger.log(_LogType.INIT, isExpanded);
+
+			return isExpanded;
+		}
+
+		return false;
+	},
+	getExpanded: function () {
+		if (!Structr.expanded) {
+			Structr.expanded = JSON.parse(LSWrapper.getItem(expandedIdsKey));
+		}
+
+		if (!Structr.expanded) {
+			Structr.expanded = {};
+		}
+		return Structr.expanded;
 	}
 };
 
@@ -1575,54 +1643,6 @@ function isVideo(contentType) {
 	return (contentType && contentType.indexOf('video') > -1);
 }
 
-function addExpandedNode(id) {
-	_Logger.log(_LogType.INIT, 'addExpandedNode', id);
-
-	if (id) {
-		var alreadyStored = getExpanded()[id];
-		if (!alreadyStored) {
-
-			getExpanded()[id] = true;
-			LSWrapper.setItem(expandedIdsKey, JSON.stringify(Structr.expanded));
-
-		}
-	}
-}
-
-function removeExpandedNode(id) {
-	console.log(_LogType.INIT, 'removeExpandedNode', id);
-
-	if (id) {
-		delete getExpanded()[id];
-		LSWrapper.setItem(expandedIdsKey, JSON.stringify(Structr.expanded));
-	}
-}
-
-function isExpanded(id) {
-	_Logger.log(_LogType.INIT, 'id, getExpanded()[id]', id, getExpanded()[id]);
-
-	if (id) {
-		var isExpanded = (getExpanded()[id] === true) ? true : false;
-
-		_Logger.log(_LogType.INIT, isExpanded);
-
-		return isExpanded;
-	}
-
-	return false;
-}
-
-function getExpanded() {
-	if (!Structr.expanded) {
-		Structr.expanded = JSON.parse(LSWrapper.getItem(expandedIdsKey));
-	}
-
-	if (!Structr.expanded) {
-		Structr.expanded = {};
-	}
-	return Structr.expanded;
-}
-
 function formatKey(text) {
 	// don't format custom 'data-*' attributes
 	if (text.startsWith('data-')) {
@@ -1638,31 +1658,6 @@ function formatKey(text) {
 		}
 	}
 	return result;
-}
-
-function isDisabled(button) {
-	return $(button).data('disabled');
-}
-
-function disable(button, newClickHandler) {
-	var b = $(button);
-	b.data('disabled', true);
-	b.addClass('disabled');
-	if (newClickHandler) {
-		b.off('click');
-		b.on('click', newClickHandler);
-		b.data('disabled', false);
-	}
-}
-
-function enable(button, newClickHandler) {
-	var b = $(button);
-	b.data('disabled', false);
-	b.removeClass('disabled');
-	if (newClickHandler) {
-		b.off('click');
-		b.on('click', newClickHandler);
-	}
 }
 
 var keyEventBlocked = true;
