@@ -19,13 +19,9 @@
 package org.structr.web.importer;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,11 +39,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.config.ConnectionConfig;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Comment;
@@ -897,7 +888,7 @@ public class Importer {
 
 			final Content contentNode = (Content)page.createTextNode("");
 			parent.appendChild(contentNode);
-			
+
 			if (commentHandler != null) {
 
 				commentHandler.handleComment(page, contentNode, instructions, true);
@@ -1160,44 +1151,16 @@ public class Importer {
 
 	private void copyURLToFile(final String address, final java.io.File fileOnDisk) throws IOException {
 
-		final URI     url = URI.create(address);
-		final HttpGet req = new HttpGet(url);
+		try {
 
-		req.addHeader("User-Agent", "curl/7.35.0");
+			HttpHelper.streamURLToFile(address, fileOnDisk);
 
-		logger.info("Downloading from {}", address);
+		} catch (FrameworkException ex) {
 
-		final CloseableHttpClient client = HttpClients.custom()
-			.setDefaultConnectionConfig(ConnectionConfig.DEFAULT)
-			.setUserAgent("curl/7.35.0")
-			.build();
+			logger.warn(null, ex);
 
-		final CloseableHttpResponse resp = client.execute(req);
-
-		final int statusCode = resp.getStatusLine().getStatusCode();
-
-		if (statusCode == 200) {
-
-			try (final InputStream is = resp.getEntity().getContent()) {
-
-				try (final OutputStream os = new FileOutputStream(fileOnDisk)) {
-
-					IOUtils.copy(is, os);
-				}
-			}
-
-		} else {
-
-			String content = IOUtils.toString(resp.getEntity().getContent(), HttpHelper.charset(resp));
-
-			// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
-			if (content.charAt(0) == 65279) {
-				content = content.substring(1);
-			}
-
-			System.out.println("Response body: " + content);
-			logger.warn("Unable to create file from URI {}: status code was {}", new Object[]{ address, statusCode });
 		}
+
 	}
 
 	public static DOMNode findSharedComponentByName(final String name) throws FrameworkException {
