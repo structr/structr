@@ -435,7 +435,7 @@ oauth.facebook.return_uri = /
 #testMEthod.cronExpression = 0 0 * * * *
 
 
-# Enable/disable uniqueness constraint for files/folders
+# Enable/disable uniqueness constraint for files/folders, default is off (false)
 # application.filesystem.unique.paths = false
 
 # The instance name and stage configuration entries will be displayed in the top right corner of structr-ui
