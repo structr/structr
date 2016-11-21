@@ -92,6 +92,7 @@ import org.structr.web.entity.dom.Template;
 import org.structr.web.entity.html.Body;
 import org.structr.web.entity.html.Head;
 import org.structr.web.maintenance.DeployCommand;
+import org.structr.websocket.command.CreateComponentCommand;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -616,7 +617,7 @@ public class Importer {
 					tag = "";
 
 					if (isDeployment) {
-						
+
 						content = ((TextNode) node).getWholeText();
 
 					} else {
@@ -653,7 +654,7 @@ public class Importer {
 				final String src = node.attr("src");
 				if (src != null) {
 
-					final DOMNode template;
+					DOMNode template = null;
 
 					if (DeployCommand.isUuid(src)) {
 
@@ -661,7 +662,11 @@ public class Importer {
 
 					} else {
 
-						template = Importer.findTemplateByName(src);
+						template = Importer.findSharedComponentByName(src);
+						if (template == null) {
+
+							template = Importer.findTemplateByName(src);
+						}
 					}
 
 					if (template != null) {
@@ -1173,16 +1178,10 @@ public class Importer {
 
 	public static DOMNode findSharedComponentByName(final String name) throws FrameworkException {
 
-		for (final DOMNode n : StructrApp.getInstance().nodeQuery(DOMNode.class).andName(name).getAsList()) {
+		for (final DOMNode n : StructrApp.getInstance().nodeQuery(DOMNode.class).andName(name).and(DOMNode.ownerDocument, CreateComponentCommand.getOrCreateHiddenDocument()).getAsList()) {
 
-			// Ignore nodes in trash
-			if (n.getProperty(DOMNode.parent) == null && n.getOwnerDocumentAsSuperUser() == null) {
-				continue;
-			}
-
-			// IGNORE everything that REFERENCES a shared component!
-			if (n.getProperty(DOMNode.sharedComponent) == null) {
-
+			// only return toplevel nodes in shared components
+			if (n.getProperty(DOMNode.parent) == null) {
 				return n;
 			}
 		}

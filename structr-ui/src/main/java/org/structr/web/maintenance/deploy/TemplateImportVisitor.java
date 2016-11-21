@@ -121,12 +121,11 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 		return null;
 	}
 
-	private void deleteTemplate(final App app, final String name) throws FrameworkException {
+	private void deleteTemplate(final App app, final DOMNode template) throws FrameworkException {
 
-		final DOMNode node = getExistingTemplate(name);
-		if (node != null) {
+		if (template != null) {
 
-			deleteRecursively(app, node);
+			deleteRecursively(app, template);
 		}
 	}
 
@@ -170,9 +169,9 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 			if (byId) {
 
 				final DOMNode existingTemplate = (DOMNode) app.get(templateName);
-
 				if (existingTemplate != null) {
-					deleteTemplate(app, name);
+
+					deleteTemplate(app, existingTemplate);
 				}
 
 				template = app.create(Template.class, new NodeAttribute(AbstractNode.id, templateName));
@@ -180,9 +179,9 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 			} else {
 
 				final DOMNode existingTemplate = getExistingTemplate(name);
-
 				if (existingTemplate != null) {
-					deleteTemplate(app, name);
+
+					deleteTemplate(app, existingTemplate);
 				}
 
 				template = app.create(Template.class);
