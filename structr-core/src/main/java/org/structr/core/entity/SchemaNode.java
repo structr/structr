@@ -450,8 +450,8 @@ public class SchemaNode extends AbstractSchemaNode {
 	@Override
 	public String getAuxiliarySource() throws FrameworkException {
 
-		// only File needs to return auxiliary code!
-		if (!"File".equals(getClassName())) {
+		// only File and Image need to return auxiliary code
+		if (!("File".equals(getClassName()) || ("Image".equals(getClassName())))) {
 			return null;
 		}
 
