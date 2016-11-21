@@ -255,8 +255,6 @@ var StructrModel = {
 			$.each(data.modifiedProperties, function(i, key) {
 				_Logger.log(_LogType.MODEL, 'update model', key, data.data[key]);
 				obj[key] = data.data[key];
-				//console.log('object ', obj, 'updated with key', key, '=', obj[key]);
-				//StructrModel.refreshKey(obj.id, key);
 			});
 
 			StructrModel.refresh(obj.id);
@@ -273,8 +271,6 @@ var StructrModel = {
 		if (obj) {
 			obj[key] = value;
 		}
-
-		//StructrModel.refreshKey(id, key);
 
 	},
 	/**
@@ -294,7 +290,6 @@ var StructrModel = {
 		if (!element)
 			return;
 
-		//for (var key in data.data) {
 		var inputElement = $('td.' + key + '_ input', element);
 		_Logger.log(_LogType.MODEL, inputElement);
 		var newValue = obj[key];
@@ -332,12 +327,6 @@ var StructrModel = {
 
 					attrElement.text(newValue);
 
-					// hook for CodeMirror edit areas
-					//                        if (editor && editor.id == id) {
-					//                            log(editor.id);
-					//                            editor.setValue(newValue);
-					//                            editor.setCursor(editorCursor);
-					//                        }
 				}
 			}
 		}
@@ -505,7 +494,6 @@ var StructrModel = {
 			}
 
 		});
-		//console.log('save', id, data);
 		Command.setProperties(id, data);
 	},
 
@@ -566,7 +554,6 @@ StructrFolder.prototype.remove = function() {
 
 	if (!parentFolder.files.length && !parentFolder.folders.length) {
 		_Entities.removeExpandIcon(parentFolderEl);
-		//enable(parentFolderEl.children('.delete_icon')[0]);
 	}
 
 	var folderEl = Structr.node(folder.id);
@@ -588,7 +575,6 @@ StructrFolder.prototype.remove = function() {
 };
 
 StructrFolder.prototype.append = function(refNode) {
-	//StructrModel.expand(_Files.appendFolderElement(this, refNode), this);
 };
 
 StructrFolder.prototype.exists = function() {
@@ -650,7 +636,6 @@ StructrFile.prototype.append = function() {
 			parentFolder.files.push(file);
 		}
 	}
-	//StructrModel.expand(_Files.appendFileElement(this, parentFolder), this);
 };
 
 
@@ -696,8 +681,6 @@ StructrImage.prototype.remove = function() {
 	} else {
 		fileEl.remove();
 	}
-
-	//_Files.appendFileElement(this);
 };
 
 StructrImage.prototype.append = function(refNode) {
@@ -761,7 +744,7 @@ StructrUser.prototype.remove = function() {
 
 StructrUser.prototype.append = function() {
 	var user = this;
-	//console.log(user.groups);
+
 	if (user.groups && user.groups.length) {
 		var group = StructrModel.obj(user.groups[0]);
 		if (group && group.members) {
@@ -828,10 +811,6 @@ function StructrPage(data) {
 	});
 }
 
-//StructrPage.prototype.createElement = function(name) {
-//    return new Element(name);
-//};
-
 StructrPage.prototype.setProperty = function(key, value, recursive, callback) {
 	Command.setProperty(this.id, key, value, recursive, callback);
 };
@@ -850,10 +829,6 @@ function StructrWidget(data) {
 		self[key] = data[key];
 	});
 }
-
-//StructrPage.prototype.createElement = function(name) {
-//    return new Element(name);
-//};
 
 StructrWidget.prototype.setProperty = function(key, value, recursive, callback) {
 	Command.setProperty(this.id, key, value, recursive, callback);
@@ -946,9 +921,9 @@ StructrElement.prototype.isActiveNode = function() {
 		|| this["data-structr-return"]
 		|| this["data-structr-type"]
 		//Boolean attributes
-		|| this["data-structr-append-id"]==true
-		|| this["data-structr-confirm"]==true
-		|| this["data-structr-reload"]==true;
+		|| this["data-structr-append-id"]===true
+		|| this["data-structr-confirm"]===true
+		|| this["data-structr-reload"]===true;
 };
 
 /**************************************
@@ -970,10 +945,6 @@ StructrContent.prototype.appendChild = function(el) {
 StructrContent.prototype.setProperty = function(key, value, recursive, callback) {
 	Command.setProperty(this.id, key, value, recursive, callback);
 };
-
-//StructrContent.prototype.setProperties = function(attributes) {
-//    this.attributes = attributes;
-//};
 
 StructrContent.prototype.removeAttribute = function(key) {
 	var self = this;
@@ -1062,18 +1033,9 @@ function StructrSearchResult(data) {
 	});
 }
 
-//StructrSearchResult.prototype.save = function() {
-//    StructrModel.save(this.id);
-//};
-//
-//StructrSearchResult.prototype.setProperty = function(key, value, recursive, callback) {
-//    Command.setProperty(this.id, key, value, recursive, callback);
-//};
-
 StructrSearchResult.prototype.append = function() {
 
 	var obj = this;
-	//console.log(obj);
 
 	if (obj.hasOwnProperty('relType') && obj.hasOwnProperty('sourceId') && obj.hasOwnProperty('targetId')) {
 		_Graph.drawRel(obj);

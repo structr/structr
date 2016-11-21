@@ -1567,26 +1567,6 @@ function MessageBuilder () {
 	return this;
 }
 
-function getElementPath(element) {
-	var i = -1;
-	return $(element).parents('.node').andSelf().map(function() {
-		i++;
-		var self = $(this);
-		// id for top-level element
-		if (i === 0)
-			return Structr.getId(self);
-		return self.prevAll('.node').length;
-	}).get().join('_');
-}
-
-function swapFgBg(el) {
-	var fg = el.css('color');
-	var bg = el.css('backgroundColor');
-	el.css('color', bg);
-	el.css('backgroundColor', fg);
-
-}
-
 function isImage(contentType) {
 	return (contentType && contentType.indexOf('image') > -1);
 }
@@ -1598,43 +1578,38 @@ function isVideo(contentType) {
 function addExpandedNode(id) {
 	_Logger.log(_LogType.INIT, 'addExpandedNode', id);
 
-	if (!id) {
-		return;
+	if (id) {
+		var alreadyStored = getExpanded()[id];
+		if (!alreadyStored) {
+
+			getExpanded()[id] = true;
+			LSWrapper.setItem(expandedIdsKey, JSON.stringify(Structr.expanded));
+
+		}
 	}
-
-	var alreadyStored = getExpanded()[id];
-
-	if (alreadyStored !== undefined) {
-		return;
-	}
-
-	getExpanded()[id] = true;
-	LSWrapper.setItem(expandedIdsKey, JSON.stringify(Structr.expanded));
-
 }
 
 function removeExpandedNode(id) {
-	_Logger.log(_LogType.INIT, 'removeExpandedNode', id);
+	console.log(_LogType.INIT, 'removeExpandedNode', id);
 
-	if (!id) {
-		return;
+	if (id) {
+		delete getExpanded()[id];
+		LSWrapper.setItem(expandedIdsKey, JSON.stringify(Structr.expanded));
 	}
-
-	delete getExpanded()[id];
-	LSWrapper.setItem(expandedIdsKey, JSON.stringify(Structr.expanded));
 }
 
 function isExpanded(id) {
 	_Logger.log(_LogType.INIT, 'id, getExpanded()[id]', id, getExpanded()[id]);
 
-	if (!id)
-		return false;
+	if (id) {
+		var isExpanded = (getExpanded()[id] === true) ? true : false;
 
-	var isExpanded = getExpanded()[id] === true ? true : false;
+		_Logger.log(_LogType.INIT, isExpanded);
 
-	_Logger.log(_LogType.INIT, isExpanded);
+		return isExpanded;
+	}
 
-	return isExpanded;
+	return false;
 }
 
 function getExpanded() {
@@ -1669,42 +1644,25 @@ function isDisabled(button) {
 	return $(button).data('disabled');
 }
 
-function disable(button, callback) {
+function disable(button, newClickHandler) {
 	var b = $(button);
 	b.data('disabled', true);
 	b.addClass('disabled');
-	if (callback) {
+	if (newClickHandler) {
 		b.off('click');
-		b.on('click', callback);
+		b.on('click', newClickHandler);
 		b.data('disabled', false);
-		//enable(button, callback);
 	}
 }
 
-function enable(button, func) {
+function enable(button, newClickHandler) {
 	var b = $(button);
 	b.data('disabled', false);
 	b.removeClass('disabled');
-	if (func) {
+	if (newClickHandler) {
 		b.off('click');
-		b.on('click', func);
+		b.on('click', newClickHandler);
 	}
-}
-
-function setPosition(parentId, nodeUrl, pos) {
-	var toPut = {};
-	toPut[parentId] = pos;
-	$.ajax({
-		url: nodeUrl + '/in',
-		type: 'PUT',
-		async: false,
-		dataType: 'json',
-		contentType: 'application/json; charset=utf-8',
-		data: JSON.stringify(toPut),
-		success: function(data) {
-			//appendElement(parentId, elementId, data);
-		}
-	});
 }
 
 var keyEventBlocked = true;
@@ -1733,12 +1691,10 @@ function showLoadingSpinner() {
 			backgroundColor: 'transparent'
 		}
 	});
-//	main.append('<div id="structr-loading-spinner"><img src="/structr/' + _Icons.ajax_loader_1 + '"></div>');
 }
 
 function hideLoadingSpinner() {
 	$.unblockUI({
 		fadeOut: 0
 	});
-//	main.remove('#structr-loading-spinner');
 }
