@@ -210,7 +210,7 @@ var _Widgets = {
 	},
 	appendFolderElement: function(parent, id, icon, name) {
 
-		var expanded = isExpanded(id);
+		var expanded = Structr.isExpanded(id);
 
 		parent.append('<div id="' + id + '_folder" class="widget node">'
 			+ '<img class="typeIcon" src="' + icon + '">'
@@ -236,7 +236,7 @@ var _Widgets = {
 
 			if (!Structr.containsNodes(formerParent)) {
 				_Entities.removeExpandIcon(formerParent);
-				enable($('.delete_icon', formerParent)[0]);
+				Structr.enableButton($('.delete_icon', formerParent)[0]);
 			}
 
 		} else {
@@ -327,8 +327,9 @@ var _Widgets = {
 		return div;
 	},
 	editWidget: function(button, entity, element) {
-		if (isDisabled(button))
+		if (Structr.isButtonDisabled(button)) {
 			return;
+		}
 		var text = entity.source || '';
 		var div = element.append('<div class="editor"></div>');
 		_Logger.log(_LogType.WIDGETS, div);
@@ -461,11 +462,11 @@ var _Widgets = {
 				body.toggleClass('hidden');
 				var expanded = body.hasClass('hidden');
 				if (expanded) {
-					addExpandedNode(id);
+					Structr.addExpandedNode(id);
 					expandIcon.prop('src', _Icons.collapsed_icon);
 
 				} else {
-					removeExpandedNode(id);
+					Structr.removeExpandedNode(id);
 					expandIcon.prop('src', _Icons.expanded_icon);
 				}
 			});
@@ -480,10 +481,10 @@ var _Widgets = {
 					body.toggleClass('hidden');
 					var collapsed = body.hasClass('hidden');
 					if (collapsed) {
-						addExpandedNode(id);
+						Structr.addExpandedNode(id);
 						expandIcon.prop('src', _Icons.collapsed_icon);
 					} else {
-						removeExpandedNode(id);
+						Structr.removeExpandedNode(id);
 						expandIcon.prop('src', _Icons.expanded_icon);
 					}
 				});

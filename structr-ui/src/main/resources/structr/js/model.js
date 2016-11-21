@@ -174,7 +174,7 @@ var StructrModel = {
 
 		if (element) {
 
-			if (isExpanded(obj.id)) {
+			if (Structr.isExpanded(obj.id)) {
 				_Entities.ensureExpanded(element);
 			}
 
@@ -208,7 +208,7 @@ var StructrModel = {
 		}
 
 		if (lastMenuEntry === 'pages') {
-			removeExpandedNode(id);
+			Structr.removeExpandedNode(id);
 			var iframe = $('#preview_' + id);
 			var tab = $('#show_' + id);
 
@@ -669,16 +669,14 @@ StructrImage.prototype.remove = function() {
 		parentFolder.files = removeFromArray(parentFolder.files, file);
 		if (!parentFolder.files.length && !parentFolder.folders.length) {
 			_Entities.removeExpandIcon(parentFolderEl);
-			enable(parentFolderEl.children('.delete_icon')[0]);
+			Structr.enableButton(parentFolderEl.children('.delete_icon')[0]);
 		}
 
 		file.parent = undefined;
 	}
 
 	var fileEl = Structr.node(file.id);
-	if (!fileEl) {
-		return;
-	} else {
+	if (fileEl) {
 		fileEl.remove();
 	}
 };
@@ -728,7 +726,7 @@ StructrUser.prototype.remove = function() {
 	if (!group.members.length) {
 		_Entities.removeExpandIcon(groupEl);
 		if (groupEl && groupEl.length) {
-			enable(groupEl.children('.delete_icon')[0]);
+			Structr.enableButton(groupEl.children('.delete_icon')[0]);
 		}
 	}
 

@@ -397,7 +397,7 @@ function wsConnect() {
 								el = _Pages.appendElementElement(entity, components, true);
 							}
 
-							if (isExpanded(entity.id)) {
+							if (Structr.isExpanded(entity.id)) {
 								_Entities.ensureExpanded(el);
 							}
 

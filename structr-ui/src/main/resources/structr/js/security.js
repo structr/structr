@@ -306,7 +306,7 @@ var _Security = {
 				var self = $(this);
 				var userId = Structr.getId(ui.draggable);
 				var groupId = Structr.getId(self);
-				addExpandedNode(groupId);
+				Structr.addExpandedNode(groupId);
 				Command.appendUser(userId, groupId);
 				$(ui.draggable).remove();
 			}
@@ -381,7 +381,7 @@ var _Security = {
 
 		var groupId = group.id;
 
-		if (!isExpanded(groupId)) {
+		if (!Structr.isExpanded(groupId)) {
 			return;
 		}
 
@@ -420,7 +420,7 @@ var _Security = {
 		});
 
 		// disable delete icon on parent
-		disable($('.delete_icon', parent)[0]);
+		Structr.disableButton($('.delete_icon', parent)[0]);
 
 		div.removeClass('ui-state-disabled').removeClass('ui-draggable-disabled').removeClass('ui-draggable');
 
