@@ -145,8 +145,8 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	@Override
 	public void shutdown() {
 
-		RelationshipWrapper.shutdownCache();
-		NodeWrapper.shutdownCache();
+		RelationshipWrapper.clearCache();
+		NodeWrapper.clearCache();
 
 		driver.close();
 		graphDb.shutdown();

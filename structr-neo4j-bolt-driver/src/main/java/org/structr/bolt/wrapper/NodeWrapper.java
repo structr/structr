@@ -249,7 +249,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		nodeCache.remove(id);
 	}
 
-	public static void shutdownCache() {
+	public static void clearCache() {
 		nodeCache.clear();
 	}
 

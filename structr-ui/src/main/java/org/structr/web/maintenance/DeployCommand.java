@@ -653,8 +653,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportConfiguration(final DOMNode node, final Map<String, Object> config) throws FrameworkException {
 
-		if (node.isVisibleToPublicUsers())        { putIf(config, "visibleToPublicUsers", "true"); }
-		if (node.isVisibleToAuthenticatedUsers()) { putIf(config, "visibleToAuthenticatedUsers", "true"); }
+		if (node.isVisibleToPublicUsers())        { putIf(config, "visibleToPublicUsers", true); }
+		if (node.isVisibleToAuthenticatedUsers()) { putIf(config, "visibleToAuthenticatedUsers", true); }
 
 		putIf(config, "contentType",             node.getProperty(Content.contentType));
 
@@ -677,8 +677,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportFileConfiguration(final AbstractFile file, final Map<String, Object> config) {
 
-		if (file.isVisibleToPublicUsers())        { putIf(config, "visibleToPublicUsers", "true"); }
-		if (file.isVisibleToAuthenticatedUsers()) { putIf(config, "visibleToAuthenticatedUsers", "true"); }
+		if (file.isVisibleToPublicUsers())        { putIf(config, "visibleToPublicUsers", true); }
+		if (file.isVisibleToAuthenticatedUsers()) { putIf(config, "visibleToAuthenticatedUsers", true); }
 
 		putIf(config, "contentType",                 file.getProperty(FileBase.contentType));
 		putIf(config, "cacheForSeconds",             file.getProperty(FileBase.cacheForSeconds));

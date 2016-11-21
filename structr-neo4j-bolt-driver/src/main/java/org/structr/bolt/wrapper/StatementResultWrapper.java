@@ -25,6 +25,7 @@ import org.neo4j.driver.v1.Records;
 import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.Value;
 import org.neo4j.driver.v1.exceptions.TransientException;
+import org.neo4j.driver.v1.summary.ResultSummary;
 import org.structr.api.NativeResult;
 import org.structr.api.RetryException;
 import org.structr.api.util.Iterables;
@@ -79,7 +80,18 @@ public class StatementResultWrapper<T> implements NativeResult<T> {
 	}
 
 	@Override
-	public void close() throws Exception {
-		result.consume();
+	public void close() {
+
+		if (result != null) {
+
+			final ResultSummary summary = result.consume();
+
+			if (summary != null && summary.counters().containsUpdates()) {
+
+				db.invalidateQueryCache();
+				NodeWrapper.clearCache();
+				RelationshipWrapper.clearCache();
+			}
+		}
 	}
 }

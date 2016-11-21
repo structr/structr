@@ -121,7 +121,7 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 		relationshipCache.remove(id);
 	}
 
-	public static void shutdownCache() {
+	public static void clearCache() {
 		relationshipCache.clear();
 	}
 
