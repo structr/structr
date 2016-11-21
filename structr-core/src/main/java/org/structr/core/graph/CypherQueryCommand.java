@@ -19,6 +19,7 @@
 package org.structr.core.graph;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -68,49 +69,42 @@ public class CypherQueryCommand extends NodeServiceCommand {
 		RelationshipFactory relFactory  = new RelationshipFactory(securityContext);
 		NodeFactory nodeFactory         = new NodeFactory(securityContext);
 		List<GraphObject> resultList    = new LinkedList<>();
-		NativeResult result             = null;
 
-		if (parameters != null) {
+		try (final NativeResult result = graphDb.execute(query, parameters != null ? parameters : Collections.emptyMap())) {
 
-			result = graphDb.execute(query, parameters);
+			while (result.hasNext()) {
 
-		} else {
+				final Map<String, Object> row = result.next();
+				for (Entry<String, Object> entry : row.entrySet()) {
 
-			result = graphDb.execute(query);
-		}
+					String key   = entry.getKey();
+					Object value = entry.getValue();
 
-		while (result.hasNext()) {
+					final Object obj = handleObject(nodeFactory, relFactory, key, value, includeHiddenAndDeleted, publicOnly, 0);
+					if (obj != null) {
 
-			final Map<String, Object> row = result.next();
-			for (Entry<String, Object> entry : row.entrySet()) {
+						if (obj instanceof GraphObject) {
 
-				String key   = entry.getKey();
-				Object value = entry.getValue();
+							resultList.add((GraphObject)obj);
 
-				final Object obj = handleObject(nodeFactory, relFactory, key, value, includeHiddenAndDeleted, publicOnly, 0);
-				if (obj != null) {
-					
-					if (obj instanceof GraphObject) {
+						} else if (obj instanceof Collection) {
 
-						resultList.add((GraphObject)obj);
+							for (final Object item : ((Collection)obj)) {
 
-					} else if (obj instanceof Collection) {
+								if (item instanceof GraphObject) {
 
-						for (final Object item : ((Collection)obj)) {
+									resultList.add((GraphObject)item);
 
-							if (item instanceof GraphObject) {
+								} else {
 
-								resultList.add((GraphObject)item);
-
-							} else {
-
-								logger.warn("Unable to handle Cypher query result object of type {}, ignoring.", item.getClass().getName());
+									logger.warn("Unable to handle Cypher query result object of type {}, ignoring.", item.getClass().getName());
+								}
 							}
+
+						} else {
+
+							logger.warn("Unable to handle Cypher query result object of type {}, ignoring.", obj.getClass().getName());
 						}
-
-					} else {
-
-						logger.warn("Unable to handle Cypher query result object of type {}, ignoring.", obj.getClass().getName());
 					}
 				}
 			}

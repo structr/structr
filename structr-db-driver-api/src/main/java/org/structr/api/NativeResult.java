@@ -31,4 +31,7 @@ public interface NativeResult<T> extends AutoCloseable {
 	boolean hasNext();
 
 	Map<String, Object> next();
+
+	@Override
+	void close();
 }

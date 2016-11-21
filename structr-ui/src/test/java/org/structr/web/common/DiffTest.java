@@ -466,7 +466,7 @@ public class DiffTest extends StructrUiTest {
 			+ "	<body>\n"
 			+ "		<h2>one</h2>\n"
 			+ "		<p>two</p>\n"
-			+ "		<div>Text<br>\t\t\t</div>\n"
+			+ "		<div>Text </div>\n"
 			+ "	</body>\n"
 			+ "</html>",
 			result1
@@ -505,7 +505,7 @@ public class DiffTest extends StructrUiTest {
 			+ "		<title>Title</title>\n"
 			+ "	</head>\n"
 			+ "	<body>\n"
-			+ "		<div>Text<br>\t\t\t<br>\t\t\t\n"
+			+ "		<div>Text \n"
 			+ "			<div>\n"
 			+ "				<h2>one</h2>\n"
 			+ "				<p>two</p>\n"
