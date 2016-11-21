@@ -362,7 +362,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 		if (newOrExistingNode != null) {
 
 			// merge properties
-			newOrExistingNode.updateFromPropertyMap(receivedNodeData.getProperties());
+			newOrExistingNode.setProperties(securityContext, PropertyMap.databaseTypeToJavaType(securityContext, nodeType, receivedNodeData.getProperties()));
 
 		} else {
 
@@ -437,7 +437,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 				if (existingCandidate != null) {
 
 					// merge properties?
-					existingCandidate.updateFromPropertyMap(receivedRelationshipData.getProperties());
+					existingCandidate.setProperties(securityContext, PropertyMap.databaseTypeToJavaType(securityContext, relType, receivedRelationshipData.getProperties()));
 
 					return existingCandidate;
 

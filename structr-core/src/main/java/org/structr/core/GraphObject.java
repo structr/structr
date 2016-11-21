@@ -420,8 +420,6 @@ public interface GraphObject {
 	public NodeInterface getSyncNode();
 	public RelationshipInterface getSyncRelationship();
 
-	public void updateFromPropertyMap(final Map<String, Object> properties) throws FrameworkException;
-
 	// ----- CMIS support -----
 	/**
 	 * Returns information for CMIS support, may be null to signal that
