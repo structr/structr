@@ -220,10 +220,6 @@ var _Files = {
 
 			} else {
 
-				if (data.node.id === 'root') {
-					_Files.deepOpen(currentWorkingDir);
-				}
-
 				_Files.setWorkingDirectory(data.node.id);
 				_Files.displayFolderContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
 
