@@ -1778,7 +1778,7 @@ var _Crud = {
 
 			var displayName = _Crud.displayName(node);
 
-			cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.isImage? 'image ' : '') + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80));
+			cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.isImage ? 'image ' : '') + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80));
 			var nodeEl = $('#_' + node.id, cell);
 
 			var isSourceOrTarget = _Crud.types[parentType].isRel && (key === 'sourceId' || key === 'targetId');
