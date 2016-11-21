@@ -653,8 +653,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportConfiguration(final DOMNode node, final Map<String, Object> config) throws FrameworkException {
 
-		putIf(config, "visibleToPublicUsers",        node.isVisibleToPublicUsers());
-		putIf(config, "visibleToAuthenticatedUsers", node.isVisibleToAuthenticatedUsers());
+		if (node.isVisibleToPublicUsers())        { putIf(config, "visibleToPublicUsers", "true"); }
+		if (node.isVisibleToAuthenticatedUsers()) { putIf(config, "visibleToAuthenticatedUsers", "true"); }
+
 		putIf(config, "contentType",             node.getProperty(Content.contentType));
 
 		if (node instanceof Template) {
@@ -676,12 +677,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportFileConfiguration(final AbstractFile file, final Map<String, Object> config) {
 
-		putIf(config, "visibleToPublicUsers",        file.isVisibleToPublicUsers());
-		putIf(config, "visibleToAuthenticatedUsers", file.isVisibleToAuthenticatedUsers());
+		if (file.isVisibleToPublicUsers())        { putIf(config, "visibleToPublicUsers", "true"); }
+		if (file.isVisibleToAuthenticatedUsers()) { putIf(config, "visibleToAuthenticatedUsers", "true"); }
+
 		putIf(config, "contentType",                 file.getProperty(FileBase.contentType));
 		putIf(config, "cacheForSeconds",             file.getProperty(FileBase.cacheForSeconds));
-
-		//fixme: test this
 		putIf(config, "useAsJavascriptLibrary",      file.getProperty(FileBase.useAsJavascriptLibrary));
 
 		if (file instanceof Image) {
