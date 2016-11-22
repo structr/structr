@@ -30,6 +30,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
@@ -89,8 +90,11 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 
 					relatedNode = (T) app.getNodeById(map.get(GraphObject.id));
 
-					if (relatedNode != null && !type.isAssignableFrom(relatedNode.getClass())) {
-						throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
+					if (relatedNode != null) {
+
+						if ( !SearchCommand.isTypeAssignableFromOtherType(type, relatedNode.getClass()) ) {
+							throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
+						}
 					}
 
 				} else {
