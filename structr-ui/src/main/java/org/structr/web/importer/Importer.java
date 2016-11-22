@@ -658,7 +658,7 @@ public class Importer {
 
 					if (DeployCommand.isUuid(src)) {
 
-						template = (DOMNode) StructrApp.getInstance().get(src);
+						template = (DOMNode) StructrApp.getInstance().nodeQuery(Template.class).and(GraphObject.id, src).getFirst();
 
 					} else {
 
@@ -686,7 +686,7 @@ public class Importer {
 
 					} else {
 
-						logger.warn("Unable to find shared component {}, template ignored!", src);
+						logger.warn("Unable to find template or shared component {}, template ignored!", src);
 					}
 
 				} else {
@@ -702,7 +702,7 @@ public class Importer {
 					DOMNode component = null;
 					if (DeployCommand.isUuid(src)) {
 
-						component = app.get(DOMNode.class, src);
+						component = app.nodeQuery(DOMNode.class).and(GraphObject.id, src).getFirst();
 
 					} else {
 
