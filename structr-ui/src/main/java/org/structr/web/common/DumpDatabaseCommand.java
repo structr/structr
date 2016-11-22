@@ -32,6 +32,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.rest.resource.MaintenanceParameterResource;
+import org.structr.web.entity.FileBase;
 
 public class DumpDatabaseCommand extends NodeServiceCommand implements MaintenanceCommand {
 
@@ -57,7 +58,7 @@ public class DumpDatabaseCommand extends NodeServiceCommand implements Maintenan
 
 			try (final Tx tx = app.tx()) {
 
-				final File file = FileHelper.createFile(securityContext, new byte[0], "application/zip", File.class, fileName);
+				final FileBase file = FileHelper.createFile(securityContext, new byte[0], "application/zip", File.class, fileName);
 
 				// make file visible for auth. users
 				file.setProperties(securityContext, new PropertyMap(File.visibleToAuthenticatedUsers, true));
