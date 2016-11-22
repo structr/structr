@@ -27,6 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.RelationshipNotion;
 
@@ -81,7 +82,8 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 
 			// remove relationship if exists
 //			if (outgoingRel != null && targetType.isAssignableFrom(outgoingRel.getTargetType())) {
-			if (outgoingRel != null && targetType.isInstance(outgoingRel.getTargetNode())) {
+//			if (outgoingRel != null && targetType.isInstance(outgoingRel.getTargetNode())) {
+			if (outgoingRel != null && SearchCommand.isTypeAssignableFromOtherType(targetType, outgoingRel.getTargetType())) {
 				app.delete(outgoingRel);
 			}
 		}
@@ -92,7 +94,8 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 			final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationship(clazz);
 
 //			if (incomingRel != null && sourceType.isAssignableFrom(incomingRel.getSourceType())) {
-			if (incomingRel != null && sourceType.isInstance(incomingRel.getSourceNode())) {
+//			if (incomingRel != null && sourceType.isInstance(incomingRel.getSourceNode())) {
+			if (incomingRel != null && SearchCommand.isTypeAssignableFromOtherType(sourceType, incomingRel.getSourceType())) {
 				app.delete(incomingRel);
 			}
 		}
