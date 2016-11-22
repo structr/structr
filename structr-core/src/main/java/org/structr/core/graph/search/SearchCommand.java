@@ -719,6 +719,12 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return Collections.unmodifiableSet(allSubtypes);
 	}
 
+	public static boolean isTypeAssignableFromOtherType (Class type, Class otherType) {
+
+		return getAllSubtypesAsStringSet(type.getSimpleName()).contains(otherType.getSimpleName());
+
+	}
+
 	public static Set<Class> typeAndAllSupertypes(final Class type) {
 
 		final ConfigurationProvider configuration = StructrApp.getConfiguration();
