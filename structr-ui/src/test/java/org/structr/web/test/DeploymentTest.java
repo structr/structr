@@ -697,6 +697,33 @@ public class DeploymentTest extends StructrUiTest {
 		compare(calculateHash(), true, false);
 	}
 
+	@Test
+	public void test17HtmlEntities() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createNewPage(securityContext,   "test17");
+			final Html html = createElement(page, page, "html");
+			final Head head = createElement(page, html, "head");
+			createElement(page, head, "title", "test17");
+
+			final Body body = createElement(page, html, "body");
+			final Div div1  = createElement(page, body, "div");
+
+			final Content content = createContent(page, div1, "<b>Test</b>");
+			content.setProperty(Content.contentType, "text/html");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), false, false);
+	}
+
 	// ----- private methods -----
 	private void compare(final String sourceHash, final boolean deleteTestDirectory) {
 		compare(sourceHash, deleteTestDirectory, true);

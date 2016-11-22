@@ -42,6 +42,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.GraphObjectComparator;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -58,6 +59,7 @@ import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.json.JsonSchema;
+import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
@@ -309,21 +311,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final Path target  = Paths.get(path);
 
-		if (Files.exists(target)) {
-
-			throw new FrameworkException(422, "Target directory already exists, aborting.");
-		}
-
 		try {
 
 			Files.createDirectories(target);
 
-			final Path components     = Files.createDirectory(target.resolve("components"));
-			final Path files          = Files.createDirectory(target.resolve("files"));
-			final Path pages          = Files.createDirectory(target.resolve("pages"));
-			final Path schema         = Files.createDirectory(target.resolve("schema"));
-			final Path security       = Files.createDirectory(target.resolve("security"));
-			final Path templates      = Files.createDirectory(target.resolve("templates"));
+			final Path components     = Files.createDirectories(target.resolve("components"));
+			final Path files          = Files.createDirectories(target.resolve("files"));
+			final Path pages          = Files.createDirectories(target.resolve("pages"));
+			final Path schema         = Files.createDirectories(target.resolve("schema"));
+			final Path security       = Files.createDirectories(target.resolve("security"));
+			final Path templates      = Files.createDirectories(target.resolve("templates"));
 			final Path schemaJson     = schema.resolve("schema.json");
 			final Path grants         = security.resolve("grants.json");
 			final Path filesConf      = target.resolve("files.json");
@@ -354,12 +351,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Tx tx = app.tx()) {
 
 			// fetch toplevel folders and recurse
-			for (final Folder folder : app.nodeQuery(Folder.class).and(Folder.parent, null).getAsList()) {
+			for (final Folder folder : app.nodeQuery(Folder.class).and(Folder.parent, null).sort(Folder.name).getAsList()) {
 				exportFilesAndFolders(target, folder, config);
 			}
 
 			// fetch toplevel files
-			for (final FileBase file : app.nodeQuery(FileBase.class).and(Folder.parent, null).getAsList()) {
+			for (final FileBase file : app.nodeQuery(FileBase.class).and(Folder.parent, null).sort(FileBase.name).getAsList()) {
 				exportFile(target, file, config);
 			}
 
@@ -392,11 +389,17 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			config.put(folder.getPath(), properties);
 		}
 
-		for (final Folder child : folder.getProperty(Folder.folders)) {
+		final List<Folder> folders = folder.getProperty(Folder.folders);
+		Collections.sort(folders, new GraphObjectComparator(AbstractNode.name, false));
+
+		for (final Folder child : folders) {
 			exportFilesAndFolders(path, child, config);
 		}
 
-		for (final FileBase file : folder.getProperty(Folder.files)) {
+		final List<FileBase> files = folder.getProperty(Folder.files);
+		Collections.sort(files, new GraphObjectComparator(AbstractNode.name, false));
+
+		for (final FileBase file : files) {
 			exportFile(path, file, config);
 		}
 	}
@@ -406,19 +409,39 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Map<String, Object> properties = new LinkedHashMap<>();
 		final String name                    = file.getName();
 		final Path src                       = file.getFileOnDisk().toPath();
-		Path path                            = target.resolve(name);
+		Path targetPath                      = target.resolve(name);
+		boolean doExport                     = true;
 		int i                                = 0;
 
 		// modify file name if there are duplicates in the database
-		while (Files.exists(path)) {
-			path = target.resolve(name + i++);
+		while (Files.exists(targetPath)) {
+
+			// compare checksum
+			final Long checksumOfExistingFile = FileHelper.getChecksum(targetPath.toFile());
+			final Long checksumOfExportFile   = file.getChecksum();
+
+			if (checksumOfExistingFile.equals(checksumOfExportFile)) {
+
+
+				logger.info("Skipping export of file {}, no changes.", name);
+				doExport = false;
+				break;
+
+			} else {
+
+				targetPath = target.resolve(name + i++);
+			}
 		}
 
-		try {
-			Files.copy(src, path);
+		// export only if file is
+		if (doExport) {
 
-		} catch (IOException ioex) {
-			// ignore this
+			try {
+				Files.copy(src, targetPath);
+
+			} catch (IOException ioex) {
+				// ignore this
+			}
 		}
 
 		exportFileConfiguration(file, properties);
@@ -435,7 +458,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final Page page : app.nodeQuery(Page.class).getAsList()) {
+			for (final Page page : app.nodeQuery(Page.class).sort(Page.name).getAsList()) {
 
 				if (!(page instanceof ShadowDocument)) {
 
@@ -445,18 +468,36 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						final Map<String, Object> properties = new LinkedHashMap<>();
 						final String name                    = page.getName();
 						final Path pageFile                  = target.resolve(name + ".html");
+						boolean doExport                     = true;
+
+						if (Files.exists(pageFile)) {
+
+							try {
+
+								final String existingContent = new String(Files.readAllBytes(pageFile), "utf-8");
+								if (existingContent.equals(content)) {
+
+									logger.info("Skipping export of page {}, no changes.", name);
+									doExport = false;
+								}
+
+							} catch (IOException ignore) {}
+						}
 
 						pagesConfig.put(name, properties);
 						exportConfiguration(page, properties);
 
-						try (final OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(pageFile.toFile()))) {
+						if (doExport) {
 
-							writer.write(content);
-							writer.flush();
-							writer.close();
+							try (final OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(pageFile.toFile()))) {
 
-						} catch (IOException ioex) {
-							ioex.printStackTrace();
+								writer.write(content);
+								writer.flush();
+								writer.close();
+
+							} catch (IOException ioex) {
+								ioex.printStackTrace();
+							}
 						}
 					}
 				}
@@ -488,36 +529,52 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					final boolean hasParent = node.getProperty(DOMNode.parent) != null;
 					final boolean inTrash   = node.inTrash();
+					boolean doExport        = true;
 
 					// skip templates, nodes in trash and non-toplevel nodes
 					if (node instanceof Template || inTrash || hasParent) {
 						continue;
 					}
 
-					final Map<String, Object> properties = new LinkedHashMap<>();
-
-					String name = node.getProperty(AbstractNode.name);
-					if (name == null) {
-
-						name = node.getUuid();
-					}
-
-					configuration.put(name, properties);
-					exportConfiguration(node, properties);
-
 					final String content = node.getContent(RenderContext.EditMode.DEPLOYMENT);
 					if (content != null) {
 
-						final Path pageFile = target.resolve(name + ".html");
+						String name = node.getProperty(AbstractNode.name);
+						if (name == null) {
 
-						try (final OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(pageFile.toFile()))) {
+							name = node.getUuid();
+						}
 
-							writer.write(content);
-							writer.flush();
-							writer.close();
+						final Map<String, Object> properties = new LinkedHashMap<>();
+						final Path targetFile = target.resolve(name + ".html");
 
-						} catch (IOException ioex) {
-							ioex.printStackTrace();
+						if (Files.exists(targetFile)) {
+
+							try {
+								final String existingContent = new String(Files.readAllBytes(targetFile), "utf-8");
+								if (existingContent.equals(content)) {
+
+									logger.info("Skipping export of component {}, no changes.", name);
+									doExport = false;
+								}
+
+							} catch (IOException ignore) {}
+						}
+
+						configuration.put(name, properties);
+						exportConfiguration(node, properties);
+
+						if (doExport) {
+
+							try (final OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(targetFile.toFile()))) {
+
+								writer.write(content);
+								writer.flush();
+								writer.close();
+
+							} catch (IOException ioex) {
+								ioex.printStackTrace();
+							}
 						}
 					}
 				}
@@ -548,10 +605,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final boolean inTrash     = template.inTrash();
 				final boolean isShared    = template.getProperty(DOMNode.sharedComponent) != null;
 
-				// FIXME: the below statement selects the exact same node for export that
-				// has already been exported as a shared component. Shouldn't we rather
-				// export the actual node in the pages tree?
-
 				if (inTrash || isShared) {
 					continue;
 				}
@@ -574,30 +627,47 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private void exportTemplateSource(final Path target, final DOMNode template, final Map<String, Object> configuration) throws FrameworkException {
 
 		final Map<String, Object> properties = new LinkedHashMap<>();
-
-		// name or uuid
-		String name = template.getProperty(AbstractNode.name);
-		if (name == null) {
-
-			name = template.getUuid();
-		}
-
-		configuration.put(name, properties);
-		exportConfiguration(template, properties);
+		boolean doExport                     = true;
 
 		final String content = template.getProperty(Template.content);
 		if (content != null) {
 
-			final Path pageFile = target.resolve(name + ".html");
+			// name or uuid
+			String name = template.getProperty(AbstractNode.name);
+			if (name == null) {
 
-			try (final OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(pageFile.toFile()))) {
+				name = template.getUuid();
+			}
 
-				writer.write(content);
-				writer.flush();
-				writer.close();
+			final Path targetFile = target.resolve(name + ".html");
 
-			} catch (IOException ioex) {
-				ioex.printStackTrace();
+			if (Files.exists(targetFile)) {
+
+				try {
+					final String existingContent = new String(Files.readAllBytes(targetFile), "utf-8");
+					if (existingContent.equals(content)) {
+
+						logger.info("Skipping export of template {}, no changes.", name);
+						doExport = false;
+					}
+
+				} catch (IOException ignore) {}
+			}
+
+			configuration.put(name, properties);
+			exportConfiguration(template, properties);
+
+			if (doExport) {
+
+				try (final OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(targetFile.toFile()))) {
+
+					writer.write(content);
+					writer.flush();
+					writer.close();
+
+				} catch (IOException ioex) {
+					ioex.printStackTrace();
+				}
 			}
 		}
 	}
@@ -759,7 +829,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 
 			for (final Map<String, Object> entry : data) {
-
 				app.create(type, PropertyMap.inputTypeToJavaType(context, type, entry));
 			}
 

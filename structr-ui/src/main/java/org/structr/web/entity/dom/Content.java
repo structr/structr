@@ -297,7 +297,7 @@ public class Content extends DOMNode implements Text, NonIndexed {
 				renderDeploymentExportComments(buf, true);
 
 				// EditMode "deployment" means "output raw content, do not interpret in any way
-				buf.append(getProperty(Content.content));
+				buf.append(escapeForHtml(getProperty(Content.content)));
 
 				return;
 			}
