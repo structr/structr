@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.RelationshipNotion;
 
@@ -75,7 +76,8 @@ public abstract class ManyToOne<S extends NodeInterface, T extends NodeInterface
 			// check existing relationships
 			final Relation<?, T, ?, ?> outgoingRel = sourceNode.getOutgoingRelationship(clazz);
 //			if (outgoingRel != null && targetType.isAssignableFrom(outgoingRel.getTargetType())) {
-			if (outgoingRel != null && targetType.isInstance(outgoingRel.getTargetNode())) {
+//			if (outgoingRel != null && targetType.isInstance(outgoingRel.getTargetNode())) {
+			if (outgoingRel != null && SearchCommand.isTypeAssignableFromOtherType(targetType, outgoingRel.getTargetType())) {
 
 				app.delete(outgoingRel);
 			}
