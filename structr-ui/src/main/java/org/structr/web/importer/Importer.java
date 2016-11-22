@@ -205,6 +205,10 @@ public class Importer {
 
 			if (!isDeployment) {
 				logger.info("##### Start parsing code for page {} #####", new Object[]{name});
+			} else {
+
+				// a trailing slash to all void/self-closing tags so the XML parser can parse it correctly
+				code = code.replaceAll("<(area|base|br|col|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)([^>]*)>", "<$1$2/>");
 			}
 
 			if (fragment) {
@@ -232,9 +236,6 @@ public class Importer {
 			} else {
 
 				if (isDeployment) {
-
-					// a trailing slash to all void/self-closing tags so the XML parser can parse it correctly
-					code = code.replaceAll("<(area|base|br|col|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)([^>]*)>", "<$1$2/>");
 
 					parsedDocument = Jsoup.parse(code, "", Parser.xmlParser());
 
