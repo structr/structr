@@ -27,6 +27,8 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
+import org.junit.Assert;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.structr.common.error.FrameworkException;
@@ -37,7 +39,11 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.dynamic.File;
+import org.structr.web.common.FileHelper;
 import org.structr.web.common.StructrUiTest;
+import org.structr.web.entity.FileBase;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -526,6 +532,137 @@ public class DeploymentTest extends StructrUiTest {
 		compare(calculateHash(), false);
 	}
 
+	@Test
+	public void test13FileAttributesInFolders() {
+
+		final String folderPath = "/deeply/nested/Folder Structure/with spaces";
+		final String fileName   = "test13.txt";
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Folder folder = FileHelper.createFolderPath(securityContext, folderPath);
+			final FileBase file = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName);
+
+			file.setProperty(File.parent, folder);
+			file.setProperty(File.visibleToPublicUsers, true);
+			file.setProperty(File.visibleToPublicUsers, true);
+			file.setProperty(File.visibleToAuthenticatedUsers, true);
+			file.setProperty(File.enableBasicAuth, true);
+			file.setProperty(File.useAsJavascriptLibrary, true);
+
+			tx.success();
+
+		} catch (IOException | FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// test
+		doImportExportRoundtrip(true);
+
+		// check
+		try (final Tx tx = app.tx()) {
+
+			final Folder folder = app.nodeQuery(Folder.class).andName("with spaces").getFirst();
+
+			Assert.assertNotNull("Invalid deployment result", folder);
+
+			final FileBase file     = app.nodeQuery(File.class).and(File.parent, folder).and(File.name, fileName).getFirst();
+
+			Assert.assertNotNull("Invalid deployment result", file);
+
+			Assert.assertEquals("Deployment import does not restore attributes correctly", folder, file.getProperty(File.parent));
+			Assert.assertTrue("Deployment import does not restore attributes correctly", file.getProperty(File.visibleToPublicUsers));
+			Assert.assertTrue("Deployment import does not restore attributes correctly", file.getProperty(File.visibleToPublicUsers));
+			Assert.assertTrue("Deployment import does not restore attributes correctly", file.getProperty(File.visibleToAuthenticatedUsers));
+			Assert.assertTrue("Deployment import does not restore attributes correctly", file.getProperty(File.enableBasicAuth));
+			Assert.assertTrue("Deployment import does not restore attributes correctly", file.getProperty(File.useAsJavascriptLibrary));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+	}
+
+	@Test
+	public void test14FileAttributesOnUpdate() {
+
+		final String folderPath = "/deeply/nested/Folder Structure/with spaces";
+		final String fileName   = "test14.txt";
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Folder folder = FileHelper.createFolderPath(securityContext, folderPath);
+			final FileBase file = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName);
+
+			file.setProperty(File.parent, folder);
+			file.setProperty(File.visibleToPublicUsers, true);
+			file.setProperty(File.visibleToPublicUsers, true);
+			file.setProperty(File.visibleToAuthenticatedUsers, true);
+			file.setProperty(File.enableBasicAuth, true);
+			file.setProperty(File.useAsJavascriptLibrary, true);
+
+			tx.success();
+
+		} catch (IOException | FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// test, don't clean the database but modify the file flags
+		doImportExportRoundtrip(true, false, new Function() {
+
+			@Override
+			public Object apply(Object t) {
+
+				try (final Tx tx = app.tx()) {
+
+					final FileBase file = app.nodeQuery(File.class).and(File.name, fileName).getFirst();
+					file.setProperty(File.visibleToPublicUsers, false);
+					file.setProperty(File.visibleToPublicUsers, false);
+					file.setProperty(File.visibleToAuthenticatedUsers, false);
+					file.setProperty(File.enableBasicAuth, false);
+					file.setProperty(File.useAsJavascriptLibrary, false);
+
+					tx.success();
+
+				} catch (FrameworkException fex) {}
+
+				return null;
+			}
+
+		});
+
+		// check
+		try (final Tx tx = app.tx()) {
+
+			final Folder folder = app.nodeQuery(Folder.class).andName("with spaces").getFirst();
+
+			Assert.assertNotNull("Invalid deployment result", folder);
+
+			final FileBase file     = app.nodeQuery(File.class).and(File.parent, folder).and(File.name, fileName).getFirst();
+
+			Assert.assertNotNull("Invalid deployment result", file);
+
+			Assert.assertEquals("Deployment import of existing file does not restore attributes correctly", folder, file.getProperty(File.parent));
+			Assert.assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(File.visibleToPublicUsers));
+			Assert.assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(File.visibleToPublicUsers));
+			Assert.assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(File.visibleToAuthenticatedUsers));
+			Assert.assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(File.enableBasicAuth));
+			Assert.assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(File.useAsJavascriptLibrary));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+	}
+
 	// ----- private methods -----
 	private void compare(final String sourceHash, final boolean deleteTestDirectory) {
 
@@ -542,8 +679,11 @@ public class DeploymentTest extends StructrUiTest {
 		}
 	}
 
-
 	private void doImportExportRoundtrip(final boolean deleteTestDirectory) {
+		doImportExportRoundtrip(deleteTestDirectory, true, null);
+	}
+
+	private void doImportExportRoundtrip(final boolean deleteTestDirectory, final boolean cleanDatabase, final Function callback) {
 
 		final DeployCommand cmd = app.command(DeployCommand.class);
 		final Path tmp          = Paths.get("/tmp/structr-deployment-test" + System.currentTimeMillis() + System.nanoTime());
@@ -559,17 +699,13 @@ public class DeploymentTest extends StructrUiTest {
 				// execute deploy command
 				cmd.execute(firstExportParams);
 
-				// clean database
-				try (final Tx tx = app.tx()) {
+				if (cleanDatabase) {
+					cleanDatabase();
+				}
 
-					for (final DOMNode domNode : app.nodeQuery(DOMNode.class).getAsList()) {
-						app.delete(domNode);
-					}
-
-					tx.success();
-
-				} catch (FrameworkException fex) {
-					fail("Unexpected exception.");
+				// apply callback if present
+				if (callback != null) {
+					callback.apply(null);
 				}
 
 				// import from exported source

@@ -672,6 +672,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putIf(config, "dontCache",               node.getProperty(Page.dontCache));
 			putIf(config, "cacheForSeconds",         node.getProperty(Page.cacheForSeconds));
 			putIf(config, "pageCreatesRawData",      node.getProperty(Page.pageCreatesRawData));
+			putIf(config, "basicAuthRealm",          node.getProperty(Page.basicAuthRealm));
+			putIf(config, "enableBasicAuth",         node.getProperty(Page.enableBasicAuth));
 		}
 	}
 
@@ -683,6 +685,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		putIf(config, "contentType",                 file.getProperty(FileBase.contentType));
 		putIf(config, "cacheForSeconds",             file.getProperty(FileBase.cacheForSeconds));
 		putIf(config, "useAsJavascriptLibrary",      file.getProperty(FileBase.useAsJavascriptLibrary));
+		putIf(config, "basicAuthRealm",              file.getProperty(FileBase.basicAuthRealm));
+		putIf(config, "enableBasicAuth",             file.getProperty(FileBase.enableBasicAuth));
 
 		if (file instanceof Image) {
 			putIf(config, "isThumbnail",             file.getProperty(Image.isThumbnail));

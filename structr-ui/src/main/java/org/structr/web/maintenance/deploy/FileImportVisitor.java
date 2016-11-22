@@ -125,60 +125,64 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		}
 	}
 
-	private void createFile(final Path file, final String fileName) throws IOException {
+	private void createFile(final Path path, final String fileName) throws IOException {
 
 		String newFileUuid = null;
 		try (final Tx tx = app.tx(true, false, false)) {
 
-			final Path parentPath   = basePath.relativize(file).getParent();
-			final Folder parent     = createFolders(parentPath);
-			final FileBase existing = app.nodeQuery(FileBase.class).and(FileBase.parent, parent).and(FileBase.name, fileName).getFirst();
-			final String fullPath   = (parentPath != null ? "/" + parentPath.toString() : "") + "/" + fileName;
+			final Path parentPath    = basePath.relativize(path).getParent();
+			final Folder parent      = createFolders(parentPath);
+			final String fullPath    = (parentPath != null ? "/" + parentPath.toString() : "") + "/" + fileName;
+			FileBase file            = app.nodeQuery(FileBase.class).and(FileBase.parent, parent).and(FileBase.name, fileName).getFirst();
 
-			if (existing != null) {
+			if (file != null) {
 
-				final Long checksumOfExistingFile = existing.getChecksum();
-				final Long checksumOfNewFile      = FileHelper.getChecksum(file.toFile());
+				final Long checksumOfExistingFile = file.getChecksum();
+				final Long checksumOfNewFile      = FileHelper.getChecksum(path.toFile());
 
 				if (checksumOfExistingFile != null && checksumOfNewFile != null && checksumOfExistingFile.equals(checksumOfNewFile)) {
 
-					logger.info("{} is unmodified, skipping import.", fullPath);
-					return;
-				}
+					logger.info("Checksum of {} is unmodified, skipping data import.", fullPath);
 
-				// remove existing file first!
-				app.delete(existing);
+				} else {
+
+					// remove existing file first!
+					app.delete(file);
+					file = null;
+				}
 			}
 
-			logger.info("Importing {}...", fullPath);
+			if (file == null) {
 
-			// close input stream
-			try (final FileInputStream fis = new FileInputStream(file.toFile())) {
+				logger.info("Importing {}...", fullPath);
 
-				// create file in folder structure
-				final FileBase newFile   = FileHelper.createFile(securityContext, fis, null, File.class, fileName);
-				final String contentType = newFile.getContentType();
+				// close input stream
+				try (final FileInputStream fis = new FileInputStream(path.toFile())) {
 
-				final PropertyMap changedProperties = new PropertyMap();
+					// create file in folder structure
+					file                     = FileHelper.createFile(securityContext, fis, null, File.class, fileName);
+					final String contentType = file.getContentType();
 
-				// modify file type according to content
-				if (StringUtils.startsWith(contentType, "image") || ImageHelper.isImageType(newFile.getProperty(name))) {
+					final PropertyMap changedProperties = new PropertyMap();
 
-					changedProperties.put(NodeInterface.type, Image.class.getSimpleName());
+					// modify file type according to content
+					if (StringUtils.startsWith(contentType, "image") || ImageHelper.isImageType(file.getProperty(name))) {
+
+						changedProperties.put(NodeInterface.type, Image.class.getSimpleName());
+					}
+
+					// move file to folder
+					file.setProperty(FileBase.parent, parent);
+
+					file.unlockSystemPropertiesOnce();
+					file.setProperties(securityContext, changedProperties);
+
+					newFileUuid = file.getUuid();
 				}
-
-				// move file to folder
-				changedProperties.put(FileBase.parent, parent);
-
-				// set properties from files.json
-				final PropertyMap properties = getPropertiesForFileOrFolder(newFile.getPath());
-				changedProperties.putAll(properties);
-
-				newFile.unlockSystemPropertiesOnce();
-				newFile.setProperties(securityContext, changedProperties);
-
-				newFileUuid = newFile.getUuid();
 			}
+
+			// set properties from files.json
+			file.setProperties(securityContext, getPropertiesForFileOrFolder(file.getPath()));
 
 			tx.success();
 
