@@ -580,6 +580,7 @@ public class Services implements StructrServices {
 			if (service.isVital()) {
 
 				logger.error("Vital service {} failed to start. Aborting", service.getClass().getSimpleName());
+				t.printStackTrace();
 
 				// hard(est) exit
 				System.exit(1);
@@ -587,6 +588,8 @@ public class Services implements StructrServices {
 			} else {
 
 				logger.error("Service {} failed to start", service.getClass().getSimpleName());
+				t.printStackTrace();
+
 			}
 		}
 
