@@ -679,7 +679,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final ResourceAccess res : app.nodeQuery(ResourceAccess.class).getAsList()) {
+			for (final ResourceAccess res : app.nodeQuery(ResourceAccess.class).sort(ResourceAccess.signature).getAsList()) {
 
 				final Map<String, Object> grant = new LinkedHashMap<>();
 				grants.add(grant);
