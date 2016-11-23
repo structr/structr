@@ -37,10 +37,13 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.ShadowDocument;
+import org.structr.web.entity.dom.Template;
 import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.DeployCommand;
 import org.structr.websocket.command.CreateComponentCommand;
@@ -111,7 +114,11 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 		final App app = StructrApp.getInstance();
 		try (final Tx tx = app.tx()) {
 
-			return Importer.findSharedComponentByName(name);
+			if (DeployCommand.isUuid(name)) {
+				return (DOMNode) StructrApp.getInstance().nodeQuery(Template.class).and(GraphObject.id, name).getFirst();
+			} else {
+				return Importer.findSharedComponentByName(name);
+			}
 
 		} catch (FrameworkException fex) {
 			logger.warn("Unable to determine if component {} already exists, ignoring.", name);
@@ -175,12 +182,20 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 		final PropertyMap properties    = getPropertiesForComponent(name);
 		final DOMNode existingComponent = getExistingComponent(name);
 		final boolean byId              = DeployCommand.isUuid(name);
-
+		
 		try (final Tx tx = app.tx(true, false, false)) {
 
 			if (existingComponent != null) {
+				
+				if (existingComponent instanceof Template) {
+					
+					properties.put(Template.content, existingComponent.getProperty(Template.content));
+					existingComponent.setProperty(Template.ownerDocument, null);
 
-				deleteComponent(app, name);
+				} else {
+
+					deleteComponent(app, name);
+				}
 			}
 
 			final String src        = new String (Files.readAllBytes(file),Charset.forName("UTF-8"));
@@ -223,6 +238,10 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 					}
 				}
 			}
+			
+//			if (existingComponent != null && existingComponent instanceof Template) {
+//				deleteComponent(app, name);
+//			}
 
 			tx.success();
 		}

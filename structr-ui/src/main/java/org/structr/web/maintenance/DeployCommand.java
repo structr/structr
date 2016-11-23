@@ -237,7 +237,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 		}
 
-		// import components, must be done before pages so the shared components exist
+		// import templates, must be done before pages so the templates exist
 		final Path templates = source.resolve("templates");
 		if (Files.exists(templates)) {
 
@@ -531,11 +531,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					final boolean inTrash   = node.inTrash();
 					boolean doExport        = true;
 
-					// skip templates, nodes in trash and non-toplevel nodes
-					if (node instanceof Template || inTrash || hasParent) {
+					// skip nodes in trash and non-toplevel nodes
+					if (inTrash || hasParent) {
 						continue;
 					}
-
+					
 					final String content = node.getContent(RenderContext.EditMode.DEPLOYMENT);
 					if (content != null) {
 

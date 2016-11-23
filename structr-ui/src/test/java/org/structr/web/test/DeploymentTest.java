@@ -698,7 +698,7 @@ public class DeploymentTest extends StructrUiTest {
 	}
 
 	@Test
-	public void test17HtmlEntities() {
+	public void test17NamedNonSharedTemplateWithChildren() {
 
 		// setup
 		try (final Tx tx = app.tx()) {
@@ -707,6 +707,71 @@ public class DeploymentTest extends StructrUiTest {
 			final Html html = createElement(page, page, "html");
 			final Head head = createElement(page, html, "head");
 			createElement(page, head, "title", "test17");
+
+			final Body body = createElement(page, html, "body");
+
+			final Template template = createTemplate(page, body, "${render(children)}");
+			template.setProperty(AbstractNode.name, "a-template");
+			
+			final Template sharedTemplate = createComponent(template);
+			
+			// remove original template from page
+			app.delete(template);
+
+			createElement(page, sharedTemplate, "div");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true, false);
+	}
+	
+	@Test
+	public void test18NonNamedNonSharedTemplateWithChildren() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createNewPage(securityContext,   "test18");
+			final Html html = createElement(page, page, "html");
+			final Head head = createElement(page, html, "head");
+			createElement(page, head, "title", "test18");
+
+			final Body body = createElement(page, html, "body");
+
+			final Template template = createTemplate(page, body, "${render(children)}");
+			
+			final Template sharedTemplate = createComponent(template);
+			
+			// remove original template from page
+			app.delete(template);
+
+			createElement(page, sharedTemplate, "div");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true, false);
+	}
+
+	@Test
+	public void test19HtmlEntities() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createNewPage(securityContext,   "test19");
+			final Html html = createElement(page, page, "html");
+			final Head head = createElement(page, html, "head");
+			createElement(page, head, "title", "test19");
 
 			final Body body = createElement(page, html, "body");
 			final Div div1  = createElement(page, body, "div");
