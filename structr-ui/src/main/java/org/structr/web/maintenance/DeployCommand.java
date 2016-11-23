@@ -33,11 +33,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -345,7 +345,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportFiles(final Path target, final Path configTarget) throws FrameworkException {
 
-		final Map<String, Object> config = new LinkedHashMap<>();
+		final Map<String, Object> config = new TreeMap<>();
 		final App app                    = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
@@ -377,7 +377,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportFilesAndFolders(final Path target, final Folder folder, final Map<String, Object> config) throws IOException {
 
-		final Map<String, Object> properties = new LinkedHashMap<>();
+		final Map<String, Object> properties = new TreeMap<>();
 		final String name                    = folder.getName();
 		final Path path                      = target.resolve(name);
 
@@ -406,7 +406,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportFile(final Path target, final FileBase file, final Map<String, Object> config) throws IOException {
 
-		final Map<String, Object> properties = new LinkedHashMap<>();
+		final Map<String, Object> properties = new TreeMap<>();
 		final String name                    = file.getName();
 		final Path src                       = file.getFileOnDisk().toPath();
 		Path targetPath                      = target.resolve(name);
@@ -453,7 +453,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportPages(final Path target, final Path configTarget) throws FrameworkException {
 
-		final Map<String, Object> pagesConfig = new LinkedHashMap<>();
+		final Map<String, Object> pagesConfig = new TreeMap<>();
 		final App app                         = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
@@ -465,7 +465,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					final String content = page.getContent(RenderContext.EditMode.DEPLOYMENT);
 					if (content != null) {
 
-						final Map<String, Object> properties = new LinkedHashMap<>();
+						final Map<String, Object> properties = new TreeMap<>();
 						final String name                    = page.getName();
 						final Path pageFile                  = target.resolve(name + ".html");
 						boolean doExport                     = true;
@@ -517,7 +517,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportComponents(final Path target, final Path configTarget) throws FrameworkException {
 
-		final Map<String, Object> configuration = new LinkedHashMap<>();
+		final Map<String, Object> configuration = new TreeMap<>();
 		final App app                           = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
@@ -535,7 +535,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					if (inTrash || hasParent) {
 						continue;
 					}
-					
+
 					final String content = node.getContent(RenderContext.EditMode.DEPLOYMENT);
 					if (content != null) {
 
@@ -545,7 +545,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 							name = node.getUuid();
 						}
 
-						final Map<String, Object> properties = new LinkedHashMap<>();
+						final Map<String, Object> properties = new TreeMap<>();
 						final Path targetFile = target.resolve(name + ".html");
 
 						if (Files.exists(targetFile)) {
@@ -594,7 +594,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportTemplates(final Path target, final Path configTarget) throws FrameworkException {
 
-		final Map<String, Object> configuration = new LinkedHashMap<>();
+		final Map<String, Object> configuration = new TreeMap<>();
 		final App app                           = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
@@ -626,7 +626,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportTemplateSource(final Path target, final DOMNode template, final Map<String, Object> configuration) throws FrameworkException {
 
-		final Map<String, Object> properties = new LinkedHashMap<>();
+		final Map<String, Object> properties = new TreeMap<>();
 		boolean doExport                     = true;
 
 		final String content = template.getProperty(Template.content);
@@ -681,7 +681,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			for (final ResourceAccess res : app.nodeQuery(ResourceAccess.class).sort(ResourceAccess.signature).getAsList()) {
 
-				final Map<String, Object> grant = new LinkedHashMap<>();
+				final Map<String, Object> grant = new TreeMap<>();
 				grants.add(grant);
 
 				grant.put("signature", res.getProperty(ResourceAccess.signature));
