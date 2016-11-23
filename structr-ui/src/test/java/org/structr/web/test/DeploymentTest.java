@@ -712,9 +712,9 @@ public class DeploymentTest extends StructrUiTest {
 
 			final Template template = createTemplate(page, body, "${render(children)}");
 			template.setProperty(AbstractNode.name, "a-template");
-			
+
 			final Template sharedTemplate = createComponent(template);
-			
+
 			// remove original template from page
 			app.delete(template);
 
@@ -729,7 +729,7 @@ public class DeploymentTest extends StructrUiTest {
 		// test
 		compare(calculateHash(), true, false);
 	}
-	
+
 	@Test
 	public void test18NonNamedNonSharedTemplateWithChildren() {
 
@@ -744,9 +744,9 @@ public class DeploymentTest extends StructrUiTest {
 			final Body body = createElement(page, html, "body");
 
 			final Template template = createTemplate(page, body, "${render(children)}");
-			
+
 			final Template sharedTemplate = createComponent(template);
-			
+
 			// remove original template from page
 			app.delete(template);
 
@@ -786,7 +786,7 @@ public class DeploymentTest extends StructrUiTest {
 		}
 
 		// test
-		compare(calculateHash(), false, false);
+		compare(calculateHash(), true, false);
 	}
 
 	// ----- private methods -----
