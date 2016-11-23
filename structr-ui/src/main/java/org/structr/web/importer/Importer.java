@@ -286,6 +286,10 @@ public class Importer {
 	}
 
 	public DOMNode createComponentChildNodes(final Page page) throws FrameworkException {
+		return createComponentChildNodes(null, page);
+	}
+
+	public DOMNode createComponentChildNodes(final DOMNode parent, final Page page) throws FrameworkException {
 
 		final Element head = parsedDocument.head();
 		final Element body = parsedDocument.body();
@@ -302,11 +306,11 @@ public class Importer {
 
 		if (body != null && !body.html().isEmpty()) {
 
-			return createChildNodes(body, null, page);
+			return createChildNodes(body, parent, page);
 		}
 
 		// fallback, no head no body => document is parent
-		return createChildNodes(parsedDocument, null, page);
+		return createChildNodes(parsedDocument, parent, page);
 	}
 
 	public DOMNode createChildNodes(final DOMNode parent, final Page page) throws FrameworkException {
