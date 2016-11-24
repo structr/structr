@@ -296,15 +296,31 @@ var _Crud = {
 		_Crud.highlightCurrentType(_Crud.type);
 		_Crud.resize();
 	},
+	loadingMessageTimeout: undefined,
+	showLoadingMessageAfterDelay: function (type, delay) {
+
+		clearTimeout(_Crud.loadingMessageTimeout);
+
+		_Crud.loadingMessageTimeout = setTimeout(function() {
+			var crudRight = $('#crud-right');
+			crudRight.append('<div class="crud-loading"><div class="crud-centered"><img src="' + _Icons.ajax_loader_1 + '"> Loading <b>' + type + '</b> - please stand by</div></div>');
+		}, delay);
+
+	},
 	typeSelected: function (selectedType) {
 
 		_Crud.hideTypeVisibilityConfig();
 		_Crud.updateRecentTypeList(selectedType);
 		_Crud.highlightCurrentType(selectedType);
 
+		var crudRight = $('#crud-right');
+		fastRemoveAllChildren(crudRight[0]);
+		_Crud.showLoadingMessageAfterDelay(selectedType, 500);
+
 		_Crud.getProperties(selectedType, function(type, properties) {
 
-			var crudRight = $('#crud-right');
+			clearTimeout(_Crud.loadingMessageTimeout);
+
 			fastRemoveAllChildren(crudRight[0]);
 
 			crudRight.data('url', '/' + type);
