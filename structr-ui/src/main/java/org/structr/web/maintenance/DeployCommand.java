@@ -414,7 +414,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		int i                                = 0;
 
 		// modify file name if there are duplicates in the database
-		while (Files.exists(targetPath)) {
+		if (Files.exists(targetPath)) {
 
 			// compare checksum
 			final Long checksumOfExistingFile = FileHelper.getChecksum(targetPath.toFile());
@@ -422,14 +422,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			if (checksumOfExistingFile.equals(checksumOfExportFile)) {
 
-
 				logger.info("Skipping export of file {}, no changes.", name);
 				doExport = false;
-				break;
-
-			} else {
-
-				targetPath = target.resolve(name + i++);
 			}
 		}
 
@@ -440,7 +434,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				Files.copy(src, targetPath);
 
 			} catch (IOException ioex) {
-				// ignore this
+				logger.warn("Unable to write file {}: {}", targetPath.toString(), ioex.getMessage());
 			}
 		}
 
