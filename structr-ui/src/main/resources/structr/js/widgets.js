@@ -384,8 +384,15 @@ var _Widgets = {
 				return;
 			}
 
+			var successCallback = function () {
+				Structr.showAndHideInfoBoxMessage('Widget source saved.', 'success', 2000, 200);
+				text1 = newText;
+				dialogSaveButton.prop("disabled", true).addClass('disabled');
+				saveAndClose.prop("disabled", true).addClass('disabled');
+			};
+
 			if (entity.srcUrl) {
-				var data = JSON.stringify({'source': newText});
+				var data = JSON.stringify({source: newText});
 				_Logger.log(_LogType.WIDGETS, 'update remote widget', entity.srcUrl, data);
 				$.ajax({
 					url: entity.srcUrl,
@@ -395,11 +402,7 @@ var _Widgets = {
 					contentType: 'application/json; charset=utf-8',
 					statusCode: {
 						200: function(data) {
-							Structr.showAndHideInfoBoxMessage('Widget source saved.', 'success', 2000, 200);
-							text1 = newText;
-							dialogSaveButton.prop("disabled", true).addClass('disabled');
-							saveAndClose.prop("disabled", true).addClass('disabled');
-
+							successCallback();
 						},
 						400: function(data, status, xhr) {
 							console.log(data, status, xhr);
@@ -426,10 +429,7 @@ var _Widgets = {
 			} else {
 
 				Command.setProperty(entity.id, 'source', newText, false, function() {
-					Structr.showAndHideInfoBoxMessage('Widget saved.', 'success', 2000, 200);
-					text1 = newText;
-					dialogSaveButton.prop("disabled", true).addClass('disabled');
-					saveAndClose.prop("disabled", true).addClass('disabled');
+					successCallback();
 				});
 
 			}
