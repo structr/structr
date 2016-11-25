@@ -23,7 +23,6 @@ var activeEditTabPrefix = 'structrActiveEditTab_' + port;
 
 var _Entities = {
 	numberAttrs: ['position', 'size'],
-	hiddenAttrs: ['base'], //'deleted', 'ownerId', 'owner', 'group', 'categories', 'tag', 'createdBy', 'visibilityStartDate', 'visibilityEndDate', 'parentFolder', 'url', 'path', 'elements', 'components', 'paths', 'parents'],
 	readOnlyAttrs: ['lastModifiedDate', 'createdDate', 'createdBy', 'id', 'checksum', 'size', 'version', 'relativeFilePath'],
 	changeBooleanAttribute: function(attrElement, value, activeLabel, inactiveLabel) {
 
@@ -576,7 +575,6 @@ var _Entities = {
 
 								var type = typeInfo[key].type;
 
-								var isHidden     = isIn(key, _Entities.hiddenAttrs);
 								var isReadOnly   = isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly);
 								var isSystem     = typeInfo[key].system;
 								var isBoolean    = false;
@@ -586,8 +584,8 @@ var _Entities = {
 								var isCollection = false;
 
 								if (type) {
-									isBoolean = (type === 'Boolean'); //typeInfo[key].className === 'org.structr.core.property.BooleanProperty'; //isIn(key, _Entities.booleanAttrs);
-									isDate = (type === 'Date'); //typeInfo[key].className === 'org.structr.core.property.ISO8601DateProperty'; //isIn(key, _Entities.dateAttrs);
+									isBoolean = (type === 'Boolean');
+									isDate = (type === 'Date');
 									isPassword = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
 
 									isRelated = typeInfo[key].relatedType;
@@ -597,7 +595,7 @@ var _Entities = {
 									}
 								}
 
-								if (!key.startsWith('_html_') && !isHidden) {
+								if (!key.startsWith('_html_')) {
  									if (isBoolean) {
 										cell.removeClass('value').append('<input type="checkbox" class="' + key + '_">');
 										var checkbox = $(props.find('input[type="checkbox"].' + key + '_'));
@@ -668,7 +666,6 @@ var _Entities = {
 															$('.remove', nodeEl).on('click', function(e) {
 																e.preventDefault();
 																Command.removeFromCollection(id, key, node.id, function() {
-																	var nodeEl = $('._' + node.id, cell);
 																	nodeEl.remove();
 																	blinkGreen(cell);
 																	Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".', 'success', 2000, 1000);
@@ -718,6 +715,9 @@ var _Entities = {
 									}
 									if (isRelated) {
 										cell.empty();
+									}
+									if (isBoolean) {
+										input.prop('checked', false);
 									}
 								} else {
 									blinkRed(input);
