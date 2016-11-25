@@ -22,6 +22,7 @@ var selectedElements = [];
 var currentSite;
 var sitePageSize = 10000, sitePage = 1;
 var currentSiteKey = 'structrCurrentSite_' + port;
+var crawlerResizerLeftKey = 'structrCrawlerResizerLeftKey_' + port;
 var link, path, elid, claz, pageFrame, frameDoc;
 var proxyUrl = '/structr/proxy';
 
@@ -71,14 +72,14 @@ var _Crawler = {
 
 		if (crawlerTree) {
 			crawlerTree.css({
-				width: Math.max(180, Math.min(windowWidth / 3, 360)) + 'px',
+//				width: Math.max(180, Math.min(windowWidth / 3, 360)) + 'px',
 				height: windowHeight - headerOffsetHeight + 'px'
 			});
 		}
 
 		if (crawlerList) {
 			crawlerList.css({
-				width: windowWidth - 400 - 64 + 'px',
+//				width: windowWidth - 400 - 64 + 'px',
 				height: windowHeight - headerOffsetHeight - 55 + 'px'
 			});
 
@@ -89,8 +90,17 @@ var _Crawler = {
 			$('#page-frame').css({height: (windowHeight - (headerOffsetHeight + pagerHeight + crawlerInputsHeight + filesTableHeight + 74)) + 'px'});
 		}
 
+		_Crawler.moveResizer();
 		Structr.resize();
 
+	},
+	moveResizer: function(left) {
+		left = left || LSWrapper.getItem(crawlerResizerLeftKey) || 300;
+		var w = $(window).width();
+		//console.log(left, w, w-left-10);
+		$('.column-resizer').css({ left: left});
+		$('#crawler-tree').css({width: left - 14 + 'px'});
+		$('#crawler-list').css({left: left + 8 + 'px', width: w - left - 58 + 'px'});
 	},
 	onload: function() {
 
@@ -101,11 +111,25 @@ var _Crawler = {
 
 		Structr.updateMainHelpLink('https://support.structr.com/knowledge-graph');
 
-		main.append('<div id="crawler-main"><div class="fit-to-height" id="crawler-tree-container"><div id="crawler-tree"></div></div><div class="fit-to-height" id="crawler-list-container"><div id="crawler-list"></div></div>');
+		main.append('<div id="crawler-main"><div class="column-resizer"></div><div class="fit-to-height" id="crawler-tree-container"><div id="crawler-tree"></div></div><div class="fit-to-height" id="crawler-list-container"><div id="crawler-list"></div></div>');
 		crawlerMain = $('#crawler-main');
 
 		crawlerTree = $('#crawler-tree');
 		crawlerList = $('#crawler-list');
+
+		_Crawler.moveResizer();
+		$('.column-resizer', crawlerMain).draggable({
+			axis: 'x',
+			drag: function(e, ui) {
+				var left = Math.max(204, ui.position.left);
+				console.log(left)
+				ui.position.left = left;
+				_Crawler.moveResizer(left);
+			},
+			stop: function(e, ui) {
+				LSWrapper.setItem(crawlerResizerLeftKey, ui.position.left);
+			}
+		});
 
 		$('#crawler-list-container').prepend('<button class="add_site_icon button"><img title="Add Site" alt="Add Site" src="' + _Icons.add_site_icon + '"> Add Site</button>');
 

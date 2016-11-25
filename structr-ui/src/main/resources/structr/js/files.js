@@ -31,6 +31,7 @@ var viewMode;
 var timeout, attempts = 0, maxRetry = 10;
 var displayingFavorites = false;
 var filesLastOpenFolderKey = 'structrFilesLastOpenFolder_' + port;
+var filesResizerLeftKey = 'structrFilesResizerLeftKey_' + port;
 
 $(document).ready(function() {
 	Structr.registerModule('files', _Files);
@@ -79,18 +80,19 @@ var _Files = {
 
 		if (fileTree) {
 			fileTree.css({
-				width: Math.max(180, Math.min(windowWidth / 3, 360)) + 'px',
+//				width: Math.max(180, Math.min(windowWidth / 3, 360)) + 'px',
 				height: windowHeight - headerOffsetHeight + 'px'
 			});
 		}
 
 		if (folderContents) {
 			folderContents.css({
-				width: windowWidth - 400 - 64 + 'px',
+//				width: windowWidth - 400 - 64 + 'px',
 				height: windowHeight - headerOffsetHeight - 55 + 'px'
 			});
 		}
 
+		_Files.moveResizer();
 		Structr.resize();
 
 		var nameColumnWidth;
@@ -129,17 +131,39 @@ var _Files = {
 		}
 
 	},
+	moveResizer: function(left) {
+		left = left || LSWrapper.getItem(filesResizerLeftKey) || 300;
+		var w = $(window).width();
+		//console.log(left, w, w-left-10);
+		$('.column-resizer').css({ left: left});
+		$('#file-tree').css({width: left - 14 + 'px'});
+		$('#folder-contents').css({left: left + 8 + 'px', width: w - left - 58 + 'px'});
+	},
 	onload: function() {
 
 		_Files.init();
 
 		Structr.updateMainHelpLink('https://support.structr.com/article/49');
 
-		main.append('<div id="files-main"><div class="fit-to-height" id="file-tree-container"><div id="file-tree"></div></div><div class="fit-to-height" id="folder-contents-container"><div id="folder-contents"></div></div>');
+		main.append('<div id="files-main"><div class="column-resizer"></div><div class="fit-to-height" id="file-tree-container"><div id="file-tree"></div></div><div class="fit-to-height" id="folder-contents-container"><div id="folder-contents"></div></div>');
 		filesMain = $('#files-main');
 
 		fileTree = $('#file-tree');
 		folderContents = $('#folder-contents');
+
+		_Files.moveResizer();
+		$('.column-resizer', filesMain).draggable({
+			axis: 'x',
+			drag: function(e, ui) {
+				var left = Math.max(204, ui.position.left);
+				console.log(left)
+				ui.position.left = left;
+				_Files.moveResizer(left);
+			},
+			stop: function(e, ui) {
+				LSWrapper.setItem(filesResizerLeftKey, ui.position.left);
+			}
+		});
 
 		$('#folder-contents-container').prepend(
 				'<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Icons.add_folder_icon + '"> Add Folder</button>'

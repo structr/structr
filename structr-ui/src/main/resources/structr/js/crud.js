@@ -145,7 +145,7 @@ var _Crud = {
 		if (!left) return;
 		var w = $(window).width();
 		//console.log(left, w, w-left-10);
-		$('.resizer').css({ left: left});
+		$('.column-resizer').css({ left: left});
 		$('#crud-types').css({width: left - 12 + 'px'});
 		$('#crud-recent-types').css({width: left - 12 + 'px'});
 		$('#crud-right').css({left: left - 222 + 'px', width: w - left - 58 + 'px'});
@@ -153,13 +153,13 @@ var _Crud = {
 	init: function() {
 
 		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Search"><img class="clearSearchIcon" src="' + _Icons.grey_cross_icon + '"></div>');
-		main.append('<div id="crud-main"><div class="resizer"></div><div id="crud-left">'
+		main.append('<div id="crud-main"><div class="column-resizer"></div><div id="crud-left">'
 				+ '<div id="crud-types" class="resourceBox"><h2>All Types</h2><img src="' + _Icons.wrench_icon + '" id="crudTypesFilterToggle" title="Auto-filter types"><div id="crudTypeFilterSettings" class="hidden"></div><input placeholder="Filter types..." id="crudTypesSearch"><ul id="crud-types-list"></ul></div>'
 				+ '<div id="crud-recent-types" class="resourceBox"><h2>Recent</h2><ul id="crud-recent-types-list"></ul></div></div>'
 				+ '<div id="crud-right" class="resourceBox full-height-box"></div></div>');
 
 		_Crud.moveResizer(LSWrapper.getItem(crudResizerLeftKey));
-		$('.resizer', main).draggable({
+		$('.column-resizer', main).draggable({
 			axis: 'x',
 			drag: function(e, ui) {
 				var left = Math.max(204, ui.position.left);

@@ -2800,8 +2800,6 @@ td#cascading-options, td#propagation-options {
 
 #file-tree, #contents-tree, #crawler-tree {
     padding-top: 8px;
-    width: 400px;
-    min-width: 400px;
     overflow: auto;
     vertical-align: top;
     background-color: #fff;
@@ -2812,7 +2810,7 @@ td#cascading-options, td#propagation-options {
 #folder-contents-container, #contents-contents-container, #crawler-list-container {
     display: table-cell;
     vertical-align: top;
-    padding: 12px;
+    padding: 12px 12px 12px 8px;
 }
 
 #folder-contents-container select, #contents-contents-container select, #crawler-list-container select {
@@ -2828,7 +2826,7 @@ td#cascading-options, td#propagation-options {
     margin-top: 12px;
     overflow: auto;
     font-size: 9pt;
-    position: relative;
+    position: absolute;
 }
 
 #folder-contents h1, #contents-contents h1, #crawler-list h1 {
@@ -3574,9 +3572,9 @@ input#element-class {
 }
 
 /**
- * resizer
+ * Column resizer
  */
-.resizer {
+.column-resizer {
 	z-index: 2;
 	width: 6px;
 	height: 100%;
@@ -3586,4 +3584,10 @@ input#element-class {
 	left: 222px;
 	cursor: ew-resize;
 	border: 1px solid transparent;
+}
+
+#files-main .column-resizer,
+#crawler-main .column-resizer,
+#contents-main .column-resizer {
+	left: 300px;
 }

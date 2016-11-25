@@ -22,6 +22,7 @@ var selectedElements = [];
 var currentContentContainer;
 var containerPageSize = 10000, containerPage = 1;
 var currentContentContainerKey = 'structrCurrentContentContainer_' + port;
+var contentsResizerLeftKey = 'structrContentsResizerLeftKey_' + port;
 
 $(document).ready(function() {
 
@@ -68,19 +69,29 @@ var _Contents = {
 
 		if (contentTree) {
 			contentTree.css({
-				width: Math.max(180, Math.min(windowWidth / 3, 360)) + 'px',
+//				width: Math.max(180, Math.min(windowWidth / 3, 360)) + 'px',
 				height: windowHeight - headerOffsetHeight + 'px'
 			});
 		}
 
 		if (contentsContents) {
 			contentsContents.css({
-				width: windowWidth - 400 - 64 + 'px',
+//				width: windowWidth - 400 - 64 + 'px',
 				height: windowHeight - headerOffsetHeight - 55 + 'px'
 			});
 		}
+		
+		_Contents.moveResizer();
 		Structr.resize();
 
+	},
+	moveResizer: function(left) {
+		left = left || LSWrapper.getItem(contentsResizerLeftKey) || 300;
+		var w = $(window).width();
+		//console.log(left, w, w-left-10);
+		$('.column-resizer').css({ left: left});
+		$('#contents-tree').css({width: left - 14 + 'px'});
+		$('#contents-contents').css({left: left + 8 + 'px', width: w - left - 58 + 'px'});
 	},
 	onload: function() {
 
@@ -88,11 +99,25 @@ var _Contents = {
 
 		Structr.updateMainHelpLink('https://support.structr.com/knowledge-graph');
 
-		main.append('<div id="contents-main"><div class="fit-to-height" id="content-tree-container"><div id="contents-tree"></div></div><div class="fit-to-height" id="contents-contents-container"><div id="contents-contents"></div></div>');
+		main.append('<div id="contents-main"><div class="column-resizer"></div><div class="fit-to-height" id="content-tree-container"><div id="contents-tree"></div></div><div class="fit-to-height" id="contents-contents-container"><div id="contents-contents"></div></div>');
 		contentsMain = $('#contents-main');
 
 		contentTree = $('#contents-tree');
 		contentsContents = $('#contents-contents');
+
+		_Contents.moveResizer();
+		$('.column-resizer', contentsMain).draggable({
+			axis: 'x',
+			drag: function(e, ui) {
+				var left = Math.max(204, ui.position.left);
+				console.log(left)
+				ui.position.left = left;
+				_Contents.moveResizer(left);
+			},
+			stop: function(e, ui) {
+				LSWrapper.setItem(contentsResizerLeftKey, ui.position.left);
+			}
+		});
 
 		$('#contents-contents-container').prepend(' <select id="add-content-item"><option value="">Add Content Item</option></select>');
 
