@@ -1427,6 +1427,10 @@ var Structr = {
 			Structr.expanded = {};
 		}
 		return Structr.expanded;
+	},
+	showAndHideInfoBoxMessage: function (msg, msgClass, delayTime, fadeTime) {
+		dialogMsg.html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+		$('.infoBox', dialogMsg).delay(delayTime).fadeOut(fadeTime);
 	}
 };
 

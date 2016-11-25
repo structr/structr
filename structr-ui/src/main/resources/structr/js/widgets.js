@@ -395,8 +395,7 @@ var _Widgets = {
 					contentType: 'application/json; charset=utf-8',
 					statusCode: {
 						200: function(data) {
-							dialogMsg.html('<div class="infoBox success">Widget source saved.</div>');
-							$('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+							Structr.showAndHideInfoBoxMessage('Widget source saved.', 'success', 2000, 200);
 							text1 = newText;
 							dialogSaveButton.prop("disabled", true).addClass('disabled');
 							saveAndClose.prop("disabled", true).addClass('disabled');
@@ -427,8 +426,7 @@ var _Widgets = {
 			} else {
 
 				Command.setProperty(entity.id, 'source', newText, false, function() {
-					dialogMsg.html('<div class="infoBox success">Widget saved.</div>');
-					$('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+					Structr.showAndHideInfoBoxMessage('Widget saved.', 'success', 2000, 200);
 					text1 = newText;
 					dialogSaveButton.prop("disabled", true).addClass('disabled');
 					saveAndClose.prop("disabled", true).addClass('disabled');

@@ -204,8 +204,7 @@ function wsConnect() {
 
 						if (dialogBox.is(':visible')) {
 
-							dialogMsg.html('<div class="infoBox ' + msgClass + '">' + msgObj.size + ' bytes saved to ' + msgObj.name + '</div>');
-							$('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+							Structr.showAndHideInfoBoxMessage(msgObj.size + ' bytes saved to ' + msgObj.name, msgClass, 2000, 200);
 
 						} else {
 

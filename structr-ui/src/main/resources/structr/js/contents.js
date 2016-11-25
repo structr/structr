@@ -629,13 +629,6 @@ var _Contents = {
 								checkbox.on('change', function() {
 									var checked = checkbox.prop('checked');
 									_Contents.checkValueHasChanged(oldVal, checked || false, [dialogSaveButton, saveAndClose]);
-//									_Entities.setProperty(entity.id, key, checked, false, function(newVal) {
-//										if (val !== newVal) {
-//											blinkGreen(div);
-//										}
-//										checkbox.prop('checked', newVal);
-//										val = newVal;
-//									});
 								});
 							} else {
 								checkbox.prop('disabled', 'disabled');
@@ -740,8 +733,7 @@ var _Contents = {
 											_Entities.setProperty(entity.id, key, null, false, function(newVal) {
 												if (!newVal) {
 													blinkGreen(relatedNodes);
-													dialogMsg.html('<div class="infoBox success">Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".</div>');
-													$('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+													Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".', 'success', 2000, 1000);
 													nodeEl.remove();
 												} else {
 													blinkRed(relatedNodes);
@@ -769,8 +761,7 @@ var _Contents = {
 													var nodeEl = $('._' + node.id, relatedNodes);
 													nodeEl.remove();
 													blinkGreen(relatedNodes);
-													dialogMsg.html('<div class="infoBox success">Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".</div>');
-													$('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+													Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".', 'success', 2000, 1000);
 												});
 												return false;
 											});

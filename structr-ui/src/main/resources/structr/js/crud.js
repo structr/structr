@@ -1223,8 +1223,7 @@ var _Crud = {
                         errorText += ' ' + error.detail;
                     }
 
-					dialogMsg.html('<div class="infoBox error">' + errorText + '</div>');
-					$('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+					Structr.showAndHideInfoBoxMessage(errorText, 'error', 2000, 1000);
 
 					input.css({
 						backgroundColor: '#fee',

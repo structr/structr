@@ -154,8 +154,7 @@ var _Entities = {
 			Command.setProperty(entity.id, key, null, false, function() {
 				inp.val(null);
 				blinkGreen(inp);
-				dialogMsg.html('<div class="infoBox success">Property "' + key + '" was set to null.</div>');
-				$('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+				Structr.showAndHideInfoBoxMessage('Property "' + key + '" was set to null.', 'success', 2000, 1000);
 			});
 		});
 
@@ -305,8 +304,7 @@ var _Entities = {
 
 								dialogSaveButton.prop("disabled", true).addClass('disabled');
 								saveAndClose.prop("disabled", true).addClass('disabled');
-								dialogMsg.html('<div class="infoBox success">Node source saved and DOM tree rebuilt.</div>');
-								$('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+								Structr.showAndHideInfoBoxMessage('Node source saved and DOM tree rebuilt.', 'success', 2000, 200);
 
 								if (_Entities.isExpanded(Structr.node(entity.id))) {
 									$('.expand_icon', Structr.node(entity.id)).click().click();
@@ -645,8 +643,7 @@ var _Entities = {
 															_Entities.setProperty(id, key, null, false, function(newVal) {
 																if (!newVal) {
 																	blinkGreen(cell);
-																	dialogMsg.html('<div class="infoBox success">Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".</div>');
-																	$('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+																	Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".', 'success', 2000, 1000);
 																	cell.empty();
 																} else {
 																	blinkRed(cell);
@@ -674,8 +671,7 @@ var _Entities = {
 																	var nodeEl = $('._' + node.id, cell);
 																	nodeEl.remove();
 																	blinkGreen(cell);
-																	dialogMsg.html('<div class="infoBox success">Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".</div>');
-																	$('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+																	Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".', 'success', 2000, 1000);
 																});
 																return false;
 															});
@@ -711,8 +707,8 @@ var _Entities = {
 							_Entities.setProperty(id, key, null, false, function(newVal) {
 								if (!newVal) {
 									blinkGreen(cell);
-									dialogMsg.html('<div class="infoBox success">Property "' + key + '" was set to null.</div>');
-									$('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+									Structr.showAndHideInfoBoxMessage('Property "' + key + '" was set to null.', 'success', 2000, 1000);
+
 									if (key === 'name') {
 										var entity = StructrModel.objects[id];
 										if (entity.type !== 'Template' && entity.type !== 'Content') {
@@ -732,11 +728,11 @@ var _Entities = {
 							});
 						});
 					});
+
 					props.append('<tr class="hidden"><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>');
 					$('.props tr td.value input', dialog).each(function(i, v) {
 						_Entities.activateInput(v, id);
 					});
-
 
 					if (view === '_html_') {
 						$('input[name="_html_' + focusAttr + '"]', props).focus();
@@ -935,8 +931,7 @@ var _Entities = {
 					_Logger.log(_LogType.ENTITIES, 'new key: Command.setProperty(', objId, newKey, val);
 					Command.setProperty(objId, newKey, val, false, function() {
 						blinkGreen(input);
-						dialogMsg.html('<div class="infoBox success">New property "' + newKey + '" was added and saved with value "' + val + '".</div>');
-						$('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+						Structr.showAndHideInfoBoxMessage('New property "' + newKey + '" was added and saved with value "' + val + '".', 'success', 2000, 1000);
 					});
 
 
@@ -951,8 +946,7 @@ var _Entities = {
 							if (isPassword || (newVal && newVal !== oldVal)) {
 								blinkGreen(input);
 								input.val(newVal);
-								dialogMsg.html('<div class="infoBox success">Updated property "' + key + '"' + (!isPassword ? ' with value "' + newVal + '".</div>' : ''));
-								$('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+								Structr.showAndHideInfoBoxMessage('Updated property "' + key + '"' + (!isPassword ? ' with value "' + newVal + '".' : '.'), 'success', 2000, 200);
 
 							} else {
 								input.val(oldVal);

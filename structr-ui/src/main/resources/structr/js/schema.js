@@ -1657,8 +1657,7 @@ var _Schema = {
 			}
 
 			Command.setProperty(entity.id, key, text2, false, function() {
-				dialogMsg.html('<div class="infoBox success">Code saved.</div>');
-				$('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+				Structr.showAndHideInfoBoxMessage('Code saved.', 'success', 2000, 200);
 				_Schema.reload();
 				dialogSaveButton.prop("disabled", true).addClass('disabled');
 				saveAndClose.prop("disabled", true).addClass('disabled');
@@ -2681,9 +2680,7 @@ var _Schema = {
 								} else {
 
 									if (dialogBox.is(':visible')) {
-
-										dialogMsg.html('<div class="infoBox error">' + status + '</div>');
-										$('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+										Structr.showAndHideInfoBoxMessage(status, 'error', 2000, 200);
 									}
 								}
 							});
@@ -2699,9 +2696,7 @@ var _Schema = {
 								} else {
 
 									if (dialogBox.is(':visible')) {
-
-										dialogMsg.html('<div class="infoBox error">' + status + '</div>');
-										$('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+										Structr.showAndHideInfoBoxMessage(status, 'error', 2000, 200);
 									}
 								}
 							});
@@ -2745,14 +2740,9 @@ var _Schema = {
 				if (dialogBox.is(':visible')) {
 
 					if (status === 'success') {
-
-						dialogMsg.html('<div class="infoBox success">Snapshot successfully created</div>');
-						$('.infoBox', dialogMsg).delay(2000).fadeOut(200);
-
+						Structr.showAndHideInfoBoxMessage('Snapshot successfully created', 'success', 2000, 200);
 					} else {
-
-						dialogMsg.html('<div class="infoBox error">Snapshot creation failed.</div>');
-						$('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+						Structr.showAndHideInfoBoxMessage('Snapshot creation failed', 'error', 2000, 200);
 					}
 				}
 

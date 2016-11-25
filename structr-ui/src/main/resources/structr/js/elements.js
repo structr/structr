@@ -1336,8 +1336,7 @@ var _Elements = {
 			}
 
 			Command.patch(entity.id, text1, text2, function() {
-				dialogMsg.html('<div class="infoBox success">Content saved.</div>');
-				$('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+				Structr.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
 				_Pages.reloadPreviews();
 				dialogSaveButton.prop("disabled", true).addClass('disabled');
 				saveAndClose.prop("disabled", true).addClass('disabled');
