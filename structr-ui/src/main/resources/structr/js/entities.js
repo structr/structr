@@ -599,27 +599,26 @@ var _Entities = {
  									if (isBoolean) {
 										cell.removeClass('value').append('<input type="checkbox" class="' + key + '_">');
 										var checkbox = $(props.find('input[type="checkbox"].' + key + '_'));
-										Command.getProperty(id, key, function(val) {
-											if (val) {
-												checkbox.prop('checked', true);
-											}
-											if ((!isReadOnly || isAdmin) && !isSystem) {
-												checkbox.on('change', function() {
-													var checked = checkbox.prop('checked');
-													_Entities.setProperty(id, key, checked, false, function(newVal) {
-														if (val !== newVal) {
-															blinkGreen(cell);
-														}
-														checkbox.prop('checked', newVal);
-														val = newVal;
-													});
+
+										var val = res[key];
+										if (val) {
+											checkbox.prop('checked', true);
+										}
+										if ((!isReadOnly || isAdmin) && !isSystem) {
+											checkbox.on('change', function() {
+												var checked = checkbox.prop('checked');
+												_Entities.setProperty(id, key, checked, false, function(newVal) {
+													if (val !== newVal) {
+														blinkGreen(cell);
+													}
+													checkbox.prop('checked', newVal);
+													val = newVal;
 												});
-											} else {
-												checkbox.prop('disabled', 'disabled');
-												checkbox.addClass('readOnly');
-												checkbox.addClass('disabled');
-											}
-										});
+											});
+										} else {
+											checkbox.prop('disabled', 'disabled').addClass('readOnly').addClass('disabled');
+										}
+
 									} else if (isDate && !isReadOnly) {
 
 										_Entities.appendDatePicker(cell, res, key, typeInfo[key].format);
