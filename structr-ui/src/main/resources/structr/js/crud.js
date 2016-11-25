@@ -1528,11 +1528,15 @@ var _Crud = {
 		}
 		var id = item['id'];
 		var tbody = $('#crud-right table tbody');
-		tbody.append('<tr class="_' + id + '"></tr>');
+		var row = _Crud.row(id);
+		if ( !(row && row.length) ) {
+			tbody.append('<tr class="_' + id + '"></tr>');
+		}
 		_Crud.populateRow(id, item, type, properties);
 	},
 	populateRow: function(id, item, type, properties) {
 		var row = _Crud.row(id);
+		row.empty();
 		if (properties) {
 			_Crud.filterKeys(type, Object.keys(properties)).forEach(function(key) {
 				row.append('<td class="___' + key + '"></td>');
