@@ -18,9 +18,11 @@
  */
 package org.structr.rest.resource;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -148,7 +150,14 @@ public class SchemaResource extends Resource {
 		final ConfigurationProvider config    = StructrApp.getConfiguration();
 
 		// extract types from ModuleService
-		for (String rawType : config.getNodeEntities().keySet()) {
+		final Set<String> nodeEntityKeys = config.getNodeEntities().keySet();
+		final Set<String> relEntityKeys  = config.getRelationshipEntities().keySet();
+		
+		Set<String> entityKeys = new HashSet<>();
+		entityKeys.addAll(nodeEntityKeys);
+		entityKeys.addAll(relEntityKeys);
+		
+		for (String rawType : entityKeys) {
 
 			// create & add schema information
 			Class type            = SchemaHelper.getEntityClassForRawType(rawType);

@@ -3572,3 +3572,18 @@ input#element-class {
 	z-index: 10;
 	opacity: .9;
 }
+
+/**
+ * resizer
+ */
+.resizer {
+	z-index: 2;
+	width: 6px;
+	height: 100%;
+	background-color: transparent;
+	position: absolute;
+	top: 60;
+	left: 222px;
+	cursor: ew-resize;
+	border: 1px solid transparent;
+}

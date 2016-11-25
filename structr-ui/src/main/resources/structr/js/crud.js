@@ -25,6 +25,7 @@ var crudPagerDataKey = 'structrCrudPagerData_' + port + '_';
 var crudTypeKey = 'structrCrudType_' + port;
 var crudHiddenColumnsKey = 'structrCrudHiddenColumns_' + port;
 var crudRecentTypesKey = 'structrCrudRecentTypes_' + port;
+var crudResizerLeftKey = 'structrCrudResizerLeft_' + port;
 
 if (browser) {
 
@@ -54,7 +55,9 @@ if (browser) {
 		});
 
 		$(document).on('click', '#crudTypesFilterToggle', function (e) {
+			e.preventDefault();
 			$('#crudTypeFilterSettings').toggleClass('hidden');
+			return false;
 		});
 
 		$(document).on('change', '#crudTypeFilterSettings input', function(e) {
@@ -62,10 +65,12 @@ if (browser) {
 			LSWrapper.setItem(_Crud.displayTypeConfigKey, _Crud.getTypeVisibilityConfig());
 		});
 
-		$(document).on('click', '#crudTypeFilterSettings .close-button', function (e) {
-			_Crud.hideTypeVisibilityConfig();
+		$(document).on('click', function() {
+			if ($('#crudTypeFilterSettings').is(':visible')) {
+				_Crud.hideTypeVisibilityConfig();
+			}
 		});
-
+		
 	});
 
 } else {
@@ -136,25 +141,48 @@ var _Crud = {
 	order: {},
 	page: {},
 	pageSize: {},
+	moveResizer: function(left) {
+		if (!left) return;
+		var w = $(window).width();
+		//console.log(left, w, w-left-10);
+		$('.resizer').css({ left: left});
+		$('#crud-types').css({width: left - 12 + 'px'});
+		$('#crud-recent-types').css({width: left - 12 + 'px'});
+		$('#crud-right').css({left: left - 222 + 'px', width: w - left - 58 + 'px'});
+	},
 	init: function() {
 
 		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Search"><img class="clearSearchIcon" src="' + _Icons.grey_cross_icon + '"></div>');
-		main.append('<div id="crud-main"><div id="crud-left">'
+		main.append('<div id="crud-main"><div class="resizer"></div><div id="crud-left">'
 				+ '<div id="crud-types" class="resourceBox"><h2>All Types</h2><img src="' + _Icons.wrench_icon + '" id="crudTypesFilterToggle" title="Auto-filter types"><div id="crudTypeFilterSettings" class="hidden"></div><input placeholder="Filter types..." id="crudTypesSearch"><ul id="crud-types-list"></ul></div>'
 				+ '<div id="crud-recent-types" class="resourceBox"><h2>Recent</h2><ul id="crud-recent-types-list"></ul></div></div>'
 				+ '<div id="crud-right" class="resourceBox full-height-box"></div></div>');
 
+		_Crud.moveResizer(LSWrapper.getItem(crudResizerLeftKey));
+		$('.resizer', main).draggable({
+			axis: 'x',
+			drag: function(e, ui) {
+				var left = Math.max(204, ui.position.left);
+				ui.position.left = left;
+				_Crud.moveResizer(left);
+			},
+			stop: function(e, ui) {
+				LSWrapper.setItem(crudResizerLeftKey, ui.position.left);
+			}
+		});
+
 		$('#crudTypeFilterSettings').append(
-			'<div><input type="checkbox" id="crudTypeToggleCustom"><label for="crudTypeToggleCustom"> Show Custom Types</label></div>' +
-			'<div><input type="checkbox" id="crudTypeToggleCore"><label for="crudTypeToggleCore"> Show Core Types</label></div>' +
-			'<div><input type="checkbox" id="crudTypeToggleHtml"><label for="crudTypeToggleHtml"> Show HTML Types</label></div>' +
-			'<div><input type="checkbox" id="crudTypeToggleUi"><label for="crudTypeToggleUi"> Show UI Types</label></div>' +
-			'<div><input type="checkbox" id="crudTypeToggleLog"><label for="crudTypeToggleLog"> Show Log Types</label></div>' +
-			'<div><input type="checkbox" id="crudTypeToggleOther"><label for="crudTypeToggleOther"> Show Other Types</label></div>' +
-			'<div><button class="close-button">Close</button></div>'
+			'<div><input type="checkbox" id="crudTypeToggleRels"><label for="crudTypeToggleRels"> Relationship Types</label></div>' +
+			'<div><input type="checkbox" id="crudTypeToggleCustom"><label for="crudTypeToggleCustom"> Custom Types</label></div>' +
+			'<div><input type="checkbox" id="crudTypeToggleCore"><label for="crudTypeToggleCore"> Core Types</label></div>' +
+			'<div><input type="checkbox" id="crudTypeToggleHtml"><label for="crudTypeToggleHtml"> HTML Types</label></div>' +
+			'<div><input type="checkbox" id="crudTypeToggleUi"><label for="crudTypeToggleUi"> UI Types</label></div>' +
+			'<div><input type="checkbox" id="crudTypeToggleLog"><label for="crudTypeToggleLog"> Log Types</label></div>' +
+			'<div><input type="checkbox" id="crudTypeToggleOther"><label for="crudTypeToggleOther"> Other Types</label></div>'
 		);
 
 		var savedTypeVisibility = LSWrapper.getItem(_Crud.displayTypeConfigKey) || {};
+		$('#crudTypeToggleRels').prop('checked', (savedTypeVisibility.custom === undefined ? true : savedTypeVisibility.rels));
 		$('#crudTypeToggleCustom').prop('checked', (savedTypeVisibility.custom === undefined ? true : savedTypeVisibility.custom));
 		$('#crudTypeToggleCore').prop('checked', (savedTypeVisibility.core === undefined ? true : savedTypeVisibility.core));
 		$('#crudTypeToggleHtml').prop('checked', (savedTypeVisibility.html === undefined ? true : savedTypeVisibility.html));
@@ -278,14 +306,15 @@ var _Crud = {
 
 			var type = _Crud.types[typeName];
 
-			var isDynamicType = type.className.startsWith('org.structr.dynamic');
-			var isCoreType    = type.className.startsWith('org.structr.core.entity');
-			var isHtmlType    = type.className.startsWith('org.structr.web.entity.html');
-			var isUiType      = type.className.startsWith('org.structr.web.entity') && !type.className.startsWith('org.structr.web.entity.html');
-			var isLogType     = type.className.startsWith('org.structr.rest.logging.entity');
-			var isOtherType   = !(isDynamicType || isCoreType || isHtmlType || isUiType || isLogType);
+			var isRelType     = type.isRel;
+			var isDynamicType = !isRelType && type.className.startsWith('org.structr.dynamic');
+			var isCoreType    = !isRelType && type.className.startsWith('org.structr.core.entity');
+			var isHtmlType    = !isRelType && type.className.startsWith('org.structr.web.entity.html');
+			var isUiType      = !isRelType && type.className.startsWith('org.structr.web.entity') && !type.className.startsWith('org.structr.web.entity.html');
+			var isLogType     = !isRelType && type.className.startsWith('org.structr.rest.logging.entity');
+			var isOtherType   = !(isRelType || isDynamicType || isCoreType || isHtmlType || isUiType || isLogType);
 
-			var hide =	(!typeVisibility.custom && isDynamicType) || (!typeVisibility.core && isCoreType) || (!typeVisibility.html && isHtmlType) ||
+			var hide =	(!typeVisibility.rels && isRelType) || (!typeVisibility.custom && isDynamicType) || (!typeVisibility.core && isCoreType) || (!typeVisibility.html && isHtmlType) ||
 						(!typeVisibility.ui && isUiType) || (!typeVisibility.log && isLogType) || (!typeVisibility.other && isOtherType);
 
 			if (!hide) {
@@ -367,6 +396,7 @@ var _Crud = {
 	getTypeVisibilityConfig: function () {
 
 		return {
+			rels:   $('#crudTypeToggleRels').prop('checked'),
 			custom: $('#crudTypeToggleCustom').prop('checked'),
 			core:   $('#crudTypeToggleCore').prop('checked'),
 			html:   $('#crudTypeToggleHtml').prop('checked'),
@@ -2345,7 +2375,7 @@ var _Crud = {
 		$('.searchResults').css({
 			height: h - 103 + 'px'
 		});
-
+		
 	},
 	error: function(text, confirmationRequired) {
 		var message = new MessageBuilder().error(text);
