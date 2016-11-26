@@ -158,9 +158,9 @@ var _Crud = {
 	pageSize: {},
 	moveResizer: function(left) {
 		left = left || LSWrapper.getItem(crudResizerLeftKey) || 210;
+		$('.column-resizer', main).css({ left: left });
+
 		var w = $(window).width();
-		//console.log(left, w, w-left-10);
-		$('.column-resizer').css({ left: left});
 		$('#crud-types').css({width: left - 12 + 'px'});
 		$('#crud-recent-types').css({width: left - 12 + 'px'});
 		$('#crud-right').css({left: left - 222 + 'px', width: w - left - 58 + 'px'});
@@ -174,17 +174,7 @@ var _Crud = {
 				+ '<div id="crud-right" class="resourceBox full-height-box"></div></div>');
 
 		_Crud.moveResizer();
-		$('.column-resizer', main).draggable({
-			axis: 'x',
-			drag: function(e, ui) {
-				var left = Math.max(204, ui.position.left);
-				ui.position.left = left;
-				_Crud.moveResizer(left);
-			},
-			stop: function(e, ui) {
-				LSWrapper.setItem(crudResizerLeftKey, ui.position.left);
-			}
-		});
+		Structr.initVerticalSlider($('.column-resizer', main), crudResizerLeftKey, 204, _Crud.moveResizer);
 
 		$('#crudTypeFilterSettings').append(
 			'<div><input type="checkbox" id="crudTypeToggleRels"><label for="crudTypeToggleRels"> Relationship Types</label></div>' +

@@ -96,9 +96,9 @@ var _Crawler = {
 	},
 	moveResizer: function(left) {
 		left = left || LSWrapper.getItem(crawlerResizerLeftKey) || 300;
+		$('.column-resizer', crawlerMain).css({ left: left });
+
 		var w = $(window).width();
-		//console.log(left, w, w-left-10);
-		$('.column-resizer').css({ left: left});
 		$('#crawler-tree').css({width: left - 14 + 'px'});
 		$('#crawler-list').css({left: left + 8 + 'px', width: w - left - 58 + 'px'});
 	},
@@ -118,18 +118,7 @@ var _Crawler = {
 		crawlerList = $('#crawler-list');
 
 		_Crawler.moveResizer();
-		$('.column-resizer', crawlerMain).draggable({
-			axis: 'x',
-			drag: function(e, ui) {
-				var left = Math.max(204, ui.position.left);
-				console.log(left)
-				ui.position.left = left;
-				_Crawler.moveResizer(left);
-			},
-			stop: function(e, ui) {
-				LSWrapper.setItem(crawlerResizerLeftKey, ui.position.left);
-			}
-		});
+		Structr.initVerticalSlider($('.column-resizer', crawlerMain), crawlerResizerLeftKey, 204, _Crawler.moveResizer);
 
 		$('#crawler-list-container').prepend('<button class="add_site_icon button"><img title="Add Site" alt="Add Site" src="' + _Icons.add_site_icon + '"> Add Site</button>');
 

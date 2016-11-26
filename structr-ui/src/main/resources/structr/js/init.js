@@ -1431,6 +1431,27 @@ var Structr = {
 	showAndHideInfoBoxMessage: function (msg, msgClass, delayTime, fadeTime) {
 		dialogMsg.html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
 		$('.infoBox', dialogMsg).delay(delayTime).fadeOut(fadeTime);
+	},
+	initVerticalSlider: function (sliderEl, localstorageKey, minWidth, dragCallback) {
+
+		if (typeof dragCallback !== "function") {
+			console.error('dragCallback is not a function!');
+			return;
+		}
+
+		sliderEl.draggable({
+			axis: 'x',
+			drag: function(e, ui) {
+				var left = Math.max(minWidth, ui.position.left);
+				ui.position.left = left;
+
+				dragCallback(left);
+			},
+			stop: function(e, ui) {
+				LSWrapper.setItem(localstorageKey, ui.position.left);
+			}
+		});
+
 	}
 };
 

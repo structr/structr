@@ -133,9 +133,9 @@ var _Files = {
 	},
 	moveResizer: function(left) {
 		left = left || LSWrapper.getItem(filesResizerLeftKey) || 300;
+		$('.column-resizer', filesMain).css({ left: left });
+
 		var w = $(window).width();
-		//console.log(left, w, w-left-10);
-		$('.column-resizer').css({ left: left});
 		$('#file-tree').css({width: left - 14 + 'px'});
 		$('#folder-contents').css({left: left + 8 + 'px', width: w - left - 58 + 'px'});
 	},
@@ -152,18 +152,7 @@ var _Files = {
 		folderContents = $('#folder-contents');
 
 		_Files.moveResizer();
-		$('.column-resizer', filesMain).draggable({
-			axis: 'x',
-			drag: function(e, ui) {
-				var left = Math.max(204, ui.position.left);
-				console.log(left)
-				ui.position.left = left;
-				_Files.moveResizer(left);
-			},
-			stop: function(e, ui) {
-				LSWrapper.setItem(filesResizerLeftKey, ui.position.left);
-			}
-		});
+		Structr.initVerticalSlider($('.column-resizer', filesMain), filesResizerLeftKey, 204, _Files.moveResizer);
 
 		$('#folder-contents-container').prepend(
 				'<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Icons.add_folder_icon + '"> Add Folder</button>'
