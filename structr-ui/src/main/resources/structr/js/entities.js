@@ -518,6 +518,13 @@ var _Entities = {
 			success: function(data) {
 				// Default: Edit node id
 				var id = entity.id;
+
+				var tempNodeCache = new AsyncObjectCache(function(id) {
+					Command.get(id, function (node) {
+						tempNodeCache.addObject(node);
+					});
+				});
+
 				// ID of graph object to edit
 				$(data.result).each(function(i, res) {
 
@@ -631,26 +638,23 @@ var _Entities = {
 
 												var nodeId = res[key].id || res[key];
 
-												Command.get(nodeId, function(node) {
+												tempNodeCache.registerCallbackForId(nodeId, function(node) {
 
 													_Entities.appendRelatedNode(cell, node, function(nodeEl) {
-
 														$('.remove', nodeEl).on('click', function(e) {
 															e.preventDefault();
 															_Entities.setProperty(id, key, null, false, function(newVal) {
 																if (!newVal) {
+																	nodeEl.remove();
 																	blinkGreen(cell);
 																	Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".', 'success', 2000, 1000);
-																	cell.empty();
 																} else {
 																	blinkRed(cell);
 																}
 															});
 															return false;
 														});
-
 													});
-
 												});
 
 											} else {
@@ -659,7 +663,7 @@ var _Entities = {
 
 													var nodeId = obj.id || obj;
 
-													Command.get(nodeId, function(node) {
+													tempNodeCache.registerCallbackForId(nodeId, function(node) {
 
 														_Entities.appendRelatedNode(cell, node, function(nodeEl) {
 															$('.remove', nodeEl).on('click', function(e) {
@@ -675,7 +679,6 @@ var _Entities = {
 													});
 
 												});
-
 											}
 										}
 
