@@ -430,7 +430,7 @@ function StructrApp(baseUrl) {
 			}
 		});
 		//console.log('PUT', structrRestUrl + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
-		s.request(btn, 'PUT', structrRestUrl + (type ? type.toUnderscore() + '/' : '') + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
+		s.request(btn, 'PUT', structrRestUrl + (type ? type + '/' : '') + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
 	},
 
 	this.cancelEditAction = function(btn, id, attrs, type, suffix, reload) {
@@ -833,7 +833,7 @@ function StructrApp(baseUrl) {
 		d[relatedProperty] = [ {'id': id} ];
 
 		$.ajax({
-			url: structrRestUrl + sourceType.toUnderscore() + '/' + sourceId + '/ui', method: 'GET', contentType: 'application/json',
+			url: structrRestUrl + sourceType + '/' + sourceId + '/ui', method: 'GET', contentType: 'application/json',
 			statusCode: {
 				200: function(data) {
 					//console.log(data.result, data.result[relatedProperty], d);
@@ -850,7 +850,7 @@ function StructrApp(baseUrl) {
 					}
 
 					$.ajax({
-						url: structrRestUrl + sourceType.toUnderscore() + '/' + sourceId, method: 'PUT', contentType: 'application/json',
+						url: structrRestUrl + sourceType + '/' + sourceId, method: 'PUT', contentType: 'application/json',
 						data: JSON.stringify(d),
 						statusCode: {
 							200: function() {
