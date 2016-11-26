@@ -159,7 +159,7 @@ var _Crud = {
 	page: {},
 	pageSize: {},
 	moveResizer: function(left) {
-		if (!left) return;
+		left = left || LSWrapper.getItem(crawlerResizerLeftKey) || 210;
 		var w = $(window).width();
 		//console.log(left, w, w-left-10);
 		$('.column-resizer').css({ left: left});
@@ -175,7 +175,7 @@ var _Crud = {
 				+ '<div id="crud-recent-types" class="resourceBox"><h2>Recent</h2><ul id="crud-recent-types-list"></ul></div></div>'
 				+ '<div id="crud-right" class="resourceBox full-height-box"></div></div>');
 
-		_Crud.moveResizer(LSWrapper.getItem(crudResizerLeftKey));
+		_Crud.moveResizer();
 		$('.column-resizer', main).draggable({
 			axis: 'x',
 			drag: function(e, ui) {
@@ -2366,6 +2366,8 @@ var _Crud = {
 		$('.searchResults').css({
 			height: h - 103 + 'px'
 		});
+		
+		_Crud.moveResizer();
 
 	},
 	error: function(text, confirmationRequired) {
