@@ -64,7 +64,7 @@ var _Schema = {
 		var x = window.scrollX;
 		var y = window.scrollY;
 		reload = true;
-		_Schema.storePositions();
+		//_Schema.storePositions();	/* CHM: don't store positions on every reload, let automatic positioning do its job.. */
 		schemaContainer.empty();
 		_Schema.init({x: x, y: y});
 		_Schema.resize();
@@ -79,6 +79,11 @@ var _Schema = {
 			obj.position.top  = (obj.position.top  - canvas.offset().top)  / zoomLevel;
 			LSWrapper.setItem(type + localStorageSuffix + 'node-position', JSON.stringify(obj));
 		});
+	},
+	clearPositions: function() {
+		// clear positions of stored schema nodes to improve automatic layout
+		// to be done...
+		_Dashboard.clearLocalStorageOnServer();
 	},
 	getPosition: function(type) {
 		var n = JSON.parse(LSWrapper.getItem(type + localStorageSuffix + 'node-position'));
@@ -161,6 +166,11 @@ var _Schema = {
 			schemaInputContainer.append('<button class="btn" id="schema-display-options"><img src="' + _Icons.edit_icon + '"> Display Options</button>');
 			$('#schema-display-options').on('click', function() {
 				_Schema.openSchemaDisplayOptions();
+			});
+
+			schemaInputContainer.append('<button class="btn" id="reset-schema-layout"><img src="' + _Icons.refresh_icon + '"> Reset Layout</button>');
+			$('#reset-schema-layout').on('click', function() {
+				_Schema.clearPositions();
 			});
 
 			schemaInputContainer.append('<input type="checkbox" id="schema-show-overlays" name="schema-show-overlays" style="margin-left:10px"><label for="schema-show-overlays"> Show relationship labels</label>');
@@ -459,130 +469,182 @@ var _Schema = {
 			contentType: 'application/json; charset=utf-8',
 			success: function(data) {
 
+				var hierarchy = {};
+				var x=0, y=0;
+
 				$.each(data.result, function(i, entity) {
 
-					if (hiddenSchemaNodes.length > 0 && hiddenSchemaNodes.indexOf(entity.id) > -1) { return; }
+					var level   = 0;
+					var outs    = entity.relatedTo.length;
+					var ins     = entity.relatedFrom.length;
+					var hasRels = (outs > 0 || ins > 0);
 
-					var isBuiltinType = entity.isBuiltinType;
-					var id = 'id_' + entity.id;
-					nodes[entity.id] = entity;
-					canvas.append('<div class="schema node compact'
-							+ (isBuiltinType ? ' light' : '')
-							//+ '" id="' + id + '">' + (entity.icon ? '<img class="type-icon" src="' + entity.icon + '">' : '') + '<b>' + entity.name + '</b>'
-							+ '" id="' + id + '"><b>' + entity.name + '</b>'
-							+ '<img class="icon delete" src="' + (isBuiltinType ? _Icons.delete_disabled_icon : _Icons.delete_icon) + '">'
-							+ '<img class="icon edit" src="' + _Icons.edit_icon + '">'
-							+ '</div>');
+					if (ins === 0 && outs === 0) {
 
+						// no rels => push down
+						level += 100;
 
-					var node = $('#' + id);
+					} else {
 
-					if (!isBuiltinType) {
-						node.children('b').on('click', function() {
-							_Schema.makeAttrEditable(node, 'name');
-						});
-					}
-
-					node.on('mousedown', function() {
-						node.css({zIndex: ++maxZ});
-					});
-
-					if (!isBuiltinType) {
-						node.children('.delete').on('click', function() {
-							Structr.confirmation('<h3>Delete schema node \'' + entity.name + '\'?</h3><p>This will delete all incoming and outgoing schema relationships as well, but no data will be removed.</p>',
-									function() {
-										$.unblockUI({
-											fadeOut: 25
-										});
-										_Schema.deleteNode(entity.id);
-									});
-						});
-					}
-
-					var storedPosition = _Schema.getPosition(entity.name);
-					node.offset({
-						left: storedPosition ? storedPosition.left : i * 100 + 25,
-						top: storedPosition ? storedPosition.top : i * 40 + 131
-					});
-
-					$('.edit', node).on('click', function(e) {
-
-						e.stopPropagation();
-						var id = Structr.getId($(this).closest('.schema.node'));
-
-						if (!id) {
-							return false;
+						if (outs === 0) {
+							level += 10;
 						}
 
-						_Schema.openEditDialog(id);
+						level += ins;
+					}
 
-						return false;
-					});
+					if (entity.isBuiltinType && !hasRels) {
+						level += 10;
+					}
 
-					nodes[entity.id + '_top'] = instance.addEndpoint(id, {
-						//anchor: [ "Perimeter", { shape: "Square" } ],
-						anchor: "Top",
-						maxConnections: -1,
-						//isSource: true,
-						isTarget: true,
-						deleteEndpointsOnDetach: false
-					});
-					nodes[entity.id + '_bottom'] = instance.addEndpoint(id, {
-						//anchor: [ "Perimeter", { shape: "Square" } ],
-						anchor: "Bottom",
-						maxConnections: -1,
-						isSource: true,
-						deleteEndpointsOnDetach: false
-								//isTarget: true
-					});
+					if (!hierarchy[level]) { hierarchy[level] = []; }
+					hierarchy[level].push(entity);
+				});
 
-					instance.draggable(id, {
-						containment: true,
-						start: function (ui) {
-							var nodeOffset   = $(ui.el).offset();
-							var canvasOffset = canvas.offset();
-							nodeDragStartpoint = {
-								top:  (nodeOffset.top  - canvasOffset.top ),
-								left: (nodeOffset.left - canvasOffset.left)
-							};
-						},
-						drag: function (ui) {
+				$.each(hierarchy, function(i, list) {
 
-							var $element = $(ui.el);
+					$.each(list, function(j, entity) {
 
-							if (!$element.hasClass('selected')) {
+						if (hiddenSchemaNodes.length > 0 && hiddenSchemaNodes.indexOf(entity.id) > -1) { return; }
 
-								_Schema.clearSelection();
+						var isBuiltinType = entity.isBuiltinType;
+						var id = 'id_' + entity.id;
+						nodes[entity.id] = entity;
+						canvas.append('<div class="schema node compact'
+								+ (isBuiltinType ? ' light' : '')
+								//+ '" id="' + id + '">' + (entity.icon ? '<img class="type-icon" src="' + entity.icon + '">' : '') + '<b>' + entity.name + '</b>'
+								+ '" id="' + id + '"><b>' + entity.name + '</b>'
+								+ '<img class="icon delete" src="' + (isBuiltinType ? _Icons.delete_disabled_icon : _Icons.delete_icon) + '">'
+								+ '<img class="icon edit" src="' + _Icons.edit_icon + '">'
+								+ '</div>');
 
-							} else {
 
-								var nodeOffset = $element.offset();
-								var canvasOffset = canvas.offset();
+						var node = $('#' + id);
 
-								var posDelta = {
-									top:  (nodeDragStartpoint.top  - nodeOffset.top ),
-									left: (nodeDragStartpoint.left - nodeOffset.left)
-								};
+						if (!isBuiltinType) {
+							node.children('b').on('click', function() {
+								_Schema.makeAttrEditable(node, 'name');
+							});
+						}
 
-								selectedNodes.forEach(function (selectedNode) {
-									if (selectedNode.nodeId !== $element.attr('id')) {
-										$('#' + selectedNode.nodeId).offset({
-											top:  (selectedNode.pos.top  - posDelta.top  > canvasOffset.top ) ? (selectedNode.pos.top  - posDelta.top ) : canvasOffset.top,
-											left: (selectedNode.pos.left - posDelta.left > canvasOffset.left) ? (selectedNode.pos.left - posDelta.left) : canvasOffset.left
+						node.on('mousedown', function() {
+							node.css({zIndex: ++maxZ});
+						});
+
+						if (!isBuiltinType) {
+							node.children('.delete').on('click', function() {
+								Structr.confirmation('<h3>Delete schema node \'' + entity.name + '\'?</h3><p>This will delete all incoming and outgoing schema relationships as well, but no data will be removed.</p>',
+										function() {
+											$.unblockUI({
+												fadeOut: 25
+											});
+											_Schema.deleteNode(entity.id);
 										});
-									}
-								});
+							});
+						}
 
-								instance.repaintEverything();
+						var calculatedX = (x * 300) + ((y % 2) * 150) + 40;
+						if (calculatedX > 1500) {
+							y++;
+							x = 0;
+							calculatedX = (x * 300) + ((y % 2) * 150) + 40;
+						}
+						var calculatedY = (y * 150) + 50;
+						var storedPosition = _Schema.getPosition(entity.name);
+						// if there is an overlap, invalidate stored position
+						if (_Schema.overlapsExistingNodes(storedPosition)) {
+							storedPosition = null;
+						}
 
+						node.offset({
+							left: storedPosition ? storedPosition.left : calculatedX,
+							top: storedPosition ? storedPosition.top : calculatedY
+						});
+
+						$('.edit', node).on('click', function(e) {
+
+							e.stopPropagation();
+							var id = Structr.getId($(this).closest('.schema.node'));
+
+							if (!id) {
+								return false;
 							}
-						},
-						stop: function() {
-							_Schema.storePositions();
-							_Schema.updateSelectedNodes();
-							_Schema.resize();
-						}
+
+							_Schema.openEditDialog(id);
+
+							return false;
+						});
+
+						nodes[entity.id + '_top'] = instance.addEndpoint(id, {
+							//anchor: [ "Perimeter", { shape: "Square" } ],
+							anchor: "Top",
+							maxConnections: -1,
+							//isSource: true,
+							isTarget: true,
+							deleteEndpointsOnDetach: false
+						});
+						nodes[entity.id + '_bottom'] = instance.addEndpoint(id, {
+							//anchor: [ "Perimeter", { shape: "Square" } ],
+							anchor: "Bottom",
+							maxConnections: -1,
+							isSource: true,
+							deleteEndpointsOnDetach: false
+									//isTarget: true
+						});
+
+						instance.draggable(id, {
+							containment: true,
+							start: function (ui) {
+								var nodeOffset   = $(ui.el).offset();
+								var canvasOffset = canvas.offset();
+								nodeDragStartpoint = {
+									top:  (nodeOffset.top  - canvasOffset.top ),
+									left: (nodeOffset.left - canvasOffset.left)
+								};
+							},
+							drag: function (ui) {
+
+								var $element = $(ui.el);
+
+								if (!$element.hasClass('selected')) {
+
+									_Schema.clearSelection();
+
+								} else {
+
+									var nodeOffset = $element.offset();
+									var canvasOffset = canvas.offset();
+
+									var posDelta = {
+										top:  (nodeDragStartpoint.top  - nodeOffset.top ),
+										left: (nodeDragStartpoint.left - nodeOffset.left)
+									};
+
+									selectedNodes.forEach(function (selectedNode) {
+										if (selectedNode.nodeId !== $element.attr('id')) {
+											$('#' + selectedNode.nodeId).offset({
+												top:  (selectedNode.pos.top  - posDelta.top  > canvasOffset.top ) ? (selectedNode.pos.top  - posDelta.top ) : canvasOffset.top,
+												left: (selectedNode.pos.left - posDelta.left > canvasOffset.left) ? (selectedNode.pos.left - posDelta.left) : canvasOffset.left
+											});
+										}
+									});
+
+									instance.repaintEverything();
+
+								}
+							},
+							stop: function() {
+								_Schema.storePositions();
+								_Schema.updateSelectedNodes();
+								_Schema.resize();
+							}
+						});
+
+						x++;
 					});
+
+					y++;
+					x = 0;
 				});
 
 				if (callback) {
@@ -3463,5 +3525,16 @@ var _Schema = {
 			}
 		});
 
+	},
+	overlapsExistingNodes: function(position) {
+		if (!position) {
+			return false;
+		}
+		var overlaps = false;
+		$('.node.schema.compact').each(function(i, node) {
+			var offset = $(node).offset();
+			overlaps |= (Math.abs(position.left - offset.left) < 100 && Math.abs(position.top - offset.top) < 100);
+		});
+		return overlaps;
 	}
 };

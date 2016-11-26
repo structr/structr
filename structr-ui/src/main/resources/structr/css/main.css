@@ -1860,7 +1860,7 @@ button.add_property {
     opacity: .7;
 }
 
-#admin-tools, #sync-schema, #show-snapshots, #schema-display-options {
+#admin-tools, #sync-schema, #show-snapshots, #schema-display-options, #reset-schema-layout {
     margin: 0 0 4px 12px;
 }
 
