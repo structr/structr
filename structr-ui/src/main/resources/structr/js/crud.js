@@ -65,10 +65,8 @@ if (browser) {
 			LSWrapper.setItem(_Crud.displayTypeConfigKey, _Crud.getTypeVisibilityConfig());
 		});
 
-		$(document).on('click', function() {
-			if ($('#crudTypeFilterSettings').is(':visible')) {
-				_Crud.hideTypeVisibilityConfig();
-			}
+		$(document).on('click', '#crudTypeFilterSettings .close-button', function (e) {
+			_Crud.hideTypeVisibilityConfig();
 		});
 
 	});
@@ -195,7 +193,8 @@ var _Crud = {
 			'<div><input type="checkbox" id="crudTypeToggleHtml"><label for="crudTypeToggleHtml"> HTML Types</label></div>' +
 			'<div><input type="checkbox" id="crudTypeToggleUi"><label for="crudTypeToggleUi"> UI Types</label></div>' +
 			'<div><input type="checkbox" id="crudTypeToggleLog"><label for="crudTypeToggleLog"> Log Types</label></div>' +
-			'<div><input type="checkbox" id="crudTypeToggleOther"><label for="crudTypeToggleOther"> Other Types</label></div>'
+			'<div><input type="checkbox" id="crudTypeToggleOther"><label for="crudTypeToggleOther"> Other Types</label></div>' +
+			'<div><button class="close-button">Close</button></div>'
 		);
 
 		var savedTypeVisibility = LSWrapper.getItem(_Crud.displayTypeConfigKey) || {};
@@ -2366,7 +2365,7 @@ var _Crud = {
 		$('.searchResults').css({
 			height: h - 103 + 'px'
 		});
-		
+
 		_Crud.moveResizer();
 
 	},
