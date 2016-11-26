@@ -80,16 +80,16 @@ var _Contents = {
 				height: windowHeight - headerOffsetHeight - 55 + 'px'
 			});
 		}
-		
+
 		_Contents.moveResizer();
 		Structr.resize();
 
 	},
 	moveResizer: function(left) {
 		left = left || LSWrapper.getItem(contentsResizerLeftKey) || 300;
+		$('.column-resizer', contentsMain).css({ left: left });
+
 		var w = $(window).width();
-		//console.log(left, w, w-left-10);
-		$('.column-resizer').css({ left: left});
 		$('#contents-tree').css({width: left - 14 + 'px'});
 		$('#contents-contents').css({left: left + 8 + 'px', width: w - left - 58 + 'px'});
 	},
@@ -106,18 +106,7 @@ var _Contents = {
 		contentsContents = $('#contents-contents');
 
 		_Contents.moveResizer();
-		$('.column-resizer', contentsMain).draggable({
-			axis: 'x',
-			drag: function(e, ui) {
-				var left = Math.max(204, ui.position.left);
-				console.log(left)
-				ui.position.left = left;
-				_Contents.moveResizer(left);
-			},
-			stop: function(e, ui) {
-				LSWrapper.setItem(contentsResizerLeftKey, ui.position.left);
-			}
-		});
+		Structr.initVerticalSlider($('.column-resizer', contentsMain), contentsResizerLeftKey, 204, _Contents.moveResizer);
 
 		$('#contents-contents-container').prepend(' <select id="add-content-item"><option value="">Add Content Item</option></select>');
 

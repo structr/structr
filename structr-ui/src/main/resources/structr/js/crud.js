@@ -65,10 +65,8 @@ if (browser) {
 			LSWrapper.setItem(_Crud.displayTypeConfigKey, _Crud.getTypeVisibilityConfig());
 		});
 
-		$(document).on('click', function() {
-			if ($('#crudTypeFilterSettings').is(':visible')) {
-				_Crud.hideTypeVisibilityConfig();
-			}
+		$(document).on('click', '#crudTypeFilterSettings .close-button', function (e) {
+			_Crud.hideTypeVisibilityConfig();
 		});
 
 	});
@@ -160,9 +158,9 @@ var _Crud = {
 	pageSize: {},
 	moveResizer: function(left) {
 		left = left || LSWrapper.getItem(crudResizerLeftKey) || 210;
+		$('.column-resizer', main).css({ left: left });
+
 		var w = $(window).width();
-		//console.log(left, w, w-left-10);
-		$('.column-resizer').css({ left: left});
 		$('#crud-types').css({width: left - 12 + 'px'});
 		$('#crud-recent-types').css({width: left - 12 + 'px'});
 		$('#crud-right').css({left: left - 222 + 'px', width: w - left - 58 + 'px'});
@@ -176,17 +174,7 @@ var _Crud = {
 				+ '<div id="crud-right" class="resourceBox full-height-box"></div></div>');
 
 		_Crud.moveResizer();
-		$('.column-resizer', main).draggable({
-			axis: 'x',
-			drag: function(e, ui) {
-				var left = Math.max(204, ui.position.left);
-				ui.position.left = left;
-				_Crud.moveResizer(left);
-			},
-			stop: function(e, ui) {
-				LSWrapper.setItem(crudResizerLeftKey, ui.position.left);
-			}
-		});
+		Structr.initVerticalSlider($('.column-resizer', main), crudResizerLeftKey, 204, _Crud.moveResizer);
 
 		$('#crudTypeFilterSettings').append(
 			'<div><input type="checkbox" id="crudTypeToggleRels"><label for="crudTypeToggleRels"> Relationship Types</label></div>' +
@@ -195,11 +183,12 @@ var _Crud = {
 			'<div><input type="checkbox" id="crudTypeToggleHtml"><label for="crudTypeToggleHtml"> HTML Types</label></div>' +
 			'<div><input type="checkbox" id="crudTypeToggleUi"><label for="crudTypeToggleUi"> UI Types</label></div>' +
 			'<div><input type="checkbox" id="crudTypeToggleLog"><label for="crudTypeToggleLog"> Log Types</label></div>' +
-			'<div><input type="checkbox" id="crudTypeToggleOther"><label for="crudTypeToggleOther"> Other Types</label></div>'
+			'<div><input type="checkbox" id="crudTypeToggleOther"><label for="crudTypeToggleOther"> Other Types</label></div>' +
+			'<div><button class="close-button">Close</button></div>'
 		);
 
 		var savedTypeVisibility = LSWrapper.getItem(_Crud.displayTypeConfigKey) || {};
-		$('#crudTypeToggleRels').prop('checked', (savedTypeVisibility.custom === undefined ? true : savedTypeVisibility.rels));
+		$('#crudTypeToggleRels').prop('checked', (savedTypeVisibility.rels === undefined ? true : savedTypeVisibility.rels));
 		$('#crudTypeToggleCustom').prop('checked', (savedTypeVisibility.custom === undefined ? true : savedTypeVisibility.custom));
 		$('#crudTypeToggleCore').prop('checked', (savedTypeVisibility.core === undefined ? true : savedTypeVisibility.core));
 		$('#crudTypeToggleHtml').prop('checked', (savedTypeVisibility.html === undefined ? true : savedTypeVisibility.html));
@@ -2366,7 +2355,7 @@ var _Crud = {
 		$('.searchResults').css({
 			height: h - 103 + 'px'
 		});
-		
+
 		_Crud.moveResizer();
 
 	},
