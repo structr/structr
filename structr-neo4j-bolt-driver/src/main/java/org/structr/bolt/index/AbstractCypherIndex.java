@@ -109,7 +109,7 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 	}
 
 	public abstract QueryResult<T> getResult(final CypherQuery query);
-	public abstract String getQueryPrefix(final String typeLabel);
+	public abstract String getQueryPrefix(final String mainType, final String sourceTypeLabel, final String targetTypeLabel);
 	public abstract String getQuerySuffix();
 
 	@Override

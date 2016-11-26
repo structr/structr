@@ -424,18 +424,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return this;
 	}
 
-	public org.structr.core.app.Query<T> andType(final String type) {
-
-		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.REQUIRED, true));
-		return this;
-	}
-
-	public org.structr.core.app.Query<T> orType(final String type) {
-
-		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.OPTIONAL, true));
-		return this;
-	}
-
 	@Override
 	public org.structr.core.app.Query<T> andTypes(final Class type) {
 

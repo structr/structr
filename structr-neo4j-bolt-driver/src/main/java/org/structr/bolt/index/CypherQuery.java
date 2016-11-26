@@ -33,6 +33,8 @@ public class CypherQuery {
 	private final Map<String, Object> parameters = new HashMap<>();
 	private final List<String> typeLabels        = new LinkedList<>();
 	private final StringBuilder buffer           = new StringBuilder();
+	private String sourceTypeLabel               = null;
+	private String targetTypeLabel               = null;
 	private AbstractCypherIndex<?> index         = null;
 	private boolean sortDescending               = false;
 	private SortType sortType                    = null;
@@ -71,7 +73,7 @@ public class CypherQuery {
 		switch (typeCount) {
 			case 0:
 
-				buf.append(index.getQueryPrefix(null));
+				buf.append(index.getQueryPrefix(null, sourceTypeLabel, targetTypeLabel));
 
 				if (buffer.length() > 0) {
 					buf.append(" WHERE ");
@@ -83,7 +85,7 @@ public class CypherQuery {
 
 			case 1:
 
-				buf.append(index.getQueryPrefix(typeLabels.get(0)));
+				buf.append(index.getQueryPrefix(typeLabels.get(0), sourceTypeLabel, targetTypeLabel));
 
 				if (buffer.length() > 0) {
 					buf.append(" WHERE ");
@@ -98,7 +100,7 @@ public class CypherQuery {
 				// create UNION query
 				for (final Iterator<String> it = typeLabels.iterator(); it.hasNext();) {
 
-					buf.append(index.getQueryPrefix(it.next()));
+					buf.append(index.getQueryPrefix(it.next(), sourceTypeLabel, targetTypeLabel));
 
 					if (buffer.length() > 0) {
 						buf.append(" WHERE ");
@@ -287,5 +289,13 @@ public class CypherQuery {
 		this.sortDescending = sortDescending;
 		this.sortType       = sortType;
 		this.sortKey        = sortKey;
+	}
+
+	public void setSourceType(final String sourceTypeLabel) {
+		this.sourceTypeLabel = sourceTypeLabel;
+	}
+
+	public void setTargetType(final String targetTypeLabel) {
+		this.targetTypeLabel = targetTypeLabel;
 	}
 }

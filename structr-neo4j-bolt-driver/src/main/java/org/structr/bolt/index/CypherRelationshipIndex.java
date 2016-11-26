@@ -36,11 +36,18 @@ public class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 	}
 
 	@Override
-	public String getQueryPrefix(final String typeLabel) {
+	public String getQueryPrefix(final String typeLabel, final String sourceTypeLabel, final String targetTypeLabel) {
 
 		if (typeLabel != null) {
 
-			return "MATCH ()-[n: " + typeLabel + "]-()";
+			if (sourceTypeLabel != null && targetTypeLabel != null) {
+
+				return "MATCH (:" + sourceTypeLabel + ")-[n: " + typeLabel + "]->(: " + targetTypeLabel + ")";
+
+			} else {
+
+				return "MATCH ()-[n: " + typeLabel + "]-()";
+			}
 
 		} else {
 

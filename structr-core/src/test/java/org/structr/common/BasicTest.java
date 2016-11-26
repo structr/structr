@@ -46,6 +46,7 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.Localization;
 import org.structr.core.entity.Location;
 import org.structr.core.entity.MailTemplate;
+import org.structr.core.entity.OneThreeOneToOne;
 import org.structr.core.entity.OneTwoOneToOne;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.PropertyAccess;
@@ -62,6 +63,7 @@ import org.structr.core.entity.TestSix;
 import org.structr.core.entity.TestTen;
 import org.structr.core.entity.TestThree;
 import org.structr.core.entity.TestTwo;
+import org.structr.core.entity.TestUser;
 import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -724,11 +726,11 @@ public class BasicTest extends StructrTest {
 				assertTrue(node != null);
 				assertTrue(node instanceof TestOne);
 				assertEquals(node.getUuid(), uuid);
-				
+
 				node = app.create(TestOne.class, props);
-				
+
 				tx.success();
-				
+
 				fail("Validation failed!");
 			}
 
@@ -756,20 +758,20 @@ public class BasicTest extends StructrTest {
 				assertTrue(node != null);
 				assertTrue(node instanceof TestOne);
 				assertEquals(node.getUuid(), uuid);
-				
+
 				tx.success();
-				
+
 			} catch (FrameworkException ex) {
 				logger.error(ex.toString());
 				fail("Unexpected exception");
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				node = app.create(TestOne.class, props);
-				
+
 				tx.success();
-				
+
 				fail("Validation failed!");
 			}
 
@@ -1422,7 +1424,46 @@ public class BasicTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
+	}
 
+	@Test
+	public void testRelationshipEndNodeTypeRestriction() {
+
+		// this test makes sure that relationships with identical relationship
+		// types are filtered according to the types of their end nodes
+		try (final Tx tx = app.tx()) {
+
+			// create two OWNS relationships with different end node types
+			final TestOne testOne     = app.create(TestOne.class, "testone");
+			final TestThree testThree = app.create(TestThree.class, "testthree");
+			final TestUser testUser   = app.create(TestUser.class, "testuser");
+
+			testOne.setProperty(TestOne.testThree, testThree);
+			testThree.setProperty(TestThree.owner, testUser);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final List<OneThreeOneToOne> rels = app.relationshipQuery(OneThreeOneToOne.class).getAsList();
+
+			assertEquals("Relationship query returns wrong number of results", 1, rels.size());
+
+			for (final OneThreeOneToOne rel : rels) {
+				assertEquals("Relationship query returns wrong type", OneThreeOneToOne.class, rel.getClass());
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
 	}
 
 	// ----- private methods -----

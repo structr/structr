@@ -19,6 +19,7 @@
 package org.structr.bolt.index.factory;
 
 import org.structr.api.search.QueryPredicate;
+import org.structr.api.search.TypeQuery;
 import org.structr.bolt.index.CypherQuery;
 
 public class TypeQueryFactory extends AbstractQueryFactory {
@@ -26,10 +27,22 @@ public class TypeQueryFactory extends AbstractQueryFactory {
 	@Override
 	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final CypherQuery query, final boolean isFirst) {
 
-		final Object value = predicate.getValue();
-		if (value != null && value instanceof String) {
+		final TypeQuery typeQuery = (TypeQuery)predicate;
+		final Class sourceType    = typeQuery.getSourceType();
+		final Class targetType    = typeQuery.getTargetType();
+		final Object mainType     = typeQuery.getValue();
 
-			query.typeLabel((String)value);
+		if (mainType != null && mainType instanceof String) {
+
+			query.typeLabel((String)mainType);
+		}
+
+		if (sourceType != null && targetType != null) {
+
+			// relationship type, include source
+			// and target type labels
+			query.setSourceType(sourceType.getSimpleName());
+			query.setTargetType(targetType.getSimpleName());
 		}
 
 		// setting the label does not result in a modified WHERE clause

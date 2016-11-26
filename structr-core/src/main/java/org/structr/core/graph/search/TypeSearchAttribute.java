@@ -23,23 +23,42 @@ import org.structr.api.search.Occurrence;
 import org.structr.api.search.TypeQuery;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Relation;
 
 /**
  *
  *
  */
-public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAttribute<String> {
+public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAttribute<String> implements TypeQuery {
 
 	private Set<String> types = null;
+	private Class sourceType  = null;
+	private Class targetType  = null;
 
-	public TypeSearchAttribute(Class<S> type, Occurrence occur, boolean isExactMatch) {
-		this(type.getSimpleName(), occur, isExactMatch);
-	}
+	public TypeSearchAttribute(final Class<S> type, final Occurrence occur, final boolean isExactMatch) {
+		super(AbstractNode.type, null, occur, isExactMatch);
 
-	public TypeSearchAttribute(String type, Occurrence occur, boolean isExactMatch) {
-		super(AbstractNode.type, type, occur, isExactMatch);
+		if (Relation.class.isAssignableFrom(type)) {
 
-		this.types  = SearchCommand.getAllSubtypesAsStringSet(type);
+			try {
+
+				final Relation rel = (Relation)type.newInstance();
+				setValue(rel.name());
+
+				this.sourceType = rel.getSourceType();
+				this.targetType = rel.getTargetType();
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+
+		} else {
+
+			// node types
+			setValue(type.getSimpleName());
+		}
+
+		this.types  = SearchCommand.getAllSubtypesAsStringSet(type.getSimpleName());
 	}
 
 	@Override
@@ -67,5 +86,13 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 
 			return isOfType;
 		}
+	}
+
+	public Class getSourceType() {
+		return sourceType;
+	}
+
+	public Class getTargetType() {
+		return targetType;
 	}
 }
