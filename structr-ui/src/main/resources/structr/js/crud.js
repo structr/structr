@@ -70,7 +70,7 @@ if (browser) {
 				_Crud.hideTypeVisibilityConfig();
 			}
 		});
-		
+
 	});
 
 } else {
@@ -81,7 +81,24 @@ var _Crud = {
 	displayTypeConfigKey: 'structrCrudDisplayTypes_' + port,
 	types: {},
 	keys: {},
-	crudCache: new CacheWithCallbacks(),
+	crudCache: new AsyncObjectCache(function (id) {
+		$.ajax({
+			url: rootUrl + id + '/ui',
+			type: 'GET',
+			dataType: 'json',
+			contentType: 'application/json; charset=utf-8;',
+			headers: {
+				Accept: 'application/json; charset=utf-8; properties=id,name,type,contentType,isThumbnail,isImage,tnSmall,tnMid'
+			},
+			success: function(data) {
+				if (!data)
+					return;
+
+				var node = data.result;
+				_Crud.crudCache.addObject(node);
+			}
+		});
+	}),
 	getProperties: function(type, callback) {
 
 		var url = rootUrl + '_schema/' + type + '/ui';
@@ -1823,8 +1840,6 @@ var _Crud = {
 
 		var nodeHandler = function (node) {
 
-			_Crud.crudCache.addObject(node);
-
 			var displayName = _Crud.displayName(node);
 
 			cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.isImage ? 'image ' : '') + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80));
@@ -1885,32 +1900,9 @@ var _Crud = {
 		};
 
 		if (preloadedNode) {
-
 			nodeHandler(preloadedNode);
-
 		} else {
-
-			if (_Crud.crudCache.registerCallbackForId(id, nodeHandler)) {
-
-				$.ajax({
-					url: rootUrl + id + '/ui',
-					type: 'GET',
-					dataType: 'json',
-					contentType: 'application/json; charset=utf-8;',
-					headers: {
-						Accept: 'application/json; charset=utf-8; properties=id,name,type,contentType,isThumbnail,isImage,tnSmall,tnMid'
-					},
-					success: function(data) {
-						if (!data)
-							return;
-
-						var node = data.result;
-						_Crud.crudCache.addObject(node);
-					}
-				});
-
-			};
-
+			_Crud.crudCache.registerCallbackForId(id, nodeHandler);
 		}
 
 	},
@@ -2374,7 +2366,7 @@ var _Crud = {
 		$('.searchResults').css({
 			height: h - 103 + 'px'
 		});
-		
+
 	},
 	error: function(text, confirmationRequired) {
 		var message = new MessageBuilder().error(text);

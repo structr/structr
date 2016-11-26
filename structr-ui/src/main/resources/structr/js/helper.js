@@ -875,16 +875,28 @@ var _Console = new (function () {
 
 });
 
-var CacheWithCallbacks = function () {
+/**
+ * A cache for async GET requests which allows ensures that certain requests are only made once - if used correctly.<br>
+ * The cache has one argument - the fetch function - which handles fetching a single object.<br>
+ * Upon successfully loading the object, it must be added to the cache via the `addObject` method.<br>
+ * It is possible to attach callbacks to the ID we ware waiting for. After the object is loaded<br>
+ * these callbacks will be executed and any further callbacks will be executed directly.
+ *
+ * @param {function} fetchFunction The function which handles fetching a single object - must take the ID as single parameter
+ * @returns {AsyncObjectCache}*
+ */
+var AsyncObjectCache = function (fetchFunction) {
 
-	// private properties
 	var _cache = {};
 
-	// public api
 	/**
-	 * This methods registers a callback for an object ID.
-	 * returns true if that ID has not seen before => needs to be fetched from server
-	 * returns false if that ID or value is already present and thus the object does not need to be fetched
+	 * This methods registers a callback for an object ID.<br>
+	 * If the ID has not been requested before, the fetch function is executed.<br>
+	 * If the ID has been requested before, the callback is added to the callbacks list.<br>
+	 * If the object associated with the ID is present in the cache, the callback is executed directly.
+	 *
+	 * @param {string} id The ID to fetch
+	 * @param {function} callback The callback to execute with the fetched object. Needs to take the object as single paramter.
 	 */
 	this.registerCallbackForId = function (id, callback) {
 
@@ -894,59 +906,68 @@ var CacheWithCallbacks = function () {
 				callbacks: [callback]
 			};
 
-			return true;
+			fetchFunction(id);
 
 		} else if (_cache[id].value === undefined) {
 
 			_cache[id].callbacks.push(callback);
 
-			return false;
-
 		} else {
 
-			if (typeof callback === "function") {
-				callback(_cache[id].value);
-			}
-
-			return false;
+			_runSingleCallback(id, callback);
 
 		}
 
 	};
 
+	/**
+	 * This method adds a fetched object to the cache.<br>
+	 * Callbacks associated with that object will be executed afterwards.
+	 *
+	 * @param {object} obj The object to store in the cache
+	 */
 	this.addObject = function(obj) {
+
 		if (_cache[obj.id] === undefined) {
 
+			// no registered callbacks - simply set the cache object
 			_cache[obj.id] = {
 				value: obj
 			};
 
 		} else if (_cache[obj.id].value === undefined) {
 
+			// set the cache object and run all registered callbacks
 			_cache[obj.id].value = obj;
-			_runRegisteredCacheCallbacks(obj.id);
+			_runRegisteredCallbacks(obj.id);
 
 		}
+
 	};
 
 	this.clear = function () {
 		_cache = {};
 	};
 
-	// private methods
-	function _runRegisteredCacheCallbacks (id) {
+	function _runRegisteredCallbacks (id) {
 
 		if (_cache[id] !== undefined && _cache[id].callbacks) {
 
 			_cache[id].callbacks.forEach(function(callback) {
-				if (typeof callback === "function") {
-					callback(_cache[id].value);
-				}
+				_runSingleCallback(id, callback);
 			});
 
 			_cache[id].callbacks = [];
 		}
 
-	}
+	};
+
+	function _runSingleCallback(id, callback) {
+
+		if (typeof callback === "function") {
+			callback(_cache[id].value);
+		}
+
+	};
 
 };
