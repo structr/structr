@@ -159,7 +159,7 @@ var _Crud = {
 	page: {},
 	pageSize: {},
 	moveResizer: function(left) {
-		left = left || LSWrapper.getItem(crawlerResizerLeftKey) || 210;
+		left = left || LSWrapper.getItem(crudResizerLeftKey) || 210;
 		var w = $(window).width();
 		//console.log(left, w, w-left-10);
 		$('.column-resizer').css({ left: left});
