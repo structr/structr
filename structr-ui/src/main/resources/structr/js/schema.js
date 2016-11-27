@@ -29,6 +29,7 @@ var mouseUpCoords = {x:0, y:0};
 var selectBox, nodeDragStartpoint;
 var selectedNodes = [];
 var showSchemaOverlaysKey = 'structrShowSchemaOverlays_' + port;
+var schemaPositionsKey = 'structrSchemaPositions_' + port;
 var schemaContainer;
 var inheritanceTree, inheritanceSlideout, inheritanceSlideoutOpen = false;
 
@@ -41,6 +42,7 @@ $(document).ready(function() {
 var _Schema = {
 	schemaLoading: false,
 	schemaLoaded: false,
+	nodePositions: undefined,
 	new_attr_cnt: 0,
 	typeOptions: '<select class="property-type"><option value="">--Select--</option>'
 		+ '<option value="String">String</option>'
@@ -74,20 +76,19 @@ var _Schema = {
 		$.each($('#schema-graph .node'), function(i, n) {
 			var node = $(n);
 			var type = node.text();
-			var obj = {position: node.position()};
-			obj.position.left = (obj.position.left - canvas.offset().left) / zoomLevel;
-			obj.position.top  = (obj.position.top  - canvas.offset().top)  / zoomLevel;
-			LSWrapper.setItem(type + localStorageSuffix + 'node-position', JSON.stringify(obj));
+			var obj = node.position();
+			obj.left = (obj.left - canvas.offset().left) / zoomLevel;
+			obj.top  = (obj.top  - canvas.offset().top)  / zoomLevel;
+			_Schema.nodePositions[type] = obj;
 		});
+
+		LSWrapper.setItem(schemaPositionsKey, _Schema.nodePositions);
 	},
 	clearPositions: function() {
 		// clear positions of stored schema nodes to improve automatic layout
 		// to be done...
-		_Dashboard.clearLocalStorageOnServer();
-	},
-	getPosition: function(type) {
-		var n = JSON.parse(LSWrapper.getItem(type + localStorageSuffix + 'node-position'));
-		return n ? n.position : undefined;
+
+		LSWrapper.removeItem(schemaPositionsKey);
 	},
 	init: function(scrollPosition) {
 
@@ -472,7 +473,37 @@ var _Schema = {
 				var hierarchy = {};
 				var x=0, y=0;
 
-				$.each(data.result, function(i, entity) {
+				_Schema.nodePositions = LSWrapper.getItem(schemaPositionsKey);
+				if (!_Schema.nodePositions) {
+
+					var nodePositions = {};
+
+					// positions are stored the 'old' way => convert to the 'new' way
+					data.result.map(function(entity) {
+						return entity.name;
+					}).forEach(function(typeName) {
+
+						var nodePos = JSON.parse(LSWrapper.getItem(typeName + localStorageSuffix + 'node-position'));
+						if (nodePos) {
+							nodePositions[typeName] = nodePos.position;
+
+							LSWrapper.removeItem(typeName + localStorageSuffix + 'node-position');
+						}
+					});
+
+					_Schema.nodePositions = nodePositions;
+					LSWrapper.setItem(schemaPositionsKey, _Schema.nodePositions);
+
+					// After we have converted all types we try to find *all* outdated type positions and delete them
+					Object.keys(JSON.parse(LSWrapper.getAsJSON())).forEach(function(key) {
+
+						if (key.endsWith('node-position')) {
+							LSWrapper.removeItem(key);
+						}
+					});
+				}
+
+				data.result.forEach(function(entity) {
 
 					var level   = 0;
 					var outs    = entity.relatedTo.length;
@@ -501,9 +532,9 @@ var _Schema = {
 					hierarchy[level].push(entity);
 				});
 
-				$.each(hierarchy, function(i, list) {
+				Object.keys(hierarchy).forEach(function(key) {
 
-					$.each(list, function(j, entity) {
+					hierarchy[key].forEach(function(entity) {
 
 						if (hiddenSchemaNodes.length > 0 && hiddenSchemaNodes.indexOf(entity.id) > -1) { return; }
 
@@ -525,13 +556,7 @@ var _Schema = {
 							node.children('b').on('click', function() {
 								_Schema.makeAttrEditable(node, 'name');
 							});
-						}
 
-						node.on('mousedown', function() {
-							node.css({zIndex: ++maxZ});
-						});
-
-						if (!isBuiltinType) {
 							node.children('.delete').on('click', function() {
 								Structr.confirmation('<h3>Delete schema node \'' + entity.name + '\'?</h3><p>This will delete all incoming and outgoing schema relationships as well, but no data will be removed.</p>',
 										function() {
@@ -543,6 +568,10 @@ var _Schema = {
 							});
 						}
 
+						node.on('mousedown', function() {
+							node.css({zIndex: ++maxZ});
+						});
+
 						var calculatedX = (x * 300) + ((y % 2) * 150) + 40;
 						if (calculatedX > 1500) {
 							y++;
@@ -550,7 +579,7 @@ var _Schema = {
 							calculatedX = (x * 300) + ((y % 2) * 150) + 40;
 						}
 						var calculatedY = (y * 150) + 50;
-						var storedPosition = _Schema.getPosition(entity.name);
+						var storedPosition = _Schema.nodePositions[entity.name];
 						// if there is an overlap, invalidate stored position
 						if (_Schema.overlapsExistingNodes(storedPosition)) {
 							storedPosition = null;
@@ -576,20 +605,16 @@ var _Schema = {
 						});
 
 						nodes[entity.id + '_top'] = instance.addEndpoint(id, {
-							//anchor: [ "Perimeter", { shape: "Square" } ],
 							anchor: "Top",
 							maxConnections: -1,
-							//isSource: true,
 							isTarget: true,
 							deleteEndpointsOnDetach: false
 						});
 						nodes[entity.id + '_bottom'] = instance.addEndpoint(id, {
-							//anchor: [ "Perimeter", { shape: "Square" } ],
 							anchor: "Bottom",
 							maxConnections: -1,
 							isSource: true,
 							deleteEndpointsOnDetach: false
-									//isTarget: true
 						});
 
 						instance.draggable(id, {
@@ -647,7 +672,7 @@ var _Schema = {
 					x = 0;
 				});
 
-				if (callback) {
+				if (typeof callback === 'function') {
 					callback();
 				}
 
@@ -3012,27 +3037,11 @@ var _Schema = {
 
 			if (fileName && fileName.length) {
 
-				var url = rootUrl + 'schema_nodes';
-				$.ajax({
-					url: url,
-					dataType: 'json',
-					contentType: 'application/json; charset=utf-8',
-					success: function(data) {
-						var res = {};
-						data.result.forEach(function (entity, idx) {
-							var pos = _Schema.getPosition(entity.name);
-							if (pos) {
-								res[entity.name] = {position: pos};
-							}
-						});
+				Command.layouts('add', fileName, JSON.stringify(_Schema.nodePositions), function() {
+					updateLayoutSelector();
+					$('#save-layout-filename').val('');
 
-						Command.layouts('add', fileName, JSON.stringify(res), function() {
-							refresh();
-							$('#save-layout-filename').val('');
-
-							blinkGreen(layoutSelector);
-						});
-					}
+					blinkGreen(layoutSelector);
 				});
 
 			} else {
@@ -3048,26 +3057,34 @@ var _Schema = {
 
 				Command.layouts('get', selectedLayout, null, function(result) {
 
-					var obj;
+					var loadedSchemaPositions;
 
 					try {
-						obj = JSON.parse(result.schemaLayout);
+						loadedSchemaPositions = JSON.parse(result.schemaLayout);
 					} catch (e) {
 						alert ("Unreadable JSON - please make sure you are using JSON exported from this dialog!");
 					}
 
-					if (obj) {
-						Object.keys(obj).forEach(function (type) {
-							LSWrapper.setItem(type + localStorageSuffix + 'node-position', JSON.stringify(obj[type]));
-						});
+					if (loadedSchemaPositions) {
+
+						if (loadedSchemaPositions[Object.keys(loadedSchemaPositions)[0]].position) {
+							// convert old file type
+							var schemaPositions = {};
+							Object.keys(loadedSchemaPositions).forEach(function (type) {
+								schemaPositions[type] = loadedSchemaPositions[type].position;
+							});
+							loadedSchemaPositions = schemaPositions;
+						}
+
+						LSWrapper.setItem(schemaPositionsKey, loadedSchemaPositions);
 
 						$('#schema-graph .node').each(function(i, n) {
 							var node = $(n);
 							var type = node.text();
 
-							if (obj[type]) {
-								node.css('top', obj[type].position.top);
-								node.css('left', obj[type].position.left);
+							if (loadedSchemaPositions[type]) {
+								node.css('top', loadedSchemaPositions[type].top);
+								node.css('left', loadedSchemaPositions[type].left);
 							}
 						});
 
@@ -3075,21 +3092,18 @@ var _Schema = {
 
 						instance.repaintEverything();
 
-						$('#schema-layout-import-textarea').val('Import successful - imported ' + Object.keys(obj).length + ' positions.');
+						$('#schema-layout-import-textarea').val('Import successful - imported ' + Object.keys(loadedSchemaPositions).length + ' positions.');
 
 						window.setTimeout(function () {
 							$('#schema-layout-import-row').hide();
 							$('#schema-layout-import-textarea').val('');
 						}, 2000);
-
 					}
-
 				});
 
 			} else {
 				Structr.error('Please select a schema to load.');
 			}
-
 		});
 
 		$('#delete-layout', layoutsTable).click(function() {
@@ -3099,17 +3113,16 @@ var _Schema = {
 			if (selectedLayout && selectedLayout.length) {
 
 				Command.layouts('delete', selectedLayout, null, function() {
-					refresh();
+					updateLayoutSelector();
 					blinkGreen(layoutSelector);
 				});
 
 			} else {
 				Structr.error('Please select a schema to delete.');
 			}
-
 		});
 
-		var refresh = function () {
+		var updateLayoutSelector = function () {
 
 			Command.layouts('list', '', null, function(result) {
 
@@ -3121,13 +3134,10 @@ var _Schema = {
 					data.layouts.forEach(function(layoutFile) {
 						layoutSelector.append('<option>' + layoutFile.slice(0, -5) + '</option>');
 					});
-
 				});
-
 			});
-
 		};
-		refresh();
+		updateLayoutSelector();
 
 	},
 	openSchemaDisplayOptions: function() {
