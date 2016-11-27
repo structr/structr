@@ -60,13 +60,19 @@ if (browser) {
 			return false;
 		});
 
+		$(document).on('click', '#crudTypeFilterSettings', function(e) {
+			e.stopPropagation();
+		});
+
 		$(document).on('change', '#crudTypeFilterSettings input', function(e) {
 			_Crud.updateTypeList();
 			LSWrapper.setItem(_Crud.displayTypeConfigKey, _Crud.getTypeVisibilityConfig());
 		});
 
-		$(document).on('click', '#crudTypeFilterSettings .close-button', function (e) {
-			_Crud.hideTypeVisibilityConfig();
+		$(document).on('click', function() {
+			if ($('#crudTypeFilterSettings').is(':visible')) {
+				_Crud.hideTypeVisibilityConfig();
+			}
 		});
 
 	});
