@@ -220,7 +220,7 @@ public class LayoutsCommand extends AbstractCommand {
 
 		if (baseDir.exists()) {
 
-			final String[] names = baseDir.list();
+			final String[] names = baseDir.list((File dir, String name) -> (name.endsWith(".json")));
 			if (names != null) {
 
 				fileNames.addAll(Arrays.asList(names));
