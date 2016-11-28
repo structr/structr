@@ -86,8 +86,6 @@ var _Schema = {
 	},
 	clearPositions: function() {
 		// clear positions of stored schema nodes to improve automatic layout
-		// to be done...
-
 		LSWrapper.removeItem(schemaPositionsKey);
 	},
 	init: function(scrollPosition) {
@@ -572,22 +570,40 @@ var _Schema = {
 							node.css({zIndex: ++maxZ});
 						});
 
-						var calculatedX = (x * 300) + ((y % 2) * 150) + 40;
-						if (calculatedX > 1500) {
-							y++;
-							x = 0;
-							calculatedX = (x * 300) + ((y % 2) * 150) + 40;
+						var getX = function() {
+							return (x * 300) + ((y % 2) * 150) + 40;
 						}
-						var calculatedY = (y * 150) + 50;
+						var getY = function() {
+							return (y * 150) + 50;
+						}
+						var calculatePosition = function() {
+							var calculatedX = getX(x);
+							if (calculatedX > 1500) {
+								y++;
+								x = 0;
+								calculatedX = getX(x);
+							}
+							var calculatedY = getY(y);
+							return { left: calculatedX, top: calculatedY };
+						}
+
+
 						var storedPosition = _Schema.nodePositions[entity.name];
-						// if there is an overlap, invalidate stored position
-						if (_Schema.overlapsExistingNodes(storedPosition)) {
-							storedPosition = null;
+						if (!storedPosition) {
+
+							var calculatedPosition = calculatePosition(x, y);
+							var count = 0; // prevent endless looping
+
+							while (_Schema.overlapsExistingNodes(calculatedPosition) && count++ < 1000) {
+
+								x++;
+								calculatedPosition = calculatePosition();
+							}
 						}
 
 						node.offset({
-							left: storedPosition ? storedPosition.left : calculatedX,
-							top: storedPosition ? storedPosition.top : calculatedY
+							left: storedPosition ? storedPosition.left : calculatedPosition.left,
+							top: storedPosition ? storedPosition.top : calculatedPosition.top
 						});
 
 						$('.edit', node).on('click', function(e) {
@@ -3543,7 +3559,7 @@ var _Schema = {
 		var overlaps = false;
 		$('.node.schema.compact').each(function(i, node) {
 			var offset = $(node).offset();
-			overlaps |= (Math.abs(position.left - offset.left) < 100 && Math.abs(position.top - offset.top) < 100);
+			overlaps |= (Math.abs(position.left - offset.left) < 20 && Math.abs(position.top - offset.top) < 20);
 		});
 		return overlaps;
 	}
