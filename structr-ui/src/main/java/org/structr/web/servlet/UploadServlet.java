@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -36,6 +37,7 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
@@ -199,7 +201,6 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 			uploader.setSizeMax(MEGABYTE * Long.parseLong(StructrApp.getConfigurationValue("UploadServlet.maxRequestSize", MAX_REQUEST_SIZE)));
 
 			response.setContentType("text/html");
-			final PrintWriter out = response.getWriter();
 
 			List<FileItem> fileItemsList = uploader.parseRequest(request);
 			Iterator<FileItem> fileItemsIterator = fileItemsList.iterator();
@@ -333,7 +334,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 							} else {
 
 								// Just write out the uuids of the new files
-								out.write(uuid);
+								response.getWriter().write(uuid);
 							}
 
 						}
@@ -346,9 +347,27 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 		} catch (Throwable t) {
 
-			logger.error("Exception while processing request", t);
-			UiAuthenticator.writeInternalServerError(response);
+			final String content;
+			
+			if (t instanceof FrameworkException) {
+				
+				final FrameworkException fex = (FrameworkException) t;
+				logger.error(fex.toString());
+				content = errorPage(fex);
+				
+			} else {
+			
+				logger.error("Exception while processing upload request", t);
+				content = errorPage(t);
+			}
+			
+			try {
+				final ServletOutputStream out = response.getOutputStream();
+				IOUtils.write(content, out);
+			} catch (IOException ex) {
+				logger.error("Could not write to response", ex);
 		}
+	}
 	}
 
 	@Override
@@ -441,5 +460,9 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 			logger.error("Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
+	}
+
+	private String errorPage(final Throwable t) {
+		return "<html><head><title>Error in Upload</title></head><body><h1>Error in Upload</h1><p>" + t.toString() + "</p>\n<!--" + ExceptionUtils.getStackTrace(t) + "--></body></html>";
 	}
 }

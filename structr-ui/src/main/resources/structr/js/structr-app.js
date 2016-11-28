@@ -352,7 +352,7 @@ function StructrApp(baseUrl) {
 
 		});
 		var clazz = btn.attr('data-structr-edit-class');
-		$('<button data-structr-action="save" data-structr-id="' + id
+		$('<button data-structr-action="save:' + type + '" data-structr-id="' + id
 			+ '" data-structr-attributes="' + attrs.join(',')
 			+ '" data-structr-reload="' + reload
 			+ (returnUrl ? '" data-structr-return="' + returnUrl : '')
@@ -429,7 +429,7 @@ function StructrApp(baseUrl) {
 				}
 			}
 		});
-		//console.log('PUT', structrRestUrl + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
+		//console.log(btn, 'PUT', structrRestUrl + (type ? type + '/' : '') + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
 		s.request(btn, 'PUT', structrRestUrl + (type ? type + '/' : '') + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
 	},
 
