@@ -259,7 +259,7 @@ function StructrApp(baseUrl) {
 
 			if (f.type === 'Boolean') {
 				el.html(checkbox(f));
-			} else if (f.type === 'String' || f.type === 'Integer' || f.type === 'Double' || f.type === 'Date') {
+			} else if (f.type === 'String' || f.type === 'Integer' || f.type === 'Long' || f.type === 'Double' || f.type === 'Date') {
 				//console.log(f.format);
 				if (f.format && f.format === 'multi-line') {
 					el.html(textarea(f));
@@ -390,11 +390,11 @@ function StructrApp(baseUrl) {
 
 				s.data[id][key] = (f.val === true ? true : false);
 
-			} else if (f.type === 'Integer') {
+			} else if (f.type === 'Integer' || f.type === 'Long') {
 
 				s.data[id][key] = parseInt(f.val) || f.val;
 
-			} else if (f.type === 'Double' || f.type === 'Float') {
+			} else if (f.type === 'Double') {
 
 				s.data[id][key] = parseFloat(f.val) || f.val;
 
@@ -932,7 +932,6 @@ function StructrApp(baseUrl) {
 					200: function() {
 						if (reload) {
 							redirectOrReload(reload);
-							//window.location.reload();
 						} else {
 							enableButton(btn);
 						}
