@@ -804,9 +804,11 @@ var _Crud = {
 					var resultCount = data.result_count;
 					var pageCount   = data.page_count;
 
-					data.result.forEach(function(preloadedNode) {
-						_Crud.getAndAppendNode(type, id, key, preloadedNode.id, el, preloadedNode);
-					});
+					if (data.result && data.result.length > 0) {
+						data.result.forEach(function(preloadedNode) {
+							_Crud.getAndAppendNode(type, id, key, preloadedNode.id, el, preloadedNode);
+						});
+					}
 
 					var page = 1;
 
