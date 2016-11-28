@@ -23,10 +23,11 @@ import org.python.google.common.io.Files;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyMap;
-import org.structr.dynamic.File;
+import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.common.FileHelper;
+import org.structr.web.entity.FileBase;
 import static org.structr.web.entity.FileBase.checksum;
 import static org.structr.web.entity.FileBase.size;
 import static org.structr.web.entity.FileBase.version;
@@ -41,13 +42,13 @@ public class CreateDeepFileCopyFunction extends Function<Object, Object>{
 
 		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
-			final Object toCopy = sources[0].toString();
-			final Object toBeReplaced = sources[1].toString();
+			final Object toCopy = sources[0];
+			final Object toBeReplaced = sources[1];
 
-                        if(toCopy instanceof File && toBeReplaced instanceof File){
+                        if(toCopy instanceof FileBase && toBeReplaced instanceof FileBase){
 
-                            File nodeToCopy = (File)toCopy;
-                            File nodeToBeReplaced = (File)toBeReplaced;
+                            FileBase nodeToCopy = (FileBase)toCopy;
+                            FileBase nodeToBeReplaced = (FileBase)toBeReplaced;
 
 
                             try {
@@ -68,6 +69,7 @@ public class CreateDeepFileCopyFunction extends Function<Object, Object>{
                                 final PropertyMap changedProperties = new PropertyMap();
                                 changedProperties.put(checksum, FileHelper.getChecksum(fileToBeReplaced));
                                 changedProperties.put(version, 0);
+                                changedProperties.put(new StringProperty("contentType"),nodeToCopy.getProperty(new StringProperty("contentType")));
 
                                 long fileSize = FileHelper.getSize(nodeToBeReplaced);
                                 if (fileSize > 0) {
