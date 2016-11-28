@@ -93,6 +93,7 @@ import org.structr.web.entity.relation.PageLink;
 import org.structr.web.entity.relation.RenderNode;
 import org.structr.web.entity.relation.Sync;
 import org.structr.web.function.AddHeaderFunction;
+import org.structr.web.function.CreateDeepFileCopyFunction;
 import org.structr.web.function.EscapeHtmlFunction;
 import org.structr.web.function.FromJsonFunction;
 import org.structr.web.function.FromXmlFunction;
@@ -223,6 +224,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		Functions.functions.put("set_session_attribute", new SetSessionAttributeFunction());
 		Functions.functions.put("get_session_attribute", new GetSessionAttributeFunction());
 		Functions.functions.put("remove_session_attribute", new RemoveSessionAttributeFunction());
+                Functions.functions.put("create_deep_file_copy", new CreateDeepFileCopyFunction());
+                
 	}
 
 	public static final Property[] rawProps = new Property[] {
