@@ -85,9 +85,9 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> imp
 		if (convertedSource != null) {
 
 			// FIXME: use uuid only here?
-			if (convertedSource instanceof JsonInput) {
+			if (convertedSource instanceof Map) {
 
-				Object value = ((JsonInput)convertedSource).getAttributes().get(propertyKey.jsonName());
+				Object value = ((Map<String, Object>)convertedSource).get(propertyKey.jsonName());
 				if (value != null) {
 
 					result = app.nodeQuery(type).and(propertyKey, value.toString()).getResult();

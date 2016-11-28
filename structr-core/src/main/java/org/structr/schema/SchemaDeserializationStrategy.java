@@ -27,7 +27,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.PropertiesNotFoundToken;
 import org.structr.common.error.TypeToken;
 import org.structr.core.GraphObject;
-import org.structr.core.JsonInput;
 import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -71,12 +70,6 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 
 	@Override
 	public T deserialize(SecurityContext securityContext, Class<T> type, S source, final Object context) throws FrameworkException {
-
-		if (source instanceof JsonInput) {
-
-			PropertyMap attributes = PropertyMap.inputTypeToJavaType(securityContext, type, ((JsonInput)source).getAttributes());
-			return deserialize(securityContext, type, attributes, context);
-		}
 
 		if (source instanceof Map) {
 

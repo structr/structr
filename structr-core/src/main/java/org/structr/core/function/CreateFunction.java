@@ -22,6 +22,7 @@ import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
@@ -37,7 +38,7 @@ public class CreateFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_CREATE    = "Usage: ${create(type, key, value)}. Example: ${create(\"Feedback\", \"text\", this.text)}";
 	public static final String ERROR_MESSAGE_CREATE_JS = "Usage: ${{Structr.create(type, {key: value})}}. Example: ${{Structr.create(\"Feedback\", {text: \"Structr is awesome.\"})}}";
-	
+
 	@Override
 	public String getName() {
 		return "create()";
@@ -68,6 +69,10 @@ public class CreateFunction extends Function<Object, Object> {
 			if (sources.length == 2 && sources[1] instanceof Map) {
 
 				propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]);
+
+			} else if (sources.length == 2 && sources[1] instanceof GraphObjectMap) {
+
+				propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type, ((GraphObjectMap)sources[1]).toMap());
 
 			} else {
 

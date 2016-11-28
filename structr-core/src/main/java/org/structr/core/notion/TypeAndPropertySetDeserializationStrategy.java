@@ -27,7 +27,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.PropertiesNotFoundToken;
 import org.structr.common.error.TypeToken;
 import org.structr.core.GraphObject;
-import org.structr.core.JsonInput;
 import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -70,12 +69,6 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 	@Override
 	public T deserialize(final SecurityContext securityContext, final Class<T> type, final S source, final Object context) throws FrameworkException {
 
-		if (source instanceof JsonInput) {
-
-			PropertyMap attributes = PropertyMap.inputTypeToJavaType(securityContext, type, ((JsonInput)source).getAttributes());
-			return deserialize(securityContext, type, attributes);
-		}
-
 		if (source instanceof Map) {
 
 			PropertyMap attributes = PropertyMap.inputTypeToJavaType(securityContext, type, (Map)source);
@@ -87,11 +80,11 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 		}
 
 		if (source != null && source instanceof String && Pattern.matches("[a-fA-F0-9]{32}", (String) source)) {
-			
+
 			return (T) getTypedResult(new Result(StructrApp.getInstance(securityContext).getNodeById((String) source), false), type);
-			
+
 		}
-		
+
 		return null;
 	}
 

@@ -19,13 +19,13 @@
 package org.structr.core.notion;
 
 import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.TypeToken;
 import org.structr.core.GraphObject;
-import org.structr.core.JsonInput;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
@@ -61,9 +61,9 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 
 		if (source != null) {
 
-			if (source instanceof JsonInput) {
+			if (source instanceof Map) {
 
-				final JsonInput properties = (JsonInput) source;
+				final Map<String, Object> properties = (Map<String, Object>) source;
 				Class<T> concreteType = type;
 
 				if (concreteType != null && concreteType.isInterface()) {
@@ -82,7 +82,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 					}
 				}
 
-				final PropertyMap map      = PropertyMap.inputTypeToJavaType(securityContext, concreteType, properties.getAttributes());
+				final PropertyMap map      = PropertyMap.inputTypeToJavaType(securityContext, concreteType, properties);
 				T relatedNode              = null;
 
 				// If property map contains the uuid, search only for uuid

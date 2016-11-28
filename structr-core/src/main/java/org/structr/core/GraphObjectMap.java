@@ -20,8 +20,10 @@ package org.structr.core;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
@@ -155,6 +157,28 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	@Override
 	public boolean isValid(final ErrorBuffer errorBuffer) {
 		return true;
+	}
+
+	public Map<String, Object> toMap() {
+
+		final Map<String, Object> newMap = new LinkedHashMap<>();
+
+		for (final Entry<PropertyKey, Object> entry : properties.entrySet()) {
+
+			final PropertyKey key = entry.getKey();
+			final Object value    = entry.getValue();
+
+			if (value instanceof GraphObjectMap) {
+
+				newMap.put(key.jsonName(), ((GraphObjectMap)value).toMap());
+
+			} else {
+
+				newMap.put(key.jsonName(), value);
+			}
+		}
+
+		return newMap;
 	}
 
 	// ----- interface map -----
