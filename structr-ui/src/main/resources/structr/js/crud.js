@@ -334,6 +334,7 @@ var _Crud = {
 		});
 
 		_Crud.highlightCurrentType(_Crud.type);
+		_Crud.filterTypes($('#crudTypesSearch').val().toLowerCase());
 		_Crud.resize();
 	},
 	loadingMessageTimeout: undefined,
