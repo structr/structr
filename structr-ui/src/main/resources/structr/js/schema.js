@@ -582,6 +582,7 @@ var _Schema = {
 						var storedPosition = _Schema.nodePositions[entity.name];
 						// if there is an overlap, invalidate stored position
 						if (_Schema.overlapsExistingNodes(storedPosition)) {
+							console.log('Schema Node overlaps with at least one other node, resetting position: ', entity.name);
 							storedPosition = null;
 						}
 
