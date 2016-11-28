@@ -257,6 +257,7 @@ var _Icons = {
 	star_delete_icon: 'icon/star_delete.png',
 	image_icon: 'icon/image.png',
 	arrow_up_down: 'icon/arrow_up_down.png',
+	floppy_icon: 'icon/disk.png',
 
 
 	getImageIcon: function(image) {

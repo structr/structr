@@ -3038,15 +3038,10 @@ var _Schema = {
 		dialogText.append('<h2 class="dialogTitle">Layout Tools</h2>');
 		dialogText.append('<table id="layout-tools-table"></table>');
 		var layoutsTable = $('#layout-tools-table');
-		layoutsTable.append('<tr><td><button id="save-layout-to-database"><img src="' + _Icons.database_icon + '"> Save Schema Layout</button></td><td><label for"save-layout">Save current positions to backend (for your user account only)</label></td></tr>');
-		layoutsTable.append('<tr><td><input id="save-layout-filename" placeholder="Enter name for layout"><button id="save-layout-file">Save Layout</button></td><td><label for"export-layout">Save current positions to backend (for every user to load)</label></td></tr>');
-		layoutsTable.append('<tr><td><select id="saved-layout-selector"></select><button id="apply-layout"><img src="' + _Icons.wand_icon + '"> Apply</button><button id="delete-layout"><img src="' + _Icons.delete_icon + '"> Delete</button></td><td><label for"import-layout">Load or delete stored layouts.</label></td></tr>');
+		layoutsTable.append('<tr><td><input id="save-layout-filename" placeholder="Enter name for layout"><button id="save-layout-file"><img src="' + _Icons.floppy_icon + '"> Save Layout</button></td><td><label for"export-layout">Save current positions to backend (for every user to load)</label></td></tr>');
+		layoutsTable.append('<tr><td><select id="saved-layout-selector"></select><br><button id="apply-layout"><img src="' + _Icons.wand_icon + '"> Apply</button><button id="download-layout"><img src="' + _Icons.pull_file_icon + '"> Download</button><button id="delete-layout"><img src="' + _Icons.delete_icon + '"> Delete</button></td><td><label for"import-layout">Load or delete stored layouts.</label></td></tr>');
 
 		var layoutSelector = $('#saved-layout-selector');
-
-		$('#save-layout-to-database', layoutsTable).click(function() {
-			Structr.saveLocalStorage();
-		});
 
 		$('#save-layout-file', layoutsTable).click(function() {
 			var fileName = $('#save-layout-filename').val().replaceAll(/[^\w_\-\. ]+/, '-');
@@ -3119,6 +3114,31 @@ var _Schema = {
 
 			} else {
 				Structr.error('Please select a schema to load.');
+			}
+		});
+
+		$('#download-layout').click(function () {
+
+			var selectedLayout = layoutSelector.val();
+
+			if (selectedLayout && selectedLayout.length) {
+
+				Command.layouts('get', selectedLayout, null, function(result) {
+
+					var element = document.createElement('a');
+					element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(result.schemaLayout));
+					element.setAttribute('download', selectedLayout + '.json');
+
+					element.style.display = 'none';
+					document.body.appendChild(element);
+
+					element.click();
+					document.body.removeChild(element);
+
+				});
+
+			} else {
+				Structr.error('Please select a schema to download.');
 			}
 		});
 
