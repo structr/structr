@@ -105,6 +105,7 @@ function StructrApp(baseUrl) {
 			e.preventDefault();
 			e.stopPropagation();
 			var btn = $(this);
+			var enableBtnFunction = function () { enableButton(btn); };
 			disableButton(btn);
 			s.btnLabel = s.btnLabel || btn.text();
 			var a = btn.attr('data-structr-action').split(':');
@@ -122,12 +123,10 @@ function StructrApp(baseUrl) {
 
 			if (action === 'create') {
 				var data = s.collectData(btn, id, attrs, type, suffix);
-				s.create(btn, type, data, reload, returnUrl, appendId, function() {enableButton(btn);}, function() {enableButton(btn);});
+				s.create(btn, type, data, reload, returnUrl, appendId, enableBtnFunction, enableBtnFunction);
 
 			} else if (action === 'save') {
-				s.saveAction(btn, id, attrs, type, suffix, reload, returnUrl, 'Successfully updated ' + id, 'Could not update ' + id, function() {
-					enableButton(btn);
-				}, function() {
+				s.saveAction(btn, id, attrs, type, suffix, reload, returnUrl, 'Successfully updated ' + id, 'Could not update ' + id, enableBtnFunction, function() {
 					s.cancelEditAction(btn, id, attrs, type, suffix, reload, returnUrl);
 				});
 
@@ -139,23 +138,23 @@ function StructrApp(baseUrl) {
 
 			} else if (action === 'delete') {
 				var f = s.field($('[data-structr-attr="name"]', container));
-				s.del(btn, id, type, btn.attr('data-structr-confirm') === 'true', reload, returnUrl, f ? f.val : undefined);
+				s.del(btn, id, type, (btn.attr('data-structr-confirm') === 'true'), reload, returnUrl, (f ? f.val : undefined));
 
 			} else if (action === 'login') {
-				s.loginAction(btn, id, attrs, reload, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn);});
+				s.loginAction(btn, id, attrs, reload, returnUrl, enableBtnFunction, enableBtnFunction);
 
 			} else if (action === 'logout') {
-				s.logoutAction(btn, id, attrs, reload, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn);});
+				s.logoutAction(btn, id, attrs, reload, returnUrl, enableBtnFunction, enableBtnFunction);
 
 			} else if (action === 'registration') {
-				s.registrationAction(btn, id, attrs, reload, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn);});
+				s.registrationAction(btn, id, attrs, reload, returnUrl, enableBtnFunction, enableBtnFunction);
 
 			} else if (action === 'reset-password') {
-				s.resetPasswordAction(btn, id, attrs, reload, returnUrl, function() {enableButton(btn);}, function() {enableButton(btn);});
+				s.resetPasswordAction(btn, id, attrs, reload, returnUrl, enableBtnFunction, enableBtnFunction);
 
 			} else {
 				var data = s.collectData(btn, id, attrs, type, suffix);
-				s.customAction(btn, id, type, btn.attr('data-structr-confirm') === 'true', action, data, reload, returnUrl, appendId, function() {enableButton(btn);}, function() {enableButton(btn);});
+				s.customAction(btn, id, type, (btn.attr('data-structr-confirm') === 'true'), action, data, reload, returnUrl, appendId, enableBtnFunction, enableBtnFunction);
 			}
 		});
 	},
@@ -361,7 +360,7 @@ function StructrApp(baseUrl) {
 		if (!s.data[id]) s.data[id] = {};
 		$.each(attrs, function(i, key) {
 
-			var inp = s.getPossibleFields(s.container(btn, id), suffix, type, key, 'name');
+			var inp = s.getPossibleFields(container, suffix, type, key, 'name');
 			var f = s.field(inp);
 			if (!f) return;
 
@@ -425,9 +424,9 @@ function StructrApp(baseUrl) {
 		if (reload) {
 			redirectOrReload(reload, returnUrl);
 		} else {
-			var container = $('[data-structr-id="' + id + '"]');
+			var container = s.container(btn, id);
 			$.each(attrs, function(i, key) {
-				var inp = s.getPossibleFields(s.container(btn, id), suffix, type, key, 'name');
+				var inp = s.getPossibleFields(container, suffix, type, key, 'name');
 				var f = s.field(inp);
 				var href = inp.attr('data-structr-href');
 				var anchor = inp.parent('a');
@@ -472,8 +471,9 @@ function StructrApp(baseUrl) {
 			$('span', msgBox).remove();
 		}
 
-		var btnText = btn.text();
-		disableButton(btn, 'Checking...');
+		var oldBtnText = disableButton(btn, 'Checking...');
+
+		var app = this;
 
 		$.ajax({
 			type: 'POST',
@@ -487,14 +487,9 @@ function StructrApp(baseUrl) {
 					redirectOrReload(reload, returnUrl);
 				},
 				401: function() {
-					if (msgBox && msgBox.length) {
-						$('#msg').append('<span>Wrong username or password!</span>');
-						$('#msg span').delay(1000).fadeOut(1000);
-					} else {
-						btn.text('Wrong username or password!');
-						window.setTimeout(function() { btn.text(btnText); }, 1000);
-					}
-					enableButton(btn);
+					app.feedbackAction(msgBox, 'Wrong username or password!', 1000, btn, true, function () {
+						btn.text(oldBtnText);
+					});
 				}
 			}
 		});
@@ -517,24 +512,17 @@ function StructrApp(baseUrl) {
 	},
 	this.registrationAction = function(btn, id, attrs, reload, returnUrl) {
 
-		var data = {};
-
-		if (attrs && attrs.length) {
-			attrs.forEach(function(attr) {
-				data[attr] = $('[data-structr-name="' + attr + '"]').val();
-			});
-		}
+		var data = this.collectValues(attrs);
 
 		var msgBox = $('#msg');
 		if (msgBox && msgBox.length) {
 			$('span', msgBox).remove();
 		}
 
-		var btnText = btn.text();
-
-		disableButton(btn, 'Processing...');
-
+		var oldBtnText = disableButton(btn, 'Processing...');
 		var successText = 'Thanks! Please check your inbox.';
+
+		var app = this;
 
 		$.ajax({
 			type: 'POST',
@@ -544,56 +532,40 @@ function StructrApp(baseUrl) {
 			data: JSON.stringify(data),
 			statusCode: {
 				200: function() {
-					if (msgBox && msgBox.length) {
-						$('#msg').append('<span>' + successText + '</span>');
-						$('#msg span').delay(5000).fadeOut(5000);
-					} else {
-						btn.text(successText);
-						window.setTimeout(function() { enableButton(btn); btn.text(btnText); redirectOrReload(reload); }, 5000);
-					}
+					app.feedbackAction(msgBox, successText, 5000, btn, false, function () {
+						enableButton(btn);
+						btn.text(oldBtnText);
+						redirectOrReload(reload);
+					});
 				},
 				201: function() {
-					if (msgBox && msgBox.length) {
-						$('#msg').append('<span>' + successText + '</span>');
-						$('#msg span').delay(5000).fadeOut(5000);
-					} else {
-						btn.text(successText);
-						window.setTimeout(function() { enableButton(btn); btn.text(btnText); redirectOrReload(reload); }, 5000);
-					}
+					app.feedbackAction(msgBox, successText, 5000, btn, false, function () {
+						enableButton(btn);
+						btn.text(oldBtnText);
+						redirectOrReload(reload);
+					});
 				},
 				400: function() {
-					if (msgBox && msgBox.length) {
-						$('#msg').append('<span>Please enter your e-mail address!</span>');
-						$('#msg span').delay(1000).fadeOut(1000);
-					} else {
-						btn.text('Please enter your e-mail address!');
-						window.setTimeout(function() { btn.text(btnText); }, 1000);
-					}
-					enableButton(btn);
+					app.feedbackAction(msgBox, 'Please enter your e-mail address!', 5000, btn, true, function () {
+						btn.text(oldBtnText);
+					});
 				}
 			}
 		});
 	},
 	this.resetPasswordAction = function(btn, id, attrs, reload, returnUrl) {
 
-		var data = {};
-
-		if (attrs && attrs.length) {
-			attrs.forEach(function(attr) {
-				data[attr] = $('[data-structr-name="' + attr + '"]').val();
-			});
-		}
+		var data = this.collectValues(attrs);
 
 		var msgBox = $('#msg');
 		if (msgBox && msgBox.length) {
 			$('span', msgBox).remove();
 		}
 
-		var btnText = btn.text();
-
-		disableButton(btn, 'Processing...');
-
+		var oldBtnText = disableButton(btn, 'Processing...');
 		var successText = 'Link to reset password sent. Please check your inbox or spam folder.';
+
+		var app = this;
 
 		$.ajax({
 			type: 'POST',
@@ -603,23 +575,16 @@ function StructrApp(baseUrl) {
 			data: JSON.stringify(data),
 			statusCode: {
 				200: function() {
-					if (msgBox && msgBox.length) {
-						$('#msg').append('<span>' + successText + '</span>');
-						$('#msg span').delay(5000).fadeOut(5000);
-					} else {
-						btn.text(successText);
-						window.setTimeout(function() { enableButton(btn); btn.text(btnText); redirectOrReload(reload); }, 5000);
-					}
+					app.feedbackAction(msgBox, successText, 5000, btn, false, function () {
+						enableButton(btn);
+						btn.text(oldBtnText);
+						redirectOrReload(reload);
+					});
 				},
 				400: function() {
-					if (msgBox && msgBox.length) {
-						$('#msg').append('<span>Please enter your e-mail address!</span>');
-						$('#msg span').delay(1000).fadeOut(1000);
-					} else {
-						btn.text('Please enter your e-mail address!');
-						window.setTimeout(function() { btn.text(btnText); }, 1000);
-					}
-					enableButton(btn);
+					app.feedbackAction(msgBox, 'Please enter your e-mail address!', 1000, btn, true, function () {
+						btn.text(oldBtnText);
+					});
 				}
 			}
 		});
@@ -655,7 +620,10 @@ function StructrApp(baseUrl) {
 		var clazz       = el.attr('data-structr-edit-class');
 		var query       = el.attr('data-structr-custom-options-query');
 		var optionsKey  = el.attr('data-structr-options-key');
-		var type        = rawType ? rawType.match(/^\S+/)[0] : 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr'), rawVal = el.attr('data-structr-raw-value');
+		var type        = rawType ? rawType.match(/^\S+/)[0] : 'String';
+		var id          = el.attr('data-structr-id');
+		var key         = el.attr('data-structr-attr');
+		var rawVal      = el.attr('data-structr-raw-value');
 		var placeholder = el.attr('data-structr-placeholder');
 		var format      =  (rawType && rawType.contains(' ')) ? rawType.replace(type + ' ', '') : el.attr('data-structr-format');
 		var val;
@@ -678,8 +646,19 @@ function StructrApp(baseUrl) {
 				val = rawVal || el.html().replace(/<br>/gi, '\n');
 			}
 		}
-		var f = {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal, 'format': format, 'query' : query, 'optionsKey': optionsKey, 'class' : clazz, 'placeholder': placeholder, 'displayVal': displayVal};
-		return f;
+		return {
+			id: id,
+			type: type,
+			key: key,
+			val: val,
+			rawVal: rawVal,
+			format: format,
+			query: query,
+			optionsKey: optionsKey,
+			class: clazz,
+			placeholder: placeholder,
+			displayVal: displayVal
+		};
 	};
 
 	this.create = function(btn, type, data, reload, returnUrl, appendId, successCallback, errorCallback) {
@@ -700,6 +679,14 @@ function StructrApp(baseUrl) {
 
 	this.request = function(btn, method, url, data, reload, returnUrl, appendId, successMsg, errorMsg, onSuccess, onError) {
 		var dataString = JSON.stringify(data);
+
+		var simpleAjaxErrorMessage = function(data, status, xhr) {
+			s.dialog('error', errorMsg + ': ' + data.responseText);
+			if (onError) {
+				onError();
+			}
+		};
+
 		$.ajax({
 			type: method,
 			url: url,
@@ -734,24 +721,9 @@ function StructrApp(baseUrl) {
 						}
 					}
 				},
-				400: function(data, status, xhr) {
-					s.dialog('error', errorMsg + ': ' + data.responseText);
-					if (onError) {
-						onError();
-					}
-				},
-				401: function(data, status, xhr) {
-					s.dialog('error', errorMsg + ': ' + data.responseText);
-					if (onError) {
-						onError();
-					}
-				},
-				403: function(data, status, xhr) {
-					s.dialog('error', errorMsg + ': ' + data.responseText);
-					if (onError) {
-						onError();
-					}
-				},
+				400: simpleAjaxErrorMessage,
+				401: simpleAjaxErrorMessage,
+				403: simpleAjaxErrorMessage,
 				404: function(data, status, xhr) {
 					s.dialog('error', errorMsg + ': ' + data.responseText);
 					if (onError) {
@@ -765,12 +737,7 @@ function StructrApp(baseUrl) {
 						onError();
 					}
 				},
-				500: function(data, status, xhr) {
-					s.dialog('error', errorMsg + ': ' + data.responseText);
-					if (onError) {
-						onError();
-					}
-				}
+				500: simpleAjaxErrorMessage
 			}
 		});
 	},
@@ -890,7 +857,6 @@ function StructrApp(baseUrl) {
 	};
 
 	this.del = function(btn, id, type, conf, reload, returnUrl, name) {
-		//console.log('Delete', type, id, conf, reload);
 		var sure = true;
 		if (conf) {
 			sure = confirm('Are you sure to delete ' + (name ? name : id) + '?');
@@ -997,61 +963,62 @@ function StructrApp(baseUrl) {
 	};
 	this.hideEdit = function(container) {
 
-		// show elements [data-structr-hide="non-edit"]
-		$.each($('[data-structr-hide-id]', container), function() {
-			var id = $(this).attr('data-structr-hide-id');
-			$(this).replaceWith(hideNonEditElements[id]);
-			delete hideNonEditElements[id];
-
-		});
-
-		// hide edit elements
-		$.each($('[data-structr-hide="edit"]', container), function(i, obj) {
-
-			var random = Math.floor(Math.random()*1000000+1);
-
-			hideEditElements[random] = $(obj).clone(true,true);
-			$(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
-		});
+		this.replaceHiddenDivsWithStoredElements($('[data-structr-hide-id]', container), hideNonEditElements);
+		this.replaceElementsWithHiddenDivs($('[data-structr-hide="edit"]', container), hideEditElements);
 
 		$(document).trigger("structr-edit");
 	};
 	this.hideNonEdit = function(container) {
 
-		//first call to hide all non-edit elements
 		if (container === undefined){
 
-			// hide all non-edit elements
-			$.each($('[data-structr-hide="non-edit"]'), function(i, obj) {
-
-				var random = Math.floor(Math.random()*1000000+1);
-
-				hideNonEditElements[random] = $(obj).clone(true,true);
-				$(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
-			});
+			this.replaceElementsWithHiddenDivs($('[data-structr-hide="non-edit"]'), hideNonEditElements);
 
 		} else {
 
-			// show elements [data-structr-hide="edit"]
-			$.each($('[data-structr-hide-id]', container), function() {
-
-				var id = $(this).attr("data-structr-hide-id");
-				$(this).replaceWith(hideEditElements[id]);
-				delete hideNonEditElements[id];
-
-			});
-
-			// hide non-edit elements
-			$.each($('[data-structr-hide="non-edit"]', container), function(i, obj) {
-
-				var random = Math.floor(Math.random()*1000000+1);
-
-				hideNonEditElements[random] = $(obj).clone(true,true);
-				$(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
-
-			});
+			this.replaceHiddenDivsWithStoredElements($('[data-structr-hide-id]', container), hideEditElements);
+			this.replaceElementsWithHiddenDivs($('[data-structr-hide="non-edit"]', container), hideNonEditElements);
 
 		}
+	};
+	this.replaceElementsWithHiddenDivs = function (el, elementStorage) {
+
+		$.each(el, function(i, obj) {
+			var random = Math.floor(Math.random()*1000000+1);
+			elementStorage[random] = $(obj).clone(true,true);
+			$(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
+		});
+	};
+	this.replaceHiddenDivsWithStoredElements = function (el, elementStorage) {
+
+		$.each(el, function() {
+			var id = $(this).attr('data-structr-hide-id');
+			$(this).replaceWith(elementStorage[id]);
+			delete elementStorage[id];
+		});
+	};
+	this.feedbackAction = function (msgBox, messageText, delay, btn, shouldEnableButton, callback) {
+		if (msgBox && msgBox.length) {
+			$('#msg').append('<span>' + messageText + '</span>');
+			$('#msg span').delay(delay).fadeOut(delay);
+		} else {
+			btn.text(messageText);
+			if (typeof callback === "function") {
+				window.setTimeout(callback, delay);
+			}
+		}
+		if (shouldEnableButton) {
+			enableButton(btn);
+		}
+	};
+	this.collectValues = function (attrs) {
+		var data = {};
+		if (attrs && attrs.length) {
+			attrs.forEach(function(attr) {
+				data[attr] = $('[data-structr-name="' + attr + '"]').val();
+			});
+		}
+		return data;
 	};
 }
 function resizeInput(inp) {
@@ -1170,8 +1137,7 @@ function checkbox(f) {
 }
 
 function enumSelect(f) {
-	var inp = '<select data-structr-type="' + f.type + '"' + (f['class'] ? ' data-structr-edit-class="' + f['class'] + '"' : '') + ' data-structr-name="' + f.key + '" data-structr-id="' + f.id + '"></select>';
-	return inp;
+	return '<select data-structr-type="' + f.type + '"' + (f['class'] ? ' data-structr-edit-class="' + f['class'] + '"' : '') + ' data-structr-name="' + f.key + '" data-structr-id="' + f.id + '"></select>';
 }
 
 function singleSelect(f) {
@@ -1218,16 +1184,16 @@ function multiSelect(f) {
 }
 
 function enableButton(btn) {
-	btn.removeClass('disabled');
-	btn.removeAttr('disabled');
+	btn.removeClass('disabled').removeAttr('disabled');
 }
 
 function disableButton(btn, text) {
-	btn.addClass('disabled');
-	btn.attr('disabled', 'disabled');
+	var oldBtnText = btn.text();
+	btn.addClass('disabled').attr('disabled', 'disabled');
 	if (text) {
 		btn.text(text);
 	}
+	return oldBtnText;
 }
 
 function redirectOrReload(reload, returnUrl) {
