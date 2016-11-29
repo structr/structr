@@ -43,7 +43,7 @@ $(function() { $('head').append('<link rel="stylesheet" type="text/css" href="/s
  * This file has to be present in a web page to make Structr widgets work.
  */
 
-var structrRestUrl = '/structr/rest/'; // TODO: Auto-detect base URI
+var structrRestUrl = '/structr/rest/';
 var buttonSelector = '[data-structr-action]';
 var altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 
@@ -56,7 +56,6 @@ $(function() {
 
 	$(window).on('keydown', function(e) {
 		var k = e.which;
-		//console.log('before down', k, altKey, ctrlKey, shiftKey, eKey)
 		if (k === 16)
 			shiftKey = true;
 		if (k === 17)
@@ -65,12 +64,10 @@ $(function() {
 			ctrlKey = true;
 		if (k === 69)
 			eKey = true;
-		//console.log('after down', k, altKey, ctrlKey, shiftKey, eKey)
 	});
 
 	$(window).on('keyup', function(e) {
 		var k = e.which;
-		//console.log('before up', k, altKey, ctrlKey, shiftKey, eKey)
 		if (k === 16)
 			shiftKey = false;
 		if (k === 17)
@@ -79,7 +76,6 @@ $(function() {
 			ctrlKey = false;
 		if (k === 69)
 			eKey = false;
-		//console.log('after up', k, altKey, ctrlKey, shiftKey, eKey)
 	});
 
 });
@@ -131,7 +127,6 @@ function StructrApp(baseUrl) {
 			} else if (action === 'save') {
 				s.saveAction(btn, id, attrs, type, suffix, returnUrl || reload, 'Successfully updated ' + id, 'Could not update ' + id, function() {
 					enableButton(btn);
-					//s.cancelEditAction(btn, id, attrs, suffix, reload);
 				}, function() {
 					s.cancelEditAction(btn, id, attrs, suffix, returnUrl);
 				});
@@ -201,9 +196,9 @@ function StructrApp(baseUrl) {
 	    var form = btn.parents('form');
 	    var container;
 	    if (form.length === 1) {
-		container = form;
+			container = form;
 	    } else {
-		container = btn.parents('[data-structr-id="' + id + '"]');
+			container = btn.parents('[data-structr-id="' + id + '"]');
 	    }
 	    return container;
 	},
@@ -249,7 +244,6 @@ function StructrApp(baseUrl) {
 				});
 				anchor.attr('data-structr-href', href);
 			}
-			//el.html(inputField(id, key, val));
 
 			// don't replace select elements
 			var inp = s.input(el);
@@ -260,7 +254,6 @@ function StructrApp(baseUrl) {
 			if (f.type === 'Boolean') {
 				el.html(checkbox(f));
 			} else if (f.type === 'String' || f.type === 'Integer' || f.type === 'Long' || f.type === 'Double' || f.type === 'Date') {
-				//console.log(f.format);
 				if (f.format && f.format === 'multi-line') {
 					el.html(textarea(f));
 				} else {
@@ -290,11 +283,9 @@ function StructrApp(baseUrl) {
 				}
 			}
 
-			//var el = container.find('[data-structr-attr="' + f.key + '"]');
 			var inp = s.input(el);
 			inp.addClass(f['class']);
 
-			//console.log('editAction: input element', inp);
 			if (f.type !== 'Enum') {
 				resizeInput(inp);
 			}
@@ -307,14 +298,12 @@ function StructrApp(baseUrl) {
 
 			inp.on('keyup', function(e) {
 				if (f.type === 'String') {
-					//console.log('keyup', inp, s.field(inp))
 					s.checkInput(e, s.field(inp), inp);
 				}
 			});
 
 			if (f.type === 'Date') {
 				var dateTimeFormat = f.format ? f.format.split('\'T\'') : 'yyyy-MM-ddTHH:mm:ssZ';
-				//console.log(dateTimeFormat);
 				var dateFormat = dateTimeFormat ? dateTimeFormat[0] : 'yyyy-MM-dd',
 					timeFormat = (dateTimeFormat && dateTimeFormat.length > 1) ? dateTimeFormat[1] : undefined;
 
@@ -330,9 +319,7 @@ function StructrApp(baseUrl) {
 							separator: 'T',
 							onClose: function() {
 								var newValue = input.val();
-								//console.log(newValue, moment(newValue), f.format);//, moment(newValue).formatWithJDF(dateTimeFormat));
 								var formattedValue = moment(newValue).formatWithJDF(dateFormat + 'T' + timeFormat);
-								//input.val(formattedValue);
 							}
 						});
 					} else {
@@ -373,14 +360,12 @@ function StructrApp(baseUrl) {
 			var inp = s.getPossibleFields(s.container(btn, id), suffix, type, key, 'name');
 			var f = s.field(inp);
 			if (!f) return;
-			//console.log('saving', f);
 
 			if (key.contains('.')) {
 				delete s.data[id][key];
 				var prop = key.split('.');
 				var local = prop[0];
 				var related = prop[1];
-				//console.log('related property (key, local, value)', key, local, related, f);
 
 				key = local;
 				s.data[id][local] = {};
@@ -429,7 +414,6 @@ function StructrApp(baseUrl) {
 				}
 			}
 		});
-		//console.log(btn, 'PUT', structrRestUrl + (type ? type + '/' : '') + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
 		s.request(btn, 'PUT', structrRestUrl + (type ? type + '/' : '') + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
 	},
 
@@ -441,9 +425,6 @@ function StructrApp(baseUrl) {
 			$.each(attrs, function(i, key) {
 				var inp = s.getPossibleFields(s.container(btn, id), suffix, type, key, 'name');
 				var f = s.field(inp);
-//                if (inp && inp.is('select')) {
-//                    return;
-//                }
 				var href = inp.attr('data-structr-href');
 				var anchor = inp.parent('a');
 				if (href && anchor.length) {
@@ -453,7 +434,6 @@ function StructrApp(baseUrl) {
 						document.location.href = href;
 					});
 				}
-				//inp.replaceWith(s.data[id][key]);
 				inp.replaceWith(f.displayVal);
 			});
 			// clear data
@@ -639,25 +619,20 @@ function StructrApp(baseUrl) {
 		var el = $(elements[0]);
 		var inp;
 		if (el.is('input') || el.is('textarea') || el.is('select')) {
-			//console.log('el is input or textarea', el);
 			return el;
 		} else {
 			inp = el.children('textarea');
 			if (inp.length) {
-				//console.log('inp is textarea', inp);
 				return inp;
 			} else {
 				inp = el.children('input');
 				if (inp.length) {
-					//console.log('inp is input field', inp);
 					return inp;
 				} else {
 					inp = el.children('select');
 					if (inp.length) {
-						//console.log('inp is select element', inp);
 						return inp;
 					} else {
-						//console.log('no input found');
 						return null;
 					}
 				}
@@ -674,7 +649,6 @@ function StructrApp(baseUrl) {
 		var type        = rawType ? rawType.match(/^\S+/)[0] : 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr'), rawVal = el.attr('data-structr-raw-value');
 		var placeholder = el.attr('data-structr-placeholder');
 		var format      =  (rawType && rawType.contains(' ')) ? rawType.replace(type + ' ', '') : el.attr('data-structr-format');
-		//console.log('field', el, rawType, type, format, query, type, id, key, rawVal);
 		var val;
 		if (type === 'Boolean') {
 			if (el.is('input')) {
@@ -693,27 +667,17 @@ function StructrApp(baseUrl) {
 				}
 			} else {
 				val = rawVal || el.html().replace(/<br>/gi, '\n');
-				//val = rawVal || el.text();
 			}
 		}
 		var f = {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal, 'format': format, 'query' : query, 'optionsKey': optionsKey, 'class' : clazz, 'placeholder': placeholder, 'displayVal': displayVal};
-		//console.log(f);
 		return f;
 	};
 
-	this.getRelatedType = function(type, key, callback) {
-		s.request(null, 'GET', structrRestUrl + '_schema', null, false, false, null, null, function(data) {
-			//console.log(data);
-		});
-	},
-
 	this.create = function(btn, type, data, reload, appendId, successCallback, errorCallback) {
-		//console.log('Create', type, data, reload, successCallback, errorCallback);
 		s.request(btn, 'POST', structrRestUrl + type, data, reload, appendId, 'Successfully created new ' + type, 'Could not create ' + type, successCallback, errorCallback);
 	};
 
 	this.customAction = function(btn, id, type, conf, action, data, reload, appendId, successCallback, errorCallback) {
-		//console.log('Custom action', action, type, data, reload);
 		var sure = true;
 		if (conf) {
 			sure = confirm('Are you sure?');
@@ -727,7 +691,6 @@ function StructrApp(baseUrl) {
 
 	this.request = function(btn, method, url, data, reload, appendId, successMsg, errorMsg, onSuccess, onError) {
 		var dataString = JSON.stringify(data);
-		//console.log(method, url, data, reload, appendId, successMsg, errorMsg, onSuccess, onError);
 		$.ajax({
 			type: method,
 			url: url,
@@ -836,7 +799,6 @@ function StructrApp(baseUrl) {
 			url: structrRestUrl + sourceType + '/' + sourceId + '/ui', method: 'GET', contentType: 'application/json',
 			statusCode: {
 				200: function(data) {
-					//console.log(data.result, data.result[relatedProperty], d);
 
 					if (data.result[relatedProperty] === undefined) {
 						alert('Could not read related property\n\n    ' + sourceType + '.' + relatedProperty + '\n\nMake sure it is contained in the\nentity\'s ui view and readable via REST.');
@@ -894,10 +856,7 @@ function StructrApp(baseUrl) {
 						});
 					}
 
-					//console.log(data.result[relatedProperty], d, JSON.stringify(d));
-
 					$.ajax({
-						//url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'PUT', contentType: 'application/json',
 						url: structrRestUrl + sourceId, method: 'PUT', contentType: 'application/json',
 						data: JSON.stringify(d),
 						statusCode: {
@@ -920,7 +879,6 @@ function StructrApp(baseUrl) {
 	};
 
 	this.del = function(btn, id, type, conf, reload, name) {
-		//console.log('Delete', type, id, conf, reload);
 		var sure = true;
 		if (conf) {
 			sure = confirm('Are you sure to delete ' + (name ? name : id) + '?');
@@ -944,7 +902,6 @@ function StructrApp(baseUrl) {
 	};
 
 	this.save = function(f, b) {
-		//console.log(f, b);
 		var obj = {};
 
 		obj[f.key] = f.val;
@@ -968,8 +925,6 @@ function StructrApp(baseUrl) {
 
 		if (f.type === 'String' && f.format === 'multi-line') {
 			return;
-		} else {
-			//console.log('checkInput', f.type, f.format);
 		}
 
 		if (isTextarea(inp[0])) {
@@ -991,7 +946,7 @@ function StructrApp(baseUrl) {
 
 			}
 
-		} else if (k === 13) {// && shiftKey === true) {
+		} else if (k === 13) {
 
 			// Return key in input field => replace by textarea
 			var parent = inp.parent();
@@ -1021,11 +976,9 @@ function StructrApp(baseUrl) {
 			$('#save_' + id + '_' + key).remove();
 		}
 
-		//(p.length ? p : inp).after('<button class="saveButton" id="save_' + id + '_' + key + '">Save</button>');
 		inp.after('<button id="save_' + id + '_' + key + '">Save</button>');
 		$('#save_' + id + '_' + key).on('click', function() {
 			var btn = $(this), inp = btn.prev();
-			//console.log('append save button', btn, inp);
 			s.save(s.field(inp), btn);
 		});
 
@@ -1091,7 +1044,7 @@ function StructrApp(baseUrl) {
 }
 function resizeInput(inp) {
 
-	var text = inp.val();// console.log(inp, 'value of input', text);
+	var text = inp.val();
 	// don't resize empty input elements with preset size
 	if (!text || (!text.length && inp.attr('size'))) return;
 
@@ -1110,11 +1063,7 @@ function resizeInput(inp) {
 	} else {
 
 		inp.attr('size', text.length + 1);
-
 	}
-	// Focus on last empty field
-//    if (!text || !text.length)
-//        inp.focus();
 }
 
 function urlParam(name) {
@@ -1190,12 +1139,10 @@ function isTextarea(el) {
 }
 
 function textarea(f) {
-	//console.log('rendering textarea', f);
 	return '<textarea data-structr-id="' + f.id + '" data-structr-type="' + f.type + '"' + (f['class'] ? ' data-structr-edit-class="' + f['class'] + '"' : '') + (f.format ? ' data-structr-format="' + f.format + '"' : '') + '" data-structr-name="' + f.key + '">' + f.val + '</textarea>';
 }
 
 function inputField(f) {
-	//console.log('rendering input field  ', f);
 	var size = (f.val ? f.val.length : (f.type && f.type === 'Date' ? 25 : f.key.length));
 	return '<input data-structr-id="' + f.id + '"' + (f['class'] ? ' data-structr-edit-class="' + f['class'] + '"' : '') + (f.format ? ' data-structr-format="' + f.format + '"' : '') + '" data-structr-name="' + f.key + '" data-structr-type="' + f.type + '" type="text" placeholder="' + (f.placeholder ? f.placeholder : '')
 			+ '" value="' + escapeForHtmlAttributes(f.val === 'null' ? '' : f.val)
@@ -1211,7 +1158,6 @@ function checkbox(f) {
 }
 
 function enumSelect(f) {
-	//console.log(f, f.format, f.format.split(','))
 	var inp = '<select data-structr-type="' + f.type + '"' + (f['class'] ? ' data-structr-edit-class="' + f['class'] + '"' : '') + ' data-structr-name="' + f.key + '" data-structr-id="' + f.id + '"></select>';
 	return inp;
 }
