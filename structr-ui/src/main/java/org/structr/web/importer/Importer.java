@@ -169,7 +169,9 @@ public class Importer {
 		try {
 			originalUrl = new URL(this.address);
 
-		} catch (MalformedURLException ex) {}
+		} catch (MalformedURLException ex) {
+			logger.info("Cannot convert '{}' to URL - is the protocol ok? Trying to resume anyway...", this.address);
+		}
 	}
 
 	private void init() {
