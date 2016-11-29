@@ -128,7 +128,7 @@ function StructrApp(baseUrl) {
 				s.saveAction(btn, id, attrs, type, suffix, reload, returnUrl, 'Successfully updated ' + id, 'Could not update ' + id, function() {
 					enableButton(btn);
 				}, function() {
-					s.cancelEditAction(btn, id, attrs, suffix, reload, returnUrl);
+					s.cancelEditAction(btn, id, attrs, type, suffix, reload, returnUrl);
 				});
 
 			} else if (action === 'edit') {
@@ -348,7 +348,11 @@ function StructrApp(baseUrl) {
 		saveButton.prop('class', btn.prop('class')).after(' ');
 		saveButton.addClass(clazz);
 		enableButton(saveButton);
-		btn.text('Cancel').attr('data-structr-action', 'cancel-edit');
+		if (type) {
+			btn.text('Cancel').attr('data-structr-action', 'cancel-edit:' + type);
+		} else {
+			btn.text('Cancel').attr('data-structr-action', 'cancel-edit');
+		}
 		enableButton(btn);
 	},
 
@@ -414,7 +418,6 @@ function StructrApp(baseUrl) {
 				}
 			}
 		});
-		//console.log(btn, 'PUT', structrRestUrl + (type ? type + '/' : '') + id, s.data[id], reload, false, successMsg, errorMsg, onSuccess, onError);
 		s.request(btn, 'PUT', structrRestUrl + (type ? type + '/' : '') + id, s.data[id], reload, returnUrl, false, successMsg, errorMsg, onSuccess, onError);
 	},
 
@@ -438,8 +441,13 @@ function StructrApp(baseUrl) {
 				inp.replaceWith(f.displayVal);
 			});
 			// clear data
-			$('button[data-structr-id="' + id + '"][data-structr-action="save"]').remove();
-			btn.text(s.btnLabel).attr('data-structr-action', 'edit');
+			if (type) {
+				$('button[data-structr-id="' + id + '"][data-structr-action="save:' + type + '"]').remove();
+				btn.text(s.btnLabel).attr('data-structr-action', 'edit:' + type);
+			} else {
+				$('button[data-structr-id="' + id + '"][data-structr-action="save"]').remove();
+				btn.text(s.btnLabel).attr('data-structr-action', 'edit');
+			}
 			enableButton(btn);
 
 			//hide non edit elements and show edit elements
