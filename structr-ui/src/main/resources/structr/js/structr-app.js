@@ -1197,12 +1197,10 @@ function disableButton(btn, text) {
 }
 
 function redirectOrReload(reload, returnUrl) {
-	if (reload) {
-		if (returnUrl) {
-			window.location.href = returnUrl;
-		} else {
-			window.location.reload();
-		}
+	if (returnUrl) {
+		window.location.href = returnUrl;
+	} else if (reload) {
+		window.location.reload();
 	}
 }
 
