@@ -315,11 +315,7 @@ function StructrApp(baseUrl) {
 							// ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
 							dateFormat: 'yy-mm-dd',
 							timeFormat: 'HH:mm:ssz',
-							separator: 'T',
-							onClose: function() {
-								var newValue = input.val();
-								var formattedValue = moment(newValue).formatWithJDF(dateFormat + 'T' + timeFormat);
-							}
+							separator: 'T'
 						});
 					} else {
 						input.datepicker({
