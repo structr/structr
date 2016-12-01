@@ -321,9 +321,11 @@ function StructrApp(baseUrl) {
 						input.datepicker({
 							dateFormat: 'yy-mm-dd',
 							onClose: function() {
-								var newValue = input.val();
-								var formattedValue = moment(newValue).formatWithJDF(dateFormat);
-								input.val(formattedValue);
+								if (typeof moment === "function") {
+									var newValue = input.val();
+									var formattedValue = moment(newValue).formatWithJDF(dateFormat);
+									input.val(formattedValue);
+								}
 							}
 						});
 					}
