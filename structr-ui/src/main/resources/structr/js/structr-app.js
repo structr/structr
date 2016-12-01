@@ -302,34 +302,44 @@ function StructrApp(baseUrl) {
 			});
 
 			if (f.type === 'Date') {
-				var dateTimeFormat = f.format ? f.format.split('\'T\'') : 'yyyy-MM-ddTHH:mm:ssZ';
-				var dateFormat = dateTimeFormat ? dateTimeFormat[0] : 'yyyy-MM-dd',
-					timeFormat = (dateTimeFormat && dateTimeFormat.length > 1) ? dateTimeFormat[1] : undefined;
+				var defaultSettings = true;
+				var dateFormat = 'yy-mm-dd';
+				var targetDateFormat = 'yyyy-MM-dd';
+				var timeFormat = 'HH:mm:ssz';
+
+				if (f.format) {
+					// user-supplied format in attribute "data-structr-format"
+					defaultSettings = false;
+
+					var dateTimeFormat = f.format.split('\'T\'');
+					dateFormat = dateTimeFormat[0];
+					timeFormat = dateTimeFormat[1];
+				}
 
 				inp.on('mouseup', function(event) {
 					event.preventDefault();
 					var input = $(this);
 
-					if (timeFormat) {
+					if (timeFormat && typeof input.datetimepicker === "function") {
 						input.datetimepicker({
-							// ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
-							dateFormat: 'yy-mm-dd',
-							timeFormat: 'HH:mm:ssz',
+							dateFormat: dateFormat,
+							timeFormat: timeFormat,
 							separator: 'T'
 						});
+						input.datetimepicker('show');
 					} else {
 						input.datepicker({
-							dateFormat: 'yy-mm-dd',
+							dateFormat: dateFormat,
 							onClose: function() {
-								if (typeof moment === "function") {
+								if (defaultSettings === true && typeof moment === "function") {
 									var newValue = input.val();
-									var formattedValue = moment(newValue).formatWithJDF(dateFormat);
+									var formattedValue = moment(newValue).formatWithJDF(targetDateFormat);
 									input.val(formattedValue);
 								}
 							}
 						});
+						input.datepicker('show');
 					}
-					input.datetimepicker('show');
 					input.off('mouseup');
 				});
 			}
