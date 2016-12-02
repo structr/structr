@@ -820,12 +820,12 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 			if (returnContent) {
 
-                                if (!(resource instanceof StaticRelationshipResource) && !result.isPrimitiveArray() && !result.isEmpty()) {
+				if (!(resource instanceof StaticRelationshipResource) && !result.isPrimitiveArray() && !result.isEmpty()) {
 
-                                        result.setIsCollection(resource.isCollectionResource());
-                                        result.setIsPrimitiveArray(resource.isPrimitiveArray());
+					result.setIsCollection(resource.isCollectionResource());
+					result.setIsPrimitiveArray(resource.isPrimitiveArray());
 
-                                }
+				}
 
 				PagingHelper.addPagingParameter(result, pageSize, page);
 
