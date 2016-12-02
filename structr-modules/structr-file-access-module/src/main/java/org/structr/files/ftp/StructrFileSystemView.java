@@ -52,17 +52,17 @@ public class StructrFileSystemView implements FileSystemView {
 	private String workingDir = "/";
 
 	public StructrFileSystemView(final User user) {
-		
+
 		try (Tx tx = StructrApp.getInstance().tx()) {
-		
+
 			org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(AbstractUser.name, user.getName());
-			
+
 			securityContext = SecurityContext.getInstance(structrUser, AccessMode.Backend);
-			
+
 			this.user = new StructrFtpUser(securityContext, structrUser);
-			
+
 			tx.success();
-		
+
 		} catch (FrameworkException fex) {
 			logger.error("Error while initializing file system view", fex);
 		}
@@ -94,7 +94,7 @@ public class StructrFileSystemView implements FileSystemView {
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			AbstractFile structrWorkingDir = FileHelper.getFileByAbsolutePath(securityContext, workingDir);
-			
+
 			tx.success();
 
 			if (structrWorkingDir == null || structrWorkingDir instanceof FileBase) {
@@ -102,11 +102,11 @@ public class StructrFileSystemView implements FileSystemView {
 			}
 
 			return new StructrFtpFolder(securityContext, (Folder) structrWorkingDir);
-			
+
 		} catch (FrameworkException fex) {
 			logger.error("Error in changeWorkingDirectory()", fex);
 		}
-		
+
 		return null;
 	}
 
@@ -114,7 +114,7 @@ public class StructrFileSystemView implements FileSystemView {
 	public boolean changeWorkingDirectory(String requestedPath) throws FtpException {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-			
+
 			final StructrFtpFolder newWorkingDirectory = (StructrFtpFolder) getFile(requestedPath);
 
 			workingDir = newWorkingDirectory.getAbsolutePath();
@@ -131,9 +131,16 @@ public class StructrFileSystemView implements FileSystemView {
 	}
 
 	@Override
-	public FtpFile getFile(String requestedPath) throws FtpException {
+	public FtpFile getFile(final String rawRequestedPath) throws FtpException {
 
-		logger.info("Requested path: {}", requestedPath);
+		String requestedPath = rawRequestedPath;
+
+		// remove trailing slash
+		if (requestedPath.endsWith("/")) {
+			requestedPath = requestedPath.substring(0, requestedPath.length() - 1);
+		}
+
+		logger.info("Requested path: {}, cleaned to {}", rawRequestedPath, requestedPath);
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
