@@ -532,7 +532,7 @@ public class RenderContextTest extends StructrUiTest {
 
 			assertEquals("Invalid POST result", "201",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:status}').status}"));
 			assertEquals("Invalid POST result", "1.0",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:result_count}').body.result_count}"));
-			assertEquals("Invalid POST result", "application/json; charset=utf-8;", Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:content-type}').headers.Content-Type}"));
+			assertEquals("Invalid POST result", "application/json; charset=utf-8", Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:content-type}').headers.Content-Type}"));
 
 			// test POST with invalid name containing curly braces to provoke 422
 			assertEquals("Invalid POST result", "422",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:\"ShouldFail/xyz\"}').status}"));
