@@ -43,6 +43,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.core.script.Scripting;
 import org.structr.schema.NonIndexed;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.HtmlProperty;
@@ -173,8 +174,8 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 	);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, pageId, path, parent, children, childrenIds, owner,
-		restQuery, cypherQuery, xpathQuery, functionQuery, partialUpdateKey, dataKey, syncedNodes, sharedComponent, isDOMNode,
-		renderDetails, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions,
+		restQuery, cypherQuery, xpathQuery, functionQuery, partialUpdateKey, dataKey, syncedNodes, sharedComponent, sharedComponentConfiguration,
+		isDOMNode, renderDetails, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions,
 		_reload, _confirm, _action, _attributes, _attr, _fieldName, _hide, _rawValue, _class, _id, mostUsedTagsProperty
 	);
 
@@ -368,6 +369,13 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 
 							rels.addAll(_syncedNode.getChildRelationships());
 						}
+					}
+
+					// apply configuration for shared component if present
+					final String _sharedComponentConfiguration = getProperty(sharedComponentConfiguration);
+					if (StringUtils.isNotBlank(_sharedComponentConfiguration)) {
+
+						Scripting.evaluate(renderContext, this, "${" + _sharedComponentConfiguration + "}");
 					}
 
 					for (final AbstractRelationship rel : rels) {

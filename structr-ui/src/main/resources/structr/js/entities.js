@@ -576,7 +576,7 @@ var _Entities = {
 							var cell = $('.value.' + key + '_', props);
 
 							if (!typeInfo[key]) {
-								cell.append(formatValueInputField(key, res[key], isPassword, isReadOnly));
+								cell.append(formatValueInputField(key, res[key], isPassword, isReadOnly, isMultiline));
 
 							} else {
 
@@ -589,11 +589,13 @@ var _Entities = {
 								var isPassword   = false;
 								var isRelated    = false;
 								var isCollection = false;
+								var isMultiline  = false;
 
 								if (type) {
 									isBoolean = (type === 'Boolean');
 									isDate = (type === 'Date');
 									isPassword = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
+									isMultiline = (typeInfo[key].format === 'multi-line');
 
 									isRelated = typeInfo[key].relatedType;
 
@@ -692,7 +694,7 @@ var _Entities = {
 										});
 
 									} else {
-										cell.append(formatValueInputField(key, res[key], isPassword, isReadOnly));
+										cell.append(formatValueInputField(key, res[key], isPassword, isReadOnly, isMultiline));
 									}
 
 								}
@@ -702,7 +704,8 @@ var _Entities = {
 						var nullIcon = $('#' + null_prefix + key);
 						nullIcon.on('click', function() {
 							var key = $(this).prop('id').substring(null_prefix.length);
-							var input = $('.' + key + '_').find('input');
+							var input    = $('.' + key + '_').find('input');
+							var textarea = $('.' + key + '_').find('textarea');
 							_Entities.setProperty(id, key, null, false, function(newVal) {
 								if (!newVal) {
 									blinkGreen(cell);
@@ -726,15 +729,15 @@ var _Entities = {
 								}
 								if (!isRelated) {
 									input.val(newVal);
+									textarea.val(newVal);
 								}
 							});
 						});
 					});
 
 					props.append('<tr class="hidden"><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>');
-					$('.props tr td.value input', dialog).each(function(i, v) {
-						_Entities.activateInput(v, id);
-					});
+					$('.props tr td.value input',    dialog).each(function(i, v) { _Entities.activateInput(v, id); });
+					$('.props tr td.value textarea', dialog).each(function(i, v) { _Entities.activateInput(v, id); });
 
 					if (view === '_html_') {
 						$('input[name="_html_' + focusAttr + '"]', props).focus();
@@ -1749,9 +1752,13 @@ function addPrincipal(entity, principal, permissions) {
 	});
 }
 
-function formatValueInputField(key, obj, isPassword, isReadOnly) {
+function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 	if (obj === null) {
-		return '<input name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" ' + (isReadOnly ? 'readonly class="readonly"' : '') + ' value="">';
+		if (isMultiline) {
+			return '<textarea name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" ' + (isReadOnly ? 'readonly class="readonly"' : '') + ' value=""></textarea>';
+		} else {
+			return '<input name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" ' + (isReadOnly ? 'readonly class="readonly"' : '') + ' value="">';
+		}
 	} else if (obj.constructor === Object) {
 		var node = obj;
 		var displayName = _Crud.displayName(node);
@@ -1760,12 +1767,16 @@ function formatValueInputField(key, obj, isPassword, isReadOnly) {
 	} else if (obj.constructor === Array) {
 		var out = '';
 		$(obj).each(function(i, v) {
-			out += formatValueInputField(key, v, isPassword, isReadOnly) + '<br>';
+			out += formatValueInputField(key, v, isPassword, isReadOnly, isMultiline) + '<br>';
 		});
 		return out;
 		//return '<textarea name="' + key + '"' + (isReadOnly?'readonly class="readonly"':'') + '>' + out + '</textarea>';
 	} else {
-		return '<input name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" ' + (isReadOnly ? 'readonly class="readonly"' : '') + 'value="' + escapeForHtmlAttributes(obj) + '">';
+		if (isMultiline) {
+			return '<textarea name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" ' + (isReadOnly ? 'readonly class="readonly"' : '') + '>' + escapeForHtmlAttributes(obj) + '</textarea>';
+		} else {
+			return '<input name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" ' + (isReadOnly ? 'readonly class="readonly"' : '') + 'value="' + escapeForHtmlAttributes(obj) + '">';
+		}
 	}
 }
 
