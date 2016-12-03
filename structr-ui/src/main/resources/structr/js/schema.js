@@ -40,6 +40,7 @@ $(document).ready(function() {
 });
 
 var _Schema = {
+	schemaMethodsHeightsKey: 'structrSchemaMethodsHeights_' + port,
 	schemaLoading: false,
 	schemaLoaded: false,
 	nodePositions: undefined,
@@ -1177,7 +1178,7 @@ var _Schema = {
 		_Schema.sort(entity.schemaMethods);
 
 		$.each(entity.schemaMethods, function(i, method) {
-			_Schema.appendMethod(actionsTable, method);
+			_Schema.appendMethod(actionsTable, method, entity);
 		});
 
 		$('.add-action-attribute', el).on('click', function() {
@@ -1195,8 +1196,8 @@ var _Schema = {
 					+ '</td>'
 					+ '</tr>');
 
-			var tr = $('tr:last-of-type', el);
-			_Schema.makeRowResizable(tr);
+			var tr = $('tr', el).last();
+			_Schema.makeSchemaMethodRowResizable(tr);
 
 			// Intitialize editor(s)
 			$('textarea.property-code', tr).each(function (i, txtarea) {
@@ -1856,10 +1857,10 @@ var _Schema = {
 		});
 
 	},
-	appendMethod: function(el, method) {
+	appendMethod: function(el, method, schemaNode) {
 
 		// append default actions
-		el.append('<tr class="' + method.name + '">'
+		el.append('<tr class="' + method.name + '" data-type-name="' + schemaNode.name + '" data-method-name="' + method.name + '">'
 				+ '<td class="name-col"><div class="abs-pos-helper">'
 					+ '<input size="15" type="text" class="property-name action" value="' + escapeForHtmlAttributes(method.name) + '">'
 					+ '<img alt="Drag to resize" title="Drag to resize" class="resize-handle" src="' + _Icons.arrow_up_down + '">'
@@ -1872,8 +1873,8 @@ var _Schema = {
 					+ '<img alt="Remove" title="Remove method" class="remove-icon remove-action" src="' + _Icons.delete_icon + '">'
 				+ '</td></tr>');
 
-		var tr = $('tr:last-of-type', el);
-		_Schema.makeRowResizable(tr);
+		var tr = $('tr', el).last();
+		_Schema.makeSchemaMethodRowResizable(tr);
 
 		var activate = function() {
 			$('.save-action', tr).removeClass('hidden');
@@ -2110,8 +2111,7 @@ var _Schema = {
 
 								_Schema.unbindEvents(name);
 
-								row.removeClass('new').addClass('action').addClass(name);
-								row = $('.action.' + name, el);
+								row.removeClass('new').addClass('action').addClass(name).data('methodName', name).data('typeName', entity.name);
 
 								$('.create-action', row).remove();
 								$('.remove-action', row).off('click');
@@ -3537,39 +3537,84 @@ var _Schema = {
 					$(cm.getTextArea()).trigger('change');
 				});
 			});
+
+			_Schema.restoreSchemaMethodsRowHeights();
 		});
 	},
 	senseCodeMirrorMode: function (contentText) {
 		return (contentText.substring(0, 1) === "{") ? 'javascript' : 'none';
 	},
-	makeRowResizable: function ($tr) {
-		var schemaMethodDrag = {};
+	makeSchemaMethodRowResizable: function ($tr) {
+		var initialRowHeight;
+		var dragBeginPageY;
 
 		$('.resize-handle', $tr).draggable({
 			axis: 'y',
 			start: function(event, ui) {
-				schemaMethodDrag.initialHeight = $(this).closest('td').height();
-				schemaMethodDrag.begin = event.pageY;
+				initialRowHeight = $(this).closest('td').height();
+				dragBeginPageY = event.pageY;
 			},
 			drag: function(event, ui) {
 				ui.position.top = Math.max( 0, ui.position.top );
 
-				var newHeight = schemaMethodDrag.initialHeight + (event.pageY - schemaMethodDrag.begin);
-
-				var tds = $(this).closest('tr').find('td');
-				var cms = tds.find('.CodeMirror');
-
-				tds.height( newHeight );
-				cms.height( newHeight );
-
-				cms.each(function (idx, cm) {
-					cm.CodeMirror.refresh();
-				});
+				var newHeight = initialRowHeight + (event.pageY - dragBeginPageY);
+				_Schema.setSchemaMethodRowHeight($tr, newHeight);
 			},
-			stop: function() {
+			stop: function(event, ui) {
+				var typeName   = $tr.data('typeName');
+				var methodName = $tr.data('methodName');
+
+				if (typeName && methodName) {
+					var finalHeight = initialRowHeight + (event.pageY - dragBeginPageY);
+
+					var schemaMethodsHeights = LSWrapper.getItem(_Schema.schemaMethodsHeightsKey);
+					if (!schemaMethodsHeights) {
+						schemaMethodsHeights = {};
+					}
+					if (!schemaMethodsHeights[typeName]) {
+						schemaMethodsHeights[typeName] = {};
+					}
+					schemaMethodsHeights[typeName][methodName] = finalHeight;
+					LSWrapper.setItem(_Schema.schemaMethodsHeightsKey, schemaMethodsHeights);
+				}
+
 				$(this).attr('style', null);
 			}
 		});
+
+	},
+	setSchemaMethodRowHeight: function ($tr, height) {
+
+		if (typeof height === 'number') {
+			var tds = $tr.find('td');
+			var cms = tds.find('.CodeMirror');
+
+			tds.height( height );
+			cms.height( height );
+
+			cms.each(function (idx, cm) {
+				cm.CodeMirror.refresh();
+			});
+		} else {
+			console.warn('Stored height is not a number - not using value: ', height);
+		}
+
+	},
+	restoreSchemaMethodsRowHeights: function () {
+
+		var schemaMethodsHeights = LSWrapper.getItem(_Schema.schemaMethodsHeightsKey);
+		if (schemaMethodsHeights) {
+
+			$('#tabView-methods tbody tr').each(function (i, el) {
+				var typeName   = $(el).data('typeName');
+				var methodName = $(el).data('methodName');
+
+				if (schemaMethodsHeights && schemaMethodsHeights[typeName] && schemaMethodsHeights[typeName][methodName]) {
+					_Schema.setSchemaMethodRowHeight($(el), schemaMethodsHeights[typeName][methodName]);
+				}
+			});
+
+		}
 
 	},
 	overlapsExistingNodes: function(position) {
