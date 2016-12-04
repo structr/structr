@@ -346,7 +346,7 @@ function StructrApp(baseUrl) {
 
 		});
 		var clazz = btn.attr('data-structr-edit-class');
-		$('<button data-structr-action="save:' + type + '" data-structr-id="' + id
+		$('<button class="' + clazz + '" data-structr-action="save:' + type + '" data-structr-id="' + id
 			+ '" data-structr-attributes="' + attrs.join(',')
 			+ '" data-structr-reload="' + reload
 			+ (returnUrl ? '" data-structr-return="' + returnUrl : '')
@@ -354,6 +354,7 @@ function StructrApp(baseUrl) {
 		var saveButton = $('button[data-structr-action="save"][data-structr-id="' + id + '"]', container);
 		saveButton.prop('class', btn.prop('class')).after(' ');
 		saveButton.addClass(clazz);
+		btn.addClass(clazz);
 		enableButton(saveButton);
 		if (type) {
 			btn.text('Cancel').attr('data-structr-action', 'cancel-edit:' + type);
