@@ -3039,7 +3039,7 @@ var _Schema = {
 		dialogText.append('<table id="layout-tools-table"></table>');
 		var layoutsTable = $('#layout-tools-table');
 		layoutsTable.append('<tr><td><input id="save-layout-filename" placeholder="Enter name for layout"><button id="save-layout-file"><img src="' + _Icons.floppy_icon + '"> Save Layout</button></td><td><label for"export-layout">Save current positions to backend (for every user to load)</label></td></tr>');
-		layoutsTable.append('<tr><td><select id="saved-layout-selector"></select><br><button id="apply-layout"><img src="' + _Icons.wand_icon + '"> Apply</button><button id="download-layout"><img src="' + _Icons.pull_file_icon + '"> Download</button><button id="delete-layout"><img src="' + _Icons.delete_icon + '"> Delete</button></td><td><label for"import-layout">Load or delete stored layouts.</label></td></tr>');
+		layoutsTable.append('<tr><td><select id="saved-layout-selector"></select><br><button id="apply-layout"><img src="' + _Icons.wand_icon + '"> Apply</button><button id="download-layout"><img src="' + _Icons.pull_file_icon + '"> Download</button><button id="delete-layout"><img src="' + _Icons.delete_icon + '"> Delete</button></td><td><label for"import-layout">Restore, download or delete saved layouts.</label></td></tr>');
 
 		var layoutSelector = $('#saved-layout-selector');
 
