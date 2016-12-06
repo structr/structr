@@ -947,6 +947,8 @@ var _Graph = {
         // getByType: function(type, pageSize, page, sort, order, properties, includeDeletedAndHidden, callback) {
         Command.getSchemaInfo(null, function(nodes) {
 
+			filteredNodeTypes = [];
+
             nodes.sort(function(a, b) {
                 var aName = a.name.toLowerCase();
                 var bName = b.name.toLowerCase();
@@ -964,15 +966,10 @@ var _Graph = {
                 if (!hide && !displayLogTypes    && node.className.startsWith('org.structr.rest.logging.entity')) hide = true;
                 if (!hide && !displayOtherTypes  && node.className.startsWith('org.structr.xmpp')) hide = true;
 
-                //console.log(hide, node.type);
                 if (hide) {
                     filteredNodeTypes.push(node.type);
                     return;
-                } else {
-                    filteredNodeTypes.splice(filteredNodeTypes.indexOf(node.type), 1);
                 }
-
-                //console.log(filteredNodeTypes);
 
                 schemaNodes[node.type] = node;
                 schemaNodesById[node.id] = node;
@@ -1000,7 +997,6 @@ var _Graph = {
                 if (isIn(nodeType, hiddenNodeTypes)) {
                     nt.attr('data-hidden', 1);
                     nt.addClass('hidden-node-type');
-                    console.log('nodeType is hidden', nodeType);
                 }
                 nt.on('mousedown', function() {
                     var nodeTypeEl = $(this);
