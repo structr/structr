@@ -318,11 +318,11 @@ var _Crud = {
 			var type = _Crud.types[typeName];
 
 			var isRelType     = type.isRel;
-			var isDynamicType = !isRelType && type.className.startsWith('org.structr.dynamic');
-			var isCoreType    = !isRelType && type.className.startsWith('org.structr.core.entity');
-			var isHtmlType    = !isRelType && type.className.startsWith('org.structr.web.entity.html');
-			var isUiType      = !isRelType && type.className.startsWith('org.structr.web.entity') && !type.className.startsWith('org.structr.web.entity.html');
-			var isLogType     = !isRelType && type.className.startsWith('org.structr.rest.logging.entity');
+			var isDynamicType = type.className.startsWith('org.structr.dynamic');
+			var isCoreType    = type.className.startsWith('org.structr.core.entity');
+			var isHtmlType    = type.className.startsWith('org.structr.web.entity.html');
+			var isUiType      = type.className.startsWith('org.structr.web.entity') && !type.className.startsWith('org.structr.web.entity.html');
+			var isLogType     = type.className.startsWith('org.structr.rest.logging.entity');
 			var isOtherType   = !(isRelType || isDynamicType || isCoreType || isHtmlType || isUiType || isLogType);
 
 			var hide =	(!typeVisibility.rels && isRelType) || (!typeVisibility.custom && isDynamicType) || (!typeVisibility.core && isCoreType) || (!typeVisibility.html && isHtmlType) ||
