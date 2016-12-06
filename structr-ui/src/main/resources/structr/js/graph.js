@@ -880,7 +880,6 @@ var _Graph = {
 		var nodeTypesBox = $('#node-types');
 		fastRemoveAllChildren(nodeTypesBox[0]);
 
-		// getByType: function(type, pageSize, page, sort, order, properties, includeDeletedAndHidden, callback) {
 		Command.getSchemaInfo(null, function(nodes) {
 
 			filteredNodeTypes = [];
@@ -892,6 +891,10 @@ var _Graph = {
 			});
 
 			nodes.forEach(function(node) {
+
+				if (node.isRel === true) {
+					return;
+				}
 
 				var hide = false;
 
