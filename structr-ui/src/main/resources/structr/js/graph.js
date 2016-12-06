@@ -25,7 +25,7 @@ var activeTabLeftGraph, activeTabRightGraph;
 var queriesSlideout, displaySlideout, filtersSlideout, nodesSlideout, relationshipsSlideout, graph;
 var savedQueriesKey = 'structrSavedQueries_' + port;
 var relTypes = {}, nodeTypes = {}, color = {}, relColors = {}, hasDragged, hasDoubleClicked, clickTimeout, doubleClickTime = 250, refreshTimeout;
-var filteredNodeTypes = [], hiddenNodeTypes = [], hiddenRelTypes = []; //['OWNS', 'SECURITY'];
+var filteredNodeTypes = [], hiddenNodeTypes = [], hiddenRelTypes = [];
 var edgeType = 'curvedArrow';
 var schemaNodes = {}, schemaRelationships = {}, schemaNodesById = {};
 var displayHtmlTypes = false, displayCustomTypes = true, displayCoreTypes = false, displayUiTypes = false, displayLogTypes = false, displayOtherTypes = false;
@@ -39,8 +39,6 @@ var forceAtlas2Config = {
 	iterationsPerRender: 10,
 	barnesHutOptimize: false,
 	slowDown: 2
-	//outboundAttractionDistribution: true
-	//startingIterations: 1000
 };
 
 var animating = false;
@@ -49,6 +47,7 @@ var expanded  = {};
 var count     = 0;
 
 $(document).ready(function() {
+
 	Structr.registerModule('graph', _Graph);
 
 	$(document.body).on('mousedown', function(e) {
@@ -61,9 +60,16 @@ $(document).ready(function() {
 		tmpX = e.clientX;
 		tmpY = e.clientY;
 	});
+
+	$(document).on('change', '#nodeFilters input', function(e) {
+		_Graph.updateNodeTypes();
+		LSWrapper.setItem(_Graph.displayTypeConfigKey, _Graph.getTypeVisibilityConfig());
+	});
+
 });
 
 var _Graph = {
+	displayTypeConfigKey: 'structrGraphDisplayTypes_' + port,
 	init: function() {
 
 		// Colors created with http://paletton.com
@@ -204,41 +210,24 @@ var _Graph = {
 
 		var nodeFilters = $('#nodeFilters', filtersSlideout);
 
-		nodeFilters.append('<div><input type="checkbox" class="toggle-core-types"' + (displayCoreTypes ? ' checked="checked"' : '') + '> Core types</div>');
-		$('.toggle-core-types', nodeFilters).on('click', function() {
-			displayCoreTypes = !displayCoreTypes;
-			_Graph.updateNodeTypes();
-		});
+		nodeFilters.append(
+			'<div><input type="checkbox" id="graphTypeToggleCore"><label for="graphTypeToggleCore"> Core Types</label></div>' +
+			'<div><input type="checkbox" id="graphTypeToggleUi"><label for="graphTypeToggleUi"> UI Types</label></div>' +
+			'<div><input type="checkbox" id="graphTypeToggleCustom"><label for="graphTypeToggleCustom"> Custom Types</label></div>' +
+			'<div><input type="checkbox" id="graphTypeToggleHtml"><label for="graphTypeToggleHtml"> HTML Types</label></div>' +
+			'<div><input type="checkbox" id="graphTypeToggleLog"><label for="graphTypeToggleLog"> Log Types</label></div>' +
+			'<div><input type="checkbox" id="graphTypeToggleOther"><label for="graphTypeToggleOther"> Other Types</label></div>'
+		);
 
-		nodeFilters.append('<div><input type="checkbox" class="toggle-ui-types"' + (displayUiTypes ? ' checked="checked"' : '') + '> UI types</div>');
-		$('.toggle-ui-types', nodeFilters).on('click', function() {
-			displayUiTypes = !displayUiTypes;
-			_Graph.updateNodeTypes();
-		});
+		var savedTypeVisibility = LSWrapper.getItem(_Graph.displayTypeConfigKey) || {};
+		$('#graphTypeToggleRels').prop('checked', (savedTypeVisibility.rels === undefined ? true : savedTypeVisibility.rels));
+		$('#graphTypeToggleCustom').prop('checked', (savedTypeVisibility.custom === undefined ? true : savedTypeVisibility.custom));
+		$('#graphTypeToggleCore').prop('checked', (savedTypeVisibility.core === undefined ? true : savedTypeVisibility.core));
+		$('#graphTypeToggleHtml').prop('checked', (savedTypeVisibility.html === undefined ? true : savedTypeVisibility.html));
+		$('#graphTypeToggleUi').prop('checked', (savedTypeVisibility.ui === undefined ? true : savedTypeVisibility.ui));
+		$('#graphTypeToggleLog').prop('checked', (savedTypeVisibility.log === undefined ? true : savedTypeVisibility.log));
+		$('#graphTypeToggleOther').prop('checked', (savedTypeVisibility.other === undefined ? true : savedTypeVisibility.other));
 
-		nodeFilters.append('<div><input type="checkbox" class="toggle-custom-types"' + (displayCustomTypes ? ' checked="checked"' : '') + '> Custom types</div>');
-		$('.toggle-custom-types', nodeFilters).on('click', function() {
-			displayCustomTypes = !displayCustomTypes;
-			_Graph.updateNodeTypes();
-		});
-
-		nodeFilters.append('<div><input type="checkbox" class="toggle-html-types"' + (displayHtmlTypes ? ' checked="checked"' : '') + '> HTML types</div>');
-		$('.toggle-html-types', nodeFilters).on('click', function() {
-			displayHtmlTypes = !displayHtmlTypes;
-			_Graph.updateNodeTypes();
-		});
-
-		nodeFilters.append('<div><input type="checkbox" class="toggle-log-types"' + (displayLogTypes ? ' checked="checked"' : '') + '> Log types</div>');
-		$('.toggle-log-types', nodeFilters).on('click', function() {
-			displayLogTypes = !displayLogTypes;
-			_Graph.updateNodeTypes();
-		});
-
-		nodeFilters.append('<div><input type="checkbox" class="toggle-other-types"' + (displayOtherTypes ? ' checked="checked"' : '') + '> Other types</div>');
-		$('.toggle-other-types', nodeFilters).on('click', function() {
-			displayOtherTypes = !displayOtherTypes;
-			_Graph.updateNodeTypes();
-		});
 
 		$('#display').append(
 			'<div id="graphDisplayTab">' +
@@ -275,39 +264,37 @@ var _Graph = {
 			graphBrowser.doLayout('fruchtermanReingold', 1);
 		});
 
-		$('#toggleNodeLabels').on('click', function(){
-			if(!nodeLabelsHidden){
+		$('#toggleNodeLabels').on('click', function() {
+			if (!nodeLabelsHidden) {
 				$(this).text('Show node labels');
 				graphBrowser.changeSigmaSetting('drawLabels', false);
 				nodeLabelsHidden = true;
-			}
-			else{
+			} else {
 				$(this).text('Hide node labels');
 				graphBrowser.changeSigmaSetting('drawLabels', true);
 				nodeLabelsHidden = false;
 			}
 		});
 
-		$('#toggleEdgeLabels').on('click', function(){
-			if(!edgeLabelsHidden){
+		$('#toggleEdgeLabels').on('click', function() {
+			if (!edgeLabelsHidden) {
 				$(this).text('Show edge labels');
 				graphBrowser.changeSigmaSetting('drawEdgeLabels', false);
 				edgeLabelsHidden = true;
-			}
-			else{
+			} else {
 				$(this).text('Hide edge labels');
 				graphBrowser.changeSigmaSetting('drawEdgeLabels', true);
 				edgeLabelsHidden = false;
 			}
 		});
 
-		$('#selectionLasso').on('click', function(){
-			if(graphBrowser.selectionToolsActive)
-				return;
-			graphBrowser.activateSelectionLasso(true);
+		$('#selectionLasso').on('click', function() {
+			if (!graphBrowser.selectionToolsActive) {
+				graphBrowser.activateSelectionLasso(true);
+			}
 		});
 
-		$('#newSelectionGroup').on('click', function(){
+		$('#newSelectionGroup').on('click', function() {
 			var newId = graphBrowser.createSelectionGroup();
 			$('#selectiontools-selectionTable-groupSelectionItems').append(
 				'<tr>' +
@@ -321,7 +308,7 @@ var _Graph = {
 			$("input[value='selected." + newId + "']").prop('checked', true);
 		});
 
-		$(document).on('click', ".selectionTableRemoveBtn", function(){
+		$(document).on('click', ".selectionTableRemoveBtn", function() {
 			var val = $(this).val();
 			graphBrowser.dropSelection(val);
 		});
@@ -329,14 +316,13 @@ var _Graph = {
 		$(document).on('click', "input[name='selectedGroup[]']",  function() {
 			var self = $(this);
 
-			if(self.is(':checked')){
+			if (self.is(':checked')) {
 				$("input[name='selectedGroup[]']").prop("checked", false);
 				self.prop("checked", true);
 				var val = self.val().split('.');
 				graphBrowser.activateSelectionTools();
 				graphBrowser.activateSelectionGroup(val[1]);
-			}
-			else {
+			} else {
 				graphBrowser.deactivateSelectionTools();
 				self.prop("checked", false);
 			}
@@ -346,24 +332,14 @@ var _Graph = {
 			var self = $(this);
 			var val = self.val().split('.');
 
-			if(self.is(':checked')){
-				graphBrowser.hideSelectionGroup(val[1], true);
-			}
-			else {
-				graphBrowser.hideSelectionGroup(val[1], false);
-			}
+			graphBrowser.hideSelectionGroup(val[1], self.is(':checked'));
 		});
 
 		$(document).on('click', "input[name='Fixed[]']",  function() {
 			var self = $(this);
 			var val = self.val().split('.');
 
-			if(self.is(':checked')){
-				graphBrowser.fixateSelectionGroup(val[1], true);
-			}
-			else {
-				graphBrowser.fixateSelectionGroup(val[1], false);
-			}
+			graphBrowser.fixateSelectionGroup(val[1], self.is(':checked'));
 		});
 
 		$(document).on('click', '#closeTooltip', function(){
@@ -395,16 +371,17 @@ var _Graph = {
 			var id = self.attr("value");
 			Command.get(id, function (entity) {
 				if(graphBrowser.getNode(entity.id)){
-					_Entities.deleteNode($(this), entity, false, function(entity){
+					_Entities.deleteNode($(this), entity, false, function (entity) {
 						graphBrowser.dropNode(entity);
 						graphBrowser.dataChanged();
 						_Graph.updateRelationshipTypes();
 					});
 				}
 				else{
-					_Entities.deleteEdge($(this), entity, false, function(entity){
-						if(graphBrowser.getEdge(entity))
+					_Entities.deleteEdge($(this), entity, false, function (entity) {
+						if(graphBrowser.getEdge(entity)) {
 							graphBrowser.dropEdge(entity);
+						}
 						graphBrowser.dataChanged();
 						_Graph.updateRelationshipTypes();
 					});
@@ -434,7 +411,6 @@ var _Graph = {
 		nodesSlideout = $('#nodes');
 		relationshipsSlideout = $('#relationships');
 
-		//lsw = queriesSlideout.width() + 12;
 		rsw = nodesSlideout.width() + 12;
 
 		$('.slideOut').on('mouseover', function() {
@@ -544,8 +520,6 @@ var _Graph = {
 		queriesSlideout.append('<div><h3>Saved Queries</h3></div>');
 		_Graph.listSavedQueries();
 
-		//_Graph.restoreSavedQuery(0);
-
 		searchField = $('.search', queriesSlideout);
 		searchField.focus();
 		searchField.keydown(function(e) {
@@ -563,6 +537,7 @@ var _Graph = {
 					searchString = rawSearchString.substring(posOfColon + 1, rawSearchString.length);
 				}
 			}
+
 			if (searchString && searchString.length) {
 				_Graph.activateClearSearchIcon(type);
 			} else {
@@ -570,7 +545,6 @@ var _Graph = {
 			}
 
 			if (searchString && searchString.length && e.which === 13) {
-				//console.log('Search executed', searchString, type);
 				if (!shiftKey) {
 					_Graph.execQuery(searchString, type);
 					return false;
@@ -580,7 +554,6 @@ var _Graph = {
 				_Graph.clearSearch(type);
 			}
 		});
-
 
 		win.off('resize');
 		win.resize(function() {
@@ -592,7 +565,6 @@ var _Graph = {
 	},
 
 	execQuery: function(query, type, params) {
-		//console.log('exec', type, 'query: ', query, ', with parameters.', params);
 		if (query && query.length) {
 			if (type === 'cypher') {
 				Command.cypher(query.replace(/(\r\n|\n|\r)/gm, ''), params, _Graph.processQueryResults);
@@ -606,24 +578,23 @@ var _Graph = {
 		}
 	},
 	processQueryResults: function (results) {
-		//console.log('query results: ', results);
 		var nodes = [];
 		var rels  = [];
 
 		$(results).each(function (i, entity) {
-				if (entity.hasOwnProperty('relType')) {
-						rels.push(entity);
-				} else {
-						nodes.push(entity);
-				}
+			if (entity.hasOwnProperty('relType')) {
+				rels.push(entity);
+			} else {
+				nodes.push(entity);
+			}
 		});
 
 		nodes.forEach(function (entity) {
-				StructrModel.createSearchResult(entity);
+			StructrModel.createSearchResult(entity);
 		});
 
 		rels.forEach(function (entity) {
-				StructrModel.createSearchResult(entity);
+			StructrModel.createSearchResult(entity);
 		});
 
 		graphBrowser.dataChanged();
@@ -639,7 +610,7 @@ var _Graph = {
 			}
 		});
 		if (!exists) {
-			savedQueries.unshift({'type': type, 'query': query, 'params': params});
+			savedQueries.unshift({type: type, query: query, params: params});
 			LSWrapper.setItem(savedQueriesKey, JSON.stringify(savedQueries));
 			Structr.saveLocalStorage();
 		}
@@ -684,11 +655,11 @@ var _Graph = {
 		});
 
 		$('.saved-query').on('click', function() {
-				_Graph.restoreSavedQuery($(this).index());
+			_Graph.restoreSavedQuery($(this).index());
 		});
 
 		$('.replay').on('click', function() {
-				_Graph.restoreSavedQuery($(this).parent().index(), true);
+			_Graph.restoreSavedQuery($(this).parent().index(), true);
 		});
 
 		$('.remove-query').on('click', function() {
@@ -710,12 +681,9 @@ var _Graph = {
 	},
 
 	clearGraph: function() {
-		//console.log('clearGraph');
 		colors = [];
 		relTypes = {};
 		nodeTypes = {};
-		//color = {};
-		//relColors = {};
 		nodeIds = [];
 		relIds = [];
 		hiddenNodeTypes = [];
@@ -726,12 +694,9 @@ var _Graph = {
 	},
 
 	unload: function() {
-		//console.log('unload graph');
 		colors = [];
 		relTypes = {};
 		nodeTypes = {};
-		//color = {};
-		//relColors = {};
 		nodeIds = [];
 		relIds = [];
 		hiddenNodeTypes = [];
@@ -746,18 +711,16 @@ var _Graph = {
 		}
 		nodeIds.push(node.id);
 		_Graph.setNodeColor(node);
-		//console.log('drawing node', node, nodeTypes[node.type], isIn(node.type, hiddenNodeTypes));
+
 		try{
 			var ratio = graphBrowser.getCameraRatio();
 			var newX = 0;
 			var newY = 0;
 
-			if(ratio > 1){
+			if (ratio > 1) {
 				newX = (Math.random(100) / (2*ratio));
 				newY = (Math.random(100) / (2*ratio));
-			}
-
-			if(ratio <= 1){
+			} else {
 				newX = (Math.random(100) / (1/ratio));
 				newY = (Math.random(100) / (1/ratio));
 			}
@@ -775,11 +738,10 @@ var _Graph = {
 			});
 
 			graphBrowser.dataChanged();
-		}
-		catch (error){
+
+		} catch (error) {
 			_Logger.log(_LogType.GRAPH, 'Node: ' + node.id + 'already in the graph');
 		}
-	//_Graph.updateNodeTypes();
 	},
 
 	drawRel: function(r) {
@@ -874,13 +836,27 @@ var _Graph = {
 				}
 		});
 	},
+	getTypeVisibilityConfig: function () {
 
+		return {
+			rels:   $('#graphTypeToggleRels').prop('checked'),
+			custom: $('#graphTypeToggleCustom').prop('checked'),
+			core:   $('#graphTypeToggleCore').prop('checked'),
+			html:   $('#graphTypeToggleHtml').prop('checked'),
+			ui:     $('#graphTypeToggleUi').prop('checked'),
+			log:    $('#graphTypeToggleLog').prop('checked'),
+			other:  $('#graphTypeToggleOther').prop('checked')
+		};
+
+	},
 	updateNodeTypes: function() {
 
 		var nodeTypesBox = $('#node-types');
 		fastRemoveAllChildren(nodeTypesBox[0]);
 
 		Command.getSchemaInfo(null, function(nodes) {
+
+			var typeVisibility = _Graph.getTypeVisibilityConfig();
 
 			filteredNodeTypes = [];
 
@@ -896,14 +872,16 @@ var _Graph = {
 					return;
 				}
 
-				var hide = false;
+				var isRelType     = node.isRel;
+				var isDynamicType = node.className.startsWith('org.structr.dynamic');
+				var isCoreType    = node.className.startsWith('org.structr.core.entity');
+				var isHtmlType    = node.className.startsWith('org.structr.web.entity.html');
+				var isUiType      = node.className.startsWith('org.structr.web.entity') && !node.className.startsWith('org.structr.web.entity.html');
+				var isLogType     = node.className.startsWith('org.structr.rest.logging.entity');
+				var isOtherType   = !(isRelType || isDynamicType || isCoreType || isHtmlType || isUiType || isLogType);
 
-				if (!displayCustomTypes && node.className.startsWith('org.structr.dynamic')) hide = true;
-				if (!hide && !displayCoreTypes   && node.className.startsWith('org.structr.core.entity')) hide = true;
-				if (!hide && !displayHtmlTypes   && node.className.startsWith('org.structr.web.entity.html')) hide = true;
-				if (!hide && !displayUiTypes     && node.className.startsWith('org.structr.web.entity') && !(displayHtmlTypes && node.className.startsWith('org.structr.web.entity.html'))) hide = true;
-				if (!hide && !displayLogTypes    && node.className.startsWith('org.structr.rest.logging.entity')) hide = true;
-				if (!hide && !displayOtherTypes  && node.className.startsWith('org.structr.xmpp')) hide = true;
+				var hide =	(!typeVisibility.rels && isRelType) || (!typeVisibility.custom && isDynamicType) || (!typeVisibility.core && isCoreType) || (!typeVisibility.html && isHtmlType) ||
+							(!typeVisibility.ui && isUiType) || (!typeVisibility.log && isLogType) || (!typeVisibility.other && isOtherType);
 
 				if (hide) {
 					filteredNodeTypes.push(node.type);
@@ -929,7 +907,6 @@ var _Graph = {
 					color[nodeType] = colors[c++];
 				}
 
-				//Object.keys(color).forEach(function (nodeType) {
 				nodeTypesBox.append('<div id="node-type-' + nodeType + '" class="node-type" data-node-type="' + nodeType + '"><input type="checkbox" class="toggle-type" checked="checked"> <div class="circle" style="background-color: ' + color[nodeType] + '"></div>' + nodeType + '</div>');
 				var nt = $('#node-type-' + nodeType, nodeTypesBox);
 
@@ -940,7 +917,6 @@ var _Graph = {
 				nt.on('mousedown', function() {
 					var nodeTypeEl = $(this);
 					nodeTypeEl.css({pointer: 'move'});
-					//_Graph.toggleNodeType(nodeType);
 				}).on('click', function() {
 					// TODO: Query
 				}).on('mouseover', function() {
@@ -978,7 +954,6 @@ var _Graph = {
 	setNodeColor: function(node) {
 		if (!isIn(node.type, Object.keys(color))) {
 			node.color = colors[color++];
-			//console.log(typeDef.type, typeDef.color, color);
 			color[node.type] = node.color;
 		} else {
 			node.color = color[node.type];
@@ -986,10 +961,8 @@ var _Graph = {
 	},
 
 	setRelationshipColor: function(rel) {
-		//console.log('setRelColor', rel);
 		if (!isIn(rel.relType, Object.keys(relColors))) {
 			rel.color = colors[color++];
-			//console.log(typeDef.type, typeDef.color, color);
 			relColors[rel.relType] = rel.color;
 		} else {
 			rel.color = relColors[rel.relType];
@@ -999,7 +972,6 @@ var _Graph = {
 	updateRelationshipTypes: function() {
 		var relTypesBox = $('#relationship-types');
 		relTypesBox.empty();
-		//console.log(relColors);
 		var relTypes = graphBrowser.getCurrentRelTypes();
 		$.each(relTypes, function(i, relType){
 			relTypesBox.append('<div id="rel-type-' + relType + '">' + relType + '</div>');
@@ -1011,7 +983,6 @@ var _Graph = {
 			rt.on('mousedown', function() {
 				var relTypeEl = $(this);
 				relTypeEl.css({pointer: 'move'});
-				//_Graph.toggleNodeType(nodeType);
 			}).on('click', function() {
 				var n = $(this);
 				if (n.attr('data-hidden')) {
@@ -1056,7 +1027,6 @@ var _Graph = {
 	},
 
 	handleDoubleClickNodeEvent: function(clickedNode){
-		var node = clickedNode.data.node;
 		window.clearTimeout(clickTimeout);
 		hasDoubleClicked = true;
 		return false;
@@ -1081,6 +1051,7 @@ var _Graph = {
 			_Entities.showProperties(node);
 			window.clearTimeout(clickTimeout);
 		}, doubleClickTime);
+
 		window.setTimeout(function() {
 			hasDoubleClicked = false;
 		}, doubleClickTime + 10);
@@ -1167,7 +1138,3 @@ var _Graph = {
 		return tooltip;
 	}
 };
-
-function getRandomInt(min, max) {
-	return Math.floor(Math.random() * (max - min)) + min;
-}
