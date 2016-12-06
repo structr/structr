@@ -67,56 +67,19 @@ var _Graph = {
 	init: function() {
 
 		// Colors created with http://paletton.com
-
-		colors.push('#82CE25');
-		colors.push('#1DA353');
-		colors.push('#E24C29');
-		colors.push('#C22363');
-
-		colors.push('#B7ED74');
-		colors.push('#61C68A');
-		colors.push('#FF967D');
-		colors.push('#E26F9E');
-
-		colors.push('#9BDD4A');
-		colors.push('#3BAF6A');
-		colors.push('#F37052');
-		colors.push('#D1467E');
-
-		colors.push('#63A80F');
-		colors.push('#0C853D');
-		colors.push('#B93111');
-		colors.push('#9E0E48');
-
-		colors.push('#498500');
-		colors.push('#00692A');
-		colors.push('#921C00');
-		colors.push('#7D0033');
-
-		colors.push('#019097');
-		colors.push('#103BA8');
-		colors.push('#FAA800');
-		colors.push('#FA7300');
-
-		colors.push('#3FB0B5');
-		colors.push('#5070C1');
-		colors.push('#FFC857');
-		colors.push('#FFA557');
-
-		colors.push('#1CA2A8');
-		colors.push('#2E55B7');
-		colors.push('#FFB929');
-		colors.push('#FF8C29');
-
-		colors.push('#017277');
-		colors.push('#0B2E85');
-		colors.push('#C68500');
-		colors.push('#C65B00');
-
-		colors.push('#00595D');
-		colors.push('#072368');
-		colors.push('#9A6800');
-		colors.push('#9A4700');
+		var palettonColors = [
+			'#82CE25', '#1DA353', '#E24C29', '#C22363',
+			'#B7ED74', '#61C68A', '#FF967D', '#E26F9E',
+			'#9BDD4A', '#3BAF6A', '#F37052', '#D1467E',
+			'#63A80F', '#0C853D', '#B93111', '#9E0E48',
+			'#498500', '#00692A', '#921C00', '#7D0033',
+			'#019097', '#103BA8', '#FAA800', '#FA7300',
+			'#3FB0B5', '#5070C1', '#FFC857', '#FFA557',
+			'#1CA2A8', '#2E55B7', '#FFB929', '#FF8C29',
+			'#017277', '#0B2E85', '#C68500', '#C65B00',
+			'#00595D', '#072368', '#9A6800', '#9A4700'
+		];
+		colors.concat(palettonColors);
 
 		var max = 255, min = 0;
 
@@ -205,12 +168,12 @@ var _Graph = {
 				'fillStyle': 'rgba(129, 206, 37, 0.2)',
 				'cursor': 'crosshair'
 			}
-		}
+		};
 
 		graphBrowser = new GraphBrowser(graphBrowserSettings);
 		graphBrowser.start();
 
-		graphBrowser.bindEvent('clickStage', _Graph.handleClickStageEvent)
+		graphBrowser.bindEvent('clickStage', _Graph.handleClickStageEvent);
 		graphBrowser.bindEvent('clickNode', _Graph.handleClickNodeEvent);
 		graphBrowser.bindEvent('doubleClickNode', _Graph.handleDoubleClickNodeEvent);
 		graphBrowser.bindEvent('drag', _Graph.handleDragNodeEvent);
@@ -232,8 +195,6 @@ var _Graph = {
 			+ '<div class="canvas" id="graph-canvas"></div>'
 			+ '<div id="node-types" class="graph-object-types"></div>'
 			+ '<div id="relationship-types" class="graph-object-types"></div>'
-			//+ '<div id="nodes" class="slideOut slideOutRight"><div class="compTab" id="nodesTab">Nodes</div></div>'
-			//+ '<div id="relationships" class="slideOut slideOutRight"><div class="compTab" id="relationshipsTab">Relationships</div></div>'
 			+ '</div>'
 		);
 
@@ -317,12 +278,12 @@ var _Graph = {
 		$('#toggleNodeLabels').on('click', function(){
 			if(!nodeLabelsHidden){
 				$(this).text('Show node labels');
-				graphBrowser.changeSigmaSetting('drawLabels', false)
+				graphBrowser.changeSigmaSetting('drawLabels', false);
 				nodeLabelsHidden = true;
 			}
 			else{
 				$(this).text('Hide node labels');
-				graphBrowser.changeSigmaSetting('drawLabels', true)
+				graphBrowser.changeSigmaSetting('drawLabels', true);
 				nodeLabelsHidden = false;
 			}
 		});
@@ -330,12 +291,12 @@ var _Graph = {
 		$('#toggleEdgeLabels').on('click', function(){
 			if(!edgeLabelsHidden){
 				$(this).text('Show edge labels');
-				graphBrowser.changeSigmaSetting('drawEdgeLabels', false)
+				graphBrowser.changeSigmaSetting('drawEdgeLabels', false);
 				edgeLabelsHidden = true;
 			}
 			else{
 				$(this).text('Hide edge labels');
-				graphBrowser.changeSigmaSetting('drawEdgeLabels', true)
+				graphBrowser.changeSigmaSetting('drawEdgeLabels', true);
 				edgeLabelsHidden = false;
 			}
 		});
@@ -457,10 +418,7 @@ var _Graph = {
 		graph.droppable({
 			accept: '.node-type',
 			drop: function(e, ui) {
-				var nodeType = ui.helper.attr('data-node-type')
-				var x = ui.offset.left;
-				var y = ui.offset.top;
-				//console.log('Creating node of type', nodeType, x, y);
+				var nodeType = ui.helper.attr('data-node-type');
 				Command.create({
 					type: nodeType
 				}, function(obj) {
@@ -1054,11 +1012,11 @@ var _Graph = {
 			}).on('click', function() {
 				var n = $(this);
 				if (n.attr('data-hidden')) {
-					graphBrowser.hideRelType(relType, false)
+					graphBrowser.hideRelType(relType, false);
 					n.removeAttr('data-hidden', 1);
 					n.removeClass('hidden-node-type');
 				} else {
-					graphBrowser.hideRelType(relType, true)
+					graphBrowser.hideRelType(relType, true);
 					n.attr('data-hidden', 1);
 					n.addClass('hidden-node-type');
 				}
@@ -1082,7 +1040,7 @@ var _Graph = {
 	},
 
 	handleClickStageEvent: function(){
-	  graphBrowser.hideExpandButtons();
+		graphBrowser.hideExpandButtons();
 	},
 
 	handleDragNodeEvent: function(){
