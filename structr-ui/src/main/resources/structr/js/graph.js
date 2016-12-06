@@ -83,7 +83,7 @@ var _Graph = {
 
 		var max = 255, min = 0;
 
-		for (i = 50; i < 999; i++) {
+		for (var i = 50; i < 999; i++) {
 			var col = 'rgb(' + (Math.floor((max - min) * Math.random()) + min) + ',' + (Math.floor((max - min) * Math.random()) + min) + ',' + (Math.floor((max - min) * Math.random()) + min) + ')';
 			colors.push(col);
 		}
