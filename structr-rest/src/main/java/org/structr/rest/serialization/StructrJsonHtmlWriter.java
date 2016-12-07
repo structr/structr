@@ -108,7 +108,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		head.inline("script").attr(new Type("text/javascript")).text("var CollapsibleLists=new function(){function g(b){return function(a){a||(a=window.event);for(a=a.target?a.target:a.srcElement;\"LI\"!=a.nodeName;)a=a.parentNode;a==b&&f(b)}}function f(b){for(var a=b.className.match(/(^| )collapsibleListClosed( |$)/),c=b.getElementsByTagName(\"ul\"),d=0;d<c.length;d++){for(var e=c[d];\"LI\"!=e.nodeName;)e=e.parentNode;e==b&&(c[d].style.display=a?\"block\":\"none\")}b.className=b.className.replace(/(^| )collapsibleList(Open|Closed)( |$)/,\"\");0<c.length&&(b.className+=\" collapsibleList\"+\n" +
 			"(a?\"Open\":\"Closed\"))}this.apply=function(b){for(var a=document.getElementsByTagName(\"ul\"),c=0;c<a.length;c++)if(a[c].className.match(/(^| )collapsibleList( |$)/)&&(this.applyTo(a[c],!0),!b))for(var d=a[c].getElementsByTagName(\"ul\"),e=0;e<d.length;e++)d[e].className+=\" collapsibleList\"};this.applyTo=function(b,a){for(var c=b.getElementsByTagName(\"li\"),d=0;d<c.length;d++)a&&b!=c[d].parentNode||(c[d].addEventListener?c[d].addEventListener(\"click\",g(c[d]),!1):c[d].attachEvent(\"onclick\",g(c[d])),f(c[d]))};\n" +
 			"this.openAll=function(){var b = [].slice.call(document.getElementsByClassName(\"collapsibleListClosed\")); [].forEach.call(b, function (el) { f(el); });};this.closeAll=function(){var b = [].slice.call(document.getElementsByClassName(\"collapsibleListOpen\")); [].forEach.call(b, function (el) { f(el); });}};");
-		
+
 		head.inline("title").text(baseUrl);
 
 		Tag body = doc.block("body").attr(new Onload("CollapsibleLists.apply(true);"));
@@ -116,7 +116,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 		final App app  = StructrApp.getInstance(securityContext);
 		final Tag left = body.block("div").id("left");
-		
+
 		left.inline("button").attr(new Css("collapse right")).attr(new Attr("onclick", "CollapsibleLists.closeAll()")).text(" - ");
 		left.inline("button").attr(new Css("expand right")).attr(new Attr("onclick", "CollapsibleLists.openAll()")).text(" + ");
 
@@ -194,7 +194,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	public RestWriter beginObject(final GraphObject graphObject) throws IOException {
 
 		currentObject = graphObject;
-		
+
 		if (!hasName) {
 			currentElement = currentElement.block(LI);
 		}
@@ -252,13 +252,21 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 		if ("id".equals(lastName)) {
 
-			currentElement.inline("a").css("id").attr(new Href(restPath + "/" + currentObject.getType() + "/" + value + propertyView)).text("\"", value, "\"");
+			if (currentObject == null) {
+
+				currentElement.inline("a").css("id").attr(new Href(restPath + "/" + value + propertyView)).text("\"", value, "\"");
+
+			} else {
+
+				currentElement.inline("a").css("id").attr(new Href(restPath + "/" + currentObject.getType() + "/" + value + propertyView)).text("\"", value, "\"");
+
+			}
 
 		} else {
 
 			value = value.replaceAll("\\\\", "\\\\\\\\");           // escape backslashes in strings
 			value = value.replaceAll("\"", "\\\\\\\"");             // escape quotation marks inside strings
-			
+
 			// Escape for HTML output
 			value = StringUtils.replaceEach(value, new String[]{"&", "<", ">"}, new String[]{"&amp;", "&lt;", "&gt;"});
 
