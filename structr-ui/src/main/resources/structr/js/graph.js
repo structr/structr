@@ -709,7 +709,7 @@ var _Graph = {
 		nodeIds.push(node.id);
 		_Graph.setNodeColor(node);
 
-		try{
+		try {
 			var ratio = graphBrowser.getCameraRatio();
 			var newX = 0;
 			var newY = 0;
@@ -810,7 +810,6 @@ var _Graph = {
 			url: url,
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8',
-			//async: false,
 			statusCode: {
 				200: function(data) {
 					if (callback) {
@@ -828,9 +827,9 @@ var _Graph = {
 				}
 			}
 		}).always(function(data) {
-				if (callback) {
-						callback(data.result[0]);
-				}
+			if (callback) {
+				callback(data.result[0]);
+			}
 		});
 	},
 	getTypeVisibilityConfig: function () {
