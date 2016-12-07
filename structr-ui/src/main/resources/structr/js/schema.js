@@ -3177,14 +3177,11 @@ var _Schema = {
 
 	},
 	openSchemaDisplayOptions: function() {
-		Structr.dialog('Schema Display Options', function() {
-		}, function() {
-		});
+		Structr.dialog('Schema Display Options', function() { }, function() { });
 
 		dialogText.append('<h3>Visibility</h3><table class="props" id="schema-options-table"><tr><th>Type</th><th>Visible <input type="checkbox" id="toggle-all-types"><img class="invert-icon" src="' + _Icons.toggle_icon + '" id="invert-all-types"></button></th></table>');
 		var schemaOptionsTable = $('#schema-options-table');
 
-		// list: function(type, rootOnly, pageSize, page, sort, order, properties, callback)
 		Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', null, function(schemaNodes) {
 			schemaNodes.forEach(function(schemaNode) {
 				schemaOptionsTable.append('<tr><td>' + schemaNode.name + '</td><td><input class="toggle-type" data-structr-id="' + schemaNode.id + '" type="checkbox" ' + (hiddenSchemaNodes.indexOf(schemaNode.id) > -1 ? '' : 'checked') + '></td></tr>');
@@ -3197,7 +3194,7 @@ var _Schema = {
 					_Schema.checkIsHiddenSchemaNode(inp);
 				});
 				_Schema.reload();
-		});
+			});
 
 			$('#invert-all-types', schemaOptionsTable).on('click', function() {
 				$('.toggle-type', schemaOptionsTable).each(function(i, checkbox) {
@@ -3206,10 +3203,6 @@ var _Schema = {
 					_Schema.checkIsHiddenSchemaNode(inp);
 				});
 				_Schema.reload();
-			});
-
-			$('#save-options', schemaOptionsTable).on('click', function() {
-				Structr.saveLocalStorage();
 			});
 
 			// Suppress click action on checkbox, action is triggered by event bound to underlying td element
@@ -3235,7 +3228,6 @@ var _Schema = {
 	},
 	checkIsHiddenSchemaNode: function(inp) {
 		var key = inp.attr('data-structr-id');
-		//console.log(inp, key, inp.is(':checked'));
 		if (!inp.is(':checked')) {
 			if (hiddenSchemaNodes.indexOf(key) === -1) {
 				hiddenSchemaNodes.push(key);

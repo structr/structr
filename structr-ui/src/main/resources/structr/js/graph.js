@@ -352,13 +352,13 @@ var _Graph = {
 			graphBrowser.closeTooltip();
 		});
 
-		$(document).on('click', '#tooltipBtnHide', function(){
+		$(document).on('click', '#tooltipBtnHide', function() {
 			var id = $(this).attr("value");
 			graphBrowser.closeTooltip();
 			graphBrowser.hideNode(id, true);
 		});
 
-		$(document).on('click', '#tooltipBtnDrop', function(){
+		$(document).on('click', '#tooltipBtnDrop', function() {
 			var id = $(this).attr("value");
 			graphBrowser.closeTooltip();
 			graphBrowser.dropNode(id);
@@ -366,19 +366,18 @@ var _Graph = {
 			_Graph.updateRelationshipTypes();
 		});
 
-		$(document).on('click', '#tooltipBtnDel', function(){
-			self = $(this);
+		$(document).on('click', '#tooltipBtnDel', function() {
+			var self = $(this);
 			var id = self.attr("value");
 			Command.get(id, function (entity) {
-				if(graphBrowser.getNode(entity.id)){
-					_Entities.deleteNode($(this), entity, false, function (entity) {
+				if (graphBrowser.getNode(entity.id)) {
+					_Entities.deleteNode(self, entity, false, function (entity) {
 						graphBrowser.dropNode(entity);
 						graphBrowser.dataChanged();
 						_Graph.updateRelationshipTypes();
 					});
-				}
-				else{
-					_Entities.deleteEdge($(this), entity, false, function (entity) {
+				} else {
+					_Entities.deleteEdge(self, entity, false, function (entity) {
 						if(graphBrowser.getEdge(entity)) {
 							graphBrowser.dropEdge(entity);
 						}
@@ -612,7 +611,6 @@ var _Graph = {
 		if (!exists) {
 			savedQueries.unshift({type: type, query: query, params: params});
 			LSWrapper.setItem(savedQueriesKey, JSON.stringify(savedQueries));
-			Structr.saveLocalStorage();
 		}
 	},
 	removeSavedQuery: function(i) {
@@ -620,7 +618,6 @@ var _Graph = {
 		savedQueries.splice(i, 1);
 		LSWrapper.setItem(savedQueriesKey, JSON.stringify(savedQueries));
 		_Graph.listSavedQueries();
-		Structr.saveLocalStorage();
 	},
 	restoreSavedQuery: function(i, exec) {
 		var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
