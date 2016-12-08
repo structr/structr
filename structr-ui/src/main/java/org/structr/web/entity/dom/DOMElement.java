@@ -231,6 +231,14 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 			out.append(name != null ? name : _syncedNode.getUuid());
 			out.append("\"");
 
+			final String configuration = getProperty(DOMNode.sharedComponentConfiguration);
+			if (StringUtils.isNotBlank(configuration)) {
+
+				out.append(" data-structr-meta-shared-component-configuration=\"");
+				out.append(escapeForHtmlAttributes(configuration));
+				out.append("\"");
+			}
+
 			// include data-* attributes in template
 			renderCustomAttributes(out, securityContext, renderContext);
 
