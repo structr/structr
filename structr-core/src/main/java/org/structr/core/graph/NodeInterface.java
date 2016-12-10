@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph;
 
+import java.util.List;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.common.AccessControllable;
@@ -33,6 +34,7 @@ import org.structr.core.entity.OneEndpoint;
 import org.structr.core.entity.OneStartpoint;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.Security;
 import org.structr.core.entity.Source;
 import org.structr.core.entity.Target;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
@@ -40,21 +42,20 @@ import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
+import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 
-/**
- *
- *
- */
 public interface NodeInterface extends GraphObject, Comparable, AccessControllable {
 
 	// properties
-	public static final Property<String>          name     = new StringProperty("name").indexed();
-	public static final Property<Boolean>         deleted  = new BooleanProperty("deleted").indexed();
-	public static final Property<Boolean>         hidden   = new BooleanProperty("hidden").indexed();
+	public static final Property<String>          name               = new StringProperty("name").indexed();
+	public static final Property<Boolean>         deleted            = new BooleanProperty("deleted").indexed();
+	public static final Property<Boolean>         hidden             = new BooleanProperty("hidden").indexed();
 
-	public static final Property<Principal>       owner    = new StartNode<>("owner", PrincipalOwnsNode.class);
-	public static final Property<String>          ownerId  = new EntityIdProperty("ownerId", owner);
+	public static final Property<Principal>       owner              = new StartNode<>("owner", PrincipalOwnsNode.class);
+	public static final Property<String>          ownerId            = new EntityIdProperty("ownerId", owner);
+
+	public static final Property<List<Principal>> grantees           = new StartNodes<>("grantees", Security.class);
 
 	public static final View graphView = new View(NodeInterface.class, View.INTERNAL_GRAPH_VIEW,
 		id, name, type

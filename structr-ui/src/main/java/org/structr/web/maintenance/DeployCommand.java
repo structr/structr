@@ -48,7 +48,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
+import org.structr.core.entity.Security;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
@@ -738,6 +740,36 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putIf(config, "pageCreatesRawData",      node.getProperty(Page.pageCreatesRawData));
 			putIf(config, "basicAuthRealm",          node.getProperty(Page.basicAuthRealm));
 			putIf(config, "enableBasicAuth",         node.getProperty(Page.enableBasicAuth));
+		}
+
+		// export unique name of owner node to pages.json
+		final Principal owner = node.getOwnerNode();
+		if (owner != null) {
+
+			final Map<String, Object> map = new HashMap<>();
+			map.put("name", owner.getName());
+
+			config.put("owner", map);
+		}
+
+		// export security grants
+		final List<Map<String, Object>> grantees = new LinkedList<>();
+		for (final Security security : node.getSecurityRelationships()) {
+
+			if (security != null) {
+
+				final Map<String, Object> grant = new TreeMap<>();
+
+				grant.put("name", security.getSourceNode().getProperty(AbstractNode.name));
+				grant.put("allowed", StringUtils.join(security.getPermissions(), ","));
+
+				grantees.add(grant);
+			}
+		}
+
+		// export non-empty collection only
+		if (!grantees.isEmpty()) {
+			config.put("grantees", grantees);
 		}
 	}
 

@@ -138,12 +138,18 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 		app.delete(node);
 	}
 
-	private PropertyMap getPropertiesForTemplate(final String name) throws FrameworkException {
+	private PropertyMap getPropertiesForTemplate(final String name) {
 
 		final Object data = configuration.get(name);
 		if (data != null && data instanceof Map) {
 
-			return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), DOMNode.class, (Map<String, Object>)data);
+			try {
+
+				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), DOMNode.class, (Map<String, Object>)data);
+
+			} catch (FrameworkException ex) {
+				logger.warn("Unable to resolve properties for template: {}", ex.getMessage());
+			}
 		}
 
 		return new PropertyMap();
@@ -154,11 +160,11 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 		final String templateName = StringUtils.substringBeforeLast(fileName, ".html");
 		final boolean byId        = DeployCommand.isUuid(templateName);
 
-		// don't set template name if template name is a UUID in the deployment
-		final String name              = byId ? null : templateName;
-		final PropertyMap properties   = getPropertiesForTemplate(templateName);
-
 		try (final Tx tx = app.tx(true, false, false)) {
+
+			// don't set template name if template name is a UUID in the deployment
+			final String name              = byId ? null : templateName;
+			final PropertyMap properties   = getPropertiesForTemplate(templateName);
 
 			logger.info("Importing template {} from {}..", new Object[] { templateName, fileName } );
 

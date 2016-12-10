@@ -25,9 +25,11 @@ import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.LinkSource;
@@ -99,6 +101,56 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 		handlers.put("hide", (Page page, DOMNode node, final String parameters) -> {
 			node.setProperties(node.getSecurityContext(), new PropertyMap(DOMNode.hideConditions, parameters));
+		});
+
+		handlers.put("owner", (Page page, DOMNode node, final String parameters) -> {
+
+			final Principal owner = StructrApp.getInstance().nodeQuery(Principal.class).andName(parameters).getFirst();
+			if (owner != null) { // && !owner.equals(page.getOwnerNode())) {
+
+				node.setProperty(AbstractNode.owner, owner);
+			}
+		});
+
+		handlers.put("grant", (Page page, DOMNode node, final String parameters) -> {
+
+			final String[] parts  = parameters.split("[,]+");
+			if (parts.length == 2) {
+
+				final Principal grantee = StructrApp.getInstance().nodeQuery(Principal.class).andName(parts[0]).getFirst();
+				if (grantee != null) {
+
+					for (final char c : parts[1].toCharArray()) {
+
+						switch (c) {
+
+							case 'a':
+								node.grant(Permission.accessControl, grantee);
+								break;
+
+							case 'r':
+								node.grant(Permission.read, grantee);
+								break;
+
+							case 'w':
+								node.grant(Permission.write, grantee);
+								break;
+
+							case 'd':
+								node.grant(Permission.delete, grantee);
+								break;
+
+							default:
+								logger.warn("Invalid @grant permission {}, must be one of [a, r, w, d].", c);
+						}
+					}
+
+				}
+
+			} else {
+
+				logger.warn("Invalid @grant instruction {}, must be like @structr:grant(userName,rw).", parameters);
+			}
 		});
 	}
 

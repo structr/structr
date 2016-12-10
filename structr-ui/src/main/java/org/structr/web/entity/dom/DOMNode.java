@@ -54,6 +54,8 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.Security;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
@@ -617,6 +619,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		getVisibilityInstructions(instructions);
 		getLinkableInstructions(instructions);
+		getSecurityInstructions(instructions);
 
 		if (isContentNode) {
 
@@ -778,6 +781,32 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			return;
+		}
+	}
+
+	private void getSecurityInstructions(final Set<String> instructions) {
+
+		final Principal _owner = getOwnerNode();
+		if (_owner != null) {
+
+			instructions.add("@structr:owner(" + _owner.getProperty(AbstractNode.name) + ")");
+		}
+
+		for (final Security security : getSecurityRelationships()) {
+
+			if (security != null) {
+
+				final Principal grantee = security.getSourceNode();
+				final Set<String> perms = security.getPermissions();
+				final StringBuilder shortPerms = new StringBuilder();
+
+				// first character only
+				for (final String perm : perms) {
+					shortPerms.append(perm.substring(0, 1));
+				}
+
+				instructions.add("@structr:grant(" + grantee.getProperty(AbstractNode.name) + "," + shortPerms.toString() + ")");
+			}
 		}
 	}
 

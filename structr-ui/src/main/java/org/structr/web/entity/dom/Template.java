@@ -58,6 +58,8 @@ public class Template extends Content {
 				out.append(DOMNode.indent(depth, renderContext));
 			}
 
+			renderDeploymentExportComments(out, true);
+
 			out.append("<structr:template src=\"");
 
 			if (_syncedNode != null) {

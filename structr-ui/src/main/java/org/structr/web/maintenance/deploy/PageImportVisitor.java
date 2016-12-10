@@ -96,7 +96,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 			}
 
 		} catch (Throwable t) {
-			
+
 			t.printStackTrace();
 		}
 
@@ -116,18 +116,8 @@ public class PageImportVisitor implements FileVisitor<Path> {
 	}
 
 	// ----- private methods -----
-	private Page getExistingPage(final String name) {
-
-		final App app = StructrApp.getInstance();
-		try (final Tx tx = app.tx(true, false, false)) {
-
-			return app.nodeQuery(Page.class).andName(name).getFirst();
-
-		} catch (FrameworkException fex) {
-			logger.warn("Unable to determine if page {} already exists, ignoring.", name);
-		}
-
-		return null;
+	private Page getExistingPage(final String name) throws FrameworkException {
+		return StructrApp.getInstance().nodeQuery(Page.class).andName(name).getFirst();
 	}
 
 	private void deletePage(final App app, final String name) throws FrameworkException {
@@ -143,13 +133,18 @@ public class PageImportVisitor implements FileVisitor<Path> {
 		}
 	}
 
-	private PropertyMap getPropertiesForPage(final String name) throws FrameworkException {
+	private PropertyMap getPropertiesForPage(final String name) {
 
 		final Object data = pagesConfiguration.get(name);
 		if (data != null && data instanceof Map) {
 
-			return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), Page.class, (Map<String, Object>)data);
+			try {
 
+				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), Page.class, (Map<String, Object>)data);
+
+			} catch (FrameworkException ex) {
+				logger.warn("Unable to resolve properties for page: {}", ex.getMessage());
+			}
 		}
 
 		return null;
@@ -185,11 +180,12 @@ public class PageImportVisitor implements FileVisitor<Path> {
 
 	private void createPage(final Path file, final String fileName) throws IOException, FrameworkException {
 
-		final String name            = StringUtils.substringBeforeLast(fileName, ".html");
-		final PropertyMap properties = getPropertiesForPage(name);
-		final Page existingPage      = getExistingPage(name);
+		final String name = StringUtils.substringBeforeLast(fileName, ".html");
 
 		try (final Tx tx = app.tx(true, false, false)) {
+
+			final PropertyMap properties = getPropertiesForPage(name);
+			final Page existingPage      = getExistingPage(name);
 
 			if (existingPage != null) {
 
@@ -246,12 +242,14 @@ public class PageImportVisitor implements FileVisitor<Path> {
 
 					// parse page
 					final Page newPage = app.create(Page.class, name);
-					importer.createChildNodes(newPage, newPage);
 
 					// store properties from pages.json if present
 					if (properties != null) {
 						newPage.setProperties(securityContext, properties);
 					}
+
+					// add children
+					importer.createChildNodes(newPage, newPage);
 				}
 			}
 

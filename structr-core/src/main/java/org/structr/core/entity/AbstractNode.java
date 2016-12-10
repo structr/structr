@@ -22,6 +22,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -51,6 +52,7 @@ import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.index.Index;
 import org.structr.api.util.FixedSizeCache;
+import org.structr.api.util.Iterables;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.common.CMISExtensionsData;
 import org.structr.cmis.common.StructrItemActions;
@@ -1788,6 +1790,39 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	@Override
 	public final PermissionResolutionMask getPermissionResolutionMask() {
 		return permissionResolutionMask;
+	}
+
+	public List<Security> getSecurityRelationships() {
+
+		final List<Security> grants = Iterables.toList(getIncomingRelationshipsAsSuperUser(Security.class));
+
+		// sort list by principal name (important for diff'able export)
+		Collections.sort(grants, new Comparator<Security>() {
+
+			@Override
+			public int compare(final Security o1, final Security o2) {
+
+				final Principal p1 = o1.getSourceNode();
+				final Principal p2 = o2.getSourceNode();
+				final String n1    = p1 != null ? p1.getProperty(AbstractNode.name) : "empty";
+				final String n2    = p2 != null ? p2.getProperty(AbstractNode.name) : "empty";
+
+				if (n1 != null && n2 != null) {
+					return n1.compareTo(n2);
+
+				} else if (n1 != null) {
+
+					return 1;
+
+				} else if (n2 != null) {
+					return -1;
+				}
+
+				return 0;
+			}
+		});
+
+		return grants;
 	}
 
 	private String getPermissionPropagationRelTypes() {

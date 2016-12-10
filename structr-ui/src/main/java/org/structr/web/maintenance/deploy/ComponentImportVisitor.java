@@ -37,10 +37,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.dom.Template;
@@ -84,6 +82,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 					createComponent(file, fileName);
 
 				} catch (FrameworkException fex) {
+					fex.printStackTrace();
 					logger.warn("Exception while importing shared component {}: {}", new Object[] { name, fex.getMessage() });
 				}
 			}
@@ -150,13 +149,18 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 		app.delete(node);
 	}
 
-	private PropertyMap getPropertiesForComponent(final String name) throws FrameworkException {
+	private PropertyMap getPropertiesForComponent(final String name) {
 
 		final Object data = configuration.get(name);
 		if (data != null && data instanceof Map) {
 
-			return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), DOMNode.class, (Map<String, Object>)data);
+			try {
 
+				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), DOMNode.class, (Map<String, Object>)data);
+
+			} catch (FrameworkException ex) {
+				logger.warn("Unable to resolve properties for shared component: {}", ex.getMessage());
+			}
 		}
 
 		return null;
@@ -179,16 +183,17 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 	private void createComponent(final Path file, final String fileName) throws IOException, FrameworkException {
 
 		final String name               = StringUtils.substringBeforeLast(fileName, ".html");
-		final PropertyMap properties    = getPropertiesForComponent(name);
 		final DOMNode existingComponent = getExistingComponent(name);
 		final boolean byId              = DeployCommand.isUuid(name);
-		
+
 		try (final Tx tx = app.tx(true, false, false)) {
 
+			final PropertyMap properties = getPropertiesForComponent(name);
+
 			if (existingComponent != null) {
-				
+
 				if (existingComponent instanceof Template) {
-					
+
 					properties.put(Template.content, existingComponent.getProperty(Template.content));
 					existingComponent.setProperty(Template.ownerDocument, null);
 
@@ -238,10 +243,6 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 					}
 				}
 			}
-			
-//			if (existingComponent != null && existingComponent instanceof Template) {
-//				deleteComponent(app, name);
-//			}
 
 			tx.success();
 		}

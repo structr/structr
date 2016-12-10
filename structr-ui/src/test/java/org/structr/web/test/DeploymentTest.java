@@ -31,10 +31,16 @@ import java.util.function.Function;
 import org.junit.Assert;
 import static org.junit.Assert.fail;
 import org.junit.Test;
+import org.structr.common.AccessMode;
+import org.structr.common.Permission;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.Security;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
@@ -44,6 +50,7 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.common.StructrUiTest;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -789,6 +796,189 @@ public class DeploymentTest extends StructrUiTest {
 		compare(calculateHash(), true, false);
 	}
 
+	@Test
+	public void test20ExportOwnership() {
+
+		Principal user1 = null;
+		Principal user2 = null;
+
+		try (final Tx tx = app.tx()) {
+
+			user1 = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user1"));
+			user2 = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user2"));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			fail("Unexpected exception.");
+		}
+
+		Assert.assertNotNull("User was not created, test cannot continue", user1);
+		Assert.assertNotNull("User was not created, test cannot continue", user2);
+
+		// setup
+		final SecurityContext context1 = SecurityContext.getInstance(user1, AccessMode.Backend);
+		final App app1                 = StructrApp.getInstance(context1);
+
+		try (final Tx tx = app1.tx()) {
+
+			final Page page      = Page.createNewPage(context1,   "test20");
+			final Html html      = createElement(page, page, "html");
+			final Head head      = createElement(page, html, "head");
+			createElement(page, head, "title", "test20");
+
+			final Body body = createElement(page, html, "body");
+			final Div div1  = createElement(page, body, "div");
+
+			final Content content = createContent(page, div1, "<b>Test</b>");
+			content.setProperty(Content.contentType, "text/html");
+
+			// set owner to different user
+			div1.setProperty(AbstractNode.owner, user2);
+			content.setProperty(AbstractNode.owner, user2);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true, false);
+	}
+
+	@Test
+	public void test21ExportGrants() {
+
+		Principal user1 = null;
+		Principal user2 = null;
+
+		try (final Tx tx = app.tx()) {
+
+			user1 = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user1"));
+			user2 = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user2"));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			fail("Unexpected exception.");
+		}
+
+		Assert.assertNotNull("User was not created, test cannot continue", user1);
+		Assert.assertNotNull("User was not created, test cannot continue", user2);
+
+		// setup
+		final SecurityContext context1 = SecurityContext.getInstance(user1, AccessMode.Backend);
+		final App app1                 = StructrApp.getInstance(context1);
+
+		try (final Tx tx = app1.tx()) {
+
+			final Page page      = Page.createNewPage(context1, "test21");
+			final Html html      = createElement(page, page, "html");
+			final Head head      = createElement(page, html, "head");
+			createElement(page, head, "title", "test21");
+
+			final Body body = createElement(page, html, "body");
+			final Div div1  = createElement(page, body, "div");
+
+			final Content content = createContent(page, div1, "<b>Test</b>");
+			content.setProperty(Content.contentType, "text/html");
+
+			// create grants
+			page.grant(Permission.read, user2);
+			div1.grant(Permission.read, user2);
+			content.grant(Permission.read, user2);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), false, false);
+	}
+
+	@Test
+	public void test22TemplateOwnershipAndGrants() {
+
+		Principal user1 = null;
+		Principal user2 = null;
+
+		try (final Tx tx = app.tx()) {
+
+			user1 = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user1"));
+			user2 = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user2"));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			fail("Unexpected exception.");
+		}
+
+		Assert.assertNotNull("User was not created, test cannot continue", user1);
+		Assert.assertNotNull("User was not created, test cannot continue", user2);
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			// create first page
+			final Page page1 = Page.createNewPage(securityContext,   "test22_1");
+			final Html html1 = createElement(page1, page1, "html");
+			final Head head1 = createElement(page1, html1, "head");
+			createElement(page1, head1, "title", "test22_1");
+
+			final Body body1 = createElement(page1, html1, "body");
+			final Div div1   = createElement(page1, body1, "div");
+
+			createElement(page1, div1, "div", "test1");
+			createElement(page1, div1, "div", "test1");
+
+			final Div component = createComponent(div1);
+
+			// create second page
+			final Page page2 = Page.createNewPage(securityContext,   "test22_2");
+			final Html html2 = createElement(page2, page2, "html");
+			final Head head2 = createElement(page2, html2, "head");
+			createElement(page2, head2, "title", "test22_2");
+
+			final Body body2 = createElement(page2, html2, "body");
+			final Div div2   = createElement(page2, body2, "div");
+
+			// re-use template from above
+			final Div cloned = cloneComponent(component, div2);
+
+			component.grant(Permission.read, user1);
+			cloned.grant(Permission.read, user2);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		doImportExportRoundtrip(true, true, new Function() {
+
+			@Override
+			public Object apply(Object t) {
+
+				try (final Tx tx = app.tx()) {
+
+					createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user1"));
+					createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user2"));
+
+					tx.success();
+
+				} catch (FrameworkException ex) {
+					fail("Unexpected exception.");
+				}
+
+				return null;
+			}
+		});
+	}
+
 	// ----- private methods -----
 	private void compare(final String sourceHash, final boolean deleteTestDirectory) {
 		compare(sourceHash, deleteTestDirectory, true);
@@ -933,6 +1123,23 @@ public class DeploymentTest extends StructrUiTest {
 		buf.append(valueOrEmpty(node, AbstractNode.name));
 		buf.append(valueOrEmpty(node, AbstractNode.visibleToPublicUsers));
 		buf.append(valueOrEmpty(node, AbstractNode.visibleToAuthenticatedUsers));
+
+		// include owner in content hash generation!
+		final Principal owner = node.getOwnerNode();
+		if (owner != null) {
+
+			buf.append(valueOrEmpty(owner, AbstractNode.name));
+		}
+
+		// include grants in content hash generation!
+		for (final Security r : node.getSecurityRelationships()) {
+
+			if (r != null) {
+
+				buf.append(r.getSourceNode().getName());
+				buf.append(r.getPermissions());
+			}
+		}
 
 		// DOMNode
 		buf.append(valueOrEmpty(node, DOMNode.showConditions));
