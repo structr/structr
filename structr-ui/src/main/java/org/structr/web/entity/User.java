@@ -36,7 +36,6 @@ import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
-import org.structr.core.property.LowercaseStringProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
@@ -61,10 +60,8 @@ public class User extends AbstractUser {
 	public static final Property<Folder>         workingDirectory = new EndNode<>("workingDirectory", UserWorkDir.class);
 	public static final Property<List<Group>>    groups           = new StartNodes<>("groups", Groups.class, new UiNotion());
 	public static final Property<Boolean>        isUser           = new ConstantBooleanProperty("isUser", true);
-	public static final Property<String>         eMail            = new LowercaseStringProperty("eMail").cmis().indexed();
 	public static final Property<String>         twitterName      = new StringProperty("twitterName").cmis().indexed();
 	public static final Property<String>         localStorage     = new StringProperty("localStorage");
-	public static final Property<String>         name             = new StringProperty("name");
 	public static final Property<List<FileBase>> favoriteFiles    = new EndNodes<>("favoriteFiles", UserFavoriteFile.class);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,

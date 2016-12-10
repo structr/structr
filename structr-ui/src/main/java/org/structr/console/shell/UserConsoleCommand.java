@@ -27,7 +27,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -156,7 +155,7 @@ public class UserConsoleCommand extends ConsoleCommand {
 
 				// set e-mail address
 				if (eMail != null && !"isAdmin".equals(eMail)) {
-					user.setProperties(securityContext, new PropertyMap(Person.eMail, eMail));
+					user.setProperties(securityContext, new PropertyMap(Principal.eMail, eMail));
 				}
 
 				// set isAdmin flag

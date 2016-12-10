@@ -37,7 +37,6 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.auth.exception.UnauthorizedException;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SuperUser;
@@ -349,7 +348,7 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException, FrameworkException {
 
-		final Principal user = AuthHelper.getPrincipalForPassword(Person.eMail, emailOrUsername, password);
+		final Principal user = AuthHelper.getPrincipalForPassword(Principal.eMail, emailOrUsername, password);
 		if  (user != null) {
 
 			final String allowLoginBeforeConfirmation = Services.getInstance().getConfigurationValue(RegistrationResource.ALLOW_LOGIN_BEFORE_CONFIRMATION);

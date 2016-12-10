@@ -57,10 +57,6 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 	@Override
 	public Iterable<T> get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
 
-		/*
-		return Iterables.map(new NodeFactory<>(securityContext), node.getNode().getRelatedNodes(Direction.OUTGOING, relation, relation.getTargetType().getSimpleName()));
-		*/
-
 		final NodeFactory<T> nodeFactory  = new NodeFactory<>(securityContext);
 		final Iterable<Relationship> rels = getRawSource(securityContext, node.getNode(), predicate);
 
@@ -84,7 +80,7 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 
 		final App app                = StructrApp.getInstance(securityContext);
 		final PropertyMap properties = new PropertyMap();
-		final T actualSourceNode     = (T)unwrap(securityContext, sourceNode, properties);
+		final T actualSourceNode     = (T)unwrap(securityContext, relation.getClass(), sourceNode, properties);
 		final Set<T> toBeDeleted     = new LinkedHashSet<>(Iterables.toList(get(securityContext, actualSourceNode, null)));
 		final Set<T> toBeCreated     = new LinkedHashSet<>();
 
@@ -132,7 +128,7 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 
 				properties.clear();
 
-				final NodeInterface actualTargetNode = (NodeInterface)unwrap(securityContext, targetNode, properties);
+				final NodeInterface actualTargetNode = (NodeInterface)unwrap(securityContext, relation.getClass(), targetNode, properties);
 
 				relation.ensureCardinality(securityContext, actualSourceNode, actualTargetNode);
 

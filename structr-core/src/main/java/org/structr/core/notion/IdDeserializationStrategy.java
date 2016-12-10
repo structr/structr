@@ -21,6 +21,7 @@ package org.structr.core.notion;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.EntityAndPropertiesContainer;
@@ -67,27 +68,27 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 			if (source instanceof Map) {
 
 				final Map<String, Object> properties = (Map<String, Object>) source;
-				Class<T> concreteType = type;
+				Class<T> actualType                  = type;
 
-				if (concreteType != null && concreteType.isInterface()) {
+				if (actualType != null && actualType.isInterface()) {
 
 					// try to identify concrete type from input set
 					// (creation wouldn't work otherwise anyway)
 					if (properties.containsKey(NodeInterface.type.jsonName())) {
 
 						final String typeFromInput = properties.get(NodeInterface.type.jsonName()).toString();
-						concreteType = StructrApp.getConfiguration().getNodeEntityClass(typeFromInput);
+						actualType = StructrApp.getConfiguration().getNodeEntityClass(typeFromInput);
 
 						// reset type on failed check
-						if (concreteType == null) {
-							concreteType = type;
+						if (actualType == null) {
+							actualType = type;
 						}
 					}
 				}
 
-				final PropertyMap convertedProperties = PropertyMap.inputTypeToJavaType(securityContext, concreteType, properties);
-				final Map<String, Object> foreignPros = new HashMap<>();
-				T relatedNode                         = null;
+				final PropertyMap convertedProperties  = PropertyMap.inputTypeToJavaType(securityContext, actualType, properties);
+				final Map<String, Object> foreignProps = new HashMap<>();
+				T relatedNode                          = null;
 
 				// If property map contains the uuid, search only for uuid
 				if (convertedProperties.containsKey(GraphObject.id)) {
@@ -103,18 +104,19 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 
 				} else {
 
+					final Set<PropertyKey> propertySet = StructrApp.getConfiguration().getPropertySet(type, "all");
 					final PropertyMap uniqueKeyValues  = new PropertyMap();
 
 					for (final PropertyKey key : convertedProperties.keySet()) {
 
-						if (key.isUnique() || (NodeInterface.name.equals(key) && Principal.class.isAssignableFrom(concreteType))) {
+						if (key.isUnique() || isIdentifying(actualType, key)) {
 
 							uniqueKeyValues.put(key, convertedProperties.get(key));
 
-						} else {
+						} else if (!propertySet.contains(key)) {
 
 							// store RAW values (from source)
-							foreignPros.put(key.jsonName(), properties.get(key.jsonName()));
+							foreignProps.put(key.jsonName(), properties.get(key.jsonName()));
 						}
 					}
 
@@ -186,13 +188,13 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 
 				} else {
 
-					if (foreignPros.isEmpty()) {
+					if (foreignProps.isEmpty()) {
 
 						return relatedNode;
 
 					} else {
 
-						return (T)new EntityAndPropertiesContainer(relatedNode, foreignPros);
+						return (T)new EntityAndPropertiesContainer(relatedNode, foreignProps);
 
 					}
 				}
@@ -227,5 +229,9 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 		}
 
 		return buf.toString();
+	}
+
+	private boolean isIdentifying(final Class actualType, final PropertyKey key) {
+		return (Principal.class.isAssignableFrom(actualType) && (Principal.name.equals(key) || Principal.eMail.equals(key)));
 	}
 }

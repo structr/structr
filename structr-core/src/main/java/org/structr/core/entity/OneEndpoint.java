@@ -45,15 +45,6 @@ public class OneEndpoint<T extends NodeInterface> extends AbstractEndpoint imple
 	@Override
 	public T get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
 
-		/*
-		final Iterable<Node> nodes        = node.getNode().getRelatedNodes(Direction.OUTGOING, relation, relation.getTargetType().getSimpleName());
-		final Iterator<Node> iterator     = nodes.iterator();
-
-		if (iterator.hasNext()) {
-			return nodeFactory.instantiate(iterator.next());
-		}
-		*/
-
 		final NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
 		final Relationship rel           = getRawSource(securityContext, node.getNode(), predicate);
 
@@ -68,8 +59,8 @@ public class OneEndpoint<T extends NodeInterface> extends AbstractEndpoint imple
 	public Object set(final SecurityContext securityContext, final NodeInterface sourceNode, final T targetNode) throws FrameworkException {
 
 		final PropertyMap properties         = new PropertyMap();
-		final NodeInterface actualTargetNode = (NodeInterface)unwrap(securityContext, targetNode, properties);
-		final T actualSourceNode             = (T)unwrap(securityContext, sourceNode, properties);
+		final NodeInterface actualTargetNode = (NodeInterface)unwrap(securityContext, relation.getClass(), targetNode, properties);
+		final T actualSourceNode             = (T)unwrap(securityContext, relation.getClass(), sourceNode, properties);
 
 		// let relation check multiplicity
 		relation.ensureCardinality(securityContext, actualSourceNode, actualTargetNode);

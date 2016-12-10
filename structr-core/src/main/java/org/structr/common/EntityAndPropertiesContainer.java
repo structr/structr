@@ -65,8 +65,8 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 		return entity;
 	}
 
-	public PropertyMap getProperties(final SecurityContext securityContext) throws FrameworkException {
-		return PropertyMap.inputTypeToJavaType(securityContext, entity.getClass(), properties);
+	public Map<String, Object> getProperties() throws FrameworkException {
+		return properties;
 	}
 
 	// dummy implementation of NodeInterface

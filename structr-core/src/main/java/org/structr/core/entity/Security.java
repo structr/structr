@@ -29,26 +29,16 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.SecurityDelegate;
 import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.property.SourceId;
 import org.structr.core.property.TargetId;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- * A generic relationship entity that will be instantiated when an anonymous
- * relationship is encountered.
- *
- *
- *
+ * Relationship type class for SECURITY relationships.
  */
 public class Security extends ManyToMany<Principal, NodeInterface> {
 
@@ -86,35 +76,17 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 		return keys;
 	}
 
-	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		return true;
-	}
-
-	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-		return true;
-	}
-
-	@Override
-	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
-		return true;
-	}
-
-	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
-		return true;
-	}
-
 	public boolean isAllowed(final Permission permission) {
+		return SecurityDelegate.getPermissionSet(dbRelationship, Security.allowed).contains(permission.name());
 
+		/*
 		final Set<String> permissionSet = SecurityDelegate.getPermissionSet(dbRelationship, Security.allowed);
 		final Principal principal       = getSourceNode();
 
 		if (principal != null) {
 
 			final Set<String> allowedPermissions = SecurityDelegate.getPermissionSet(principal.getNode(), Principal.allowed);
-			final Set<String> deniedPermissions  = SecurityDelegate.getPermissionSet(principal.getNode(), Principal.allowed);
+			final Set<String> deniedPermissions  = SecurityDelegate.getPermissionSet(principal.getNode(), Principal.denied);
 
 			if (allowedPermissions != null) {
 				permissionSet.addAll(allowedPermissions);
@@ -126,6 +98,7 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 		}
 
 		return permissionSet.contains(permission.name());
+		*/
 	}
 
 	public void setAllowed(final Set<String> allowed) {

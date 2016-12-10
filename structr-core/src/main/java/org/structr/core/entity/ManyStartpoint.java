@@ -57,10 +57,6 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 	@Override
 	public Iterable<S> get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
 
-		/*
-		return Iterables.map(new NodeFactory<>(securityContext), node.getNode().getRelatedNodes(Direction.INCOMING, relation, relation.getSourceType().getSimpleName()));
-		*/
-
 		final NodeFactory<S> nodeFactory  = new NodeFactory<>(securityContext);
 		final Iterable<Relationship> rels = getRawSource(securityContext, node.getNode(), predicate);
 
@@ -84,7 +80,7 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 
 		final App app                        = StructrApp.getInstance(securityContext);
 		final PropertyMap properties         = new PropertyMap();
-		final NodeInterface actualTargetNode = (NodeInterface)unwrap(securityContext, targetNode, properties);
+		final NodeInterface actualTargetNode = (NodeInterface)unwrap(securityContext, relation.getClass(), targetNode, properties);
 		final Set<S> toBeDeleted             = new LinkedHashSet<>(Iterables.toList(get(securityContext, actualTargetNode, null)));
 		final Set<S> toBeCreated             = new LinkedHashSet<>();
 
@@ -131,7 +127,7 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 
 				properties.clear();
 
-				final S actualSourceNode           = (S)unwrap(securityContext, sourceNode, properties);
+				final S actualSourceNode           = (S)unwrap(securityContext, relation.getClass(), sourceNode, properties);
 				final PropertyMap notionProperties = getNotionProperties(securityContext, relation.getClass(), actualSourceNode.getName() + relation.name() + actualTargetNode.getName());
 
 				if (notionProperties != null) {
