@@ -38,6 +38,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyMap;
 
 /**
  *
@@ -81,9 +82,11 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 	@Override
 	public Object set(final SecurityContext securityContext, final NodeInterface targetNode, final Iterable<S> collection) throws FrameworkException {
 
-		final App app            = StructrApp.getInstance(securityContext);
-		final Set<S> toBeDeleted = new LinkedHashSet<>(Iterables.toList(get(securityContext, targetNode, null)));
-		final Set<S> toBeCreated = new LinkedHashSet<>();
+		final App app                        = StructrApp.getInstance(securityContext);
+		final PropertyMap properties         = new PropertyMap();
+		final NodeInterface actualTargetNode = (NodeInterface)unwrap(securityContext, targetNode, properties);
+		final Set<S> toBeDeleted             = new LinkedHashSet<>(Iterables.toList(get(securityContext, actualTargetNode, null)));
+		final Set<S> toBeCreated             = new LinkedHashSet<>();
 
 		if (collection != null) {
 			Iterables.addAll(toBeCreated, collection);
@@ -100,14 +103,14 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 		// remove existing relationships
 		for (S sourceNode : toBeDeleted) {
 
-			for (AbstractRelationship rel : targetNode.getIncomingRelationships()) {
+			for (AbstractRelationship rel : actualTargetNode.getIncomingRelationships()) {
 
 				final String relTypeName    = rel.getRelType().name();
 				final String desiredRelType = relation.name();
 
-				if (sourceNode.equals(targetNode)) {
+				if (sourceNode.equals(actualTargetNode)) {
 
-					logger.warn("Preventing deletion of self relationship {}-[{}]->{}. If you experience issue with this, please report to team@structr.com.", new Object[] { sourceNode, rel.getRelType(), targetNode } );
+					logger.warn("Preventing deletion of self relationship {}-[{}]->{}. If you experience issue with this, please report to team@structr.com.", new Object[] { sourceNode, rel.getRelType(), actualTargetNode } );
 
 					// skip self relationships
 					continue;
@@ -124,14 +127,21 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 		// create new relationships
 		for (S sourceNode : toBeCreated) {
 
-			if (sourceNode != null && targetNode != null) {
+			if (sourceNode != null && actualTargetNode != null) {
 
-				final String storageKey = sourceNode.getName() + relation.name() + targetNode.getName();
+				properties.clear();
 
-				relation.ensureCardinality(securityContext, sourceNode, targetNode);
+				final S actualSourceNode           = (S)unwrap(securityContext, sourceNode, properties);
+				final PropertyMap notionProperties = getNotionProperties(securityContext, relation.getClass(), actualSourceNode.getName() + relation.name() + actualTargetNode.getName());
 
-				final Relation newRelation = app.create(sourceNode, targetNode, relation.getClass(), getNotionProperties(securityContext, relation.getClass(), storageKey));
-				createdRelationship.add(newRelation);
+				if (notionProperties != null) {
+
+					properties.putAll(notionProperties);
+				}
+
+				relation.ensureCardinality(securityContext, actualSourceNode, actualTargetNode);
+
+				createdRelationship.add(app.create(actualSourceNode, actualTargetNode, relation.getClass(), properties));
 			}
 		}
 

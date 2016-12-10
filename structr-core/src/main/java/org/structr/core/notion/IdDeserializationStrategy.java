@@ -18,16 +18,19 @@
  */
 package org.structr.core.notion;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.EntityAndPropertiesContainer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.TypeToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.SearchCommand;
@@ -82,13 +85,14 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 					}
 				}
 
-				final PropertyMap map      = PropertyMap.inputTypeToJavaType(securityContext, concreteType, properties);
-				T relatedNode              = null;
+				final PropertyMap convertedProperties = PropertyMap.inputTypeToJavaType(securityContext, concreteType, properties);
+				final Map<String, Object> foreignPros = new HashMap<>();
+				T relatedNode                         = null;
 
 				// If property map contains the uuid, search only for uuid
-				if (map.containsKey(GraphObject.id)) {
+				if (convertedProperties.containsKey(GraphObject.id)) {
 
-					relatedNode = (T) app.getNodeById(map.get(GraphObject.id));
+					relatedNode = (T) app.getNodeById(convertedProperties.get(GraphObject.id));
 
 					if (relatedNode != null) {
 
@@ -99,12 +103,18 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 
 				} else {
 
-					final PropertyMap uniqueKeyValues = new PropertyMap();
-					for (final PropertyKey key : map.keySet()) {
+					final PropertyMap uniqueKeyValues  = new PropertyMap();
 
-						if (key.isUnique()) {
+					for (final PropertyKey key : convertedProperties.keySet()) {
 
-							uniqueKeyValues.put(key, map.get(key));
+						if (key.isUnique() || (NodeInterface.name.equals(key) && Principal.class.isAssignableFrom(concreteType))) {
+
+							uniqueKeyValues.put(key, convertedProperties.get(key));
+
+						} else {
+
+							// store RAW values (from source)
+							foreignPros.put(key.jsonName(), properties.get(key.jsonName()));
 						}
 					}
 
@@ -152,7 +162,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 
 						if (relationProperty.doAutocreate()) {
 
-							return app.create(type, map);
+							return app.create(type, convertedProperties);
 
 						} else {
 
@@ -176,7 +186,15 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 
 				} else {
 
-					return relatedNode;
+					if (foreignPros.isEmpty()) {
+
+						return relatedNode;
+
+					} else {
+
+						return (T)new EntityAndPropertiesContainer(relatedNode, foreignPros);
+
+					}
 				}
 
 			} else if (type.isAssignableFrom(source.getClass())) {

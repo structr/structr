@@ -28,6 +28,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyMap;
 
 /**
  *
@@ -66,14 +67,24 @@ public class OneStartpoint<S extends NodeInterface> extends AbstractEndpoint imp
 	@Override
 	public Object set(final SecurityContext securityContext, final NodeInterface targetNode, final S sourceNode) throws FrameworkException {
 
+		final PropertyMap properties         = new PropertyMap();
+		final S actualSourceNode             = (S)unwrap(securityContext, sourceNode, properties);
+		final NodeInterface actualTargetNode = (NodeInterface)unwrap(securityContext, targetNode, properties);
+
 		// let relation check multiplicity
-		relation.ensureCardinality(securityContext, sourceNode, targetNode);
+		relation.ensureCardinality(securityContext, actualSourceNode, actualTargetNode);
 
-		if (sourceNode != null && targetNode != null) {
+		if (actualSourceNode != null && actualTargetNode != null) {
 
-			final String storageKey = sourceNode.getName() + relation.name() + targetNode.getName();
+			final String storageKey            = actualSourceNode.getName() + relation.name() + actualTargetNode.getName();
+			final PropertyMap notionProperties = getNotionProperties(securityContext, relation.getClass(), storageKey);
 
-			return StructrApp.getInstance(securityContext).create(sourceNode, targetNode, relation.getClass(), getNotionProperties(securityContext, relation.getClass(), storageKey));
+			if (notionProperties != null) {
+
+				properties.putAll(notionProperties);
+			}
+
+			return StructrApp.getInstance(securityContext).create(actualSourceNode, actualTargetNode, relation.getClass(), properties);
 		}
 
 		return null;
