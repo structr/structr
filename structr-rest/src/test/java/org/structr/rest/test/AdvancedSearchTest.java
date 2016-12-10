@@ -634,7 +634,7 @@ public class AdvancedSearchTest extends StructrRestTest {
 
 		// test spatial search with large radius,
 		// expected result is a list of two objects:
-		// test05 and test06
+		// test05, test06 has no coordinates and should be ignored!
 		RestAssured
 
 			.given()
@@ -643,10 +643,9 @@ public class AdvancedSearchTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	              hasSize(2))
-				.body("result_count",         equalTo(2))
+				.body("result",	              hasSize(1))
+				.body("result_count",         equalTo(1))
 				.body("result[0].id",         equalTo(test05))
-				.body("result[1].id",         equalTo(test06))
 
 			.when()
 				.get(concat("/test_nines?distance=100&location=Bahnhofstraße,Wuppertal"));

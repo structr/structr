@@ -44,8 +44,12 @@ public class SpatialQueryFactory extends AbstractQueryFactory {
 			buf.append(coords[1]);
 			buf.append("}), point(n))");
 
-			// distance is in kilometers
-			query.addSimpleParameter(buf.toString(), "<", spatial.getDistance() * 1000.0, false);
+			// do not include nodes that have no lat/lon properties
+			query.addSimpleParameter("latitude", "IS NOT", null);
+			query.and();
+			query.addSimpleParameter("latitude", "IS NOT", null);
+			query.and();
+			query.addSimpleParameter(buf.toString(), "<", spatial.getDistance() * 1000.0, false); // distance is in kilometers
 
 			return true;
 		}

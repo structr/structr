@@ -73,18 +73,18 @@
 		<dependency>
 			<groupId>org.neo4j.driver</groupId>
 			<artifactId>neo4j-java-driver</artifactId>
-			<version>1.0.5</version>
+			<version>1.0.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-community</artifactId>
-			<version>3.0.6</version>
+			<version>3.0.7</version>
 			<type>pom</type>
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-bolt</artifactId>
-			<version>3.0.6</version>
+			<version>3.0.7</version>
 		</dependency>
 	</dependencies>
 
