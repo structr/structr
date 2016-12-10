@@ -21,6 +21,9 @@ package org.structr.core.entity;
 import java.util.List;
 import java.util.Set;
 import org.structr.common.AccessControllable;
+import org.structr.common.ValidationHelper;
+import org.structr.common.error.ErrorBuffer;
+import static org.structr.core.entity.Person.eMail;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.ArrayProperty;
@@ -30,12 +33,6 @@ import org.structr.core.property.PasswordProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 
-//~--- interfaces -------------------------------------------------------------
-/**
- *
- *
- *
- */
 public interface Principal extends NodeInterface, AccessControllable {
 
 	public static final String SUPERUSER_ID =                    "00000000000000000000000000000000";
@@ -71,4 +68,16 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 	public Set<String> getAllowedPermissions();
 	public Set<String> getDeniedPermissions();
+
+	@Override
+	default public boolean isValid(final ErrorBuffer errorBuffer) {
+
+		boolean valid = true;
+
+		valid &= ValidationHelper.isValidStringNotBlank(this, name, errorBuffer);
+		valid &= ValidationHelper.isValidUniqueProperty(this, name, errorBuffer);
+		valid &= ValidationHelper.isValidUniqueProperty(this, eMail, errorBuffer);
+
+		return valid;
+	}
 }

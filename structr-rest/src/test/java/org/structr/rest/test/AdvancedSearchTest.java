@@ -632,6 +632,11 @@ public class AdvancedSearchTest extends StructrRestTest {
 			.when()
 				.get(concat("/test_nines?distance=2&location=Poststraße,Dortmund"));
 
+
+
+
+
+
 		// test spatial search with large radius,
 		// expected result is a list of two objects:
 		// test05 and test06

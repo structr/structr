@@ -91,7 +91,6 @@ public class AccessControlTest extends StructrTest {
 			fail("Unexpected exception");
 
 		}
-
 	}
 
 
@@ -851,7 +850,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 			logger.error(ex.toString());
-		}		
+		}
 
 		// Switch user context to user1
 		final App user1App = StructrApp.getInstance(SecurityContext.getInstance(user1, AccessMode.Frontend));
@@ -864,9 +863,9 @@ public class AccessControlTest extends StructrTest {
 		} catch (FrameworkException ex) {
 			logger.error(ex.toString());
 			fail("Unexpected exception: " + ex.toString());
-		}		
+		}
 	}
-	
+
 	@Test
 	public void test01SetOwner() {
 
@@ -944,13 +943,10 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			List<TestUser> users = createTestNodes(TestUser.class, 2);
-			TestUser user1 = (TestUser) users.get(0);
-
-			List<Group> groups = createTestNodes(Group.class, 1);
-			Group group1 = (Group) groups.get(0);
-
-			TestOne t1 = createTestNode(TestOne.class);
+			final List<TestUser> users = createTestNodes(TestUser.class, 2);
+			final TestUser user1       = (TestUser) users.get(0);
+			final Group group1         = createTestNode(Group.class, "test group");
+			final TestOne t1           = createTestNode(TestOne.class);
 
 			t1.setProperty(AbstractNode.owner, user1);
 			t1.setProperty(AbstractNode.owner, group1);
@@ -1030,7 +1026,7 @@ public class AccessControlTest extends StructrTest {
 		}
 
 	}
-    
+
 	// ----- private methods -----
 	public static void clearResourceAccess() {
 

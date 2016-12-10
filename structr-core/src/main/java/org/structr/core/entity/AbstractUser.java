@@ -26,6 +26,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.auth.HashHelper;
@@ -33,18 +34,23 @@ import org.structr.core.entity.relationship.Groups;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
-//~--- interfaces -------------------------------------------------------------
-
-/**
- *
- *
- *
- */
 public abstract class AbstractUser extends AbstractNode implements Principal {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractUser.class.getName());
 	private Boolean cachedIsAdminFlag  = null;
 	public static final Object HIDDEN = "****** HIDDEN ******";
+
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+
+		boolean valid = true;
+
+		// call default method of principal
+		valid &= Principal.super.isValid(errorBuffer);
+		valid &= super.isValid(errorBuffer);
+
+		return valid;
+	}
 
 	@Override
 	public void addSessionId(final String sessionId) {

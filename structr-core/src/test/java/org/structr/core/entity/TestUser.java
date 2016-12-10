@@ -18,11 +18,29 @@
  */
 package org.structr.core.entity;
 
+import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
+
 /**
  *
  *
  */
 public class TestUser extends AbstractUser implements Principal {
 
+	@Override
+	public void onNodeCreation() {
+
+		try {
+
+			if (getProperty(AbstractNode.name) == null) {
+
+				// validation needs user name
+				setProperty(AbstractNode.name, "testuser" + System.currentTimeMillis());
+			}
+
+		} catch (FrameworkException fex) {
+			LoggerFactory.getLogger(TestUser.class).warn("Unable to set default name for TestUser: {}", fex.getMessage());
+		}
+	}
 
 }

@@ -31,13 +31,6 @@ import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.schema.SchemaService;
 
-//~--- classes ----------------------------------------------------------------
-
-/**
- *
- *
- *
- */
 public class Group extends AbstractUser implements Principal {
 
 	public static final Property<List<Principal>> members = new EndNodes<>("members", Groups.class);
