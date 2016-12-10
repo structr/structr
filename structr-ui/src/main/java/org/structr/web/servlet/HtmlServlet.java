@@ -172,33 +172,36 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
 
-			final Authenticator auth        = getConfig().getAuthenticator();
-			List<Page> pages                = null;
-			boolean requestUriContainsUuids = false;
+		final Authenticator auth        = getConfig().getAuthenticator();
+		List<Page> pages                = null;
+		boolean requestUriContainsUuids = false;
 
-			SecurityContext securityContext;
-			final App app;
+		SecurityContext securityContext;
+		final App app;
 
-			try {
-				final String path = request.getPathInfo();
+		try {
 
-				// check for registration (has its own tx because of write access
-				if (checkRegistration(auth, request, response, path)) {
+			assertInitialized();
 
-					return;
-				}
+			final String path = request.getPathInfo();
 
-				// check for registration (has its own tx because of write access
-				if (checkResetPassword(auth, request, response, path)) {
+			// check for registration (has its own tx because of write access
+			if (checkRegistration(auth, request, response, path)) {
 
-					return;
-				}
+				return;
+			}
 
-				// isolate request authentication in a transaction
-				try (final Tx tx = StructrApp.getInstance().tx()) {
-					securityContext = auth.initializeAndExamineRequest(request, response);
-					tx.success();
-				}
+			// check for registration (has its own tx because of write access
+			if (checkResetPassword(auth, request, response, path)) {
+
+				return;
+			}
+
+			// isolate request authentication in a transaction
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				securityContext = auth.initializeAndExamineRequest(request, response);
+				tx.success();
+			}
 
 			app = StructrApp.getInstance(securityContext);
 
@@ -550,7 +553,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		doGet(request, response);
-
 	}
 
 	@Override
@@ -563,6 +565,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		final App app;
 
 		try {
+
+			assertInitialized();
+
 			String path = request.getPathInfo();
 
 			// isolate request authentication in a transaction
@@ -831,6 +836,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		final Authenticator auth = config.getAuthenticator();
 
 		try {
+
+			assertInitialized();
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
@@ -1697,6 +1704,13 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		}
 
 		return null;
+	}
+
+	private void assertInitialized() throws FrameworkException {
+
+		if (!Services.getInstance().isInitialized()) {
+			throw new FrameworkException(503, "System is not initialized yet.");
+		}
 	}
 
 	// ----- nested classes -----

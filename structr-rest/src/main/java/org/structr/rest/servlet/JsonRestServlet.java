@@ -159,6 +159,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		try {
 
+			assertInitialized();
+
 			// first thing to do!
 			request.setCharacterEncoding("UTF-8");
 			response.setCharacterEncoding("UTF-8");
@@ -280,6 +282,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		try {
 
+			assertInitialized();
+
 			// first thing to do!
 			request.setCharacterEncoding("UTF-8");
 			response.setCharacterEncoding("UTF-8");
@@ -383,6 +387,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		final Resource resource;
 
 		try {
+
+			assertInitialized();
 
 			// first thing to do!
 			request.setCharacterEncoding("UTF-8");
@@ -568,6 +574,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
 
 		try {
+
+			assertInitialized();
 
 			// first thing to do!
 			request.setCharacterEncoding("UTF-8");
@@ -933,6 +941,13 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				logger.warn("Unable to flush and close response: {}", t.getMessage());
 			}
 
+		}
+	}
+
+	private void assertInitialized() throws FrameworkException {
+
+		if (!Services.getInstance().isInitialized()) {
+			throw new FrameworkException(503, "System is not initialized yet.");
 		}
 	}
 
