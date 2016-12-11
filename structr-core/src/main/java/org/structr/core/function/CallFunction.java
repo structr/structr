@@ -18,20 +18,20 @@
  */
 package org.structr.core.function;
 
-import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
+
 public class CallFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_CALL    = "Usage: ${call(key [, payloads...]}. Example ${call('myEvent')}";
-	public static final String ERROR_MESSAGE_CALL_JS = "Usage: ${{Structr.call(key [, payloads...]}}. Example ${{Structr.call('myEvent')}}";
+	public static final String ERROR_MESSAGE_CALL    = "Usage: ${call(key [, key, value]}. Example ${call('myEvent', 'key1', 'value1', 'key2', 'value2')}";
+	public static final String ERROR_MESSAGE_CALL_JS = "Usage: ${{Structr.call(key [, parameterMap]}}. Example ${{Structr.call('myEvent', {key1: 'value1', key2: 'value2'})}}";
 
 	@Override
 	public String getName() {
@@ -41,17 +41,37 @@ public class CallFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+		if (sources != null && sources.length >= 1 && sources[0] != null) {
 
-			final String key = sources[0].toString();
+			final String methodName = sources[0].toString();
 
-			if (sources.length > 1) {
+			if (sources.length == 1) {
 
-				return Actions.call(key, Arrays.copyOfRange(sources, 1, sources.length));
+				return Actions.call(methodName, new LinkedHashMap<>());
+
+			} else if (sources.length == 2 && sources[1] instanceof Map) {
+
+				return Actions.call(methodName, ((Map)sources[1]));
+
+			} else if (sources.length == 2 && sources[1] instanceof GraphObjectMap) {
+
+				return Actions.call(methodName, ((GraphObjectMap)sources[1]).toMap());
 
 			} else {
 
-				return Actions.call(key);
+				final Integer parameter_count = sources.length;
+
+				if (parameter_count % 2 == 0) {
+					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
+				}
+
+				final Map<String, Object> newMap = new LinkedHashMap<>();
+
+				for (Integer c = 1; c < parameter_count; c += 2) {
+					newMap.put(sources[c].toString(), sources[c + 1]);
+				}
+
+				return Actions.call(methodName, newMap);
 
 			}
 

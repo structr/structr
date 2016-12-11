@@ -95,30 +95,6 @@ public class Actions {
 	}
 
 	/**
-	 * Convenience method to call a schema method with an array of unnamed
-	 * parameters that will end up in the parameter map using string-based
-	 * integer key (i.e. "0", "1", "2" etc.)
-	 *
-	 * @param key
-	 * @param unnamedParameters
-	 *
-	 * @return Object the method call result
-	 *
-	 * @throws FrameworkException
-	 */
-	public static Object call(final String key, final Object... unnamedParameters) throws FrameworkException {
-
-		final Map<String, Object> params = new HashMap<>();
-		int index                        = 0;
-
-		for (final Object param : unnamedParameters) {
-			params.put(Integer.toString(index++), param);
-		}
-
-		return call(key, params);
-	}
-
-	/**
 	 * Convenience method to call a schema method with a user parameter.
 	 * This method is currently used to broadcast login and logout events.
 	 *
