@@ -206,7 +206,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 						switch (c) {
 
 							case '(':
-								parameters = getUntil(')');
+								parameters = getUntilClosingParenthesis();
 								break;
 
 							case ',':
@@ -288,15 +288,20 @@ public class DeploymentCommentHandler implements CommentHandler {
 		return buf.toString();
 	}
 
-	private String getUntil(final char separator) {
+	private String getUntilClosingParenthesis() {
 
 		final StringBuilder buf = new StringBuilder();
+		int count               = 1;
 
 		while (hasMore()) {
 
 			final char c = source[currentPosition++];
 
-			if (c == separator) {
+			if (c == '(') {
+				count++;
+			}
+
+			if (c == ')' && --count == 0) {
 				break;
 			}
 

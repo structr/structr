@@ -1054,6 +1054,38 @@ public class DeploymentTest extends StructrUiTest {
 		});
 	}
 
+	@Test
+	public void test24ContentShowConditions() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createNewPage(securityContext,   "test03");
+			final Html html = createElement(page, page, "html");
+			final Head head = createElement(page, html, "head");
+			createElement(page, head, "title", "test03");
+
+			final Body body        = createElement(page, html, "body");
+			final Div div1         = createElement(page, body, "div");
+			final Content content1 = createContent(page, div1, "${current.type}");
+			final Content content2 = createContent(page, div1, "${find('User', 'name', '@structr')[0].id}");
+			final Content content3 = createContent(page, div1, "${find('User', 'name', '@structr')[0].id}");
+
+			content1.setProperty(DOMNode.showConditions, "eq(current.type, 'MyTestFolder')");
+			content2.setProperty(DOMNode.showConditions, "if(equal(extract(first(find('User', 'name' 'structr')), 'name'), '@structr'), true, false)");
+			content2.setProperty(DOMNode.showConditions, "(((((([]))))))"); // for testing only
+
+			tx.success();
+
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+	}
+
 	// ----- private methods -----
 	private void compare(final String sourceHash, final boolean deleteTestDirectory) {
 		compare(sourceHash, deleteTestDirectory, true);
@@ -1224,6 +1256,7 @@ public class DeploymentTest extends StructrUiTest {
 		buf.append(valueOrEmpty(node, DOMNode.hideOnIndex));
 		buf.append(valueOrEmpty(node, DOMNode.hideOnDetail));
 		buf.append(valueOrEmpty(node, DOMNode.renderDetails));
+		buf.append(valueOrEmpty(node, DOMNode.sharedComponentConfiguration));
 
 		final Page ownerDocument = node.getProperty(DOMNode.ownerDocument);
 		if (ownerDocument != null) {
