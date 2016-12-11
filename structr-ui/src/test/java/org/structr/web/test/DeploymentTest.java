@@ -896,7 +896,7 @@ public class DeploymentTest extends StructrUiTest {
 		}
 
 		// test
-		compare(calculateHash(), false, false);
+		compare(calculateHash(), true, false);
 	}
 
 	@Test
@@ -954,6 +954,81 @@ public class DeploymentTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		doImportExportRoundtrip(true, true, new Function() {
+
+			@Override
+			public Object apply(Object t) {
+
+				try (final Tx tx = app.tx()) {
+
+					createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user1"));
+					createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user2"));
+
+					tx.success();
+
+				} catch (FrameworkException ex) {
+					fail("Unexpected exception.");
+				}
+
+				return null;
+			}
+		});
+	}
+
+	@Test
+	public void test23FileOwnershipAndGrants() {
+
+		Principal user1 = null;
+		Principal user2 = null;
+
+		try (final Tx tx = app.tx()) {
+
+			user1 = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user1"));
+			user2 = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user2"));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			fail("Unexpected exception.");
+		}
+
+		Assert.assertNotNull("User was not created, test cannot continue", user1);
+		Assert.assertNotNull("User was not created, test cannot continue", user2);
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			// create some files and folders
+			final Folder folder1  = app.create(Folder.class, "Folder1");
+			final Folder folder2  = app.create(Folder.class, new NodeAttribute<>(Folder.name, "Folder2"), new NodeAttribute<>(Folder.parent, folder1));
+			final FileBase file1  = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", File.class, "test1.txt");
+			final FileBase file2  = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", File.class, "test2.txt");
+
+			file1.setProperty(FileBase.parent, folder2);
+			file2.setProperty(FileBase.parent, folder2);
+
+			folder1.setProperty(Folder.owner, user1);
+			folder1.grant(Permission.read, user2);
+
+			folder2.setProperty(Folder.owner, user2);
+			folder2.grant(Permission.write, user1);
+
+			file1.setProperty(File.owner, user1);
+			file2.setProperty(File.owner, user2);
+
+			file1.setProperty(Folder.owner, user1);
+			file1.grant(Permission.read, user2);
+
+			file2.setProperty(Folder.owner, user2);
+			file2.grant(Permission.write, user1);
+
+			tx.success();
+
+		} catch (IOException | FrameworkException fex) {
 			fail("Unexpected exception.");
 		}
 

@@ -334,7 +334,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			exportPages(pages, pagesConf);
 			exportComponents(components, componentsConf);
 			exportTemplates(templates, templatesConf);
-			exportSecurity(grants);
+			exportResourceAccessGrants(grants);
 			exportSchema(schemaJson);
 
 			// config import order is "users, grants, pages, components, templates"
@@ -668,7 +668,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void exportSecurity(final Path target) throws FrameworkException {
+	private void exportResourceAccessGrants(final Path target) throws FrameworkException {
 
 		final List<Map<String, Object>> grants = new LinkedList<>();
 		final App app                          = StructrApp.getInstance();
@@ -742,6 +742,32 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putIf(config, "enableBasicAuth",         node.getProperty(Page.enableBasicAuth));
 		}
 
+		exportOwnershipAndSecurity(node, config);
+	}
+
+	private void exportFileConfiguration(final AbstractFile file, final Map<String, Object> config) {
+
+		if (file.isVisibleToPublicUsers())        { putIf(config, "visibleToPublicUsers", true); }
+		if (file.isVisibleToAuthenticatedUsers()) { putIf(config, "visibleToAuthenticatedUsers", true); }
+
+		putIf(config, "contentType",                 file.getProperty(FileBase.contentType));
+		putIf(config, "cacheForSeconds",             file.getProperty(FileBase.cacheForSeconds));
+		putIf(config, "useAsJavascriptLibrary",      file.getProperty(FileBase.useAsJavascriptLibrary));
+		putIf(config, "basicAuthRealm",              file.getProperty(FileBase.basicAuthRealm));
+		putIf(config, "enableBasicAuth",             file.getProperty(FileBase.enableBasicAuth));
+
+		if (file instanceof Image) {
+			putIf(config, "isThumbnail",             file.getProperty(Image.isThumbnail));
+			putIf(config, "isImage",                 file.getProperty(Image.isImage));
+			putIf(config, "width",                   file.getProperty(Image.width));
+			putIf(config, "height",                  file.getProperty(Image.height));
+		}
+
+		exportOwnershipAndSecurity(file, config);
+	}
+
+	private void exportOwnershipAndSecurity(final AbstractNode node, final Map<String, Object> config) {
+
 		// export unique name of owner node to pages.json
 		final Principal owner = node.getOwnerNode();
 		if (owner != null) {
@@ -770,25 +796,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		// export non-empty collection only
 		if (!grantees.isEmpty()) {
 			config.put("grantees", grantees);
-		}
-	}
-
-	private void exportFileConfiguration(final AbstractFile file, final Map<String, Object> config) {
-
-		if (file.isVisibleToPublicUsers())        { putIf(config, "visibleToPublicUsers", true); }
-		if (file.isVisibleToAuthenticatedUsers()) { putIf(config, "visibleToAuthenticatedUsers", true); }
-
-		putIf(config, "contentType",                 file.getProperty(FileBase.contentType));
-		putIf(config, "cacheForSeconds",             file.getProperty(FileBase.cacheForSeconds));
-		putIf(config, "useAsJavascriptLibrary",      file.getProperty(FileBase.useAsJavascriptLibrary));
-		putIf(config, "basicAuthRealm",              file.getProperty(FileBase.basicAuthRealm));
-		putIf(config, "enableBasicAuth",             file.getProperty(FileBase.enableBasicAuth));
-
-		if (file instanceof Image) {
-			putIf(config, "isThumbnail",             file.getProperty(Image.isThumbnail));
-			putIf(config, "isImage",                 file.getProperty(Image.isImage));
-			putIf(config, "width",                   file.getProperty(Image.width));
-			putIf(config, "height",                  file.getProperty(Image.height));
 		}
 	}
 

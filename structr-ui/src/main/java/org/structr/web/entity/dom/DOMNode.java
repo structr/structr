@@ -654,6 +654,20 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 	}
 
+	protected void renderSharedComponentConfiguration(final AsyncBuffer out, final EditMode editMode) {
+
+		if (EditMode.DEPLOYMENT.equals(editMode)) {
+			
+			final String configuration = getProperty(DOMNode.sharedComponentConfiguration);
+			if (StringUtils.isNotBlank(configuration)) {
+
+				out.append(" data-structr-meta-shared-component-configuration=\"");
+				out.append(escapeForHtmlAttributes(configuration));
+				out.append("\"");
+			}
+		}
+	}
+
 	private void getContentInstructions(final Set<String> instructions) {
 
 		final String _contentType = getProperty(Content.contentType);
