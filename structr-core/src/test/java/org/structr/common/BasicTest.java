@@ -859,6 +859,15 @@ public class BasicTest extends StructrTest {
 				// Class entityClass = entity.getValue();
 				if (AbstractNode.class.isAssignableFrom(type)) {
 
+					props.clear();
+
+					// For Group, fill mandatory fields
+					if (type.equals(Group.class)) {
+
+						props.put(Group.name, "Group-0");
+
+					}
+
 					// For TestSeven, fill mandatory fields
 					if (type.equals(TestSeven.class)) {
 
@@ -885,6 +894,7 @@ public class BasicTest extends StructrTest {
 					// For PropertyAccess, fill mandatory fields
 					if (type.equals(PropertyAccess.class)) {
 
+						props.put(PropertyAccess.name, "PropertyAccess-0");
 						props.put(PropertyAccess.flags, 6L);
 
 					}
