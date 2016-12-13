@@ -194,6 +194,10 @@ function StructrApp(baseUrl) {
 			}
 		}
 
+		if (paramKey === 'attr' && possibleFields.length === 0) {
+			possibleFields = s.getPossibleFields(container, suffix, type, key, 'name');
+		}
+
 		return possibleFields;
 	},
 	this.container = function(btn, id) {
