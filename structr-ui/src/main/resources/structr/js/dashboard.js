@@ -39,6 +39,7 @@ var _Dashboard = {
 		_Dashboard.aboutMe.append('<div class="dashboard-info">You are currently logged in as <b>' + me.username + '<b>.</div>');
 		_Dashboard.aboutMe.append('<div class="dashboard-info admin red"></div>');
 		_Dashboard.aboutMe.append('<table class="props"></table>');
+
 		$.get(rootUrl + '/me/ui', function(data) {
 			_Dashboard.meObj = data.result;
 			var t = $('table', _Dashboard.aboutMe);
