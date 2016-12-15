@@ -531,8 +531,12 @@ public class AdvancedSearchTest extends StructrRestTest {
 		String test04 = createEntity("/test_eights", "{ name: test04, aString: string04, anInt: 4 }");
 
 		String test05 = createEntity("/test_nines", "{ name: test05, city: Dortmund, street: Strobelallee, testEightIds: [ ", test01, ",", test02, "] }");
-		String test06 = createEntity("/test_nines", "{ name: test06, city: Köln, street: Heumarkt, testEightIds: [ ", test03, ",", test04, "] }");
+		String test06 = createEntity("/test_nines", "{ name: test06, city: 'Fehlerstadt', street: 'Unbekanntstraße', testEightIds: [ ", test03, ",", test04, "] }");
 		String test07 = createEntity("/test_nines", "{ name: test07, city: München, street: Maximiliansplatz }");
+
+		RestAssured.given().filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200)).get("/TestNine/" + test05);
+		RestAssured.given().filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200)).get("/TestNine/" + test06);
+		RestAssured.given().filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200)).get("/TestNine/" + test07);
 
 		// test geocoding, expected result is a list of 3 objects
 		// test05, test06 and test07
