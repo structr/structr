@@ -126,8 +126,13 @@ function StructrApp(baseUrl) {
 				s.create(btn, type, data, reload, returnUrl, appendId, enableBtnFunction, enableBtnFunction);
 
 			} else if (action === 'save') {
-				s.saveAction(btn, id, attrs, type, suffix, reload, returnUrl, 'Successfully updated ' + id, 'Could not update ' + id, enableBtnFunction, function() {
-					s.cancelEditAction(btn, id, attrs, type, suffix, reload, returnUrl);
+				s.saveAction(btn, id, attrs, type, suffix, reload, returnUrl, 'Successfully updated ' + id, 'Could not update ' + id, enableBtnFunction, function(revert) {
+					if (revert) {
+						var cancelEditButton = $('[data-structr-action="cancel-edit' + (type ? ':' + type : '') + '"]');
+						s.cancelEditAction(cancelEditButton, id, attrs, type, suffix, reload, returnUrl);
+					} else {
+						enableButton(btn);
+					}
 				});
 
 			} else if (action === 'edit') {
@@ -187,6 +192,10 @@ function StructrApp(baseUrl) {
 			} else {
 				possibleFields = $('[data-structr-' + paramKey + '="' + type + '.' + key + ':' + suffix + '"]');
 			}
+		}
+
+		if (paramKey === 'attr' && possibleFields.length === 0) {
+			possibleFields = s.getPossibleFields(container, suffix, type, key, 'name');
 		}
 
 		return possibleFields;
@@ -741,9 +750,9 @@ function StructrApp(baseUrl) {
 				},
 				422: function(data, status, xhr) {
 					s.dialog('error', errorMsg + ': ' + data.responseText);
-					s.showFormErrors(btn, data.responseJSON);
+					var revertEditMode = s.showFormErrors(btn, data.responseJSON);
 					if (onError) {
-						onError();
+						onError(revertEditMode);
 					}
 				},
 				500: simpleAjaxErrorMessage
@@ -760,21 +769,32 @@ function StructrApp(baseUrl) {
 		var a = btn.attr('data-structr-action').split(':');
 		var suffix = a[2];
 		var id = btn.attr('data-structr-id');
-		var container = $('[data-structr-id="' + id + '"]');
+		var container = s.container(btn, id);
+
 		if (window.jQuery.validator) {
+			var errorsToShow = {};
 			var form;
-			Object.keys(msg.errors).forEach(function(type) {
-				Object.keys(msg.errors[type]).forEach(function(key) {
-					var inp = s.getPossibleFields(form, container, suffix, type, key);
-					inp.attr('name', type + '.' + key);
-					inp.attr('required', 'required');
-					inp.attr('data-validate', 'required');
-					form = inp.parents('form');
-				});
+			msg.errors.forEach(function(error) {
+				var inp = s.getPossibleFields(container, suffix, error.type, error.property);
+				var containsInputs = inp.find('input');
+				if (containsInputs.length > 0) {
+					inp = containsInputs;
+				}
+				inp.attr('name', error.type + '.' + error.property);
+				errorsToShow[error.type + '.' + error.property] = error.token;
+				form = inp.parents('form');
 			});
-			form.validate();
-			form.valid();
+
+			if (form) {
+				var validator = form.validate();
+				form.valid();
+				validator.showErrors(errorsToShow);
+
+				return false;
+			}
 		}
+
+		return true;
 	};
 
 	this.add = function(id, sourceId, sourceType, relatedProperty) {

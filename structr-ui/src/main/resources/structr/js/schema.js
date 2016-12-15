@@ -573,10 +573,10 @@ var _Schema = {
 
 						var getX = function() {
 							return (x * 300) + ((y % 2) * 150) + 40;
-						}
+						};
 						var getY = function() {
 							return (y * 150) + 50;
-						}
+						};
 						var calculatePosition = function() {
 							var calculatedX = getX(x);
 							if (calculatedX > 1500) {
@@ -586,8 +586,7 @@ var _Schema = {
 							}
 							var calculatedY = getY(y);
 							return { left: calculatedX, top: calculatedY };
-						}
-
+						};
 
 						var storedPosition = _Schema.nodePositions[entity.name];
 						if (!storedPosition) {
@@ -722,6 +721,7 @@ var _Schema = {
 
 			method(entity, dialogHead, dialogText, targetView);
 
+			_Schema.clearSelection();
 		});
 
 	},
