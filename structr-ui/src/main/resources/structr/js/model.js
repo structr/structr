@@ -541,40 +541,44 @@ StructrFolder.prototype.setProperty = function(key, value, recursive, callback) 
 
 StructrFolder.prototype.remove = function() {
 
-	var folder = this;
-	if (folder.parent) {
-		var parentFolder = StructrModel.obj(folder.parent.id);
-		var parentFolderEl = Structr.node(parentFolder.id);
-	}
+	_Files.refreshTree();
 
-	if (!parentFolderEl)
-		return;
-
-	parentFolder.folders = removeFromArray(parentFolder.folders, folder);
-
-	if (!parentFolder.files.length && !parentFolder.folders.length) {
-		_Entities.removeExpandIcon(parentFolderEl);
-	}
-
-	var folderEl = Structr.node(folder.id);
-	if (!folderEl)
-		return;
-
-	_Entities.resetMouseOverState(folderEl);
-
-	folderEl.children('.delete_icon').replaceWith('<img title="Delete folder ' + folder.id + '" '
-			+ 'alt="Delete folder ' + folder.id + '" class="delete_icon button" src="' + _Icons.delete_icon + '">');
-
-	folderEl.children('.delete_icon').on('click', function(e) {
-		e.stopPropagation();
-		_Entities.deleteNode(this, folder, true);
-	});
-
-	folders.append(folderEl);
+//	var folder = this;
+//	if (folder.parent) {
+//		var parentFolder = StructrModel.obj(folder.parent.id);
+//		var parentFolderEl = Structr.node(parentFolder.id);
+//	}
+//
+//	if (!parentFolderEl)
+//		return;
+//
+//	parentFolder.folders = removeFromArray(parentFolder.folders, folder);
+//
+//	if (!parentFolder.files.length && !parentFolder.folders.length) {
+//		_Entities.removeExpandIcon(parentFolderEl);
+//	}
+//
+//	var folderEl = Structr.node(folder.id);
+//	if (!folderEl)
+//		return;
+//
+//	_Entities.resetMouseOverState(folderEl);
+//
+//	folderEl.children('.delete_icon').replaceWith('<img title="Delete folder ' + folder.id + '" '
+//			+ 'alt="Delete folder ' + folder.id + '" class="delete_icon button" src="' + _Icons.delete_icon + '">');
+//
+//	folderEl.children('.delete_icon').on('click', function(e) {
+//		e.stopPropagation();
+//		_Entities.deleteNode(this, folder, true);
+//	});
 
 };
 
-StructrFolder.prototype.append = function(refNode) {
+StructrFolder.prototype.append = function() {
+
+	_Files.fileOrFolderCreationNotification(this);
+	_Files.refreshTree();
+
 };
 
 StructrFolder.prototype.exists = function() {
@@ -602,27 +606,27 @@ StructrFile.prototype.setProperty = function(key, value, recursive, callback) {
 };
 
 StructrFile.prototype.remove = function() {
-	var file = this;
-
-	if (file.parent) {
-
-		var parentFolder = StructrModel.obj(file.parent.id);
-		var parentFolderEl = Structr.node(parentFolder.id);
-
-		parentFolder.files = removeFromArray(parentFolder.files, file);
-		if (!parentFolder.files.length && !parentFolder.folders.length) {
-			_Entities.removeExpandIcon(parentFolderEl);
-		}
-
-		file.parent = undefined;
-	}
-
-	var fileEl = Structr.node(file.id);
-	if (!fileEl) {
-		return;
-	} else {
-		fileEl.remove();
-	}
+//	var file = this;
+//
+//	if (file.parent) {
+//
+//		var parentFolder = StructrModel.obj(file.parent.id);
+//		var parentFolderEl = Structr.node(parentFolder.id);
+//
+//		parentFolder.files = removeFromArray(parentFolder.files, file);
+//		if (!parentFolder.files.length && !parentFolder.folders.length) {
+//			_Entities.removeExpandIcon(parentFolderEl);
+//		}
+//
+//		file.parent = undefined;
+//	}
+//
+//	var fileEl = Structr.node(file.id);
+//	if (!fileEl) {
+//		return;
+//	} else {
+//		fileEl.remove();
+//	}
 };
 
 StructrFile.prototype.append = function() {
@@ -636,6 +640,8 @@ StructrFile.prototype.append = function() {
 			parentFolder.files.push(file);
 		}
 	}
+
+	_Files.fileOrFolderCreationNotification(this);
 };
 
 
@@ -659,26 +665,26 @@ StructrImage.prototype.setProperty = function(key, value, recursive, callback) {
 };
 
 StructrImage.prototype.remove = function() {
-	var file = this;
-
-	if (file.parent) {
-
-		var parentFolder = StructrModel.obj(file.parent.id);
-		var parentFolderEl = Structr.node(parentFolder.id);
-
-		parentFolder.files = removeFromArray(parentFolder.files, file);
-		if (!parentFolder.files.length && !parentFolder.folders.length) {
-			_Entities.removeExpandIcon(parentFolderEl);
-			Structr.enableButton(parentFolderEl.children('.delete_icon')[0]);
-		}
-
-		file.parent = undefined;
-	}
-
-	var fileEl = Structr.node(file.id);
-	if (fileEl) {
-		fileEl.remove();
-	}
+//	var file = this;
+//
+//	if (file.parent) {
+//
+//		var parentFolder = StructrModel.obj(file.parent.id);
+//		var parentFolderEl = Structr.node(parentFolder.id);
+//
+//		parentFolder.files = removeFromArray(parentFolder.files, file);
+//		if (!parentFolder.files.length && !parentFolder.folders.length) {
+//			_Entities.removeExpandIcon(parentFolderEl);
+//			Structr.enableButton(parentFolderEl.children('.delete_icon')[0]);
+//		}
+//
+//		file.parent = undefined;
+//	}
+//
+//	var fileEl = Structr.node(file.id);
+//	if (fileEl) {
+//		fileEl.remove();
+//	}
 };
 
 StructrImage.prototype.append = function(refNode) {
@@ -687,11 +693,8 @@ StructrImage.prototype.append = function(refNode) {
 		var parentFolder = StructrModel.obj(image.parent.id);
 		if (parentFolder) parentFolder.files.push(image);
 	}
-	if (images && images.length) {
-		StructrModel.expand(_Images.appendImageElement(this, parentFolder), this);
-	} else {
-		_Files.appendFileOrFolder(this);
-	}
+
+	_Files.fileOrFolderCreationNotification(this);
 };
 
 
@@ -1041,8 +1044,6 @@ StructrSearchResult.prototype.append = function() {
 		_Graph.drawNode(this);
 	}
 };
-
-
 
 function removeFromArray(array, obj) {
 	var newArray = [];

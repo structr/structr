@@ -17,7 +17,7 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var main, filesMain, fileTree, folderContents;
-var images, folders, drop;
+var drop;
 var fileList;
 var chunkSize = 1024 * 64;
 var sizeLimit = 1024 * 1024 * 1024;
@@ -74,20 +74,17 @@ var _Files = {
 	},
 	resize: function() {
 
-		var windowWidth = win.width();
 		var windowHeight = win.height();
 		var headerOffsetHeight = 100;
 
 		if (fileTree) {
 			fileTree.css({
-//				width: Math.max(180, Math.min(windowWidth / 3, 360)) + 'px',
 				height: windowHeight - headerOffsetHeight + 'px'
 			});
 		}
 
 		if (folderContents) {
 			folderContents.css({
-//				width: windowWidth - 400 - 64 + 'px',
 				height: windowHeight - headerOffsetHeight - 55 + 'px'
 			});
 		}
@@ -373,7 +370,6 @@ var _Files = {
 
 				} else {
 					$(filesToUpload).each(function(i, file) {
-						//file.parent = { id: currentWorkingDir };
 						file.parentId = currentWorkingDir ? currentWorkingDir.id : null;
 						file.hasParent = true; // Setting hasParent = true forces the backend to upload the file to the root dir even if parentId is null
 						Command.createFile(file, function(f) {
@@ -649,6 +645,13 @@ var _Files = {
 		listSw.on('click', layoutSwitchFunction);
 		tilesSw.on('click', layoutSwitchFunction);
 
+	},
+	fileOrFolderCreationNotification: function (newFileOrFolder) {
+		if (currentWorkingDir === null && newFileOrFolder.parent === null) {
+			_Files.appendFileOrFolder(newFileOrFolder);
+		} else if (currentWorkingDir !== null && newFileOrFolder.parent && currentWorkingDir.id === newFileOrFolder.parent.id) {
+			_Files.appendFileOrFolder(newFileOrFolder);
+		}
 	},
 	appendFileOrFolder: function(d) {
 
