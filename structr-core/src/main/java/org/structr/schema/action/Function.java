@@ -73,9 +73,7 @@ public abstract class Function<S, T> extends Hint {
 	 * @param parameters The method parameters
 	 */
 	protected void logException (final GraphObject entity, final Throwable t, final Object[] parameters) {
-
 		logException(t, "{}: Exception in element \"{}\" for parameters: {}", new Object[] { getName(), entity, getParametersAsString(parameters) });
-
 	}
 
 	/**
@@ -86,7 +84,7 @@ public abstract class Function<S, T> extends Hint {
 	 * @param messageParams The parameters for the message
 	 */
 	protected void logException (final Throwable t, final String msg, final Object[] messageParams) {
-		logger.warn(msg, messageParams);
+		logger.error(msg, messageParams, t);
 	}
 
 	protected String getParametersAsString (final Object[] sources) {
