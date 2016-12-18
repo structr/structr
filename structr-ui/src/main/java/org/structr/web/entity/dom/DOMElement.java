@@ -364,8 +364,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 					final List<DOMChildren> rels = getChildRelationships();
 					if (rels.isEmpty()) {
 
-						migrateSyncRels();
-
 						// No child relationships, maybe this node is in sync with another node
 						final DOMElement _syncedNode = (DOMElement) getProperty(sharedComponent);
 						if (_syncedNode != null) {

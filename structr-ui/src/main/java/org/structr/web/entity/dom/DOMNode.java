@@ -35,11 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.DatabaseService;
 import org.structr.api.Predicate;
-import org.structr.api.graph.Direction;
-import org.structr.api.graph.Relationship;
-import org.structr.api.graph.RelationshipType;
 import org.structr.api.search.SortType;
 import org.structr.common.CaseHelper;
 import org.structr.common.Filter;
@@ -657,7 +653,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	protected void renderSharedComponentConfiguration(final AsyncBuffer out, final EditMode editMode) {
 
 		if (EditMode.DEPLOYMENT.equals(editMode)) {
-			
+
 			final String configuration = getProperty(DOMNode.sharedComponentConfiguration);
 			if (StringUtils.isNotBlank(configuration)) {
 
@@ -939,48 +935,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 			renderContext.clearDataObject(dataKey);
 		}
-	}
-
-	protected void migrateSyncRels() {
-
-		try {
-
-			final DatabaseService db     = StructrApp.getInstance().getDatabaseService();
-			org.structr.api.graph.Node n = getNode();
-
-			Iterable<Relationship> incomingSyncRels = n.getRelationships(Direction.INCOMING, db.forName(RelationshipType.class, "SYNC"));
-			Iterable<Relationship> outgoingSyncRels = n.getRelationships(Direction.OUTGOING, db.forName(RelationshipType.class, "SYNC"));
-
-			if (getOwnerDocument() instanceof ShadowDocument) {
-
-				// We are a shared component and must not have any incoming SYNC rels
-				for (Relationship r : incomingSyncRels) {
-					r.delete();
-				}
-
-			} else {
-
-				for (Relationship r : outgoingSyncRels) {
-					r.delete();
-				}
-
-				for (Relationship r : incomingSyncRels) {
-
-					DOMElement possibleSharedComp = StructrApp.getInstance().get(DOMElement.class, (String)r.getStartNode().getProperty("id"));
-
-					if (!(possibleSharedComp.getOwnerDocument() instanceof ShadowDocument)) {
-
-						r.delete();
-
-					}
-
-				}
-			}
-
-		} catch (FrameworkException ex) {
-			LoggerFactory.getLogger(DOMElement.class.getName()).error("", ex);
-		}
-
 	}
 
 	protected List<GraphObject> checkListSources(final SecurityContext securityContext, final RenderContext renderContext) {
