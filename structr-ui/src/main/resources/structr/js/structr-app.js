@@ -46,10 +46,13 @@ $(function() { $('head').append('<link rel="stylesheet" type="text/css" href="/s
 var structrRestUrl = '/structr/rest/';
 var buttonSelector = '[data-structr-action]';
 var altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
+// to set a non-default locale, set the global variable structrAppLocale
+var structrAppLocale = structrAppLocale || 'en_EN';
+
 
 $(function() {
 
-	var s = new StructrApp(structrRestUrl);
+	var s = new StructrApp(structrRestUrl, structrAppLocale);
 	s.activateButtons(buttonSelector);
 	$(document).trigger('structr-ready');
 	s.hideNonEdit();
@@ -84,9 +87,12 @@ $(function() {
  * Base class for Structr apps
  *
  * @param baseUrl
+ * @param locale 
  * @returns {StructrApp}
  */
-function StructrApp(baseUrl) {
+function StructrApp(baseUrl, locale) {
+	this.locale = locale || 'en_EN';
+	this.lang = locale.split('_')[0];
 	if (baseUrl) {
 		structrRestUrl = baseUrl;
 	}
@@ -96,6 +102,55 @@ function StructrApp(baseUrl) {
 	this.edit = false;
 	this.data = {};
 	this.btnLabel = undefined;
+
+	this.labels = {
+		en : {
+			save                             : 'Save',
+			saving                           : 'Saving',
+			cancel                           : 'Cancel',
+			edit                             : 'Edit',
+			sucessfullyUpdated               : 'Successfully updated',
+			successfullyCreatedNew           : 'Successfully created new',
+			couldNotUpdate                   : 'Could not update',
+			couldNotCreate                   : 'Could not create',
+			checking                         : 'Checking...',
+			wrongUsernameOrPassword          : 'Wrong username or password!',
+			pleaseEnterEMail                 : 'Please enter your e-mail address!',
+			processing                       : 'Processing...',
+			checkYourInbox                   : 'Thanks! Please check your inbox.',
+			success                          : 'Success!',
+			passwordLinkSent                 : 'Link to reset password sent. Please check your inbox or spam folder.',
+			areYouSure                       : 'Are you sure?',
+			areYourSureToDelete              : 'Are you sure to delete',
+			successfullyExecutedCustomAction : 'Successfully executed custom action',
+			couldNotExecuteCustomAction     : 'Could not execute custom action',
+			couldNotReadRelatedProperty      : 'Could not read related property',
+			makeSureContainedInEntity        : 'Make sure it is contained in the\nentity\'s ui view and readable via REST.',
+		},
+		de : {
+			save                             : 'Speichern',
+			saving                           : 'Speichere ...',
+			cancel                           : 'Abbrechen',
+			edit                             : 'Bearbeiten',
+			sucessfullyUpdated               : 'Erfolgreich gespeichert:',
+			successfullyCreatedNew           : 'Neues Object erfolgreich erstellt vom Typ',
+			couldNotUpdate                   : 'Konnte nicht speichern: ',
+			couldNotCreate                   : 'Konnte nicht erstellen:',
+			checking                         : 'Prüfe ...',
+			wrongUsernameOrPassword          : 'Falscher Benutzername oder Passwort!',
+			pleaseEnterEMail                 : 'Bitte E-Mail-Adresse eingeben!',
+			processing                       : 'In Bearbeitung ...',
+			checkYourInbox                   : 'Danke! Bitte E-Mail-Eingang prüfen.',
+			success                          : 'Erfolgreich!',
+			passwordLinkSent                 : 'Link zum Passwort-Reset wurde verschickt. Bitte E-Mail-Eingang prüfen.',
+			areYouSure                       : 'Sicher?',
+			areYourSureToDelete              : 'Wirklich löschen?',
+			successfullyExecutedCustomAction : 'Benutzerdefinierte Aktion erfolgreich ausgeführt:',
+			couldNotExecuteCustomAction      : 'Konnte benutzerdefinierte Aktion nicht ausführen:',
+			couldNotReadRelatedProperty      : 'Konnte entferntes Attribut nicht lesen:',
+			makeSureContainedInEntity        : 'Stellen Sie sicher, dass es in der\nEntität und in deren ui-View enthalten ist\nsowie per REST lesbar ist.',
+		}
+	}
 
 	/**
 	 * Bind 'click' event to all Structr buttons
@@ -126,7 +181,7 @@ function StructrApp(baseUrl) {
 				s.create(btn, type, data, reload, returnUrl, appendId, enableBtnFunction, enableBtnFunction);
 
 			} else if (action === 'save') {
-				s.saveAction(btn, id, attrs, type, suffix, reload, returnUrl, 'Successfully updated ' + id, 'Could not update ' + id, enableBtnFunction, function(revert) {
+				s.saveAction(btn, id, attrs, type, suffix, reload, returnUrl, s.labels[s.lang].successfullyUpdated + ' ' + id, s.labels[s.lang].couldNotUpdate + ' ' + id, enableBtnFunction, function(revert) {
 					if (revert) {
 						var cancelEditButton = $('[data-structr-action="cancel-edit' + (type ? ':' + type : '') + '"]');
 						s.cancelEditAction(cancelEditButton, id, attrs, type, suffix, reload, returnUrl);
@@ -359,16 +414,16 @@ function StructrApp(baseUrl) {
 			+ '" data-structr-attributes="' + attrs.join(',')
 			+ '" data-structr-reload="' + reload
 			+ (returnUrl ? '" data-structr-return="' + returnUrl : '')
-			+ '">Save</button>').insertBefore(btn);
+			+ '">' + s.labels[s.lang].save + '</button>').insertBefore(btn);
 		var saveButton = $('button[data-structr-action="save"][data-structr-id="' + id + '"]', container);
 		saveButton.prop('class', btn.prop('class')).after(' ');
 		saveButton.addClass(clazz);
 		btn.addClass(clazz);
 		enableButton(saveButton);
 		if (type) {
-			btn.text('Cancel').attr('data-structr-action', 'cancel-edit:' + type);
+			btn.text(s.labels[s.lang].cancel).attr('data-structr-action', 'cancel-edit:' + type);
 		} else {
-			btn.text('Cancel').attr('data-structr-action', 'cancel-edit');
+			btn.text(s.labels[s.lang].cancel).attr('data-structr-action', 'cancel-edit');
 		}
 		enableButton(btn);
 	},
@@ -489,7 +544,7 @@ function StructrApp(baseUrl) {
 			$('span', msgBox).remove();
 		}
 
-		var oldBtnText = disableButton(btn, 'Checking...');
+		var oldBtnText = disableButton(btn, s.labels[s.lang].checking);
 
 		var app = this;
 
@@ -505,7 +560,7 @@ function StructrApp(baseUrl) {
 					redirectOrReload(reload, returnUrl);
 				},
 				401: function() {
-					app.feedbackAction(msgBox, 'Wrong username or password!', 1000, btn, true, function () {
+					app.feedbackAction(msgBox, s.labels[s.lang].wrongUsernameOrPassword, 1000, btn, true, function () {
 						btn.text(oldBtnText);
 					});
 				}
@@ -514,7 +569,7 @@ function StructrApp(baseUrl) {
 
 	},
 	this.logoutAction = function(btn, id, attrs, reload, returnUrl) {
-		disableButton(btn, 'Processing...');
+		disableButton(btn, s.labels[s.lang].processing);
 		$.ajax({
 			type: 'POST',
 			method: 'POST',
@@ -537,8 +592,8 @@ function StructrApp(baseUrl) {
 			$('span', msgBox).remove();
 		}
 
-		var oldBtnText = disableButton(btn, 'Processing...');
-		var successText = 'Thanks! Please check your inbox.';
+		var oldBtnText = disableButton(btn, s.labels[s.lang].processing);
+		var successText = s.labels[s.lang].checkYourInbox;
 
 		var app = this;
 
@@ -564,7 +619,7 @@ function StructrApp(baseUrl) {
 					});
 				},
 				400: function() {
-					app.feedbackAction(msgBox, 'Please enter your e-mail address!', 5000, btn, true, function () {
+					app.feedbackAction(msgBox, s.labels[s.lang].pleaseEnterEMail, 5000, btn, true, function () {
 						btn.text(oldBtnText);
 					});
 				}
@@ -580,8 +635,8 @@ function StructrApp(baseUrl) {
 			$('span', msgBox).remove();
 		}
 
-		var oldBtnText = disableButton(btn, 'Processing...');
-		var successText = 'Link to reset password sent. Please check your inbox or spam folder.';
+		var oldBtnText = disableButton(btn, s.labels[s.lang].processing);
+		var successText = s.labels[s.lang].passwordLinkSent;
 
 		var app = this;
 
@@ -600,7 +655,7 @@ function StructrApp(baseUrl) {
 					});
 				},
 				400: function() {
-					app.feedbackAction(msgBox, 'Please enter your e-mail address!', 1000, btn, true, function () {
+					app.feedbackAction(msgBox, s.labels[s.lang].pleaseEnterEMail, 1000, btn, true, function () {
 						btn.text(oldBtnText);
 					});
 				}
@@ -680,7 +735,7 @@ function StructrApp(baseUrl) {
 	};
 
 	this.create = function(btn, type, data, reload, returnUrl, appendId, successCallback, errorCallback) {
-		s.request(btn, 'POST', structrRestUrl + type, data, reload, returnUrl, appendId, 'Successfully created new ' + type, 'Could not create ' + type, successCallback, errorCallback);
+		s.request(btn, 'POST', structrRestUrl + type, data, reload, returnUrl, appendId, s.labels[s.lang].successfullyCreatedNew + ' ' + type, s.labels[s.lang].couldNotCreate + ' ' + type, successCallback, errorCallback);
 	};
 
 	this.customAction = function(btn, id, type, conf, action, data, reload, returnUrl, appendId, successCallback, errorCallback) {
@@ -689,7 +744,7 @@ function StructrApp(baseUrl) {
 			sure = confirm('Are you sure?');
 		}
 		if (!conf || sure) {
-			s.request(btn, 'POST', structrRestUrl + (type ? type + '/' : '') + (id ? id + '/' : '') + action, data, reload, returnUrl, appendId, 'Successfully executed custom action ' + action, 'Could not execute custom action ' + type, successCallback, errorCallback);
+			s.request(btn, 'POST', structrRestUrl + (type ? type + '/' : '') + (id ? id + '/' : '') + action, data, reload, returnUrl, appendId, s.labels[s.lang].successfullyExecutedCustomAction + ' ' + action, s.labels[s.lang].couldNotExecuteCustomAction + ' ' + type, successCallback, errorCallback);
 		} else {
 			enableButton(btn);
 		}
@@ -808,7 +863,7 @@ function StructrApp(baseUrl) {
 				200: function(data) {
 
 					if (data.result[relatedProperty] === undefined) {
-						alert('Could not read related property\n\n    ' + sourceType + '.' + relatedProperty + '\n\nMake sure it is contained in the\nentity\'s ui view and readable via REST.');
+						alert(s.labels[s.lang].couldNotReadRelatedProperty + '\n\n    ' + sourceType + '.' + relatedProperty + '\n\n' + s.labels[s.lang].makeSureContainedInEntity);
 						return;
 					}
 
@@ -851,7 +906,7 @@ function StructrApp(baseUrl) {
 				200: function(data) {
 
 					if (data.result[relatedProperty] === undefined) {
-						alert('Could not read related property\n\n    ' + sourceType + '.' + relatedProperty + '\n\nMake sure it is contained in the\nentity\'s ui view and readable via REST.');
+						alert(s.labels[s.lang].couldNotReadRelatedProperty + '\n\n    ' + sourceType + '.' + relatedProperty + '\n\n' + s.labels[s.lang].makeSureContainedInEntity);
 						return;
 					}
 
@@ -888,7 +943,7 @@ function StructrApp(baseUrl) {
 	this.del = function(btn, id, type, conf, reload, returnUrl, name) {
 		var sure = true;
 		if (conf) {
-			sure = confirm('Are you sure to delete ' + (name ? name : id) + '?');
+			sure = confirm(s.labels[s.lang].areYourSureToDelete + ' ' + (name ? name : id) + '?');
 		}
 		if (!conf || sure) {
 			$.ajax({
@@ -913,14 +968,14 @@ function StructrApp(baseUrl) {
 
 		obj[f.key] = f.val;
 		if (b) {
-			b.html('<img src="/structr/img/al.gif"> Saving');
+			b.html('<img src="/structr/img/al.gif"> ' + s.labels[s.lang].saving);
 		}
 
 		$.ajax({url: baseUrl + f.id, method: 'PUT', contentType: 'application/json', data: JSON.stringify(obj),
 			statusCode: {
 				200: function() {
 					if (b) {
-						b.text('Success!').remove();
+						b.text(s.labels[s.lang].success).remove();
 					}
 				}
 			}
@@ -983,7 +1038,7 @@ function StructrApp(baseUrl) {
 			$('#save_' + id + '_' + key).remove();
 		}
 
-		inp.after('<button id="save_' + id + '_' + key + '">Save</button>');
+		inp.after('<button id="save_' + id + '_' + key + '">' + s.labels[s.lang].save + '</button>');
 		$('#save_' + id + '_' + key).on('click', function() {
 			var btn = $(this), inp = btn.prev();
 			s.save(s.field(inp), btn);
