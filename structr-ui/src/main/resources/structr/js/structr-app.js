@@ -556,7 +556,7 @@ function StructrApp(baseUrl, locale) {
 			data: JSON.stringify(data),
 			statusCode: {
 				200: function(data) {
-					btn.text('Success!');
+					btn.text(s.labels[s.lang].success);
 					redirectOrReload(reload, returnUrl);
 				},
 				401: function() {
