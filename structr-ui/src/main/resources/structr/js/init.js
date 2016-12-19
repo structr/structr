@@ -754,15 +754,20 @@ var Structr = {
 
 		var horizontalOffset = 98;
 
-		var bw = (dw - 28) + 'px';
+		var dialogBoxTextWrapper = $('#dialogBox .dialogTextWrapper');
+		if (dialogBoxTextWrapper && dialogBoxTextWrapper.length) {
 
-		var dialogHeaderHeight = $('#dialogBox .dialogTextWrapper').offset().top - $('#dialogBox .dialogHeaderWrapper').offset().top;
-		var bh = (dh - horizontalOffset - dialogHeaderHeight) + 'px';
+			var bw = (dw - 28) + 'px';
 
-		$('#dialogBox .dialogTextWrapper').css({
-			width: bw,
-			height: bh
-		});
+			var dialogHeaderHeight = dialogBoxTextWrapper.offset().top - $('#dialogBox .dialogHeaderWrapper').offset().top;
+			var bh = (dh - horizontalOffset - dialogHeaderHeight) + 'px';
+
+			dialogBoxTextWrapper.css({
+				width: bw,
+				height: bh
+			});
+
+		}
 
 		var tabsHeight = $('.files-tabs ul').height();
 
