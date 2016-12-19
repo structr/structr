@@ -1171,7 +1171,9 @@ var _Schema = {
 	appendMethods: function(el, entity) {
 
 		el.append('<table class="actions schema-props"><thead><th>JSON Name</th><th>Code</th><th>Comment</th><th class="actions-col">Action</th></thead></table>');
-		el.append('<img alt="Add action" class="add-icon add-action-attribute" src="' + _Icons.add_icon + '">');
+		el.append('<button class="add-icon add-action-button"><img alt="Add action" src="' + _Icons.add_icon + '"> Add method</button>');
+		el.append('<button class="add-icon add-onCreate-button"><img alt="Add action" src="' + _Icons.add_icon + '"> Add onCreate</button>');
+		el.append('<button class="add-icon add-onSave-button"><img alt="Add action" src="' + _Icons.add_icon + '"> Add Save</button>');
 
 		var actionsTable = $('.actions.schema-props', el);
 
@@ -1181,42 +1183,19 @@ var _Schema = {
 			_Schema.appendMethod(actionsTable, method, entity);
 		});
 
-		$('.add-action-attribute', el).on('click', function() {
+		$('.add-action-button', el).on('click', function() {
+			_Schema.appendEmptyMethod(actionsTable, entity);
+		});
 
-			actionsTable.append('<tr>'
-					+ '<td class="name-col"><div class="abs-pos-helper">'
-						+ '<input size="15" type="text" class="action property-name" placeholder="Enter method name">'
-						+ '<img alt="Drag to resize" title="Drag to resize" class="resize-handle" src="' + _Icons.arrow_up_down + '">'
-					+ '</div></td>'
-					+ '<td><textarea rows="4" class="action property-code" placeholder="Enter Code"></textarea></td>'
-					+ '<td><textarea rows="4" class="action property-comment" placeholder="Enter comment"></textarea></td>'
-					+ '<td>'
-						+ '<img alt="Accept" title="Save changes" class="create-icon save-action" src="' + _Icons.tick_icon + '">'
-						+ '<img alt="Cancel" title="Discard changes" class="remove-icon cancel-action" src="' + _Icons.cross_icon + '">'
-						+ '<img alt="Remove" title="Remove method" class="remove-icon remove-action hidden" src="' + _Icons.delete_icon + '">'
-					+ '</td>'
-					+ '</tr>');
+		$('.add-onCreate-button', el).on('click', function() {
+			var tr = _Schema.appendEmptyMethod(actionsTable, entity);
+			$('.property-name', tr).val(_Schema.getFirstFreeMethodName('onCreate'));
+			$('.property-code', tr).val(_Schema.getFirstFreeMethodName('onCreate'));
+		});
 
-			var tr = $('tr', el).last();
-			_Schema.makeSchemaMethodRowResizable(tr);
-
-			// Intitialize editor(s)
-			$('textarea.property-code', tr).each(function (i, txtarea) {
-				_Schema.initCodeMirrorForMethodCode(txtarea);
-			});
-
-			$('textarea.property-comment', tr).each(function (i, txtarea) {
-				_Schema.initCodeMirrorForMethodComment(txtarea);
-			});
-
-			$('.save-action', tr).on('click', function() {
-				_Schema.createMethod(tr, entity);
-			});
-
-			$('.cancel-action', tr).on('click', function() {
-				$(this).closest('tr').remove();
-			});
-
+		$('.add-onSave-button', el).on('click', function() {
+			var tr = _Schema.appendEmptyMethod(actionsTable, entity);
+			$('.property-name', tr).val(_Schema.getFirstFreeMethodName('onSave'));
 		});
 
 		var lineWrapping = LSWrapper.getItem(lineWrappingKey);
@@ -1236,6 +1215,66 @@ var _Schema = {
 				cmEl.CodeMirror.refresh();
 			});
 		});
+	},
+	getFirstFreeMethodName: function (prefix) {
+		var nextSuffix = 0;
+
+		$('#tabView-methods .property-name').each(function(i, el) {
+			var name = $(el).val();
+			if (name.indexOf(prefix) === 0) {
+				var suffix = name.slice(prefix.length);
+
+				if (suffix === '') {
+					nextSuffix = Math.max(nextSuffix, 1);
+				} else {
+					var parsed = parseInt(suffix);
+					if (!isNaN(parsed)) {
+						nextSuffix = Math.max(nextSuffix, parsed + 1);
+					}
+				}
+			}
+		});
+
+		return prefix + (nextSuffix === 0 ? '' : (nextSuffix < 10 ? '0' + nextSuffix : nextSuffix));
+	},
+	appendEmptyMethod: function (actionsTable, entity) {
+
+		actionsTable.append('<tr>'
+				+ '<td class="name-col"><div class="abs-pos-helper">'
+					+ '<input size="15" type="text" class="action property-name" placeholder="Enter method name">'
+					+ '<img alt="Drag to resize" title="Drag to resize" class="resize-handle" src="' + _Icons.arrow_up_down + '">'
+				+ '</div></td>'
+				+ '<td><textarea rows="4" class="action property-code" placeholder="Enter Code"></textarea></td>'
+				+ '<td><textarea rows="4" class="action property-comment" placeholder="Enter comment"></textarea></td>'
+				+ '<td>'
+					+ '<img alt="Accept" title="Save changes" class="create-icon save-action" src="' + _Icons.tick_icon + '">'
+					+ '<img alt="Cancel" title="Discard changes" class="remove-icon cancel-action" src="' + _Icons.cross_icon + '">'
+					+ '<img alt="Remove" title="Remove method" class="remove-icon remove-action hidden" src="' + _Icons.delete_icon + '">'
+				+ '</td>'
+				+ '</tr>');
+
+		var tr = $('tr', actionsTable).last();
+		_Schema.makeSchemaMethodRowResizable(tr);
+
+		// Intitialize editor(s)
+		$('textarea.property-code', tr).each(function (i, txtarea) {
+			_Schema.initCodeMirrorForMethodCode(txtarea);
+		});
+
+		$('textarea.property-comment', tr).each(function (i, txtarea) {
+			_Schema.initCodeMirrorForMethodComment(txtarea);
+		});
+
+		$('.save-action', tr).on('click', function() {
+			_Schema.createMethod(tr, entity);
+		});
+
+		$('.cancel-action', tr).on('click', function() {
+			$(this).closest('tr').remove();
+		});
+
+		return tr;
+
 	},
 	appendRemoteProperties: function(el, entity) {
 
@@ -2055,36 +2094,39 @@ var _Schema = {
 
 		if (obj.name && obj.name.length) {
 
-			_Schema.storeSchemaEntity('schema_methods', {}, JSON.stringify(obj), function(result) {
+			_Schema.storeSchemaEntity(
+				'schema_methods',
+				{},
+				JSON.stringify(obj),
+				function(result) {
 
-				if (result && result.result) {
+					if (result && result.result) {
 
-					var id = result.result[0];
+						var id = result.result[0];
 
-					$.ajax({
-						url: rootUrl + id,
-						type: 'GET',
-						dataType: 'json',
-						contentType: 'application/json; charset=utf-8',
-						statusCode: {
+						$.ajax({
+							url: rootUrl + id,
+							type: 'GET',
+							dataType: 'json',
+							contentType: 'application/json; charset=utf-8',
+							statusCode: {
 
-							200: function(data) {
+								200: function(data) {
 
-								blinkGreen(row);
+									blinkGreen(row);
 
-								var method = data.result;
-								_Schema.initMethodRow(row, method);
-
+									var method = data.result;
+									_Schema.initMethodRow(row, method);
+								}
 							}
-						}
-					});
+						});
+					}
+
+				},
+				function() {
+					blinkRed(row);
 				}
-
-			}, function() {
-
-				blinkRed(row);
-
-			}, function() { });
+			);
 
 		} else {
 
@@ -2103,25 +2145,26 @@ var _Schema = {
 
 		if (obj.name && obj.name.length) {
 
-			_Schema.storeSchemaEntity('schema_methods', method, JSON.stringify(obj), function() {
+			_Schema.storeSchemaEntity(
+				'schema_methods',
+				method,
+				JSON.stringify(obj),
+				function() {
+					blinkGreen(row);
 
-				blinkGreen(row);
+					// update row class so that subsequent changes can be applied
+					row.removeClass(method.name).addClass(obj.name);
 
-				// update row class so that subsequent changes can be applied
-				row.removeClass(method.name).addClass(obj.name);
-
-				// restore button state before removing key
-				$('.save-action', row).addClass('hidden');
-				$('.cancel-action', row).addClass('hidden');
-				$('.remove-action', row).removeClass('hidden');
-
-			}, function(data) {
-
-				Structr.errorFromResponse(data.responseJSON);
-
-				blinkRed(row);
-
-			}, function() { });
+					// restore button state before removing key
+					$('.save-action', row).addClass('hidden');
+					$('.cancel-action', row).addClass('hidden');
+					$('.remove-action', row).removeClass('hidden');
+				},
+				function(data) {
+					Structr.errorFromResponse(data.responseJSON);
+					blinkRed(row);
+				}
+			);
 
 		} else {
 
