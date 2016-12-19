@@ -19,6 +19,7 @@
 package org.structr.core.property;
 
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortType;
@@ -120,7 +121,7 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 		@Override
 		public T revert(String source) throws FrameworkException {
 
-			if (source != null) {
+			if (StringUtils.isNotBlank(source)) {
 
 				try {
 					return (T) Enum.valueOf(enumType, source);
@@ -168,7 +169,7 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 		@Override
 		public T convert(String source) throws FrameworkException {
 
-			if (source != null) {
+			if (StringUtils.isNotBlank(source)) {
 
 				try {
 					return (T) Enum.valueOf(enumType, source);
