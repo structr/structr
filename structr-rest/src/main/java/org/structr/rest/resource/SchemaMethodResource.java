@@ -105,7 +105,7 @@ public class SchemaMethodResource extends SortableResource {
 
 	// ----- private methods -----
 	public static RestMethodResult invoke(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> propertySet) throws FrameworkException {
-		return SchemaMethodResource.wrapInResult(Actions.execute(securityContext, entity, "${" + source + "}", propertySet));
+		return SchemaMethodResource.wrapInResult(Actions.execute(securityContext, entity, "${" + source.trim() + "}", propertySet));
 	}
 
 	public static RestMethodResult wrapInResult(final Object obj) {
