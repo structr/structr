@@ -741,7 +741,7 @@ function StructrApp(baseUrl, locale) {
 	this.customAction = function(btn, id, type, conf, action, data, reload, returnUrl, appendId, successCallback, errorCallback) {
 		var sure = true;
 		if (conf) {
-			sure = confirm('Are you sure?');
+			sure = confirm(s.labels[s.lang].areYouSure);
 		}
 		if (!conf || sure) {
 			s.request(btn, 'POST', structrRestUrl + (type ? type + '/' : '') + (id ? id + '/' : '') + action, data, reload, returnUrl, appendId, s.labels[s.lang].successfullyExecutedCustomAction + ' ' + action, s.labels[s.lang].couldNotExecuteCustomAction + ' ' + type, successCallback, errorCallback);
