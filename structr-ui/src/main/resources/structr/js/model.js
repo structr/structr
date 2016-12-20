@@ -797,8 +797,8 @@ StructrResourceAccess.prototype.setProperty = function(key, value, recursive, ca
 	Command.setProperty(this.id, key, value, recursive, callback);
 };
 
-StructrResourceAccess.prototype.append = function(refNode) {
-	StructrModel.expand(_Security.appendResourceAccessElement(this, refNode), this);
+StructrResourceAccess.prototype.append = function() {
+	_Security.appendResourceAccessElement(this);
 };
 
 /**************************************

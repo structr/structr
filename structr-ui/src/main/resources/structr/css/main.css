@@ -2249,16 +2249,24 @@ table.push {
     background: #fff ! important;
     font-family: Arial, Helvetica, Sans-serif ! important;
     font-size: 9pt;
-    position: relative;
+	padding: 0;
 }
 
-#usersAndGroups {
-    overflow: auto;
+#usersAndGroups #users, #usersAndGroups #groups {
+	padding: 1em;
+	overflow-y: auto;
+	height: calc(100% - 2em);
+}
+
+#resourceAccess #resourceAccesses {
+	padding: 1em;
+	height: calc(100% - 2em);
 }
 
 #resourceAccessesTable {
     display: block;
     overflow: auto;
+	height: calc(100% - 5em);
     border-collapse: collapse;
     background: #fff;
     margin: 6px 0;
@@ -2310,9 +2318,11 @@ table.push {
 
 #securityTabs {
     margin: 12px 24px 12px 12px;
+	width: calc(100vw - 36px);
+	min-width: calc(804px + 4em);
+	height: calc(100vh - 120px);
     border: none;
     background: none;
-    padding: 0;
     font-family: Arial, Helvetica, Sans-serif;
 }
 
@@ -2349,7 +2359,6 @@ li.ui-state-active a:visited {
 #securityTabsMenu {
     border: none;
     background: none;
-    padding: 0;
 }
 
 th.center {
