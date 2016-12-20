@@ -125,6 +125,9 @@
     padding: 2px 5px 2px 10px;
 	cursor: pointer;
 	height: 18px;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
 }
 
 #crud-left li.active {
