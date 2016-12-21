@@ -70,7 +70,6 @@ var StructrModel = {
 			return StructrModel.createFromData(data, refId, append);
 		}
 
-
 	},
 	createFromData: function(data, refId, append) {
 
@@ -282,13 +281,15 @@ var StructrModel = {
 		var w = width || 200;
 
 		var obj = StructrModel.obj(id);
-		if (!obj)
+		if (!obj) {
 			return;
+		}
 
 		var element = Structr.node(id);
 
-		if (!element)
+		if (!element) {
 			return;
+		}
 
 		var inputElement = $('td.' + key + '_ input', element);
 		_Logger.log(_LogType.MODEL, inputElement);
@@ -375,8 +376,9 @@ var StructrModel = {
 				graphBrowser.updateNode(id, obj, ['name', 'tag', 'id', 'type'], {label: 'name', nodeType: 'type'});
 			}
 
-			if (!element)
+			if (!element) {
 				return;
+			}
 
 			_Logger.log(_LogType.MODEL, obj, id, element);
 
@@ -509,14 +511,19 @@ var StructrModel = {
 		}
 	},
 
-	clearCallback : function(callback) {
+	clearCallback: function(callback) {
 		if (callback && StructrModel.callbacks[callback]) {
 			delete StructrModel.callbacks[callback];
 			callback = undefined;
 			delete callback;
 		}
-	}
+	},
 
+	copyDataToObject: function (data, target) {
+		$.each(Object.keys(data), function(i, key) {
+			target[key] = data[key];
+		});
+	}
 };
 
 
@@ -525,10 +532,7 @@ var StructrModel = {
  **************************************/
 
 function StructrFolder(data) {
-	var self = this;
-	$.each(Object.keys(data), function(i, key) {
-		self[key] = data[key];
-	});
+	StructrModel.copyDataToObject(data, this);
 }
 
 StructrFolder.prototype.save = function() {
@@ -591,10 +595,7 @@ StructrFolder.prototype.exists = function() {
  **************************************/
 
 function StructrFile(data) {
-	var self = this;
-	$.each(Object.keys(data), function(i, key) {
-		self[key] = data[key];
-	});
+	StructrModel.copyDataToObject(data, this);
 }
 
 StructrFile.prototype.save = function() {
@@ -650,10 +651,7 @@ StructrFile.prototype.append = function() {
  **************************************/
 
 function StructrImage(data) {
-	var self = this;
-	$.each(Object.keys(data), function(i, key) {
-		self[key] = data[key];
-	});
+	StructrModel.copyDataToObject(data, this);
 }
 
 StructrImage.prototype.save = function() {
@@ -703,10 +701,7 @@ StructrImage.prototype.append = function(refNode) {
  **************************************/
 
 function StructrUser(data) {
-	var self = this;
-	$.each(Object.keys(data), function(i, key) {
-		self[key] = data[key];
-	});
+	StructrModel.copyDataToObject(data, this);
 }
 
 StructrUser.prototype.save = function() {
@@ -760,10 +755,7 @@ StructrUser.prototype.append = function() {
  **************************************/
 
 function StructrGroup(data) {
-	var self = this;
-	$.each(Object.keys(data), function(i, key) {
-		self[key] = data[key];
-	});
+	StructrModel.copyDataToObject(data, this);
 }
 
 StructrGroup.prototype.save = function() {
@@ -783,10 +775,7 @@ StructrGroup.prototype.append = function(refNode) {
  **************************************/
 
 function StructrResourceAccess(data) {
-	var self = this;
-	$.each(Object.keys(data), function(i, key) {
-		self[key] = data[key];
-	});
+	StructrModel.copyDataToObject(data, this);
 }
 
 StructrResourceAccess.prototype.save = function() {
@@ -806,10 +795,7 @@ StructrResourceAccess.prototype.append = function() {
  **************************************/
 
 function StructrPage(data) {
-	var self = this;
-	$.each(Object.keys(data), function(i, key) {
-		self[key] = data[key];
-	});
+	StructrModel.copyDataToObject(data, this);
 }
 
 StructrPage.prototype.setProperty = function(key, value, recursive, callback) {
@@ -825,10 +811,7 @@ StructrPage.prototype.append = function() {
  **************************************/
 
 function StructrWidget(data) {
-	var self = this;
-	$.each(Object.keys(data), function(i, key) {
-		self[key] = data[key];
-	});
+	StructrModel.copyDataToObject(data, this);
 }
 
 StructrWidget.prototype.setProperty = function(key, value, recursive, callback) {
@@ -844,10 +827,7 @@ StructrWidget.prototype.append = function() {
  **************************************/
 
 function StructrElement(data) {
-	var self = this;
-	$.each(Object.keys(data), function(i, key) {
-		self[key] = data[key];
-	});
+	StructrModel.copyDataToObject(data, this);
 }
 
 StructrElement.prototype.appendChild = function(el) {
@@ -932,10 +912,7 @@ StructrElement.prototype.isActiveNode = function() {
  **************************************/
 
 function StructrContent(data) {
-	var self = this;
-	$.each(Object.keys(data), function(i, key) {
-		self[key] = data[key];
-	});
+	StructrModel.copyDataToObject(data, this);
 }
 
 StructrContent.prototype.appendChild = function(el) {
@@ -1028,10 +1005,7 @@ StructrContent.prototype.isActiveNode = function() {
  **************************************/
 
 function StructrSearchResult(data) {
-	var self = this;
-	$.each(Object.keys(data), function(i, key) {
-		self[key] = data[key];
-	});
+	StructrModel.copyDataToObject(data, this);
 }
 
 StructrSearchResult.prototype.append = function() {
