@@ -237,7 +237,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 						final FrameworkException fex = (FrameworkException)t;
 
-						send(MessageBuilder.status().code(fex.getStatus()).message(fex.toString()).jsonErrorObject(fex.toJSON()).build(), true);
+						send(MessageBuilder.status().code(fex.getStatus()).message(fex.toString()).jsonErrorObject(fex.toJSON()).callback(webSocketData.getCallback()).build(), true);
 
 					} else {
 

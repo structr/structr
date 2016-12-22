@@ -1503,7 +1503,11 @@ var _Entities = {
 				_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName, w);
 			});
 			if (commitChanges === true) {
-				_Entities.setNewAttributeValue(parentElement, id, attributeName, displayValue, callback);
+				_Entities.setNewAttributeValue(parentElement, id, attributeName, displayValue, callback, function () {
+					var attributeElement = parentElement.find(attributeSelector).first();
+					attributeElement.attr('title', oldValue).text(oldValue);
+					blinkRed(parentElement);
+				});
 			}
 		};
 
@@ -1529,18 +1533,24 @@ var _Entities = {
 		var id = Structr.getId(element);
 		_Entities.setNewAttributeValue(element, id, 'name', newName, callback);
 	},
-	setNewAttributeValue: function(element, id, attributeName, newValue, callback) {
-		Command.setProperty(id, attributeName, newValue, false, function() {
-			blinkGreen(element.find('.' + attributeName + '_').first());
-			if (lastMenuEntry === 'pages') {
-				_Pages.reloadPreviews();
-			} else if (lastMenuEntry === 'files' && attributeName === 'name') {
-				var a = element.closest('td').prev().children('a').first();
-				Command.getProperty(id, 'path', function(newPath) {
-					a.attr('href', newPath);
-				});
+	setNewAttributeValue: function(element, id, attributeName, newValue, callback, failCallback) {
+		Command.setProperty(id, attributeName, newValue, false, function(entity, resultSize, errorOccurred) {
+			if (!errorOccurred || errorOccurred === false) {
+				blinkGreen(element.find('.' + attributeName + '_').first());
+				if (lastMenuEntry === 'pages') {
+					_Pages.reloadPreviews();
+				} else if (lastMenuEntry === 'files' && attributeName === 'name') {
+					var a = element.closest('td').prev().children('a').first();
+					Command.getProperty(id, 'path', function(newPath) {
+						a.attr('href', newPath);
+					});
+				}
+				if (callback) {
+					callback();
+				}
+			} else if (failCallback) {
+				failCallback();
 			}
-			if (callback) callback();
 		});
 	},
 	handleActiveElement: function(entity) {

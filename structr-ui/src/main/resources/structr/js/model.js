@@ -503,13 +503,13 @@ var StructrModel = {
 		Command.setProperties(id, data);
 	},
 
-	callCallback: function(callback, entity, resultSize) {
+	callCallback: function(callback, entity, resultSize, errorOccurred) {
 		if (callback) {
 			_Logger.log(_LogType.MODEL, 'Calling callback', callback, 'on entity', entity, resultSize);
 			var callbackFunction = StructrModel.callbacks[callback];
 			if (callback && callbackFunction) {
 				_Logger.log(_LogType.MODEL, callback, callbackFunction.toString());
-				StructrModel.callbacks[callback](entity, resultSize);
+				StructrModel.callbacks[callback](entity, resultSize, errorOccurred);
 			}
 			StructrModel.clearCallback(callback);
 		}

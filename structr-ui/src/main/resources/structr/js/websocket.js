@@ -198,6 +198,10 @@ function wsConnect() {
 						msgClass = 'error';
 					}
 
+					if (codeStr === '422') {
+						StructrModel.callCallback(data.callback, null, null, true);
+					}
+
 					if (msg && msg.startsWith('{')) {
 
 						var msgObj = JSON.parse(msg);
