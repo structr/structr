@@ -1330,6 +1330,12 @@ var Structr = {
 	getComponentId: function(element) {
 		return Structr.getIdFromPrefixIdString($(element).prop('id'), 'componentId_') || undefined;
 	},
+	getUserId: function (element) {
+		return element.data('userId');
+	},
+	getGroupId: function (element) {
+		return element.data('groupId');
+	},
 	getActiveElementId: function(element) {
 		return Structr.getIdFromPrefixIdString($(element).prop('id'), 'active_') || undefined;
 	},

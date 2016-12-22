@@ -281,16 +281,32 @@ function wsConnect() {
 
 				StructrModel.callCallback(data.callback, result);
 
-			} else if (command.endsWith('CHILDREN')) { /*********************** CHILDREN ************************/
+			} else if (command === 'CHILDREN') { /*********************** CHILDREN ************************/
 
 				_Logger.log(_LogType.WS[command], data);
 
-				// sort the folders/files in the Files tab
-				if (command === 'CHILDREN' && result.length > 0 && result[0].name) {
+				if (result.length > 0 && result[0].name) {
 					result.sort(function (a, b) {
 						return a.name.localeCompare(b.name);
 					});
 				}
+
+				var refObject = StructrModel.obj(data.id);
+
+				if (refObject && refObject.constructor.name === 'StructrGroup') {
+					result.forEach(function (entity) {
+						StructrModel.create(entity, data.id);
+					});
+				} else {
+					result.forEach(function (entity) {
+						StructrModel.create(entity);
+					});
+				}
+				StructrModel.callCallback(data.callback, result);
+
+			} else if (command.endsWith('CHILDREN')) { /*********************** CHILDREN ************************/
+
+				_Logger.log(_LogType.WS[command], data);
 
 				$(result).each(function (i, entity) {
 					StructrModel.create(entity);
@@ -371,12 +387,20 @@ function wsConnect() {
 
 				StructrModel.create(result[0], data.data.refId);
 
-			} else if (command === 'REMOVE' || command === 'REMOVE_CHILD') { /*********************** REMOVE / REMOVE_CHILD ************************/
+			} else if (command === 'REMOVE') { /*********************** REMOVE ************************/
 
 				var obj = StructrModel.obj(data.id);
 				if (obj) {
 					_Logger.log(_LogType.WS[command], 'Remove object from model', obj);
 					obj.remove();
+				}
+
+			} else if (command === 'REMOVE_CHILD') { /*********************** REMOVE_CHILD ************************/
+
+				var obj = StructrModel.obj(data.id);
+				if (obj) {
+					_Logger.log(_LogType.WS[command], 'Remove object from parent', data, obj);
+					obj.remove(data.data.parentId);
 				}
 
 			} else if (command === 'CREATE' || command === 'ADD' || command === 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/

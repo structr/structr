@@ -1387,7 +1387,6 @@ var _Entities = {
 		}
 		var page = node.closest('.page');
 		if (page.length) {
-			//$('#preview_' + Structr.getId(page)).contents().find('[data-structr-id=' + Structr.getId(node) + ']').removeClass('nodeHover');
 			try {
 				$('#preview_' + Structr.getId(page)).contents().find('[data-structr-id]').removeClass('nodeHover');
 			} catch (e) {}
@@ -1452,7 +1451,7 @@ var _Entities = {
 	toggleElement: function(element, expanded) {
 
 		var el = $(element);
-		var id = Structr.getId(el) || Structr.getComponentId(el);
+		var id = Structr.getId(el) || Structr.getComponentId(el) || Structr.getGroupId(el);
 
 		_Logger.log(_LogType.ENTITIES, 'toggleElement: ', el, id);
 

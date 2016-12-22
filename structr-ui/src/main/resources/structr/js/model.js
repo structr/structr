@@ -158,10 +158,7 @@ var StructrModel = {
 			obj.content = obj.content.substring(0, 40);
 		}
 
-		var refNode = refId ? Structr.node(refId) : undefined;
-
-		// Display in page (before refNode, if given)
-		obj.append(refNode);
+		obj.append(refId);
 
 	},
 	/**
@@ -204,6 +201,13 @@ var StructrModel = {
 		var node = Structr.node(id);
 		if (node) {
 			node.remove();
+		}
+
+		// Since users/groups are not displayed as '#id_'-elements anymore, Structr.node() does not find (all of) them.
+		// therefor we let the object itself handle its removal in this case.
+		var obj = StructrModel.obj(id);
+		if (obj) {
+			obj.remove();
 		}
 
 		if (lastMenuEntry === 'pages') {
@@ -685,7 +689,7 @@ StructrImage.prototype.remove = function() {
 //	}
 };
 
-StructrImage.prototype.append = function(refNode) {
+StructrImage.prototype.append = function() {
 	var image = this;
 	if (image.parent) {
 		var parentFolder = StructrModel.obj(image.parent.id);
@@ -712,42 +716,27 @@ StructrUser.prototype.setProperty = function(key, value, recursive, callback) {
 	Command.setProperty(this.id, key, value, false, callback);
 };
 
-StructrUser.prototype.remove = function() {
-	var user = this;
-
-	var group = user.groups[0];
-	var groupEl = Structr.node(group.id);
-
-	user.groups = removeFromArray(user.groups, group);
-
-	group.members = removeFromArray(group.members, user);
-	if (!group.members.length) {
-		_Entities.removeExpandIcon(groupEl);
-		if (groupEl && groupEl.length) {
-			Structr.enableButton(groupEl.children('.delete_icon')[0]);
+StructrUser.prototype.remove = function(groupId) {
+	if (groupId) {
+		var group = StructrModel.obj(groupId);
+		if (group) {
+			group.removeUser(this.id);
+		}
+	} else {
+		var userEl = Structr.node(this.id, '.userid_');
+		if (userEl && userEl.length) {
+			userEl.remove();
 		}
 	}
-
-	var userEl = Structr.node(user.id);
-	if (!userEl) {
-		return;
-	} else {
-		userEl.remove();
-	}
-
-	_Security.appendUserElement(this);
 };
 
-StructrUser.prototype.append = function() {
-	var user = this;
-
-	if (user.groups && user.groups.length) {
-		var group = StructrModel.obj(user.groups[0]);
-		if (group && group.members) {
-			group.members.push(user.id);
-		}
+StructrUser.prototype.append = function(groupId) {
+	if (groupId) {
+		_UsersAndGroups.appendUserToGroup(this, StructrModel.obj(groupId), Structr.node(groupId, '.groupid_'));
+	} else {
+		_UsersAndGroups.appendUserToUserList(this);
 	}
-	StructrModel.expand(_Security.appendUserElement(this, group), this);
+
 };
 
 /**************************************
@@ -766,8 +755,31 @@ StructrGroup.prototype.setProperty = function(key, value, recursive, callback) {
 	Command.setProperty(this.id, key, value, recursive, callback);
 };
 
-StructrGroup.prototype.append = function(refNode) {
-	StructrModel.expand(_Security.appendGroupElement(this, refNode), this);
+StructrGroup.prototype.append = function(refId) {
+	var refNode = refId ? Structr.node(refId) : undefined;
+	StructrModel.expand(_UsersAndGroups.appendGroupElement(this, refNode), this);
+};
+
+StructrGroup.prototype.remove = function() {
+	var groupEl = Structr.node(this.id, '.groupid_');
+	if (groupEl && groupEl.length) {
+		groupEl.remove();
+	}
+};
+
+StructrGroup.prototype.removeUser = function(userId) {
+	this.members = this.members.filter(function (user) {
+		return user.id !== userId;
+	});
+
+	var groupEl = Structr.node(this.id, '.groupid_');
+	if (groupEl && groupEl.length) {
+		$('.userid_' + userId, groupEl).remove();
+
+		if (this.members.length === 0) {
+			_Entities.removeExpandIcon(groupEl);
+		}
+	}
 };
 
 /**************************************
@@ -787,7 +799,7 @@ StructrResourceAccess.prototype.setProperty = function(key, value, recursive, ca
 };
 
 StructrResourceAccess.prototype.append = function() {
-	_Security.appendResourceAccessElement(this);
+	_ResourceAccessGrants.appendResourceAccessElement(this);
 };
 
 /**************************************
@@ -870,7 +882,8 @@ StructrElement.prototype.remove = function() {
 	_Pages.reloadPreviews();
 };
 
-StructrElement.prototype.append = function(refNode) {
+StructrElement.prototype.append = function(refId) {
+	var refNode = refId ? Structr.node(refId) : undefined;
 	StructrModel.expand(_Pages.appendElementElement(this, refNode), this);
 };
 
@@ -953,7 +966,7 @@ StructrContent.prototype.remove = function() {
 	_Pages.reloadPreviews();
 };
 
-StructrContent.prototype.append = function(refNode) {
+StructrContent.prototype.append = function(refId) {
 
 	var id = this.id;
 	var parentId;
@@ -964,6 +977,7 @@ StructrContent.prototype.append = function(refNode) {
 		parent = Structr.node(parentId);
 	}
 
+	var refNode = refId ? Structr.node(refId) : undefined;
 	var div = _Elements.appendContentElement(this, refNode);
 	if (!div) {
 		return;
@@ -992,7 +1006,6 @@ StructrContent.prototype.append = function(refNode) {
 };
 
 StructrContent.prototype.exists = function() {
-
 	return Structr.node(this.id);
 };
 

@@ -382,8 +382,9 @@ var _Elements = {
 		}
 
 		_Logger.log(_LogType.ELEMENTS, 'appendElementElement parent, refNode, refNodeIsParent', parent, refNode, refNodeIsParent);
-		if (!parent)
+		if (!parent) {
 			return false;
+		}
 
 		_Entities.ensureExpanded(parent);
 
@@ -1059,8 +1060,9 @@ var _Elements = {
 			parent = refNode;
 		}
 
-		if (!parent)
+		if (!parent) {
 			return false;
+		}
 
 		var isActiveNode = entity.isActiveNode();
 		var isTemplate = (entity.type === 'Template');
