@@ -1106,7 +1106,7 @@ var _Pages = {
 			activeNode.removeClass('nodeHover');
 		}
 	},
-	pagesTabResizeContent: function (pagesSlideout) {
+	pagesTabResizeContent: function () {
 		var storedLeftSlideoutWidth = LSWrapper.getItem(_Pages.leftSlideoutWidthKey);
 		var psw = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (pagesSlideout.width() + 12);
 		$('.node.page', pagesSlideout).width(psw - 40);
