@@ -261,11 +261,19 @@ var _Icons = {
 
 
 	getImageIcon: function(image) {
-
 		return (image.contentType.startsWith('image/svg') ? image.path : (image.tnSmall ? image.tnSmall.path : _Icons.image_icon));
-
 	},
-
+	getMinificationIcon: function(file) {
+		switch(file.type) {
+			case 'MinifiedCssFile':
+				return _Icons.minification_dialog_css_icon;
+			case 'MinifiedJavaScriptFile':
+				return _Icons.minification_dialog_js_icon;
+			default:
+				// unknow minification type - show error icon
+				return _Icons.error_icon;
+		}
+	},
 	getFileIconClass: function(file) {
 
 		var fileName = file.name;
@@ -359,7 +367,6 @@ var _Icons = {
 
 		return result;
 	}
-
 };
 
 var Structr = {

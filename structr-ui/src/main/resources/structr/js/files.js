@@ -1126,7 +1126,7 @@ var _Files = {
 		var minifyIcon = $('.minify_file_icon', parent);
 
 		if (!(minifyIcon && minifyIcon.length)) {
-			parent.append('<img title="Open minification dialog" class="minify_file_icon button" src="' + _Files.getMinificationIcon(file) + '" />');
+			parent.append('<img title="Open minification dialog" class="minify_file_icon button" src="' + _Icons.getMinificationIcon(file) + '" />');
 		}
 
 		$(parent.children('.minify_file_icon')).on('click', function(e) {
@@ -1394,16 +1394,5 @@ var _Files = {
 	isMinificationTarget: function(file) {
 		var minifyTypes = [ 'MinifiedCssFile', 'MinifiedJavaScriptFile' ];
 		return isIn(file.type, minifyTypes);
-	},
-	getMinificationIcon: function(file) {
-		switch(file.type) {
-			case 'MinifiedCssFile':
-				return _Icons.minification_dialog_css_icon;
-			case 'MinifiedJavaScriptFile':
-				return _Icons.minification_dialog_js_icon;
-			default:
-				// unknow minification type - show error icon
-				return _Icons.error_icon;
-		}
 	}
 };
