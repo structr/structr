@@ -124,9 +124,7 @@ function wsConnect() {
 
 		ws.onmessage = function (message) {
 
-			var data = $.parseJSON(message.data);
-
-			//var msg = $.parseJSON(message);
+			var data = JSON.parse(message.data);
 			var type = data.data.type;
 			var command = data.command;
 			var msg = data.message;
@@ -137,7 +135,7 @@ function wsConnect() {
 			_Logger.log(_LogType.WS[command], 'ws.onmessage:', data);
 			_Logger.log(_LogType.WS[command], '####################################### ', command, ' #########################################');
 
-			if (command === 'LOGIN' || code === 100) { /*********************** LOGIN or response to PING ************************/
+			if (command === 'LOGIN' || code === 100) {
 
 				me = data.data;
 				_Dashboard.checkAdmin();
@@ -159,7 +157,7 @@ function wsConnect() {
 
 				StructrModel.callCallback(data.callback, data.data[data.data['key']]);
 
-			} else if (command === 'GET_LOCAL_STORAGE') { /*********************** GET_LOCAL_STORAGE ************************/
+			} else if (command === 'GET_LOCAL_STORAGE') {
 
 				if (data.data.localStorageString && data.data.localStorageString.length) {
 					LSWrapper.setAsJSON(data.data.localStorageString);
@@ -167,36 +165,23 @@ function wsConnect() {
 
 				StructrModel.callCallback(data.callback, data.data[data.data['key']]);
 
-			} else if (command === 'CONSOLE') { /*********************** CONSOLE ************************/
+			} else if (command === 'CONSOLE') {
 
 				StructrModel.callCallback(data.callback, data);
 
-			} else if (command === 'STATUS') { /*********************** STATUS ************************/
+			} else if (command === 'STATUS') {
 
 				_Logger.log(_LogType.WS[command], 'Error code: ' + code, message);
 
 				if (code === 403) {
-					//Structr.clearMain();
 					user = null;
 					Structr.login('Wrong username or password!');
 				} else if (code === 401) {
-					//Structr.clearMain();
 					user = null;
 					Structr.login('');
 				} else {
 
-					var msgClass;
 					var codeStr = code ? code.toString() : '';
-
-					if (codeStr.startsWith('2')) {
-						msgClass = 'success';
-					} else if (codeStr.startsWith('3')) {
-						msgClass = 'info';
-					} else if (codeStr.startsWith('4')) {
-						msgClass = 'warning';
-					} else {
-						msgClass = 'error';
-					}
 
 					if (codeStr === '422') {
 						StructrModel.callCallback(data.callback, null, null, true);
@@ -207,6 +192,17 @@ function wsConnect() {
 						var msgObj = JSON.parse(msg);
 
 						if (dialogBox.is(':visible')) {
+
+							var msgClass;
+							if (codeStr.startsWith('2')) {
+								msgClass = 'success';
+							} else if (codeStr.startsWith('3')) {
+								msgClass = 'info';
+							} else if (codeStr.startsWith('4')) {
+								msgClass = 'warning';
+							} else {
+								msgClass = 'error';
+							}
 
 							Structr.showAndHideInfoBoxMessage(msgObj.size + ' bytes saved to ' + msgObj.name, msgClass, 2000, 200);
 
@@ -254,13 +250,13 @@ function wsConnect() {
 
 				}
 
-			} else if (command === 'GET_PROPERTY') { /*********************** GET_PROPERTY ************************/
+			} else if (command === 'GET_PROPERTY') {
 
 				_Logger.log(_LogType.WS[command], data.id, data.data['key'], data.data[data.data['key']]);
 				StructrModel.updateKey(data.id, data.data['key'], data.data[data.data['key']]);
 				StructrModel.callCallback(data.callback, data.data[data.data['key']]);
 
-			} else if (command === 'UPDATE' || command === 'SET_PERMISSION') { /*********************** UPDATE / SET_PERMISSION ************************/
+			} else if (command === 'UPDATE' || command === 'SET_PERMISSION') {
 
 				_Logger.log(_LogType.WS[command], data);
 
@@ -275,17 +271,17 @@ function wsConnect() {
 
 				StructrModel.callCallback(data.callback, obj);
 
-			} else if (command === 'GET') { /*********************** GET ************************/
+			} else if (command === 'GET') {
 
 				StructrModel.callCallback(data.callback, result[0]);
 
-			} else if (command.startsWith('GET') || command === 'GET_BY_TYPE' || command === 'GET_SCHEMA_INFO' || command === 'CREATE_RELATIONSHIP') { /*********************** GET_BY_TYPE ************************/
+			} else if (command.startsWith('GET') || command === 'GET_BY_TYPE' || command === 'GET_SCHEMA_INFO' || command === 'CREATE_RELATIONSHIP') {
 
 				_Logger.log(_LogType.WS[command], data);
 
 				StructrModel.callCallback(data.callback, result);
 
-			} else if (command === 'CHILDREN') { /*********************** CHILDREN ************************/
+			} else if (command === 'CHILDREN') {
 
 				_Logger.log(_LogType.WS[command], data);
 
@@ -308,7 +304,7 @@ function wsConnect() {
 				}
 				StructrModel.callCallback(data.callback, result);
 
-			} else if (command.endsWith('CHILDREN')) { /*********************** CHILDREN ************************/
+			} else if (command.endsWith('CHILDREN')) {
 
 				_Logger.log(_LogType.WS[command], data);
 
@@ -318,80 +314,80 @@ function wsConnect() {
 
 				StructrModel.callCallback(data.callback, result);
 
-			} else if (command.startsWith('SEARCH')) { /*********************** SEARCH ************************/
+			} else if (command.startsWith('SEARCH')) {
 
 				$('.pageCount', $('.pager' + type)).val(pageCount[type]);
 
 				StructrModel.callCallback(data.callback, result, data.rawResultCount);
 
-			} else if (command.startsWith('LIST_UNATTACHED_NODES')) { /*********************** LIST_UNATTACHED_NODES ************************/
+			} else if (command.startsWith('LIST_UNATTACHED_NODES')) {
 
 				_Logger.log(_LogType.WS[command], result, data);
 
 				StructrModel.callCallback(data.callback, result);
 
-			} else if (command.startsWith('LIST_SCHEMA_PROPERTIES')) { /*********************** LIST_SCHEMA_PROPERTIES ************************/
+			} else if (command.startsWith('LIST_SCHEMA_PROPERTIES')) {
 
 				_Logger.log(_LogType.WS[command], result, data);
 
 				// send full result in a single callback
 				StructrModel.callCallback(data.callback, result);
 
-			} else if (command.startsWith('LIST_COMPONENTS')) { /*********************** LIST_COMPONENTS ************************/
+			} else if (command.startsWith('LIST_COMPONENTS')) {
 
 				_Logger.log(_LogType.WS[command], result, data);
 
 				StructrModel.callCallback(data.callback, result);
 
-			} else if (command.startsWith('LIST_SYNCABLES')) { /*********************** LIST_SYNCABLES ************************/
+			} else if (command.startsWith('LIST_SYNCABLES')) {
 
 				_Logger.log(_LogType.WS[command], result, data);
 
 				StructrModel.callCallback(data.callback, result);
 
-			} else if (command.startsWith('LIST_ACTIVE_ELEMENTS')) { /*********************** LIST_ACTIVE_ELEMENTS ************************/
+			} else if (command.startsWith('LIST_ACTIVE_ELEMENTS')) {
 
 				_Logger.log(_LogType.WS[command], result, data);
 
 				StructrModel.callCallback(data.callback, result);
 
-			} else if (command.startsWith('SNAPSHOTS')) { /*********************** LIST_SNAPSHOTS ************************/
+			} else if (command.startsWith('SNAPSHOTS')) {
 
 				_Logger.log(_LogType.WS[command], result, data);
 
 				StructrModel.callCallback(data.callback, result);
 
-			} else if (command.startsWith('LAYOUTS')) { /*********************** LIST_LAYOUTS ************************/
+			} else if (command.startsWith('LAYOUTS')) {
 
 				_Logger.log(_LogType.WS[command], result, data);
 
 				StructrModel.callCallback(data.callback, result);
 
-			} else if (command.startsWith('LIST')) { /*********************** LIST ************************/
+			} else if (command.startsWith('LIST')) {
 
 				_Logger.log(_LogType.WS[command], result, data);
 
 				StructrModel.callCallback(data.callback, result, data.rawResultCount);
 
-			} else if (command.startsWith('QUERY')) { /*********************** QUERY ************************/
+			} else if (command.startsWith('QUERY')) {
 
 				_Logger.log(_LogType.WS[command], result, data);
 
 				StructrModel.callCallback(data.callback, result, data.rawResultCount);
 
-			} else if (command === 'DELETE') { /*********************** DELETE ************************/
+			} else if (command === 'DELETE') {
 
 				StructrModel.del(data.id);
 
-			} else if (command === 'INSERT_BEFORE') { /*********************** INSERT_BEFORE ************************/
+			} else if (command === 'INSERT_BEFORE') {
 
 				StructrModel.create(result[0], data.data.refId);
 
-			} else if (command.startsWith('APPEND_')) { /*********************** APPEND_* ************************/
+			} else if (command.startsWith('APPEND_')) {
 
 				StructrModel.create(result[0], data.data.refId);
 
-			} else if (command === 'REMOVE') { /*********************** REMOVE ************************/
+			} else if (command === 'REMOVE') {
 
 				var obj = StructrModel.obj(data.id);
 				if (obj) {
@@ -399,7 +395,7 @@ function wsConnect() {
 					obj.remove();
 				}
 
-			} else if (command === 'REMOVE_CHILD') { /*********************** REMOVE_CHILD ************************/
+			} else if (command === 'REMOVE_CHILD') {
 
 				var obj = StructrModel.obj(data.id);
 				if (obj) {
@@ -407,7 +403,7 @@ function wsConnect() {
 					obj.remove(data.data.parentId);
 				}
 
-			} else if (command === 'CREATE' || command === 'ADD' || command === 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
+			} else if (command === 'CREATE' || command === 'ADD' || command === 'IMPORT') {
 
 				$(result).each(function (i, entity) {
 					if (command === 'CREATE' && (entity.isPage || entity.isFolder || entity.isFile || entity.isImage || entity.isVideo || entity.isUser || entity.isGroup || entity.isWidget || entity.isResourceAccess)) {
@@ -461,18 +457,18 @@ function wsConnect() {
 				if (!LSWrapper.getItem(autoRefreshDisabledKey + activeTab)) {
 					_Pages.reloadPreviews();
 				}
-			} else if (command === 'PROGRESS') { /*********************** PROGRESS ************************/
+			} else if (command === 'PROGRESS') {
 
 				if (dialogMsg.is(':visible')) {
 					var msgObj = JSON.parse(data.message);
 					dialogMsg.html('<div class="infoBox info">' + msgObj.message + '</div>');
 				}
 
-			} else if (command === 'FINISHED') { /*********************** FINISHED ************************/
+			} else if (command === 'FINISHED') {
 
 				StructrModel.callCallback(data.callback, data.data);
 
-			} else if (command === 'AUTOCOMPLETE') { /*********************** AUTOCOMPLETE ************************/
+			} else if (command === 'AUTOCOMPLETE') {
 
 				StructrModel.callCallback(data.callback, result);
 
@@ -522,7 +518,6 @@ function sendObj(obj, callback) {
 		_Logger.log(_LogType.WS[obj.command], 'Sent: ' + t);
 	} catch (exception) {
 		_Logger.log(_LogType.WEBSOCKET, 'Error in send(): ' + exception);
-		//Structr.ping();
 	}
 	return true;
 }
@@ -531,8 +526,7 @@ function send(text) {
 
 	_Logger.log(_LogType.WEBSOCKET, 'Sending text: "' + text + '" - ws.readyState=' + ws.readyState);
 
-	var obj = $.parseJSON(text);
-
+	var obj = JSON.parse(text);
 	return sendObj(obj);
 }
 
@@ -546,13 +540,10 @@ function getAnchorFromUrl(url) {
 	return null;
 }
 
-
 function utf8_to_b64(str) {
 	return window.btoa(unescape(encodeURIComponent(str)));
-	//return window.btoa(str);
 }
 
 function b64_to_utf8(str) {
 	return decodeURIComponent(escape(window.atob(str)));
-	//return window.atob(str);
 }

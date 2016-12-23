@@ -166,10 +166,9 @@ var _Crud = {
 		left = left || LSWrapper.getItem(crudResizerLeftKey) || 210;
 		$('.column-resizer', main).css({ left: left });
 
-		var w = $(window).width();
 		$('#crud-types').css({width: left - 12 + 'px'});
 		$('#crud-recent-types').css({width: left - 12 + 'px'});
-		$('#crud-right').css({left: left - 222 + 'px', width: w - left - 58 + 'px'});
+		$('#crud-right').css({left: left - 222 + 'px', width: $(window).width() - left - 58 + 'px'});
 	},
 	init: function() {
 
@@ -1491,7 +1490,7 @@ var _Crud = {
 		var fields = $('input', form);
 		form.attr('data-id', node.id);
 		$.each(fields, function(f, field) {
-			var value = formatValue(node[field.name], field.name, node.type, node.id);
+			var value = formatValue(node[field.name]);
 			$('input[name="' + field.name + '"]').val(value);
 		});
 	},
@@ -2282,45 +2281,8 @@ var _Crud = {
 			$.blockUI.defaults.applyPlatformOpacityRules = false;
 			$.blockUI.defaults.css.cursor = 'default';
 
-
-			var w = $(window).width();
-			var h = $(window).height();
-
-			var ml = 0;
-			var mt = 24;
-
-			// Calculate dimensions of dialog
-			var dw = Math.min(900, w - ml);
-			var dh = Math.min(600, h - mt);
-			//            var dw = (w-24) + 'px';
-			//            var dh = (h-24) + 'px';
-
-			var l = parseInt((w - dw) / 2);
-			var t = parseInt((h - dh) / 2);
-
-			$.blockUI({
-				fadeIn: 25,
-				fadeOut: 25,
-				message: dialogBox,
-				css: {
-					border: 'none',
-					backgroundColor: 'transparent',
-					width: dw + 'px',
-					height: dh + 'px',
-					top: t + 'px',
-					left: l + 'px'
-				},
-				themedCSS: {
-					width: dw + 'px',
-					height: dh + 'px',
-					top: t + 'px',
-					left: l + 'px'
-				},
-				width: dw + 'px',
-				height: dh + 'px',
-				top: t + 'px',
-				left: l + 'px'
-			});
+			var dimensions = Structr.getDialogDimensions(0, 24);
+			Structr.blockUI(dimensions);
 
 		}
 	},
@@ -2328,40 +2290,26 @@ var _Crud = {
 
 		Structr.resize();
 
-		var w = $(window).width();
-		var h = $(window).height();
-
-		var ml = 0;
-		var mt = 24;
-
-		// Calculate dimensions of dialog
-		var dw = Math.min(900, w - ml);
-		var dh = Math.min(600, h - mt);
-
-		var l = parseInt((w - dw) / 2);
-		var t = parseInt((h - dh) / 2);
+		var dimensions = Structr.getDialogDimensions(0, 24);
 
 		if (dialogBox && dialogBox.is(':visible')) {
 
 			$('.blockPage').css({
-				width: dw + 'px',
-				height: dh + 'px',
-				top: t + 'px',
-				left: l + 'px'
+				width: dimensions.width + 'px',
+				height: dimensions.height + 'px',
+				top: dimensions.top + 'px',
+				left: dimensions.left + 'px'
+			});
+
+			$('#dialogBox .dialogTextWrapper').css({
+				width: (dimensions.width - 28) + 'px',
+				height: (dimensions.height - 106) + 'px'
 			});
 
 		}
 
-		var bw = (dw - 28) + 'px';
-		var bh = (dh - 106) + 'px';
-
-		$('#dialogBox .dialogTextWrapper').css({
-			width: bw,
-			height: bh
-		});
-
 		$('.searchResults').css({
-			height: h - 103 + 'px'
+			height: ($(window).height() - 103) + 'px'
 		});
 
 		_Crud.moveResizer();

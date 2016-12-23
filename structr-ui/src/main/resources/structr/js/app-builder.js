@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var win = $(window);
 var pagesArea, widgetsArea, statusArea, paWidth, paHeight, currentPage, block = 0, activePreviewDoc, widgetGroups = {};
 var appBuilderActiveWidgetTabRightKey = 'structrAppBuilderActiveWidgetTabRightKey' + port;
 
@@ -159,7 +158,8 @@ var _AppBuilder = {
 			});
 		}
 
-		var windowWidth = win.width(), windowHeight = win.height();
+		var windowWidth = $(window).width();
+		var windowHeight = $(window).height();
 		var offsetWidth = 160, headerOffsetHeight = 124;
 
 		$('#app-preview_' + page.id).css({
@@ -390,7 +390,7 @@ var _AppBuilder = {
 		var w;
 		Command.list('Widget', true, 1000, 1, 'name', 'asc', 'id,name,type,source,treePath,isWidget,previewWidth,previewHeight', function(widgets) {
 			w = widgets;
-			_Widgets.getRemoteWidgets(widgetsUrl, function(widget) {
+			_Widgets.getRemoteWidgets(_Widgets.url, function(widget) {
 				w.push(widget);
 			}, function() {
 				_AppBuilder.appendWidgets(w);
@@ -592,7 +592,6 @@ var _AppBuilder = {
 
 			window.setTimeout(function() {
 				css = {
-					//width: Math.min(widget.previewWidth, firstEl.outerWidth()),
 					width: firstEl.outerWidth(),
 					height: firstEl.outerHeight(),
 					overflow: 'hidden',
@@ -605,7 +604,7 @@ var _AppBuilder = {
 			}, 100);
 		});
 	},
-	resize: function(offsetLeft, offsetRight) {
+	resize: function() {
 
 		Structr.resize();
 
@@ -613,9 +612,10 @@ var _AppBuilder = {
 			position: 'fixed'
 		});
 
-		var windowWidth = win.width(), windowHeight = win.height();
+		var windowWidth = $(window).width();
+		var windowHeight = $(window).height();
 		var offsetWidth = 160;
-		var headerOffsetHeight = 124, previewOffset = 22;
+		var headerOffsetHeight = 124;
 
 		$('#app-builder').css({
 			width: windowWidth,
@@ -649,8 +649,7 @@ var _AppBuilder = {
 	onload: function() {
 		_AppBuilder.init();
 
-		win.off('resize');
-		win.resize(function() {
+		$(window).off('resize').resize(function() {
 			_AppBuilder.resize();
 		});
 

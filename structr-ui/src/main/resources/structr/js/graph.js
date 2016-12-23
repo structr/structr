@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var win = $(window);
 var graphBrowser, mode, colors = [], c = 0;
 var nodeIds = [], relIds = [], removedRel;
 var activeTabRightGraphKey = 'structrActiveTabRightGraph_' + port;
@@ -423,45 +422,15 @@ var _Graph = {
 		});
 
 		$('#queriesTab').on('click', function() {
-			if ($(this).hasClass('noclick')) {
-				$(this).removeClass('noclick');
-				return;
-			}
-			lsw = queriesSlideout.width() + 12;
-			if (Math.abs(queriesSlideout.position().left + lsw) <= 3) {
-				Structr.closeLeftSlideOuts([displaySlideout, filtersSlideout], activeTabLeftGraphKey);
-				Structr.openLeftSlideOut(queriesSlideout, this, activeTabLeftGraphKey);
-			} else {
-				Structr.closeLeftSlideOuts([queriesSlideout], activeTabLeftGraphKey);
-			}
+			_Pages.leftSlideoutTrigger(this, queriesSlideout, [displaySlideout, filtersSlideout], activeTabLeftGraphKey);
 		});
 
 		$('#displayTab').on('click', function() {
-			if ($(this).hasClass('noclick')) {
-				$(this).removeClass('noclick');
-				return;
-			}
-			lsw = displaySlideout.width() + 12;
-			if (Math.abs(displaySlideout.position().left + lsw) <= 3) {
-				Structr.closeLeftSlideOuts([queriesSlideout, filtersSlideout], activeTabLeftGraphKey);
-				Structr.openLeftSlideOut(displaySlideout, this, activeTabLeftGraphKey);
-			} else {
-				Structr.closeLeftSlideOuts([displaySlideout], activeTabLeftGraphKey);
-			}
+			_Pages.leftSlideoutTrigger(this, displaySlideout, [queriesSlideout, filtersSlideout], activeTabLeftGraphKey);
 		});
 
 		$('#filtersTab').on('click', function() {
-			if ($(this).hasClass('noclick')) {
-				$(this).removeClass('noclick');
-				return;
-			}
-			lsw = filtersSlideout.width() + 12;
-			if (Math.abs(filtersSlideout.position().left + lsw) <= 3) {
-				Structr.closeLeftSlideOuts([queriesSlideout, displaySlideout], activeTabLeftGraphKey);
-				Structr.openLeftSlideOut(filtersSlideout, this, activeTabLeftGraphKey);
-			} else {
-				Structr.closeLeftSlideOuts([filtersSlideout], activeTabLeftGraphKey);
-			}
+			_Pages.leftSlideoutTrigger(this, filtersSlideout, [queriesSlideout, displaySlideout], activeTabLeftGraphKey);
 		});
 
 		if (activeTabLeftGraph) {
@@ -554,8 +523,7 @@ var _Graph = {
 			}
 		});
 
-		win.off('resize');
-		win.resize(function() {
+		$(window).off('resize').resize(function() {
 			_Graph.resize();
 		});
 
@@ -771,23 +739,24 @@ var _Graph = {
 	resize: function() {
 		Structr.resize();
 
-		var windowHeight = win.height();
+		var windowHeight = $(window).height();
+		var windowWidth = $(window).width();
 		var offsetHeight = 360;
 
 		$('#saved-queries').css({
 			height: windowHeight - offsetHeight + 'px'
 		});
 
-		var ch = win.height() - 64;
+		var ch = windowHeight - 64;
 
 		graph.css({
 			height: ch,
-			width: win.width()
+			width: windowWidth
 		});
 
 		$('canvas', graph).css({
 			height: ch,
-			width: win.width()
+			width: windowWidth
 		});
 
 		nodeTypes = $('#node-types');

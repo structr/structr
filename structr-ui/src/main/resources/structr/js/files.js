@@ -21,7 +21,6 @@ var drop;
 var fileList;
 var chunkSize = 1024 * 64;
 var sizeLimit = 1024 * 1024 * 1024;
-var win = $(window);
 var selectedElements = [];
 var activeFileId, fileContents = {};
 var currentWorkingDir;
@@ -74,7 +73,7 @@ var _Files = {
 	},
 	resize: function() {
 
-		var windowHeight = win.height();
+		var windowHeight = $(window).height();
 		var headerOffsetHeight = 100;
 
 		if (fileTree) {
@@ -132,9 +131,8 @@ var _Files = {
 		left = left || LSWrapper.getItem(filesResizerLeftKey) || 300;
 		$('.column-resizer', filesMain).css({ left: left });
 
-		var w = $(window).width();
 		$('#file-tree').css({width: left - 14 + 'px'});
-		$('#folder-contents').css({left: left + 8 + 'px', width: w - left - 58 + 'px'});
+		$('#folder-contents').css({left: left + 8 + 'px', width: $(window).width() - left - 58 + 'px'});
 	},
 	onload: function() {
 
@@ -241,8 +239,7 @@ var _Files = {
 
 		_Files.activateUpload();
 
-		win.off('resize');
-		win.resize(function() {
+		$(window).off('resize').resize(function() {
 			_Files.resize();
 		});
 

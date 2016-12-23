@@ -427,7 +427,7 @@ var _Dragndrop = {
 						});
 
 						e.stopPropagation();
-						Command.appendWidget(widgetSource, target.id, pageId, widgetsUrl, attrs);
+						Command.appendWidget(widgetSource, target.id, pageId, _Widgets.url, attrs);
 
 						dialogCancelButton.click();
 						return false;
@@ -438,7 +438,7 @@ var _Dragndrop = {
 			} else {
 
 				// If no matches, directly append widget
-				Command.appendWidget(widgetSource, target.id, pageId, widgetsUrl);
+				Command.appendWidget(widgetSource, target.id, pageId, _Widgets.url);
 
 			}
 

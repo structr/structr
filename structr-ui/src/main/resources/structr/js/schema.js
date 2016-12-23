@@ -416,11 +416,11 @@ var _Schema = {
 
 			if (Math.abs(inheritanceSlideout.position().left + inheritanceSlideout.width() + 12) <= 3) {
 				inheritanceSlideoutOpen = true;
-				Structr.openLeftSlideOut(inheritanceSlideout, $("#inheritanceTab"), activeTabLeftKey, updateCanvasTranslation, updateCanvasTranslation);
+				Structr.openLeftSlideOut(inheritanceSlideout, $("#inheritanceTab"), _Pages.activeTabLeftKey, updateCanvasTranslation, updateCanvasTranslation);
 
 			} else {
 				inheritanceSlideoutOpen = false;
-				Structr.closeLeftSlideOuts([inheritanceSlideout], activeTabLeftKey, _Schema.resize);
+				Structr.closeLeftSlideOuts([inheritanceSlideout], _Pages.activeTabLeftKey, _Schema.resize);
 				canvas.css('transform', _Schema.getSchemaCSSTransform());
 
 			}

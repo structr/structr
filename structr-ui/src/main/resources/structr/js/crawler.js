@@ -17,7 +17,6 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var main, crawlerMain, crawlerTree, crawlerList;
-var win = $(window);
 var selectedElements = [];
 var currentSite;
 var sitePageSize = 10000, sitePage = 1;
@@ -66,20 +65,17 @@ var _Crawler = {
 	},
 	resize: function() {
 
-		var windowWidth = win.width();
-		var windowHeight = win.height();
+		var windowHeight = $(window).height();
 		var headerOffsetHeight = 100;
 
 		if (crawlerTree) {
 			crawlerTree.css({
-//				width: Math.max(180, Math.min(windowWidth / 3, 360)) + 'px',
 				height: windowHeight - headerOffsetHeight + 'px'
 			});
 		}
 
 		if (crawlerList) {
 			crawlerList.css({
-//				width: windowWidth - 400 - 64 + 'px',
 				height: windowHeight - headerOffsetHeight - 55 + 'px'
 			});
 
@@ -98,9 +94,8 @@ var _Crawler = {
 		left = left || LSWrapper.getItem(crawlerResizerLeftKey) || 300;
 		$('.column-resizer', crawlerMain).css({ left: left });
 
-		var w = $(window).width();
 		$('#crawler-tree').css({width: left - 14 + 'px'});
-		$('#crawler-list').css({left: left + 8 + 'px', width: w - left - 58 + 'px'});
+		$('#crawler-list').css({left: left + 8 + 'px', width: $(window).width() - left - 58 + 'px'});
 	},
 	onload: function() {
 
@@ -167,8 +162,7 @@ var _Crawler = {
 
 		_TreeHelper.initTree(crawlerTree, _Crawler.treeInitFunction, 'structr-ui-crawler');
 
-		win.off('resize');
-		win.resize(function() {
+		$(window).off('resize').resize(function() {
 			_Crawler.resize();
 		});
 

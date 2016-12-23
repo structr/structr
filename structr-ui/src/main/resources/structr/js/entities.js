@@ -17,11 +17,11 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var buttonClicked;
-var activeElements = {};
-var activeQueryTabPrefix = 'structrActiveQueryTab_' + port;
-var activeEditTabPrefix = 'structrActiveEditTab_' + port;
 
 var _Entities = {
+	activeElements: {},
+	activeQueryTabPrefix: 'structrActiveQueryTab_' + port,
+	activeEditTabPrefix: 'structrActiveEditTab_' + port,
 	numberAttrs: ['position', 'size'],
 	readOnlyAttrs: ['lastModifiedDate', 'createdDate', 'createdBy', 'id', 'checksum', 'size', 'version', 'relativeFilePath'],
 	changeBooleanAttribute: function(attrElement, value, activeLabel, inactiveLabel) {
@@ -184,8 +184,6 @@ var _Entities = {
 
 		_Entities.activateTabs(entity.id, '#data-tabs', '#content-tab-rest');
 
-		//_Entities.appendInput(dialog, entity, 'partialUpdateKey', 'Types to trigger partial update', '');
-
 	},
 	activateTabs: function(nodeId, elId, activeId) {
 		var el = $(elId);
@@ -197,12 +195,12 @@ var _Entities = {
 				tab.addClass('active');
 				el.children('div').hide();
 				var id = tab.prop('id').substring(4);
-				LSWrapper.setItem(activeQueryTabPrefix  + '_' + nodeId, id);
+				LSWrapper.setItem(_Entities.activeQueryTabPrefix  + '_' + nodeId, id);
 				var content = $('#content-tab-' + id);
 				content.show();
 			});
 		});
-		var id = LSWrapper.getItem(activeQueryTabPrefix  + '_' + nodeId) || activeId.substring(13);
+		var id = LSWrapper.getItem(_Entities.activeQueryTabPrefix  + '_' + nodeId) || activeId.substring(13);
 		var tab = $('#tab-' + id);
 		if (!tab.hasClass('active')) {
 			tab.click();
@@ -452,7 +450,7 @@ var _Entities = {
      		contentEl.append('<div class="propTabContent" id="tabView-' + name + '"></div>');
 			$('#tabView-' + name).show();
 			self.addClass('active');
-			LSWrapper.setItem(activeEditTabPrefix  + '_' + entity.id, name);
+			LSWrapper.setItem(_Entities.activeEditTabPrefix  + '_' + entity.id, name);
 
 			if (typeof initCallback === "function") {
 				initCallback();
@@ -494,7 +492,7 @@ var _Entities = {
 				var tabView = $('#tabView-' + view);
 				fastRemoveAllChildren(tabView[0]);
 				tabView.show();
-				LSWrapper.setItem(activeEditTabPrefix  + '_' + entity.id, view);
+				LSWrapper.setItem(_Entities.activeEditTabPrefix  + '_' + entity.id, view);
 
 				Command.getSchemaInfo(entity.type, function(schemaInfo) {
 					var typeInfo = {};
@@ -505,7 +503,7 @@ var _Entities = {
 				});
 			});
 		});
-		activeView = activeViewOverride || LSWrapper.getItem(activeEditTabPrefix  + '_' + entity.id) || activeView;
+		activeView = activeViewOverride || LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id) || activeView;
 		$('#tab-' + activeView).click();
 
 	},
@@ -1559,9 +1557,9 @@ var _Entities = {
 
 			var idString = 'id_' + entity.id;
 
-			if (!activeElements.hasOwnProperty(idString)) {
+			if (!_Entities.activeElements.hasOwnProperty(idString)) {
 
-				activeElements[idString] = entity;
+				_Entities.activeElements[idString] = entity;
 
 				var parent = $('#activeElements div.inner');
 				var id = entity.id;
@@ -1574,7 +1572,6 @@ var _Entities = {
 
 				var div = $('#active_' + id);
 				var query = entity.query;
-				//var dataKey     = (entity.dataKey.split(',')[entity.recursionDepth] || '');
 				var expand = entity.state === 'Query';
 				var icon = _Icons.brick_icon;
 				var name = '', content = '', action = '';
@@ -1599,8 +1596,6 @@ var _Entities = {
 					default:
 						content = entity.type;
 				}
-
-				console.log(icon);
 
 				div.append('<img class="typeIcon" src="' + icon + '">'
 					+ '<b title="' + name + '">' + fitStringToWidth(name, 180, 'slideOut') + '</b>'

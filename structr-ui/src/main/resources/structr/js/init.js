@@ -59,14 +59,6 @@ $(function() {
 	dialogSaveButton   = $('.save', dialogBox);
 	loginButton        = $('#loginButton');
 
-	$('#import_json').on('click', function(e) {
-		e.stopPropagation();
-		var jsonArray = $.parseJSON($('#json_input').val());
-		$(jsonArray).each(function(i, json) {
-			createEntity(json);
-		});
-	});
-
 	loginButton.on('click', function(e) {
 		e.stopPropagation();
 		var username = $('#usernameField').val();
@@ -88,7 +80,6 @@ $(function() {
 	Structr.connect();
 
 	// Reset keys in case of window switching
-
 	$(window).blur(function(e) {
 		altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
 	});
@@ -173,7 +164,6 @@ $(function() {
 			e.preventDefault();
 			_Console.toggleConsole();
 		}
-		//console.log(e.which, shiftKey, ctrlKey, altKey, eKey, cmdKey);
 	});
 
 	$(window).on('resize', function() {
@@ -259,7 +249,6 @@ var _Icons = {
 	arrow_up_down: 'icon/arrow_up_down.png',
 	floppy_icon: 'icon/disk.png',
 
-
 	getImageIcon: function(image) {
 		return (image.contentType.startsWith('image/svg') ? image.path : (image.tnSmall ? image.tnSmall.path : _Icons.image_icon));
 	},
@@ -270,7 +259,6 @@ var _Icons = {
 			case 'MinifiedJavaScriptFile':
 				return _Icons.minification_dialog_js_icon;
 			default:
-				// unknow minification type - show error icon
 				return _Icons.error_icon;
 		}
 	},
@@ -423,7 +411,6 @@ var Structr = {
 			LSWrapper.removeItem(dialogDataKey);
 		} else {
 			var dialogData = JSON.parse(LSWrapper.getItem(dialogDataKey));
-			//console.log('Dialog data after init', dialogData, dialogText.text().length);
 			if (dialogData) {
 				Structr.restoreDialog(dialogData);
 			}
@@ -541,11 +528,11 @@ var Structr = {
 			_Logger.log(_LogType.INIT, Structr.modules);
 			var module = Structr.modules[lastMenuEntry];
 			if (module) {
-				//module.init();
 				module.onload();
 				Structr.adaptUiToPresentModules();
-				if (module.resize)
+				if (module.resize) {
 					module.resize();
+				}
 			}
 			Structr.updateVersionInfo();
 		});
@@ -561,7 +548,6 @@ var Structr = {
 		});
 		$.ui.ddmanager.droppables['default'] = newDroppables;
 		$('iframe').unload();
-		//main.children().not('#graph-box').remove();
 		fastRemoveAllChildren(main[0]);
 		$('#graph-box').hide();
 	},
@@ -622,40 +608,11 @@ var Structr = {
 		$.blockUI.defaults.overlayCSS.opacity = .6;
 		$.blockUI.defaults.applyPlatformOpacityRules = false;
 
-		// Apply stored dimensions of dialog
-		var dw = dialogData.width;
-		var dh = dialogData.height;
-
-		var l = dialogData.left;
-		var t = dialogData.top;
-
 		window.setTimeout(function() {
-			$.blockUI({
-				fadeIn: 25,
-				fadeOut: 25,
-				message: dialogBox,
-				css: {
-					cursor: 'default',
-					border: 'none',
-					backgroundColor: 'transparent',
-					width: dw + 'px',
-					height: dh + 'px',
-					top: t + 'px',
-					left: l + 'px'
-				},
-				themedCSS: {
-					width: dw + 'px',
-					height: dh + 'px',
-					top: t + 'px',
-					left: l + 'px'
-				},
-				width: dw + 'px',
-				height: dh + 'px',
-				top: t + 'px',
-				left: l + 'px'
-			});
 
+			Structr.blockUI(dialogData);
 			Structr.resize();
+
 		}, 1000);
 
 	},
@@ -667,7 +624,6 @@ var Structr = {
 			dialogText.empty();
 			dialogMsg.empty();
 			dialogMeta.empty();
-			//dialogBtn.empty();
 			$('.speechToText', dialogBox).remove();
 
 			if (text) {
@@ -682,10 +638,9 @@ var Structr = {
 
 				});
 				dialogBtn.children(':not(.closeButton)').remove();
-				//dialogSaveButton.remove();
-				//$('#saveProperties').remove();
-				if (searchField)
+				if (searchField) {
 					searchField.focus();
+				}
 
 				LSWrapper.removeItem(dialogDataKey);
 
@@ -699,53 +654,60 @@ var Structr = {
 			$.blockUI.defaults.overlayCSS.opacity = .4;
 			$.blockUI.defaults.applyPlatformOpacityRules = false;
 
-			var w = $(window).width();
-			var h = $(window).height();
-
-			var ml = 24;
-			var mt = 24;
-
-			// Calculate dimensions of dialog
-			var dw = Math.min(900, w - ml);
-			var dh = Math.min(600, h - mt);
-			//            var dw = (w-24) + 'px';
-			//            var dh = (h-24) + 'px';
-
-			var l = parseInt((w - dw) / 2);
-			var t = parseInt((h - dh) / 2);
-
-			$.blockUI({
-				fadeIn: 25,
-				fadeOut: 25,
-				message: dialogBox,
-				css: {
-					cursor: 'default',
-					border: 'none',
-					backgroundColor: 'transparent',
-					width: dw + 'px',
-					height: dh + 'px',
-					top: t + 'px',
-					left: l + 'px'
-				},
-				themedCSS: {
-					width: dw + 'px',
-					height: dh + 'px',
-					top: t + 'px',
-					left: l + 'px'
-				},
-				width: dw + 'px',
-				height: dh + 'px',
-				top: t + 'px',
-				left: l + 'px'
-			});
+			var dimensions = Structr.getDialogDimensions(24, 24);
+			Structr.blockUI(dimensions);
 
 			Structr.resize();
 
-			_Logger.log(_LogType.INIT, 'Open dialog', dialog, text, dw, dh, t, l, callbackOk, callbackCancel);
-			var dialogData = {'text': text, 'top': t, 'left': l, 'width': dw, 'height': dh};
-			LSWrapper.setItem(dialogDataKey, JSON.stringify(dialogData));
+			dimensions.text = text;
+			_Logger.log(_LogType.INIT, 'Open dialog', dialog, dimensions, callbackOk, callbackCancel);
+			LSWrapper.setItem(dialogDataKey, JSON.stringify(dimensions));
 
 		}
+	},
+	getDialogDimensions: function (marginLeft, marginTop) {
+
+		var winW = $(window).width();
+		var winH = $(window).height();
+
+		var width = Math.min(900, winW - marginLeft);
+		var height = Math.min(600, winH - marginTop);
+
+		return {
+			width: width,
+			height: height,
+			left: parseInt((winW - width) / 2),
+			top: parseInt((winH - height) / 2)
+		};
+
+	},
+	blockUI: function (dimensions) {
+
+		$.blockUI({
+			fadeIn: 25,
+			fadeOut: 25,
+			message: dialogBox,
+			css: {
+				cursor: 'default',
+				border: 'none',
+				backgroundColor: 'transparent',
+				width: dimensions.width + 'px',
+				height: dimensions.height + 'px',
+				top: dimensions.top + 'px',
+				left: dimensions.left + 'px'
+			},
+			themedCSS: {
+				width: dimensions.width + 'px',
+				height: dimensions.height + 'px',
+				top: dimensions.top + 'px',
+				left: dimensions.left + 'px'
+			},
+			width: dimensions.width + 'px',
+			height: dimensions.height + 'px',
+			top: dimensions.top + 'px',
+			left: dimensions.left + 'px'
+		});
+
 	},
 	setSize: function(w, h, dw, dh) {
 
@@ -1061,12 +1023,13 @@ var Structr = {
 				Structr.activateMenuEntry('pages');
 				window.location.href = '/structr/#pages';
 
-				if (filesMain && filesMain.length)
+				if (filesMain && filesMain.length) {
 					filesMain.hide();
-				if (widgets && widgets.length)
-					widgets.hide();
+				}
+				if (_Widgets.widgets && _Widgets.widgets.length) {
+					_Widgets.widgets.hide();
+				}
 
-//                _Pages.init();
 				Structr.modules['pages'].onload();
 				Structr.adaptUiToPresentModules();
 				_Pages.resize();
@@ -1102,17 +1065,16 @@ var Structr = {
 		}
 		LSWrapper.removeItem(activeTabKey);
 	},
-	openLeftSlideOut: function(slideout, tab, activeTabKey, callback, dragCallback) {
-		var s = $(slideout);
-		var storedLeftSlideoutWidth = LSWrapper.getItem(leftSlideoutWidthKey);
-		var psw = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (s.width() + 12);
+	openLeftSlideOut: function(triggerEl, slideoutElement, activeTabKey, callback) {
+		var storedLeftSlideoutWidth = LSWrapper.getItem(_Pages.leftSlideoutWidthKey);
+		var psw = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (slideoutElement.width() + 12);
 
-		var t = $(tab);
+		var t = $(triggerEl);
 		t.addClass('active');
 		var sw = psw + 12;
 		LSWrapper.setItem(activeTabKey, t.prop('id'));
-		s.width(psw);
-		s.animate({left: 0 + 'px'}, 100, function () {
+		slideoutElement.width(psw);
+		slideoutElement.animate({left: 0 + 'px'}, 100, function () {
 			if (typeof callback === 'function') {
 				callback({sw: sw});
 			}
@@ -1124,22 +1086,26 @@ var Structr = {
 			},
 			drag: function(e, ui) {
 				var w = ui.position.left - 12;
-				slideout.css({
+				slideoutElement.css({
 					width: w + 'px'
 				});
 				ui.position.top += (ui.helper.width() / 2 - 6);
 				ui.position.left -= (ui.helper.width() / 2 - 6);
 				var oldLsw = sw;
 				sw = w + 12;
-				$('.node.page', s).width(w - 25);
+				$('.node.page', slideoutElement).width(w - 25);
 
-				if (dragCallback) {
-					LSWrapper.setItem(leftSlideoutWidthKey, s.width());
-					dragCallback({sw: (sw - oldLsw)});
+				if (typeof callback === 'function') {
+					LSWrapper.setItem(_Pages.leftSlideoutWidthKey, slideoutElement.width());
+					callback({sw: (sw - oldLsw)});
 				}
 			},
 			stop: function(e, ui) {
-				LSWrapper.setItem(leftSlideoutWidthKey, s.width());
+				LSWrapper.setItem(_Pages.leftSlideoutWidthKey, slideoutElement.width());
+				t.css({
+					left: "",
+					top: ""
+				});
 			}
 		});
 	},
@@ -1167,10 +1133,7 @@ var Structr = {
 
 		var obj = StructrModel.obj(id);
 
-		Structr.dialog('Push node to remote server', function() {
-		},
-				function() {
-				});
+		Structr.dialog('Push node to remote server', function() {}, function() {});
 
 		var pushConf = JSON.parse(LSWrapper.getItem(pushConfigKey)) || {};
 

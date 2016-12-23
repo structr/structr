@@ -17,7 +17,6 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var main, contentsMain, contentTree, contentsContents;
-var win = $(window);
 var selectedElements = [];
 var currentContentContainer;
 var containerPageSize = 10000, containerPage = 1;
@@ -63,20 +62,17 @@ var _Contents = {
 	},
 	resize: function() {
 
-		var windowWidth = win.width();
-		var windowHeight = win.height();
+		var windowHeight = $(window).height();
 		var headerOffsetHeight = 100;
 
 		if (contentTree) {
 			contentTree.css({
-//				width: Math.max(180, Math.min(windowWidth / 3, 360)) + 'px',
 				height: windowHeight - headerOffsetHeight + 'px'
 			});
 		}
 
 		if (contentsContents) {
 			contentsContents.css({
-//				width: windowWidth - 400 - 64 + 'px',
 				height: windowHeight - headerOffsetHeight - 55 + 'px'
 			});
 		}
@@ -89,9 +85,8 @@ var _Contents = {
 		left = left || LSWrapper.getItem(contentsResizerLeftKey) || 300;
 		$('.column-resizer', contentsMain).css({ left: left });
 
-		var w = $(window).width();
 		$('#contents-tree').css({width: left - 14 + 'px'});
-		$('#contents-contents').css({left: left + 8 + 'px', width: w - left - 58 + 'px'});
+		$('#contents-contents').css({left: left + 8 + 'px', width: $(window).width() - left - 58 + 'px'});
 	},
 	onload: function() {
 
@@ -111,9 +106,7 @@ var _Contents = {
 		$('#contents-contents-container').prepend(' <select id="add-content-item"><option value="">Add Content Item</option></select>');
 
 		var itemTypesSelector = $('#add-content-item', main);
-		// query: function(type, pageSize, page, sort, order, properties, callback, exact, view) {
 		Command.query('SchemaNode', 1000, 1, 'name', 'asc', { extendsClass: 'org.structr.web.entity.ContentItem' }, function(schemaNodes) {
-			//console.log(schemaNodes);
 			schemaNodes.forEach(function(schemaNode) {
 				var type = schemaNode.name;
 				itemTypesSelector.append('<option value="' + type + '">' + type + '</option>');
@@ -138,7 +131,6 @@ var _Contents = {
 
 		var containerTypesSelector = $('#add-content-container', main);
 		Command.query('SchemaNode', 1000, 1, 'name', 'asc', { extendsClass: 'org.structr.web.entity.ContentContainer' }, function(schemaNodes) {
-			//console.log(schemaNodes);
 			schemaNodes.forEach(function(schemaNode) {
 				var type = schemaNode.name;
 				containerTypesSelector.append('<option value="' + type + '">' + type + '</option>');
@@ -185,8 +177,7 @@ var _Contents = {
 
 		_TreeHelper.initTree(contentTree, _Contents.treeInitFunction, 'structr-ui-contents');
 
-		win.off('resize');
-		win.resize(function() {
+		$(window).off('resize').resize(function() {
 			_Contents.resize();
 		});
 

@@ -24,22 +24,19 @@ var selStart, selEnd;
 var sel;
 var contentSourceId, elementSourceId, rootId;
 var textBeforeEditing;
-var activeTabKey = 'structrActiveTab_' + port;
-var leftSlideoutWidthKey = 'structrLeftSlideoutWidthKey_' + port;
-var activeTabRightKey = 'structrActiveTabRight_' + port;
-var activeTabLeftKey = 'structrActiveTabLeft_' + port;
-var selectedTypeKey = 'structrSelectedType_' + port;
-
-var win = $(window);
 
 $(document).ready(function() {
-
 	Structr.registerModule('pages', _Pages);
 	Structr.classes.push('page');
 });
 
 var _Pages = {
 	autoRefresh: [],
+	activeTabKey: 'structrActiveTab_' + port,
+	leftSlideoutWidthKey: 'structrLeftSlideoutWidthKey_' + port,
+	activeTabRightKey: 'structrActiveTabRight_' + port,
+	activeTabLeftKey: 'structrActiveTabLeft_' + port,
+	selectedTypeKey: 'structrSelectedType_' + port,
 	init: function() {
 
 		_Pager.initPager('pages',   'Page', 1, 25, 'name', 'asc');
@@ -65,7 +62,8 @@ var _Pages = {
 			position: 'fixed'
 		});
 
-		var windowWidth = win.width(), windowHeight = win.height();
+		var windowWidth = $(window).width();
+		var windowHeight = $(window).height();
 		var headerOffsetHeight = 84, previewOffset = 30;
 
 		if (previews) {
@@ -82,7 +80,6 @@ var _Pages = {
 				});
 			}
 
-			//console.log(offsetLeft, offsetRight, windowWidth, parseInt(previews.css('marginLeft')), parseInt(previews.css('marginRight')));
 			var w = windowWidth - parseInt(previews.css('marginLeft')) - parseInt(previews.css('marginRight')) - 15 + 'px';
 
 			previews.css({
@@ -97,7 +94,7 @@ var _Pages = {
 
 			var iframes = $('.previewBox', previews).find('iframe');
 			iframes.css({
-				width: w, //$('.previewBox', previews).width() + 'px',
+				width: w,
 				height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
 			});
 		}
@@ -122,9 +119,9 @@ var _Pages = {
 
 		Structr.updateMainHelpLink('http://docs.structr.org/frontend-user-guide#Pages');
 
-		activeTab = LSWrapper.getItem(activeTabKey);
-		activeTabLeft = LSWrapper.getItem(activeTabLeftKey);
-		activeTabRight = LSWrapper.getItem(activeTabRightKey);
+		activeTab = LSWrapper.getItem(_Pages.activeTabKey);
+		activeTabLeft = LSWrapper.getItem(_Pages.activeTabLeftKey);
+		activeTabRight = LSWrapper.getItem(_Pages.activeTabRightKey);
 		_Logger.log(_LogType.PAGES, 'value read from local storage', activeTab);
 
 		_Logger.log(_LogType.PAGES, 'onload');
@@ -156,126 +153,69 @@ var _Pages = {
 		rsw = widgetsSlideout.width() + 12;
 
 		$('#pagesTab').on('click', function() {
-			if ($(this).hasClass('noclick')) {
-				$(this).removeClass('noclick');
-				return;
-			}
-			_Pages.pagesTabStateChangeCallback();
+			_Pages.leftSlideoutTrigger(this, pagesSlideout, [activeElementsSlideout, dataBindingSlideout, templatesSlideout], _Pages.activeTabLeftKey, function (params) {
+				_Pages.resize(params.sw, 0);
+				_Pages.pagesTabResizeContent();
+			}, _Pages.leftSlideoutClosedCallback);
 		}).droppable({
 			tolerance: 'touch',
 			over: function() {
-				_Pages.pagesTabStateChangeCallback();
+				_Pages.leftSlideoutTrigger(this, pagesSlideout, [activeElementsSlideout, dataBindingSlideout, templatesSlideout], _Pages.activeTabLeftKey, function (params) {
+					_Pages.resize(params.sw, 0);
+					_Pages.pagesTabResizeContent();
+				}, _Pages.leftSlideoutClosedCallback);
 			}
 		});
 
 		$('#activeElementsTab').on('click', function() {
-			if ($(this).hasClass('noclick')) {
-				$(this).removeClass('noclick');
-				return;
-			}
-			var asw = activeElementsSlideout.width() + 12;
-			if (Math.abs(activeElementsSlideout.position().left + asw) <= 3) {
-				Structr.closeLeftSlideOuts([pagesSlideout, dataBindingSlideout, templatesSlideout], activeTabLeftKey, _Pages.leftSlideoutClosedCallback);
-				Structr.openLeftSlideOut(activeElementsSlideout, this, activeTabLeftKey, function(params) {
-					_Pages.refreshActiveElements();
-					_Pages.resize(params.sw, 0);
-				});
-			} else {
-				Structr.closeLeftSlideOuts([activeElementsSlideout], activeTabLeftKey, _Pages.leftSlideoutClosedCallback);
-			}
+			_Pages.leftSlideoutTrigger(this, activeElementsSlideout, [pagesSlideout, dataBindingSlideout, templatesSlideout], _Pages.activeTabLeftKey, function(params) {
+				_Pages.refreshActiveElements();
+				_Pages.resize(params.sw, 0);
+			}, _Pages.leftSlideoutClosedCallback);
 		});
 
 		$('#dataBindingTab').on('click', function() {
-			if ($(this).hasClass('noclick')) {
-				$(this).removeClass('noclick');
-				return;
-			}
-			var dsw = dataBindingSlideout.width() + 12;
-			if (Math.abs(dataBindingSlideout.position().left + dsw) <= 3) {
-				Structr.closeLeftSlideOuts([pagesSlideout, activeElementsSlideout, templatesSlideout], activeTabLeftKey, _Pages.leftSlideoutClosedCallback);
-				Structr.openLeftSlideOut(dataBindingSlideout, this, activeTabLeftKey, function(params) {
-					_Pages.reloadDataBindingWizard();
-					_Pages.resize(params.sw, 0);
-				});
-			} else {
-				Structr.closeLeftSlideOuts([dataBindingSlideout], activeTabLeftKey, _Pages.leftSlideoutClosedCallback);
-			}
+			_Pages.leftSlideoutTrigger(this, dataBindingSlideout, [pagesSlideout, activeElementsSlideout, templatesSlideout], _Pages.activeTabLeftKey, function(params) {
+				_Pages.reloadDataBindingWizard();
+				_Pages.resize(params.sw, 0);
+			}, _Pages.leftSlideoutClosedCallback);
 		});
 
 		$('#templatesTab').on('click', function() {
-			if ($(this).hasClass('noclick')) {
-				$(this).removeClass('noclick');
-				return;
-			}
-			var dsw = templatesSlideout.width() + 12;
-			if (Math.abs(templatesSlideout.position().left + dsw) <= 3) {
-				Structr.closeLeftSlideOuts([pagesSlideout, activeElementsSlideout, dataBindingSlideout], activeTabLeftKey, _Pages.leftSlideoutClosedCallback);
-				Structr.openLeftSlideOut(templatesSlideout, this, activeTabLeftKey, function(params) {
-					//_Pages.reloadTemplatesWizard();
-					_Pages.resize(params.sw, 0);
-				});
-			} else {
-				Structr.closeLeftSlideOuts([templatesSlideout], activeTabLeftKey, _Pages.leftSlideoutClosedCallback);
-			}
+			_Pages.leftSlideoutTrigger(this, templatesSlideout, [pagesSlideout, activeElementsSlideout, dataBindingSlideout], _Pages.activeTabLeftKey, function(params) {
+				_Pages.resize(params.sw, 0);
+			}, _Pages.leftSlideoutClosedCallback);
 		});
 
 		$('#widgetsTab').on('click', function() {
-			if (Math.abs(widgetsSlideout.position().left - $(window).width()) <= 3) {
-				Structr.closeSlideOuts([paletteSlideout, componentsSlideout, elementsSlideout], activeTabRightKey);
-				Structr.openSlideOut(widgetsSlideout, this, activeTabRightKey, function() {
-					_Widgets.reloadWidgets();
-				});
-			} else {
-				Structr.closeSlideOuts([widgetsSlideout], activeTabRightKey);
-			}
+			_Pages.rightSlideoutTrigger(this, widgetsSlideout, [paletteSlideout, componentsSlideout, elementsSlideout], function() {
+				_Widgets.reloadWidgets();
+			});
 		});
 
 		$('#paletteTab').on('click', function() {
-			if (Math.abs(paletteSlideout.position().left - $(window).width()) <= 3) {
-				Structr.closeSlideOuts([widgetsSlideout, componentsSlideout, elementsSlideout], activeTabRightKey);
-				Structr.openSlideOut(paletteSlideout, this, activeTabRightKey, function() {
-					_Elements.reloadPalette();
-				});
-			} else {
-				Structr.closeSlideOuts([paletteSlideout], activeTabRightKey);
-			}
+			_Pages.rightSlideoutTrigger(this, paletteSlideout, [widgetsSlideout, componentsSlideout, elementsSlideout], function() {
+				_Elements.reloadPalette();
+			});
 		});
 
 		$('#componentsTab').on('click', function() {
-			if (Math.abs(componentsSlideout.position().left - $(window).width()) <= 3) {
-				Structr.closeSlideOuts([widgetsSlideout, paletteSlideout, elementsSlideout], activeTabRightKey);
-				Structr.openSlideOut(componentsSlideout, this, activeTabRightKey, function() {
-					_Elements.reloadComponents();
-				});
-			} else {
-				Structr.closeSlideOuts([componentsSlideout], activeTabRightKey);
-			}
+			_Pages.rightSlideoutTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], function() {
+				_Elements.reloadComponents();
+			});
 		}).droppable({
 			tolerance: 'touch',
 			over: function(e, ui) {
-				if (Math.abs(componentsSlideout.position().left - $(window).width()) <= 3) {
-					Structr.closeSlideOuts([widgetsSlideout, paletteSlideout, elementsSlideout], activeTabRightKey);
-					Structr.openSlideOut(componentsSlideout, this, activeTabRightKey, function() {
-						_Elements.reloadComponents();
-					});
-				}
+				_Pages.rightSlideoutTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], function() {
+					_Elements.reloadComponents();
+				});
 			}
 		});
 
 		$('#elementsTab').on('click', function() {
-			if (Math.abs(elementsSlideout.position().left - $(window).width()) <= 3) {
-				$(this).addClass('active');
-				Structr.closeSlideOuts([widgetsSlideout, paletteSlideout, componentsSlideout], activeTabRightKey);
-				Structr.openSlideOut(elementsSlideout, this, activeTabRightKey, function() {
-					_Elements.reloadUnattachedNodes();
-				});
-			} else {
-				Structr.closeSlideOuts([elementsSlideout], activeTabRightKey);
-			}
-
-		}).droppable({
-			over: function(e, ui) {
-			}
+			_Pages.rightSlideoutTrigger(this, elementsSlideout, [widgetsSlideout, paletteSlideout, componentsSlideout], function() {
+				_Elements.reloadUnattachedNodes();
+			});
 		});
 
 		$('#controls', main).remove();
@@ -285,16 +225,16 @@ var _Pages = {
 
 		_Pages.refresh();
 
-		if (LSWrapper.getItem(leftSlideoutWidthKey)) {
+		if (LSWrapper.getItem(_Pages.leftSlideoutWidthKey)) {
 
-			var leftSlideoutWidth = parseInt(LSWrapper.getItem(leftSlideoutWidthKey));
+			var leftSlideoutWidth = parseInt(LSWrapper.getItem(_Pages.leftSlideoutWidthKey));
 			var leftSlideout = $('#' + activeTabLeft).closest('.slideOut');
 			leftSlideout.css({
 				width: leftSlideoutWidth + 'px',
 				left: '-' + (leftSlideoutWidth + 12) + 'px'
 			});
 			_Pages.pagesTabResizeContent();
-			_Logger.log(_LogType.PAGES, LSWrapper.getItem(leftSlideoutWidthKey), leftSlideoutWidth);
+			_Logger.log(_LogType.PAGES, LSWrapper.getItem(_Pages.leftSlideoutWidthKey), leftSlideoutWidth);
 		}
 
 		if (activeTabLeft) {
@@ -306,14 +246,15 @@ var _Pages = {
 		}
 
 		// activate first page if local storage is empty
-		if (!LSWrapper.getItem(activeTabKey)) {
-			window.setTimeout(function(e) {  _Pages.activateTab($('#previewTabs .page').first()); }, 1000);
+		if (!LSWrapper.getItem(_Pages.activeTabKey)) {
+			window.setTimeout(function(e) {
+				_Pages.activateTab($('#previewTabs .page').first());
+			}, 1000);
 		}
 
 		_Pages.resize();
 
-		win.off('resize');
-		win.resize(function() {
+		$(window).off('resize').resize(function() {
 			_Pages.resize();
 		});
 
@@ -560,7 +501,7 @@ var _Pages = {
 		element.addClass('active');
 
 		_Logger.log(_LogType.PAGES, 'store active tab', activeTab);
-		LSWrapper.setItem(activeTabKey, activeTab);
+		LSWrapper.setItem(_Pages.activeTabKey, activeTab);
 
 	},
 	hideAllPreviews: function () {
@@ -573,7 +514,7 @@ var _Pages = {
 	refreshActiveElements: function() {
 		var id = activeTab;
 		$('#activeElements div.inner').empty().attr('id', 'id_' + id);
-		activeElements = {};
+		_Entities.activeElements = {};
 
 		Command.listActiveElements(id, function(result) {
 			result.forEach(function(activeElement) {
@@ -1059,7 +1000,7 @@ var _Pages = {
 		dataBindingSlideout.children('#wizard').remove();
 		dataBindingSlideout.prepend('<div class="inner" id="wizard"><select id="type-selector"><option>--- Select type ---</option></select><div id="data-wizard-attributes"></div></div>');
 		// Command.list(type, rootOnly, pageSize, page, sort, order, callback) {
-		var selectedType = LSWrapper.getItem(selectedTypeKey);
+		var selectedType = LSWrapper.getItem(_Pages.selectedTypeKey);
 		Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', 'id,name', function(typeNodes) {
 			typeNodes.forEach(function(typeNode) {
 				$('#type-selector').append('<option ' + (typeNode.id === selectedType ? 'selected' : '') + ' value="' + typeNode.id + '">' + typeNode.name + '</option>');
@@ -1085,7 +1026,7 @@ var _Pages = {
 		Command.get(id, function(sourceSchemaNode) {
 
 			var typeKey = sourceSchemaNode.name.toLowerCase();
-			LSWrapper.setItem(selectedTypeKey, id);
+			LSWrapper.setItem(_Pages.selectedTypeKey, id);
 
 			$('#data-wizard-attributes').append('<div class="clear">&nbsp;</div><p>You can drag and drop the type box onto a block in a page.'
 					+ 'The type will be bound to the block which will loop over the result set.</p>');
@@ -1166,23 +1107,30 @@ var _Pages = {
 			activeNode.removeClass('nodeHover');
 		}
 	},
-	pagesTabStateChangeCallback: function () {
-		var callback = function (params) {
-			_Pages.resize(params.sw, 0);
-			_Pages.pagesTabResizeContent();
-		};
-		if (Math.abs(pagesSlideout.position().left < 0)) {
-			Structr.closeLeftSlideOuts([activeElementsSlideout, dataBindingSlideout, templatesSlideout], activeTabLeftKey, _Pages.leftSlideoutClosedCallback);
-			Structr.openLeftSlideOut(pagesSlideout, $("#pagesTab"), activeTabLeftKey, callback, callback);
-		} else {
-			Structr.closeLeftSlideOuts([pagesSlideout], activeTabLeftKey, _Pages.leftSlideoutClosedCallback);
-		}
-
-	},
-	pagesTabResizeContent: function () {
-		var storedLeftSlideoutWidth = LSWrapper.getItem(leftSlideoutWidthKey);
+	pagesTabResizeContent: function (pagesSlideout) {
+		var storedLeftSlideoutWidth = LSWrapper.getItem(_Pages.leftSlideoutWidthKey);
 		var psw = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (pagesSlideout.width() + 12);
-		$('.node.page', pagesSlideout).width(psw-40);
+		$('.node.page', pagesSlideout).width(psw - 40);
+	},
+	leftSlideoutTrigger: function (triggerEl, slideoutElement, otherSlideouts, activeTabKey, openCallback, closeCallback) {
+		if ($(triggerEl).hasClass('noclick')) {
+			$(triggerEl).removeClass('noclick');
+		} else {
+			if (Math.abs(slideoutElement.position().left + slideoutElement.width() + 12) <= 3) {
+				Structr.closeLeftSlideOuts(otherSlideouts, activeTabKey, closeCallback);
+				Structr.openLeftSlideOut(triggerEl, slideoutElement, activeTabKey, openCallback);
+			} else {
+				Structr.closeLeftSlideOuts([slideoutElement], activeTabKey, closeCallback);
+			}
+		}
+	},
+	rightSlideoutTrigger: function (triggerEl, slideoutElement, otherSlideouts, callback) {
+		if (Math.abs(slideoutElement.position().left - $(window).width()) <= 3) {
+			Structr.closeSlideOuts(otherSlideouts, _Pages.activeTabRightKey);
+			Structr.openSlideOut(slideoutElement, triggerEl, _Pages.activeTabRightKey, callback);
+		} else {
+			Structr.closeSlideOuts([slideoutElement], _Pages.activeTabRightKey);
+		}
 	},
 	leftSlideoutClosedCallback: function(wasOpen, offsetLeft, offsetRight) {
 		if (wasOpen) {

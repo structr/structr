@@ -1113,11 +1113,6 @@ button i {
     vertical-align: middle;
 }
 
-#json_input {
-    width: 1000px;
-    height: 500px;
-}
-
 .dialog {
     display: none;
     font-size: 11pt;
