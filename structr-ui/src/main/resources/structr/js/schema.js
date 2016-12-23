@@ -1279,38 +1279,12 @@ var _Schema = {
 
 		el.append('<table class="related-attrs schema-props"><thead><th>JSON Name</th><th>Type, Direction and Remote type</th></thead></table>');
 
-		var url = rootUrl + 'schema_relationship_nodes?sourceId=' + entity.id;
-		$.ajax({
-			url: url,
-			dataType: 'json',
-			contentType: 'application/json; charset=utf-8',
-			success: function(data) {
-
-				$.each(data.result, function(i, res) {
-
-					_Schema.appendRelatedProperty($('.related-attrs', el), res, res.targetJsonName ? res.targetJsonName : res.oldTargetJsonName, true);
-					instance.repaintEverything();
-
-				});
-
-			}
+		entity.relatedTo.forEach(function(target) {
+			_Schema.appendRelatedProperty($('.related-attrs', el), target, target.targetJsonName ? target.targetJsonName : target.oldTargetJsonName, true);
 		});
 
-		url = rootUrl + 'schema_relationship_nodes?targetId=' + entity.id;
-		$.ajax({
-			url: url,
-			dataType: 'json',
-			contentType: 'application/json; charset=utf-8',
-			success: function(data) {
-
-				$.each(data.result, function(i, res) {
-
-					_Schema.appendRelatedProperty($('.related-attrs', el), res, res.sourceJsonName ? res.sourceJsonName : res.oldSourceJsonName, false);
-					instance.repaintEverything();
-
-				});
-
-			}
+		entity.relatedFrom.forEach(function(source) {
+			_Schema.appendRelatedProperty($('.related-attrs', el), source, source.sourceJsonName ? source.sourceJsonName : source.oldSourceJsonName, false);
 		});
 
 	},
@@ -1803,8 +1777,7 @@ var _Schema = {
 
 	},
 	appendRelatedProperty: function(el, rel, key, out) {
-		var relType = rel.relationshipType;
-		relType = relType === undefinedRelType ? '' : relType;
+		var relType = (rel.relationshipType === undefinedRelType) ? '' : rel.relationshipType;
 
 		el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name related" value="' + key + '"></td><td>'
 				+ (out ? '-' : '&lt;-') + '[:' + relType + ']' + (out ? '-&gt;' : '-') + '</td></tr>');

@@ -120,8 +120,8 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 	public static final View uiView = new View(SchemaRelationshipNode.class, PropertyView.Ui,
 		name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
-		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag,  permissionPropagation,
-		readPropagation, writePropagation, deletePropagation, accessControlPropagation, propertyMask
+		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag, previousSourceJsonName, previousTargetJsonName,
+		permissionPropagation, readPropagation, writePropagation, deletePropagation, accessControlPropagation, propertyMask
 	);
 
 	public static final View exportView = new View(SchemaRelationshipNode.class, "export",
