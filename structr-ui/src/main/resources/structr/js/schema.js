@@ -1778,19 +1778,17 @@ var _Schema = {
 	},
 	appendRelatedProperty: function(el, rel, key, out) {
 		var relType = (rel.relationshipType === undefinedRelType) ? '' : rel.relationshipType;
+		var relatedNodeId = (out ? rel.targetId : rel.sourceId);
 
 		el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name related" value="' + key + '"></td><td>'
-				+ (out ? '-' : '&lt;-') + '[:' + relType + ']' + (out ? '-&gt;' : '-') + '</td></tr>');
+				+ (out ? '-' : '&lt;-') + '[:' + relType + ']' + (out ? '-&gt;' : '-') + ' <span class="remote-schema-node" id="relId_' + rel.id + '">'+ nodes[relatedNodeId].name + '</span></td></tr>');
 
-		Command.get((out ? rel.targetId : rel.sourceId), function(schemaNode) {
-			$('.' + key + ' td:nth-child(2)', el).append(' <span class="remote-schema-node" id="relId_' + rel.id + '">'+ schemaNode.name + '</span>');
-
-			$('#relId_' + rel.id, el).on('click', function(e) {
-				e.stopPropagation();
-				_Schema.openEditDialog(schemaNode.id);
-				return false;
-			});
+		$('#relId_' + rel.id, el).on('click', function(e) {
+			e.stopPropagation();
+			_Schema.openEditDialog(relatedNodeId);
+			return false;
 		});
+
 
 		$('.' + key + ' .property-name', el).on('blur', function() {
 
