@@ -46,7 +46,6 @@ function without(s, array) {
 	});
 
 	return res;
-
 }
 
 function isIn(s, array) {

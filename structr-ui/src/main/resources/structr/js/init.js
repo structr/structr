@@ -759,7 +759,6 @@ var Structr = {
 	},
 	resize: function(callback) {
 
-		//LSWrapper.removeItem(dialogMaximizedKey);
 		isMax = LSWrapper.getItem(dialogMaximizedKey);
 
 		if (isMax) {
@@ -1071,12 +1070,12 @@ var Structr = {
 
 		var t = $(triggerEl);
 		t.addClass('active');
-		var sw = psw + 12;
+		var slideoutWidth = psw + 12;
 		LSWrapper.setItem(activeTabKey, t.prop('id'));
 		slideoutElement.width(psw);
 		slideoutElement.animate({left: 0 + 'px'}, 100, function () {
 			if (typeof callback === 'function') {
-				callback({sw: sw});
+				callback({sw: slideoutWidth});
 			}
 		}).zIndex(1);
 		t.draggable({
@@ -1091,13 +1090,13 @@ var Structr = {
 				});
 				ui.position.top += (ui.helper.width() / 2 - 6);
 				ui.position.left -= (ui.helper.width() / 2 - 6);
-				var oldLsw = sw;
-				sw = w + 12;
+				var oldLeftSlideoutWidth = slideoutWidth;
+				slideoutWidth = w + 12;
 				$('.node.page', slideoutElement).width(w - 25);
 
 				if (typeof callback === 'function') {
 					LSWrapper.setItem(_Pages.leftSlideoutWidthKey, slideoutElement.width());
-					callback({sw: (sw - oldLsw)});
+					callback({sw: (slideoutWidth - oldLeftSlideoutWidth)});
 				}
 			},
 			stop: function(e, ui) {
