@@ -18,7 +18,7 @@
  */
 var pages, shadowPage, pageVersion = {};
 var previews, previewTabs, controls, activeTab, activeTabLeft, activeTabRight, paletteSlideout, elementsSlideout, componentsSlideout, widgetsSlideout, pagesSlideout, activeElementsSlideout, dataBindingSlideout;
-var lsw, rsw;
+var rsw;
 var components, elements;
 var selStart, selEnd;
 var sel;
@@ -149,7 +149,6 @@ var _Pages = {
 		componentsSlideout = $('#components');
 		elementsSlideout = $('#elements');
 
-		lsw = pagesSlideout.width() + 12;
 		rsw = widgetsSlideout.width() + 12;
 
 		$('#pagesTab').on('click', function() {

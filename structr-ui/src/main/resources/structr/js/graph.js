@@ -21,7 +21,7 @@ var nodeIds = [], relIds = [], removedRel;
 var activeTabRightGraphKey = 'structrActiveTabRightGraph_' + port;
 var activeTabLeftGraphKey = 'structrActiveTabLeftGraph_' + port;
 var activeTabLeftGraph, activeTabRightGraph;
-var queriesSlideout, displaySlideout, filtersSlideout, nodesSlideout, relationshipsSlideout, graph;
+var queriesSlideout, displaySlideout, filtersSlideout, graph;
 var savedQueriesKey = 'structrSavedQueries_' + port;
 var relTypes = {}, nodeTypes = {}, color = {}, relColors = {}, hasDragged, hasDoubleClicked, clickTimeout, doubleClickTime = 250, refreshTimeout;
 var filteredNodeTypes = [], hiddenNodeTypes = [], hiddenRelTypes = [];
@@ -405,11 +405,6 @@ var _Graph = {
 		});
 
 		_Graph.init();
-
-		nodesSlideout = $('#nodes');
-		relationshipsSlideout = $('#relationships');
-
-		rsw = nodesSlideout.width() + 12;
 
 		$('.slideOut').on('mouseover', function() {
 			running = false;
