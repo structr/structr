@@ -1782,31 +1782,15 @@ var _Schema = {
 		el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name related" value="' + key + '"></td><td>'
 				+ (out ? '-' : '&lt;-') + '[:' + relType + ']' + (out ? '-&gt;' : '-') + '</td></tr>');
 
+		Command.get((out ? rel.targetId : rel.sourceId), function(schemaNode) {
+			$('.' + key + ' td:nth-child(2)', el).append(' <span class="remote-schema-node" id="relId_' + rel.id + '">'+ schemaNode.name + '</span>');
 
-		if (out) {
-
-			Command.get(rel.targetId, function(targetSchemaNode) {
-				$('.' + key + ' td:nth-child(2)', el).append(' <span class="remote-schema-node" id="target_' + targetSchemaNode.id + '">'+ targetSchemaNode.name + '</span>');
-
-				$('#target_' + targetSchemaNode.id, el).on('click', function(e) {
-					e.stopPropagation();
-					_Schema.openEditDialog(targetSchemaNode.id);
-					return false;
-				});
+			$('#relId_' + rel.id, el).on('click', function(e) {
+				e.stopPropagation();
+				_Schema.openEditDialog(schemaNode.id);
+				return false;
 			});
-
-		} else {
-
-			Command.get(rel.sourceId, function(sourceSchemaNode) {
-				$('.' + key + ' td:nth-child(2)', el).append(' <span class="remote-schema-node" id="source_' + sourceSchemaNode.id + '">'+ sourceSchemaNode.name + '</span>');
-
-				$('#source_' + sourceSchemaNode.id, el).on('click', function(e) {
-					e.stopPropagation();
-					_Schema.openEditDialog(sourceSchemaNode.id);
-					return false;
-				});
-			});
-		}
+		});
 
 		$('.' + key + ' .property-name', el).on('blur', function() {
 
@@ -1816,19 +1800,12 @@ var _Schema = {
 				newName = undefined;
 			}
 
-			if (out) {
-				_Schema.setRelationshipProperty(rel, 'targetJsonName', newName, function() {
-					blinkGreen($('.' + key, el));
-				}, function() {
-					blinkRed($('.' + key, el));
-				});
-			} else {
-				_Schema.setRelationshipProperty(rel, 'sourceJsonName', newName, function() {
-					blinkGreen($('.' + key, el));
-				}, function() {
-					blinkRed($('.' + key, el));
-				});
-			}
+			_Schema.setRelationshipProperty(rel, (out ? 'targetJsonName' : 'sourceJsonName'), newName, function() {
+				blinkGreen($('.' + key, el));
+			}, function() {
+				blinkRed($('.' + key, el));
+			});
+
 		});
 
 	},
