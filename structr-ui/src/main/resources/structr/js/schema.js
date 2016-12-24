@@ -19,7 +19,7 @@
 var canvas, instance, res, nodes = {}, rels = {}, localStorageSuffix = '_schema_' + port, undefinedRelType = 'UNDEFINED_RELATIONSHIP_TYPE', initialRelType = undefinedRelType;
 var radius = 20, stub = 30, offset = 0, maxZ = 0, reload = false;
 var schemaContainer;
-var inheritanceTree, inheritanceSlideout, inheritanceSlideoutOpen = false;
+var inheritanceTree, inheritanceSlideout;
 
 $(document).ready(function() {
 	Structr.registerModule('schema', _Schema);
@@ -408,23 +408,8 @@ var _Schema = {
 			_Schema.resize();
 		};
 
-		inheritanceSlideoutOpen = false;
 		$('#inheritanceTab').on('click', function() {
-			if ($(this).hasClass('noclick')) {
-				$(this).removeClass('noclick');
-				return;
-			}
-
-			if (Math.abs(inheritanceSlideout.position().left + inheritanceSlideout.width() + 12) <= 3) {
-				inheritanceSlideoutOpen = true;
-				Structr.openLeftSlideOut(inheritanceSlideout, $("#inheritanceTab"), _Pages.activeTabLeftKey, updateCanvasTranslation, updateCanvasTranslation);
-
-			} else {
-				inheritanceSlideoutOpen = false;
-				Structr.closeLeftSlideOuts([inheritanceSlideout], _Pages.activeTabLeftKey, _Schema.resize);
-				canvas.css('transform', _Schema.getSchemaCSSTransform());
-
-			}
+			_Pages.leftSlideoutTrigger(this, inheritanceSlideout, [], _Pages.activeTabLeftKey, updateCanvasTranslation, updateCanvasTranslation);
 		});
 
 		_Schema.init();
@@ -3228,7 +3213,7 @@ var _Schema = {
 		return 'scale(' + _Schema.zoomLevel + ')';
 	},
 	getSchemaCSSTranslate: function () {
-		return 'translate(' + (inheritanceSlideoutOpen ? inheritanceSlideout.outerWidth() / _Schema.zoomLevel : '0') + 'px)';
+		return 'translate(' + ((inheritanceSlideout.position().left + inheritanceSlideout.outerWidth()) / _Schema.zoomLevel) + 'px)';
 	},
 	sort: function(collection, sortKey, secondarySortKey) {
 		if (!sortKey) {
