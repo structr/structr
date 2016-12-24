@@ -93,8 +93,6 @@ var _Schema = {
 	},
 	init: function(scrollPosition) {
 
-		_Schema.loadClassTree();
-
 		_Schema.schemaLoading = false;
 		_Schema.schemaLoaded = false;
 		_Schema.schema = [];
@@ -432,7 +430,7 @@ var _Schema = {
 		return _Schema.schemaLoaded;
 	},
 	loadNodes: function(callback) {
-		var url = rootUrl + 'schema_nodes/ui';
+		var url = rootUrl + 'SchemaNode/ui?sort=hierarchyLevel&order=asc';
 		_Schema.hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.hiddenSchemaNodesKey)) || [];
 		$.ajax({
 			url: url,
@@ -472,6 +470,8 @@ var _Schema = {
 						}
 					});
 				}
+
+				_Schema.loadClassTree(data.result);
 
 				data.result.forEach(function(entity) {
 
@@ -3222,7 +3222,7 @@ var _Schema = {
 			$('.rel-type, .multiplicity').hide();
 		}
 	},
-	loadClassTree: function () {
+	loadClassTree: function (schemaNodes) {
 		var classTree = {};
 		var tmpHierarchy = {};
 		var classnameToId = {};
@@ -3279,39 +3279,35 @@ var _Schema = {
 
 		};
 
-		$.get(rootUrl + 'SchemaNode?sort=hierarchyLevel&order=asc', function (data) {
-			schemaNodes = data.result;
-			schemaNodes.forEach(function (schemaNode) {
+		schemaNodes.forEach(function (schemaNode) {
 
-				if (!schemaNode.isBuiltinType) {
+			if (!schemaNode.isBuiltinType) {
 
-					var classObj = {
-						name: schemaNode.name,
-						parent: (schemaNode.extendsClass === null ? 'AbstractNode' : schemaNode.extendsClass.slice(schemaNode.extendsClass.lastIndexOf('.')+1))
-					};
+				var classObj = {
+					name: schemaNode.name,
+					parent: (schemaNode.extendsClass === null ? 'AbstractNode' : schemaNode.extendsClass.slice(schemaNode.extendsClass.lastIndexOf('.')+1))
+				};
 
-					classnameToId[classObj.name] = schemaNode.id;
+				classnameToId[classObj.name] = schemaNode.id;
 
-					var inserted = insertClassInClassTree(classObj, tmpHierarchy);
+				var inserted = insertClassInClassTree(classObj, tmpHierarchy);
 
-					if (!inserted) {
-						var insertedTmp = insertClassInClassTree(classObj, classTree);
+				if (!inserted) {
+					var insertedTmp = insertClassInClassTree(classObj, classTree);
 
-						if (!insertedTmp) {
-							if (classTree[classObj.name]) {
-								classTree[classObj.parent] = {};
-								classTree[classObj.parent][classObj.name] = classTree[classObj.name];
-								delete(classTree[classObj.name]);
-							} else {
-								classTree[classObj.parent] = {};
-								classTree[classObj.parent][classObj.name] = {};
-							}
-
+					if (!insertedTmp) {
+						if (classTree[classObj.name]) {
+							classTree[classObj.parent] = {};
+							classTree[classObj.parent][classObj.name] = classTree[classObj.name];
+							delete(classTree[classObj.name]);
+						} else {
+							classTree[classObj.parent] = {};
+							classTree[classObj.parent][classObj.name] = {};
 						}
+
 					}
 				}
-
-			});
+			}
 
 			$.jstree.destroy();
 			printClassTree(inheritanceTree, classTree);
