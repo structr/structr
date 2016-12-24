@@ -180,9 +180,7 @@ var _Files = {
 			Structr.pullDialog('File,Folder');
 		});
 
-		$('.duplicate_finder', main).on('click', function(e) {
-			_DuplicateFinder.openDuplicateFinderDialog();
-		});
+		$('.duplicate_finder', main).on('click', _DuplicateFinder.openDuplicateFinderDialog);
 
 		$('.add_folder_icon', main).on('click', function(e) {
 			Command.create({ type: 'Folder', parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {

@@ -264,27 +264,15 @@ var _Graph = {
 		});
 
 		$('#toggleNodeLabels').on('click', function() {
-			if (!nodeLabelsHidden) {
-				$(this).text('Show node labels');
-				graphBrowser.changeSigmaSetting('drawLabels', false);
-				nodeLabelsHidden = true;
-			} else {
-				$(this).text('Hide node labels');
-				graphBrowser.changeSigmaSetting('drawLabels', true);
-				nodeLabelsHidden = false;
-			}
+			nodeLabelsHidden = !nodeLabelsHidden;
+			$(this).text( (nodeLabelsHidden ? 'Show' : 'Hide') + ' node labels');
+			graphBrowser.changeSigmaSetting('drawLabels', !nodeLabelsHidden);
 		});
 
 		$('#toggleEdgeLabels').on('click', function() {
-			if (!edgeLabelsHidden) {
-				$(this).text('Show edge labels');
-				graphBrowser.changeSigmaSetting('drawEdgeLabels', false);
-				edgeLabelsHidden = true;
-			} else {
-				$(this).text('Hide edge labels');
-				graphBrowser.changeSigmaSetting('drawEdgeLabels', true);
-				edgeLabelsHidden = false;
-			}
+			edgeLabelsHidden = !edgeLabelsHidden;
+			$(this).text((edgeLabelsHidden ? 'Show' : 'Hide') + ' edge labels');
+			graphBrowser.changeSigmaSetting('drawEdgeLabels', !edgeLabelsHidden);
 		});
 
 		$('#selectionLasso').on('click', function() {

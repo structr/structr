@@ -119,10 +119,8 @@ var _Schema = {
 				_Schema.importGraphGist($('#ggist-url').val(), text);
 			});
 
-			var styles = ['Flowchart', 'Bezier', 'StateMachine', 'Straight'];
-
 			schemaInputContainer.append('<select id="connector-style"></select>');
-			$.each(styles, function(i, style) {
+			['Flowchart', 'Bezier', 'StateMachine', 'Straight'].forEach(function(style) {
 				$('#connector-style').append('<option value="' + style + '" ' + (style === _Schema.connectorStyle ? 'selected="selected"' : '') + '>' + style + '</option>');
 			});
 			$('#connector-style').on('change', function() {
@@ -151,31 +149,17 @@ var _Schema = {
 			});
 
 			schemaInputContainer.append('<button class="btn" id="admin-tools"><img src="' + _Icons.wrench_icon + '"> Tools</button>');
-			$('#admin-tools').on('click', function() {
-				_Schema.openAdminTools();
-			});
-
 			schemaInputContainer.append('<button class="btn module-dependend" data-structr-module="cloud" id="sync-schema"><img src="' + _Icons.push_file_icon + '"> Sync schema</button>');
-			$('#sync-schema').on('click', function() {
-				_Schema.syncSchemaDialog();
-			});
-
 			schemaInputContainer.append('<button class="btn" id="show-snapshots"><img src="' + _Icons.database_icon + '"> Snapshots</button>');
-			$('#show-snapshots').on('click', function() {
-				_Schema.snapshotsDialog();
-			});
-
 			schemaInputContainer.append('<button class="btn" id="schema-display-options"><img src="' + _Icons.edit_icon + '"> Display Options</button>');
-			$('#schema-display-options').on('click', function() {
-				_Schema.openSchemaDisplayOptions();
-			});
-
 			schemaInputContainer.append('<button class="btn" id="reset-schema-layout"><img src="' + _Icons.refresh_icon + '"> Reset Layout</button>');
-			$('#reset-schema-layout').on('click', function() {
-				_Schema.clearPositions();
-			});
-
 			schemaInputContainer.append('<input type="checkbox" id="schema-show-overlays" name="schema-show-overlays" style="margin-left:10px"><label for="schema-show-overlays"> Show relationship labels</label>');
+
+			$('#admin-tools').on('click', _Schema.openAdminTools);
+			$('#sync-schema').on('click', _Schema.syncSchemaDialog);
+			$('#show-snapshots').on('click', _Schema.snapshotsDialog);
+			$('#schema-display-options').on('click', _Schema.openSchemaDisplayOptions);
+			$('#reset-schema-layout').on('click', _Schema.clearPositions);
 			$('#schema-show-overlays').on('change', function() {
 				_Schema.updateOverlayVisibility($(this).prop('checked'));
 			});
@@ -1710,8 +1694,6 @@ var _Schema = {
 
 		dialogSaveButton.on('click', function(e) {
 			e.stopPropagation();
-
-			//var contentNode = Structr.node(entity.id)[0];
 
 			text1 = text;
 			text2 = editor.getValue();

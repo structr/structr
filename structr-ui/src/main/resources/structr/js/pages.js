@@ -375,9 +375,7 @@ var _Pages = {
 
 			dialog.append('<p>With these settings you can influence the behaviour of the page previews only. They are not persisted on the Page object but only stored in the UI settings.</p>');
 
-
 			dialog.append('<table class="props">'
-					//+ '<tr><td><label for="name">Name</label></td><td><input id="_name" name="name" size="20"></td></tr>'
 					+ '<tr><td><label for="details-object-id">UUID of details object to append to preview URL</label></td><td><input id="_details-object-id" name="details-object-id" size="30" value="' + (LSWrapper.getItem(detailsObjectId + entity.id) ?  LSWrapper.getItem(detailsObjectId + entity.id) : '') + '"> <img id="clear-details-object-id" src="' + _Icons.grey_cross_icon + '"></td></tr>'
 					+ '<tr><td><label for="auto-refresh">Automatic refresh</label></td><td><input title="Auto-refresh page on changes" alt="Auto-refresh page on changes" class="auto-refresh" type="checkbox"' + (LSWrapper.getItem(autoRefreshDisabledKey + entity.id) ? '' : ' checked="checked"') + '></td></tr>'
 					+ '</table>');
@@ -468,7 +466,6 @@ var _Pages = {
 	},
 	activateTab: function(element) {
 
-		//var name = $.trim(element.children('.name_').text());
 		var name = $.trim(element.children('b.name_').attr('title'));
 		_Logger.log(_LogType.PAGES, 'activateTab', element, name);
 
@@ -584,7 +581,6 @@ var _Pages = {
 		$.ui.ddmanager.droppables['default'] = droppablesArray;
 	},
 	makeTabEditable: function(element) {
-		//element.off('dblclick');
 		var id = element.prop('id').substring(5);
 
 		element.off('hover');
@@ -654,7 +650,6 @@ var _Pages = {
 		});
 
 		_Entities.appendEditPropertiesIcon(div, entity);
-		//_Entities.appendEditSourceIcon(div, entity);
 
 		div.append('<img title="Clone page \'' + entity.name + '\'" alt="Clone page \'' + entity.name + '\'" class="clone_icon button" src="' + _Icons.clone_icon + '">');
 		$('.clone_icon', div).on('click', function(e) {
@@ -905,7 +900,6 @@ var _Pages = {
 	findDroppablesInIframe: function(iframeDocument, id) {
 		var droppables = iframeDocument.find('[data-structr-id]');
 		if (droppables.length === 0) {
-			//iframeDocument.append('<html structr_element_id="' + entity.id + '">dummy element</html>');
 			var html = iframeDocument.find('html');
 			html.attr('data-structr-id', id);
 			html.addClass('structr-element-container');
