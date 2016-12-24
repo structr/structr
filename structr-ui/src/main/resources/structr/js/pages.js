@@ -224,18 +224,6 @@ var _Pages = {
 
 		_Pages.refresh();
 
-		if (LSWrapper.getItem(_Pages.leftSlideoutWidthKey)) {
-
-			var leftSlideoutWidth = parseInt(LSWrapper.getItem(_Pages.leftSlideoutWidthKey));
-			var leftSlideout = $('#' + activeTabLeft).closest('.slideOut');
-			leftSlideout.css({
-				width: leftSlideoutWidth + 'px',
-				left: '-' + (leftSlideoutWidth + 12) + 'px'
-			});
-			_Pages.pagesTabResizeContent();
-			_Logger.log(_LogType.PAGES, LSWrapper.getItem(_Pages.leftSlideoutWidthKey), leftSlideoutWidth);
-		}
-
 		if (activeTabLeft) {
 			$('#' + activeTabLeft).addClass('active').click();
 		}

@@ -40,6 +40,7 @@ var _Schema = {
 	schemaPositionsKey: 'structrSchemaPositions_' + port,
 	showSchemaOverlaysKey: 'structrShowSchemaOverlays_' + port,
 	schemaMethodsHeightsKey: 'structrSchemaMethodsHeights_' + port,
+	schemaActiveTabLeftKey: 'structrSchemaActiveTabLeft_' + port,
 	selectionInProgress: false,
 	selectBox: undefined,
 	mouseDownCoords: {x:0, y:0},
@@ -409,7 +410,7 @@ var _Schema = {
 		};
 
 		$('#inheritanceTab').on('click', function() {
-			_Pages.leftSlideoutTrigger(this, inheritanceSlideout, [], _Pages.activeTabLeftKey, updateCanvasTranslation, updateCanvasTranslation);
+			_Pages.leftSlideoutTrigger(this, inheritanceSlideout, [], _Schema.schemaActiveTabLeftKey, updateCanvasTranslation, updateCanvasTranslation);
 		});
 
 		_Schema.init();
