@@ -77,11 +77,11 @@ public class ChangelogFunction extends Function<Object, Object> {
 					final JsonParser parser = new JsonParser();
 
 					for (String entry : entries) {
-						final JsonObject jsonObj = parser.parse(entry).getAsJsonObject();
 
-						final String verb = jsonObj.get("verb").getAsString();
-
+						final JsonObject jsonObj          = parser.parse(entry).getAsJsonObject();
+						final String verb                 = jsonObj.get("verb").getAsString();
 						final TreeMap<String, Object> obj = new TreeMap<>();
+
 						obj.put("verb", verb);
 						obj.put("time", jsonObj.get("time").getAsLong());
 						obj.put("userId", jsonObj.get("userId").getAsString());
@@ -92,7 +92,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 							obj.put("target", jsonObj.get("target").getAsString());
 
 							if (resolveTargets) {
-								obj.put("targetObj", app.get(jsonObj.get("target").getAsString()));
+								obj.put("targetObj", app.getNodeById(jsonObj.get("target").getAsString()));
 							}
 
 							list.add(obj);
@@ -103,7 +103,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 							obj.put("target", jsonObj.get("target").getAsString());
 
 							if (resolveTargets) {
-								obj.put("targetObj", app.get(jsonObj.get("target").getAsString()));
+								obj.put("targetObj", app.getNodeById(jsonObj.get("target").getAsString()));
 							}
 
 							list.add(obj);
