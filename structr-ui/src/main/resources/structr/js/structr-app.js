@@ -87,12 +87,12 @@ $(function() {
  * Base class for Structr apps
  *
  * @param baseUrl
- * @param locale 
+ * @param locale
  * @returns {StructrApp}
  */
 function StructrApp(baseUrl, locale) {
 	this.locale = locale || 'en_EN';
-	this.lang = locale.split('_')[0];
+	this.lang = this.locale.split('_')[0];
 	if (baseUrl) {
 		structrRestUrl = baseUrl;
 	}
