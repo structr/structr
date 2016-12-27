@@ -40,8 +40,10 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.Security;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -1073,7 +1075,7 @@ public class DeploymentTest extends StructrUiTest {
 
 			content1.setProperty(DOMNode.showConditions, "eq(current.type, 'MyTestFolder')");
 			content2.setProperty(DOMNode.showConditions, "if(equal(extract(first(find('User', 'name' 'structr')), 'name'), '@structr'), true, false)");
-			content2.setProperty(DOMNode.showConditions, "(((((([]))))))"); // for testing only
+			content3.setProperty(DOMNode.showConditions, "(((((([]))))))"); // for testing only
 
 			tx.success();
 
@@ -1086,6 +1088,63 @@ public class DeploymentTest extends StructrUiTest {
 		compare(calculateHash(), true);
 	}
 
+	@Test
+	public void test25ExtendedBuiltinTypes() {
+
+		/* This method tests whether files, folders and images that are
+		 * considered part of application data (derived from built-in
+		 * types) are ignored in the deployment process. */
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			// create extended folder class
+			app.create(SchemaNode.class,
+				new NodeAttribute<>(SchemaNode.name, "ExtendedFolder"),
+				new NodeAttribute<>(SchemaNode.extendsClass, "org.structr.dynamic.Folder")
+			);
+
+			// create extended file class
+			app.create(SchemaNode.class,
+				new NodeAttribute<>(SchemaNode.name, "ExtendedFile"),
+				new NodeAttribute<>(SchemaNode.extendsClass, "org.structr.dynamic.File")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface folder1 = app.create(StructrApp.getConfiguration().getNodeEntityClass("ExtendedFolder"), "folder1");
+			final NodeInterface folder2 = app.create(StructrApp.getConfiguration().getNodeEntityClass("ExtendedFolder"),
+				new NodeAttribute<>(Folder.name, "folder2"),
+				new NodeAttribute(Folder.parent, folder1)
+			);
+
+			app.create(StructrApp.getConfiguration().getNodeEntityClass("ExtendedFile"),
+				new NodeAttribute<>(File.name, "file1.txt"),
+				new NodeAttribute(File.parent, folder1)
+			);
+
+			app.create(StructrApp.getConfiguration().getNodeEntityClass("ExtendedFile"),
+				new NodeAttribute<>(File.name, "file2.txt"),
+				new NodeAttribute(File.parent, folder2)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), false, true);
+	}
+
 	// ----- private methods -----
 	private void compare(final String sourceHash, final boolean deleteTestDirectory) {
 		compare(sourceHash, deleteTestDirectory, true);
@@ -1096,6 +1155,9 @@ public class DeploymentTest extends StructrUiTest {
 		doImportExportRoundtrip(deleteTestDirectory, cleanDatabase, null);
 
 		final String roundtripHash = calculateHash();
+
+			System.out.println("Expected: " + sourceHash);
+			System.out.println("Actual:   " + roundtripHash);
 
 		if (!sourceHash.equals(roundtripHash)) {
 
@@ -1174,8 +1236,25 @@ public class DeploymentTest extends StructrUiTest {
 			for (final Page page : app.nodeQuery(Page.class).sort(AbstractNode.name).getAsList()) {
 
 				System.out.print("############################# ");
-
 				calculateHash(page, buf, 0);
+			}
+
+			for (final Folder folder : app.nodeQuery(Folder.class).sort(AbstractNode.name).getAsList()) {
+
+				if (DeployCommand.okToExport(folder)) {
+
+					System.out.print("############################# ");
+					calculateHash(folder, buf, 0);
+				}
+			}
+
+			for (final FileBase file : app.nodeQuery(File.class).sort(AbstractNode.name).getAsList()) {
+
+				if (DeployCommand.okToExport(file)) {
+					
+					System.out.print("############################# ");
+					calculateHash(file, buf, 0);
+				}
 			}
 
 			tx.success();
@@ -1188,7 +1267,7 @@ public class DeploymentTest extends StructrUiTest {
 		return buf.toString();//DigestUtils.md5Hex(buf.toString());
 	}
 
-	private void calculateHash(final DOMNode start, final StringBuilder buf, final int depth) {
+	private void calculateHash(final AbstractNode start, final StringBuilder buf, final int depth) {
 
 		buf.append(start.getType()).append("{");
 
@@ -1223,7 +1302,7 @@ public class DeploymentTest extends StructrUiTest {
 		buf.append("}");
 	}
 
-	private void hash(final DOMNode node, final StringBuilder buf) {
+	private void hash(final AbstractNode node, final StringBuilder buf) {
 
 		// AbstractNode
 		buf.append(valueOrEmpty(node, AbstractNode.type));

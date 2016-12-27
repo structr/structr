@@ -291,6 +291,7 @@ public class Functions {
 		functions.put("subt", new SubtFunction());
 		functions.put("mult", new MultFunction());
 		functions.put("quot", new QuotFunction());
+		functions.put("div", new DivFunction());
 		functions.put("mod", new ModFunction());
 		functions.put("floor", new FloorFunction());
 		functions.put("ceil", new CeilFunction());

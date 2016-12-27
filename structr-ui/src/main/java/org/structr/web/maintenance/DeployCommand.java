@@ -31,12 +31,15 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
@@ -48,9 +51,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.Security;
+import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
@@ -73,6 +78,14 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.dom.Template;
+import org.structr.web.entity.relation.FileChildren;
+import org.structr.web.entity.relation.FileSiblings;
+import org.structr.web.entity.relation.FolderChildren;
+import org.structr.web.entity.relation.Folders;
+import org.structr.web.entity.relation.Images;
+import org.structr.web.entity.relation.MinificationSource;
+import org.structr.web.entity.relation.Thumbnails;
+import org.structr.web.entity.relation.UserFavoriteFile;
 import org.structr.web.maintenance.deploy.ComponentImportVisitor;
 import org.structr.web.maintenance.deploy.FileImportVisitor;
 import org.structr.web.maintenance.deploy.PageImportVisitor;
@@ -84,8 +97,9 @@ import org.structr.web.maintenance.deploy.TemplateImportVisitor;
  */
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
 
-	private static final Logger logger   = LoggerFactory.getLogger(BulkMoveUnusedFilesCommand.class.getName());
-	private static final Pattern pattern = Pattern.compile("[a-f0-9]{32}");
+	private static final Logger logger                   = LoggerFactory.getLogger(BulkMoveUnusedFilesCommand.class.getName());
+	private static final Pattern pattern                 = Pattern.compile("[a-f0-9]{32}");
+	private static final Set<String> exportFileTypes     = new HashSet<>(Arrays.asList(new String[] { "File", "Folder", "Image" } ));
 
 	static {
 
@@ -379,16 +393,22 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportFilesAndFolders(final Path target, final Folder folder, final Map<String, Object> config) throws IOException {
 
-		final Map<String, Object> properties = new TreeMap<>();
 		final String name                    = folder.getName();
 		final Path path                      = target.resolve(name);
 
-		Files.createDirectories(path);
+		// make sure that only frontend data is exported, ignore extended
+		// types and those with relationships to user data.
+		if (DeployCommand.okToExport(folder)) {
 
-		exportFileConfiguration(folder, properties);
+			final Map<String, Object> properties = new TreeMap<>();
 
-		if (!properties.isEmpty()) {
-			config.put(folder.getPath(), properties);
+			Files.createDirectories(path);
+
+			exportFileConfiguration(folder, properties);
+
+			if (!properties.isEmpty()) {
+				config.put(folder.getPath(), properties);
+			}
 		}
 
 		final List<Folder> folders = folder.getProperty(Folder.folders);
@@ -408,12 +428,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportFile(final Path target, final FileBase file, final Map<String, Object> config) throws IOException {
 
+		if (!DeployCommand.okToExport(file)) {
+			return;
+		}
+
 		final Map<String, Object> properties = new TreeMap<>();
 		final String name                    = file.getName();
 		final Path src                       = file.getFileOnDisk().toPath();
 		Path targetPath                      = target.resolve(name);
 		boolean doExport                     = true;
-		int i                                = 0;
 
 		// modify file name if there are duplicates in the database
 		if (Files.exists(targetPath)) {
@@ -867,5 +890,66 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			tx.success();
 		}
+	}
+
+	// ----- public static methods -----
+	public static boolean okToExport(final AbstractFile file) {
+
+		// export non-derived types only (ignore things that extend built-in file/folder etc.)
+		if (!exportFileTypes.contains(file.getType())) {
+			return false;
+		}
+
+		for (final AbstractRelationship rel : file.getRelationships()) {
+
+			if (rel instanceof Security) {
+				continue;
+			}
+
+			if (rel instanceof PrincipalOwnsNode) {
+				continue;
+			}
+
+			if (rel instanceof FolderChildren) {
+				continue;
+			}
+
+			if (rel instanceof FileChildren) {
+				continue;
+			}
+
+			if (rel instanceof FileSiblings) {
+				continue;
+			}
+
+			if (rel instanceof MinificationSource) {
+				continue;
+			}
+
+			if (rel instanceof UserFavoriteFile) {
+				continue;
+			}
+
+			if (rel instanceof Folders) {
+				continue;
+			}
+
+			if (rel instanceof org.structr.web.entity.relation.Files) {
+				continue;
+			}
+
+			if (rel instanceof Images) {
+				continue;
+			}
+
+			if (rel instanceof Thumbnails) {
+				continue;
+			}
+
+			// if none of the above matched, the file should not be exported
+			return false;
+		}
+
+		return true;
 	}
 }
