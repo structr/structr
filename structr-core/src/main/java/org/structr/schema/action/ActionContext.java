@@ -373,6 +373,10 @@ public class ActionContext {
 		return locale;
 	}
 
+	public void setLocale(final Locale locale) {
+		this.locale = locale;
+	}
+
 	public String getJavascriptLibraryCode(String fileName) {
 
 		final StringBuilder buf = new StringBuilder();
