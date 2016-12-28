@@ -77,6 +77,8 @@ public class LocalizeFunction extends Function<Object, Object> {
 				cacheValue(cacheKey, value);
 			}
 
+			if (value == null) { return name; }
+
 			return value;
 
 		} else if (sources.length == 1 || sources.length == 2) {
