@@ -148,17 +148,14 @@ public class LocalizeFunction extends Function<Object, Object> {
 			return null;
 		}
 
-		// too much found
+		// too many
 		if (localizations.size() > 1) {
 
 			// Ambiguous localization found
 			logger.warn("Found ambiguous localization for locale \"{}\", key \"{}\" and domain \"{}\". Please fix. Parameters: {}", new Object[] { locale, key, domain });
-
-			return null;
-
-		} else {
-
-			return localizations.get(0).getProperty(Localization.localizedName);
 		}
+
+		// return first
+		return localizations.get(0).getProperty(Localization.localizedName);
 	}
 }
