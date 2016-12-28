@@ -363,6 +363,7 @@ public class StructrRestTest {
 		config.setProperty(Services.UDP_PORT, (System.getProperty("udpPort") != null ? System.getProperty("udpPort") : "13466"));
 		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
 		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
+		//config.setProperty(Structr.LOG_CYPHER_DEBUG, "true");
 
 		config.setProperty(HttpService.APPLICATION_TITLE, "structr unit test app" + timestamp);
 		config.setProperty(HttpService.APPLICATION_HOST, host);

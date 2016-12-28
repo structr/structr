@@ -264,7 +264,7 @@ public class CypherQuery {
 		final String paramKey1 = "param" + count++;
 		final String paramKey2 = "param" + count++;
 
-		buffer.append("n.`");
+		buffer.append("(n.`");
 		buffer.append(key);
 		buffer.append("` ");
 		buffer.append(operator1);
@@ -278,7 +278,7 @@ public class CypherQuery {
 		buffer.append(operator2);
 		buffer.append(" {");
 		buffer.append(paramKey2);
-		buffer.append("}");
+		buffer.append("})");
 
 		parameters.put(paramKey1, value1);
 		parameters.put(paramKey2, value2);
