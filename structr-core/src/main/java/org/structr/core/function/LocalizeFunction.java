@@ -73,13 +73,13 @@ public class LocalizeFunction extends Function<Object, Object> {
 
 					localizations = query.getAsList();
 
-					if (localizations.isEmpty() && fullLocale.contains("_")) {
+					if (localizations.isEmpty()) {
 
-						// no language-specific localization found, try language code only
+						// no domain-specific localization found, try without domain
 
 						query = StructrApp.getInstance(superUserSecurityContext)
 							.nodeQuery(Localization.class)
-							.and(Localization.locale, lang)
+							.and(Localization.locale, fullLocale)
 							.and(Localization.name, name)
 							.blank(Localization.domain);
 
