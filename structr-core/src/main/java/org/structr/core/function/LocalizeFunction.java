@@ -81,7 +81,7 @@ public class LocalizeFunction extends Function<Object, Object> {
 							.nodeQuery(Localization.class)
 							.and(Localization.locale, lang)
 							.and(Localization.name, name)
-							.and(Localization.domain, domain);
+							.blank(Localization.domain);
 
 						localizations = query.getAsList();
 					}
