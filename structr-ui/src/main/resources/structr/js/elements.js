@@ -1192,7 +1192,7 @@ var _Elements = {
 		var div = element.append('<div class="editor"></div>');
 		_Logger.log(_LogType.CONTENTS, div);
 		var contentBox = $('.editor', element);
-		contentType = contentType ? contentType : entity.contentType;
+		contentType = entity.contentType || 'text/plain';
 		var text1, text2;
 
 		var lineWrapping = LSWrapper.getItem(lineWrappingKey);
