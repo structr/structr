@@ -410,7 +410,7 @@ function StructrApp(baseUrl, locale) {
 
 		});
 		var clazz = btn.attr('data-structr-edit-class');
-		$('<button class="' + clazz + '" data-structr-action="save:' + type + '" data-structr-id="' + id
+		$('<button class="' + clazz + '" data-structr-action="save:' + type + (suffix ? ':' + suffix : '') + '" data-structr-id="' + id
 			+ '" data-structr-attributes="' + attrs.join(',')
 			+ '" data-structr-reload="' + reload
 			+ (returnUrl ? '" data-structr-return="' + returnUrl : '')
