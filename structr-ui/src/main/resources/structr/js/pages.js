@@ -1092,7 +1092,7 @@ var _Pages = {
 	pagesTabResizeContent: function () {
 		var storedLeftSlideoutWidth = LSWrapper.getItem(_Pages.leftSlideoutWidthKey);
 		var psw = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (pagesSlideout.width() + 12);
-		$('.node.page', pagesSlideout).width(psw - 25);
+		$('.node.page', pagesSlideout).width(psw - 35);
 	},
 	leftSlideoutTrigger: function (triggerEl, slideoutElement, otherSlideouts, activeTabKey, openCallback, closeCallback) {
 		if ($(triggerEl).hasClass('noclick')) {
