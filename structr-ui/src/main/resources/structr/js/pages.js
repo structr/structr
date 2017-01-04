@@ -266,7 +266,6 @@ var _Pages = {
 		var pPager = _Pager.addPager('pages', pages, true, 'Page', null, function(pages) {
 			pages.forEach(function(page) {
 				StructrModel.create(page);
-				_Pages.pagesTabResizeContent();
 			});
 		});
 		pPager.cleanupFunction = function () {
@@ -811,6 +810,8 @@ var _Pages = {
 		});
 
 		_Dragndrop.makeDroppable(div);
+
+		_Pages.pagesTabResizeContent();
 
 		return div;
 
