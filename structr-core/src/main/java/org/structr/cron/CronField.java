@@ -18,6 +18,9 @@
  */
 package org.structr.cron;
 
+import java.util.Iterator;
+import java.util.List;
+
 /**
  * Encapsulates information about a single time field of a CRON task.
  *
@@ -26,6 +29,7 @@ package org.structr.cron;
 public class CronField {
 
 	private boolean isWildcard = false;
+	private List<Integer> list = null;
 	private int start = 0;
 	private int step = 0;
 	private int end = 0;
@@ -33,7 +37,7 @@ public class CronField {
 	public CronField(int start, int end, int step) {
 		this(start, end, step, false);
 	}
-	
+
 	public CronField(int start, int end, int step, boolean isWildcard) {
 		this.isWildcard = isWildcard;
 		this.start = start;
@@ -41,7 +45,20 @@ public class CronField {
 		this.end = end;
 	}
 
+	public CronField(final List<Integer> values) {
+		this.list = values;
+	}
+
 	public boolean isInside(int value) {
+
+		if (isWildcard) {
+			return true;
+		}
+
+		if (list != null) {
+			return list.contains(value);
+		}
+
 		return value >= start && value <= end && ((value+start) % step) == 0;
 	}
 
@@ -57,16 +74,47 @@ public class CronField {
 		return step;
 	}
 
+	public List<Integer> getList() {
+		return list;
+	}
+
 	@Override
 	public String toString() {
 
 		StringBuilder buf = new StringBuilder();
 
-		buf.append(start);
-		buf.append("-");
-		buf.append(end);
-		buf.append("/");
-		buf.append(step);
+		if (list != null) {
+
+			for (final Iterator<Integer> it = list.iterator(); it.hasNext();) {
+
+				buf.append(it.next());
+
+				if (it.hasNext()) {
+					buf.append(",");
+				}
+			}
+
+		} else {
+
+			if (start == end) {
+
+				buf.append(start);
+
+			} else if (step == 1) {
+
+				buf.append(start);
+				buf.append("-");
+				buf.append(end);
+
+			} else {
+
+				buf.append(start);
+				buf.append("-");
+				buf.append(end);
+				buf.append("/");
+				buf.append(step);
+			}
+		}
 
 		return buf.toString();
 	}

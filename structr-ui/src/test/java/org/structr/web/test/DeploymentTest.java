@@ -1060,10 +1060,10 @@ public class DeploymentTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final Page page = Page.createNewPage(securityContext,   "test03");
+			final Page page = Page.createNewPage(securityContext,   "test24");
 			final Html html = createElement(page, page, "html");
 			final Head head = createElement(page, html, "head");
-			createElement(page, head, "title", "test03");
+			createElement(page, head, "title", "test24");
 
 			final Body body        = createElement(page, html, "body");
 			final Div div1         = createElement(page, body, "div");
@@ -1074,6 +1074,34 @@ public class DeploymentTest extends StructrUiTest {
 			content1.setProperty(DOMNode.showConditions, "eq(current.type, 'MyTestFolder')");
 			content2.setProperty(DOMNode.showConditions, "if(equal(extract(first(find('User', 'name' 'structr')), 'name'), '@structr'), true, false)");
 			content2.setProperty(DOMNode.showConditions, "(((((([]))))))"); // for testing only
+
+			tx.success();
+
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+	}
+
+	@Test
+	public void test25Escaping() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createNewPage(securityContext,   "test25");
+			final Html html = createElement(page, page, "html");
+			final Head head = createElement(page, html, "head");
+			createElement(page, head, "title", "test25");
+
+			final Body body        = createElement(page, html, "body");
+			final Div div1         = createElement(page, body, "div");
+			final Content content1 = createContent(page, div1, "<div><script>var test = '<h3>Title</h3>';</script></div>");
+
+			content1.setProperty(Content.contentType, "text/html");
 
 			tx.success();
 
