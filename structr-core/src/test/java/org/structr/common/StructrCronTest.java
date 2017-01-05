@@ -99,8 +99,6 @@ public class StructrCronTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
-
-		try { Thread.sleep(15000); } catch (Throwable t) {}
 	}
 
 	@Rule
