@@ -18,6 +18,7 @@
  */
 package org.structr.bolt.wrapper;
 
+import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,8 +73,24 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		final Object value = data.get(name);
 		if (value instanceof List) {
 
-			// convert list to array
-			return ((List)value).toArray(new String[0]);
+			try {
+
+				final List list = (List)value;
+				if (!list.isEmpty()) {
+
+					final Object firstElement = ((List)value).get(0);
+					final Object[] arr        = (Object[])Array.newInstance(firstElement.getClass(), 0);
+
+					// convert list to array
+					return ((List)value).toArray(arr);
+				}
+
+				// empty array => return null?
+				return null;
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
 		}
 
 		return value;
