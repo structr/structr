@@ -1159,7 +1159,6 @@ var _Schema = {
 		$('.add-onCreate-button', el).on('click', function() {
 			var tr = _Schema.appendEmptyMethod(actionsTable, entity);
 			$('.property-name', tr).val(_Schema.getFirstFreeMethodName('onCreate'));
-			$('.property-code', tr).val(_Schema.getFirstFreeMethodName('onCreate'));
 		});
 
 		$('.add-onSave-button', el).on('click', function() {
