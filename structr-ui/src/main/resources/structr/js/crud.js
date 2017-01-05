@@ -2301,12 +2301,12 @@ var _Crud = {
 				left: dimensions.left + 'px'
 			});
 
-			$('#dialogBox .dialogTextWrapper').css({
-				width: (dimensions.width - 28) + 'px',
-				height: (dimensions.height - 106) + 'px'
-			});
-
 		}
+
+		$('#dialogBox .dialogTextWrapper').css({
+			width: (dimensions.width - 28) + 'px',
+			height: (dimensions.height - 106) + 'px'
+		});
 
 		$('.searchResults').css({
 			height: ($(window).height() - 103) + 'px'
