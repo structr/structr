@@ -3574,6 +3574,7 @@ input#element-class {
 	left: 0;
 	z-index: 10;
 	opacity: .9;
+	font-family: "Courier New", Courier, monospace;
 }
 
 /**
