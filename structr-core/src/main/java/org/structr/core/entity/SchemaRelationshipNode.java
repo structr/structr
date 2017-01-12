@@ -516,8 +516,9 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		}
 
 		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, errorBuffer));
-		src.append(SchemaHelper.extractViews(this, viewProperties, errorBuffer));
-		src.append(SchemaHelper.extractMethods(this, actions));
+
+		SchemaHelper.extractViews(this, viewProperties, errorBuffer);
+		SchemaHelper.extractMethods(this, actions);
 
 		// source and target id properties
 		src.append("\tpublic static final Property<java.lang.String> sourceIdProperty = new SourceId(\"sourceId\");\n");

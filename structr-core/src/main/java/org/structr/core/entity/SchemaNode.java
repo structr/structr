@@ -223,10 +223,10 @@ public class SchemaNode extends AbstractSchemaNode {
 
 		}
 
-		// extract properties from node
 		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, errorBuffer));
-		src.append(SchemaHelper.extractViews(this, viewProperties, errorBuffer));
-		src.append(SchemaHelper.extractMethods(this, saveActions));
+
+		SchemaHelper.extractViews(this, viewProperties, errorBuffer);
+		SchemaHelper.extractMethods(this, saveActions);
 
 		// output possible enum definitions
 		for (final String enumDefition : enums) {
@@ -463,10 +463,10 @@ public class SchemaNode extends AbstractSchemaNode {
 		final String _className                                = getProperty(name);
 		final ErrorBuffer dummyErrorBuffer                     = new ErrorBuffer();
 
-		// extract properties
 		final String propertyDefinitions = SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, dummyErrorBuffer);
-		final String viewDefinitions     = SchemaHelper.extractViews(this, viewProperties, dummyErrorBuffer);
-		final String methodDefinitions   = SchemaHelper.extractMethods(this, saveActions);
+
+		SchemaHelper.extractViews(this, viewProperties, dummyErrorBuffer);
+		SchemaHelper.extractMethods(this, saveActions);
 
 		if (!propertyNames.isEmpty() || !viewProperties.isEmpty() || validators.isEmpty() || !saveActions.isEmpty()) {
 
@@ -493,8 +493,6 @@ public class SchemaNode extends AbstractSchemaNode {
 				src.append("\n");
 
 				src.append(propertyDefinitions);
-				src.append(viewDefinitions);
-				src.append(methodDefinitions);
 
 				src.append("\n\tstatic {\n\n");
 
