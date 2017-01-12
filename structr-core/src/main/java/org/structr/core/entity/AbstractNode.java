@@ -1400,22 +1400,25 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		for (final PropertyKey key : properties.keySet()) {
 
-			if (dbNode != null && dbNode.hasProperty(key.dbName())) {
+			if (!key.equals(GraphObject.id)) {
 
-				// check for system properties
-				if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
+				if (dbNode != null && dbNode.hasProperty(key.dbName())) {
 
-					throw new FrameworkException(422, "Property " + key.jsonName() + " is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key));
+					// check for system properties
+					if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
+
+						throw new FrameworkException(422, "Property " + key.jsonName() + " is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key));
+
+					}
+
+					// check for read-only properties
+					if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
+
+						throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
+
+					}
 
 				}
-
-				// check for read-only properties
-				if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
-
-					throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
-
-				}
-
 			}
 		}
 
