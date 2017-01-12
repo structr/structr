@@ -552,11 +552,10 @@ public class SchemaHelper {
 		return src.toString();
 	}
 
-	public static String extractViews(final Schema entity, final Map<String, Set<String>> views, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public static void extractViews(final Schema entity, final Map<String, Set<String>> views, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
 		final ConfigurationProvider config        = StructrApp.getConfiguration();
-		final StringBuilder src                   = new StringBuilder();
 
 		Class superClass = config.getNodeEntityClass(entity.getSuperclassName());
 		if (superClass == null) {
@@ -684,14 +683,11 @@ public class SchemaHelper {
 				}
 			}
 		}
-
-		return src.toString();
 	}
 
-	public static String extractMethods(final Schema entity, final Map<Actions.Type, List<ActionEntry>> actions) throws FrameworkException {
+	public static void extractMethods(final Schema entity, final Map<Actions.Type, List<ActionEntry>> actions) throws FrameworkException {
 
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
-		final StringBuilder src                   = new StringBuilder();
 
 		for (final String rawActionName : getActions(propertyContainer)) {
 
@@ -739,8 +735,6 @@ public class SchemaHelper {
 
 			}
 		}
-
-		return src.toString();
 	}
 
 	public static void addPropertyToView(final String viewName, final String propertyName, final Map<String, Set<String>> views) {
