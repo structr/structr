@@ -59,13 +59,13 @@ public class LocalizeFunction extends Function<Object, Object> {
 			if (value == null) { value = getLocalizedNameFromDatabase(name, domain, fullLocale); }
 
 			// find localization with key, NO domain and (full) locale
-			if (value == null) { value = getLocalizedNameFromDatabase(name, "", fullLocale); }
+			if (value == null && !domain.equals("")) { value = getLocalizedNameFromDatabase(name, "", fullLocale); }
 
 			// find localization with key, domain and language only
 			if (value == null) { value = getLocalizedNameFromDatabase(name, domain, lang); }
 
 			// find localization with key, domain and language only
-			if (value == null) { value = getLocalizedNameFromDatabase(name, "", lang); }
+			if (value == null && !domain.equals("")) { value = getLocalizedNameFromDatabase(name, "", lang); }
 
 			// only cache if resolution was successful
 			if (value == null) {
@@ -76,8 +76,6 @@ public class LocalizeFunction extends Function<Object, Object> {
 
 				cacheValue(cacheKey, value);
 			}
-
-			if (value == null) { return name; }
 
 			return value;
 
