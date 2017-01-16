@@ -690,7 +690,6 @@ var _Pages = {
 				var elementContainer = self.contents().find('.structr-element-container-active');
 				elementContainer.addClass('structr-element-container');
 				elementContainer.removeClass('structr-element-container-active');
-				//self.find('.structr-element-container-header').remove();
 			} catch (e) {}
 		});
 

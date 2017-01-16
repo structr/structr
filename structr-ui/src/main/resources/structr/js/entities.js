@@ -1004,11 +1004,11 @@ var _Entities = {
 		});
 
 		Command.get(id, function(entity) {
-			_Entities.appendSimpleSelection(dialogText, entity, 'users', 'Owner', 'owner.id');
+			var owner_select_id = 'owner_select_' + id;
+			dialogText.append('<span id="' + owner_select_id + '"></span>');
+			var owner_select = $('#' + owner_select_id, dialogText);
 
 			dialogText.append('<h3>Visibility</h3>');
-
-			//('<div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
 
 			if (entity.type === 'Template' || entity.isFolder || (lastMenuEntry === 'pages' && !(entity.isContent))) {
 				dialogText.append('<div>Apply visibility switches recursively? <input id="recursive" type="checkbox" name="recursive"></div><br>');
@@ -1060,6 +1060,9 @@ var _Entities = {
 			});
 			var al2 = Structr.loaderIcon(select.parent(), {'float':'right'});
 			Command.getByType('User', n, 1, 'name', 'asc', 'id,name', false, function(users) {
+
+				_Entities.appendSimpleSelection(owner_select, entity, 'users', 'Owner', 'owner.id', users);
+
 				users.forEach(function(user) {
 					select.append('<option value="' + user.id + '">' + user.name + '</option>');
 				});
@@ -1129,7 +1132,7 @@ var _Entities = {
 			});
 		});
 	},
-	appendSimpleSelection: function(el, entity, type, title, key) {
+	appendSimpleSelection: function(el, entity, type, title, key, prefetchedData) {
 
 		var subKey;
 		if (key.contains('.')) {
@@ -1146,16 +1149,24 @@ var _Entities = {
 
 		var id = (subKey && entity[key] ? entity[key][subKey] : entity[key]);
 		var al = Structr.loaderIcon(el, {position: 'absolute', left: '416px', top: '32px'});
-		var n = 10000;
-		Command.getByType(type, n, 1, 'name', 'asc', 'id,name', false, function (results) {
+
+		var populateSelect = function (results) {
 			results.forEach(function(result) {
 				var selected = (id === result.id ? 'selected' : '');
 				selectElement.append('<option ' + selected + ' value="' + result.id + '">' + result.name + '</option>');
 			});
 			selectElement.trigger("chosen:updated");
-			if (al.length)
+			if (al.length) {
 				al.remove();
-		});
+			}
+		};
+
+		if (prefetchedData === undefined || prefetchedData.length === 0) {
+			var n = 10000;
+			Command.getByType(type, n, 1, 'name', 'asc', 'id,name', false, populateSelect);
+		} else {
+			populateSelect(prefetchedData);
+		}
 
 		selectElement.on('change', function() {
 
