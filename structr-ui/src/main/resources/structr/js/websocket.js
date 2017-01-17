@@ -271,7 +271,7 @@ function wsConnect() {
 
 				StructrModel.callCallback(data.callback, obj);
 
-			} else if (command === 'GET') {
+			} else if (command === 'GET' || command === 'GET_PROPERTIES') {
 
 				StructrModel.callCallback(data.callback, result[0]);
 
