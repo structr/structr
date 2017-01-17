@@ -518,7 +518,7 @@ var _Entities = {
 				var id = entity.id;
 
 				var tempNodeCache = new AsyncObjectCache(function(id) {
-					Command.get(id, function (node) {
+					Command.getProperties(id, 'id,name,type,tag,isContent,content', function (node) {
 						tempNodeCache.addObject(node);
 					});
 				});
