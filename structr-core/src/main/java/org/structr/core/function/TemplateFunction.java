@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
@@ -51,7 +50,7 @@ public class TemplateFunction extends Function<Object, Object> {
 
 		try {
 
-			if (!(arrayHasLengthAndAllElementsNotNull(sources, 3) && sources[2] instanceof AbstractNode)) {
+			if (!(arrayHasLengthAndAllElementsNotNull(sources, 3) && sources[2] instanceof GraphObject)) {
 
 				return null;
 			}
