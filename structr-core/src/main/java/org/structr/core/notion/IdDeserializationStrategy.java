@@ -87,6 +87,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 				}
 
 				final PropertyMap convertedProperties  = PropertyMap.inputTypeToJavaType(securityContext, actualType, properties);
+				final Set<PropertyKey> allProperties   = StructrApp.getConfiguration().getPropertySet(type, "all");
 				final Map<String, Object> foreignProps = new HashMap<>();
 				T relatedNode                          = null;
 
@@ -94,17 +95,24 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 				if (convertedProperties.containsKey(GraphObject.id)) {
 
 					relatedNode = (T) app.getNodeById(convertedProperties.get(GraphObject.id));
-
 					if (relatedNode != null) {
 
 						if ( !SearchCommand.isTypeAssignableFromOtherType(type, relatedNode.getClass()) ) {
 							throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
 						}
+
+						for (final PropertyKey key : convertedProperties.keySet()) {
+
+							if (!key.isUnique() && !isIdentifying(actualType, key) && !allProperties.contains(key)) {
+
+								// store "foreign" properties (those that are to be set on the newly created relationship
+								foreignProps.put(key.jsonName(), properties.get(key.jsonName()));
+							}
+						}
 					}
 
 				} else {
 
-					final Set<PropertyKey> propertySet = StructrApp.getConfiguration().getPropertySet(type, "all");
 					final PropertyMap uniqueKeyValues  = new PropertyMap();
 
 					for (final PropertyKey key : convertedProperties.keySet()) {
@@ -113,9 +121,9 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 
 							uniqueKeyValues.put(key, convertedProperties.get(key));
 
-						} else if (!propertySet.contains(key)) {
+						} else if (!allProperties.contains(key)) {
 
-							// store RAW values (from source)
+							// store "foreign" properties (those that are to be set on the newly created relationship
 							foreignProps.put(key.jsonName(), properties.get(key.jsonName()));
 						}
 					}
