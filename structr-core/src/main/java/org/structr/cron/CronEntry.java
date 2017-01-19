@@ -20,6 +20,8 @@ package org.structr.cron;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
@@ -67,9 +69,9 @@ public class CronEntry implements Delayed {
 		buf.append(" ");
 		buf.append(days.toString());
 		buf.append(" ");
-		buf.append(dow.toString());
-		buf.append(" ");
 		buf.append(months.toString());
+		buf.append(" ");
+		buf.append(dow.toString());
 		buf.append(" ");
 
 		return buf.toString();
@@ -230,6 +232,26 @@ public class CronEntry implements Delayed {
 
 		}
 
+		// list: 4,6
+		if (field.contains(",")) {
+
+			final String[] listValues  = field.split("[,]+");
+			final List<Integer> values = new LinkedList<>();
+
+			for (final String value : listValues) {
+
+				try {
+					values.add(Integer.parseInt(value));
+
+				} catch (Throwable t) {
+					throw new IllegalArgumentException("Invalid list value: '" + value + "'");
+				}
+			}
+
+			return new CronField(values);
+
+		}
+
 		// range with step: 4-6/3
 		if (field.matches("[0-9]{1,2}-[0-9]{1,2}/[0-9]{1,2}")) {
 
@@ -281,8 +303,8 @@ public class CronEntry implements Delayed {
 	@Override
 	public int compareTo(Delayed o) {
 
-		Long myDelay = Long.valueOf(getDelay(TimeUnit.MILLISECONDS));
-		Long oDelay  = Long.valueOf(o.getDelay(TimeUnit.MILLISECONDS));
+		Long myDelay = getDelay(TimeUnit.MILLISECONDS);
+		Long oDelay  = o.getDelay(TimeUnit.MILLISECONDS);
 
 		return myDelay.compareTo(oDelay);
 	}
@@ -303,19 +325,19 @@ public class CronEntry implements Delayed {
 		int numTries       = 0;
 
 		while(modified && numTries++ < maxTries) {
-			
+
 			modified = false;
-			
+
 			if(!modified && !seconds.isInside(nowSeconds)) {
 				now.add(Calendar.SECOND, 1);
 				modified = true;
 			}
-			
+
 			if(!modified && !minutes.isInside(nowMinutes)) {
 				now.add(Calendar.MINUTE, 1);
 				modified = true;
 			}
-			
+
 			if(!modified && !hours.isInside(nowHours)) {
 				now.add(Calendar.HOUR_OF_DAY, 1);
 				modified = true;
@@ -323,32 +345,32 @@ public class CronEntry implements Delayed {
 
 			// exclude day of week and day from each other (both can match)
 			if(!dow.isIsWildcard() && !days.isIsWildcard()) {
-				
+
 				if(!modified && !(dow.isInside(nowDow) || days.isInside(nowDays))) {
 					now.add(Calendar.DAY_OF_MONTH, 1);
 					modified = true;
 				}
-				
+
 			} else if(!dow.isIsWildcard()) {
-				
+
 				if(!modified && !dow.isInside(nowDow)) {
 					now.add(Calendar.DAY_OF_MONTH, 1);
 					modified = true;
 				}
-				
+
 			} else if(!days.isIsWildcard()) {
-				
+
 				if(!modified && !days.isInside(nowDays)) {
 					now.add(Calendar.DAY_OF_MONTH, 1);
 					modified = true;
 				}
 			}
-			
+
 			if(!modified && !months.isInside(nowMonths)) {
 				now.add(Calendar.MONTH, 1);
 				modified = true;
 			}
-			
+
 			nowSeconds     = now.get(Calendar.SECOND);
 			nowMinutes     = now.get(Calendar.MINUTE);
 			nowHours       = now.get(Calendar.HOUR_OF_DAY);
@@ -356,11 +378,11 @@ public class CronEntry implements Delayed {
 			nowDow         = now.get(Calendar.DAY_OF_WEEK) - 1;	// DAY_OF_WEEK starts with 1 (sunday)
 			nowMonths      = now.get(Calendar.MONTH) + 1;		// MONTH starts with 0 (why???)
 		}
-		
+
 		if(numTries == maxTries) {
 			throw new IllegalArgumentException("Unable to determine next cron date for task " + name + ", aborting.");
 		}
-		
+
 		return now.getTimeInMillis() - System.currentTimeMillis();
 	}
 

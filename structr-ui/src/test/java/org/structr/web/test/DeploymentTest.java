@@ -1062,10 +1062,10 @@ public class DeploymentTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final Page page = Page.createNewPage(securityContext,   "test03");
+			final Page page = Page.createNewPage(securityContext,   "test24");
 			final Html html = createElement(page, page, "html");
 			final Head head = createElement(page, html, "head");
-			createElement(page, head, "title", "test03");
+			createElement(page, head, "title", "test24");
 
 			final Body body        = createElement(page, html, "body");
 			final Div div1         = createElement(page, body, "div");
@@ -1143,6 +1143,33 @@ public class DeploymentTest extends StructrUiTest {
 
 		// test
 		compare(calculateHash(), false, true);
+	}
+
+	@Test
+	public void test26Escaping() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createNewPage(securityContext,   "test25");
+			final Html html = createElement(page, page, "html");
+			final Head head = createElement(page, html, "head");
+			createElement(page, head, "title", "test25");
+
+			final Body body        = createElement(page, html, "body");
+			final Div div1         = createElement(page, body, "div");
+			final Content content1 = createContent(page, div1, "<div><script>var test = '<h3>Title</h3>';</script></div>");
+
+			content1.setProperty(Content.contentType, "text/html");
+
+			tx.success();
+
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		compare(calculateHash(), true);
 	}
 
 	// ----- private methods -----
@@ -1251,7 +1278,7 @@ public class DeploymentTest extends StructrUiTest {
 			for (final FileBase file : app.nodeQuery(File.class).sort(AbstractNode.name).getAsList()) {
 
 				if (DeployCommand.okToExport(file)) {
-					
+
 					System.out.print("############################# ");
 					calculateHash(file, buf, 0);
 				}

@@ -39,9 +39,9 @@ public class PropertyInfoFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
 
 		try {
-		
+
 			if (!arrayHasLengthAndAllElementsNotNull(sources, 2)) {
-				
+
 				return null;
 			}
 

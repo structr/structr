@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
@@ -50,17 +49,17 @@ public class TemplateFunction extends Function<Object, Object> {
 		}
 
 		try {
-		
-			if (!(arrayHasLengthAndAllElementsNotNull(sources, 3) && sources[2] instanceof AbstractNode)) {
-				
+
+			if (!(arrayHasLengthAndAllElementsNotNull(sources, 3) && sources[2] instanceof GraphObject)) {
+
 				return null;
 			}
 
-			final App app = StructrApp.getInstance(entity != null ? entity.getSecurityContext() : ctx.getSecurityContext());
-			final String name = sources[0].toString();
-			final String locale = sources[1].toString();
-			final MailTemplate template = app.nodeQuery(MailTemplate.class).andName(name).and(MailTemplate.locale, locale).getFirst();
-			final AbstractNode templateInstance = (AbstractNode)sources[2];
+			final App app                      = StructrApp.getInstance(entity != null ? entity.getSecurityContext() : ctx.getSecurityContext());
+			final String name                  = sources[0].toString();
+			final String locale                = sources[1].toString();
+			final MailTemplate template        = app.nodeQuery(MailTemplate.class).andName(name).and(MailTemplate.locale, locale).getFirst();
+			final GraphObject templateInstance = (GraphObject)sources[2];
 
 			if (template != null) {
 

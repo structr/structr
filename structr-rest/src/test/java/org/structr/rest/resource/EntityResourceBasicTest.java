@@ -224,4 +224,59 @@ public class EntityResourceBasicTest extends StructrRestTest {
 				.get("/test_objects/" + uuid);
 
 	}
+
+	@Test
+	public void test03PutWithExistingUuid() {
+
+		// create object
+		String location = RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body(" { \"name\" : \"test\" } ")
+			.expect()
+				.statusCode(201)
+			.when()
+				.post("/test_objects")
+				.getHeader("Location");
+
+		// POST must return a Location header
+		assertNotNull(location);
+
+		String uuid = getUuidFromLocation(location);
+
+		// POST must create a UUID
+		assertNotNull(uuid);
+		assertFalse(uuid.isEmpty());
+		assertTrue(uuid.matches("[a-f0-9]{32}"));
+
+		// test put with existing UUID (should work)
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("{name: modified, id: " + uuid + "}")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.expect()
+				.statusCode(200)
+			.when()
+				.put("/test_objects/" + uuid);
+
+		// check for modified name
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.expect()
+				.statusCode(200)
+				.body("result_count",		equalTo(1))
+				.body("query_time",		lessThan("0.5"))
+				.body("serialization_time",	lessThan("0.05"))
+				.body("result",			isEntity(TestObject.class))
+				.body("result.name",            equalTo("modified"))
+			.when()
+				.get("/test_objects/" + uuid);
+
+	}
 }

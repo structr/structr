@@ -255,7 +255,7 @@ var _Dragndrop = {
 			return _Dragndrop.widgetDropped(source, target, pageId);
 		}
 
-		if (source && source.isImage) {
+		if (lastMenuEntry === 'pages' && source && source.isImage) {
 			return _Dragndrop.imageDropped(source, target, pageId);
 		}
 

@@ -76,6 +76,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.module.StructrModule;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.action.Actions;
+import org.structr.schema.parser.BooleanArrayPropertyParser;
 import org.structr.schema.parser.BooleanPropertyParser;
 import org.structr.schema.parser.CountPropertyParser;
 import org.structr.schema.parser.CypherPropertyParser;
@@ -84,7 +85,9 @@ import org.structr.schema.parser.DoublePropertyParser;
 import org.structr.schema.parser.EnumPropertyParser;
 import org.structr.schema.parser.FunctionPropertyParser;
 import org.structr.schema.parser.IntPropertyParser;
+import org.structr.schema.parser.IntegerArrayPropertyParser;
 import org.structr.schema.parser.JoinPropertyParser;
+import org.structr.schema.parser.LongArrayPropertyParser;
 import org.structr.schema.parser.LongPropertyParser;
 import org.structr.schema.parser.NotionPropertyParser;
 import org.structr.schema.parser.PropertyDefinition;
@@ -106,7 +109,7 @@ public class SchemaHelper {
 
 	public enum Type {
 
-		String, StringArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, Cypher, Join, Thumbnail;
+		String, StringArray, LongArray, IntegerArray, BooleanArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, Cypher, Join, Thumbnail;
 	}
 
 	public static final Map<Type, Class<? extends PropertySourceGenerator>> parserMap = new TreeMap<>(new ReverseTypeComparator());
@@ -116,7 +119,10 @@ public class SchemaHelper {
 
 		// IMPORTANT: parser map must be sorted by type name length
 		//            because we look up the parsers using "startsWith"!
+		parserMap.put(Type.BooleanArray, BooleanArrayPropertyParser.class);
+		parserMap.put(Type.IntegerArray, IntegerArrayPropertyParser.class);
 		parserMap.put(Type.StringArray, StringArrayPropertyParser.class);
+		parserMap.put(Type.LongArray, LongArrayPropertyParser.class);
 		parserMap.put(Type.Function, FunctionPropertyParser.class);
 		parserMap.put(Type.Boolean, BooleanPropertyParser.class);
 		parserMap.put(Type.Integer, IntPropertyParser.class);
@@ -546,11 +552,10 @@ public class SchemaHelper {
 		return src.toString();
 	}
 
-	public static String extractViews(final Schema entity, final Map<String, Set<String>> views, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public static void extractViews(final Schema entity, final Map<String, Set<String>> views, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
 		final ConfigurationProvider config        = StructrApp.getConfiguration();
-		final StringBuilder src                   = new StringBuilder();
 
 		Class superClass = config.getNodeEntityClass(entity.getSuperclassName());
 		if (superClass == null) {
@@ -678,14 +683,11 @@ public class SchemaHelper {
 				}
 			}
 		}
-
-		return src.toString();
 	}
 
-	public static String extractMethods(final Schema entity, final Map<Actions.Type, List<ActionEntry>> actions) throws FrameworkException {
+	public static void extractMethods(final Schema entity, final Map<Actions.Type, List<ActionEntry>> actions) throws FrameworkException {
 
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
-		final StringBuilder src                   = new StringBuilder();
 
 		for (final String rawActionName : getActions(propertyContainer)) {
 
@@ -733,8 +735,6 @@ public class SchemaHelper {
 
 			}
 		}
-
-		return src.toString();
 	}
 
 	public static void addPropertyToView(final String viewName, final String propertyName, final Map<String, Set<String>> views) {

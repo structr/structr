@@ -1903,6 +1903,7 @@ button.add_property {
 .schema-details .add-icon:hover,
 .schema .toggle-view:hover,
 .schema-details .remove-icon:hover,
+.schema-details .discard-icon:hover,
 .schema-details .create-icon:hover,
 .schema-details .edit-icon:hover {
     opacity: .6;
@@ -3573,6 +3574,7 @@ input#element-class {
 	left: 0;
 	z-index: 10;
 	opacity: .9;
+	font-family: "Courier New", Courier, monospace;
 }
 
 /**

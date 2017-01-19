@@ -47,7 +47,7 @@ public class SchemaView extends SchemaReloadingNode {
 	);
 
 	public static final View uiView = new View(SchemaProperty.class, PropertyView.Ui,
-		name, schemaNode, schemaProperties, nonGraphProperties
+		name, schemaNode, schemaProperties, nonGraphProperties, isBuiltinView
 	);
 
 	public static final View schemaView = new View(SchemaView.class, "schema",

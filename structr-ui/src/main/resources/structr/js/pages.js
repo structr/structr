@@ -266,7 +266,6 @@ var _Pages = {
 		var pPager = _Pager.addPager('pages', pages, true, 'Page', null, function(pages) {
 			pages.forEach(function(page) {
 				StructrModel.create(page);
-				_Pages.pagesTabResizeContent();
 			});
 		});
 		pPager.cleanupFunction = function () {
@@ -691,7 +690,6 @@ var _Pages = {
 				var elementContainer = self.contents().find('.structr-element-container-active');
 				elementContainer.addClass('structr-element-container');
 				elementContainer.removeClass('structr-element-container-active');
-				//self.find('.structr-element-container-header').remove();
 			} catch (e) {}
 		});
 
@@ -811,6 +809,8 @@ var _Pages = {
 		});
 
 		_Dragndrop.makeDroppable(div);
+
+		_Pages.pagesTabResizeContent();
 
 		return div;
 
@@ -1091,7 +1091,7 @@ var _Pages = {
 	pagesTabResizeContent: function () {
 		var storedLeftSlideoutWidth = LSWrapper.getItem(_Pages.leftSlideoutWidthKey);
 		var psw = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (pagesSlideout.width() + 12);
-		$('.node.page', pagesSlideout).width(psw - 40);
+		$('.node.page', pagesSlideout).width(psw - 35);
 	},
 	leftSlideoutTrigger: function (triggerEl, slideoutElement, otherSlideouts, activeTabKey, openCallback, closeCallback) {
 		if ($(triggerEl).hasClass('noclick')) {

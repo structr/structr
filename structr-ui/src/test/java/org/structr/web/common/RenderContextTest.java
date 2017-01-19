@@ -19,6 +19,7 @@
 package org.structr.web.common;
 
 import java.net.HttpCookie;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,6 +36,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Group;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.function.GetFunction;
@@ -688,6 +691,115 @@ public class RenderContextTest extends StructrUiTest {
 			fail("Unexpected exception");
 
 		}
+
+	}
+
+	@Test
+	public void testAnyAllAndNoneFunctions1() {
+
+		final ActionContext ctx = new ActionContext(securityContext, null);
+		Principal user          = null;
+		TestOne test            = null;
+
+		try (final Tx tx = app.tx()) {
+
+			user = app.create(User.class, "user1");
+			test = app.create(TestOne.class, "test1");
+
+			app.create(Group.class,
+				new NodeAttribute<>(AbstractNode.name, "group1"),
+				new NodeAttribute<>(Group.members, Arrays.asList(new Principal[] { user } ))
+			);
+
+			final Group group2 = app.create(Group.class,
+				new NodeAttribute<>(AbstractNode.name, "group2"),
+				new NodeAttribute<>(Group.members, Arrays.asList(new Principal[] { user } ))
+			);
+
+			app.create(Group.class,
+				new NodeAttribute<>(AbstractNode.name, "group3"),
+				new NodeAttribute<>(Group.members, Arrays.asList(new Principal[] { user } ))
+			);
+
+			test.setProperty(AbstractNode.owner, group2);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			logger.warn("", ex);
+			fail("Unexpected exception");
+
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			ctx.setConstant("user", user);
+			ctx.setConstant("test", test);
+
+                        assertEquals("Invalid any() result",   "true", Scripting.replaceVariables(ctx, null, "${any(user.groups, is_allowed(data, test, 'read'))}"));
+                        assertEquals("Invalid all() result",  "false", Scripting.replaceVariables(ctx, null, "${all(user.groups, is_allowed(data, test, 'read'))}"));
+                        assertEquals("Invalid none() result", "false", Scripting.replaceVariables(ctx, null, "${none(user.groups, is_allowed(data, test, 'read'))}"));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+                        logger.warn("", ex);
+                        fail("Unexpected exception");
+
+                }
+
+	}
+
+	@Test
+	public void testAnyAllAndNoneFunctions2() {
+
+		final ActionContext ctx = new ActionContext(securityContext, null);
+
+		try (final Tx tx = app.tx()) {
+
+			// expectations (we use Boolean.valueOf(value.toString())
+			//   true  == true
+			//  "true" == true
+			//  false  == false
+			// "false" == false
+			//      1  == false
+			//      0  == false
+			//  "test" == false
+
+                        assertEquals("Invalid any() result",   "true", Scripting.replaceVariables(ctx, null, "${any(merge(false, false, false, true), data)}"));
+                        assertEquals("Invalid any() result",  "false", Scripting.replaceVariables(ctx, null, "${any(merge(false, false, false, false), data)}"));
+                        assertEquals("Invalid any() result",  "false", Scripting.replaceVariables(ctx, null, "${any(merge(false, false, false, 1), data)}"));
+                        assertEquals("Invalid any() result",  "false", Scripting.replaceVariables(ctx, null, "${any(merge(false, false, false, 0), data)}"));
+                        assertEquals("Invalid any() result",  "true", Scripting.replaceVariables(ctx, null, "${any(merge(false, false, false, 'true'), data)}"));
+                        assertEquals("Invalid any() result",  "false", Scripting.replaceVariables(ctx, null, "${any(merge(false, false, false, 'false'), data)}"));
+                        assertEquals("Invalid any() result",  "false", Scripting.replaceVariables(ctx, null, "${any(merge(false, false, false, 'test'), data)}"));
+
+                        assertEquals("Invalid all() result",   "true", Scripting.replaceVariables(ctx, null, "${all(merge(true, true, true, true), data)}"));
+                        assertEquals("Invalid all() result",  "false", Scripting.replaceVariables(ctx, null, "${all(merge(true, true, true, true, false), data)}"));
+                        assertEquals("Invalid all() result",  "false", Scripting.replaceVariables(ctx, null, "${all(merge(true, true, true, true, 1), data)}"));
+                        assertEquals("Invalid all() result",  "false", Scripting.replaceVariables(ctx, null, "${all(merge(true, true, true, true, 0), data)}"));
+                        assertEquals("Invalid all() result",   "true", Scripting.replaceVariables(ctx, null, "${all(merge(true, true, true, true, 'true'), data)}"));
+                        assertEquals("Invalid all() result",  "false", Scripting.replaceVariables(ctx, null, "${all(merge(true, true, true, true, 'false'), data)}"));
+                        assertEquals("Invalid all() result",  "false", Scripting.replaceVariables(ctx, null, "${all(merge(true, true, true, true, 'test'), data)}"));
+
+                        assertEquals("Invalid none() result",  "true", Scripting.replaceVariables(ctx, null, "${none(merge(false, false, false), data)}"));
+                        assertEquals("Invalid none() result", "false", Scripting.replaceVariables(ctx, null, "${none(merge(false, false, false, true), data)}"));
+                        assertEquals("Invalid none() result",  "true", Scripting.replaceVariables(ctx, null, "${none(merge(false, false, false, 1), data)}"));
+                        assertEquals("Invalid none() result",  "true", Scripting.replaceVariables(ctx, null, "${none(merge(false, false, false, 0), data)}"));
+                        assertEquals("Invalid none() result", "false", Scripting.replaceVariables(ctx, null, "${none(merge(false, false, false, 'true'), data)}"));
+                        assertEquals("Invalid none() result",  "true", Scripting.replaceVariables(ctx, null, "${none(merge(false, false, false, 'false'), data)}"));
+                        assertEquals("Invalid none() result",  "true", Scripting.replaceVariables(ctx, null, "${none(merge(false, false, false, 'test'), data)}"));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+                        logger.warn("", ex);
+                        fail("Unexpected exception");
+
+                }
 
 	}
 }

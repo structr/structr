@@ -63,9 +63,11 @@ public class KeywordQueryFactory extends AbstractQueryFactory {
 
 				// special handling for string attributes
 				// (empty string is equal to null)
+				query.beginGroup();
 				query.addSimpleParameter(name, "is", null);
 				query.or();
 				query.addSimpleParameter(name, "=", "");
+				query.endGroup();
 
 			} else {
 
@@ -80,9 +82,11 @@ public class KeywordQueryFactory extends AbstractQueryFactory {
 
 			} else {
 
+				query.beginGroup();
 				query.addSimpleParameter(name, "is", null);
 				query.or();
 				query.addSimpleParameter(name, "=", "");
+				query.endGroup();
 			}
 		}
 

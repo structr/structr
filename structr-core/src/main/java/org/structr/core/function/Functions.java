@@ -27,6 +27,8 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.parser.AllExpression;
+import org.structr.core.parser.AnyExpression;
 import org.structr.core.parser.ArrayExpression;
 import org.structr.core.parser.CacheExpression;
 import org.structr.core.parser.ConstantExpression;
@@ -37,6 +39,7 @@ import org.structr.core.parser.FunctionExpression;
 import org.structr.core.parser.FunctionValueExpression;
 import org.structr.core.parser.GroupExpression;
 import org.structr.core.parser.IfExpression;
+import org.structr.core.parser.NoneExpression;
 import org.structr.core.parser.NullExpression;
 import org.structr.core.parser.RootExpression;
 import org.structr.core.parser.ValueExpression;
@@ -215,6 +218,15 @@ public class Functions {
 
 			case "data":
 				return new ValueExpression("data");
+
+			case "any":
+				return new AnyExpression();
+
+			case "all":
+				return new AllExpression();
+
+			case "none":
+				return new NoneExpression();
 
 			case "null":
 				return new ConstantExpression(NULL_STRING);
