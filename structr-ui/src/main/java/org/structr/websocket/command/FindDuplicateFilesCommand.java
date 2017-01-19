@@ -20,13 +20,14 @@ package org.structr.websocket.command;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.AbstractFile;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -38,7 +39,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class FindDuplicateFilesCommand extends AbstractCommand {
 
-	private static final Logger logger = Logger.getLogger(FindDuplicateFilesCommand.class.getName());
+	protected static final Logger logger = LoggerFactory.getLogger(FindDuplicateFilesCommand.class.getName());
 
 	static {
 
@@ -55,42 +56,50 @@ public class FindDuplicateFilesCommand extends AbstractCommand {
 
 		try {
 
-			AbstractFile lastFile;
-			String lastFilepath;
+			AbstractFile lastFile = null;
+			String lastFilepath = null;
 			boolean lastWasDupe = false;
 			final ArrayList<GraphObject> filesWithSamePath = new ArrayList<>();
 
 			final Iterator it = query.getAsList().iterator();
 
-			if (it.hasNext()) {
-				lastFile = (AbstractFile)it.next();
-				lastFilepath = lastFile.getProperty(AbstractFile.path);
+			while (it.hasNext()) {
 
-				while (it.hasNext()) {
-					AbstractFile file = (AbstractFile)it.next();
+				final AbstractNode node = (AbstractNode)it.next();
 
+				try {
+
+					final AbstractFile file = (AbstractFile)node;
 					final String currentFilepath = file.getProperty(AbstractFile.path);
 
-					if (lastFilepath.equals(currentFilepath)) {
+					// skip the first file as we can not compare it to the previous one
+					if (lastFile != null) {
 
-						if (!lastWasDupe) {
-							// if this is the first duplicate found we need to add both files
-							filesWithSamePath.add(lastFile);
+						if (currentFilepath.equals(lastFilepath)) {
+
+							if (!lastWasDupe) {
+								// if this is the first duplicate found we need to add both files
+								filesWithSamePath.add(lastFile);
+							}
+							filesWithSamePath.add(file);
+							lastWasDupe = true;
+
+						} else {
+
+							lastWasDupe = false;
 						}
-						filesWithSamePath.add(file);
-						lastWasDupe = true;
-
-					} else {
-
-						// only update the lastFilePath if it changed (saves calculating the virtual path when we know it did not change)
-						lastFilepath = currentFilepath;
-						lastWasDupe = false;
 
 					}
 
+					lastFilepath = currentFilepath;
 					lastFile = file;
 
+				} catch (ClassCastException cce) {
+
+					logger.warn("Tried casting node '{}' of type '{}' to AbstractFile. Most likely a node type inheriting from File was deleted and an instance remains. Please delete this node or change its type.", node.getUuid(), node.getType());
+
 				}
+
 			}
 
 			// set full result list
@@ -102,7 +111,7 @@ public class FindDuplicateFilesCommand extends AbstractCommand {
 
 		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "Exception occured", fex);
+			logger.warn("Exception occured", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
 		}
