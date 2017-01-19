@@ -33,6 +33,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.Tx;
 import org.structr.rest.serialization.html.Attr;
@@ -255,6 +256,10 @@ public class StructrJsonHtmlWriter implements RestWriter {
 			if (currentObject == null) {
 
 				currentElement.inline("a").css("id").attr(new Href(restPath + "/" + value + propertyView)).text("\"", value, "\"");
+
+			} else if (currentObject instanceof AbstractRelationship) {
+
+				currentElement.inline("a").css("id").attr(new Href(restPath + "/" + currentObject.getProperty(AbstractRelationship.type) + "/" + value + propertyView)).text("\"", value, "\"");
 
 			} else {
 
