@@ -112,7 +112,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 		head.inline("title").text(baseUrl);
 
-		Tag body = doc.block("body").attr(new Onload("CollapsibleLists.apply(true);"));
+		Tag body = doc.block("body").attr(new Onload("if (document.querySelectorAll('#right > ul > li > ul > li > ul.collapsibleList > li').length > 5) { CollapsibleLists.apply(true); }"));
 		Tag top  = body.block("div").id("top");
 
 		final App app  = StructrApp.getInstance(securityContext);
