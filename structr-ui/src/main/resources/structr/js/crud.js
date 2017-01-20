@@ -1186,6 +1186,9 @@ var _Crud = {
 					_Crud.showCreateError(type, data, onError);
 				},
 				422: function(data, status, xhr) {
+					if (dialogBox.is(':visible')) {
+						_Crud.error('Unprocessable entity: ' + data.responseText, true);
+					}
 					_Crud.showCreateError(type, data, onError);
 				},
 				500: function(data, status, xhr) {
@@ -2448,9 +2451,10 @@ var _Crud = {
 
 		dialogSaveButton.off('click');
 		dialogSaveButton.on('click', function() {
+			dialogSaveButton.attr('disabled', true);
 			var form = $('#entityForm');
 			var json = JSON.stringify(_Crud.serializeObject(form));
-			_Crud.crudCreate(type, typeDef.url.substring(1), json);
+			_Crud.crudCreate(type, typeDef.url.substring(1), json, undefined, function () { dialogSaveButton.attr('disabled', false); });
 		});
 
 		if (node && node.isImage) {
