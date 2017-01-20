@@ -887,7 +887,7 @@ var _Schema = {
 			$.each(result, function(t, cls) {
 				var type = cls.type;
 				var fqcn = cls.className;
-				if ( !type || type.startsWith('_') || fqcn.startsWith('org.structr.web.entity.html') || fqcn.endsWith('.' + entity.name) ) {
+				if ( cls.isRel || !type || type.startsWith('_') || fqcn.startsWith('org.structr.web.entity.html') || fqcn.endsWith('.' + entity.name) ) {
 					return;
 				}
 				classNames.push(fqcn);
