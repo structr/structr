@@ -1137,12 +1137,11 @@ var _Crud = {
 			type: 'GET',
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8',
-			//async: false,
-			success: function(data) {
-				if (!data)
-					return;
-				_Crud.dialog('Edit ' + t + ' ' + id, function() {}, function() {});
-				_Crud.showDetails(data.result, t);
+			success: function (data) {
+				if (data) {
+					_Crud.dialog('Edit ' + t + ' ' + id, function() {}, function() {});
+					_Crud.showDetails(data.result, t);
+				}
 			}
 		});
 	},
@@ -2284,11 +2283,11 @@ var _Crud = {
 			var dimensions = Structr.getDialogDimensions(0, 24);
 			Structr.blockUI(dimensions);
 
+			_Crud.resize();
+
 		}
 	},
 	resize: function() {
-
-		Structr.resize();
 
 		var dimensions = Structr.getDialogDimensions(0, 24);
 
@@ -2313,6 +2312,8 @@ var _Crud = {
 		});
 
 		_Crud.moveResizer();
+
+		Structr.resize();
 
 	},
 	error: function(text, confirmationRequired) {
