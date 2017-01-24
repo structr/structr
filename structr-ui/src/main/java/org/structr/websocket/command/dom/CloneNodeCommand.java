@@ -24,6 +24,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.message.MessageBuilder;
@@ -71,6 +72,25 @@ public class CloneNodeCommand extends AbstractCommand {
 				}
 			}
 
+			Page ownerPage = null;
+
+			if (parent != null) {
+				if (parent instanceof Page) {
+					ownerPage = (Page)parent;
+				} else {
+					ownerPage = parent.getProperty(DOMNode.ownerDocument);
+				}
+			} else {
+				ownerPage = node.getProperty(DOMNode.ownerDocument);
+			}
+
+			if (ownerPage == null) {
+
+				getWebSocket().send(MessageBuilder.status().code(422).message("Cannot clone node without a target page").build(), true);
+				return;
+
+			}
+
 			try {
 
 				DOMNode clonedNode = (DOMNode) node.cloneNode(deep);
@@ -79,7 +99,7 @@ public class CloneNodeCommand extends AbstractCommand {
 					parent.appendChild(clonedNode);
 				}
 
-				setOwnerPageRecursively(clonedNode, clonedNode.getSecurityContext(), new PropertyMap(DOMNode.ownerDocument, (parent != null ? parent : node).getProperty(DOMNode.ownerDocument)));
+				setOwnerPageRecursively(clonedNode, clonedNode.getSecurityContext(), new PropertyMap(DOMNode.ownerDocument, ownerPage));
 
 			} catch (DOMException | FrameworkException ex) {
 
