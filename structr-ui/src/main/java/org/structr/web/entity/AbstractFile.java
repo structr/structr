@@ -51,15 +51,16 @@ import org.structr.web.property.PathProperty;
  */
 public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, AbstractFile> {
 
-	public static final Property<Folder> parent                = new StartNode<>("parent", FolderChildren.class);
-	public static final Property<List<AbstractFile>> children  = new EndNodes<>("children", FileChildren.class);
-	public static final Property<AbstractFile> previousSibling = new StartNode<>("previousSibling", FileSiblings.class);
-	public static final Property<AbstractFile> nextSibling     = new EndNode<>("nextSibling", FileSiblings.class);
-	public static final Property<List<String>> childrenIds     = new CollectionIdProperty("childrenIds", children);
-	public static final Property<String> nextSiblingId         = new EntityIdProperty("nextSiblingId", nextSibling);
-	public static final Property<String> path                  = new PathProperty("path").indexed().readOnly();
-	public static final Property<String> parentId              = new EntityIdProperty("parentId", parent);
-	public static final Property<Boolean> hasParent            = new BooleanProperty("hasParent").indexed();
+	public static final Property<Folder> parent                    = new StartNode<>("parent", FolderChildren.class);
+	public static final Property<List<AbstractFile>> children      = new EndNodes<>("children", FileChildren.class);
+	public static final Property<AbstractFile> previousSibling     = new StartNode<>("previousSibling", FileSiblings.class);
+	public static final Property<AbstractFile> nextSibling         = new EndNode<>("nextSibling", FileSiblings.class);
+	public static final Property<List<String>> childrenIds         = new CollectionIdProperty("childrenIds", children);
+	public static final Property<String> nextSiblingId             = new EntityIdProperty("nextSiblingId", nextSibling);
+	public static final Property<String> path                      = new PathProperty("path").indexed().readOnly();
+	public static final Property<String> parentId                  = new EntityIdProperty("parentId", parent);
+	public static final Property<Boolean> hasParent                = new BooleanProperty("hasParent").indexed();
+	public static final Property<Boolean>  includeInFrontendExport = new BooleanProperty("includeInFrontendExport").cmis().indexed();
 
 	public static final View defaultView = new View(AbstractFile.class, PropertyView.Public, path);
 	public static final View uiView      = new View(AbstractFile.class, PropertyView.Ui, path);

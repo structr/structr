@@ -37,7 +37,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.notion.PropertySetNotion;
-import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
@@ -66,7 +65,6 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 	public static final Property<List<FileBase>> files                   = new EndNodes<>("files", Files.class, new PropertySetNotion(id, name));
 	public static final Property<List<Image>>    images                  = new EndNodes<>("images", Images.class, new PropertySetNotion(id, name));
 	public static final Property<Boolean>        isFolder                = new ConstantBooleanProperty("isFolder", true);
-	public static final Property<Boolean>        includeInFrontendExport = new BooleanProperty("includeInFrontendExport").cmis().indexed();
 	public static final Property<User>           homeFolderOfUser        = new StartNode<>("homeFolderOfUser", UserHomeDir.class);
 
 	public static final Property<Integer>        position                = new IntProperty("position").cmis().indexed();

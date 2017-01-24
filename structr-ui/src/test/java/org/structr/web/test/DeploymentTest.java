@@ -40,8 +40,10 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.Security;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -548,11 +550,16 @@ public class DeploymentTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final Folder folder = FileHelper.createFolderPath(securityContext, folderPath);
-			final FileBase file = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName);
+			final Folder folder     = FileHelper.createFolderPath(securityContext, folderPath);
+			final FileBase file     = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName);
+			final Folder rootFolder = getRootFolder(folder);
+
+			Assert.assertNotNull("Root folder should not be null", rootFolder);
+
+			// root folder needs to have "includeInFrontendExport" set
+			rootFolder.setProperty(Folder.includeInFrontendExport, true);
 
 			file.setProperty(File.parent, folder);
-			file.setProperty(File.visibleToPublicUsers, true);
 			file.setProperty(File.visibleToPublicUsers, true);
 			file.setProperty(File.visibleToAuthenticatedUsers, true);
 			file.setProperty(File.enableBasicAuth, true);
@@ -581,7 +588,6 @@ public class DeploymentTest extends StructrUiTest {
 
 			Assert.assertEquals("Deployment import does not restore attributes correctly", folder, file.getProperty(File.parent));
 			Assert.assertTrue("Deployment import does not restore attributes correctly", file.getProperty(File.visibleToPublicUsers));
-			Assert.assertTrue("Deployment import does not restore attributes correctly", file.getProperty(File.visibleToPublicUsers));
 			Assert.assertTrue("Deployment import does not restore attributes correctly", file.getProperty(File.visibleToAuthenticatedUsers));
 			Assert.assertTrue("Deployment import does not restore attributes correctly", file.getProperty(File.enableBasicAuth));
 			Assert.assertTrue("Deployment import does not restore attributes correctly", file.getProperty(File.useAsJavascriptLibrary));
@@ -603,15 +609,21 @@ public class DeploymentTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final Folder folder = FileHelper.createFolderPath(securityContext, folderPath);
-			final FileBase file = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName);
+			final Folder folder     = FileHelper.createFolderPath(securityContext, folderPath);
+			final FileBase file     = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName);
+			final Folder rootFolder = getRootFolder(folder);
+
+			Assert.assertNotNull("Root folder should not be null", rootFolder);
+
+			// root folder needs to have "includeInFrontendExport" set
+			rootFolder.setProperty(Folder.includeInFrontendExport, true);
 
 			file.setProperty(File.parent, folder);
-			file.setProperty(File.visibleToPublicUsers, true);
 			file.setProperty(File.visibleToPublicUsers, true);
 			file.setProperty(File.visibleToAuthenticatedUsers, true);
 			file.setProperty(File.enableBasicAuth, true);
 			file.setProperty(File.useAsJavascriptLibrary, true);
+			file.setProperty(File.includeInFrontendExport, true);
 
 			tx.success();
 
@@ -630,10 +642,10 @@ public class DeploymentTest extends StructrUiTest {
 
 					final FileBase file = app.nodeQuery(File.class).and(File.name, fileName).getFirst();
 					file.setProperty(File.visibleToPublicUsers, false);
-					file.setProperty(File.visibleToPublicUsers, false);
 					file.setProperty(File.visibleToAuthenticatedUsers, false);
 					file.setProperty(File.enableBasicAuth, false);
 					file.setProperty(File.useAsJavascriptLibrary, false);
+					file.setProperty(File.includeInFrontendExport, false);
 
 					tx.success();
 
@@ -657,10 +669,10 @@ public class DeploymentTest extends StructrUiTest {
 
 			Assert.assertEquals("Deployment import of existing file does not restore attributes correctly", folder, file.getProperty(File.parent));
 			Assert.assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(File.visibleToPublicUsers));
-			Assert.assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(File.visibleToPublicUsers));
 			Assert.assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(File.visibleToAuthenticatedUsers));
 			Assert.assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(File.enableBasicAuth));
 			Assert.assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(File.useAsJavascriptLibrary));
+			Assert.assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(File.includeInFrontendExport));
 
 			tx.success();
 
@@ -1003,7 +1015,7 @@ public class DeploymentTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create some files and folders
-			final Folder folder1  = app.create(Folder.class, "Folder1");
+			final Folder folder1  = app.create(Folder.class, new NodeAttribute<>(Folder.name, "Folder1"), new NodeAttribute<>(Folder.includeInFrontendExport, true));
 			final Folder folder2  = app.create(Folder.class, new NodeAttribute<>(Folder.name, "Folder2"), new NodeAttribute<>(Folder.parent, folder1));
 			final FileBase file1  = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", File.class, "test1.txt");
 			final FileBase file2  = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", File.class, "test2.txt");
@@ -1073,7 +1085,7 @@ public class DeploymentTest extends StructrUiTest {
 
 			content1.setProperty(DOMNode.showConditions, "eq(current.type, 'MyTestFolder')");
 			content2.setProperty(DOMNode.showConditions, "if(equal(extract(first(find('User', 'name' 'structr')), 'name'), '@structr'), true, false)");
-			content2.setProperty(DOMNode.showConditions, "(((((([]))))))"); // for testing only
+			content3.setProperty(DOMNode.showConditions, "(((((([]))))))"); // for testing only
 
 			tx.success();
 
@@ -1087,7 +1099,64 @@ public class DeploymentTest extends StructrUiTest {
 	}
 
 	@Test
-	public void test25Escaping() {
+	public void test25ExtendedBuiltinTypes() {
+
+		/* This method tests whether files, folders and images that are
+		 * considered part of application data (derived from built-in
+		 * types) are ignored in the deployment process. */
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			// create extended folder class
+			app.create(SchemaNode.class,
+				new NodeAttribute<>(SchemaNode.name, "ExtendedFolder"),
+				new NodeAttribute<>(SchemaNode.extendsClass, "org.structr.dynamic.Folder")
+			);
+
+			// create extended file class
+			app.create(SchemaNode.class,
+				new NodeAttribute<>(SchemaNode.name, "ExtendedFile"),
+				new NodeAttribute<>(SchemaNode.extendsClass, "org.structr.dynamic.File")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface folder1 = app.create(StructrApp.getConfiguration().getNodeEntityClass("ExtendedFolder"), "folder1");
+			final NodeInterface folder2 = app.create(StructrApp.getConfiguration().getNodeEntityClass("ExtendedFolder"),
+				new NodeAttribute<>(Folder.name, "folder2"),
+				new NodeAttribute(Folder.parent, folder1)
+			);
+
+			app.create(StructrApp.getConfiguration().getNodeEntityClass("ExtendedFile"),
+				new NodeAttribute<>(File.name, "file1.txt"),
+				new NodeAttribute(File.parent, folder1)
+			);
+
+			app.create(StructrApp.getConfiguration().getNodeEntityClass("ExtendedFile"),
+				new NodeAttribute<>(File.name, "file2.txt"),
+				new NodeAttribute(File.parent, folder2)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), false, true);
+	}
+
+	@Test
+	public void test26Escaping() {
 
 		// setup
 		try (final Tx tx = app.tx()) {
@@ -1110,8 +1179,68 @@ public class DeploymentTest extends StructrUiTest {
 			fail("Unexpected exception.");
 		}
 
-		// test
 		compare(calculateHash(), true);
+	}
+
+	@Test
+	public void test27FileAttributes() {
+
+		final String fileName1 = "test27_1.txt";
+		final String fileName2 = "test27_2.txt";
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final FileBase file1 = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName1);
+			final FileBase file2 = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName2);
+
+			file1.setProperty(File.visibleToPublicUsers, true);
+			file1.setProperty(File.visibleToAuthenticatedUsers, true);
+			file1.setProperty(File.enableBasicAuth, true);
+			file1.setProperty(File.useAsJavascriptLibrary, true);
+
+			file2.setProperty(File.visibleToPublicUsers, true);
+			file2.setProperty(File.visibleToAuthenticatedUsers, true);
+			file2.setProperty(File.enableBasicAuth, true);
+			file2.setProperty(File.includeInFrontendExport, true);
+
+			tx.success();
+
+		} catch (IOException | FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// test
+		doImportExportRoundtrip(true);
+
+		// check
+		try (final Tx tx = app.tx()) {
+
+			final FileBase file1 = app.nodeQuery(File.class).and(File.name, fileName1).getFirst();
+			final FileBase file2 = app.nodeQuery(File.class).and(File.name, fileName2).getFirst();
+
+			Assert.assertNotNull("Invalid deployment result", file1);
+			Assert.assertNotNull("Invalid deployment result", file2);
+
+			Assert.assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(File.visibleToPublicUsers));
+			Assert.assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(File.visibleToAuthenticatedUsers));
+			Assert.assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(File.enableBasicAuth));
+			Assert.assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(File.useAsJavascriptLibrary));
+			Assert.assertFalse("Deployment import does not restore attributes correctly", file1.getProperty(File.includeInFrontendExport));
+
+			Assert.assertTrue("Deployment import does not restore attributes correctly",  file2.getProperty(File.visibleToPublicUsers));
+			Assert.assertTrue("Deployment import does not restore attributes correctly",  file2.getProperty(File.visibleToAuthenticatedUsers));
+			Assert.assertTrue("Deployment import does not restore attributes correctly",  file2.getProperty(File.enableBasicAuth));
+			Assert.assertFalse("Deployment import does not restore attributes correctly", file2.getProperty(File.useAsJavascriptLibrary));
+			Assert.assertTrue("Deployment import does not restore attributes correctly" , file2.getProperty(File.includeInFrontendExport));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
 	}
 
 	// ----- private methods -----
@@ -1124,6 +1253,9 @@ public class DeploymentTest extends StructrUiTest {
 		doImportExportRoundtrip(deleteTestDirectory, cleanDatabase, null);
 
 		final String roundtripHash = calculateHash();
+
+			System.out.println("Expected: " + sourceHash);
+			System.out.println("Actual:   " + roundtripHash);
 
 		if (!sourceHash.equals(roundtripHash)) {
 
@@ -1202,8 +1334,25 @@ public class DeploymentTest extends StructrUiTest {
 			for (final Page page : app.nodeQuery(Page.class).sort(AbstractNode.name).getAsList()) {
 
 				System.out.print("############################# ");
-
 				calculateHash(page, buf, 0);
+			}
+
+			for (final Folder folder : app.nodeQuery(Folder.class).sort(AbstractNode.name).getAsList()) {
+
+				if (DeployCommand.okToExport(folder)) {
+
+					System.out.print("############################# ");
+					calculateHash(folder, buf, 0);
+				}
+			}
+
+			for (final FileBase file : app.nodeQuery(File.class).sort(AbstractNode.name).getAsList()) {
+
+				if (DeployCommand.okToExport(file)) {
+
+					System.out.print("############################# ");
+					calculateHash(file, buf, 0);
+				}
 			}
 
 			tx.success();
@@ -1216,7 +1365,7 @@ public class DeploymentTest extends StructrUiTest {
 		return buf.toString();//DigestUtils.md5Hex(buf.toString());
 	}
 
-	private void calculateHash(final DOMNode start, final StringBuilder buf, final int depth) {
+	private void calculateHash(final AbstractNode start, final StringBuilder buf, final int depth) {
 
 		buf.append(start.getType()).append("{");
 
@@ -1251,7 +1400,7 @@ public class DeploymentTest extends StructrUiTest {
 		buf.append("}");
 	}
 
-	private void hash(final DOMNode node, final StringBuilder buf) {
+	private void hash(final AbstractNode node, final StringBuilder buf) {
 
 		// AbstractNode
 		buf.append(valueOrEmpty(node, AbstractNode.type));
@@ -1384,6 +1533,26 @@ public class DeploymentTest extends StructrUiTest {
 
 	private <T> T cloneComponent(final DOMNode node, final DOMNode parentNode) throws FrameworkException {
 		return (T) new CloneComponentCommand().cloneComponent(node, parentNode);
+	}
+
+	private Folder getRootFolder(final Folder folder) {
+
+		Folder parent = folder;
+		boolean root  = false;
+
+		while (parent != null && !root) {
+
+			if (parent.getProperty(Folder.parent) != null) {
+
+				parent = parent.getProperty(Folder.parent);
+
+			} else {
+
+				root = true;
+			}
+		}
+
+		return parent;
 	}
 
 	// ----- nested classes -----

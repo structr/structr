@@ -31,12 +31,15 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
@@ -48,9 +51,12 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.Security;
+import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
@@ -73,6 +79,15 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.dom.Template;
+import org.structr.web.entity.html.relation.ResourceLink;
+import org.structr.web.entity.relation.FileChildren;
+import org.structr.web.entity.relation.FileSiblings;
+import org.structr.web.entity.relation.FolderChildren;
+import org.structr.web.entity.relation.Folders;
+import org.structr.web.entity.relation.Images;
+import org.structr.web.entity.relation.MinificationSource;
+import org.structr.web.entity.relation.Thumbnails;
+import org.structr.web.entity.relation.UserFavoriteFile;
 import org.structr.web.maintenance.deploy.ComponentImportVisitor;
 import org.structr.web.maintenance.deploy.FileImportVisitor;
 import org.structr.web.maintenance.deploy.PageImportVisitor;
@@ -84,8 +99,9 @@ import org.structr.web.maintenance.deploy.TemplateImportVisitor;
  */
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
 
-	private static final Logger logger   = LoggerFactory.getLogger(BulkMoveUnusedFilesCommand.class.getName());
-	private static final Pattern pattern = Pattern.compile("[a-f0-9]{32}");
+	private static final Logger logger                   = LoggerFactory.getLogger(BulkMoveUnusedFilesCommand.class.getName());
+	private static final Pattern pattern                 = Pattern.compile("[a-f0-9]{32}");
+	private static final Set<String> exportFileTypes     = new HashSet<>(Arrays.asList(new String[] { "File", "Folder", "Image" } ));
 
 	static {
 
@@ -168,7 +184,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (Files.exists(usersConf)) {
 
 			info("Reading {}..", usersConf);
-			importMapData(User.class, readConfigMap(usersConf));
+			importListData(User.class, readConfigList(usersConf));
+		}
+
+		// read users.json
+		final Path groupsConf = source.resolve("security/groups.json");
+		if (Files.exists(groupsConf)) {
+
+			info("Reading {}..", groupsConf);
+			importListData(Group.class, readConfigList(groupsConf));
 		}
 
 		// read grants.json
@@ -325,6 +349,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path templates      = Files.createDirectories(target.resolve("templates"));
 			final Path schemaJson     = schema.resolve("schema.json");
 			final Path grants         = security.resolve("grants.json");
+			final Path users          = security.resolve("users.json");
+			final Path groups         = security.resolve("groups.json");
 			final Path filesConf      = target.resolve("files.json");
 			final Path pagesConf      = target.resolve("pages.json");
 			final Path componentsConf = target.resolve("components.json");
@@ -335,6 +361,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			exportComponents(components, componentsConf);
 			exportTemplates(templates, templatesConf);
 			exportResourceAccessGrants(grants);
+			exportGroups(groups);
+			exportUsers(users);
 			exportSchema(schemaJson);
 
 			// config import order is "users, grants, pages, components, templates"
@@ -353,12 +381,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Tx tx = app.tx()) {
 
 			// fetch toplevel folders and recurse
-			for (final Folder folder : app.nodeQuery(Folder.class).and(Folder.parent, null).sort(Folder.name).getAsList()) {
+			for (final Folder folder : app.nodeQuery(Folder.class).and(Folder.parent, null).sort(Folder.name).and(AbstractFile.includeInFrontendExport, true).getAsList()) {
 				exportFilesAndFolders(target, folder, config);
 			}
 
-			// fetch toplevel files
-			for (final FileBase file : app.nodeQuery(FileBase.class).and(Folder.parent, null).sort(FileBase.name).getAsList()) {
+			// fetch toplevel files that are marked for export or for use as a javascript library
+			for (final FileBase file : app.nodeQuery(FileBase.class)
+				.and(Folder.parent, null)
+				.sort(FileBase.name)
+				.and()
+					.or(AbstractFile.includeInFrontendExport, true)
+					.or(FileBase.useAsJavascriptLibrary, true)
+				.getAsList()) {
+
 				exportFile(target, file, config);
 			}
 
@@ -379,16 +414,22 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportFilesAndFolders(final Path target, final Folder folder, final Map<String, Object> config) throws IOException {
 
-		final Map<String, Object> properties = new TreeMap<>();
 		final String name                    = folder.getName();
 		final Path path                      = target.resolve(name);
 
-		Files.createDirectories(path);
+		// make sure that only frontend data is exported, ignore extended
+		// types and those with relationships to user data.
+		if (DeployCommand.okToExport(folder)) {
 
-		exportFileConfiguration(folder, properties);
+			final Map<String, Object> properties = new TreeMap<>();
 
-		if (!properties.isEmpty()) {
-			config.put(folder.getPath(), properties);
+			Files.createDirectories(path);
+
+			exportFileConfiguration(folder, properties);
+
+			if (!properties.isEmpty()) {
+				config.put(folder.getPath(), properties);
+			}
 		}
 
 		final List<Folder> folders = folder.getProperty(Folder.folders);
@@ -408,12 +449,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportFile(final Path target, final FileBase file, final Map<String, Object> config) throws IOException {
 
+		if (!DeployCommand.okToExport(file)) {
+			return;
+		}
+
 		final Map<String, Object> properties = new TreeMap<>();
 		final String name                    = file.getName();
 		final Path src                       = file.getFileOnDisk().toPath();
 		Path targetPath                      = target.resolve(name);
 		boolean doExport                     = true;
-		int i                                = 0;
 
 		// modify file name if there are duplicates in the database
 		if (Files.exists(targetPath)) {
@@ -696,6 +740,70 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
+	private void exportGroups(final Path target) throws FrameworkException {
+
+		final List<Map<String, Object>> groups = new LinkedList<>();
+		final App app                          = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final Group group : app.nodeQuery(Group.class).sort(Group.name).getAsList()) {
+
+				final Map<String, Object> entry = new TreeMap<>();
+				final List<String> members      = new LinkedList<>();
+				groups.add(entry);
+
+				entry.put("name",    group.getProperty(Group.name));
+				entry.put("members", members);
+
+				for (final Principal member : group.getProperty(Group.members)) {
+					members.add(member.getProperty(Principal.name));
+				}
+			}
+
+			tx.success();
+		}
+
+		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
+
+			getGson().toJson(groups, fos);
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
+	}
+
+	private void exportUsers(final Path target) throws FrameworkException {
+
+		final List<Map<String, Object>> users = new LinkedList<>();
+		final App app                          = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final User user : app.nodeQuery(User.class).sort(User.name).getAsList()) {
+
+				final Map<String, Object> grant = new TreeMap<>();
+				users.add(grant);
+
+				grant.put("name",         user.getProperty(User.name));
+				grant.put("eMail",        user.getProperty(Principal.eMail));
+				grant.put("isAdmin",      user.getProperty(Principal.isAdmin));
+				grant.put("frontendUser", user.getProperty(User.frontendUser));
+				grant.put("backendUser",  user.getProperty(User.backendUser));
+			}
+
+			tx.success();
+		}
+
+		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
+
+			getGson().toJson(users, fos);
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
+	}
+
 	private void exportSchema(final Path target) throws FrameworkException {
 
 		try {
@@ -753,6 +861,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		putIf(config, "contentType",                 file.getProperty(FileBase.contentType));
 		putIf(config, "cacheForSeconds",             file.getProperty(FileBase.cacheForSeconds));
 		putIf(config, "useAsJavascriptLibrary",      file.getProperty(FileBase.useAsJavascriptLibrary));
+		putIf(config, "includeInFrontendExport",     file.getProperty(FileBase.includeInFrontendExport));
 		putIf(config, "basicAuthRealm",              file.getProperty(FileBase.basicAuthRealm));
 		putIf(config, "enableBasicAuth",             file.getProperty(FileBase.enableBasicAuth));
 
@@ -867,5 +976,70 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			tx.success();
 		}
+	}
+
+	// ----- public static methods -----
+	public static boolean okToExport(final AbstractFile file) {
+
+		// export non-derived types only (ignore things that extend built-in file/folder etc.)
+		if (!exportFileTypes.contains(file.getType())) {
+			return false;
+		}
+
+		for (final AbstractRelationship rel : file.getRelationships()) {
+
+			if (rel instanceof Security) {
+				continue;
+			}
+
+			if (rel instanceof PrincipalOwnsNode) {
+				continue;
+			}
+
+			if (rel instanceof FolderChildren) {
+				continue;
+			}
+
+			if (rel instanceof FileChildren) {
+				continue;
+			}
+
+			if (rel instanceof FileSiblings) {
+				continue;
+			}
+
+			if (rel instanceof MinificationSource) {
+				continue;
+			}
+
+			if (rel instanceof UserFavoriteFile) {
+				continue;
+			}
+
+			if (rel instanceof Folders) {
+				continue;
+			}
+
+			if (rel instanceof org.structr.web.entity.relation.Files) {
+				continue;
+			}
+
+			if (rel instanceof Images) {
+				continue;
+			}
+
+			if (rel instanceof Thumbnails) {
+				continue;
+			}
+
+			if (rel instanceof ResourceLink) {
+				continue;
+			}
+
+			// if none of the above matched, the file should not be exported
+			return false;
+		}
+
+		return true;
 	}
 }

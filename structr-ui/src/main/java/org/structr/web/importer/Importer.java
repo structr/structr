@@ -166,11 +166,15 @@ public class Importer {
 			this.address = this.address.concat("/");
 		}
 
-		try {
-			originalUrl = new URL(this.address);
+		// only do this if address is non-null
+		if (this.address != null) {
 
-		} catch (MalformedURLException ex) {
-			logger.info("Cannot convert '{}' to URL - is the protocol ok? Trying to resume anyway...", this.address);
+			try {
+				originalUrl = new URL(this.address);
+
+			} catch (MalformedURLException ex) {
+				logger.info("Cannot convert '{}' to URL - is the protocol ok? Trying to resume anyway...", this.address);
+			}
 		}
 	}
 
