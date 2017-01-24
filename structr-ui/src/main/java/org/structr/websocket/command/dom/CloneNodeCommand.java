@@ -18,7 +18,9 @@
  */
 package org.structr.websocket.command.dom;
 
+import java.util.List;
 import java.util.Map;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
@@ -49,8 +51,9 @@ public class CloneNodeCommand extends AbstractCommand {
 		final String parentId                       = (String) nodeData.get("parentId");
 		final boolean deep                          = (Boolean) nodeData.get("deep");
 
-		DOMNode parent = null;
 		if (id != null) {
+
+			DOMNode parent = null;
 
 			final DOMNode node = getDOMNode(id);
 
@@ -69,13 +72,14 @@ public class CloneNodeCommand extends AbstractCommand {
 			}
 
 			try {
+
 				DOMNode clonedNode = (DOMNode) node.cloneNode(deep);
 
 				if (parent != null) {
 					parent.appendChild(clonedNode);
 				}
 
-				clonedNode.setProperties(clonedNode.getSecurityContext(), new PropertyMap(DOMNode.ownerDocument, (parent != null ? parent : node).getProperty(DOMNode.ownerDocument)));
+				setOwnerPageRecursively(clonedNode, clonedNode.getSecurityContext(), new PropertyMap(DOMNode.ownerDocument, (parent != null ? parent : node).getProperty(DOMNode.ownerDocument)));
 
 			} catch (DOMException | FrameworkException ex) {
 
@@ -90,12 +94,19 @@ public class CloneNodeCommand extends AbstractCommand {
 
 	}
 
-	@Override
-	public String getCommand() {
+	public void setOwnerPageRecursively(final DOMNode node, final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
 
-		return "CLONE_NODE";
+		node.setProperties(securityContext, properties);
+
+		for (final DOMNode child : (List<DOMNode>)node.getChildNodes()) {
+			setOwnerPageRecursively(child, securityContext, properties);
+		}
 
 	}
 
+	@Override
+	public String getCommand() {
+		return "CLONE_NODE";
+	}
 
 }
