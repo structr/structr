@@ -48,23 +48,29 @@ public class Actions {
 
 	public enum Type {
 
-		Create("onCreation","SecurityContext securityContext, ErrorBuffer errorBuffer", "securityContext, errorBuffer"),
-		Save("onModification", "SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue", "securityContext, errorBuffer, modificationQueue"),
-		Delete("onDeletion", "SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties", "securityContext, errorBuffer, properties"),
-		Custom("", "", "");
+		Create("onCreation","SecurityContext securityContext, ErrorBuffer errorBuffer", "securityContext, errorBuffer", "onCreate"),
+		Save("onModification", "SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue", "securityContext, errorBuffer, modificationQueue", "onSave"),
+		Delete("onDeletion", "SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties", "securityContext, errorBuffer, properties", "onDelete"),
+		Custom("", "", "", "custom");
 
-		Type(final String method, final String signature, final String parameters) {
+		Type(final String method, final String signature, final String parameters, final String logName) {
 			this.method = method;
 			this.signature = signature;
 			this.parameters = parameters;
+			this.logName = logName;
 		}
 
-		private String method = null;
-		private String signature = null;
+		private String method     = null;
+		private String logName    = null;
+		private String signature  = null;
 		private String parameters = null;
 
 		public String getMethod() {
 			return method;
+		}
+
+		public String getLogName() {
+			return logName;
 		}
 
 		public String getSignature() {
@@ -77,14 +83,14 @@ public class Actions {
 	}
 
 	// ----- public static methods -----
-	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source) throws FrameworkException {
-		return execute(securityContext, entity, source, Collections.EMPTY_MAP);
+	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final String methodName) throws FrameworkException {
+		return execute(securityContext, entity, source, Collections.EMPTY_MAP, methodName);
 	}
 
-	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> parameters) throws FrameworkException {
+	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> parameters, final String methodName) throws FrameworkException {
 
 		final ActionContext context = new ActionContext(securityContext, parameters);
-		final Object result         = Scripting.evaluate(context, entity, source);
+		final Object result         = Scripting.evaluate(context, entity, source, methodName);
 
 		// check for errors raised by scripting
 		if (context.hasError()) {
@@ -137,7 +143,7 @@ public class Actions {
 					final String source = method.getProperty(SchemaMethod.source);
 					if (source != null) {
 
-						return Actions.execute(superUserContext, null, "${" + source + "}", parameters);
+						return Actions.execute(superUserContext, null, "${" + source + "}", parameters, method.getName());
 
 					} else {
 

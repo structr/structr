@@ -88,7 +88,19 @@ public class ActionEntry implements Comparable<ActionEntry> {
 		if (includeParameters) {
 			buf.append(", parameters");
 		}
-		buf.append(")");
+
+		buf.append(", \"");
+
+		if (this.type.equals(Actions.Type.Custom)) {
+
+			buf.append(this.name);
+
+		} else {
+
+			buf.append(this.type.getLogName());
+		}
+
+		buf.append("\")");
 
 		return buf.toString();
 	}

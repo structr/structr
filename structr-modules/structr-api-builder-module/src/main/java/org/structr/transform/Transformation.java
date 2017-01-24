@@ -58,7 +58,7 @@ public class Transformation {
 
 		// output transformation requested
 		actionContext.setConstant("input", source);
-		return Scripting.evaluate(actionContext, null, "${" + outputFunction + "}");
+		return Scripting.evaluate(actionContext, null, "${" + outputFunction + "}", "virtual property " + targetName);
 	}
 
 	public void transformInput(final ActionContext actionContext, final Map<String, Object> source) throws FrameworkException {
@@ -71,7 +71,7 @@ public class Transformation {
 
 				// input transformation requested
 				actionContext.setConstant("input", inputValue);
-				inputValue = Scripting.evaluate(actionContext, null, "${" + inputFunction + "}");
+				inputValue = Scripting.evaluate(actionContext, null, "${" + inputFunction + "}", " virtual property " + sourceName);
 			}
 
 			source.put(sourceName, inputValue);

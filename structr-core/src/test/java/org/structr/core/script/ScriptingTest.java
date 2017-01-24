@@ -397,20 +397,20 @@ public class ScriptingTest extends StructrTest {
 
 			final ActionContext actionContext = new ActionContext(securityContext);
 
-			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { anInt: 42 })[0]; }}"));
-			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { anInt: 33 })[0]; }}"));
+			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { anInt: 42 })[0]; }}", "test"));
+			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { anInt: 33 })[0]; }}", "test"));
 
-			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { aLong: " + long1 + " })[0]; }}"));
-			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { aLong: " + long2 + " })[0]; }}"));
+			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { aLong: " + long1 + " })[0]; }}", "test"));
+			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { aLong: " + long2 + " })[0]; }}", "test"));
 
-			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { aDouble: " + double1 + " })[0]; }}"));
-			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { aDouble: " + double2 + " })[0]; }}"));
+			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { aDouble: " + double1 + " })[0]; }}", "test"));
+			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { aDouble: " + double2 + " })[0]; }}", "test"));
 
-			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { anEnum: 'One' })[0]; }}"));
-			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { anEnum: 'Two' })[0]; }}"));
+			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { anEnum: 'One' })[0]; }}", "test"));
+			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { anEnum: 'Two' })[0]; }}", "test"));
 
-			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { aBoolean: true })[0]; }}"));
-			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { aBoolean: false })[0]; }}"));
+			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { aBoolean: true })[0]; }}", "test"));
+			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { aBoolean: false })[0]; }}", "test"));
 
 
 			tx.success();
@@ -431,8 +431,8 @@ public class ScriptingTest extends StructrTest {
 			final ActionContext actionContext = new ActionContext(securityContext);
 			final TestOne context             = app.create(TestOne.class);
 
-			Scripting.evaluate(actionContext, context, "${{ Structr.create('Group', { name: 'Group1' } ); }}");
-			Scripting.evaluate(actionContext, context, "${{ Structr.create('Group', 'name', 'Group2'); }}");
+			Scripting.evaluate(actionContext, context, "${{ Structr.create('Group', { name: 'Group1' } ); }}", "test");
+			Scripting.evaluate(actionContext, context, "${{ Structr.create('Group', 'name', 'Group2'); }}", "test");
 
 			assertEquals("Invalid unwrapping result", 2, app.nodeQuery(Group.class).getAsList().size());
 
@@ -455,11 +455,11 @@ public class ScriptingTest extends StructrTest {
 			final ActionContext actionContext = new ActionContext(securityContext);
 			final TestOne context             = app.create(TestOne.class);
 
-			Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); e.anEnum = 'One'; }}");
+			Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); e.anEnum = 'One'; }}", "test");
 
-			assertEquals("Invalid enum get result", "One", Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); return e.anEnum; }}"));
+			assertEquals("Invalid enum get result", "One", Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); return e.anEnum; }}", "test"));
 
-			assertEquals("Invaliid Javascript enum comparison result", true, Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); return e.anEnum == 'One'; }}"));
+			assertEquals("Invaliid Javascript enum comparison result", true, Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); return e.anEnum == 'One'; }}", "test"));
 
 			tx.success();
 
@@ -506,10 +506,10 @@ public class ScriptingTest extends StructrTest {
 
 			// test prerequisites
 			assertEquals("Invalid prerequisite",     1, group.getProperty(Group.members).size());
-			assertEquals("Invalid prerequisite", user2, Scripting.evaluate(actionContext, group, "${{ return Structr.find('TestUser', { name: 'Tester2' })[0]; }}"));
+			assertEquals("Invalid prerequisite", user2, Scripting.evaluate(actionContext, group, "${{ return Structr.find('TestUser', { name: 'Tester2' })[0]; }}", "test"));
 
 			// test scripting association
-			Scripting.evaluate(actionContext, group, "${{ var group = Structr.find('Group')[0]; var users = group.members; users.push(Structr.find('TestUser', { name: 'Tester2' })[0]); }}");
+			Scripting.evaluate(actionContext, group, "${{ var group = Structr.find('Group')[0]; var users = group.members; users.push(Structr.find('TestUser', { name: 'Tester2' })[0]); }}", "test");
 			assertEquals("Invalid scripted array operation result", 2, group.getProperty(Group.members).size());
 
 			// reset group
@@ -519,17 +519,17 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid prerequisite",     1, group.getProperty(Group.members).size());
 
 			// test direct push on member property
-			Scripting.evaluate(actionContext, group, "${{ var group = Structr.find('Group')[0]; group.members.push(Structr.find('TestUser', { name: 'Tester2' })[0]); }}");
+			Scripting.evaluate(actionContext, group, "${{ var group = Structr.find('Group')[0]; group.members.push(Structr.find('TestUser', { name: 'Tester2' })[0]); }}", "test");
 			assertEquals("Invalid scripted array operation result", 2, group.getProperty(Group.members).size());
 
 
 
 			// test scripting association
-			Scripting.evaluate(actionContext, group, "${{ var test = Structr.find('TestOne')[0]; var testSixs = test.manyToManyTestSixs; testSixs.push(Structr.find('TestSix')[0]); }}");
+			Scripting.evaluate(actionContext, group, "${{ var test = Structr.find('TestOne')[0]; var testSixs = test.manyToManyTestSixs; testSixs.push(Structr.find('TestSix')[0]); }}", "test");
 			assertEquals("Invalid scripted array operation result", 1, testOne.getProperty(TestOne.manyToManyTestSixs).size());
 
 			// test direct push on member property
-			Scripting.evaluate(actionContext, group, "${{ var test = Structr.find('TestOne')[0]; var testSixs = test.manyToManyTestSixs.push(Structr.find('TestSix')[1]); }}");
+			Scripting.evaluate(actionContext, group, "${{ var test = Structr.find('TestOne')[0]; var testSixs = test.manyToManyTestSixs.push(Structr.find('TestSix')[1]); }}", "test");
 			assertEquals("Invalid scripted array operation result", 2, testOne.getProperty(TestOne.manyToManyTestSixs).size());
 
 
@@ -565,22 +565,22 @@ public class ScriptingTest extends StructrTest {
 
 			final ActionContext actionContext = new ActionContext(securityContext);
 
-			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.aString = 12; }}");
+			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.aString = 12; }}", "test");
 			assertEquals("Invalid scripted property conversion result", "12", testOne.getProperty(TestOne.aString));
 
-			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.anInt = '12'; }}");
+			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.anInt = '12'; }}", "test");
 			assertEquals("Invalid scripted property conversion result", 12L, (long)testOne.getProperty(TestOne.anInt));
 
-			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.aDouble = '12.2342'; }}");
+			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.aDouble = '12.2342'; }}", "test");
 			assertEquals("Invalid scripted property conversion result", 12.2342, (double)testOne.getProperty(TestOne.aDouble), 0.0);
 
-			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.aDouble = 2; }}");
+			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.aDouble = 2; }}", "test");
 			assertEquals("Invalid scripted property conversion result", 2.0, (double)testOne.getProperty(TestOne.aDouble), 0.0);
 
-			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.aLong = 2352343457252; }}");
+			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.aLong = 2352343457252; }}", "test");
 			assertEquals("Invalid scripted property conversion result", 2352343457252L, (long)testOne.getProperty(TestOne.aLong));
 
-			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.aBoolean = true; }}");
+			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.aBoolean = true; }}", "test");
 			assertEquals("Invalid scripted property conversion result", true, (boolean)testOne.getProperty(TestOne.aBoolean));
 
 			tx.success();
@@ -599,7 +599,7 @@ public class ScriptingTest extends StructrTest {
 
 			final ActionContext actionContext = new ActionContext(securityContext);
 
-			Scripting.evaluate(actionContext, app.create(TestOne.class), "${{\n // \"test\n}}");
+			Scripting.evaluate(actionContext, app.create(TestOne.class), "${{\n // \"test\n}}", "test");
 
 			tx.success();
 
@@ -732,7 +732,7 @@ public class ScriptingTest extends StructrTest {
 
 			//assertEquals("Invalid python scripting evaluation result", "Hello World from Python!\n", Scripting.evaluate(ctx, null, "${python{print \"Hello World from Python!\"}}"));
 
-			System.out.println(Scripting.evaluate(ctx, null, "${python{print(Structr.get('me').id)}}"));
+			System.out.println(Scripting.evaluate(ctx, null, "${python{print(Structr.get('me').id)}}", "test"));
 
 			tx.success();
 
@@ -1604,13 +1604,13 @@ public class ScriptingTest extends StructrTest {
 
 			// test error method
 			try {
-				Actions.execute(securityContext, testTwo, "${error(\"base\", \"test1\")}");
+				Actions.execute(securityContext, testTwo, "${error(\"base\", \"test1\")}", "test");
 				fail("error() should throw an exception.");
 
 			} catch (FrameworkException fex) { }
 
 			try {
-				Actions.execute(securityContext, testTwo, "${error(\"base\", \"test1\", \"test2\")}");
+				Actions.execute(securityContext, testTwo, "${error(\"base\", \"test1\", \"test2\")}", "test");
 				fail("error() should throw an exception.");
 
 			} catch (FrameworkException fex) { }

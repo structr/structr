@@ -346,7 +346,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 			try {
 				final String source = SchemaMethodResource.findMethodSource(entityType, methodName);
-				result = SchemaMethodResource.invoke(securityContext, typedIdResource.getEntity(), source, propertySet);
+				result = SchemaMethodResource.invoke(securityContext, typedIdResource.getEntity(), source, propertySet, methodName);
 
 			} catch (IllegalPathException ex) {
 

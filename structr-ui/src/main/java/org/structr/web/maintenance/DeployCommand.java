@@ -290,7 +290,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				info("Applying configuration from {}..", conf);
 
 				final String confSource = new String(Files.readAllBytes(conf), Charset.forName("utf-8"));
-				Scripting.evaluate(new ActionContext(SecurityContext.getSuperUserInstance()), null, confSource.trim());
+				Scripting.evaluate(new ActionContext(SecurityContext.getSuperUserInstance()), null, confSource.trim(), "deploy.conf");
 
 				tx.success();
 
