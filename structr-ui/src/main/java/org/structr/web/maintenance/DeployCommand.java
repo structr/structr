@@ -52,6 +52,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.Security;
@@ -78,6 +79,7 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.dom.Template;
+import org.structr.web.entity.html.relation.ResourceLink;
 import org.structr.web.entity.relation.FileChildren;
 import org.structr.web.entity.relation.FileSiblings;
 import org.structr.web.entity.relation.FolderChildren;
@@ -182,7 +184,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (Files.exists(usersConf)) {
 
 			info("Reading {}..", usersConf);
-			importMapData(User.class, readConfigMap(usersConf));
+			importListData(User.class, readConfigList(usersConf));
+		}
+
+		// read users.json
+		final Path groupsConf = source.resolve("security/groups.json");
+		if (Files.exists(groupsConf)) {
+
+			info("Reading {}..", groupsConf);
+			importListData(Group.class, readConfigList(groupsConf));
 		}
 
 		// read grants.json
@@ -339,6 +349,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path templates      = Files.createDirectories(target.resolve("templates"));
 			final Path schemaJson     = schema.resolve("schema.json");
 			final Path grants         = security.resolve("grants.json");
+			final Path users          = security.resolve("users.json");
+			final Path groups         = security.resolve("groups.json");
 			final Path filesConf      = target.resolve("files.json");
 			final Path pagesConf      = target.resolve("pages.json");
 			final Path componentsConf = target.resolve("components.json");
@@ -349,6 +361,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			exportComponents(components, componentsConf);
 			exportTemplates(templates, templatesConf);
 			exportResourceAccessGrants(grants);
+			exportGroups(groups);
+			exportUsers(users);
 			exportSchema(schemaJson);
 
 			// config import order is "users, grants, pages, components, templates"
@@ -367,12 +381,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Tx tx = app.tx()) {
 
 			// fetch toplevel folders and recurse
-			for (final Folder folder : app.nodeQuery(Folder.class).and(Folder.parent, null).sort(Folder.name).getAsList()) {
+			for (final Folder folder : app.nodeQuery(Folder.class).and(Folder.parent, null).sort(Folder.name).and(AbstractFile.includeInFrontendExport, true).getAsList()) {
 				exportFilesAndFolders(target, folder, config);
 			}
 
-			// fetch toplevel files
-			for (final FileBase file : app.nodeQuery(FileBase.class).and(Folder.parent, null).sort(FileBase.name).getAsList()) {
+			// fetch toplevel files that are marked for export or for use as a javascript library
+			for (final FileBase file : app.nodeQuery(FileBase.class)
+				.and(Folder.parent, null)
+				.sort(FileBase.name)
+				.and()
+					.or(AbstractFile.includeInFrontendExport, true)
+					.or(FileBase.useAsJavascriptLibrary, true)
+				.getAsList()) {
+
 				exportFile(target, file, config);
 			}
 
@@ -719,6 +740,70 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
+	private void exportGroups(final Path target) throws FrameworkException {
+
+		final List<Map<String, Object>> groups = new LinkedList<>();
+		final App app                          = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final Group group : app.nodeQuery(Group.class).sort(Group.name).getAsList()) {
+
+				final Map<String, Object> entry = new TreeMap<>();
+				final List<String> members      = new LinkedList<>();
+				groups.add(entry);
+
+				entry.put("name",    group.getProperty(Group.name));
+				entry.put("members", members);
+
+				for (final Principal member : group.getProperty(Group.members)) {
+					members.add(member.getProperty(Principal.name));
+				}
+			}
+
+			tx.success();
+		}
+
+		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
+
+			getGson().toJson(groups, fos);
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
+	}
+
+	private void exportUsers(final Path target) throws FrameworkException {
+
+		final List<Map<String, Object>> users = new LinkedList<>();
+		final App app                          = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final User user : app.nodeQuery(User.class).sort(User.name).getAsList()) {
+
+				final Map<String, Object> grant = new TreeMap<>();
+				users.add(grant);
+
+				grant.put("name",         user.getProperty(User.name));
+				grant.put("eMail",        user.getProperty(Principal.eMail));
+				grant.put("isAdmin",      user.getProperty(Principal.isAdmin));
+				grant.put("frontendUser", user.getProperty(User.frontendUser));
+				grant.put("backendUser",  user.getProperty(User.backendUser));
+			}
+
+			tx.success();
+		}
+
+		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
+
+			getGson().toJson(users, fos);
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
+	}
+
 	private void exportSchema(final Path target) throws FrameworkException {
 
 		try {
@@ -776,6 +861,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		putIf(config, "contentType",                 file.getProperty(FileBase.contentType));
 		putIf(config, "cacheForSeconds",             file.getProperty(FileBase.cacheForSeconds));
 		putIf(config, "useAsJavascriptLibrary",      file.getProperty(FileBase.useAsJavascriptLibrary));
+		putIf(config, "includeInFrontendExport",     file.getProperty(FileBase.includeInFrontendExport));
 		putIf(config, "basicAuthRealm",              file.getProperty(FileBase.basicAuthRealm));
 		putIf(config, "enableBasicAuth",             file.getProperty(FileBase.enableBasicAuth));
 
@@ -943,6 +1029,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 
 			if (rel instanceof Thumbnails) {
+				continue;
+			}
+
+			if (rel instanceof ResourceLink) {
 				continue;
 			}
 
