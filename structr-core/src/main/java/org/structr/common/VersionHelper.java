@@ -37,6 +37,7 @@ public class VersionHelper {
 	private static final String instanceStage;
 	private static final Map<String, Map<String, Object>> modules    = new HashMap<>();
 	private static final Map<String, Map<String, String>> components = new HashMap<>();
+	private static boolean modulesUpdatedAfterSystemInitComplete = false;
 
 	static {
 
@@ -61,24 +62,6 @@ public class VersionHelper {
 
 				components.put(innerMatcher.group(1), module);
 			}
-		}
-
-		// collect StructrModules
-		for (final StructrModule module : StructrApp.getConfiguration().getModules().values())  {
-
-			final Map<String, Object> map = new LinkedHashMap<>();
-
-			map.put("source", module.getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
-
-			if (module.getDependencies() != null) {
-				map.put("dependencies", module.getDependencies());
-			}
-
-			if (module.getFeatures() != null) {
-				map.put("features", module.getFeatures());
-			}
-
-			modules.put(module.getName(), map);
 		}
 
 	}
@@ -107,7 +90,37 @@ public class VersionHelper {
 		return instanceStage;
 	}
 
+	public static void updateModuleList () {
+
+		modules.clear();
+
+		// collect StructrModules
+		for (final StructrModule module : StructrApp.getConfiguration().getModules().values())  {
+
+			final Map<String, Object> map = new LinkedHashMap<>();
+
+			map.put("source", module.getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
+
+			if (module.getDependencies() != null) {
+				map.put("dependencies", module.getDependencies());
+			}
+
+			if (module.getFeatures() != null) {
+				map.put("features", module.getFeatures());
+			}
+
+			modules.put(module.getName(), map);
+		}
+	}
+
 	public static Map<String, Map<String, Object>> getModules() {
+
+		if (!modulesUpdatedAfterSystemInitComplete) {
+			updateModuleList();
+		}
+
+		modulesUpdatedAfterSystemInitComplete = Services.getInstance().isInitialized();
+
 		return modules;
 	}
 

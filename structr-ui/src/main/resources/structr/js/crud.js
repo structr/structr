@@ -1137,12 +1137,11 @@ var _Crud = {
 			type: 'GET',
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8',
-			//async: false,
-			success: function(data) {
-				if (!data)
-					return;
-				_Crud.dialog('Edit ' + t + ' ' + id, function() {}, function() {});
-				_Crud.showDetails(data.result, t);
+			success: function (data) {
+				if (data) {
+					_Crud.dialog('Edit ' + t + ' ' + id, function() {}, function() {});
+					_Crud.showDetails(data.result, t);
+				}
 			}
 		});
 	},
@@ -1187,6 +1186,9 @@ var _Crud = {
 					_Crud.showCreateError(type, data, onError);
 				},
 				422: function(data, status, xhr) {
+					if (dialogBox.is(':visible')) {
+						_Crud.error('Unprocessable entity: ' + data.responseText, true);
+					}
 					_Crud.showCreateError(type, data, onError);
 				},
 				500: function(data, status, xhr) {
@@ -2284,11 +2286,11 @@ var _Crud = {
 			var dimensions = Structr.getDialogDimensions(0, 24);
 			Structr.blockUI(dimensions);
 
+			_Crud.resize();
+
 		}
 	},
 	resize: function() {
-
-		Structr.resize();
 
 		var dimensions = Structr.getDialogDimensions(0, 24);
 
@@ -2313,6 +2315,8 @@ var _Crud = {
 		});
 
 		_Crud.moveResizer();
+
+		Structr.resize();
 
 	},
 	error: function(text, confirmationRequired) {
@@ -2447,9 +2451,10 @@ var _Crud = {
 
 		dialogSaveButton.off('click');
 		dialogSaveButton.on('click', function() {
+			dialogSaveButton.attr('disabled', true);
 			var form = $('#entityForm');
 			var json = JSON.stringify(_Crud.serializeObject(form));
-			_Crud.crudCreate(type, typeDef.url.substring(1), json);
+			_Crud.crudCreate(type, typeDef.url.substring(1), json, undefined, function () { dialogSaveButton.attr('disabled', false); });
 		});
 
 		if (node && node.isImage) {

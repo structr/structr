@@ -79,21 +79,21 @@ public class LocalizationTest extends StructrTest {
 
 			ctx.setLocale(new Locale("de"));
 
-			assertEquals("Invalid localization result", "test1-de-no_domain",      Scripting.evaluate(ctx, null, "${localize('test1', 'ExistingDomain')}"));
-			assertEquals("Invalid localization result", "test1-de-no_domain",      Scripting.evaluate(ctx, null, "${localize('test1', 'NonexistingDomain')}"));
-			assertEquals("Invalid localization result", "test1-de-no_domain",      Scripting.evaluate(ctx, null, "${localize('test1')}"));
-			
-			assertEquals("Invalid localization result", "test2-de-ExistingDomain", Scripting.evaluate(ctx, null, "${localize('test2', 'ExistingDomain')}"));
-			assertEquals("Invalid localization result", "test2",                   Scripting.evaluate(ctx, null, "${localize('test2', 'NonexistingDomain')}"));
-			assertEquals("Invalid localization result", "test2",                   Scripting.evaluate(ctx, null, "${localize('test2')}"));
-			
-			assertEquals("Invalid localization result", "test3",                   Scripting.evaluate(ctx, null, "${localize('test3', 'ExistingDomain')}"));
-			assertEquals("Invalid localization result", "test3",                   Scripting.evaluate(ctx, null, "${localize('test3', 'NonexistingDomain')}"));
-			assertEquals("Invalid localization result", "test3",                   Scripting.evaluate(ctx, null, "${localize('test3')}"));
-			
-			assertEquals("Invalid localization result", "test4",                   Scripting.evaluate(ctx, null, "${localize('test4', 'ExistingDomain')}"));
-			assertEquals("Invalid localization result", "test4",                   Scripting.evaluate(ctx, null, "${localize('test4', 'NonexistingDomain')}"));
-			assertEquals("Invalid localization result", "test4",                   Scripting.evaluate(ctx, null, "${localize('test4')}"));
+			assertEquals("Invalid localization result", "test1-de-no_domain",      Scripting.evaluate(ctx, null, "${localize('test1', 'ExistingDomain')}", "test"));
+			assertEquals("Invalid localization result", "test1-de-no_domain",      Scripting.evaluate(ctx, null, "${localize('test1', 'NonexistingDomain')}", "test"));
+			assertEquals("Invalid localization result", "test1-de-no_domain",      Scripting.evaluate(ctx, null, "${localize('test1')}", "test"));
+
+			assertEquals("Invalid localization result", "test2-de-ExistingDomain", Scripting.evaluate(ctx, null, "${localize('test2', 'ExistingDomain')}", "test"));
+			assertEquals("Invalid localization result", "test2",                   Scripting.evaluate(ctx, null, "${localize('test2', 'NonexistingDomain')}", "test"));
+			assertEquals("Invalid localization result", "test2",                   Scripting.evaluate(ctx, null, "${localize('test2')}", "test"));
+
+			assertEquals("Invalid localization result", "test3",                   Scripting.evaluate(ctx, null, "${localize('test3', 'ExistingDomain')}", "test"));
+			assertEquals("Invalid localization result", "test3",                   Scripting.evaluate(ctx, null, "${localize('test3', 'NonexistingDomain')}", "test"));
+			assertEquals("Invalid localization result", "test3",                   Scripting.evaluate(ctx, null, "${localize('test3')}", "test"));
+
+			assertEquals("Invalid localization result", "test4",                   Scripting.evaluate(ctx, null, "${localize('test4', 'ExistingDomain')}", "test"));
+			assertEquals("Invalid localization result", "test4",                   Scripting.evaluate(ctx, null, "${localize('test4', 'NonexistingDomain')}", "test"));
+			assertEquals("Invalid localization result", "test4",                   Scripting.evaluate(ctx, null, "${localize('test4')}", "test"));
 
 			tx.success();
 
@@ -107,21 +107,21 @@ public class LocalizationTest extends StructrTest {
 
 			ctx.setLocale(new Locale("de", "DE"));
 
-			assertEquals("Invalid localization result", "test1-de-no_domain",         Scripting.evaluate(ctx, null, "${localize('test1', 'ExistingDomain')}"));
-			assertEquals("Invalid localization result", "test1-de-no_domain",         Scripting.evaluate(ctx, null, "${localize('test1', 'NonexistingDomain')}"));
-			assertEquals("Invalid localization result", "test1-de-no_domain",         Scripting.evaluate(ctx, null, "${localize('test1')}"));
-			   
-			assertEquals("Invalid localization result", "test2-de-ExistingDomain",    Scripting.evaluate(ctx, null, "${localize('test2', 'ExistingDomain')}"));
-			assertEquals("Invalid localization result", "test2",                      Scripting.evaluate(ctx, null, "${localize('test2', 'NonexistingDomain')}"));
-			assertEquals("Invalid localization result", "test2",                      Scripting.evaluate(ctx, null, "${localize('test2')}"));
-			
-			assertEquals("Invalid localization result", "test3-de_DE-no_domain",      Scripting.evaluate(ctx, null, "${localize('test3', 'ExistingDomain')}"));
-			assertEquals("Invalid localization result", "test3-de_DE-no_domain",      Scripting.evaluate(ctx, null, "${localize('test3', 'NonexistingDomain')}"));
-			assertEquals("Invalid localization result", "test3-de_DE-no_domain",      Scripting.evaluate(ctx, null, "${localize('test3')}"));
-			
-			assertEquals("Invalid localization result", "test4-de_DE-ExistingDomain", Scripting.evaluate(ctx, null, "${localize('test4', 'ExistingDomain')}"));
-			assertEquals("Invalid localization result", "test4",                      Scripting.evaluate(ctx, null, "${localize('test4', 'NonexistingDomain')}"));
-			assertEquals("Invalid localization result", "test4",                      Scripting.evaluate(ctx, null, "${localize('test4')}"));
+			assertEquals("Invalid localization result", "test1-de-no_domain",         Scripting.evaluate(ctx, null, "${localize('test1', 'ExistingDomain')}", "test"));
+			assertEquals("Invalid localization result", "test1-de-no_domain",         Scripting.evaluate(ctx, null, "${localize('test1', 'NonexistingDomain')}", "test"));
+			assertEquals("Invalid localization result", "test1-de-no_domain",         Scripting.evaluate(ctx, null, "${localize('test1')}", "test"));
+
+			assertEquals("Invalid localization result", "test2-de-ExistingDomain",    Scripting.evaluate(ctx, null, "${localize('test2', 'ExistingDomain')}", "test"));
+			assertEquals("Invalid localization result", "test2",                      Scripting.evaluate(ctx, null, "${localize('test2', 'NonexistingDomain')}", "test"));
+			assertEquals("Invalid localization result", "test2",                      Scripting.evaluate(ctx, null, "${localize('test2')}", "test"));
+
+			assertEquals("Invalid localization result", "test3-de_DE-no_domain",      Scripting.evaluate(ctx, null, "${localize('test3', 'ExistingDomain')}", "test"));
+			assertEquals("Invalid localization result", "test3-de_DE-no_domain",      Scripting.evaluate(ctx, null, "${localize('test3', 'NonexistingDomain')}", "test"));
+			assertEquals("Invalid localization result", "test3-de_DE-no_domain",      Scripting.evaluate(ctx, null, "${localize('test3')}", "test"));
+
+			assertEquals("Invalid localization result", "test4-de_DE-ExistingDomain", Scripting.evaluate(ctx, null, "${localize('test4', 'ExistingDomain')}", "test"));
+			assertEquals("Invalid localization result", "test4",                      Scripting.evaluate(ctx, null, "${localize('test4', 'NonexistingDomain')}", "test"));
+			assertEquals("Invalid localization result", "test4",                      Scripting.evaluate(ctx, null, "${localize('test4')}", "test"));
 
 			tx.success();
 

@@ -73,7 +73,7 @@ public class Scripting {
 
 				for (final String expression : extractScripts(value)) {
 
-					final Object extractedValue = evaluate(actionContext, entity, expression);
+					final Object extractedValue = evaluate(actionContext, entity, expression, "script source");
 					String partValue            = extractedValue != null ? formatToDefaultDateOrString(extractedValue) : "";
 
 					if (partValue != null) {
@@ -125,11 +125,12 @@ public class Scripting {
 	 * @param actionContext the action context
 	 * @param entity the entity - may not be null because internal functions will fetch the security context from it
 	 * @param expression the scripting expression
+	 * @param methodName the name of the method for error logging
 	 *
 	 * @return
 	 * @throws FrameworkException
 	 */
-	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String expression) throws FrameworkException {
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String expression, final String methodName) throws FrameworkException {
 
 		boolean isJavascript   = expression.startsWith("${{") && expression.endsWith("}}");
 		final int prefixOffset = isJavascript ? 1 : 0;
@@ -161,7 +162,7 @@ public class Scripting {
 
 		} else if (isJavascript) {
 
-			return evaluateJavascript(actionContext, entity, source);
+			return evaluateJavascript(actionContext, entity, source, methodName);
 
 		} else {
 
@@ -215,7 +216,7 @@ public class Scripting {
 
 	}
 
-	private static Object evaluateJavascript(final ActionContext actionContext, final GraphObject entity, final String script) throws FrameworkException {
+	private static Object evaluateJavascript(final ActionContext actionContext, final GraphObject entity, final String script, final String methodName) throws FrameworkException {
 
 		final String entityName        = entity != null ? entity.getProperty(AbstractNode.name) : null;
 		final String entityDescription = entity != null ? ( StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + entity.getUuid() : "anonymous";
@@ -244,7 +245,9 @@ public class Scripting {
 			// clear output buffer
 			actionContext.clear();
 
-			Object extractedValue = scriptingContext.evaluateString(scope, embedInFunction(actionContext, script), "script source [" + entityDescription + "], line ", 1, null);
+			final String sourceLocation = methodName + " [" + entityDescription + "], line ";
+
+			Object extractedValue = scriptingContext.evaluateString(scope, embedInFunction(actionContext, script), sourceLocation, 1, null);
 
 			if (scriptable.hasException()) {
 				throw scriptable.getException();

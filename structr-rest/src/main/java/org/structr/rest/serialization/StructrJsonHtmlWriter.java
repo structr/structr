@@ -33,6 +33,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.Tx;
 import org.structr.rest.serialization.html.Attr;
@@ -111,7 +112,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 		head.inline("title").text(baseUrl);
 
-		Tag body = doc.block("body").attr(new Onload("CollapsibleLists.apply(true);"));
+		Tag body = doc.block("body").attr(new Onload("if (document.querySelectorAll('#right > ul > li > ul > li > ul.collapsibleList > li').length > 5) { CollapsibleLists.apply(true); }"));
 		Tag top  = body.block("div").id("top");
 
 		final App app  = StructrApp.getInstance(securityContext);
@@ -255,6 +256,10 @@ public class StructrJsonHtmlWriter implements RestWriter {
 			if (currentObject == null) {
 
 				currentElement.inline("a").css("id").attr(new Href(restPath + "/" + value + propertyView)).text("\"", value, "\"");
+
+			} else if (currentObject instanceof AbstractRelationship) {
+
+				currentElement.inline("a").css("id").attr(new Href(restPath + "/" + currentObject.getProperty(AbstractRelationship.type) + "/" + value + propertyView)).text("\"", value, "\"");
 
 			} else {
 

@@ -129,7 +129,7 @@ public class VirtualType extends AbstractNode implements ResultTransformer {
 
 				try {
 
-					return Boolean.TRUE.equals(Scripting.evaluate(ctx, value, "${" + expression + "}"));
+					return Boolean.TRUE.equals(Scripting.evaluate(ctx, value, "${" + expression + "}", "virtual type filter"));
 
 				} catch (FrameworkException fex) {
 					logger.warn("", fex);

@@ -217,7 +217,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 				final GraphObject obj = app.getNodeById(source.toString());
 
 				if (obj != null && !type.isAssignableFrom(obj.getClass())) {
-					throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
+					throw new FrameworkException(422, "Node type mismatch", new TypeToken(obj.getClass().getSimpleName(), null, type.getSimpleName()));
 				}
 
 				return (T) obj;

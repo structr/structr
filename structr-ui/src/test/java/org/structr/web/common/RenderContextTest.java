@@ -588,7 +588,7 @@ public class RenderContextTest extends StructrUiTest {
 
 			// test filtering
 			ctx.setDetailsDataObject(testOnes.get(5));
-			final Object value = Scripting.evaluate(ctx, testOne, "${filter(find('TestOne'), not(equal(data.id, current.id)))}");
+			final Object value = Scripting.evaluate(ctx, testOne, "${filter(find('TestOne'), not(equal(data.id, current.id)))}", "test");
 
 			assertNotNull("Invalid filter result", value);
 			assertTrue("Invalid filter result", value instanceof List);

@@ -68,7 +68,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 			if (obj != null && readFunction != null) {
 
-				return (T)Scripting.evaluate(new ActionContext(securityContext), obj, "${".concat(readFunction).concat("}"));
+				return (T)Scripting.evaluate(new ActionContext(securityContext), obj, "${".concat(readFunction).concat("}"), "getProperty(" + jsonName + ")");
 
 			} else {
 
@@ -132,7 +132,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 			ctx.setConstant("value", value);
 
-			return (T)Scripting.evaluate(ctx, obj, "${".concat(writeFunction).concat("}"));
+			return (T)Scripting.evaluate(ctx, obj, "${".concat(writeFunction).concat("}"), "setProperty(" + jsonName + ")");
 
 		} catch (Throwable t) {
 

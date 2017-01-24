@@ -376,7 +376,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 					final String _sharedComponentConfiguration = getProperty(sharedComponentConfiguration);
 					if (StringUtils.isNotBlank(_sharedComponentConfiguration)) {
 
-						Scripting.evaluate(renderContext, this, "${" + _sharedComponentConfiguration + "}");
+						Scripting.evaluate(renderContext, this, "${" + _sharedComponentConfiguration + "}", "shared component configuration");
 					}
 
 					for (final AbstractRelationship rel : rels) {

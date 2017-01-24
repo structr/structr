@@ -86,7 +86,7 @@ public class SchemaMethodResource extends SortableResource {
 
 			try (final Tx tx = app.tx()) {
 
-				result = SchemaMethodResource.invoke(securityContext, null, source, propertySet);
+				result = SchemaMethodResource.invoke(securityContext, null, source, propertySet, methodResource.getUriPart());
 				tx.success();
 			}
 		}
@@ -104,8 +104,8 @@ public class SchemaMethodResource extends SortableResource {
 	}
 
 	// ----- private methods -----
-	public static RestMethodResult invoke(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> propertySet) throws FrameworkException {
-		return SchemaMethodResource.wrapInResult(Actions.execute(securityContext, entity, "${" + source.trim() + "}", propertySet));
+	public static RestMethodResult invoke(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> propertySet, final String methodName) throws FrameworkException {
+		return SchemaMethodResource.wrapInResult(Actions.execute(securityContext, entity, "${" + source.trim() + "}", propertySet, methodName));
 	}
 
 	public static RestMethodResult wrapInResult(final Object obj) {
