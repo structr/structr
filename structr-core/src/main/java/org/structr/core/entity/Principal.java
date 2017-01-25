@@ -74,7 +74,6 @@ public interface Principal extends NodeInterface, AccessControllable {
 		boolean valid = true;
 
 		valid &= ValidationHelper.isValidStringNotBlank(this, name, errorBuffer);
-		valid &= ValidationHelper.isValidUniqueProperty(this, name, errorBuffer);
 		valid &= ValidationHelper.isValidUniqueProperty(this, eMail, errorBuffer);
 
 		return valid;
