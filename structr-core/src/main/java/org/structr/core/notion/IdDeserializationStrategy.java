@@ -179,7 +179,8 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 							throw new FrameworkException(422, concat(
 								"Cannot create ", relation.getOtherType(type).getSimpleName(),
 								": no matching ", type.getSimpleName(),
-								" found for the given property set",
+								" found for the given property set ",
+								convertedProperties,
 								" and autoCreate has a value of ",
 								relationProperty.getAutocreateFlagName()
 							));

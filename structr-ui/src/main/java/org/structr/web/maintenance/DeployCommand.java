@@ -52,7 +52,6 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Group;
 import org.structr.core.entity.Localization;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
@@ -75,7 +74,6 @@ import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
-import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -181,20 +179,22 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			throw new FrameworkException(422, "Source path " + path + " is not a directory.");
 		}
 
-		// read users.json
-		final Path usersConf = source.resolve("security/users.json");
-		if (Files.exists(usersConf)) {
+		// apply configuration
+		final Path preDeployConf = source.resolve("pre-deploy.conf");
+		if (Files.exists(preDeployConf)) {
 
-			info("Reading {}..", usersConf);
-			importListData(User.class, readConfigList(usersConf));
-		}
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-		// read users.json
-		final Path groupsConf = source.resolve("security/groups.json");
-		if (Files.exists(groupsConf)) {
+				info("Applying pre-deployment configuration from {}..", preDeployConf);
 
-			info("Reading {}..", groupsConf);
-			importListData(Group.class, readConfigList(groupsConf));
+				final String confSource = new String(Files.readAllBytes(preDeployConf), Charset.forName("utf-8"));
+				Scripting.evaluate(new ActionContext(SecurityContext.getSuperUserInstance()), null, confSource.trim(), "pre-deploy.conf");
+
+				tx.success();
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
 		}
 
 		// read grants.json
@@ -324,15 +324,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		// apply configuration
-		final Path conf = source.resolve("deploy.conf");
-		if (Files.exists(conf)) {
+		final Path postDeployConf = source.resolve("post-deploy.conf");
+		if (Files.exists(postDeployConf)) {
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				info("Applying configuration from {}..", conf);
+				info("Applying post-deployment configuration from {}..", postDeployConf);
 
-				final String confSource = new String(Files.readAllBytes(conf), Charset.forName("utf-8"));
-				Scripting.evaluate(new ActionContext(SecurityContext.getSuperUserInstance()), null, confSource.trim(), "deploy.conf");
+				final String confSource = new String(Files.readAllBytes(postDeployConf), Charset.forName("utf-8"));
+				Scripting.evaluate(new ActionContext(SecurityContext.getSuperUserInstance()), null, confSource.trim(), "post-deploy.conf");
 
 				tx.success();
 
@@ -367,8 +367,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path templates      = Files.createDirectories(target.resolve("templates"));
 			final Path schemaJson     = schema.resolve("schema.json");
 			final Path grants         = security.resolve("grants.json");
-			final Path users          = security.resolve("users.json");
-			final Path groups         = security.resolve("groups.json");
 			final Path filesConf      = target.resolve("files.json");
 			final Path pagesConf      = target.resolve("pages.json");
 			final Path componentsConf = target.resolve("components.json");
@@ -381,8 +379,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			exportComponents(components, componentsConf);
 			exportTemplates(templates, templatesConf);
 			exportResourceAccessGrants(grants);
-			exportGroups(groups);
-			exportUsers(users);
 			exportSchema(schemaJson);
 			exportMailTemplates(mailTemplates);
 			exportLocalizations(localizations);
@@ -756,70 +752,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
 
 			getGson().toJson(grants, fos);
-
-		} catch (IOException ioex) {
-			ioex.printStackTrace();
-		}
-	}
-
-	private void exportGroups(final Path target) throws FrameworkException {
-
-		final List<Map<String, Object>> groups = new LinkedList<>();
-		final App app                          = StructrApp.getInstance();
-
-		try (final Tx tx = app.tx()) {
-
-			for (final Group group : app.nodeQuery(Group.class).sort(Group.name).getAsList()) {
-
-				final Map<String, Object> entry = new TreeMap<>();
-				final List<String> members      = new LinkedList<>();
-				groups.add(entry);
-
-				entry.put("name",    group.getProperty(Group.name));
-				entry.put("members", members);
-
-				for (final Principal member : group.getProperty(Group.members)) {
-					members.add(member.getProperty(Principal.name));
-				}
-			}
-
-			tx.success();
-		}
-
-		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
-
-			getGson().toJson(groups, fos);
-
-		} catch (IOException ioex) {
-			ioex.printStackTrace();
-		}
-	}
-
-	private void exportUsers(final Path target) throws FrameworkException {
-
-		final List<Map<String, Object>> users = new LinkedList<>();
-		final App app                          = StructrApp.getInstance();
-
-		try (final Tx tx = app.tx()) {
-
-			for (final User user : app.nodeQuery(User.class).sort(User.name).getAsList()) {
-
-				final Map<String, Object> grant = new TreeMap<>();
-				users.add(grant);
-
-				grant.put("name",         user.getProperty(User.name));
-				grant.put("eMail",        user.getProperty(Principal.eMail));
-				grant.put("isAdmin",      user.getProperty(Principal.isAdmin));
-				grant.put("frontendUser", user.getProperty(User.frontendUser));
-				grant.put("backendUser",  user.getProperty(User.backendUser));
-			}
-
-			tx.success();
-		}
-
-		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
-
-			getGson().toJson(users, fos);
 
 		} catch (IOException ioex) {
 			ioex.printStackTrace();
