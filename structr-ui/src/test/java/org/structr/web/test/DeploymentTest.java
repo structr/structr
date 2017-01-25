@@ -39,6 +39,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Localization;
+import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.Security;
@@ -1240,7 +1242,114 @@ public class DeploymentTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 			fail("Unexpected exception.");
 		}
+	}
 
+	@Test
+	public void test28MailTemplates() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			app.create(MailTemplate.class,
+				new NodeAttribute<>(MailTemplate.name,   "template1"),
+				new NodeAttribute<>(MailTemplate.locale, "de_DE"),
+				new NodeAttribute<>(MailTemplate.text,   "text1")
+			);
+
+			app.create(MailTemplate.class,
+				new NodeAttribute<>(MailTemplate.name,   "template2"),
+				new NodeAttribute<>(MailTemplate.locale, "en"),
+				new NodeAttribute<>(MailTemplate.text,   "text2")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// test
+		doImportExportRoundtrip(true);
+
+		// check
+		try (final Tx tx = app.tx()) {
+
+			final MailTemplate template1 = app.nodeQuery(MailTemplate.class).and(MailTemplate.name, "template1").getFirst();
+			final MailTemplate template2 = app.nodeQuery(MailTemplate.class).and(MailTemplate.name, "template2").getFirst();
+
+			Assert.assertNotNull("Invalid deployment result", template1);
+			Assert.assertNotNull("Invalid deployment result", template2);
+
+			Assert.assertEquals("Invalid MailTemplate deployment result", "template1", template1.getProperty(MailTemplate.name));
+			Assert.assertEquals("Invalid MailTemplate deployment result", "de_DE",     template1.getProperty(MailTemplate.locale));
+			Assert.assertEquals("Invalid MailTemplate deployment result", "text1",     template1.getProperty(MailTemplate.text));
+
+			Assert.assertEquals("Invalid MailTemplate deployment result", "template2", template2.getProperty(MailTemplate.name));
+			Assert.assertEquals("Invalid MailTemplate deployment result", "en",     template2.getProperty(MailTemplate.locale));
+			Assert.assertEquals("Invalid MailTemplate deployment result", "text2",     template2.getProperty(MailTemplate.text));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void test29Localizations() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			app.create(Localization.class,
+				new NodeAttribute<>(Localization.name,          "localization1"),
+				new NodeAttribute<>(Localization.domain,        "domain1"),
+				new NodeAttribute<>(Localization.locale,        "de_DE"),
+				new NodeAttribute<>(Localization.localizedName, "localizedName1")
+			);
+
+			app.create(Localization.class,
+				new NodeAttribute<>(Localization.name,          "localization2"),
+				new NodeAttribute<>(Localization.domain,        "domain2"),
+				new NodeAttribute<>(Localization.locale,        "en"),
+				new NodeAttribute<>(Localization.localizedName, "localizedName2")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// test
+		doImportExportRoundtrip(true);
+
+		// check
+		try (final Tx tx = app.tx()) {
+
+			final Localization localization1 = app.nodeQuery(Localization.class).and(Localization.name, "localization1").getFirst();
+			final Localization localization2 = app.nodeQuery(Localization.class).and(Localization.name, "localization2").getFirst();
+
+			Assert.assertNotNull("Invalid deployment result", localization1);
+			Assert.assertNotNull("Invalid deployment result", localization2);
+
+			Assert.assertEquals("Invalid MailTemplate deployment result", "localization1",  localization1.getProperty(Localization.name));
+			Assert.assertEquals("Invalid MailTemplate deployment result", "domain1",        localization1.getProperty(Localization.domain));
+			Assert.assertEquals("Invalid MailTemplate deployment result", "de_DE",          localization1.getProperty(Localization.locale));
+			Assert.assertEquals("Invalid MailTemplate deployment result", "localizedName1", localization1.getProperty(Localization.localizedName));
+
+			Assert.assertEquals("Invalid MailTemplate deployment result", "localization2",  localization2.getProperty(Localization.name));
+			Assert.assertEquals("Invalid MailTemplate deployment result", "domain2",        localization2.getProperty(Localization.domain));
+			Assert.assertEquals("Invalid MailTemplate deployment result", "en",             localization2.getProperty(Localization.locale));
+			Assert.assertEquals("Invalid MailTemplate deployment result", "localizedName2", localization2.getProperty(Localization.localizedName));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
 	}
 
 	// ----- private methods -----

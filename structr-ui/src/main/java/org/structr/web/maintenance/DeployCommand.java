@@ -53,6 +53,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Group;
+import org.structr.core.entity.Localization;
+import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.Security;
@@ -201,6 +203,22 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			info("Reading {}..", grantsConf);
 			importListData(ResourceAccess.class, readConfigList(grantsConf));
+		}
+
+		// read mail-templates.json
+		final Path mailTemplatesConf = source.resolve("mail-templates.json");
+		if (Files.exists(mailTemplatesConf)) {
+
+			info("Reading {}..", mailTemplatesConf);
+			importListData(MailTemplate.class, readConfigList(mailTemplatesConf));
+		}
+
+		// read localizations.json
+		final Path localizationsConf = source.resolve("localizations.json");
+		if (Files.exists(localizationsConf)) {
+
+			info("Reading {}..", localizationsConf);
+			importListData(Localization.class, readConfigList(localizationsConf));
 		}
 
 		// read files.conf
@@ -355,6 +373,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path pagesConf      = target.resolve("pages.json");
 			final Path componentsConf = target.resolve("components.json");
 			final Path templatesConf  = target.resolve("templates.json");
+			final Path mailTemplates  = target.resolve("mail-templates.json");
+			final Path localizations  = target.resolve("localizations.json");
 
 			exportFiles(files, filesConf);
 			exportPages(pages, pagesConf);
@@ -364,6 +384,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			exportGroups(groups);
 			exportUsers(users);
 			exportSchema(schemaJson);
+			exportMailTemplates(mailTemplates);
+			exportLocalizations(localizations);
 
 			// config import order is "users, grants, pages, components, templates"
 			// data import order is "schema, files, templates, components, pages"
@@ -905,6 +927,66 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		// export non-empty collection only
 		if (!grantees.isEmpty()) {
 			config.put("grantees", grantees);
+		}
+	}
+
+	private void exportMailTemplates(final Path target) throws FrameworkException {
+
+		final List<Map<String, Object>> mailTemplates = new LinkedList<>();
+		final App app                                 = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final MailTemplate mailTemplate : app.nodeQuery(MailTemplate.class).sort(MailTemplate.name).getAsList()) {
+
+				final Map<String, Object> entry = new TreeMap<>();
+				mailTemplates.add(entry);
+
+				entry.put("name",   mailTemplate.getProperty(MailTemplate.name));
+				entry.put("text",   mailTemplate.getProperty(MailTemplate.text));
+				entry.put("locale", mailTemplate.getProperty(MailTemplate.locale));
+			}
+
+			tx.success();
+		}
+
+		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
+
+			getGson().toJson(mailTemplates, fos);
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
+	}
+
+	private void exportLocalizations(final Path target) throws FrameworkException {
+
+		final List<Map<String, Object>> localizations = new LinkedList<>();
+		final App app                                 = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final Localization localization : app.nodeQuery(Localization.class).sort(Localization.name).getAsList()) {
+
+				final Map<String, Object> entry = new TreeMap<>();
+				localizations.add(entry);
+
+				entry.put("name",          localization.getProperty(Localization.name));
+				entry.put("localizedName", localization.getProperty(Localization.localizedName));
+				entry.put("domain",        localization.getProperty(Localization.domain));
+				entry.put("locale",        localization.getProperty(Localization.locale));
+				entry.put("imported",      localization.getProperty(Localization.imported));
+			}
+
+			tx.success();
+		}
+
+		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
+
+			getGson().toJson(localizations, fos);
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
 		}
 	}
 
