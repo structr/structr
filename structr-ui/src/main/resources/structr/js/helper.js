@@ -422,7 +422,7 @@ var LSWrapper = new (function() {
 	};
 
 	this.getItem = function (key) {
-		return _localStorageObject[key] || null;
+		return (_localStorageObject[key] === undefined) ? null : _localStorageObject[key];
 	};
 
 	this.removeItem = function (key) {
