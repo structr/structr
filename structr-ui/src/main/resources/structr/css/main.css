@@ -647,6 +647,10 @@ ul#previewTabs {
     margin-top: 20px;
 }
 
+.data-tabs.level-two {
+    margin-top: 0px;
+}
+
 .data-tabs > ul, .files-tabs > ul {
     overflow: hidden;
 }
@@ -673,6 +677,10 @@ ul#previewTabs {
 
 .propTabContent section {
     padding: 24px 0 0 0;
+}
+
+.tab {
+	padding: 8px 0;
 }
 
 #previewTabs img {
@@ -1593,7 +1601,7 @@ button.add_property {
  * Schema
  */
 
-#create-type img, #admin-tools img {
+#create-type img, #schema-tools img {
     margin-top: -3px;
 }
 
@@ -1622,6 +1630,17 @@ button.add_property {
 
 #connector-style {
     margin: 0 8px 4px 12px;
+}
+
+#zoom-slider {
+	display:inline-block;
+	width:100px;
+	margin-left:10px;
+}
+
+#schema-show-overlays {
+	margin-left:16px;
+	margin-top:0;
 }
 
 #node-type-selector, #rel-type-selector, #saved-layout-selector {
@@ -1859,7 +1878,7 @@ input.property-name:disabled {
     opacity: .7;
 }
 
-#admin-tools, #sync-schema, #show-snapshots, #schema-display-options, #reset-schema-layout {
+#schema-tools, #sync-schema, #show-snapshots, #schema-display-options {
     margin: 0 0 4px 12px;
 }
 

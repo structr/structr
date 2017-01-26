@@ -1164,16 +1164,21 @@ var Structr = {
 
 		return false;
 	},
-	pullDialog: function(type) {
+	pullDialog: function(type, optionalContainer) {
 
-		Structr.dialog('Sync ' + type.replace(/,/, '(s) or ') + '(s) from remote server', function() {
-		},
-				function() {
-				});
+		var container;
+
+		if (optionalContainer) {
+			 container = optionalContainer;
+			 container.append('<h3>Sync ' + type.replace(/,/, '(s) or ') + '(s) from remote server</h3>');
+		} else {
+			container = dialog;
+			Structr.dialog('Sync ' + type.replace(/,/, '(s) or ') + '(s) from remote server', function() {}, function() {});
+		}
 
 		var pushConf = JSON.parse(LSWrapper.getItem(pushConfigKey)) || {};
 
-		dialog.append('<table class="props push">'
+		container.append('<table class="props push">'
 				+ '<tr><td>Host</td><td><input id="push-host" type="text" length="32" value="' + (pushConf.host || '') + '"></td>'
 				+ '<td>Port</td><td><input id="push-port" type="text" length="32" value="' + (pushConf.port || '') + '"></td></tr>'
 				+ '<tr><td>Username</td><td><input id="push-username" type="text" length="32" value="' + (pushConf.username || '') + '"></td>'
@@ -1184,13 +1189,13 @@ var Structr = {
 				+ '</table>'
 				);
 
-		$('#show-syncables', dialog).on('click', function() {
+		$('#show-syncables', container).on('click', function() {
 
 			var syncables = $("#syncables");
-			var host = $('#push-host', dialog).val();
-			var port = parseInt($('#push-port', dialog).val());
-			var username = $('#push-username', dialog).val();
-			var password = $('#push-password', dialog).val();
+			var host = $('#push-host', container).val();
+			var port = parseInt($('#push-port', container).val());
+			var username = $('#push-username', container).val();
+			var password = $('#push-password', container).val();
 			var key = 'syncables';
 
 			pushConf = {host: host, port: port, username: username, password: password};
@@ -1214,7 +1219,7 @@ var Structr = {
 							+ '</tr>'
 							);
 
-					var syncButton = $('#pull-' + syncable.id, dialog);
+					var syncButton = $('#pull-' + syncable.id, container);
 
 					if (syncable.isSynchronized) {
 						syncButton.empty();
