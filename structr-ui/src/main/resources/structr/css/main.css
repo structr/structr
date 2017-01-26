@@ -1761,6 +1761,10 @@ button.add_property {
     background: transparent;
 }
 
+input.property-name:disabled {
+	background-color: inherit;
+}
+
 .schema.expanded .property-name,
 .schema.expanded .property-type,
 .schema.expanded .property-dbname,
@@ -1791,7 +1795,7 @@ button.add_property {
 
 .schema b:hover,
 .schema-details b:hover,
-.schema-details .property-name:hover,
+.schema-details .property-name:hover:not(:disabled),
 .schema-details .property-dbname:hover,
 .schema-details .property-format:hover,
 .schema-details .property-default:hover,
