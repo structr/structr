@@ -41,6 +41,10 @@ var _Schema = {
 	showSchemaOverlaysKey: 'structrShowSchemaOverlays_' + port,
 	schemaMethodsHeightsKey: 'structrSchemaMethodsHeights_' + port,
 	schemaActiveTabLeftKey: 'structrSchemaActiveTabLeft_' + port,
+	activeSchemaToolsSelectedTabLevel1Key: 'structrSchemaToolsSelectedTabLevel1_' + port,
+	activeSchemaToolsSelectedTabLevel2Key: 'structrSchemaToolsSelectedTabLevel2_' + port,
+	schemaZoomLevelKey: localStorageSuffix + 'zoomLevel',
+	schemaConnectorStyleKey: localStorageSuffix + 'connectorStyle',
 	selectionInProgress: false,
 	selectBox: undefined,
 	mouseDownCoords: {x:0, y:0},
@@ -91,8 +95,8 @@ var _Schema = {
 		LSWrapper.setItem(_Schema.schemaPositionsKey, _Schema.nodePositions);
 	},
 	clearPositions: function() {
-		// clear positions of stored schema nodes to improve automatic layout
 		LSWrapper.removeItem(_Schema.schemaPositionsKey);
+		_Schema.reload();
 	},
 	init: function(scrollPosition) {
 
@@ -107,8 +111,8 @@ var _Schema = {
 
 		Structr.ensureIsAdmin(schemaInputContainer, function() {
 
-			_Schema.connectorStyle = LSWrapper.getItem(localStorageSuffix + 'connectorStyle') || 'Flowchart';
-			_Schema.zoomLevel = parseFloat(LSWrapper.getItem(localStorageSuffix + 'zoomLevel')) || 1.0;
+			_Schema.connectorStyle = LSWrapper.getItem(_Schema.schemaConnectorStyleKey) || 'Flowchart';
+			_Schema.zoomLevel = parseFloat(LSWrapper.getItem(_Schema.schemaZoomLevelKey)) || 1.0;
 
 			schemaInputContainer.append('<div class="input-and-button"><input class="schema-input" id="type-name" type="text" size="10" placeholder="New type"><button id="create-type" class="btn"><img src="' + _Icons.add_icon + '"> Add</button></div>');
 			schemaInputContainer.append('<div class="input-and-button"><input class="schema-input" id="ggist-url" type="text" size="20" placeholder="Enter GraphGist URL"><button id="gg-import" class="btn">Start Import</button></div>');
@@ -127,21 +131,20 @@ var _Schema = {
 			$('#connector-style').on('change', function() {
 				var newStyle = $(this).val();
 				_Schema.connectorStyle = newStyle;
-				LSWrapper.setItem(localStorageSuffix + 'connectorStyle', newStyle);
+				LSWrapper.setItem(_Schema.schemaConnectorStyleKey, newStyle);
 				_Schema.reload();
 			});
 
-			schemaInputContainer.append('<div id="zoom-slider" style="display:inline-block; width:100px; margin-left:10px"></div>');
-			$( "#zoom-slider" ).slider({
+			schemaInputContainer.append('<div id="zoom-slider"></div>');
+			$('#zoom-slider').slider({
 				min:0.25,
 				max:1,
 				step:0.05,
 				value:_Schema.zoomLevel,
 				slide: function( event, ui ) {
-					var newZoomLevel = ui.value;
-					_Schema.zoomLevel = newZoomLevel;
-					LSWrapper.setItem(localStorageSuffix + 'zoomLevel', newZoomLevel);
-					_Schema.setZoom(newZoomLevel, instance, [0,0], $('#schema-graph')[0]);
+					_Schema.zoomLevel = ui.value;
+					LSWrapper.setItem(_Schema.schemaZoomLevelKey, _Schema.zoomLevel);
+					_Schema.setZoom(_Schema.zoomLevel, instance, [0,0], $('#schema-graph')[0]);
 					if (_Schema.selectedNodes.length > 0) {
 						_Schema.updateSelectedNodes();
 					}
@@ -149,21 +152,13 @@ var _Schema = {
 				}
 			});
 
-			schemaInputContainer.append('<button class="btn" id="admin-tools"><img src="' + _Icons.wrench_icon + '"> Tools</button>');
-			schemaInputContainer.append('<button class="btn module-dependend" data-structr-module="cloud" id="sync-schema"><img src="' + _Icons.push_file_icon + '"> Sync schema</button>');
-			schemaInputContainer.append('<button class="btn" id="show-snapshots"><img src="' + _Icons.database_icon + '"> Snapshots</button>');
-			schemaInputContainer.append('<button class="btn" id="schema-display-options"><img src="' + _Icons.edit_icon + '"> Display Options</button>');
-			schemaInputContainer.append('<button class="btn" id="reset-schema-layout"><img src="' + _Icons.refresh_icon + '"> Reset Layout</button>');
-			schemaInputContainer.append('<input type="checkbox" id="schema-show-overlays" name="schema-show-overlays" style="margin-left:10px"><label for="schema-show-overlays"> Show relationship labels</label>');
+			schemaInputContainer.append('<input type="checkbox" id="schema-show-overlays" name="schema-show-overlays"><label for="schema-show-overlays"> Show relationship labels</label>');
+			schemaInputContainer.append('<button class="btn" id="schema-tools"><img src="' + _Icons.wrench_icon + '"> Tools</button>');
 
-			$('#admin-tools').on('click', _Schema.openAdminTools);
-			$('#sync-schema').on('click', _Schema.syncSchemaDialog);
-			$('#show-snapshots').on('click', _Schema.snapshotsDialog);
-			$('#schema-display-options').on('click', _Schema.openSchemaDisplayOptions);
-			$('#reset-schema-layout').on('click', _Schema.clearPositions);
 			$('#schema-show-overlays').on('change', function() {
 				_Schema.updateOverlayVisibility($(this).prop('checked'));
 			});
+			$('#schema-tools').on('click', _Schema.openSchemaToolsDialog);
 
 			$('#type-name').on('keyup', function(e) {
 
@@ -254,7 +249,8 @@ var _Schema = {
 
 					Structr.unblockMenu(500);
 
-					var showSchemaOverlays = LSWrapper.getItem(_Schema.showSchemaOverlaysKey) === null ? true : LSWrapper.getItem(_Schema.showSchemaOverlaysKey);
+					var overlaysVisible = LSWrapper.getItem(_Schema.showSchemaOverlaysKey);
+					var showSchemaOverlays = (overlaysVisible === null) ? true : overlaysVisible;
 					_Schema.updateOverlayVisibility(showSchemaOverlays);
 
 					if (scrollPosition) {
@@ -509,7 +505,7 @@ var _Schema = {
 
 					hierarchy[key].forEach(function(entity) {
 
-						if (_Schema.hiddenSchemaNodes.length > 0 && _Schema.hiddenSchemaNodes.indexOf(entity.id) > -1) {
+						if (_Schema.hiddenSchemaNodes.length > 0 && _Schema.hiddenSchemaNodes.indexOf(entity.name) > -1) {
 							return;
 						}
 
@@ -721,7 +717,7 @@ var _Schema = {
 					stub   = 30 + 80 * relCnt[relIndex];
 					offset =     0.1 * relCnt[relIndex];
 
-					if (!(nodes[res.sourceId] && nodes[res.targetId])) {
+					if (!nodes[res.sourceId] || !nodes[res.targetId] || _Schema.hiddenSchemaNodes.indexOf(nodes[res.sourceId].name) > -1 || _Schema.hiddenSchemaNodes.indexOf(nodes[res.targetId].name) > -1) {
 						return;
 					}
 
@@ -2402,19 +2398,15 @@ var _Schema = {
 		});
 	},
 	connect: function(sourceId, targetId) {
-		//Structr.dialog('Enter relationship details');
 		_Schema.createRelationshipDefinition(sourceId, targetId, initialRelType);
-
 	},
 	detach: function(relationshipId) {
-		//Structr.dialog('Enter relationship details');
 		_Schema.removeRelationshipDefinition(relationshipId);
 	},
 	makeAttrEditable: function(element, key, isRel) {
-		//element.off('dblclick');
 
 		// cut off three leading underscores and only use 32 characters (the UUID)
-		var id = element.prop('id').substring(3,35);
+		var id = element.prop('id').substring(3, 35);
 
 		element.off('hover');
 		element.children('b').hide();
@@ -2484,57 +2476,11 @@ var _Schema = {
 			}
 		});
 	},
-	syncSchemaDialog: function() {
+	appendSnapshotsDialogToContainer: function(container) {
 
-		Structr.dialog('Sync schema to remote server', function() {},  function() {});
-
-		var pushConf = JSON.parse(LSWrapper.getItem(pushConfigKey)) || {};
-
-		dialog.append('To sync <b>all schema nodes and relationships</b> to the remote server, ');
-		dialog.append('enter host, port, username and password of your remote instance and click Start.');
-
-		dialog.append('<p><button class="btn" id="pull"">Click here</button> if you want to sync your local schema with schema nodes and relationships from the remote server.</p>');
-
-		$('#pull', dialog).on('click', function(e) {
-			e.stopPropagation();
-			Structr.pullDialog('SchemaNode,SchemaRelationshipNode');
-		});
-
-		dialog.append('<table class="props push">'
-				+ '<tr><td>Host</td><td><input id="push-host" type="text" length="20" value="' + (pushConf.host || '') + '"></td></tr>'
-				+ '<tr><td>Port</td><td><input id="push-port" type="text" length="20" value="' + (pushConf.port || '') + '"></td></tr>'
-				+ '<tr><td>Username</td><td><input id="push-username" type="text" length="20" value="' + (pushConf.username || '') + '"></td></tr>'
-				+ '<tr><td>Password</td><td><input id="push-password" type="password" length="20" value="' + (pushConf.password || '') + '"></td></tr>'
-				+ '</table>'
-				+ '<button id="start-push">Start</button>');
-
-
-
-		$('#start-push', dialog).on('click', function() {
-			var host = $('#push-host', dialog).val();
-			var port = parseInt($('#push-port', dialog).val());
-			var username = $('#push-username', dialog).val();
-			var password = $('#push-password', dialog).val();
-			var key = 'key_push_schema';
-
-			pushConf = {host: host, port: port, username: username, password: password};
-			LSWrapper.setItem(pushConfigKey, JSON.stringify(pushConf));
-
-			Command.pushSchema(host, port, username, password, key, function() {
-				dialog.empty();
-				dialogCancelButton.click();
-			});
-		});
-
-		return false;
-	},
-	snapshotsDialog: function() {
-
-		Structr.dialog('Schema Snapshots', function() {}, function() {});
-
-		dialog.append('<h3>Create snapshot</h3>');
-		dialog.append('<p>Creates a new snapshot of the current schema configuration that can be restored later. You can enter an (optional) suffix for the snapshot.</p>');
-		dialog.append('<p><input type="text" name="suffix" id="snapshot-suffix" placeholder="Enter a suffix" length="20" /> <button id="create-snapshot">Create snapshot</button></p>');
+		container.append('<h3>Create snapshot</h3>');
+		container.append('<p>Creates a new snapshot of the current schema configuration that can be restored later. You can enter an (optional) suffix for the snapshot.</p>');
+		container.append('<p><input type="text" name="suffix" id="snapshot-suffix" placeholder="Enter a suffix" length="20" /> <button id="create-snapshot">Create snapshot</button></p>');
 
 		var refresh = function() {
 
@@ -2646,24 +2592,21 @@ var _Schema = {
 
 		});
 
-		dialog.append('<h3>Available snapshots to restore</h3>');
+		container.append('<h3>Available Snapshots</h3>');
 
-		dialog.append('<table class="props" id="snapshots"></table>');
+		container.append('<table class="props" id="snapshots"></table>');
 
 		var table = $('#snapshots');
 
 		refresh();
 
 		// update button
-		dialog.append('<p style="text-align: right;"><button id="refresh-snapshots">Refresh</button></p>');
+		container.append('<p style="text-align: right;"><button id="refresh-snapshots">Refresh</button></p>');
 		$('#refresh-snapshots').on('click', refresh);
 
-		return false;
 	},
-	openAdminTools: function() {
-		Structr.dialog('Admin Tools', function() {}, function() {});
-
-		dialogText.append('<table id="admin-tools-table"></table>');
+	appendAdminToolsToContainer: function (container) {
+		container.append('<table id="admin-tools-table"></table>');
 		var toolsTable = $('#admin-tools-table');
 		toolsTable.append('<tr><td><button id="rebuild-index"><img src="' + _Icons.refresh_icon + '"> Rebuild Index</button></td><td><label for"rebuild-index">Rebuild database index for all nodes and relationships</label></td></tr>');
 		toolsTable.append('<tr><td><button id="clear-schema"><img src="' + _Icons.delete_icon + '"> Clear Schema</button></td><td><label for"clear-schema">Delete all schema nodes and relationships of dynamic schema</label></td></tr>');
@@ -2826,21 +2769,29 @@ var _Schema = {
 				}
 			});
 		});
+	},
+	appendLayoutToolsToContainer: function (container) {
 
-		dialogText.append('<h2 class="dialogTitle">Layout Tools</h2>');
-		dialogText.append('<table id="layout-tools-table"></table>');
-		var layoutsTable = $('#layout-tools-table');
-		layoutsTable.append('<tr><td><input id="save-layout-filename" placeholder="Enter name for layout"><button id="save-layout-file"><img src="' + _Icons.floppy_icon + '"> Save Layout</button></td><td><label for"export-layout">Save current positions to backend (for every user to load)</label></td></tr>');
-		layoutsTable.append('<tr><td><select id="saved-layout-selector"></select><br><button id="apply-layout"><img src="' + _Icons.wand_icon + '"> Apply</button><button id="download-layout"><img src="' + _Icons.pull_file_icon + '"> Download</button><button id="delete-layout"><img src="' + _Icons.delete_icon + '"> Delete</button></td><td><label for"import-layout">Restore, download or delete saved layouts.</label></td></tr>');
+		container.append('<h3>General Functions</h3>');
+		container.append('<p>Reset the currently stored positions so the automatic layouting algorithm can take effect.</p>');
+		container.append('<p><button class="btn" id="reset-schema-positions"><img src="' + _Icons.refresh_icon + '"> Reset Node Positions</button></p>');
+		$('#reset-schema-positions', container).on('click', _Schema.clearPositions);
+
+		container.append('<h3>Save Layout Configuration</h3>');
+		container.append('<p>Save the current layout configuration to backend (available to every backend user). This includes positions, visibility, zoom level, connector style and visibility of relationship labels.</p>');
+		container.append('<p><input id="save-layout-filename" placeholder="Enter name for layout"><button id="save-layout-file"><img src="' + _Icons.floppy_icon + '"> Save Layout</button></p>');
+
+		container.append('<h3>Available Layout Configurations</h3>');
+		container.append('<select id="saved-layout-selector"></select><button id="restore-layout"><img src="' + _Icons.wand_icon + '"> Restore</button><button id="download-layout"><img src="' + _Icons.pull_file_icon + '"> Download</button><button id="delete-layout"><img src="' + _Icons.delete_icon + '"> Delete</button>');
 
 		var layoutSelector = $('#saved-layout-selector');
 
-		$('#save-layout-file', layoutsTable).click(function() {
+		$('#save-layout-file', container).click(function() {
 			var fileName = $('#save-layout-filename').val().replaceAll(/[^\w_\-\. ]+/, '-');
 
 			if (fileName && fileName.length) {
 
-				Command.layouts('add', fileName, JSON.stringify(_Schema.nodePositions), function() {
+				Command.layouts('add', fileName, JSON.stringify(_Schema.getSchemaLayoutConfiguration()), function() {
 					updateLayoutSelector();
 					$('#save-layout-filename').val('');
 
@@ -2852,7 +2803,7 @@ var _Schema = {
 			}
 		});
 
-		$('#apply-layout').click(function () {
+		$('#restore-layout').click(function () {
 
 			var selectedLayout = layoutSelector.val();
 
@@ -2860,47 +2811,76 @@ var _Schema = {
 
 				Command.layouts('get', selectedLayout, null, function(result) {
 
-					var loadedSchemaPositions;
+					var loadedConfig;
 
 					try {
-						loadedSchemaPositions = JSON.parse(result.schemaLayout);
+						loadedConfig = JSON.parse(result.schemaLayout);
 					} catch (e) {
 						alert ("Unreadable JSON - please make sure you are using JSON exported from this dialog!");
 					}
 
-					if (loadedSchemaPositions) {
+					if (loadedConfig) {
 
-						if (loadedSchemaPositions[Object.keys(loadedSchemaPositions)[0]].position) {
-							// convert old file type
-							var schemaPositions = {};
-							Object.keys(loadedSchemaPositions).forEach(function (type) {
-								schemaPositions[type] = loadedSchemaPositions[type].position;
-							});
-							loadedSchemaPositions = schemaPositions;
-						}
+						if (loadedConfig._version) {
 
-						LSWrapper.setItem(_Schema.schemaPositionsKey, loadedSchemaPositions);
+							switch (loadedConfig._version) {
+								case 2: {
 
-						$('#schema-graph .node').each(function(i, n) {
-							var node = $(n);
-							var type = node.text();
+									_Schema.zoomLevel = loadedConfig.zoom;
+									LSWrapper.setItem(_Schema.schemaZoomLevelKey, _Schema.zoomLevel);
+									_Schema.setZoom(_Schema.zoomLevel, instance, [0,0], $('#schema-graph')[0]);
+									$( "#zoom-slider" ).slider('value', _Schema.zoomLevel);
 
-							if (loadedSchemaPositions[type]) {
-								node.css('top', loadedSchemaPositions[type].top);
-								node.css('left', loadedSchemaPositions[type].left);
+									_Schema.updateOverlayVisibility(loadedConfig.showRelLabels);
+
+									var hiddenTypes = loadedConfig.hiddenTypes;
+									hiddenTypes = hiddenTypes.filter(function(typeName) {
+										return (_Schema.nodePositions[typeName] !== undefined);
+									});
+									_Schema.hiddenSchemaNodes = hiddenTypes;
+									LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
+
+									// update the list in the visibility table
+									$('#schema-options-table input.toggle-type').prop('checked', true);
+									_Schema.hiddenSchemaNodes.forEach(function(hiddenType) {
+										$('#schema-options-table input.toggle-type[data-structr-type="' + hiddenType + '"]').prop('checked', false);
+									});
+
+									var connectorStyle = loadedConfig.connectorStyle;
+									$('#connector-style').val(connectorStyle);
+									_Schema.connectorStyle = connectorStyle;
+									LSWrapper.setItem(_Schema.schemaConnectorStyleKey, connectorStyle);
+
+									var positions = loadedConfig.positions;
+									LSWrapper.setItem(_Schema.schemaPositionsKey, positions);
+									_Schema.applyNodePositions(positions);
+								}
+									break;
+
+								default:
+									new MessageBuilder().error("Cannot restore layout: Unknown layout version - was this layout created with a newer version of structr than the one currently running?").show();
 							}
-						});
+
+						} else {
+
+							if (loadedConfig[Object.keys(loadedConfig)[0]].position) {
+								// convert old file type
+								var schemaPositions = {};
+								Object.keys(loadedConfig).forEach(function (type) {
+									schemaPositions[type] = loadedConfig[type].position;
+								});
+								loadedConfig = schemaPositions;
+							}
+
+							LSWrapper.setItem(_Schema.schemaPositionsKey, loadedConfig);
+							_Schema.applyNodePositions(loadedConfig);
+
+							new MessageBuilder().info("This layout was created using an older version of Structr. To make use of newer features you should delete and re-create it with the current version.").show();
+						}
 
 						Structr.saveLocalStorage();
 
-						instance.repaintEverything();
-
-						$('#schema-layout-import-textarea').val('Import successful - imported ' + Object.keys(loadedSchemaPositions).length + ' positions.');
-
-						window.setTimeout(function () {
-							$('#schema-layout-import-row').hide();
-							$('#schema-layout-import-textarea').val('');
-						}, 2000);
+						_Schema.reload();
 					}
 				});
 
@@ -2934,7 +2914,7 @@ var _Schema = {
 			}
 		});
 
-		$('#delete-layout', layoutsTable).click(function() {
+		$('#delete-layout', container).click(function() {
 
 			var selectedLayout = layoutSelector.val();
 
@@ -2968,15 +2948,153 @@ var _Schema = {
 		updateLayoutSelector();
 
 	},
-	openSchemaDisplayOptions: function() {
-		Structr.dialog('Schema Display Options', function() { }, function() { });
+	applyNodePositions:function(positions) {
+		$('#schema-graph .node').each(function(i, n) {
+			var node = $(n);
+			var type = node.text();
 
-		dialogText.append('<h3>Visibility</h3><table class="props" id="schema-options-table"><tr><th>Type</th><th>Visible <input type="checkbox" id="toggle-all-types"><img class="invert-icon" src="' + _Icons.toggle_icon + '" id="invert-all-types"></button></th></table>');
+			if (positions[type]) {
+				node.css('top', positions[type].top);
+				node.css('left', positions[type].left);
+			}
+		});
+	},
+	getSchemaLayoutConfiguration: function() {
+		return {
+			_version: 2,
+			positions: _Schema.nodePositions,
+			hiddenTypes: _Schema.hiddenSchemaNodes,
+			zoom: _Schema.zoomLevel,
+			connectorStyle: _Schema.connectorStyle,
+			showRelLabels: $('#schema-show-overlays').prop('checked')
+		};
+	},
+	openSchemaToolsDialog: function () {
+		Structr.dialog('Schema Tools', function() {}, function() {});
+
+		var id = "schema-tools";
+		dialogHead.append('<div id="' + id + '_head"><div id="tabs" style="margin-top:20px;"><ul id="schema-tools-tabs"></ul></div></div>');
+		dialogText.append('<div id="' + id + '_content"></div>');
+
+		var mainTabs = $('#tabs', dialogHead);
+		var contentDiv = $('#' + id + '_content', dialogText);
+
+		var ul = mainTabs.children('ul');
+		ul.append('<li data-name="admin">Admin</li>');
+		ul.append('<li data-name="layout">Layouts</li>');
+		ul.append('<li data-name="visibility">Visibility</li>');
+		ul.append('<li data-name="snapshots">Snapshots</li>');
+
+		if (Structr.isModulePresent("cloud")) {
+			ul.append('<li id="tab" data-name="schema-sync">Schema Sync</li>');
+		}
+
+		var activateTab = function (tabName) {
+			$('.tools-tab-content', contentDiv).hide();
+			$('li', ul).removeClass('active');
+			$('#tabView-' + tabName, contentDiv).show();
+			$('li[data-name="' + tabName + '"]', ul).addClass('active');
+			LSWrapper.setItem(_Schema.activeSchemaToolsSelectedTabLevel1Key, tabName);
+		};
+
+		$('#schema-tools-tabs > li', mainTabs).on('click', function(e) {
+			e.stopPropagation();
+			activateTab($(this).data('name'));
+		});
+
+		contentDiv.append('<div class="tab tools-tab-content" id="tabView-admin"></div>');
+		_Schema.appendAdminToolsToContainer($('#tabView-admin', contentDiv));
+
+		contentDiv.append('<div class="tab tools-tab-content" id="tabView-layout"></div>');
+		_Schema.appendLayoutToolsToContainer($('#tabView-layout', contentDiv));
+
+		contentDiv.append('<div class="tab tools-tab-content" id="tabView-visibility"></div>');
+		_Schema.appendTypeVisibilityOptionsToContainer($('#tabView-visibility', contentDiv));
+
+		contentDiv.append('<div class="tab tools-tab-content" id="tabView-snapshots"></div>');
+		_Schema.appendSnapshotsDialogToContainer($('#tabView-snapshots', contentDiv));
+
+		if (Structr.isModulePresent("cloud")) {
+			contentDiv.append('<div class="tab tools-tab-content" id="tabView-schema-sync"></div>');
+			_Schema.appendSyncOptionsToContainer($('#tabView-schema-sync', contentDiv));
+		}
+
+		var activeTab = LSWrapper.getItem(_Schema.activeSchemaToolsSelectedTabLevel1Key) || 'admin';
+		activateTab(activeTab);
+	},
+	appendSyncOptionsToContainer: function (container) {
+
+		var id = "schema-tools-sync";
+		container.append('<div id="' + id + '_head"><div class="data-tabs level-two"><ul id="schema-tools-sync-tabs"></ul></div></div>');
+
+		var ul = $('#schema-tools-sync-tabs', container);
+		ul.append('<li id="tab" data-name="to-remote">Local -> Remote</li>');
+		ul.append('<li id="tab" data-name="from-remote">Remote -> Local</li>');
+
+		var activateTab = function (tabName) {
+			$('.sync-tab-content', container).hide();
+			$('li', ul).removeClass('active');
+			$('#tabView-' + tabName, container).show();
+			$('li[data-name="' + tabName + '"]', ul).addClass('active');
+			LSWrapper.setItem(_Schema.activeSchemaToolsSelectedTabLevel2Key, tabName);
+		};
+
+		$('#schema-tools-sync-tabs > li', container).on('click', function(e) {
+			e.stopPropagation();
+			activateTab($(this).data('name'));
+		});
+
+		container.append('<div id="' + id + '_content"></div>');
+		var contentEl = $('#' + id + '_content', container);
+		contentEl.append('<div class="tab sync-tab-content" id="tabView-to-remote"></div>');
+		_Schema.appendSyncToRemoteOptionsToContainer($('#tabView-to-remote', contentEl));
+
+		contentEl.append('<div class="tab sync-tab-content" id="tabView-from-remote"></div>');
+		Structr.pullDialog('SchemaNode,SchemaRelationshipNode', $('#tabView-from-remote', contentEl));
+
+		var activeTab = LSWrapper.getItem(_Schema.activeSchemaToolsSelectedTabLevel2Key) || 'to-remote';
+		activateTab(activeTab);
+
+	},
+	appendSyncToRemoteOptionsToContainer: function (container) {
+
+		var pushConf = JSON.parse(LSWrapper.getItem(pushConfigKey)) || {};
+
+		container.append('To sync <b>all schema nodes and relationships</b> to the remote server, ');
+		container.append('enter host, port, username and password of your remote instance and click Start.');
+
+		container.append('<table class="props push">'
+				+ '<tr><td>Host</td><td><input id="push-host" type="text" length="20" value="' + (pushConf.host || '') + '"></td></tr>'
+				+ '<tr><td>Port</td><td><input id="push-port" type="text" length="20" value="' + (pushConf.port || '') + '"></td></tr>'
+				+ '<tr><td>Username</td><td><input id="push-username" type="text" length="20" value="' + (pushConf.username || '') + '"></td></tr>'
+				+ '<tr><td>Password</td><td><input id="push-password" type="password" length="20" value="' + (pushConf.password || '') + '"></td></tr>'
+				+ '</table>'
+				+ '<button id="start-push">Start</button>');
+
+		$('#start-push', container).on('click', function() {
+			var host = $('#push-host', container).val();
+			var port = parseInt($('#push-port', container).val());
+			var username = $('#push-username', container).val();
+			var password = $('#push-password', container).val();
+			var key = 'key_push_schema';
+
+			pushConf = {host: host, port: port, username: username, password: password};
+			LSWrapper.setItem(pushConfigKey, JSON.stringify(pushConf));
+
+			Command.pushSchema(host, port, username, password, key, function() {
+				new MessageBuilder().success("Schema pushed successfully").show();
+			});
+		});
+
+	},
+	appendTypeVisibilityOptionsToContainer: function(container) {
+
+		container.append('<table class="props" id="schema-options-table"><tr><th>Type</th><th>Visible <input type="checkbox" id="toggle-all-types"><img class="invert-icon" src="' + _Icons.toggle_icon + '" id="invert-all-types"></button></th></table>');
 		var schemaOptionsTable = $('#schema-options-table');
 
 		Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', null, function(schemaNodes) {
 			schemaNodes.forEach(function(schemaNode) {
-				schemaOptionsTable.append('<tr><td>' + schemaNode.name + '</td><td><input class="toggle-type" data-structr-id="' + schemaNode.id + '" type="checkbox" ' + (_Schema.hiddenSchemaNodes.indexOf(schemaNode.id) > -1 ? '' : 'checked') + '></td></tr>');
+				schemaOptionsTable.append('<tr><td>' + schemaNode.name + '</td><td><input class="toggle-type" data-structr-type="' + schemaNode.name + '" type="checkbox" ' + (_Schema.hiddenSchemaNodes.indexOf(schemaNode.name) > -1 ? '' : 'checked') + '></td></tr>');
 			});
 
 			$('#toggle-all-types', schemaOptionsTable).on('click', function() {
@@ -3014,25 +3132,21 @@ var _Schema = {
 				_Schema.reload();
 				return false;
 			});
-
 		});
 
 	},
 	checkIsHiddenSchemaNode: function(inp) {
-		var key = inp.attr('data-structr-id');
+		var typeName = inp.attr('data-structr-type');
+		var position = _Schema.hiddenSchemaNodes.indexOf(typeName);
 		if (!inp.is(':checked')) {
-			if (_Schema.hiddenSchemaNodes.indexOf(key) === -1) {
-				_Schema.hiddenSchemaNodes.push(key);
+			if (position === -1) {
+				_Schema.hiddenSchemaNodes.push(typeName);
+				LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
 			}
-			nodes[key] = undefined;
-			LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
 		} else {
-			if (_Schema.hiddenSchemaNodes.indexOf(key) > -1) {
-				_Schema.hiddenSchemaNodes.splice(_Schema.hiddenSchemaNodes.indexOf(key), 1);
-				Command.get(key, function(schemaNode) {
-					nodes[key] = schemaNode;
-					LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
-				});
+			if (position > -1) {
+				_Schema.hiddenSchemaNodes.splice(position, 1);
+				LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
 			}
 		}
 	},
