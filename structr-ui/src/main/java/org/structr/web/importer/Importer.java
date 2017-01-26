@@ -605,6 +605,12 @@ public class Importer {
 				// check if comment contains instructions
 				if (commentHandler != null && commentHandler.containsInstructions(comment)) {
 
+					if (instructions != null) {
+
+						// unhandled instructions from previous iteration => empty content element
+						createEmptyContentNode(page, parent, commentHandler, instructions);
+					}
+
 					instructions = comment;
 					continue;
 				}
@@ -628,16 +634,14 @@ public class Importer {
 
 					if (isDeployment) {
 
-						content = ((TextNode) node).getWholeText();
+						content = trimTrailingNewline(((TextNode) node).getWholeText());
 
 					} else {
 
-						content = ((TextNode) node).text();
+						content = trimTrailingNewline(((TextNode) node).text());
 					}
 
-					// Add content node for whitespace within <p> elements only
-					if (!("p".equals(startNode.nodeName().toLowerCase())) && StringUtils.isWhitespace(content)) {
-
+					if (StringUtils.isWhitespace(content)) {
 						continue;
 					}
 				}
@@ -881,6 +885,25 @@ public class Importer {
 					}
 				}
 
+				if (instructions != null) {
+
+					if (instructions.contains("@structr:content") && !(newNode instanceof Content)) {
+
+						// unhandled instructions from previous iteration => empty content element
+						createEmptyContentNode(page, parent, commentHandler, instructions);
+
+					} else {
+
+						// apply instructions to new DOM element
+						if (commentHandler != null) {
+
+							commentHandler.handleComment(page, newNode, instructions, true);
+						}
+					}
+
+					instructions = null;
+				}
+
 				// allow parent to be null to prevent direct child relationship
 				if (parent != null) {
 
@@ -896,16 +919,6 @@ public class Importer {
 					}
 				}
 
-				if (instructions != null) {
-
-					if (commentHandler != null) {
-
-						commentHandler.handleComment(page, newNode, instructions, true);
-					}
-
-					instructions = null;
-				}
-
 				// Link new node to its parent node
 				// linkNodes(parent, newNode, page, localIndex);
 				// Step down and process child nodes
@@ -916,13 +929,7 @@ public class Importer {
 		// reset instructions when leaving a level
 		if (instructions != null) {
 
-			final Content contentNode = (Content)page.createTextNode("");
-			parent.appendChild(contentNode);
-
-			if (commentHandler != null) {
-
-				commentHandler.handleComment(page, contentNode, instructions, true);
-			}
+			createEmptyContentNode(page, parent, commentHandler, instructions);
 
 			instructions = null;
 		}
@@ -1218,5 +1225,38 @@ public class Importer {
 		}
 
 		return null;
+	}
+
+	private static String trimTrailingNewline(final String source) {
+
+		String workString = source;
+
+		// Leading and trailing whitespace may be replaced by a single space in HTML
+		while (workString.startsWith("\n") || workString.startsWith("\t")) {
+			workString = workString.substring(1);
+		}
+
+		while (workString.endsWith("\n") || workString.endsWith("\t")) {
+			workString = workString.substring(0, workString.length() - 1);
+		}
+
+		return workString;
+	}
+
+	private Content createEmptyContentNode(final Page page, final DOMNode parent, final CommentHandler commentHandler, final String instructions) throws FrameworkException {
+
+		final Content contentNode = (Content)page.createTextNode("");
+
+		contentNode.setProperty(AbstractNode.visibleToPublicUsers, publicVisible);
+		contentNode.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+
+		parent.appendChild(contentNode);
+
+		if (commentHandler != null) {
+
+			commentHandler.handleComment(page, contentNode, instructions, true);
+		}
+
+		return contentNode;
 	}
 }
