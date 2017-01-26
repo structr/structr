@@ -65,10 +65,18 @@ import org.structr.web.entity.html.Body;
 import org.structr.web.entity.html.Div;
 import org.structr.web.entity.html.Head;
 import org.structr.web.entity.html.Html;
+import org.structr.web.entity.html.Li;
 import org.structr.web.entity.html.Link;
+import org.structr.web.entity.html.Option;
+import org.structr.web.entity.html.P;
 import org.structr.web.entity.html.Script;
+import org.structr.web.entity.html.Select;
 import org.structr.web.entity.html.Table;
 import org.structr.web.entity.html.Tbody;
+import org.structr.web.entity.html.Td;
+import org.structr.web.entity.html.Thead;
+import org.structr.web.entity.html.Tr;
+import org.structr.web.entity.html.Ul;
 import org.structr.web.maintenance.DeployCommand;
 import org.structr.websocket.command.CloneComponentCommand;
 import org.structr.websocket.command.CreateComponentCommand;
@@ -1350,6 +1358,93 @@ public class DeploymentTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 			fail("Unexpected exception.");
 		}
+	}
+
+	@Test
+	public void test30IncreasingIndentationCountInRoundtrip() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createNewPage(securityContext,   "test30");
+			final Html html = createElement(page, page, "html");
+			final Head head = createElement(page, html, "head");
+			createElement(page, head, "title", "test30");
+
+			final Body body       = createElement(page, html, "body");
+			final Div div1        = createElement(page, body, "div");
+			final Div div2        = createElement(page, div1, "div", "This is a test.");
+			final Table table1    = createElement(page, div2, "table");
+			final Thead thead     = createElement(page, table1, "thead");
+			final Tbody tbody     = createElement(page, table1, "tbody");
+			final Tr tr1          = createElement(page, thead, "tr");
+			final Tr tr2          = createElement(page, tbody, "tr");
+			final Td td11         = createElement(page, tr1, "td", "content11", "Content before <select>");
+			final Td td12         = createElement(page, tr1, "td", "content12");
+			final Td td21         = createElement(page, tr2, "td", "content21");
+			final Td td22         = createElement(page, tr2, "td", "content22");
+			final Select select   = createElement(page, td11, "select");
+			final Option option1  = createElement(page, select, "option", "value1");
+			final Option option2  = createElement(page, select, "option", "value2");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		compare(calculateHash(), true);
+	}
+
+	@Test
+	public void test31RoundtripWithEmptyContentElements() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createNewPage(securityContext,   "test31");
+			final Html html = createElement(page, page, "html");
+			final Head head = createElement(page, html, "head");
+			createElement(page, head, "title", "test31");
+
+			final Body body       = createElement(page, html, "body");
+			final Div div1        = createElement(page, body, "div");
+			final Div div2        = createElement(page, div1, "div", "");
+			final Table table1    = createElement(page, div2, "table");
+			final Thead thead     = createElement(page, table1, "thead");
+			final Tbody tbody     = createElement(page, table1, "tbody");
+			final Tr tr1          = createElement(page, thead, "tr");
+			final Tr tr2          = createElement(page, tbody, "tr");
+			final Td td11         = createElement(page, tr1, "td");
+			final Content c1      = createContent(page, td11, "");
+			final Td td12         = createElement(page, tr1, "td", "content12");
+			final P p1            = createElement(page, td12, "p", "");
+			final Ul ul           = createElement(page, p1, "ul");
+			final Li li           = createElement(page, ul, "li", "");
+			final Td td21         = createElement(page, tr2, "td", "content21");
+			final Td td22         = createElement(page, tr2, "td", "content22");
+			final Select select   = createElement(page, td11, "select");
+			final Option option1  = createElement(page, select, "option", "");
+			final Option option2  = createElement(page, select, "option", "value2");
+			final Content c2      = createContent(page, div2, "");
+			final Table table2    = createElement(page, div2, "table");
+
+			// include visibility flags
+			page.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+			c1.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+			c2.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+
+			// modify visibility to produce two consecutive deployment instruction comments
+			td12.setProperty(AbstractNode.visibleToPublicUsers, true);
+			table2.setProperty(AbstractNode.visibleToPublicUsers, true);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		compare(calculateHash(), true);
 	}
 
 	// ----- private methods -----
