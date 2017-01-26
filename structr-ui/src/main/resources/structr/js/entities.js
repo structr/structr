@@ -447,7 +447,6 @@ var _Entities = {
 			var self = $(this);
 			$('.propTabContent').hide();
 			$('li', ul).removeClass('active');
-     		contentEl.append('<div class="propTabContent" id="tabView-' + name + '"></div>');
 			$('#tabView-' + name).show();
 			self.addClass('active');
 			LSWrapper.setItem(_Entities.activeEditTabPrefix  + '_' + entity.id, name);
