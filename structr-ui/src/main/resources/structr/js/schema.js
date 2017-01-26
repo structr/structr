@@ -3332,40 +3332,40 @@ var _Schema = {
 					}
 				}
 			}
+		});
 
-			$.jstree.destroy();
-			printClassTree(inheritanceTree, classTree);
-			inheritanceTree.jstree({
-				core: {
-					multiple: false,
-					themes: {
-						dots: false
-					}
-				},
-				plugins: ["search"]
-			}).on('changed.jstree', function (e, data) {
-				var $node = $('#id_' + data.node.data.id);
-				if ($node.length > 0) {
-					$('.selected').removeClass('selected');
-					$node.addClass('selected');
-					selectedElements = [$node];
+		$.jstree.destroy();
+		printClassTree(inheritanceTree, classTree);
+		inheritanceTree.jstree({
+			core: {
+				multiple: false,
+				themes: {
+					dots: false
 				}
-			});
+			},
+			plugins: ["search"]
+		}).on('changed.jstree', function (e, data) {
+			var $node = $('#id_' + data.node.data.id);
+			if ($node.length > 0) {
+				$('.selected').removeClass('selected');
+				$node.addClass('selected');
+				selectedElements = [$node];
+			}
+		});
 
-			$('#search-classes').keyup(function (e) {
-				if (e.which === 27) {
-					$('#search-classes').val('');
-					inheritanceTree.jstree(true).clear_search();
-				} else {
-					var query = $('#search-classes').val();
-					inheritanceTree.jstree(true).search(query, true, true);
-				}
-
-				_Schema.enableEditFunctionsInClassTree();
-			});
+		$('#search-classes').keyup(function (e) {
+			if (e.which === 27) {
+				$('#search-classes').val('');
+				inheritanceTree.jstree(true).clear_search();
+			} else {
+				var query = $('#search-classes').val();
+				inheritanceTree.jstree(true).search(query, true, true);
+			}
 
 			_Schema.enableEditFunctionsInClassTree();
 		});
+
+		_Schema.enableEditFunctionsInClassTree();
 	},
 	enableEditFunctionsInClassTree: function() {
 		$('img.edit_icon', inheritanceTree).off('click').on('click', function (e) {
