@@ -109,6 +109,10 @@ public class DeploymentCommentHandler implements CommentHandler {
 			if (owner != null) { // && !owner.equals(page.getOwnerNode())) {
 
 				node.setProperty(AbstractNode.owner, owner);
+
+			} else {
+
+				logger.warn("Unknown owner {}, ignoring.", parameters);
 			}
 		});
 
@@ -145,6 +149,9 @@ public class DeploymentCommentHandler implements CommentHandler {
 						}
 					}
 
+				} else {
+
+					logger.warn("Unknown grantee {}, ignoring.", parts[0]);
 				}
 
 			} else {

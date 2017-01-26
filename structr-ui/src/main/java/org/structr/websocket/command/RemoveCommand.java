@@ -70,20 +70,20 @@ public class RemoveCommand extends AbstractCommand {
 
 						domNode.getParentNode().removeChild(domNode);
 
-						// Remove node from page
-						final PropertyMap changedProperties = new PropertyMap();
-						changedProperties.put(DOMNode.syncedNodes, Collections.EMPTY_LIST);
-						changedProperties.put(DOMNode.pageId, null);
-						domNode.setProperties(securityContext, changedProperties);
+						// remove pageId from node and all children ("move to trash")
+						recursivelyRemoveNodesFromPage(domNode, securityContext);
 
 					} catch (DOMException | FrameworkException ex) {
 
 						logger.error("Could not remove node from page " + domNode, ex);
 						getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);
-
 					}
 
 				} else {
+
+					// is this even used any more?
+					logger.warn("Deprecated use of RemoveCommand, please report this error and the following stack trace to the Structr team on https://github.com/structr/structr. Thanks!");
+					Thread.dumpStack();
 
 					final App app = StructrApp.getInstance(securityContext);
 
@@ -95,9 +95,7 @@ public class RemoveCommand extends AbstractCommand {
 							if ("CONTAINS".equals(rel.getType())) {
 
 								app.delete(rel);
-
 							}
-
 						}
 
 					} catch (Throwable t) {
@@ -127,4 +125,20 @@ public class RemoveCommand extends AbstractCommand {
 
 	}
 
+
+	// ----- private methods -----
+	private void recursivelyRemoveNodesFromPage(final DOMNode parent, final SecurityContext securityContext) throws FrameworkException {
+
+		// Remove node from page
+		final PropertyMap changedProperties = new PropertyMap();
+		changedProperties.put(DOMNode.syncedNodes, Collections.EMPTY_LIST);
+		changedProperties.put(DOMNode.pageId, null);
+		parent.setProperties(securityContext, changedProperties);
+
+		// recurse
+		for (final DOMNode child : parent.getProperty(DOMNode.children)) {
+
+			recursivelyRemoveNodesFromPage(child, securityContext);
+		}
+	}
 }

@@ -63,7 +63,6 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
@@ -787,17 +786,24 @@ public class Importer {
 
 								if (value != null) {
 
-									if (value.equalsIgnoreCase("true")) {
+									// store value using actual input converter
+									final PropertyKey actualKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(newNode.getClass(), camelCaseKey, false);
+									if (actualKey != null) {
 
-										newNode.setProperty(new BooleanProperty(camelCaseKey), true);
+										final PropertyConverter converter = actualKey.inputConverter(securityContext);
+										if (converter != null) {
 
-									} else if (value.equalsIgnoreCase("false")) {
+											final Object convertedValue = converter.convert(value);
+											newNode.setProperty(actualKey, convertedValue);
 
-										newNode.setProperty(new BooleanProperty(camelCaseKey), false);
+										} else {
+
+											newNode.setProperty(actualKey, value);
+										}
 
 									} else {
 
-										newNode.setProperty(new StringProperty(camelCaseKey), nodeAttr.getValue());
+										logger.warn("Unknown meta property key {}, ignoring.", camelCaseKey);
 									}
 								}
 

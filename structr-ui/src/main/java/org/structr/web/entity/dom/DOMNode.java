@@ -898,8 +898,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				if (key.startsWith("data-")) {
 
-					dataProperties.add(new GenericProperty(key));
-
+					dataProperties.add(StructrApp.getConfiguration().getPropertyKeyForJSONName(getClass(), key));
 				}
 			}
 		}
