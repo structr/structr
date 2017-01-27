@@ -65,6 +65,10 @@ $(document).ready(function() {
 		LSWrapper.setItem(_Graph.displayTypeConfigKey, _Graph.getTypeVisibilityConfig());
 	});
 
+	$(document).on('click', '.remove-cypher-parameter', function() {
+		$(this).parent().remove();
+	});
+
 });
 
 var _Graph = {
@@ -943,9 +947,6 @@ var _Graph = {
 
 	appendCypherParameter: function(el, key, value) {
 		el.append('<div><img class="remove-cypher-parameter" src="' + _Icons.delete_icon + '"> <input name="cyphername[]" type="text" placeholder="name" size="10" value="' + (key || '') + '"> <input name="cyphervalue[]" type="text" placeholder="value" size="10" value="' + (value || '') + '"></div>');
-		$('.remove-cypher-parameter', el).on('click', function() {
-			$(this).parent().remove();
-		});
 	},
 
 	onNodesAdded: function(){
