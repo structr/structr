@@ -914,7 +914,7 @@ var Command = {
 				patch: strp
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], strp, $.quoteString(strp));
+		_Logger.log(_LogType.WS[obj.command], strp, JSON.stringify(strp));
 		_Logger.log(_LogType.WS[obj.command], 'patch()', obj, callback);
 		return sendObj(obj, callback);
 	},
