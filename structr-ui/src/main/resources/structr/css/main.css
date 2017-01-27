@@ -2098,7 +2098,7 @@ input.property-name:disabled {
 }
 
 #queries textarea {
-    width: 327px;
+    width: calc(100% - 32px);
     font-size: 1.3em;
 }
 

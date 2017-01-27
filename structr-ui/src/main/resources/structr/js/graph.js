@@ -424,10 +424,10 @@ var _Graph = {
 			$('#' + activeTabRightGraph).addClass('active').click();
 		}
 
-		queriesSlideout.append('<div class="query-box"><textarea class="search" name="rest" cols="39" rows="4" placeholder="Enter a REST query here"></textarea><img class="clearSearchIcon" id="clear-rest" src="' + _Icons.grey_cross_icon + '">'
+		queriesSlideout.append('<div class="query-box"><textarea class="search" name="rest" cols="39" rows="4" placeholder="Enter a REST query here"></textarea><img class="clearSearchIcon" id="clear-rest" src="' + _Icons.grey_cross_icon + '" data-type="rest">'
 			+ '<button id="exec-rest">Execute REST query</button></div>');
 
-		queriesSlideout.append('<div class="query-box"><textarea class="search" name="cypher" cols="39" rows="4" placeholder="Enter a Cypher query here"></textarea><img class="clearSearchIcon" id="clear-cypher" src="' + _Icons.grey_cross_icon + '">'
+		queriesSlideout.append('<div class="query-box"><textarea class="search" name="cypher" cols="39" rows="4" placeholder="Enter a Cypher query here"></textarea><img class="clearSearchIcon" id="clear-cypher" src="' + _Icons.grey_cross_icon + '" data-type="cypher">'
 			+ '<button id="exec-cypher">Execute Cypher query</button></div>');
 
 		queriesSlideout.append('<div id="cypher-params"><h3>Cypher Parameters</h3><img id="add-cypher-parameter" src="' + _Icons.add_icon + '">');
@@ -435,6 +435,12 @@ var _Graph = {
 
 		$('#clear-graph').on('click', function() {
 			_Graph.clearGraph();
+		});
+
+		$('.clearSearchIcon').on('click', function() {
+			var self = $(this);
+			self.hide();
+			$('.search[name=' + self.data('type') + ']').val('').focus();
 		});
 
 		$('#exec-rest').on('click', function() {
@@ -467,30 +473,20 @@ var _Graph = {
 			_Graph.appendCypherParameter($('#cypher-params'));
 		});
 
-		_Graph.activateClearSearchIcon();
+		_Graph.clearSearch('rest');
+		_Graph.clearSearch('cypher');
 		queriesSlideout.append('<div><h3>Saved Queries</h3></div>');
 		_Graph.listSavedQueries();
 
 		searchField = $('.search', queriesSlideout);
 		searchField.focus();
-		searchField.keydown(function(e) {
-			var rawSearchString = $(this).val();
-			var searchString = rawSearchString;
-
+		searchField.keyup(function(e) {
 			var self = $(this);
+			var searchString = self.val();
 			var type = self.attr('name');
-			if (type !== 'cypher') {
-				var type;
-				var posOfColon = rawSearchString.indexOf(':');
-				if (posOfColon > -1) {
-					type = rawSearchString.substring(0, posOfColon);
-					type = type.capitalize();
-					searchString = rawSearchString.substring(posOfColon + 1, rawSearchString.length);
-				}
-			}
 
 			if (searchString && searchString.length) {
-				_Graph.activateClearSearchIcon(type);
+				_Graph.showClearSearchIcon(type);
 			} else {
 				_Graph.clearSearch(type);
 			}
@@ -500,8 +496,7 @@ var _Graph = {
 					_Graph.execQuery(searchString, type);
 					return false;
 				}
-			}
-			else if (e.which === 27 || rawSearchString === '') {
+			} else if (e.which === 27) {
 				_Graph.clearSearch(type);
 			}
 		});
@@ -574,7 +569,7 @@ var _Graph = {
 		var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
 		var query = savedQueries[i];
 		$('.search[name=' + query.type + ']').val(query.query);
-		_Graph.activateClearSearchIcon(query.type);
+		_Graph.showClearSearchIcon(query.type);
 		$('#cypher-params input').remove();
 		$('#cypher-params br').remove();
 		$('#cypher-params img.remove-cypher-parameter').remove();
@@ -615,16 +610,12 @@ var _Graph = {
 		});
 	},
 
-	activateClearSearchIcon: function(type) {
-		var icon = $('#clear-' + type);
-		icon.show().on('click', function() {
-			$(this).hide();
-			$('.search[name=' + type + ']').val('').focus();
-		});
+	showClearSearchIcon: function(type) {
+		$('#clear-' + type).show();
 	},
 
 	clearSearch: function(type) {
-		$('#clear-' + type).hide().off('click');
+		$('#clear-' + type).hide();
 		$('.search[name=' + type + ']').val('').focus();
 	},
 
