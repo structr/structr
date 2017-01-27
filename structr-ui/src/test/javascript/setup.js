@@ -21,6 +21,11 @@
 var fs = require('fs');
 
 /**
+ * include test simulation javascript files (see http://docs.casperjs.org/en/latest/modules/casper.html#clientscripts)
+ */
+casper.options.clientScripts = ["lib/jquery.simulate.js", "lib/jquery.simulate.ext.js", "lib/jquery.simulate.drag-n-drop.js"];
+
+/**
  * return a failure exit code for any failed tests
  */
 casper.test.on("fail", function () {
