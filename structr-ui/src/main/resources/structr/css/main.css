@@ -3632,6 +3632,44 @@ input#element-class {
 }
 
 /**
+ * Styles for the 'Contents' area
+ */
+.trumbowyg-box {
+    background-color: #fff;
+    border: none;
+    margin: 0 auto;
+}
+
+.trumbowyg-editor {
+    min-height: 274px;
+}
+
+.trumbowyg-button-pane {
+    background-color: #e9e9e9;
+}
+
+.trumbowyg-button-pane button {
+    width: 32px;
+}
+
+.trumbowyg-fullscreen.trumbowyg-box {
+    width: 100%;
+}
+
+.value-container {
+    display: inline-block;
+}
+
+.value-container input {
+    font-size: 1.2em;
+    padding: .5em 1em;
+}
+
+.item-title:hover b {
+    cursor: pointer;
+}
+
+/**
  * Icon Sprites
  */
 .sprite {
