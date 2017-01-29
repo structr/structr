@@ -77,8 +77,8 @@ var _AppBuilder = {
 				pagesArea.append('<div id="page-tn-' + page.id + '" class="page-tn"><div class="page-preview">'
 						+ '<iframe class="preview" id="app-preview_' + page.id + '"></iframe>'
 						+ '</div><div class="page-name">' + page.name + '</div>'
-						+ '<div class="icon clone-page" title="Clone Page"><img src="' + _Icons.clone_icon + '"/></div>'
-						+ '<div class="icon delete-page" title="Delete Page"><img src="' + _Icons.delete_icon + '"/></div>'
+						+ '<div class="icon clone-page" title="Clone Page"><i class="' + _Icons.getFullSpriteClass(_Icons.clone_icon) + '" /></div>'
+						+ '<div class="icon delete-page" title="Delete Page"><i class="' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /></div>'
 						+ '</div>');
 
 				var tn = $('#page-tn-' + page.id);

@@ -533,7 +533,7 @@ var _Dragndrop = {
 	imageDropped: function(source, target, pageId) {
 
 		var nodeData = {}, name = source.name, tag;
-		_Logger.log(_LogType.DND, 'Image dropped, creating <img> node', name);
+		_Logger.log(_LogType.DND, 'Image dropped, creating img node', name);
 		nodeData._html_src = '${link.path}?${link.version}';
 		nodeData.linkableId = source.id;
 		tag = 'img';

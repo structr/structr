@@ -428,7 +428,7 @@ var StructrModel = {
 
 			var iconEl = element.children('.typeIcon');
 			if (icon && iconEl.length) {
-				iconEl.attr('src', icon);
+				_Icons.updateSpritasdeClassTo(iconEl[0], _Icons.getSpriteClassOnly(icon));
 			}
 
 			// check if key icon needs to be displayed (in case of nodes not visible to public/auth users)
@@ -439,7 +439,7 @@ var StructrModel = {
 				keyIcon = $('.icons', element).children('.key_icon');
 			}
 			if (isProtected) {
-				keyIcon.show();
+				keyIcon.showInlineBlock();
 				keyIcon.addClass('donthide');
 			} else {
 				keyIcon.hide();
@@ -548,38 +548,7 @@ StructrFolder.prototype.setProperty = function(key, value, recursive, callback) 
 };
 
 StructrFolder.prototype.remove = function() {
-
 	_Files.refreshTree();
-
-//	var folder = this;
-//	if (folder.parent) {
-//		var parentFolder = StructrModel.obj(folder.parent.id);
-//		var parentFolderEl = Structr.node(parentFolder.id);
-//	}
-//
-//	if (!parentFolderEl)
-//		return;
-//
-//	parentFolder.folders = removeFromArray(parentFolder.folders, folder);
-//
-//	if (!parentFolder.files.length && !parentFolder.folders.length) {
-//		_Entities.removeExpandIcon(parentFolderEl);
-//	}
-//
-//	var folderEl = Structr.node(folder.id);
-//	if (!folderEl)
-//		return;
-//
-//	_Entities.resetMouseOverState(folderEl);
-//
-//	folderEl.children('.delete_icon').replaceWith('<img title="Delete folder ' + folder.id + '" '
-//			+ 'alt="Delete folder ' + folder.id + '" class="delete_icon button" src="' + _Icons.delete_icon + '">');
-//
-//	folderEl.children('.delete_icon').on('click', function(e) {
-//		e.stopPropagation();
-//		_Entities.deleteNode(this, folder, true);
-//	});
-
 };
 
 StructrFolder.prototype.append = function() {
@@ -611,27 +580,6 @@ StructrFile.prototype.setProperty = function(key, value, recursive, callback) {
 };
 
 StructrFile.prototype.remove = function() {
-//	var file = this;
-//
-//	if (file.parent) {
-//
-//		var parentFolder = StructrModel.obj(file.parent.id);
-//		var parentFolderEl = Structr.node(parentFolder.id);
-//
-//		parentFolder.files = removeFromArray(parentFolder.files, file);
-//		if (!parentFolder.files.length && !parentFolder.folders.length) {
-//			_Entities.removeExpandIcon(parentFolderEl);
-//		}
-//
-//		file.parent = undefined;
-//	}
-//
-//	var fileEl = Structr.node(file.id);
-//	if (!fileEl) {
-//		return;
-//	} else {
-//		fileEl.remove();
-//	}
 };
 
 StructrFile.prototype.append = function() {
@@ -667,26 +615,6 @@ StructrImage.prototype.setProperty = function(key, value, recursive, callback) {
 };
 
 StructrImage.prototype.remove = function() {
-//	var file = this;
-//
-//	if (file.parent) {
-//
-//		var parentFolder = StructrModel.obj(file.parent.id);
-//		var parentFolderEl = Structr.node(parentFolder.id);
-//
-//		parentFolder.files = removeFromArray(parentFolder.files, file);
-//		if (!parentFolder.files.length && !parentFolder.folders.length) {
-//			_Entities.removeExpandIcon(parentFolderEl);
-//			Structr.enableButton(parentFolderEl.children('.delete_icon')[0]);
-//		}
-//
-//		file.parent = undefined;
-//	}
-//
-//	var fileEl = Structr.node(file.id);
-//	if (fileEl) {
-//		fileEl.remove();
-//	}
 };
 
 StructrImage.prototype.append = function() {
@@ -900,7 +828,7 @@ StructrElement.prototype.exists = function() {
 };
 
 StructrElement.prototype.isActiveNode = function() {
-	return this.hideOnIndex || this.hideOnDetail || this.hideConditions || this.showConditions || this.dataKey
+	return this.hideOnIndex || this.hideOnDetail || this.hideConditions || this.showConditions || this.dataKey || this.restQuery || this.cypherQuery || this.xpathQuery || this.functionQuery
 		//String attributes
 		|| this["data-structr-action"]
 		|| this["data-structr-attr"]
@@ -993,8 +921,7 @@ StructrContent.prototype.append = function(refId) {
 			e.stopPropagation();
 		});
 
-		$('.delete_icon', div).replaceWith('<img title="Remove content element from parent ' + parentId + '" '
-				+ 'alt="Remove content element from parent ' + parentId + '" class="delete_icon button" src="' + _Icons.delete_content_icon + '">');
+		$('.delete_icon', div).replaceWith('<i title="Remove content element from parent ' + parentId + '" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_content_icon) + '" />');
 		$('.delete_icon', div).on('click', function(e) {
 			e.stopPropagation();
 			Command.removeChild(id);

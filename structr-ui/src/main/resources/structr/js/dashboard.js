@@ -61,7 +61,7 @@ var _Dashboard = {
 		myPages.append('<div class="dashboard-info">You own the following <a class="internal-link" href="javascript:void(0)">pages</a>:</div>');
 		Command.getByType('Page', 5, 1, 'version', 'desc', null, false, function(pages) {
 			pages.forEach(function(p) {
-				myPages.append('<div class="dashboard-info"><a href="/' + p.name + '" target="_blank"><img class="icon" src="' + _Icons.page_icon + '"></a> <a href="/' + p.name + '" target="_blank">' + _Dashboard.displayName(p) + '</a>' + _Dashboard.displayVersion(p) + '</div>');
+				myPages.append('<div class="dashboard-info"><a href="/' + p.name + '" target="_blank"><i class="icon sprite sprite-page" /></a> <a href="/' + p.name + '" target="_blank">' + _Dashboard.displayName(p) + '</a>' + _Dashboard.displayVersion(p) + '</div>');
 			});
 		});
 
@@ -69,7 +69,7 @@ var _Dashboard = {
 		myContents.append('<div class="dashboard-info">Your most edited <a class="internal-link" href="javascript:void(0)">contents</a> are:</div>');
 		Command.getByType('ContentItem', 5, 1, 'version', 'desc', null, false, function(items) {
 			items.forEach(function(i) {
-				myContents.append('<div class="dashboard-info"><a href="/' + i.name + '" target="_blank"><i class="fa ' + _Contents.getIcon(i) + '"></i></a> <a class="contents-link" id="open-' + i.id + '" href="javascript:void(0)">' + _Dashboard.displayName(i) + '</a>' + _Dashboard.displayVersion(i) + '</div>');
+				myContents.append('<div class="dashboard-info"><a href="/' + i.name + '" target="_blank"><i class="fa ' + _Contents.getIcon(i) + '" /></a> <a class="contents-link" id="open-' + i.id + '" href="javascript:void(0)">' + _Dashboard.displayName(i) + '</a>' + _Dashboard.displayVersion(i) + '</div>');
 			});
 
 			$('.contents-link', myContents).on('click', function(e) {
@@ -88,7 +88,7 @@ var _Dashboard = {
 		myFiles.append('<div class="dashboard-info">Your most edited <a class="internal-link" href="javascript:void(0)">files</a> are:</div>');
 		Command.getByType('File', 5, 1, 'version', 'desc', null, false, function(files) {
 			files.forEach(function(f) {
-				myFiles.append('<div class="dashboard-info"><a href="/' + f.name + '" target="_blank"><i class="fa ' + _Icons.getFileIconClass(f) + '"></i></a> <a href="/' + f.id + '" target="_blank">' + _Dashboard.displayName(f) + '</a>' + _Dashboard.displayVersion(f) + '</div>');
+				myFiles.append('<div class="dashboard-info"><a href="/' + f.name + '" target="_blank"><i class="fa ' + _Icons.getFileIconClass(f) + '" /></a> <a href="/' + f.id + '" target="_blank">' + _Dashboard.displayName(f) + '</a>' + _Dashboard.displayVersion(f) + '</div>');
 			});
 		});
 
@@ -96,7 +96,7 @@ var _Dashboard = {
 		myImages.append('<div class="dashboard-info">Your most edited <a class="internal-link" href="javascript:void(0)">images</a> are:</div>');
 		Command.getByType('Image', 5, 1, 'version', 'desc', null, false, function(images) {
 			images.forEach(function(i) {
-				myImages.append('<div class="dashboard-info"><a href="/' + i.name + '" target="_blank"><img class="icon" src="' + _Icons.getImageIcon(i) + '"></a> <a href="/' + i.id + '" target="_blank">' + _Dashboard.displayName(i) + '</a>' + _Dashboard.displayVersion(i) + '</div>');
+				myImages.append('<div class="dashboard-info"><a href="/' + i.name + '" target="_blank">' + _Icons.getImageOrIcon(i) + '</a> <a href="/' + i.id + '" target="_blank">' + _Dashboard.displayName(i) + '</a>' + _Dashboard.displayVersion(i) + '</div>');
 			});
 		});
 

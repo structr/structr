@@ -45,7 +45,7 @@ var _Files = {
 
 		main = $('#main');
 
-		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><img class="clearSearchIcon" src="' + _Icons.grey_cross_icon + '"></div>');
+		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
 
 		searchField = $('.search', main);
 		searchField.focus();
@@ -150,12 +150,12 @@ var _Files = {
 		Structr.initVerticalSlider($('.column-resizer', filesMain), filesResizerLeftKey, 204, _Files.moveResizer);
 
 		$('#folder-contents-container').prepend(
-				'<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Icons.add_folder_icon + '"> Add Folder</button>'
-				+ '<button class="add_file_icon button"><img title="Add File" alt="Add File" src="' + _Icons.add_file_icon + '"> Add File</button>'
-				+ '<button class="add_minified_css_file_icon button"><img title="Add Minified CSS File" src="' + _Icons.minification_dialog_css_icon + '" />' + ' Add Minified CSS File</button>'
-				+ '<button class="add_minified_js_file_icon button"><img title="Add Minified JS File" src="' + _Icons.minification_dialog_js_icon + '" />' + ' Add Minified JS File</button>'
-				+ '<button class="pull_file_icon button module-dependend" data-structr-module="cloud"><img title="Sync Files" alt="Sync Files" src="' + _Icons.pull_file_icon + '"> Sync Files</button>'
-				+ '<button class="duplicate_finder button"><img title="Find duplicates" alt="Find Duplicates" src="' + _Icons.search_icon + '"> Find Duplicates</button>'
+				'<button class="add_folder_icon button"><i title="Add Folder" class="' + _Icons.getFullSpriteClass(_Icons.add_folder_icon) + '" /> Add Folder</button>'
+				+ '<button class="add_file_icon button"><i title="Add File" class="' + _Icons.getFullSpriteClass(_Icons.add_file_icon) + '" /> Add File</button>'
+				+ '<button class="add_minified_css_file_icon button"><i title="Add Minified CSS File" class="' + _Icons.getFullSpriteClass(_Icons.minification_dialog_css_icon) + '" />' + ' Add Minified CSS File</button>'
+				+ '<button class="add_minified_js_file_icon button"><i title="Add Minified JS File" class="' + _Icons.getFullSpriteClass(_Icons.minification_dialog_js_icon) + '" />' + ' Add Minified JS File</button>'
+				+ '<button class="pull_file_icon button module-dependend" data-structr-module="cloud"><i title="Sync Files" class="' + _Icons.getFullSpriteClass(_Icons.pull_file_icon) + '" /> Sync Files</button>'
+				+ '<button class="duplicate_finder button"><i title="Find duplicates" class="' + _Icons.getFullSpriteClass(_Icons.search_icon) + '" /> Find Duplicates</button>'
 				);
 
 		$('.add_file_icon', main).on('click', function(e) {
@@ -507,7 +507,7 @@ var _Files = {
 
 			$('#folder-contents-container > button').addClass('disabled').attr('disabled', 'disabled');
 
-			folderContents.append('<h2><img src="' + _Icons.star_icon + '" /> Favorite Files</h2>');
+			folderContents.append('<h2><i class="' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" /> Favorite Files</h2>');
 
 			if (viewMode === 'list') {
 
@@ -617,9 +617,9 @@ var _Files = {
 
 		folderContents.prepend('<div id="switches">'
 			+ '<button class="switch ' + (viewMode === 'list' ? 'active' : 'inactive') + '" id="switch-list" data-view-mode="list">'
-			+ (viewMode === 'list' ? '<img src="' + _Icons.tick_icon + '">' : '')
+			+ (viewMode === 'list' ? '<i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />' : '')
 			+ ' List</button><button class="switch ' + (viewMode === 'tiles' ? 'active' : 'inactive') + '" id="switch-tiles" data-view-mode="tiles">'
-			+ (viewMode === 'tiles' ? '<img src="' + _Icons.tick_icon + '">' : '')
+			+ (viewMode === 'tiles' ? '<i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />' : '')
 			+ ' Tiles</button>'
 			+ '</div>');
 
@@ -745,7 +745,7 @@ var _Files = {
 				selectedElements = $('.node.selected');
 				if (selectedElements.length > 1) {
 					selectedElements.removeClass('selected');
-					return $('<img class="node-helper" src="' + _Icons.page_white_stack_icon + '">');
+					return $('<i class="node-helper ' + _Icons.getFullSpriteClass(_Icons.page_white_stack_icon) + '" />');
 				}
 				var hlp = helperEl.clone();
 				hlp.find('.button').remove();
@@ -786,8 +786,8 @@ var _Files = {
 	},
 	handleFolder: function(div, d) {
 
-		if (Structr.isModulePresent('structr-cloud-module')) {
-			div.append('<img title="Sync folder \'' + d.name + '\' to remote instance" alt="Sync folder \'' + d.name + '\' to remote instance" class="push_icon button" src="' + _Icons.push_file_icon + '">');
+		if (Structr.isModulePresent('cloud')) {
+			div.append('<i title="Sync folder \'' + d.name + '\' to remote instance" class="push_icon button ' + _Icons.getFullSpriteClass(_Icons.push_file_icon) + '" />');
 			div.children('.push_icon').on('click', function() {
 				Structr.pushDialog(d.id, true);
 				return false;
@@ -795,7 +795,7 @@ var _Files = {
 		}
 
 		var delIcon = div.children('.delete_icon');
-		var newDelIcon = '<img title="Delete folder \'' + d.name + '\'" alt="Delete folder \'' + d.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
+		var newDelIcon = '<i title="Delete folder \'' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />';
 
 		if (delIcon && delIcon.length) {
 			delIcon.replaceWith(newDelIcon);
@@ -854,7 +854,7 @@ var _Files = {
 	handleFile: function(div, d) {
 
 		if (_Files.isArchive(d)) {
-			div.append('<img class="unarchive_icon button" src="' + _Icons.compress_icon + '">');
+			div.append('<i class="unarchive_icon button ' + _Icons.getFullSpriteClass(_Icons.compress_icon) + '" />');
 			div.children('.unarchive_icon').on('click', function() {
 				_Logger.log(_LogType.FILES, 'unarchive', d.id);
 
@@ -891,18 +891,18 @@ var _Files = {
 						if (closed) {
 							new MessageBuilder().success(message).requiresConfirmation("Close").show();
 						} else {
-							$('#tempInfoBox .infoMsg').html('<img src="' + _Icons.accept_icon + '"> ' + message);
+							$('#tempInfoBox .infoMsg').html('<i class="' + _Icons.getFullSpriteClass(_Icons.accept_icon) + '" /> ' + message);
 						}
 
 					} else {
-						$('#tempInfoBox .infoMsg').html('<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAIsSURBVDjLpVNLSJQBEP7+h6uu62vLVAJDW1KQTMrINQ1vPQzq1GOpa9EppGOHLh0kCEKL7JBEhVCHihAsESyJiE4FWShGRmauu7KYiv6Pma+DGoFrBQ7MzGFmPr5vmDFIYj1mr1WYfrHPovA9VVOqbC7e/1rS9ZlrAVDYHig5WB0oPtBI0TNrUiC5yhP9jeF4X8NPcWfopoY48XT39PjjXeF0vWkZqOjd7LJYrmGasHPCCJbHwhS9/F8M4s8baid764Xi0Ilfp5voorpJfn2wwx/r3l77TwZUvR+qajXVn8PnvocYfXYH6k2ioOaCpaIdf11ivDcayyiMVudsOYqFb60gARJYHG9DbqQFmSVNjaO3K2NpAeK90ZCqtgcrjkP9aUCXp0moetDFEeRXnYCKXhm+uTW0CkBFu4JlxzZkFlbASz4CQGQVBFeEwZm8geyiMuRVntzsL3oXV+YMkvjRsydC1U+lhwZsWXgHb+oWVAEzIwvzyVlk5igsi7DymmHlHsFQR50rjl+981Jy1Fw6Gu0ObTtnU+cgs28AKgDiy+Awpj5OACBAhZ/qh2HOo6i+NeA73jUAML4/qWux8mt6NjW1w599CS9xb0mSEqQBEDAtwqALUmBaG5FV3oYPnTHMjAwetlWksyByaukxQg2wQ9FlccaK/OXA3/uAEUDp3rNIDQ1ctSk6kHh1/jRFoaL4M4snEMeD73gQx4M4PsT1IZ5AfYH68tZY7zv/ApRMY9mnuVMvAAAAAElFTkSuQmCC"> Extraction failed');
+						$('#tempInfoBox .infoMsg').html('<i class="' + _Icons.getFullSpriteClass(_Icons.error_icon) + '" /> Extraction failed');
 					}
 				});
 			});
 		}
 
-		if (Structr.isModulePresent('structr-cloud-module')) {
-			div.append('<img title="Sync file \'' + d.name + '\' to remote instance" alt="Sync file \'' + d.name + '\' to remote instance" class="push_icon button" src="' + _Icons.push_file_icon + '">');
+		if (Structr.isModulePresent('cloud')) {
+			div.append('<i title="Sync file \'' + d.name + '\' to remote instance" class="push_icon button ' + _Icons.getFullSpriteClass(_Icons.push_file_icon) + '" />');
 			div.children('.push_icon').on('click', function() {
 				Structr.pushDialog(d.id, false);
 				return false;
@@ -916,7 +916,7 @@ var _Files = {
 		} else {
 
 			var delIcon = div.children('.delete_icon');
-			var newDelIcon = '<img title="Delete file ' + d.name + '\'" alt="Delete file \'' + d.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
+			var newDelIcon = '<i title="Delete file ' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />';
 			if (delIcon && delIcon.length) {
 				delIcon.replaceWith(newDelIcon);
 			} else {
@@ -939,89 +939,13 @@ var _Files = {
 			}
 		}
 
-		if (d.isImage) {
-
-			var tnSmall = d.tnSmall;
-			if (tnSmall) {
-				_Files.showThumbnails(d, div);
-			} else {
-				if (d.contentType &&  (d.contentType.startsWith('image/svg') || d.contentType.endsWith('image/vnd.microsoft.icon'))) {
-					d.tnSmall = d;
-					d.tnMid = d;
-					_Files.showThumbnails(d, div);
-				} else {
-					_Files.reloadThumbnail(d.id, div);
-				}
-			}
-		}
-
-	},
-	showThumbnails: function(img, el) {
-
-		var tn = '/structr/' + _Icons.ajax_loader_1;
-		$('i', el).replaceWith('<img class="thumbnail" src="' + tn + '">');
-
-		$('.thumbnail', el).attr('src', '/' + img.tnSmall.id);
-		$('.thumbnail', el).on('mousedown', function(e) {
-			e.stopPropagation();
-			$('.thumbnailZoom', folderContents).remove();
-			el.append('<img class="thumbnailZoom" src="/' + img.tnMid.id + '">');
-			var tnZoom = $($('.thumbnailZoom', folderContents)[0]);
-
-			tnZoom.on('load', function() {
-				_Logger.log(_LogType.FILES, tnZoom, tnZoom.position(), tnZoom.width(), tnZoom.height());
-				var pos = el.position();
-
-				tnZoom.css({
-					top: (pos.top + (el.height() - tnZoom.height()) / 2) - 19 + 'px',
-					left: (pos.left + (el.width() - tnZoom.width()) / 2) + 4 + 'px'
-				}).show();
-			});
-
-			tnZoom.on('mouseup', function(e) {
-				e.stopPropagation();
-				$('.thumbnailZoom', folderContents).remove();
-			});
-
-			tnZoom.on('click', function(e) {
-				e.stopPropagation();
-				Structr.dialog(img.name, function() {
-					return true;
-				}, function() {
-					return true;
-				});
-
-				_Files.showImageDetails($(this), img, dialogText);
-			});
-
-		});
-	},
-	reloadThumbnail: function(id, el) {
-		// wait 1 sec. and try again
-		timeout = window.setTimeout(function() {
-			if (attempts >= maxRetry) {
-				window.clearTimeout(timeout);
-			} else {
-				attempts++;
-				_Crud.crudRead('Image', id, function(img) {
-					var tn = img.tnSmall;
-					if (!tn) {
-						_Files.reloadThumbnail(id, el);
-					} else {
-						_Files.showThumbnails(img, el);
-					}
-				}, function() {
-					_Files.reloadThumbnail(id, el);
-				});
-			}
-		}, 1000);
 	},
 	appendViewImageIcon: function(parent, image) {
 
 		var viewIcon = $('.view_icon', parent);
 
 		if (!(viewIcon && viewIcon.length)) {
-			parent.append('<img title="View ' + image.name + ' [' + image.id + ']" alt="View ' + image.name + ' [' + image.id + ']" class="view_icon button" src="' + _Icons.eye_icon + '">');
+			parent.append('<i title="View ' + image.name + ' [' + image.id + ']" class="view_icon button ' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" />');
 		}
 
 		viewIcon = $('.view_icon', parent);
@@ -1033,14 +957,12 @@ var _Files = {
 			}, function() {
 				_Logger.log(_LogType.IMAGES, 'cancelled');
 			});
-			_Files.viewImage(this, image, $('#dialogBox .dialogText'));
+			_Files.viewImage(image, $('#dialogBox .dialogText'));
 		});
 	},
-	showImageDetails: function(button, image, element) {
-		element.append('<img class="imageDetail" src="/' + image.id + '"><br><a href="/' + image.id + '">Download</a>');
-	},
-	viewImage: function(button, image, element) {
+	viewImage: function(image, element) {
 		_Logger.log(_LogType.IMAGES, image);
+		dialogMeta.hide();
 		element.append('Download: <a href="' + image.path + '">Path</a>&nbsp;|&nbsp;<a href="/' + image.id + '">UUID</a><br><br><img src="/' + image.id + '">');
 	},
 	appendEditFileIcon: function(parent, file) {
@@ -1048,7 +970,7 @@ var _Files = {
 		var editIcon = $('.edit_file_icon', parent);
 
 		if (!(editIcon && editIcon.length)) {
-			parent.append('<img title="Edit ' + file.name + ' [' + file.id + ']" alt="Edit ' + file.name + ' [' + file.id + ']" class="edit_file_icon button" src="' + _Icons.edit_icon + '">');
+			parent.append('<i title="Edit ' + file.name + ' [' + file.id + ']" class="edit_file_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
 		}
 
 		$(parent.children('.edit_file_icon')).on('click', function(e) {
@@ -1121,7 +1043,7 @@ var _Files = {
 		var minifyIcon = $('.minify_file_icon', parent);
 
 		if (!(minifyIcon && minifyIcon.length)) {
-			parent.append('<img title="Open minification dialog" class="minify_file_icon button" src="' + _Icons.getMinificationIcon(file) + '" />');
+			parent.append('<i title="Open minification dialog" class="minify_file_icon button ' + _Icons.getFullSpriteClass(_Icons.getMinificationIcon(file)) + '" />');
 		}
 
 		$(parent.children('.minify_file_icon')).on('click', function(e) {
@@ -1136,7 +1058,7 @@ var _Files = {
 		var removeFavoriteIcon = $('.remove_favorite_icon', parent);
 
 		if (!(removeFavoriteIcon && removeFavoriteIcon.length)) {
-			parent.append('<img title="Remove from favorites" class="remove_favorite_icon button" src="' + _Icons.star_delete_icon + '" />');
+			parent.append('<i title="Remove from favorites" class="remove_favorite_icon button ' + _Icons.getFullSpriteClass(_Icons.star_delete_icon) + '" />');
 		}
 
 		$(parent.children('.remove_favorite_icon')).on('click', function(e) {
@@ -1207,7 +1129,7 @@ var _Files = {
 
 									var div = $('#results' + d.id);
 
-									div.append('<h2><i class="fa ' + _Icons.getFileIconClass(d) + '"></i> ' + d.name + '<img id="preview' + d.id + '" src="' + _Icons.eye_icon + '" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
+									div.append('<h2><i class="fa ' + _Icons.getFileIconClass(d) + '"></i> ' + d.name + '<i id="preview' + d.id + '" class="' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
 									div.append('<i class="toggle-height fa fa-expand"></i>').append('<i class="go-to-top fa fa-chevron-up"></i>');
 
 									$('.toggle-height', div).on('click', function() {

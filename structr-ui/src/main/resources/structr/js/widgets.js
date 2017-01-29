@@ -26,7 +26,7 @@ var _Widgets = {
 	reloadWidgets: function() {
 		widgetsSlideout.find(':not(.compTab)').remove();
 		widgetsSlideout.append(
-			'<div class="ver-scrollable"><h2>Local Widgets</h2><button class="add_widgets_icon button"><img title="Add Widget" alt="Add Widget" src="' + _Icons.add_widget_icon + '"> Add Widget</button>' +
+			'<div class="ver-scrollable"><h2>Local Widgets</h2><button class="add_widgets_icon button"><i title="Add Widget" class="' + _Icons.getFullSpriteClass(_Icons.add_widget_icon) + '" /> Add Widget</button>' +
 			'<div id="widgets"></div><h2>Remote Widgets</h2><input placeholder="Filter..." id="remoteWidgetsFilter"><div id="remoteWidgets"></div></div>');
 		_Widgets.localWidgetsEl = $('#widgets', widgetsSlideout);
 
@@ -215,7 +215,7 @@ var _Widgets = {
 		var expanded = Structr.isExpanded(id);
 
 		parent.append('<div id="' + id + '_folder" class="widget node">'
-			+ '<img class="typeIcon" src="' + icon + '">'
+			+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" />'
 			+ '<b title="' + name + '" class="name">' + fitStringToWidth(name, 200) + '</b>'
 			+ '<div id="' + id + '" class="node' + (expanded ? ' hidden' : '') + '"></div>'
 			+ '</div>');
@@ -244,9 +244,9 @@ var _Widgets = {
 		} else {
 
 			parent.append('<div id="id_' + widget.id + '" class="node widget">'
-					+ '<img class="typeIcon" src="' + icon + '">'
-					+ '<b title="' + widget.name + '" class="name_">' + fitStringToWidth(widget.name, 200) + '</b> <span class="id">' + widget.id + '</span>'
-					+ '</div>');
+				+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" />'
+				+ '<b title="' + widget.name + '" class="name_">' + fitStringToWidth(widget.name, 200) + '</b> <span class="id">' + widget.id + '</span>'
+				+ '</div>');
 			div = Structr.node(widget.id);
 
 			var typeIcon = $('.typeIcon', div);
@@ -278,7 +278,7 @@ var _Widgets = {
 
 			delIcon = div.children('.delete_icon');
 
-			newDelIcon = '<img title="Delete widget ' + widget.name + '\'" alt="Delete widget \'' + widget.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
+			newDelIcon = '<i title="Delete widget ' + widget.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />';
 			div.append(newDelIcon);
 			delIcon = div.children('.delete_icon');
 			div.children('.delete_icon').on('click', function(e) {
@@ -299,7 +299,7 @@ var _Widgets = {
 		});
 
 		if (!remote) {
-			div.append('<img title="Edit widget" alt="Edit widget ' + widget.id + '" class="edit_icon button" src="' + _Icons.edit_icon + '">');
+			div.append('<i title="Edit widget ' + widget.name + '" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
 			$('.edit_icon', div).on('click', function(e) {
 				e.stopPropagation();
 				Structr.dialog('Edit widget "' + widget.name + '"', function() {
@@ -448,43 +448,32 @@ var _Widgets = {
 
 			typeIcon.css({
 				paddingRight: 0 + 'px'
-			}).after('<img title="Expand \'' + name + '\'" alt="Expand \'' + name + '\'" class="expand_icon" src="' + icon + '">');
+			}).after('<i title="Expand \'' + name + '\'" class="expand_icon ' + _Icons.getFullSpriteClass(icon) + '" />');
 
 			var expandIcon = el.children('.expand_icon').first();
 
-			$(el).on('click', function(e) {
+			var expandClickHandler = function (e) {
 				e.stopPropagation();
-
 				var body = $('#' + id);
 				body.toggleClass('hidden');
-				var expanded = body.hasClass('hidden');
-				if (expanded) {
+				var collapsed = body.hasClass('hidden');
+				if (collapsed) {
 					Structr.addExpandedNode(id);
-					expandIcon.prop('src', _Icons.collapsed_icon);
+					expandIcon.removeClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon)).addClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon));
 
 				} else {
 					Structr.removeExpandedNode(id);
-					expandIcon.prop('src', _Icons.expanded_icon);
+					expandIcon.removeClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon)).addClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon));
 				}
-			});
+			};
+
+			$(el).on('click', expandClickHandler);
 
 			button = $(el.children('.expand_icon').first());
 
 			if (button) {
 
-				button.on('click', function(e) {
-					e.stopPropagation();
-					var body = $('#' + id);
-					body.toggleClass('hidden');
-					var collapsed = body.hasClass('hidden');
-					if (collapsed) {
-						Structr.addExpandedNode(id);
-						expandIcon.prop('src', _Icons.collapsed_icon);
-					} else {
-						Structr.removeExpandedNode(id);
-						expandIcon.prop('src', _Icons.expanded_icon);
-					}
-				});
+				button.on('click', expandClickHandler);
 
 				// Prevent expand icon from being draggable
 				button.on('mousedown', function(e) {

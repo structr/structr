@@ -405,6 +405,10 @@ jQuery.isBlank = function (obj) {
 	return true;
 };
 
+$.fn.showInlineBlock = function () {
+	return this.css('display','inline-block');
+};
+
 /**
  * thin wrapper for localStorage with a success-check and error display
  */

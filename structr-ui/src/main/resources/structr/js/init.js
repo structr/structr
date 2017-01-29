@@ -232,7 +232,7 @@ var _Icons = {
 	repeater_icon: 'icon/bricks.png',
 	brick_icon: 'icon/brick.png',
 	comp_icon: 'icon/brick_yellow.png',
-	microphone_icon: 'img/icon_microphone.svg',
+	microphone_icon: 'icon/icon_microphone.png',
 	add_file_icon: 'icon/page_white_add.png',
 	add_site_icon: 'icon/page_white_add.png',
 	add_page_icon: 'icon/page_add.png',
@@ -249,8 +249,106 @@ var _Icons = {
 	arrow_up_down: 'icon/arrow_up_down.png',
 	floppy_icon: 'icon/disk.png',
 
-	getImageIcon: function(image) {
-		return (image.contentType.startsWith('image/svg') ? image.path : (image.tnSmall ? image.tnSmall.path : _Icons.image_icon));
+
+	getFullSpriteClass: function (key) {
+
+		return 'sprite ' + _Icons.getSpriteClassOnly(key);
+
+	},
+	updateSpritasdeClassTo: function (el, newSpriteClass) {
+		el.classList.forEach(function(cls) {
+			if (cls.indexOf('sprite-') === 0) {
+				el.classList.remove(cls);
+			}
+		});
+		el.classList.add(newSpriteClass);
+	},
+	getSpriteClassOnly: function (key) {
+
+		switch (key) {
+			case _Icons.add_icon:                     return 'sprite-add';
+			case _Icons.delete_icon:                  return 'sprite-delete';
+			case _Icons.delete_disabled_icon:         return 'sprite-delete_gray';
+			case _Icons.delete_brick_icon:            return 'sprite-brick_delete';
+			case _Icons.edit_icon:                    return 'sprite-pencil';
+			case _Icons.wrench_icon:                  return 'sprite-wrench';
+			case _Icons.collapsed_icon:               return 'sprite-tree_arrow_right';
+			case _Icons.expanded_icon:                return 'sprite-tree_arrow_down';
+			case _Icons.link_icon:                    return 'sprite-link';
+			case _Icons.key_icon:                     return 'sprite-key';
+			case _Icons.key_add_icon:                 return 'sprite-key_add';
+			case _Icons.cross_icon:                   return 'sprite-cross';
+			case _Icons.tick_icon:                    return 'sprite-tick';
+			case _Icons.grey_cross_icon:              return 'sprite-cross_small_grey';
+			case _Icons.page_white_stack_icon:        return 'sprite-page_white_stack';
+			case _Icons.eye_icon:                     return 'sprite-eye';
+			case _Icons.database_icon:                return 'sprite-database';
+			case _Icons.database_table_icon:          return 'sprite-database_table';
+			case _Icons.database_add_icon:            return 'sprite-database_add';
+			case _Icons.view_detail_icon:             return 'sprite-application_view_detail';
+			case _Icons.calendar_icon:                return 'sprite-calendar';
+			case _Icons.add_grey_icon:                return 'sprite-add_grey';
+			case _Icons.page_icon:                    return 'sprite-page';
+			case _Icons.page_white_icon:              return 'sprite-page_white';
+			case _Icons.button_icon:                  return 'sprite-button';
+			case _Icons.clone_icon:                   return 'sprite-page_copy';
+			case _Icons.group_icon:                   return 'sprite-group';
+			case _Icons.group_add_icon:               return 'sprite-group_add';
+			case _Icons.user_icon:                    return 'sprite-user';
+			case _Icons.user_add_icon:                return 'sprite-user_add';
+			case _Icons.user_delete_icon:             return 'sprite-user_delete';
+			case _Icons.compress_icon:                return 'sprite-compress';
+			case _Icons.accept_icon:                  return 'sprite-accept';
+			case _Icons.push_file_icon:               return 'sprite-page_white_get';
+			case _Icons.pull_file_icon:               return 'sprite-page_white_put';
+			case _Icons.exec_cypher_icon:             return 'sprite-control_play_blue';
+			case _Icons.exec_rest_icon:               return 'sprite-control_play';
+			case _Icons.arrow_undo_icon:              return 'sprite-arrow_undo';
+			case _Icons.information_icon:             return 'sprite-information';
+			case _Icons.refresh_icon:                 return 'sprite-arrow_refresh';
+			case _Icons.error_icon:                   return 'sprite-error';
+			case _Icons.pull_page_icon:               return 'sprite-pull_page';
+			case _Icons.wand_icon:                    return 'sprite-wand';
+			case _Icons.toggle_icon:                  return 'sprite-arrow_switch';
+			case _Icons.widget_icon:                  return 'sprite-layout';
+			case _Icons.folder_icon:                  return 'sprite-folder';
+			case _Icons.add_folder_icon:              return 'sprite-folder_add';
+			case _Icons.add_widget_icon:              return 'sprite-layout_add';
+			case _Icons.content_icon:                 return 'sprite-page_white';
+			case _Icons.active_content_icon:          return 'sprite-page_yellow';
+			case _Icons.delete_content_icon:          return 'sprite-page_white_delete';
+			case _Icons.template_icon:                return 'sprite-layout_content';
+			case _Icons.active_template_icon:         return 'sprite-layout_yellow';
+			case _Icons.comp_templ_icon:              return 'sprite-layout_yellow';
+			case _Icons.icon_shared_template:         return 'sprite-layout_yellow';
+			case _Icons.comment_icon:                 return 'sprite-comment';
+			case _Icons.repeater_icon:                return 'sprite-bricks';
+			case _Icons.brick_icon:                   return 'sprite-brick';
+			case _Icons.comp_icon:                    return 'sprite-brick_yellow';
+			case _Icons.microphone_icon:              return 'sprite-icon_microphone';
+			case _Icons.add_file_icon:                return 'sprite-page_white_add';
+			case _Icons.add_site_icon:                return 'sprite-page_white_add';
+			case _Icons.add_page_icon:                return 'sprite-page_add';
+			case _Icons.structr_logo_small:           return 'sprite-structr_icon_16x16';
+			case _Icons.minification_dialog_js_icon:  return 'sprite-script_lightning';
+			case _Icons.minification_dialog_css_icon: return 'sprite-script_palette';
+			case _Icons.minification_trigger_icon:    return 'sprite-briefcase';
+			case _Icons.search_icon:                  return 'sprite-zoom';
+			case _Icons.star_icon:                    return 'sprite-star';
+			case _Icons.star_delete_icon:             return 'sprite-star_delete';
+			case _Icons.image_icon:                   return 'sprite-image';
+			case _Icons.arrow_up_down:                return 'sprite-arrow_up_down';
+			case _Icons.floppy_icon:                  return 'sprite-disk';
+
+			default:                                  return 'sprite-error';
+		}
+
+	},
+	getImageOrIcon: function(image) {
+		return (image.contentType.startsWith('image/svg') ? _Icons.getImageMarkup(image.path) : (image.tnSmall ? _Icons.getImageMarkup(image.tnSmall.path) : '<i class="icon sprite sprite-image" />'));
+	},
+	getImageMarkup: function (path) {
+		return '<img class="icon" src="' + path + '">';
 	},
 	getMinificationIcon: function(file) {
 		switch(file.type) {
@@ -354,6 +452,10 @@ var _Icons = {
 		}
 
 		return result;
+	},
+
+	getSpinnerImageAsData: function () {
+		return "data:image/gif;base64,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";
 	}
 };
 
@@ -828,17 +930,20 @@ var Structr = {
 		new MessageBuilder().error(errorText).show();
 	},
 	loaderIcon: function(element, css) {
-		element.append('<img class="loader-icon" alt="Loading..." title="Loading.." src="' + _Icons.ajax_loader_1 + '">');
+		element.append('<img class="loader-icon" alt="Loading..." title="Loading.." src="' + _Icons.getSpinnerImageAsData() + '">');
 		var li = $('.loader-icon', element);
 		if (css) {
 			li.css(css);
 		}
 		return li;
 	},
+	updateButtonWithAjaxLoaderAndText: function(btn, text) {
+		btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="' + _Icons.ajax_loader_2 + '">');
+	},
 	tempInfo: function(text, autoclose) {
 		window.clearTimeout(dialogId);
 		if (text)
-			$('#tempInfoBox .infoHeading').html('<img src="' + _Icons.information_icon + '"> ' + text);
+			$('#tempInfoBox .infoHeading').html('<i class="' + _Icons.getFullSpriteClass(_Icons.information_icon) + '" /> ' + text);
 		if (autoclose) {
 			dialogId = window.setTimeout(function() {
 				$.unblockUI({
@@ -868,7 +973,7 @@ var Structr = {
 	},
 	reconnectDialog: function(text) {
 		if (text) {
-			$('#tempErrorBox .errorText').html('<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAIsSURBVDjLpVNLSJQBEP7+h6uu62vLVAJDW1KQTMrINQ1vPQzq1GOpa9EppGOHLh0kCEKL7JBEhVCHihAsESyJiE4FWShGRmauu7KYiv6Pma+DGoFrBQ7MzGFmPr5vmDFIYj1mr1WYfrHPovA9VVOqbC7e/1rS9ZlrAVDYHig5WB0oPtBI0TNrUiC5yhP9jeF4X8NPcWfopoY48XT39PjjXeF0vWkZqOjd7LJYrmGasHPCCJbHwhS9/F8M4s8baid764Xi0Ilfp5voorpJfn2wwx/r3l77TwZUvR+qajXVn8PnvocYfXYH6k2ioOaCpaIdf11ivDcayyiMVudsOYqFb60gARJYHG9DbqQFmSVNjaO3K2NpAeK90ZCqtgcrjkP9aUCXp0moetDFEeRXnYCKXhm+uTW0CkBFu4JlxzZkFlbASz4CQGQVBFeEwZm8geyiMuRVntzsL3oXV+YMkvjRsydC1U+lhwZsWXgHb+oWVAEzIwvzyVlk5igsi7DymmHlHsFQR50rjl+981Jy1Fw6Gu0ObTtnU+cgs28AKgDiy+Awpj5OACBAhZ/qh2HOo6i+NeA73jUAML4/qWux8mt6NjW1w599CS9xb0mSEqQBEDAtwqALUmBaG5FV3oYPnTHMjAwetlWksyByaukxQg2wQ9FlccaK/OXA3/uAEUDp3rNIDQ1ctSk6kHh1/jRFoaL4M4snEMeD73gQx4M4PsT1IZ5AfYH68tZY7zv/ApRMY9mnuVMvAAAAAElFTkSuQmCC"> ' + text);
+			$('#tempErrorBox .errorText').html('<i class="' + _Icons.getFullSpriteClass(_Icons.error_icon) + '" /> ' + text);
 		}
 		$('#tempErrorBox .closeButton').hide();
 		$.blockUI.defaults.overlayCSS.opacity = .6;
@@ -1223,10 +1328,10 @@ var Structr = {
 
 					if (syncable.isSynchronized) {
 						syncButton.empty();
-						syncButton.append('<img src="' + _Icons.refresh_icon + '" title="Update" alt="Update"> Update');
+						syncButton.append('<i class="' + _Icons.getFullSpriteClass(_Icons.refresh_icon) + '" /> Update');
 					} else {
 						syncButton.empty();
-						syncButton.append('<img src="' + _Icons.pull_file_icon + '" title="Import" alt="Import"> Import');
+						syncButton.append('<i class="' + _Icons.getFullSpriteClass(_Icons.pull_file_icon) + '" /> Import');
 					}
 
 					syncButton.on('click', function() {
@@ -1236,9 +1341,8 @@ var Structr = {
 
 						var recursive = $('#recursive-' + syncable.id, syncables).prop('checked');
 						Command.pull(syncable.id, host, port, username, password, 'key-' + syncable.id, recursive, function() {
-							// update table cell..
 							syncButton.empty();
-							syncButton.append('<img src="' + _Icons.refresh_icon + '" title="Update" alt="Update"> Update');
+							syncButton.append('<i class="' + _Icons.getFullSpriteClass(_Icons.refresh_icon) + '" /> Update');
 						});
 					});
 				});
@@ -1252,7 +1356,7 @@ var Structr = {
 		Structr.ping(function() {
 			if (!isAdmin) {
 				Structr.error('You do not have sufficient permissions<br>to access this function.', true);
-				el.append('<div class="errorText"><img src="' + _Icons.error_icon + '"> You do not have sufficient permissions to access this function.</div>');
+				el.append('<div class="errorText"><i class="' + _Icons.getFullSpriteClass(_Icons.error_icon) + '" /> You do not have sufficient permissions to access this function.</div>');
 			} else {
 				if (callback) {
 					callback();
@@ -1684,7 +1788,7 @@ $(window).on('beforeunload', function(event) {
 });
 
 function showLoadingSpinner() {
-	var msg = '<div id="structr-loading-spinner"><img src="/structr/' + _Icons.ajax_loader_1 + '"></div>';
+	var msg = '<div id="structr-loading-spinner"><img src="' + _Icons.getSpinnerImageAsData() + '"></div>';
 	$.blockUI.defaults.overlayCSS.opacity = .2;
 	$.blockUI.defaults.applyPlatformOpacityRules = false;
 	$.blockUI({

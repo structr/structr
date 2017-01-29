@@ -410,12 +410,12 @@ var _Elements = {
 
 		var icon = _Elements.getElementIcon(entity);
 
-		div.append('<img class="typeIcon" src="' + icon + '">'
+		div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" />'
 			+ '<b title="' + displayName + '" class="tag_ name_">' + fitStringToWidth(displayName, 200) + '</b><span class="id">' + entity.id + '</span>'
 			+ _Elements.classIdString(entity._html_id, entity._html_class)
 			+ '</div>');
 
-		div.append('<img title="Clone ' + displayName + ' element ' + entity.id + '\" alt="Clone ' + entity.tag + ' element ' + entity.id + '" class="clone_icon button" src="' + _Icons.clone_icon + '">');
+		div.append('<i title="Clone ' + displayName + ' element ' + entity.id + '\" class="clone_icon button ' + _Icons.getFullSpriteClass(_Icons.clone_icon) + '" />');
 		$('.clone_icon', div).on('click', function(e) {
 			e.stopPropagation();
 			_Logger.log(_LogType.ELEMENTS, 'Cloning node (div, parent)', entity, entity.parent);
@@ -447,7 +447,7 @@ var _Elements = {
 		});
 
 		_Entities.appendAccessControlIcon(div, entity);
-		div.append('<img title="Delete ' + displayName + ' element ' + entity.id + '" alt="Delete ' + entity.tag + ' element ' + entity.id + '" class="delete_icon button" src="' + _Icons.delete_icon + '">');
+		div.append('<i title="Delete ' + displayName + ' element ' + entity.id + '" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
 		$('.delete_icon', div).on('click', function(e) {
 			e.stopPropagation();
 			_Entities.deleteNode(this, entity, true, function() {
@@ -456,9 +456,11 @@ var _Elements = {
 					synced.forEach(function(id) {
 						var el = Structr.node(id);
 						if (el && el.children && el.children.length) {
-							el.children('img.typeIcon').attr('src', _Icons.brick_icon);
+							var newSpriteClass = _Icons.getSpriteClassOnly(_Icons.brick_icon);
+							el.children('i.typeIcon').each(function (i, el) {
+								_Icons.updateSpritasdeClassTo(el, newSpriteClass);
+							});
 						}
-
 					});
 				}
 			});
@@ -474,7 +476,7 @@ var _Elements = {
 
 		if (entity.tag === 'a' || entity.tag === 'link' || entity.tag === 'script' || entity.tag === 'img' || entity.tag === 'video' || entity.tag === 'object') {
 
-			div.append('<img title="Edit Link" alt="Edit Link" class="link_icon button" src="' + _Icons.link_icon + '">');
+			div.append('<i title="Edit Link" class="link_icon button ' + _Icons.getFullSpriteClass(_Icons.link_icon) + '" />');
 			if (entity.linkable) {
 				div.append('<span class="linkable">' + entity.linkable + '</span>');
 			}
@@ -522,8 +524,7 @@ var _Elements = {
 								return;
 							}
 
-							pagesToLink.append('<div class="node page ' + page.id + '_"><img class="typeIcon" src="' + _Icons.page_icon + '">'
-									+ '<b title="' + page.name + '" class="name_">' + page.name + '</b></div>');
+							pagesToLink.append('<div class="node page ' + page.id + '_"><i class="' + _Icons.getFullSpriteClass(_Icons.page_icon) + '" /><b title="' + page.name + '" class="name_">' + page.name + '</b></div>');
 
 							var div = $('.' + page.id + '_', pagesToLink);
 
@@ -605,8 +606,7 @@ var _Elements = {
 
 						images.forEach(function(image) {
 
-							imagesToLink.append('<div class="node file ' + image.id + '_"><img class="typeIcon" src="' + _Icons.getImageIcon(image) + '">'
-									+ '<b title="' + image.name + '" class="name_">' + image.name + '</b></div>');
+							imagesToLink.append('<div class="node file ' + image.id + '_">' + _Icons.getImageOrIcon(image) + '<b title="' + image.name + '" class="name_">' + image.name + '</b></div>');
 
 							var div = $('.' + image.id + '_', imagesToLink);
 
@@ -1072,7 +1072,7 @@ var _Elements = {
 
 		var icon = _Elements.getContentIcon(entity);
 		var html = '<div id="id_' + entity.id + '" class="node content ' + (isActiveNode ? ' activeNode' : 'staticNode') + '">'
-				+ '<img class="typeIcon" src="' + icon + '">'
+				+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" />'
 				+ (name ? ('<b title="' + displayName + '" class="tag_ name_">' + fitStringToWidth(displayName, 200) + '</b>') : ('<div class="content_">' + escapeTags(entity.content) + '</div>'))
 				+ '<span class="id">' + entity.id + '</span>'
 				+ '</div>';
@@ -1095,7 +1095,7 @@ var _Elements = {
 
 		_Entities.appendAccessControlIcon(div, entity);
 
-		div.append('<img title="Clone content node ' + entity.id + '" alt="Clone content node ' + entity.id + '" class="clone_icon button" src="' + _Icons.clone_icon + '">');
+		div.append('<i title="Clone content node ' + entity.id + '" class="clone_icon button ' + _Icons.getFullSpriteClass(_Icons.clone_icon) + '" />');
 		$('.clone_icon', div).on('click', function(e) {
 			e.stopPropagation();
 			_Logger.log(_LogType.ELEMENTS, 'Cloning node (div, parent)', entity, entity.parent);
@@ -1104,13 +1104,13 @@ var _Elements = {
 
 		_Elements.appendContextMenu(div, entity);
 
-		div.append('<img title="Delete content \'' + (entity.name ? entity.name : entity.id) + '\'" alt="Delete content \'' + (entity.name ? entity.name : entity.id) + '\'" class="delete_icon button" src="' + _Icons.delete_content_icon + '">');
+		div.append('<i title="Delete content \'' + (entity.name ? entity.name : entity.id) + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_content_icon) + '" />');
 		$('.delete_icon', div).on('click', function(e) {
 			e.stopPropagation();
 			_Entities.deleteNode(this, entity);
 		});
 
-		div.append('<img title="Edit Content" alt="Edit Content of ' + (entity.name ? entity.name : entity.id) + '" class="edit_icon button" src="' + _Icons.edit_icon + '">');
+		div.append('<i title="Edit Content of ' + (entity.name ? entity.name : entity.id) + '" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
 		$('.edit_icon', div).on('click', function(e) {
 			e.stopPropagation();
 			_Elements.openEditContentDialog(this, entity);
@@ -1123,7 +1123,7 @@ var _Elements = {
 			return false;
 		});
 
-		_Entities.setMouseOver(div, undefined, ((entity.syncedNodes&&entity.syncedNodes.length)?entity.syncedNodes:[entity.sharedComponent]));
+		_Entities.setMouseOver(div, undefined, ((entity.syncedNodes && entity.syncedNodes.length) ? entity.syncedNodes : [entity.sharedComponent]));
 
 		_Entities.appendEditPropertiesIcon(div, entity);
 
@@ -1220,7 +1220,7 @@ var _Elements = {
 		// Experimental speech recognition, works only in Chrome 25+
 		if (typeof(webkitSpeechRecognition) === 'function') {
 
-			dialogBox.append('<button class="speechToText"><img src="' + _Icons.microphone_icon + '"></button>');
+			dialogBox.append('<button class="speechToText"><i class="' + _Icons.getFullSpriteClass(_Icons.microphone_icon) + '" /></button>');
 			var speechBtn = $('.speechToText', dialogBox);
 
 			_Speech.init(speechBtn, function(interim, finalResult) {

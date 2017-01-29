@@ -29,7 +29,7 @@ var _Entities = {
 		_Logger.log(_LogType.ENTITIES, 'Change boolean attribute ', attrElement, ' to ', value);
 
 		if (value === true) {
-			attrElement.removeClass('inactive').addClass('active').prop('checked', true).html('<img src="' + _Icons.tick_icon + '">' + (activeLabel ? ' ' + activeLabel : ''));
+			attrElement.removeClass('inactive').addClass('active').prop('checked', true).html('<i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />' + (activeLabel ? ' ' + activeLabel : ''));
 		} else {
 			attrElement.removeClass('active').addClass('inactive').prop('checked', false).text((inactiveLabel ? inactiveLabel : '-'));
 		}
@@ -138,14 +138,9 @@ var _Entities = {
 
 		}
 
-//        _Entities.appendBooleanSwitch(el, entity, 'hideOnEdit', 'Hide in edit mode', 'If active, this node will not be visible in edit mode.');
-//        _Entities.appendBooleanSwitch(el, entity, 'hideOnNonEdit', 'Hide in non-edit mode', 'If active, this node will not be visible in default (non-edit) mode.');
-
-		//_Entities.appendInput(dialog, entity, 'partialUpdateKey', 'Types to trigger partial update', '');
-
 	},
 	appendRowWithInputField: function(entity, el, key, label) {
-		el.append('<tr><td class="key">' + label + '</td><td class="value"><input class="' + key + '_" name="' + key + '" value="' + (entity[key] ? escapeForHtmlAttributes(entity[key]) : '') + '"></td><td><img class="nullIcon" id="null_' + key + '" src="' + _Icons.grey_cross_icon + '"></td></tr>');
+		el.append('<tr><td class="key">' + label + '</td><td class="value"><input class="' + key + '_" name="' + key + '" value="' + (entity[key] ? escapeForHtmlAttributes(entity[key]) : '') + '"></td><td><i id="null_' + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>');
 		var inp = $('[name="' + key + '"]', el);
 		_Entities.activateInput(inp, entity.id);
 		var nullIcon = $('#null_' + key, el);
@@ -555,21 +550,19 @@ var _Entities = {
 							}
 
 							if (display || key === '_html_class' || key === '_html_id') {
-								props.append('<tr><td class="key">' + key.replace(view, '') + '</td>'
-									+ '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="' + null_prefix + key + '" src="' + _Icons.grey_cross_icon + '"></td></tr>');
+								props.append('<tr><td class="key">' + key.replace(view, '') + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><i id="' + null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>');
 							} else if (key !== 'id') {
-								props.append('<tr class="hidden"><td class="key">' + key.replace(view, '') + '</td>'
-									+ '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="' + null_prefix + key + '" src="' + _Icons.grey_cross_icon + '"></td></tr>');
+								props.append('<tr class="hidden"><td class="key">' + key.replace(view, '') + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><i id="' + null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>');
 							}
 						} else if (view === 'in' || view === 'out') {
 							if (key === 'id') {
 								// set ID to rel ID
 								id = res[key];
 							}
-							props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="' + null_prefix + key + '" src="' + _Icons.grey_cross_icon + '"></td></tr>');
+							props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><i id="' + null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>');
 						} else {
 
-							props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"></td><td><img class="nullIcon" id="' + null_prefix + key + '" src="' + _Icons.grey_cross_icon + '"></td></tr>');
+							props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"></td><td><i id="' + null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>');
 							var cell = $('.value.' + key + '_', props);
 
 							if (!typeInfo[key]) {
@@ -681,7 +674,7 @@ var _Entities = {
 											}
 										}
 
-										cell.append('<img class="add" src="' + _Icons.add_grey_icon + '">');
+										cell.append('<i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" />');
 										$('.add', cell).on('click', function() {
 											Structr.dialog('Add ' + typeInfo[key].type, function() {
 											}, function() {
@@ -754,7 +747,7 @@ var _Entities = {
 	},
 	displaySearch: function(id, key, type, el, isCollection) {
 
-		el.append('<div class="searchBox searchBoxDialog"><input class="search" name="search" size="20" placeholder="Search"><img class="clearSearchIcon" src="' + _Icons.grey_cross_icon + '"></div>');
+		el.append('<div class="searchBox searchBoxDialog"><input class="search" name="search" size="20" placeholder="Search"><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
 		var searchBox = $('.searchBoxDialog', el);
 		var search = $('.search', searchBox);
 		window.setTimeout(function() {
@@ -887,7 +880,7 @@ var _Entities = {
 	},
 	appendRelatedNode: function(cell, node, onDelete) {
 		var displayName = _Crud.displayName(node);
-		cell.append('<div title="' + displayName + '" class="_' + node.id + ' node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<img class="remove" src="' + _Icons.grey_cross_icon + '"></div>');
+		cell.append('<div title="' + displayName + '" class="_' + node.id + ' node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
 		var nodeEl = $('._' + node.id, cell);
 
 		nodeEl.on('click', function(e) {
@@ -958,8 +951,8 @@ var _Entities = {
 					}
 				}
 				input.removeClass('active');
-				input.parent().children('.icon').each(function(i, img) {
-					$(img).remove();
+				input.parent().children('.icon').each(function(i, icon) {
+					$(icon).remove();
 				});
 			});
 		}
@@ -974,7 +967,7 @@ var _Entities = {
 		var isProtected = !entity.visibleToPublicUsers || !entity.visibleToAuthenticatedUsers;
 
 		var keyIcon = $('.key_icon', parent);
-		var newKeyIcon = '<img title="Access Control and Visibility" alt="Access Control and Visibility" class="key_icon button" src="' + _Icons.key_icon + '">';
+		var newKeyIcon = '<i title="Access Control and Visibility" class="key_icon button ' + _Icons.getFullSpriteClass(_Icons.key_icon) + '" />';
 		if (!(keyIcon && keyIcon.length)) {
 			parent.append(newKeyIcon);
 			keyIcon = $('.key_icon', parent);
@@ -1193,7 +1186,7 @@ var _Entities = {
 		var editIcon = $('.edit_icon', parent);
 
 		if (!(editIcon && editIcon.length)) {
-			parent.append('<img title="Edit source code" alt="Edit source code" class="edit_icon button" src="' + _Icons.edit_icon + '">');
+			parent.append('<i title="Edit source code" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
 			editIcon = $('.edit_icon', parent);
 		}
 		editIcon.on('click', function(e) {
@@ -1207,7 +1200,7 @@ var _Entities = {
 		var editIcon = $('.edit_props_icon', parent);
 
 		if (!(editIcon && editIcon.length)) {
-			parent.append('<img title="Edit Properties" alt="Edit Properties" class="edit_props_icon button" src="' + _Icons.view_detail_icon + '">');
+			parent.append('<i title="Edit Properties" class="edit_props_icon button ' + _Icons.getFullSpriteClass(_Icons.view_detail_icon) + '" />');
 			editIcon = $('.edit_props_icon', parent);
 		}
 		editIcon.on('click', function(e) {
@@ -1222,20 +1215,6 @@ var _Entities = {
 			});
 		}
 		return editIcon;
-	},
-	appendDataIcon: function(parent, entity) {
-
-		var dataIcon = $('.data_icon', parent);
-
-		if (!(dataIcon && dataIcon.length)) {
-			parent.append('<img title="Edit Data Settings" alt="Edit Data Settings" class="data_icon button" src="' + _Icons.database_table_icon + '">');
-			dataIcon = $('.data_icon', parent);
-		}
-		dataIcon.on('click', function(e) {
-			e.stopPropagation();
-			_Logger.log(_LogType.ENTITIES, 'showDataDialog', entity);
-			_Entities.showDataDialog(entity);
-		});
 	},
 	appendExpandIcon: function(el, entity, hasChildren, expanded) {
 
@@ -1256,9 +1235,7 @@ var _Entities = {
 
 			var displayName = getElementDisplayName(entity);
 
-			typeIcon.css({
-				paddingRight: 0 + 'px'
-			}).after('<img title="Expand ' + displayName + '" alt="Expand ' + displayName + '" class="expand_icon" src="' + icon + '">');
+			typeIcon.removeClass('typeIcon-nochildren').after('<i title="Expand ' + displayName + '" class="expand_icon ' + _Icons.getFullSpriteClass(icon) + '" />');
 
 			$(el).on('click', function(e) {
 				e.stopPropagation();
@@ -1285,9 +1262,7 @@ var _Entities = {
 			}
 
 		} else {
-			el.children('.typeIcon').css({
-				paddingRight: 11 + 'px'
-			});
+			el.children('.typeIcon').addClass('typeIcon-nochildren');
 		}
 
 	},
@@ -1302,9 +1277,7 @@ var _Entities = {
 		$(button).off('click');
 
 		button.remove();
-		el.children('.typeIcon').css({
-			paddingRight: 11 + 'px'
-		});
+		el.children('.typeIcon').addClass('typeIcon-nochildren');
 	},
 	makeSelectable: function(el) {
 		var node = $(el).closest('.node');
@@ -1365,9 +1338,9 @@ var _Entities = {
 						$('#preview_' + Structr.getId(page)).contents().find('[data-structr-id=' + nodeId + ']').addClass('nodeHover');
 					} catch (e) {}
 				}
-				self.addClass('nodeHover').children('img.button').show().css('display', 'inline-block');
-				self.children('.minify_file_icon').show().css('display', 'inline-block');
-				self.children('.icons').children('img.button').show();
+				self.addClass('nodeHover');
+				self.children('i.button').showInlineBlock();
+//				self.children('.icons').children('img.button').show();
 			},
 			mouseout: function(e) {
 				e.stopPropagation();
@@ -1390,8 +1363,8 @@ var _Entities = {
 		var node = el.closest('.node');
 		if (node) {
 			node.removeClass('nodeHover');
-			node.find('img.button').not('.donthide').hide().css('display', 'none');
-			node.children('.minify_file_icon').hide().css('display', 'none');
+//			node.find('img.button').not('.donthide').hide().css('display', 'none');
+			node.find('i.button').not('.donthide').hide().css('display', 'none');
 		}
 		var page = node.closest('.page');
 		if (page.length) {
@@ -1401,11 +1374,11 @@ var _Entities = {
 		}
 	},
 	isExpanded: function(element) {
-		var b = $(element).children('.expand_icon').first(), src = b.prop('src');
-		if (!b || !src) {
+		var b = $(element).children('.expand_icon').first();
+		if (!b) {
 			return false;
 		}
-		return src.endsWith(_Icons.expanded_icon);
+		return b.hasClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon));
 	},
 	ensureExpanded: function(element, callback) {
 		if (!element) {
@@ -1428,8 +1401,9 @@ var _Entities = {
 			Command.children(id, callback);
 			var displayName = getElementDisplayName(Structr.entity(id));
 
-			el.children('.expand_icon').first().prop('src', _Icons.expanded_icon)
-				.prop('alt', 'Collapse ' + displayName)
+			el.children('.expand_icon').first()
+				.removeClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon))
+				.addClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon))
 				.prop('title', 'Collapse ' + displayName);
 		}
 	},
@@ -1472,8 +1446,8 @@ var _Entities = {
 				$(child).remove();
 			});
 
-			b.prop('src', _Icons.collapsed_icon)
-				.prop('alt', 'Expand ' + displayName)
+			b.removeClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon))
+				.addClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon))
 				.prop('title', 'Expand ' + displayName);
 
 			Structr.removeExpandedNode(id);
@@ -1484,8 +1458,8 @@ var _Entities = {
 				Command.children(id);
 			}
 
-			b.prop('src', _Icons.expanded_icon)
-				.prop('alt', 'Collapse ' + displayName)
+			b.removeClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon))
+				.addClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon))
 				.prop('title', 'Collapse ' + displayName);
 
 			Structr.addExpandedNode(id);
@@ -1607,9 +1581,9 @@ var _Entities = {
 						content = entity.type;
 				}
 
-				div.append('<img class="typeIcon" src="' + icon + '">'
+				div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" />'
 					+ '<b title="' + name + '">' + fitStringToWidth(name, 180, 'slideOut') + '</b>'
-					+ '<b class="action">' + (action ? action : '&nbsp;') + '</b    >'
+					+ '<b class="action">' + (action ? action : '&nbsp;') + '</b>'
 					+ '<span class="content_">' + (content ? fitStringToWidth(content, 180, 'slideOut') : '&nbsp;') + '</span>'
 					+ '<span class="id">' + entity.id + '</span>'
 				);
@@ -1620,9 +1594,9 @@ var _Entities = {
 
 				if (!(editIcon && editIcon.length)) {
 					if (entity.state === 'Content') {
-						div.append('<img title="Edit" alt="Edit" class="edit_icon button" src="' + _Icons.edit_icon + '">');
+						div.append('<i title="Edit" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
 					} else {
-						div.append('<img title="Edit Properties" alt="Edit Properties" class="edit_icon button" src="' + _Icons.view_detail_icon + '">');
+						div.append('<i title="Edit Properties" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.view_detail_icon) + '" />');
 					}
 					editIcon = $('.edit_icon', div);
 				}
@@ -1661,16 +1635,12 @@ var _Entities = {
 				});
 
 				var typeIcon = $(div.children('.typeIcon').first());
-				var padding = 0;
-
 				var displayName = getElementDisplayName(entity);
 
 				if (!expand) {
-					padding = 11;
+					typeIcon.addClass('typeIcon-nochildren');
 				} else {
-					typeIcon.css({
-						paddingRight: padding + 'px'
-					}).after('<img title="Expand ' + displayName + '" alt="Expand ' + displayName + '" class="expand_icon" src="' + _Icons.expanded_icon + '">');
+					typeIcon.removeClass('typeIcon-nochildren').after('<i title="Expand ' + displayName + '" class="expand_icon ' + _Icons.getFullSpriteClass(_Icons.expanded_icon) + '" />');
 				}
 			}
 		}
@@ -1721,10 +1691,9 @@ var _Entities = {
 };
 
 function addPrincipal(entity, principal, permissions) {
-
 	$('#newPrincipal option[value="' + principal.id + '"]').remove();
 	$('#newPrincipal').trigger('chosen:updated');
-	$('#new').after('<tr class="_' + principal.id + '"><td><img class="typeIcon" src="' + (principal.isGroup ? _Icons.group_icon : _Icons.user_icon) + '"> <span class="name">' + principal.name + '</span></td><tr>');
+	$('#new').after('<tr class="_' + principal.id + '"><td><i class="typeIcon ' + _Icons.getFullSpriteClass((principal.isGroup ? _Icons.group_icon : _Icons.user_icon)) + '" /> <span class="name">' + principal.name + '</span></td><tr>');
 
 	var row = $('._' + principal.id, dialogText);
 
@@ -1776,8 +1745,7 @@ function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 	} else if (obj.constructor === Object) {
 		var node = obj;
 		var displayName = _Crud.displayName(node);
-		return '<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<img class="remove" src="' + _Icons.grey_cross_icon + '"></div>';
-		//return '<input name="' + key + '" type="' + (isPassword?'password':'text') + '" ' + (isReadOnly?'readonly class="readonly"':'') + ' value="' + escapeForHtmlAttributes(JSON.stringify(obj)) + '">';
+		return '<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>';
 	} else if (obj.constructor === Array) {
 		var out = '';
 		$(obj).each(function(i, v) {

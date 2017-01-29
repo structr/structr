@@ -333,7 +333,7 @@ var _Graph = {
 			graphBrowser.fixateSelectionGroup(val[1], self.is(':checked'));
 		});
 
-		$(document).on('click', '#closeTooltip', function(){
+		$(document).on('click', '.closeTooltipBtn', function(){
 			graphBrowser.closeTooltip();
 		});
 
@@ -428,13 +428,13 @@ var _Graph = {
 			$('#' + activeTabRightGraph).addClass('active').click();
 		}
 
-		queriesSlideout.append('<div class="query-box"><textarea class="search" name="rest" cols="39" rows="4" placeholder="Enter a REST query here"></textarea><img class="clearSearchIcon" id="clear-rest" src="' + _Icons.grey_cross_icon + '" data-type="rest">'
+		queriesSlideout.append('<div class="query-box"><textarea class="search" name="rest" cols="39" rows="4" placeholder="Enter a REST query here"></textarea><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" id="clear-rest" data-type="rest" />'
 			+ '<button id="exec-rest">Execute REST query</button></div>');
 
-		queriesSlideout.append('<div class="query-box"><textarea class="search" name="cypher" cols="39" rows="4" placeholder="Enter a Cypher query here"></textarea><img class="clearSearchIcon" id="clear-cypher" src="' + _Icons.grey_cross_icon + '" data-type="cypher">'
+		queriesSlideout.append('<div class="query-box"><textarea class="search" name="cypher" cols="39" rows="4" placeholder="Enter a Cypher query here"></textarea><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" id="clear-cypher" data-type="cypher" />'
 			+ '<button id="exec-cypher">Execute Cypher query</button></div>');
 
-		queriesSlideout.append('<div id="cypher-params"><h3>Cypher Parameters</h3><img id="add-cypher-parameter" src="' + _Icons.add_icon + '">');
+		queriesSlideout.append('<div id="cypher-params"><h3>Cypher Parameters</h3><i id="add-cypher-parameter" class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" />');
 		_Graph.appendCypherParameter($('#cypher-params'));
 
 		$('#clear-graph').on('click', function() {
@@ -475,6 +475,10 @@ var _Graph = {
 
 		$('#add-cypher-parameter').on('click', function() {
 			_Graph.appendCypherParameter($('#cypher-params'));
+		});
+
+		$(document).on('click', '.remove-cypher-parameter', function() {
+			$(this).parent().remove();
 		});
 
 		_Graph.clearSearch('rest');
@@ -574,9 +578,7 @@ var _Graph = {
 		var query = savedQueries[i];
 		$('.search[name=' + query.type + ']').val(query.query);
 		_Graph.showClearSearchIcon(query.type);
-		$('#cypher-params input').remove();
-		$('#cypher-params br').remove();
-		$('#cypher-params img.remove-cypher-parameter').remove();
+		$('#cypher-params div.cypher-param').remove();
 		if (query.params && query.params.length) {
 			var parObj = JSON.parse(query.params);
 			$.each(Object.keys(parObj), function(i, key) {
@@ -595,9 +597,9 @@ var _Graph = {
 		var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
 		$.each(savedQueries, function(q, query) {
 			if (query.type === 'cypher') {
-				$('#saved-queries').append('<div class="saved-query cypher-query"><img class="replay" alt="Cypher Query" src="' + _Icons.exec_cypher_icon + '">' + query.query + '<img class="remove-query" src="' + _Icons.grey_cross_icon + '"></div>');
+				$('#saved-queries').append('<div class="saved-query cypher-query"><i class="replay ' + _Icons.getFullSpriteClass(_Icons.exec_cypher_icon) + '" />' + query.query + '<i class="remove-query ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
 			} else {
-				$('#saved-queries').append('<div class="saved-query rest-query"><img class="replay" alt="REST Query" src="' + _Icons.exec_rest_icon + '">' + query.query + '<img class="remove-query" src="' + _Icons.grey_cross_icon + '"></div>');
+				$('#saved-queries').append('<div class="saved-query rest-query"><i class="replay ' + _Icons.getFullSpriteClass(_Icons.exec_rest_icon) + '" />' + query.query + '<i class="remove-query ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
 			}
 		});
 
@@ -946,7 +948,7 @@ var _Graph = {
 	},
 
 	appendCypherParameter: function(el, key, value) {
-		el.append('<div><img class="remove-cypher-parameter" src="' + _Icons.delete_icon + '"> <input name="cyphername[]" type="text" placeholder="name" size="10" value="' + (key || '') + '"> <input name="cyphervalue[]" type="text" placeholder="value" size="10" value="' + (value || '') + '"></div>');
+		el.append('<div class="cypher-param"><i class="remove-cypher-parameter ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /> <input name="cyphername[]" type="text" placeholder="name" size="10" value="' + (key || '') + '"> <input name="cyphervalue[]" type="text" placeholder="value" size="10" value="' + (value || '') + '"></div>');
 	},
 
 	onNodesAdded: function(){
@@ -1022,7 +1024,7 @@ var _Graph = {
 			"<div class='tooltipArrowUp'></div>" +
 			"<div class='graphTooltip'>" +
 				"<div class='tooltipHeader'>" +
-					"<img class='closeTooltipBtn' id='closeTooltip' src='" + _Icons.grey_cross_icon + "'>" +
+					"<i class='closeTooltipBtn " + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + "'></i>" +
 					"<p class='tooltipTitle'>" + node.label + "</p>" +
 				"</div>" +
 				"<div class='tooltipContent' style='border-top: solid " + color[node.nodeType] + " 4px;'>" +
@@ -1053,7 +1055,7 @@ var _Graph = {
 			"<div class='graphTooltip'>" +
 				"<div class='tooltipHeader'>" +
 					"<p class='tooltipTitle'>" + edge.label + "</p>" +
-					"<img class='closeTooltipBtn' id='closeTooltip' src='" + _Icons.grey_cross_icon + "'>" +
+					"<i class='closeTooltipBtn " + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + "'></i>" +
 				"</div>" +
 				"<div class='tooltipBody'>" +
 					"<table class='tooltipTable'>" +

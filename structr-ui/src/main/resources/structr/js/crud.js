@@ -172,9 +172,9 @@ var _Crud = {
 	},
 	init: function() {
 
-		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Search"><img class="clearSearchIcon" src="' + _Icons.grey_cross_icon + '"></div>');
+		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Search"><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
 		main.append('<div id="crud-main"><div class="column-resizer"></div><div id="crud-left">'
-				+ '<div id="crud-types" class="resourceBox"><h2>All Types</h2><img src="' + _Icons.wrench_icon + '" id="crudTypesFilterToggle" title="Auto-filter types"><div id="crudTypeFilterSettings" class="hidden"></div><input placeholder="Filter types..." id="crudTypesSearch"><ul id="crud-types-list"></ul></div>'
+				+ '<div id="crud-types" class="resourceBox"><h2>All Types</h2><i id="crudTypesFilterToggle" title="Auto-filter types" class="' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" /><div id="crudTypeFilterSettings" class="hidden"></div><input placeholder="Filter types..." id="crudTypesSearch"><ul id="crud-types-list"></ul></div>'
 				+ '<div id="crud-recent-types" class="resourceBox"><h2>Recent</h2><ul id="crud-recent-types-list"></ul></div></div>'
 				+ '<div id="crud-right" class="resourceBox full-height-box"></div></div>');
 
@@ -343,7 +343,7 @@ var _Crud = {
 
 		_Crud.loadingMessageTimeout = setTimeout(function() {
 			var crudRight = $('#crud-right');
-			crudRight.append('<div class="crud-loading"><div class="crud-centered"><img src="' + _Icons.ajax_loader_1 + '"> Loading <b>' + type + '</b> - please stand by</div></div>');
+			crudRight.append('<div class="crud-loading"><div class="crud-centered"><img src="' + _Icons.getSpinnerImageAsData() + '"> Loading <b>' + type + '</b> - please stand by</div></div>');
 		}, delay);
 
 	},
@@ -380,9 +380,9 @@ var _Crud = {
 			tableHeaderRow.append('<th class="___action_header">Actions</th>');
 
 			crudRight.append('<div id="crud-buttons">'
-					+ '<button id="create' + type + '"><img src="' + _Icons.add_icon + '"> Create new ' + type + '</button>'
-					+ '<button id="export' + type + '"><img src="' + _Icons.database_table_icon + '"> Export as CSV</button>'
-					+ '<button id="import' + type + '"><img src="' + _Icons.database_add_icon + '"> Import CSV</button>'
+					+ '<button id="create' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Create new ' + type + '</button>'
+					+ '<button id="export' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_table_icon) + '" /> Export as CSV</button>'
+					+ '<button id="import' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_add_icon) + '" /> Import CSV</button>'
 					+ '</div>');
 
 			crudRight.append('<div id="query-info">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
@@ -469,7 +469,7 @@ var _Crud = {
 			$('li', $recentTypesList).remove();
 
 			recentTypes.forEach(function (type) {
-				$recentTypesList.append('<li class="crud-type' + (selectedType === type ? ' active' : '') + '" data-type="' + type + '">' + type + '<img src="' + _Icons.grey_cross_icon + '" class="remove-recent-type"></li>');
+				$recentTypesList.append('<li class="crud-type' + (selectedType === type ? ' active' : '') + '" data-type="' + type + '">' + type + '<i class="remove-recent-type ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></li>');
 			});
 
 		}
@@ -655,7 +655,7 @@ var _Crud = {
 			if (key === "action_header") {
 
 				th.empty();
-				th.append('Actions <img style="margin-left: 4px" src="' + _Icons.view_detail_icon + '" alt="Configure columns" title="Configure columns">');
+				th.append('Actions <i title="Configure columns" style="margin-left: 4px" class="' + _Icons.getFullSpriteClass(_Icons.view_detail_icon) + '" />');
 				$('img', th).on('click', function(event) {
 
 					_Crud.dialog('<h3>Configure columns for type ' + type + '</h3>', function() {
@@ -704,8 +704,7 @@ var _Crud = {
 				th.empty();
 				var sortKey = key;
 				th.append(
-					'<img src="' + _Icons.grey_cross_icon + '" alt="Hide this column" title="Hide this column">'
-					+ '<a href="' + _Crud.sortAndPagingParameters(type, sortKey, newOrder, _Crud.pageSize[type], _Crud.page[type]) + '#' + type + '">' + key + '</a>');
+					'<i title="Hide this column" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /><a href="' + _Crud.sortAndPagingParameters(type, sortKey, newOrder, _Crud.pageSize[type], _Crud.page[type]) + '#' + type + '">' + key + '</a>');
 
 				if (_Crud.isCollection(key, type)) {
 					_Crud.appendPerCollectionPager(th, type, key);
@@ -718,8 +717,8 @@ var _Crud = {
 					_Crud.refreshList(type);
 					return false;
 				});
-				$('img', th).on('click', function(event) {
 
+				$('i', th).on('click', function(event) {
 					event.preventDefault();
 					_Crud.toggleColumn(type, key);
 					return false;
@@ -1589,7 +1588,7 @@ var _Crud = {
 					_Crud.populateCell(id, key, type, item[key], cell);
 				});
 			});
-			row.append('<td class="actions"><a title="Edit" class="edit"><img alt="Edit Icon" src="' + _Icons.edit_icon + '"></a><a title="Delete" class="delete"><img alt="Delete Icon" src="' + _Icons.cross_icon + '"></a><a title="Access Control" class="security"><img alt="Access Control Icon" src="' + _Icons.key_icon + '"></a></td>');
+			row.append('<td class="actions"><a title="Edit" class="edit"><i class="' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" /></a><a title="Delete" class="delete"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" /></a><a title="Access Control" class="security"><i class="' + _Icons.getFullSpriteClass(_Icons.key_icon) + '" /></a></td>');
 			_Crud.resize();
 
 			$('.actions .edit', row).on('click', function(event) {
@@ -1637,7 +1636,7 @@ var _Crud = {
 					});
 				}
 			} else if (propertyType === 'Date') {
-				cell.html(nvl(formatValue(value), '<img alt="Show calendar" title="Show calendar" src="' + _Icons.calendar_icon + '">'));
+				cell.html(nvl(formatValue(value), '<i title="Show calendar" class="' + _Icons.getFullSpriteClass(_Icons.calendar_icon) + '" />'));
 				if (!readOnly) {
 					var dateTimePickerFormat = getDateTimePickerFormat(_Crud.getFormat(key, type));
 					cell.on('click', function(event) {
@@ -1699,7 +1698,7 @@ var _Crud = {
 
 				if (value && value.length) {
 					value.forEach(function (v, i) {
-						cell.append('<div title="' + v + '" class="node stringarray">' + fitStringToWidth(v, 80) + '<img class="remove" src="' + _Icons.grey_cross_icon + '" data-string-element="' + escape(v) + '" data-string-position="' + i + '"></div>');
+						cell.append('<div title="' + v + '" class="node stringarray">' + fitStringToWidth(v, 80) + '<i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" data-string-element="' + escape(v) + '" data-string-position="' + i + '" /></div>');
 					});
 
 					$('.stringarray .remove', cell).on('click', function(e) {
@@ -1710,7 +1709,7 @@ var _Crud = {
 
 				}
 
-				cell.append('<img class="add" src="' + _Icons.add_grey_icon + '">');
+				cell.append('<i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" />');
 				$('.add', cell).on('click', function() {
 					var newStringElement = window.prompt("Enter new string");
 
@@ -1737,7 +1736,7 @@ var _Crud = {
 
 			simpleType = lastPart(relatedType, '.');
 
-			cell.append('<img class="add" src="' + _Icons.add_grey_icon + '">');
+			cell.append('<i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" />');
 
 			$('.add', cell).on('click', function() {
 
@@ -1762,7 +1761,7 @@ var _Crud = {
 
 			} else {
 
-				cell.append('<img class="add" src="' + _Icons.add_grey_icon + '">');
+				cell.append('<i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" />');
 				$('.add', cell).on('click', function() {
 					_Crud.dialog('Add ' + simpleType + ' to ' + key, function() {
 					}, function() {
@@ -1774,7 +1773,7 @@ var _Crud = {
 		}
 
 		if (!isSourceOrTarget && !readOnly && !relatedType && propertyType !== 'Boolean' && propertyType !== 'String[]') {
-			cell.append('<img class="crud-clear-value" alt="Clear value" title="Clear value" src="' + _Icons.grey_cross_icon + '">');
+			cell.append('<i title="Clear value" class="crud-clear-value ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" />');
 			$('.crud-clear-value', cell).on('click', function(e) {
 				e.preventDefault();
 				_Crud.crudRemoveProperty(id, key);
@@ -1845,7 +1844,7 @@ var _Crud = {
 
 			var isSourceOrTarget = _Crud.types[parentType].isRel && (key === 'sourceId' || key === 'targetId');
 			if (!isSourceOrTarget) {
-				nodeEl.append('<img class="remove" src="' + _Icons.grey_cross_icon + '"></div>');
+				nodeEl.append('<i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
 			}
 
 			if (node.isImage) {
@@ -1966,7 +1965,7 @@ var _Crud = {
 				url = rootUrl + type + '/ui' + _Crud.sortAndPagingParameters(type, 'name', 'asc', 1000, 1) + searchPart;
 			}
 
-			searchResults.append('<div id="placeholderFor' + type + '" class="searchResultGroup resourceBox"><img class="loader" src="' + _Icons.ajax_loader_1 + '">Searching for "' + searchString + '" in ' + type + '</div>');
+			searchResults.append('<div id="placeholderFor' + type + '" class="searchResultGroup resourceBox"><img class="loader" src="' + _Icons.getSpinnerImageAsData() + '">Searching for "' + searchString + '" in ' + type + '</div>');
 
 			$.ajax({
 				url: url,
@@ -2056,7 +2055,7 @@ var _Crud = {
 		return displayName;
 	},
 	displaySearch: function(parentType, id, key, type, el) {
-		el.append('<div class="searchBox searchBoxDialog"><input class="search" name="search" size="20" placeholder="Search"><img class="clearSearchIcon" src="' + _Icons.grey_cross_icon + '"></div>');
+		el.append('<div class="searchBox searchBoxDialog"><input class="search" name="search" size="20" placeholder="Search"><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
 		var searchBox = $('.searchBoxDialog', el);
 		var search = $('.search', searchBox);
 		window.setTimeout(function() {
@@ -2420,7 +2419,7 @@ var _Crud = {
 			}
 		}
 
-		dialogText.append('<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th>');//<th>Type</th><th>Read Only</th></table></form>');
+		dialogText.append('<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th>');
 
 		var table = $('table', dialogText);
 
@@ -2434,7 +2433,7 @@ var _Crud = {
 				return;
 			}
 
-			table.append('<tr><td class="key"><label for="' + key + '">' + key + '</label></td><td class="__value ___' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
+			table.append('<tr><td class="key"><label for="' + key + '">' + key + '</label></td><td class="__value ___' + key + '"></td>');
 			var cell = $('.___' + key, table);
 			if (node && node.id) {
 				_Crud.populateCell(node.id, key, node.type, node[key], cell);

@@ -79,7 +79,7 @@ var _UsersAndGroups = {
 
 	refreshUsers: function() {
 		_Security.users.empty();
-		_Security.users.append('<button class="add_user_icon button"><img title="Add User" alt="Add User" src="' + _Icons.user_add_icon + '"> Add User</button>');
+		_Security.users.append('<button class="add_user_icon button"><i title="Add User" class="' + _Icons.getFullSpriteClass(_Icons.user_add_icon) + '" /> Add User</button>');
 		$('.add_user_icon', main).on('click', function(e) {
 			e.stopPropagation();
 			return Command.create({type: 'User'});
@@ -91,16 +91,15 @@ var _UsersAndGroups = {
 	createUserElement:function (user, group) {
 		var userName = user.name ? user.name : user.eMail ? '[' + user.eMail + ']' : '[unnamed]';
 
-		var userElement = $(
-				'<div class="node user userid_' + user.id + '">'
-				+ '<img class="typeIcon" src="' + _Icons.user_icon + '">'
+		var userElement = $('<div class="node user userid_' + user.id + '">'
+				+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.user_icon) + '" />'
 				+ ' <b title="' + userName + '" class="name_">' + userName + '</b> <span class="id">' + user.id + '</span>'
 				+ '</div>'
 		);
 		userElement.data('userId', user.id);
 
 		if (group) {
-			userElement.append('<img title="Remove user \'' + userName + '\' from group \'' + group.name + '\'" alt="Remove user ' + userName + ' from group \'' + group.name + '\'" class="delete_icon button" src="' + _Icons.user_delete_icon + '">');
+			userElement.append('<i title="Remove user \'' + userName + '\' from group \'' + group.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.user_delete_icon) + '" />');
 
 			$('.delete_icon', userElement).on('click', function(e) {
 				e.stopPropagation();
@@ -109,7 +108,7 @@ var _UsersAndGroups = {
 				});
 			});
 		} else {
-			userElement.append('<img title="Delete user \'' + userName + '\'" alt="Delete user \'' + userName + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">');
+			userElement.append('<i title="Delete user \'' + userName + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
 
 			$('.delete_icon', userElement).on('click', function(e) {
 				e.stopPropagation();
@@ -168,7 +167,7 @@ var _UsersAndGroups = {
 
 	refreshGroups: function() {
 		_Security.groups.empty();
-		_Security.groups.append('<button class="add_group_icon button"><img title="Add Group" alt="Add Group" src="' + _Icons.group_add_icon + '"> Add Group</button>');
+		_Security.groups.append('<button class="add_group_icon button"><i title="Add Group" class="' + _Icons.getFullSpriteClass(_Icons.group_add_icon) + '" /> Add Group</button>');
 		$('.add_group_icon', main).on('click', function(e) {
 			e.stopPropagation();
 			return Command.create({type: 'Group'});
@@ -178,11 +177,10 @@ var _UsersAndGroups = {
 		groupPager.activateFilterElements();
 	},
 	createGroupElement: function (group) {
-		var groupElement = $(
-				'<div class="node group groupid_' + group.id + '">'
-				+ '<img class="typeIcon" src="' + _Icons.group_icon + '">'
+		var groupElement = $('<div class="node group groupid_' + group.id + '">'
+				+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.group_icon) + '" />'
 				+ ' <b title="' + group.name + '" class="name_">' + group.name + '</b> <span class="id">' + group.id + '</span>'
-				+ '<img title="Delete Group ' + group.id + '" alt="Delete Group ' + group.id + '" class="delete_icon button" src="' + _Icons.delete_icon + '">'
+				+ '<i title="Delete Group ' + group.id + '" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />'
 				+ '</div>'
 		);
 		groupElement.data('groupId', group.id);
@@ -255,13 +253,13 @@ var _UsersAndGroups = {
 	activateNodeHover: function (id, prefix) {
 		var nodes = $(prefix + id);
 		nodes.each(function (i, el) {
-			$(el).addClass('nodeHover').children('img.button').show().css('display', 'inline-block');;
+			$(el).addClass('nodeHover').children('i.button').showInlineBlock();
 		});
 	},
 	deactivateNodeHover: function (id, prefix) {
 		var nodes = $(prefix + id);
 		nodes.each(function (i, el) {
-			$(el).removeClass('nodeHover').children('img.button').hide();
+			$(el).removeClass('nodeHover').children('i.button').hide();
 		});
 	}
 };
@@ -281,7 +279,7 @@ var _ResourceAccessGrants = {
 
 			_Security.resourceAccesses.append('<table id="resourceAccessesTable"><thead><tr><th></th><th colspan="6" class="center">Authenticated users</th><th colspan="6" class="center">Non-authenticated (public) users</th><th colspan="3"></th></tr><tr><th class="title-cell">Signature</th><th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th>'
 					+ '<th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th><th>Bitmask</th><th></th></tr><tr><th><input type="text" class="filter" data-attribute="signature" placeholder="Filter..."></th><th colspan="15"></th></tr></thead></table>');
-			_Security.resourceAccesses.append('Signature: <input type="text" size="20" id="resource-signature"> <button class="add_grant_icon button"><img title="Add Resource Grant" alt="Add Grant" src="' + _Icons.key_add_icon + '"> Add Grant</button>');
+			_Security.resourceAccesses.append('Signature: <input type="text" size="20" id="resource-signature"> <button class="add_grant_icon button"><i title="Add Resource Grant" class="' + _Icons.getFullSpriteClass(_Icons.key_add_icon) + '" /> Add Grant</button>');
 
 			raPager.activateFilterElements(_Security.resourceAccesses);
 
@@ -379,7 +377,7 @@ var _ResourceAccessGrants = {
 			}
 		});
 
-		tr.append('<td><img title="Delete Resource Access ' + resourceAccess.id + '" alt="Delete Resource Access    ' + resourceAccess.id + '" class="delete-resource-access button" src="' + _Icons.delete_icon + '"></td>');
+		tr.append('<td><i title="Delete Resource Access ' + resourceAccess.id + '" class="delete-resource-access button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /></td>');
 		$('.delete-resource-access', tr).on('click', function(e) {
 			e.stopPropagation();
 			resourceAccess.name = resourceAccess.signature;

@@ -17,7 +17,6 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var main, crawlerMain, crawlerTree, crawlerList;
-var selectedElements = [];
 var currentSite;
 var sitePageSize = 10000, sitePage = 1;
 var currentSiteKey = 'structrCurrentSite_' + port;
@@ -37,7 +36,7 @@ var _Crawler = {
 
 		main = $('#main');
 
-		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><img class="clearSearchIcon" src="' + _Icons.grey_cross_icon + '"></div>');
+		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
 
 		searchField = $('.search', main);
 		searchField.focus();
@@ -115,7 +114,7 @@ var _Crawler = {
 		_Crawler.moveResizer();
 		Structr.initVerticalSlider($('.column-resizer', crawlerMain), crawlerResizerLeftKey, 204, _Crawler.moveResizer);
 
-		$('#crawler-list-container').prepend('<button class="add_site_icon button"><img title="Add Site" alt="Add Site" src="' + _Icons.add_site_icon + '"> Add Site</button>');
+		$('#crawler-list-container').prepend('<button class="add_site_icon button"><i title="Add Site" class="' + _Icons.getFullSpriteClass(_Icons.add_site_icon) + '" /> Add Site</button>');
 
 		$('.add_site_icon', main).on('click', function(e) {
 			e.stopPropagation();
@@ -308,7 +307,7 @@ var _Crawler = {
 		Command.get(id, function(site) {
 
 			var name = (site.name || '[unnamed]');
-			crawlerList.append('<div class="site-header"><div id="id_' + site.id + '" class="site-name"><b class="name_" title="' + name + '">' + name + '</b></div><div class="button-area"><img title="Edit Properties" alt="Edit Properties" class="edit-properties" src="' + _Icons.view_detail_icon + '"><img title="Delete Site" alt="Delete Site" class="delete" src="' + _Icons.delete_icon + '"></div></div>');
+			crawlerList.append('<div class="site-header"><div id="id_' + site.id + '" class="site-name"><b class="name_" title="' + name + '">' + name + '</b></div><div class="button-area"><i title="Edit Properties" class="edit-properties ' + _Icons.getFullSpriteClass(_Icons.view_detail_icon) + '" /><i title="Delete Site" class="delete ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /></div></div>');
 
 			$('.site-header .site-name', crawlerList).on('click', function() {
 				_Entities.makeNameEditable($(this), 200, function() {
@@ -362,7 +361,7 @@ var _Crawler = {
 					  '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>URL</th><th>Login Page</th></tr></thead><tbody id="files-table-body"></tbody></table>'
 			);
 
-			crawlerList.append('<button class="add_page_icon button"><img title="Add Page" alt="Add Page" src="' + _Icons.add_page_icon + '"> Add Page</button>');
+			crawlerList.append('<button class="add_page_icon button"><i title="Add Page" class="' + _Icons.getFullSpriteClass(_Icons.add_page_icon) + '" /> Add Page</button>');
 			$('.add_page_icon', main).on('click', function(e) {
 				e.stopPropagation();
 				Command.create({ type: 'SourcePage', site: site.id }, function(site) {
@@ -386,29 +385,22 @@ var _Crawler = {
 		var icon = 'fa-file-code-o';
 
 		row.append('<td class="file-type"><a href="' + (sourcePage.url || '') + '" target="_blank"><i class="fa ' + icon + '"></i></a></td>');
-		//row.append('<td class="item-title"><b>' + (d.title ? fitStringToWidth(d.title, 200) : '[no title]') + '</b></td>');
 		row.append('<td><div id="id_' + sourcePage.id + '" data-structr_type="item" class="node item"><b title="' +  (sourcePage.name ? sourcePage.name : '[unnamed]') + '" class="name_">' + (sourcePage.name ? fitStringToWidth(sourcePage.name, 200) : '[unnamed]') + '</b></td>');
 
 		row.append('<td><div class="editable url_" title="' + (sourcePage.url || '') + '">' + (sourcePage.url && sourcePage.url.length ? sourcePage.url : '<span class="placeholder">click to edit</span>') + '</div></td>');
 		row.append('<td>' + (sourcePage.isLoginPage ? '✓' : '') + '</td>');
-
-		//row.append('<td>' + sourcePage.type + (sourcePage.isThumbnail ? ' thumbnail' : '') + (sourcePage.isFile && sourcePage.contentType ? ' (' + sourcePage.contentType + ')' : '') + '</td>');
-		// row.append('<td>' + (sourcePage.owner ? (sourcePage.owner.name ? sourcePage.owner.name : '[unnamed]') : '') + '</td>');
 
 		var div = Structr.node(sourcePage.id);
 
 		if (!div || !div.length)
 			return;
 
-		// makeAttributeEditable: function(parentElement, attributeSelector, attributeName, width, callback) {
 		row.find('.url_').on('click', function(e) {
 			e.stopPropagation();
 			_Entities.makeAttributeEditable(row, sourcePage.id, '.url_', 'url', 200, function() {
-				//_Crawler.refreshPatterns(sourcePage);
 				_Crawler.refreshTree();
 			});
 		});
-
 
 		div.on('remove', function() {
 			div.closest('tr').remove();
@@ -418,7 +410,7 @@ var _Crawler = {
 
 		var delIcon = div.children('.delete_icon');
 
-		var newDelIcon = '<img title="Delete item ' + sourcePage.name + '\'" alt="Delete item \'' + sourcePage.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
+		var newDelIcon = '<i title="Delete item ' + sourcePage.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />';
 		if (delIcon && delIcon.length) {
 			delIcon.replaceWith(newDelIcon);
 		} else {
@@ -438,7 +430,6 @@ var _Crawler = {
 
 		div.draggable({
 			revert: 'invalid',
-			//helper: 'clone',
 			containment: 'body',
 			stack: '.jstree-node',
 			appendTo: '#main',
@@ -447,22 +438,14 @@ var _Crawler = {
 			distance: 5,
 			cursorAt: { top: 8, left: 25 },
 			zIndex: 99,
-			//containment: 'body',
 			stop: function(e, ui) {
 				$(this).show();
-				//$('#pages_').droppable('enable').removeClass('nodeHover');
 				$(e.toElement).one('click', function(e) {
 					e.stopImmediatePropagation();
 				});
 			},
 			helper: function(event) {
-				var helperEl = $(this);
-				selectedElements = $('.node.selected');
-				if (selectedElements.length > 1) {
-					selectedElements.removeClass('selected');
-					return $('<img class="node-helper" src="' + _Icons.page_white_stack_icon + '">');//.css("margin-left", event.clientX - $(event.target).offset().left);
-				}
-				var hlp = helperEl.clone();
+				var hlp = $(this).clone();
 				hlp.find('.button').remove();
 				return hlp;
 			}
@@ -759,7 +742,7 @@ var _Crawler = {
 
 			var delIcon = div.children('.delete_icon');
 
-			var newDelIcon = '<img title="Delete item ' + d.name + '\'" alt="Delete item \'' + d.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
+			var newDelIcon = '<i title="Delete item ' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />';
 			if (delIcon && delIcon.length) {
 				delIcon.replaceWith(newDelIcon);
 			} else {
@@ -798,7 +781,6 @@ var _Crawler = {
 			+ (d.sourcePage.isLoginPage ? '' : '<td><div title="' + (d.mappedAttributeFormat || '') + '" class="editable mappedAttributeFormat_">' + (d.mappedAttributeFormat || '<span class="placeholder">click to edit</span>') + '</div></td>')
 			+ (d.sourcePage.isLoginPage ? '<td></td>' : '<td></td><td><button class="extract">Extract</button></td>'));
 
-		// makeAttributeEditable: function(parentElement, id, attributeSelector, attributeName, width, callback) {
 		row.find('.inputValue_').on('click', function(e) {
 			e.stopPropagation();
 			_Entities.makeAttributeEditable(row, d.id, '.inputValue_', 'inputValue', 200);
@@ -834,7 +816,7 @@ var _Crawler = {
 
 		var delIcon = div.children('.delete_icon');
 
-		var newDelIcon = '<img title="Delete item ' + d.name + '\'" alt="Delete item \'' + d.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
+		var newDelIcon = '<i title="Delete item ' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />';
 		if (delIcon && delIcon.length) {
 			delIcon.replaceWith(newDelIcon);
 		} else {
@@ -852,7 +834,7 @@ var _Crawler = {
 		$('.extract', row).on('click', function(e) {
 			var btn = $(this);
 			var text = btn.text();
-			btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="' + _Icons.ajax_loader_2 + '">');
+			Structr.updateButtonWithAjaxLoaderAndText(btn, text);
 			e.preventDefault();
 
 			var url = '/structr/rest/SourcePattern/' + d.id + '/extract';
@@ -864,7 +846,7 @@ var _Crawler = {
 					200: function(data) {
 						var btn = $('.extract', row);
 						btn.removeClass('disabled').attr('disabled', null);
-						btn.html(text + ' <img src="' + _Icons.tick_icon + '">');
+						btn.html(text + ' <i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />');
 					},
 					400: function(data) {
 						console.log(data);
@@ -889,11 +871,10 @@ var _Crawler = {
 
 			}).always(function() {
 				window.setTimeout(function() {
-					$('img', btn).fadeOut();
+					$('i', btn).fadeOut();
 				}, 1000);
 			});
 		});
-
 
 		_Entities.appendEditPropertiesIcon(div, d);
 		_Entities.setMouseOver(div);
@@ -936,11 +917,6 @@ var _Crawler = {
 				realUrl = decodeURIComponent(frameSrc.substring(frameSrc.indexOf(proxyUrl + '?url=') + 11));
 			}
 
-			//pageUrl.val(realUrl);
-			//pageName.val(frameDoc.find('title').text());
-
-
-			//var visibleElements = pageFrame.contents().find('*:not(html body)').filter(':visible');
 			var elements = frameDoc.find('*:not(html body)');
 
 			elements.on('mouseover', function(e) {
@@ -949,7 +925,6 @@ var _Crawler = {
 				var el = $(this);
 
 				var isLink = el.closest('a').length;
-				//console.log('Link?', el.closest('a'));
 
 				var color = 'orange';
 

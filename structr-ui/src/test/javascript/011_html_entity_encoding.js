@@ -56,7 +56,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
 	});
 
 	casper.then(function() {
-		s.moveMousePointerAndClick(casper, {selector: '#files-table-body tr:last-child img.edit_file_icon', wait: 1000});
+		s.moveMousePointerAndClick(casper, {selector: '#files-table-body tr:last-child i.edit_file_icon', wait: 1000});
 	});
 
 	sections.push('Enter the test string');
@@ -80,7 +80,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
 	sections.push('Re-open the editor');
 
 	casper.then(function() {
-		s.moveMousePointerAndClick(casper, {selector: '#files-table-body tr:last-child img.edit_file_icon', wait: 1000});
+		s.moveMousePointerAndClick(casper, {selector: '#files-table-body tr:last-child i.edit_file_icon', wait: 1000});
 	});
 
 	casper.then(function() {

@@ -35,7 +35,7 @@ var _Contents = {
 		_Logger.log(_LogType.CONTENTS, '_Contents.init');
 
 		main = $('#main');
-		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><img class="clearSearchIcon" src="' + _Icons.grey_cross_icon + '"></div>');
+		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
 
 		searchField = $('.search', main);
 		searchField.focus();
@@ -384,7 +384,6 @@ var _Contents = {
 			row.append('<td><div id="id_' + d.id + '" data-structr_type="folder" class="node container"><b title="' + d.name + '" class="name_">' + fitStringToWidth(d.name, 200) + '</b> <span class="id">' + d.id + '</span></div></td>');
 		} else {
 			row.append('<td class="file-type"><a href="javascript:void(0)"><i class="fa ' + icon + '"></i></a></td>');
-			//row.append('<td class="item-title"><b>' + (d.title ? fitStringToWidth(d.title, 200) : '[no title]') + '</b></td>');
 			row.append('<td><div id="id_' + d.id + '" data-structr_type="item" class="node item"><b title="' +  (d.name ? d.name : '[unnamed]') + '" class="name_">' + (d.name ? fitStringToWidth(d.name, 200) : '[unnamed]') + '</b></td>');
 			$('.file-type', row).on('click', function() {
 				_Contents.editItem(d);
@@ -442,7 +441,7 @@ var _Contents = {
 
 			// ********** Containers **********
 
-			var newDelIcon = '<img title="Delete container \'' + d.name + '\'" alt="Delete container \'' + d.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
+			var newDelIcon = '<i title="Delete container \'' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />';
 			if (delIcon && delIcon.length) {
 				delIcon.replaceWith(newDelIcon);
 			} else {
@@ -491,7 +490,7 @@ var _Contents = {
 				e.stopPropagation();
 				window.open(file.path, 'Download ' + file.name);
 			});
-			var newDelIcon = '<img title="Delete item ' + d.name + '\'" alt="Delete item \'' + d.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">';
+			var newDelIcon = '<i title="Delete item ' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />';
 			if (delIcon && delIcon.length) {
 				delIcon.replaceWith(newDelIcon);
 			} else {
@@ -518,10 +517,8 @@ var _Contents = {
 			distance: 5,
 			cursorAt: { top: 8, left: 25 },
 			zIndex: 99,
-			//containment: 'body',
 			stop: function(e, ui) {
 				$(this).show();
-				//$('#pages_').droppable('enable').removeClass('nodeHover');
 				$(e.toElement).one('click', function(e) {
 					e.stopImmediatePropagation();
 				});
@@ -531,7 +528,7 @@ var _Contents = {
 				selectedElements = $('.node.selected');
 				if (selectedElements.length > 1) {
 					selectedElements.removeClass('selected');
-					return $('<img class="node-helper" src="' + _Icons.page_white_stack_icon + '">');//.css("margin-left", event.clientX - $(event.target).offset().left);
+					return $('<i class="node-helper ' + _Icons.getFullSpriteClass(_Icons.page_white_stack_icon) + '">');
 				}
 				var hlp = helperEl.clone();
 				hlp.find('.button').remove();
@@ -685,7 +682,7 @@ var _Contents = {
 
 					if (isRelated) {
 
-						dialogText.append('<div id="prop-' + prop.id + '" class="prop"><label for="' + prop.id + '"><h3>' + formatKey(key) + '</h3></label><img class="add" src="' + _Icons.add_grey_icon + '"><div class="related-nodes"></div></div>');
+						dialogText.append('<div id="prop-' + prop.id + '" class="prop"><label for="' + prop.id + '"><h3>' + formatKey(key) + '</h3></label><i class="add ' + _Icons.getFullSpriteClass(_Icons._Icons.add_grey_icon) + '" /><div class="related-nodes"></div></div>');
 						var div = $('#prop-' + prop.id);
 						div.prepend();
 						div.children('.add').on('click', function() {
@@ -829,7 +826,7 @@ var _Contents = {
 		var editIcon = $('.edit_file_icon', parent);
 
 		if (!(editIcon && editIcon.length)) {
-			parent.append('<img title="Edit ' + item.name + ' [' + item.id + ']" alt="Edit ' + item.name + ' [' + item.id + ']" class="edit_file_icon button" src="' + _Icons.edit_icon + '">');
+			parent.append('<i title="Edit ' + item.name + ' [' + item.id + ']" class="edit_file_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
 		}
 
 		$(parent.children('.edit_file_icon')).on('click', function(e) {
@@ -890,8 +887,7 @@ var _Contents = {
 
 									var div = $('#results' + d.id);
 									var icon = _Contents.getIcon(d);
-									//div.append('<h2><img id="preview' + d.id + '" src="' + icon + '" style="margin-left: 6px;" title="' + d.extractedContent + '" />' + d.path + '</h2>');
-									div.append('<h2><i class="fa ' + icon + '"></i> ' + d.name + '<img id="preview' + d.id + '" src="' + _Icons.eye_icon + '" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
+									div.append('<h2><i class="fa ' + icon + '"></i> ' + d.name + '<i id="preview' + d.id + '" class="' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
 									div.append('<i class="toggle-height fa fa-expand"></i>').append('<i class="go-to-top fa fa-chevron-up"></i>');
 
 									$('.toggle-height', div).on('click', function() {

@@ -39,7 +39,7 @@ var _Minification = {
 				+ '<tr><td class="head">File</td><td><a href="' + file.path + '" target="_blank">' + file.name + '</a></td></tr>'
 				+ '<tr><td class="head">Size</td><td>' + file.size + '</td></tr>'
 				+ _Minification.getTypeSpecificRows(file)
-				+ '<tr><td class="action" colspan=2><button title="Manually trigger minification"><img src="' + _Icons.minification_trigger_icon + '" /> Manually trigger minification</button></td></tr>'
+				+ '<tr><td class="action" colspan=2><button title="Manually trigger minification"><i class="' + _Icons.getFullSpriteClass(_Icons.minification_trigger_icon) + '" /> Manually trigger minification</button></td></tr>'
 				+ '</table>');
 
 		if (file.type === 'MinifiedCssFile') {
@@ -134,7 +134,7 @@ var _Minification = {
 				data.result.forEach(function (rel) {
 					var f = files[rel.targetId];
 					maxPos = Math.max(maxPos, rel.position);
-					$minificationTable.append('<tr data-position=' + rel.position + '><td>' + rel.position + '</td><td>' + f.name + '</td><td>' + f.size + '</td><td><img title="Remove" alt="Remove" class="remove-minification-source" data-rel-id="' + rel.id + '" src="' + _Icons.cross_icon + '"></td></tr>');
+					$minificationTable.append('<tr data-position=' + rel.position + '><td>' + rel.position + '</td><td>' + f.name + '</td><td>' + f.size + '</td><td><i title="Remove" data-rel-id="' + rel.id + '" class="remove-minification-source ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" /></td></tr>');
 				});
 
 				$('.remove-minification-source', $minificationTable).on('click', function () {
@@ -192,7 +192,7 @@ var _Minification = {
 	},
 
 	displaySearch: function(parentType, id, key, type, el) {
-		el.append('<div class="searchBox searchBoxDialog"><input class="search" name="search" size="20" placeholder="Search"><img class="clearSearchIcon" src="' + _Icons.grey_cross_icon + '"></div>');
+		el.append('<div class="searchBox searchBoxDialog"><input class="search" name="search" size="20" placeholder="Search"><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
 		var searchBox = $('.searchBoxDialog', el);
 		var search = $('.search', searchBox);
 		window.setTimeout(function() {

@@ -275,7 +275,10 @@ var _Pages = {
 		pPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
 		pPager.activateFilterElements();
 
-		previewTabs.append('<li id="import_page" title="Import Template" class="button"><img class="add_button icon" src="' + _Icons.pull_file_icon + '"></li>');
+		previewTabs.append('<li id="import_page" title="Import Template" class="button"><i class="add_button icon ' + _Icons.getFullSpriteClass(_Icons.pull_file_icon) + '" /></li>');
+		previewTabs.append('<li id="pull_page" title="Sync page from remote instance" class="button module-dependend" data-structr-module="cloud"><i class="pull_page_button icon ' + _Icons.getFullSpriteClass(_Icons.pull_page_icon) + '" /></li>');
+		previewTabs.append('<li id="add_page" title="Add page" class="button"><i class="add_button icon ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /></li>');
+
 		$('#import_page', previewTabs).on('click', function(e) {
 			e.stopPropagation();
 
@@ -325,13 +328,11 @@ var _Pages = {
 
 		});
 
-		$('#import_page', previewTabs).after('<li id="pull_page" title="Sync page from remote instance" class="button module-dependend" data-structr-module="cloud"><img class="pull_page_button icon" src="' + _Icons.pull_page_icon + '"></li>');
 		$('#pull_page', previewTabs).on('click', function(e) {
 			e.stopPropagation();
 			Structr.pullDialog('Page');
 		});
 
-		$('#pull_page', previewTabs).after('<li id="add_page" title="Add page" class="button"><img class="add_button icon" src="' + _Icons.add_icon + '"></li>');
 		$('#add_page', previewTabs).on('click', function(e) {
 			e.stopPropagation();
 			Command.createSimplePage();
@@ -346,13 +347,12 @@ var _Pages = {
 		var tab = $('#show_' + entity.id, previews);
 
 		tab.append('<b title="' + entity.name + '" class="name_">' + fitStringToWidth(entity.name, 200) + '</b>');
-		tab.append('<img title="Edit page settings of ' + entity.name + '" alt="Edit page settings of ' + entity.name + '" class="edit_ui_properties_icon button" src="' + _Icons.wrench_icon + '">');
-		tab.append('<img class="view_icon button" title="View ' + entity.name + ' in new window" alt="View ' + entity.name + ' in new window" src="' + _Icons.eye_icon + '">');
+		tab.append('<i title="Edit page settings of ' + entity.name + '" class="edit_ui_properties_icon button ' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" />');
+		tab.append('<i title="View ' + entity.name + ' in new window" class="view_icon button ' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" />');
 
 		$('.view_icon', tab).on('click', function(e) {
 			e.stopPropagation();
 			var self = $(this);
-			//var name = $(self.parent().children('b.name_')[0]).text();
 			var link = $.trim(self.parent().children('b.name_').attr('title'));
 			var url = viewRootUrl + link + (LSWrapper.getItem(detailsObjectId + entity.id) ? '/' + LSWrapper.getItem(detailsObjectId + entity.id) : '');
 			window.open(url);
@@ -375,7 +375,7 @@ var _Pages = {
 			dialog.append('<p>With these settings you can influence the behaviour of the page previews only. They are not persisted on the Page object but only stored in the UI settings.</p>');
 
 			dialog.append('<table class="props">'
-					+ '<tr><td><label for="details-object-id">UUID of details object to append to preview URL</label></td><td><input id="_details-object-id" name="details-object-id" size="30" value="' + (LSWrapper.getItem(detailsObjectId + entity.id) ?  LSWrapper.getItem(detailsObjectId + entity.id) : '') + '"> <img id="clear-details-object-id" src="' + _Icons.grey_cross_icon + '"></td></tr>'
+					+ '<tr><td><label for="details-object-id">UUID of details object to append to preview URL</label></td><td><input id="_details-object-id" name="details-object-id" size="30" value="' + (LSWrapper.getItem(detailsObjectId + entity.id) ?  LSWrapper.getItem(detailsObjectId + entity.id) : '') + '"> <i id="clear-details-object-id" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
 					+ '<tr><td><label for="auto-refresh">Automatic refresh</label></td><td><input title="Auto-refresh page on changes" alt="Auto-refresh page on changes" class="auto-refresh" type="checkbox"' + (LSWrapper.getItem(autoRefreshDisabledKey + entity.id) ? '' : ' checked="checked"') + '></td></tr>'
 					+ '</table>');
 
@@ -408,7 +408,7 @@ var _Pages = {
 			$('.auto-refresh', dialog).on('click', function(e) {
 				e.stopPropagation();
 				var key = autoRefreshDisabledKey + entity.id;
-				var autoRefreshDisabled = LSWrapper.getItem(key) === '1';
+				var autoRefreshDisabled = (LSWrapper.getItem(key) === '1');
 				if (autoRefreshDisabled) {
 					LSWrapper.removeItem(key);
 				} else {
@@ -417,11 +417,6 @@ var _Pages = {
 				blinkGreen($('.auto-refresh', dialog).parent());
 			});
 
-		});
-
-		editUiPropertiesIcon.on('mouseover', function(e) {
-			var self = $(this);
-			self.show();
 		});
 
 		return tab;
@@ -435,11 +430,10 @@ var _Pages = {
 
 		var icons = $('.button', element);
 		var autoRefreshSelector = $('.auto-refresh', element);
-		//icon.hide();
 
 		element.hover(function(e) {
-			icons.show();
-			autoRefreshSelector.show();
+			icons.showInlineBlock();
+			autoRefreshSelector.showInlineBlock();
 		}, function(e) {
 			icons.hide();
 			autoRefreshSelector.hide();
@@ -636,13 +630,13 @@ var _Pages = {
 			e.stopPropagation();
 		});
 
-		div.append('<img class="typeIcon" src="' + _Icons.page_icon + '">'
+		div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.page_icon) + '" />'
 				+ '<b title="' + entity.name + '" class="name_">' + fitStringToWidth(entity.name, 200) + '</b> <span class="id">' + entity.id + '</span>' + (entity.position ? ' <span class="position">' + entity.position + '</span>' : ''));
 
 		_Entities.appendExpandIcon(div, entity, hasChildren);
 		_Entities.appendAccessControlIcon(div, entity);
 
-		div.append('<img title="Delete page \'' + entity.name + '\'" alt="Delete page \'' + entity.name + '\'" class="delete_icon button" src="' + _Icons.delete_icon + '">');
+		div.append('<i title="Delete page \'' + entity.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
 		$('.delete_icon', div).on('click', function(e) {
 			e.stopPropagation();
 			_Entities.deleteNode(this, entity);
@@ -650,7 +644,7 @@ var _Pages = {
 
 		_Entities.appendEditPropertiesIcon(div, entity);
 
-		div.append('<img title="Clone page \'' + entity.name + '\'" alt="Clone page \'' + entity.name + '\'" class="clone_icon button" src="' + _Icons.clone_icon + '">');
+		div.append('<i title="Clone page \'' + entity.name + '\'" class="clone_icon button ' + _Icons.getFullSpriteClass(_Icons.clone_icon) + '" />');
 		$('.clone_icon', div).on('click', function(e) {
 			e.stopPropagation();
 			Command.clonePage(entity.id);
@@ -658,7 +652,7 @@ var _Pages = {
 
 		_Elements.appendContextMenu(div, entity);
 
-		div.append('<img title="Sync page \'' + entity.name + '\' to remote instance" alt="Sync page \'' + entity.name + '\' to remote instance" class="push_icon button" src="' + _Icons.push_file_icon + '">');
+		div.append('<i title="Sync page \'' + entity.name + '\' to remote instance" class="push_icon button ' + _Icons.getFullSpriteClass(_Icons.push_file_icon) + '" />');
 		div.children('.push_icon').on('click', function() {
 			Structr.pushDialog(entity.id, true);
 			return false;
@@ -918,7 +912,7 @@ var _Pages = {
 
 		var parentId = entity.parent && entity.parent.id;
 		if (parentId) {
-			$('.delete_icon', div).replaceWith('<img title="Remove" alt="Remove" class="delete_icon button" src="' + _Icons.delete_brick_icon + '">');
+			$('.delete_icon', div).replaceWith('<i title="Remove" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_brick_icon) + '" />');
 			$('.button', div).on('mousedown', function(e) {
 				e.stopPropagation();
 			});

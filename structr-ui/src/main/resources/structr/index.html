@@ -96,7 +96,7 @@
 	<body>
 		<div id="info-area"></div>
 		<div id="header">
-			<img alt="structr logo" class="logo" src="img/structr-logo.png">
+			<i class="logo sprite sprite-structr-logo"></i>
 			<div class="structr-instance-info">
 				<div class="structr-instance">
 					<span class="structr-instance-name"></span><span class="structr-instance-stage"></span>
@@ -118,7 +118,7 @@
 					<li><a id="logout_" href="#">Login</a></li>
 				</ul>
 			</div>
-			<div id="main-help"><a target="_blank" href="https://support.structr.com/knowledge-graph"><img alt="Help" src="icon/information.png"></a></div>
+			<div id="main-help"><a target="_blank" href="https://support.structr.com/knowledge-graph"><i title="Help" class="sprite sprite-information"></i></a></div>
 		</div>
 
 		<div class="hidden" id="structr-console"></div>
@@ -128,21 +128,22 @@
 		</div>
 
 		<div id="login" class="dialog">
-			<img alt="Structr Logo" class="logo-login" src="img/structr_gray_200x54.png">
+			<i title="Structr Logo" class="logo-login sprite sprite-structr_gray_100x27"></i>
+
 			<form action="javascript:void(0)">
 				<table>
 					<tr><td><label for="usernameField">Username:</label></td><td><input id="usernameField" type="text" name="username" autofocus required></td></tr>
 					<tr><td><label for="passwordField">Password:</label></td><td><input id="passwordField" type="password" name="password" autofocus required></td></tr>
 					<tr><td colspan="2" class="btn"><span id="errorText"></span></td></tr>
-					<tr><td colspan="2" class="btn"><button id="loginButton" name="login"><img src="icon/key.png"> Login</button></td></tr>
+					<tr><td colspan="2" class="btn"><button id="loginButton" name="login"><i class="sprite sprite-key"></i> Login</button></td></tr>
 				</table>
 			</form>
 		</div>
 
 		<div id="confirmation" class="dialog">
 			<div class="confirmationText"></div>
-			<button class="yesButton"><img src="icon/tick.png">Yes</button>
-			<button class="noButton"><img src="icon/cross.png">No</button>
+			<button class="yesButton"><i class="sprite sprite-tick"></i> Yes</button>
+			<button class="noButton"><i class="sprite sprite-cross"></i> No</button>
 		</div>
 
 		<div id="infoBox" class="dialog">
@@ -177,8 +178,8 @@
 		</div>
 
 		<div id="dialogBox" class="dialog">
-			<img id="maximizeDialog" class="minmax" src="icon/arrow_out.png">
-			<img id="minimizeDialog" class="minmax" src="icon/arrow_in.png">
+			<i id="maximizeDialog" class="minmax sprite sprite-arrow_out"></i>
+			<i id="minimizeDialog" class="minmax sprite sprite-arrow_in"></i>
 			<h2 class="dialogTitle"></h2>
 			<div class="dialogHeaderWrapper"></div>
 			<div class="dialogTextWrapper">

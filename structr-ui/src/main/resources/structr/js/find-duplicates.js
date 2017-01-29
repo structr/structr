@@ -31,7 +31,7 @@ var _DuplicateFinder = new (function () {
 		Command.findDuplicates(function(data) {
 			_handleDuplicatesList(data);
 
-			dialogText.append('<div id="no-duplicates-found"><img src="' + _Icons.tick_icon + '"> No more duplicates to show</div>');
+			dialogText.append('<div id="no-duplicates-found"><i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" /> No more duplicates to show</div>');
 		});
 
 	};
@@ -207,8 +207,8 @@ var _DuplicateFinder = new (function () {
 
 	function _createNewTable(obj) {
 
-		var ignoreButton = '<button class="ignore-duplicates-table-icon button"><img src="' + _Icons.grey_cross_icon + '"> Ignore this time</button>';
-		var noConflictsRemoveTableButton = '<button class="remove-duplicate-free-table-icon button"><img src="' + _Icons.tick_icon + '"> No more conflicts, remove table</button>';
+		var ignoreButton = '<button class="ignore-duplicates-table-icon button"><i class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /> Ignore this time</button>';
+		var noConflictsRemoveTableButton = '<button class="remove-duplicate-free-table-icon button"><i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" /> No more conflicts, remove table</button>';
 
 		var table = $('<table class="duplicates-table props"><thead>'
 				+ '<tr class="heading"><th colspan="7">' + obj.path + ' ' + ignoreButton + noConflictsRemoveTableButton + '</th></tr>'
@@ -224,7 +224,7 @@ var _DuplicateFinder = new (function () {
 
 		var fileLink = '';
 		var extraColumns = '';
-		var delAction = '<button class="duplicate-obj-delete-file"><img src="' + _Icons.delete_icon + '"> Delete</button><div style="display: none; white-space: nowrap;"><button class="duplicate-obj-delete-file-yes"><img src="' + _Icons.delete_icon + '"> Really Delete</button><button class="duplicate-obj-delete-file-no"><img src="' + _Icons.cross_icon + '"> Cancel</button></div>';
+		var delAction = '<button class="duplicate-obj-delete-file"><i class="' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /> Delete</button><div style="display: none; white-space: nowrap;"><button class="duplicate-obj-delete-file-yes"><i class="' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /> Really Delete</button><button class="duplicate-obj-delete-file-no"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" /> Cancel</button></div>';
 
 		if (obj.isFolder) {
 			fileLink = obj.id;
