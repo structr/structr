@@ -2447,6 +2447,7 @@ input.bitmask {
 .dashboard-info img.icon, .dashboard-info i.icon {
 	vertical-align: bottom;
 	width: 16px;
+	max-height: 16px;
 }
 
 .dashboard-info.red {

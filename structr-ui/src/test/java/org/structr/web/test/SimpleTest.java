@@ -687,7 +687,7 @@ public class SimpleTest extends StructrUiTest {
 
 			// Warm-up caches and JVM
 			for (long i = 0; i < 50000; i++) {
-				doc = Jsoup.connect(baseUri + pageName).get();
+				doc = Jsoup.connect(baseUri + pageName).timeout(30*1000).get();
 			}
 
 			final long max = 1000;
@@ -697,7 +697,7 @@ public class SimpleTest extends StructrUiTest {
 			long t0 = System.currentTimeMillis();
 
 			for (long i = 0; i < max; i++) {
-				doc = Jsoup.connect(baseUri).get();
+				doc = Jsoup.connect(baseUri).timeout(30*1000).get();
 			}
 
 			long t1 = System.currentTimeMillis();
