@@ -259,17 +259,17 @@ function StructrApp(baseUrl, locale) {
 		return possibleFields;
 	},
 	this.container = function(btn, id) {
-	    var form = btn.parents('form');
-	    var container;
-	    if (form.length === 1) {
+		var form = btn.parents('form');
+		var container;
+		if (form.length === 1) {
 			container = form;
-	    } else {
+		} else {
 			container = btn.parents('[data-structr-id="' + id + '"]');
-	    }
+		}
 		if (container.length === 0) {
 			s.debug('No parent form found - this can lead to undesired behaviour.');
 		}
-	    return container;
+		return container;
 	},
 	this.collectData = function(btn, id, attrs, type, suffix) {
 		var data = {};
