@@ -115,7 +115,7 @@ public abstract class StructrUiTest {
 		protected void starting(Description description) {
 
 			System.out.println("######################################################################################");
-			System.out.println("# Starting " + getClass().getSimpleName() + "#" + description.getMethodName());
+			System.out.println("# Starting " + description.getClassName() + "#" + description.getMethodName());
 			System.out.println("######################################################################################");
 		}
 
@@ -123,7 +123,7 @@ public abstract class StructrUiTest {
 		protected void finished(Description description) {
 
 			System.out.println("######################################################################################");
-			System.out.println("# Finished " + getClass().getSimpleName() + "#" + description.getMethodName());
+			System.out.println("# Finished " + description.getClassName() + "#" + description.getMethodName());
 			System.out.println("######################################################################################");
 		}
 	};
@@ -156,6 +156,7 @@ public abstract class StructrUiTest {
 		config.setProperty(Services.UDP_PORT, (System.getProperty("udpPort") != null ? System.getProperty("udpPort") : "13466"));
 		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
 		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
+		//config.setProperty("NodeExtender.log", "true");
 
 		// configure servlets
 		config.setProperty(HttpService.APPLICATION_TITLE, "structr unit test app" + timestamp);
