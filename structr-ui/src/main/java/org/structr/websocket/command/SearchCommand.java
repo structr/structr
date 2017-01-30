@@ -104,6 +104,7 @@ public class SearchCommand extends AbstractCommand {
 
 					logger.warn("Exception occured", ex);
 					getWebSocket().send(MessageBuilder.status().code(400).message(ex.getMessage()).build(), true);
+					return;
 
 				}
 
@@ -122,6 +123,7 @@ public class SearchCommand extends AbstractCommand {
 
 				} catch (FrameworkException ex) {
 					logger.error("", ex);
+					return;
 				}
 
 			}
