@@ -53,6 +53,9 @@ var structrAppLocale = structrAppLocale || 'en_EN';
 $(function() {
 
 	var s = new StructrApp(structrRestUrl, structrAppLocale);
+	window.setDebugMode = function(enable) {
+		s.setDebugMode(enable);
+	};
 	s.activateButtons(buttonSelector);
 	$(document).trigger('structr-ready');
 	s.hideNonEdit();
@@ -263,6 +266,9 @@ function StructrApp(baseUrl, locale) {
 	    } else {
 			container = btn.parents('[data-structr-id="' + id + '"]');
 	    }
+		if (container.length === 0) {
+			s.debug('No parent form found - this can lead to undesired behaviour.');
+		}
 	    return container;
 	},
 	this.collectData = function(btn, id, attrs, type, suffix) {
@@ -1104,7 +1110,18 @@ function StructrApp(baseUrl, locale) {
 		}
 		return data;
 	};
+
+	this.debugEnabled = false;
+	this.setDebugMode = function (enable) {
+		this.debugEnabled = (enable === true);
+	};
+	this.debug = function (message) {
+		if (this.debugEnabled === true && console != undefined) {
+			console.warn(message);
+		}
+	};
 }
+
 function resizeInput(inp) {
 
 	var text = inp.val();
