@@ -209,5 +209,9 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 		public Iterator<T> iterator() {
 			return result.iterator();
 		}
+
+		public boolean isEmpty() {
+			return result.isEmpty();
+		}
 	}
 }

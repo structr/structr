@@ -25,10 +25,10 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.DeleteNodeCommand;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
@@ -65,26 +65,19 @@ public class Component extends DOMElement {
 		type, name, kind
 	);
 
-	private Map<String, AbstractNode> contentNodes = new WeakHashMap<>();
-	private Set<String> subTypes                   = new LinkedHashSet<>();
-
-	//~--- methods --------------------------------------------------------
-
-	@Override
-	public void onNodeInstantiation(final boolean isCreation) {
-		// collectProperties(this, getProperty(AbstractNode.uuid), 0, null);
-	}
+	private final Map<String, AbstractNode> contentNodes = new WeakHashMap<>();
+	private final Set<String> subTypes                   = new LinkedHashSet<>();
 
 	@Override
 	public void onNodeDeletion() {
 
 		try {
 
-			DeleteNodeCommand deleteCommand = StructrApp.getInstance(securityContext).command(DeleteNodeCommand.class);
+			final App app = StructrApp.getInstance(securityContext);
 
 			for (AbstractNode contentNode : contentNodes.values()) {
 
-				deleteCommand.execute(contentNode);
+				app.delete(contentNode);
 
 			}
 

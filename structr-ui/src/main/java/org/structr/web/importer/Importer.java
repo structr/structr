@@ -62,6 +62,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -672,7 +673,13 @@ public class Importer {
 
 					if (DeployCommand.isUuid(src)) {
 
-						template = (DOMNode) StructrApp.getInstance().nodeQuery(Template.class).and(GraphObject.id, src).getFirst();
+						template = (DOMNode)StructrApp.getInstance().nodeQuery(NodeInterface.class).and(GraphObject.id, src).getFirst();
+
+						if (template == null) {
+
+							System.out.println("##################################### template with UUID " + src + " not found, this is a known bug");
+
+						}
 
 					} else {
 

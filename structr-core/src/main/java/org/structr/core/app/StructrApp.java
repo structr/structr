@@ -138,6 +138,7 @@ public class StructrApp implements App {
 
 	@Override
 	public void delete(final NodeInterface node) {
+		removeNodeFromCache(node);
 		command(DeleteNodeCommand.class).execute(node);
 	}
 
@@ -153,6 +154,7 @@ public class StructrApp implements App {
 
 	@Override
 	public void delete(final RelationshipInterface relationship) {
+		removeRelFromCache(relationship);
 		command(DeleteRelationshipCommand.class).execute(relationship);
 	}
 
@@ -459,6 +461,17 @@ public class StructrApp implements App {
 		return schemaBaseURI;
 	}
 
+	public static void invalidate(final String uuid) {
+
+		if (nodeUuidMap != null) {
+			nodeUuidMap.remove(uuid);
+		}
+
+		if (relUuidMap != null) {
+			relUuidMap.remove(uuid);
+		}
+	}
+
 	// ----- private static methods -----
 	private static void initializeSchemaIds() {
 
@@ -506,6 +519,40 @@ public class StructrApp implements App {
 		}
 
 		return relUuidMap.get(uuid);
+	}
+
+	private synchronized void removeNodeFromCache(final NodeInterface node) {
+
+		if (node != null) {
+
+			final String uuid = node.getUuid();
+			if (uuid != null) {
+
+				if (nodeUuidMap == null) {
+
+					final int cacheSize = Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_UUID_CACHE_SIZE), 100000);
+					nodeUuidMap = new FixedSizeCache<>(cacheSize);
+				}
+
+			}
+		}
+	}
+
+	private synchronized void removeRelFromCache(final RelationshipInterface rel) {
+
+		if (rel != null) {
+
+			final String uuid = rel.getUuid();
+			if (uuid != null) {
+
+				if (relUuidMap == null) {
+
+					final int cacheSize = Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_UUID_CACHE_SIZE), 100000);
+					relUuidMap = new FixedSizeCache<>(cacheSize);
+				}
+
+			}
+		}
 	}
 
 	@Override

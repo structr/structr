@@ -213,7 +213,7 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 
 			tx.success();
 
-		} catch (Exception ex) {
+		} catch (Throwable t) {
 
 			logger.debug("Error trying to create template {}", fileName);
 		}

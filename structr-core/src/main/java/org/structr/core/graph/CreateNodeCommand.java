@@ -129,6 +129,9 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 				// ensure indexing of newly created node
 				node.addToIndex();
+
+				// invalidate UUID cache
+				StructrApp.invalidate(uuid);
 			}
 		}
 
