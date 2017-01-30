@@ -114,7 +114,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 		try (final Tx tx = app.tx()) {
 
 			if (DeployCommand.isUuid(name)) {
-				return (DOMNode) StructrApp.getInstance().nodeQuery(Template.class).and(GraphObject.id, name).getFirst();
+				return (DOMNode) StructrApp.getInstance().nodeQuery(DOMNode.class).and(GraphObject.id, name).getFirst();
 			} else {
 				return Importer.findSharedComponentByName(name);
 			}
