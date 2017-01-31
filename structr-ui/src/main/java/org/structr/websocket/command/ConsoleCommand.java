@@ -57,10 +57,9 @@ public class ConsoleCommand extends AbstractCommand {
 		final String sessionId = webSocketData.getSessionId();
 		logger.debug("CONSOLE received from session {}", sessionId);
 
-		final String line                     = (String) webSocketData.getNodeData().get("line");
-		final Boolean completion              = (Boolean) webSocketData.getNodeData().get("completion");
-
-        Console console = getWebSocket().getConsole();
+		final String line        = (String) webSocketData.getNodeData().get("line");
+		final Boolean completion = (Boolean) webSocketData.getNodeData().get("completion");
+        	final Console console    = getWebSocket().getConsole();
 
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		OutputStreamWritable writeable = new OutputStreamWritable(out);

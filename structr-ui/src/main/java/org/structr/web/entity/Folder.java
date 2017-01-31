@@ -81,7 +81,9 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		if (super.onCreation(securityContext, errorBuffer)) {
-			setProperties(securityContext, new PropertyMap(hasParent, getProperty(parentId) != null));
+
+			setHasParent();
+
 			return true;
 		}
 
@@ -93,20 +95,7 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 
 		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
 
-			synchronized (this) {
-
-				// save current security context
-				final SecurityContext previousSecurityContext = securityContext;
-
-				// replace with SU context
-				this.securityContext = SecurityContext.getSuperUserInstance();
-
-				// set property as super user
-				setProperties(this.securityContext, new PropertyMap(hasParent, getProperty(parentId) != null));
-
-				// restore previous security context
-				this.securityContext = previousSecurityContext;
-			}
+			setHasParent();
 
 			return true;
 		}
@@ -209,5 +198,24 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 
 		// versioning not supported yet.
 		return null;
+	}
+
+	// ----- private methods -----
+	private void setHasParent() throws FrameworkException {
+
+		synchronized (this) {
+
+			// save current security context
+			final SecurityContext previousSecurityContext = securityContext;
+
+			// replace with SU context
+			this.securityContext = SecurityContext.getSuperUserInstance();
+
+			// set property as super user
+			setProperties(this.securityContext, new PropertyMap(hasParent, getProperty(parentId) != null));
+
+			// restore previous security context
+			this.securityContext = previousSecurityContext;
+		}
 	}
 }
