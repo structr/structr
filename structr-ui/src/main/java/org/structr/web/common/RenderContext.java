@@ -121,6 +121,11 @@ public class RenderContext extends ActionContext {
 
 		readConfigParameters();
 
+		// force indentation for deployment mode
+		if (EditMode.DEPLOYMENT.equals(this.editMode)) {
+			this.indentHtml = true;
+		}
+
 	}
 
 	public static RenderContext getInstance(final SecurityContext securityContext, final HttpServletRequest request, HttpServletResponse response) {
