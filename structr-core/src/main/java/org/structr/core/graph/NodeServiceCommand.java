@@ -193,35 +193,23 @@ public abstract class NodeServiceCommand extends Command {
 	// ----- protected methods -----
 	protected void info(final String msg, final Object... data) {
 
-		// allow redirection of logging output
-		if (logWritable != null) {
+		logger.info(msg, data);
 
-			String logMessage = msg;
+		duplicateLogToConsole(msg, data);
 
-			for (final Object obj : data) {
-
-				if (obj != null) {
-					logMessage = logMessage.replaceFirst("\\{\\}", obj.toString());
-				}
-			}
-
-			// alternative logging to a writer
-			try {
-
-				logWritable.println(logMessage);
-				logWritable.flush();
-
-			} catch (IOException ignore) {}
-
-		} else {
-
-			logger.info(msg, data);
-		}
 	}
 
 	protected void warn(final String msg, final Object... data) {
 
-		// allow redirection of logging output
+		logger.warn(msg, data);
+
+		duplicateLogToConsole(msg, data);
+
+	}
+
+	protected void duplicateLogToConsole (final String msg, final Object... data) {
+
+		// allow duplication of logging output to the console
 		if (logWritable != null) {
 
 			String logMessage = msg;
@@ -241,9 +229,6 @@ public abstract class NodeServiceCommand extends Command {
 
 			} catch (IOException ignore) {}
 
-		} else {
-
-			logger.warn(msg, data);
 		}
 	}
 
