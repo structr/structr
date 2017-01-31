@@ -30,10 +30,10 @@ import org.structr.web.maintenance.DeployCommand;
 /**
  * A console wrapper for DeployCommand, export mode.
  */
-public class ExportConsoleCommand extends ConsoleCommand {
+public class ExportConsoleCommand extends AdminConsoleCommand {
 
 	static {
-		ConsoleCommand.registerCommand("export", ExportConsoleCommand.class);
+		AdminConsoleCommand.registerCommand("export", ExportConsoleCommand.class);
 	}
 
 	@Override

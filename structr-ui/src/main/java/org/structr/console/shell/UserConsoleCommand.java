@@ -37,10 +37,10 @@ import org.structr.util.Writable;
 /**
  * A console command for user management.
  */
-public class UserConsoleCommand extends ConsoleCommand {
+public class UserConsoleCommand extends AdminConsoleCommand {
 
 	static {
-		ConsoleCommand.registerCommand("user", UserConsoleCommand.class);
+		AdminConsoleCommand.registerCommand("user", UserConsoleCommand.class);
 	}
 
 	@Override

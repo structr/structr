@@ -28,10 +28,10 @@ import org.structr.util.Writable;
 /**
  * A console command that displays help texts for other console commands.
  */
-public class HelpConsoleCommand extends ConsoleCommand {
+public class HelpConsoleCommand extends AdminConsoleCommand {
 
 	static {
-		ConsoleCommand.registerCommand("help", HelpConsoleCommand.class);
+		AdminConsoleCommand.registerCommand("help", HelpConsoleCommand.class);
 	}
 
 	@Override
@@ -40,7 +40,7 @@ public class HelpConsoleCommand extends ConsoleCommand {
 		if (parameters.size() > 1) {
 
 			final String key         = parameters.get(1);
-			final ConsoleCommand cmd = ConsoleCommand.getCommand(key);
+			final AdminConsoleCommand cmd = AdminConsoleCommand.getCommand(key);
 
 			if (cmd != null) {
 
@@ -53,9 +53,9 @@ public class HelpConsoleCommand extends ConsoleCommand {
 
 		} else {
 
-			for (final String key : ConsoleCommand.commandNames()) {
+			for (final String key : AdminConsoleCommand.commandNames()) {
 
-				final ConsoleCommand cmd = ConsoleCommand.getCommand(key);
+				final AdminConsoleCommand cmd = AdminConsoleCommand.getCommand(key);
 
 				writable.print(StringUtils.rightPad(key, 10));
 				writable.print(" - ");

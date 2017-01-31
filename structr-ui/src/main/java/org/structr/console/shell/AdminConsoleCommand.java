@@ -31,9 +31,9 @@ import org.structr.util.Writable;
 /**
  *
  */
-public abstract class ConsoleCommand {
+public abstract class AdminConsoleCommand {
 
-	private static final Map<String, Class<? extends ConsoleCommand>> commands = new TreeMap<>();
+	private static final Map<String, Class<? extends AdminConsoleCommand>> commands = new TreeMap<>();
 
 	public abstract void run(final SecurityContext securityContext, final List<String> parameters, final Writable writable) throws FrameworkException, IOException;
 	public abstract void commandHelp(final Writable writable) throws IOException;
@@ -43,13 +43,13 @@ public abstract class ConsoleCommand {
 		return commands.keySet();
 	}
 
-	public static void registerCommand(final String name, final Class<? extends ConsoleCommand> cmd) {
+	public static void registerCommand(final String name, final Class<? extends AdminConsoleCommand> cmd) {
 		commands.put(name, cmd);
 	}
 
-	public static ConsoleCommand getCommand(final String name) {
+	public static AdminConsoleCommand getCommand(final String name) {
 
-		final Class<? extends ConsoleCommand> cls = commands.get(name);
+		final Class<? extends AdminConsoleCommand> cls = commands.get(name);
 		if (cls != null) {
 
 			try {

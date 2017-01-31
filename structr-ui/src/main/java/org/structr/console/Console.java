@@ -30,7 +30,7 @@ import org.mozilla.javascript.ScriptableObject;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.console.rest.RestCommand;
-import org.structr.console.shell.ConsoleCommand;
+import org.structr.console.shell.AdminConsoleCommand;
 import org.structr.console.tabcompletion.AdminTabCompletionProvider;
 import org.structr.console.tabcompletion.CypherTabCompletionProvider;
 import org.structr.console.tabcompletion.JavaScriptTabCompletionProvider;
@@ -320,7 +320,7 @@ public class Console {
 		final List<String> parts = splitAndClean(line);
 		if (!parts.isEmpty()) {
 
-			final ConsoleCommand cmd = ConsoleCommand.getCommand(parts.get(0));
+			final AdminConsoleCommand cmd = AdminConsoleCommand.getCommand(parts.get(0));
 			if (cmd != null) {
 
 				if (cmd.requiresEnclosingTransaction()) {

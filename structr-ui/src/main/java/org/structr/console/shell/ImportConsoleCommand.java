@@ -30,10 +30,10 @@ import org.structr.web.maintenance.DeployCommand;
 /**
  * A console wrapper for DeployCommand, import mode.
  */
-public class ImportConsoleCommand extends ConsoleCommand {
+public class ImportConsoleCommand extends AdminConsoleCommand {
 
 	static {
-		ConsoleCommand.registerCommand("import", ImportConsoleCommand.class);
+		AdminConsoleCommand.registerCommand("import", ImportConsoleCommand.class);
 	}
 
 	@Override

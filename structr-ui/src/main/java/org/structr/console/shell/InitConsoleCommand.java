@@ -36,10 +36,10 @@ import org.structr.util.Writable;
 /**
  * A console wrapper for BulkRebuildIndexCommand.
  */
-public class InitConsoleCommand extends ConsoleCommand {
+public class InitConsoleCommand extends AdminConsoleCommand {
 
 	static {
-		ConsoleCommand.registerCommand("init", InitConsoleCommand.class);
+		AdminConsoleCommand.registerCommand("init", InitConsoleCommand.class);
 	}
 
 	@Override
