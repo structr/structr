@@ -18,7 +18,6 @@
  */
 package org.structr.console;
 
-import org.structr.console.tabcompletion.TabCompletionResult;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,11 +37,13 @@ import org.structr.console.tabcompletion.JavaScriptTabCompletionProvider;
 import org.structr.console.tabcompletion.RestTabCompletionProvider;
 import org.structr.console.tabcompletion.StructrScriptTabCompletionProvider;
 import org.structr.console.tabcompletion.TabCompletionProvider;
+import org.structr.console.tabcompletion.TabCompletionResult;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.function.Functions;
+import org.structr.core.graph.Tx;
 import org.structr.core.script.StructrScriptable;
 import org.structr.schema.action.ActionContext;
 import org.structr.util.Writable;
@@ -93,9 +94,9 @@ public class Console {
 	public void run(final String line, final Writable output) throws FrameworkException, IOException {
 
 		if (line.startsWith("Console.getMode()")) {
-			
+
 			output.println("Mode is '" + getMode() + "'.");
-		
+
 		} else if (line.startsWith("Console.setMode('" + ConsoleMode.JavaScript.name() + "')") || line.startsWith("Console.setMode(\"" + ConsoleMode.JavaScript.name() + "\")")) {
 
 			mode = ConsoleMode.JavaScript;
@@ -229,35 +230,49 @@ public class Console {
 	// ----- private methods -----
 	private void runCypher(final String line, final Writable writable) throws FrameworkException, IOException {
 
-		final App app                  = StructrApp.getInstance(actionContext.getSecurityContext());
-		final long t0                  = System.currentTimeMillis();
-		final List<GraphObject> result = app.cypher(line, Collections.emptyMap());
-		final long t1                  = System.currentTimeMillis();
-		final int size                 = result.size();
+		final App app = StructrApp.getInstance(actionContext.getSecurityContext());
 
-		writable.print("Query returned ", size, " objects in ", (t1-t0), " ms.");
-		writable.println();
-		writable.println();
+		try (final Tx tx = app.tx()) {
 
-		if (size <= 10) {
+			final long t0                  = System.currentTimeMillis();
+			final List<GraphObject> result = app.cypher(line, Collections.emptyMap());
+			final long t1                  = System.currentTimeMillis();
+			final int size                 = result.size();
 
-			writable.print(Functions.get("to_json").apply(actionContext, null, new Object[] { result } ));
+			writable.print("Query returned ", size, " objects in ", (t1-t0), " ms.");
+			writable.println();
+			writable.println();
 
-		} else {
+			if (size <= 10) {
 
-			writable.print("Too many results (> 10), please use LIMIT to reduce the result count of your Cypher query.");
+				writable.print(Functions.get("to_json").apply(actionContext, null, new Object[] { result } ));
+
+			} else {
+
+				writable.print("Too many results (> 10), please use LIMIT to reduce the result count of your Cypher query.");
+			}
+
+			writable.println();
+
+			tx.success();
 		}
 
-		writable.println();
 	}
 
 	private void runStructrScript(final String line, final Writable writable) throws FrameworkException, IOException {
 
-		final Object result = Functions.evaluate(actionContext, null, line);
-		if (result != null) {
+		try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
-			writable.println(result.toString());
+			final Object result = Functions.evaluate(actionContext, null, line);
+			if (result != null) {
+
+				writable.println(result.toString());
+			}
+
+			tx.success();
+
 		}
+
 	}
 
 	private void runJavascript(final String line, final Writable writable) throws FrameworkException {
@@ -266,7 +281,7 @@ public class Console {
 
 		init(scriptingContext);
 
-		try {
+		try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 			Object extractedValue = scriptingContext.evaluateString(scope, line, "interactive script, line ", 1, null);
 
 			if (scriptable.hasException()) {
@@ -282,6 +297,8 @@ public class Console {
 			if (extractedValue != null) {
 				writable.println(extractedValue.toString());
 			}
+
+			tx.success();
 
 		} catch (final FrameworkException fex) {
 
@@ -306,7 +323,20 @@ public class Console {
 			final ConsoleCommand cmd = ConsoleCommand.getCommand(parts.get(0));
 			if (cmd != null) {
 
-				cmd.run(actionContext.getSecurityContext(), parts, writable);
+				if (cmd.requiresEnclosingTransaction()) {
+
+					try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
+
+						cmd.run(actionContext.getSecurityContext(), parts, writable);
+
+						tx.success();
+					}
+
+				} else {
+
+					cmd.run(actionContext.getSecurityContext(), parts, writable);
+
+				}
 
 			} else {
 

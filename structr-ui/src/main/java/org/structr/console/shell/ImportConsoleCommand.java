@@ -62,4 +62,9 @@ public class ImportConsoleCommand extends ConsoleCommand {
 	public void detailHelp(final Writable writable) throws IOException {
 		writable.println("import <source> - imports an application from the given source directory.");
 	}
+
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return false;
+	}
 }

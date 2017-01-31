@@ -115,6 +115,11 @@ public class ConsoleCommand extends AbstractCommand {
 
 	}
 
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return false;
+	}
+
 	//~--- get methods ----------------------------------------------------
 
 	@Override

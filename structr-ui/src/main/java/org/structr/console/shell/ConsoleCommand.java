@@ -62,6 +62,22 @@ public abstract class ConsoleCommand {
 		return null;
 	}
 
+	/**
+	 * Override this method if the admin console command will create its own
+	 * transaction context (or does not require/allow one at all)
+	 *
+	 * The basic technique is identical to AbstractCommand.requiresEnclosingTransaction.
+	 * It is replicated here because the main ConsoleCommand delegates this down to
+	 * the ConsoleCommands as these are commands 'wrapped' in a websocket command and
+	 * at least one of the commands (ImportCommand) does not work properly if a surrounding
+	 * transaction is created.
+	 *
+	 * @return a boolean
+	 */
+	public boolean requiresEnclosingTransaction() {
+		return true;
+	}
+
 	// ----- protected methods -----
 	protected String getParameter(final List<String> params, final int index) {
 
