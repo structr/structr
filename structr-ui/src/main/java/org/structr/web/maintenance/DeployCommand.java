@@ -99,7 +99,7 @@ import org.structr.web.maintenance.deploy.TemplateImportVisitor;
  */
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
 
-	private static final Logger logger                   = LoggerFactory.getLogger(BulkMoveUnusedFilesCommand.class.getName());
+	private static final Logger logger                   = LoggerFactory.getLogger(DeployCommand.class.getName());
 	private static final Pattern pattern                 = Pattern.compile("[a-f0-9]{32}");
 	private static final Set<String> exportFileTypes     = new HashSet<>(Arrays.asList(new String[] { "File", "Folder", "Image" } ));
 
