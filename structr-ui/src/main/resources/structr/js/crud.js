@@ -656,7 +656,7 @@ var _Crud = {
 
 				th.empty();
 				th.append('Actions <i title="Configure columns" style="margin-left: 4px" class="' + _Icons.getFullSpriteClass(_Icons.view_detail_icon) + '" />');
-				$('img', th).on('click', function(event) {
+				$('i', th).on('click', function(event) {
 
 					_Crud.dialog('<h3>Configure columns for type ' + type + '</h3>', function() {
 					}, function() {
