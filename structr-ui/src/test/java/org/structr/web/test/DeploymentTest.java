@@ -1457,6 +1457,32 @@ public class DeploymentTest extends StructrUiTest {
 		compare(calculateHash(), true);
 	}
 
+	@Test
+	public void test32RoundtripWithEmptyContentElements() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createNewPage(securityContext,   "test32");
+			final Html html = createElement(page, page, "html");
+			final Head head = createElement(page, html, "head");
+			createElement(page, head, "title", "test32");
+
+			final Body body       = createElement(page, html, "body");
+			final Div div1        = createElement(page, body, "div");
+			final Div div2        = createElement(page, div1, "div", " ");
+			final Ul ul           = createElement(page, div1, "ul");
+			final Li li           = createElement(page, ul, "li", " ");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		compare(calculateHash(), true);
+	}
+
 	// ----- private methods -----
 	private void compare(final String sourceHash, final boolean deleteTestDirectory) {
 		compare(sourceHash, deleteTestDirectory, true);

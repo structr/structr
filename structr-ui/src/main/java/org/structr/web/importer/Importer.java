@@ -642,7 +642,7 @@ public class Importer {
 						content = trimTrailingNewline(((TextNode) node).text());
 					}
 
-					if (StringUtils.isWhitespace(content)) {
+					if (content == null || content.length() == 0) {
 						continue;
 					}
 				}
