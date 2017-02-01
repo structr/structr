@@ -877,6 +877,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				entry.put("name",   mailTemplate.getProperty(MailTemplate.name));
 				entry.put("text",   mailTemplate.getProperty(MailTemplate.text));
 				entry.put("locale", mailTemplate.getProperty(MailTemplate.locale));
+				entry.put("visibleToAuthenticatedUsers", mailTemplate.getProperty(MailTemplate.visibleToAuthenticatedUsers));
+				entry.put("visibleToPublicUsers", mailTemplate.getProperty(MailTemplate.visibleToPublicUsers));
 			}
 
 			tx.success();
