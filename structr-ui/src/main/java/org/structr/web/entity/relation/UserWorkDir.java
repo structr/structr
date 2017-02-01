@@ -18,7 +18,7 @@
  */
 package org.structr.web.entity.relation;
 
-import org.structr.core.entity.OneToOne;
+import org.structr.core.entity.ManyToOne;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 
@@ -26,7 +26,7 @@ import org.structr.web.entity.User;
  *
  *
  */
-public class UserWorkDir extends OneToOne<User, Folder> {
+public class UserWorkDir extends ManyToOne<User, Folder> {
 
 	@Override
 	public Class<User> getSourceType() {
