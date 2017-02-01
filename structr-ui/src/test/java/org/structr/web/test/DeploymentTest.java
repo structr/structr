@@ -1261,13 +1261,15 @@ public class DeploymentTest extends StructrUiTest {
 			app.create(MailTemplate.class,
 				new NodeAttribute<>(MailTemplate.name,   "template1"),
 				new NodeAttribute<>(MailTemplate.locale, "de_DE"),
-				new NodeAttribute<>(MailTemplate.text,   "text1")
+				new NodeAttribute<>(MailTemplate.text,   "text1"),
+				new NodeAttribute<>(MailTemplate.visibleToPublicUsers, true)
 			);
 
 			app.create(MailTemplate.class,
 				new NodeAttribute<>(MailTemplate.name,   "template2"),
 				new NodeAttribute<>(MailTemplate.locale, "en"),
-				new NodeAttribute<>(MailTemplate.text,   "text2")
+				new NodeAttribute<>(MailTemplate.text,   "text2"),
+				new NodeAttribute<>(MailTemplate.visibleToAuthenticatedUsers, true)
 			);
 
 			tx.success();
@@ -1292,10 +1294,14 @@ public class DeploymentTest extends StructrUiTest {
 			Assert.assertEquals("Invalid MailTemplate deployment result", "template1", template1.getProperty(MailTemplate.name));
 			Assert.assertEquals("Invalid MailTemplate deployment result", "de_DE",     template1.getProperty(MailTemplate.locale));
 			Assert.assertEquals("Invalid MailTemplate deployment result", "text1",     template1.getProperty(MailTemplate.text));
+			Assert.assertEquals("Invalid MailTemplate deployment result", true,        template1.getProperty(MailTemplate.visibleToPublicUsers));
+			Assert.assertEquals("Invalid MailTemplate deployment result", false,       template1.getProperty(MailTemplate.visibleToAuthenticatedUsers));
 
 			Assert.assertEquals("Invalid MailTemplate deployment result", "template2", template2.getProperty(MailTemplate.name));
-			Assert.assertEquals("Invalid MailTemplate deployment result", "en",     template2.getProperty(MailTemplate.locale));
+			Assert.assertEquals("Invalid MailTemplate deployment result", "en",        template2.getProperty(MailTemplate.locale));
 			Assert.assertEquals("Invalid MailTemplate deployment result", "text2",     template2.getProperty(MailTemplate.text));
+			Assert.assertEquals("Invalid MailTemplate deployment result", false,       template2.getProperty(MailTemplate.visibleToPublicUsers));
+			Assert.assertEquals("Invalid MailTemplate deployment result", true,        template2.getProperty(MailTemplate.visibleToAuthenticatedUsers));
 
 			tx.success();
 
@@ -1311,17 +1317,17 @@ public class DeploymentTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(Localization.class,
-				new NodeAttribute<>(Localization.name,          "localization1"),
-				new NodeAttribute<>(Localization.domain,        "domain1"),
-				new NodeAttribute<>(Localization.locale,        "de_DE"),
-				new NodeAttribute<>(Localization.localizedName, "localizedName1")
+				new NodeAttribute<>(Localization.name,                "localization1"),
+				new NodeAttribute<>(Localization.domain,              "domain1"),
+				new NodeAttribute<>(Localization.locale,              "de_DE"),
+				new NodeAttribute<>(Localization.localizedName,       "localizedName1")
 			);
 
 			app.create(Localization.class,
-				new NodeAttribute<>(Localization.name,          "localization2"),
-				new NodeAttribute<>(Localization.domain,        "domain2"),
-				new NodeAttribute<>(Localization.locale,        "en"),
-				new NodeAttribute<>(Localization.localizedName, "localizedName2")
+				new NodeAttribute<>(Localization.name,                       "localization2"),
+				new NodeAttribute<>(Localization.domain,                     "domain2"),
+				new NodeAttribute<>(Localization.locale,                     "en"),
+				new NodeAttribute<>(Localization.localizedName,              "localizedName2")
 			);
 
 			tx.success();
@@ -1347,11 +1353,15 @@ public class DeploymentTest extends StructrUiTest {
 			Assert.assertEquals("Invalid MailTemplate deployment result", "domain1",        localization1.getProperty(Localization.domain));
 			Assert.assertEquals("Invalid MailTemplate deployment result", "de_DE",          localization1.getProperty(Localization.locale));
 			Assert.assertEquals("Invalid MailTemplate deployment result", "localizedName1", localization1.getProperty(Localization.localizedName));
+			Assert.assertEquals("Invalid MailTemplate deployment result", true,             localization1.getProperty(Localization.visibleToPublicUsers));
+			Assert.assertEquals("Invalid MailTemplate deployment result", true,             localization1.getProperty(Localization.visibleToAuthenticatedUsers));
 
 			Assert.assertEquals("Invalid MailTemplate deployment result", "localization2",  localization2.getProperty(Localization.name));
 			Assert.assertEquals("Invalid MailTemplate deployment result", "domain2",        localization2.getProperty(Localization.domain));
 			Assert.assertEquals("Invalid MailTemplate deployment result", "en",             localization2.getProperty(Localization.locale));
 			Assert.assertEquals("Invalid MailTemplate deployment result", "localizedName2", localization2.getProperty(Localization.localizedName));
+			Assert.assertEquals("Invalid MailTemplate deployment result", true,             localization2.getProperty(Localization.visibleToPublicUsers));
+			Assert.assertEquals("Invalid MailTemplate deployment result", true,             localization2.getProperty(Localization.visibleToAuthenticatedUsers));
 
 			tx.success();
 
