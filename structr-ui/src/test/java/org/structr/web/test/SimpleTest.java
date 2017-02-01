@@ -686,7 +686,10 @@ public class SimpleTest extends StructrUiTest {
 
 
 			// Warm-up caches and JVM
-			for (long i = 0; i < 50000; i++) {
+			for (long i = 1; i <= 50000; i++) {
+				if (i % 1000 == 0) {
+					logger.info("Making connection #{}", i);
+				}
 				doc = Jsoup.connect(baseUri + pageName).timeout(30*1000).get();
 			}
 
