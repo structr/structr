@@ -31,6 +31,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -495,7 +496,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (doExport) {
 
 			try {
-				Files.copy(src, targetPath);
+				Files.copy(src, targetPath, StandardCopyOption.REPLACE_EXISTING);
 
 			} catch (IOException ioex) {
 				logger.warn("Unable to write file {}: {}", targetPath.toString(), ioex.getMessage());
