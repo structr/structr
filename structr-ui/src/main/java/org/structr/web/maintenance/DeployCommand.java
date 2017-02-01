@@ -905,11 +905,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Map<String, Object> entry = new TreeMap<>();
 				localizations.add(entry);
 
-				entry.put("name",          localization.getProperty(Localization.name));
-				entry.put("localizedName", localization.getProperty(Localization.localizedName));
-				entry.put("domain",        localization.getProperty(Localization.domain));
-				entry.put("locale",        localization.getProperty(Localization.locale));
-				entry.put("imported",      localization.getProperty(Localization.imported));
+				entry.put("name",                        localization.getProperty(Localization.name));
+				entry.put("localizedName",               localization.getProperty(Localization.localizedName));
+				entry.put("domain",                      localization.getProperty(Localization.domain));
+				entry.put("locale",                      localization.getProperty(Localization.locale));
+				entry.put("imported",                    localization.getProperty(Localization.imported));
+				entry.put("visibleToAuthenticatedUsers", localization.getProperty(MailTemplate.visibleToAuthenticatedUsers));
+				entry.put("visibleToPublicUsers",        localization.getProperty(MailTemplate.visibleToPublicUsers));
 			}
 
 			tx.success();
