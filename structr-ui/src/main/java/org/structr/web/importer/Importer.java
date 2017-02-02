@@ -637,13 +637,17 @@ public class Importer {
 
 						content = trimTrailingNewline(((TextNode) node).getWholeText());
 
+						if (content == null || content.length() == 0) {
+							continue;
+						}
+
 					} else {
 
 						content = trimTrailingNewline(((TextNode) node).text());
-					}
 
-					if (content == null || content.length() == 0) {
-						continue;
+						if (StringUtils.isBlank(content)) {
+							continue;
+						}
 					}
 				}
 			}

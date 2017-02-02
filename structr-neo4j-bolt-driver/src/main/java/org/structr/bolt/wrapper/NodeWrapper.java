@@ -57,6 +57,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	@Override
 	public void invalidate() {
 		relationshipCache.clear();
+		this.stale = true;
 	}
 
 	@Override
