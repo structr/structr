@@ -110,20 +110,26 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 	// ----- private methods -----
 	private DOMNode getExistingComponent(final String name) {
 
-		final App app = StructrApp.getInstance();
+		final App app  = StructrApp.getInstance();
+		DOMNode result = null;
+
 		try (final Tx tx = app.tx()) {
 
 			if (DeployCommand.isUuid(name)) {
-				return (DOMNode) StructrApp.getInstance().nodeQuery(DOMNode.class).and(GraphObject.id, name).getFirst();
+
+				result = (DOMNode) StructrApp.getInstance().nodeQuery(DOMNode.class).and(GraphObject.id, name).getFirst();
 			} else {
-				return Importer.findSharedComponentByName(name);
+
+				result = Importer.findSharedComponentByName(name);
 			}
+
+			tx.success();
 
 		} catch (FrameworkException fex) {
 			logger.warn("Unable to determine if component {} already exists, ignoring.", name);
 		}
 
-		return null;
+		return result;
 	}
 
 	private void deleteComponent(final App app, final String name) throws FrameworkException {

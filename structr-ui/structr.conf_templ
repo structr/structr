@@ -79,8 +79,11 @@ database.connection.password = neo4j
 # Directory with database files in embedded mode
 database.path = ./db
 
-database.cache.relationship.size = 1000
-database.cache.node.size = 1000
+# Internal cache sizes
+database.cache.relationship.size = 100000
+database.cache.node.size = 100000
+database.cache.query.size = 1000
+
 
 ########################################################
 #                                                      #

@@ -541,7 +541,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 									doExport = false;
 								}
 
-							} catch (IOException ignore) {}
+							} catch (IOException ignore) {
+								ignore.printStackTrace();
+							}
 						}
 
 						pagesConfig.put(name, properties);
