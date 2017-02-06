@@ -19,7 +19,6 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
@@ -40,11 +39,11 @@ public class DeleteFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources != null) {
 
-			final App app = StructrApp.getInstance(entity != null ? entity.getSecurityContext() : ctx.getSecurityContext());
+			final App app = StructrApp.getInstance(ctx.getSecurityContext());
 			for (final Object obj : sources) {
 
 				if (obj instanceof NodeInterface) {

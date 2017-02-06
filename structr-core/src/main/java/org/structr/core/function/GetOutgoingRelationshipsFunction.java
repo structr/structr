@@ -21,7 +21,6 @@ package org.structr.core.function;
 import java.util.ArrayList;
 import java.util.List;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
@@ -42,7 +41,7 @@ public class GetOutgoingRelationshipsFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		final List<AbstractRelationship> list = new ArrayList<>();
 
@@ -102,7 +101,7 @@ public class GetOutgoingRelationshipsFunction extends Function<Object, Object> {
 
 		} else {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 		}
 

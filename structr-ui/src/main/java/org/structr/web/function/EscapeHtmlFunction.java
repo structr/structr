@@ -19,7 +19,6 @@
 package org.structr.web.function;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.entity.dom.DOMNode;
@@ -38,7 +37,7 @@ public class EscapeHtmlFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
 			if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
@@ -50,7 +49,7 @@ public class EscapeHtmlFunction extends Function<Object, Object> {
 
 		} catch (final IllegalArgumentException e) {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
 

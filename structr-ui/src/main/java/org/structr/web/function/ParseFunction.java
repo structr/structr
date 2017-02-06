@@ -21,7 +21,6 @@ package org.structr.web.function;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.microformat.MicroformatParser;
@@ -40,7 +39,7 @@ public class ParseFunction extends UiFunction {
 	}
 
 	@Override
-	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		if (sources != null && sources.length == 2) {
 
@@ -63,7 +62,7 @@ public class ParseFunction extends UiFunction {
 
 			} catch (Throwable t) {
 
-				logException(entity, t, sources);
+				logException(caller, t, sources);
 
 			}
 
@@ -71,7 +70,7 @@ public class ParseFunction extends UiFunction {
 
 		} else {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 		}
 

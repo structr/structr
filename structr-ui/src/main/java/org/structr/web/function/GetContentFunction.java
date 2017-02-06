@@ -21,7 +21,6 @@ package org.structr.web.function;
 import java.io.InputStream;
 import org.asciidoctor.internal.IOUtils;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.entity.FileBase;
@@ -41,7 +40,7 @@ public class GetContentFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
 			if (!(arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof FileBase)) {
@@ -55,7 +54,7 @@ public class GetContentFunction extends Function<Object, Object> {
 
 		} catch (final IllegalArgumentException e) {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
 

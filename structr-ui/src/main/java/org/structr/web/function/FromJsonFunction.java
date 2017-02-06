@@ -25,7 +25,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.schema.action.ActionContext;
 
@@ -43,7 +42,7 @@ public class FromJsonFunction extends UiFunction {
 	}
 
 	@Override
-	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		if (sources != null && sources.length > 0) {
 
@@ -94,7 +93,7 @@ public class FromJsonFunction extends UiFunction {
 
 			} catch (Throwable t) {
 
-				logException(entity, t, sources);
+				logException(caller, t, sources);
 
 			}
 
@@ -102,7 +101,7 @@ public class FromJsonFunction extends UiFunction {
 
 		} else {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 		}
 

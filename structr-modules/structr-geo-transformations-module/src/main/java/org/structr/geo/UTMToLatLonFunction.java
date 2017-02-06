@@ -26,7 +26,6 @@ import org.opengis.referencing.operation.MathTransform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.DoubleProperty;
 import org.structr.schema.action.ActionContext;
@@ -45,7 +44,7 @@ public class UTMToLatLonFunction extends Function<Object, Object> {
 	public static final DoubleProperty longitudeProperty = new DoubleProperty("longitude");
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 

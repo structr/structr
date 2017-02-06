@@ -20,7 +20,6 @@ package org.structr.web.function;
 
 import java.util.Locale;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 
 /**
@@ -37,7 +36,7 @@ public class IsLocaleFunction extends UiFunction {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		final Locale locale = ctx.getLocale();
 		if (locale != null) {
@@ -55,7 +54,7 @@ public class IsLocaleFunction extends UiFunction {
 
 			} else {
 
-				logParameterError(entity, sources, ctx.isJavaScriptContext());
+				logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			}
 

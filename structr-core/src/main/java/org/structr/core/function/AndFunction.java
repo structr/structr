@@ -19,7 +19,6 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -36,7 +35,7 @@ public class AndFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		boolean result = true;
 
@@ -52,8 +51,7 @@ public class AndFunction extends Function<Object, Object> {
 
 					} catch (Throwable t) {
 
-						// FIXME: What in the above code can cause an exception? I don't see anything...
-						logException(entity, t, sources);
+						logException(caller, t, sources);
 
 						return t.getMessage();
 
@@ -69,7 +67,7 @@ public class AndFunction extends Function<Object, Object> {
 
 		} else {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			result = false;
 

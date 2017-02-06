@@ -38,7 +38,7 @@ public class CopyFileContentsFunction extends Function<Object, Object> {
 	public static final String ERROR_MESSAGE_POST_JS = "Usage: ${{ Structr.copy_file_contentscreate_deep_file_copy(file1_uuid,file2_uuid) }}. Example: ${{ Structr.copy_file_contents('abcdefgh123','ijklmnop456') }}";
 
 	@Override
-	public Object apply(ActionContext ctx, GraphObject entity, Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, Object[] sources) throws FrameworkException {
 
 		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -102,7 +102,7 @@ public class CopyFileContentsFunction extends Function<Object, Object> {
 
 		} else {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
 	}

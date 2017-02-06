@@ -51,29 +51,29 @@ public abstract class Function<S, T> extends Hint {
 
 	protected static final Logger logger = LoggerFactory.getLogger(Functions.class.getName());
 
-	public abstract T apply(ActionContext ctx, GraphObject entity, S[] sources) throws FrameworkException;
+	public abstract T apply(ActionContext ctx, Object caller, S[] sources) throws FrameworkException;
 	public abstract String usage(boolean inJavaScriptContext);
 
 	/**
 	 * Basic logging for functions called with wrong parameter count
 	 *
-	 * @param entity The element that caused the error
+	 * @param caller The element that caused the error
 	 * @param parameters The function parameters
 	 * @param inJavaScriptContext Has the function been called from a JavaScript context?
 	 */
-	protected void logParameterError(final GraphObject entity, final Object[] parameters, final boolean inJavaScriptContext) {
-		logger.warn("{}: unsupported parameter combination/count in element \"{}\". Parameters: {}. {}", new Object[] { getName(), entity, getParametersAsString(parameters), usage(inJavaScriptContext) });
+	protected void logParameterError(final Object caller, final Object[] parameters, final boolean inJavaScriptContext) {
+		logger.warn("{}: unsupported parameter combination/count in \"{}\". Parameters: {}. {}", new Object[] { getName(), caller, getParametersAsString(parameters), usage(inJavaScriptContext) });
 	}
 
 	/**
 	 * Logging of an Exception in a function with a simple message outputting the name and call parameters of the function
 	 *
-	 * @param entity The element that caused the error
+	 * @param caller The element that caused the error
 	 * @param t The thrown Exception
 	 * @param parameters The method parameters
 	 */
-	protected void logException (final GraphObject entity, final Throwable t, final Object[] parameters) {
-		logException(t, "{}: Exception in element \"{}\" for parameters: {}", new Object[] { getName(), entity, getParametersAsString(parameters) });
+	protected void logException (final Object caller, final Throwable t, final Object[] parameters) {
+		logException(t, "{}: Exception in \"{}\" for parameters: {}", new Object[] { getName(), caller, getParametersAsString(parameters) });
 	}
 
 	/**

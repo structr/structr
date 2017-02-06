@@ -24,7 +24,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.rest.common.HttpHelper;
 
@@ -42,7 +41,7 @@ public class HttpGetFunction extends UiFunction {
 	}
 
 	@Override
-	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		if (sources != null && sources.length >= 1 && sources.length <= 4 && sources[0] != null) {
 
@@ -98,7 +97,7 @@ public class HttpGetFunction extends UiFunction {
 
 			} catch (Throwable t) {
 
-				logException(entity, t, sources);
+				logException(caller, t, sources);
 
 			}
 
@@ -106,7 +105,7 @@ public class HttpGetFunction extends UiFunction {
 
 		} else {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 		}
 

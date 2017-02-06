@@ -23,7 +23,6 @@ import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import static org.structr.core.function.Functions.cleanString;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -41,7 +40,7 @@ public class CleanFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
 			if (!arrayHasLengthAndAllElementsNotNull(sources, 1)) {
@@ -77,7 +76,7 @@ public class CleanFunction extends Function<Object, Object> {
 
 		} catch (final IllegalArgumentException e) {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 
 		}

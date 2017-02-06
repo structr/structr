@@ -25,7 +25,6 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -42,7 +41,7 @@ public class AppendFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
@@ -67,13 +66,13 @@ public class AppendFunction extends Function<Object, Object> {
 
 			} catch (IOException ioex) {
 
-				logException(entity, ioex, sources);
+				logException(caller, ioex, sources);
 
 			}
 
 		} else {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 		}
 

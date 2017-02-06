@@ -42,16 +42,16 @@ public class ValuesFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		//if (arrayHasMinLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof GraphObject) {
 		if (sources.length >= 2 && sources[0] instanceof GraphObject) {
 
 			final Set<Object> values = new LinkedHashSet<>();
-			final GraphObject source = (GraphObject)sources[0];
+			final GraphObject source = (GraphObject) sources[0];
 
 			for (final PropertyKey key : source.getPropertyKeys(sources[1].toString())) {
-				values.add(entity.getProperty(key));
+				values.add(source.getProperty(key));
 			}
 
 			return new LinkedList<>(values);
@@ -70,7 +70,7 @@ public class ValuesFunction extends Function<Object, Object> {
 
 		}
 
-		logParameterError(entity, sources, ctx.isJavaScriptContext());
+		logParameterError(caller, sources, ctx.isJavaScriptContext());
 		return "";
 	}
 

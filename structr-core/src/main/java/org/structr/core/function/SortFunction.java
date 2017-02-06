@@ -18,7 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
@@ -44,7 +43,7 @@ public class SortFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 		
 		if (sources == null || sources.length == 0) {
 			
@@ -94,7 +93,7 @@ public class SortFunction extends Function<Object, Object> {
 			
 		} else {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 		}
 
 		return sources[0];

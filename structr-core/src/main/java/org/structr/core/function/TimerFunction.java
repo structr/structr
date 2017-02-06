@@ -20,7 +20,6 @@ package org.structr.core.function;
 
 import java.util.Date;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -35,7 +34,7 @@ public class TimerFunction extends Function<Object, Object>{
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources.length == 2 && sources[0] instanceof String && sources[1] instanceof String) {
 
@@ -74,7 +73,7 @@ public class TimerFunction extends Function<Object, Object>{
 
 		} else {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 		}
 

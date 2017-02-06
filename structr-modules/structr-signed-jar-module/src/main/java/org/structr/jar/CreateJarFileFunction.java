@@ -65,7 +65,6 @@ import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.function.UiFunction;
 
@@ -80,7 +79,7 @@ public class CreateJarFileFunction extends UiFunction {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -209,7 +208,7 @@ public class CreateJarFileFunction extends UiFunction {
 
 				} catch (Throwable t) {
 
-					logException(entity, t, sources);
+					logException(caller, t, sources);
 
 				}
 
@@ -221,7 +220,7 @@ public class CreateJarFileFunction extends UiFunction {
 
 		} else {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 		}
 

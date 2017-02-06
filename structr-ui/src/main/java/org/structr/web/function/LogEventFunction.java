@@ -21,7 +21,6 @@ package org.structr.web.function;
 import java.util.Date;
 import java.util.Map;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyMap;
@@ -43,7 +42,7 @@ public class LogEventFunction extends UiFunction {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 4)) {
 
@@ -90,7 +89,7 @@ public class LogEventFunction extends UiFunction {
 
 		} else {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 		}
 

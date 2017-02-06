@@ -19,7 +19,6 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -36,7 +35,7 @@ public class AddFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		Double result = 0.0;
 
@@ -52,7 +51,7 @@ public class AddFunction extends Function<Object, Object> {
 
 					} catch (Throwable t) {
 
-						logException(entity, t, sources);
+						logException(caller, t, sources);
 
 						return t.getMessage();
 

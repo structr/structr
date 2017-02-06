@@ -114,6 +114,10 @@ public class ActionContext {
 	public SecurityContext getSecurityContext() {
 		return securityContext;
 	}
+	
+	public void setSecurityContext(final SecurityContext securityContext) {
+		this.securityContext = securityContext;
+	}
 
 	public boolean returnRawValue() {
 		return false;

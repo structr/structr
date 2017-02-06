@@ -39,23 +39,16 @@ public class ErrorFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		final Class entityType;
-		final String type;
+		Class entityType = null;
+		String type = null;
 
-		if (entity != null) {
+		if (caller != null && caller instanceof GraphObject) {
 
-			entityType = entity.getClass();
-			type = entity.getType();
-
-		} else {
-
-			entityType = GraphObject.class;
-			type = "Base";
-
+			entityType = caller.getClass();
+			type = ((GraphObject) caller).getType();
 		}
-
 		
 		try {
 			
@@ -85,14 +78,14 @@ public class ErrorFunction extends Function<Object, Object> {
 						break;
 					}
 				default:
-					logParameterError(entity, sources, ctx.isJavaScriptContext());
+					logParameterError(caller, sources, ctx.isJavaScriptContext());
 					break;
 					
 				}
 			
 		} catch (final IllegalArgumentException e) {
 		
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
 			

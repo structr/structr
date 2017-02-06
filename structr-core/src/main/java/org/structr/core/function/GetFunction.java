@@ -45,9 +45,9 @@ public class GetFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
+		final SecurityContext securityContext = ctx.getSecurityContext();
 		
 		try {
 			if (!arrayHasLengthAndAllElementsNotNull(sources, 2)) {
@@ -128,7 +128,7 @@ public class GetFunction extends Function<Object, Object> {
 
 		} catch (final IllegalArgumentException e) {
 			
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
 		}

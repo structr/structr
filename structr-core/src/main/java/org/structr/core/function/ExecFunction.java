@@ -24,7 +24,6 @@ import java.util.concurrent.Executors;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -44,7 +43,7 @@ public class ExecFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
@@ -73,7 +72,7 @@ public class ExecFunction extends Function<Object, Object> {
 
 				} catch (InterruptedException | ExecutionException iex) {
 
-					logException(entity, iex, sources);
+					logException(caller, iex, sources);
 
 				} finally {
 
@@ -87,7 +86,7 @@ public class ExecFunction extends Function<Object, Object> {
 
 		} else {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 		}
 

@@ -18,7 +18,6 @@
  */
 package org.structr.web.function;
 
-import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 
 /**
@@ -35,7 +34,7 @@ public class AddHeaderFunction extends UiFunction {
 	}
 
 	@Override
-	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		if (sources != null && sources.length == 2) {
 
@@ -48,7 +47,7 @@ public class AddHeaderFunction extends UiFunction {
 
 		} else {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 		}
 

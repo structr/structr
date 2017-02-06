@@ -20,7 +20,6 @@ package org.structr.web.function;
 
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
-import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 
 /**
@@ -37,7 +36,7 @@ public class SetResponseHeaderFunction extends UiFunction {
 	}
 
 	@Override
-	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		if (sources != null && sources.length == 2) {
 
@@ -58,7 +57,7 @@ public class SetResponseHeaderFunction extends UiFunction {
 
 		} else {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
 
