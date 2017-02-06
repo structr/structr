@@ -160,6 +160,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private void doImport(final Map<String, Object> attributes) throws FrameworkException {
 
 		final String path                        = (String) attributes.get("source");
+		final App app                            = StructrApp.getInstance();
 		final Map<String, Object> componentsConf = new HashMap<>();
 		final Map<String, Object> templatesConf  = new HashMap<>();
 		final Map<String, Object> pagesConf      = new HashMap<>();
@@ -281,6 +282,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			} catch (IOException ioex) {
 				logger.warn("Exception while importing files", ioex);
 			}
+		}
+
+		// remove all DOMNodes from the database (clean webapp for import)
+		try (final Tx tx = app.tx(true, true, false)) {
+
+			info("Removing pages, templates and components..");
+			for (final DOMNode node : app.nodeQuery(DOMNode.class)) {
+
+				app.delete(node);
+			}
+
+			tx.success();
 		}
 
 		// import templates, must be done before pages so the templates exist
