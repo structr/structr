@@ -55,8 +55,8 @@ table, tr, td, th, tbody, thead {
 	border-collapse: collapse;
 }
 
-tt, tt *, pre, pre *, code, code * {
-	font-family: "Liberation Mono", "DejaVu Sans Mono", Consolas, Monaco, "Vera Sans Mono", "Lucida Console", "Courier New", monospace !important;
+tt, tt *, pre, pre *, code, code *, .terminal, .cmd {
+	font-family: "Liberation Mono", "DejaVu Sans Mono", Consolas, Monaco, "Vera Sans Mono", "Lucida Console", "Courier New", Courier, monospace !important;
 }
 
 a, a:link, a:visited {
@@ -3608,7 +3608,6 @@ input#element-class {
 	left: 0;
 	z-index: 10;
 	opacity: .9;
-	font-family: "Courier New", Courier, monospace;
 }
 
 /**
