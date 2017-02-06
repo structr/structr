@@ -20,7 +20,6 @@ package org.structr.core.function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -37,14 +36,14 @@ public class TitleizeFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources == null || sources.length == 0 || (sources.length == 1 && sources[0] == null) || StringUtils.isBlank(sources[0].toString())) {
 			return "";
 		}
 		
 		if (sources.length > 2) {
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
 

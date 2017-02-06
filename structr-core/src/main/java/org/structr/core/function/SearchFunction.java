@@ -21,7 +21,6 @@ package org.structr.core.function;
 import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -45,11 +44,11 @@ public class SearchFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources != null) {
 
-			final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
+			final SecurityContext securityContext = ctx.getSecurityContext();
 			final ConfigurationProvider config = StructrApp.getConfiguration();
 			final Query query = StructrApp.getInstance(securityContext).nodeQuery();
 			Class type = null;
@@ -125,7 +124,7 @@ public class SearchFunction extends Function<Object, Object> {
 			return x;
 
 		} else {
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
 	}

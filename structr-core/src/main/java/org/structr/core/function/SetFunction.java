@@ -43,15 +43,18 @@ public class SetFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
 			if (sources[0] instanceof GraphObject) {
 
 				final GraphObject source = (GraphObject)sources[0];
+				
 				final Map<String, Object> properties = new LinkedHashMap<>();
-				final SecurityContext securityContext = source.getSecurityContext();
+				final SecurityContext securityContext = ctx.getSecurityContext();
+				source.setSecurityContext(securityContext);
+				
 				final Gson gson = new GsonBuilder().create();
 				final Class type = source.getClass();
 				final int sourceCount = sources.length;
@@ -87,7 +90,7 @@ public class SetFunction extends Function<Object, Object> {
 
 		} else {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 		}
 

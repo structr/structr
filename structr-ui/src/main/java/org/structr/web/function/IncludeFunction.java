@@ -25,7 +25,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
@@ -50,7 +49,7 @@ public class IncludeFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
 
@@ -59,7 +58,7 @@ public class IncludeFunction extends Function<Object, Object> {
 				return null;
 			}
 
-			final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
+			final SecurityContext securityContext = ctx.getSecurityContext();
 			final App app = StructrApp.getInstance(securityContext);
 			final RenderContext innerCtx = new RenderContext((RenderContext)ctx);
 			final List<DOMNode> nodeList = app.nodeQuery(DOMNode.class).andName((String)sources[0]).getAsList();
@@ -170,7 +169,7 @@ public class IncludeFunction extends Function<Object, Object> {
 
 		} catch (final IllegalArgumentException e) {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
 

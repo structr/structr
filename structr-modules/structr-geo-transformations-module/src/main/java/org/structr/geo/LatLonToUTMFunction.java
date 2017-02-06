@@ -26,7 +26,6 @@ import org.opengis.referencing.operation.MathTransform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -40,7 +39,7 @@ public class LatLonToUTMFunction extends Function<Object, Object> {
 	private static final String UTMzdlChars   = "CDEFGHJKLMNPQRSTUVWXX";
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 

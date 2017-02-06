@@ -19,7 +19,6 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -36,7 +35,7 @@ public class DivFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
 
@@ -48,7 +47,7 @@ public class DivFunction extends Function<Object, Object> {
 
 				} catch (NumberFormatException nfe) {
 
-					logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getName(), entity, getParametersAsString(sources) });
+					logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getName(), caller, getParametersAsString(sources) });
 					return nfe.getMessage();
 
 				}
@@ -61,7 +60,7 @@ public class DivFunction extends Function<Object, Object> {
 
 				} catch (NumberFormatException nfe) {
 
-					logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getName(), entity, getParametersAsString(sources) });
+					logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getName(), caller, getParametersAsString(sources) });
 					return nfe.getMessage();
 				}
 
@@ -69,7 +68,7 @@ public class DivFunction extends Function<Object, Object> {
 
 		} catch (final IllegalArgumentException e) {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
 

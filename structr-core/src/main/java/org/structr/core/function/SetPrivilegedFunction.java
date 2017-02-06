@@ -20,7 +20,6 @@ package org.structr.core.function;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -38,21 +37,21 @@ public class SetPrivilegedFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		synchronized (entity) {
+		synchronized (ctx) {
 
-			final SecurityContext previousSecurityContext = entity.getSecurityContext();
-			entity.setSecurityContext(SecurityContext.getSuperUserInstance());
+			final SecurityContext previousSecurityContext = ctx.getSecurityContext();
+			ctx.setSecurityContext(SecurityContext.getSuperUserInstance());
 
 			try {
 
 				final SetFunction set = new SetFunction();
-				set.apply(ctx, entity, sources);
+				set.apply(ctx, caller, sources);
 
 			} finally {
 
-				entity.setSecurityContext(previousSecurityContext);
+				ctx.setSecurityContext(previousSecurityContext);
 			}
 		}
 

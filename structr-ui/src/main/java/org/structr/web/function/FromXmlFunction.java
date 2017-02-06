@@ -21,7 +21,6 @@ package org.structr.web.function;
 import java.util.LinkedList;
 import java.util.List;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.function.XmlFunction;
 import org.structr.core.property.GenericProperty;
@@ -48,7 +47,7 @@ public class FromXmlFunction extends UiFunction {
 	public static final String ERROR_MESSAGE_FROM_XML_JS = "Usage: ${{Structr.from_xml(src)}}. Example: ${{Structr.from_xml('<entry>0</entry>')}}";
 
 	@Override
-	public Object apply(ActionContext ctx, GraphObject entity, Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, Object[] sources) throws FrameworkException {
 
 		if (sources != null && sources.length > 0) {
 
@@ -60,7 +59,7 @@ public class FromXmlFunction extends UiFunction {
 
 				final GraphObjectMap result = new GraphObjectMap();
 				final XmlFunction xml       = new XmlFunction();
-				final Document document     = (Document)xml.apply(ctx, entity, sources);
+				final Document document     = (Document)xml.apply(ctx, caller, sources);
 
 				if (document != null) {
 
@@ -74,7 +73,7 @@ public class FromXmlFunction extends UiFunction {
 
 			} catch (Throwable t) {
 
-				logException(entity, t, sources);
+				logException(caller, t, sources);
 
 			}
 
@@ -82,7 +81,7 @@ public class FromXmlFunction extends UiFunction {
 
 		} else {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 		}
 

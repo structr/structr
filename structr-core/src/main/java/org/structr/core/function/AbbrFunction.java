@@ -20,7 +20,6 @@ package org.structr.core.function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -37,13 +36,13 @@ public class AbbrFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
 			
 			if (sources == null || sources.length != 2 || sources[1] == null) {
 	
-				logParameterError(entity, sources, ctx.isJavaScriptContext());
+				logParameterError(caller, sources, ctx.isJavaScriptContext());
 				return usage(ctx.isJavaScriptContext());
 			}			
 
@@ -65,13 +64,13 @@ public class AbbrFunction extends Function<Object, Object> {
 
 		} catch (final NumberFormatException nfe) {
 
-			logException(nfe, "{}: NumberFormatException in element \"{}\". Can not parse \"{}\" as Integer. Returning original string. Parameters: {}", new Object[] {getName(), entity, sources[1], getParametersAsString(sources) });
+			logException(nfe, "{}: NumberFormatException in \"{}\". Can not parse \"{}\" as Integer. Returning original string. Parameters: {}", new Object[] { getName(), caller, sources[1], getParametersAsString(sources) });
 
 			return sources[0];
 
 		} catch (final IllegalArgumentException e) {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
 		}

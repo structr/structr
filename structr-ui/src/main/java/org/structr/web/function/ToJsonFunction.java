@@ -44,13 +44,13 @@ public class ToJsonFunction extends UiFunction {
 	}
 
 	@Override
-	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		if (sources != null && sources.length >= 1 && sources.length <= 3) {
 
 			try {
 
-				final SecurityContext securityContext = entity != null ? entity.getSecurityContext() : ctx.getSecurityContext();
+				final SecurityContext securityContext = ctx.getSecurityContext();
 
 				final Value<String> view = new StaticValue<>("public");
 				if (sources.length > 1) {
@@ -92,7 +92,7 @@ public class ToJsonFunction extends UiFunction {
 
 			} catch (Throwable t) {
 
-				logException(entity, t, sources);
+				logException(caller, t, sources);
 
 			}
 
@@ -100,7 +100,7 @@ public class ToJsonFunction extends UiFunction {
 
 		} else {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 		}
 

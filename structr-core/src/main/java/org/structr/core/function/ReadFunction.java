@@ -25,7 +25,6 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -44,7 +43,7 @@ public class ReadFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
 		
@@ -69,13 +68,13 @@ public class ReadFunction extends Function<Object, Object> {
 
 			} catch (IOException ioex) {
 
-				logException(ioex, "{}: IOException in element \"{}\" for parameters: {}", new Object[] { getName(), entity, getParametersAsString(sources) });
+				logException(ioex, "{}: IOException in element \"{}\" for parameters: {}", new Object[] { getName(), caller, getParametersAsString(sources) });
 
 			}
 
 		} catch (final IllegalArgumentException e) {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
 

@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Locale;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Localization;
 import org.structr.schema.action.ActionContext;
@@ -42,7 +41,7 @@ public class LocalizeFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		final Locale ctxLocale  = ctx.getLocale();
 		final String fullLocale = ctxLocale.toString();
@@ -81,14 +80,14 @@ public class LocalizeFunction extends Function<Object, Object> {
 
 		} else if (sources.length == 1 || sources.length == 2) {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			// silently ignore null values
 			return "";
 
 		} else {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			// only show the error message for wrong parameter count
 			return usage(ctx.isJavaScriptContext());

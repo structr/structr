@@ -26,7 +26,6 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
-import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.function.UiFunction;
 
@@ -44,7 +43,7 @@ public class FromCsvFunction extends UiFunction {
 	}
 
 	@Override
-	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 4)) {
 
@@ -90,7 +89,7 @@ public class FromCsvFunction extends UiFunction {
 
 		} else {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 		}
 

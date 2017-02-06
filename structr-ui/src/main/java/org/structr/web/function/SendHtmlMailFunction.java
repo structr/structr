@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.MailHelper;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.entity.FileBase;
@@ -47,7 +46,7 @@ public class SendHtmlMailFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 6, 8)) {
 
@@ -88,13 +87,13 @@ public class SendHtmlMailFunction extends Function<Object, Object> {
 
 			} catch (EmailException | MalformedURLException ex) {
 
-				logException(entity, ex, sources);
+				logException(caller, ex, sources);
 
 			}
 
 		} else {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 		}
 

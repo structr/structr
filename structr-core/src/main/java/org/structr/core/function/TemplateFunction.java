@@ -41,10 +41,10 @@ public class TemplateFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources == null || sources != null && sources.length != 3) {
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -55,7 +55,7 @@ public class TemplateFunction extends Function<Object, Object> {
 				return null;
 			}
 
-			final App app                      = StructrApp.getInstance(entity != null ? entity.getSecurityContext() : ctx.getSecurityContext());
+			final App app                      = StructrApp.getInstance(ctx.getSecurityContext());
 			final String name                  = sources[0].toString();
 			final String locale                = sources[1].toString();
 			final MailTemplate template        = app.nodeQuery(MailTemplate.class).andName(name).and(MailTemplate.locale, locale).getFirst();
@@ -78,7 +78,7 @@ public class TemplateFunction extends Function<Object, Object> {
 
 		} catch (final IllegalArgumentException e) {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
 

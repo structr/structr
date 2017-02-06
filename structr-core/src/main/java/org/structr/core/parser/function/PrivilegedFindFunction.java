@@ -36,7 +36,7 @@ public class PrivilegedFindFunction extends Function<Object, Object> {
     public static final String ERROR_MESSAGE_PRIVILEGEDFIND = "Usage: ${find_privileged(type, key, value)}. Example: ${find_privileged(\"User\", \"email\", \"tester@test.com\"}";
 
     @Override
-    public Object apply(ActionContext ctx, GraphObject entity, Object[] sources) throws FrameworkException {
+    public Object apply(final ActionContext ctx, final Object caller, Object[] sources) throws FrameworkException {
 
 		if (sources != null) {
 

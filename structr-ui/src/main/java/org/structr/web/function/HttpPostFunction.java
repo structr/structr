@@ -20,7 +20,6 @@ package org.structr.web.function;
 
 import java.util.Map;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
@@ -42,7 +41,7 @@ public class HttpPostFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -74,7 +73,7 @@ public class HttpPostFunction extends Function<Object, Object> {
 			if ("application/json".equals(contentType)) {
 
 				final FromJsonFunction fromJsonFunction = new FromJsonFunction();
-				response.setProperty(new StringProperty("body"), fromJsonFunction.apply(ctx, entity, new Object[]{responseBody}));
+				response.setProperty(new StringProperty("body"), fromJsonFunction.apply(ctx, caller, new Object[]{responseBody}));
 
 			} else {
 
@@ -97,7 +96,7 @@ public class HttpPostFunction extends Function<Object, Object> {
 
 		} else {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
 

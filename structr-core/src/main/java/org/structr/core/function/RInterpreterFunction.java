@@ -22,7 +22,6 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -35,7 +34,7 @@ public class RInterpreterFunction extends Function<Object, Object> {
 	public static final String ERROR_MESSAGE_R_JS = "Usage: ${{Structr.r(<R code>)}}";
 	
 	@Override
-	public Object apply(ActionContext ctx, GraphObject entity, Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 		
 		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 

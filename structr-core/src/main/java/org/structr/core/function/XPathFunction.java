@@ -23,7 +23,6 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.w3c.dom.Document;
@@ -41,7 +40,7 @@ public class XPathFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
 			if (!(arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof Document)) {
@@ -56,14 +55,14 @@ public class XPathFunction extends Function<Object, Object> {
 
 			} catch (XPathExpressionException ioex) {
 
-				logException(entity, ioex, sources);
+				logException(caller, ioex, sources);
 				return null;
 
 			}
 
 		} catch (final IllegalArgumentException e) {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
 		}

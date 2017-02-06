@@ -25,7 +25,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.function.XmlFunction;
 import org.structr.core.property.DoubleProperty;
@@ -84,7 +83,7 @@ public class ImportGPXFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 
@@ -96,7 +95,7 @@ public class ImportGPXFunction extends Function<Object, Object> {
 					// parse source, create a list of points
 					final GraphObjectMap result          = new GraphObjectMap();
 					final XmlFunction xmlParser          = new XmlFunction();
-					final Document doc                   = (Document)xmlParser.apply(ctx, entity, sources);
+					final Document doc                   = (Document)xmlParser.apply(ctx, caller, sources);
 					final List<GraphObjectMap> waypoints = new LinkedList<>();
 					final List<GraphObjectMap> routes    = new LinkedList<>();
 					final List<GraphObjectMap> tracks    = new LinkedList<>();

@@ -21,7 +21,6 @@ package org.structr.core.function;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.schema.action.ActionContext;
@@ -41,11 +40,11 @@ public class IncomingFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final GraphObject entity, final Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
 
-			final RelationshipFactory factory = new RelationshipFactory(entity != null ? entity.getSecurityContext() : ctx.getSecurityContext());
+			final RelationshipFactory factory = new RelationshipFactory(ctx.getSecurityContext());
 			final Object source = sources[0];
 
 			if (source instanceof NodeInterface) {
@@ -74,7 +73,7 @@ public class IncomingFunction extends Function<Object, Object> {
 
 		} else {
 
-			logParameterError(entity, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 		}
 
