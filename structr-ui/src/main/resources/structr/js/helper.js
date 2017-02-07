@@ -465,6 +465,7 @@ var _LogType = {
 	DND:             "DND",
 	ELEMENTS:        "ELEMENTS",
 	ENTITIES:        "ENTITIES",
+	FAVORITES:       "FAVORITES",
 	FILES:           "FILES",
 	FIND_DUPLICATES: "FIND_DUPLICATES",
 	GRAPH:           "GRAPH",

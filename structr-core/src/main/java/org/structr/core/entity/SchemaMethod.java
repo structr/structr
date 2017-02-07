@@ -31,7 +31,7 @@ import org.structr.schema.action.ActionEntry;
  *
  *
  */
-public class SchemaMethod extends SchemaReloadingNode {
+public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 	public static final Property<AbstractSchemaNode> schemaNode      = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
 	public static final Property<String>             virtualFileName = new StringProperty("virtualFileName");

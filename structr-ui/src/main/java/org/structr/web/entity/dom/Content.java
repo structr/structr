@@ -39,6 +39,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
+import org.structr.core.entity.Favoritable;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.Property;
@@ -66,7 +67,7 @@ import org.w3c.dom.Text;
  *
  *
  */
-public class Content extends DOMNode implements Text, NonIndexed {
+public class Content extends DOMNode implements Text, NonIndexed, Favoritable {
 
 	private static final Logger logger                                                   = LoggerFactory.getLogger(Content.class.getName());
 	public static final Property<String> contentType                                     = new StringProperty("contentType").indexed();

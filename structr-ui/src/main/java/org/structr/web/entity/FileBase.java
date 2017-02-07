@@ -53,6 +53,7 @@ import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.ModificationQueue;
@@ -78,7 +79,7 @@ import org.structr.web.property.FileDataProperty;
  *
  *
  */
-public class FileBase extends AbstractFile implements Indexable, Linkable, JavaScriptSource, CMISInfo, CMISDocumentInfo {
+public class FileBase extends AbstractFile implements Indexable, Linkable, JavaScriptSource, CMISInfo, CMISDocumentInfo, Favoritable {
 
 	private static final Logger logger = LoggerFactory.getLogger(FileBase.class.getName());
 
