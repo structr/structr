@@ -52,7 +52,7 @@ import org.structr.schema.parser.PropertyDefinition;
  *
  *
  */
-public class SchemaProperty extends SchemaReloadingNode implements PropertyDefinition, Favoritable {
+public class SchemaProperty extends SchemaReloadingNode implements PropertyDefinition {
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaProperty.class.getName());
 

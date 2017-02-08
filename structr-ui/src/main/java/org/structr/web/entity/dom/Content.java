@@ -691,6 +691,22 @@ public class Content extends DOMNode implements Text, NonIndexed, Favoritable {
 		return newPage.createTextNode(getData());
 	}
 
+	// ----- interface Favoritable -----
+	@Override
+	public String getFavoriteContent() {
+		return getProperty(Content.content);
+	}
+
+	@Override
+	public String getFavoriteContentType() {
+		return getProperty(Content.contentType);
+	}
+
+	@Override
+	public void setFavoriteContent(String content) throws FrameworkException {
+		setProperty(Content.content, content);
+	}
+
 	//~--- inner classes --------------------------------------------------
 
 	private static class ThreadLocalConfluenceProcessor extends ThreadLocal<MarkupParser> {

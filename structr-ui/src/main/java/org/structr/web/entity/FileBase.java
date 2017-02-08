@@ -23,6 +23,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -657,5 +658,38 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 		}
 
 		return true;
+	}
+
+	// ----- interface Favoritable -----
+	@Override
+	public String getFavoriteContent() {
+
+		try (final InputStream is = getInputStream()) {
+
+			return IOUtils.toString(is);
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
+
+		return null;
+	}
+
+	@Override
+	public String getFavoriteContentType() {
+		return getContentType();
+	}
+
+	@Override
+	public void setFavoriteContent(final String content) throws FrameworkException {
+
+		try (final OutputStream os = getOutputStream(true, false)) {
+
+			IOUtils.write(content, os);
+			os.flush();
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
 	}
 }

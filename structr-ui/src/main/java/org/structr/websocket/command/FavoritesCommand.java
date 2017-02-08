@@ -26,10 +26,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.web.entity.FileBase;
 import org.structr.web.entity.User;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -53,16 +53,16 @@ public class FavoritesCommand extends AbstractCommand {
 
 		final Map<String, Object> data        = webSocketData.getNodeData();
 		final String mode                     = (String)data.get("mode");
-		final String fileId                   = (String)data.get("id");
+		final String favoritableId            = (String)data.get("id");
 		final Principal currentUser           = webSocket.getCurrentUser();
 
 		if (mode == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(422).message("Favorites Command: No mode given. Valid modes: add, remove").build(), true);
 
-		} else if (fileId == null) {
+		} else if (favoritableId == null) {
 
-			getWebSocket().send(MessageBuilder.status().code(422).message("Favorites Command: No file id given").build(), true);
+			getWebSocket().send(MessageBuilder.status().code(422).message("Favorites Command: No favoritable id given").build(), true);
 
 		} else {
 
@@ -70,17 +70,17 @@ public class FavoritesCommand extends AbstractCommand {
 
 			try (final Tx tx = app.tx()) {
 
-				final GraphObject file = app.get(fileId);
+				final GraphObject file = app.get(favoritableId);
 
-				if (file != null && file instanceof FileBase) {
+				if (file != null && file instanceof Favoritable) {
 
 					switch (mode) {
 
 						case "add": {
 
-							final List<FileBase> favorites = currentUser.getProperty(User.favoriteFiles);
-							favorites.add((FileBase)file);
-							currentUser.setProperties(currentUser.getSecurityContext(), new PropertyMap(User.favoriteFiles, favorites));
+							final List<Favoritable> favorites = currentUser.getProperty(User.favorites);
+							favorites.add((Favoritable)file);
+							currentUser.setProperties(currentUser.getSecurityContext(), new PropertyMap(User.favorites, favorites));
 
 							getWebSocket().send(MessageBuilder.finished().callback(callback).build(), true);
 
@@ -90,9 +90,9 @@ public class FavoritesCommand extends AbstractCommand {
 
 						case "remove": {
 
-							final List<FileBase> favorites = currentUser.getProperty(User.favoriteFiles);
-							favorites.remove((FileBase)file);
-							currentUser.setProperties(currentUser.getSecurityContext(), new PropertyMap(User.favoriteFiles, favorites));
+							final List<Favoritable> favorites = currentUser.getProperty(User.favorites);
+							favorites.remove((Favoritable)file);
+							currentUser.setProperties(currentUser.getSecurityContext(), new PropertyMap(User.favorites, favorites));
 
 							getWebSocket().send(MessageBuilder.finished().callback(callback).build(), true);
 
@@ -108,7 +108,7 @@ public class FavoritesCommand extends AbstractCommand {
 
 				} else {
 
-					getWebSocket().send(MessageBuilder.status().code(422).message("Favorites Command: File with id '" + fileId + "'does not exist!").build(), true);
+					getWebSocket().send(MessageBuilder.status().code(422).message("Favorites Command: Favoritable with id '" + favoritableId + "'does not exist!").build(), true);
 
 				}
 
@@ -116,7 +116,7 @@ public class FavoritesCommand extends AbstractCommand {
 
 			} catch (FrameworkException fex) {
 
-				getWebSocket().send(MessageBuilder.status().code(422).message("Favorites Command: File with id '" + fileId + "'does not exist!").build(), true);
+				getWebSocket().send(MessageBuilder.status().code(422).message("Favorites Command: Favoritable with id '" + favoritableId + "'does not exist!").build(), true);
 
 			}
 

@@ -20,6 +20,7 @@ package org.structr.core.entity;
 
 import org.structr.common.PropertyView;
 import org.structr.common.View;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.relationship.SchemaNodeMethod;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.Property;
@@ -52,5 +53,21 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 	public ActionEntry getActionEntry() {
 		return new ActionEntry("___" + getProperty(AbstractNode.name), getProperty(SchemaMethod.source));
+	}
+
+	// ----- interface Favoritable -----
+	@Override
+	public String getFavoriteContent() {
+		return getProperty(SchemaMethod.source);
+	}
+
+	@Override
+	public String getFavoriteContentType() {
+		return "text/javascript";
+	}
+
+	@Override
+	public void setFavoriteContent(String content) throws FrameworkException {
+		setProperty(SchemaMethod.source, content);
 	}
 }
