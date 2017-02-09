@@ -52,7 +52,6 @@ var _Favorites = {
 						favorites.forEach(function(favorite) {
 
 							var id   = favorite.id;
-							var name = favorite.name || favorite.type + ' ' + favorite.id;
 
 							_Favorites.menu.append(
 								'<li id="tab-' + id + '"><a id="tab-' + id + '_" href="#content-' + id + '"><span>' + favorite.favoriteContext + '</span>' +
@@ -148,13 +147,15 @@ var _Favorites = {
 		Structr.resize();
 	},
 	selectTab: function (tab) {
-		LSWrapper.setItem(_Favorites.favoritesTabKey, tab);
-		var id = tab.substring(8);
-		var el = $('#editor-' + id).find('.CodeMirror');
-		if (el) {
-			var e = el.get(0);
-			if (e && e.CodeMirror) {
-				e.CodeMirror.focus();
+		if (tab && tab.length) {
+			LSWrapper.setItem(_Favorites.favoritesTabKey, tab);
+			var id = tab.substring(8);
+			var el = $('#editor-' + id).find('.CodeMirror');
+			if (el) {
+				var e = el.get(0);
+				if (e && e.CodeMirror) {
+					e.CodeMirror.focus();
+				}
 			}
 		}
 	}
