@@ -197,6 +197,18 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 	}
 
 	@Override
+	public String getContextName() {
+
+		final String _name = getProperty(DOMElement.name);
+		if (_name != null) {
+			
+			return _name;
+		}
+
+		return getProperty(DOMElement.tag);
+	}
+
+	@Override
 	public void updateFromNode(final DOMNode newNode) throws FrameworkException {
 
 		if (newNode instanceof DOMElement) {

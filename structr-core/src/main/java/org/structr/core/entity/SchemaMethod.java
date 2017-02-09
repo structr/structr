@@ -40,11 +40,11 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	public static final Property<String>             comment         = new StringProperty("comment");
 
 	public static final View defaultView = new View(SchemaMethod.class, PropertyView.Public,
-		name, schemaNode, source, comment
+		name, schemaNode, source, comment, isFavoritable
 	);
 
 	public static final View uiView = new View(SchemaMethod.class, PropertyView.Ui,
-		name, schemaNode, source, comment
+		name, schemaNode, source, comment, isFavoritable
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",
@@ -56,6 +56,22 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	}
 
 	// ----- interface Favoritable -----
+	@Override
+	public String getContext() {
+
+		final AbstractSchemaNode parent = getProperty(SchemaMethod.schemaNode);
+		final StringBuilder buf = new StringBuilder();
+
+		if (parent != null) {
+
+			buf.append(parent.getProperty(SchemaNode.name));
+			buf.append(".");
+			buf.append(getProperty(name));
+		}
+
+		return buf.toString();
+	}
+
 	@Override
 	public String getFavoriteContent() {
 		return getProperty(SchemaMethod.source);

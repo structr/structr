@@ -96,11 +96,11 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	public static final Property<List<User>> favoriteOfUsers                     = new StartNodes<>("favoriteOfUsers", UserFavoriteFile.class);
 
 	public static final View publicView = new View(FileBase.class, PropertyView.Public,
-		type, name, size, url, owner, path, isFile, visibleToPublicUsers, visibleToAuthenticatedUsers, includeInFrontendExport
+		type, name, size, url, owner, path, isFile, visibleToPublicUsers, visibleToAuthenticatedUsers, includeInFrontendExport, isFavoritable
 	);
 
 	public static final View uiView = new View(FileBase.class, PropertyView.Ui,
-		type, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, isFile, hasParent, includeInFrontendExport
+		type, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, isFile, hasParent, includeInFrontendExport, isFavoritable
 	);
 
 	@Override
@@ -661,6 +661,11 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	}
 
 	// ----- interface Favoritable -----
+	@Override
+	public String getContext() {
+		return getProperty(FileBase.path);
+	}
+
 	@Override
 	public String getFavoriteContent() {
 

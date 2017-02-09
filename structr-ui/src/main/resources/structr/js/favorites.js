@@ -55,14 +55,14 @@ var _Favorites = {
 							var name = favorite.name || favorite.type + ' ' + favorite.id;
 
 							_Favorites.menu.append(
-								'<li id="tab-' + id + '"><a id="tab-' + id + '_" href="#content-' + id + '"><span>' + name + '</span>' +
+								'<li id="tab-' + id + '"><a id="tab-' + id + '_" href="#content-' + id + '"><span>' + favorite.favoriteContext + '</span>' +
 								'<i title="Close" id="button-close-' + id + '" class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" >' +
 								'</a></li>'
 							);
 
 							_Favorites.container.append(
 								'<div class="favoriteContent" id="content-' + id + '" style="padding:0px;">' +
-									'<div class="favoriteMenu" id="menu-' + id + '"><b class="favoriteType">' + favorite.type + '</b></div>' +
+									//'<div class="favoriteMenu" id="menu-' + id + '"><b class="favoriteContext">' + favorite.favoriteContext + '</b></div>' +
 									'<div class="favoriteEditor" id="editor-' + id + '"></div>' +
 									'<div class="favoriteButtons" id="buttons-' + id + '"></div>' +
 								'</div>'

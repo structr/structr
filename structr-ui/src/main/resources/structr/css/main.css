@@ -1714,6 +1714,13 @@ button.add_property {
 	bottom: 8px;
 }
 
+.actions.schema-props .abs-pos-helper .add-to-favorites-button {
+	position: absolute;
+	right: 26px;
+	bottom: 8px;
+	cursor: pointer;
+}
+
 .actions.schema-props .cm-schema-methods .CodeMirror-scroll {
 	margin-bottom: 0;
 	margin-right: 0;
@@ -3717,6 +3724,9 @@ input#element-class {
 	font-size: 10pt;
 }
 
+.favoriteContext {
+}
+
 .favoriteEditor .CodeMirror {
 	height: calc(100vh - 200px);
 }
@@ -3733,6 +3743,14 @@ input#element-class {
 	float: left;
 	padding: 6px 0px 6px 26px;
 }
+
+i#addToFavorites {
+	vertical-align: bottom;
+	margin-bottom: 8px;
+	margin-right: 1em;
+	cursor: pointer;
+}
+
 /**
  * Icon Sprites
  */

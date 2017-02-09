@@ -235,9 +235,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	private Set<PropertyKey> dataProperties = null;
 
 	public abstract boolean isSynced();
-
 	public abstract boolean contentEquals(final DOMNode otherNode);
-
+	public abstract String getContextName();
 	public abstract void updateFromNode(final DOMNode otherNode) throws FrameworkException;
 
 	public String getIdHash() {
@@ -1925,7 +1924,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 	}
 
-	// ----- private methods -----
 	public static String objectToString(final Object source) {
 
 		if (source != null) {
@@ -1969,6 +1967,28 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		return cachedMostUsedTagNames;
 	}
 
+	private String cachedPagePath = null;
+
+	public String getPagePath() {
+
+		if (cachedPagePath == null) {
+
+			final StringBuilder buf = new StringBuilder();
+			DOMNode current         = this;
+
+			while (current != null) {
+
+				buf.insert(0, "/" + current.getContextName());
+				current = current.getProperty(DOMNode.parent);
+			}
+
+			cachedPagePath = buf.toString();
+		}
+
+		return cachedPagePath;
+	}
+
+	// ----- private methods -----
 	private void getMostUsedElementNames(final Map<String, Integer> mostUsedElements, final DOMNode parent, final int depth) {
 
 		for (final DOMNode node : parent.getProperty(DOMNode.children)) {

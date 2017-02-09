@@ -34,6 +34,11 @@ import org.w3c.dom.NodeList;
 
 public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFragment, NonIndexed {
 
+	@Override
+	public String getContextName() {
+		return "DocumentFragment";
+	}
+
 	// ----- interface org.w3c.dom.Node -----
 	@Override
 	public String getLocalName() {
