@@ -137,6 +137,11 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	}
 
 	@Override
+	public String getContextName() {
+		return getProperty(Page.name);
+	}
+
+	@Override
 	public void updateFromNode(final DOMNode newNode) throws FrameworkException {
 		// do nothing
 	}

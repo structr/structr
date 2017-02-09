@@ -1714,6 +1714,13 @@ button.add_property {
 	bottom: 8px;
 }
 
+.actions.schema-props .abs-pos-helper .add-to-favorites-button {
+	position: absolute;
+	right: 26px;
+	bottom: 8px;
+	cursor: pointer;
+}
+
 .actions.schema-props .cm-schema-methods .CodeMirror-scroll {
 	margin-bottom: 0;
 	margin-right: 0;
@@ -2459,6 +2466,17 @@ input.bitmask {
 	position: absolute;
 	right: 12px;
 	top: -1px;
+}
+
+#my-workset {
+	width: 75%;
+	margin: 12px;
+	padding: 2px 12px 6px 12px;
+	position: relative;
+	min-width: 360px;
+	min-height: 190px;
+	float: left;
+	font-size: 1.2em;
 }
 
 /*
@@ -3667,6 +3685,70 @@ input#element-class {
 
 .item-title:hover b {
     cursor: pointer;
+}
+
+/**
+ * Favorites
+ */
+#favoriteTabs {
+	margin: 12px 24px 12px 12px;
+	width: calc(100vw - 36px);
+	min-width: calc(804px + 4em);
+	height: calc(100vh - 140px);
+	border: none;
+	background: none;
+	font-family: Arial, Helvetica, Sans-serif;
+}
+
+#favoriteTabsMenu {
+	border: none;
+	background: none;
+}
+
+#favoriteTabsMenu i {
+	vertical-align: bottom;
+	margin-left: .5em;
+	cursor: pointer;
+}
+
+#favoriteContainer {
+	border-radius: 3px;
+}
+
+.favoriteMenu {
+	padding: 12px;
+	margin: 0px;
+	background-color: #f3f3f3;
+	border-bottom: 1px solid #aaa;
+	color: #000;
+	font-size: 10pt;
+}
+
+.favoriteContext {
+}
+
+.favoriteEditor .CodeMirror {
+	height: calc(100vh - 200px);
+}
+
+.favoriteButtons {
+	margin: 0px;
+	padding: 1em;
+	background-color: #f3f3f3;
+	border-top: 1px solid #aaa;
+}
+
+.favoriteButtons #info {
+	width: 120px;
+	float: left;
+	padding: 6px 0px 6px 26px;
+}
+
+i#addToFavorites {
+	vertical-align: bottom;
+	margin-bottom: 8px;
+	margin-right: 1em;
+	cursor: pointer;
 }
 
 /**

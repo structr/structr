@@ -39,6 +39,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
+import org.structr.core.entity.Favoritable;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.Property;
@@ -66,7 +67,7 @@ import org.w3c.dom.Text;
  *
  *
  */
-public class Content extends DOMNode implements Text, NonIndexed {
+public class Content extends DOMNode implements Text, NonIndexed, Favoritable {
 
 	private static final Logger logger                                                   = LoggerFactory.getLogger(Content.class.getName());
 	public static final Property<String> contentType                                     = new StringProperty("contentType").indexed();
@@ -84,12 +85,12 @@ public class Content extends DOMNode implements Text, NonIndexed {
 
 	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui,
 		content, contentType, parent, pageId, syncedNodes, sharedComponent, dataKey, restQuery, cypherQuery, xpathQuery, functionQuery,
-		hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent, isDOMNode
+		hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent, isDOMNode, isFavoritable
 	);
 
 	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public,
 		content, contentType, parent, pageId, syncedNodes, sharedComponent, dataKey, restQuery, cypherQuery, xpathQuery, functionQuery,
-		hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent, isDOMNode
+		hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent, isDOMNode, isFavoritable
 	);
 	//~--- static initializers --------------------------------------------
 
@@ -254,6 +255,11 @@ public class Content extends DOMNode implements Text, NonIndexed {
 		}
 
 		return false;
+	}
+
+	@Override
+	public String getContextName() {
+		return "#text";
 	}
 
 	@Override
@@ -688,6 +694,27 @@ public class Content extends DOMNode implements Text, NonIndexed {
 
 		// for #text elements, importing is basically a clone operation
 		return newPage.createTextNode(getData());
+	}
+
+	// ----- interface Favoritable -----
+	@Override
+	public String getContext() {
+		return getPagePath();
+	}
+
+	@Override
+	public String getFavoriteContent() {
+		return getProperty(Content.content);
+	}
+
+	@Override
+	public String getFavoriteContentType() {
+		return getProperty(Content.contentType);
+	}
+
+	@Override
+	public void setFavoriteContent(String content) throws FrameworkException {
+		setProperty(Content.content, content);
 	}
 
 	//~--- inner classes --------------------------------------------------

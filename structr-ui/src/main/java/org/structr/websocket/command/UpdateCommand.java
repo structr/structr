@@ -70,6 +70,7 @@ public class UpdateCommand extends AbstractCommand {
 			logger.warn("Graph object with uuid {} not found.", webSocketData.getId());
 			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 
+			return;
 		}
 
 		webSocketData.getNodeData().remove("recursive");

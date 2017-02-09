@@ -23,6 +23,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -53,6 +54,7 @@ import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.ModificationQueue;
@@ -78,7 +80,7 @@ import org.structr.web.property.FileDataProperty;
  *
  *
  */
-public class FileBase extends AbstractFile implements Indexable, Linkable, JavaScriptSource, CMISInfo, CMISDocumentInfo {
+public class FileBase extends AbstractFile implements Indexable, Linkable, JavaScriptSource, CMISInfo, CMISDocumentInfo, Favoritable {
 
 	private static final Logger logger = LoggerFactory.getLogger(FileBase.class.getName());
 
@@ -94,11 +96,11 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	public static final Property<List<User>> favoriteOfUsers                     = new StartNodes<>("favoriteOfUsers", UserFavoriteFile.class);
 
 	public static final View publicView = new View(FileBase.class, PropertyView.Public,
-		type, name, size, url, owner, path, isFile, visibleToPublicUsers, visibleToAuthenticatedUsers, includeInFrontendExport
+		type, name, size, url, owner, path, isFile, visibleToPublicUsers, visibleToAuthenticatedUsers, includeInFrontendExport, isFavoritable
 	);
 
 	public static final View uiView = new View(FileBase.class, PropertyView.Ui,
-		type, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, isFile, hasParent, includeInFrontendExport
+		type, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, isFile, hasParent, includeInFrontendExport, isFavoritable
 	);
 
 	@Override
@@ -656,5 +658,43 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 		}
 
 		return true;
+	}
+
+	// ----- interface Favoritable -----
+	@Override
+	public String getContext() {
+		return getProperty(FileBase.path);
+	}
+
+	@Override
+	public String getFavoriteContent() {
+
+		try (final InputStream is = getInputStream()) {
+
+			return IOUtils.toString(is);
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
+
+		return null;
+	}
+
+	@Override
+	public String getFavoriteContentType() {
+		return getContentType();
+	}
+
+	@Override
+	public void setFavoriteContent(final String content) throws FrameworkException {
+
+		try (final OutputStream os = getOutputStream(true, false)) {
+
+			IOUtils.write(content, os);
+			os.flush();
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
 	}
 }

@@ -241,7 +241,11 @@ function wsConnect() {
 						} else if (codeStr.startsWith('3')) {
 							new MessageBuilder().info(msg).show();
 						} else if (codeStr.startsWith('4')) {
-							new MessageBuilder().warning(msg).show();
+							if (codeStr === "404") {
+								new MessageBuilder().warning('Object not found.').show();
+							} else {
+								new MessageBuilder().warning(msg).show();
+							}
 						} else {
 							new MessageBuilder().error(msg).show();
 						}

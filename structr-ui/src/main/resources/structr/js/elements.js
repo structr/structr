@@ -777,6 +777,13 @@ var _Elements = {
 					visible: (entity.type !== 'Content'),
 					name: 'Insert content element',
 					elements: (entity.type !== 'Page') ? ['content', 'template'] : ['template'],
+				},
+				{
+					visible: (entity.type !== 'Content'),
+					name: 'Insert &lt;div&gt;',
+					func: function() {
+						Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', {});
+					},
 					separator: true
 				},
 				{
@@ -1210,12 +1217,22 @@ var _Elements = {
 			indentUnit: 4,
 			tabSize:4,
 			indentWithTabs: true
-        });
+		});
 
 		Structr.resize();
 
 		dialogBtn.append('<button id="editorSave" disabled="disabled" class="disabled">Save</button>');
 		dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
+
+		if (entity.isFavoritable) {
+			dialogMeta.append('<i title="Add to favorites" id="addToFavorites" class="' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" >');
+			$('#addToFavorites').on('click', function() {
+				Command.favorites('add', entity.id, function() {
+					blinkGreen($('#addToFavorites'));
+				});
+			});
+		}
+
 
 		// Experimental speech recognition, works only in Chrome 25+
 		if (typeof(webkitSpeechRecognition) === 'function') {

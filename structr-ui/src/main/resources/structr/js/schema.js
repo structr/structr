@@ -1346,6 +1346,7 @@ var _Schema = {
 		el.append('<tr class="' + method.name + '" data-type-name="' + entity.name + '" data-method-name="' + method.name + '">'
 				+ '<td class="name-col"><div class="abs-pos-helper">'
 					+ '<input size="15" type="text" class="action property-name" value="' + escapeForHtmlAttributes(method.name) + '">'
+					+ '<i title="Add to favorites" id="add-to-favorites-' + method.id + '" class="add-to-favorites-button ' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" />'
 					+ '<i title="Drag to resize" class="resize-handle ' + _Icons.getFullSpriteClass(_Icons.arrow_up_down) + '" />'
 				+ '</div></td>'
 				+ '<td><textarea rows="4" class="property-code action">' + escapeForHtmlAttributes(method.source || '') + '</textarea></td>'
@@ -1355,10 +1356,15 @@ var _Schema = {
 					+ '<i title="Discard changes" class="remove-icon cancel-action ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" />'
 					+ '<i title="Remove method" class="remove-icon remove-action ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />'
 				+ '</td></tr>');
-
 		var tr = $('tr', el).last();
 		_Schema.makeSchemaMethodRowResizable(tr);
 		_Schema.initMethodRow(tr, entity, method);
+
+		$('#add-to-favorites-' + method.id).on('click', function() {
+			Command.favorites('add', method.id, function() {
+				blinkGreen($('#add-to-favorites-' + method.id));
+			});
+		});
 
 	},
 	appendEmptyMethod: function (actionsTable, entity) {

@@ -144,25 +144,25 @@ public class ConsoleTest extends StructrUiTest {
 
 		final String fullIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +
-			"RebuildNodeIndex: 24 objects processed\r\n" +
-			"RebuildNodeIndex: 24 objects processed\r\n" +
-			"Done with (re-)indexing 24 nodes\r\n" +
+			"RebuildNodeIndex: 26 objects processed\r\n" +
+			"RebuildNodeIndex: 26 objects processed\r\n" +
+			"Done with (re-)indexing 26 nodes\r\n" +
 			"Relationship type not set, starting (re-)indexing all relationships\r\n" +
-			"RebuildRelIndex: 32 objects processed\r\n" +
-			"RebuildRelIndex: 32 objects processed\r\n" +
-			"Done with (re-)indexing 32 relationships\r\n";
+			"RebuildRelIndex: 36 objects processed\r\n" +
+			"RebuildRelIndex: 36 objects processed\r\n" +
+			"Done with (re-)indexing 36 relationships\r\n";
 
 		final String nodeIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +
-			"RebuildNodeIndex: 24 objects processed\r\n" +
-			"RebuildNodeIndex: 24 objects processed\r\n" +
-			"Done with (re-)indexing 24 nodes\r\n";
+			"RebuildNodeIndex: 26 objects processed\r\n" +
+			"RebuildNodeIndex: 26 objects processed\r\n" +
+			"Done with (re-)indexing 26 nodes\r\n";
 
 		final String relIndexRebuildOutput =
 			"Relationship type not set, starting (re-)indexing all relationships\r\n" +
-			"RebuildRelIndex: 32 objects processed\r\n" +
-			"RebuildRelIndex: 32 objects processed\r\n" +
-			"Done with (re-)indexing 32 relationships\r\n";
+			"RebuildRelIndex: 36 objects processed\r\n" +
+			"RebuildRelIndex: 36 objects processed\r\n" +
+			"Done with (re-)indexing 36 relationships\r\n";
 
 		final String typedNodeIndexRebuildOutput =
 			"Starting (re-)indexing all nodes of type ResourceAccess\r\n" +
@@ -176,9 +176,9 @@ public class ConsoleTest extends StructrUiTest {
 
 		final String createNodeUuidsOutput =
 			"Start setting UUID on all nodes\r\n" +
-			"SetNodeUuid: 24 objects processed\r\n" +
-			"SetNodeUuid: 24 objects processed\r\n" +
-			"Done with setting UUID on 24 nodes\r\n";
+			"SetNodeUuid: 26 objects processed\r\n" +
+			"SetNodeUuid: 26 objects processed\r\n" +
+			"Done with setting UUID on 26 nodes\r\n";
 
 		final String createNodeUuidsOnUserOutput =
 			"Start setting UUID on nodes of type User\r\n" +
@@ -192,15 +192,15 @@ public class ConsoleTest extends StructrUiTest {
 
 		final String createRelUuidsOutput =
 			"Start setting UUID on all rels\r\n" +
-			"SetRelationshipUuid: 32 objects processed\r\n" +
-			"SetRelationshipUuid: 32 objects processed\r\n" +
-			"Done with setting UUID on 32 relationships\r\n";
+			"SetRelationshipUuid: 36 objects processed\r\n" +
+			"SetRelationshipUuid: 36 objects processed\r\n" +
+			"Done with setting UUID on 36 relationships\r\n";
 
 		final String createLabelsOutput =
 			"Node type not set or no entity class found. Starting creation of labels for all nodes.\r\n" +
-			"CreateLabels: 24 objects processed\r\n" +
-			"CreateLabels: 24 objects processed\r\n" +
-			"Done with creating labels on 24 nodes\r\n";
+			"CreateLabels: 26 objects processed\r\n" +
+			"CreateLabels: 26 objects processed\r\n" +
+			"Done with creating labels on 26 nodes\r\n";
 
 		final String createUserLabelsOutput =
 			"Starting creation of labels for all nodes of type User\r\n" +
