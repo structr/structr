@@ -777,6 +777,13 @@ var _Elements = {
 					visible: (entity.type !== 'Content'),
 					name: 'Insert content element',
 					elements: (entity.type !== 'Page') ? ['content', 'template'] : ['template'],
+				},
+				{
+					visible: (entity.type !== 'Content'),
+					name: 'Insert &lt;div&gt;',
+					func: function() {
+						Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', {});
+					},
 					separator: true
 				},
 				{
