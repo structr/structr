@@ -315,6 +315,12 @@ public class SecurityContext {
 		return cachedUser;
 	}
 
+	public void setCachedUser(final Principal user) {
+		this.cachedUser     = user;
+		this.cachedUserId   = user.getUuid();
+		this.cachedUserName = user.getName();
+	}
+
 	public Principal getUser(final boolean tryLogin) {
 
 		// If we've got a user, return it! Easiest and fastest!!
@@ -695,9 +701,9 @@ public class SecurityContext {
 				locale = request.getLocale();
 
 				final Cookie[] cookies = request.getCookies();
-				
+
 				if (cookies != null) {
-				
+
 					// Priority 3: Cookie locale
 					for (Cookie c : cookies) {
 
@@ -714,7 +720,7 @@ public class SecurityContext {
 						}
 
 					}
-				
+
 				}
 
 			}

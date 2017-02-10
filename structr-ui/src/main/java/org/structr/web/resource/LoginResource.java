@@ -81,6 +81,9 @@ public class LoginResource extends Resource {
 
 				logger.info("Login successful: {}", new Object[]{ user });
 
+				// make logged in user available to caller
+				securityContext.setCachedUser(user);
+
 				RestMethodResult methodResult = new RestMethodResult(200);
 				methodResult.addContent(user);
 
