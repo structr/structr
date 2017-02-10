@@ -999,11 +999,24 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		}
 
 		for (final Page page : pages) {
-
 			final String pagePath = page.getPath();
-			final String name     = PathHelper.getName(path);
+			if (pagePath != null && pagePath.equals(path) && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page))) {
+				return page;
+			}
+		}
+		
+		final String name     = PathHelper.getName(path);
+		
+		for (final Page page : pages) {
+			final String pageName = page.getName();
+			if (pageName != null && pageName.equals(name) && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page))) {
+				return page;
+			}
+		}
 
-			if (((pagePath != null && pagePath.equals(path)) || name.equals(page.getName()) || name.equals(page.getUuid()) ) && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page))) {
+		for (final Page page : pages) {
+			final String pageUuid = page.getUuid();
+			if (pageUuid != null && pageUuid.equals(name) && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page))) {
 				return page;
 			}
 		}
