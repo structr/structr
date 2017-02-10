@@ -160,9 +160,15 @@ $(function() {
 				dialogSaveButton.click();
 			}
 		}
+		// Ctrl-Alt-c
 		if (k === 67 && altKey && ctrlKey) {
 			e.preventDefault();
 			_Console.toggleConsole();
+		}
+		// Ctrl-Alt-f
+		if (k === 70 && altKey && ctrlKey) {
+			e.preventDefault();
+			_Favorites.toggleFavorites();
 		}
 	});
 
@@ -519,6 +525,7 @@ var Structr = {
 		}
 		hideLoadingSpinner();
 		_Console.initConsole();
+		_Favorites.initFavorites();
 	},
 	updateUsername:function(name) {
 		if (name !== user) {
@@ -588,6 +595,7 @@ var Structr = {
 		});
 	},
 	doLogout: function(text) {
+		_Favorites.logoutAction();
 		_Console.logoutAction();
 		Structr.saveLocalStorage();
 		if (Command.logout(user)) {

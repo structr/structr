@@ -3618,7 +3618,7 @@ input#element-class {
 	width: calc(100% - 12px);
 }
 
-#structr-console {
+#structr-console, #structr-favorites {
 	position: absolute;
 	top: 60px;
 	right: 0;
@@ -3626,6 +3626,12 @@ input#element-class {
 	left: 0;
 	z-index: 10;
 	opacity: .9;
+}
+
+#structr-favorites {
+	background-color: #eee;
+	width: 100%;
+	opacity: 1;
 }
 
 /**
