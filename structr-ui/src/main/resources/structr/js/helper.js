@@ -834,7 +834,6 @@ var _Console = new (function () {
 var _Favorites = new (function () {
 
 	// private variables
-	var _initialized = false;
 	var _favsVisible = false;
 
 	var container;
@@ -844,7 +843,7 @@ var _Favorites = new (function () {
 	this.initFavorites = function() {
 
 		favoritesTabKey = 'structrFavoritesTab_' + port;
-		
+
 		_Logger.log(_LogType.FAVORITES, 'initFavorites');
 
 		$('#structr-favorites').append('<div id="favoriteTabs"><ul id="favoriteTabsMenu"></ul><div id="favoriteContainer">Loading favorites..</div></div>');
@@ -961,7 +960,7 @@ var _Favorites = new (function () {
 		fastRemoveAllChildren($('#structr-favorites')[0]);
 		_hideFavorites();
 	};
-	
+
 	this.selectTab = function (tab) {
 		if (tab && tab.length) {
 			LSWrapper.setItem(_Favorites.favoritesTabKey, tab);
@@ -970,6 +969,7 @@ var _Favorites = new (function () {
 			if (el) {
 				var e = el.get(0);
 				if (e && e.CodeMirror) {
+					window.setTimeout(function() { e.CodeMirror.refresh() }, 1);
 					e.CodeMirror.focus();
 				}
 			}
@@ -988,6 +988,11 @@ var _Favorites = new (function () {
 		if (user !== null) {
 			_favsVisible = true;
 			$('#structr-favorites').slideDown('fast');
+
+			window.setTimeout(function() {
+				var activeTab = LSWrapper.getItem(_Favorites.favoritesTabKey);
+				_Favorites.selectTab(activeTab);
+			}, 1);
 		}
 	};
 
