@@ -31,6 +31,7 @@ var timeout, attempts = 0, maxRetry = 10;
 var displayingFavorites = false;
 var filesLastOpenFolderKey = 'structrFilesLastOpenFolder_' + port;
 var filesResizerLeftKey = 'structrFilesResizerLeftKey_' + port;
+var activeFileTabPrefix = 'activeFileTabPrefix' + port;
 
 $(document).ready(function() {
 	Structr.registerModule('files', _Files);
@@ -517,7 +518,7 @@ var _Files = {
 			}
 
 			$.ajax({
-				url: rootUrl + 'me/favoriteFiles',
+				url: rootUrl + 'me/favorites',
 				statusCode: {
 					200: function(data) {
 						handleChildren(data.result);
@@ -649,6 +650,8 @@ var _Files = {
 		}
 	},
 	appendFileOrFolder: function(d) {
+
+		if (!d.isFile) return;
 
 		// add folder/file to global model
 		StructrModel.createFromData(d, null, false);
@@ -1027,7 +1030,7 @@ var _Files = {
 						});
 
 						if (i+1 === selectedCount) {
-							_Entities.activateTabs(file.id, '#files-tabs', '#content-tab-' + file.id);
+							_Entities.activateTabs(file.id, '#files-tabs', '#content-tab-' + file.id, activeFileTabPrefix);
 						}
 
 					});
@@ -1237,7 +1240,7 @@ var _Files = {
 				dialogBtn.children('#saveFile').remove();
 				dialogBtn.children('#saveAndClose').remove();
 
-				dialogMeta.html('<span class="editor-info"><label for"lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
+				dialogMeta.html('<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
 				$('#lineWrapping').on('change', function() {
 					var inp = $(this);
 					if (inp.is(':checked')) {

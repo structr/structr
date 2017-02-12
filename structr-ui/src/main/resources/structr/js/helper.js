@@ -673,7 +673,7 @@ var _Logger = {
 /**
  * Encapsulated Console object so we can keep error-handling and console-code in one place
  */
-var _Console = new (function () {
+var _Console = new (function() {
 
 	// private variables
 	var _terminal;
@@ -682,7 +682,7 @@ var _Console = new (function () {
 
 
 	// public methods
-	this.logoutAction = function () {
+	this.logoutAction = function() {
 		Command.console('clear');
 		Command.console('exit');
 
@@ -783,7 +783,7 @@ var _Console = new (function () {
 	};
 
 	// private methods
-	var _getBanner = function () {
+	var _getBanner = function() {
 		return ''
 		+ '        _                          _         \n'
 		+ ' ____  | |_   ___   _   _   ____  | |_   ___ \n'
@@ -793,7 +793,7 @@ var _Console = new (function () {
 		+ '|____) |___| |_|   |_____| |____| |___| |_|  \n\n';
 	};
 
-	var _showConsole = function () {
+	var _showConsole = function() {
 		if (user !== null) {
 			_consoleVisible = true;
 			_terminal.enable();
@@ -801,13 +801,13 @@ var _Console = new (function () {
 		}
 	};
 
-	var _hideConsole = function () {
+	var _hideConsole = function() {
 		_consoleVisible = false;
 		_terminal.disable();
 		$('#structr-console').slideUp('fast');
 	};
 
-	var _runCommand = function (command, term) {
+	var _runCommand = function(command, term) {
 
 		if (!term) {
 			term = _terminal;
@@ -839,24 +839,29 @@ var _Favorites = new (function () {
 	var container;
 	var menu;
 	var favoritesTabKey;
+	var text = '';
 
 	this.initFavorites = function() {
 
 		favoritesTabKey = 'structrFavoritesTab_' + port;
+		scrollInfoKey = 'structrScrollInfoKey_' + port;
 
 		_Logger.log(_LogType.FAVORITES, 'initFavorites');
+		
+	};
+	
+	this.refreshFavorites = function() {
 
-		$('#structr-favorites').append('<div id="favoriteTabs"><ul id="favoriteTabsMenu"></ul><div id="favoriteContainer">Loading favorites..</div></div>');
+		fastRemoveAllChildren($('#structr-favorites')[0]);
+		$('#structr-favorites').append('<div id="favs-tabs" class="favs-tabs"><ul></ul></div>');
 
-		_Favorites.container = $('#favoriteContainer');
-		_Favorites.menu      = $('#favoriteTabsMenu');
-
+		_Favorites.container = $('#favs-tabs');
+		_Favorites.menu      = $('#favs-tabs > ul');
+		
 		$.ajax({
 			url: rootUrl + 'me/favorites/fav',
 			statusCode: {
 				200: function(data) {
-
-					_Favorites.container.empty();
 
 					if (data && data.result && data.result.length) {
 
@@ -865,51 +870,89 @@ var _Favorites = new (function () {
 						favorites.forEach(function(favorite) {
 
 							var id   = favorite.id;
-
 							_Favorites.menu.append(
-								'<li id="tab-' + id + '"><a id="tab-' + id + '_" href="#content-' + id + '"><span>' + favorite.favoriteContext + '</span>' +
-								'<i title="Close" id="button-close-' + id + '" class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" >' +
-								'</a></li>'
+								'<li id="tab-' + id + '" class="button">' + favorite.favoriteContext + '&nbsp;&nbsp;' +
+								'<i title="Close" id="button-close-' + id + '" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" >' +
+								'</li>'
 							);
 
 							_Favorites.container.append(
-								'<div class="favoriteContent" id="content-' + id + '" style="padding:0px;">' +
+								'<div class="fav-content" id="content-tab-' + id + '">' +
 									//'<div class="favoriteMenu" id="menu-' + id + '"><b class="favoriteContext">' + favorite.favoriteContext + '</b></div>' +
-									'<div class="favoriteEditor" id="editor-' + id + '"></div>' +
-									'<div class="favoriteButtons" id="buttons-' + id + '"></div>' +
+									'<div class="fav-editor" id="editor-' + id + '"></div>' +
+									'<div class="fav-buttons" id="buttons-' + id + '"></div>' +
 								'</div>'
 							);
 
+							var lineWrapping = LSWrapper.getItem(lineWrappingKey);
+							
 							var editor = CodeMirror($('#editor-' + id).get(0), {
 								value: favorite.favoriteContent || '',
 								mode: favorite.favoriteContentType || 'text/plain',
 								autoFocus: true,
 								lineNumbers: true,
-								lineWrapping: false,
+								lineWrapping: lineWrapping,
 								indentUnit: 4,
 								tabSize:4,
-								indentWithTabs: true,
-								extraKeys: {
-									"Ctrl-S": function() {
-										$('#button-save-' + id).click();
-									},
-									"Ctrl-W": function() {
-										$('#button-close-' + id).click();
-									}
+								indentWithTabs: true
+							});
+
+							var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + id));
+							if (scrollInfo) {
+								editor.scrollTo(scrollInfo.left, scrollInfo.top);
+							}
+
+							editor.on('scroll', function() {
+								var scrollInfo = editor.getScrollInfo();
+								LSWrapper.setItem(scrollInfoKey + '_' + id, JSON.stringify(scrollInfo));
+							});
+							editor.id = id;
+							
+							var buttons = $('#buttons-' + id);
+
+							buttons.children('#saveFile').remove();
+							buttons.children('#saveAndClose').remove();
+
+							buttons.prepend('<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
+							$('#lineWrapping').on('change', function() {
+								var inp = $(this);
+								if (inp.is(':checked')) {
+									LSWrapper.setItem(lineWrappingKey, "1");
+									editor.setOption('lineWrapping', true);
+								} else {
+									LSWrapper.removeItem(lineWrappingKey);
+									editor.setOption('lineWrapping', false);
+								}
+								editor.refresh();
+							});
+
+							buttons.append('<button id="saveFile" disabled="disabled" class="disabled">Save</button>');
+
+							dialogSaveButton = $('#saveFile', buttons);
+
+							editor.on('change', function(cm, change) {
+
+								if (text === editor.getValue()) {
+									dialogSaveButton.prop("disabled", true).addClass('disabled');
+								} else {
+									dialogSaveButton.prop("disabled", false).removeClass('disabled');
 								}
 							});
 
-							$('#buttons-' + id).append('<button class="pull-right" id="button-save-' + id +'">Save</button>');
-							$('#buttons-' + id).append('<div id="info-' + id +'"></div>');
-							$('#buttons-' + id).append('<div id="info-' + id +'" style="clear:both;"></div>');
-
-							// save button
-							$('#button-save-' + id).on('click', function() {
+							$('button#saveFile', buttons).on('click', function(e) {
+								e.preventDefault();
+								e.stopPropagation();
+								var newText = editor.getValue();
+								if (text === newText) {
+									return;
+								}
 								Command.setProperty(id, 'favoriteContent', editor.getValue(), false, function() {
 									$('#info-' + id).empty();
 									$('#info-' + id).append('<div class="success" id="info">Saved</div>');
-									$('#info').delay(1000).fadeOut(1000)
+									$('#info').delay(1000).fadeOut(1000);
 								});
+								text = newText;
+								dialogSaveButton.prop("disabled", true).addClass('disabled');
 							});
 
 							// prevent DELETE ajax call without relationship ID
@@ -932,6 +975,11 @@ var _Favorites = new (function () {
 									return false;
 								});
 							}
+							
+							$('#tab-' + id).on('click', function(e) {
+								_Favorites.selectTab(id);
+							});
+							
 						});
 
 					} else {
@@ -940,39 +988,30 @@ var _Favorites = new (function () {
 					}
 
 					var activeTab = LSWrapper.getItem(_Favorites.favoritesTabKey);
-					_Favorites.selectTab(activeTab);
+					
+					if (!activeTab || !($('#tab-' + activeTab)).length) {
+						activeTab = Structr.getIdFromPrefixIdString($('li:first-child', _Favorites.menu).prop('id'), 'tab-');
+					}
 
-					$('#favoriteTabs').tabs({
-						activate: function(event, ui) {
-							_Favorites.selectTab(ui.newPanel[0].id);
-						}
-					});
+					_Entities.activateTabs(activeTab, '#favs-tabs', '#content-tab-' + activeTab, _Favorites.favoritesTabKey);
 
-					$('a[href=#' + activeTab + ']').click();
-
-
+					$('#tab-' + activeTab).click();
+					
 				}
 			}
 		});
-	}
+	};
+
 	// public methods
-	this.logoutAction = function () {
+	this.logoutAction = function() {
 		fastRemoveAllChildren($('#structr-favorites')[0]);
 		_hideFavorites();
 	};
 
-	this.selectTab = function (tab) {
-		if (tab && tab.length) {
-			LSWrapper.setItem(_Favorites.favoritesTabKey, tab);
-			var id = tab.substring(8);
-			var el = $('#editor-' + id).find('.CodeMirror');
-			if (el) {
-				var e = el.get(0);
-				if (e && e.CodeMirror) {
-					window.setTimeout(function() { e.CodeMirror.refresh() }, 1);
-					e.CodeMirror.focus();
-				}
-			}
+	this.selectTab = function(id) {
+		if (id && id.length) {
+			LSWrapper.setItem(_Favorites.favoritesTabKey, id);
+			_refreshEditor(id);
 		}
 	}
 
@@ -984,22 +1023,47 @@ var _Favorites = new (function () {
 		}
 	};
 
-	var _showFavorites = function () {
+	var _showFavorites = function() {
 		if (user !== null) {
 			_favsVisible = true;
-			$('#structr-favorites').slideDown('fast');
+			$('#structr-favorites').slideDown('fast', function() {
+				_Favorites.refreshFavorites();
+			});
 
-			window.setTimeout(function() {
-				var activeTab = LSWrapper.getItem(_Favorites.favoritesTabKey);
-				_Favorites.selectTab(activeTab);
-			}, 1);
+//			window.setTimeout(function() {
+//				var activeTab = LSWrapper.getItem(_Favorites.favoritesTabKey);
+//				_Favorites.selectTab(activeTab);
+//			}, 10);
 		}
 	};
 
-	var _hideFavorites = function () {
+	var _hideFavorites = function() {
 		_favsVisible = false;
 		$('#structr-favorites').slideUp('fast');
+		fastRemoveAllChildren($('#structr-favorites')[0]);
 	};
+
+	var _refreshEditor = function(id) {
+
+		var h = $('#structr-favorites').height();
+
+		$('.fav-editor').height(h-100);
+		$('.fav-editor .CodeMirror').height(h-100);
+		$('.fav-editor .CodeMirror-code').height(h-100);
+		
+		var el = $('#editor-' + id).find('.CodeMirror');
+		var e = el.get(0);
+		if (e && e.CodeMirror) {
+
+			window.setTimeout(function() {
+				e.CodeMirror.refresh();
+			}, 10);
+			
+			e.CodeMirror.focus();
+
+			dialogSaveButton = $('#buttons-' + id + ' button#saveFile');
+		}
+	}
 
 });
 
@@ -1013,7 +1077,7 @@ var _Favorites = new (function () {
  * @param {function} fetchFunction The function which handles fetching a single object - must take the ID as single parameter
  * @returns {AsyncObjectCache}*
  */
-var AsyncObjectCache = function (fetchFunction) {
+var AsyncObjectCache = function(fetchFunction) {
 
 	var _cache = {};
 
@@ -1026,7 +1090,7 @@ var AsyncObjectCache = function (fetchFunction) {
 	 * @param {string} id The ID to fetch
 	 * @param {function} callback The callback to execute with the fetched object. Needs to take the object as single paramter.
 	 */
-	this.registerCallbackForId = function (id, callback) {
+	this.registerCallbackForId = function(id, callback) {
 
 		if (_cache[id] === undefined) {
 
@@ -1073,7 +1137,7 @@ var AsyncObjectCache = function (fetchFunction) {
 
 	};
 
-	this.clear = function () {
+	this.clear = function() {
 		_cache = {};
 	};
 

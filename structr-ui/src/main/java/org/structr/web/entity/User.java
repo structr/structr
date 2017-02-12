@@ -64,12 +64,11 @@ public class User extends AbstractUser {
 	public static final Property<Boolean>           isUser           = new ConstantBooleanProperty("isUser", true);
 	public static final Property<String>            twitterName      = new StringProperty("twitterName").cmis().indexed();
 	public static final Property<String>            localStorage     = new StringProperty("localStorage");
-	public static final Property<List<FileBase>>    favoriteFiles    = new EndNodes<>("favoriteFiles", UserFavoriteFile.class);
 	public static final Property<List<Favoritable>> favorites        = new EndNodes<>("favorites", UserFavoriteFavoritable.class);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
 		type, name, eMail, isAdmin, password, publicKey, blocked, sessionIds, confirmationKey, backendUser, frontendUser,
-			groups, img, homeDirectory, workingDirectory, isUser, locale, favoriteFiles, favorites,
+			groups, img, homeDirectory, workingDirectory, isUser, locale, favorites,
 			proxyUrl, proxyUsername, proxyPassword
 	);
 

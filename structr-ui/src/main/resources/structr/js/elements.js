@@ -1225,10 +1225,10 @@ var _Elements = {
 		dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
 
 		if (entity.isFavoritable) {
-			dialogMeta.append('<i title="Add to favorites" id="addToFavorites" class="' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" >');
-			$('#addToFavorites').on('click', function() {
+			dialogMeta.append('<i title="Add to favorites" class="add-to-favorites ' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" >');
+			$('.add-to-favorites', dialogMeta).on('click', function() {
 				Command.favorites('add', entity.id, function() {
-					blinkGreen($('#addToFavorites'));
+					blinkGreen($('.add-to-favorites', dialogMeta));
 				});
 			});
 		}

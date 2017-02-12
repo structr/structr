@@ -180,7 +180,8 @@ var _Entities = {
 		_Entities.activateTabs(entity.id, '#data-tabs', '#content-tab-rest');
 
 	},
-	activateTabs: function(nodeId, elId, activeId) {
+	activateTabs: function(nodeId, elId, activeId, activeTabPrefix) {
+		activeTabPrefix = activeTabPrefix || _Entities.activeQueryTabPrefix;
 		var el = $(elId);
 		var tabs = $('li', el);
 		$.each(tabs, function(i, tab) {
@@ -190,12 +191,12 @@ var _Entities = {
 				tab.addClass('active');
 				el.children('div').hide();
 				var id = tab.prop('id').substring(4);
-				LSWrapper.setItem(_Entities.activeQueryTabPrefix  + '_' + nodeId, id);
+				LSWrapper.setItem(activeTabPrefix  + '_' + nodeId, id);
 				var content = $('#content-tab-' + id);
 				content.show();
 			});
 		});
-		var id = LSWrapper.getItem(_Entities.activeQueryTabPrefix  + '_' + nodeId) || activeId.substring(13);
+		var id = LSWrapper.getItem(activeTabPrefix  + '_' + nodeId) || activeId.substring(13);
 		var tab = $('#tab-' + id);
 		if (!tab.hasClass('active')) {
 			tab.click();

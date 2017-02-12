@@ -1346,7 +1346,7 @@ var _Schema = {
 		el.append('<tr class="' + method.name + '" data-type-name="' + entity.name + '" data-method-name="' + method.name + '">'
 				+ '<td class="name-col"><div class="abs-pos-helper">'
 					+ '<input size="15" type="text" class="action property-name" value="' + escapeForHtmlAttributes(method.name) + '">'
-					+ '<i title="Add to favorites" id="add-to-favorites-' + method.id + '" class="add-to-favorites-button ' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" />'
+					+ '<i title="Add to favorites" id="add-to-favorites-' + method.id + '" class="add-to-favorites ' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" />'
 					+ '<i title="Drag to resize" class="resize-handle ' + _Icons.getFullSpriteClass(_Icons.arrow_up_down) + '" />'
 				+ '</div></td>'
 				+ '<td><textarea rows="4" class="property-code action">' + escapeForHtmlAttributes(method.source || '') + '</textarea></td>'

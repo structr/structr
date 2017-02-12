@@ -606,14 +606,14 @@ ul#previewTabs {
 	height: 25px;
 }
 
-.data-tabs, .data-tabs ul, #tabs, #tabs ul, .files-tabs ul, .dialogHeaderWrapper ul, .dialogText .schema-details ul {
+.data-tabs, .data-tabs ul, #tabs, #tabs ul, .files-tabs ul, .favs-tabs ul, .dialogHeaderWrapper ul, .dialogText .schema-details ul {
 	background: none;
 	border: none;
 	padding: 0;
 	margin: 0;
 }
 
-#previewTabs > li, #tabs > ul > li, .compTab, .data-tabs > ul > li, .files-tabs > ul > li, .dialogHeaderWrapper > ul > li {
+#previewTabs > li, #tabs > ul > li, .compTab, .data-tabs > ul > li, .files-tabs > ul > li, .favs-tabs > ul > li, .dialogHeaderWrapper > ul > li {
 	vertical-align: middle;
 	line-height: 1.5em;
 	border-radius: 3px;
@@ -641,7 +641,7 @@ ul#previewTabs {
 	padding: 3px 6px 0 6px ! important;
 }
 
-#previewTabs > li, #tabs > ul > li, .data-tabs > ul > li, .files-tabs > ul > li, .dialogHeaderWrapper > ul > li {
+#previewTabs > li, #tabs > ul > li, .data-tabs > ul > li, .files-tabs > ul > li, .favs-tabs > ul > li, .dialogHeaderWrapper > ul > li {
 	position: relative;
 	z-index: 1;
 }
@@ -654,11 +654,11 @@ ul#previewTabs {
 	margin-top: 0px;
 }
 
-.data-tabs > ul, .files-tabs > ul {
+.data-tabs > ul, .files-tabs > ul, .favs-tabs > ul {
 	overflow: hidden;
 }
 
-.data-tabs > div, .files-tabs > div {
+.data-tabs > div, .files-tabs > div, .favs-tabs > div {
 	padding: 0;
 	display: none;
 	/*border-top: 1px solid #a5a5a5;*/
@@ -704,7 +704,7 @@ ul#previewTabs {
 	background-image: none;
 }
 
-#previewTabs li.active, #tabs li.active, .compTab.active, .data-tabs li.active, .files-tabs li.active, .dialogHeaderWrapper li.active {
+#previewTabs li.active, #tabs li.active, .compTab.active, .data-tabs li.active, .files-tabs li.active, .favs-tabs li.active, .dialogHeaderWrapper li.active {
 	color: #333 ! important;
 	background-color: #81ce25;
 	background-image: none;
@@ -1200,9 +1200,14 @@ button img, button i {
 	margin: 0;
 }
 
-.dialogBtn button, #errorBox button {
+.dialogBtn button, #errorBox button, .favs-tabs button#saveFile {
 	float: right;
 	margin: 10px 0 0 12px;
+	padding-left: 8px;
+}
+
+.dialogBtn button:hover, #errorBox button:hover {
+	padding-left: 8px;
 }
 
 .dialogHeaderWrapper, .dialogText, .dialogMeta {
@@ -2371,7 +2376,7 @@ li.ui-corner-top {
 .ui-state-default a,
 .ui-state-default a:visited {
 	color: #505050 ! important;
-	font-weight: bold;
+	/*font-weight: bold;*/
 }
 
 li.ui-state-default, li.ui-state-default a {
@@ -3696,64 +3701,48 @@ input#element-class {
 /**
  * Favorites
  */
-#favoriteTabs {
-	margin: 12px 24px 12px 12px;
-	width: calc(100vw - 36px);
-	min-width: calc(804px + 4em);
-	height: calc(100vh - 140px);
-	border: none;
-	background: none;
-	font-family: Arial, Helvetica, Sans-serif;
-}
-
-#favoriteTabsMenu {
+#favs-tabs {
+	margin: 12px;
 	border: none;
 	background: none;
 }
 
-#favoriteTabsMenu i {
+#favs-tabs-menu {
+	border: none;
+	background: none;
+}
+
+#favs-tabs-menu i {
 	vertical-align: bottom;
 	margin-left: .5em;
 	cursor: pointer;
 }
 
-#favoriteContainer {
-	border-radius: 3px;
+.fav-content {
+	font-size: 1.25em;
 }
 
-.favoriteMenu {
+.favs-menu {
 	padding: 12px;
 	margin: 0px;
 	background-color: #f3f3f3;
-	border-bottom: 1px solid #aaa;
 	color: #000;
-	font-size: 10pt;
 }
 
-.favoriteContext {
+.fav-buttons {
+	margin: 8px 0 0 0;
+	/*background-color: #f3f3f3;*/
 }
 
-.favoriteEditor .CodeMirror {
-	height: calc(100vh - 200px);
-}
-
-.favoriteButtons {
-	margin: 0px;
-	padding: 1em;
-	background-color: #f3f3f3;
-	border-top: 1px solid #aaa;
-}
-
-.favoriteButtons #info {
+.fav-buttons #info {
 	width: 120px;
 	float: left;
 	padding: 6px 0px 6px 26px;
 }
 
-i#addToFavorites {
-	vertical-align: bottom;
-	margin-bottom: 8px;
-	margin-right: 1em;
+.add-to-favorites {
+	vertical-align: top;
+	margin: 2px 12px 0 4px;
 	cursor: pointer;
 }
 
