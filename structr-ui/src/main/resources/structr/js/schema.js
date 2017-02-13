@@ -1346,16 +1346,15 @@ var _Schema = {
 		el.append('<tr class="' + method.name + '" data-type-name="' + entity.name + '" data-method-name="' + method.name + '">'
 				+ '<td class="name-col"><div class="abs-pos-helper">'
 					+ '<input size="15" type="text" class="action property-name" value="' + escapeForHtmlAttributes(method.name) + '">'
-					+ '<i title="Add to favorites" id="add-to-favorites-' + method.id + '" class="add-to-favorites ' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" />'
-					+ '<i title="Drag to resize" class="resize-handle ' + _Icons.getFullSpriteClass(_Icons.arrow_up_down) + '" />'
 				+ '</div></td>'
 				+ '<td><textarea rows="4" class="property-code action">' + escapeForHtmlAttributes(method.source || '') + '</textarea></td>'
 				+ '<td><textarea rows="4" class="property-comment action">' + escapeForHtmlAttributes(method.comment || '') + '</textarea></td>'
 				+ '<td>'
+					+ '<i title="Add to favorites" id="add-to-favorites-' + method.id + '" class="add-to-favorites ' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" />'
 					+ '<i title="Save changes" class="create-icon save-action ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />'
 					+ '<i title="Discard changes" class="remove-icon cancel-action ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" />'
 					+ '<i title="Remove method" class="remove-icon remove-action ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />'
-				+ '</td></tr>');
+				+ '</td></tr><tr><td title="Drag to resize" class="resize-handle" colspan="4"></td></tr>');
 		var tr = $('tr', el).last();
 		_Schema.makeSchemaMethodRowResizable(tr);
 		_Schema.initMethodRow(tr, entity, method);
@@ -3447,22 +3446,22 @@ var _Schema = {
 	makeSchemaMethodRowResizable: function (tr) {
 		var initialRowHeight;
 		var dragBeginPageY;
+		var row;
 
 		$('.resize-handle', tr).draggable({
 			axis: 'y',
 			start: function(event, ui) {
-				initialRowHeight = $(this).closest('td').height();
 				dragBeginPageY = event.pageY;
+				row = $(ui.helper).closest('tr').prev();
+				initialRowHeight = row.height();
 			},
 			drag: function(event, ui) {
-				ui.position.top = Math.max( 0, ui.position.top );
-
 				var newHeight = initialRowHeight + (event.pageY - dragBeginPageY);
-				_Schema.setSchemaMethodRowHeight(tr, newHeight);
+				_Schema.setSchemaMethodRowHeight(row, newHeight);
 			},
 			stop: function(event, ui) {
-				var typeName   = tr.data('typeName');
-				var methodName = tr.data('methodName');
+				var typeName   = row.data('typeName');
+				var methodName = row.data('methodName');
 
 				if (typeName && methodName) {
 					var finalHeight = initialRowHeight + (event.pageY - dragBeginPageY);
