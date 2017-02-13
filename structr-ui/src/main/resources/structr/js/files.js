@@ -651,7 +651,7 @@ var _Files = {
 	},
 	appendFileOrFolder: function(d) {
 
-		if (!d.isFile) return;
+		if (!d.isFile && !d.isFolder) return;
 
 		// add folder/file to global model
 		StructrModel.createFromData(d, null, false);
