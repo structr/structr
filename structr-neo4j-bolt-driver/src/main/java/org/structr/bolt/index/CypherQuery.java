@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import org.structr.api.search.SortType;
 
 /**
@@ -54,8 +55,9 @@ public class CypherQuery {
 
 		int hashCode = 23;
 
+		hashCode += 27 * typeLabels.hashCode();
 		hashCode += 37 * getStatement().hashCode();
-		hashCode += 47 * parameters.hashCode();
+		hashCode += 47 * deepHashCode(parameters);
 		hashCode += 57 * sortKey.hashCode();
 
 		if (sortDescending) {
@@ -297,5 +299,20 @@ public class CypherQuery {
 
 	public void setTargetType(final String targetTypeLabel) {
 		this.targetTypeLabel = targetTypeLabel;
+	}
+
+	private int deepHashCode(final Map<String, Object> map) {
+
+		final StringBuilder buf = new StringBuilder();
+
+		for (final Entry<String, Object> entry : map.entrySet()) {
+
+			buf.append("|");
+			buf.append(entry.getKey());
+			buf.append("|");
+			buf.append(entry.getValue());
+		}
+
+		return buf.toString().hashCode();
 	}
 }
