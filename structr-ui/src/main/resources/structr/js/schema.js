@@ -1346,23 +1346,28 @@ var _Schema = {
 		el.append('<tr class="' + method.name + '" data-type-name="' + entity.name + '" data-method-name="' + method.name + '">'
 				+ '<td class="name-col"><div class="abs-pos-helper">'
 					+ '<input size="15" type="text" class="action property-name" value="' + escapeForHtmlAttributes(method.name) + '">'
-					+ '<i title="Add to favorites" id="add-to-favorites-' + method.id + '" class="add-to-favorites ' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" />'
-					+ '<i title="Drag to resize" class="resize-handle ' + _Icons.getFullSpriteClass(_Icons.arrow_up_down) + '" />'
 				+ '</div></td>'
 				+ '<td><textarea rows="4" class="property-code action">' + escapeForHtmlAttributes(method.source || '') + '</textarea></td>'
 				+ '<td><textarea rows="4" class="property-comment action">' + escapeForHtmlAttributes(method.comment || '') + '</textarea></td>'
 				+ '<td>'
+					+ '<i title="Add to favorites" class="add-to-favorites ' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" />'
 					+ '<i title="Save changes" class="create-icon save-action ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />'
 					+ '<i title="Discard changes" class="remove-icon cancel-action ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" />'
 					+ '<i title="Remove method" class="remove-icon remove-action ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />'
-				+ '</td></tr>');
-		var tr = $('tr', el).last();
-		_Schema.makeSchemaMethodRowResizable(tr);
+				+ '</td></tr><tr><td title="Drag to resize" class="resize-handle" colspan="4"></td></tr>');
+		
+		// row containing resize handler
+		var resizeHandlerRow = $('tr', el).last();
+		
+		// row containing method
+		var tr = resizeHandlerRow.prev('tr');
+		
+		_Schema.makeSchemaMethodRowResizable(resizeHandlerRow);
 		_Schema.initMethodRow(tr, entity, method);
 
-		$('#add-to-favorites-' + method.id).on('click', function() {
+		$('.add-to-favorites', tr).on('click', function() {
 			Command.favorites('add', method.id, function() {
-				blinkGreen($('#add-to-favorites-' + method.id));
+				blinkGreen($('.add-to-favorites', tr));
 			});
 		});
 
@@ -1372,19 +1377,24 @@ var _Schema = {
 		actionsTable.append('<tr>'
 				+ '<td class="name-col"><div class="abs-pos-helper">'
 					+ '<input size="15" type="text" class="action property-name" placeholder="Enter method name">'
-					+ '<i title="Drag to resize" class="resize-handle ' + _Icons.getFullSpriteClass(_Icons.arrow_up_down) + '" />'
 				+ '</div></td>'
 				+ '<td><textarea rows="4" class="action property-code" placeholder="Enter Code"></textarea></td>'
 				+ '<td><textarea rows="4" class="action property-comment" placeholder="Enter comment"></textarea></td>'
 				+ '<td>'
+					+ '<i title="Add to favorites" class="add-to-favorites hidden ' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" />'
 					+ '<i title="Save changes" class="create-icon save-action ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />'
 					+ '<i title="Discard changes" class="remove-icon cancel-action ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" />'
 					+ '<i title="Remove method" class="remove-icon remove-action hidden ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />'
 				+ '</td>'
-				+ '</tr>');
+				+ '</tr><tr><td title="Drag to resize" class="resize-handle" colspan="4"></td></tr>');
 
-		var tr = $('tr', actionsTable).last();
-		_Schema.makeSchemaMethodRowResizable(tr);
+		// row containing resize handler
+		var resizeHandlerRow = $('tr', actionsTable).last();
+		
+		// row containing method
+		var tr = resizeHandlerRow.prev('tr');
+		
+		_Schema.makeSchemaMethodRowResizable(resizeHandlerRow);
 
 		// Intitialize editor(s)
 		$('textarea.property-code', tr).each(function (i, txtarea) {
@@ -1433,12 +1443,14 @@ var _Schema = {
 			$('.save-action', tr).removeClass('hidden');
 			$('.cancel-action', tr).removeClass('hidden');
 			$('.remove-action', tr).addClass('hidden');
+			$('.add-to-favorites', tr).addClass('hidden');
 		};
 
 		var deactivate = function () {
 			$('.save-action', tr).addClass('hidden');
 			$('.cancel-action', tr).addClass('hidden');
 			$('.remove-action', tr).removeClass('hidden');
+			$('.add-to-favorites', tr).removeClass('hidden');
 		};
 		deactivate();
 
@@ -1469,6 +1481,12 @@ var _Schema = {
 			});
 		});
 
+		$('.add-to-favorites', tr).on('click', function() {
+			Command.favorites('add', method.id, function() {
+				blinkGreen($('.add-to-favorites', tr));
+			});
+		});
+
 	},
 	createOrSaveMethod: function (tr, entity, method) {
 
@@ -1492,6 +1510,7 @@ var _Schema = {
 					$('.save-action', tr).addClass('hidden');
 					$('.cancel-action', tr).addClass('hidden');
 					$('.remove-action', tr).removeClass('hidden');
+					$('.add-to-favorites', tr).removeClass('hidden');
 
 				} else {
 
@@ -3447,22 +3466,22 @@ var _Schema = {
 	makeSchemaMethodRowResizable: function (tr) {
 		var initialRowHeight;
 		var dragBeginPageY;
+		var row;
 
 		$('.resize-handle', tr).draggable({
 			axis: 'y',
 			start: function(event, ui) {
-				initialRowHeight = $(this).closest('td').height();
 				dragBeginPageY = event.pageY;
+				row = $(ui.helper).closest('tr').prev();
+				initialRowHeight = row.height();
 			},
 			drag: function(event, ui) {
-				ui.position.top = Math.max( 0, ui.position.top );
-
 				var newHeight = initialRowHeight + (event.pageY - dragBeginPageY);
-				_Schema.setSchemaMethodRowHeight(tr, newHeight);
+				_Schema.setSchemaMethodRowHeight(row, newHeight);
 			},
 			stop: function(event, ui) {
-				var typeName   = tr.data('typeName');
-				var methodName = tr.data('methodName');
+				var typeName   = row.data('typeName');
+				var methodName = row.data('methodName');
 
 				if (typeName && methodName) {
 					var finalHeight = initialRowHeight + (event.pageY - dragBeginPageY);

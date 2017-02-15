@@ -1713,17 +1713,12 @@ button.add_property {
 	height: 100%;
 }
 
-.actions.schema-props .abs-pos-helper .resize-handle {
-	position: absolute;
-	right: 8px;
-	bottom: 8px;
+.actions.schema-props .resize-handle {
+	cursor: ns-resize;
 }
 
-.actions.schema-props .abs-pos-helper .add-to-favorites-button {
-	position: absolute;
-	right: 26px;
-	bottom: 8px;
-	cursor: pointer;
+.actions.schema-props .add-to-favorites {
+	vertical-align: baseline;
 }
 
 .actions.schema-props .cm-schema-methods .CodeMirror-scroll {
