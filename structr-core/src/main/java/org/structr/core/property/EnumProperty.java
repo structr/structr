@@ -128,7 +128,7 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 
 				} catch (Throwable t) {
 
-					logger.warn("Cannot convert database value {} to enum of type {}, ignoring.", new Object[] { source, enumType.getSimpleName() } );
+					logger.warn("Cannot convert database value '{}' on object {} to enum of type '{}', ignoring.", new Object[] { source, this.currentObject.getUuid(), enumType.getSimpleName() } );
 				}
 			}
 
