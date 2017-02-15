@@ -275,6 +275,7 @@ public class Functions {
 		functions.put("rint", new RintFunction());
 		functions.put("index_of", new IndexOfFunction());
 		functions.put("contains", new ContainsFunction());
+		functions.put("copy_permissions", new CopyPermissionsFunction());
 		functions.put("substring", new SubstringFunction());
 		functions.put("length", new LengthFunction());
 		functions.put("replace", new ReplaceFunction());

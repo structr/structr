@@ -88,6 +88,7 @@ import org.structr.web.entity.relation.Folders;
 import org.structr.web.entity.relation.Images;
 import org.structr.web.entity.relation.MinificationSource;
 import org.structr.web.entity.relation.Thumbnails;
+import org.structr.web.entity.relation.UserFavoriteFavoritable;
 import org.structr.web.entity.relation.UserFavoriteFile;
 import org.structr.web.entity.relation.UserWorkDir;
 import org.structr.web.maintenance.deploy.ComponentImportVisitor;
@@ -1072,6 +1073,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 
 			if (rel instanceof ResourceLink) {
+				continue;
+			}
+
+			if (rel instanceof UserFavoriteFavoritable) {
 				continue;
 			}
 

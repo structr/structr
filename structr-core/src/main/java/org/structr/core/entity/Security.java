@@ -78,27 +78,6 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 
 	public boolean isAllowed(final Permission permission) {
 		return SecurityDelegate.getPermissionSet(dbRelationship, Security.allowed).contains(permission.name());
-
-		/*
-		final Set<String> permissionSet = SecurityDelegate.getPermissionSet(dbRelationship, Security.allowed);
-		final Principal principal       = getSourceNode();
-
-		if (principal != null) {
-
-			final Set<String> allowedPermissions = SecurityDelegate.getPermissionSet(principal.getNode(), Principal.allowed);
-			final Set<String> deniedPermissions  = SecurityDelegate.getPermissionSet(principal.getNode(), Principal.denied);
-
-			if (allowedPermissions != null) {
-				permissionSet.addAll(allowedPermissions);
-			}
-
-			if (deniedPermissions != null) {
-				permissionSet.removeAll(deniedPermissions);
-			}
-		}
-
-		return permissionSet.contains(permission.name());
-		*/
 	}
 
 	public void setAllowed(final Set<String> allowed) {
