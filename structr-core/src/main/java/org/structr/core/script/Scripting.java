@@ -151,6 +151,10 @@ public class Scripting {
 
 				isJavascript   = StringUtils.isBlank(engine) || "JavaScript".equals(engine);
 				isScriptEngine = !isJavascript && StringUtils.isNotBlank(engine);
+
+			} else {
+
+				logger.warn("Scripting expression {} cannot be identified, NOT executing!", expression);
 			}
 		}
 

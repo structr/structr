@@ -130,7 +130,7 @@ public class Actions {
 		final List<SchemaMethod> methods = app.nodeQuery(SchemaMethod.class).andName(key).getAsList();
 		if (methods.isEmpty()) {
 
-			logger.debug("Tried to call method {} but no SchemaMethod entity was found.", key);
+			logger.warn("Tried to call method {} but no SchemaMethod entity was found.", key);
 
 		} else {
 
