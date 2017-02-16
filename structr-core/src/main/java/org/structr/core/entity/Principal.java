@@ -23,6 +23,7 @@ import java.util.Set;
 import org.structr.common.AccessControllable;
 import org.structr.common.ValidationHelper;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.SemanticErrorToken;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.ArrayProperty;
@@ -75,6 +76,21 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 		valid &= ValidationHelper.isValidStringNotBlank(this, name, errorBuffer);
 		valid &= ValidationHelper.isValidUniqueProperty(this, eMail, errorBuffer);
+
+		final String _eMail = getProperty(eMail);
+		if (_eMail != null) {
+
+			// verify that the address contains at least the @ character,
+			// which is a requirement for it to be distinguishable from
+			// a user name, so email addresses can less easily interfere
+			// with user names.
+			if (!_eMail.contains("@")) {
+
+				valid = false;
+
+				errorBuffer.add(new SemanticErrorToken(getClass().getSimpleName(), eMail, "must_contain_at_character", _eMail));
+			}
+		}
 
 		return valid;
 	}

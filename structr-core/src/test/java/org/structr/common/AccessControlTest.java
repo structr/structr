@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
+import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
@@ -38,6 +39,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestUser;
@@ -850,6 +852,28 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 			logger.error(ex.toString());
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			List<TestUser> users = createTestNodes(TestUser.class, 1);
+			user1 = (TestUser) users.get(0);
+			user1.setProperty(Principal.eMail, "invalid");
+
+			tx.success();
+
+			fail("Invalid e-mail address should have thrown an exception.");
+
+		} catch (FrameworkException ex) {
+
+			final ErrorToken token = ex.getErrorBuffer().getErrorTokens().get(0);
+
+			assertEquals("Invalid error code", 422, ex.getStatus());
+			assertEquals("Invalid error code", "TestUser", token.getType());
+			assertEquals("Invalid error code", "eMail", token.getProperty());
+			assertEquals("Invalid error code", "must_contain_at_character", token.getToken());
+			assertEquals("Invalid error code", "invalid", token.getDetail());
+
 		}
 
 		// Switch user context to user1
