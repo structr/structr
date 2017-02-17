@@ -91,7 +91,7 @@ var _Widgets = {
 	refreshRemoteWidgets: function() {
 		_Widgets.remoteWidgetFilter = undefined;
 
-		if (!_Widgets.url.startsWith(document.location.hostname)) {
+		if (!_Widgets.url.startsWith(document.location.origin)) {
 
 			_Widgets.getRemoteWidgets(_Widgets.url, function(entity) {
 				var obj = StructrModel.create(entity, null, false);
@@ -486,6 +486,213 @@ var _Widgets = {
 			el.children('.typeIcon').css({
 				paddingRight: '11px'
 			});
+		}
+
+	},
+	insertWidgetIntoPageOLD: function(source, target, pageId) {
+
+		var pattern = /\[[a-zA-Z:,]+\]/g;
+		var widgetSource = source.source;
+		if (widgetSource) {
+
+			var rawMatches = widgetSource.match(pattern);
+
+			if (rawMatches) {
+
+				var matches = $.unique(rawMatches);
+
+				if (matches && matches.length) {
+
+					Structr.dialog('Configure Widget', function() {}, function() {});
+
+					dialogText.append('<p>Fill out the following parameters to correctly configure the widget.</p><table class="props"></table>');
+					var table = $('table', dialogText);
+
+					$.each(matches, function(i, match) {
+
+						var propertyKey = match.replace(/\[/, '').replace(/\]/, '');
+						var options = '';
+						var hasOptions = false;
+
+						if (propertyKey.contains(":")) {
+
+							var parts = propertyKey.split(":");
+
+							if (parts.length === 2) {
+								propertyKey = parts[0];
+								options = parts[1];
+								hasOptions = true;
+							}
+						}
+
+						var label = propertyKey;
+
+						if (hasOptions) {
+
+							var buffer = '';
+
+							buffer += '<tr><td><label>' + label + '</label></td><td><select id="' + propertyKey + '" class="input-field" >';
+
+							$.each(options.split(","), function(i, option) {
+								buffer += '<option>' + option + '</option>';
+							});
+
+							buffer += '</select>';
+							buffer += '</td></tr>';
+
+							table.append(buffer);
+
+						} else {
+
+							table.append('<tr><td><label for="' + label + '">' + label + '</label></td><td><input class="input-field" type="text" id="' + propertyKey + '" placeholder="' + label + '"></td></tr>');
+						}
+
+					});
+
+					dialog.append('<button id="appendWidget">Append Widget</button>');
+					var attrs = {};
+					$('#appendWidget').on('click', function(e) {
+
+						$.each(matches, function(i, match) {
+
+							$.each($('.input-field', table), function(i, m) {
+								var key = $(m).prop('id').replace(/\[/, '').replace(/\]/, '');
+								attrs[key] = $(this).val();
+							});
+
+						});
+
+						e.stopPropagation();
+						Command.appendWidget(widgetSource, target.id, pageId, _Widgets.url, attrs);
+
+						dialogCancelButton.click();
+						return false;
+					});
+
+				}
+
+			} else {
+
+				// If no matches, directly append widget
+				Command.appendWidget(widgetSource, target.id, pageId, _Widgets.url);
+
+			}
+
+		}
+
+	},
+	insertWidgetIntoPage: function(widget, target, pageId) {
+
+		var pattern = /\[[^\]]+\]/g;
+		var widgetSource = widget.source;
+		var widgetDescription = widget.description;
+		var widgetConfig = widget.configuration;
+
+		if (widgetConfig) {
+			try {
+				widgetConfig = JSON.parse(widgetConfig);
+			} catch (e) {
+				new MessageBuilder().error("Cannot parse Widget configuration").show();
+				return;
+			}
+		}
+
+		if (widgetSource) {
+
+			var matches = [];
+			var rawMatches = widgetSource.match(pattern);
+			if (rawMatches) {
+				matches = $.unique(rawMatches);
+			}
+
+			if (widgetDescription !== null || (matches.length > 0 && widgetConfig) ) {
+
+				Structr.dialog('Configure Widget', function() {}, function() {});
+
+				dialogText.append('<p>Fill out the following parameters to correctly configure the widget.</p>');
+
+				if (widgetDescription !== null) {
+					dialogText.append(widgetDescription);
+				}
+
+				dialogText.append('<table class="props"></table>');
+
+				var table = $('table', dialogText);
+
+				matches.forEach(function(m) {
+
+					var label = m.replace(/^\[/, '').replace(/\]$/, '');
+
+					if (widgetConfig[label]) {
+
+						var fieldConfig = widgetConfig[label];
+						var fieldType = fieldConfig.type;
+						var defaultValue = fieldConfig.default || '';
+
+						switch (fieldType) {
+							case "select":
+								var options = fieldConfig.options || ["-"];
+
+								var buffer = '<tr><td><label>' + label + '</label></td><td><select id="' + label + '" class="form-field">';
+
+								if (Object.prototype.toString.call(options) === '[object Array]') {
+									options.forEach(function (option) {
+										buffer += '<option' + ((option === defaultValue) ? ' selected' : '') + '>' + option + '</option>';
+									});
+
+								} else if (Object.prototype.toString.call(options) === '[object Object]') {
+
+									Object.keys(options).forEach(function (option) {
+										buffer += '<option' + ((option === defaultValue) ? ' selected' : '') + ' value="' + option + '">' + options[option] + '</option>';
+									});
+
+								}
+
+								buffer += '</select></td></tr>';
+
+								table.append(buffer);
+								break;
+
+							case "textarea":
+								table.append('<tr><td><label>' + label + '</label></td><td><textarea rows=5 class="form-field" id="' + label + '" placeholder="' + label + '">' + defaultValue + '</textarea></td></tr>');
+								break;
+
+							case "input":
+							default:
+								table.append('<tr><td><label>' + label + '</label></td><td><input class="form-field" type="text" id="' + label + '" placeholder="' + label + '" value="' + defaultValue + '"></td></tr>');
+
+						}
+					}
+
+				});
+
+				dialog.append('<button id="appendWidget">Append Widget</button>');
+				var attrs = {};
+				$('#appendWidget').on('click', function(e) {
+
+					$('.form-field', table).each(function(i, m) {
+						var key = $(m).prop('id');
+						if (widgetConfig[key]) {
+							attrs[key] = $(this).val();
+						}
+					});
+
+					e.stopPropagation();
+					Command.appendWidget(widgetSource, target.id, pageId, _Widgets.url, attrs);
+
+					dialogCancelButton.click();
+					return false;
+				});
+
+			} else {
+
+				// If no matches, directly append widget
+				Command.appendWidget(widgetSource, target.id, pageId, _Widgets.url);
+
+			}
+
+		} else {
+			new MessageBuilder().warning("Ignoring empty Widget").show();
 		}
 
 	}

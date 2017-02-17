@@ -644,9 +644,9 @@ var _Files = {
 
 	},
 	fileOrFolderCreationNotification: function (newFileOrFolder) {
-		if (currentWorkingDir === null && newFileOrFolder.parent === null) {
+		if ((currentWorkingDir === undefined || currentWorkingDir === null) && newFileOrFolder.parent === null) {
 			_Files.appendFileOrFolder(newFileOrFolder);
-		} else if (currentWorkingDir !== null && newFileOrFolder.parent && currentWorkingDir.id === newFileOrFolder.parent.id) {
+		} else if ((currentWorkingDir !== undefined && currentWorkingDir !== null) && newFileOrFolder.parent && currentWorkingDir.id === newFileOrFolder.parent.id) {
 			_Files.appendFileOrFolder(newFileOrFolder);
 		}
 	},

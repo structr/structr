@@ -791,6 +791,9 @@ StructrWidget.prototype.append = function() {
 	}
 };
 
+StructrWidget.prototype.remove = function() {
+};
+
 /**************************************
  * Structr Element
  **************************************/
