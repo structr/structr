@@ -506,13 +506,14 @@ var _Schema = {
 
 					hierarchy[key].forEach(function(entity) {
 
+						nodes[entity.id] = entity;
+
 						if (_Schema.hiddenSchemaNodes.length > 0 && _Schema.hiddenSchemaNodes.indexOf(entity.name) > -1) {
 							return;
 						}
 
 						var isBuiltinType = entity.isBuiltinType;
 						var id = 'id_' + entity.id;
-						nodes[entity.id] = entity;
 						canvas.append('<div class="schema node compact'
 								+ (isBuiltinType ? ' light' : '')
 								+ '" id="' + id + '"><b>' + entity.name + '</b>'
