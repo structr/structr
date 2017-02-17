@@ -18,10 +18,11 @@
  */
 
 $(document).ready(function() {
-	Structr.registerModule('dashboard', _Dashboard);
+	Structr.registerModule(_Dashboard);
 });
 
 var _Dashboard = {
+	_moduleName: 'dashboard',
 	dashboard: undefined,
 	aboutMe: undefined,
 	meObj: undefined,

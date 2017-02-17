@@ -26,11 +26,12 @@ var contentSourceId, elementSourceId, rootId;
 var textBeforeEditing;
 
 $(document).ready(function() {
-	Structr.registerModule('pages', _Pages);
+	Structr.registerModule(_Pages);
 	Structr.classes.push('page');
 });
 
 var _Pages = {
+	_moduleName: 'pages',
 	autoRefresh: [],
 	activeTabKey: 'structrActiveTab_' + port,
 	leftSlideoutWidthKey: 'structrLeftSlideoutWidthKey_' + port,

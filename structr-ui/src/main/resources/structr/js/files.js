@@ -34,11 +34,12 @@ var filesResizerLeftKey = 'structrFilesResizerLeftKey_' + port;
 var activeFileTabPrefix = 'activeFileTabPrefix' + port;
 
 $(document).ready(function() {
-	Structr.registerModule('files', _Files);
+	Structr.registerModule(_Files);
 	_Files.resize();
 });
 
 var _Files = {
+	_moduleName: 'files',
 	init: function() {
 
 		viewMode = viewMode || LSWrapper.getItem(filesViewModeKey) || 'list';

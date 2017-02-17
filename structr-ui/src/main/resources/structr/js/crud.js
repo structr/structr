@@ -41,7 +41,7 @@ if (browser) {
 
 		main = $('#main');
 
-		Structr.registerModule('crud', _Crud);
+		Structr.registerModule(_Crud);
 
 		_Crud.resize();
 
@@ -82,6 +82,7 @@ if (browser) {
 }
 
 var _Crud = {
+	_moduleName: 'crud',
 	displayTypeConfigKey: 'structrCrudDisplayTypes_' + port,
 	types: {},
 	keys: {},

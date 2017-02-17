@@ -17,13 +17,14 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 $(document).ready(function() {
-	Structr.registerModule('security', _Security);
+	Structr.registerModule(_Security);
 	Structr.classes.push('user');
 	Structr.classes.push('group');
 	Structr.classes.push('resourceAccess');
 });
 
 var _Security = {
+	_moduleName: 'security',
 	groups: undefined,
 	users: undefined,
 	resourceAccesses: undefined,

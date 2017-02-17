@@ -22,11 +22,12 @@ var schemaContainer;
 var inheritanceTree, inheritanceSlideout;
 
 $(document).ready(function() {
-	Structr.registerModule('schema', _Schema);
+	Structr.registerModule(_Schema);
 	Structr.classes.push('schema');
 });
 
 var _Schema = {
+	_moduleName: 'schema',
 	schemaLoading: false,
 	schemaLoaded: false,
 	connectorStyle: undefined,
@@ -1355,13 +1356,13 @@ var _Schema = {
 					+ '<i title="Discard changes" class="remove-icon cancel-action ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" />'
 					+ '<i title="Remove method" class="remove-icon remove-action ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />'
 				+ '</td></tr><tr><td title="Drag to resize" class="resize-handle" colspan="4"></td></tr>');
-		
+
 		// row containing resize handler
 		var resizeHandlerRow = $('tr', el).last();
-		
+
 		// row containing method
 		var tr = resizeHandlerRow.prev('tr');
-		
+
 		_Schema.makeSchemaMethodRowResizable(resizeHandlerRow);
 		_Schema.initMethodRow(tr, entity, method);
 
@@ -1390,10 +1391,10 @@ var _Schema = {
 
 		// row containing resize handler
 		var resizeHandlerRow = $('tr', actionsTable).last();
-		
+
 		// row containing method
 		var tr = resizeHandlerRow.prev('tr');
-		
+
 		_Schema.makeSchemaMethodRowResizable(resizeHandlerRow);
 
 		// Intitialize editor(s)

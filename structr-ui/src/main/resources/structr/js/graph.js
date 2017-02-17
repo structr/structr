@@ -47,7 +47,7 @@ var count     = 0;
 
 $(document).ready(function() {
 
-	Structr.registerModule('graph', _Graph);
+	Structr.registerModule(_Graph);
 
 	$(document.body).on('mousedown', function(e) {
 		tmpX = e.clientX;
@@ -72,6 +72,7 @@ $(document).ready(function() {
 });
 
 var _Graph = {
+	_moduleName: 'graph',
 	displayTypeConfigKey: 'structrGraphDisplayTypes_' + port,
 	init: function() {
 

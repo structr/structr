@@ -18,12 +18,13 @@
  */
 $(document).ready(function() {
 
-	Structr.registerModule('localization', _Localization);
+	Structr.registerModule(_Localization);
 	_Localization.resize();
 
 });
 
 var _Localization = {
+	_moduleName: 'localization',
 
 	keysAndDomainsList: undefined,
 	keyAndDomainPager: undefined,

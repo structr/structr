@@ -1037,9 +1037,19 @@ var Structr = {
 			LSWrapper.setItem(lastMenuEntryKey, lastMenuEntry);
 		}
 	},
-	registerModule: function(name, module) {
-		Structr.modules[name] = module;
-		_Logger.log(_LogType.INIT, 'Module ' + name + ' registered');
+	registerModule: function(module) {
+		var name = module._moduleName;
+		if (!name || name.trim().length === 0) {
+			new MessageBuilder().error("Cannot register module without a name - ignoring attempt. To fix this error, please add the '_moduleName' variable to the module.").show();
+		} else if (!Structr.modules[name]) {
+			Structr.modules[name] = module;
+			_Logger.log(_LogType.INIT, 'Module ' + name + ' registered');
+		} else {
+			new MessageBuilder().error("Cannot register module '" + name + "' a second time - ignoring attempt.").show();
+		}
+	},
+	getActiveModuleName: function () {
+		return LSWrapper.getItem(lastMenuEntryKey);
 	},
 	containsNodes: function(element) {
 		_Logger.log(_LogType.INIT, element, Structr.numberOfNodes(element), Structr.numberOfNodes(element) > 0);

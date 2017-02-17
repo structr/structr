@@ -25,12 +25,13 @@ var contentsResizerLeftKey = 'structrContentsResizerLeftKey_' + port;
 
 $(document).ready(function() {
 
-	Structr.registerModule('contents', _Contents);
+	Structr.registerModule(_Contents);
 	_Contents.resize();
 
 });
 
 var _Contents = {
+	_moduleName: 'contents',
 	init: function() {
 		_Logger.log(_LogType.CONTENTS, '_Contents.init');
 

@@ -25,11 +25,12 @@ var link, path, elid, claz, pageFrame, frameDoc;
 var proxyUrl = '/structr/proxy';
 
 $(document).ready(function() {
-	Structr.registerModule('crawler', _Crawler);
+	Structr.registerModule(_Crawler);
 	_Crawler.resize();
 });
 
 var _Crawler = {
+	_moduleName: 'crawler',
 	init: function() {
 
 		_Logger.log(_LogType.CRAWLER, '_Crawler.init');

@@ -20,11 +20,12 @@ var pagesArea, widgetsArea, statusArea, paWidth, paHeight, currentPage, block = 
 var appBuilderActiveWidgetTabRightKey = 'structrAppBuilderActiveWidgetTabRightKey' + port;
 
 $(document).ready(function() {
-	Structr.registerModule('app-builder', _AppBuilder);
+	Structr.registerModule(_AppBuilder);
 	Structr.classes.push('app');
 });
 
 var _AppBuilder = {
+	_moduleName: 'app-builder',
 	autoRefresh: [],
 	init: function() {
 
