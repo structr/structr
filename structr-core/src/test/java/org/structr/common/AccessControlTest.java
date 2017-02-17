@@ -857,8 +857,9 @@ public class AccessControlTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			List<TestUser> users = createTestNodes(TestUser.class, 1);
-			user1 = (TestUser) users.get(0);
-			user1.setProperty(Principal.eMail, "invalid");
+			final TestUser invalidUser = (TestUser) users.get(0);
+			invalidUser.setProperty(Principal.name , "tester");
+			invalidUser.setProperty(Principal.eMail, "invalid");
 
 			tx.success();
 
