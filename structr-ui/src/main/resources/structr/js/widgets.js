@@ -41,13 +41,13 @@ var _Widgets = {
 				e.stopPropagation();
 				dropBlocked = true;
 				var sourceId = Structr.getId($(ui.draggable));
-				var source = StructrModel.obj(sourceId);
+				var sourceWidget = StructrModel.obj(sourceId);
 
-				if (source && source.isWidget) {
-					if (source.treePath) {
-						_Logger.log(_LogType.WIDGETS, 'Copying remote widget', source);
+				if (sourceWidget && sourceWidget.isWidget) {
+					if (sourceWidget.treePath) {
+						_Logger.log(_LogType.WIDGETS, 'Copying remote widget', sourceWidget);
 
-						Command.create({ type: 'Widget', name: source.name + ' (copied)', source: source.source }, function(entity) {
+						Command.create({ type: 'Widget', name: sourceWidget.name + ' (copied)', source: sourceWidget.source, description: sourceWidget.description, configuration: sourceWidget.configuration }, function(entity) {
 							_Logger.log(_LogType.WIDGETS, 'Copied remote widget successfully', entity);
 						});
 					}
