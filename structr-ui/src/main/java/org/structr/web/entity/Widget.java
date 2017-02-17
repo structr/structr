@@ -28,7 +28,6 @@ import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.ValueToken;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.EndNodes;
@@ -47,20 +46,21 @@ import org.structr.web.property.UiNotion;
  */
 public class Widget extends AbstractNode implements Taggable {
 
-	private static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\[[a-zA-Z:,]+\\]");
+	private static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\[[^\\]]+\\]");
 
-	public static final Property<String>      source      = new StringProperty("source").cmis();
-	public static final Property<String>      description = new StringProperty("description").cmis();
-	public static final Property<String>      treePath    = new StringProperty("treePath").cmis().indexed();
-	public static final Property<List<Image>> pictures    = new EndNodes<>("pictures", ImageWidget.class, new UiNotion());
-	public static final Property<Boolean>     isWidget    = new ConstantBooleanProperty("isWidget", true);
+	public static final Property<String>      source        = new StringProperty("source").cmis();
+	public static final Property<String>      description   = new StringProperty("description").cmis();
+	public static final Property<String>      configuration = new StringProperty("configuration").cmis();
+	public static final Property<String>      treePath      = new StringProperty("treePath").cmis().indexed();
+	public static final Property<List<Image>> pictures      = new EndNodes<>("pictures", ImageWidget.class, new UiNotion());
+	public static final Property<Boolean>     isWidget      = new ConstantBooleanProperty("isWidget", true);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Widget.class, PropertyView.Ui,
-		type, name, source, description, pictures, tags, treePath, isWidget
+		type, name, source, description, configuration, pictures, tags, treePath, isWidget
 	);
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(Widget.class, PropertyView.Public,
-		type, name, source, description, pictures, tags, treePath, isWidget
+		type, name, source, description, configuration, pictures, tags, treePath, isWidget
 	);
 
 	// register this type as an overridden builtin type
@@ -87,26 +87,13 @@ public class Widget extends AbstractNode implements Taggable {
 
 			while (matcher.find()) {
 
-				String group              = matcher.group();
-				String source             = group.substring(1, group.length() - 1);
-				ReplacementInfo info      = new ReplacementInfo(source);
-				ArrayList<String> options = info.getOptions();
-				String key                = info.getKey();
+				final String group              = matcher.group();
+				final String source             = group.substring(1, group.length() - 1);
+				final ReplacementInfo info      = new ReplacementInfo(source);
+				String key                      = info.getKey();
+				Object value                    = parameters.get(key);
 
-				Object value  = parameters.get(key);
-
-				if (value == null) {
-
-					if (!options.isEmpty()) {
-
-						errorBuffer.add(new ValueToken(Widget.class.getSimpleName(), new StringProperty(key), options.toArray()));
-
-					} else {
-
-						errorBuffer.add(new EmptyPropertyToken(Widget.class.getSimpleName(), new StringProperty(key)));
-					}
-
-				} else {
+				if (value != null) {
 
 					// replace and restart matching process
 					_source = _source.replace(group, value.toString());
@@ -131,9 +118,6 @@ public class Widget extends AbstractNode implements Taggable {
 		}
 	}
 
-	/**
-	 * Unused yet
-	 */
 	public static class ReplacementInfo {
 
 		private ArrayList<String> options = new ArrayList<>();
