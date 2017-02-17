@@ -1051,6 +1051,9 @@ var Structr = {
 	getActiveModuleName: function () {
 		return LSWrapper.getItem(lastMenuEntryKey);
 	},
+	isModuleActive: function (module) {
+		return (module._moduleName === Structr.getActiveModuleName());
+	},
 	containsNodes: function(element) {
 		_Logger.log(_LogType.INIT, element, Structr.numberOfNodes(element), Structr.numberOfNodes(element) > 0);
 		return (element && Structr.numberOfNodes(element) && Structr.numberOfNodes(element) > 0);

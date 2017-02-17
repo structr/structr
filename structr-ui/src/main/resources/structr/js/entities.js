@@ -392,7 +392,7 @@ var _Entities = {
 
 				if (hasHtmlAttributes && !entity.isContent) {
 					views.unshift('_html_');
-					if (lastMenuEntry === 'pages') {
+					if (Structr.isModuleActive(_Pages)) {
 						activeView = '_html_';
 					}
 				}
@@ -781,10 +781,10 @@ var _Entities = {
 							if (isCollection) {
 
 								_Entities.addToCollection(id, node.id, key, function() {
-									if (lastMenuEntry === 'contents') {
+									if (Structr.isModuleActive(_Contents)) {
 										_Contents.refreshTree();
 									}
-									if (lastMenuEntry === 'files') {
+									if (Structr.isModuleActive(_Files)) {
 										_Files.refreshTree();
 									}
 								});
@@ -1003,7 +1003,7 @@ var _Entities = {
 
 			dialogText.append('<h3>Visibility</h3>');
 
-			if (entity.type === 'Template' || entity.isFolder || (lastMenuEntry === 'pages' && !(entity.isContent))) {
+			if (entity.type === 'Template' || entity.isFolder || (Structr.isModuleActive(_Pages) && !(entity.isContent))) {
 				dialogText.append('<div>Apply visibility switches recursively? <input id="recursive" type="checkbox" name="recursive"></div><br>');
 			}
 
@@ -1520,9 +1520,9 @@ var _Entities = {
 		Command.setProperty(id, attributeName, newValue, false, function(entity, resultSize, errorOccurred) {
 			if (!errorOccurred || errorOccurred === false) {
 				blinkGreen(element.find('.' + attributeName + '_').first());
-				if (lastMenuEntry === 'pages') {
+				if (Structr.isModuleActive(_Pages)) {
 					_Pages.reloadPreviews();
-				} else if (lastMenuEntry === 'files' && attributeName === 'name') {
+				} else if (Structr.isModuleActive(_Files) && attributeName === 'name') {
 					var a = element.closest('td').prev().children('a').first();
 					Command.getProperty(id, 'path', function(newPath) {
 						a.attr('href', newPath);

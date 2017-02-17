@@ -210,7 +210,7 @@ var StructrModel = {
 			obj.remove();
 		}
 
-		if (lastMenuEntry === 'pages') {
+		if (Structr.isModuleActive(_Pages)) {
 			Structr.removeExpandedNode(id);
 			var iframe = $('#preview_' + id);
 			var tab = $('#show_' + id);
@@ -224,7 +224,7 @@ var StructrModel = {
 
 			_Pages.reloadPreviews();
 
-		} else if (lastMenuEntry === 'files') {
+		} else if (Structr.isModuleActive(_Files)) {
 
 			_DuplicateFinder.reactToDeleteNotification(id);
 
@@ -233,9 +233,7 @@ var StructrModel = {
 		if (graphBrowser) {
 			try {
 				graphBrowser.graph.dropElement(id);
-			} catch (e) {
-
-			}
+			} catch (e) { }
 		}
 
 	},
@@ -342,19 +340,23 @@ var StructrModel = {
 
 			if (Structr.getClass(element) === 'page') {
 
-				// update tab and reload iframe
-				var tabNameElement = $('#show_' + id).children('.name_');
+				if (Structr.isModuleActive(_Pages)) {
+					// update tab and reload iframe
+					var tabNameElement = $('#show_' + id).children('.name_');
 
-				blinkGreen(tabNameElement);
+					blinkGreen(tabNameElement);
 
-				tabNameElement.attr('title', newValue).html(fitStringToWidth(newValue, w));
+					tabNameElement.attr('title', newValue).html(fitStringToWidth(newValue, w));
 
-				_Logger.log(_LogType.MODEL, 'Model: Reload iframe', id, newValue);
-				_Pages.reloadIframe(id);
+					_Logger.log(_LogType.MODEL, 'Model: Reload iframe', id, newValue);
+					_Pages.reloadIframe(id);
+				}
 
 			} else if (Structr.getClass(element) === 'folder') {
 
-				_Files.refreshTree();
+				if (Structr.isModuleActive(_Files)) {
+					_Files.refreshTree();
+				}
 
 			}
 		}
@@ -422,7 +424,9 @@ var StructrModel = {
 
 			} else if (element.hasClass('folder')) {
 
-				_Files.refreshTree();
+				if (Structr.isModuleActive(_Files)) {
+					_Files.refreshTree();
+				}
 
 			}
 
@@ -548,14 +552,17 @@ StructrFolder.prototype.setProperty = function(key, value, recursive, callback) 
 };
 
 StructrFolder.prototype.remove = function() {
-	_Files.refreshTree();
+	if (Structr.isModuleActive(_Files)) {
+		_Files.refreshTree();
+	}
 };
 
 StructrFolder.prototype.append = function() {
 
-	_Files.fileOrFolderCreationNotification(this);
-	_Files.refreshTree();
-
+	if (Structr.isModuleActive(_Files)) {
+		_Files.fileOrFolderCreationNotification(this);
+		_Files.refreshTree();
+	}
 };
 
 StructrFolder.prototype.exists = function() {
@@ -594,7 +601,9 @@ StructrFile.prototype.append = function() {
 		}
 	}
 
-	_Files.fileOrFolderCreationNotification(this);
+	if (Structr.isModuleActive(_Files)) {
+		_Files.fileOrFolderCreationNotification(this);
+	}
 };
 
 
@@ -621,10 +630,14 @@ StructrImage.prototype.append = function() {
 	var image = this;
 	if (image.parent) {
 		var parentFolder = StructrModel.obj(image.parent.id);
-		if (parentFolder) parentFolder.files.push(image);
+		if (parentFolder) {
+			parentFolder.files.push(image);
+		}
 	}
 
-	_Files.fileOrFolderCreationNotification(this);
+	if (Structr.isModuleActive(_Files)) {
+		_Files.fileOrFolderCreationNotification(this);
+	}
 };
 
 
@@ -651,20 +664,24 @@ StructrUser.prototype.remove = function(groupId) {
 			group.removeUser(this.id);
 		}
 	} else {
-		var userEl = Structr.node(this.id, '.userid_');
-		if (userEl && userEl.length) {
-			userEl.remove();
+		if (Structr.isModuleActive(_Security)) {
+			var userEl = Structr.node(this.id, '.userid_');
+			if (userEl && userEl.length) {
+				userEl.remove();
+			}
 		}
 	}
 };
 
 StructrUser.prototype.append = function(groupId) {
-	if (groupId) {
-		_UsersAndGroups.appendUserToGroup(this, StructrModel.obj(groupId), Structr.node(groupId, '.groupid_'));
-	} else {
-		_UsersAndGroups.appendUserToUserList(this);
-	}
 
+	if (Structr.isModuleActive(_Security)) {
+		if (groupId) {
+			_UsersAndGroups.appendUserToGroup(this, StructrModel.obj(groupId), Structr.node(groupId, '.groupid_'));
+		} else {
+			_UsersAndGroups.appendUserToUserList(this);
+		}
+	}
 };
 
 /**************************************
@@ -684,14 +701,18 @@ StructrGroup.prototype.setProperty = function(key, value, recursive, callback) {
 };
 
 StructrGroup.prototype.append = function(refId) {
-	var refNode = refId ? Structr.node(refId) : undefined;
-	StructrModel.expand(_UsersAndGroups.appendGroupElement(this, refNode), this);
+	if (Structr.isModuleActive(_Security)) {
+		var refNode = refId ? Structr.node(refId) : undefined;
+		StructrModel.expand(_UsersAndGroups.appendGroupElement(this, refNode), this);
+	}
 };
 
 StructrGroup.prototype.remove = function() {
-	var groupEl = Structr.node(this.id, '.groupid_');
-	if (groupEl && groupEl.length) {
-		groupEl.remove();
+	if (Structr.isModuleActive(_Security)) {
+		var groupEl = Structr.node(this.id, '.groupid_');
+		if (groupEl && groupEl.length) {
+			groupEl.remove();
+		}
 	}
 };
 
@@ -700,12 +721,14 @@ StructrGroup.prototype.removeUser = function(userId) {
 		return user.id !== userId;
 	});
 
-	var groupEl = Structr.node(this.id, '.groupid_');
-	if (groupEl && groupEl.length) {
-		$('.userid_' + userId, groupEl).remove();
+	if (Structr.isModuleActive(_Security)) {
+		var groupEl = Structr.node(this.id, '.groupid_');
+		if (groupEl && groupEl.length) {
+			$('.userid_' + userId, groupEl).remove();
 
-		if (this.members.length === 0) {
-			_Entities.removeExpandIcon(groupEl);
+			if (this.members.length === 0) {
+				_Entities.removeExpandIcon(groupEl);
+			}
 		}
 	}
 };
@@ -727,7 +750,9 @@ StructrResourceAccess.prototype.setProperty = function(key, value, recursive, ca
 };
 
 StructrResourceAccess.prototype.append = function() {
-	_ResourceAccessGrants.appendResourceAccessElement(this);
+	if (Structr.isModuleActive(_Security)) {
+		_ResourceAccessGrants.appendResourceAccessElement(this);
+	}
 };
 
 /**************************************
@@ -743,7 +768,9 @@ StructrPage.prototype.setProperty = function(key, value, recursive, callback) {
 };
 
 StructrPage.prototype.append = function() {
-	StructrModel.expand(_Pages.appendPageElement(this), this);
+	if (Structr.isModuleActive(_Pages)) {
+		StructrModel.expand(_Pages.appendPageElement(this), this);
+	}
 };
 
 /**************************************
@@ -759,7 +786,9 @@ StructrWidget.prototype.setProperty = function(key, value, recursive, callback) 
 };
 
 StructrWidget.prototype.append = function() {
-	StructrModel.expand(_Widgets.appendWidgetElement(this), this);
+	if (Structr.isModuleActive(_Pages)) {
+		StructrModel.expand(_Widgets.appendWidgetElement(this), this);
+	}
 };
 
 /**************************************
@@ -789,30 +818,35 @@ StructrElement.prototype.save = function() {
 };
 
 StructrElement.prototype.remove = function() {
-	var element = Structr.node(this.id);
-	if (this.parent) {
-		var parent = Structr.node(this.parent.id);
-	}
-
-	if (element) {
-		// If element is removed from page tree, reload elements area
-		if (element.closest('#pages').length) {
-			_Elements.reloadUnattachedNodes();
+	if (Structr.isModuleActive(_Pages)) {
+		var element = Structr.node(this.id);
+		if (this.parent) {
+			var parent = Structr.node(this.parent.id);
 		}
-		element.remove();
-	}
 
-	_Logger.log(_LogType.MODEL, this, element, parent, Structr.containsNodes(parent));
+		if (element) {
+			// If element is removed from page tree, reload elements area
+			if (element.closest('#pages').length) {
+				_Elements.reloadUnattachedNodes();
+			}
+			element.remove();
+		}
 
-	if (element && parent && !Structr.containsNodes(parent)) {
-		_Entities.removeExpandIcon(parent);
+		_Logger.log(_LogType.MODEL, this, element, parent, Structr.containsNodes(parent));
+
+		if (element && parent && !Structr.containsNodes(parent)) {
+			_Entities.removeExpandIcon(parent);
+		}
+
+		_Pages.reloadPreviews();
 	}
-	_Pages.reloadPreviews();
 };
 
 StructrElement.prototype.append = function(refId) {
-	var refNode = refId ? Structr.node(refId) : undefined;
-	StructrModel.expand(_Pages.appendElementElement(this, refNode), this);
+	if (Structr.isModuleActive(_Pages)) {
+		var refNode = refId ? Structr.node(refId) : undefined;
+		StructrModel.expand(_Pages.appendElementElement(this, refNode), this);
+	}
 };
 
 StructrElement.prototype.exists = function() {
@@ -875,61 +909,65 @@ StructrContent.prototype.save = function() {
 };
 
 StructrContent.prototype.remove = function() {
-	var element = Structr.node(this.id);
-	if (this.parent) {
-		var parent = Structr.node(this.parent.id);
-	}
 
-	if (element) {
-		// If element is removed from page tree, reload elements area
-		if (element.closest('#pages').length) {
-			_Elements.reloadUnattachedNodes();
+	if (Structr.isModuleActive(_Pages)) {
+		var element = Structr.node(this.id);
+		if (this.parent) {
+			var parent = Structr.node(this.parent.id);
 		}
-		element.remove();
-	}
 
-	if (parent && !Structr.containsNodes(parent)) {
-		_Entities.removeExpandIcon(parent);
+		if (element) {
+			// If element is removed from page tree, reload elements area
+			if (element.closest('#pages').length) {
+				_Elements.reloadUnattachedNodes();
+			}
+			element.remove();
+		}
+
+		if (parent && !Structr.containsNodes(parent)) {
+			_Entities.removeExpandIcon(parent);
+		}
+		_Pages.reloadPreviews();
 	}
-	_Pages.reloadPreviews();
 };
 
 StructrContent.prototype.append = function(refId) {
 
-	var id = this.id;
-	var parentId;
+	if (Structr.isModuleActive(_Pages)) {
+		var id = this.id;
+		var parentId;
 
-	var parent;
-	if (this.parent) {
-		parentId = this.parent.id;
-		parent = Structr.node(parentId);
+		var parent;
+		if (this.parent) {
+			parentId = this.parent.id;
+			parent = Structr.node(parentId);
+		}
+
+		var refNode = refId ? Structr.node(refId) : undefined;
+		var div = _Elements.appendContentElement(this, refNode);
+		if (!div) {
+			return;
+		}
+
+		_Logger.log(_LogType.MODEL, 'appendContentElement div', div);
+
+		StructrModel.expand(div, this);
+
+		if (parent) {
+
+			$('.button', div).on('mousedown', function(e) {
+				e.stopPropagation();
+			});
+
+			$('.delete_icon', div).replaceWith('<i title="Remove content element from parent ' + parentId + '" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_content_icon) + '" />');
+			$('.delete_icon', div).on('click', function(e) {
+				e.stopPropagation();
+				Command.removeChild(id);
+			});
+		}
+
+		_Entities.setMouseOver(div);
 	}
-
-	var refNode = refId ? Structr.node(refId) : undefined;
-	var div = _Elements.appendContentElement(this, refNode);
-	if (!div) {
-		return;
-	}
-
-	_Logger.log(_LogType.MODEL, 'appendContentElement div', div);
-
-	StructrModel.expand(div, this);
-
-	if (parent) {
-
-		$('.button', div).on('mousedown', function(e) {
-			e.stopPropagation();
-		});
-
-		$('.delete_icon', div).replaceWith('<i title="Remove content element from parent ' + parentId + '" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_content_icon) + '" />');
-		$('.delete_icon', div).on('click', function(e) {
-			e.stopPropagation();
-			Command.removeChild(id);
-		});
-	}
-
-	_Entities.setMouseOver(div);
-
 };
 
 StructrContent.prototype.exists = function() {
@@ -950,12 +988,14 @@ function StructrSearchResult(data) {
 
 StructrSearchResult.prototype.append = function() {
 
-	var obj = this;
+	if (Structr.isModuleActive(_Graph)) {
+		var obj = this;
 
-	if (obj.hasOwnProperty('relType') && obj.hasOwnProperty('sourceId') && obj.hasOwnProperty('targetId')) {
-		_Graph.drawRel(obj);
-	} else {
-		_Graph.drawNode(this);
+		if (obj.hasOwnProperty('relType') && obj.hasOwnProperty('sourceId') && obj.hasOwnProperty('targetId')) {
+			_Graph.drawRel(obj);
+		} else {
+			_Graph.drawNode(this);
+		}
 	}
 };
 

@@ -37,7 +37,7 @@ var _DuplicateFinder = new (function () {
 	};
 
 	this.isDialogOpen = function () {
-		return _dialogIsOpen;
+		return (Structr.isModuleActive(_Files) && _dialogIsOpen);
 	};
 
 	this.reactToUpdateNotification = function (obj) {
