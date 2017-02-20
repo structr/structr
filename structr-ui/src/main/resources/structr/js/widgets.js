@@ -230,7 +230,6 @@ var _Widgets = {
 
 		var icon = _Icons.widget_icon;
 		var parent = _Widgets.getTreeParent(el ? el : (remote ? _Widgets.remoteWidgetsEl : _Widgets.localWidgetsEl), widget.treePath, remote ? '_remote' : '_local');
-		var delIcon, newDelIcon;
 		var div = Structr.node(widget.id);
 		if (div && div.length) {
 
@@ -249,43 +248,10 @@ var _Widgets = {
 				+ '</div>');
 			div = Structr.node(widget.id);
 
-			var typeIcon = $('.typeIcon', div);
-			typeIcon.on('click', function() {
-				Structr.dialog('Source code of ' + widget.name, function() {}, function() {});
-				var text = widget.source || '';
-				var div = dialogText.append('<div class="editor"></div>');
-				_Logger.log(_LogType.WIDGETS, div);
-				var contentBox = $('.editor', dialogText);
-				editor = CodeMirror(contentBox.get(0), {
-					value: unescapeTags(text),
-					mode: 'text/html',
-					lineNumbers: true,
-					indentUnit: 4,
-					tabSize:4,
-					indentWithTabs: true
-				});
-				editor.focus();
-				Structr.resize();
-			});
-
 		}
 
-		if (!div)
+		if (!div) {
 			return;
-
-		if (!remote) {
-			_Entities.appendAccessControlIcon(div, widget);
-
-			delIcon = div.children('.delete_icon');
-
-			newDelIcon = '<i title="Delete widget ' + widget.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />';
-			div.append(newDelIcon);
-			delIcon = div.children('.delete_icon');
-			div.children('.delete_icon').on('click', function(e) {
-				e.stopPropagation();
-				_Entities.deleteNode(this, widget);
-			});
-
 		}
 
 		div.draggable({
@@ -298,7 +264,29 @@ var _Widgets = {
 			zIndex: 99
 		});
 
-		if (!remote) {
+		_Entities.setMouseOver(div, false);
+
+		if (remote) {
+
+			div.children('b.name_').off('click').css({cursor: 'move'});
+
+			div.append('<i title="View widget ' + widget.name + '" class="view_icon button ' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" />');
+
+			$('.view_icon', div).on('click', function() {
+				Structr.dialog('Source code of ' + widget.name, function() {}, function() {});
+				_Widgets.editWidget(this, widget, dialogText, false);
+			});
+
+		} else {
+
+			_Entities.appendAccessControlIcon(div, widget);
+
+			div.append('<i title="Delete widget ' + widget.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
+			div.children('.delete_icon').on('click', function(e) {
+				e.stopPropagation();
+				_Entities.deleteNode(this, widget);
+			});
+
 			div.append('<i title="Edit widget ' + widget.name + '" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
 			$('.edit_icon', div).on('click', function(e) {
 				e.stopPropagation();
@@ -311,27 +299,23 @@ var _Widgets = {
 					return false;
 				}
 				Command.get(widget.id, function(entity) {
-					_Widgets.editWidget(this, entity, dialogText);
+					_Widgets.editWidget(this, entity, dialogText, true);
 				});
 
 			});
 			_Entities.appendEditPropertiesIcon(div, widget);
-		}
 
-		_Entities.setMouseOver(div, false);
-		if (remote) {
-			div.children('b.name_').off('click').css({cursor: 'move'});
 		}
 
 		return div;
+
 	},
-	editWidget: function(button, entity, element) {
+	editWidget: function(button, entity, element, allowEdit) {
 		if (Structr.isButtonDisabled(button)) {
 			return;
 		}
 		var text = entity.source || '';
-		var div = element.append('<div class="editor"></div>');
-		_Logger.log(_LogType.WIDGETS, div);
+		element.append('<div class="editor"></div>');
 		var contentBox = $('.editor', element);
 		editor = CodeMirror(contentBox.get(0), {
 			value: unescapeTags(text),
@@ -341,99 +325,109 @@ var _Widgets = {
 			tabSize:4,
 			indentWithTabs: true
 		});
-		editor.focus();
+
 		Structr.resize();
 
-		dialogBtn.append('<button id="editorSave" disabled="disabled" class="disabled">Save Widget</button>');
-		dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
+		if (!allowEdit) {
 
-		dialogSaveButton = $('#editorSave', dialogBtn);
-		saveAndClose = $('#saveAndClose', dialogBtn);
+			editor.setOption("readOnly", "nocursor");
 
-		text1 = text;
+		} else {
 
-		editor.on('change', function(cm, change) {
+			editor.focus();
 
-			text2 = editor.getValue();
+			dialogBtn.append('<button id="editorSave" disabled="disabled" class="disabled">Save Widget</button>');
+			dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
 
-			if (text1 === text2) {
-				dialogSaveButton.prop("disabled", true).addClass('disabled');
-				saveAndClose.prop("disabled", true).addClass('disabled');
-			} else {
-				dialogSaveButton.prop("disabled", false).removeClass('disabled');
-				saveAndClose.prop("disabled", false).removeClass('disabled');
-			}
-		});
+			dialogSaveButton = $('#editorSave', dialogBtn);
+			saveAndClose = $('#saveAndClose', dialogBtn);
 
-		saveAndClose.on('click', function(e) {
-			e.stopPropagation();
-			dialogSaveButton.click();
-			setTimeout(function() {
-				dialogSaveButton.remove();
-				saveAndClose.remove();
-				dialogCancelButton.click();
-			}, 500);
-		});
+			text1 = text;
 
-		dialogSaveButton.on('click', function() {
+			editor.on('change', function(cm, change) {
 
-			var newText = editor.getValue();
+				text2 = editor.getValue();
 
-			if (text1 === newText) {
-				return;
-			}
+				if (text1 === text2) {
+					dialogSaveButton.prop("disabled", true).addClass('disabled');
+					saveAndClose.prop("disabled", true).addClass('disabled');
+				} else {
+					dialogSaveButton.prop("disabled", false).removeClass('disabled');
+					saveAndClose.prop("disabled", false).removeClass('disabled');
+				}
+			});
 
-			var successCallback = function () {
-				Structr.showAndHideInfoBoxMessage('Widget source saved.', 'success', 2000, 200);
-				text1 = newText;
-				dialogSaveButton.prop("disabled", true).addClass('disabled');
-				saveAndClose.prop("disabled", true).addClass('disabled');
-			};
+			saveAndClose.on('click', function(e) {
+				e.stopPropagation();
+				dialogSaveButton.click();
+				setTimeout(function() {
+					dialogSaveButton.remove();
+					saveAndClose.remove();
+					dialogCancelButton.click();
+				}, 500);
+			});
 
-			if (entity.srcUrl) {
-				var data = JSON.stringify({source: newText});
-				_Logger.log(_LogType.WIDGETS, 'update remote widget', entity.srcUrl, data);
-				$.ajax({
-					url: entity.srcUrl,
-					type: 'PUT',
-					dataType: 'json',
-					data: data,
-					contentType: 'application/json; charset=utf-8',
-					statusCode: {
-						200: function(data) {
-							successCallback();
-						},
-						400: function(data, status, xhr) {
-							console.log(data, status, xhr);
-						},
-						401: function(data, status, xhr) {
-							console.log(data, status, xhr);
-						},
-						403: function(data, status, xhr) {
-							console.log(data, status, xhr);
-						},
-						404: function(data, status, xhr) {
-							console.log(data, status, xhr);
-						},
-						422: function(data, status, xhr) {
-							console.log(data, status, xhr);
-						},
-						500: function(data, status, xhr) {
-							console.log(data, status, xhr);
+			dialogSaveButton.on('click', function() {
+
+				var newText = editor.getValue();
+
+				if (text1 === newText) {
+					return;
+				}
+
+				var successCallback = function () {
+					Structr.showAndHideInfoBoxMessage('Widget source saved.', 'success', 2000, 200);
+					text1 = newText;
+					dialogSaveButton.prop("disabled", true).addClass('disabled');
+					saveAndClose.prop("disabled", true).addClass('disabled');
+				};
+
+				if (entity.srcUrl) {
+					var data = JSON.stringify({source: newText});
+					_Logger.log(_LogType.WIDGETS, 'update remote widget', entity.srcUrl, data);
+					$.ajax({
+						url: entity.srcUrl,
+						type: 'PUT',
+						dataType: 'json',
+						data: data,
+						contentType: 'application/json; charset=utf-8',
+						statusCode: {
+							200: function(data) {
+								successCallback();
+							},
+							400: function(data, status, xhr) {
+								console.log(data, status, xhr);
+							},
+							401: function(data, status, xhr) {
+								console.log(data, status, xhr);
+							},
+							403: function(data, status, xhr) {
+								console.log(data, status, xhr);
+							},
+							404: function(data, status, xhr) {
+								console.log(data, status, xhr);
+							},
+							422: function(data, status, xhr) {
+								console.log(data, status, xhr);
+							},
+							500: function(data, status, xhr) {
+								console.log(data, status, xhr);
+							}
 						}
-					}
 
-				});
+					});
 
-			} else {
+				} else {
 
-				Command.setProperty(entity.id, 'source', newText, false, function() {
-					successCallback();
-				});
+					Command.setProperty(entity.id, 'source', newText, false, function() {
+						successCallback();
+					});
 
-			}
+				}
 
-		});
+			});
+
+		}
 
 		editor.id = entity.id;
 	},
