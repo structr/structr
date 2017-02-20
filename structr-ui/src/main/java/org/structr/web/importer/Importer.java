@@ -54,7 +54,6 @@ import org.structr.common.CaseHelper;
 import org.structr.common.PathHelper;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
@@ -1133,12 +1132,11 @@ public class Importer {
 
 	private FileBase createFileNode(final String uuid, final String path, final String contentType, final long size, final long checksum, final Class fileClass) throws FrameworkException {
 
-		final String name = PathHelper.getName(path);
 		final String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
 
 		final FileBase fileNode = app.create(fileClass != null ? fileClass : File.class,
 			new NodeAttribute(GraphObject.id, uuid),
-			new NodeAttribute(AbstractNode.name, name),
+			new NodeAttribute(AbstractNode.name, PathHelper.getName(path)),
 			new NodeAttribute(File.relativeFilePath, relativeFilePath),
 			new NodeAttribute(File.contentType, contentType),
 			new NodeAttribute(File.size, size),
@@ -1149,15 +1147,6 @@ public class Importer {
 
 		final Folder parentFolder = FileHelper.createFolderPath(securityContext, PathHelper.getFolderPath(path));
 		fileNode.setProperty(FileBase.parent, parentFolder);
-
-		if (!fileNode.validatePath(securityContext, new ErrorBuffer())) {
-
-			final String newName = name.concat("_").concat(FileHelper.getDateString());
-
-			logger.warn("File {} already exists, renaming to {}", new Object[] { path, newName });
-
-			fileNode.setProperty(AbstractNode.name, newName);
-		}
 
 		return fileNode;
 

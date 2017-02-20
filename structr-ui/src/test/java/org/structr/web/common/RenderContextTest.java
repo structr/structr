@@ -540,9 +540,6 @@ public class RenderContextTest extends StructrUiTest {
 			// test POST with invalid name containing curly braces to provoke 422
 			assertEquals("Invalid POST result", "422",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:\"ShouldFail/xyz\"}').status}"));
 
-			// test that duplicate folder names are not allowed
-			assertEquals("Invalid POST result", "422",                             Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/folders', '{name:status}').status}"));
-
 			// test login and sessions
 			final String sessionIdCookie = Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/login', '{name:admin,password:admin}').headers.Set-Cookie}");
 			final String sessionId       = HttpCookie.parse(sessionIdCookie).get(0).getValue();
