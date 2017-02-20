@@ -379,13 +379,13 @@ function wsConnect() {
 
 				StructrModel.del(data.id);
 
-			} else if (command === 'INSERT_BEFORE') {
+			} else if (command === 'INSERT_BEFORE' || command === 'APPEND_CHILD' || command === 'APPEND_USER') {
 
 				StructrModel.create(result[0], data.data.refId);
 
-			} else if (command.startsWith('APPEND_')) {
+			} else if (command.startsWith('APPEND_FILE')) {
 
-				StructrModel.create(result[0], data.data.refId);
+				//StructrModel.create(result[0], data.data.refId);
 
 			} else if (command === 'REMOVE') {
 
