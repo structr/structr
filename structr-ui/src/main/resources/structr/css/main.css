@@ -1898,6 +1898,12 @@ input.property-name:disabled {
 
 #admin-tools-table td, #layout-tools-table td {
 	padding: 0 1em 1em 0;
+	width: 32%;
+	vertical-align: top;
+}
+
+#admin-tools-table td h3 {
+	margin: 1em 0 0 0;
 }
 
 #schema-options-table th {

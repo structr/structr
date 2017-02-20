@@ -2634,10 +2634,25 @@ var _Schema = {
 	appendAdminToolsToContainer: function (container) {
 		container.append('<table id="admin-tools-table"></table>');
 		var toolsTable = $('#admin-tools-table');
-		toolsTable.append('<tr><td><button id="rebuild-index"><i class="' + _Icons.getFullSpriteClass(_Icons.refresh_icon) + '" /> Rebuild Index</button></td><td><label for"rebuild-index">Rebuild database index for all nodes and relationships</label></td></tr>');
-		toolsTable.append('<tr><td><button id="clear-schema"><i class="' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /> Clear Schema</button></td><td><label for"clear-schema">Delete all schema nodes and relationships of dynamic schema</label></td></tr>');
-		toolsTable.append('<tr><td><select id="node-type-selector"><option selected value="">-- Select Node Type --</option><option disabled>──────────</option><option value="allNodes">All Node Types</option><option disabled>──────────</option></select><button id="add-node-uuids">Add UUIDs</button></td><td><label for"setUuid">Add UUIDs to all nodes of the selected type</label></td></tr>');
-		toolsTable.append('<tr><td><select id="rel-type-selector"><option selected value="">-- Select Relationship Type --</option><option disabled>──────────</option><option value="allRels">All Relationship Types</option><option disabled>──────────</option></select><button id="add-rel-uuids">Add UUIDs</button></td><td><label for"setUuid">Add UUIDs to all relationships of the selected type</label></td></tr>');
+		
+		toolsTable.append('<tr><td colspan="3"><h3>General</h3></td></tr>');
+		
+		toolsTable.append('<tr id="general-operations"></tr>');
+		$('#general-operations', toolsTable).append('<td><button id="rebuild-index"><i class="' + _Icons.getFullSpriteClass(_Icons.refresh_icon) + '" /> Rebuild Index</button></td>');
+		$('#general-operations', toolsTable).append('<td><button id="flush-caches"><i class="' + _Icons.getFullSpriteClass(_Icons.refresh_icon) + '" /> Flush Caches</button></td>');
+		$('#general-operations', toolsTable).append('<td><button id="clear-schema"><i class="' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /> Clear Schema</button></td>');
+		toolsTable.append('<tr><td><label for="rebuild-index">Rebuild database index<br>for all nodes and relationships</label></td><td><label for="flush-caches">Flushes internal caches<br>to refresh schema information</label></td><td><label for="clear-schema">Delete all schema nodes and<br>relationships in custom schema</label></td></tr>')
+		
+		toolsTable.append('<tr><td colspan="3"><h3>Nodes</h3></td></tr>');
+		toolsTable.append('<tr><td colspan="3" id="node-operations"><select id="node-type-selector"><option selected value="">-- Select Node Type --</option><option disabled>──────────</option><option value="allNodes">All Node Types</option><option disabled>──────────</option></select></td></tr>');
+		$('#node-operations', toolsTable).append('<button id="reindex-nodes">Re-Index Nodes</button>');
+		$('#node-operations', toolsTable).append('<button id="add-node-uuids">Add UUIDs</button>');
+		$('#node-operations', toolsTable).append('<button id="create-labels">Create Labels</button>');
+
+		toolsTable.append('<tr><td colspan="3"><h3>Relationships</h3></td></tr>');
+		toolsTable.append('<tr><td colspan="3" id="rel-operations"><select id="rel-type-selector"><option selected value="">-- Select Relationship Type --</option><option disabled>──────────</option><option value="allRels">All Relationship Types</option><option disabled>──────────</option></select></td></tr>');
+		$('#rel-operations', toolsTable).append('<button id="reindex-rels">Re-Index Relationships</button>');
+		$('#rel-operations', toolsTable).append('<button id="add-rel-uuids">Add UUIDs</button>');
 
 		$('#rebuild-index').on('click', function(e) {
 			var btn = $(this);
@@ -2663,48 +2678,108 @@ var _Schema = {
 			});
 		});
 
+		$('#flush-caches').on('click', function(e) {
+			var btn = $(this);
+			var text = btn.text();
+			var oldHtml = btn.html();
+			Structr.updateButtonWithAjaxLoaderAndText(btn, text);
+			e.preventDefault();
+			$.ajax({
+				url: rootUrl + 'maintenance/flushCaches',
+				type: 'POST',
+				data: {},
+				contentType: 'application/json',
+				statusCode: {
+					200: function() {
+						var btn = $('#flush-caches');
+						btn.removeClass('disabled').attr('disabled', null);
+						btn.html(oldHtml + ' <i class="tick ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />');
+						window.setTimeout(function() {
+							$('.tick', btn).fadeOut();
+						}, 1000);
+					}
+				}
+			});
+		});
+		
 		$('#clear-schema').on('click', function(e) {
+			Structr.confirmation('<h3>Delete schema?</h3><p>This will remove all dynamic schema information, but not your other data.</p><p>&nbsp;</p>', function() {
+				$.unblockUI({
+					fadeOut: 25
+				});
 
-			Structr.confirmation('<h3>Delete schema?</h3><p>This will remove all dynamic schema information, but not your other data.</p><p>&nbsp;</p>',
-					function() {
-						$.unblockUI({
-							fadeOut: 25
-						});
-
-						var btn = $(this);
-						var text = btn.text();
-						Structr.updateButtonWithAjaxLoaderAndText(btn, text);
-						e.preventDefault();
-						$.ajax({
-							url: rootUrl + 'schema_relationship_nodes',
-							type: 'DELETE',
-							data: {},
-							contentType: 'application/json',
-							statusCode: {
-								200: function() {
-									_Schema.reload();
-									$.ajax({
-										url: rootUrl + 'schema_nodes',
-										type: 'DELETE',
-										data: {},
-										contentType: 'application/json',
-										statusCode: {
-											200: function() {
-												_Schema.reload();
-											}
-										}
-									});
-
+				var btn = $(this);
+				var text = btn.text();
+				Structr.updateButtonWithAjaxLoaderAndText(btn, text);
+				e.preventDefault();
+				$.ajax({
+					url: rootUrl + 'schema_relationship_nodes',
+					type: 'DELETE',
+					data: {},
+					contentType: 'application/json',
+					statusCode: {
+						200: function() {
+							_Schema.reload();
+							$.ajax({
+								url: rootUrl + 'schema_nodes',
+								type: 'DELETE',
+								data: {},
+								contentType: 'application/json',
+								statusCode: {
+									200: function() {
+										_Schema.reload();
+									}
 								}
-							}
-						});
-					});
+							});
+
+						}
+					}
+				});
+			});
 		});
 
 		var nodeTypeSelector = $('#node-type-selector');
 		Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name', function(nodes) {
 			nodes.forEach(function(node) {
 				nodeTypeSelector.append('<option>' + node.name + '</option>');
+			});
+		});
+
+		$('#reindex-nodes').on('click', function(e) {
+			var btn = $(this);
+			var text = btn.text();
+			e.preventDefault();
+			var type = nodeTypeSelector.val();
+			if (!type) {
+				nodeTypeSelector.addClass('notify');
+				nodeTypeSelector.on('change', function() {
+					nodeTypeSelector.removeClass('notify');
+				});
+				return;
+			}
+			var data;
+			if (type === 'allNodes') {
+				data = JSON.stringify({'mode': 'nodesOnly'});
+			} else {
+				data = JSON.stringify({'mode': 'nodesOnly', 'type': type});
+			}
+			Structr.updateButtonWithAjaxLoaderAndText(btn, text);
+			$.ajax({
+				url: rootUrl + 'maintenance/rebuildIndex',
+				type: 'POST',
+				data: data,
+				contentType: 'application/json',
+				statusCode: {
+					200: function() {
+						var btn = $('#reindex-nodes');
+						nodeTypeSelector.removeClass('notify');
+						btn.removeClass('disabled').attr('disabled', null);
+						btn.html(text + ' <i class="tick ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />');
+						window.setTimeout(function() {
+							$('.tick', btn).fadeOut();
+						}, 1000);
+					}
+				}
 			});
 		});
 
@@ -2746,10 +2821,86 @@ var _Schema = {
 			});
 		});
 
+		$('#create-labels').on('click', function(e) {
+			var btn = $(this);
+			var text = btn.text();
+			e.preventDefault();
+			var type = nodeTypeSelector.val();
+			if (!type) {
+				nodeTypeSelector.addClass('notify');
+				nodeTypeSelector.on('change', function() {
+					nodeTypeSelector.removeClass('notify');
+				});
+				return;
+			}
+			var data;
+			if (type === 'allNodes') {
+				data = JSON.stringify({});
+			} else {
+				data = JSON.stringify({'type': type});
+			}
+			Structr.updateButtonWithAjaxLoaderAndText(btn, text);
+			$.ajax({
+				url: rootUrl + 'maintenance/createLabels',
+				type: 'POST',
+				data: data,
+				contentType: 'application/json',
+				statusCode: {
+					200: function() {
+						var btn = $('#create-labels');
+						nodeTypeSelector.removeClass('notify');
+						btn.removeClass('disabled').attr('disabled', null);
+						btn.html(text + ' <i class="tick ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />');
+						window.setTimeout(function() {
+							$('.tick', btn).fadeOut();
+						}, 1000);
+					}
+				}
+			});
+		});
+
 		var relTypeSelector = $('#rel-type-selector');
 		Command.list('SchemaRelationshipNode', true, 1000, 1, 'relationshipType', 'asc', 'id,relationshipType', function(rels) {
 			rels.forEach(function(rel) {
 				relTypeSelector.append('<option>' + rel.relationshipType + '</option>');
+			});
+		});
+
+		$('#reindex-rels').on('click', function(e) {
+			var btn = $(this);
+			var text = btn.text();
+			e.preventDefault();
+			var type = relTypeSelector.val();
+			if (!type) {
+				relTypeSelector.addClass('notify');
+				relTypeSelector.on('change', function() {
+					relTypeSelector.removeClass('notify');
+				});
+				return;
+			}
+			var data;
+			if (type === 'allRels') {
+				data = JSON.stringify({'mode': 'relsOnly'});
+			} else {
+				data = JSON.stringify({'mode': 'relsOnly', 'type': type});
+			}
+			Structr.updateButtonWithAjaxLoaderAndText(btn, text);
+			$.ajax({
+				url: rootUrl + 'maintenance/rebuildIndex',
+				type: 'POST',
+				data: data,
+				contentType: 'application/json',
+				statusCode: {
+					200: function() {
+						var btn = $('#reindex-rels');
+						relTypeSelector.removeClass('notify');
+						btn.removeClass('disabled').attr('disabled', null);
+						btn.html(text + ' <i class="tick ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />');
+						window.setTimeout(function() {
+							$('.tick', btn).fadeOut();
+						}, 1000);
+					}
+				}
 			});
 		});
 
