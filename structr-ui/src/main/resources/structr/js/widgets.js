@@ -230,7 +230,6 @@ var _Widgets = {
 
 		var icon = _Icons.widget_icon;
 		var parent = _Widgets.getTreeParent(el ? el : (remote ? _Widgets.remoteWidgetsEl : _Widgets.localWidgetsEl), widget.treePath, remote ? '_remote' : '_local');
-		var delIcon, newDelIcon;
 		var div = Structr.node(widget.id);
 		if (div && div.length) {
 
@@ -249,7 +248,30 @@ var _Widgets = {
 				+ '</div>');
 			div = Structr.node(widget.id);
 
-			var typeIcon = $('.typeIcon', div);
+		}
+
+		if (!div) {
+			return;
+		}
+
+		div.draggable({
+			iframeFix: true,
+			revert: 'invalid',
+			containment: 'body',
+			helper: 'clone',
+			appendTo: '#main',
+			stack: '.node',
+			zIndex: 99
+		});
+
+		_Entities.setMouseOver(div, false);
+
+		if (remote) {
+			div.children('b.name_').off('click').css({cursor: 'move'});
+
+			div.append('<i title="View widget ' + widget.name + '" class="view_icon button ' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" />');
+
+			var typeIcon = $('.view_icon', div);
 			typeIcon.on('click', function() {
 				Structr.dialog('Source code of ' + widget.name, function() {}, function() {});
 				var text = widget.source || '';
@@ -268,37 +290,16 @@ var _Widgets = {
 				Structr.resize();
 			});
 
-		}
+		} else {
 
-		if (!div)
-			return;
-
-		if (!remote) {
 			_Entities.appendAccessControlIcon(div, widget);
 
-			delIcon = div.children('.delete_icon');
-
-			newDelIcon = '<i title="Delete widget ' + widget.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />';
-			div.append(newDelIcon);
-			delIcon = div.children('.delete_icon');
+			div.append('<i title="Delete widget ' + widget.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
 			div.children('.delete_icon').on('click', function(e) {
 				e.stopPropagation();
 				_Entities.deleteNode(this, widget);
 			});
 
-		}
-
-		div.draggable({
-			iframeFix: true,
-			revert: 'invalid',
-			containment: 'body',
-			helper: 'clone',
-			appendTo: '#main',
-			stack: '.node',
-			zIndex: 99
-		});
-
-		if (!remote) {
 			div.append('<i title="Edit widget ' + widget.name + '" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
 			$('.edit_icon', div).on('click', function(e) {
 				e.stopPropagation();
@@ -316,14 +317,11 @@ var _Widgets = {
 
 			});
 			_Entities.appendEditPropertiesIcon(div, widget);
-		}
 
-		_Entities.setMouseOver(div, false);
-		if (remote) {
-			div.children('b.name_').off('click').css({cursor: 'move'});
 		}
 
 		return div;
+
 	},
 	editWidget: function(button, entity, element) {
 		if (Structr.isButtonDisabled(button)) {
