@@ -2567,6 +2567,12 @@ input.bitmask {
 	background-position: 16px 16px;
 }
 
+#info-area .message button.confirm {
+	position: absolute;
+	right: 2px;
+	bottom: 2px;
+}
+
 #structr-loading-spinner {
 	position: absolute;
 	top: 0;

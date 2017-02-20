@@ -1700,7 +1700,7 @@ function MessageBuilder () {
 		this.params.msgId = 'message_' + (Structr.msgCount++);
 
 		$('#info-area').append(
-			'<div class="message' + (this.params.className ? ' ' + this.params.className : '') +  '" id="' + this.params.msgId + '"">' +
+			'<div class="message' + (this.params.className ? ' ' + this.params.className : '') +  '" id="' + this.params.msgId + '">' +
 				(this.params.title ? '<h2>' + this.params.title + '</h2>' : '') +
 				this.params.text +
 				(this.params.requiresConfirmation ? '<button class="confirm">' + this.params.confirmButtonText + '</button>' : '') +

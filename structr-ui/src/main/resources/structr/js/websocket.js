@@ -187,22 +187,22 @@ function wsConnect() {
 						StructrModel.callCallback(data.callback, null, null, true);
 					}
 
+					var msgClass;
+					if (codeStr.startsWith('2')) {
+						msgClass = 'success';
+					} else if (codeStr.startsWith('3')) {
+						msgClass = 'info';
+					} else if (codeStr.startsWith('4')) {
+						msgClass = 'warning';
+					} else {
+						msgClass = 'error';
+					}
+
 					if (msg && msg.startsWith('{')) {
 
 						var msgObj = JSON.parse(msg);
 
 						if (dialogBox.is(':visible')) {
-
-							var msgClass;
-							if (codeStr.startsWith('2')) {
-								msgClass = 'success';
-							} else if (codeStr.startsWith('3')) {
-								msgClass = 'info';
-							} else if (codeStr.startsWith('4')) {
-								msgClass = 'warning';
-							} else {
-								msgClass = 'error';
-							}
 
 							Structr.showAndHideInfoBoxMessage(msgObj.size + ' bytes saved to ' + msgObj.name, msgClass, 2000, 200);
 
@@ -236,18 +236,14 @@ function wsConnect() {
 
 					} else {
 
-						if (codeStr.startsWith('2')) {
-							new MessageBuilder().success(msg).show();
-						} else if (codeStr.startsWith('3')) {
-							new MessageBuilder().info(msg).show();
-						} else if (codeStr.startsWith('4')) {
-							if (codeStr === "404") {
-								new MessageBuilder().warning('Object not found.').show();
-							} else {
-								new MessageBuilder().warning(msg).show();
-							}
+						if (codeStr === "404") {
+							new MessageBuilder().className(msgClass).text('Object not found.').show();
+						} else if (data.error && data.error.errors) {
+							data.error.errors.forEach(function(error) {
+								new MessageBuilder().className(msgClass).text('<b>' + data.error.message + '</b><br>' + error.type + '.' + error.property + ' ' + error.token + ': ' + error.value).show();
+							});
 						} else {
-							new MessageBuilder().error(msg).show();
+							new MessageBuilder().className(msgClass).text(msg).show();
 						}
 
 					}
