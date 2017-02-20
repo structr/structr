@@ -161,21 +161,15 @@ var _Files = {
 				);
 
 		$('.add_file_icon', main).on('click', function(e) {
-			Command.create({ type: 'File', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
-				_Files.appendFileOrFolder(f);
-			});
+			Command.create({ type: 'File', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null });
 		});
 
 		$('.add_minified_css_file_icon', main).on('click', function(e) {
-			Command.create({ type: 'MinifiedCssFile', contentType: 'text/css', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
-				_Files.appendFileOrFolder(f);
-			});
+			Command.create({ type: 'MinifiedCssFile', contentType: 'text/css', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null });
 		});
 
 		$('.add_minified_js_file_icon', main).on('click', function(e) {
-			Command.create({ type: 'MinifiedJavaScriptFile', contentType: 'text/javascript', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
-				_Files.appendFileOrFolder(f);
-			});
+			Command.create({ type: 'MinifiedJavaScriptFile', contentType: 'text/javascript', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null });
 		});
 
 		$('.pull_file_icon', main).on('click', function(e) {
@@ -185,10 +179,7 @@ var _Files = {
 		$('.duplicate_finder', main).on('click', _DuplicateFinder.openDuplicateFinderDialog);
 
 		$('.add_folder_icon', main).on('click', function(e) {
-			Command.create({ type: 'Folder', parentId: currentWorkingDir ? currentWorkingDir.id : null }, function(f) {
-				_Files.appendFileOrFolder(f);
-				_Files.refreshTree();
-			});
+			Command.create({ type: 'Folder', parentId: currentWorkingDir ? currentWorkingDir.id : null });
 		});
 
 		$.jstree.defaults.core.themes.dots      = false;
@@ -369,9 +360,10 @@ var _Files = {
 					$(filesToUpload).each(function(i, file) {
 						file.parentId = currentWorkingDir ? currentWorkingDir.id : null;
 						file.hasParent = true; // Setting hasParent = true forces the backend to upload the file to the root dir even if parentId is null
-						Command.createFile(file, function(f) {
-							_Files.appendFileOrFolder(f);
-						});
+						Command.createFile(file); // appending to UI is triggered by StructrModel call only
+//						Command.createFile(file, function(f) {
+//							_Files.appendFileOrFolder(f);
+//						});
 					});
 				}
 
@@ -982,38 +974,47 @@ var _Files = {
 
 		var x,y,w,h;
 
+		dialogBtn.children('#saveFile').remove();
+		dialogBtn.children('#saveAndClose').remove();
+		
+		dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled">Save</button>');
+		dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled">Save and close</button>');
+
+		dialogSaveButton = $('#saveFile', dialogBtn);
+		saveAndClose = $('#saveAndClose', dialogBtn);
+
+		$('button#saveFile', dialogBtn).on('click', function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			Command.createConvertedImage(image.id, Math.round(w), Math.round(h), 'png', Math.round(x), Math.round(y), function() {
+				dialogSaveButton.prop("disabled", true).addClass('disabled');
+				saveAndClose.prop("disabled", true).addClass('disabled');
+			});
+		});
+
+		saveAndClose.on('click', function(e) {
+			e.stopPropagation();
+			dialogSaveButton.click();
+			setTimeout(function() {
+				dialogSaveButton.remove();
+				saveAndClose.remove();
+				dialogCancelButton.click();
+			}, 500);
+		});
+		
 		$('.fa-crop', el).on('click', function() {
 
 			$('#image-editor').cropper({
 			  //aspectRatio: 16 / 9,
 			  crop: function(e) {
 
-				  x = e.x;
-				  y = e.y;
-				  w = e.width;
-				  h = e.height;
+				x = e.x, y = e.y, w = e.width, h = e.height;
 
-//				// Output the result data for cropping image.
-//				console.log(e.x);
-//				console.log(e.y);
-//				console.log(e.width);
-//				console.log(e.height);
-//				console.log(e.rotate);
-//				console.log(e.scaleX);
-//				console.log(e.scaleY);
+				//dialogSaveButton.prop("disabled", true).addClass('disabled');
+				//saveAndClose.prop("disabled", true).addClass('disabled');
+				dialogSaveButton.prop("disabled", false).removeClass('disabled');
+				saveAndClose.prop("disabled", false).removeClass('disabled');
 			  }
-			});
-
-			dialogBtn.append('<button class="overwrite">Overwrite original image</button><button class="create-new">Create new image</button>');
-
-			$('.overwrite', dialogBtn).on('click', function() {
-
-			});
-
-			$('.create-new', dialogBtn).on('click', function() {
-				Command.createConvertedImage(image.id, Math.round(w), Math.round(h), 'png', Math.round(x), Math.round(y), function() {
-					console.log('Image converted');
-				});
 			});
 
 		});
