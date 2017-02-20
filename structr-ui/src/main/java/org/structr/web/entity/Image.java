@@ -337,7 +337,7 @@ public class Image extends org.structr.dynamic.File {
 						final String thumbnailName = getThumbnailName(originalImage.getName(), tnWidth, tnHeight);
 
 						// create thumbnail node
-						thumbnail = ImageHelper.createImage(securityContext, data, "image/" + Thumbnail.FORMAT, Image.class, thumbnailName, true);
+						thumbnail = ImageHelper.createImage(securityContext, data, "image/" + Thumbnail.Format.png, Image.class, thumbnailName, true);
 
 					} catch (IOException ex) {
 
@@ -393,7 +393,6 @@ public class Image extends org.structr.dynamic.File {
 		}
 
 		return thumbnail;
-
 	}
 
 	/**
@@ -406,7 +405,17 @@ public class Image extends org.structr.dynamic.File {
 	public boolean isThumbnail() {
 
 		return getProperty(Image.isThumbnail) || getIncomingRelationship(Thumbnails.class) != null;
+	}
 
+	/**
+	 * @param originalImageName The filename of the original image
+	 * @param width The width of the new image variant
+	 * @param height The height of the new image variant
+	 * @return the name for the new image variant with the given dimensions
+	 */
+	public static String getVariantName(final String originalImageName, final Integer width, final Integer height, final String variant) {
+
+		return originalImageName + variant + width + "x" + height;
 	}
 
 	/**
@@ -415,10 +424,9 @@ public class Image extends org.structr.dynamic.File {
 	 * @param tnHeight The height of the thumbnail
 	 * @return the thumbnail name for the thumbnail with the given dimensions
 	 */
-	public String getThumbnailName(final String originalImageName, final Integer tnWidth, final Integer tnHeight) {
+	public static String getThumbnailName(final String originalImageName, final Integer tnWidth, final Integer tnHeight) {
 
-		return originalImageName + "_thumb_" + tnWidth + "x" + tnHeight;
-
+		return getVariantName(originalImageName, tnWidth, tnHeight, "_thumb_");
 	}
 
 	/**
@@ -430,6 +438,5 @@ public class Image extends org.structr.dynamic.File {
 		final Integer tnHeight = getHeight();
 
 		return StringUtils.stripBack(getName(),  "_thumb_" + tnWidth + "x" + tnHeight);
-
 	}
 }

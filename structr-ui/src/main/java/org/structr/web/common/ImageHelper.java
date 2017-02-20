@@ -27,6 +27,7 @@ import javax.imageio.ImageIO;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tika.metadata.Metadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PathHelper;
@@ -98,6 +99,7 @@ public abstract class ImageHelper extends FileHelper {
 		if (imageData != null && imageData.length > 0) {
 
 			setFileData(newImage, imageData, contentType);
+			ImageHelper.updateMetadata(newImage);
 
 		}
 
@@ -182,13 +184,7 @@ public abstract class ImageHelper extends FileHelper {
 		
 	}
 
-	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight) {
-
-		return createThumbnail(originalImage, maxWidth, maxHeight, false);
-
-	}
-
-	public static float getScale(final int sourceWidth, final int sourceHeight, final int maxWidth, final int maxHeight, final boolean crop) {
+	public static float getScaleRatio(final int sourceWidth, final int sourceHeight, final int maxWidth, final int maxHeight, final boolean crop) {
 		
 		// float aspectRatio = sourceWidth/sourceHeight;
 		final float scaleX = 1.0f * sourceWidth / maxWidth;
@@ -208,11 +204,11 @@ public abstract class ImageHelper extends FileHelper {
 	}
 	
 	public static int getThumbnailWidth(final int sourceWidth, final int sourceHeight, final int maxWidth, final int maxHeight, final boolean crop) {
-		return Math.max(4, Math.round(sourceWidth / getScale(sourceWidth, sourceHeight, maxWidth, maxHeight, crop)));
+		return Math.max(4, Math.round(sourceWidth / getScaleRatio(sourceWidth, sourceHeight, maxWidth, maxHeight, crop)));
 	}
 	
 	public static int getThumbnailHeight(final int sourceWidth, final int sourceHeight, final int maxWidth, final int maxHeight, final boolean crop) {
-		return Math.max(4, Math.round(sourceHeight / getScale(sourceWidth, sourceHeight, maxWidth, maxHeight, crop)));
+		return Math.max(4, Math.round(sourceHeight / getScaleRatio(sourceWidth, sourceHeight, maxWidth, maxHeight, crop)));
 	}
 
 	public static int getThumbnailWidth(final Image originalImage, final int maxWidth, final int maxHeight, final boolean crop) {
@@ -223,7 +219,18 @@ public abstract class ImageHelper extends FileHelper {
 		return getThumbnailHeight(originalImage.getWidth(), originalImage.getHeight(), maxWidth, maxHeight, crop);
 	}
 
+
+	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight) {
+		return createThumbnail(originalImage, maxWidth, maxHeight, false);
+	}
+
 	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight, final boolean crop) {
+		return createThumbnail(originalImage, maxWidth, maxHeight, null, crop, null, null);
+	}
+	
+	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight, final String formatString, final boolean crop, final Integer reqOffsetX, final Integer reqOffsetY) {
+		
+		final Thumbnail.Format format = formatString != null ? Thumbnail.Format.valueOf(formatString) : Thumbnail.Format.png;
 
 		// String contentType = (String) originalImage.getProperty(Image.CONTENT_TYPE_KEY);
 		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -252,7 +259,7 @@ public abstract class ImageHelper extends FileHelper {
 				originalImage.setProperties(originalImage.getSecurityContext(), properties);
 
 				// float aspectRatio = sourceWidth/sourceHeight;
-				final float scale = getScale(sourceWidth, sourceHeight, maxWidth, maxHeight, crop);
+				final float scale = getScaleRatio(sourceWidth, sourceHeight, maxWidth, maxHeight, crop);
 
 				// Don't scale up
 				if (scale > 1.0) {
@@ -268,8 +275,8 @@ public abstract class ImageHelper extends FileHelper {
 
 					if (crop) {
 
-						final int offsetX = Math.abs(maxWidth - destWidth) / 2;
-						final int offsetY = Math.abs(maxHeight - destHeight) / 2;
+						final int offsetX = reqOffsetX != null ? reqOffsetX : Math.abs(maxWidth - destWidth) / 2;
+						final int offsetY = reqOffsetY != null ? reqOffsetY : Math.abs(maxHeight - destHeight) / 2;
 
 						logger.debug("Offset and Size (x,y,w,h): {},{},{},{}", new Object[] { offsetX, offsetY, maxWidth, maxHeight });
 
@@ -287,12 +294,12 @@ public abstract class ImageHelper extends FileHelper {
 
 					}
 
-					ImageIO.write(result, Thumbnail.FORMAT, baos);
+					ImageIO.write(result, format.name(), baos);
 
 				} else {
 
 					// Thumbnail is source image
-					ImageIO.write(source, Thumbnail.FORMAT, baos);
+					ImageIO.write(source, format.name(), baos);
 					tn.setWidth(sourceWidth);
 					tn.setHeight(sourceHeight);
 				}
@@ -316,12 +323,84 @@ public abstract class ImageHelper extends FileHelper {
 
 		} catch (Throwable t) {
 
-			logger.warn("Unable to create thumbnail for image with ID {}.", originalImage.getUuid());
+			logger.warn("Unable to create thumbnail for image with ID {}.", originalImage.getUuid(), t);
 		}
 
 		return null;
 	}
 
+
+	public static Thumbnail createCroppedImage(final Image originalImage, final int maxWidth, final int maxHeight, final Integer reqOffsetX, final Integer reqOffsetY, final String formatString) {
+		
+		final Thumbnail.Format format = formatString != null ? Thumbnail.Format.valueOf(formatString) : Thumbnail.Format.png;
+
+		// String contentType = (String) originalImage.getProperty(Image.CONTENT_TYPE_KEY);
+		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		final Thumbnail tn               = new Thumbnail();
+
+		try (final InputStream in = originalImage.getInputStream()) {
+
+			if (in == null) {
+
+				logger.debug("InputStream of original image {} ({}) is null", new Object[] { originalImage.getName(), originalImage.getId() });
+				return null;
+			}
+
+			final long start = System.nanoTime();
+			final BufferedImage source = ImageIO.read(in);
+
+			if (source != null) {
+
+				final int sourceWidth  = source.getWidth();
+				final int sourceHeight = source.getHeight();
+
+				// Update image dimensions
+				final PropertyMap properties = new PropertyMap();
+				properties.put(Image.width, sourceWidth);
+				properties.put(Image.height, sourceHeight);
+				originalImage.setProperties(originalImage.getSecurityContext(), properties);
+
+				BufferedImage result    = null;
+
+				final int offsetX = reqOffsetX != null ? reqOffsetX : 0;
+				final int offsetY = reqOffsetY != null ? reqOffsetY : 0;
+
+				logger.debug("Offset and Size (x,y,w,h): {},{},{},{}", new Object[] { offsetX, offsetY, maxWidth, maxHeight });
+
+				result = source.getSubimage(offsetX, offsetY, maxWidth, maxHeight);
+
+				tn.setWidth(maxWidth);
+				tn.setHeight(maxHeight);
+
+				ImageIO.write(result, format.name(), baos);
+
+
+			} else {
+
+				logger.debug("Cropped image could not be created");
+
+				return null;
+
+			}
+
+			final long end  = System.nanoTime();
+			final long time = (end - start) / 1000000;
+
+			logger.debug("Cropped image created. Reading, scaling and writing took {} ms", time);
+
+			tn.setBytes(baos.toByteArray());
+
+			return tn;
+
+		} catch (Throwable t) {
+
+			logger.warn("Unable to create cropped image for image with ID {}.", originalImage.getUuid(), t);
+		}
+
+		return null;
+	}
+	
+	
 	/**
 	 * Let ImageIO read and write a JPEG image. This should normalize all types of weird
 	 * image sub formats, e.g. when extracting images from a flash file.
@@ -554,77 +633,85 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static class Thumbnail {
 
-		public static final String FORMAT = "png";
+		public static enum Format {
+			png, jpg, gif;
+		}
 
 		//~--- fields -------------------------------------------------
 
 		private byte[] bytes;
 		private int height;
 		private int width;
+		private Format format;
 
 		//~--- constructors -------------------------------------------
 
 		public Thumbnail() {}
 
 		public Thumbnail(final byte[] bytes) {
-
 			this.bytes = bytes;
-
 		}
 
 		public Thumbnail(final int width, final int height) {
-
 			this.width  = width;
 			this.height = height;
-
 		}
 
 		public Thumbnail(final byte[] bytes, final int width, final int height) {
-
 			this.bytes  = bytes;
 			this.width  = width;
 			this.height = height;
+		}
 
+		public Thumbnail(final byte[] bytes, final int width, final int height, final String formatString) {
+			this.bytes  = bytes;
+			this.width  = width;
+			this.height = height;
+			this.format = Format.valueOf(formatString);
 		}
 
 		//~--- get methods --------------------------------------------
 
 		public byte[] getBytes() {
-
 			return bytes;
-
 		}
 
 		public int getWidth() {
-
 			return width;
-
 		}
 
 		public int getHeight() {
-
 			return height;
-
+		}
+		
+		public Format getFormat() {
+			return format;
+		}
+		
+		public String getFormatAsString() {
+			return format.name();
 		}
 
 		//~--- set methods --------------------------------------------
 
 		public void setBytes(final byte[] bytes) {
-
 			this.bytes = bytes;
-
 		}
 
 		public void setWidth(final int width) {
-
 			this.width = width;
-
 		}
 
 		public void setHeight(final int height) {
-
 			this.height = height;
-
+		}
+		
+		public void setFormat(final Format format) {
+			this.format = format;
+		}
+		
+		public void setFormatByString(final String formatString) {
+			this.format = Format.valueOf(formatString);
 		}
 
 	}

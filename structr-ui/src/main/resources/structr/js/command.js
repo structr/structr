@@ -1286,5 +1286,25 @@ var Command = {
 			}
 		};
 		return sendObj(obj, callback);
+	},
+	/**
+	 * Send a CONVERT_IMAGE command to the server.
+	 *
+	 * Depending on the mode the server will either add/remove the file to/from
+	 * the users favorite files.
+	 */
+	createConvertedImage: function(originalImageId, width, height, format, offsetX, offsetY, callback) {
+		var obj  = {
+			command: 'CONVERT_IMAGE',
+			id: originalImageId,
+			data: {
+				format: format,
+				width: width,
+				height: height,
+				offsetX: offsetX,
+				offsetY: offsetY
+			}
+		};
+		return sendObj(obj, callback);
 	}
 };

@@ -124,8 +124,12 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 					customParsers.put(MediaType.application("pdf"), new PDFParser());
 					parser.setParsers(customParsers);
 
-					parser.parse(is, new BodyContentHandler(tokenizer), new Metadata());
+					final Metadata metadata = new Metadata();
+					
+					parser.parse(is, new BodyContentHandler(tokenizer), metadata);
 					parsingSuccessful = true;
+					
+					logger.info(String.join(", ", metadata.names()));
 				}
 
 				// only do indexing when parsing was successful

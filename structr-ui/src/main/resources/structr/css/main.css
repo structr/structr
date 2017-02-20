@@ -1190,7 +1190,7 @@ button img, button i {
 }
 
 .dialogBtn {
-	width: 300px;
+	/*width: 300px;*/
 	position: absolute;
 	right: 12px;
 	bottom: 12px;
@@ -2968,6 +2968,15 @@ td#cascading-options, td#propagation-options {
 	left: 64px;
 }
 
+#folder-contents .tile i.edit_icon {
+	left: 44px;
+}
+
+#folder-contents .tile img.tn {
+	max-width: 64px;
+	max-height: 48px;
+}
+
 #folder-contents .tile i.delete_icon, #folder-contents .tile i.remove_favorite_icon {
 	top: 4px;
 	right: 4px;
@@ -3739,6 +3748,47 @@ input#element-class {
 	vertical-align: top;
 	margin: 2px 12px 0 4px;
 	cursor: pointer;
+}
+
+/**
+ * Image Editor
+ */
+
+.image-editor-menubar {
+	background-color: #e0e0e0;
+	height: 48px;
+	padding: 2px;
+}
+
+.image-editor-menubar > div {
+	display: inline-block;
+	width: 48px;
+	text-align: center;
+}
+.image-editor-menubar i {
+	margin-right: 2px;
+	padding: 8px;
+	color: #333;
+	background-color: #d3d3d3;
+}
+
+.image-editor-menubar i:hover {
+	cursor: pointer;
+	color: #666;
+	background-color: #ddd;
+}
+
+img#image-editor {
+	max-width: 100%;
+}
+
+.cropper-line, .cropper-point {
+	background-color: #96f02b ! important;
+}
+
+.cropper-view-box {
+	outline: 1px solid #96f02b ! important;
+	outline-color: rgba(129,206,37,.75) ! important;
 }
 
 /**
