@@ -776,7 +776,7 @@ var _Elements = {
 				{
 					visible: (entity.type !== 'Content'),
 					name: 'Insert content element',
-					elements: (entity.type !== 'Page') ? ['content', 'template'] : ['template'],
+					elements: (entity.type !== 'Page') ? ['content', 'template'] : ['template']
 				},
 				{
 					visible: (entity.type !== 'Content'),
