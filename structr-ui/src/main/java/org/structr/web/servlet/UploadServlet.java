@@ -20,7 +20,6 @@ package org.structr.web.servlet;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -299,10 +298,6 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 								newFile.setProperties(securityContext, changedProperties);
 
-								if (!newFile.validatePath(securityContext, null)) {
-									newFile.setProperty(AbstractNode.name, PathHelper.getName(name).concat("_").concat(FileHelper.getDateString()));
-								}
-
 								uuid = newFile.getUuid();
 
 								tx.success();
@@ -348,19 +343,19 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 		} catch (Throwable t) {
 
 			final String content;
-			
+
 			if (t instanceof FrameworkException) {
-				
+
 				final FrameworkException fex = (FrameworkException) t;
 				logger.error(fex.toString());
 				content = errorPage(fex);
-				
+
 			} else {
-			
+
 				logger.error("Exception while processing upload request", t);
 				content = errorPage(t);
 			}
-			
+
 			try {
 				final ServletOutputStream out = response.getOutputStream();
 				IOUtils.write(content, out);

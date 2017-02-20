@@ -31,7 +31,6 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.schema.SchemaHelper;
-import org.structr.web.common.FileHelper;
 import org.structr.web.entity.FileBase;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -85,10 +84,6 @@ public class CreateCommand extends AbstractCommand {
 				changedProperties.put(File.contentType, contentType);
 				changedProperties.put(AbstractNode.name, name);
 				fileNode.setProperties(securityContext, changedProperties);
-
-				if (!fileNode.validatePath(securityContext, null)) {
-					fileNode.setProperty(AbstractNode.name, name.concat("_").concat(FileHelper.getDateString()));
-				}
 
 				getWebSocket().createFileUploadHandler(fileNode);
 
