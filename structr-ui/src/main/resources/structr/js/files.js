@@ -399,7 +399,8 @@ var _Files = {
 		};
 
 		$(fileList).each(function(i, fileObj) {
-			if (fileObj.name === file.name) {
+			// check if the original filename is at the start of the ws notification filename. otherwise auto-renamed files will not be uploaded
+			if (file.name.indexOf(fileObj.name) === 0) {
 				_Logger.log(_LogType.FILES, 'Uploading chunks for file ' + file.id);
 				worker.postMessage(fileObj);
 			}
@@ -698,9 +699,9 @@ var _Files = {
 				tile.append('<div id="id_' + d.id + '" data-structr_type="folder" class="node folder"><div class="file-type"><i class="fa ' + icon + '"></i></div>'
 						+ '<b title="' + d.name + '" class="name_">' + fitStringToWidth(d.name, 80) + '</b><span class="id">' + d.id + '</span></div>');
 			} else {
-				
+
 				var iconOrThumbnail = d.isImage && !d.isThumbnail && d.tnSmall ? '<img class="tn" src="' + d.tnSmall.path + '">' : '<i class="fa ' + icon + '"></i>';
-				
+
 				tile.append('<div id="id_' + d.id + '" data-structr_type="file" class="node file"><div class="file-type"><a href="' + d.path + '" target="_blank">' + iconOrThumbnail + '</a></div>'
 					+ '<b title="' +  (d.name ? d.name : '[unnamed]') + '" class="name_">' + fitStringToWidth(d.name ? d.name : '[unnamed]', 80) + '</b>'
 					+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + size + '</span></div></div></div><span class="id">' + d.id + '</span></div>');
@@ -971,22 +972,22 @@ var _Files = {
 		_Logger.log(_LogType.IMAGES, image);
 		dialogMeta.hide();
 		//el.append('Download: <a href="' + image.path + '">Path</a>&nbsp;|&nbsp;<a href="/' + image.id + '">UUID</a><br><br><div><img id="image-editor" src="/' + image.id + '"></div>');
-		
+
 		el.append('<div class="image-editor-menubar ">'
 			//+ '<div><i class="fa fa-save"></i><br>Save</div>'
 			+ '<div><i class="fa fa-crop"></i><br>Crop</div>'
 			//+ '<div><i class="fa fa-expand"></i><br>Resize</div>'
 			//+ '<div><i class="fa fa-rotate-left"></i><br>Rotate</div>'
 			+ '</div><div><img id="image-editor" src="/' + image.id + '"></div>')
-		
+
 		var x,y,w,h;
-		
+
 		$('.fa-crop', el).on('click', function() {
 
 			$('#image-editor').cropper({
 			  //aspectRatio: 16 / 9,
 			  crop: function(e) {
-				  
+
 				  x = e.x;
 				  y = e.y;
 				  w = e.width;
@@ -1002,13 +1003,13 @@ var _Files = {
 //				console.log(e.scaleY);
 			  }
 			});
-			
+
 			dialogBtn.append('<button class="overwrite">Overwrite original image</button><button class="create-new">Create new image</button>');
-			
+
 			$('.overwrite', dialogBtn).on('click', function() {
-				
+
 			});
-			
+
 			$('.create-new', dialogBtn).on('click', function() {
 				Command.createConvertedImage(image.id, Math.round(w), Math.round(h), 'png', Math.round(x), Math.round(y), function() {
 					console.log('Image converted');
@@ -1016,7 +1017,7 @@ var _Files = {
 			});
 
 		});
-		
+
 	},
 	appendEditFileIcon: function(parent, file) {
 
