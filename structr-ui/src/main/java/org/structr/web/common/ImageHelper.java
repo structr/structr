@@ -278,9 +278,11 @@ public abstract class ImageHelper extends FileHelper {
 						final int offsetX = reqOffsetX != null ? reqOffsetX : Math.abs(maxWidth - destWidth) / 2;
 						final int offsetY = reqOffsetY != null ? reqOffsetY : Math.abs(maxHeight - destHeight) / 2;
 
-						logger.debug("Offset and Size (x,y,w,h): {},{},{},{}", new Object[] { offsetX, offsetY, maxWidth, maxHeight });
+						final Integer[] dims = finalImageDimensions(offsetX, offsetY, maxWidth, maxHeight, sourceWidth, sourceHeight);
+						
+						logger.debug("Offset and Size (x,y,w,h): {},{},{},{}", new Object[] { dims[0], dims[1], dims[2], dims[3] });
 
-						result = resampled.getSubimage(offsetX, offsetY, maxWidth, maxHeight);
+						result = resampled.getSubimage(dims[0], dims[1], dims[2], dims[3]);
 
 						tn.setWidth(maxWidth);
 						tn.setHeight(maxHeight);
@@ -365,9 +367,11 @@ public abstract class ImageHelper extends FileHelper {
 				final int offsetX = reqOffsetX != null ? reqOffsetX : 0;
 				final int offsetY = reqOffsetY != null ? reqOffsetY : 0;
 
-				logger.debug("Offset and Size (x,y,w,h): {},{},{},{}", new Object[] { offsetX, offsetY, maxWidth, maxHeight });
+				final Integer[] dims = finalImageDimensions(offsetX, offsetY, maxWidth, maxHeight, sourceWidth, sourceHeight);
+				
+				logger.debug("Offset and Size (x,y,w,h): {},{},{},{}", new Object[] { dims[0], dims[1], dims[2], dims[3] });
 
-				result = source.getSubimage(offsetX, offsetY, maxWidth, maxHeight);
+				result = source.getSubimage(dims[0], dims[1], dims[2], dims[3]);
 
 				tn.setWidth(maxWidth);
 				tn.setHeight(maxHeight);
@@ -507,6 +511,24 @@ public abstract class ImageHelper extends FileHelper {
 
 	//~--- get methods ----------------------------------------------------
 
+	public static Integer[] finalImageDimensions(final int offsetX, final int offsetY, final int requestedWidth, final int requestedHeight, final int sourceWidth, final int sourceHeight) {
+		
+		final Integer[] finalDimensions = new Integer[4];
+		
+		final int overhangLeftX   = Math.min(offsetX, 0); // negative value
+		final int overhangRightX  = Math.max(offsetX + requestedWidth - sourceWidth, 0); // positive value
+		final int overhangTopY    = Math.min(offsetY, 0); // negative value
+		final int overhangBottomY = Math.max(offsetY + requestedHeight - sourceHeight, 0); // positive value
+		
+		finalDimensions[0] = Math.min(Math.max(offsetX, 0), sourceWidth);
+		finalDimensions[1] = Math.min(Math.max(offsetY, 0), sourceHeight);
+		finalDimensions[2] = requestedWidth + overhangLeftX - overhangRightX;
+		finalDimensions[3] = requestedHeight + overhangTopY - overhangBottomY;
+		
+		return finalDimensions;
+		
+	}
+	
 	public static String getBase64String(final File file) {
 
 		try {
