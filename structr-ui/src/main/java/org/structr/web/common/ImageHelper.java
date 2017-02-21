@@ -18,16 +18,26 @@
  */
 package org.structr.web.common;
 
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.MetadataException;
+import com.drew.metadata.exif.ExifIFD0Directory;
 import com.mortennobel.imagescaling.ResampleOp;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.logging.Level;
 import javax.imageio.ImageIO;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tika.metadata.Metadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PathHelper;
@@ -99,8 +109,6 @@ public abstract class ImageHelper extends FileHelper {
 		if (imageData != null && imageData.length > 0) {
 
 			setFileData(newImage, imageData, contentType);
-			ImageHelper.updateMetadata(newImage);
-
 		}
 
 		return newImage;
@@ -120,7 +128,6 @@ public abstract class ImageHelper extends FileHelper {
 		throws FrameworkException, IOException {
 
 		setFileData(img, imageData, contentType);
-
 	}
 
 	public static void findAndReconnectThumbnails(final Image originalImage) {
@@ -237,18 +244,18 @@ public abstract class ImageHelper extends FileHelper {
 		final Thumbnail tn               = new Thumbnail();
 
 		try (final InputStream in = originalImage.getInputStream()) {
+			
+			if (in == null || in.available() <= 0) {
 
-			if (in == null) {
-
-				logger.debug("InputStream of original image {} ({}) is null", new Object[] { originalImage.getName(), originalImage.getId() });
+				logger.debug("InputStream of original image {} ({}) is null or not available ({} bytes)", new Object[] { originalImage.getName(), originalImage.getId(), in != null ? in.available() : -1 });
 				return null;
 			}
-
+			
 			final long start = System.nanoTime();
-			final BufferedImage source = ImageIO.read(in);
+			BufferedImage source = getRotatedImage(originalImage);
 
 			if (source != null) {
-
+				
 				final int sourceWidth  = source.getWidth();
 				final int sourceHeight = source.getHeight();
 
@@ -342,17 +349,17 @@ public abstract class ImageHelper extends FileHelper {
 
 		try (final InputStream in = originalImage.getInputStream()) {
 
-			if (in == null) {
+			if (in == null || in.available() <= 0) {
 
-				logger.debug("InputStream of original image {} ({}) is null", new Object[] { originalImage.getName(), originalImage.getId() });
+				logger.debug("InputStream of original image {} ({}) is null or not available ({} bytes)", new Object[] { originalImage.getName(), originalImage.getId(), in != null ? in.available() : -1 });
 				return null;
 			}
 
 			final long start = System.nanoTime();
-			final BufferedImage source = ImageIO.read(in);
+			final BufferedImage source = getRotatedImage(originalImage);
 
 			if (source != null) {
-
+				
 				final int sourceWidth  = source.getWidth();
 				final int sourceHeight = source.getHeight();
 
@@ -404,6 +411,76 @@ public abstract class ImageHelper extends FileHelper {
 		return null;
 	}
 	
+	public static BufferedImage getRotatedImage(final FileBase originalImage) {
+
+		try {
+		
+			final InputStream in = originalImage.getInputStream();
+
+			final int           orientation = getOrientation(originalImage);
+			final BufferedImage source      = ImageIO.read(in);
+
+			if (source != null) {
+
+				final int sourceWidth  = source.getWidth();
+				final int sourceHeight = source.getHeight();
+
+				final AffineTransform affineTransform = new AffineTransform();
+
+				switch (orientation) {
+				case 1:
+					break;
+				case 2: // Flip X
+					affineTransform.scale(-1.0, 1.0);
+					affineTransform.translate(-sourceWidth, 0);
+					break;
+				case 3: // PI rotation
+					affineTransform.translate(sourceWidth, sourceHeight);
+					affineTransform.rotate(Math.PI);
+					break;
+				case 4: // Flip Y
+					affineTransform.scale(1.0, -1.0);
+					affineTransform.translate(0, -sourceHeight);
+					break;
+				case 5: // - PI/2 and Flip X
+					affineTransform.rotate(-Math.PI / 2);
+					affineTransform.scale(-1.0, 1.0);
+					break;
+				case 6: // -PI/2 and -width
+					affineTransform.translate(sourceHeight, 0);
+					affineTransform.rotate(Math.PI / 2);
+					break;
+				case 7: // PI/2 and Flip
+					affineTransform.scale(-1.0, 1.0);
+					affineTransform.translate(-sourceHeight, 0);
+					affineTransform.translate(0, sourceWidth);
+					affineTransform.rotate(3 * Math.PI / 2);
+					break;
+				case 8: // PI / 2
+					affineTransform.translate(0, sourceWidth);
+					affineTransform.rotate(3 * Math.PI / 2);
+					break;
+				default:
+					break;
+				}       
+
+				final AffineTransformOp op = new AffineTransformOp(affineTransform, AffineTransformOp.TYPE_BICUBIC);
+				BufferedImage destinationImage = op.createCompatibleDestImage(source, (source.getType() == BufferedImage.TYPE_BYTE_GRAY) ? source.getColorModel() : null );
+
+				final Graphics2D g = destinationImage.createGraphics();
+				g.setBackground(Color.WHITE);
+				g.clearRect(0, 0, destinationImage.getWidth(), destinationImage.getHeight());
+
+				destinationImage = op.filter(source, destinationImage);
+				
+				return destinationImage;
+			}
+		} catch (IOException ex) {
+			logger.warn("Unable to rotate image", ex);
+		}
+		
+		return null;
+	}
 	
 	/**
 	 * Let ImageIO read and write a JPEG image. This should normalize all types of weird
@@ -503,6 +580,7 @@ public abstract class ImageHelper extends FileHelper {
 
 			map.put(Image.width, sourceWidth);
 			map.put(Image.height, sourceHeight);
+			map.put(Image.orientation, ImageHelper.getOrientation(image));
 
 			image.setProperties(image.getSecurityContext(), map);
 			
@@ -611,7 +689,50 @@ public abstract class ImageHelper extends FileHelper {
 		return false;
 
 	}
+	
+	private static Metadata getMetadata(final FileBase originalImage) {
 
+		try {
+	
+			final InputStream in = originalImage.getInputStream();
+				
+			if (in != null && in.available() > 0) {
+
+				return ImageMetadataReader.readMetadata(in);
+			}
+
+		} catch (ImageProcessingException | IOException ex) {
+			logger.warn("Unable to get metadata information from image stream", ex);
+		}
+		
+		return null;
+	}
+
+	public static int getOrientation(final FileBase originalImage) {
+		
+		try {
+	
+			final Metadata metadata = getMetadata(originalImage);
+			final ExifIFD0Directory exifIFD0Directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
+
+			if (exifIFD0Directory != null) {
+				
+				final int orientation = exifIFD0Directory.getInt(ExifIFD0Directory.TAG_ORIENTATION);
+				
+				originalImage.setProperty(Image.orientation, orientation);
+				
+				return orientation;
+			}
+
+		} catch (MetadataException ex) {
+			logger.warn("Unable to get orientation information from EXIF metadata.", ex);
+		} catch (FrameworkException ex) {
+			logger.warn("Unable to store orientation information on image {} ({})", new Object[] { originalImage.getName(), originalImage.getId() });
+		}
+		
+		return 1;
+	}
+	
 	//~--- inner classes --------------------------------------------------
 
 	public static class Base64URIData {

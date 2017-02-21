@@ -2940,10 +2940,25 @@ td#cascading-options, td#propagation-options {
 	height: 100px;
 }
 
+#folder-contents .img-tile .node {
+	width: 300px;
+	height: 300px;
+}
+
 #folder-contents .tile .file-type {
 	margin-top: 6px;
 	margin-bottom: 2px;
 	height: 48px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+}
+
+#folder-contents .img-tile .file-type {
+	margin-top: 6px;
+	margin-bottom: 2px;
+	height: 296px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -2987,6 +3002,11 @@ td#cascading-options, td#propagation-options {
 #folder-contents .tile img.tn {
 	max-width: 64px;
 	max-height: 48px;
+}
+
+#folder-contents .img-tile img.tn {
+	max-width: 296px;
+	max-height: 296px;
 }
 
 #folder-contents .tile i.delete_icon, #folder-contents .tile i.remove_favorite_icon {
@@ -3221,7 +3241,7 @@ i.fa.ps {
 }
 
 #switches {
-	width: 100px;
+	width: 200px;
 	position: absolute;
 	top: 12px;
 	right: 12px;
@@ -3240,6 +3260,11 @@ i.fa.ps {
 }
 
 #switches .switch:nth-child(2) {
+	border-left: none;
+	border-radius: 0;
+}
+
+#switches .switch:nth-child(3) {
 	border-left: none;
 	border-top-left-radius: 0;
 	border-bottom-left-radius: 0;
@@ -3792,6 +3817,18 @@ input#element-class {
 
 img#image-editor {
 	max-width: 100%;
+}
+
+img#image-editor.orientation-3 {
+	transform: rotate(-90deg);
+}
+
+img#image-editor.orientation-6 {
+	transform: rotate(90deg);
+}
+
+img#image-editor.orientation-8 {
+	transform: rotate(180deg);
 }
 
 .cropper-line, .cropper-point {

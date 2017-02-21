@@ -122,9 +122,9 @@ public class SchemaAttributesInheritanceTest extends FrontendTest {
 				.expect()
 					.statusCode(200)
 
-					.body("result",	                   hasSize(39))
-					.body("result[38].jsonName",       equalTo("testFile"))
-					.body("result[38].declaringClass", equalTo("_FileHelper"))
+					.body("result",	                   hasSize(40))
+					.body("result[39].jsonName",       equalTo("testFile"))
+					.body("result[39].declaringClass", equalTo("_FileHelper"))
 
 				.when()
 					.get("/_schema/Image/ui");
@@ -307,11 +307,11 @@ public class SchemaAttributesInheritanceTest extends FrontendTest {
 				.expect()
 					.statusCode(200)
 
-					.body("result",	                   hasSize(40))
-					.body("result[38].jsonName",       equalTo("testSubFile"))
-					.body("result[38].declaringClass", equalTo("SubFile"))
-					.body("result[39].jsonName",       equalTo("testFile"))
-					.body("result[39].declaringClass", equalTo("_FileHelper"))
+					.body("result",	                   hasSize(41))
+					.body("result[39].jsonName",       equalTo("testSubFile"))
+					.body("result[39].declaringClass", equalTo("SubFile"))
+					.body("result[40].jsonName",       equalTo("testFile"))
+					.body("result[40].declaringClass", equalTo("_FileHelper"))
 
 				.when()
 					.get("/_schema/SubFile/ui");

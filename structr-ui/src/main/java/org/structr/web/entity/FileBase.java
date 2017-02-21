@@ -377,24 +377,24 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	@Override
 	public InputStream getInputStream() {
 
-		final String path = getRelativeFilePath();
+		final String relativeFilePath = getRelativeFilePath();
 
-		if (path != null) {
+		if (relativeFilePath != null) {
 
-			final String filePath = FileHelper.getFilePath(path);
+			final String filePath = FileHelper.getFilePath(relativeFilePath);
 
 			FileInputStream fis = null;
 			try {
 
 				java.io.File fileOnDisk = new java.io.File(filePath);
 
-				// Return file input stream and save checksum and size after closing
+				// Return file input stream
 				fis = new FileInputStream(fileOnDisk);
 
 				return fis;
 
 			} catch (FileNotFoundException e) {
-				logger.debug("File not found: {}", new Object[]{path});
+				logger.debug("File not found: {}", new Object[]{relativeFilePath});
 
 				if (fis != null) {
 
@@ -402,8 +402,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 						fis.close();
 
-					} catch (IOException ignore) {
-					}
+					} catch (IOException ignore) {}
 
 				}
 			}

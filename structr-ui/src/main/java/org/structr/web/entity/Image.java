@@ -68,6 +68,8 @@ public class Image extends org.structr.dynamic.File {
 
 	public static final Property<Integer> height                  = new IntProperty("height").cmis().indexed();
 	public static final Property<Integer> width                   = new IntProperty("width").cmis().indexed();
+	
+	public static final Property<Integer> orientation             = new IntProperty("orientation").cmis().indexed();
 
 	public static final Property<Image> tnSmall                   = new ThumbnailProperty("tnSmall").format("100, 100, false");
 	public static final Property<Image> tnMid                     = new ThumbnailProperty("tnMid").format("300, 300, false");
@@ -79,8 +81,8 @@ public class Image extends org.structr.dynamic.File {
 
 	public static final Property<Boolean> isCreatingThumb         = new BooleanProperty("isCreatingThumb").systemInternal();
 
-	public static final org.structr.common.View uiView            = new org.structr.common.View(Image.class, PropertyView.Ui, type, name, contentType, size, relativeFilePath, width, height, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage);
-	public static final org.structr.common.View publicView        = new org.structr.common.View(Image.class, PropertyView.Public, type, name, width, height, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage);
+	public static final org.structr.common.View uiView            = new org.structr.common.View(Image.class, PropertyView.Ui, type, name, contentType, size, relativeFilePath, width, height, orientation, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage);
+	public static final org.structr.common.View publicView        = new org.structr.common.View(Image.class, PropertyView.Public, type, name, width, height, orientation, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage);
 
 	@Override
 	public Object setProperty(final PropertyKey key, final Object value) throws FrameworkException {
