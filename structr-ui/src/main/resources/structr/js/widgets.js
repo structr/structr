@@ -273,8 +273,7 @@ var _Widgets = {
 			div.append('<i title="View widget ' + widget.name + '" class="view_icon button ' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" />');
 
 			$('.view_icon', div).on('click', function() {
-				Structr.dialog('Source code of ' + widget.name, function() {}, function() {});
-				_Widgets.editWidget(this, widget, dialogText, false);
+				_Widgets.editWidget(widget, false);
 			});
 
 		} else {
@@ -290,19 +289,13 @@ var _Widgets = {
 			div.append('<i title="Edit widget ' + widget.name + '" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
 			$('.edit_icon', div).on('click', function(e) {
 				e.stopPropagation();
-				Structr.dialog('Edit widget "' + widget.name + '"', function() {
-					_Logger.log(_LogType.WIDGETS, 'Widget source saved');
-				}, function() {
-					_Logger.log(_LogType.WIDGETS, 'cancelled');
-				});
-				if (!widget.id) {
-					return false;
-				}
+
 				Command.get(widget.id, function(entity) {
-					_Widgets.editWidget(this, entity, dialogText, true);
+					_Widgets.editWidget(entity, true);
 				});
 
 			});
+
 			_Entities.appendEditPropertiesIcon(div, widget);
 
 		}
@@ -310,31 +303,39 @@ var _Widgets = {
 		return div;
 
 	},
-	editWidget: function(button, entity, element, allowEdit) {
-		if (Structr.isButtonDisabled(button)) {
-			return;
-		}
-		var text = entity.source || '';
-		element.append('<div class="editor"></div>');
-		var contentBox = $('.editor', element);
-		editor = CodeMirror(contentBox.get(0), {
-			value: unescapeTags(text),
-			mode: 'text/html',
-			lineNumbers: true,
-			indentUnit: 4,
-			tabSize:4,
-			indentWithTabs: true
+	editWidget: function(entity, allowEdit) {
+
+		Structr.dialog((allowEdit ? 'Edit widget "' : 'Source code of "') + entity.name + '"', function() {}, function() {});
+
+		var id = "widget-dialog";
+		dialogHead.append('<div id="' + id + '_head"><div id="tabs"><ul id="widget-dialog-tabs"></ul></div></div>');
+		dialogText.append('<div id="' + id + '_content"></div>');
+
+		var mainTabs = $('#tabs', dialogHead);
+		var contentDiv = $('#' + id + '_content', dialogText);
+
+		var ul = mainTabs.children('ul');
+		ul.append('<li data-name="source">Source</li><li data-name="config">Configuration</li><li data-name="description">Description</li>');
+
+		var activateTab = function (tabName) {
+			$('.widget-tab-content', contentDiv).hide();
+			$('li', ul).removeClass('active');
+			$('#tabView-' + tabName, contentDiv).show();
+			$('li[data-name="' + tabName + '"]', ul).addClass('active');
+			Structr.resize();
+		};
+
+		$('#widget-dialog-tabs > li', mainTabs).on('click', function(e) {
+			activateTab($(this).data('name'));
 		});
 
-		Structr.resize();
+		contentDiv.append('<div class="tab widget-tab-content" id="tabView-source"></div><div class="tab widget-tab-content" id="tabView-config"></div><div class="tab widget-tab-content" id="tabView-description"></div>');
 
-		if (!allowEdit) {
+		var sourceEditor = _Widgets.appendWidgetPropertyEditor($('#tabView-source', contentDiv), (entity.source || ''), 'text/html', allowEdit);
+		var configEditor = _Widgets.appendWidgetPropertyEditor($('#tabView-config', contentDiv), (entity.configuration || ''), 'application/json', allowEdit);
+		var descriptionEditor = _Widgets.appendWidgetPropertyEditor($('#tabView-description', contentDiv), (entity.description || ''), 'text/html', allowEdit);
 
-			editor.setOption("readOnly", "nocursor");
-
-		} else {
-
-			editor.focus();
+		if (allowEdit) {
 
 			dialogBtn.append('<button id="editorSave" disabled="disabled" class="disabled">Save Widget</button>');
 			dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
@@ -342,94 +343,84 @@ var _Widgets = {
 			dialogSaveButton = $('#editorSave', dialogBtn);
 			saveAndClose = $('#saveAndClose', dialogBtn);
 
-			text1 = text;
+			var widgetChanged = function () {
+				var sourceChanged = ((entity.source || '') !== sourceEditor.getValue());
+				var configChanged = ((entity.configuration || '') !== configEditor.getValue());
+				var descriptionChanged = ((entity.description || '') !== descriptionEditor.getValue());
+				return (sourceChanged || configChanged || descriptionChanged);
+			};
 
-			editor.on('change', function(cm, change) {
-
-				text2 = editor.getValue();
-
-				if (text1 === text2) {
-					dialogSaveButton.prop("disabled", true).addClass('disabled');
-					saveAndClose.prop("disabled", true).addClass('disabled');
-				} else {
+			var updateButtonStatus = function () {
+				if (widgetChanged()) {
 					dialogSaveButton.prop("disabled", false).removeClass('disabled');
 					saveAndClose.prop("disabled", false).removeClass('disabled');
+				} else {
+					dialogSaveButton.prop("disabled", true).addClass('disabled');
+					saveAndClose.prop("disabled", true).addClass('disabled');
 				}
-			});
+			};
 
-			saveAndClose.on('click', function(e) {
-				e.stopPropagation();
-				dialogSaveButton.click();
-				setTimeout(function() {
-					dialogSaveButton.remove();
-					saveAndClose.remove();
-					dialogCancelButton.click();
-				}, 500);
+			sourceEditor.on('change', updateButtonStatus);
+			configEditor.on('change', updateButtonStatus);
+			descriptionEditor.on('change', updateButtonStatus);
+
+			var saveWidgetFunction = function (closeAfterSave) {
+				var widgetData = {
+					source: sourceEditor.getValue(),
+					configuration: configEditor.getValue(),
+					description: descriptionEditor.getValue()
+				};
+
+				try {
+					if (widgetData.configuration) {
+						JSON.parse(widgetData.configuration);
+					}
+
+					Command.setProperties(entity.id, widgetData, function() {
+						Structr.showAndHideInfoBoxMessage('Widget saved.', 'success', 2000, 200);
+
+						if (closeAfterSave) {
+							dialogCancelButton.click();
+						} else {
+							entity.source = widgetData.source;
+							entity.configuration = widgetData.configuration;
+							entity.description = widgetData.description;
+							updateButtonStatus();
+						}
+					});
+
+				} catch (e) {
+					activateTab('config');
+					alert('Configuration is not valid JSON - please review, otherwise the widget configuration dialog will not function correctly');
+				}
+
+			};
+
+			saveAndClose.on('click', function() {
+				saveWidgetFunction(true);
 			});
 
 			dialogSaveButton.on('click', function() {
-
-				var newText = editor.getValue();
-
-				if (text1 === newText) {
-					return;
-				}
-
-				var successCallback = function () {
-					Structr.showAndHideInfoBoxMessage('Widget source saved.', 'success', 2000, 200);
-					text1 = newText;
-					dialogSaveButton.prop("disabled", true).addClass('disabled');
-					saveAndClose.prop("disabled", true).addClass('disabled');
-				};
-
-				if (entity.srcUrl) {
-					var data = JSON.stringify({source: newText});
-					_Logger.log(_LogType.WIDGETS, 'update remote widget', entity.srcUrl, data);
-					$.ajax({
-						url: entity.srcUrl,
-						type: 'PUT',
-						dataType: 'json',
-						data: data,
-						contentType: 'application/json; charset=utf-8',
-						statusCode: {
-							200: function(data) {
-								successCallback();
-							},
-							400: function(data, status, xhr) {
-								console.log(data, status, xhr);
-							},
-							401: function(data, status, xhr) {
-								console.log(data, status, xhr);
-							},
-							403: function(data, status, xhr) {
-								console.log(data, status, xhr);
-							},
-							404: function(data, status, xhr) {
-								console.log(data, status, xhr);
-							},
-							422: function(data, status, xhr) {
-								console.log(data, status, xhr);
-							},
-							500: function(data, status, xhr) {
-								console.log(data, status, xhr);
-							}
-						}
-
-					});
-
-				} else {
-
-					Command.setProperty(entity.id, 'source', newText, false, function() {
-						successCallback();
-					});
-
-				}
-
+				saveWidgetFunction(false);
 			});
 
 		}
 
-		editor.id = entity.id;
+		activateTab('source');
+
+	},
+	appendWidgetPropertyEditor: function (container, value, mode, allowEdit) {
+
+		return CodeMirror(container.get(0), {
+			value: value,
+			mode: mode,
+			lineNumbers: true,
+			indentUnit: 4,
+			tabSize: 4,
+			indentWithTabs: true,
+			readOnly: (allowEdit ? false : "nocursor")
+		});
+
 	},
 	appendVisualExpandIcon: function(el, id, name, hasChildren, expand) {
 
