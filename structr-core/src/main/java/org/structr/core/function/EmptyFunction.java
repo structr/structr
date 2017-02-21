@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import java.util.Collection;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
@@ -28,7 +29,7 @@ import org.structr.schema.action.Function;
  */
 public class EmptyFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_EMPTY = "Usage: ${empty(string)}. Example: ${if(empty(possibleEmptyString), \"empty\", \"non-empty\")}";
+	public static final String ERROR_MESSAGE_EMPTY = "Usage: ${empty(string|array|collection)}. Example: ${if(empty(possibleEmptyString), \"empty\", \"non-empty\")}";
 
 	@Override
 	public String getName() {
@@ -38,16 +39,24 @@ public class EmptyFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		
+
 		if (sources == null) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
-		
+
 		if (sources.length == 0 || sources[0] == null || StringUtils.isEmpty(sources[0].toString())) {
 
 			return true;
+
+		} else if (sources[0] instanceof Collection) {
+
+			return ((Collection) sources[0]).isEmpty();
+
+		} else if (sources[0].getClass().isArray()) {
+
+			return (((Object[]) sources[0]).length == 0);
 
 		} else {
 
