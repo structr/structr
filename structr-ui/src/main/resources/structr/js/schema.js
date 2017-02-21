@@ -236,13 +236,13 @@ var _Schema = {
 						}
 					});
 
-					canvas.on('mousemove', function (e) {
+					canvas.on('mousemove', function(e) {
 						if (e.which === 1) {
 							_Schema.selectionDrag(e);
 						}
 					});
 
-					canvas.on('mouseup', function (e) {
+					canvas.on('mouseup', function(e) {
 						_Schema.selectionStop();
 					});
 
@@ -268,7 +268,7 @@ var _Schema = {
 		});
 
 	},
-	selectRel: function (rel) {
+	selectRel: function(rel) {
 		_Schema.clearSelection();
 
 		_Schema.selectedRel = rel;
@@ -292,14 +292,14 @@ var _Schema = {
 			_Schema.selectedRel = undefined;
 		}
 	},
-	selectionStart: function (e) {
+	selectionStart: function(e) {
 		canvas.addClass('noselect');
 		_Schema.selectionInProgress = true;
 		var schemaOffset = canvas.offset();
 		_Schema.mouseDownCoords.x = e.pageX - schemaOffset.left;
 		_Schema.mouseDownCoords.y = e.pageY - schemaOffset.top;
 	},
-	selectionDrag: function (e) {
+	selectionDrag: function(e) {
 		if (_Schema.selectionInProgress === true) {
 			var schemaOffset = canvas.offset();
 			_Schema.mouseUpCoords.x = e.pageX - schemaOffset.left;
@@ -307,7 +307,7 @@ var _Schema = {
 			_Schema.drawSelectElem();
 		}
 	},
-	selectionStop: function () {
+	selectionStop: function() {
 		_Schema.selectionInProgress = false;
 		if (_Schema.selectBox) {
 			_Schema.selectBox.remove();
@@ -319,7 +319,7 @@ var _Schema = {
 	updateSelectedNodes: function() {
 		_Schema.selectedNodes = [];
 		var canvasOffset = canvas.offset();
-		$('.node.selected', canvas).each(function (idx, el) {
+		$('.node.selected', canvas).each(function(idx, el) {
 			$el = $(el);
 			var elementOffset = $el.offset();
 			_Schema.selectedNodes.push({
@@ -332,7 +332,7 @@ var _Schema = {
 			});
 		});
 	},
-	drawSelectElem: function () {
+	drawSelectElem: function() {
 		if (!_Schema.selectBox || !_Schema.selectBox.length) {
 			canvas.append('<svg id="schema-graph-select-box"><path version="1.1" xmlns="http://www.w3.org/1999/xhtml" fill="none" stroke="#aaa" stroke-width="5"></path></svg>');
 			_Schema.selectBox = $('#schema-graph-select-box');
@@ -348,10 +348,10 @@ var _Schema = {
 		_Schema.selectBox.find('path').attr('d', 'm 0 0 h ' + cssRect.width + ' v ' + cssRect.height + ' h ' + (-cssRect.width) + ' v ' + (-cssRect.height) + ' z');
 		_Schema.selectNodesInRect(cssRect);
 	},
-	selectNodesInRect: function (selectionRect) {
+	selectNodesInRect: function(selectionRect) {
 		var selectedElements = [];
 
-		$('.node', canvas).each(function (idx, el) {
+		$('.node', canvas).each(function(idx, el) {
 			var $el = $(el);
 			if (_Schema.isElemInSelection($el, selectionRect)) {
 				selectedElements.push($el);
@@ -361,7 +361,7 @@ var _Schema = {
 			}
 		});
 	},
-	isElemInSelection: function ($el, selectionRect) {
+	isElemInSelection: function($el, selectionRect) {
 		var elPos = $el.offset();
 		elPos.top /= _Schema.zoomLevel;
 		elPos.left /= _Schema.zoomLevel;
@@ -382,7 +382,7 @@ var _Schema = {
 		inheritanceSlideout = $('#inheritance-tree');
 		inheritanceTree = $('#inheritance-tree-container');
 
-		var updateCanvasTranslation = function () {
+		var updateCanvasTranslation = function() {
 			var windowHeight = $(window).height();
 			$('.ver-scrollable').css({
 				height: (windowHeight - inheritanceTree.offset().top - 25) + 'px'
@@ -606,7 +606,7 @@ var _Schema = {
 
 						instance.draggable(id, {
 							containment: true,
-							start: function (ui) {
+							start: function(ui) {
 								var nodeOffset   = $(ui.el).offset();
 								var canvasOffset = canvas.offset();
 								_Schema.nodeDragStartpoint = {
@@ -614,7 +614,7 @@ var _Schema = {
 									left: (nodeOffset.left - canvasOffset.left)
 								};
 							},
-							drag: function (ui) {
+							drag: function(ui) {
 
 								var $element = $(ui.el);
 
@@ -632,7 +632,7 @@ var _Schema = {
 										left: (_Schema.nodeDragStartpoint.left - nodeOffset.left)
 									};
 
-									_Schema.selectedNodes.forEach(function (selectedNode) {
+									_Schema.selectedNodes.forEach(function(selectedNode) {
 										if (selectedNode.nodeId !== $element.attr('id')) {
 											$('#' + selectedNode.nodeId).offset({
 												top:  (selectedNode.pos.top  - posDelta.top  > canvasOffset.top ) ? (selectedNode.pos.top  - posDelta.top ) : canvasOffset.top,
@@ -802,7 +802,7 @@ var _Schema = {
 			headContentDiv.append(' extends <select class="extends-class-select"></select>');
 			headContentDiv.append(' <i id="edit-parent-class" class="icon edit ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" title="Edit parent class" />');
 
-			$("#edit-parent-class", headContentDiv).click(function () {
+			$("#edit-parent-class", headContentDiv).click(function() {
 
 				if ($(this).hasClass('disabled')) {
 					return;
@@ -810,12 +810,12 @@ var _Schema = {
 
 				var typeName = $('.extends-class-select', headContentDiv).val().split('.').pop();
 
-				Command.search(typeName, 'SchemaNode', function (results) {
+				Command.search(typeName, 'SchemaNode', function(results) {
 					if (results.length === 1) {
 
-						_Schema.openEditDialog(results[0].id, null, function () {
+						_Schema.openEditDialog(results[0].id, null, function() {
 
-							window.setTimeout(function () {
+							window.setTimeout(function() {
 
 								_Schema.openEditDialog(entity.id);
 
@@ -849,23 +849,23 @@ var _Schema = {
 		contentEl.append('<div id="' + id + '_content" class="schema-details"></div>');
 		var contentDiv = $('#' + id + '_content');
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Local Attributes', targetView === 'local', function (c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Local Attributes', targetView === 'local', function(c) {
 			_Schema.appendLocalProperties(c, entity);
 		});
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', targetView === 'views', function (c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', targetView === 'views', function(c) {
 			_Schema.appendViews(c, entity);
 		});
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', targetView === 'methods', function (c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', targetView === 'methods', function(c) {
 			_Schema.appendMethods(c, entity);
 		}, _Schema.getMethodsInitFunction());
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Remote Attributes', targetView === 'remote', function (c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Remote Attributes', targetView === 'remote', function(c) {
 			_Schema.appendRemoteProperties(c, entity);
 		});
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'builtin', 'Inherited Attributes', targetView === 'builtin', function (c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'builtin', 'Inherited Attributes', targetView === 'builtin', function(c) {
 			_Schema.appendBuiltinProperties(c, entity);
 		});
 
@@ -892,7 +892,7 @@ var _Schema = {
 
 			classNames.sort();
 
-			classNames.forEach( function (classname) {
+			classNames.forEach( function(classname) {
 				classSelect.append('<option ' + (entity.extendsClass === classname ? 'selected="selected"' : '') + ' value="' + classname + '">' + classname + '</option>');
 			});
 
@@ -901,7 +901,7 @@ var _Schema = {
 
 		classSelect.on('change', function() {
 			var obj = {extendsClass: $(this).val()};
-			_Schema.storeSchemaEntity('schema_properties', entity, JSON.stringify(obj), function () {
+			_Schema.storeSchemaEntity('schema_properties', entity, JSON.stringify(obj), function() {
 				// enable or disable the edit button
 				if (obj.extendsClass.indexOf('org.structr.dynamic.') === 0) {
 					$("#edit-parent-class").removeClass('disabled');
@@ -958,19 +958,19 @@ var _Schema = {
 		contentEl.append('<div id="' + id + '_content" class="schema-details"></div>');
 		var contentDiv = $('#' + id + '_content');
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Local Attributes', true, function (c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Local Attributes', true, function(c) {
 			_Schema.appendLocalProperties(c, entity);
 		});
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', false, function (c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', false, function(c) {
 			_Schema.appendViews(c, entity);
 		});
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', false, function (c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', false, function(c) {
 			_Schema.appendMethods(c, entity);
 		}, _Schema.getMethodsInitFunction());
 
-		var selectRelationshipOptions = function (rel) {
+		var selectRelationshipOptions = function(rel) {
 			$('#source-type-name').text(nodes[rel.sourceId].name);
 			$('#source-multiplicity-selector').val(rel.sourceMultiplicity || '*');
 			$('#relationship-type-name').val(rel.relationshipType === initialRelType ? '' : rel.relationshipType);
@@ -993,7 +993,7 @@ var _Schema = {
 		var saveButton = $('#save-rel-options-button').hide();
 		var cancelButton = $('#cancel-rel-options-button').hide();
 
-		editButton.on('click', function (e) {
+		editButton.on('click', function(e) {
 			e.preventDefault();
 
 			$('#relationship-options select, #relationship-options textarea, #relationship-options input').attr('disabled', false);
@@ -1004,7 +1004,7 @@ var _Schema = {
 			cancelButton.show();
 		});
 
-		saveButton.on('click', function (e) {
+		saveButton.on('click', function(e) {
 
 			var newData = {
 				sourceMultiplicity: $('#source-multiplicity-selector').val(),
@@ -1020,7 +1020,7 @@ var _Schema = {
 				propertyMask: $('#masked-properties').val()
 			};
 
-			Object.keys(newData).forEach(function (key) {
+			Object.keys(newData).forEach(function(key) {
 				if (key === 'relationshipType' && newData[key].trim() === '') {
 					newData[key] = initialRelType;
 				}
@@ -1034,13 +1034,13 @@ var _Schema = {
 			});
 
 			if (Object.keys(newData).length > 0) {
-				_Schema.editRelationship(entity, newData, function () {
-					Object.keys(newData).forEach(function (attribute) {
+				_Schema.editRelationship(entity, newData, function() {
+					Object.keys(newData).forEach(function(attribute) {
 						blinkGreen($('#relationship-options [data-attr-name=' + attribute + ']'));
 						entity[attribute] = newData[attribute];
 					});
-				}, function () {
-					Object.keys(newData).forEach(function (attribute) {
+				}, function() {
+					Object.keys(newData).forEach(function(attribute) {
 						blinkRed($('#relationship-options [data-attr-name=' + attribute + ']'));
 					});
 				});
@@ -1053,7 +1053,7 @@ var _Schema = {
 			cancelButton.hide();
 		});
 
-		cancelButton.on('click', function (e) {
+		cancelButton.on('click', function(e) {
 
 			selectRelationshipOptions(entity);
 			$('#relationship-options select, #relationship-options textarea, #relationship-options input').attr('disabled', true);
@@ -1153,16 +1153,16 @@ var _Schema = {
 		_Schema.initViewRow(tr, entity, view);
 
 	},
-	initViewRow: function (tr, entity, view) {
+	initViewRow: function(tr, entity, view) {
 
-		var activate = function () {
+		var activate = function() {
 			$('.save-action', tr).removeClass('hidden');
 			$('.cancel-action', tr).removeClass('hidden');
 			$('.remove-action', tr).addClass('hidden');
 			$('.reset-action', tr).addClass('hidden');
 		};
 
-		var deactivate = function () {
+		var deactivate = function() {
 			$('.save-action', tr).addClass('hidden');
 			$('.cancel-action', tr).addClass('hidden');
 			$('.remove-action', tr).removeClass('hidden');
@@ -1374,7 +1374,7 @@ var _Schema = {
 		});
 
 	},
-	appendEmptyMethod: function (actionsTable, entity) {
+	appendEmptyMethod: function(actionsTable, entity) {
 
 		actionsTable.append('<tr>'
 				+ '<td class="name-col"><div class="abs-pos-helper">'
@@ -1399,11 +1399,11 @@ var _Schema = {
 		_Schema.makeSchemaMethodRowResizable(resizeHandlerRow);
 
 		// Intitialize editor(s)
-		$('textarea.property-code', tr).each(function (i, txtarea) {
+		$('textarea.property-code', tr).each(function(i, txtarea) {
 			_Schema.initCodeMirrorForMethodCode(txtarea);
 		});
 
-		$('textarea.property-comment', tr).each(function (i, txtarea) {
+		$('textarea.property-comment', tr).each(function(i, txtarea) {
 			_Schema.initCodeMirrorForMethodComment(txtarea);
 		});
 
@@ -1418,7 +1418,7 @@ var _Schema = {
 		return tr;
 
 	},
-	getFirstFreeMethodName: function (prefix) {
+	getFirstFreeMethodName: function(prefix) {
 		var nextSuffix = 0;
 
 		$('#tabView-methods .property-name').each(function(i, el) {
@@ -1448,7 +1448,7 @@ var _Schema = {
 			$('.add-to-favorites', tr).addClass('hidden');
 		};
 
-		var deactivate = function () {
+		var deactivate = function() {
 			$('.save-action', tr).addClass('hidden');
 			$('.cancel-action', tr).addClass('hidden');
 			$('.remove-action', tr).removeClass('hidden');
@@ -1477,7 +1477,7 @@ var _Schema = {
 
 		$('.remove-action', tr).on('click', function() {
 			_Schema.confirmRemoveSchemaEntity(method, 'Delete method', function() {
-				_Schema.openEditDialog(method.schemaNode.id, 'methods', function () {
+				_Schema.openEditDialog(method.schemaNode.id, 'methods', function() {
 					$('li#tab-methods').click();
 				});
 			});
@@ -1490,7 +1490,7 @@ var _Schema = {
 		});
 
 	},
-	createOrSaveMethod: function (tr, entity, method) {
+	createOrSaveMethod: function(tr, entity, method) {
 
 		var obj = {
 			schemaNode: { id: entity.id },
@@ -1901,7 +1901,7 @@ var _Schema = {
 			Structr.dialog(title, function() {}, function() {});
 
 			_Schema.editCode(btn, entity, key, dialogText, function() {
-				window.setTimeout(function () {
+				window.setTimeout(function() {
 					callback();
 				}, 250);
 			});
@@ -2388,7 +2388,7 @@ var _Schema = {
 			statusCode: {
 				200: function(existingData) {
 
-					var changed = Object.keys(newData).some(function (key) {
+					var changed = Object.keys(newData).some(function(key) {
 						return (existingData.result[key] !== newData[key]);
 					});
 
@@ -2588,7 +2588,7 @@ var _Schema = {
 					types.push(selectedNode.name);
 				});
 
-				$('.label.rel-type', canvas).each(function (idx, el) {
+				$('.label.rel-type', canvas).each(function(idx, el) {
 					$el = $(el);
 
 					var sourceType = $el.children('div').attr('data-source-type');
@@ -2631,7 +2631,7 @@ var _Schema = {
 		$('#refresh-snapshots').on('click', refresh);
 
 	},
-	appendAdminToolsToContainer: function (container) {
+	appendAdminToolsToContainer: function(container) {
 		container.append('<table id="admin-tools-table"></table>');
 		var toolsTable = $('#admin-tools-table');
 		
@@ -2641,7 +2641,7 @@ var _Schema = {
 		$('#general-operations', toolsTable).append('<td><button id="rebuild-index"><i class="' + _Icons.getFullSpriteClass(_Icons.refresh_icon) + '" /> Rebuild Index</button></td>');
 		$('#general-operations', toolsTable).append('<td><button id="flush-caches"><i class="' + _Icons.getFullSpriteClass(_Icons.refresh_icon) + '" /> Flush Caches</button></td>');
 		$('#general-operations', toolsTable).append('<td><button id="clear-schema"><i class="' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /> Clear Schema</button></td>');
-		toolsTable.append('<tr><td><label for="rebuild-index">Rebuild database index<br>for all nodes and relationships</label></td><td><label for="flush-caches">Flushes internal caches<br>to refresh schema information</label></td><td><label for="clear-schema">Delete all schema nodes and<br>relationships in custom schema</label></td></tr>')
+		toolsTable.append('<tr><td><label for="rebuild-index">Rebuild database index<br>for all nodes and relationships</label></td><td><label for="flush-caches">Flushes internal caches<br>to refresh schema information</label></td><td><label for="clear-schema">Delete all schema nodes and<br>relationships in custom schema</label></td></tr>');
 		
 		toolsTable.append('<tr><td colspan="3"><h3>Nodes</h3></td></tr>');
 		toolsTable.append('<tr><td colspan="3" id="node-operations"><select id="node-type-selector"><option selected value="">-- Select Node Type --</option><option disabled>──────────</option><option value="allNodes">All Node Types</option><option disabled>──────────</option></select></td></tr>');
@@ -2942,7 +2942,7 @@ var _Schema = {
 			});
 		});
 	},
-	appendLayoutToolsToContainer: function (container) {
+	appendLayoutToolsToContainer: function(container) {
 
 		container.append('<h3>General Functions</h3>');
 		container.append('<p>Reset the currently stored positions so the automatic layouting algorithm can take effect.</p>');
@@ -2975,7 +2975,7 @@ var _Schema = {
 			}
 		});
 
-		$('#restore-layout').click(function () {
+		$('#restore-layout').click(function() {
 
 			var selectedLayout = layoutSelector.val();
 
@@ -3038,7 +3038,7 @@ var _Schema = {
 							if (loadedConfig[Object.keys(loadedConfig)[0]].position) {
 								// convert old file type
 								var schemaPositions = {};
-								Object.keys(loadedConfig).forEach(function (type) {
+								Object.keys(loadedConfig).forEach(function(type) {
 									schemaPositions[type] = loadedConfig[type].position;
 								});
 								loadedConfig = schemaPositions;
@@ -3061,7 +3061,7 @@ var _Schema = {
 			}
 		});
 
-		$('#download-layout').click(function () {
+		$('#download-layout').click(function() {
 
 			var selectedLayout = layoutSelector.val();
 
@@ -3102,7 +3102,7 @@ var _Schema = {
 			}
 		});
 
-		var updateLayoutSelector = function () {
+		var updateLayoutSelector = function() {
 
 			Command.layouts('list', '', null, function(result) {
 
@@ -3141,7 +3141,7 @@ var _Schema = {
 			showRelLabels: $('#schema-show-overlays').prop('checked')
 		};
 	},
-	openSchemaToolsDialog: function () {
+	openSchemaToolsDialog: function() {
 		Structr.dialog('Schema Tools', function() {}, function() {});
 
 		var id = "schema-tools";
@@ -3161,7 +3161,7 @@ var _Schema = {
 			ul.append('<li id="tab" data-name="schema-sync">Schema Sync</li>');
 		}
 
-		var activateTab = function (tabName) {
+		var activateTab = function(tabName) {
 			$('.tools-tab-content', contentDiv).hide();
 			$('li', ul).removeClass('active');
 			$('#tabView-' + tabName, contentDiv).show();
@@ -3194,7 +3194,7 @@ var _Schema = {
 		var activeTab = LSWrapper.getItem(_Schema.activeSchemaToolsSelectedTabLevel1Key) || 'admin';
 		activateTab(activeTab);
 	},
-	appendSyncOptionsToContainer: function (container) {
+	appendSyncOptionsToContainer: function(container) {
 
 		var id = "schema-tools-sync";
 		container.append('<div id="' + id + '_head"><div class="data-tabs level-two"><ul id="schema-tools-sync-tabs"></ul></div></div>');
@@ -3203,7 +3203,7 @@ var _Schema = {
 		ul.append('<li id="tab" data-name="to-remote">Local -> Remote</li>');
 		ul.append('<li id="tab" data-name="from-remote">Remote -> Local</li>');
 
-		var activateTab = function (tabName) {
+		var activateTab = function(tabName) {
 			$('.sync-tab-content', container).hide();
 			$('li', ul).removeClass('active');
 			$('#tabView-' + tabName, container).show();
@@ -3228,7 +3228,7 @@ var _Schema = {
 		activateTab(activeTab);
 
 	},
-	appendSyncToRemoteOptionsToContainer: function (container) {
+	appendSyncToRemoteOptionsToContainer: function(container) {
 
 		var pushConf = JSON.parse(LSWrapper.getItem(pushConfigKey)) || {};
 
@@ -3385,13 +3385,13 @@ var _Schema = {
 		instance.setZoom(zoom);
 		_Schema.resize();
 	},
-	getSchemaCSSTransform: function () {
+	getSchemaCSSTransform: function() {
 	 return _Schema.getSchemaCSSScale() + ' ' + _Schema.getSchemaCSSTranslate();
 	},
-	getSchemaCSSScale: function () {
+	getSchemaCSSScale: function() {
 		return 'scale(' + _Schema.zoomLevel + ')';
 	},
-	getSchemaCSSTranslate: function () {
+	getSchemaCSSTranslate: function() {
 		return 'translate(' + ((inheritanceSlideout.position().left + inheritanceSlideout.outerWidth()) / _Schema.zoomLevel) + 'px)';
 	},
 	sort: function(collection, sortKey, secondarySortKey) {
@@ -3418,12 +3418,12 @@ var _Schema = {
 			$('.rel-type, .multiplicity').hide();
 		}
 	},
-	loadClassTree: function (schemaNodes) {
+	loadClassTree: function(schemaNodes) {
 		var classTree = {};
 		var tmpHierarchy = {};
 		var classnameToId = {};
 
-		var insertClassInClassTree = function (classObj, tree) {
+		var insertClassInClassTree = function(classObj, tree) {
 			var classes = Object.keys(tree);
 
 			var position = classes.indexOf(classObj.parent);
@@ -3440,7 +3440,7 @@ var _Schema = {
 
 			} else {
 				var done = false;
-				classes.forEach(function (className) {
+				classes.forEach(function(className) {
 					if (!done) {
 						done = insertClassInClassTree(classObj, tree[className]);
 					}
@@ -3450,18 +3450,18 @@ var _Schema = {
 
 		};
 
-		var actionsAvailableForClass = function (className) {
+		var actionsAvailableForClass = function(className) {
 			return (["AbstractNode", "ContentContainer", "ContentItem"].indexOf(className) === -1);
 		};
 
-		var printClassTree = function ($elem, classTree) {
+		var printClassTree = function($elem, classTree) {
 			var classes = Object.keys(classTree).sort();
 
 			if (classes.length > 0) {
 
 				var $newUl = $('<ul></ul>').appendTo($elem);
 
-				classes.forEach(function (classname) {
+				classes.forEach(function(classname) {
 
 					var icons = (actionsAvailableForClass(classname) ? '<b class="delete_icon icon delete ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /><b class="edit_icon icon edit ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />' : '');
 					var classId = (actionsAvailableForClass(classname) ? ' data-id="' + classnameToId[classname] + '"' : '');
@@ -3475,7 +3475,7 @@ var _Schema = {
 
 		};
 
-		schemaNodes.forEach(function (schemaNode) {
+		schemaNodes.forEach(function(schemaNode) {
 
 			if (!schemaNode.isBuiltinType) {
 
@@ -3516,7 +3516,7 @@ var _Schema = {
 				}
 			},
 			plugins: ["search"]
-		}).on('changed.jstree', function (e, data) {
+		}).on('changed.jstree', function(e, data) {
 			var $node = $('#id_' + data.node.data.id);
 			if ($node.length > 0) {
 				$('.selected').removeClass('selected');
@@ -3525,7 +3525,7 @@ var _Schema = {
 			}
 		});
 
-		$('#search-classes').keyup(function (e) {
+		$('#search-classes').keyup(function(e) {
 			if (e.which === 27) {
 				$('#search-classes').val('');
 				inheritanceTree.jstree(true).clear_search();
@@ -3540,14 +3540,14 @@ var _Schema = {
 		_Schema.enableEditFunctionsInClassTree();
 	},
 	enableEditFunctionsInClassTree: function() {
-		$('.edit_icon', inheritanceTree).off('click').on('click', function (e) {
+		$('.edit_icon', inheritanceTree).off('click').on('click', function(e) {
 			var nodeId = $(this).closest('li').data('id');
 			if (nodeId) {
 				_Schema.openEditDialog(nodeId);
 			}
 		});
 
-		$('.delete_icon', inheritanceTree).off('click').on('click', function (e) {
+		$('.delete_icon', inheritanceTree).off('click').on('click', function(e) {
 			var nodeId = $(this).closest('li').data('id');
 			if (nodeId) {
 				Structr.confirmation(
@@ -3560,24 +3560,24 @@ var _Schema = {
 			}
 		});
 	},
-	getMethodsInitFunction: function () {
-		return Structr.guardExecution(function () {
+	getMethodsInitFunction: function() {
+		return Structr.guardExecution(function() {
 
-			$('#tabView-methods textarea.property-code').each(function (i, el) {
+			$('#tabView-methods textarea.property-code').each(function(i, el) {
 				_Schema.initCodeMirrorForMethodCode(el);
 			});
 
-			$('#tabView-methods textarea.property-comment').each(function (i, el) {
+			$('#tabView-methods textarea.property-comment').each(function(i, el) {
 				_Schema.initCodeMirrorForMethodComment(el);
 			});
 
 			_Schema.restoreSchemaMethodsRowHeights();
 		});
 	},
-	senseCodeMirrorMode: function (contentText) {
+	senseCodeMirrorMode: function(contentText) {
 		return (contentText.substring(0, 1) === "{") ? 'javascript' : 'none';
 	},
-	initCodeMirrorForMethodCode: function (el) {
+	initCodeMirrorForMethodCode: function(el) {
 		var cm = CodeMirror.fromTextArea(el, {
 			lineNumbers: true,
 			mode: _Schema.senseCodeMirrorMode($(el).val()),
@@ -3599,7 +3599,7 @@ var _Schema = {
 			$(cm.getTextArea()).trigger('change');
 		});
 	},
-	initCodeMirrorForMethodComment: function (el) {
+	initCodeMirrorForMethodComment: function(el) {
 		var cm = CodeMirror.fromTextArea(el, {
 			theme: "no-lang",
 			lineNumbers: true,
@@ -3616,7 +3616,7 @@ var _Schema = {
 			$(cm.getTextArea()).trigger('change');
 		});
 	},
-	makeSchemaMethodRowResizable: function (tr) {
+	makeSchemaMethodRowResizable: function(tr) {
 		var initialRowHeight;
 		var dragBeginPageY;
 		var row;
@@ -3655,7 +3655,7 @@ var _Schema = {
 		});
 
 	},
-	setSchemaMethodRowHeight: function ($tr, height) {
+	setSchemaMethodRowHeight: function($tr, height) {
 
 		if (typeof height === 'number') {
 			var tds = $tr.find('td');
@@ -3664,7 +3664,7 @@ var _Schema = {
 			tds.height( height );
 			cms.height( height );
 
-			cms.each(function (idx, cm) {
+			cms.each(function(idx, cm) {
 				cm.CodeMirror.refresh();
 			});
 		} else {
@@ -3672,12 +3672,12 @@ var _Schema = {
 		}
 
 	},
-	restoreSchemaMethodsRowHeights: function () {
+	restoreSchemaMethodsRowHeights: function() {
 
 		var schemaMethodsHeights = LSWrapper.getItem(_Schema.schemaMethodsHeightsKey);
 		if (schemaMethodsHeights) {
 
-			$('#tabView-methods tbody tr').each(function (i, el) {
+			$('#tabView-methods tbody tr').each(function(i, el) {
 				var typeName   = $(el).data('typeName');
 				var methodName = $(el).data('methodName');
 
