@@ -22,7 +22,7 @@ var lastMenuEntry, menuBlocked;
 var dmp;
 var editorCursor, ignoreKeyUp;
 var dialog, isMax = false;
-var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, saveAndClose, loginButton, loginBox, dialogCloseButton;
+var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogHead, dialogCancelButton, dialogSaveButton, saveAndClose, loginButton, loginBox, dialogCloseButton;
 var dialogId;
 var pagerType = {}, page = {}, pageSize = {}, sortKey = {}, sortOrder = {}, pagerFilters = {};
 var dialogMaximizedKey = 'structrDialogMaximized_' + port;
@@ -57,8 +57,8 @@ $(function() {
 	dialogMeta         = $('.dialogMeta', dialogBox);
 	dialogCancelButton = $('.closeButton', dialogBox);
 	dialogSaveButton   = $('.save', dialogBox);
-	loginButton        = $('#loginButton');
 
+	loginButton = $('#loginButton');
 	loginButton.on('click', function(e) {
 		e.stopPropagation();
 		var username = $('#usernameField').val();
@@ -824,6 +824,16 @@ var Structr = {
 		var l = parseInt((w - dw) / 2);
 		var t = parseInt((h - dh) / 2);
 
+		var horizontalOffset = 98;
+
+		// needs to be calculated like this because the elements in the dialogHead (tabs) are floated and thus the .height() method returns 0
+		var headerHeight = dialogText.position().top - dialogHead.position().top;
+
+		$('#dialogBox .dialogTextWrapper').css({
+			width: (dw - 28) + 'px',
+			height: (dh - horizontalOffset - headerHeight) + 'px'
+		});
+
 		$('.blockPage').css({
 			width: dw + 'px',
 			height: dh + 'px',
@@ -831,36 +841,27 @@ var Structr = {
 			left: l + 'px'
 		});
 
-		var horizontalOffset = 98;
+		var codeMirror = $('#dialogBox .CodeMirror');
+		if (codeMirror.length) {
 
-		var dialogBoxTextWrapper = $('#dialogBox .dialogTextWrapper');
-		if (dialogBoxTextWrapper && dialogBoxTextWrapper.length) {
+			var cmPosition = codeMirror.position();
+			var bottomOffset = 24;
 
-			var bw = (dw - 28) + 'px';
+			var cmHeight = (dh - horizontalOffset - headerHeight - bottomOffset - cmPosition.top) + 'px';
 
-			var dialogHeaderHeight = dialogBoxTextWrapper.offset().top - $('#dialogBox .dialogHeaderWrapper').offset().top;
-			var bh = (dh - horizontalOffset - dialogHeaderHeight) + 'px';
+			$('.CodeMirror:not(.cm-schema-methods)').css({
+				height: cmHeight
+			});
 
-			dialogBoxTextWrapper.css({
-				width: bw,
-				height: bh
+			$('.CodeMirror:not(.cm-schema-methods) .CodeMirror-gutters').css({
+				height: cmHeight
+			});
+
+			$('.CodeMirror:not(.cm-schema-methods)').each(function(i, el) {
+				el.CodeMirror.refresh();
 			});
 
 		}
-
-		var tabsHeight = $('.files-tabs ul').height();
-
-		$('.CodeMirror:not(.cm-schema-methods)').css({
-			height: (dh - horizontalOffset - 24 - tabsHeight) + 'px'
-		});
-
-		$('.CodeMirror:not(.cm-schema-methods) .CodeMirror-gutters').css({
-			height: (dh - horizontalOffset - 24 - tabsHeight) + 'px'
-		});
-
-		$('.CodeMirror:not(.cm-schema-methods)').each(function(i, el) {
-			el.CodeMirror.refresh();
-		});
 
 		$('.fit-to-height').css({
 			height: h - 74 + 'px'
@@ -876,7 +877,9 @@ var Structr = {
 		} else {
 
 			// Calculate dimensions of dialog
-			Structr.setSize($(window).width(), $(window).height(), Math.min(900, $(window).width() - 24), Math.min(600, $(window).height() - 24));
+			if ($('.blockPage').length) {
+				Structr.setSize($(window).width(), $(window).height(), Math.min(900, $(window).width() - 24), Math.min(600, $(window).height() - 24));
+			}
 
 			$('#minimizeDialog').hide();
 			$('#maximizeDialog').show().off('click').on('click', function() {
