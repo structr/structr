@@ -690,7 +690,7 @@ public class SimpleTest extends StructrUiTest {
 				if (i % 1000 == 0) {
 					logger.info("Making connection #{}", i);
 				}
-				doc = Jsoup.connect(baseUri + pageName).timeout(30*1000).get();
+				doc = Jsoup.connect(baseUri + pageName).timeout(0).get();
 			}
 
 			final long max = 1000;
@@ -700,7 +700,7 @@ public class SimpleTest extends StructrUiTest {
 			long t0 = System.currentTimeMillis();
 
 			for (long i = 0; i < max; i++) {
-				doc = Jsoup.connect(baseUri).timeout(30*1000).get();
+				doc = Jsoup.connect(baseUri).timeout(0).get();
 			}
 
 			long t1 = System.currentTimeMillis();
