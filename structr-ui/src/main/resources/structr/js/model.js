@@ -199,7 +199,7 @@ var StructrModel = {
 		if (!id) return;
 
 		var node = Structr.node(id);
-		if (node) {
+		if (node && !node.hasClass("schema")) {
 			node.remove();
 		}
 
@@ -753,6 +753,9 @@ StructrResourceAccess.prototype.append = function() {
 	if (Structr.isModuleActive(_Security)) {
 		_ResourceAccessGrants.appendResourceAccessElement(this);
 	}
+};
+
+StructrResourceAccess.prototype.remove = function() {
 };
 
 /**************************************
