@@ -2573,10 +2573,19 @@ input.bitmask {
 	background-position: 16px 16px;
 }
 
-#info-area .message button.confirm {
-	position: absolute;
-	right: 2px;
-	bottom: 2px;
+#info-area .message h3 {
+	margin-top: 0;
+}
+
+#info-area .message button {
+	float: right;
+}
+
+#info-area b.uniqueCount {
+	margin: 0;
+	text-align: inherit;
+	display: inline;
+	font-size: inherit;
 }
 
 #structr-loading-spinner {

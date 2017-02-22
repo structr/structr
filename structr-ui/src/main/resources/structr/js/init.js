@@ -1636,7 +1636,10 @@ function MessageBuilder () {
 		text: 'Default message',
 		delayDuration: 3000,
 		fadeDuration: 1000,
-		confirmButtonText: 'Confirm'
+		confirmButtonText: 'Confirm',
+		classNames: ['message'],
+		uniqueClass: undefined,
+		uniqueCount: 1
 	};
 
 	this.requiresConfirmation = function (confirmButtonText) {
@@ -1690,7 +1693,7 @@ function MessageBuilder () {
 	};
 
 	this.className = function (className) {
-		this.params.className = className;
+		this.params.classNames.push(className);
 		return this;
 	};
 
@@ -1700,46 +1703,65 @@ function MessageBuilder () {
 	};
 
 	this.show = function () {
-		this.params.msgId = 'message_' + (Structr.msgCount++);
 
-		$('#info-area').append(
-			'<div class="message' + (this.params.className ? ' ' + this.params.className : '') +  '" id="' + this.params.msgId + '">' +
-				(this.params.title ? '<h2>' + this.params.title + '</h2>' : '') +
-				this.params.text +
-				(this.params.requiresConfirmation ? '<button class="confirm">' + this.params.confirmButtonText + '</button>' : '') +
-				(this.params.specialInteractionButton ? '<button class="special">' + this.params.specialInteractionButton.text + '</button>' : '') +
-			'</div>'
-		);
+		var uniqueMessageAlreadyPresented = false;
 
-		var msgBuilder = this;
-
-		if (this.params.requiresConfirmation === true) {
-
-			$('#' + this.params.msgId).find('button.confirm').click(function () {
-				msgBuilder.hide();
-			});
-
-		} else {
-
-			window.setTimeout(function () {
-				msgBuilder.hide();
-			}, this.params.delayDuration);
-
-			$('#' + this.params.msgId).click(function () {
-				msgBuilder.hide();
-			});
+		if (this.params.uniqueClass) {
+			// find existing one
+			var existingMsgBuilder = $('#info-area .message.' + this.params.uniqueClass).data('msgbuilder');
+			if (existingMsgBuilder) {
+				uniqueMessageAlreadyPresented = true;
+				existingMsgBuilder.incrementUniqueCount();
+			}
 
 		}
 
-		if (this.params.specialInteractionButton) {
 
-			$('#' + this.params.msgId).find('button.special').click(function () {
-				if (msgBuilder.params.specialInteractionButton) {
-					msgBuilder.params.specialInteractionButton.action();
+		if (uniqueMessageAlreadyPresented === false) {
 
+			this.params.msgId = 'message_' + (Structr.msgCount++);
+
+			$('#info-area').append(
+				'<div class="' + this.params.classNames.join(' ') +  '" id="' + this.params.msgId + '">' +
+					(this.params.title ? '<h3>' + this.params.title + this.getUniqueCountElement() + '</h3>' : this.getUniqueCountElement()) +
+					this.params.text +
+					(this.params.requiresConfirmation ? '<button class="confirm">' + this.params.confirmButtonText + '</button>' : '') +
+					(this.params.specialInteractionButton ? '<button class="special">' + this.params.specialInteractionButton.text + '</button>' : '') +
+				'</div>'
+			);
+
+			var msgBuilder = this;
+			$('#' + this.params.msgId).data('msgbuilder', msgBuilder);
+
+			if (this.params.requiresConfirmation === true) {
+
+				$('#' + this.params.msgId).find('button.confirm').click(function () {
 					msgBuilder.hide();
-				}
-			});
+				});
+
+			} else {
+
+				window.setTimeout(function () {
+					msgBuilder.hide();
+				}, this.params.delayDuration);
+
+				$('#' + this.params.msgId).click(function () {
+					msgBuilder.hide();
+				});
+
+			}
+
+			if (this.params.specialInteractionButton) {
+
+				$('#' + this.params.msgId).find('button.special').click(function () {
+					if (msgBuilder.params.specialInteractionButton) {
+						msgBuilder.params.specialInteractionButton.action();
+
+						msgBuilder.hide();
+					}
+				});
+
+			}
 
 		}
 	};
@@ -1757,18 +1779,30 @@ function MessageBuilder () {
 	};
 
 	this.specialInteractionButton = function (buttonText, callback, confirmButtonText) {
-		this.params.requiresConfirmation = true;
 
 		this.params.specialInteractionButton = {
 			text: buttonText,
 			action: callback
 		};
 
-		if (confirmButtonText) {
-			this.params.confirmButtonText = confirmButtonText;
-		}
+		return this.requiresConfirmation(confirmButtonText);
+	};
 
+	this.uniqueClass = function (className) {
+		if (className) {
+			this.params.uniqueClass = className;
+			return this.className(className);
+		}
 		return this;
+	};
+
+	this.getUniqueCountElement = function () {
+		return ' <b class="uniqueCount">' + ((this.params.uniqueCount > 1) ? '(' + this.params.uniqueCount + ') ' : '') + '</b> ';
+	};
+
+	this.incrementUniqueCount = function () {
+		this.params.uniqueCount++;
+		$('#' + this.params.msgId).find('b.uniqueCount').replaceWith(this.getUniqueCountElement());
 	};
 
 	return this;

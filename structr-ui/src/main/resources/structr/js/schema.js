@@ -70,7 +70,9 @@ var _Schema = {
 		+ '<option value="Join">Join</option>'
 		+ '<option value="Cypher">Cypher</option>'
 		+ '<option value="Thumbnail">Thumbnail</option>',
-	reload: function() {
+	currentNodeDialogId:null,
+	ignoreNextSchemaRecompileNotification: false,
+	reload: function(callback) {
 		if (reload) {
 			return;
 		}
@@ -79,7 +81,7 @@ var _Schema = {
 		reload = true;
 		//_Schema.storePositions();	/* CHM: don't store positions on every reload, let automatic positioning do its job.. */
 		schemaContainer.empty();
-		_Schema.init({x: x, y: y});
+		_Schema.init({x: x, y: y}, callback);
 		_Schema.resize();
 
 	},
@@ -99,7 +101,7 @@ var _Schema = {
 		LSWrapper.removeItem(_Schema.schemaPositionsKey);
 		_Schema.reload();
 	},
-	init: function(scrollPosition) {
+	init: function(scrollPosition, callback) {
 
 		_Schema.schemaLoading = false;
 		_Schema.schemaLoaded = false;
@@ -207,17 +209,11 @@ var _Schema = {
 					$('.node').css({zIndex: ++maxZ});
 
 					instance.bind('connection', function(info) {
+						_Schema.ignoreNextSchemaRecompileNotification = true;
 						_Schema.connect(Structr.getIdFromPrefixIdString(info.sourceId, 'id_'), Structr.getIdFromPrefixIdString(info.targetId, 'id_'));
 					});
 					instance.bind('connectionDetached', function(info) {
-						Structr.confirmation('<h3>Delete schema relationship?</h3>',
-								function() {
-									$.unblockUI({
-										fadeOut: 25
-									});
-									_Schema.detach(info.connection.scope);
-									_Schema.reload();
-								});
+						_Schema.askDeleteRelationship(info.connection.scope);
 						_Schema.reload();
 					});
 					reload = false;
@@ -256,6 +252,10 @@ var _Schema = {
 
 					if (scrollPosition) {
 						window.scrollTo(scrollPosition.x, scrollPosition.y);
+					}
+
+					if (typeof callback === "function") {
+						callback();
 					}
 				});
 
@@ -417,6 +417,50 @@ var _Schema = {
 		_Schema.loadNodes(function() {
 			_Schema.loadRels(callback);
 		});
+
+	},
+	processSchemaRecompileNotification: function () {
+
+		if (Structr.isModuleActive(_Schema)) {
+
+			if (_Schema.ignoreNextSchemaRecompileNotification === false) {
+
+				new MessageBuilder()
+						.title("Schema recompiled")
+						.info("Another user made changes to the schema. Do you want to reload to see the changes?")
+						.specialInteractionButton("Reload", _Schema.reloadSchemaAfterRecompileNotification, "Ignore")
+						.uniqueClass('schema')
+						.show();
+
+			} else {
+
+				_Schema.ignoreNextSchemaRecompileNotification = false;
+
+			}
+
+		}
+
+	},
+	reloadSchemaAfterRecompileNotification: function () {
+
+		if (_Schema.currentNodeDialogId !== null) {
+
+			// we break the current dialog the hard way (because if we 'click' the close button we might re-open the previous dialog
+			$.unblockUI({
+				fadeOut: 25
+			});
+
+			var currentView = LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + _Schema.currentNodeDialogId);
+
+			_Schema.reload(function() {
+				_Schema.openEditDialog(_Schema.currentNodeDialogId, currentView);
+			});
+
+		} else {
+
+			_Schema.reload();
+
+		}
 
 	},
 	isSchemaLoaded: function() {
@@ -668,6 +712,8 @@ var _Schema = {
 	},
 	openEditDialog: function(id, targetView, callback) {
 
+		_Schema.currentNodeDialogId = id;
+
 		dialogMeta.hide();
 
 		Command.get(id, function(entity) {
@@ -683,6 +729,8 @@ var _Schema = {
 			Structr.dialog(title, function() {
 				dialogMeta.show();
 			}, function() {
+				_Schema.currentNodeDialogId = null;
+
 				if (callback) {
 					callback();
 				}
@@ -769,13 +817,7 @@ var _Schema = {
 					});
 
 					$('#rel_' + res.id + ' .remove').on('click', function() {
-						Structr.confirmation('<h3>Delete schema relationship \'' + res.relationshipType + '\'?</h3>', function() {
-							$.unblockUI({
-								fadeOut: 25
-							});
-							_Schema.detach(res.id);
-							_Schema.reload();
-						});
+						_Schema.askDeleteRelationship(res.id, res.relationshipType);
 						return false;
 					});
 				});
@@ -2192,6 +2234,9 @@ var _Schema = {
 	removeSchemaEntity: function(entity, onSuccess, onError) {
 
 		if (entity && entity.id) {
+
+			_Schema.ignoreNextSchemaRecompileNotification = true;
+
 			$.ajax({
 				url: rootUrl + entity.id,
 				type: 'DELETE',
@@ -2206,6 +2251,7 @@ var _Schema = {
 					},
 					422: function(data) {
 						//Structr.errorFromResponse(data.responseJSON);
+						_Schema.ignoreNextSchemaRecompileNotification = false;
 						if (onError) {
 							onError(data);
 						}
@@ -2215,6 +2261,8 @@ var _Schema = {
 		}
 	},
 	storeSchemaEntity: function(resource, entity, data, onSuccess, onError, onNoop) {
+
+		_Schema.ignoreNextSchemaRecompileNotification = true;
 
 		var obj = JSON.parse(data);
 
@@ -2254,6 +2302,7 @@ var _Schema = {
 										}
 									},
 									422: function(data) {
+										_Schema.ignoreNextSchemaRecompileNotification = false;
 										if (onError) {
 											onError(data);
 										}
@@ -2288,6 +2337,7 @@ var _Schema = {
 						}
 					},
 					422: function(data) {
+						_Schema.ignoreNextSchemaRecompileNotification = false;
 						if (onError) {
 							onError(data);
 						}
@@ -2297,6 +2347,7 @@ var _Schema = {
 		}
 	},
 	createNode: function(type) {
+		_Schema.ignoreNextSchemaRecompileNotification = true;
 		var url = rootUrl + 'schema_nodes';
 		$.ajax({
 			url: url,
@@ -2309,6 +2360,7 @@ var _Schema = {
 					_Schema.reload();
 				},
 				422: function(data) {
+					_Schema.ignoreNextSchemaRecompileNotification = false;
 					Structr.errorFromResponse(data.responseJSON);
 				}
 			}
@@ -2316,6 +2368,7 @@ var _Schema = {
 		});
 	},
 	deleteNode: function(id) {
+		_Schema.ignoreNextSchemaRecompileNotification = true;
 		var url = rootUrl + 'schema_nodes/' + id;
 		$.ajax({
 			url: url,
@@ -2327,6 +2380,7 @@ var _Schema = {
 					_Schema.reload();
 				},
 				422: function(data) {
+					_Schema.ignoreNextSchemaRecompileNotification = false;
 					Structr.errorFromResponse(data.responseJSON);
 				}
 			}
@@ -2334,6 +2388,7 @@ var _Schema = {
 		});
 	},
 	createRelationshipDefinition: function(sourceId, targetId, relationshipType) {
+		_Schema.ignoreNextSchemaRecompileNotification = true;
 		var data = {
 			sourceId: sourceId,
 			targetId: targetId,
@@ -2354,12 +2409,14 @@ var _Schema = {
 					_Schema.reload();
 				},
 				422: function(data) {
+					_Schema.ignoreNextSchemaRecompileNotification = false;
 					Structr.errorFromResponse(data.responseJSON);
 				}
 			}
 		});
 	},
 	removeRelationshipDefinition: function(id) {
+		_Schema.ignoreNextSchemaRecompileNotification = true;
 		$.ajax({
 			url: rootUrl + 'schema_relationship_nodes/' + id,
 			type: 'DELETE',
@@ -2370,6 +2427,7 @@ var _Schema = {
 					_Schema.reload();
 				},
 				422: function(data) {
+					_Schema.ignoreNextSchemaRecompileNotification = false;
 					Structr.errorFromResponse(data.responseJSON);
 				}
 			}
@@ -2394,6 +2452,8 @@ var _Schema = {
 
 					if (changed) {
 
+						_Schema.ignoreNextSchemaRecompileNotification = true;
+
 						$.ajax({
 							url: rootUrl + 'schema_relationship_nodes/' + entity.id,
 							type: 'PUT',
@@ -2408,6 +2468,7 @@ var _Schema = {
 									_Schema.reload();
 								},
 								422: function(data) {
+									_Schema.ignoreNextSchemaRecompileNotification = false;
 									if (onError) {
 										onError(data);
 									}
@@ -2425,6 +2486,18 @@ var _Schema = {
 	},
 	connect: function(sourceId, targetId) {
 		_Schema.createRelationshipDefinition(sourceId, targetId, initialRelType);
+	},
+	askDeleteRelationship: function (resId, name) {
+		name = name ? ' \'' + name + '\'' : '';
+		Structr.confirmation('<h3>Delete schema relationship' + name + '?</h3>',
+				function() {
+					$.unblockUI({
+						fadeOut: 25
+					});
+					_Schema.ignoreNextSchemaRecompileNotification = true;
+					_Schema.detach(resId);
+					_Schema.reload();
+				});
 	},
 	detach: function(relationshipId) {
 		_Schema.removeRelationshipDefinition(relationshipId);
@@ -2634,15 +2707,15 @@ var _Schema = {
 	appendAdminToolsToContainer: function(container) {
 		container.append('<table id="admin-tools-table"></table>');
 		var toolsTable = $('#admin-tools-table');
-		
+
 		toolsTable.append('<tr><td colspan="3"><h3>General</h3></td></tr>');
-		
+
 		toolsTable.append('<tr id="general-operations"></tr>');
 		$('#general-operations', toolsTable).append('<td><button id="rebuild-index"><i class="' + _Icons.getFullSpriteClass(_Icons.refresh_icon) + '" /> Rebuild Index</button></td>');
 		$('#general-operations', toolsTable).append('<td><button id="flush-caches"><i class="' + _Icons.getFullSpriteClass(_Icons.refresh_icon) + '" /> Flush Caches</button></td>');
 		$('#general-operations', toolsTable).append('<td><button id="clear-schema"><i class="' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /> Clear Schema</button></td>');
 		toolsTable.append('<tr><td><label for="rebuild-index">Rebuild database index<br>for all nodes and relationships</label></td><td><label for="flush-caches">Flushes internal caches<br>to refresh schema information</label></td><td><label for="clear-schema">Delete all schema nodes and<br>relationships in custom schema</label></td></tr>');
-		
+
 		toolsTable.append('<tr><td colspan="3"><h3>Nodes</h3></td></tr>');
 		toolsTable.append('<tr><td colspan="3" id="node-operations"><select id="node-type-selector"><option selected value="">-- Select Node Type --</option><option disabled>──────────</option><option value="allNodes">All Node Types</option><option disabled>──────────</option></select></td></tr>');
 		$('#node-operations', toolsTable).append('<button id="reindex-nodes">Re-Index Nodes</button>');
@@ -2701,7 +2774,7 @@ var _Schema = {
 				}
 			});
 		});
-		
+
 		$('#clear-schema').on('click', function(e) {
 			Structr.confirmation('<h3>Delete schema?</h3><p>This will remove all dynamic schema information, but not your other data.</p><p>&nbsp;</p>', function() {
 				$.unblockUI({
@@ -2712,6 +2785,7 @@ var _Schema = {
 				var text = btn.text();
 				Structr.updateButtonWithAjaxLoaderAndText(btn, text);
 				e.preventDefault();
+				_Schema.ignoreNextSchemaRecompileNotification = true;
 				$.ajax({
 					url: rootUrl + 'schema_relationship_nodes',
 					type: 'DELETE',
@@ -2720,6 +2794,7 @@ var _Schema = {
 					statusCode: {
 						200: function() {
 							_Schema.reload();
+							_Schema.ignoreNextSchemaRecompileNotification = true;
 							$.ajax({
 								url: rootUrl + 'schema_nodes',
 								type: 'DELETE',

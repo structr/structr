@@ -847,9 +847,9 @@ var _Favorites = new (function () {
 		scrollInfoKey = 'structrScrollInfoKey_' + port;
 
 		_Logger.log(_LogType.FAVORITES, 'initFavorites');
-		
+
 	};
-	
+
 	this.refreshFavorites = function() {
 
 		fastRemoveAllChildren($('#structr-favorites')[0]);
@@ -857,7 +857,7 @@ var _Favorites = new (function () {
 
 		_Favorites.container = $('#favs-tabs');
 		_Favorites.menu      = $('#favs-tabs > ul');
-		
+
 		$.ajax({
 			url: rootUrl + 'me/favorites/fav',
 			statusCode: {
@@ -885,7 +885,7 @@ var _Favorites = new (function () {
 							);
 
 							var lineWrapping = LSWrapper.getItem(lineWrappingKey);
-							
+
 							var editor = CodeMirror($('#editor-' + id).get(0), {
 								value: favorite.favoriteContent || '',
 								mode: favorite.favoriteContentType || 'text/plain',
@@ -907,7 +907,7 @@ var _Favorites = new (function () {
 								LSWrapper.setItem(scrollInfoKey + '_' + id, JSON.stringify(scrollInfo));
 							});
 							editor.id = id;
-							
+
 							var buttons = $('#buttons-' + id);
 
 							buttons.children('#saveFile').remove();
@@ -975,11 +975,11 @@ var _Favorites = new (function () {
 									return false;
 								});
 							}
-							
+
 							$('#tab-' + id).on('click', function(e) {
 								_Favorites.selectTab(id);
 							});
-							
+
 						});
 
 					} else {
@@ -988,7 +988,7 @@ var _Favorites = new (function () {
 					}
 
 					var activeTab = LSWrapper.getItem(_Favorites.favoritesTabKey);
-					
+
 					if (!activeTab || !($('#tab-' + activeTab)).length) {
 						activeTab = Structr.getIdFromPrefixIdString($('li:first-child', _Favorites.menu).prop('id'), 'tab-');
 					}
@@ -996,7 +996,7 @@ var _Favorites = new (function () {
 					_Entities.activateTabs(activeTab, '#favs-tabs', '#content-tab-' + activeTab, _Favorites.favoritesTabKey);
 
 					$('#tab-' + activeTab).click();
-					
+
 				}
 			}
 		});
@@ -1050,7 +1050,7 @@ var _Favorites = new (function () {
 		$('.fav-editor').height(h-100);
 		$('.fav-editor .CodeMirror').height(h-100);
 		$('.fav-editor .CodeMirror-code').height(h-100);
-		
+
 		var el = $('#editor-' + id).find('.CodeMirror');
 		var e = el.get(0);
 		if (e && e.CodeMirror) {
@@ -1058,7 +1058,7 @@ var _Favorites = new (function () {
 			window.setTimeout(function() {
 				e.CodeMirror.refresh();
 			}, 10);
-			
+
 			e.CodeMirror.focus();
 
 			dialogSaveButton = $('#buttons-' + id + ' button#saveFile');

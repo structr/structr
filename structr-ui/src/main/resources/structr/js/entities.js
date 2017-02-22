@@ -437,6 +437,7 @@ var _Entities = {
 		var tab = $('#tab-' + name + '');
 		if (active) {
 			tab.addClass('active');
+			LSWrapper.setItem(_Entities.activeEditTabPrefix  + '_' + entity.id, name);
 		}
 		tab.on('click', function(e) {
 			e.stopPropagation();
