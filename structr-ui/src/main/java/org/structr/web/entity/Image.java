@@ -273,7 +273,14 @@ public class Image extends org.structr.dynamic.File {
 
 			newChecksum = currentChecksum;
 		}
-
+		
+		// Return self if SVG image
+		final String _contentType = getProperty(Image.contentType);
+		if (_contentType != null && (_contentType.startsWith("image/svg") || (_contentType.startsWith("image/") && _contentType.endsWith("icon")))) {
+			
+			return this;
+		}
+		
 		if (origWidth != null && origHeight != null && thumbnailRelationships != null) {
 
 			for (final Thumbnails r : thumbnailRelationships) {
