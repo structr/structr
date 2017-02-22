@@ -2610,36 +2610,10 @@ var _Schema = {
 						});
 
 						$('#restore-' + i).on('click', function() {
-
-							Command.snapshots("restore", snapshot, null, function(data) {
-
-								var status = data[0].status;
-
-								if (status === 'success') {
-									window.location.reload();
-								} else {
-
-									if (dialogBox.is(':visible')) {
-										Structr.showAndHideInfoBoxMessage(status, 'error', 2000, 200);
-									}
-								}
-							});
+							_Schema.performSnapshotAction('restore', snapshot);
 						});
 						$('#add-' + i).on('click', function() {
-
-							Command.snapshots('add', snapshot, null, function(data) {
-
-								var status = data[0].status;
-
-								if (status === 'success') {
-									window.location.reload();
-								} else {
-
-									if (dialogBox.is(':visible')) {
-										Structr.showAndHideInfoBoxMessage(status, 'error', 2000, 200);
-									}
-								}
-							});
+							_Schema.performSnapshotAction('add', snapshot);
 						});
 						$('#delete-' + i).on('click', function() {
 							Command.snapshots('delete', snapshot, null, refresh);
@@ -2702,6 +2676,26 @@ var _Schema = {
 		// update button
 		container.append('<p style="text-align: right;"><button id="refresh-snapshots">Refresh</button></p>');
 		$('#refresh-snapshots').on('click', refresh);
+
+	},
+	performSnapshotAction: function (action, snapshot) {
+
+		_Schema.ignoreNextSchemaRecompileNotification = true;
+
+		Command.snapshots(action, snapshot, null, function(data) {
+
+			var status = data[0].status;
+
+			if (status === 'success') {
+				_Schema.reload();
+			} else {
+				_Schema.ignoreNextSchemaRecompileNotification = false;
+
+				if (dialogBox.is(':visible')) {
+					Structr.showAndHideInfoBoxMessage(status, 'error', 2000, 200);
+				}
+			}
+		});
 
 	},
 	appendAdminToolsToContainer: function(container) {
