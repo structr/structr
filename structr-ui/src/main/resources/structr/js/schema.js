@@ -2775,34 +2775,10 @@ var _Schema = {
 					fadeOut: 25
 				});
 
-				var btn = $(this);
-				var text = btn.text();
-				Structr.updateButtonWithAjaxLoaderAndText(btn, text);
-				e.preventDefault();
 				_Schema.ignoreNextSchemaRecompileNotification = true;
-				$.ajax({
-					url: rootUrl + 'schema_relationship_nodes',
-					type: 'DELETE',
-					data: {},
-					contentType: 'application/json',
-					statusCode: {
-						200: function() {
-							_Schema.reload();
-							_Schema.ignoreNextSchemaRecompileNotification = true;
-							$.ajax({
-								url: rootUrl + 'schema_nodes',
-								type: 'DELETE',
-								data: {},
-								contentType: 'application/json',
-								statusCode: {
-									200: function() {
-										_Schema.reload();
-									}
-								}
-							});
 
-						}
-					}
+				Command.snapshots("purge", undefined, undefined, function () {
+					_Schema.reload();
 				});
 			});
 		});

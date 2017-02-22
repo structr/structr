@@ -74,7 +74,7 @@ public class StructrSchema {
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchemaDefinition.initializeFromDatabase(app, types);
-			
+
 			tx.success();
 
 			return schema;
@@ -111,6 +111,18 @@ public class StructrSchema {
 		final Map<String, Object> rawData    = gson.fromJson(reader, Map.class);
 
 		return StructrSchemaDefinition.initializeFromSource(rawData);
+	}
+
+	/**
+	 * Creates a minimal JsonSchema object without any classes
+	 *
+	 * @return
+	 *
+	 * @throws InvalidSchemaException
+	 * @throws URISyntaxException
+	 */
+	public static JsonSchema createEmptySchema() throws InvalidSchemaException, URISyntaxException {
+		return StructrSchema.createFromSource(JsonSchema.EMPTY_SCHEMA);
 	}
 
 	/**
@@ -151,13 +163,13 @@ public class StructrSchema {
 			for (final SchemaView schemaView : app.nodeQuery(SchemaView.class).getAsList()) {
 				app.delete(schemaView);
 			}
-			
+
 			newSchema.createDatabaseSchema(app);
 
 			tx.success();
 		}
 	}
-	
+
 	/**
 	 * Extend the current Structr schema by the elements contained in the given new schema.
 	 *

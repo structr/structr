@@ -91,6 +91,8 @@ public interface JsonSchema {
 
 	public static final String FORMAT_DATE_TIME            = "date-time";
 
+	public static final String EMPTY_SCHEMA                = "{\"definitions\":{}}";
+
 	public URI getId();
 
 	public String getTitle();

@@ -94,8 +94,12 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 					deleteSnapshot(name);
 					break;
 
+				case "purge":
+					purgeLocalSchema();
+					break;
+
 				default:
-					throw new FrameworkException(422, "Invalid mode supplied, valid values are export, restore, add or delete.");
+					throw new FrameworkException(422, "Invalid mode supplied, valid values are export, restore, add, delete or delete.");
 			}
 
 		} else {
@@ -162,6 +166,31 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 		} catch (IOException | URISyntaxException ioex) {
 			logger.warn("", ioex);
 		}
+	}
+
+	private void purgeLocalSchema() throws FrameworkException {
+
+		final App app = StructrApp.getInstance();
+
+		// isolate write output
+		try (final Tx tx = app.tx()) {
+
+			try {
+
+				final JsonSchema schema = StructrSchema.createEmptySchema();
+				StructrSchema.replaceDatabaseSchema(app, schema);
+
+			} catch (InvalidSchemaException iex) {
+
+				throw new FrameworkException(422, iex.getMessage());
+			}
+
+			tx.success();
+
+		} catch (URISyntaxException use) {
+			logger.warn("", use);
+		}
+
 	}
 
 	private void addSnapshot(final String fileName) throws FrameworkException {
