@@ -41,7 +41,9 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.DiagnosticErrorToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.Services;
+import org.structr.core.StructrTransactionListener;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.module.JarConfigurationProvider;
 
 /**
@@ -140,6 +142,11 @@ public class NodeExtender {
 					}
 
 					logger.info("Successfully compiled {} dynamic entities: {}", new Object[] { jfiles.size(), jfiles.stream().map(f -> f.getName().replaceFirst("/", "")).collect(Collectors.joining(", ")) });
+
+					for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
+						listener.simpleBroadcast();
+					}
+
 				}
 
 			}

@@ -35,4 +35,6 @@ public interface StructrTransactionListener {
 
 	public void beforeCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents, final TransactionSource source) throws FrameworkException;
 	public void afterCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents, final TransactionSource source);
+
+	public void simpleBroadcast();
 }

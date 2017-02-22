@@ -46,6 +46,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 /**
@@ -198,13 +199,20 @@ public class WebsocketController implements StructrTransactionListener {
 			try {
 				final WebSocketMessage message = getMessageForEvent(securityContext, event);
 				if (message != null) {
-					
+
 					broadcast(message);
 				}
 
 			} catch (FrameworkException ignore) {
 			}
 		}
+	}
+
+	@Override
+	public void simpleBroadcast () {
+
+		broadcast(MessageBuilder.forName("SCHEMA_COMPILED").data("success", true).build());
+
 	}
 
 	// ----- private methods -----
@@ -268,7 +276,7 @@ public class WebsocketController implements StructrTransactionListener {
 					message.setNodeData("parentId", relationship.getSourceNodeId());
 					message.setId(relationship.getTargetNodeId());
 					message.setCode(200);
-					
+
 					return message;
 				}
 
@@ -320,7 +328,7 @@ public class WebsocketController implements StructrTransactionListener {
 				final WebSocketMessage message = createMessage("DELETE", callbackId);
 				message.setId(modificationEvent.getRemovedProperties().get(GraphObject.id));
 				message.setCode(200);
-				
+
 				return message;
 			}
 

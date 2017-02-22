@@ -324,6 +324,9 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 		}
 	}
 
+	@Override
+	public void simpleBroadcast() {}
+
 	// ----- private methods -----
 	private void initializeSyncHosts(final String minimum) throws FrameworkException {
 

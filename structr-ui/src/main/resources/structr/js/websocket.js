@@ -476,6 +476,10 @@ function wsConnect() {
 
 				StructrModel.callCallback(data.callback, result);
 
+			} else if (command === 'SCHEMA_COMPILED') {
+
+				_Schema.processSchemaRecompileNotification();
+
 			} else {
 				console.log('Received unknown command: ' + command);
 
