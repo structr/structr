@@ -86,17 +86,30 @@ public class AuthHelper {
 		String errorMsg = null;
 		Principal principal  = null;
 
-		// FIXME: this might be slow, because the the property file needs to be read each time
 		final String superuserName = StructrApp.getConfigurationValue(Services.SUPERUSER_USERNAME);
 		final String superUserPwd  = StructrApp.getConfigurationValue(Services.SUPERUSER_PASSWORD);
 
+		if (StringUtils.isEmpty(value)) {
+			
+			logger.info("Empty value for key {}", key);
+			errorMsg = STANDARD_ERROR_MSG;
+		
+		}
+		
+		if (StringUtils.isEmpty(password)) {
+
+			logger.info("Empty password");
+			errorMsg = STANDARD_ERROR_MSG;
+		
+		}
+		
 		if (superuserName.equals(value) && superUserPwd.equals(password)) {
 
 			// logger.info("############# Authenticated as superadmin! ############");
 
 			principal = new SuperUser();
 
-		} else {
+		} else if (errorMsg == null) { // no error so far
 
 			try {
 

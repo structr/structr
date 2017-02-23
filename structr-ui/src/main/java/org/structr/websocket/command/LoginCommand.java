@@ -68,7 +68,7 @@ public class LoginCommand extends AbstractCommand {
 					final String sessionId = webSocketData.getSessionId();
 					if (sessionId == null) {
 
-						logger.info("Could not login {}: No sessionId found", new Object[]{username, password});
+						logger.info("Unable to login {}: No sessionId found", new Object[]{ username, password });
 						getWebSocket().send(MessageBuilder.status().code(403).build(), true);
 						
 						return;
@@ -97,7 +97,7 @@ public class LoginCommand extends AbstractCommand {
 
 			} catch (AuthenticationException e) {
 
-				logger.info("Could not login {} with {}", new Object[]{username, password});
+				logger.info("Unable to login {}, probably wrong password", username);
 				getWebSocket().send(MessageBuilder.status().code(403).build(), true);
 
 			} catch (FrameworkException fex) {
