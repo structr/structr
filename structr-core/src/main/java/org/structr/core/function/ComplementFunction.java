@@ -18,7 +18,7 @@
  */
 package org.structr.core.function;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import org.structr.common.error.FrameworkException;
@@ -53,11 +53,13 @@ public class ComplementFunction extends Function<Object, Object> {
 
 				if (source instanceof List) {
 
-					resultingList.removeAll((Collection)source);
+					resultingList.removeAll((List)source);
 
 				} else if (source != null) {
 
-					resultingList.remove(source);
+					final List mockList = new ArrayList();
+					mockList.add(source);
+					resultingList.removeAll(mockList);
 
 				}
 
