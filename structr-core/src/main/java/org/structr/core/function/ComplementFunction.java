@@ -19,8 +19,8 @@
 package org.structr.core.function;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedList;
+import java.util.List;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -40,23 +40,24 @@ public class ComplementFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		final Set sourceSet = new HashSet();
+		// it should be a list so we can use it in a repeater!
+		final LinkedList resultingList = new LinkedList();
 
-		if (sources[0] instanceof Collection) {
+		if (sources[0] instanceof List) {
 
-			sourceSet.addAll((Collection)sources[0]);
+			resultingList.addAll((List)sources[0]);
 
 			for (int cnt = 1; cnt < sources.length; cnt++) {
 
 				final Object source = sources[cnt];
 
-				if (source instanceof Collection) {
+				if (source instanceof List) {
 
-					sourceSet.removeAll((Collection)source);
+					resultingList.removeAll((Collection)source);
 
 				} else if (source != null) {
 
-					sourceSet.remove(source);
+					resultingList.remove(source);
 
 				}
 
@@ -69,7 +70,7 @@ public class ComplementFunction extends Function<Object, Object> {
 
 		}
 
-		return sourceSet;
+		return resultingList;
 	}
 
 
