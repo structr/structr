@@ -64,7 +64,7 @@ public class FilterExpression extends Expression {
 	@Override
 	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
 
-		if (listExpression == null) {
+		if (listExpression == null || filterExpression == null) {
 			return ERROR_MESSAGE_FILTER;
 		}
 
