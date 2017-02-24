@@ -89,6 +89,8 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 						} else if (obj instanceof Collection) {
 
+							final List<Object> nonGraphObjectResult = new LinkedList<>();
+							
 							for (final Object item : ((Collection)obj)) {
 
 								if (item instanceof GraphObject) {
@@ -97,8 +99,17 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 								} else {
 
-									logger.warn("Unable to handle Cypher query result object of type {}, ignoring.", item.getClass().getName());
+									nonGraphObjectResult.add(item);
 								}
+							}
+							
+							if (!nonGraphObjectResult.isEmpty()) {
+								
+								// Wrap non-graph-objects in simple list
+								final GraphObjectMap graphObject = new GraphObjectMap();
+								
+								graphObject.setProperty(new GenericProperty(key), nonGraphObjectResult);
+								resultList.add(graphObject);
 							}
 
 						} else {
