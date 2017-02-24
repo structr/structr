@@ -1548,8 +1548,9 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			result = Scripting.replaceVariables(renderContext, this, value);
 
 		} catch (Throwable t) {
-			logger.warn("Scripting error in {}: {}:\n{}\n{}", new Object[] { key.dbName(), getUuid(), t, value });
-			t.printStackTrace();
+
+			logger.warn("Scripting error in {} {}:\n{}", key.dbName(), getUuid(), value, t);
+
 		}
 
 		return result;
