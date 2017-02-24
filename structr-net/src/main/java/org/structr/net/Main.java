@@ -32,6 +32,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.net.common.KeyHelper;
 import org.structr.net.peer.Peer;
 import org.structr.net.protocol.BroadcastMessage;
@@ -45,6 +47,8 @@ import org.structr.net.repository.DefaultRepository;
  * broadcasted (default is 255.255.255.255).
  */
 public class Main {
+
+	private static final Logger logger = LoggerFactory.getLogger(Main.class.getName());
 
 	public static void main(final String[] args) {
 
@@ -121,9 +125,9 @@ public class Main {
 				keyPair = KeyHelper.fromBytes("RSA", privateKey, publicKey);
 
 			} catch (IOException ioex) {
-				ioex.printStackTrace();
+				logger.warn("", ioex);
 			}
-			
+
 		} else {
 
 			keyPair = KeyHelper.getOrCreateKeyPair("RSA", 2048);
@@ -249,7 +253,7 @@ public class Main {
 					}
 
 				} catch (Throwable t) {
-					t.printStackTrace();
+					logger.warn("", t);
 				}
 
 

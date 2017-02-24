@@ -183,7 +183,7 @@ public class UTMToLatLonFunction extends Function<Object, Object> {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.warn("", t);
 		}
 
 		return obj;

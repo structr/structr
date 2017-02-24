@@ -356,7 +356,7 @@ public class SchemaService implements Service {
 													app.cypher("CREATE INDEX ON :" + typeName + "(" + key.dbName() + ")", params);
 
 												} catch (Throwable t) {
-													t.printStackTrace();
+													logger.warn("", t);
 												}
 
 												// store the information that we already created this index
@@ -371,7 +371,7 @@ public class SchemaService implements Service {
 												app.cypher("DROP INDEX ON :" + typeName + "(" + key.dbName() + ")", params);
 
 											} catch (Throwable t) {
-												t.printStackTrace();
+												logger.warn("", t);
 											}
 
 											// remove entry from config file
@@ -383,7 +383,7 @@ public class SchemaService implements Service {
 									tx.success();
 
 								} catch (Throwable ignore) {
-									ignore.printStackTrace();
+									logger.warn("", ignore);
 								}
 							}
 						}
@@ -414,7 +414,7 @@ public class SchemaService implements Service {
 											tx.success();
 
 										} catch (Throwable t) {
-											t.printStackTrace();
+											logger.warn("", t);
 										}
 
 										// remove entry from config file

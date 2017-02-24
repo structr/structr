@@ -226,7 +226,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 			// this method must not prevent
 			// the deletion of a node
-			t.printStackTrace();
+			logger.warn("", t);
 		}
 	}
 

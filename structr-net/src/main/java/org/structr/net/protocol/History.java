@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.net.data.time.PseudoTime;
 import org.structr.net.peer.Peer;
 import org.structr.net.peer.PeerInfo;
@@ -36,6 +38,8 @@ import org.structr.net.repository.RepositoryObject;
  *
  */
 public class History extends Message {
+
+	private static final Logger logger = LoggerFactory.getLogger(History.class.getName());
 
 	private final Map<String, Object> data = new HashMap<>();
 	private PseudoTime creationTime        = null;
@@ -144,7 +148,7 @@ public class History extends Message {
 				data.put(key, value);
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.warn("", t);
 			}
 		}
 	}

@@ -19,6 +19,8 @@
 
 package org.structr.net.data;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.net.data.time.PseudoTemporalEnvironment;
 import org.structr.net.peer.Peer;
 import org.structr.net.protocol.AbstractMessage;
@@ -31,10 +33,10 @@ import org.structr.net.protocol.Set;
 import org.structr.net.protocol.Value;
 import org.structr.net.repository.RepositoryObject;
 
-/**
- *
- */
+
 public class RemoteTransaction implements Callback, AutoCloseable {
+
+	private static final Logger logger = LoggerFactory.getLogger(RemoteTransaction.class.getName());
 
 	private PseudoTemporalEnvironment pte = null;
 	private AbstractMessage message       = null;
@@ -148,7 +150,7 @@ public class RemoteTransaction implements Callback, AutoCloseable {
 				lock.wait(timeout);
 
 			} catch (InterruptedException iex) {
-				iex.printStackTrace();
+				logger.warn("", iex);
 			}
 
 			// remove timed out callback

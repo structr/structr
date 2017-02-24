@@ -215,7 +215,7 @@ public class StructrPropertyValueAttributes implements PosixFileAttributes, DosF
 			tx.success();
 
 		} catch (FrameworkException | IOException ioex) {
-			ioex.printStackTrace();
+			logger.warn("", ioex);
 		}
 
 		return size;

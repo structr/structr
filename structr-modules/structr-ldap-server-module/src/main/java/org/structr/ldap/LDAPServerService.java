@@ -108,7 +108,7 @@ public class LDAPServerService implements SingletonService {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.warn("", t);
 		}
 	}
 
@@ -148,12 +148,12 @@ public class LDAPServerService implements SingletonService {
 				System.out.flush();
 
 			} catch (LdapException lnnfe) {
-				lnnfe.printStackTrace();
+				logger.warn("", lnnfe);
 			}
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.warn("", t);
 		}
 	}
 

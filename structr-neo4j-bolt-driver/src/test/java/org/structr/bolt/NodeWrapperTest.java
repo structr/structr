@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Properties;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Transaction;
 import org.structr.api.config.Structr;
 import org.structr.api.graph.Node;
@@ -33,6 +35,8 @@ import org.structr.api.graph.RelationshipType;
 import org.structr.api.util.Iterables;
 
 public class NodeWrapperTest {
+
+	private static final Logger logger = LoggerFactory.getLogger(NodeWrapperTest.class.getName());
 
 	@Test
 	public void testDeleteException() {
@@ -43,7 +47,7 @@ public class NodeWrapperTest {
 		try {
 			config.put(Structr.DATABASE_PATH, Files.createTempDirectory("structr-test").toFile().getAbsolutePath());
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.warn("", ioex);
 		}
 
 		config.setProperty(Structr.DATABASE_CONNECTION_URL, Structr.TEST_DATABASE_URL);
@@ -63,7 +67,7 @@ public class NodeWrapperTest {
 			tx.success();
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.warn("", t);
 		}
 
 		s.shutdown();
@@ -79,7 +83,7 @@ public class NodeWrapperTest {
 		try {
 			config.put(Structr.DATABASE_PATH, Files.createTempDirectory("structr-test").toFile().getAbsolutePath());
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.warn("", ioex);
 		}
 
 		config.setProperty(Structr.DATABASE_CONNECTION_URL, Structr.TEST_DATABASE_URL);

@@ -43,6 +43,8 @@ import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.NoSuchPaddingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.net.peer.Peer;
 import org.structr.net.peer.PeerInfo;
 
@@ -50,6 +52,8 @@ import org.structr.net.peer.PeerInfo;
  *
  */
 public abstract class AbstractMessage {
+
+	private static final Logger logger = LoggerFactory.getLogger(AbstractMessage.class.getName());
 
 	private static final Map<Integer, Class<? extends AbstractMessage>> CommandMap = new HashMap<>();
 	private static final Map<Class, Integer> TypeMap                               = new HashMap<>();
@@ -171,7 +175,7 @@ public abstract class AbstractMessage {
 						return new Envelope(new PeerInfo(peer.getPublicKey(), peerId, packet.getAddress().getHostAddress(), packet.getPort()), msg);
 
 					} catch (Throwable t) {
-						t.printStackTrace();
+						logger.warn("", t);
 					}
 
 				} else {

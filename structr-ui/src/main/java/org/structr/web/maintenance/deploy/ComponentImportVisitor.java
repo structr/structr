@@ -82,8 +82,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 					createComponent(file, fileName);
 
 				} catch (FrameworkException fex) {
-					fex.printStackTrace();
-					logger.warn("Exception while importing shared component {}: {}", new Object[] { name, fex.getMessage() });
+					logger.warn("Exception while importing shared component {}", name, fex);
 				}
 			}
 

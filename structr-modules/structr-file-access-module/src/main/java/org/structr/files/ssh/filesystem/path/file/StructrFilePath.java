@@ -156,7 +156,7 @@ public class StructrFilePath extends StructrPath {
 						setParentFolder(actualFile);
 
 					} catch (FrameworkException fex) {
-						fex.printStackTrace();
+						logger.warn("", fex);
 					}
 				}
 
@@ -330,7 +330,7 @@ public class StructrFilePath extends StructrPath {
 
 			} catch (FrameworkException fex) {
 
-				fex.printStackTrace();
+				logger.warn("", fex);
 			}
 		}
 	}

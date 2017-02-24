@@ -27,8 +27,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.apache.commons.lang3.StringUtils;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -283,7 +283,6 @@ public class SystemTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
 			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
@@ -301,7 +300,6 @@ public class SystemTest extends StructrTest {
 		} catch (FrameworkException fex) {
 
 			logger.warn("", fex);
-			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -592,7 +590,7 @@ public class SystemTest extends StructrTest {
 			service.shutdownNow();
 
 		} catch (ExecutionException | InterruptedException | FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 		}
 	}
 
@@ -716,7 +714,7 @@ public class SystemTest extends StructrTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.warn("", fex);
 			}
 		}
 	}

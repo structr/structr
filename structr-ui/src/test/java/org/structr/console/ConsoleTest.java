@@ -23,6 +23,8 @@ import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.console.Console.ConsoleMode;
 import org.structr.core.entity.Principal;
@@ -33,6 +35,8 @@ import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 
 public class ConsoleTest extends StructrUiTest {
+
+	private static final Logger logger = LoggerFactory.getLogger(ConsoleTest.class.getName());
 
 	@Test
 	public void testSwitchModes() {
@@ -50,7 +54,7 @@ public class ConsoleTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 			fail("Unexpected exception.");
-			fex.printStackTrace();
+			logger.warn("", fex);
 		}
 	}
 
@@ -132,7 +136,7 @@ public class ConsoleTest extends StructrUiTest {
 			assertEquals("Invalid console execution result", "root\r\n", console.runForTest("user list"));
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 	}
@@ -279,7 +283,7 @@ public class ConsoleTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 			fail("Unexpected exception.");
-			fex.printStackTrace();
+			logger.warn("", fex);
 		}
 	}
 

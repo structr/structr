@@ -116,7 +116,7 @@ public class LDAPService extends Thread implements RunnableService {
 				connection.close();
 
 			} catch (CursorException | LdapException | IOException ex) {
-				ex.printStackTrace();
+				logger.warn("", ex);
 			}
 		}
 
@@ -140,7 +140,7 @@ public class LDAPService extends Thread implements RunnableService {
 				return true;
 
 			} catch (LdapException | IOException ex) {
-				ex.printStackTrace();
+				logger.warn("", ex);
 			}
 		}
 

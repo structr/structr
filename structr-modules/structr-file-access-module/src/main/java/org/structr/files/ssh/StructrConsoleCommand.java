@@ -251,7 +251,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 							} else {
 
-								t.printStackTrace();
+								logger.warn("", t);
 								term.println(t.getClass().getSimpleName() + " encountered.");
 							}
 						}
@@ -261,7 +261,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.warn("", t);
 			term.println(t.getClass().getSimpleName() + " encountered.");
 
 		} finally {

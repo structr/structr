@@ -148,7 +148,7 @@ public class StructrFilesystem extends FileSystem {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 		}
 
 

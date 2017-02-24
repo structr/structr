@@ -98,7 +98,7 @@ public class GeoTest {
 			Assert.assertEquals("Invalid UTM conversion result", "3H 541926 5949631", result5);
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 			fail("Unexpected exception");
 		}
 
@@ -192,7 +192,7 @@ public class GeoTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.warn("", fex);
 			fail("Unexpected exception");
 		}
 	}
@@ -211,7 +211,7 @@ public class GeoTest {
 			Assert.assertEquals("Invalid UTM to lat/lon roundtrip result", sourceUTM, result2);
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 			fail("Unexpected exception");
 		}
 	}
@@ -232,7 +232,7 @@ public class GeoTest {
 			Assert.assertEquals("Invalid UTM to lat/lon roundtrip result", (Double)longitude, result2.getProperty(UTMToLatLonFunction.longitudeProperty));
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 			fail("Unexpected exception");
 		}
 	}
@@ -275,7 +275,7 @@ public class GeoTest {
 
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 			fail("Unexpected exception");
 		}
 

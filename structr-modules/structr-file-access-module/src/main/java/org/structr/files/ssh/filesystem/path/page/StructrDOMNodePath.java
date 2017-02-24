@@ -181,7 +181,7 @@ public class StructrDOMNodePath extends StructrPath {
 					tx.close();
 
 				} catch (FrameworkException fex) {
-					fex.printStackTrace();
+					logger.warn("", fex);
 				}
 			}
 		};
@@ -255,7 +255,7 @@ public class StructrDOMNodePath extends StructrPath {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 		}
 	}
 
@@ -282,7 +282,7 @@ public class StructrDOMNodePath extends StructrPath {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 		}
 	}
 

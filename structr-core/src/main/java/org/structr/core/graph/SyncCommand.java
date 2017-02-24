@@ -741,7 +741,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 									currentKey = (String)deserialize(dis);
 
 								} catch (Throwable t) {
-									t.printStackTrace();
+									logger.warn("", t);
 								}
 
 							} else {

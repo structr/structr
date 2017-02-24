@@ -19,6 +19,8 @@
 package org.structr.core.graph.search;
 
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.TypeQuery;
 import org.structr.core.GraphObject;
@@ -30,6 +32,8 @@ import org.structr.core.entity.Relation;
  *
  */
 public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAttribute<String> implements TypeQuery {
+
+	private static final Logger logger = LoggerFactory.getLogger(TypeSearchAttribute.class.getName());
 
 	private Set<String> types = null;
 	private Class sourceType  = null;
@@ -49,7 +53,7 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 				this.targetType = rel.getTargetType();
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.warn("", t);
 			}
 
 		} else {

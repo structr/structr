@@ -673,7 +673,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 			return IOUtils.toString(is);
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.warn("", ioex);
 		}
 
 		return null;
@@ -693,7 +693,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 			os.flush();
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.warn("", ioex);
 		}
 	}
 }

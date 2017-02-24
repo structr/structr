@@ -353,7 +353,7 @@ public class PropertyMap {
 
 						} catch (ClassCastException cce) {
 
-							cce.printStackTrace();
+							logger.warn("", cce);
 
 							throw new FrameworkException(422, "Invalid JSON input for key " + propertyKey.jsonName() + ", expected a JSON " + propertyKey.typeName() + ".");
 						}

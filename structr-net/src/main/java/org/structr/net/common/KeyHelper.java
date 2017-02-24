@@ -29,11 +29,13 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- *
- */
+
 public class KeyHelper {
+
+	private static final Logger logger = LoggerFactory.getLogger(KeyHelper.class.getName());
 
 	public static KeyPair getOrCreateKeyPair(final String algorithm, final int keyLength) {
 		return fromFile(algorithm, keyLength, "/tmp/privatekey.bin", "/tmp/publickey.bin");
@@ -84,7 +86,7 @@ public class KeyHelper {
 			return keyFactory.generatePrivate(spec2);
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.warn("", t);
 		}
 
 		return null;
@@ -100,7 +102,7 @@ public class KeyHelper {
 			return keyFactory.generatePublic(spec);
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.warn("", t);
 		}
 
 		return null;
@@ -136,7 +138,7 @@ public class KeyHelper {
 			return keyPair;
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.warn("", t);
 		}
 
 		return null;
@@ -149,7 +151,7 @@ public class KeyHelper {
 			return Files.readAllBytes(file.toPath());
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.warn("", t);
 		}
 
 		return null;

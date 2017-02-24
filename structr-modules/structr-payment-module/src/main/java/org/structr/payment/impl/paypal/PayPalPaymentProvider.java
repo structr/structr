@@ -20,6 +20,8 @@ package org.structr.payment.impl.paypal;
 
 import java.util.LinkedList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.payment.api.BeginCheckoutResponse;
 import org.structr.payment.api.ConfirmCheckoutResponse;
@@ -44,6 +46,8 @@ import urn.ebay.apis.eBLBaseComponents.PaymentDetailsType;
  *
  */
 public class PayPalPaymentProvider implements PaymentProvider {
+
+	private static final Logger logger = LoggerFactory.getLogger(PayPalPaymentProvider.class.getName());
 
 	@Override
 	public BeginCheckoutResponse beginCheckout(final Payment payment, final String successUrl, final String cancelUrl) throws FrameworkException {
@@ -120,7 +124,7 @@ public class PayPalPaymentProvider implements PaymentProvider {
 			payment.setPaymentState(PaymentState.cancelled);
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 		}
 	}
 

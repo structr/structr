@@ -669,7 +669,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -700,7 +700,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -751,7 +751,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -792,7 +792,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -810,7 +810,7 @@ public class ValidationTest extends StructrTest {
 					tx.success();
 
 				} catch (FrameworkException fex) {
-					fex.printStackTrace();
+					logger.warn("", fex);
 					fail("Unexpected exception.");
 				}
 
@@ -857,7 +857,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -875,7 +875,7 @@ public class ValidationTest extends StructrTest {
 					tx.success();
 
 				} catch (FrameworkException fex) {
-					fex.printStackTrace();
+					logger.warn("", fex);
 					fail("Unexpected exception.");
 				}
 
@@ -917,7 +917,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -941,7 +941,7 @@ public class ValidationTest extends StructrTest {
 					tx.success();
 
 				} catch (FrameworkException fex) {
-					fex.printStackTrace();
+					logger.warn("", fex);
 					fail("Unexpected exception.");
 				}
 
@@ -983,7 +983,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -1960,7 +1960,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 

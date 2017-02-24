@@ -485,7 +485,7 @@ public class StructrLDAPWrapper {
 
 	private void handleException(final FrameworkException fex) throws LdapException {
 
-		fex.printStackTrace();
+		logger.warn("", fex);
 
 	}
 }

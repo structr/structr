@@ -119,16 +119,16 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 
 					Detector detector = new DefaultDetector(MimeTypes.getDefaultMimeTypes());
 					final AutoDetectParser parser = new AutoDetectParser(detector);
-					
+
 					final Map<MediaType, Parser> customParsers = new HashMap<>();
 					customParsers.put(MediaType.application("pdf"), new PDFParser());
 					parser.setParsers(customParsers);
 
 					final Metadata metadata = new Metadata();
-					
+
 					parser.parse(is, new BodyContentHandler(tokenizer), metadata);
 					parsingSuccessful = true;
-					
+
 					logger.info(String.join(", ", metadata.names()));
 				}
 
@@ -230,8 +230,7 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 
 		} catch (final Throwable t) {
 
-			logger.warn("Indexing of {} failed: {}", new Object[] { fileName, t.getMessage() } );
-			t.printStackTrace();
+			logger.warn("Indexing of {} failed", fileName, t);
 		}
 	}
 

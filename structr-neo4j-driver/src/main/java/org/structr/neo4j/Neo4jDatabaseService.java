@@ -32,8 +32,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
@@ -370,8 +368,7 @@ public class Neo4jDatabaseService implements DatabaseService, GraphProperties {
 		try (final Writer writer = new FileWriter(propertiesFile)) {
 			properties.store(writer, "Created by Structr at " + new Date());
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
-			logger.warn("Unable to write properties file");
+			logger.warn("Unable to write properties file", ioex);
 		}
 	}
 

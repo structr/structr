@@ -140,7 +140,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				return new HashMap<>(getGson().fromJson(reader, Map.class));
 
 			} catch (IOException ioex) {
-				ioex.printStackTrace();
+				logger.warn("", ioex);
 			}
 		}
 
@@ -197,7 +197,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				tx.success();
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.warn("", t);
 			}
 		}
 
@@ -353,7 +353,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				tx.success();
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.warn("", t);
 			}
 		}
 
@@ -403,7 +403,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// data import order is "schema, files, templates, components, pages"
 
 		} catch (IOException ex) {
-			ex.printStackTrace();
+			logger.warn("", ex);
 		}
 	}
 
@@ -434,7 +434,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			tx.success();
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.warn("", ioex);
 		}
 
 		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(configTarget.toFile()))) {
@@ -442,7 +442,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			getGson().toJson(config, fos);
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.warn("", ioex);
 		}
 	}
 
@@ -556,7 +556,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 								}
 
 							} catch (IOException ignore) {
-								ignore.printStackTrace();
+								logger.warn("", ignore);
 							}
 						}
 
@@ -572,7 +572,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 								writer.close();
 
 							} catch (IOException ioex) {
-								ioex.printStackTrace();
+								logger.warn("", ioex);
 							}
 						}
 					}
@@ -587,7 +587,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			getGson().toJson(pagesConfig, fos);
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.warn("", ioex);
 		}
 	}
 
@@ -649,7 +649,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 								writer.close();
 
 							} catch (IOException ioex) {
-								ioex.printStackTrace();
+								logger.warn("", ioex);
 							}
 						}
 					}
@@ -664,7 +664,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			getGson().toJson(configuration, fos);
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.warn("", ioex);
 		}
 	}
 
@@ -696,7 +696,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			getGson().toJson(configuration, fos);
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.warn("", ioex);
 		}
 	}
 
@@ -742,7 +742,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					writer.close();
 
 				} catch (IOException ioex) {
-					ioex.printStackTrace();
+					logger.warn("", ioex);
 				}
 			}
 		}
@@ -772,7 +772,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			getGson().toJson(grants, fos);
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.warn("", ioex);
 		}
 	}
 
@@ -789,11 +789,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				writer.flush();
 
 			} catch (IOException ioex) {
-				ioex.printStackTrace();
+				logger.warn("", ioex);
 			}
 
 		} catch (URISyntaxException x) {
-			x.printStackTrace();
+			logger.warn("", x);
 		}
 	}
 
@@ -907,7 +907,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			getGson().toJson(mailTemplates, fos);
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.warn("", ioex);
 		}
 	}
 
@@ -940,7 +940,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			getGson().toJson(localizations, fos);
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.warn("", ioex);
 		}
 	}
 
@@ -958,7 +958,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			return getGson().fromJson(reader, List.class);
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.warn("", ioex);
 		}
 
 		return Collections.emptyList();

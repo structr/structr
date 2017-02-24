@@ -26,6 +26,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import org.neo4j.driver.v1.exceptions.NoSuchRecordException;
 import org.neo4j.driver.v1.types.Entity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.NotFoundException;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.graph.PropertyContainer;
@@ -33,10 +35,10 @@ import org.structr.api.util.Cachable;
 import org.structr.bolt.BoltDatabaseService;
 import org.structr.bolt.SessionTransaction;
 
-/**
- *
- */
+
 public abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cachable {
+
+	private static final Logger logger = LoggerFactory.getLogger(EntityWrapper.class.getName());
 
 	protected final Map<String, Object> data = new ConcurrentHashMap<>();
 	protected BoltDatabaseService db         = null;
@@ -89,7 +91,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 				return null;
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.warn("", t);
 			}
 		}
 

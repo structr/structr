@@ -351,7 +351,7 @@ public class SchemaTest extends StructrTest {
 			checkSchemaString(StructrSchema.createFromDatabase(app).toString());
 
 		} catch (FrameworkException | URISyntaxException t) {
-			t.printStackTrace();
+			logger.warn("", t);
 		}
 	}
 
@@ -371,7 +371,7 @@ public class SchemaTest extends StructrTest {
 
 
 		} catch (FrameworkException | URISyntaxException t) {
-			t.printStackTrace();
+			logger.warn("", t);
 		}
 
 	}
@@ -391,7 +391,7 @@ public class SchemaTest extends StructrTest {
 			checkSchemaString(schema.toString());
 
 		} catch (FrameworkException | URISyntaxException t) {
-			t.printStackTrace();
+			logger.warn("", t);
 		}
 
 	}
@@ -424,7 +424,7 @@ public class SchemaTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 			fail("Unexpected exception");
 		}
 
@@ -437,7 +437,7 @@ public class SchemaTest extends StructrTest {
 
 			// deletion of relationship should not fail
 
-			t.printStackTrace();
+			logger.warn("", t);
 			fail("Unexpected exception");
 		}
 	}

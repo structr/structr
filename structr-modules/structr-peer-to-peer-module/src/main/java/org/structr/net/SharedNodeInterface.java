@@ -25,29 +25,14 @@ import java.util.Set;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import static org.structr.core.GraphObject.createdBy;
-import static org.structr.core.GraphObject.createdDate;
-import static org.structr.core.GraphObject.id;
-import static org.structr.core.GraphObject.lastModifiedBy;
-import static org.structr.core.GraphObject.lastModifiedDate;
-import static org.structr.core.GraphObject.type;
-import static org.structr.core.GraphObject.visibilityEndDate;
-import static org.structr.core.GraphObject.visibilityStartDate;
-import static org.structr.core.GraphObject.visibleToAuthenticatedUsers;
-import static org.structr.core.GraphObject.visibleToPublicUsers;
 import org.structr.core.app.App;
 import org.structr.core.graph.NodeInterface;
-import static org.structr.core.graph.NodeInterface.deleted;
-import static org.structr.core.graph.NodeInterface.hidden;
-import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.net.data.time.PseudoTime;
 
-/**
- *
- */
+
 public interface SharedNodeInterface extends NodeInterface {
 
 	public static final Property<String> lastModifiedPseudoTime = new StringProperty("lastModifiedPseudoTime");

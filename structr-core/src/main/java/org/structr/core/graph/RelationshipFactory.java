@@ -105,7 +105,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 			newRel = relClass.newInstance();
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.warn("", t);
 			newRel = null;
 		}
 

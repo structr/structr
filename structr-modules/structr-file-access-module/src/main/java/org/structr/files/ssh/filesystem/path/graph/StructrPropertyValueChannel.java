@@ -74,7 +74,7 @@ public class StructrPropertyValueChannel<T extends GraphObject> extends FileChan
 			return bytes.length;
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 		}
 
 		return 0;
@@ -128,7 +128,7 @@ public class StructrPropertyValueChannel<T extends GraphObject> extends FileChan
 			return getConvertedPropertyValue(securityContext, graphObject, key).getBytes(Charset.forName("utf-8")).length;
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 		}
 
 		return 0L;
@@ -219,7 +219,7 @@ public class StructrPropertyValueChannel<T extends GraphObject> extends FileChan
 				setConvertedPropertyValue(securityContext, graphObject, key, value);
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.warn("", fex);
 			}
 		}
 	}

@@ -94,7 +94,7 @@ public class LatLonToUTMFunction extends Function<Object, Object> {
 
 				} catch (Throwable t) {
 
-					t.printStackTrace();
+					logger.warn("", t);
 				}
 
 			} else {

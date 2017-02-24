@@ -282,7 +282,7 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.warn("", fex);
 		}
 	}
 
@@ -321,7 +321,7 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.warn("", fex);
 			}
 
 		} else {
@@ -345,7 +345,7 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 		}
 	}
 
@@ -379,7 +379,7 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.warn("", fex);
 			}
 
 		} else {
@@ -504,7 +504,7 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 				}
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.warn("", fex);
 			}
 		}
 	}

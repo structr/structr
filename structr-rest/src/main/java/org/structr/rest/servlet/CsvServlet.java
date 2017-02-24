@@ -569,7 +569,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 							return StringUtils.isNotBlank(line);
 
 						} catch (IOException ioex) {
-							ioex.printStackTrace();
+							logger.warn("", ioex);
 						}
 
 						return false;
@@ -596,7 +596,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 							}
 
 						} catch (IOException ioex) {
-							ioex.printStackTrace();
+							logger.warn("", ioex);
 						}
 
 						return null;

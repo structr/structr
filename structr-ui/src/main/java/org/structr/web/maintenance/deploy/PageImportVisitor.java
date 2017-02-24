@@ -97,7 +97,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.warn("", t);
 		}
 
 		return FileVisitResult.CONTINUE;
@@ -174,7 +174,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 		}
 	}
 

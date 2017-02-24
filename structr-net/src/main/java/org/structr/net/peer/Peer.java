@@ -75,7 +75,7 @@ public final class Peer implements Runnable, Clock, InternalChangeListener {
 	public static final int START_PORT = 5757;
 
 	private static final Logger logger = LoggerFactory.getLogger(Peer.class.getName());
-	
+
 	private final Queue<Envelope> outputQueue         = new ConcurrentLinkedQueue<>();
 	private final Queue<Envelope> inputQueue          = new ConcurrentLinkedQueue<>();
 	private final ExecutorService executorService     = Executors.newCachedThreadPool();
@@ -207,7 +207,7 @@ public final class Peer implements Runnable, Clock, InternalChangeListener {
 				Thread.sleep(10L);
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.warn("", t);
 			}
 		}
 
@@ -248,7 +248,7 @@ public final class Peer implements Runnable, Clock, InternalChangeListener {
 			} catch (IOException ioex) {
 				localPort++;
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.warn("", t);
 			}
 		}
 
@@ -495,7 +495,7 @@ public final class Peer implements Runnable, Clock, InternalChangeListener {
 		try {
 			digest = MessageDigest.getInstance("MD5");
 		} catch (NoSuchAlgorithmException nex) {
-			nex.printStackTrace();
+			logger.warn("", nex);
 		}
 
 		if (digest != null) {
@@ -681,9 +681,8 @@ public final class Peer implements Runnable, Clock, InternalChangeListener {
 
 					}
 
-//				} catch (IOException ignore1) {
 				} catch (Throwable t) {
-					t.printStackTrace();
+					logger.warn("", t);
 				}
 			}
 		}
@@ -720,7 +719,7 @@ public final class Peer implements Runnable, Clock, InternalChangeListener {
 				} catch (IOException ignore1) {
 				} catch (InterruptedException ignore2) {
 				} catch (Throwable t) {
-					t.printStackTrace();
+					logger.warn("", t);
 				}
 			}
 		}

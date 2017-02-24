@@ -31,6 +31,8 @@ import java.util.function.Function;
 import org.junit.Assert;
 import static org.junit.Assert.fail;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
@@ -83,6 +85,8 @@ import org.structr.websocket.command.CreateComponentCommand;
 import org.w3c.dom.Node;
 
 public class DeploymentTest extends StructrUiTest {
+
+	private static final Logger logger = LoggerFactory.getLogger(DeploymentTest.class.getName());
 
 	@Test
 	public void test01SimplePage() {
@@ -578,7 +582,7 @@ public class DeploymentTest extends StructrUiTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -638,7 +642,7 @@ public class DeploymentTest extends StructrUiTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -1217,7 +1221,7 @@ public class DeploymentTest extends StructrUiTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -1275,7 +1279,7 @@ public class DeploymentTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -1333,7 +1337,7 @@ public class DeploymentTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -1549,7 +1553,7 @@ public class DeploymentTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			fex.printStackTrace();
+			logger.warn("", fex);
 
 		} finally {
 

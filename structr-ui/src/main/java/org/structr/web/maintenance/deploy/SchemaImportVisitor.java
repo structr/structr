@@ -24,6 +24,8 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.export.StructrSchema;
@@ -33,7 +35,8 @@ import org.structr.schema.export.StructrSchema;
  */
 public class SchemaImportVisitor implements FileVisitor<Path> {
 
-	private Path basePath = null;
+	private static final Logger logger = LoggerFactory.getLogger(SchemaImportVisitor.class.getName());
+	private Path basePath              = null;
 
 	public SchemaImportVisitor(final Path basePath) {
 		this.basePath = basePath;
@@ -59,7 +62,7 @@ public class SchemaImportVisitor implements FileVisitor<Path> {
 					StructrSchema.replaceDatabaseSchema(app, StructrSchema.createFromSource(reader));
 
 				} catch (Throwable t) {
-					t.printStackTrace();
+					logger.warn("", t);
 				}
 			}
 		}

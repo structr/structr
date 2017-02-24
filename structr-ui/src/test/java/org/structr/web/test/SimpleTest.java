@@ -765,7 +765,7 @@ public class SimpleTest extends StructrUiTest {
 
 		} catch (Exception ex) {
 
-			ex.printStackTrace();
+			logger.warn("", ex);
 
 			logger.error(ex.toString());
 			fail("Unexpected Exception");

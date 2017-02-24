@@ -290,7 +290,6 @@ public class RenderDataTest extends DOMTest {
 
 		} catch (Exception ex) {
 
-			ex.printStackTrace();
 			logger.warn("", ex);
 			fail("Unexpected exception");
 		}

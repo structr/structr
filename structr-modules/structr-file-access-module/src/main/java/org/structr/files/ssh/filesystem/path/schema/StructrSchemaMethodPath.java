@@ -105,7 +105,7 @@ public class StructrSchemaMethodPath extends StructrPath {
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.warn("", fex);
 			}
 		}
 
@@ -197,7 +197,7 @@ public class StructrSchemaMethodPath extends StructrPath {
 
 			} catch (FrameworkException fex) {
 
-				fex.printStackTrace();
+				logger.warn("", fex);
 			}
 
 		}

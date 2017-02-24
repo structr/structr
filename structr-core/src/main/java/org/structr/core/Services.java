@@ -579,16 +579,14 @@ public class Services implements StructrServices {
 
 			if (service.isVital()) {
 
-				logger.error("Vital service {} failed to start. Aborting", service.getClass().getSimpleName());
-				t.printStackTrace();
+				logger.error("Vital service {} failed to start. Aborting", service.getClass().getSimpleName(), t);
 
 				// hard(est) exit
 				System.exit(1);
 
 			} else {
 
-				logger.error("Service {} failed to start", service.getClass().getSimpleName());
-				t.printStackTrace();
+				logger.error("Service {} failed to start", service.getClass().getSimpleName(), t);
 
 			}
 		}

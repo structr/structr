@@ -275,7 +275,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 			} catch (Throwable t) {
 
-				t.printStackTrace();
+				logger.warn("", t);
 
 			} finally {
 

@@ -29,6 +29,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.payment.api.APIError;
@@ -43,6 +45,8 @@ import org.structr.payment.api.PaymentState;
  *
  */
 public class StripePaymentProvider implements PaymentProvider {
+
+	private static final Logger logger = LoggerFactory.getLogger(StripePaymentProvider.class.getName());
 
 	@Override
 	public BeginCheckoutResponse beginCheckout(final Payment payment, final String successUrl, final String cancelUrl) throws FrameworkException {
@@ -112,7 +116,7 @@ public class StripePaymentProvider implements PaymentProvider {
 			payment.setPaymentState(PaymentState.cancelled);
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.warn("", fex);
 		}
 	}
 
