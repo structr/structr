@@ -948,8 +948,14 @@ var Structr = {
 		}
 		return li;
 	},
-	updateButtonWithAjaxLoaderAndText: function(btn, text) {
-		btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="' + _Icons.ajax_loader_2 + '">');
+	updateButtonWithAjaxLoaderAndText: function(btn, html) {
+		btn.attr('disabled', 'disabled').addClass('disabled').html(html + ' <img src="' + _Icons.ajax_loader_2 + '">');
+	},
+	updateButtonWithSuccessIcon: function (btn, html) {
+		btn.attr('disabled', null).removeClass('disabled').html(html + ' <i class="tick ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />');
+		window.setTimeout(function() {
+			$('.tick', btn).fadeOut();
+		}, 1000);
 	},
 	tempInfo: function(text, autoclose) {
 		window.clearTimeout(dialogId);

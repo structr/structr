@@ -2721,53 +2721,50 @@ var _Schema = {
 		$('#rel-operations', toolsTable).append('<button id="reindex-rels">Re-Index Relationships</button>');
 		$('#rel-operations', toolsTable).append('<button id="add-rel-uuids">Add UUIDs</button>');
 
-		$('#rebuild-index').on('click', function(e) {
-			var btn = $(this);
-			var text = btn.text();
-			var oldHtml = btn.html();
-			Structr.updateButtonWithAjaxLoaderAndText(btn, text);
-			e.preventDefault();
-			$.ajax({
-				url: rootUrl + 'maintenance/rebuildIndex',
-				type: 'POST',
-				data: {},
-				contentType: 'application/json',
-				statusCode: {
-					200: function() {
-						var btn = $('#rebuild-index');
-						btn.removeClass('disabled').attr('disabled', null);
-						btn.html(oldHtml + ' <i class="tick ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />');
-						window.setTimeout(function() {
-							$('.tick', btn).fadeOut();
-						}, 1000);
-					}
-				}
-			});
-		});
+		var registerSchemaToolButtonAction = function (btn, target, connectedSelectElement, getPayloadFunction) {
 
-		$('#flush-caches').on('click', function(e) {
-			var btn = $(this);
-			var text = btn.text();
-			var oldHtml = btn.html();
-			Structr.updateButtonWithAjaxLoaderAndText(btn, text);
-			e.preventDefault();
-			$.ajax({
-				url: rootUrl + 'maintenance/flushCaches',
-				type: 'POST',
-				data: {},
-				contentType: 'application/json',
-				statusCode: {
-					200: function() {
-						var btn = $('#flush-caches');
-						btn.removeClass('disabled').attr('disabled', null);
-						btn.html(oldHtml + ' <i class="tick ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />');
-						window.setTimeout(function() {
-							$('.tick', btn).fadeOut();
-						}, 1000);
+			btn.on('click', function(e) {
+				e.preventDefault();
+				var oldHtml = btn.html();
+
+				var transportAction = function (target, payload) {
+
+					Structr.updateButtonWithAjaxLoaderAndText(btn, oldHtml);
+					$.ajax({
+						url: rootUrl + 'maintenance/' + target,
+						type: 'POST',
+						data: JSON.stringify(payload),
+						contentType: 'application/json',
+						statusCode: {
+							200: function() {
+								Structr.updateButtonWithSuccessIcon(btn, oldHtml);
+							}
+						}
+					});
+
+				};
+
+				if (!connectedSelectElement) {
+
+					transportAction(target, {});
+
+				} else {
+
+					var type = connectedSelectElement.val();
+					if (!type) {
+
+						blinkRed(connectedSelectElement);
+
+					} else {
+
+						transportAction(target, ((typeof getPayloadFunction === "function") ? getPayloadFunction(type) : {}));
 					}
 				}
 			});
-		});
+		};
+
+		registerSchemaToolButtonAction($('#rebuild-index'), 'rebuildIndex');
+		registerSchemaToolButtonAction($('#flush-caches'), 'flushCaches');
 
 		$('#clear-schema').on('click', function(e) {
 			Structr.confirmation('<h3>Delete schema?</h3><p>This will remove all dynamic schema information, but not your other data.</p><p>&nbsp;</p>', function() {
@@ -2783,6 +2780,7 @@ var _Schema = {
 			});
 		});
 
+
 		var nodeTypeSelector = $('#node-type-selector');
 		Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name', function(nodes) {
 			nodes.forEach(function(node) {
@@ -2790,119 +2788,18 @@ var _Schema = {
 			});
 		});
 
-		$('#reindex-nodes').on('click', function(e) {
-			var btn = $(this);
-			var text = btn.text();
-			e.preventDefault();
-			var type = nodeTypeSelector.val();
-			if (!type) {
-				nodeTypeSelector.addClass('notify');
-				nodeTypeSelector.on('change', function() {
-					nodeTypeSelector.removeClass('notify');
-				});
-				return;
-			}
-			var data;
-			if (type === 'allNodes') {
-				data = JSON.stringify({'mode': 'nodesOnly'});
-			} else {
-				data = JSON.stringify({'mode': 'nodesOnly', 'type': type});
-			}
-			Structr.updateButtonWithAjaxLoaderAndText(btn, text);
-			$.ajax({
-				url: rootUrl + 'maintenance/rebuildIndex',
-				type: 'POST',
-				data: data,
-				contentType: 'application/json',
-				statusCode: {
-					200: function() {
-						var btn = $('#reindex-nodes');
-						nodeTypeSelector.removeClass('notify');
-						btn.removeClass('disabled').attr('disabled', null);
-						btn.html(text + ' <i class="tick ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />');
-						window.setTimeout(function() {
-							$('.tick', btn).fadeOut();
-						}, 1000);
-					}
-				}
-			});
+		registerSchemaToolButtonAction($('#reindex-nodes'), 'rebuildIndex', nodeTypeSelector, function (type) {
+			return (type === 'allNodes') ? {'mode': 'nodesOnly'} : {'mode': 'nodesOnly', 'type': type};
 		});
 
-		$('#add-node-uuids').on('click', function(e) {
-			var btn = $(this);
-			var text = btn.text();
-			e.preventDefault();
-			var type = nodeTypeSelector.val();
-			if (!type) {
-				nodeTypeSelector.addClass('notify');
-				nodeTypeSelector.on('change', function() {
-					nodeTypeSelector.removeClass('notify');
-				});
-				return;
-			}
-			var data;
-			if (type === 'allNodes') {
-				data = JSON.stringify({'allNodes': true});
-			} else {
-				data = JSON.stringify({'type': type});
-			}
-			Structr.updateButtonWithAjaxLoaderAndText(btn, text);
-			$.ajax({
-				url: rootUrl + 'maintenance/setUuid',
-				type: 'POST',
-				data: data,
-				contentType: 'application/json',
-				statusCode: {
-					200: function() {
-						var btn = $('#add-node-uuids');
-						nodeTypeSelector.removeClass('notify');
-						btn.removeClass('disabled').attr('disabled', null);
-						btn.html(text + ' <i class="tick ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />');
-						window.setTimeout(function() {
-							$('.tick', btn).fadeOut();
-						}, 1000);
-					}
-				}
-			});
+		registerSchemaToolButtonAction($('#add-node-uuids'), 'setUuid', nodeTypeSelector, function (type) {
+			return (type === 'allNodes') ? {'allNodes': true} : {'type': type};
 		});
 
-		$('#create-labels').on('click', function(e) {
-			var btn = $(this);
-			var text = btn.text();
-			e.preventDefault();
-			var type = nodeTypeSelector.val();
-			if (!type) {
-				nodeTypeSelector.addClass('notify');
-				nodeTypeSelector.on('change', function() {
-					nodeTypeSelector.removeClass('notify');
-				});
-				return;
-			}
-			var data;
-			if (type === 'allNodes') {
-				data = JSON.stringify({});
-			} else {
-				data = JSON.stringify({'type': type});
-			}
-			Structr.updateButtonWithAjaxLoaderAndText(btn, text);
-			$.ajax({
-				url: rootUrl + 'maintenance/createLabels',
-				type: 'POST',
-				data: data,
-				contentType: 'application/json',
-				statusCode: {
-					200: function() {
-						var btn = $('#create-labels');
-						nodeTypeSelector.removeClass('notify');
-						btn.removeClass('disabled').attr('disabled', null);
-						btn.html(text + ' <i class="tick ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />');
-						window.setTimeout(function() {
-							$('.tick', btn).fadeOut();
-						}, 1000);
-					}
-				}
-			});
+		registerSchemaToolButtonAction($('#create-labels'), 'createLabels', nodeTypeSelector, function (type) {
+			return (type === 'allNodes') ? {} : {'type': type};
 		});
+
 
 		var relTypeSelector = $('#rel-type-selector');
 		Command.list('SchemaRelationshipNode', true, 1000, 1, 'relationshipType', 'asc', 'id,relationshipType', function(rels) {
@@ -2911,81 +2808,14 @@ var _Schema = {
 			});
 		});
 
-		$('#reindex-rels').on('click', function(e) {
-			var btn = $(this);
-			var text = btn.text();
-			e.preventDefault();
-			var type = relTypeSelector.val();
-			if (!type) {
-				relTypeSelector.addClass('notify');
-				relTypeSelector.on('change', function() {
-					relTypeSelector.removeClass('notify');
-				});
-				return;
-			}
-			var data;
-			if (type === 'allRels') {
-				data = JSON.stringify({'mode': 'relsOnly'});
-			} else {
-				data = JSON.stringify({'mode': 'relsOnly', 'type': type});
-			}
-			Structr.updateButtonWithAjaxLoaderAndText(btn, text);
-			$.ajax({
-				url: rootUrl + 'maintenance/rebuildIndex',
-				type: 'POST',
-				data: data,
-				contentType: 'application/json',
-				statusCode: {
-					200: function() {
-						var btn = $('#reindex-rels');
-						relTypeSelector.removeClass('notify');
-						btn.removeClass('disabled').attr('disabled', null);
-						btn.html(text + ' <i class="tick ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />');
-						window.setTimeout(function() {
-							$('.tick', btn).fadeOut();
-						}, 1000);
-					}
-				}
-			});
+		registerSchemaToolButtonAction($('#reindex-rels'), 'rebuildIndex', relTypeSelector, function (type) {
+			return (type === 'allRels') ? {'mode': 'relsOnly'} : {'mode': 'relsOnly', 'type': type};
 		});
 
-		$('#add-rel-uuids').on('click', function(e) {
-			var btn = $(this);
-			var text = btn.text();
-			e.preventDefault();
-			var relType = relTypeSelector.val();
-			if (!relType) {
-				relTypeSelector.addClass('notify');
-				relTypeSelector.on('change', function() {
-					relTypeSelector.removeClass('notify');
-				});
-				return;
-			}
-			var data;
-			if (relType === 'allRels') {
-				data = JSON.stringify({'allRels': true});
-			} else {
-				data = JSON.stringify({'relType': relType});
-			}
-			Structr.updateButtonWithAjaxLoaderAndText(btn, text);
-			$.ajax({
-				url: rootUrl + 'maintenance/setUuid',
-				type: 'POST',
-				data: data,
-				contentType: 'application/json',
-				statusCode: {
-					200: function() {
-						var btn = $('#add-rel-uuids');
-						relTypeSelector.removeClass('notify');
-						btn.removeClass('disabled').attr('disabled', null);
-						btn.html(text + ' <i class="tick ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />');
-						window.setTimeout(function() {
-							$('.tick', btn).fadeOut();
-						}, 1000);
-					}
-				}
-			});
+		registerSchemaToolButtonAction($('#add-rel-uuids'), 'setUuid', relTypeSelector, function (type) {
+			return (type === 'allRels') ? {'allRels': true} : {'relType': type};
 		});
+
 	},
 	appendLayoutToolsToContainer: function(container) {
 
