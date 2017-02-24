@@ -46,7 +46,7 @@ public class CreateFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (sources != null) {
+		if (sources != null && sources.length > 0) {
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
 			final ConfigurationProvider config = StructrApp.getConfiguration();
@@ -107,9 +107,14 @@ public class CreateFunction extends Function<Object, Object> {
 
 			return StructrApp.getInstance(securityContext).create(type, propertyMap);
 
+		} else {
+
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
+			return usage(ctx.isJavaScriptContext());
+
 		}
 
-		return "";
 	}
 
 	@Override
