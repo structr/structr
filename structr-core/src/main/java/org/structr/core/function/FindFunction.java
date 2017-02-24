@@ -107,16 +107,7 @@ public class FindFunction extends Function<Object, Object> {
 
 				query.and(key, sources[1].toString());
 
-				final int resultCount = query.getResult().size();
-
-				switch (resultCount) {
-					case 1:
-						return query.getFirst();
-					case 0:
-						return null;
-					default:
-						throw new FrameworkException(400, "Multiple Objects found for id! [" + sources[1].toString() + "]");
-				}
+				return query.getFirst();
 
 			} else {
 
