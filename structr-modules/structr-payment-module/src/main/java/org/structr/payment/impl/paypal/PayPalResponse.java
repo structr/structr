@@ -16,11 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 
 package org.structr.payment.impl.paypal;
 
@@ -39,9 +35,7 @@ import static urn.ebay.apis.eBLBaseComponents.AckCodeType.SUCCESSWITHWARNING;
 import static urn.ebay.apis.eBLBaseComponents.AckCodeType.WARNING;
 import urn.ebay.apis.eBLBaseComponents.ErrorType;
 
-/**
- *
- */
+
 public abstract class PayPalResponse implements APIResponse {
 
 	private final List<APIError> errors = new LinkedList<>();

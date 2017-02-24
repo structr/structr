@@ -16,11 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 
 package org.structr.neo4j.index.lucene;
 
@@ -28,8 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.neo4j.gis.spatial.indexprovider.LayerNodeIndex;
-import org.structr.api.graph.PropertyContainer;
 import org.structr.api.QueryResult;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.api.search.GroupQuery;
 import org.structr.api.search.QueryPredicate;
 import org.structr.api.search.SpatialQuery;
@@ -37,9 +33,7 @@ import org.structr.neo4j.Neo4jDatabaseService;
 import org.structr.neo4j.index.AbstractIndexWrapper;
 import org.structr.neo4j.index.IndexHitsWrapper;
 
-/**
- *
- */
+
 public class SpatialIndexWrapper <S extends org.neo4j.graphdb.PropertyContainer, T extends PropertyContainer> extends AbstractIndexWrapper<S, T> {
 
 	public SpatialIndexWrapper(final Neo4jDatabaseService graphDb, final org.neo4j.graphdb.index.Index<S> index) {

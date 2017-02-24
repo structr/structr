@@ -26,10 +26,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- * @author Christian Morgner
- */
+
 public class CopyPermissionsFunction extends Function<Object, Object> {
 
 	@Override

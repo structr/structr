@@ -16,11 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 
 package org.structr.ldap.entity;
 
@@ -45,9 +41,7 @@ import org.structr.ldap.api.LDAPNode;
 import org.structr.ldap.relationship.LDAPAttributes;
 import org.structr.ldap.relationship.LDAPChildren;
 
-/**
- *
- */
+
 public class LDAPNodeImpl extends AbstractNode implements LDAPNode {
 
 	public static final Property<List<LDAPAttributeImpl>> attributes = new EndNodes<>("attributes", LDAPAttributes.class);
