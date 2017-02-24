@@ -43,7 +43,6 @@ import org.structr.core.parser.NoneExpression;
 import org.structr.core.parser.NullExpression;
 import org.structr.core.parser.RootExpression;
 import org.structr.core.parser.ValueExpression;
-import org.structr.core.parser.function.PrivilegedFindFunction;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -335,7 +334,7 @@ public class Functions {
 		functions.put("changelog", new ChangelogFunction());
 		functions.put("timer", new TimerFunction());
 		functions.put("str_replace", new StrReplaceFunction());
-                functions.put("find_privileged", new PrivilegedFindFunction());
+		functions.put("find_privileged", new PrivilegedFindFunction());
 
 		// ----- BEGIN functions with side effects -----
 		functions.put("retrieve", new RetrieveFunction());
@@ -350,6 +349,7 @@ public class Functions {
 		functions.put("set", new SetFunction());
 		functions.put("geocode", new GeocodeFunction());
 		functions.put("find", new FindFunction());
+		functions.put("find_relationship", new FindRelationshipFunction());
 		functions.put("search", new SearchFunction());
 		functions.put("create", new CreateFunction());
 		functions.put("delete", new DeleteFunction());
