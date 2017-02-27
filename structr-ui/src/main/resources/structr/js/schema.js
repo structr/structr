@@ -1621,7 +1621,7 @@ var _Schema = {
 
 			$.each(data, function(i, prop) {
 
-				if (!prop.isDynamic) {
+				if (prop.declaringClass !== entity.name) {
 
 					var property = {
 						name: prop.name,
