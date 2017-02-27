@@ -57,6 +57,7 @@ import org.structr.core.entity.Localization;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.Security;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.MaintenanceCommand;
@@ -207,6 +208,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			info("Reading {}..", grantsConf);
 			importListData(ResourceAccess.class, readConfigList(grantsConf));
+		}
+
+		// read schema-methods.json
+		final Path schemaMethodsConf = source.resolve("schema-methods.json");
+		if (Files.exists(schemaMethodsConf)) {
+
+			info("Reading {}..", schemaMethodsConf);
+			importListData(SchemaMethod.class, readConfigList(schemaMethodsConf));
 		}
 
 		// read mail-templates.json
@@ -387,6 +396,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path pagesConf      = target.resolve("pages.json");
 			final Path componentsConf = target.resolve("components.json");
 			final Path templatesConf  = target.resolve("templates.json");
+			final Path schemaMethods  = target.resolve("schema-methods.json");
 			final Path mailTemplates  = target.resolve("mail-templates.json");
 			final Path localizations  = target.resolve("localizations.json");
 
@@ -396,6 +406,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			exportTemplates(templates, templatesConf);
 			exportResourceAccessGrants(grants);
 			exportSchema(schemaJson);
+			exportSchemaMethods(schemaMethods);
 			exportMailTemplates(mailTemplates);
 			exportLocalizations(localizations);
 
@@ -905,6 +916,38 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
 
 			getGson().toJson(mailTemplates, fos);
+
+		} catch (IOException ioex) {
+			logger.warn("", ioex);
+		}
+	}
+
+	private void exportSchemaMethods(final Path target) throws FrameworkException {
+
+		final List<Map<String, Object>> schemaMethods = new LinkedList<>();
+		final App app                                 = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final SchemaMethod schemaMethod : app.nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, null).sort(SchemaMethod.name).getAsList()) {
+
+				final Map<String, Object> entry = new TreeMap<>();
+				schemaMethods.add(entry);
+
+				entry.put("name",                        schemaMethod.getProperty(SchemaMethod.name));
+				entry.put("comment",                     schemaMethod.getProperty(SchemaMethod.comment));
+				entry.put("source",                      schemaMethod.getProperty(SchemaMethod.source));
+				entry.put("virtualFileName",             schemaMethod.getProperty(SchemaMethod.virtualFileName));
+				entry.put("visibleToAuthenticatedUsers", schemaMethod.getProperty(SchemaMethod.visibleToAuthenticatedUsers));
+				entry.put("visibleToPublicUsers",        schemaMethod.getProperty(SchemaMethod.visibleToPublicUsers));
+			}
+
+			tx.success();
+		}
+
+		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
+
+			getGson().toJson(schemaMethods, fos);
 
 		} catch (IOException ioex) {
 			logger.warn("", ioex);

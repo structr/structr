@@ -44,6 +44,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Localization;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.Security;
 import org.structr.core.graph.NodeAttribute;
@@ -1353,19 +1354,19 @@ public class DeploymentTest extends StructrUiTest {
 			Assert.assertNotNull("Invalid deployment result", localization1);
 			Assert.assertNotNull("Invalid deployment result", localization2);
 
-			Assert.assertEquals("Invalid MailTemplate deployment result", "localization1",  localization1.getProperty(Localization.name));
-			Assert.assertEquals("Invalid MailTemplate deployment result", "domain1",        localization1.getProperty(Localization.domain));
-			Assert.assertEquals("Invalid MailTemplate deployment result", "de_DE",          localization1.getProperty(Localization.locale));
-			Assert.assertEquals("Invalid MailTemplate deployment result", "localizedName1", localization1.getProperty(Localization.localizedName));
-			Assert.assertEquals("Invalid MailTemplate deployment result", true,             localization1.getProperty(Localization.visibleToPublicUsers));
-			Assert.assertEquals("Invalid MailTemplate deployment result", true,             localization1.getProperty(Localization.visibleToAuthenticatedUsers));
+			Assert.assertEquals("Invalid Localization deployment result", "localization1",  localization1.getProperty(Localization.name));
+			Assert.assertEquals("Invalid Localization deployment result", "domain1",        localization1.getProperty(Localization.domain));
+			Assert.assertEquals("Invalid Localization deployment result", "de_DE",          localization1.getProperty(Localization.locale));
+			Assert.assertEquals("Invalid Localization deployment result", "localizedName1", localization1.getProperty(Localization.localizedName));
+			Assert.assertEquals("Invalid Localization deployment result", true,             localization1.getProperty(Localization.visibleToPublicUsers));
+			Assert.assertEquals("Invalid Localization deployment result", true,             localization1.getProperty(Localization.visibleToAuthenticatedUsers));
 
-			Assert.assertEquals("Invalid MailTemplate deployment result", "localization2",  localization2.getProperty(Localization.name));
-			Assert.assertEquals("Invalid MailTemplate deployment result", "domain2",        localization2.getProperty(Localization.domain));
-			Assert.assertEquals("Invalid MailTemplate deployment result", "en",             localization2.getProperty(Localization.locale));
-			Assert.assertEquals("Invalid MailTemplate deployment result", "localizedName2", localization2.getProperty(Localization.localizedName));
-			Assert.assertEquals("Invalid MailTemplate deployment result", true,             localization2.getProperty(Localization.visibleToPublicUsers));
-			Assert.assertEquals("Invalid MailTemplate deployment result", true,             localization2.getProperty(Localization.visibleToAuthenticatedUsers));
+			Assert.assertEquals("Invalid Localization deployment result", "localization2",  localization2.getProperty(Localization.name));
+			Assert.assertEquals("Invalid Localization deployment result", "domain2",        localization2.getProperty(Localization.domain));
+			Assert.assertEquals("Invalid Localization deployment result", "en",             localization2.getProperty(Localization.locale));
+			Assert.assertEquals("Invalid Localization deployment result", "localizedName2", localization2.getProperty(Localization.localizedName));
+			Assert.assertEquals("Invalid Localization deployment result", true,             localization2.getProperty(Localization.visibleToPublicUsers));
+			Assert.assertEquals("Invalid Localization deployment result", true,             localization2.getProperty(Localization.visibleToAuthenticatedUsers));
 
 			tx.success();
 
@@ -1485,6 +1486,71 @@ public class DeploymentTest extends StructrUiTest {
 		}
 
 		compare(calculateHash(), true);
+	}
+
+	@Test
+	public void test33SchemaMethods() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			app.create(SchemaMethod.class,
+				new NodeAttribute<>(SchemaMethod.name,                        "method1"),
+				new NodeAttribute<>(SchemaMethod.comment,                     "comment1"),
+				new NodeAttribute<>(SchemaMethod.source,                      "source1"),
+				new NodeAttribute<>(SchemaMethod.virtualFileName,             "virtualFileName1"),
+				new NodeAttribute<>(SchemaMethod.visibleToPublicUsers,        true),
+				new NodeAttribute<>(SchemaMethod.visibleToAuthenticatedUsers, false)
+
+			);
+
+			app.create(SchemaMethod.class,
+				new NodeAttribute<>(SchemaMethod.name,                       "method2"),
+				new NodeAttribute<>(SchemaMethod.comment,                    "comment2"),
+				new NodeAttribute<>(SchemaMethod.source,                     "source2"),
+				new NodeAttribute<>(SchemaMethod.virtualFileName,            "virtualFileName2"),
+				new NodeAttribute<>(SchemaMethod.visibleToPublicUsers,        false),
+				new NodeAttribute<>(SchemaMethod.visibleToAuthenticatedUsers, true)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		// test
+		doImportExportRoundtrip(true);
+
+		// check
+		try (final Tx tx = app.tx()) {
+
+			final SchemaMethod method1 = app.nodeQuery(SchemaMethod.class).and(SchemaMethod.name, "method1").getFirst();
+			final SchemaMethod method2 = app.nodeQuery(SchemaMethod.class).and(SchemaMethod.name, "method2").getFirst();
+
+			Assert.assertNotNull("Invalid deployment result", method1);
+			Assert.assertNotNull("Invalid deployment result", method2);
+
+			Assert.assertEquals("Invalid SchemaMethod deployment result", "method1",          method1.getProperty(SchemaMethod.name));
+			Assert.assertEquals("Invalid SchemaMethod deployment result", "comment1",         method1.getProperty(SchemaMethod.comment));
+			Assert.assertEquals("Invalid SchemaMethod deployment result", "source1",          method1.getProperty(SchemaMethod.source));
+			Assert.assertEquals("Invalid SchemaMethod deployment result", "virtualFileName1", method1.getProperty(SchemaMethod.virtualFileName));
+			Assert.assertEquals("Invalid SchemaMethod deployment result", true,               method1.getProperty(SchemaMethod.visibleToPublicUsers));
+			Assert.assertEquals("Invalid SchemaMethod deployment result", false,              method1.getProperty(SchemaMethod.visibleToAuthenticatedUsers));
+
+			Assert.assertEquals("Invalid SchemaMethod deployment result", "method2",          method2.getProperty(SchemaMethod.name));
+			Assert.assertEquals("Invalid SchemaMethod deployment result", "comment2",         method2.getProperty(SchemaMethod.comment));
+			Assert.assertEquals("Invalid SchemaMethod deployment result", "source2",          method2.getProperty(SchemaMethod.source));
+			Assert.assertEquals("Invalid SchemaMethod deployment result", "virtualFileName2", method2.getProperty(SchemaMethod.virtualFileName));
+			Assert.assertEquals("Invalid SchemaMethod deployment result", false,              method2.getProperty(SchemaMethod.visibleToPublicUsers));
+			Assert.assertEquals("Invalid SchemaMethod deployment result", true,               method2.getProperty(SchemaMethod.visibleToAuthenticatedUsers));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
 	}
 
 	// ----- private methods -----
