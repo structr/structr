@@ -114,7 +114,7 @@
 						<exclude>src/**/*.sh</exclude>
 					</excludes>
 					<properties>
-						<year>2016</year>
+						<year>2017</year>
 						<owner>Structr GmbH</owner>
 					</properties>
 				</configuration>
