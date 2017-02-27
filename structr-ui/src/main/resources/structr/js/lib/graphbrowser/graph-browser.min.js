@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2010-2016 Structr GmbH
+* Copyright (C) 2010-2017 Structr GmbH
 *
 * This file is part of Structr <http://structr.org>.
 *

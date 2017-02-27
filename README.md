@@ -68,6 +68,6 @@ https://hosting.structr.com/
 
 ## Copyright and License
 
-Copyright 2010-2016 Structr GmbH
+Copyright 2010-2017 Structr GmbH
 
 Structr is dual licensed under the GPLv3 and AGPLv3. [Commercial editions](https://structr.com/editions) also available.
