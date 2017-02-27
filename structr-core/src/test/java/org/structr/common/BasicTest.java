@@ -49,7 +49,6 @@ import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.OneThreeOneToOne;
 import org.structr.core.entity.OneTwoOneToOne;
 import org.structr.core.entity.Person;
-import org.structr.core.entity.PropertyAccess;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaNode;
@@ -843,7 +842,6 @@ public class BasicTest extends StructrTest {
 			assertTrue(entityList.contains(Location.class));
 			assertTrue(entityList.contains(Person.class));
 			assertTrue(entityList.contains(ResourceAccess.class));
-			assertTrue(entityList.contains(PropertyAccess.class));
 
 			// Don't test these, it would fail due to violated constraints
 			entityList.remove(TestTwo.class);
@@ -887,14 +885,6 @@ public class BasicTest extends StructrTest {
 
 						props.put(DynamicResourceAccess.signature, "/Y");
 						props.put(DynamicResourceAccess.flags, 6L);
-
-					}
-
-					// For PropertyAccess, fill mandatory fields
-					if (type.equals(PropertyAccess.class)) {
-
-						props.put(PropertyAccess.name, "PropertyAccess-0");
-						props.put(PropertyAccess.flags, 6L);
 
 					}
 

@@ -20,9 +20,6 @@ package org.structr.core.entity;
 
 import org.structr.common.PropertyView;
 import org.structr.common.View;
-import static org.structr.core.entity.ResourceAccess.flags;
-import static org.structr.core.entity.ResourceAccess.position;
-import static org.structr.core.entity.ResourceAccess.signature;
 
 /**
  *
@@ -33,7 +30,7 @@ public class DynamicResourceAccess extends ResourceAccess {
 	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
 		signature, flags, position, isResourceAccess
 	);
-	
+
 	public static final View publicView = new View(ResourceAccess.class, PropertyView.Public,
 		signature, flags, isResourceAccess
 	);

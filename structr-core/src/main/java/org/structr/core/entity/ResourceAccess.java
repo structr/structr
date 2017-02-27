@@ -18,7 +18,6 @@
  */
 package org.structr.core.entity;
 
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
@@ -30,11 +29,8 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.relationship.Access;
 import org.structr.core.graph.ModificationQueue;
-import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.ConstantBooleanProperty;
-import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
@@ -79,7 +75,6 @@ public class ResourceAccess extends AbstractNode {
 	public static final Property<String>               signature          = new StringProperty("signature").cmis().unique().indexed();
 	public static final Property<Long>                 flags              = new LongProperty("flags").cmis().indexed();
 	public static final Property<Integer>              position           = new IntProperty("position").cmis().indexed();
-	public static final Property<List<PropertyAccess>> propertyAccess     = new EndNodes<>("propertyAccess", Access.class, new PropertySetNotion(id, name));
 	public static final Property<Boolean>              isResourceAccess   = new ConstantBooleanProperty("isResourceAccess", true);
 
 	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
@@ -95,35 +90,21 @@ public class ResourceAccess extends AbstractNode {
 	private Long cachedFlags               = null;
 	private Integer cachedPosition         = null;
 
-	@Override
-	public String toString() {
-
-		StringBuilder buf = new StringBuilder();
-
-		buf.append("('").append(getResourceSignature()).append("', ").append(flags.jsonName()).append(": ").append(getFlags()).append("', ").append(position.jsonName()).append(": ").append(getPosition()).append(")");
-
-		return buf.toString();
-	}
-
 	public boolean hasFlag(long flag) {
 		return (getFlags() & flag) == flag;
 	}
 
 	public void setFlag(final long flag) throws FrameworkException {
 
-		// reset cached field
 		cachedFlags = null;
 
-		// set modified property
 		setProperty(ResourceAccess.flags, getFlags() | flag);
 	}
 
 	public void clearFlag(final long flag) throws FrameworkException {
 
-		// reset cached field
 		cachedFlags = null;
 
-		// set modified property
 		setProperty(ResourceAccess.flags, getFlags() & ~flag);
 	}
 
@@ -134,7 +115,7 @@ public class ResourceAccess extends AbstractNode {
 		}
 
 		if (cachedFlags != null) {
-			return cachedFlags.longValue();
+			return cachedFlags;
 		}
 
 		return 0;
@@ -156,7 +137,7 @@ public class ResourceAccess extends AbstractNode {
 		}
 
 		if (cachedPosition != null) {
-			return cachedPosition.intValue();
+			return cachedPosition;
 		}
 
 		return 0;
