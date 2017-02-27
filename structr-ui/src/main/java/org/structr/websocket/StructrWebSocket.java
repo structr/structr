@@ -398,7 +398,7 @@ public class StructrWebSocket implements WebSocketListener {
 					this.setAuthenticated(sessionId, user);
 				} else {
 
-					logger.warn("Session {} timed out - last accessed by {}", new Object[]{sessionId, user});
+					logger.warn("Session {} timed out - last accessed by {} ({})", sessionId, user.getName(), user.getUuid());
 
 					SessionHelper.clearSession(sessionId);
 

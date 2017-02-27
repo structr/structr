@@ -138,7 +138,7 @@ public class SessionHelper {
 	 */
 	public static void clearInvalidSessions(final Principal user) {
 
-		logger.info("Clearing invalid sessions for user {}", user);
+		logger.info("Clearing invalid sessions for user {} ({})", user.getName(), user.getUuid());
 
 		final HashSessionManager sessionManager = Services.getInstance().getService(HttpService.class).getHashSessionManager();
 
