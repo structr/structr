@@ -827,7 +827,7 @@ var Structr = {
 		var horizontalOffset = 98;
 
 		// needs to be calculated like this because the elements in the dialogHead (tabs) are floated and thus the .height() method returns 0
-		var headerHeight = dialogText.position().top - dialogHead.position().top;
+		var headerHeight = (dialogText.position().top + dialogText.scrollParent().scrollTop()) - dialogHead.position().top;
 
 		$('#dialogBox .dialogTextWrapper').css({
 			width: (dw - 28) + 'px',
