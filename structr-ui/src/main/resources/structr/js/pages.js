@@ -422,6 +422,24 @@ var _Pages = {
 
 		return tab;
 	},
+	removePage:function(page) {
+
+		var id = page.id;
+
+		Structr.removeExpandedNode(id);
+		var iframe = $('#preview_' + id);
+		var tab = $('#show_' + id);
+
+		if (id === activeTab) {
+			_Pages.activateTab(tab.prev());
+		}
+
+		tab.remove();
+		iframe.remove();
+
+		_Pages.reloadPreviews();
+
+	},
 	resetTab: function(element) {
 
 		_Logger.log(_LogType.PAGES, 'resetTab', element);

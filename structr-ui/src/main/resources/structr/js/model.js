@@ -210,26 +210,6 @@ var StructrModel = {
 			obj.remove();
 		}
 
-		if (Structr.isModuleActive(_Pages)) {
-			Structr.removeExpandedNode(id);
-			var iframe = $('#preview_' + id);
-			var tab = $('#show_' + id);
-
-			if (id === activeTab) {
-				_Pages.activateTab(tab.prev());
-			}
-
-			tab.remove();
-			iframe.remove();
-
-			_Pages.reloadPreviews();
-
-		} else if (Structr.isModuleActive(_Files)) {
-
-			_DuplicateFinder.reactToDeleteNotification(id);
-
-		}
-
 		if (graphBrowser) {
 			try {
 				graphBrowser.graph.dropElement(id);
@@ -554,6 +534,7 @@ StructrFolder.prototype.setProperty = function(key, value, recursive, callback) 
 StructrFolder.prototype.remove = function() {
 	if (Structr.isModuleActive(_Files)) {
 		_Files.refreshTree();
+		_DuplicateFinder.reactToDeleteNotification(this.id);
 	}
 };
 
@@ -587,6 +568,9 @@ StructrFile.prototype.setProperty = function(key, value, recursive, callback) {
 };
 
 StructrFile.prototype.remove = function() {
+	if (Structr.isModuleActive(_Files)) {
+		_DuplicateFinder.reactToDeleteNotification(this.id);
+	}
 };
 
 StructrFile.prototype.append = function() {
@@ -773,6 +757,12 @@ StructrPage.prototype.setProperty = function(key, value, recursive, callback) {
 StructrPage.prototype.append = function() {
 	if (Structr.isModuleActive(_Pages)) {
 		StructrModel.expand(_Pages.appendPageElement(this), this);
+	}
+};
+
+StructrPage.prototype.remove = function() {
+	if (Structr.isModuleActive(_Pages)) {
+		_Pages.removePage(this);
 	}
 };
 
