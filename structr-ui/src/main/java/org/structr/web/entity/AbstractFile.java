@@ -92,7 +92,12 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 	@Override
 	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		final boolean valid = validatePath(securityContext, errorBuffer);
+		boolean valid = true;
+
+		if (validatePathUniqueness) {
+			valid = validatePath(securityContext, errorBuffer);
+		}
+
 		return valid && super.onModification(securityContext, errorBuffer, modificationQueue);
 	}
 
