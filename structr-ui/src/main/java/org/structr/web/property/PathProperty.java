@@ -97,10 +97,9 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 		try {
 			for (final AbstractFile fileOrFolder : q.getAsList()) {
 
-				if (fileOrFolder != null && FileHelper.getFolderPath(fileOrFolder).equals(searchValue)) {
+				if (fileOrFolder != null && fileOrFolder.getProperty(AbstractFile.path).equals(searchValue)) {
 
 					attr.addToResult(fileOrFolder);
-					return attr;
 				}
 			}
 		} catch (FrameworkException ex) {
