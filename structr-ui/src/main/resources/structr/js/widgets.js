@@ -315,7 +315,7 @@ var _Widgets = {
 		var contentDiv = $('#' + id + '_content', dialogText);
 
 		var ul = mainTabs.children('ul');
-		ul.append('<li data-name="source">Source</li><li data-name="config">Configuration</li><li data-name="description">Description</li>');
+		ul.append('<li data-name="source">Source</li><li data-name="config">Configuration</li><li data-name="description">Description</li><li data-name="help">Help</li>');
 
 		var activateTab = function (tabName) {
 			$('.widget-tab-content', contentDiv).hide();
@@ -329,11 +329,12 @@ var _Widgets = {
 			activateTab($(this).data('name'));
 		});
 
-		contentDiv.append('<div class="tab widget-tab-content" id="tabView-source"></div><div class="tab widget-tab-content" id="tabView-config"></div><div class="tab widget-tab-content" id="tabView-description"></div>');
+		contentDiv.append('<div class="tab widget-tab-content" id="tabView-source"></div><div class="tab widget-tab-content" id="tabView-config"></div><div class="tab widget-tab-content" id="tabView-description"></div><div class="tab widget-tab-content" id="tabView-help"></div>');
 
 		var sourceEditor = _Widgets.appendWidgetPropertyEditor($('#tabView-source', contentDiv), (entity.source || ''), 'text/html', allowEdit);
 		var configEditor = _Widgets.appendWidgetPropertyEditor($('#tabView-config', contentDiv), (entity.configuration || ''), 'application/json', allowEdit);
 		var descriptionEditor = _Widgets.appendWidgetPropertyEditor($('#tabView-description', contentDiv), (entity.description || ''), 'text/html', allowEdit);
+		_Widgets.appendWidgetHelpText($('#tabView-help', contentDiv));
 
 		if (allowEdit) {
 
@@ -382,9 +383,10 @@ var _Widgets = {
 						if (closeAfterSave) {
 							dialogCancelButton.click();
 						} else {
-							entity.source = widgetData.source;
-							entity.configuration = widgetData.configuration;
-							entity.description = widgetData.description;
+							var modelObj = StructrModel.obj(entity.id);
+							modelObj.source = widgetData.source;
+							modelObj.configuration = widgetData.configuration;
+							modelObj.description = widgetData.description;
 							updateButtonStatus();
 						}
 					});
@@ -421,6 +423,66 @@ var _Widgets = {
 			readOnly: (allowEdit ? false : "nocursor")
 		});
 
+	},
+	appendWidgetHelpText: function(container) {
+
+		var helpText = "\
+		<h2>Source</h2>\
+		<p>The source HTML code of the widget (enriched with structr expressions etc).</p>\
+		<p>The easiest way to get this source is to build the functionality in a Structr page and then \"exporting\" the source of the page. This can be done by using the \"edit=1\" URL parameter. This way the structr-internal expressions and configuration attributes are output without being evaluated.</p>\
+		<h4>Example</h4>\
+		<ol>\
+			<li>Create your widget in the page \"myWidgetPage\"</li>\
+			<li>Go to http://localhost:8082/myWidgetPage?edit=1</li>\
+			<li>View and copy the source code of that page</li>\
+			<li>Paste it into the \"Source\" tab of the \"Edit Widget\" dialog</li>\
+		</ol>\
+		<h2>Configuration</h2>\
+		<p>You can create advanced widgets and make them configurable by inserting template expressions in the widget source and adding the expression into the configuration.\
+		Template expressions look like this \"[configSwitch]\" and can contain any characters (except the closing bracket). If a corresponding entry is found in the configuration, a dialog is displayed when adding the widget to a page.</p>\
+		<p>Elements that look like template expressions are only treated as such if a corresponding entry is found in the configuration. This allows the use of square brackets in the widget source without it being interpreted as a template expression.</p>\
+		<p>The configuration must be a valid JSON string (and is validated as such when trying to save the widget).</p>\
+		<p>Have a look at the widget configuration of \"configurable\" widgets for more examples.</p>\
+		<h4>Basic example</h4>\
+		<pre>\n\
+		{\n\
+			\"configSwitch\": {\n\
+				\"default\": \"This is the default text\"\n\
+			},\n\
+			\"selectArray\": {\n\
+				\"type\": \"select\",\n\
+				\"options\": [\n\
+					\"choice_one\",\n\
+					\"choice_two\",\n\
+					\"choice_three\"\n\
+				],\n\
+				\"default\": \"choice_two\"\n\
+			},\n\
+			\"selectObject\": {\n\
+				\"type\": \"select\",\n\
+				\"options\": {\n\
+					\"choice_one\": \"First choice\",\n\
+					\"choice_two\": \"Second choice\",\n\
+					\"choice_three\": \"Third choice\"\n\
+				},\n\
+				\"default\": \"choice_two\"\n\
+			}\n\
+		}</pre>\
+		<p>The supported configuration elements are the following:</p>\
+		<ul>\
+			<li><b>type</b>\
+				<ul><li><b>input</b>: A standard input field (<i>default if omitted</i>)</li><li><b>textarea</b>: A textarea with 5 rows</li><li><b>select</b>: A select element</li></ul>\
+			</li>\
+			<li><b>options</b> <i>(only applicable to type=select)</i><br>This field supports two different type of data: Array (of strings) and Object (value=&gt;Label).<br>\
+			If the data encountered is an Array, the elements are rendered as simple option elements. If it is an Object, the option elements will have the key of the object as their value and the value of the element will be displayed as the text.</li>\
+			<li><b>title</b><br>The title which is displayed in the left column of the \"Add Widget to Page\" dialog. If this value does not exist, the name of the template expression itself is used.</li>\
+			<li><b>placeholder</b> <i>(only applicable to type=input|textarea)</i><br>The placeholder text which is displayed when the field is empty. If this value does not exist, the <b>title</b> is used..</li>\
+			<li><b>default</b><br>The default value for the element. For type=textarea|input this value is the prefilled. For type=select this value is preselected.</li>\
+		</ul>\
+		<h2>Description</h2>\
+		<p>The description will be displayed when the user adds the widget to a page. It can contain HTML and usually serves the purpose of explaining what the widget is used for and the function of the configuration switches.</p>";
+
+		container.append(helpText);
 	},
 	appendVisualExpandIcon: function(el, id, name, hasChildren, expand) {
 
@@ -474,98 +536,6 @@ var _Widgets = {
 		}
 
 	},
-	insertWidgetIntoPageOLD: function(source, target, pageId) {
-
-		var pattern = /\[[a-zA-Z:,]+\]/g;
-		var widgetSource = source.source;
-		if (widgetSource) {
-
-			var rawMatches = widgetSource.match(pattern);
-
-			if (rawMatches) {
-
-				var matches = $.unique(rawMatches);
-
-				if (matches && matches.length) {
-
-					Structr.dialog('Configure Widget', function() {}, function() {});
-
-					dialogText.append('<p>Fill out the following parameters to correctly configure the widget.</p><table class="props"></table>');
-					var table = $('table', dialogText);
-
-					$.each(matches, function(i, match) {
-
-						var propertyKey = match.replace(/\[/, '').replace(/\]/, '');
-						var options = '';
-						var hasOptions = false;
-
-						if (propertyKey.contains(":")) {
-
-							var parts = propertyKey.split(":");
-
-							if (parts.length === 2) {
-								propertyKey = parts[0];
-								options = parts[1];
-								hasOptions = true;
-							}
-						}
-
-						var label = propertyKey;
-
-						if (hasOptions) {
-
-							var buffer = '';
-
-							buffer += '<tr><td><label>' + label + '</label></td><td><select id="' + propertyKey + '" class="input-field" >';
-
-							$.each(options.split(","), function(i, option) {
-								buffer += '<option>' + option + '</option>';
-							});
-
-							buffer += '</select>';
-							buffer += '</td></tr>';
-
-							table.append(buffer);
-
-						} else {
-
-							table.append('<tr><td><label for="' + label + '">' + label + '</label></td><td><input class="input-field" type="text" id="' + propertyKey + '" placeholder="' + label + '"></td></tr>');
-						}
-
-					});
-
-					dialog.append('<button id="appendWidget">Append Widget</button>');
-					var attrs = {};
-					$('#appendWidget').on('click', function(e) {
-
-						$.each(matches, function(i, match) {
-
-							$.each($('.input-field', table), function(i, m) {
-								var key = $(m).prop('id').replace(/\[/, '').replace(/\]/, '');
-								attrs[key] = $(this).val();
-							});
-
-						});
-
-						e.stopPropagation();
-						Command.appendWidget(widgetSource, target.id, pageId, _Widgets.url, attrs);
-
-						dialogCancelButton.click();
-						return false;
-					});
-
-				}
-
-			} else {
-
-				// If no matches, directly append widget
-				Command.appendWidget(widgetSource, target.id, pageId, _Widgets.url);
-
-			}
-
-		}
-
-	},
 	insertWidgetIntoPage: function(widget, target, pageId) {
 
 		var pattern = /\[[^\]]+\]/g;
@@ -613,12 +583,14 @@ var _Widgets = {
 						var fieldConfig = widgetConfig[label];
 						var fieldType = fieldConfig.type;
 						var defaultValue = fieldConfig.default || '';
+						var titleLabel = fieldConfig.title || label;
+						var placeholder = fieldConfig.placeholder || titleLabel;
 
 						switch (fieldType) {
 							case "select":
 								var options = fieldConfig.options || ["-"];
 
-								var buffer = '<tr><td><label>' + label + '</label></td><td><select id="' + label + '" class="form-field">';
+								var buffer = '<tr><td><label>' + titleLabel + '</label></td><td><select id="' + label + '" class="form-field">';
 
 								if (Object.prototype.toString.call(options) === '[object Array]') {
 									options.forEach(function (option) {
@@ -639,12 +611,12 @@ var _Widgets = {
 								break;
 
 							case "textarea":
-								table.append('<tr><td><label>' + label + '</label></td><td><textarea rows=5 class="form-field" id="' + label + '" placeholder="' + label + '">' + defaultValue + '</textarea></td></tr>');
+								table.append('<tr><td><label>' + titleLabel + '</label></td><td><textarea rows=5 class="form-field" id="' + label + '" placeholder="' + placeholder + '">' + defaultValue + '</textarea></td></tr>');
 								break;
 
 							case "input":
 							default:
-								table.append('<tr><td><label>' + label + '</label></td><td><input class="form-field" type="text" id="' + label + '" placeholder="' + label + '" value="' + defaultValue + '"></td></tr>');
+								table.append('<tr><td><label>' + titleLabel + '</label></td><td><input class="form-field" type="text" id="' + label + '" placeholder="' + placeholder + '" value="' + defaultValue + '"></td></tr>');
 
 						}
 					}
