@@ -589,7 +589,7 @@ public class AccessControlTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 
 			logger.warn("", t);
 			fail("Unexpected exception.");
@@ -610,7 +610,7 @@ public class AccessControlTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 
 			logger.warn("", t);
 			fail("Unexpected exception.");
@@ -630,7 +630,7 @@ public class AccessControlTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 
 			logger.warn("", t);
 			fail("Unexpected exception.");
@@ -664,7 +664,7 @@ public class AccessControlTest extends StructrTest {
 			group.addMember(user2);
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 
 			logger.warn("", t);
 			fail("Unexpected exception.");
@@ -677,7 +677,7 @@ public class AccessControlTest extends StructrTest {
 		try (final Tx tx = user2App.tx()) {
 
 			final TestOne test = user2App.nodeQuery(TestOne.class).getFirst();
-			assertNotNull(test);
+			assertNotNull("Group should be readable for members", test);
 
 			tx.success();
 
@@ -693,7 +693,7 @@ public class AccessControlTest extends StructrTest {
 		try (final Tx tx = user2App.tx()) {
 
 			final TestOne test = user2App.nodeQuery(TestOne.class).getFirst();
-			assertNotNull(test);
+			assertNotNull("Group should be readable for members", test);
 
 			test.setProperty(TestOne.name, "newname");
 
@@ -713,13 +713,13 @@ public class AccessControlTest extends StructrTest {
 		try (final Tx tx = user1App.tx()) {
 
 			final TestOne test = app.nodeQuery(TestOne.class).getFirst();
-			assertNotNull(test);
+			assertNotNull("Group should be readable for members", test);
 
 			test.grant(Permission.write, group);
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 
 			logger.warn("", t);
 			fail("Unexpected exception.");
@@ -731,7 +731,7 @@ public class AccessControlTest extends StructrTest {
 		try (final Tx tx = user2App.tx()) {
 
 			final TestOne test = user2App.nodeQuery(TestOne.class).getFirst();
-			assertNotNull(test);
+			assertNotNull("Group should be readable for members", test);
 
 			test.setProperty(TestOne.name, "newname");
 
@@ -762,7 +762,7 @@ public class AccessControlTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 
 			logger.warn("", t);
 			fail("Unexpected exception.");
@@ -787,7 +787,7 @@ public class AccessControlTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 
 			logger.warn("", t);
 			fail("Unexpected exception.");
@@ -802,12 +802,12 @@ public class AccessControlTest extends StructrTest {
 
 			final Group testGroup = user2App.nodeQuery(Group.class).andName("group").getFirst();
 
-			assertNotNull(testGroup);
+			assertNotNull("Group should be readable for members", testGroup);
 			assertEquals("Group name should be readable for members", "group", testGroup.getName());
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 
 			logger.warn("", t);
 			fail("Unexpected exception.");
@@ -820,7 +820,7 @@ public class AccessControlTest extends StructrTest {
 
 			final Group testGroup = user2App.nodeQuery(Group.class).andName("group").getFirst();
 
-			assertNotNull(testGroup);
+			assertNotNull("Group should be readable for members", testGroup);
 			assertEquals("Group name should be readable for members", "group", testGroup.getName());
 
 			testGroup.setProperty(Group.name, "dontchangeme");
@@ -1001,53 +1001,49 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			TestUser nonAdmin  = createTestNode(TestUser.class);
+			TestUser nonAdmin = createTestNode(TestUser.class);
 
-			final SecurityContext userContext           = SecurityContext.getInstance(nonAdmin, AccessMode.Frontend);
-            nonAdmin.setSecurityContext(userContext);
-			App userApp                                 = StructrApp.getInstance(userContext);
-
-			try (final Tx tx = userApp.tx()) {
-
-                assertFalse(nonAdmin.isAdmin());
-
-				nonAdmin.setProperty(TestUser.isAdmin, true);
-
-                fail("Privilege escalation using setProperty()-method! Non-admin may not set an admin flag!");
-
-				tx.success();
-
-			} catch (FrameworkException ex) {
-
-                assertFalse("Privilege escalation using setProperty()-method! Non-admin may not set an admin flag!", nonAdmin.isAdmin());
-                logger.warn("", ex);
-
-            }
+			final SecurityContext userContext = SecurityContext.getInstance(nonAdmin, AccessMode.Frontend);
+			nonAdmin.setSecurityContext(userContext);
+			App userApp = StructrApp.getInstance(userContext);
 
 			try (final Tx tx = userApp.tx()) {
 
 				assertFalse(nonAdmin.isAdmin());
 
-                PropertyMap props = new PropertyMap();
-                props.put(TestUser.isAdmin, true);
-                nonAdmin.setProperties(userContext, props);
+				nonAdmin.setProperty(TestUser.isAdmin, true);
 
-                fail("Privilege escalation using setProperties()-method! Non-admin may not set an admin flag!");
+				fail("Privilege escalation using setProperty()-method! Non-admin may not set an admin flag!");
 
-                tx.success();
+				tx.success();
 
 			} catch (FrameworkException ex) {
 
-                logger.warn("", ex);
-                assertFalse("Privilege escalation using setProperties()-method! Non-admin may not set an admin flag!", nonAdmin.isAdmin());
+				assertFalse("Privilege escalation using setProperty()-method! Non-admin may not set an admin flag!", nonAdmin.isAdmin());
 
-            }
+			}
+
+			try (final Tx tx = userApp.tx()) {
+
+				assertFalse(nonAdmin.isAdmin());
+
+				PropertyMap props = new PropertyMap();
+				props.put(TestUser.isAdmin, true);
+				nonAdmin.setProperties(userContext, props);
+
+				fail("Privilege escalation using setProperties()-method! Non-admin may not set an admin flag!");
+
+				tx.success();
+
+			} catch (FrameworkException ex) {
+
+				assertFalse("Privilege escalation using setProperties()-method! Non-admin may not set an admin flag!", nonAdmin.isAdmin());
+
+			}
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
 			fail("Unexpected Exception");
-
 		}
 
 	}
@@ -1065,7 +1061,7 @@ public class AccessControlTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 
 			logger.warn("Unable to clear resource access grants", t);
 		}

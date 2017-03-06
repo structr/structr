@@ -25,9 +25,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -41,12 +41,9 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.DatabaseService;
-import org.structr.api.NativeResult;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Node;
-import org.structr.api.graph.Path;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
@@ -63,7 +60,6 @@ import org.structr.cmis.info.CMISPolicyInfo;
 import org.structr.cmis.info.CMISRelationshipInfo;
 import org.structr.cmis.info.CMISSecondaryInfo;
 import org.structr.common.AccessControllable;
-import org.structr.common.AccessPathCache;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.IdSorter;
 import org.structr.common.Permission;
@@ -609,14 +605,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	}
 
-	protected final <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationshipsAsSuperUser(final Class<R> type) {
-
-		final RelationshipFactory<R> factory = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
-		final R template = getRelationshipForType(type);
-
-		return new IterableAdapter<>(template.getSource().getRawSource(SecurityContext.getSuperUserInstance(), dbNode, null), factory);
-	}
-
 	@Override
 	public final <R extends AbstractRelationship> Iterable<R> getRelationships() {
 		return new IterableAdapter<>(dbNode.getRelationships(), new RelationshipFactory<R>(securityContext));
@@ -670,19 +658,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		return null;
 	}
 
-	protected final <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> R getOutgoingRelationshipAsSuperUser(final Class<R> type) {
-
-		final RelationshipFactory<R> factory = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
-		final R template                     = getRelationshipForType(type);
-		final Relationship relationship      = template.getSource().getRawTarget(SecurityContext.getSuperUserInstance(), dbNode, null);
-
-		if (relationship != null) {
-			return factory.adapt(relationship);
-		}
-
-		return null;
-	}
-
 	@Override
 	public final <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<R> getOutgoingRelationships(final Class<R> type) {
 
@@ -705,6 +680,37 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	@Override
 	public final <R extends AbstractRelationship> Iterable<R> getRelationshipsAsSuperUser() {
 		return new IterableAdapter<>(dbNode.getRelationships(), new RelationshipFactory<R>(SecurityContext.getSuperUserInstance()));
+	}
+
+	protected final <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationshipsAsSuperUser(final Class<R> type) {
+
+		final RelationshipFactory<R> factory = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
+		final R template = getRelationshipForType(type);
+
+		return new IterableAdapter<>(template.getSource().getRawSource(SecurityContext.getSuperUserInstance(), dbNode, null), factory);
+	}
+
+	protected final <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> R getOutgoingRelationshipAsSuperUser(final Class<R> type) {
+
+		final RelationshipFactory<R> factory = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
+		final R template                     = getRelationshipForType(type);
+		final Relationship relationship      = template.getSource().getRawTarget(SecurityContext.getSuperUserInstance(), dbNode, null);
+
+		if (relationship != null) {
+			return factory.adapt(relationship);
+		}
+
+		return null;
+	}
+
+	protected final <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> Iterable<R> getRelationshipsAsSuperUser(final Class<R> type) {
+
+		final RelationshipFactory<R> factory = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
+		final R template                     = getRelationshipForType(type);
+		final Direction direction            = template.getDirectionForType(entityType);
+		final RelationshipType relType       = template;
+
+		return new IterableAdapter<>(dbNode.getRelationships(direction, relType), factory);
 	}
 
 	/**
@@ -801,10 +807,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			accessingUser = context.getUser(false);
 		}
 
-		return isGranted(permission, accessingUser, 0, new HashSet<>());
+		return isGranted(permission, accessingUser, new PermissionResolutionMask(), 0, new AlreadyTraversed());
 	}
 
-	private boolean isGranted(final Permission permission, final Principal accessingUser, final int level, final Set<Long> alreadyTraversed) {
+	private boolean isGranted(final Permission permission, final Principal accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed) {
 
 		if (level > 100) {
 			logger.warn("Aborting recursive permission resolution because of recursion level > 100, this is quite likely an infinite loop.");
@@ -861,14 +867,19 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			}
 
 			// Check permissions from domain relationships
-			if (hasEffectivePermissions(accessingUser, permission)) {
+			if (hasEffectivePermissions(accessingUser, permission, mask, level, alreadyTraversed)) {
 				return true;
 			}
 
 			// Last: recursively check possible parent principals
 			for (Principal parent : accessingUser.getParents()) {
 
-				if (isGranted(permission, parent, level+1, alreadyTraversed)) {
+				// check principals here to avoid circles in group membership
+				if (alreadyTraversed.contains("Principal", parent.getId())) {
+					return false;
+				}
+
+				if (isGranted(permission, parent, mask, level+1, alreadyTraversed)) {
 					return true;
 				}
 			}
@@ -877,6 +888,59 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		return false;
 	}
 
+	private boolean hasEffectivePermissions(final Principal principal, final Permission permission, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed) {
+
+		// check nodes here to avoid circles in permission-propagating relationships
+		if (alreadyTraversed.contains("Node", dbNode.getId())) {
+			return false;
+		}
+
+		for (final Class<Relation> propagatingType : SchemaRelationshipNode.getPropagatingRelationshipTypes()) {
+
+			final Iterable<Relation> iterable = getRelationshipsAsSuperUser(propagatingType);
+			for (final Relation source : iterable) {
+
+				if (source instanceof PermissionPropagation) {
+
+					final PermissionPropagation perm                            = (PermissionPropagation)source;
+					final RelationshipInterface rel                             = (RelationshipInterface)source;
+					final long startNodeId                                      = rel.getSourceNode().getId();
+					final long thisId                                           = getId();
+					final SchemaRelationshipNode.Direction relDirection         = thisId == startNodeId ? SchemaRelationshipNode.Direction.Out : SchemaRelationshipNode.Direction.In;
+					final SchemaRelationshipNode.Direction propagationDirection = perm.getPropagationDirection();
+					final AbstractNode otherNode                                = (AbstractNode)rel.getOtherNode(this);
+
+					// check propagation direction
+					if (!propagationDirection.equals(SchemaRelationshipNode.Direction.Both)) {
+
+						if (propagationDirection.equals(SchemaRelationshipNode.Direction.None)) {
+
+							mask.clear();
+							break;
+						}
+
+						if (!relDirection.equals(propagationDirection)) {
+
+							mask.clear();
+							break;
+						}
+					}
+
+					applyCurrentStep(perm, mask);
+
+					if (mask.allowsPermission(permission) && otherNode.isGranted(permission, principal, mask, level+1, alreadyTraversed)) {
+
+						// break early
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/*
 	private boolean hasEffectivePermissions(final Principal principal, final Permission permission) {
 
 		final boolean doLog = securityContext.hasParameter("debugLoggingEnabled");
@@ -1116,6 +1180,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		return false;
 	}
+	*/
 
 	private void applyCurrentStep(final PermissionPropagation rel, PermissionResolutionMask mask) {
 
@@ -2033,6 +2098,23 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		@Override
 		public String getId() {
 			return getPrincipalId();
+		}
+	}
+
+	private static class AlreadyTraversed {
+
+		private Map<String, Set<Long>> sets = new LinkedHashMap<>();
+
+		public boolean contains(final String key, final Long id) {
+
+			Set<Long> set = sets.get(key);
+			if (set == null) {
+
+				set = new HashSet<>();
+				sets.put(key, set);
+			}
+
+			return !set.add(id);
 		}
 	}
 }

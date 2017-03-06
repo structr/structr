@@ -20,6 +20,7 @@ package org.structr.core.entity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -27,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -74,7 +74,7 @@ import org.structr.schema.parser.Validator;
 public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 	private static final Logger logger                              = LoggerFactory.getLogger(SchemaRelationshipNode.class.getName());
-	private static final Set<String> propagatingRelTypes            = new TreeSet<>();
+	private static final Set<Class> propagatingRelTypes             = new HashSet<>();
 	private static final Pattern ValidKeyPattern                    = Pattern.compile("[a-zA-Z_]+");
 
 	public static final Property<SchemaNode> sourceNode             = new StartNode<>("sourceNode", SchemaRelationshipSourceNode.class);
@@ -133,7 +133,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	private final Set<String> dynamicViews = new LinkedHashSet<>();
 
 
-	public static void registerPropagatingRelationshipType(final String type) {
+	public static void registerPropagatingRelationshipType(final Class type) {
 		propagatingRelTypes.add(type);
 	}
 
@@ -141,7 +141,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		propagatingRelTypes.clear();
 	}
 
-	public static Set<String> getPropagatingRelationshipTypes() {
+	public static Set<Class> getPropagatingRelationshipTypes() {
 		return propagatingRelTypes;
 	}
 
@@ -512,7 +512,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		src.append(" {\n\n");
 
 		if (!Direction.None.equals(getProperty(permissionPropagation))) {
-			src.append("\tstatic {\n\t\tSchemaRelationshipNode.registerPropagatingRelationshipType(\"").append(getRelationshipType()).append("\");\n\t}\n\n");
+			src.append("\tstatic {\n\t\tSchemaRelationshipNode.registerPropagatingRelationshipType(").append(_className).append(".class);\n\t}\n\n");
 		}
 
 		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, errorBuffer));
