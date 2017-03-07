@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.web.importer.Importer;
+import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -59,16 +60,26 @@ public class ImportCommand extends AbstractCommand {
 		final String name                     = (String) properties.get("name");
 		final boolean publicVisible           = (Boolean) properties.get("publicVisible");
 		final boolean authVisible             = (Boolean) properties.get("authVisible");
+		final boolean processDeploymentInfo   = (Boolean) properties.get("processDeploymentInfo");
 		
 		try {
 
 			final Importer pageImporter = new Importer(securityContext, code, address, name, publicVisible, authVisible);
+			
+			if (processDeploymentInfo) {
+		
+				pageImporter.setIsDeployment(true);
+				pageImporter.setCommentHandler(new DeploymentCommentHandler());
+			}
+			
 			final boolean parseOk       = pageImporter.parse();
 
 			if (parseOk) {
 
-				logger.info("Successfully parsed {}", address);
-				getWebSocket().send(MessageBuilder.status().code(200).message("Successfully parsed address " + address).build(), true);
+				if (address != null) {
+					logger.info("Successfully parsed {}", address);
+					getWebSocket().send(MessageBuilder.status().code(200).message("Successfully parsed address " + address).build(), true);
+				}
 
 				String pageId                  = pageImporter.readPage().getUuid();
 				Map<String, Object> resultData = new HashMap();

@@ -298,7 +298,8 @@ var _Pages = {
 			dialog.append('<h3>... or fetch page from URL: <input id="_address" name="address" size="40" value="http://"></h3><table class="props">'
 					+ '<tr><td><label for="name">Name of new page:</label></td><td><input id="_name" name="name" size="20"></td></tr>'
 					+ '<tr><td><label for="publicVisibilty">Visible to public</label></td><td><input type="checkbox" id="_publicVisible" name="publicVisibility"></td></tr>'
-					+ '<tr><td><label for="authVisibilty">Visible to authenticated users</label></td><td><input type="checkbox" checked="checked" id="_authVisible" name="authVisibilty"></td></tr>'
+					+ '<tr><td><label for="authVisibilty">Visible to authenticated users</label></td><td><input type="checkbox" id="_authVisible" name="authVisibilty"></td></tr>'
+					+ '<tr><td><label for="processDeploymentInfo">Process deployment annotations</label></td><td><input type="checkbox" id="_processDeploymentInfo" name="processDeploymentInfo"></td></tr>'
 					+ '</table>');
 
 			var addressField = $('#_address', dialog);
@@ -319,12 +320,18 @@ var _Pages = {
 
 				var code = $('#_code', dialog).val();
 				var address = $('#_address', dialog).val();
+				
+				if (code.length > 0) {
+					address = null;
+				}
+				
 				var name = $('#_name', dialog).val();
 				var publicVisible = $('#_publicVisible', dialog).prop('checked');
 				var authVisible = $('#_authVisible', dialog).prop('checked');
+				var processDeploymentInfo = $('#_processDeploymentInfo', dialog).prop('checked');
 
 				_Logger.log(_LogType.PAGES, 'start');
-				return Command.importPage(code, address, name, publicVisible, authVisible);
+				return Command.importPage(code, address, name, publicVisible, authVisible, processDeploymentInfo);
 			});
 
 		});
