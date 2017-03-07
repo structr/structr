@@ -659,13 +659,14 @@ var Command = {
 	 * will create a content (#text) node.
 	 *
 	 */
-	createAndAppendDOMNode: function(pageId, parentId, tagName, attributes) {
+	createAndAppendDOMNode: function(pageId, parentId, tagName, attributes, inheritVisibilityFlags) {
 		var obj = {
 			command: 'CREATE_AND_APPEND_DOM_NODE',
 			pageId: pageId,
 			data: {
 				parentId: parentId,
-				tagName: tagName
+				tagName: tagName,
+				inheritVisibilityFlags: (inheritVisibilityFlags || false)
 			}
 		};
 		$.extend(obj.data, attributes);

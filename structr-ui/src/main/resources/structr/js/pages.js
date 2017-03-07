@@ -676,7 +676,7 @@ var _Pages = {
 			Command.clonePage(entity.id);
 		});
 
-		_Elements.appendContextMenu(div, entity);
+		_Elements.enableContextMenuOnElement(div, entity);
 
 		div.append('<i title="Sync page \'' + entity.name + '\' to remote instance" class="push_icon button ' + _Icons.getFullSpriteClass(_Icons.push_file_icon) + '" />');
 		div.children('.push_icon').on('click', function() {
