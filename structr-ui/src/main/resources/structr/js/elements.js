@@ -808,22 +808,26 @@ var _Elements = {
 
 		};
 
-		var registerPlaintextContextMenuItemHandler = function (el, itemText) {
+		var registerPlaintextContextMenuItemHandler = function (el, itemText, forcedClickHandler) {
 
 			el.on('mouseup', function (e) {
 				e.stopPropagation();
 
-				var pageId = (entity.type === 'Page') ? entity.id : entity.pageId;
-				var tagName = (itemText === 'content') ? null : itemText;
+				if (forcedClickHandler && (typeof forcedClickHandler === 'function')) {
+					forcedClickHandler(itemText);
+				} else {
+					var pageId = (entity.type === 'Page') ? entity.id : entity.pageId;
+					var tagName = (itemText === 'content') ? null : itemText;
 
-				Command.createAndAppendDOMNode(pageId, entity.id, tagName, {}, _Elements.isInheritVisibililtyFlagsChecked());
+					Command.createAndAppendDOMNode(pageId, entity.id, tagName, {}, _Elements.isInheritVisibililtyFlagsChecked());
+				}
 
 				_Elements.removeContextMenu();
 			});
 
 		};
 
-		var addContextMenuElements = function (ul, element, hidden) {
+		var addContextMenuElements = function (ul, element, hidden, forcedClickHandler) {
 
 			if (hidden) {
 				ul.addClass('hidden');
@@ -832,7 +836,7 @@ var _Elements = {
 			if (Object.prototype.toString.call(element) === '[object Array]') {
 
 				element.forEach(function (el) {
-					addContextMenuElements(ul, el, hidden);
+					addContextMenuElements(ul, el, hidden, forcedClickHandler);
 				});
 
 			} else if (Object.prototype.toString.call(element) === '[object Object]') {
@@ -854,7 +858,7 @@ var _Elements = {
 
 					var subListElement = $('<ul class="element-group ' + cssPositionClasses + '"></ul>');
 					menuEntry.append(subListElement);
-					addContextMenuElements(subListElement, element.elements, true);
+					addContextMenuElements(subListElement, element.elements, true, (forcedClickHandler ? forcedClickHandler : element.forcedClickHandler) );
 				}
 
 			} else if (Object.prototype.toString.call(element) === '[object String]') {
@@ -866,7 +870,7 @@ var _Elements = {
 				} else {
 
 					var listElement = $('<li>' + element + '</li>');
-					registerPlaintextContextMenuItemHandler(listElement, element);
+					registerPlaintextContextMenuItemHandler(listElement, element, forcedClickHandler);
 					ul.append(listElement);
 
 				}
@@ -906,16 +910,30 @@ var _Elements = {
 	},
 	getContextMenuElements: function (div, entity) {
 
+		var handleInsertHTMLAction = function (itemText) {
+			var pageId = (entity.type === 'Page') ? entity.id : entity.pageId;
+			var tagName = (itemText === 'content') ? null : itemText;
+
+			Command.createAndAppendDOMNode(pageId, entity.id, tagName, {}, _Elements.isInheritVisibililtyFlagsChecked());
+		};
+
+		var handleWrapInHTMLAction = function (itemText) {
+
+			Command.wrapDOMNodeInNewDOMNode(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibililtyFlagsChecked());
+		};
+
 		var elements = [];
 
 		if (entity.type !== 'Content') {
 			elements.push({
 				name: 'Insert HTML element',
-				elements: (entity.type !== 'Page') ? _Elements.sortedElementGroups : ['html']
+				elements: (entity.type !== 'Page') ? _Elements.sortedElementGroups : ['html'],
+				forcedClickHandler: handleInsertHTMLAction
 			});
 			elements.push({
 				name: 'Insert content element',
-				elements: (entity.type !== 'Page') ? ['content', 'template'] : ['template']
+				elements: (entity.type !== 'Page') ? ['content', 'template'] : ['template'],
+				forcedClickHandler: handleInsertHTMLAction
 			});
 		}
 
@@ -927,6 +945,32 @@ var _Elements = {
 					return false;
 				},
 				separatorAfter: true
+			});
+		}
+
+		if (entity.type !== 'Page' && entity.parent !== null) {
+			elements.push({
+				name: 'Wrap element in...',
+				separatorAfter: true,
+				elements: [
+					{
+						name: '... HTML element',
+						elements: _Elements.sortedElementGroups,
+						forcedClickHandler: handleWrapInHTMLAction
+					},
+					{
+						name: '... Template Element',
+						clickHandler: function () {
+							handleWrapInHTMLAction('template');
+						}
+					},
+					{
+						name: '... &lt;div&gt; Element',
+						clickHandler: function () {
+							handleWrapInHTMLAction('div');
+						}
+					}
+				]
 			});
 		}
 
@@ -1056,7 +1100,6 @@ var _Elements = {
 		}
 
 		if (entity.type !== 'Content') {
-
 			elements.push({
 				name: 'Expand / Collapse',
 				elements: [

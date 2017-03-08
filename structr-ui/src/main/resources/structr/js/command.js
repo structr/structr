@@ -673,6 +673,27 @@ var Command = {
 		_Logger.log(_LogType.WS[obj.command], 'createAndAppendDOMNode()', obj);
 		return sendObj(obj);
 	},
+	/**
+	 * Send a WRAP_DOM_NODE command to the server.
+	 *
+	 * The server will create a new DOM node with the given tag name and
+	 * wrap the node with the given nodeId in it.
+	 *
+	 */
+	wrapDOMNodeInNewDOMNode: function(pageId, nodeId, tagName, attributes, inheritVisibilityFlags) {
+		var obj = {
+			command: 'WRAP_DOM_NODE',
+			pageId: pageId,
+			data: {
+				nodeId: nodeId,
+				tagName: tagName,
+				inheritVisibilityFlags: (inheritVisibilityFlags || false)
+			}
+		};
+		$.extend(obj.data, attributes);
+		_Logger.log(_LogType.WS[obj.command], 'wrapDOMNodeInNewDOMNode()', obj);
+		return sendObj(obj);
+	},
 	wrapContent: function(pageId, parentId, tagName) {
 		var obj = {
 			command: 'WRAP_CONTENT',
