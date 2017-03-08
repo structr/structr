@@ -76,6 +76,7 @@ import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
+import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -224,6 +225,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			info("Reading {}..", mailTemplatesConf);
 			importListData(MailTemplate.class, readConfigList(mailTemplatesConf));
+		}
+
+		// read widgets.json
+		final Path widgetsConf = source.resolve("widgets.json");
+		if (Files.exists(widgetsConf)) {
+
+			info("Reading {}..", widgetsConf);
+			importListData(Widget.class, readConfigList(widgetsConf));
 		}
 
 		// read localizations.json
@@ -399,6 +408,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path schemaMethods  = target.resolve("schema-methods.json");
 			final Path mailTemplates  = target.resolve("mail-templates.json");
 			final Path localizations  = target.resolve("localizations.json");
+			final Path widgets		  = target.resolve("widgets.json");
 
 			exportFiles(files, filesConf);
 			exportPages(pages, pagesConf);
@@ -409,6 +419,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			exportSchemaMethods(schemaMethods);
 			exportMailTemplates(mailTemplates);
 			exportLocalizations(localizations);
+			exportWidgets(widgets);
 
 			// config import order is "users, grants, pages, components, templates"
 			// data import order is "schema, files, templates, components, pages"
@@ -916,6 +927,41 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
 
 			getGson().toJson(mailTemplates, fos);
+
+		} catch (IOException ioex) {
+			logger.warn("", ioex);
+		}
+	}
+
+		private void exportWidgets(final Path target) throws FrameworkException {
+
+		final List<Map<String, Object>> widgets = new LinkedList<>();
+		final App app                                 = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final Widget widget : app.nodeQuery(Widget.class).sort(Widget.name).getAsList()) {
+
+				final Map<String, Object> entry = new TreeMap<>();
+				widgets.add(entry);
+
+				entry.put("name",   widget.getProperty(Widget.name));
+				entry.put("source",   widget.getProperty(Widget.source));
+				entry.put("description",   widget.getProperty(Widget.description));
+				entry.put("isWidget",   widget.getProperty(Widget.isWidget));
+				entry.put("treePath",   widget.getProperty(Widget.treePath));
+				entry.put("pictures",   widget.getProperty(Widget.pictures));
+				entry.put("configuration", widget.getProperty(Widget.configuration));
+				entry.put("visibleToAuthenticatedUsers", widget.getProperty(Widget.visibleToAuthenticatedUsers));
+				entry.put("visibleToPublicUsers", widget.getProperty(Widget.visibleToPublicUsers));
+			}
+
+			tx.success();
+		}
+
+		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
+
+			getGson().toJson(widgets, fos);
 
 		} catch (IOException ioex) {
 			logger.warn("", ioex);
