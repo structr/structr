@@ -570,7 +570,7 @@ var _Widgets = {
 					dialogText.append(widgetDescription);
 				}
 
-				dialogText.append('<table class="props"></table>');
+				dialogText.append('<table class="props widget-props"></table>');
 
 				var table = $('table', dialogText);
 
