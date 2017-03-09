@@ -565,14 +565,15 @@ var Command = {
 	 * to the new one.
 	 *
 	 */
-	appendWidget: function(source, parentId, pageId, widgetHostBaseUrl, attributes) {
+	appendWidget: function(source, parentId, pageId, widgetHostBaseUrl, attributes, processDeploymentInfo) {
 		var obj = {
 			command: 'APPEND_WIDGET',
 			pageId: pageId,
 			data: {
 				widgetHostBaseUrl: widgetHostBaseUrl,
 				parentId: parentId,
-				source: source
+				source: source,
+				processDeploymentInfo: (processDeploymentInfo || true)
 			}
 		};
 		if (attributes) {

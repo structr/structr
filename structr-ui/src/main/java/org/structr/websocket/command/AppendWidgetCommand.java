@@ -30,14 +30,11 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-/**
- *
- *
- */
+
 public class AppendWidgetCommand extends AbstractCommand {
 
 	private static final Logger logger     = LoggerFactory.getLogger(AppendWidgetCommand.class.getName());
-	
+
 	static {
 
 		StructrWebSocket.addCommand(AppendWidgetCommand.class);
@@ -46,10 +43,11 @@ public class AppendWidgetCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		String pageId			= webSocketData.getPageId();
-		Map<String, Object> nodeData	= webSocketData.getNodeData();
-		String parentId			= (String) nodeData.get("parentId");
-		String baseUrl			= (String) nodeData.get("widgetHostBaseUrl");
+		final String pageId                   = webSocketData.getPageId();
+		final Map<String, Object> nodeData    = webSocketData.getNodeData();
+		final String parentId                 = (String) nodeData.get("parentId");
+		final String baseUrl                  = (String) nodeData.get("widgetHostBaseUrl");
+		final boolean processDeploymentInfo   = (Boolean) nodeData.get("processDeploymentInfo");
 
 		// check for parent ID
 		if (parentId == null) {
@@ -86,12 +84,12 @@ public class AppendWidgetCommand extends AbstractCommand {
 			if (page != null) {
 
 				try {
-					Widget.expandWidget(getWebSocket().getSecurityContext(), page, parentDOMNode, baseUrl, nodeData);
-					
+					Widget.expandWidget(getWebSocket().getSecurityContext(), page, parentDOMNode, baseUrl, nodeData, processDeploymentInfo);
+
 				} catch (FrameworkException fex) {
 
 					logger.warn(fex.toString());
-					
+
 					// send exception
 					getWebSocket().send(MessageBuilder.status().code(422).message(fex.toString()).build(), true);
 				}
