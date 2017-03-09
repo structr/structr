@@ -61,4 +61,9 @@ public class LDAPCommand extends Command implements MaintenanceCommand {
 	public boolean requiresEnclosingTransaction() {
 		return false;
 	}
+
+	@Override
+	public boolean requiresFlushingOfCaches() {
+		return false;
+	}
 }
