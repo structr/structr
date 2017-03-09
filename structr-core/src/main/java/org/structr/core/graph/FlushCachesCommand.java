@@ -22,6 +22,8 @@ package org.structr.core.graph;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.bolt.wrapper.NodeWrapper;
+import org.structr.bolt.wrapper.RelationshipWrapper;
 import org.structr.common.AccessPathCache;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -41,6 +43,9 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
 
+		NodeWrapper.clearCache();
+		RelationshipWrapper.clearCache();
+		
 		NodeFactory.invalidateCache();
 		RelationshipFactory.invalidateCache();
 		AccessPathCache.invalidate();
