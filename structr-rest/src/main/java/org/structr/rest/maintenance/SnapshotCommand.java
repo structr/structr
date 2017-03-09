@@ -68,6 +68,11 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 		return false;
 	}
 
+	@Override
+	public boolean requiresFlushingOfCaches() {
+		return false;
+	}
+
 	public void execute(final String mode, final String name) throws FrameworkException {
 		execute(mode, name, null);
 	}

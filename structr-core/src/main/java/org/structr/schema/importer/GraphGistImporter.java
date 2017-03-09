@@ -86,4 +86,9 @@ public class GraphGistImporter extends SchemaImporter implements MaintenanceComm
 	public boolean requiresEnclosingTransaction() {
 		return false;
 	}
+
+	@Override
+	public boolean requiresFlushingOfCaches() {
+		return false;
+	}
 }

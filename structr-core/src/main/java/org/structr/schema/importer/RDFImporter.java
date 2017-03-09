@@ -110,6 +110,11 @@ public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 		return true;
 	}
 
+	@Override
+	public boolean requiresFlushingOfCaches() {
+		return false;
+	}
+
 	public List<String> importRDF(final InputStream is) throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
 
 		final Document doc                            = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is);

@@ -109,4 +109,9 @@ public class BulkDeleteSoftDeletedNodesCommand extends NodeServiceCommand implem
 	public boolean requiresEnclosingTransaction() {
 		return false;
 	}
+
+	@Override
+	public boolean requiresFlushingOfCaches() {
+		return false;
+	}
 }

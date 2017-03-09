@@ -85,4 +85,9 @@ public class DumpDatabaseCommand extends NodeServiceCommand implements Maintenan
 	public boolean requiresEnclosingTransaction() {
 		return true;
 	}
+
+	@Override
+	public boolean requiresFlushingOfCaches() {
+		return false;
+	}
 }

@@ -43,9 +43,11 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
 
+		logger.info("Clearing all caches.");
+
 		NodeWrapper.clearCache();
 		RelationshipWrapper.clearCache();
-		
+
 		NodeFactory.invalidateCache();
 		RelationshipFactory.invalidateCache();
 		AccessPathCache.invalidate();
@@ -55,7 +57,7 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 		app.invalidateCache();
 		app.getDatabaseService().invalidateQueryCache();
 
-		logger.info("Caches cleared.");
+		logger.info("Done");
 	}
 
 	@Override
@@ -63,4 +65,8 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 		return true;
 	}
 
+	@Override
+	public boolean requiresFlushingOfCaches() {
+		return false;
+	}
 }

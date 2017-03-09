@@ -94,6 +94,11 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 		return false;
 	}
 
+	@Override
+	public boolean requiresFlushingOfCaches() {
+		return false;
+	}
+
 	// ----- private methods -----
 	private void doExport(final String fileName) throws FrameworkException {
 

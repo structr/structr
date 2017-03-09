@@ -111,4 +111,9 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 	public boolean requiresEnclosingTransaction() {
 		return false;
 	}
+
+	@Override
+	public boolean requiresFlushingOfCaches() {
+		return false;
+	}
 }

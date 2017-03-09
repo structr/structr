@@ -164,4 +164,9 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 	public boolean requiresEnclosingTransaction() {
 		return false;
 	}
+
+	@Override
+	public boolean requiresFlushingOfCaches() {
+		return false;
+	}
 }

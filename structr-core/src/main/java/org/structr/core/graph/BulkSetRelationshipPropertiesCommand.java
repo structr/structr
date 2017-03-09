@@ -125,4 +125,9 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 	public boolean requiresEnclosingTransaction() {
 		return false;
 	}
+
+	@Override
+	public boolean requiresFlushingOfCaches() {
+		return false;
+	}
 }
