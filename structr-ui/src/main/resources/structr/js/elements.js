@@ -20,7 +20,23 @@ var elements, dropBlocked;
 var lineWrappingKey = 'structrEditorLineWrapping_' + port;
 var contents, editor, contentType, currentEntity;
 
+$(function() {
+
+	// disable default contextmenu on our contextmenu *once*, so it doesnt fire/register once per element
+	$(document).on("contextmenu", '#menu-area', function(e) {
+		e.stopPropagation();
+		e.preventDefault();
+	});
+
+	$(document).on("click", '#add-child-dialog #inherit-visibility-flags' , function (e) {
+		e.preventDefault();
+		e.stopPropagation();
+	});
+
+});
+
 var _Elements = {
+	inheritVisibilityFlagsKey: 'inheritVisibilityFlags_' + port,
 	elementNames: [
 		// The root element
 		'html',
@@ -422,7 +438,7 @@ var _Elements = {
 			Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
 		});
 
-		_Elements.appendContextMenu(div, entity);
+		_Elements.enableContextMenuOnElement(div, entity);
 
 		_Entities.appendExpandIcon(div, entity, hasChildren);
 
@@ -721,339 +737,422 @@ var _Elements = {
 		});
 
 	},
-	appendContextMenu: function(div, entity) {
+	enableContextMenuOnElement: function (div, entity) {
 
-		$('#menu-area').on("contextmenu", function(e) {
+		_Elements.disableBrowserContextMenuOnElement(div);
+
+		$(div).on('mouseup', function(e) {
+			if (e.button !== 2) {
+				return;
+			}
 			e.stopPropagation();
-			e.preventDefault();
+
+			_Elements.activateContextMenu(e, div, entity);
 		});
+
+	},
+	disableBrowserContextMenuOnElement: function (div) {
 
 		$(div).on("contextmenu", function(e) {
 			e.stopPropagation();
 			e.preventDefault();
 		});
 
-		$(div).on('mouseup', function(e) {
-			if (e.button !== 2) {
-				return;
-			}
+	},
+	activateContextMenu:function(e, div, entity) {
 
-			e.stopPropagation();
+		var menuElements = _Elements.getContextMenuElements(div, entity);
 
-			_Elements.removeContextMenu();
-			div.addClass('contextMenuActive');
-			$('#menu-area').append('<div id="add-child-dialog"></div>');
+		var menuHeight = 24 * menuElements.length;
 
-			var leftOrRight = 'left';
-			var topOrBottom = 'top';
-			var x = (e.pageX - 8);
-			var y = (div.offset().top - 58);
+		var leftOrRight = 'left';
+		var topOrBottom = 'top';
+		var x = (e.pageX - 8);
+		var y = (div.offset().top - 58);
 
-			if (e.pageX > ($(window).width() / 2)) {
-				leftOrRight = 'right';
-			}
+		if (e.pageX > ($(window).width() / 2)) {
+			leftOrRight = 'right';
+		}
 
-			if (e.pageY > ($(window).height() / 2)) {
-				topOrBottom = 'bottom';
-				y -= 175;
+		if (e.pageY > ($(window).height() - menuHeight)) {
+			topOrBottom = 'bottom';
+			y -= 20 + menuHeight - ($(window).height() - e.pageY);
+		}
 
-				if (entity.mostUsedTags && entity.mostUsedTags.length) {
-					y -= 24;
+		var cssPositionClasses = leftOrRight + ' ' + topOrBottom;
+
+		_Elements.removeContextMenu();
+		div.addClass('contextMenuActive');
+		$('#menu-area').append('<div id="add-child-dialog"></div>');
+
+		$('#add-child-dialog').css({
+			left: x + 'px',
+			top: y + 'px'
+		});
+
+		var registerContextMenuItemClickHandler = function (el, contextMenuItem) {
+
+			el.on('mouseup', function(e) {
+				e.stopPropagation();
+
+				var preventClose = true;
+
+				if (contextMenuItem.clickHandler && (typeof contextMenuItem.clickHandler === 'function')) {
+					preventClose = contextMenuItem.clickHandler($(this));
 				}
+
+				if (!preventClose) {
+					_Elements.removeContextMenu();
+				}
+			});
+
+		};
+
+		var registerPlaintextContextMenuItemHandler = function (el, itemText, forcedClickHandler) {
+
+			el.on('mouseup', function (e) {
+				e.stopPropagation();
+
+				if (forcedClickHandler && (typeof forcedClickHandler === 'function')) {
+					forcedClickHandler(itemText);
+				} else {
+					var pageId = (entity.type === 'Page') ? entity.id : entity.pageId;
+					var tagName = (itemText === 'content') ? null : itemText;
+
+					Command.createAndAppendDOMNode(pageId, entity.id, tagName, {}, _Elements.isInheritVisibililtyFlagsChecked());
+				}
+
+				_Elements.removeContextMenu();
+			});
+
+		};
+
+		var addContextMenuElements = function (ul, element, hidden, forcedClickHandler) {
+
+			if (hidden) {
+				ul.addClass('hidden');
 			}
 
-			var cssPositionClasses = leftOrRight + ' ' + topOrBottom;
+			if (Object.prototype.toString.call(element) === '[object Array]') {
 
-			$('#add-child-dialog').css('left', x + 'px');
-			$('#add-child-dialog').css('top', y + 'px');
+				element.forEach(function (el) {
+					addContextMenuElements(ul, el, hidden, forcedClickHandler);
+				});
 
-			var menu = [
-				{
-					visible: (entity.type !== 'Content'),
-					name: 'Insert HTML element',
-					elements: (entity.type !== 'Page') ? _Elements.sortedElementGroups : ['html']
-				},
-				{
-					visible: (entity.type !== 'Content'),
-					name: 'Insert content element',
-					elements: (entity.type !== 'Page') ? ['content', 'template'] : ['template']
-				},
-				{
-					visible: (entity.type !== 'Content'),
-					name: 'Insert &lt;div&gt;',
-					func: function() {
-						Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', {});
-					},
-					separator: true
-				},
-				{
-					visible: (entity.type !== 'Page'),
-					name: 'Query and Data Binding...',
-					func: function() {
-						_Entities.showProperties(entity, 'query');
-					}
-				},
-				{
-					visible: (entity.type !== 'Page'),
-					name: 'Edit Mode Binding...',
-					func: function() {
-						_Entities.showProperties(entity, 'editBinding');
-					}
-				},
-				{
-					visible: (entity.type !== 'Page'),
-					name: 'HTML Attributes...',
-					func: function() {
-						_Entities.showProperties(entity, '_html_');
-					}
-				},
-				{
-					name: 'Node Properties...',
-					func: function() {
-						_Entities.showProperties(entity, 'ui');
-					},
-					separator: true
-				},
-				{
-					name: 'Security...',
-					elements: [
-						{
-							name: 'Access Control and Visibility...',
-							func: function() {
-								_Entities.showAccessControlDialog(entity.id);
-							},
-							separator: true
-						},
-						{
-							name: 'Authenticated Users...',
-							elements: [
-								{
-									name: 'Make element visible',
-									func: function() {
-										Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, false);
-									}
-								},
-								{
-									name: 'Make Element invisible',
-									func: function() {
-										Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, false);
-									}
-								},
-								{
-									name: 'Make subtree visible',
-									func: function() {
-										Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, true);
-									},
-									separator: true
-								},
-								{
-									name: 'Make subtree invisible',
-									func: function() {
-										Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, true);
-									}
-								}
-							],
-							separator: true
-						},
-						{
-							name: 'Public Users...',
-							elements: [
-								{
-									name: 'Make element visible',
-									func: function() {
-										Command.setProperty(entity.id, 'visibleToPublicUsers', true, false);
-									}
-								},
-								{
-									name: 'Make element invisible',
-									func: function() {
-										Command.setProperty(entity.id, 'visibleToPublicUsers', false, false);
-									}
-								},
-								{
-									name: 'Make subtree visible',
-									func: function() {
-										Command.setProperty(entity.id, 'visibleToPublicUsers', true, true);
-									},
-									separator: true
-								},
-								{
-									name: 'Make subtree invisible',
-									func: function() {
-										Command.setProperty(entity.id, 'visibleToPublicUsers', false, true);
-									}
-								}
-							]
-						}
-					],
-					separator: true
-				},
-				{
-					visible: (entity.type !== 'Content'),
-					name: 'Expand / Collapse',
-					elements: [
-						{
-							name: 'Expand subtree',
-							func: function() {
-								$(div).find('.node').each(function(i, el) {
-									if (!_Entities.isExpanded(el)) {
-										_Entities.toggleElement(el);
-									}
-								});
-								if (!_Entities.isExpanded(div)) {
-									_Entities.toggleElement(div);
-								}
-							}
-						},
-						{
-							name: 'Collapse subtree',
-							func: function() {
-								$(div).find('.node').each(function(i, el) {
-									if (_Entities.isExpanded(el)) {
-										_Entities.toggleElement(el);
-									}
-								});
-								if (_Entities.isExpanded(div)) {
-									_Entities.toggleElement(div);
-								}
-							}
-						}
-					],
-					separator: true
-				},
-				{
-					// information about most used elements in this page from backend
-					visible: (entity.mostUsedTags !== undefined && entity.mostUsedTags.length > 0),
-					name: 'Most used elements',
-					elements: entity.mostUsedTags,
-					separator: true
-				}
-			];
+			} else if (Object.prototype.toString.call(element) === '[object Object]') {
 
-			menu.forEach(function(item, i) {
-
-				if (item.visible !== undefined && item.visible === false) {
+				if (element.visible !== undefined && element.visible === false) {
 					return;
 				}
 
-				var isSubmenu = item.elements && item.elements.length;
+				var menuEntry = $('<li class="element-group-switch">' + element.name + '</li>');
+				registerContextMenuItemClickHandler(menuEntry, element);
+				ul.append(menuEntry);
 
-				$('#add-child-dialog').append(
-					'<ul class="' + cssPositionClasses + '" id="element-menu-' + i + '"><li id="element-group-switch-' + i + '">' + item.name +
-					(isSubmenu ? '<i class="fa fa-caret-right pull-right"></i><ul class="element-group hidden ' + cssPositionClasses + '" id="element-group-' + i + '"></ul>' : '' ) +
-					'</li></ul>'
-				);
-
-				if (item.separator) {
-					$('#element-menu-' + i ).append('<hr />');
+				if (element.separatorAfter) {
+					ul.append('<hr />');
 				}
 
-				if (isSubmenu) {
+				if (element.elements) {
+					menuEntry.append('<i class="fa fa-caret-right pull-right"></i>');
 
-					item.elements.forEach(function(subitem, j) {
+					var subListElement = $('<ul class="element-group ' + cssPositionClasses + '"></ul>');
+					menuEntry.append(subListElement);
+					addContextMenuElements(subListElement, element.elements, true, (forcedClickHandler ? forcedClickHandler : element.forcedClickHandler) );
+				}
 
-						if (subitem.elements && subitem.elements.length) {
+			} else if (Object.prototype.toString.call(element) === '[object String]') {
 
-							if (subitem.separator) {
-								$('#element-group-' + i).append('<hr />');
-							}
+				if (element === '|') {
 
-							$('#element-group-' + i).append(
-								'<li id="element-subgroup-switch-' + i + '-' + j + '">' + subitem.name +
-								'<i class="fa fa-caret-right pull-right"></i>' +
-								'<ul class="element-subgroup hidden ' + cssPositionClasses + '" id="element-subgroup-' + i + '-' + j + '"></ul></li>'
-							);
-
-							subitem.elements.forEach(function(subsubitem, k) {
-
-								if (subsubitem.separator) {
-									$('#element-subgroup-' + i + '-' + j).append('<hr />');
-								}
-
-								if (subsubitem.func && (typeof subsubitem.func === 'function')) {
-
-									$('#element-subgroup-' + i + '-' + j).append(
-										'<li id="element-subsubgroup-switch-' + i + '-' + j + '-' + k + '">' + subsubitem.name + '</li>'
-									);
-
-									$('#element-subsubgroup-switch-' + i + '-' + j + '-' + k).on('mouseup', subsubitem.func);
-
-								} else {
-
-									if (subsubitem === '|') {
-
-										$('#element-subgroup-' + i + '-' + j).append('<hr />');
-
-									} else {
-
-										$('#element-subgroup-' + i + '-' + j).append('<li id="add-' + subsubitem + '-' + i + '-' + j + '-' + k + '">' + subsubitem + '</li>');
-										$('#add-' + subsubitem + '-' + i + '-' + j + '-' + k).on('mouseup', function(e) {
-
-											e.stopPropagation();
-											if (subsubitem === 'content') {
-												Command.createAndAppendDOMNode(entity.pageId, entity.id, null, {});
-											} else {
-												Command.createAndAppendDOMNode(entity.pageId, entity.id, subsubitem, {});
-											}
-											_Elements.removeContextMenu();
-										});
-									}
-								}
-							});
-
-						} else {
-
-							$('#element-group-' + i ).append('<li id="add-' + i + '-' + j + '">' + (subitem.name ? subitem.name : subitem) + '</li>');
-							$('#add-' + i + '-' + j).on('mouseup', function(e) {
-
-								e.stopPropagation();
-								if (subitem.func && (typeof subitem.func === 'function')) {
-									subitem.func();
-								} else {
-									if (subitem === 'content') {
-										Command.createAndAppendDOMNode(entity.pageId, entity.id, null, {});
-									} else {
-										if (entity.type === 'Page') {
-											Command.createAndAppendDOMNode(entity.id, entity.id, subitem, {});
-										} else {
-											Command.createAndAppendDOMNode(entity.pageId, entity.id, subitem, {});
-										}
-									}
-								}
-								_Elements.removeContextMenu();
-							});
-						}
-
-						$('#element-subgroup-switch-' + i + '-' + j).hover(function() {
-							$('.element-subgroup').addClass('hidden');
-							$('#element-subgroup-' + i + '-' + j).removeClass('hidden');
-						}, function() {});
-					});
+					ul.append('<hr />');
 
 				} else {
 
-					$('#element-menu-' + i).on('mouseup', function(e) {
+					var listElement = $('<li>' + element + '</li>');
+					registerPlaintextContextMenuItemHandler(listElement, element, forcedClickHandler);
+					ul.append(listElement);
 
-						e.stopPropagation();
-
-						if (item.func && (typeof item.func === 'function')) {
-							item.func();
-						}
-
-						_Elements.removeContextMenu();
-					});
 				}
 
-				$('#element-group-switch-' + i).hover(function() {
-					$('.element-group').addClass('hidden');
-					$('#element-group-' + i).removeClass('hidden');
-				}, function() {});
-			});
+			}
+
+		};
+
+		var mainMenuList = $('<ul class="element-group ' + cssPositionClasses + '"></ul>');
+		$('#add-child-dialog').append(mainMenuList);
+		menuElements.forEach(function (mainEl) {
+			addContextMenuElements(mainMenuList, mainEl, false);
 		});
+
+		_Elements.updateVisibilityInheritanceCheckbox();
+
+		$('.element-group-switch').hover(function() {
+			$(this).children('.element-group').removeClass('hidden');
+		}, function() {
+			$(this).children('.element-group').addClass('hidden');
+		});
+
+	},
+	updateVisibilityInheritanceCheckbox: function() {
+		var checked = LSWrapper.getItem(_Elements.inheritVisibilityFlagsKey) || false;
+
+		if (checked === true) {
+			$('#add-child-dialog #inherit-visibility-flags').prop('checked', checked);
+		}
+	},
+	isInheritVisibililtyFlagsChecked: function () {
+		return $('#add-child-dialog #inherit-visibility-flags').prop('checked');
 	},
 	removeContextMenu: function() {
 		$('#add-child-dialog').remove();
 		$('.contextMenuActive').removeClass('contextMenuActive');
+	},
+	getContextMenuElements: function (div, entity) {
+
+		var handleInsertHTMLAction = function (itemText) {
+			var pageId = (entity.type === 'Page') ? entity.id : entity.pageId;
+			var tagName = (itemText === 'content') ? null : itemText;
+
+			Command.createAndAppendDOMNode(pageId, entity.id, tagName, {}, _Elements.isInheritVisibililtyFlagsChecked());
+		};
+
+		var handleWrapInHTMLAction = function (itemText) {
+
+			Command.wrapDOMNodeInNewDOMNode(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibililtyFlagsChecked());
+		};
+
+		var elements = [];
+
+		if (entity.type !== 'Content') {
+			elements.push({
+				name: 'Insert HTML element',
+				elements: (entity.type !== 'Page') ? _Elements.sortedElementGroups : ['html'],
+				forcedClickHandler: handleInsertHTMLAction
+			});
+			elements.push({
+				name: 'Insert content element',
+				elements: (entity.type !== 'Page') ? ['content', 'template'] : ['template'],
+				forcedClickHandler: handleInsertHTMLAction
+			});
+		}
+
+		if (entity.type !== 'Content' && entity.type !== 'Page') {
+			elements.push({
+				name: 'Insert &lt;div&gt;',
+				clickHandler: function() {
+					Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', {}, _Elements.isInheritVisibililtyFlagsChecked());
+					return false;
+				},
+				separatorAfter: true
+			});
+		}
+
+		if (entity.type !== 'Page' && entity.parent !== null) {
+			elements.push({
+				name: 'Wrap element in...',
+				separatorAfter: true,
+				elements: [
+					{
+						name: '... HTML element',
+						elements: _Elements.sortedElementGroups,
+						forcedClickHandler: handleWrapInHTMLAction
+					},
+					{
+						name: '... Template Element',
+						clickHandler: function () {
+							handleWrapInHTMLAction('template');
+						}
+					},
+					{
+						name: '... &lt;div&gt; Element',
+						clickHandler: function () {
+							handleWrapInHTMLAction('div');
+						}
+					}
+				]
+			});
+		}
+
+		if (entity.type !== 'Page') {
+			elements.push({
+				name: 'Query and Data Binding',
+				clickHandler: function() {
+					_Entities.showProperties(entity, 'query');
+					return false;
+				}
+			});
+			elements.push({
+				name: 'Edit Mode Binding',
+				clickHandler: function() {
+					_Entities.showProperties(entity, 'editBinding');
+					return false;
+				}
+			});
+			elements.push({
+				name: 'HTML Attributes',
+				clickHandler: function() {
+					_Entities.showProperties(entity, '_html_');
+					return false;
+				}
+			});
+		}
+
+		elements.push({
+			name: 'Node Properties',
+			clickHandler: function() {
+				_Entities.showProperties(entity, 'ui');
+				return false;
+			},
+			separatorAfter: true
+		});
+
+		elements.push({
+			name: 'Security',
+			elements: [
+				{
+					name: 'Access Control and Visibility',
+					clickHandler: function() {
+						_Entities.showAccessControlDialog(entity.id);
+						return false;
+					},
+					separatorAfter: true
+				},
+				{
+					name: 'Authenticated Users',
+					elements: [
+						{
+							name: 'Make element visible',
+							clickHandler: function() {
+								Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, false);
+								return false;
+							}
+						},
+						{
+							name: 'Make Element invisible',
+							clickHandler: function() {
+								Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, false);
+								return false;
+							},
+							separatorAfter: true
+						},
+						{
+							name: 'Make subtree visible',
+							clickHandler: function() {
+								Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, true);
+								return false;
+							}
+						},
+						{
+							name: 'Make subtree invisible',
+							clickHandler: function() {
+								Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, true);
+								return false;
+							}
+						}
+					]
+				},
+				{
+					name: 'Public Users',
+					elements: [
+						{
+							name: 'Make element visible',
+							clickHandler: function() {
+								Command.setProperty(entity.id, 'visibleToPublicUsers', true, false);
+								return false;
+							}
+						},
+						{
+							name: 'Make element invisible',
+							clickHandler: function() {
+								Command.setProperty(entity.id, 'visibleToPublicUsers', false, false);
+								return false;
+							},
+							separatorAfter: true
+						},
+						{
+							name: 'Make subtree visible',
+							clickHandler: function() {
+								Command.setProperty(entity.id, 'visibleToPublicUsers', true, true);
+								return false;
+							}
+						},
+						{
+							name: 'Make subtree invisible',
+							clickHandler: function() {
+								Command.setProperty(entity.id, 'visibleToPublicUsers', false, true);
+								return false;
+							}
+						}
+					]
+				}
+			],
+			separatorAfter: true
+		});
+
+		if (entity.mostUsedTags !== undefined && entity.mostUsedTags.length > 0) {
+			// information about most used elements in this page from backend
+			elements.push({
+				name: 'Most used elements',
+				elements: entity.mostUsedTags,
+				separatorAfter: true
+			});
+		}
+
+		if (entity.type !== 'Content') {
+			elements.push({
+				name: 'Expand / Collapse',
+				elements: [
+					{
+						name: 'Expand subtree',
+						clickHandler: function() {
+							$(div).find('.node').each(function(i, el) {
+								if (!_Entities.isExpanded(el)) {
+									_Entities.toggleElement(el);
+								}
+							});
+							if (!_Entities.isExpanded(div)) {
+								_Entities.toggleElement(div);
+							}
+							return false;
+						}
+					},
+					{
+						name: 'Collapse subtree',
+						clickHandler: function() {
+							$(div).find('.node').each(function(i, el) {
+								if (_Entities.isExpanded(el)) {
+									_Entities.toggleElement(el);
+								}
+							});
+							if (_Entities.isExpanded(div)) {
+								_Entities.toggleElement(div);
+							}
+							return false;
+						}
+					}
+				],
+				separatorAfter: true
+			});
+		}
+
+		if (entity.type !== 'Content') {
+			elements.push({
+				name: '<input type="checkbox" id="inherit-visibility-flags">Inherit Visibility Flags',
+				separatorAfter: true,
+				stayOpen: true,
+				clickHandler: function(el) {
+					var checkbox = el.find('input');
+					var wasChecked = checkbox.prop('checked');
+					checkbox.prop('checked', !wasChecked);
+					LSWrapper.setItem(_Elements.inheritVisibilityFlagsKey, !wasChecked);
+					return true;
+				}
+			});
+		}
+
+		return elements;
+
 	},
 	appendContentElement: function(entity, refNode, refNodeIsParent) {
 		_Logger.log(_LogType.CONTENTS, 'Contents.appendContentElement', entity, refNode);
@@ -1109,7 +1208,7 @@ var _Elements = {
 			Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
 		});
 
-		_Elements.appendContextMenu(div, entity);
+		_Elements.enableContextMenuOnElement(div, entity);
 
 		div.append('<i title="Delete content \'' + (entity.name ? entity.name : entity.id) + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_content_icon) + '" />');
 		$('.delete_icon', div).on('click', function(e) {

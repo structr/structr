@@ -45,12 +45,14 @@ import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.core.script.Scripting;
 import org.structr.schema.NonIndexed;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import static org.structr.web.entity.dom.DOMNode.hideOnDetail;
 import static org.structr.web.entity.dom.DOMNode.hideOnIndex;
+import static org.structr.web.entity.dom.DOMNode.sharedComponentConfiguration;
 import org.structr.web.entity.html.Textarea;
 import org.structr.web.entity.relation.Sync;
 import org.w3c.dom.DOMException;
@@ -84,12 +86,12 @@ public class Content extends DOMNode implements Text, NonIndexed, Favoritable {
 	private static final ThreadLocalConfluenceProcessor confluenceProcessor              = new ThreadLocalConfluenceProcessor();
 
 	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui,
-		content, contentType, parent, pageId, syncedNodes, sharedComponent, dataKey, restQuery, cypherQuery, xpathQuery, functionQuery,
+		content, contentType, parent, pageId, syncedNodes, sharedComponent, sharedComponentConfiguration, dataKey, restQuery, cypherQuery, xpathQuery, functionQuery,
 		hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent, isDOMNode, isFavoritable
 	);
 
 	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public,
-		content, contentType, parent, pageId, syncedNodes, sharedComponent, dataKey, restQuery, cypherQuery, xpathQuery, functionQuery,
+		content, contentType, parent, pageId, syncedNodes, sharedComponent, sharedComponentConfiguration, dataKey, restQuery, cypherQuery, xpathQuery, functionQuery,
 		hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent, isDOMNode, isFavoritable
 	);
 	//~--- static initializers --------------------------------------------
@@ -317,6 +319,13 @@ public class Content extends DOMNode implements Text, NonIndexed, Favoritable {
 			final AsyncBuffer out      = renderContext.getBuffer();
 
 			String _contentType = getProperty(contentType);
+
+			// apply configuration for shared component if present
+			final String _sharedComponentConfiguration = getProperty(sharedComponentConfiguration);
+			if (StringUtils.isNotBlank(_sharedComponentConfiguration)) {
+
+				Scripting.evaluate(renderContext, this, "${" + _sharedComponentConfiguration + "}", "shared component configuration");
+			}
 
 			// fetch content with variable replacement
 			String _content = getPropertyWithVariableReplacement(renderContext, Content.content);
