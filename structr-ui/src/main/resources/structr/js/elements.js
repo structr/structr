@@ -948,7 +948,7 @@ var _Elements = {
 			});
 		}
 
-		if (entity.type !== 'Page' && entity.parent !== null) {
+		if (entity.type !== 'Page' && entity.parent !== null && entity.parent.type !== 'Page') {
 			elements.push({
 				name: 'Wrap element in...',
 				separatorAfter: true,

@@ -34,7 +34,6 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
@@ -104,13 +103,13 @@ public abstract class Function<S, T> extends Hint {
 		if (array == null) {
 			return false;
 		}
-		
+
 		if (minLength != null) {
-			
+
 			if (array.length < minLength) {
 				throw new IllegalArgumentException();
 			}
-			
+
 			for (final Object element : array) {
 
 				if (element == null) {
@@ -141,9 +140,9 @@ public abstract class Function<S, T> extends Hint {
 		}
 
 		if (array.length < minLength || array.length > maxLength) {
-			
+
 			throw new IllegalArgumentException();
-			
+
 		}
 
 		for (final Object element : array) {
@@ -169,7 +168,7 @@ public abstract class Function<S, T> extends Hint {
 		if (array == null) {
 			return false;
 		}
-		
+
 		if (array.length != length) {
 			throw new IllegalArgumentException();
 		}
@@ -432,6 +431,36 @@ public abstract class Function<S, T> extends Hint {
 		}
 
 		return null;
+	}
+
+	protected File getServerlogFile () throws IOException {
+
+		final String basePath = StructrApp.getConfigurationValue(Services.BASE_PATH);
+
+		if (!basePath.isEmpty()) {
+
+			boolean isDebug = java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments().toString().contains("jdwp");
+
+			final String logPath = basePath.endsWith("/") ? basePath.concat("logs/") : basePath.concat("/logs/");
+
+			final File logFile = new File(logPath.concat(isDebug ? "debug.log" : "server.log"));
+			if (!logFile.exists()) {
+
+				logger.warn("Server log does not exist");
+
+			} else {
+
+				return logFile;
+
+			}
+
+		} else {
+
+			logger.warn("Unable to determine base.path from structr.conf, no data input/output possible.");
+		}
+
+		return null;
+
 	}
 
 	protected static String serialize(final Gson gson, final Map<String, Object> map) {

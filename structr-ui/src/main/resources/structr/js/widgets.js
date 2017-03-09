@@ -478,6 +478,7 @@ var _Widgets = {
 			<li><b>title</b><br>The title which is displayed in the left column of the \"Add Widget to Page\" dialog. If this value does not exist, the name of the template expression itself is used.</li>\
 			<li><b>placeholder</b> <i>(only applicable to type=input|textarea)</i><br>The placeholder text which is displayed when the field is empty. If this value does not exist, the <b>title</b> is used..</li>\
 			<li><b>default</b><br>The default value for the element. For type=textarea|input this value is the prefilled. For type=select this value is preselected.</li>\
+			<li><b>processDeploymentInfo</b> (<i>Reserved word - Boolean, default: false</i>)<br>Special configuration flag which allows the widgets to contain deployment annotations.</li>\
 		</ul>\
 		<h2>Description</h2>\
 		<p>The description will be displayed when the user adds the widget to a page. It can contain HTML and usually serves the purpose of explaining what the widget is used for and the function of the configuration switches.</p>";
@@ -560,7 +561,7 @@ var _Widgets = {
 				matches = $.unique(rawMatches);
 			}
 
-			if (widgetDescription !== null || (matches.length > 0 && widgetConfig) ) {
+			if ((widgetDescription !== null && widgetDescription !== "") || (matches.length > 0 && widgetConfig) ) {
 
 				Structr.dialog('Configure Widget', function() {}, function() {});
 
@@ -635,7 +636,7 @@ var _Widgets = {
 					});
 
 					e.stopPropagation();
-					Command.appendWidget(widgetSource, target.id, pageId, _Widgets.url, attrs);
+					Command.appendWidget(widgetSource, target.id, pageId, _Widgets.url, attrs, widgetConfig.processDeploymentInfo);
 
 					dialogCancelButton.click();
 					return false;
@@ -644,7 +645,7 @@ var _Widgets = {
 			} else {
 
 				// If no matches, directly append widget
-				Command.appendWidget(widgetSource, target.id, pageId, _Widgets.url);
+				Command.appendWidget(widgetSource, target.id, pageId, _Widgets.url, {}, widgetConfig.processDeploymentInfo);
 
 			}
 
