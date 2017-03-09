@@ -36,8 +36,8 @@ import org.structr.schema.action.Function;
 
 public class ChangelogFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_CHANGLOG = "Usage: ${changelog(entity[, resolve=false])}. Example: ${changelog(current)}";
-	public static final String ERROR_MESSAGE_CHANGLOG_JS = "Usage: ${{Structr.changelog(entity[, resolve=false])}}. Example: ${{Structr.changelog(Structr.get('current'))}}";
+	public static final String ERROR_MESSAGE_CHANGELOG = "Usage: ${changelog(entity[, resolve=false])}. Example: ${changelog(current)}";
+	public static final String ERROR_MESSAGE_CHANGELOG_JS = "Usage: ${{Structr.changelog(entity[, resolve=false])}}. Example: ${{Structr.changelog(Structr.get('current'))}}";
 
 	private static final Logger logger = LoggerFactory.getLogger(ChangelogFunction.class.getName());
 
@@ -142,7 +142,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_CHANGLOG_JS : ERROR_MESSAGE_CHANGLOG);
+		return (inJavaScriptContext ? ERROR_MESSAGE_CHANGELOG_JS : ERROR_MESSAGE_CHANGELOG);
 	}
 
 	@Override
