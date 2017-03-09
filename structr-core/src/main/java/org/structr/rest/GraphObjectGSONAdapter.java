@@ -85,8 +85,6 @@ public class GraphObjectGSONAdapter {
 		nonSerializerClasses.add(Boolean.class.getName());
 	}
 
-	//~--- methods --------------------------------------------------------
-
 	public JsonElement serialize(GraphObject src, long startTime) {
 
 		String localPropertyView  = propertyView.get(null);
@@ -100,6 +98,21 @@ public class GraphObjectGSONAdapter {
 		}
 
 		return root.serialize(src, localPropertyView, 0);
+	}
+
+	public JsonElement serializeObject(Object src, long startTime) {
+
+		String localPropertyView  = propertyView.get(null);
+
+		// check for timeout
+		if (System.currentTimeMillis() > startTime + MAX_SERIALIZATION_TIME) {
+
+			logger.error("JSON serialization took more than {} ms, aborted. Please review output view size or adjust timeout.", MAX_SERIALIZATION_TIME);
+
+			return null;
+		}
+
+		return root.serializeRoot(src, localPropertyView, 0);
 	}
 
 	private static JsonElement toPrimitive(final Object value) {

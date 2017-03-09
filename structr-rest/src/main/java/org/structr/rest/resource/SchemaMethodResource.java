@@ -195,6 +195,11 @@ public class SchemaMethodResource extends SortableResource {
 			} else if (unwrapped instanceof GraphObject) {
 
 				result.addContent((GraphObject)unwrapped);
+
+			} else {
+
+				// cannot unwrap, pass literal
+				result.setNonGraphObjectResult(unwrapped);
 			}
 		}
 	}

@@ -94,14 +94,25 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 
 			if(results.isEmpty()) {
 
-				result.add("result", new JsonArray());
+				final Object nonGraphObjectResult = src.getNonGraphObjectResult();
+				if (nonGraphObjectResult != null) {
 
-			} else if(src.isPrimitiveArray()) {
+					result.add("result", graphObjectGsonAdapter.serializeObject(nonGraphObjectResult, System.currentTimeMillis()));
+
+
+				} else {
+
+					result.add("result", new JsonArray());
+				}
+
+			} else if (src.isPrimitiveArray()) {
 
 				JsonArray resultArray = new JsonArray();
 				for(GraphObject graphObject : results) {
-					Object value = graphObject.getProperty(GraphObject.id);	// FIXME: UUID key hard-coded, use variable in Result here!
-					if(value != null) {
+
+					final Object value = graphObject.getProperty(GraphObject.id);	// FIXME: UUID key hard-coded, use variable in Result here!
+					if (value != null) {
+
 						resultArray.add(new JsonPrimitive(value.toString()));
 					}
 				}

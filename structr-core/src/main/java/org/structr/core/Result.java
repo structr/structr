@@ -19,6 +19,7 @@
 package org.structr.core;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -49,6 +50,7 @@ public class Result<T extends GraphObject> {
 	private Integer page              = null;
 
 	private GraphObject metaData      = null;
+	private Object nonGraphObject     = null;
 
 	public Result(final List<T> listResult, final Integer rawResultCount, final boolean isCollection, final boolean isPrimitiveArray) {
 
@@ -70,6 +72,15 @@ public class Result<T extends GraphObject> {
 			// add result
 			results.add(singleResult);
 		}
+	}
+
+	public Result(final Object nonGraphObjectResult) {
+
+		this.isCollection     = nonGraphObjectResult instanceof Collection;
+		this.isPrimitiveArray = false;
+		this.results          = new ArrayList<>();
+		this.resultCount      = isCollection ? ((Collection)nonGraphObjectResult).size() : 1;
+		this.nonGraphObject   = nonGraphObjectResult;
 	}
 
 	@Override
@@ -200,5 +211,9 @@ public class Result<T extends GraphObject> {
 
 	public void setMetaData(GraphObject metaData) {
 		this.metaData = metaData;
+	}
+
+	public Object getNonGraphObjectResult() {
+		return nonGraphObject;
 	}
 }

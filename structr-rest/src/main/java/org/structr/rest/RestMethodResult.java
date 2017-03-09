@@ -50,6 +50,7 @@ public class RestMethodResult {
 	private String message                            = null;
 	private boolean serializeSingleObjectAsCollection = false;
 	private boolean serializeAsPrimitiveArray         = false;
+	private Object nonGraphObjectResult               = null;
 
 	public RestMethodResult(final int responseCode) {
 		this.headers      = new LinkedHashMap<>();
@@ -81,6 +82,10 @@ public class RestMethodResult {
 		this.content.add(graphObject);
 	}
 
+	public void setNonGraphObjectResult(final Object result) {
+		this.nonGraphObjectResult = result;
+	}
+
 	public void commitResponse(final Gson gson, final HttpServletResponse response) {
 
 		// set headers
@@ -96,16 +101,21 @@ public class RestMethodResult {
 			Writer writer = response.getWriter();
 			if (content != null) {
 
-				// create result set
-				Result result = new Result(this.content, this.content.size(), this.content.size() > 1 || serializeSingleObjectAsCollection, serializeAsPrimitiveArray);
-
 				// serialize result set
-				gson.toJson(result, writer);
+				gson.toJson(new Result(this.content, this.content.size(), this.content.size() > 1 || serializeSingleObjectAsCollection, serializeAsPrimitiveArray), writer);
 			}
 
 			if (content == null) {
 
-				writer.append(jsonMessage(responseCode, message));
+				if (message != null) {
+
+					writer.append(jsonMessage(responseCode, message));
+
+				} else {
+
+					// serialize result set
+					gson.toJson(new Result(nonGraphObjectResult), writer);
+				}
 
 			}
 
@@ -121,7 +131,7 @@ public class RestMethodResult {
 	}
 
 	public void serializeAsPrimitiveArray(final boolean value) {
-		
+
 		this.serializeAsPrimitiveArray = value;
 
 	}
