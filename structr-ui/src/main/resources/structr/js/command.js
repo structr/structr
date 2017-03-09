@@ -573,7 +573,7 @@ var Command = {
 				widgetHostBaseUrl: widgetHostBaseUrl,
 				parentId: parentId,
 				source: source,
-				processDeploymentInfo: (processDeploymentInfo || true)
+				processDeploymentInfo: (processDeploymentInfo || false)
 			}
 		};
 		if (attributes) {
