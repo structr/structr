@@ -3850,6 +3850,17 @@ img#image-editor.orientation-8 {
 }
 
 /**
+ * Append Widget styles
+ */
+
+.widget-props td input {
+	width: calc(100% - 8px);
+	border: 1px solid #a5a5a5;
+	padding: 2px 4px;
+	border-radius: 3px;
+}
+
+/**
  * Icon Sprites
  */
 .sprite {

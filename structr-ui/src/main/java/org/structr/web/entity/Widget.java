@@ -38,6 +38,7 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.relation.ImageWidget;
 import org.structr.web.importer.Importer;
+import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
 import org.structr.web.property.UiNotion;
 
 /**
@@ -68,7 +69,7 @@ public class Widget extends AbstractNode implements Taggable {
 		SchemaService.registerBuiltinTypeOverride("Widget", Widget.class.getName());
 	}
 
-	public static void expandWidget(SecurityContext securityContext, Page page, DOMNode parent, String baseUrl, Map<String, Object> parameters) throws FrameworkException {
+	public static void expandWidget(SecurityContext securityContext, Page page, DOMNode parent, String baseUrl, Map<String, Object> parameters, final boolean processDeploymentInfo) throws FrameworkException {
 
 		String _source          = (String)parameters.get("source");
 		ErrorBuffer errorBuffer = new ErrorBuffer();
@@ -107,6 +108,11 @@ public class Widget extends AbstractNode implements Taggable {
 		if (!errorBuffer.hasError()) {
 
 			Importer importer = new Importer(securityContext, _source, baseUrl, null, false, false);
+
+			if (processDeploymentInfo) {
+				importer.setIsDeployment(true);
+				importer.setCommentHandler(new DeploymentCommentHandler());
+			}
 
 			importer.parse(true);
 			importer.createChildNodes(parent, page, true);
