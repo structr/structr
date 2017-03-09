@@ -36,7 +36,7 @@ var _Schema = {
 	new_attr_cnt: 0,
 	selectedRel: undefined,
 	relHighlightColor: 'red',
-	availableSchemaNodes: [],
+	availableTypeNames: [],
 	hiddenSchemaNodes: [],
 	hiddenSchemaNodesKey: 'structrHiddenSchemaNodes_' + port,
 	schemaPositionsKey: 'structrSchemaPositions_' + port,
@@ -518,11 +518,11 @@ var _Schema = {
 
 				_Schema.loadClassTree(data.result);
 
-				_Schema.availableSchemaNodes = [];
+				_Schema.availableTypeNames = [];
 
 				data.result.forEach(function(entity) {
 
-					_Schema.availableSchemaNodes.push(entity.name);
+					_Schema.availableTypeNames.push(entity.name);
 
 					var level   = 0;
 					var outs    = entity.relatedTo.length;
@@ -2867,11 +2867,6 @@ var _Schema = {
 
 					try {
 						loadedConfig = JSON.parse(result.schemaLayout);
-					} catch (e) {
-						alert ("Unreadable JSON - please make sure you are using JSON exported from this dialog!");
-					}
-
-					if (loadedConfig) {
 
 						if (loadedConfig._version) {
 
@@ -2888,7 +2883,7 @@ var _Schema = {
 									var hiddenTypes = loadedConfig.hiddenTypes;
 									hiddenTypes = hiddenTypes.filter(function(typeName) {
 										// Filter out types that do not exist in the schema
-										return (_Schema.availableSchemaNodes.indexOf(typeName) !== -1);
+										return (_Schema.availableTypeNames.indexOf(typeName) !== -1);
 									});
 									_Schema.hiddenSchemaNodes = hiddenTypes;
 									LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
@@ -2911,7 +2906,7 @@ var _Schema = {
 									break;
 
 								default:
-									new MessageBuilder().error("Cannot restore layout: Unknown layout version - was this layout created with a newer version of structr than the one currently running?").show();
+									Structr.error('Cannot restore layout: Unknown layout version - was this layout created with a newer version of structr than the one currently running?');
 							}
 
 						} else {
@@ -2934,7 +2929,11 @@ var _Schema = {
 						Structr.saveLocalStorage();
 
 						_Schema.reload();
+
+					} catch (e) {
+						Structr.error('Unreadable JSON - please make sure you are using JSON exported from this dialog!', true);
 					}
+
 				});
 
 			} else {
