@@ -335,6 +335,7 @@ public class Functions {
 		functions.put("timer", new TimerFunction());
 		functions.put("str_replace", new StrReplaceFunction());
 		functions.put("find_privileged", new PrivilegedFindFunction());
+		functions.put("serverlog", new ServerLogFunction());
 
 		// ----- BEGIN functions with side effects -----
 		functions.put("retrieve", new RetrieveFunction());
