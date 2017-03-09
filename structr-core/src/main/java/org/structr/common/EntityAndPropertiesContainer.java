@@ -331,11 +331,6 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public PermissionResolutionMask getPermissionResolutionMask() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
 	public List<GraphObject> getSyncData() throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}

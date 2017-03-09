@@ -38,7 +38,6 @@ import org.structr.api.graph.RelationshipType;
 import org.structr.api.index.Index;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.GraphObjectComparator;
-import org.structr.common.PermissionResolutionMask;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
@@ -765,12 +764,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	@Override
 	public final CMISInfo getCMISInfo() {
-		return null;
-	}
-
-	@Override
-	public PermissionResolutionMask getPermissionResolutionMask() {
-		// no control over relationship properties yet..
 		return null;
 	}
 

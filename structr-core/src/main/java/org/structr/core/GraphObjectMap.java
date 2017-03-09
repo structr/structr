@@ -28,7 +28,6 @@ import java.util.Set;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.cmis.CMISInfo;
-import org.structr.common.PermissionResolutionMask;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -299,11 +298,6 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public RelationshipInterface getSyncRelationship() {
-		return null;
-	}
-
-	@Override
-	public PermissionResolutionMask getPermissionResolutionMask() {
 		return null;
 	}
 }

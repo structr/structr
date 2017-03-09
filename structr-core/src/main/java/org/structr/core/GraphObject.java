@@ -26,7 +26,6 @@ import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.bolt.index.AbstractCypherIndex;
 import org.structr.cmis.CMISInfo;
-import org.structr.common.PermissionResolutionMask;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -401,8 +400,6 @@ public interface GraphObject {
 	public String getPropertyWithVariableReplacement(final ActionContext renderContext, final PropertyKey<String> key) throws FrameworkException;
 	public Object evaluate(final SecurityContext securityContext, final String key, final String defaultValue) throws FrameworkException;
 	public Object invokeMethod(final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException;
-
-	public PermissionResolutionMask getPermissionResolutionMask();
 
 	// ----- Cloud synchronization and replication -----
 	/**

@@ -31,7 +31,6 @@ import org.structr.api.graph.Relationship;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
-import org.structr.common.PermissionResolutionMask;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -500,10 +499,4 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	public <R extends AbstractRelationship> Iterable<R> getRelationshipsAsSuperUser() {
 		return null;
 	}
-
-	@Override
-	public PermissionResolutionMask getPermissionResolutionMask() {
-		return null;
-	}
-
 }

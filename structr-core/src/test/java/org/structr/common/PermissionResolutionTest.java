@@ -129,11 +129,11 @@ public class PermissionResolutionTest extends StructrTest {
 			fail("Unexpected exception");
 		}
 
-		// enable permission resolution for Type1->Type2 (should NOT make object visible
+		// enable permission resolution for Type2->Type1 (should NOT make object visible
 		// because the resolution direction is wrong.
 		try (final Tx tx = app.tx()) {
 
-			rel.setProperty(SchemaRelationshipNode.permissionPropagation, Direction.Out);
+			rel.setProperty(SchemaRelationshipNode.permissionPropagation, Direction.In);
 			rel.setProperty(SchemaRelationshipNode.readPropagation, Propagation.Add);
 
 			tx.success();
@@ -156,11 +156,11 @@ public class PermissionResolutionTest extends StructrTest {
 			fail("Unexpected exception");
 		}
 
-		// enable permission resolution for Type2->Type1 (should make object visible
+		// enable permission resolution for Type1->Type2 (should make object visible
 		// because the resolution direction is correct
 		try (final Tx tx = app.tx()) {
 
-			rel.setProperty(SchemaRelationshipNode.permissionPropagation, Direction.In);
+			rel.setProperty(SchemaRelationshipNode.permissionPropagation, Direction.Out);
 			rel.setProperty(SchemaRelationshipNode.readPropagation, Propagation.Add);
 
 			tx.success();

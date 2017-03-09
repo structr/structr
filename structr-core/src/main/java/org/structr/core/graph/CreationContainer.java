@@ -25,7 +25,6 @@ import org.structr.api.NotInTransactionException;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.cmis.CMISInfo;
-import org.structr.common.PermissionResolutionMask;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -236,11 +235,6 @@ public class CreationContainer implements GraphObject, PropertyContainer {
 
 	@Override
 	public Object invokeMethod(String methodName, Map<String, Object> parameters, boolean throwExceptionForUnknownMethods) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	public PermissionResolutionMask getPermissionResolutionMask() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 

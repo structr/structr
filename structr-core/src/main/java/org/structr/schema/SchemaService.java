@@ -139,7 +139,7 @@ public class SchemaService implements Service {
 					// this is a very critical section :)
 					synchronized (SchemaService.class) {
 
-						// clear propagating relationship cache (test)
+						// clear propagating relationship cache
 						SchemaRelationshipNode.clearPropagatingRelationshipTypes();
 
 						// compile all classes at once and register
@@ -176,6 +176,9 @@ public class SchemaService implements Service {
 
 						// clear relationship instance cache
 						AbstractNode.clearRelationshipTemplateInstanceCache();
+
+						// clear permission cache
+						AbstractNode.clearPermissionResolutionCache();
 
 						// inject views in configuration provider
 						config.registerDynamicViews(dynamicViews);

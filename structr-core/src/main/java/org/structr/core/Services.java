@@ -110,6 +110,7 @@ public class Services implements StructrServices {
 	public static final String ACCESS_CONTROL_ALLOW_CREDENTIALS          = "access.control.allow.credentials";
 	public static final String ACCESS_CONTROL_EXPOSE_HEADERS             = "access.control.expose.headers";
 	public static final String APPLICATION_SESSION_TIMEOUT               = "application.session.timeout";
+	public static final String APPLICATION_SECURITY_RESOLUTION_DEPTH     = "application.security.resolution.depth";
 	public static final String APPLICATION_SECURITY_OWNERLESS_NODES      = "application.security.ownerless.nodes";
 	public static final String APPLICATION_CHANGELOG_ENABLED             = "application.changelog.enabled";
 	public static final String APPLICATION_UUID_CACHE_SIZE               = "application.cache.uuid.size";
@@ -632,6 +633,23 @@ public class Services implements StructrServices {
 
 		if (value != null) {
 			return value;
+		}
+
+		return defaultValue;
+	}
+
+	public int getConfigValue(final String key, final int defaultValue) {
+
+		String value = getConfigurationValue(key);
+		if (StringUtils.isNotBlank(value)) {
+
+			try {
+
+				return Integer.valueOf(value);
+
+			} catch (NumberFormatException nfex) {
+				logger.warn("Invalid configuration value {} for key {}, expected integer value.", value, key);
+			}
 		}
 
 		return defaultValue;

@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -39,7 +40,6 @@ import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -105,8 +105,10 @@ import org.structr.schema.action.Function;
  */
 public abstract class AbstractNode implements NodeInterface, AccessControllable, CMISInfo, CMISItemInfo {
 
-	private static final FixedSizeCache<String, Object> relationshipTemplateInstanceCache = new FixedSizeCache<>(1000);
-	private static final Logger logger = LoggerFactory.getLogger(AbstractNode.class.getName());
+	private static final int permissionResolutionMaxLevel                                                 = Services.getInstance().getConfigValue(Services.APPLICATION_SECURITY_RESOLUTION_DEPTH, 5);
+	private static final Logger logger                                                                    = LoggerFactory.getLogger(AbstractNode.class.getName());
+	private static final FixedSizeCache<String, Object> relationshipTemplateInstanceCache                 = new FixedSizeCache<>(1000);
+	private static final Map<Long, Map<Long, PermissionResolutionResult>> globalPermissionResolutionCache = new HashMap<>();
 
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type);
 
@@ -115,20 +117,15 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	);
 
 	public boolean internalSystemPropertiesUnlocked = false;
+	private Relationship rawPathSegment             = null;
+	private boolean readOnlyPropertiesUnlocked      = false;
+	private boolean isCreation                      = false;
+	protected String cachedUuid                     = null;
+	protected SecurityContext securityContext       = null;
+	protected Principal cachedOwnerNode             = null;
+	protected Class entityType                      = null;
+	protected Node dbNode                           = null;
 
-	private PermissionResolutionMask permissionResolutionMask = null;
-	private Relationship rawPathSegment                       = null;
-
-	private boolean readOnlyPropertiesUnlocked       = false;
-	private boolean isCreation                       = false;
-
-	protected String cachedUuid               = null;
-	protected SecurityContext securityContext = null;
-	protected Principal cachedOwnerNode       = null;
-	protected Class entityType                = null;
-	protected Node dbNode                     = null;
-
-	//~--- constructors ---------------------------------------------------
 	public AbstractNode() {
 	}
 
@@ -136,7 +133,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		init(securityContext, dbNode, entityType, false);
 	}
 
-	//~--- methods --------------------------------------------------------
 	@Override
 	public void onNodeCreation() {
 	}
@@ -327,7 +323,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	}
 
-	//~--- get methods ----------------------------------------------------
 	@Override
 	public final PropertyKey getDefaultSortKey() {
 		return AbstractNode.name;
@@ -487,23 +482,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		// early null check, this should not happen...
 		if (key == null || key.dbName() == null) {
 			return null;
-		}
-
-		/**
-		 * check read access:
-		 * - permission resolution MUST already be done here because otherwise we won't be able to access the node
-		 * - securityContext should contain the masked permissions
-		 * - check property name against masked permissions
-		 */
-		if (permissionResolutionMask != null) {
-
-			if (!permissionResolutionMask.allowsPermission(Permission.read)) {
-				return null;
-			}
-
-			if (!permissionResolutionMask.allowsProperty(key)) {
-				return null;
-			}
 		}
 
 		return key.getProperty(securityContext, this, applyConverter, predicate);
@@ -808,10 +786,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			accessingUser = context.getUser(false);
 		}
 
-		return isGranted(permission, accessingUser, new PermissionResolutionMask(), 0, new AlreadyTraversed(), true);
+		final boolean doLog = securityContext.hasParameter("logPermissionResolution");
+
+		return isGranted(permission, accessingUser, new PermissionResolutionMask(), 0, new AlreadyTraversed(), true, doLog);
 	}
 
-	private boolean isGranted(final Permission permission, final Principal accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final boolean recurse) {
+	private boolean isGranted(final Permission permission, final Principal accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final boolean resolvePermissions, final boolean doLog) {
 
 		if (level > 100) {
 			logger.warn("Aborting recursive permission resolution because of recursion level > 100, this is quite likely an infinite loop.");
@@ -868,7 +848,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			}
 
 			// Check permissions from domain relationships
-			if (recurse) {
+			if (resolvePermissions) {
 
 				final Queue<BFSInfo> bfsNodes   = new LinkedList<>();
 				final BFSInfo root              = new BFSInfo(null, this);
@@ -879,29 +859,26 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				do {
 
 					final BFSInfo info = bfsNodes.poll();
-					if (info != null) {
+					if (info != null && info.level < permissionResolutionMaxLevel) {
 
-						final AbstractNode current = info.node;
-						final String cacheKey      = accessingUser.getId() + "/" + current.getId();
-						final Boolean value        = permissionResolutionCache.get(cacheKey);
-
+						final Boolean value = info.node.getPermissionResolutionResult(accessingUser.getId(), permission);
 						if (value != null) {
 
 							// returning immediately
 							if (Boolean.TRUE.equals(value)) {
 
 								// do backtracking
-								backtrack(info, accessingUser.getId(), true);
+								backtrack(info, accessingUser.getId(), permission, true, 0, doLog);
 
 								return true;
 							}
 
 						} else {
 
-							if (current.hasEffectivePermissions(info, accessingUser, permission, mask, level, alreadyTraversed, bfsNodes)) {
+							if (info.node.hasEffectivePermissions(info, accessingUser, permission, mask, level, alreadyTraversed, bfsNodes, doLog)) {
 
 								// do backtracking
-								backtrack(info, accessingUser.getId(), true);
+								backtrack(info, accessingUser.getId(), permission, true, 0, doLog);
 
 								return true;
 							}
@@ -911,13 +888,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				} while (!bfsNodes.isEmpty());
 
 				// do backtracking
-				backtrack(root, accessingUser.getId(), false);
+				backtrack(root, accessingUser.getId(), permission, false, 0, doLog);
 			}
 
 			// Last: recursively check possible parent principals
 			for (Principal parent : accessingUser.getParents()) {
 
-				if (isGranted(permission, parent, mask, level+1, alreadyTraversed, false)) {
+				if (isGranted(permission, parent, mask, level+1, alreadyTraversed, false, doLog)) {
 					return true;
 				}
 			}
@@ -926,28 +903,40 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		return false;
 	}
 
-	private static final Map<String, Boolean> permissionResolutionCache = new LinkedHashMap<>();
+	private void backtrack(final BFSInfo info, final long principalId, final Permission permission, final boolean value, final int level, final boolean doLog) {
 
-	private void backtrack(final BFSInfo info, final long principalId, final boolean value) {
+		if (doLog) {
 
-		// cache success value
-		final String cacheKey = principalId + "/" + info.node.getId();
+			if (level == 0) {
 
-		// make sure we don't overwrite existing values
-		if (!permissionResolutionCache.containsKey(cacheKey)) {
+				if (value) {
 
-			permissionResolutionCache.put(cacheKey, value);
+					System.out.print("granted: ");
+
+				} else {
+
+					System.out.print("denied:  ");
+				}
+			}
+
+			System.out.print(info.node.getType() + " (" + info.node.getUuid() + ") --> ");
 		}
+
+		info.node.storePermissionResolutionResult(principalId, permission, value);
 
 		// go to parent(s)
 		if (info.parent != null) {
 
-			backtrack(info.parent, principalId, value);
+			backtrack(info.parent, principalId, permission, value, level+1, doLog);
+		}
+
+		if (doLog && level == 0) {
+			System.out.println();
 		}
 	}
 
 
-	private boolean hasEffectivePermissions(final BFSInfo parent, final Principal principal, final Permission permission, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final Queue<BFSInfo> bfsNodes) {
+	private boolean hasEffectivePermissions(final BFSInfo parent, final Principal principal, final Permission permission, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final Queue<BFSInfo> bfsNodes, final boolean doLog) {
 
 		// check nodes here to avoid circles in permission-propagating relationships
 		if (alreadyTraversed.contains("Node", dbNode.getId())) {
@@ -970,13 +959,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 				if (source instanceof PermissionPropagation) {
 
-					final PermissionPropagation perm                            = (PermissionPropagation)source;
-					final RelationshipInterface rel                             = (RelationshipInterface)source;
-					final SchemaRelationshipNode.Direction evaluationDirection  = getEvaluationDirection(this, rel);
-					final SchemaRelationshipNode.Direction propagationDirection = perm.getPropagationDirection();
+					final PermissionPropagation perm = (PermissionPropagation)source;
+					final RelationshipInterface rel  = (RelationshipInterface)source;
 
 					// check propagation direction vs. evaluation direction
-					if (propagationDirection.equals(SchemaRelationshipNode.Direction.Both) || propagationDirection.equals(evaluationDirection)) {
+					if (propagationAllowed(this, rel, perm.getPropagationDirection(), doLog)) {
 
 						applyCurrentStep(perm, mask);
 
@@ -984,10 +971,9 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 							final AbstractNode otherNode = (AbstractNode)rel.getOtherNode(this);
 
-							if (otherNode.isGranted(permission, principal, mask, level+1, alreadyTraversed, false)) {
+							if (otherNode.isGranted(permission, principal, mask, level+1, alreadyTraversed, false, doLog)) {
 
-								final String cacheKey = principal.getId() + "/" + otherNode.getId();
-								permissionResolutionCache.put(cacheKey, true);
+								otherNode.storePermissionResolutionResult(principal.getId(), permission, true);
 
 								// break early
 								return true;
@@ -1006,23 +992,80 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		return false;
 	}
 
-	private SchemaRelationshipNode.Direction getEvaluationDirection(final AbstractNode thisNode, final RelationshipInterface rel) {
-		return rel.getSourceNode().getId() == thisNode.getId() ? SchemaRelationshipNode.Direction.Out : SchemaRelationshipNode.Direction.In;
+	/**
+	 * Determines whether propagation of permissions is allowed along the given relationship.
+	 *
+	 * CAUTION: this is a complex situation.
+	 *
+	 * - we need to determine the EVALUATION DIRECTION, which can be either WITH or AGAINST the RELATIONSHIP DIRECTION
+	 * - if we are looking at the START NODE of the relationship, we are evaluating WITH the relationship direction
+	 * - if we are looking at the END NODE of the relationship, we are evaluating AGAINST the relationship direction
+	 * - the result obtained by the above check must be compared to the PROPAGATION DIRECTION which can be either
+	 *   SOURCE_TO_TARGET or TARGET_TO_SOURCE
+	 * - a propagation direction of SOURCE_TO_TARGET implies that the permissions of the SOURCE NODE can be applied
+	 *   to the TARGET NODE, so if we are evaluating AGAINST the relationship direction, we are good to go
+	 * - a propagation direction of TARGET_TO_SOURCE implies that the permissions of that TARGET NODE can be applied
+	 *   to the SOURCE NODE, so if we are evaluating WITH the relationship direction, we are good to go
+	 *
+	 * @param thisNode
+	 * @param rel
+	 * @param propagationDirection
+	 *
+	 * @return whether permission resolution can continue along this relationship
+	 */
+	private boolean propagationAllowed(final AbstractNode thisNode, final RelationshipInterface rel, final SchemaRelationshipNode.Direction propagationDirection, final boolean doLog) {
+
+		// early exit
+		if (propagationDirection.equals(SchemaRelationshipNode.Direction.Both)) {
+			return true;
+		}
+
+		// early exit
+		if (propagationDirection.equals(SchemaRelationshipNode.Direction.None)) {
+			return false;
+		}
+
+		final long sourceNodeId = rel.getSourceNode().getId();
+		final long thisNodeId   = thisNode.getId();
+
+		if (sourceNodeId == thisNodeId) {
+
+			// evaluation WITH the relationship direction
+			switch (propagationDirection) {
+
+				case Out:
+					return false;
+
+				case In:
+					return true;
+			}
+
+		} else {
+
+			// evaluation AGAINST the relationship direction
+			switch (propagationDirection) {
+
+				case Out:
+					return true;
+
+				case In:
+					return false;
+			}
+		}
+
+		return false;
 	}
 
 	private void applyCurrentStep(final PermissionPropagation rel, PermissionResolutionMask mask) {
 
-		final boolean doLog = false;
-
 		switch (rel.getReadPropagation()) {
 			case Add:
+			case Keep:
 				mask.addRead();
-				if (doLog) { System.out.println("                add read"); }
 				break;
 
 			case Remove:
 				mask.removeRead();
-				if (doLog) { System.out.println("                remove read"); }
 				break;
 
 			default: break;
@@ -1030,13 +1073,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		switch (rel.getWritePropagation()) {
 			case Add:
+			case Keep:
 				mask.addWrite();
-				if (doLog) { System.out.println("                add write"); }
 				break;
 
 			case Remove:
 				mask.removeWrite();
-				if (doLog) { System.out.println("                remove write"); }
 				break;
 
 			default: break;
@@ -1044,13 +1086,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		switch (rel.getDeletePropagation()) {
 			case Add:
+			case Keep:
 				mask.addDelete();
-				if (doLog) { System.out.println("                add delete"); }
 				break;
 
 			case Remove:
 				mask.removeDelete();
-				if (doLog) { System.out.println("                remove delete"); }
 				break;
 
 			default: break;
@@ -1058,13 +1099,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		switch (rel.getAccessControlPropagation()) {
 			case Add:
+			case Keep:
 				mask.addAccessControl();
-				if (doLog) { System.out.println("                add accessControl"); }
 				break;
 
 			case Remove:
 				mask.removeAccessControl();
-				if (doLog) { System.out.println("                remove accessControl"); }
 				break;
 
 			default: break;
@@ -1072,6 +1112,71 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		// handle delta properties
 		mask.handleProperties(rel.getDeltaProperties());
+	}
+
+	private Boolean getPermissionResolutionResult(final long principalId, final Permission permission) {
+
+		Map<Long, PermissionResolutionResult> permissionResolutionCache = globalPermissionResolutionCache.get(getId());
+		if (permissionResolutionCache == null) {
+
+			permissionResolutionCache = new HashMap<>();
+			globalPermissionResolutionCache.put(getId(), permissionResolutionCache);
+		}
+
+		PermissionResolutionResult result = permissionResolutionCache.get(principalId);
+		if (result != null) {
+
+			if (permission.equals(Permission.read)) {
+				return result.read;
+			}
+
+			if (permission.equals(Permission.write)) {
+				return result.write;
+			}
+
+			if (permission.equals(Permission.delete)) {
+				return result.delete;
+			}
+
+			if (permission.equals(Permission.accessControl)) {
+				return result.accessControl;
+			}
+		}
+
+		return null;
+	}
+
+	private void storePermissionResolutionResult(final long principalId, final Permission permission, final boolean value) {
+
+		Map<Long, PermissionResolutionResult> permissionResolutionCache = globalPermissionResolutionCache.get(getId());
+		if (permissionResolutionCache == null) {
+
+			permissionResolutionCache = new HashMap<>();
+			globalPermissionResolutionCache.put(getId(), permissionResolutionCache);
+		}
+
+		PermissionResolutionResult result = permissionResolutionCache.get(principalId);
+		if (result == null) {
+
+			result = new PermissionResolutionResult();
+			permissionResolutionCache.put(principalId, result);
+		}
+
+		if (permission.equals(Permission.read) && (result.read == null || result.read == false)) {
+			result.read = value;
+		}
+
+		if (permission.equals(Permission.write) && (result.write == null || result.write == false)) {
+			result.write = value;
+		}
+
+		if (permission.equals(Permission.delete) && (result.delete == null || result.delete == false)) {
+			result.delete = value;
+		}
+
+		if (permission.equals(Permission.accessControl) && (result.accessControl == null || result.accessControl == false)) {
+			result.accessControl = value;
+		}
 	}
 
 	/**
@@ -1112,11 +1217,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	@Override
 	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+		clearPermissionResolutionCache();
 		return true;
 	}
 
 	@Override
 	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+		clearPermissionResolutionCache();
 		return true;
 	}
 
@@ -1134,18 +1241,22 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	@Override
 	public void ownerModified(SecurityContext securityContext) {
+		clearPermissionResolutionCache();
 	}
 
 	@Override
 	public void securityModified(SecurityContext securityContext) {
+		clearPermissionResolutionCache();
 	}
 
 	@Override
 	public void locationModified(SecurityContext securityContext) {
+		clearPermissionResolutionCache();
 	}
 
 	@Override
 	public void propagatedModification(SecurityContext securityContext) {
+		clearPermissionResolutionCache();
 	}
 
 	@Override
@@ -1406,6 +1517,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	public static void clearRelationshipTemplateInstanceCache() {
 		relationshipTemplateInstanceCache.clear();
+	}
+
+	public static void clearPermissionResolutionCache() {
+		globalPermissionResolutionCache.clear();
 	}
 
 	public static <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R getRelationshipForType(final Class<R> type) {
@@ -1684,11 +1799,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		}
 	}
 
-	@Override
-	public final PermissionResolutionMask getPermissionResolutionMask() {
-		return permissionResolutionMask;
-	}
-
 	public List<Security> getSecurityRelationships() {
 
 		final List<Security> grants = Iterables.toList(getIncomingRelationshipsAsSuperUser(Security.class));
@@ -1720,10 +1830,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		});
 
 		return grants;
-	}
-
-	private String getPermissionPropagationRelTypes() {
-		return ":" + StringUtils.join(SchemaRelationshipNode.getPropagatingRelationshipTypes(), "|");
 	}
 
 	// ----- Cloud synchronization and replication -----
@@ -1959,13 +2065,26 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	private static class BFSInfo {
 
-		public BFSInfo parent         = null;
 		public AbstractNode node      = null;
+		public BFSInfo parent         = null;
+		public int level              = 0;
 
 		public BFSInfo(final BFSInfo parent, final AbstractNode node) {
 
 			this.parent = parent;
 			this.node   = node;
+
+			if (parent != null) {
+				this.level  = parent.level+1;
+			}
 		}
+	}
+
+	private static class PermissionResolutionResult {
+
+		Boolean read          = false;
+		Boolean write         = false;
+		Boolean delete        = false;
+		Boolean accessControl = false;
 	}
 }
