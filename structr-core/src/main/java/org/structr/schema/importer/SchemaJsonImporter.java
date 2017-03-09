@@ -37,13 +37,13 @@ import org.structr.schema.json.InvalidSchemaException;
 import org.structr.schema.json.JsonSchema;
 
 /**
- * This class can handle Schema JSON documents 
+ * This class can handle Schema JSON documents
  */
 public class SchemaJsonImporter extends SchemaImporter implements MaintenanceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaJsonImporter.class.getName());
 
-	
+
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
 
@@ -97,7 +97,7 @@ public class SchemaJsonImporter extends SchemaImporter implements MaintenanceCom
 		if (StringUtils.isBlank(source)) {
 			return;
 		}
-		
+
 		final App app = StructrApp.getInstance();
 
 		// isolate write output
@@ -122,11 +122,16 @@ public class SchemaJsonImporter extends SchemaImporter implements MaintenanceCom
 
 			tx.success();
 		}
-		
+
 	}
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+		return false;
+	}
+
+	@Override
+	public boolean requiresFlushingOfCaches() {
 		return false;
 	}
 }

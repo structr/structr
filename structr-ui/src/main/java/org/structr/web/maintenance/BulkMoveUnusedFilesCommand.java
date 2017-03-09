@@ -174,4 +174,9 @@ public class BulkMoveUnusedFilesCommand extends NodeServiceCommand implements Ma
 	public boolean requiresEnclosingTransaction() {
 		return false;
 	}
+
+	@Override
+	public boolean requiresFlushingOfCaches() {
+		return false;
+	}
 }

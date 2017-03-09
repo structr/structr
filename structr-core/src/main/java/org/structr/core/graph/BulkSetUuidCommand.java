@@ -201,4 +201,9 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 	public boolean requiresEnclosingTransaction() {
 		return false;
 	}
+
+	@Override
+	public boolean requiresFlushingOfCaches() {
+		return true;
+	}
 }

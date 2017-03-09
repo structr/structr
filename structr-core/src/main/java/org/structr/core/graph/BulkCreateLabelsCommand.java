@@ -100,4 +100,9 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 
 		return true;
 	}
+
+	@Override
+	public boolean requiresFlushingOfCaches() {
+		return true;
+	}
 }

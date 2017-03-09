@@ -152,4 +152,9 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 	public boolean requiresEnclosingTransaction() {
 		return false;
 	}
+
+	@Override
+	public boolean requiresFlushingOfCaches() {
+		return false;
+	}
 }

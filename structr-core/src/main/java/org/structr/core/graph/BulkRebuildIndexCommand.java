@@ -76,6 +76,11 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 		return false;
 	}
 
+	@Override
+	public boolean requiresFlushingOfCaches() {
+		return false;
+	}
+
 	// ----- private methods -----
 	private void rebuildNodeIndex(final String entityType) {
 

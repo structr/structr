@@ -32,4 +32,5 @@ public interface MaintenanceCommand {
 
 	public void execute(Map<String, Object> attributes) throws FrameworkException;
 	public boolean requiresEnclosingTransaction();
+	public boolean requiresFlushingOfCaches();
 }

@@ -164,6 +164,11 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		return false;
 	}
 
+	@Override
+	public boolean requiresFlushingOfCaches() {
+		return false;
+	}
+
 	// ----- static methods -----
 	/**
 	 * Exports the whole structr database to a file with the given name.

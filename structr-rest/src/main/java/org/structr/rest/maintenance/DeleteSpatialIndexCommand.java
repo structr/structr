@@ -100,4 +100,9 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 	public boolean requiresEnclosingTransaction() {
 		return true;
 	}
+
+	@Override
+	public boolean requiresFlushingOfCaches() {
+		return false;
+	}
 }

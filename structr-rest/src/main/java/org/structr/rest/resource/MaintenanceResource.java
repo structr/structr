@@ -18,6 +18,7 @@
  */
 package org.structr.rest.resource;
 
+import java.util.Collections;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -29,6 +30,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
@@ -91,6 +93,14 @@ public class MaintenanceResource extends Resource {
 					} else if (MaintenanceCommand.class.isAssignableFrom(taskOrCommand)) {
 
 						MaintenanceCommand cmd = (MaintenanceCommand)StructrApp.getInstance(securityContext).command(taskOrCommand);
+
+						// flush caches if required
+						if (cmd.requiresFlushingOfCaches()) {
+
+							app.command(FlushCachesCommand.class).execute(Collections.EMPTY_MAP);
+						}
+
+						// create enclosing transaction if required
 						if (cmd.requiresEnclosingTransaction()) {
 
 							try (final Tx tx = app.tx()) {

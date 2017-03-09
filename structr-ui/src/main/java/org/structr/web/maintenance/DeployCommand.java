@@ -133,6 +133,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		return false;
 	}
 
+	@Override
+	public boolean requiresFlushingOfCaches() {
+		return false;
+	}
+
 	public Map<String, Object> readConfigMap(final Path pagesConf) {
 
 		if (Files.exists(pagesConf)) {
