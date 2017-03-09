@@ -1460,6 +1460,7 @@ var _Schema = {
 
 		$('.cancel-action', tr).on('click', function() {
 			tr.remove();
+			resizeHandlerRow.remove();
 		});
 
 		return tr;
