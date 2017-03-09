@@ -36,6 +36,7 @@ var _Schema = {
 	new_attr_cnt: 0,
 	selectedRel: undefined,
 	relHighlightColor: 'red',
+	availableSchemaNodes: [],
 	hiddenSchemaNodes: [],
 	hiddenSchemaNodesKey: 'structrHiddenSchemaNodes_' + port,
 	schemaPositionsKey: 'structrSchemaPositions_' + port,
@@ -517,7 +518,11 @@ var _Schema = {
 
 				_Schema.loadClassTree(data.result);
 
+				_Schema.availableSchemaNodes = [];
+
 				data.result.forEach(function(entity) {
+
+					_Schema.availableSchemaNodes.push(entity.name);
 
 					var level   = 0;
 					var outs    = entity.relatedTo.length;
@@ -2882,7 +2887,8 @@ var _Schema = {
 
 									var hiddenTypes = loadedConfig.hiddenTypes;
 									hiddenTypes = hiddenTypes.filter(function(typeName) {
-										return (_Schema.nodePositions[typeName] !== undefined);
+										// Filter out types that do not exist in the schema
+										return (_Schema.availableSchemaNodes.indexOf(typeName) !== -1);
 									});
 									_Schema.hiddenSchemaNodes = hiddenTypes;
 									LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
