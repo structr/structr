@@ -32,6 +32,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
@@ -807,10 +808,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			accessingUser = context.getUser(false);
 		}
 
-		return isGranted(permission, accessingUser, new PermissionResolutionMask(), 0, new AlreadyTraversed());
+		return isGranted(permission, accessingUser, new PermissionResolutionMask(), 0, new AlreadyTraversed(), true);
 	}
 
-	private boolean isGranted(final Permission permission, final Principal accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed) {
+	private boolean isGranted(final Permission permission, final Principal accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final boolean recurse) {
 
 		if (level > 100) {
 			logger.warn("Aborting recursive permission resolution because of recursion level > 100, this is quite likely an infinite loop.");
@@ -867,19 +868,56 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			}
 
 			// Check permissions from domain relationships
-			if (hasEffectivePermissions(accessingUser, permission, mask, level, alreadyTraversed)) {
-				return true;
+			if (recurse) {
+
+				final Queue<BFSInfo> bfsNodes   = new LinkedList<>();
+				final BFSInfo root              = new BFSInfo(null, this);
+
+				// add initial element
+				bfsNodes.add(root);
+
+				do {
+
+					final BFSInfo info = bfsNodes.poll();
+					if (info != null) {
+
+						final AbstractNode current = info.node;
+						final String cacheKey      = accessingUser.getId() + "/" + current.getId();
+						final Boolean value        = permissionResolutionCache.get(cacheKey);
+
+						if (value != null) {
+
+							// returning immediately
+							if (Boolean.TRUE.equals(value)) {
+
+								// do backtracking
+								backtrack(info, accessingUser.getId(), true);
+
+								return true;
+							}
+
+						} else {
+
+							if (current.hasEffectivePermissions(info, accessingUser, permission, mask, level, alreadyTraversed, bfsNodes)) {
+
+								// do backtracking
+								backtrack(info, accessingUser.getId(), true);
+
+								return true;
+							}
+						}
+					}
+
+				} while (!bfsNodes.isEmpty());
+
+				// do backtracking
+				backtrack(root, accessingUser.getId(), false);
 			}
 
 			// Last: recursively check possible parent principals
 			for (Principal parent : accessingUser.getParents()) {
 
-				// check principals here to avoid circles in group membership
-				if (alreadyTraversed.contains("Principal", parent.getId())) {
-					return false;
-				}
-
-				if (isGranted(permission, parent, mask, level+1, alreadyTraversed)) {
+				if (isGranted(permission, parent, mask, level+1, alreadyTraversed, false)) {
 					return true;
 				}
 			}
@@ -888,7 +926,28 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		return false;
 	}
 
-	private boolean hasEffectivePermissions(final Principal principal, final Permission permission, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed) {
+	private static final Map<String, Boolean> permissionResolutionCache = new LinkedHashMap<>();
+
+	private void backtrack(final BFSInfo info, final long principalId, final boolean value) {
+
+		// cache success value
+		final String cacheKey = principalId + "/" + info.node.getId();
+
+		// make sure we don't overwrite existing values
+		if (!permissionResolutionCache.containsKey(cacheKey)) {
+
+			permissionResolutionCache.put(cacheKey, value);
+		}
+
+		// go to parent(s)
+		if (info.parent != null) {
+
+			backtrack(info.parent, principalId, value);
+		}
+	}
+
+
+	private boolean hasEffectivePermissions(final BFSInfo parent, final Principal principal, final Permission permission, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final Queue<BFSInfo> bfsNodes) {
 
 		// check nodes here to avoid circles in permission-propagating relationships
 		if (alreadyTraversed.contains("Node", dbNode.getId())) {
@@ -897,6 +956,15 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		for (final Class<Relation> propagatingType : SchemaRelationshipNode.getPropagatingRelationshipTypes()) {
 
+			final Relation template           = getRelationshipForType(propagatingType);
+			final Direction direction         = template.getDirectionForType(entityType);
+
+			// skip relationship type if it is not applicable for the current node type
+			if (Direction.BOTH.equals(direction)) {
+				continue;
+			}
+
+			// iterate over list of relationships
 			final Iterable<Relation> iterable = getRelationshipsAsSuperUser(propagatingType);
 			for (final Relation source : iterable) {
 
@@ -904,287 +972,47 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 					final PermissionPropagation perm                            = (PermissionPropagation)source;
 					final RelationshipInterface rel                             = (RelationshipInterface)source;
-					final long startNodeId                                      = rel.getSourceNode().getId();
-					final long thisId                                           = getId();
-					final SchemaRelationshipNode.Direction relDirection         = thisId == startNodeId ? SchemaRelationshipNode.Direction.Out : SchemaRelationshipNode.Direction.In;
+					final SchemaRelationshipNode.Direction evaluationDirection  = getEvaluationDirection(this, rel);
 					final SchemaRelationshipNode.Direction propagationDirection = perm.getPropagationDirection();
-					final AbstractNode otherNode                                = (AbstractNode)rel.getOtherNode(this);
 
-					// check propagation direction
-					if (!propagationDirection.equals(SchemaRelationshipNode.Direction.Both)) {
+					// check propagation direction vs. evaluation direction
+					if (propagationDirection.equals(SchemaRelationshipNode.Direction.Both) || propagationDirection.equals(evaluationDirection)) {
 
-						if (propagationDirection.equals(SchemaRelationshipNode.Direction.None)) {
+						applyCurrentStep(perm, mask);
 
-							mask.clear();
-							break;
-						}
+						if (mask.allowsPermission(permission)) {
 
-						if (!relDirection.equals(propagationDirection)) {
+							final AbstractNode otherNode = (AbstractNode)rel.getOtherNode(this);
 
-							mask.clear();
-							break;
-						}
-					}
+							if (otherNode.isGranted(permission, principal, mask, level+1, alreadyTraversed, false)) {
 
-					applyCurrentStep(perm, mask);
-
-					if (mask.allowsPermission(permission) && otherNode.isGranted(permission, principal, mask, level+1, alreadyTraversed)) {
-
-						// break early
-						return true;
-					}
-				}
-			}
-		}
-
-		return false;
-	}
-
-	/*
-	private boolean hasEffectivePermissions(final Principal principal, final Permission permission) {
-
-		final boolean doLog = securityContext.hasParameter("debugLoggingEnabled");
-
-		// don't check relationship propagation if there are no propagating relationships
-		if (SchemaRelationshipNode.getPropagatingRelationshipTypes().isEmpty()) {
-			return false;
-		}
-
-		if (doLog) {
-			System.out.println("\n#######################################################\nResolving " + permission.name() + " for user " + principal.getName() + " to " + this.getType() + " (" + this.getUuid() + ")");
-		}
-
-		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-		final RelationshipFactory relFactory   = new RelationshipFactory(superUserContext);
-		PermissionResolutionMask mask          = AccessPathCache.get(principal, this);
-
-		// current path segment has precedence over path based permission resolution mask
-		if (rawPathSegment != null) {
-
-			final boolean result = checkPathSegment(principal, permission, relFactory);
-
-			if (doLog) {
-
-				if (result) {
-
-					System.out.println("        " + permission.name() + " ALLOWED by path segment " + rawPathSegment.getType());
-
-				} else {
-
-					System.out.println("        " + permission.name() + " DENIED by path segment " + rawPathSegment.getType());
-				}
-			}
-
-			if (result) {
-				return true;
-			}
-		}
-
-		// use cached result only when it was already checked for the given permission
-		if (mask != null && mask.alreadyChecked(permission)) {
-
-			final boolean result = mask.allowsPermission(permission);
-
-			if (doLog) {
-				if (result) {
-
-					System.out.println("        " + permission.name() + " ALLOWED by cached mask " + mask);
-
-				} else {
-
-					System.out.println("        " + permission.name() + " DENIED by cached mask " + mask);
-				}
-			}
-
-			return result;
-		}
-
-		try {
-
-			if (mask == null) {
-
-				// store only a single mask for every node
-				mask = new PermissionResolutionMask();
-				AccessPathCache.put(principal, this, mask);
-
-				if (doLog) {
-					System.out.println("        Storing initial mask: " + mask);
-				}
-			}
-
-			// store all check attempts in the cache
-			mask.setChecked(permission);
-
-			final DatabaseService db         = StructrApp.getInstance().getDatabaseService();
-			final String relTypes            = getPermissionPropagationRelTypes();
-			final Map<String, Object> params = new HashMap<>();
-			final long principalId           = principal.getId();
-
-			params.put("id1", principalId);
-			params.put("id2", this.getId());
-
-			// FIXME: make fixed path length of 8 configurable
-			for (int i=1; i<10; i++) {
-
-				final String query        = "MATCH (n), (m), p = allShortestPaths((n)-[" + relTypes + "*.." + i + "]-(m)) WHERE id(n) = {id1} AND id(m) = {id2} RETURN p";
-				final NativeResult result = db.execute(query, params);
-
-				while (result.hasNext()) {
-
-					final Map<String, Object> row = result.next();
-					final Path path               = (Path)row.get("p");
-					Node previousNode             = null;
-					boolean arrived               = true;
-
-					for (final PropertyContainer container : path) {
-
-						if (container instanceof Node) {
-
-							// store previous node to determine relationship direction
-							previousNode = (Node)container;
-							AccessPathCache.update(principal, this, previousNode);
-
-						} else {
-
-							final Relationship rel        = (Relationship)container;
-							final RelationshipInterface r = relFactory.instantiate(rel);
-
-							if (r instanceof PermissionPropagation) {
-
-								// update cache with relationship type
-								AccessPathCache.update(principal, this, rel);
-
-								final PermissionPropagation propagation                     = (PermissionPropagation)r;
-								final long startNodeId                                      = rel.getStartNode().getId();
-								final long thisId                                           = previousNode.getId();
-								final SchemaRelationshipNode.Direction relDirection         = thisId == startNodeId ? SchemaRelationshipNode.Direction.Out : SchemaRelationshipNode.Direction.In;
-								final SchemaRelationshipNode.Direction propagationDirection = propagation.getPropagationDirection();
-
-								// check propagation direction
-								if (!propagationDirection.equals(SchemaRelationshipNode.Direction.Both)) {
-
-									if (propagationDirection.equals(SchemaRelationshipNode.Direction.None)) {
-
-										mask.clear();
-										arrived = false;
-										break;
-									}
-
-									if (!relDirection.equals(propagationDirection)) {
-
-										mask.clear();
-										arrived = false;
-										break;
-									}
-								}
-
-								applyCurrentStep(propagation, mask);
+								final String cacheKey = principal.getId() + "/" + otherNode.getId();
+								permissionResolutionCache.put(cacheKey, true);
 
 								// break early
-								if (!mask.allowsPermission(permission)) {
-
-									if (doLog) {
-										System.out.println("        " + permission.name() + " DENIED by " + path);
-									}
-
-									arrived = false;
-									break;
-								}
+								return true;
 
 							} else {
 
-								if (doLog) {
-									System.out.println("        " + permission.name() + " DENIED by " + path);
-								}
-
-								arrived = false;
-								break;
+								// add node to BFS queue
+								bfsNodes.add(new BFSInfo(parent, otherNode));
 							}
 						}
 					}
-
-
-					if (arrived && mask.allowsPermission(permission)) {
-
-						if (doLog) {
-							System.out.println("        " + permission.name() + " ALLOWED by " + path);
-							System.out.println("        Storing mask from path: " + mask);
-						}
-
-						AccessPathCache.put(principal, this, mask);
-
-						return true;
-					}
 				}
 			}
-
-		} catch (Throwable t) {
-			logger.warn("", t);
-		}
-
-		mask.setPermission(permission, false);
-		AccessPathCache.put(principal, this, mask);
-
-		if (doLog) {
-			System.out.println("        Storing mask from unsuccessful path: " + mask);
 		}
 
 		return false;
 	}
 
-	private boolean checkPathSegment(final Principal principal, final Permission permission, final RelationshipFactory relFactory) {
-
-		final boolean doLog = securityContext.hasParameter("debugLoggingEnabled");
-		final RelationshipInterface r = relFactory.instantiate(rawPathSegment);
-		if (r instanceof PermissionPropagation) {
-
-			final PermissionPropagation propagation                     = (PermissionPropagation)r;
-			final long startNodeId                                      = rawPathSegment.getStartNode().getId();
-			final long thisId                                           = getId();
-			final SchemaRelationshipNode.Direction relDirection         = thisId == startNodeId ? SchemaRelationshipNode.Direction.In : SchemaRelationshipNode.Direction.Out;
-			final SchemaRelationshipNode.Direction propagationDirection = propagation.getPropagationDirection();
-			final PermissionResolutionMask mask                         = new PermissionResolutionMask();
-
-			// check propagation direction
-			if (!propagationDirection.equals(SchemaRelationshipNode.Direction.Both)) {
-
-				if (propagationDirection.equals(SchemaRelationshipNode.Direction.None)) {
-					return false;
-				}
-
-				if (!relDirection.equals(propagationDirection)) {
-					return false;
-				}
-			}
-
-			// we can safely assume here that we arrived at this node with
-			// the read permission, because otherwise the node would not
-			// have been visible.
-			mask.setPermission(Permission.read, true);
-
-			// apply current
-			applyCurrentStep(propagation, mask);
-
-			if (mask.allowsPermission(permission)) {
-
-				mask.setChecked(permission);
-				AccessPathCache.put(principal, this, mask);
-
-				if (doLog) {
-					System.out.println("Storing mask from path segment: " + mask);
-				}
-
-				return true;
-			}
-		}
-
-		return false;
+	private SchemaRelationshipNode.Direction getEvaluationDirection(final AbstractNode thisNode, final RelationshipInterface rel) {
+		return rel.getSourceNode().getId() == thisNode.getId() ? SchemaRelationshipNode.Direction.Out : SchemaRelationshipNode.Direction.In;
 	}
-	*/
 
 	private void applyCurrentStep(final PermissionPropagation rel, PermissionResolutionMask mask) {
 
-		final boolean doLog = securityContext.hasParameter("debugLoggingEnabled");
+		final boolean doLog = false;
 
 		switch (rel.getReadPropagation()) {
 			case Add:
@@ -2115,6 +1943,29 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			}
 
 			return !set.add(id);
+		}
+
+		public int size(final String key) {
+
+			final Set<Long> set = sets.get(key);
+			if (set != null) {
+
+				return set.size();
+			}
+
+			return 0;
+		}
+	}
+
+	private static class BFSInfo {
+
+		public BFSInfo parent         = null;
+		public AbstractNode node      = null;
+
+		public BFSInfo(final BFSInfo parent, final AbstractNode node) {
+
+			this.parent = parent;
+			this.node   = node;
 		}
 	}
 }

@@ -731,6 +731,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	// ----- protected methods -----
 	protected final Direction getDirectionForType(final Class<S> sourceType, final Class<T> targetType, final Class<? extends NodeInterface> type) {
 
+		// FIXME: this method will most likely not do what it's supposed to do..
 		if (sourceType.equals(type) && targetType.equals(type)) {
 			return Direction.BOTH;
 		}
@@ -748,6 +749,14 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		}
 
 		if (targetType.isAssignableFrom(type)) {
+			return Direction.INCOMING;
+		}
+
+		if (type.isAssignableFrom(sourceType)) {
+			return Direction.OUTGOING;
+		}
+
+		if (type.isAssignableFrom(targetType)) {
 			return Direction.INCOMING;
 		}
 
