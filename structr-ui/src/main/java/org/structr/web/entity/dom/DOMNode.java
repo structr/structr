@@ -113,6 +113,7 @@ import org.structr.web.function.SetDetailsObjectFunction;
 import org.structr.web.function.SetResponseHeaderFunction;
 import org.structr.web.function.SetSessionAttributeFunction;
 import org.structr.web.function.StripHtmlFunction;
+import org.structr.web.function.ToGraphObjectFunction;
 import org.structr.web.function.ToJsonFunction;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.w3c.dom.DOMException;
@@ -219,6 +220,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		Functions.functions.put("set_response_header", new SetResponseHeaderFunction());
 		Functions.functions.put("set_details_object", new SetDetailsObjectFunction());
 		Functions.functions.put("to_json", new ToJsonFunction());
+		Functions.functions.put("to_graph_object", new ToGraphObjectFunction());
 		Functions.functions.put("strip_html", new StripHtmlFunction());
 		Functions.functions.put("set_session_attribute", new SetSessionAttributeFunction());
 		Functions.functions.put("get_session_attribute", new GetSessionAttributeFunction());

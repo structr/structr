@@ -40,6 +40,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.parser.DatePropertyParser;
 
 /**
@@ -481,6 +482,7 @@ public abstract class Function<S, T> extends Hint {
 
 		for (final Map.Entry<String, Object> entry : source.entrySet()) {
 
+			ConfigurationProvider provider = StructrApp.getConfiguration();
 			final String key = entry.getKey();
 			final Object value = entry.getValue();
 
@@ -489,7 +491,7 @@ public abstract class Function<S, T> extends Hint {
 				final Map<String, Object> map = (Map<String, Object>)value;
 				final GraphObjectMap obj = new GraphObjectMap();
 
-				destination.put(new StringProperty(key), obj);
+				destination.put(provider.getPropertyKeyForJSONName(obj.getClass(), key), obj);
 
 				recursivelyConvertMapToGraphObjectMap(obj, map, depth + 1);
 
@@ -513,11 +515,11 @@ public abstract class Function<S, T> extends Hint {
 					}
 				}
 
-				destination.put(new StringProperty(key), list);
+				destination.put(provider.getPropertyKeyForJSONName(list.getClass(), key), list);
 
 			} else {
 
-				destination.put(new StringProperty(key), value);
+				destination.put(value != null ? provider.getPropertyKeyForJSONName(value.getClass(), key) : new StringProperty(key), value);
 			}
 		}
 	}
