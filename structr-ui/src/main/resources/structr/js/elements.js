@@ -959,13 +959,13 @@ var _Elements = {
 						forcedClickHandler: handleWrapInHTMLAction
 					},
 					{
-						name: '... Template Element',
+						name: '... Template element',
 						clickHandler: function () {
 							handleWrapInHTMLAction('template');
 						}
 					},
 					{
-						name: '... &lt;div&gt; Element',
+						name: '... div element',
 						clickHandler: function () {
 							handleWrapInHTMLAction('div');
 						}
