@@ -432,7 +432,8 @@ function wsConnect() {
 								$.each(entity.syncedNodes, function (i, id) {
 									var el = Structr.node(id);
 									if (el && el.length) {
-										el.children('img.typeIcon').attr('src', (entity.isTemplate ? _Icons.icon_shared_template : (entity.isContent ? _Icons.active_content_icon : _Icons.comp_icon)));
+										var icon = entity.isTemplate ? _Icons.icon_shared_template : (entity.isContent ? _Icons.active_content_icon : _Icons.comp_icon);
+										el.children('.typeIcon').attr('class', 'typeIcon ' + _Icons.getFullSpriteClass(icon));
 										_Entities.removeExpandIcon(el);
 									}
 								});

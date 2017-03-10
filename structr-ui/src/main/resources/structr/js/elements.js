@@ -939,7 +939,7 @@ var _Elements = {
 
 		if (entity.type !== 'Content' && entity.type !== 'Page') {
 			elements.push({
-				name: 'Insert &lt;div&gt;',
+				name: 'Insert div element',
 				clickHandler: function() {
 					Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', {}, _Elements.isInheritVisibililtyFlagsChecked());
 					return false;
@@ -959,13 +959,13 @@ var _Elements = {
 						forcedClickHandler: handleWrapInHTMLAction
 					},
 					{
-						name: '... Template Element',
+						name: '... Template element',
 						clickHandler: function () {
 							handleWrapInHTMLAction('template');
 						}
 					},
 					{
-						name: '... &lt;div&gt; Element',
+						name: '... div element',
 						clickHandler: function () {
 							handleWrapInHTMLAction('div');
 						}

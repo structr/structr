@@ -387,10 +387,6 @@ var _Files = {
 				var chunk = window.btoa(String.fromCharCode.apply(null, new Uint8Array(binaryContent.slice(start, end))));
 				Command.chunk(file.id, c, chunkSize, chunk, chunks);
 			}
-			var typeIcon = Structr.node(file.id).parent().find('.typeIcon');
-			var iconSrc = typeIcon.prop('src');
-			_Logger.log(_LogType.FILES, 'Icon src: ', iconSrc);
-			typeIcon.prop('src', iconSrc + '?' + new Date().getTime());
 		};
 
 		$(fileList).each(function(i, fileObj) {
