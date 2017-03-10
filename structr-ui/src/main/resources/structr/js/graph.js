@@ -91,10 +91,11 @@ var _Graph = {
 		];
 		colors.concat(palettonColors);
 
-		var max = 255, min = 0;
+		var max = 255;
+		var steps = [21, 53, 31];
 
 		for (var i = 50; i < 999; i++) {
-			var col = 'rgb(' + (Math.floor((max - min) * Math.random()) + min) + ',' + (Math.floor((max - min) * Math.random()) + min) + ',' + (Math.floor((max - min) * Math.random()) + min) + ')';
+			var col = 'rgb(' + (steps[i%3] * i) % max + ',' + (steps[(i+1)%3] * i) % max + ',' + (steps[(i+2)%3] * i) % max + ')';
 			colors.push(col);
 		}
 
