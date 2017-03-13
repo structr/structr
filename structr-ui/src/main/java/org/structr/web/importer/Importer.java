@@ -548,6 +548,7 @@ public class Importer {
 			String content = null;
 			String id = null;
 			StringBuilder classString = new StringBuilder();
+                        boolean isNewTemplate = false;
 
 			if (ArrayUtils.contains(ignoreElementNames, type)) {
 
@@ -690,6 +691,13 @@ public class Importer {
 						if (template == null) {
 
 							template = Importer.findTemplateByName(src);
+
+                                                        if(template == null){
+
+                                                            template = createNewTemplateNode(parent, node.childNodes());
+                                                            isNewTemplate = true;
+
+                                                        }
 						}
 					}
 
@@ -931,8 +939,13 @@ public class Importer {
 
 				// Link new node to its parent node
 				// linkNodes(parent, newNode, page, localIndex);
-				// Step down and process child nodes
-				createChildNodes(node, newNode, page, removeHashAttribute, depth + 1);
+				// Step down and process child nodes except for newly created templates
+                                if(!isNewTemplate){
+
+                                    createChildNodes(node, newNode, page, removeHashAttribute, depth + 1);
+
+                                }
+
 			}
 		}
 
@@ -1215,7 +1228,13 @@ public class Importer {
 
 	public static DOMNode findTemplateByName(final String name) throws FrameworkException {
 
-		for (final DOMNode n : StructrApp.getInstance().nodeQuery(Template.class).andName(name).getAsList()) {
+                if(name == null){
+                    return null;
+                } else if(name.length() <= 0){
+                    return null;
+                }
+
+		for (final DOMNode n : StructrApp.getInstance().nodeQuery(Template.class).andName(name).and().notBlank(AbstractNode.name).getAsList()) {
 
 			// IGNORE everything that REFERENCES a shared component!
 			if (n.getProperty(DOMNode.sharedComponent) == null) {
@@ -1259,4 +1278,25 @@ public class Importer {
 
 		return contentNode;
 	}
+
+        private Template createNewTemplateNode(final DOMNode parent, final List<Node> children) throws FrameworkException{
+
+            Template newTemplate = StructrApp.getInstance(securityContext).create(Template.class);
+
+            newTemplate.setProperty(AbstractNode.visibleToPublicUsers, publicVisible);
+            newTemplate.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+
+            StringBuilder sb = new StringBuilder();
+            for(Node c : children){
+
+                sb.append(c.toString());
+
+            }
+
+            newTemplate.setProperty(new StringProperty("content"), sb.toString());
+
+            parent.appendChild(newTemplate);
+
+            return newTemplate;
+        }
 }
