@@ -692,12 +692,12 @@ public class Importer {
 
 							template = Importer.findTemplateByName(src);
 
-                                                        if(template == null){
+								if(template == null){
 
-                                                            template = createNewTemplateNode(parent, node.childNodes());
-                                                            isNewTemplate = true;
+									template = createNewTemplateNode(parent, node.childNodes());
+									isNewTemplate = true;
 
-                                                        }
+								}
 						}
 					}
 
@@ -1289,7 +1289,7 @@ public class Importer {
             StringBuilder sb = new StringBuilder();
             for(Node c : children){
 
-                sb.append(c.toString());
+                sb.append(NodeToString(c));
 
             }
 
@@ -1299,4 +1299,44 @@ public class Importer {
 
             return newTemplate;
         }
+
+		private String NodeToString(Node node){
+
+			StringBuilder sb = new StringBuilder();
+
+			if(node instanceof TextNode){
+
+				return ((TextNode)node).getWholeText();
+
+			} else if(node instanceof Element) {
+
+				Element el = (Element)node;
+				sb.append("<").append(el.tagName());
+
+				if(el.attributes().size() > 0){
+
+					sb.append(" ");
+					sb.append(el.attributes().html());
+
+				}
+
+				sb.append(">");
+
+				for(Node child : el.childNodes()){
+
+					sb.append(NodeToString(child));
+
+				}
+
+				sb.append("</").append(el.tagName()).append(">");
+
+			} else {
+
+				return node.toString();
+
+			}
+
+			return sb.toString();
+
+		}
 }
