@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -899,6 +900,43 @@ public class Importer {
 
 							// Import schema JSON
 							SchemaJsonImporter.importSchemaJson(source);
+						}
+					} else if (contentType.equals("application/x-cypher")) {
+
+						for (final Node scriptContentNode : node.childNodes()) {
+
+							final String source = scriptContentNode.toString();
+
+							// import Cypher queries from script source
+							final GraphGistImporter importer = app.command(GraphGistImporter.class);
+							final List<String> sources       = new ArrayList<>();
+							sources.add(source);
+
+							importer.importCypher(sources);
+
+							return null;
+
+						}
+					} else if (contentType.equals("application/x-structr-script")) {
+
+						for (final Node scriptContentNode : node.childNodes()) {
+
+							final String source = scriptContentNode.toString();
+
+
+
+							return null;
+
+						}
+					} else if (contentType.equals("application/x-structr-javascript")) {
+
+						for (final Node scriptContentNode : node.childNodes()) {
+
+							final String source = scriptContentNode.toString();
+
+
+							return null;
+
 						}
 					}
 				}
