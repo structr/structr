@@ -79,7 +79,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 	@Override
 	public String getFavoriteContentType() {
-		return "text/javascript";
+		return "application/x-structr-javascript";
 	}
 
 	@Override

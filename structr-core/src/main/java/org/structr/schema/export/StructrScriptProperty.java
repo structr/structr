@@ -142,12 +142,12 @@ public class StructrScriptProperty extends StructrPropertyDefinition implements 
 
 			switch (contentType) {
 
-				case "text/javascript":
-				case "text/structrscript":
+				case "application/x-structr-javascript":
+				case "application/x-structr-script":
 					property.setProperty(SchemaProperty.propertyType, Type.Function.name());
 					break;
 
-				case "text/cypher":
+				case "application/x-cypher":
 					property.setProperty(SchemaProperty.propertyType, Type.Cypher.name());
 
 			}

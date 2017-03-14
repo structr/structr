@@ -364,7 +364,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 			case Cypher:
 				final StructrScriptProperty cypher = new StructrScriptProperty(parent, name);
 				cypher.deserialize(property);
-				cypher.setContentType("text/cypher");
+				cypher.setContentType("application/x-cypher");
 				return cypher;
 
 			case Notion:

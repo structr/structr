@@ -266,7 +266,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 			if (source.startsWith("{") && source.endsWith("}")) {
 
-				return "text/javascript";
+				return "application/x-structr-javascript";
 			}
 		}
 

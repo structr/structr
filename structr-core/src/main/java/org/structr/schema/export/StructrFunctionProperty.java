@@ -142,7 +142,7 @@ public class StructrFunctionProperty extends StructrStringProperty implements Js
 				throw new IllegalStateException("Invalid contentType for property " + name + ", expected string.");
 			}
 		}
-		
+
 	}
 
 	@Override
@@ -165,12 +165,12 @@ public class StructrFunctionProperty extends StructrStringProperty implements Js
 
 			switch (contentType) {
 
-				case "text/javascript":
-				case "text/structrscript":
+				case "application/x-structr-javascript":
+				case "application/x-structr-script":
 					property.setProperty(SchemaProperty.propertyType, Type.Function.name());
 					break;
 
-				case "text/cypher":
+				case "application/x-cypher":
 					property.setProperty(SchemaProperty.propertyType, Type.Cypher.name());
 
 			}

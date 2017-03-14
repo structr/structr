@@ -258,7 +258,7 @@ public class SchemaTest extends StructrTest {
 
 			// test function property
 			task.addFunctionProperty("displayName", "public", "ui").setReadFunction("this.name");
-			task.addFunctionProperty("javascript", "public", "ui").setReadFunction("{ var x = 'test'; return x; }").setContentType("text/javascript");
+			task.addFunctionProperty("javascript", "public", "ui").setReadFunction("{ var x = 'test'; return x; }").setContentType("application/x-structr-javascript");
 
 
 			// a project

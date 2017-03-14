@@ -70,6 +70,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.dynamic.File;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.ConfigurationProvider;
+import org.structr.schema.action.Actions;
 import org.structr.schema.importer.GraphGistImporter;
 import org.structr.schema.importer.SchemaJsonImporter;
 import org.structr.web.common.FileHelper;
@@ -923,7 +924,7 @@ public class Importer {
 
 							final String source = scriptContentNode.toString();
 
-
+							Actions.execute(securityContext, null, source, null);
 
 							return null;
 
@@ -934,6 +935,7 @@ public class Importer {
 
 							final String source = scriptContentNode.toString();
 
+							Actions.execute(securityContext, null, source, null);
 
 							return null;
 
