@@ -915,9 +915,10 @@ public class Importer {
 
 							importer.importCypher(sources);
 
-							return null;
-
 						}
+
+						continue;
+
 					} else if (contentType.equals("application/x-structr-script")) {
 
 						for (final Node scriptContentNode : node.childNodes()) {
@@ -926,9 +927,10 @@ public class Importer {
 
 							Actions.execute(securityContext, null, source, null);
 
-							return null;
-
 						}
+
+						continue;
+
 					} else if (contentType.equals("application/x-structr-javascript")) {
 
 						for (final Node scriptContentNode : node.childNodes()) {
@@ -937,9 +939,10 @@ public class Importer {
 
 							Actions.execute(securityContext, null, source, null);
 
-							return null;
-
 						}
+
+						continue;
+						
 					}
 				}
 
