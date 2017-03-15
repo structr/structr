@@ -942,7 +942,7 @@ public class Importer {
 						}
 
 						continue;
-						
+
 					}
 				}
 
@@ -1257,6 +1257,12 @@ public class Importer {
 	}
 
 	public static DOMNode findSharedComponentByName(final String name) throws FrameworkException {
+
+                if(name == null){
+                    return null;
+                } else if(name.length() <= 0){
+                    return null;
+                }
 
 		for (final DOMNode n : StructrApp.getInstance().nodeQuery(DOMNode.class).andName(name).and(DOMNode.ownerDocument, CreateComponentCommand.getOrCreateHiddenDocument()).getAsList()) {
 
