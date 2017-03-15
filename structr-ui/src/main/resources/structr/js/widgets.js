@@ -558,7 +558,11 @@ var _Widgets = {
 			var matches = [];
 			var rawMatches = widgetSource.match(pattern);
 			if (rawMatches) {
-				matches = $.unique(rawMatches);
+				rawMatches.forEach(function (m) {
+					if (matches.indexOf(m) === -1) {
+						matches.push(m);
+					}
+				})
 			}
 
 			if ((widgetDescription !== null && widgetDescription !== "") || (matches.length > 0 && widgetConfig) ) {
