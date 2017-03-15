@@ -562,7 +562,7 @@ var _Widgets = {
 					if (matches.indexOf(m) === -1) {
 						matches.push(m);
 					}
-				})
+				});
 			}
 
 			if ((widgetDescription !== null && widgetDescription !== "") || (matches.length > 0 && widgetConfig) ) {
