@@ -52,12 +52,14 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StringProperty;
 import org.structr.dynamic.File;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.StructrUiTest;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
+import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -80,7 +82,9 @@ import org.structr.web.entity.html.Td;
 import org.structr.web.entity.html.Thead;
 import org.structr.web.entity.html.Tr;
 import org.structr.web.entity.html.Ul;
+import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.DeployCommand;
+import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
 import org.structr.websocket.command.CloneComponentCommand;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.w3c.dom.Node;
@@ -1552,6 +1556,81 @@ public class DeploymentTest extends StructrUiTest {
 			fail("Unexpected exception.");
 		}
 	}
+
+
+	@Test
+	public void test34WidgetWithTemplate() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			Page testPage = app.create(Page.class, "WidgetTestPage");
+			Html html = app.create(Html.class);
+			Head head = app.create(Head.class);
+			Body body = app.create(Body.class);
+			Div div = app.create(Div.class,"WidgetTestPage-Div");
+			Div div2 = app.create(Div.class,"WidgetTestPage-Div2");
+
+			testPage.appendChild(html);
+			html.appendChild(head);
+			html.appendChild(body);
+			body.appendChild(div);
+			body.appendChild(div2);
+
+			Widget widgetToImport = app.create(Widget.class,
+					new NodeAttribute<>(Widget.name,"TestWidget"),
+					new NodeAttribute<>(Widget.source,"<!-- @structr:content(text/html) --><structr:template>${{Structr.print(\"<div>Test</div>\");}}</structr:template>"),
+					new NodeAttribute<>(Widget.configuration,"{\"processDeploymentInfo\": true}"),
+					new NodeAttribute<>(Widget.visibleToPublicUsers,true),
+					new NodeAttribute<>(Widget.visibleToAuthenticatedUsers,true)
+
+			);
+
+			Importer importer = new Importer(securityContext, widgetToImport.getProperty(new StringProperty("source")), null, null, true, true);
+
+			importer.setIsDeployment(true);
+			importer.setCommentHandler(new DeploymentCommentHandler());
+
+			importer.parse(true);
+			DOMNode template = importer.createComponentChildNodes(div, testPage);
+			div.appendChild(template);
+
+			makePublic(testPage, html,head, body, div, div2, template);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+
+		// test
+		try (final Tx tx = app.tx()) {
+
+			Div div = (Div)app.nodeQuery().andName("WidgetTestPage-Div").getFirst();
+
+			Assert.assertEquals(1, div.treeGetChildCount());
+
+			Object obj = div.treeGetFirstChild();
+
+			Assert.assertEquals(Template.class, obj.getClass());
+
+			Template template = (Template)obj;
+
+			Assert.assertEquals("${{Structr.print(\"<div>Test</div>\");}}", template.getTextContent());
+			Assert.assertEquals("text/html", template.getProperty(Template.contentType));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+	}
+
+
 
 	// ----- private methods -----
 	private void compare(final String sourceHash, final boolean deleteTestDirectory) {
