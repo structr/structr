@@ -420,7 +420,7 @@ var _Widgets = {
 			indentUnit: 4,
 			tabSize: 4,
 			indentWithTabs: true,
-			readOnly: (allowEdit ? false : "nocursor")
+			readOnly: !allowEdit
 		});
 
 	},

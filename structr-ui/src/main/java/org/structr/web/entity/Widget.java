@@ -45,7 +45,7 @@ import org.structr.web.property.UiNotion;
  *
  *
  */
-public class Widget extends AbstractNode implements Taggable {
+public class Widget extends AbstractNode {
 
 	private static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\[[^\\]]+\\]");
 
@@ -57,11 +57,11 @@ public class Widget extends AbstractNode implements Taggable {
 	public static final Property<Boolean>     isWidget      = new ConstantBooleanProperty("isWidget", true);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Widget.class, PropertyView.Ui,
-		type, name, source, description, configuration, pictures, tags, treePath, isWidget
+		type, name, source, description, configuration, pictures, treePath, isWidget
 	);
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(Widget.class, PropertyView.Public,
-		type, name, source, description, configuration, pictures, tags, treePath, isWidget
+		type, name, source, description, configuration, pictures, treePath, isWidget
 	);
 
 	// register this type as an overridden builtin type
