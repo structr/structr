@@ -3874,6 +3874,7 @@ span.context-help-text {
 	border-radius: 3px;
 	padding: 4px 10px;
 	max-width: 250px;
+	text-align: left;
 }
 
 /**

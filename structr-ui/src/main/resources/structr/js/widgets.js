@@ -578,26 +578,6 @@ var _Widgets = {
 
 				var table = $('table', dialogText);
 
-				var appendHelpTextToElement = function (helpText, el) {
-
-					var toggleElement = $('<i class="' + _Icons.getFullSpriteClass(_Icons.information_icon) + '">');
-					var helpElement = $('<span class="context-help-text">' + helpText + '</span>');
-
-					toggleElement.on("mousemove", function(e) {
-						helpElement.show();
-						helpElement.css({
-							left: e.clientX + 20,
-							top: e.clientY + 10
-						});
-					});
-
-					toggleElement.on("mouseout", function(e) {
-						helpElement.hide();
-					});
-
-					return el.append(toggleElement).append(helpElement);
-				};
-
 				var getOptionsAsText = function (options, defaultValue) {
 
 					var buffer = '';
@@ -675,7 +655,7 @@ var _Widgets = {
 					}
 
 					if (fieldConfig.help) {
-						appendHelpTextToElement(fieldConfig.help, $('#label-' + cleanedLabel));
+						Structr.appendHelpTextToElement(fieldConfig.help, $('#label-' + cleanedLabel));
 					}
 
 				});
