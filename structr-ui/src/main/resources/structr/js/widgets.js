@@ -447,9 +447,11 @@ var _Widgets = {
 		<pre>\n\
 		{\n\
 			\"configSwitch\": {\n\
+				\"position\": 2,\n\
 				\"default\": \"This is the default text\"\n\
 			},\n\
 			\"selectArray\": {\n\
+				\"position\": 3,\n\
 				\"type\": \"select\",\n\
 				\"options\": [\n\
 					\"choice_one\",\n\
@@ -459,6 +461,7 @@ var _Widgets = {
 				\"default\": \"choice_two\"\n\
 			},\n\
 			\"selectObject\": {\n\
+				\"position\": 1,\n\
 				\"type\": \"select\",\n\
 				\"options\": {\n\
 					\"choice_one\": \"First choice\",\n\
@@ -466,9 +469,14 @@ var _Widgets = {
 					\"choice_three\": \"Third choice\"\n\
 				},\n\
 				\"default\": \"choice_two\"\n\
-			}\n\
+			},\n\
+			\"processDeploymentInfo\": true,\n\
 		}</pre>\
-		<p>The supported configuration elements are the following:</p>\
+		<p>Reserved top-level words:</p>\
+		<ul>\
+			<li><b>processDeploymentInfo</b> (<i>boolean, default: false</i>)<br>Special configuration flag which allows the widgets to contain deployment annotations.</li>\
+		</ul>\
+		<p>The supported attributes of the configuration elements are the following:</p>\
 		<ul>\
 			<li><b>type</b>\
 				<ul><li><b>input</b>: A standard input field (<i>default if omitted</i>)</li><li><b>textarea</b>: A textarea with 5 rows</li><li><b>select</b>: A select element</li></ul>\
@@ -480,7 +488,8 @@ var _Widgets = {
 			<li><b>title</b><br>The title which is displayed in the left column of the \"Add Widget to Page\" dialog. If this value does not exist, the name of the template expression itself is used.</li>\
 			<li><b>placeholder</b> <i>(only applicable to type=input|textarea)</i><br>The placeholder text which is displayed when the field is empty. If this value does not exist, the <b>title</b> is used..</li>\
 			<li><b>default</b><br>The default value for the element. For type=textarea|input this value is the prefilled. For type=select this value is preselected.</li>\
-			<li><b>processDeploymentInfo</b> (<i>Reserved word - Boolean, default: false</i>)<br>Special configuration flag which allows the widgets to contain deployment annotations.</li>\
+			<li><b>position</b> <br> The options will be sorted according to this numeric attribute. If omitted, the object will occur after the objects with a set position in the natural order of the keys.</li>\
+			<li><b>help</b> <i>(optional)</i><br> The help text which will be displayed while hovering over the information icon.</li>\
 		</ul>\
 		<h2>Description</h2>\
 		<p>The description will be displayed when the user adds the widget to a page. It can contain HTML and usually serves the purpose of explaining what the widget is used for and the function of the configuration switches.</p>";
@@ -529,7 +538,6 @@ var _Widgets = {
 				button.on('mousedown', function(e) {
 					e.stopPropagation();
 				});
-
 			}
 
 		} else {
@@ -541,7 +549,6 @@ var _Widgets = {
 	},
 	insertWidgetIntoPage: function(widget, target, pageId) {
 
-		var pattern = /\[[^\]]+\]/g;
 		var widgetSource = widget.source;
 		var widgetDescription = widget.description;
 		var widgetConfig = widget.configuration;
@@ -557,29 +564,39 @@ var _Widgets = {
 
 		if (widgetSource) {
 
-			var matches = [];
-			var rawMatches = widgetSource.match(pattern);
-			if (rawMatches) {
-				rawMatches.forEach(function (m) {
-					if (matches.indexOf(m) === -1) {
-						matches.push(m);
-					}
-				});
-			}
-
-			if ((widgetDescription !== null && widgetDescription !== "") || (matches.length > 0 && widgetConfig) ) {
+			if ((widgetDescription !== null && widgetDescription !== "") || widgetConfig ) {
 
 				Structr.dialog('Configure Widget', function() {}, function() {});
 
-				dialogText.append('<p>Fill out the following parameters to correctly configure the widget.</p>');
-
-				if (widgetDescription !== null) {
+				if ((widgetDescription === null || widgetDescription === "")) {
+					dialogText.append('<p>Fill out the following parameters to correctly configure the widget.</p>');
+				} else {
 					dialogText.append(widgetDescription);
 				}
 
 				dialogText.append('<table class="props widget-props"></table>');
 
 				var table = $('table', dialogText);
+
+				var appendHelpTextToElement = function (helpText, el) {
+
+					var toggleElement = $('<i class="' + _Icons.getFullSpriteClass(_Icons.information_icon) + '">');
+					var helpElement = $('<span class="context-help-text">' + helpText + '</span>');
+
+					toggleElement.on("mousemove", function(e) {
+						helpElement.show();
+						helpElement.css({
+							left: e.clientX + 20,
+							top: e.clientY + 10
+						});
+					});
+
+					toggleElement.on("mouseout", function(e) {
+						helpElement.hide();
+					});
+
+					return el.append(toggleElement).append(helpElement);
+				};
 
 				var getOptionsAsText = function (options, defaultValue) {
 
@@ -601,61 +618,64 @@ var _Widgets = {
 					return buffer;
 				};
 
-				matches.forEach(function(m) {
-
-					var label = m.replace(/^\[/, '').replace(/\]$/, '');
+				var sortedWidgetConfig = _Widgets.sortWidgetConfigurationByPosition(widgetConfig);
+				sortedWidgetConfig.forEach(function (configElement) {
+					var label = configElement[0];
+					if (label === 'processDeploymentInfo') {
+						return;
+					}
 					var cleanedLabel = label.replace(/[^\w]/g, '_');
 
-					if (widgetConfig[label]) {
+					var fieldConfig = configElement[1];
+					var fieldType = fieldConfig.type;
+					var defaultValue = fieldConfig.default || '';
+					var titleLabel = fieldConfig.title || label;
+					var placeholder = fieldConfig.placeholder || titleLabel;
 
-						var fieldConfig = widgetConfig[label];
-						var fieldType = fieldConfig.type;
-						var defaultValue = fieldConfig.default || '';
-						var titleLabel = fieldConfig.title || label;
-						var placeholder = fieldConfig.placeholder || titleLabel;
+					switch (fieldType) {
+						case "select":
+							var options = fieldConfig.options || ["-"];
 
-						switch (fieldType) {
-							case "select":
-								var options = fieldConfig.options || ["-"];
+							var buffer = '<tr><td><span id="label-' + cleanedLabel + '">' + titleLabel + ' </span></td><td><select id="' + cleanedLabel + '" class="form-field" data-key="' + label + '">';
+							var delayedAppendFunction;
 
-								var buffer = '<tr><td>' + titleLabel + '</td><td><select id="' + cleanedLabel + '" class="form-field" data-key="' + label + '">';
-								var delayedAppendFunction;
+							if (fieldConfig.dynamicOptionsFunction) {
 
-								if (fieldConfig.dynamicOptionsFunction) {
+								var dynamicOptionsFunction = new Function("callback", fieldConfig.dynamicOptionsFunction);
 
-									var dynamicOptionsFunction = new Function("callback", fieldConfig.dynamicOptionsFunction);
-
-									var delayedAppendOptions = function (options) {
-										delayedAppendFunction = new function() {
-											$('select#' + cleanedLabel).append(getOptionsAsText(options, defaultValue));
-										};
+								var delayedAppendOptions = function (options) {
+									delayedAppendFunction = new function() {
+										$('select#' + cleanedLabel).append(getOptionsAsText(options, defaultValue));
 									};
+								};
 
-									dynamicOptionsFunction(delayedAppendOptions);
+								dynamicOptionsFunction(delayedAppendOptions);
 
-								} else {
+							} else {
 
-									buffer += getOptionsAsText(options, defaultValue);
+								buffer += getOptionsAsText(options, defaultValue);
 
-								}
+							}
 
- 								buffer += '</select></td></tr>';
+							buffer += '</select></td></tr>';
 
-								table.append(buffer);
-								if (delayedAppendFunction) {
-									delayedAppendFunction();
-								}
-								break;
+							table.append(buffer);
+							if (delayedAppendFunction) {
+								delayedAppendFunction();
+							}
+							break;
 
-							case "textarea":
-								table.append('<tr><td>' + titleLabel + '</td><td><textarea rows=5 class="form-field" id="' + label + '" placeholder="' + placeholder + '" data-key="' + label + '">' + defaultValue + '</textarea></td></tr>');
-								break;
+						case "textarea":
+							table.append('<tr><td><span id="label-' + cleanedLabel + '">' + titleLabel + ' </span></td><td><textarea rows=5 class="form-field" id="' + label + '" placeholder="' + placeholder + '" data-key="' + label + '">' + defaultValue + '</textarea></td></tr>');
+							break;
 
-							case "input":
-							default:
-								table.append('<tr><td>' + titleLabel + '</td><td><input class="form-field" type="text" id="' + label + '" placeholder="' + placeholder + '" data-key="' + label + '" value="' + defaultValue + '"></td></tr>');
+						case "input":
+						default:
+							table.append('<tr><td><span id="label-' + cleanedLabel + '">' + titleLabel + ' </span></td><td><input class="form-field" type="text" id="' + label + '" placeholder="' + placeholder + '" data-key="' + label + '" value="' + defaultValue + '"></td></tr>');
+					}
 
-						}
+					if (fieldConfig.help) {
+						appendHelpTextToElement(fieldConfig.help, $('#label-' + cleanedLabel));
 					}
 
 				});
@@ -664,8 +684,8 @@ var _Widgets = {
 				var attrs = {};
 				$('#appendWidget').on('click', function(e) {
 
-					$('.form-field', table).each(function(i, m) {
-						var key = $(m).data('key');
+					$('.form-field', table).each(function(i, field) {
+						var key = $(field).data('key');
 						if (widgetConfig[key]) {
 							attrs[key] = $(this).val();
 						}
@@ -681,7 +701,7 @@ var _Widgets = {
 			} else {
 
 				// If no matches, directly append widget
-				Command.appendWidget(widgetSource, target.id, pageId, _Widgets.url, {}, widgetConfig.processDeploymentInfo);
+				Command.appendWidget(widgetSource, target.id, pageId, _Widgets.url, {}, (widgetConfig ? widgetConfig.processDeploymentInfo : false));
 
 			}
 
@@ -689,5 +709,20 @@ var _Widgets = {
 			new MessageBuilder().warning("Ignoring empty Widget").show();
 		}
 
+	},
+	sortWidgetConfigurationByPosition: function (config) {
+		var flattenedConfig = [];
+		Object.keys(config).forEach(function(key) {
+			var val = config[key];
+			flattenedConfig.push([val.position, key, val]);
+		});
+
+		var sortedConfig = flattenedConfig.sort(function (a, b) {
+			return (a[0] - b[0]);
+		});
+
+		return sortedConfig.map(function(el) {
+			return [el[1], el[2]];
+		});
 	}
 };

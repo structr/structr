@@ -3866,6 +3866,16 @@ img#image-editor.orientation-8 {
 	margin: auto;
 }
 
+span.context-help-text {
+	position: fixed;
+	display: none;
+	background: #f3f3f3;
+	border: 1px solid #777;
+	border-radius: 3px;
+	padding: 4px 10px;
+	max-width: 250px;
+}
+
 /**
  * Icon Sprites
  */
