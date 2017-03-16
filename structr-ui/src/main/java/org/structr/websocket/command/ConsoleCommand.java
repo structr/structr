@@ -106,7 +106,6 @@ public class ConsoleCommand extends AbstractCommand {
 
 			getWebSocket().send(MessageBuilder.forName(getCommand())
 					.callback(webSocketData.getCallback())
-					.data("prompt", console.getPrompt())
 					.data("mode", console.getMode())
 					.data("versionInfo", VersionHelper.getFullVersionInfo())
 					.message(ex.getMessage())
