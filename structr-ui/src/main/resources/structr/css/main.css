@@ -3860,6 +3860,12 @@ img#image-editor.orientation-8 {
 	border-radius: 3px;
 }
 
+.widget-props td textarea {
+	width: calc(100% - 8px);
+	padding: 2px 4px;
+	margin: auto;
+}
+
 /**
  * Icon Sprites
  */

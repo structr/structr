@@ -618,7 +618,7 @@ var _Widgets = {
 							case "select":
 								var options = fieldConfig.options || ["-"];
 
-								var buffer = '<tr><td><label>' + titleLabel + '</label></td><td><select id="' + cleanedLabel + '" class="form-field" data-key="' + label + '">';
+								var buffer = '<tr><td>' + titleLabel + '</td><td><select id="' + cleanedLabel + '" class="form-field" data-key="' + label + '">';
 								var delayedAppendFunction;
 
 								if (fieldConfig.dynamicOptionsFunction) {
@@ -648,12 +648,12 @@ var _Widgets = {
 								break;
 
 							case "textarea":
-								table.append('<tr><td><label>' + titleLabel + '</label></td><td><textarea rows=5 class="form-field" id="' + label + '" placeholder="' + placeholder + '" data-key="' + label + '">' + defaultValue + '</textarea></td></tr>');
+								table.append('<tr><td>' + titleLabel + '</td><td><textarea rows=5 class="form-field" id="' + label + '" placeholder="' + placeholder + '" data-key="' + label + '">' + defaultValue + '</textarea></td></tr>');
 								break;
 
 							case "input":
 							default:
-								table.append('<tr><td><label>' + titleLabel + '</label></td><td><input class="form-field" type="text" id="' + label + '" placeholder="' + placeholder + '" data-key="' + label + '" value="' + defaultValue + '"></td></tr>');
+								table.append('<tr><td>' + titleLabel + '</td><td><input class="form-field" type="text" id="' + label + '" placeholder="' + placeholder + '" data-key="' + label + '" value="' + defaultValue + '"></td></tr>');
 
 						}
 					}
