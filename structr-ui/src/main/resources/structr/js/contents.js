@@ -104,14 +104,60 @@ var _Contents = {
 		_Contents.moveResizer();
 		Structr.initVerticalSlider($('.column-resizer', contentsMain), contentsResizerLeftKey, 204, _Contents.moveResizer);
 
-		$('#contents-contents-container').prepend(' <select id="add-content-item"><option value="">Add Content Item</option></select>');
+		var contentsContentsContainer = $('#contents-contents-container');
 
-		var itemTypesSelector = $('#add-content-item', main);
+		var selectWrapper = $('<div></div>');
+		contentsContentsContainer.prepend(selectWrapper);
+
+		var containerTypesWrapper = $('<span><select id="add-content-container"><option value="">Add Content Container</option></select></span>');
+		var containerTypesSelector = $('#add-content-container', containerTypesWrapper);
+		selectWrapper.append(containerTypesWrapper);
+
+		Command.query('SchemaNode', 1000, 1, 'name', 'asc', { extendsClass: 'org.structr.web.entity.ContentContainer' }, function(schemaNodes) {
+			schemaNodes.forEach(function(schemaNode) {
+				var type = schemaNode.name;
+				containerTypesSelector.append('<option value="' + type + '">' + type + '</option>');
+			});
+
+			if (schemaNodes.length === 0) {
+				Structr.appendHelpTextToElement("You need to create a custom type extending <b>org.structr.web.entity.<u>ContentContainer</u></b> to add ContentContainers", containerTypesWrapper, {
+					marginLeft: '4px',
+					marginRight: '4px'
+				});
+			}
+
+		}, true);
+
+		containerTypesSelector.on('change', function(e) {
+			e.stopPropagation();
+			var sel = $(this);
+			var type = sel.val();
+			if (type) {
+				Command.create({ type: type, parent: currentContentContainer ? currentContentContainer.id : null }, function(f) {
+					_Contents.appendItemOrContainerRow(f);
+					_Contents.refreshTree();
+					containerTypesSelector.prop('selectedIndex', 0);
+				});
+			}
+		});
+
+		var itemTypesWrapper = $('<span><select id="add-content-item"><option value="">Add Content Item</option></select></span>');
+		var itemTypesSelector = $('#add-content-item', itemTypesWrapper);
+		selectWrapper.append(itemTypesWrapper);
+
 		Command.query('SchemaNode', 1000, 1, 'name', 'asc', { extendsClass: 'org.structr.web.entity.ContentItem' }, function(schemaNodes) {
 			schemaNodes.forEach(function(schemaNode) {
 				var type = schemaNode.name;
 				itemTypesSelector.append('<option value="' + type + '">' + type + '</option>');
 			});
+
+			if (schemaNodes.length === 0) {
+				Structr.appendHelpTextToElement("You need to create a custom type extending <b>org.structr.web.entity.<u>ContentItem</u></b> to add ContentItem", itemTypesWrapper, {
+					marginLeft: '4px',
+					marginRight: '4px'
+				});
+			}
+
 		}, true);
 
 		itemTypesSelector.on('change', function(e) {
@@ -124,29 +170,6 @@ var _Contents = {
 					_Contents.appendItemOrContainerRow(f);
 					_Contents.refreshTree();
 					itemTypesSelector.prop('selectedIndex', 0);
-				});
-			}
-		});
-
-		$('#contents-contents-container').prepend('<select id="add-content-container"><option value="">Add Content Container</option></select>');
-
-		var containerTypesSelector = $('#add-content-container', main);
-		Command.query('SchemaNode', 1000, 1, 'name', 'asc', { extendsClass: 'org.structr.web.entity.ContentContainer' }, function(schemaNodes) {
-			schemaNodes.forEach(function(schemaNode) {
-				var type = schemaNode.name;
-				containerTypesSelector.append('<option value="' + type + '">' + type + '</option>');
-			});
-		}, true);
-
-		containerTypesSelector.on('change', function(e) {
-			e.stopPropagation();
-			var sel = $(this);
-			var type = sel.val();
-			if (type) {
-				Command.create({ type: type, parent: currentContentContainer ? currentContentContainer.id : null }, function(f) {
-					_Contents.appendItemOrContainerRow(f);
-					_Contents.refreshTree();
-					containerTypesSelector.prop('selectedIndex', 0);
 				});
 			}
 		});
