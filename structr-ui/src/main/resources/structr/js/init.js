@@ -1573,9 +1573,12 @@ var Structr = {
 		});
 
 	},
-	appendHelpTextToElement: function (helpText, el) {
+	appendHelpTextToElement: function (helpText, el, css) {
 
-		var toggleElement = $('<i class="' + _Icons.getFullSpriteClass(_Icons.information_icon) + '">');
+		var toggleElement = $('<span><i class="' + _Icons.getFullSpriteClass(_Icons.information_icon) + '"></span>');
+		if (css) {
+			toggleElement.css(css);
+		}
 		var helpElement = $('<span class="context-help-text">' + helpText + '</span>');
 
 		toggleElement.on("mousemove", function(e) {

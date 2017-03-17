@@ -3875,6 +3875,7 @@ span.context-help-text {
 	padding: 4px 10px;
 	max-width: 250px;
 	text-align: left;
+	z-index: 1000;
 }
 
 /**
