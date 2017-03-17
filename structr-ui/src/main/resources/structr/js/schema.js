@@ -2060,7 +2060,12 @@ var _Schema = {
 				return;
 			}
 
+			_Schema.ignoreNextSchemaRecompileNotification = true;
+
 			Command.setProperty(entity.id, key, text2, false, function() {
+
+				_Schema.ignoreNextSchemaRecompileNotification = false;
+
 				Structr.showAndHideInfoBoxMessage('Code saved.', 'success', 2000, 200);
 				_Schema.reload();
 				dialogSaveButton.prop("disabled", true).addClass('disabled');
