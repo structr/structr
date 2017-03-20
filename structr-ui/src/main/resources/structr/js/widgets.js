@@ -478,18 +478,19 @@ var _Widgets = {
 		</ul>\
 		<p>The supported attributes of the configuration elements are the following:</p>\
 		<ul>\
-			<li><b>type</b>\
-				<ul><li><b>input</b>: A standard input field (<i>default if omitted</i>)</li><li><b>textarea</b>: A textarea with 5 rows</li><li><b>select</b>: A select element</li></ul>\
-			</li>\
-			<li><b>options</b> <i>(only applicable to type=select)</i><br>This field supports two different type of data: Array (of strings) and Object (value=&gt;Label).<br>\
-				If the data encountered is an Array, the elements are rendered as simple option elements. If it is an Object, the option elements will have the key of the object as their value and the value of the element will be displayed as the text.</li>\
-			<li><b>dynamicOptionsFunction</b> <i>(only applicable to type=select)</i><br>The body of a function which is used to populate the options array. The function receives a 'callback' parameter which has to be called with the resulting options.<br>\
-				The dynamic options can be in the same format as the options above. IMPORTANT: If this key is provided, the options key is ignored.</li>\
 			<li><b>title</b><br>The title which is displayed in the left column of the \"Add Widget to Page\" dialog. If this value does not exist, the name of the template expression itself is used.</li>\
 			<li><b>placeholder</b> <i>(only applicable to type=input|textarea)</i><br>The placeholder text which is displayed when the field is empty. If this value does not exist, the <b>title</b> is used..</li>\
 			<li><b>default</b><br>The default value for the element. For type=textarea|input this value is the prefilled. For type=select this value is preselected.</li>\
 			<li><b>position</b> <br> The options will be sorted according to this numeric attribute. If omitted, the object will occur after the objects with a set position in the natural order of the keys.</li>\
 			<li><b>help</b> <i>(optional)</i><br> The help text which will be displayed while hovering over the information icon.</li>\
+			<li><b>type</b>\
+				<ul><li><b>input</b>: A standard input field (<i>default if omitted</i>)</li><li><b>textarea</b>: A textarea with a customizable number of rows (default: 5)</li><li><b>select</b>: A select element</li></ul>\
+			</li>\
+			<li><b>options</b> <i>(only applicable to type=select)</i><br>This field supports two different type of data: Array (of strings) and Object (value=&gt;Label).<br>\
+				If the data encountered is an Array, the elements are rendered as simple option elements. If it is an Object, the option elements will have the key of the object as their value and the value of the element will be displayed as the text.</li>\
+			<li><b>dynamicOptionsFunction</b> <i>(only applicable to type=select)</i><br>The body of a function which is used to populate the options array. The function receives a 'callback' parameter which has to be called with the resulting options.<br>\
+				The dynamic options can be in the same format as the options above. IMPORTANT: If this key is provided, the options key is ignored.</li>\\n\
+			<li><b>rows</b> <i>(only applicable to type=textarea)</i><br>The number of rows the textarea will have initially. If omitted, or not parseable as an integer, it will default to 5.</li>\
 		</ul>\
 		<h2>Description</h2>\
 		<p>The description will be displayed when the user adds the widget to a page. It can contain HTML and usually serves the purpose of explaining what the widget is used for and the function of the configuration switches.</p>";
@@ -646,7 +647,8 @@ var _Widgets = {
 							break;
 
 						case "textarea":
-							table.append('<tr><td><span id="label-' + cleanedLabel + '">' + titleLabel + ' </span></td><td><textarea rows=5 class="form-field" id="' + label + '" placeholder="' + placeholder + '" data-key="' + label + '">' + defaultValue + '</textarea></td></tr>');
+							var rows = (fieldConfig.rows ? parseInt(fieldConfig.rows) || 5 : 5);
+							table.append('<tr><td><span id="label-' + cleanedLabel + '">' + titleLabel + ' </span></td><td><textarea rows=' + rows + ' class="form-field" id="' + label + '" placeholder="' + placeholder + '" data-key="' + label + '">' + defaultValue + '</textarea></td></tr>');
 							break;
 
 						case "input":
