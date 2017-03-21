@@ -180,5 +180,9 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		return group;
 	}
 
+	@Override
+	public boolean isCollection() {
+		return true;
+	}
 
 }
