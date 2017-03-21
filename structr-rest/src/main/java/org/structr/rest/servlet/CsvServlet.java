@@ -28,6 +28,10 @@ import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -57,11 +61,13 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
+import org.structr.schema.parser.DatePropertyParser;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -325,7 +331,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 						try (final Tx tx = app.tx()) {
 
-							for (final JsonInput propertySet : cleanAndParseCSV(input)) {
+							for (final JsonInput propertySet : cleanAndParseCSV(input, resource)) {
 
 								results.add(resource.doPost(convertPropertySetToMap(propertySet)));
 							}
@@ -340,7 +346,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 						try {
 
-							for (final JsonInput propertySet : cleanAndParseCSV(input)) {
+							for (final JsonInput propertySet : cleanAndParseCSV(input, resource)) {
 
 								results.add(resource.doPost(convertPropertySetToMap(propertySet)));
 							}
@@ -459,7 +465,38 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 	private static String escapeForCsv(final Object value) {
 
-		String result = StringUtils.replace(value.toString(), "\"", "\\\"");
+		String result;
+
+		if (value instanceof String[]) {
+
+			// Special handling for StringArrays
+			ArrayList<String> quotedStrings = new ArrayList();
+			for (final String str : Arrays.asList((String[])value)) {
+				// The strings can contain quotes - these need to be escaped with 3 slashes in the output
+				quotedStrings.add("\\\"" + StringUtils.replace(str, "\"", "\\\\\\\"") + "\\\"");
+			}
+
+			result = quotedStrings.toString();
+
+		} else if (value instanceof Collection) {
+
+			// Special handling for collections of nodes
+			ArrayList<String> quotedStrings = new ArrayList();
+			for (final Object obj : (Collection)value) {
+				quotedStrings.add("\\\"" + obj.toString() + "\\\"");
+			}
+
+			result = quotedStrings.toString();
+
+		} else if (value instanceof Date) {
+
+			result = DatePropertyParser.format((Date) value, DateProperty.getDefaultFormat());
+
+		} else {
+
+			result = StringUtils.replace(value.toString(), "\"", "\\\"");
+
+		}
 
 		if (!removeLineBreaks) {
 			return StringUtils.replace(StringUtils.replace(result, "\r\n", "\n"), "\r", "\n");
@@ -542,11 +579,11 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 	}
 
-	private Iterable<JsonInput> cleanAndParseCSV(final String input) throws FrameworkException, IOException {
+	private Iterable<JsonInput> cleanAndParseCSV(final String input, final Resource resource) throws FrameworkException, IOException {
 
 		final BufferedReader reader  = new BufferedReader(new StringReader(input));
 		final String headerLine      = reader.readLine();
-		final CSVParser parser       = new CSVParser();
+		final CSVParser parser       = new CSVParser(';', '"');
 		final String[] propertyNames = parser.parseLine(headerLine);
 
 		return new Iterable<JsonInput>() {
@@ -588,7 +625,15 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 								for (int i=0; i<len; i++) {
 
 									final String key = propertyNames[i];
-									jsonInput.add(key, columns[i]);
+
+									if (StructrApp.getConfiguration().getPropertyKeyForJSONName(resource.getEntityClass(), key).isCollection()) {
+
+										// if the current property is a collection, split it into its parts
+										jsonInput.add(key, extractArrayContentsFromArray(columns[i], key));
+
+									} else {
+										jsonInput.add(key, columns[i]);
+									}
 								}
 
 								return jsonInput;
@@ -609,6 +654,37 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 				};
 			}
 		};
+	}
+
+	private ArrayList<String> extractArrayContentsFromArray (final String value, final String propertyName) throws IOException {
+
+		final CSVParser arrayParser              = new CSVParser(',', '"');
+		final ArrayList<String> extractedStrings = new ArrayList();
+
+		extractedStrings.addAll(Arrays.asList(arrayParser.parseLine(stripArrayBracketsFromString(value, propertyName))));
+
+		return extractedStrings;
+	}
+
+	private String stripArrayBracketsFromString (final String value, final String propertyName) {
+
+		if (value.length() > 0) {
+
+			if (value.charAt(0) != '[' || value.charAt(value.length() - 1) != ']') {
+
+				logger.warn("Missing opening/closing brackets for array {}: {} ", propertyName, value);
+				return value;
+
+			} else {
+
+				return value.substring(1, value.length() - 1);
+
+			}
+
+		} else {
+			return "";
+		}
+
 	}
 
 	private Map<String, Object> convertPropertySetToMap(JsonInput propertySet) {

@@ -974,7 +974,7 @@ var _Crud = {
 			$.each(keys, function(k, key) {
 				exportArea.append('"' + key + '"');
 				if (k < keys.length - 1) {
-					exportArea.append(',');
+					exportArea.append(';');
 				}
 			});
 			exportArea.append('\n');
@@ -2241,11 +2241,33 @@ var _Crud = {
 	},
 	appendRowAsCSV: function(type, item, textArea) {
 		var keys = Object.keys(_Crud.keys[type]);
+
+		var serializeValue = function (val) {
+			if (Object.prototype.toString.call(val) === '[object Array]') {
+				if (val.length === 0) {
+					return '[]';
+				} else {
+					return '[' + val.map(function(v) {
+						if (Object.prototype.toString.call(v) === '[object Object]' && v.id) {
+							return '\\"' + v.id + '\\"';
+						} else {
+							// This is for String[] properties. They can contain quotes which need to be escaped with three backslashes.
+							return '\\"' + v.replace('"', '\\\\\\"') + '\\"';
+						}
+					}).join(', ') + ']';
+				}
+			} else if (Object.prototype.toString.call(val) === '[object Object]' && val.id) {
+				return val.id;
+			} else {
+				return nvl(val, '');
+			}
+		};
+
 		if (keys) {
 			$.each(keys, function(k, key) {
-				textArea.append('"' + nvl(item[key], '') + '"');
+				textArea.append('"' + serializeValue(item[key]) + '"');
 				if (k < keys.length - 1) {
-					textArea.append(',');
+					textArea.append(';');
 				}
 			});
 			textArea.append('\n');
