@@ -85,4 +85,9 @@ public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext) {
 		return null;
 	}
+
+	@Override
+	public boolean isReadOnly() {
+		return true;
+	}
 }
