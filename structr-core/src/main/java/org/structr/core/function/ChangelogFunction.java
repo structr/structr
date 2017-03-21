@@ -27,15 +27,19 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.TreeMap;
 import org.mozilla.javascript.NativeObject;
 import org.mozilla.javascript.ScriptRuntime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.EndNodeProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -46,6 +50,17 @@ public class ChangelogFunction extends Function<Object, Object> {
 
 	private static final Logger logger = LoggerFactory.getLogger(ChangelogFunction.class.getName());
 
+	// Properties for the changelog entries
+	private static final Property<String>  changelog_verb                        = new StringProperty("verb");
+	private static final Property<String>  changelog_time                        = new StringProperty("time");
+	private static final Property<String>  changelog_userId                      = new StringProperty("userId");
+	private static final Property<String>  changelog_userName                    = new StringProperty("userName");
+	private static final Property<String>  changelog_target                      = new StringProperty("target");
+	private static final Property<AbstractNode> changelog_targetObj              = new EndNodeProperty<>("targetObj");
+	private static final Property<String>  changelog_rel                         = new StringProperty("rel");
+	private static final Property<String>  changelog_key                         = new StringProperty("key");
+	private static final Property<String>  changelog_prev                        = new StringProperty("prev");
+	private static final Property<String>  changelog_val                         = new StringProperty("val");
 
 	@Override
 	public String getName() {
@@ -238,37 +253,37 @@ public class ChangelogFunction extends Function<Object, Object> {
 
 				if (doesFilterApply(verb, time, userId, userName, relType, target, key)) {
 
-					final TreeMap<String, Object> obj = new TreeMap<>();
+					final GraphObjectMap obj = new GraphObjectMap();
 
-					obj.put("verb", verb);
-					obj.put("time", time);
-					obj.put("userId", userId);
-					obj.put("userName", userName);
+					obj.put(changelog_verb, verb);
+					obj.put(changelog_time, time);
+					obj.put(changelog_userId, userId);
+					obj.put(changelog_userName, userName);
 
 					switch (verb) {
 						case "create":
 						case "delete":
-							obj.put("target", target);
+							obj.put(changelog_target, target);
 							if (_resolveTargets) {
-								obj.put("targetObj", _app.getNodeById(target));
+								obj.put(changelog_targetObj, _app.getNodeById(target));
 							}
 							list.add(obj);
 							break;
 
 						case "link":
 						case "unlink":
-							obj.put("rel", relType);
-							obj.put("target", target);
+							obj.put(changelog_rel, relType);
+							obj.put(changelog_target, target);
 							if (_resolveTargets) {
-								obj.put("targetObj", _app.getNodeById(target));
+								obj.put(changelog_targetObj, _app.getNodeById(target));
 							}
 							list.add(obj);
 							break;
 
 						case "change":
-							obj.put("key", key);
-							obj.put("prev", _gson.toJson(jsonObj.get("prev")));
-							obj.put("val", _gson.toJson(jsonObj.get("val")));
+							obj.put(changelog_key, key);
+							obj.put(changelog_prev, _gson.toJson(jsonObj.get("prev")));
+							obj.put(changelog_val, _gson.toJson(jsonObj.get("val")));
 							list.add(obj);
 							break;
 
