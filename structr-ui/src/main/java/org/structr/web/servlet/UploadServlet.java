@@ -97,6 +97,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 	public void init() {
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
+			
 			DiskFileItemFactory fileFactory = new DiskFileItemFactory();
 			fileFactory.setSizeThreshold(MEMORY_THRESHOLD);
 

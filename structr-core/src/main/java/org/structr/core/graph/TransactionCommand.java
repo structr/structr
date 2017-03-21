@@ -40,19 +40,7 @@ import org.structr.core.property.PropertyKey;
 
 /**
  * Graph service command for database operations that need to be wrapped in
- * a transaction. All operations that modify the database need to be executed
- * in a transaction, which can be achieved using the following code:
- *
- * <pre>
- * StructrApp.getInstance(securityContext).command(TransactionCommand.class).execute(new StructrTransaction() {
- *
- *	public Object execute() throws FrameworkException {
- *		// do stuff here
- *	}
- * });
- * </pre>
- *
- *
+ * a transaction.
  */
 public class TransactionCommand extends NodeServiceCommand implements AutoCloseable {
 
@@ -69,19 +57,22 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 		final DatabaseService graphDb = (DatabaseService)arguments.get("graphDb");
 		TransactionReference tx       = transactions.get();
 
-		if (tx == null) {
+		if (graphDb != null) {
 
-			// start new transaction
-			tx = new TransactionReference(graphDb.beginTx());
+			if (tx == null) {
 
-			queues.set(new ModificationQueue());
-			buffers.set(new ErrorBuffer());
-			transactions.set(tx);
-			currentCommand.set(this);
+				// start new transaction
+				tx = new TransactionReference(graphDb.beginTx());
+
+				queues.set(new ModificationQueue());
+				buffers.set(new ErrorBuffer());
+				transactions.set(tx);
+				currentCommand.set(this);
+			}
+
+			// increase depth
+			tx.begin();
 		}
-
-		// increase depth
-		tx.begin();
 
 		return this;
 	}
