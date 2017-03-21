@@ -141,10 +141,15 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> imp
 			case 1 :
 
 				T obj = result.get(0);
+
 				//if(!type.getSimpleName().equals(node.getType())) {
 				if (!type.isAssignableFrom(obj.getClass())) {
 					throw new FrameworkException(422, "Node type mismatch", new TypeToken(obj.getClass(), propertyKey, type.getSimpleName()));
 				}
+
+				// set properties on related node?
+				setProperties(securityContext, obj, convertedSourceMap);
+
 				return obj;
 		}
 

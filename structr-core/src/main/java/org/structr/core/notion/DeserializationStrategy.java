@@ -22,6 +22,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 
 /**
@@ -36,4 +37,14 @@ public interface DeserializationStrategy<S, T extends NodeInterface> {
 	public T deserialize(final SecurityContext securityContext, Class<T> type, S source, final Object context) throws FrameworkException;
 
 	public void setRelationProperty(final RelationProperty<S> parentProperty);
+
+	default void setProperties(final SecurityContext securityContext, final GraphObject obj, final PropertyMap properties) throws FrameworkException {
+
+		// are we allowed to set properties on related nodes?
+		final Boolean allowed = (Boolean)securityContext.getAttribute("setNestedProperties");
+		if (allowed != null && allowed == true) {
+
+			obj.setProperties(securityContext, properties);
+		}
+	}
 }

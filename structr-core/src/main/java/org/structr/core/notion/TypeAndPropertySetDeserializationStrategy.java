@@ -151,7 +151,13 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 					break;
 
 				case 1:
-					return getTypedResult(result, type);
+
+					final T relatedNode = getTypedResult(result, type);
+
+					// set properties on related node?
+					setProperties(securityContext, relatedNode, attributes);
+
+					return relatedNode;
 
 				default:
 

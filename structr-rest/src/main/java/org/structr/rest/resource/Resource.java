@@ -151,6 +151,9 @@ public abstract class Resource {
 
 			final Class type = results.get(0).getClass();
 
+			// instruct deserialization strategies to set properties on related nodes
+			securityContext.setAttribute("setNestedProperties", true);
+
 			PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, propertySet);
 
 			for (final GraphObject obj : results) {
