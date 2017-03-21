@@ -948,11 +948,11 @@ var _Crud = {
 		}
 	},
 	crudExport: function(type) {
-		var url = rootUrl + '/' + $('#crud-right').data('url') + '/ui' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
+		var url = csvRootUrl + '/' + $('#crud-right').data('url') + '/ui' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
 
 		_Crud.dialog('Export ' + type + ' list as CSV', function() {}, function() {});
-		dialogText.append('<textarea class="exportArea"></textarea>');
-		var exportArea = $('.exportArea', dialogText);
+		var exportArea = $('<textarea class="exportArea"></textarea>');
+		dialogText.append(exportArea);
 
 		dialogBtn.append('<button id="copyToClipboard">Copy to Clipboard</button>');
 
@@ -968,27 +968,10 @@ var _Crud = {
 			$('#copyToClipboard', dialogBtn).remove();
 		});
 
-		var keys = Object.keys(_Crud.keys[type]);
-
-		if (keys) {
-			$.each(keys, function(k, key) {
-				exportArea.append('"' + key + '"');
-				if (k < keys.length - 1) {
-					exportArea.append(';');
-				}
-			});
-			exportArea.append('\n');
-		}
 		$.ajax({
 			url: url,
-			dataType: 'json',
-			contentType: 'application/json; charset=utf-8',
 			success: function(data) {
-				if (!data)
-					return;
-				data.result.forEach(function(item) {
-					_Crud.appendRowAsCSV(type, item, exportArea);
-				});
+				exportArea.text(data);
 			}
 		});
 	},
@@ -996,11 +979,9 @@ var _Crud = {
 
 		var url = csvRootUrl + $('#crud-right').data('url');
 
-		_Crud.dialog('Import CSV data for type ' + type + '', function() {
-		}, function() {
-		});
-		dialogText.append('<textarea class="importArea"></textarea>');
-		var importArea = $('.importArea', dialogText);
+		_Crud.dialog('Import CSV data for type ' + type + '', function() {}, function() {});
+		var importArea = $('<textarea class="importArea"></textarea>');
+		dialogText.append(importArea);
 
 		window.setTimeout(function() {
 			importArea.focus();
@@ -2238,40 +2219,6 @@ var _Crud = {
 			}
 		});
 		return objects;
-	},
-	appendRowAsCSV: function(type, item, textArea) {
-		var keys = Object.keys(_Crud.keys[type]);
-
-		var serializeValue = function (val) {
-			if (Object.prototype.toString.call(val) === '[object Array]') {
-				if (val.length === 0) {
-					return '[]';
-				} else {
-					return '[' + val.map(function(v) {
-						if (Object.prototype.toString.call(v) === '[object Object]' && v.id) {
-							return '\\"' + v.id + '\\"';
-						} else {
-							// This is for String[] properties. They can contain quotes which need to be escaped with three backslashes.
-							return '\\"' + v.replace('"', '\\\\\\"') + '\\"';
-						}
-					}).join(', ') + ']';
-				}
-			} else if (Object.prototype.toString.call(val) === '[object Object]' && val.id) {
-				return val.id;
-			} else {
-				return nvl(val, '');
-			}
-		};
-
-		if (keys) {
-			$.each(keys, function(k, key) {
-				textArea.append('"' + serializeValue(item[key]) + '"');
-				if (k < keys.length - 1) {
-					textArea.append(';');
-				}
-			});
-			textArea.append('\n');
-		}
 	},
 	dialog: function(text, callbackOk, callbackCancel) {
 
