@@ -258,6 +258,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						rootElement = findPage(securityContext, pages, path, edit);
 
 					} else {
+
 						dontCache = true;
 					}
 				}
@@ -322,7 +323,11 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						// Start rendering on data node
 						if (rootElement == null && dataNode instanceof DOMNode) {
 
-							rootElement = ((DOMNode) dataNode);
+							// check visibleForSite here as well
+							if (!(dataNode instanceof Page) || isVisibleForSite(request, (Page)dataNode)) {
+
+								rootElement = ((DOMNode) dataNode);
+							}
 						}
 					}
 				}
@@ -1004,9 +1009,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				return page;
 			}
 		}
-		
+
 		final String name     = PathHelper.getName(path);
-		
+
 		for (final Page page : pages) {
 			final String pageName = page.getName();
 			if (pageName != null && pageName.equals(name) && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page))) {
