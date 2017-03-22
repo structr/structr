@@ -89,6 +89,7 @@ import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.dom.Template;
 import org.structr.web.entity.html.Body;
 import org.structr.web.entity.html.Head;
@@ -550,7 +551,7 @@ public class Importer {
 			String content = null;
 			String id = null;
 			StringBuilder classString = new StringBuilder();
-                        boolean isNewTemplate = false;
+			boolean isNewTemplateOrComponent = false;
 
 			if (ArrayUtils.contains(ignoreElementNames, type)) {
 
@@ -697,7 +698,7 @@ public class Importer {
 								if(template == null){
 
 									template = createNewTemplateNode(parent, node.childNodes());
-									isNewTemplate = true;
+									isNewTemplateOrComponent = true;
 
 								}
 						}
@@ -742,6 +743,13 @@ public class Importer {
 
 						component = Importer.findSharedComponentByName(src);
 					}
+
+					if(component == null){
+
+						component = createSharedComponent(node);
+					}
+
+					isNewTemplateOrComponent = true;
 
 					if (component != null) {
 
@@ -983,11 +991,11 @@ public class Importer {
 				// Link new node to its parent node
 				// linkNodes(parent, newNode, page, localIndex);
 				// Step down and process child nodes except for newly created templates
-                                if(!isNewTemplate){
+				if(!isNewTemplateOrComponent){
 
-                                    createChildNodes(node, newNode, page, removeHashAttribute, depth + 1);
+					createChildNodes(node, newNode, page, removeHashAttribute, depth + 1);
 
-                                }
+				}
 
 			}
 		}
@@ -1258,11 +1266,9 @@ public class Importer {
 
 	public static DOMNode findSharedComponentByName(final String name) throws FrameworkException {
 
-                if(name == null){
-                    return null;
-                } else if(name.length() <= 0){
-                    return null;
-                }
+		if (StringUtils.isEmpty(name)) {
+			return null;
+		}
 
 		for (final DOMNode n : StructrApp.getInstance().nodeQuery(DOMNode.class).andName(name).and(DOMNode.ownerDocument, CreateComponentCommand.getOrCreateHiddenDocument()).getAsList()) {
 
@@ -1277,11 +1283,9 @@ public class Importer {
 
 	public static DOMNode findTemplateByName(final String name) throws FrameworkException {
 
-                if(name == null){
-                    return null;
-                } else if(name.length() <= 0){
-                    return null;
-                }
+		if (StringUtils.isEmpty(name)) {
+			return null;
+		}
 
 		for (final DOMNode n : StructrApp.getInstance().nodeQuery(Template.class).andName(name).and().notBlank(AbstractNode.name).getAsList()) {
 
@@ -1318,7 +1322,10 @@ public class Importer {
 		contentNode.setProperty(AbstractNode.visibleToPublicUsers, publicVisible);
 		contentNode.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
 
-		parent.appendChild(contentNode);
+		if(parent != null){
+
+			parent.appendChild(contentNode);
+		}
 
 		if (commentHandler != null) {
 
@@ -1344,10 +1351,19 @@ public class Importer {
 
             newTemplate.setProperty(new StringProperty("content"), sb.toString());
 
-            parent.appendChild(newTemplate);
+			if(parent != null){
+				parent.appendChild(newTemplate);
+			}
 
             return newTemplate;
         }
+
+		private DOMNode createSharedComponent(final Node node) throws FrameworkException{
+
+			ShadowDocument shadowDoc = CreateComponentCommand.getOrCreateHiddenDocument();
+			return createChildNodes(node, null, shadowDoc);
+
+		}
 
 		private String NodeToString(Node node){
 
