@@ -29,8 +29,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 import org.apache.commons.lang3.StringUtils;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -2086,6 +2086,53 @@ public class ScriptingTest extends StructrTest {
                         fail("Unexpected exception");
 
                 }
+
+	}
+
+	@Test
+	public void testDateCopy() {
+
+		final Date now                       = new Date();
+		final Date futureDate                = new Date(now.getTime() + 600000);
+		final SimpleDateFormat isoDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext, null);
+
+			// Copy dates with/without format in StructrScript
+			TestOne testOne          = createTestNode(TestOne.class);
+			TestThree testThree      = createTestNode(TestThree.class);
+
+			testOne.setProperty(TestOne.aDate, now);
+			Scripting.replaceVariables(ctx, testThree, "${set(this, 'aDateWithFormat', get(find('TestOne', '" + testOne.getUuid() + "'), 'aDate'))}");
+			assertEquals("Copying a date (with default format) to a date (with custom format) failed [StructrScript]", isoDateFormat.format(testOne.getProperty(TestOne.aDate)), isoDateFormat.format(testThree.getProperty(TestThree.aDateWithFormat)));
+
+			testThree.setProperty(TestThree.aDateWithFormat, futureDate);
+			Scripting.replaceVariables(ctx, testOne, "${set(this, 'aDate', get(find('TestThree', '" + testThree.getUuid() + "'), 'aDateWithFormat'))}");
+			assertEquals("Copying a date (with custom format) to a date (with default format) failed [StructrScript]", isoDateFormat.format(testOne.getProperty(TestOne.aDate)), isoDateFormat.format(testThree.getProperty(TestThree.aDateWithFormat)));
+
+
+			// Perform the same tests in JavaScript
+			testOne.setProperty(TestOne.aDate, null);
+			testThree.setProperty(TestThree.aDateWithFormat, null);
+
+			testOne.setProperty(TestOne.aDate, now);
+			Scripting.replaceVariables(ctx, testThree, "${{ var testThree = Structr.this; var testOne = Structr.find('TestOne', '" + testOne.getUuid() + "');  testThree.aDateWithFormat = testOne.aDate; }}");
+			assertEquals("Copying a date (with default format) to a date (with custom format) failed [JavaScript]", isoDateFormat.format(testOne.getProperty(TestOne.aDate)), isoDateFormat.format(testThree.getProperty(TestThree.aDateWithFormat)));
+
+			testThree.setProperty(TestThree.aDateWithFormat, futureDate);
+			Scripting.replaceVariables(ctx, testOne, "${{ var testOne = Structr.this; var testThree = Structr.find('TestThree', '" + testThree.getUuid() + "');  testOne.aDate = testThree.aDateWithFormat; }}");
+			assertEquals("Copying a date (with custom format) to a date (with default format) failed [JavaScript]", isoDateFormat.format(testOne.getProperty(TestOne.aDate)), isoDateFormat.format(testThree.getProperty(TestThree.aDateWithFormat)));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+
+			fail(fex.getMessage());
+		}
 
 	}
 }
