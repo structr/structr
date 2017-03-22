@@ -19,9 +19,7 @@
 package org.structr.core;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
-import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
@@ -144,6 +142,7 @@ public class Services implements StructrServices {
 	private Properties structrConf                             = new Properties();
 	private ConfigurationProvider configuration                = null;
 	private boolean initializationDone                         = false;
+	private boolean hasConfigFile                              = false;
 	private boolean shutdownDone                               = false;
 	private String configuredServiceNames                      = null;
 	private String configurationClass                          = null;
@@ -240,43 +239,27 @@ public class Services implements StructrServices {
 		final Properties config = getBaseConfiguration();
 
 		// read structr.conf
-		final String configTemplateFileName = "structr.conf_templ";
 		final String configFileName         = "structr.conf";
-		final File configTemplateFile       = new File(configTemplateFileName);
 		final File configFile               = new File(configFileName);
 
-		if (!configFile.exists() && !configTemplateFile.exists()) {
+		if (!configFile.exists()) {
 
-			logger.error("Unable to create config file, {} and {} do not exist, aborting. Please create a {} configuration file and try again.", new Object[] { configFileName, configTemplateFileName } );
+			hasConfigFile = false;
 
-			// exit immediately, since we can not proceed without configuration file
-			System.exit(1);
-		}
+			logger.info("{} not found, starting configuration wizard..", configFileName);
 
-		if (!configFile.exists() && configTemplateFile.exists()) {
+		} else {
 
-			logger.warn("Configuration file {} not found, copying from template {}. Please adapt newly created {} to your needs.", new Object[] { configFileName, configTemplateFileName } );
+			logger.info("Reading {}..", configFileName);
 
 			try {
-				Files.copy(configTemplateFile.toPath(), configFile.toPath());
 
-			} catch (IOException ioex) {
+				PropertiesConfiguration.setDefaultListDelimiter('\0');
+				StructrServices.loadConfiguration(config, new PropertiesConfiguration(configFileName));
 
-				logger.error("Unable to create config file, copying of template failed.", ioex);
-
-				System.exit(1);
+			} catch (ConfigurationException ex) {
+				logger.error("", ex);
 			}
-		}
-
-		logger.info("Reading {}..", configFileName);
-
-		try {
-
-			PropertiesConfiguration.setDefaultListDelimiter('\0');
-			StructrServices.loadConfiguration(config, new PropertiesConfiguration(configFileName));
-
-		} catch (ConfigurationException ex) {
-			logger.error("", ex);
 		}
 
 		StructrServices.mergeConfiguration(config, structrConf);
@@ -300,6 +283,12 @@ public class Services implements StructrServices {
 		getConfigurationProvider();
 
 		logger.info("Starting services");
+
+		if (!hasConfigFile) {
+
+			configuredServiceClasses.clear();
+			configuredServiceClasses.add("HttpService");
+		}
 
 		// initialize other services
 		for (final String serviceClassName : configuredServiceClasses) {
@@ -368,26 +357,31 @@ public class Services implements StructrServices {
 			permissionsForOwnerlessNodes.add(Permission.read);
 		}
 
-		try {
-			final ExecutorService service = Executors.newSingleThreadExecutor();
-			service.submit(new Runnable() {
+		// only run initialization callbacks if Structr was started with
+		// a configuration file, i.e. when this is NOT this first start.
+		if (hasConfigFile) {
 
-					@Override
-					public void run() {
+			try {
+				final ExecutorService service = Executors.newSingleThreadExecutor();
+				service.submit(new Runnable() {
 
-						// wait a second
-						try { Thread.sleep(100); } catch (Throwable ignore) {}
+						@Override
+						public void run() {
 
-						// call initialization callbacks from a different thread
-						for (final InitializationCallback callback : singletonInstance.callbacks) {
-							callback.initializationDone();
+							// wait a second
+							try { Thread.sleep(100); } catch (Throwable ignore) {}
+
+							// call initialization callbacks from a different thread
+							for (final InitializationCallback callback : singletonInstance.callbacks) {
+								callback.initializationDone();
+							}
 						}
-					}
 
-			}).get();
+				}).get();
 
-		} catch (Throwable t) {
-			logger.warn("Exception while executing post-initialization tasks", t);
+			} catch (Throwable t) {
+				logger.warn("Exception while executing post-initialization tasks", t);
+			}
 		}
 
 
@@ -706,6 +700,12 @@ public class Services implements StructrServices {
 		return resources;
 	}
 
+	@Override
+	public boolean hasConfigFile() {
+		return hasConfigFile;
+	}
+
+	// ----- static methods -----
 	public static Properties getBaseConfiguration() {
 
 		if (baseConf == null) {

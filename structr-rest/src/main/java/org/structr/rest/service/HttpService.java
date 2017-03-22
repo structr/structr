@@ -165,18 +165,22 @@ public class HttpService implements RunnableService {
 		finalConfig.setProperty(APPLICATION_HTTPS_ENABLED, "false");
 		finalConfig.setProperty(APPLICATION_HTTPS_PORT, "8083");
 		finalConfig.setProperty(ASYNC, "true");
-		finalConfig.setProperty(SERVLETS, "JsonRestServlet");
 
-		finalConfig.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());
-		finalConfig.setProperty("JsonRestServlet.path", "/structr/rest/*");
-		finalConfig.setProperty("JsonRestServlet.resourceprovider", DefaultResourceProvider.class.getName());
-		finalConfig.setProperty("JsonRestServlet.authenticator", SuperUserAuthenticator.class.getName());
-		finalConfig.setProperty("JsonRestServlet.user.class", "org.structr.dynamic.User");
-		finalConfig.setProperty("JsonRestServlet.user.autocreate", "false");
-		finalConfig.setProperty("JsonRestServlet.defaultview", PropertyView.Public);
-		finalConfig.setProperty("JsonRestServlet.outputdepth", "3");
+		if (services.hasConfigFile()) {
 
-		StructrServices.mergeConfiguration(finalConfig, additionalConfig);
+			finalConfig.setProperty(SERVLETS, "JsonRestServlet");
+
+			finalConfig.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());
+			finalConfig.setProperty("JsonRestServlet.path", "/structr/rest/*");
+			finalConfig.setProperty("JsonRestServlet.resourceprovider", DefaultResourceProvider.class.getName());
+			finalConfig.setProperty("JsonRestServlet.authenticator", SuperUserAuthenticator.class.getName());
+			finalConfig.setProperty("JsonRestServlet.user.class", "org.structr.dynamic.User");
+			finalConfig.setProperty("JsonRestServlet.user.autocreate", "false");
+			finalConfig.setProperty("JsonRestServlet.defaultview", PropertyView.Public);
+			finalConfig.setProperty("JsonRestServlet.outputdepth", "3");
+
+			StructrServices.mergeConfiguration(finalConfig, additionalConfig);
+		}
 
 		final String mainClassName = (String) finalConfig.get(MAIN_CLASS);
 
@@ -233,7 +237,7 @@ public class HttpService implements RunnableService {
 
 		// get current base path
 		basePath = System.getProperty("home", basePath);
-		if (basePath.isEmpty()) {
+		if (StringUtils.isEmpty(basePath)) {
 
 			// use cwd and, if that fails, /tmp as a fallback
 			basePath = System.getProperty("user.dir", "/tmp");
@@ -264,6 +268,7 @@ public class HttpService implements RunnableService {
 
 		// this is needed for the filters to work on the root context "/"
 		servletContext.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/");
+		servletContext.addServlet("org.structr.rest.servlet.ConfigServlet", "/structr/config/*");
 		servletContext.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
 
 		try {
@@ -427,7 +432,7 @@ public class HttpService implements RunnableService {
 
 		} else {
 
-			logger.warn("Unable to configure HTTP server port, please make sure that {} and {} are set correctly in structr.conf.", new Object[]{APPLICATION_HOST, APPLICATION_HTTP_PORT});
+			logger.warn("Unable to configure HTTP server port, please make sure that {} and {} are set correctly in structr.conf.", APPLICATION_HOST, APPLICATION_HTTP_PORT);
 		}
 
 		if (enableHttps) {
