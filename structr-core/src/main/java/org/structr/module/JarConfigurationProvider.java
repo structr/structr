@@ -112,19 +112,17 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	// ----- interface Configuration -----
 	@Override
-	public void initialize() {
-		scanResources();
+	public void initialize(final boolean isConfigured) {
+
+		// do not scan resources if no configuration file is found
+		if (isConfigured) {
+
+			scanResources();
+		}
 	}
 
 	@Override
 	public void shutdown() {
-
-		/* do not clear caches
-		 nodeEntityClassCache.clear();
-		 combinedTypeRelationClassCache.clear();
-		 relationshipEntityClassCache.clear();
-		 agentClassCache.clear();
-		 */
 	}
 
 	@Override

@@ -40,7 +40,7 @@ import org.structr.module.StructrModule;
  */
 public interface ConfigurationProvider {
 
-	public void initialize();
+	public void initialize(final boolean isConfigured);
 	public void shutdown();
 
 	public void unregisterEntityType(final Class oldType);

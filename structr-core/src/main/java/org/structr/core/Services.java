@@ -286,8 +286,14 @@ public class Services implements StructrServices {
 
 		if (!hasConfigFile) {
 
-			configuredServiceClasses.clear();
-			configuredServiceClasses.add("HttpService");
+			try {
+				configuredServiceClasses.clear();
+				configuredServiceClasses.add("HttpService");
+				registeredServiceClasses.add(Class.forName("org.structr.rest.service.HttpService"));
+
+			} catch (ClassNotFoundException ex) {
+				logger.error("Unable to find HttpService class, aborting.");
+			}
 		}
 
 		// initialize other services
@@ -498,11 +504,11 @@ public class Services implements StructrServices {
 			try {
 
 				configuration = (ConfigurationProvider)Class.forName(configurationClass).newInstance();
-				configuration.initialize();
+				configuration.initialize(hasConfigFile);
 
 			} catch (Throwable t) {
 
-				logger.error("Unable to instantiate schema provider of type {}", configurationClass);
+				logger.error("Unable to instantiate configration provider of type {}", configurationClass);
 			}
 		}
 
@@ -701,7 +707,7 @@ public class Services implements StructrServices {
 	}
 
 	@Override
-	public boolean hasConfigFile() {
+	public boolean isConfigured() {
 		return hasConfigFile;
 	}
 

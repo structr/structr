@@ -166,7 +166,7 @@ public class HttpService implements RunnableService {
 		finalConfig.setProperty(APPLICATION_HTTPS_PORT, "8083");
 		finalConfig.setProperty(ASYNC, "true");
 
-		if (services.hasConfigFile()) {
+		if (services.isConfigured()) {
 
 			finalConfig.setProperty(SERVLETS, "JsonRestServlet");
 
@@ -266,27 +266,37 @@ public class HttpService implements RunnableService {
 			logger.warn("Base resource {} not usable: {}", new Object[]{basePath, t.getMessage()});
 		}
 
-		// this is needed for the filters to work on the root context "/"
-		servletContext.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/");
-		servletContext.addServlet("org.structr.rest.servlet.ConfigServlet", "/structr/config/*");
-		servletContext.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
+		if (services.isConfigured()) {
 
-		try {
+			// this is needed for the filters to work on the root context "/"
+			servletContext.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/");
+			servletContext.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
+
+			// configuration wizard entry point
+			servletContext.addServlet("org.structr.rest.servlet.ConfigServlet", "/structr/config/*");
 
 			// CMIS setup
-			servletContext.addEventListener(new CmisRepositoryContextListener());
+			try {
 
-			final ServletHolder cmisAtomHolder = servletContext.addServlet(CmisAtomPubServlet.class.getName(), "/structr/cmis/atom/*");
-			cmisAtomHolder.setInitParameter("callContextHandler", BasicAuthCallContextHandler.class.getName());
-			cmisAtomHolder.setInitParameter("cmisVersion", "1.1");
+				servletContext.addEventListener(new CmisRepositoryContextListener());
 
-			final ServletHolder cmisBrowserHolder = servletContext.addServlet(CmisBrowserBindingServlet.class.getName(), "/structr/cmis/browser/*");
-			cmisBrowserHolder.setInitParameter("callContextHandler", BasicAuthCallContextHandler.class.getName());
-			cmisBrowserHolder.setInitParameter("cmisVersion", "1.1");
+				final ServletHolder cmisAtomHolder = servletContext.addServlet(CmisAtomPubServlet.class.getName(), "/structr/cmis/atom/*");
+				cmisAtomHolder.setInitParameter("callContextHandler", BasicAuthCallContextHandler.class.getName());
+				cmisAtomHolder.setInitParameter("cmisVersion", "1.1");
+
+				final ServletHolder cmisBrowserHolder = servletContext.addServlet(CmisBrowserBindingServlet.class.getName(), "/structr/cmis/browser/*");
+				cmisBrowserHolder.setInitParameter("callContextHandler", BasicAuthCallContextHandler.class.getName());
+				cmisBrowserHolder.setInitParameter("cmisVersion", "1.1");
 
 
-		} catch (Throwable t) {
-			logger.warn("", t);
+			} catch (Throwable t) {
+				logger.warn("Cannot initialize CMIS servlet", t);
+			}
+
+		} else {
+
+			// configuration wizard entry point is the only available option => /
+			servletContext.addServlet("org.structr.rest.servlet.ConfigServlet", "/");
 		}
 
 		hashSessionManager = new HashSessionManager();
@@ -531,51 +541,54 @@ public class HttpService implements RunnableService {
 
 			for (String resourceHandlerName : resourceHandlerList.split("[ \\t]+")) {
 
-				final String contextPath = properties.getProperty(resourceHandlerName.concat(".contextPath"));
-				if (contextPath != null) {
+				if (StringUtils.isNotBlank(resourceHandlerName)) {
 
-					final String resourceBase = properties.getProperty(resourceHandlerName.concat(".resourceBase"));
-					if (resourceBase != null) {
+					final String contextPath = properties.getProperty(resourceHandlerName.concat(".contextPath"));
+					if (contextPath != null) {
 
-						final String directoriesListed = properties.getProperty(resourceHandlerName.concat(".directoriesListed"));
-						if (directoriesListed != null) {
+						final String resourceBase = properties.getProperty(resourceHandlerName.concat(".resourceBase"));
+						if (resourceBase != null) {
 
-							final String welcomeFiles = properties.getProperty(resourceHandlerName.concat(".welcomeFiles"));
-							if (welcomeFiles != null) {
+							final String directoriesListed = properties.getProperty(resourceHandlerName.concat(".directoriesListed"));
+							if (directoriesListed != null) {
 
-								ResourceHandler resourceHandler = new ResourceHandler();
-								resourceHandler.setDirectoriesListed(Boolean.parseBoolean(directoriesListed));
-								resourceHandler.setWelcomeFiles(StringUtils.split(welcomeFiles));
-								resourceHandler.setResourceBase(resourceBase);
-								resourceHandler.setCacheControl("max-age=0");
-								resourceHandler.setEtags(true);
+								final String welcomeFiles = properties.getProperty(resourceHandlerName.concat(".welcomeFiles"));
+								if (welcomeFiles != null) {
 
-								ContextHandler staticResourceHandler = new ContextHandler();
-								staticResourceHandler.setContextPath(contextPath);
-								staticResourceHandler.setHandler(resourceHandler);
+									ResourceHandler resourceHandler = new ResourceHandler();
+									resourceHandler.setDirectoriesListed(Boolean.parseBoolean(directoriesListed));
+									resourceHandler.setWelcomeFiles(StringUtils.split(welcomeFiles));
+									resourceHandler.setResourceBase(resourceBase);
+									resourceHandler.setCacheControl("max-age=0");
+									resourceHandler.setEtags(true);
 
-								resourceHandlers.add(staticResourceHandler);
+									ContextHandler staticResourceHandler = new ContextHandler();
+									staticResourceHandler.setContextPath(contextPath);
+									staticResourceHandler.setHandler(resourceHandler);
+
+									resourceHandlers.add(staticResourceHandler);
+
+								} else {
+
+									logger.warn("Unable to register resource handler {}, missing {}.welcomeFiles", resourceHandlerName);
+
+								}
 
 							} else {
 
-								logger.warn("Unable to register resource handler {}, missing {}.welcomeFiles", resourceHandlerName);
+								logger.warn("Unable to register resource handler {}, missing {}.resourceBase", resourceHandlerName);
 
 							}
 
 						} else {
 
 							logger.warn("Unable to register resource handler {}, missing {}.resourceBase", resourceHandlerName);
-
 						}
 
 					} else {
 
-						logger.warn("Unable to register resource handler {}, missing {}.resourceBase", resourceHandlerName);
+						logger.warn("Unable to register resource handler {}, missing {}.contextPath", resourceHandlerName);
 					}
-
-				} else {
-
-					logger.warn("Unable to register resource handler {}, missing {}.contextPath", resourceHandlerName);
 				}
 			}
 
@@ -596,35 +609,38 @@ public class HttpService implements RunnableService {
 
 			for (String servletName : servletNameList.split("[ \\t]+")) {
 
-				final String servletClassName = properties.getProperty(servletName.concat(".class"));
-				if (servletClassName != null) {
+				if (StringUtils.isNotBlank(servletName)) {
 
-					final String servletPath = properties.getProperty(servletName.concat(".path"));
-					if (servletPath != null) {
+					final String servletClassName = properties.getProperty(servletName.concat(".class"));
+					if (servletClassName != null) {
 
-						final HttpServlet servlet = (HttpServlet)Class.forName(servletClassName).newInstance();
-						if (servlet instanceof HttpServiceServlet) {
+						final String servletPath = properties.getProperty(servletName.concat(".path"));
+						if (servletPath != null) {
 
-							((HttpServiceServlet)servlet).getConfig().initializeFromProperties(properties, servletName, resourceProviders);
-						}
+							final HttpServlet servlet = (HttpServlet)Class.forName(servletClassName).newInstance();
+							if (servlet instanceof HttpServiceServlet) {
 
-						if (servletPath.endsWith("*")) {
+								((HttpServiceServlet)servlet).getConfig().initializeFromProperties(properties, servletName, resourceProviders);
+							}
 
-							servlets.put(servletPath, new ServletHolder(servlet));
+							if (servletPath.endsWith("*")) {
+
+								servlets.put(servletPath, new ServletHolder(servlet));
+
+							} else {
+
+								servlets.put(servletPath + "/*", new ServletHolder(servlet));
+							}
 
 						} else {
 
-							servlets.put(servletPath + "/*", new ServletHolder(servlet));
+							logger.warn("Unable to register servlet {}, missing {}.path", servletName);
 						}
 
 					} else {
 
-						logger.warn("Unable to register servlet {}, missing {}.path", servletName);
+						logger.warn("Unable to register servlet {}, missing {}.class", servletName);
 					}
-
-				} else {
-
-					logger.warn("Unable to register servlet {}, missing {}.class", servletName);
 				}
 			}
 

@@ -32,7 +32,7 @@ public interface StructrServices {
 	void registerInitializationCallback(final InitializationCallback callback);
 	<T extends Service> T getService(final Class<T> serviceClass);
 	DatabaseService getDatabaseService();
-	boolean hasConfigFile();
+	boolean isConfigured();
 
 	public static void mergeConfiguration(final Properties baseConfig, final Properties additionalConfig) {
 
