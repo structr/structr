@@ -2129,7 +2129,9 @@ var _Crud = {
 			});
 		} else {
 			var updateObj = {};
-			updateObj[key] = JSON.stringify({'id': relatedObj.id});
+			updateObj[key] = {
+				id: relatedObj.id
+			};
 
 			_Crud.crudUpdateObj(id, JSON.stringify(updateObj), function() {
 				_Crud.crudRefresh(id, key);

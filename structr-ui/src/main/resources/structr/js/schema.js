@@ -1145,7 +1145,10 @@ var _Schema = {
 			});
 
 			$('.' + rowClass + ' .create-property', propertiesTable).on('click', function() {
-				_Schema.collectAndSaveNewLocalProperty(rowClass, propertiesTable, entity);
+				var self = $(this);
+				if (!self.data('save-pending')) {
+					_Schema.collectAndSaveNewLocalProperty(self, rowClass, propertiesTable, entity);
+				}
 			});
 		});
 
@@ -1646,7 +1649,7 @@ var _Schema = {
 		});
 
 	},
-	collectAndSaveNewLocalProperty: function(rowClass, el, entity) {
+	collectAndSaveNewLocalProperty: function(button, rowClass, el, entity) {
 
 		var name = $('.' + rowClass + ' .property-name', el).val();
 		var dbName = $('.' + rowClass + ' .property-dbname', el).val();
@@ -1657,7 +1660,17 @@ var _Schema = {
 		var indexed = $('.' + rowClass + ' .indexed', el).is(':checked');
 		var defaultValue = $('.' + rowClass + ' .property-default', el).val();
 
-		if (name && name.length && type) {
+		if (name.length === 0) {
+
+			blinkRed($('.' + rowClass + ' .property-name', el).closest('td'));
+
+		} else if (type.length === 0) {
+
+			blinkRed($('.' + rowClass + ' .property-type', el).closest('td'));
+
+		} else {
+
+			button.data('save-pending', true);
 
 			var obj = {};
 			obj.schemaNode   =  { id: entity.id };
@@ -1720,7 +1733,8 @@ var _Schema = {
 				Structr.errorFromResponse(data.responseJSON);
 
 				blinkRed($('.' + rowClass, el));
-				//_Schema.bindEvents(entity, type, key);
+
+				button.data('save-pending', false);
 			});
 		}
 	},
