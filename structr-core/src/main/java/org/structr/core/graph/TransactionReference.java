@@ -67,14 +67,19 @@ public class TransactionReference implements Transaction {
 	// ----- interface Transaction -----
 	@Override
 	public void failure() {
-		tx.failure();
-		successful = false;
+
+		if (tx != null) {
+			tx.failure();
+			successful = false;
+		}
 	}
 
 	@Override
 	public void success() {
-		tx.success();
-		successful = true;
+		if (tx != null) {
+			tx.success();
+			successful = true;
+		}
 	}
 
 	@Override
@@ -83,12 +88,15 @@ public class TransactionReference implements Transaction {
 		// only finish transaction if we are at root level
 		if (--referenceCount == 0) {
 
-			// fail transaction if no success() call was made
-			if (!successful) {
-				tx.failure();
-			}
+			if (tx != null) {
 
-			tx.close();
+				// fail transaction if no success() call was made
+				if (!successful) {
+					tx.failure();
+				}
+
+				tx.close();
+			}
 		}
 	}
 }

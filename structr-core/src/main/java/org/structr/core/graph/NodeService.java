@@ -91,7 +91,7 @@ public class NodeService implements SingletonService {
 				files.mkdir();
 			}
 
-			logger.info("Database ready.");
+			logger.info("Database driver ready.");
 
 			// index creation transaction
 			try ( final Transaction tx = graphDb.beginTx() ) {

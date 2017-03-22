@@ -38,6 +38,7 @@ import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Config;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.GraphDatabase;
+import org.neo4j.driver.v1.exceptions.ClientException;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
@@ -78,6 +79,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	private GraphDatabaseService graphDb                              = null;
 	private boolean debugLogging                                      = false;
 	private boolean needsIndexRebuild                                 = false;
+	private String databaseUrl                                        = null;
 	private String databasePath                                       = null;
 	private Driver driver                                             = null;
 	private int queryCacheSize                                        = 1000;
@@ -89,7 +91,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		this.debugLogging = "true".equalsIgnoreCase(configuration.getProperty(Structr.LOG_CYPHER_DEBUG, "false"));
 
 		final GraphDatabaseSettings.BoltConnector bolt = GraphDatabaseSettings.boltConnector("0");
-		final String url                               = configuration.getProperty(Structr.DATABASE_CONNECTION_URL, Structr.DEFAULT_DATABASE_URL);
+		databaseUrl                                    = configuration.getProperty(Structr.DATABASE_CONNECTION_URL, Structr.DEFAULT_DATABASE_URL);
 		final String username                          = configuration.getProperty(Structr.DATABASE_CONNECTION_USERNAME, "neo4j");
 		final String password                          = configuration.getProperty(Structr.DATABASE_CONNECTION_PASSWORD, "neo4j");
 		final String driverMode                        = configuration.getProperty(Structr.DATABASE_DRIVER_MODE, "embedded");
@@ -107,7 +109,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 				.setConfig( GraphDatabaseSettings.allow_store_upgrade, "true")
 				.setConfig("dbms.allow_format_migration", "true")
 				.setConfig( bolt.enabled, "true" )
-				.setConfig( bolt.address, url);
+				.setConfig( bolt.address, databaseUrl);
 
 			if (confFile.exists()) {
 				builder.loadPropertiesFromFile(confPath);
@@ -126,7 +128,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 			}
 		}
 
-		driver = GraphDatabase.driver(url,
+		driver = GraphDatabase.driver(databaseUrl,
 			AuthTokens.basic(username, password),
 			Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()
 		);
@@ -175,8 +177,13 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		SessionTransaction session = sessions.get();
 		if (session == null || session.isClosed()) {
 
-			session = new SessionTransaction(this, driver.session());
-			sessions.set(session);
+			try {
+				session = new SessionTransaction(this, driver.session());
+				sessions.set(session);
+
+			} catch (ClientException cex) {
+				logger.warn("Cannot connect to Neo4j database at {}", databaseUrl);
+			}
 		}
 
 		return session;
