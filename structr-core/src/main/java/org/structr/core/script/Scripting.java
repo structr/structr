@@ -370,7 +370,7 @@ public class Scripting {
 		return expressions;
 	}
 
-	private static String formatToDefaultDateOrString(final Object value) {
+	public static String formatToDefaultDateOrString(final Object value) {
 
 		if (value instanceof Date) {
 

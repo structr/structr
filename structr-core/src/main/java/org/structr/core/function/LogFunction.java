@@ -21,6 +21,7 @@ package org.structr.core.function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -46,11 +47,11 @@ public class LogFunction extends Function<Object, Object> {
 			if (sources == null) {
 				throw new IllegalArgumentException();
 			}
-			
+
 			final StringBuilder buf = new StringBuilder();
 			for (final Object obj : sources) {
 
-				buf.append(obj);
+				buf.append(Scripting.formatToDefaultDateOrString(obj));
 			}
 
 			logger.info(buf.toString());
