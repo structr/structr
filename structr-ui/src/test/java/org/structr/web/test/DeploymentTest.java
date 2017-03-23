@@ -47,11 +47,13 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.Security;
+import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.dynamic.File;
 import org.structr.web.common.FileHelper;
@@ -1620,6 +1622,88 @@ public class DeploymentTest extends StructrUiTest {
 
 			Assert.assertEquals("${{Structr.print(\"<div>Test</div>\");}}", template.getTextContent());
 			Assert.assertEquals("text/html", template.getProperty(Template.contentType));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+	}
+
+		@Test
+	public void test35WidgetWithSharedComponentCreation() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			Page testPage = app.create(Page.class, "WidgetTestPage");
+			Html html = app.create(Html.class);
+			Head head = app.create(Head.class);
+			Body body = app.create(Body.class);
+			Div div = app.create(Div.class,"WidgetTestPage-Div");
+			Div div2 = app.create(Div.class,"WidgetTestPage-Div2");
+
+			testPage.appendChild(html);
+			html.appendChild(head);
+			html.appendChild(body);
+			body.appendChild(div);
+			body.appendChild(div2);
+
+			Widget widgetToImport = app.create(Widget.class,
+					new NodeAttribute<>(Widget.name,"TestWidget"),
+					new NodeAttribute<>(Widget.source,
+						"<structr:component src=\"TestComponent\">\n" +
+						"	<div data-structr-meta-name=\"TestComponent\">\n" +
+						"		Test123\n" +
+						"	</div>\n" +
+						"</structr:component>"),
+					new NodeAttribute<>(Widget.configuration,""),
+					new NodeAttribute<>(Widget.visibleToPublicUsers,true),
+					new NodeAttribute<>(Widget.visibleToAuthenticatedUsers,true)
+
+			);
+
+			Map<String,Object> paramMap = new HashMap<>();
+			paramMap.put("widgetHostBaseUrl", "https://widgets.structr.org/structr/rest/widgets");
+			paramMap.put("parentId", widgetToImport.getProperty(new StartNode<>("owner", PrincipalOwnsNode.class)));
+			paramMap.put("source", widgetToImport.getProperty(new StringProperty("source")));
+			paramMap.put("processDeploymentInfo", false);
+
+			Widget.expandWidget(securityContext, testPage, div, baseUri, paramMap, false);
+			Widget.expandWidget(securityContext, testPage, div, baseUri, paramMap, false);
+
+			makePublic(testPage, html,head, body, div, div2);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+
+		// test
+		try (final Tx tx = app.tx()) {
+
+			Div div = app.nodeQuery(Div.class).andName("WidgetTestPage-Div").getFirst();
+
+			Assert.assertEquals(2, div.treeGetChildCount());
+
+			Object obj = null;
+			for(DOMNode n: div.getAllChildNodes()){
+				obj = n;
+				break;
+			}
+
+			Assert.assertEquals(Div.class, obj.getClass());
+
+			Div clonedNode = (Div)obj;
+
+			Assert.assertEquals(0, clonedNode.getChildNodes().getLength());
+
+			Assert.assertEquals(3, app.nodeQuery(Div.class).andName("TestComponent").getResult().size());
 
 			tx.success();
 
