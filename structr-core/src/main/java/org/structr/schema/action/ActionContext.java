@@ -114,7 +114,7 @@ public class ActionContext {
 	public SecurityContext getSecurityContext() {
 		return securityContext;
 	}
-	
+
 	public void setSecurityContext(final SecurityContext securityContext) {
 		this.securityContext = securityContext;
 	}
@@ -311,7 +311,7 @@ public class ActionContext {
 						return null;
 
 					case "now":
-						return DatePropertyParser.format(new Date(), DateProperty.DEFAULT_FORMAT);
+						return this.isJavaScriptContext() ? new Date() : DatePropertyParser.format(new Date(), DateProperty.DEFAULT_FORMAT);
 
 					case "me":
 						return securityContext.getUser(false);

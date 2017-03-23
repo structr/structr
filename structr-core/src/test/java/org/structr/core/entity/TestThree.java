@@ -18,22 +18,28 @@
  */
 package org.structr.core.entity;
 
+import java.util.Date;
+import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 
 /**
  * A simple entity for the most basic tests.
- * 
+ *
  * This class doesn't have the not-null constraint on TestOne, so it should
  * not be deleted over relationships which are tagged with
  * DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED
- * 
- * 
+ *
+ *
  *
  */
 public class TestThree extends AbstractNode {
-	
+
+	public static final String TEST_THREE_CUSTOM_DATE_FORMAT = "dd.MM.yyyy";
+
 	public static final Property<TestOne> testOne          = new StartNode<>("testOne",         OneThreeOneToOne.class);
 	public static final Property<TestSix> oneToOneTestSix  = new StartNode<>("oneToOneTestSix", SixThreeOneToOne.class);
 	public static final Property<TestSix> oneToManyTestSix = new StartNode<>("oneToManyTestSix", SixThreeOneToMany.class);
+	public static final Property<Date>    aDateWithFormat  = new ISO8601DateProperty("aDateWithFormat").format(TEST_THREE_CUSTOM_DATE_FORMAT).indexed().indexedWhenEmpty();
+
 }

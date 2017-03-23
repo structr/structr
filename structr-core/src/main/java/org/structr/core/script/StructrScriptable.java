@@ -18,7 +18,6 @@
  */
 package org.structr.core.script;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -320,23 +319,8 @@ public class StructrScriptable extends ScriptableObject {
 
 			} else if (source.getClass().getName().equals("org.mozilla.javascript.NativeDate")) {
 
-				// FIXME: this is one of the worst ways I've ever resorted to in order
-				// to extract the value of a wrapped NativeDate which is not accessible
-				// in Java 8 any more, but will be returned by the Rhino Javascript
-				// engine.
-
-				try {
-					final Class type   = source.getClass();
-					final Field field  = type.getDeclaredField("date");
-
-					field.setAccessible(true);
-					final Double value = field.getDouble(source);
-
-					return new Date(value.longValue());
-
-				} catch (Throwable t) {
-					logger.warn("", t);
-				}
+				final Double value = ScriptRuntime.toNumber(source);
+				return new Date(value.longValue());
 
 			} else {
 

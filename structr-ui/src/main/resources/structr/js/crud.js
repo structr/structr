@@ -2101,13 +2101,8 @@ var _Crud = {
 					objects = objects.filter(function(obj) {
 						return obj.id !== relatedId;
 					});
-					var json = '{"' + key + '":' + JSON.stringify(objects) + '}';
-					_Crud.crudUpdateObj(obj.id, json, function() {
-						_Crud.crudRefresh(obj.id, key);
-						if (callback) {
-							callback();
-						}
-					});
+
+					_Crud.updateRelatedCollection(obj.id, key, objects, callback);
 				}
 			});
 		} else {
@@ -2123,25 +2118,37 @@ var _Crud = {
 				dataType: 'json',
 				contentType: 'application/json; charset=utf-8',
 				success: function(data) {
+
 					var objects = _Crud.extractIds(data.result[key]);
 					if (!isIn(relatedObj.id, objects)) {
 						objects.push({'id': relatedObj.id});
 					}
-					var json = '{"' + key + '":' + JSON.stringify(objects) + '}';
-					_Crud.crudUpdateObj(id, json, function() {
-						_Crud.crudRefresh(id, key);
-						if (callback) {
-							callback();
-						}
-					});
+
+					_Crud.updateRelatedCollection(id, key, objects, callback);
 				}
 			});
 		} else {
-			_Crud.crudUpdateObj(id, '{"' + key + '":' + JSON.stringify({'id': relatedObj.id}) + '}', function() {
+			var updateObj = {};
+			updateObj[key] = {
+				id: relatedObj.id
+			};
+
+			_Crud.crudUpdateObj(id, JSON.stringify(updateObj), function() {
 				_Crud.crudRefresh(id, key);
 				dialogCancelButton.click();
 			});
 		}
+	},
+	updateRelatedCollection: function (id, key, objects, callback) {
+		var updateObj = {};
+		updateObj[key] = objects;
+
+		_Crud.crudUpdateObj(id, JSON.stringify(updateObj), function() {
+			_Crud.crudRefresh(id, key);
+			if (callback) {
+				callback();
+			}
+		});
 	},
 	removeStringFromArray: function(type, id, key, obj, pos, callback) {
 		var url = rootUrl + '/' + id + '/ui';
@@ -2501,45 +2508,6 @@ var _Crud = {
 			}
 		});
 		return o;
-	},
-	idArray: function(ids) {
-		var arr = [];
-		$.each(ids, function(i, id) {
-			var obj = {};
-			obj.id = id;
-			arr.push(obj);
-		});
-		return arr;
-	},
-	/**
-	 * Return the id of the given object.
-	 */
-	id: function(objectOrId) {
-		if (typeof objectOrId === 'object') {
-			return objectOrId.id;
-		} else {
-			return objectOrId;
-		}
-	},
-	/**
-	 * Compare to values and return true if they can be regarded equal.
-	 *
-	 * If both values are of type 'object', compare their id property,
-	 * in any other case, compare values directly.
-	 */
-	equal: function(obj1, obj2) {
-		if (typeof obj1 === 'object' && typeof obj2 === 'object') {
-			var id1 = obj1.id;
-			var id2 = obj2.id;
-			if (id1 && id2) {
-				return id1 === id2;
-			}
-		} else {
-			return obj1 === obj2;
-		}
-
-		// default
-		return false;
 	}
 
 };

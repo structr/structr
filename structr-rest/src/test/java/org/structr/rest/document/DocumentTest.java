@@ -511,8 +511,6 @@ public class DocumentTest extends StructrRestTest {
                 + "\n" + "   ]"
                 + "\n" + "}";
 
-		System.out.println(jsonBody);
-
 		// post document
 		RestAssured
 			.given()
@@ -665,7 +663,6 @@ public class DocumentTest extends StructrRestTest {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
@@ -787,6 +784,573 @@ public class DocumentTest extends StructrRestTest {
 			.body("result[3].company.name", equalTo("Company3"))
 			.body("result[4].name",         equalTo("Worker5"))
 			.body("result[4].company.name", equalTo("Company3"))
+
+			.when()
+			.get("/workers/test");
+
+	}
+
+	@Test
+	public void testComplexDocumentUpdate() {
+
+		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"), new Pair("_description", "String"));
+		final String taskNodeId        = createSchemaNode("Task",    new Pair("_name", "+String!"),  new Pair("_description", "String"));
+		final String workerNodeId      = createSchemaNode("Worker",  new Pair("_name", "+String!"), new Pair("_description", "String"));
+		final String companyNodeId     = createSchemaNode("Company", new Pair("_name", "+String!"), new Pair("_description", "String"));
+
+		// create relationships
+		createSchemaRelationships(projectNodeId, taskNodeId,   "TASK",     "1", "*", "project",    "tasks",    Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
+		createSchemaRelationships(taskNodeId, taskNodeId,      "SUBTASK",  "1", "*", "parentTask", "subtasks", Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
+		createSchemaRelationships(workerNodeId, taskNodeId,    "WORKS_ON", "1", "*", "worker",     "tasks",    Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
+		createSchemaRelationships(workerNodeId, companyNodeId, "WORKS_AT", "*", "1", "workers",    "company",  Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
+
+		// create views
+		RestAssured.given().contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.body("{ \"__test\": \"_name, _description, _tasks\" }")
+			.expect().statusCode(200).when().put("/schema_nodes/" + projectNodeId);
+
+		RestAssured.given().contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.body("{ \"__test\": \"_name, _description, _subtasks, _worker\" }")
+			.expect().statusCode(200).when().put("/schema_nodes/" + taskNodeId);
+
+		RestAssured.given().contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.body("{ \"__test\": \"_name, _description, _tasks, _company\" }")
+			.expect().statusCode(200).when().put("/schema_nodes/" + workerNodeId);
+
+		RestAssured.given().contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.body("{ \"__test\": \"_name, _description, _workers\" }")
+			.expect().statusCode(200).when().put("/schema_nodes/" + companyNodeId);
+
+		String jsonBody1 =
+                "{"
+                + "\n" + "   \"name\": \"Project1\","
+                + "\n" + "   \"description\": \"projectDescription1\","
+                + "\n" + "   \"tasks\": ["
+                + "\n" + "       {"
+                + "\n" + "           \"name\": \"Task1\","
+                + "\n" + "           \"description\": \"taskDescription1\","
+                + "\n" + "           \"worker\": {"
+                + "\n" + "               \"name\": \"Worker1\","
+                + "\n" + "               \"company\": { "
+                + "\n" + "                   \"name\": \"Company1\""
+                + "\n" + "               }"
+                + "\n" + "           },"
+                + "\n" + "           \"subtasks\": ["
+                + "\n" + "               {"
+                + "\n" + "                   \"name\": \"Subtask1.1\","
+                + "\n" + "                   \"description\": \"subtaskDescription1.1\","
+                + "\n" + "                   \"worker\": {"
+                + "\n" + "                       \"name\": \"Worker1\","
+                + "\n" + "                       \"company\": { "
+                + "\n" + "                           \"name\": \"Company1\""
+                + "\n" + "                       }"
+                + "\n" + "                   }"
+                + "\n" + "               },"
+                + "\n" + "               {"
+                + "\n" + "                   \"name\": \"Subtask1.2\","
+                + "\n" + "                   \"description\": \"subtaskDescription1.2\","
+                + "\n" + "                   \"worker\": {"
+                + "\n" + "                       \"name\": \"Worker2\","
+                + "\n" + "                       \"company\": { "
+                + "\n" + "                           \"name\": \"Company1\""
+                + "\n" + "                       }"
+                + "\n" + "                   }"
+                + "\n" + "               },"
+                + "\n" + "               {"
+                + "\n" + "                   \"name\": \"Subtask1.3\","
+                + "\n" + "                   \"description\": \"subtaskDescription1.3\","
+                + "\n" + "                   \"worker\": {"
+                + "\n" + "                       \"name\": \"Worker2\","
+                + "\n" + "                       \"company\": { "
+                + "\n" + "                           \"name\": \"Company1\""
+                + "\n" + "                       }"
+                + "\n" + "                   }"
+                + "\n" + "               },"
+                + "\n" + "               {"
+                + "\n" + "                   \"name\": \"Subtask1.4\","
+                + "\n" + "                   \"description\": \"subtaskDescription1.4\","
+                + "\n" + "                   \"worker\": {"
+                + "\n" + "                       \"name\": \"Worker3\","
+                + "\n" + "                       \"company\": { "
+                + "\n" + "                           \"name\": \"Company2\""
+                + "\n" + "                       }"
+                + "\n" + "                   }"
+                + "\n" + "               }"
+                + "\n" + "           ]"
+                + "\n" + "       },"
+                + "\n" + "       {"
+                + "\n" + "           \"name\": \"Task2\","
+                + "\n" + "           \"description\": \"taskDescription2\","
+                + "\n" + "           \"worker\": {"
+                + "\n" + "               \"name\": \"Worker2\","
+                + "\n" + "               \"company\": { "
+                + "\n" + "                   \"name\": \"Company1\""
+                + "\n" + "               }"
+                + "\n" + "           }"
+                + "\n" + "       },"
+                + "\n" + "       {"
+                + "\n" + "           \"name\": \"Task3\","
+                + "\n" + "           \"description\": \"taskDescription3\","
+                + "\n" + "           \"worker\": {"
+                + "\n" + "               \"name\": \"Worker3\","
+                + "\n" + "               \"company\": { "
+                + "\n" + "                   \"name\": \"Company2\""
+                + "\n" + "               }"
+                + "\n" + "           }"
+                + "\n" + "       },"
+                + "\n" + "       {"
+                + "\n" + "           \"name\": \"Task4\","
+                + "\n" + "           \"description\": \"taskDescription4\","
+                + "\n" + "           \"worker\": {"
+                + "\n" + "               \"name\": \"Worker4\","
+                + "\n" + "               \"company\": { "
+                + "\n" + "                   \"name\": \"Company3\""
+                + "\n" + "               }"
+                + "\n" + "           },"
+                + "\n" + "           \"subtasks\": ["
+                + "\n" + "               {"
+                + "\n" + "                   \"name\": \"Subtask4.1\","
+                + "\n" + "                   \"description\": \"subtaskDescription4.1\","
+                + "\n" + "                   \"worker\": {"
+                + "\n" + "                       \"name\": \"Worker4\","
+                + "\n" + "                       \"company\": { "
+                + "\n" + "                           \"name\": \"Company3\""
+                + "\n" + "                       }"
+                + "\n" + "                   }"
+                + "\n" + "               },"
+                + "\n" + "               {"
+                + "\n" + "                   \"name\": \"Subtask4.2\","
+                + "\n" + "                   \"description\": \"subtaskDescription4.2\","
+                + "\n" + "                   \"worker\": {"
+                + "\n" + "                       \"name\": \"Worker4\","
+                + "\n" + "                       \"company\": { "
+                + "\n" + "                           \"name\": \"Company3\""
+                + "\n" + "                       }"
+                + "\n" + "                   }"
+                + "\n" + "               },"
+                + "\n" + "               {"
+                + "\n" + "                   \"name\": \"Subtask4.3\","
+                + "\n" + "                   \"description\": \"subtaskDescription4.3\","
+                + "\n" + "                   \"worker\": {"
+                + "\n" + "                       \"name\": \"Worker4\","
+                + "\n" + "                       \"company\": { "
+                + "\n" + "                           \"name\": \"Company3\""
+                + "\n" + "                       }"
+                + "\n" + "                   }"
+                + "\n" + "               },"
+                + "\n" + "               {"
+                + "\n" + "                   \"name\": \"Subtask4.4\","
+                + "\n" + "                   \"description\": \"subtaskDescription4.4\","
+                + "\n" + "                   \"worker\": {"
+                + "\n" + "                       \"name\": \"Worker5\","
+                + "\n" + "                       \"company\": { "
+                + "\n" + "                           \"name\": \"Company3\""
+                + "\n" + "                       }"
+                + "\n" + "                   }"
+                + "\n" + "               }"
+                + "\n" + "           ]"
+                + "\n" + "       }"
+                + "\n" + "   ]"
+                + "\n" + "}";
+
+		// post document
+		final String projectId = getUuidFromLocation(RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.body(jsonBody1)
+			.expect()
+			.statusCode(201)
+			.when()
+			.post("/projects")
+			.getHeader("Location"));
+
+		String jsonBody2 =
+                "{"
+                + "\n" + "   \"name\": \"Project1\","
+                + "\n" + "   \"description\": \"new projectDescription1\","
+                + "\n" + "   \"tasks\": ["
+                + "\n" + "       {"
+                + "\n" + "           \"name\": \"Task1\","
+                + "\n" + "           \"description\": \"new taskDescription1\","
+                + "\n" + "           \"worker\": {"
+                + "\n" + "               \"name\": \"Worker1\","
+                + "\n" + "               \"description\": \"new workerDescription1\","
+                + "\n" + "               \"company\": { "
+                + "\n" + "                   \"name\": \"Company1\","
+                + "\n" + "                   \"description\": \"new companyDescription1\""
+                + "\n" + "               }"
+                + "\n" + "           },"
+                + "\n" + "           \"subtasks\": ["
+                + "\n" + "               {"
+                + "\n" + "                   \"name\": \"Subtask1.1\","
+                + "\n" + "                   \"description\": \"new subtaskDescription1.1\","
+                + "\n" + "                   \"worker\": {"
+                + "\n" + "                       \"name\": \"Worker1\","
+                + "\n" + "                       \"company\": { "
+                + "\n" + "                           \"name\": \"Company1\""
+                + "\n" + "                       }"
+                + "\n" + "                   }"
+                + "\n" + "               },"
+                + "\n" + "               {"
+                + "\n" + "                   \"name\": \"Subtask1.2\","
+                + "\n" + "                   \"description\": \"new subtaskDescription1.2\","
+                + "\n" + "                   \"worker\": {"
+                + "\n" + "                       \"name\": \"Worker2\","
+                + "\n" + "                       \"company\": { "
+                + "\n" + "                           \"name\": \"Company1\""
+                + "\n" + "                       }"
+                + "\n" + "                   }"
+                + "\n" + "               },"
+                + "\n" + "               {"
+                + "\n" + "                   \"name\": \"Subtask1.3\","
+                + "\n" + "                   \"description\": \"new subtaskDescription1.3\","
+                + "\n" + "                   \"worker\": {"
+                + "\n" + "                       \"name\": \"Worker2\","
+                + "\n" + "                       \"description\": \"new workerDescription2\","
+                + "\n" + "                       \"company\": { "
+                + "\n" + "                           \"name\": \"Company1\""
+                + "\n" + "                       }"
+                + "\n" + "                   }"
+                + "\n" + "               },"
+                + "\n" + "               {"
+                + "\n" + "                   \"name\": \"Subtask1.4\","
+                + "\n" + "                   \"description\": \"new subtaskDescription1.4\","
+                + "\n" + "                   \"worker\": {"
+                + "\n" + "                       \"name\": \"Worker3\","
+                + "\n" + "                       \"company\": { "
+                + "\n" + "                           \"name\": \"Company2\","
+                + "\n" + "                           \"description\": \"new companyDescription2\""
+                + "\n" + "                       }"
+                + "\n" + "                   }"
+                + "\n" + "               }"
+                + "\n" + "           ]"
+                + "\n" + "       },"
+                + "\n" + "       {"
+                + "\n" + "           \"name\": \"Task2\","
+                + "\n" + "           \"description\": \"new taskDescription2\","
+                + "\n" + "           \"worker\": {"
+                + "\n" + "               \"name\": \"Worker2\","
+                + "\n" + "               \"company\": { "
+                + "\n" + "                   \"name\": \"Company1\""
+                + "\n" + "               }"
+                + "\n" + "           }"
+                + "\n" + "       },"
+                + "\n" + "       {"
+                + "\n" + "           \"name\": \"Task3\","
+                + "\n" + "           \"description\": \"new taskDescription3\","
+                + "\n" + "           \"worker\": {"
+                + "\n" + "               \"name\": \"Worker3\","
+                + "\n" + "               \"description\": \"new workerDescription3\","
+                + "\n" + "               \"company\": { "
+                + "\n" + "                   \"name\": \"Company2\""
+                + "\n" + "               }"
+                + "\n" + "           }"
+                + "\n" + "       },"
+                + "\n" + "       {"
+                + "\n" + "           \"name\": \"Task4\","
+                + "\n" + "           \"description\": \"new taskDescription4\","
+                + "\n" + "           \"worker\": {"
+                + "\n" + "               \"name\": \"Worker4\","
+                + "\n" + "               \"company\": { "
+                + "\n" + "                   \"name\": \"Company3\""
+                + "\n" + "               }"
+                + "\n" + "           },"
+                + "\n" + "           \"subtasks\": ["
+                + "\n" + "               {"
+                + "\n" + "                   \"name\": \"Subtask4.1\","
+                + "\n" + "                   \"description\": \"new subtaskDescription4.1\","
+                + "\n" + "                   \"worker\": {"
+                + "\n" + "                       \"name\": \"Worker4\","
+                + "\n" + "                       \"company\": { "
+                + "\n" + "                           \"name\": \"Company3\","
+                + "\n" + "                           \"description\": \"new companyDescription3\""
+                + "\n" + "                       }"
+                + "\n" + "                   }"
+                + "\n" + "               },"
+                + "\n" + "               {"
+                + "\n" + "                   \"name\": \"Subtask4.2\","
+                + "\n" + "                   \"description\": \"new subtaskDescription4.2\","
+                + "\n" + "                   \"worker\": {"
+                + "\n" + "                       \"name\": \"Worker4\","
+                + "\n" + "                       \"company\": { "
+                + "\n" + "                           \"name\": \"Company3\""
+                + "\n" + "                       }"
+                + "\n" + "                   }"
+                + "\n" + "               },"
+                + "\n" + "               {"
+                + "\n" + "                   \"name\": \"Subtask4.3\","
+                + "\n" + "                   \"description\": \"new subtaskDescription4.3\","
+                + "\n" + "                   \"worker\": {"
+                + "\n" + "                       \"name\": \"Worker4\","
+                + "\n" + "                       \"description\": \"new workerDescription4\","
+                + "\n" + "                       \"company\": { "
+                + "\n" + "                           \"name\": \"Company3\""
+                + "\n" + "                       }"
+                + "\n" + "                   }"
+                + "\n" + "               },"
+                + "\n" + "               {"
+                + "\n" + "                   \"name\": \"Subtask4.4\","
+                + "\n" + "                   \"description\": \"new subtaskDescription4.4\","
+                + "\n" + "                   \"worker\": {"
+                + "\n" + "                       \"name\": \"Worker5\","
+                + "\n" + "                       \"description\": \"new workerDescription5\","
+                + "\n" + "                       \"company\": { "
+                + "\n" + "                           \"name\": \"Company3\""
+                + "\n" + "                       }"
+                + "\n" + "                   }"
+                + "\n" + "               }"
+                + "\n" + "           ]"
+                + "\n" + "       }"
+                + "\n" + "   ]"
+                + "\n" + "}";
+
+		// update document
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.body(jsonBody2)
+			.expect()
+			.statusCode(200)
+			.when()
+			.put("/projects/" + projectId);
+
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+			.statusCode(200)
+			.body("result",			                                        hasSize(1))
+			.body("result_count",		                                        equalTo(1))
+			.body("result[0].name",                                                 equalTo("Project1"))
+			.body("result[0].description",                                          equalTo("new projectDescription1"))
+
+			.body("result[0].tasks[0].name",                                        equalTo("Task1"))
+			.body("result[0].tasks[0].description",                                 equalTo("new taskDescription1"))
+			.body("result[0].tasks[0].worker.name",                                 equalTo("Worker1"))
+			.body("result[0].tasks[0].worker.description",                          equalTo("new workerDescription1"))
+
+			.body("result[0].tasks[1].name",                                        equalTo("Task2"))
+			.body("result[0].tasks[1].description",                                 equalTo("new taskDescription2"))
+			.body("result[0].tasks[1].worker.name",                                 equalTo("Worker2"))
+			.body("result[0].tasks[1].worker.description",                          equalTo("new workerDescription2"))
+
+			.body("result[0].tasks[2].name",                                        equalTo("Task3"))
+			.body("result[0].tasks[2].description",                                 equalTo("new taskDescription3"))
+			.body("result[0].tasks[2].worker.name",                                 equalTo("Worker3"))
+ 			.body("result[0].tasks[2].worker.description",                          equalTo("new workerDescription3"))
+
+			.body("result[0].tasks[3].name",                                        equalTo("Task4"))
+			.body("result[0].tasks[3].description",                                 equalTo("new taskDescription4"))
+			.body("result[0].tasks[3].worker.name",                                 equalTo("Worker4"))
+			.body("result[0].tasks[3].worker.description",                          equalTo("new workerDescription4"))
+
+			.when()
+			.get("/projects/test?name=Project1");
+
+		// check Task1
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+			.statusCode(200)
+			.body("result",			                               hasSize(1))
+			.body("result_count",		                               equalTo(1))
+
+			.body("result[0].name",                                        equalTo("Task1"))
+			.body("result[0].description",                                 equalTo("new taskDescription1"))
+			.body("result[0].worker.name",                                 equalTo("Worker1"))
+			.body("result[0].worker.description",                          equalTo("new workerDescription1"))
+			.body("result[0].worker.company.name",                         equalTo("Company1"))
+			.body("result[0].worker.company.description",                  equalTo("new companyDescription1"))
+
+			.body("result[0].subtasks[0].name",                            equalTo("Subtask1.1"))
+			.body("result[0].subtasks[0].description",                     equalTo("new subtaskDescription1.1"))
+			.body("result[0].subtasks[0].worker.name",                     equalTo("Worker1"))
+			.body("result[0].subtasks[0].worker.description",              equalTo("new workerDescription1"))
+			.body("result[0].subtasks[0].worker.company.name",             equalTo("Company1"))
+			.body("result[0].subtasks[0].worker.company.description",      equalTo("new companyDescription1"))
+			.body("result[0].subtasks[1].name",                            equalTo("Subtask1.2"))
+			.body("result[0].subtasks[1].description",                     equalTo("new subtaskDescription1.2"))
+			.body("result[0].subtasks[1].worker.name",                     equalTo("Worker2"))
+			.body("result[0].subtasks[1].worker.description",              equalTo("new workerDescription2"))
+			.body("result[0].subtasks[1].worker.company.name",             equalTo("Company1"))
+			.body("result[0].subtasks[1].worker.company.description",      equalTo("new companyDescription1"))
+			.body("result[0].subtasks[2].name",                            equalTo("Subtask1.3"))
+			.body("result[0].subtasks[2].description",                     equalTo("new subtaskDescription1.3"))
+			.body("result[0].subtasks[2].worker.name",                     equalTo("Worker2"))
+			.body("result[0].subtasks[2].worker.description",              equalTo("new workerDescription2"))
+			.body("result[0].subtasks[2].worker.company.name",             equalTo("Company1"))
+			.body("result[0].subtasks[2].worker.company.description",      equalTo("new companyDescription1"))
+			.body("result[0].subtasks[3].name",                            equalTo("Subtask1.4"))
+			.body("result[0].subtasks[3].description",                     equalTo("new subtaskDescription1.4"))
+			.body("result[0].subtasks[3].worker.name",                     equalTo("Worker3"))
+			.body("result[0].subtasks[3].worker.description",              equalTo("new workerDescription3"))
+			.body("result[0].subtasks[3].worker.company.name",             equalTo("Company2"))
+			.body("result[0].subtasks[3].worker.company.description",      equalTo("new companyDescription2"))
+
+			.when()
+			.get("/tasks/test?name=Task1");
+
+		// check Task2
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+			.statusCode(200)
+			.body("result",			                               hasSize(1))
+			.body("result_count",		                               equalTo(1))
+
+			.body("result[0].name",                                        equalTo("Task2"))
+			.body("result[0].description",                                 equalTo("new taskDescription2"))
+			.body("result[0].worker.name",                                 equalTo("Worker2"))
+			.body("result[0].worker.description",                          equalTo("new workerDescription2"))
+			.body("result[0].worker.company.name",                         equalTo("Company1"))
+			.body("result[0].worker.company.description",                  equalTo("new companyDescription1"))
+
+			.when()
+			.get("/tasks/test?name=Task2");
+
+
+		// check Task3
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+			.statusCode(200)
+			.body("result",			                               hasSize(1))
+			.body("result_count",		                               equalTo(1))
+
+			.body("result[0].name",                                        equalTo("Task3"))
+			.body("result[0].description",                                 equalTo("new taskDescription3"))
+			.body("result[0].worker.name",                                 equalTo("Worker3"))
+			.body("result[0].worker.description",                          equalTo("new workerDescription3"))
+			.body("result[0].worker.company.name",                         equalTo("Company2"))
+			.body("result[0].worker.company.description",                  equalTo("new companyDescription2"))
+
+			.when()
+			.get("/tasks/test?name=Task3");
+
+
+		// check Task4
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+			.statusCode(200)
+			.body("result",			                               hasSize(1))
+			.body("result_count",		                               equalTo(1))
+
+			.body("result[0].name",                                        equalTo("Task4"))
+			.body("result[0].description",                                 equalTo("new taskDescription4"))
+			.body("result[0].worker.name",                                 equalTo("Worker4"))
+			.body("result[0].worker.description",                          equalTo("new workerDescription4"))
+			.body("result[0].worker.company.name",                         equalTo("Company3"))
+			.body("result[0].worker.company.description",                  equalTo("new companyDescription3"))
+
+			.body("result[0].subtasks[0].name",                            equalTo("Subtask4.1"))
+			.body("result[0].subtasks[0].description",                     equalTo("new subtaskDescription4.1"))
+			.body("result[0].subtasks[0].worker.name",                     equalTo("Worker4"))
+			.body("result[0].subtasks[0].worker.description",              equalTo("new workerDescription4"))
+			.body("result[0].subtasks[0].worker.company.name",             equalTo("Company3"))
+			.body("result[0].subtasks[0].worker.company.description",      equalTo("new companyDescription3"))
+			.body("result[0].subtasks[1].name",                            equalTo("Subtask4.2"))
+			.body("result[0].subtasks[1].description",                     equalTo("new subtaskDescription4.2"))
+			.body("result[0].subtasks[1].worker.name",                     equalTo("Worker4"))
+			.body("result[0].subtasks[1].worker.description",              equalTo("new workerDescription4"))
+			.body("result[0].subtasks[1].worker.company.name",             equalTo("Company3"))
+			.body("result[0].subtasks[1].worker.company.description",      equalTo("new companyDescription3"))
+			.body("result[0].subtasks[2].name",                            equalTo("Subtask4.3"))
+			.body("result[0].subtasks[2].description",                     equalTo("new subtaskDescription4.3"))
+			.body("result[0].subtasks[2].worker.name",                     equalTo("Worker4"))
+			.body("result[0].subtasks[2].worker.description",              equalTo("new workerDescription4"))
+			.body("result[0].subtasks[2].worker.company.name",             equalTo("Company3"))
+			.body("result[0].subtasks[2].worker.company.description",      equalTo("new companyDescription3"))
+			.body("result[0].subtasks[3].name",                            equalTo("Subtask4.4"))
+			.body("result[0].subtasks[3].description",                     equalTo("new subtaskDescription4.4"))
+			.body("result[0].subtasks[3].worker.name",                     equalTo("Worker5"))
+			.body("result[0].subtasks[3].worker.description",              equalTo("new workerDescription5"))
+			.body("result[0].subtasks[3].worker.company.name",             equalTo("Company3"))
+			.body("result[0].subtasks[3].worker.company.description",      equalTo("new companyDescription3"))
+
+			.when()
+			.get("/tasks/test?name=Task4");
+
+		// check companies
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+			.statusCode(200)
+			.body("result",		hasSize(3))
+			.body("result_count",	equalTo(3))
+
+			.body("result[0].name",        equalTo("Company1"))
+			.body("result[0].description", equalTo("new companyDescription1"))
+			.body("result[1].name",        equalTo("Company2"))
+			.body("result[1].description", equalTo("new companyDescription2"))
+			.body("result[2].name",        equalTo("Company3"))
+			.body("result[2].description", equalTo("new companyDescription3"))
+
+			.when()
+			.get("/companies/test");
+
+		// check workers
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+			.statusCode(200)
+			.body("result",			hasSize(5))
+			.body("result_count",		equalTo(5))
+
+			.body("result[0].name",                equalTo("Worker1"))
+			.body("result[0].description",         equalTo("new workerDescription1"))
+			.body("result[0].company.name",        equalTo("Company1"))
+			.body("result[0].company.description", equalTo("new companyDescription1"))
+			.body("result[1].name",                equalTo("Worker2"))
+			.body("result[1].description",         equalTo("new workerDescription2"))
+			.body("result[1].company.name",        equalTo("Company1"))
+			.body("result[1].company.description", equalTo("new companyDescription1"))
+			.body("result[2].name",                equalTo("Worker3"))
+			.body("result[2].description",         equalTo("new workerDescription3"))
+			.body("result[2].company.name",        equalTo("Company2"))
+			.body("result[2].company.description", equalTo("new companyDescription2"))
+			.body("result[3].name",                equalTo("Worker4"))
+			.body("result[3].description",         equalTo("new workerDescription4"))
+			.body("result[3].company.name",        equalTo("Company3"))
+			.body("result[3].company.description", equalTo("new companyDescription3"))
+			.body("result[4].name",                equalTo("Worker5"))
+			.body("result[4].description",         equalTo("new workerDescription5"))
+			.body("result[4].company.name",        equalTo("Company3"))
+			.body("result[4].company.description", equalTo("new companyDescription3"))
 
 			.when()
 			.get("/workers/test");

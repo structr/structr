@@ -197,6 +197,9 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 
 				} else {
 
+					// set properties on related node?
+					setProperties(securityContext, relatedNode, convertedProperties);
+
 					if (foreignProps.isEmpty()) {
 
 						return relatedNode;

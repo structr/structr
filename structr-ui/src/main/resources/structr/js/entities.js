@@ -24,6 +24,7 @@ var _Entities = {
 	activeEditTabPrefix: 'structrActiveEditTab_' + port,
 	numberAttrs: ['position', 'size'],
 	readOnlyAttrs: ['lastModifiedDate', 'createdDate', 'createdBy', 'id', 'checksum', 'size', 'version', 'relativeFilePath'],
+	pencilEditBlacklist: ['html', 'body', 'head', 'title', 'script',  'input', 'label', 'button', 'textarea', 'link', 'meta', 'noscript', 'tbody', 'thead', 'tr', 'td', 'caption', 'colgroup', 'tfoot', 'col', 'style'],
 	changeBooleanAttribute: function(attrElement, value, activeLabel, inactiveLabel) {
 
 		_Logger.log(_LogType.ENTITIES, 'Change boolean attribute ', attrElement, ' to ', value);
@@ -1176,26 +1177,22 @@ var _Entities = {
 	},
 	appendEditSourceIcon: function(parent, entity) {
 
-		if (entity.tag === 'html' || entity.tag === 'body' || entity.tag === 'head'
-			|| entity.tag === 'title' || entity.tag === 'script'
-			|| entity.tag === 'input' || entity.tag === 'label' || entity.tag === 'button' || entity.tag === 'textarea'
-			|| entity.tag === 'link' || entity.tag === 'meta' || entity.tag === 'noscript'
-			|| entity.tag === 'tbody' || entity.tag === 'thead' || entity.tag === 'tr' || entity.tag === 'td'
-			|| entity.tag === 'caption' || entity.tag === 'colgroup' || entity.tag === 'tfoot' || entity.tag === 'col') {
-			return;
+		if (_Entities.pencilEditBlacklist.indexOf(entity.tag) === -1) {
+
+			var editIcon = $('.edit_icon', parent);
+
+			if (!(editIcon && editIcon.length)) {
+				parent.append('<i title="Edit source code" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
+				editIcon = $('.edit_icon', parent);
+			}
+			editIcon.on('click', function(e) {
+				e.stopPropagation();
+				_Logger.log(_LogType.ENTITIES, 'editSource', entity);
+				_Entities.editSource(entity);
+			});
+
 		}
 
-		var editIcon = $('.edit_icon', parent);
-
-		if (!(editIcon && editIcon.length)) {
-			parent.append('<i title="Edit source code" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
-			editIcon = $('.edit_icon', parent);
-		}
-		editIcon.on('click', function(e) {
-			e.stopPropagation();
-			_Logger.log(_LogType.ENTITIES, 'editSource', entity);
-			_Entities.editSource(entity);
-		});
 	},
 	appendEditPropertiesIcon: function(parent, entity, visible) {
 
