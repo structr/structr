@@ -239,17 +239,17 @@ public class Services implements StructrServices {
 		final Properties config = getBaseConfiguration();
 
 		// read structr.conf
-		final String configFileName         = "structr.conf";
-		final File configFile               = new File(configFileName);
+		final String configFileName = "structr.conf";
+		final File configFile       = new File(configFileName);
 
 		if (!configFile.exists()) {
 
-			hasConfigFile = false;
-
-			logger.info("{} not found, starting configuration wizard..", configFileName);
+		hasConfigFile = false;
+		logger.info("{} not found, starting configuration wizard..", configFileName);
 
 		} else {
 
+			hasConfigFile = true;
 			logger.info("Reading {}..", configFileName);
 
 			try {
