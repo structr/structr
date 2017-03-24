@@ -306,6 +306,12 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	@Override
 	public Element createElement(final String tag) throws DOMException {
 
+		return createElement(tag, false);
+
+	}
+
+	public Element createElement (final String tag, final boolean suppressException) {
+
 		final String elementType = StringUtils.capitalize(tag);
 		final App app = StructrApp.getInstance(securityContext);
 
@@ -337,12 +343,15 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			}
 
 		} catch (Throwable t) {
-			logger.error("Unable to instantiate element of type " + elementType, t);
+			if (!suppressException) {
+				logger.error("Unable to instantiate element of type " + elementType, t);
+			}
 		}
 
 		return null;
 
 	}
+
 	@Override
 	protected void handleNewChild(Node newChild) {
 

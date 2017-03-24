@@ -769,7 +769,13 @@ public class Importer {
 
 			} else {
 
-				newNode = (org.structr.web.entity.dom.DOMElement) page.createElement(tag);
+				newNode = (org.structr.web.entity.dom.DOMElement) page.createElement(tag, true);
+
+				if (newNode == null) {
+					newNode = createNewHTMLTemplateNodeForUnsupportedTag(parent, node);
+					isNewTemplateOrComponent = true;
+
+				}
 			}
 
 			if (newNode != null) {
@@ -1335,73 +1341,76 @@ public class Importer {
 		return contentNode;
 	}
 
-        private Template createNewTemplateNode(final DOMNode parent, final List<Node> children) throws FrameworkException{
+	private Template createNewTemplateNode(final DOMNode parent, final List<Node> children) throws FrameworkException {
 
-            Template newTemplate = StructrApp.getInstance(securityContext).create(Template.class);
+		final StringBuilder sb = new StringBuilder();
 
-            newTemplate.setProperty(AbstractNode.visibleToPublicUsers, publicVisible);
-            newTemplate.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+		for (final Node c : children) {
+			sb.append(nodeToString(c));
+		}
 
-            StringBuilder sb = new StringBuilder();
-            for(Node c : children){
+		return createNewTemplateNode(parent, sb.toString());
+	}
 
-                sb.append(NodeToString(c));
+	private Template createNewHTMLTemplateNodeForUnsupportedTag(final DOMNode parent, final Node nodeOfUnsupportedTag) throws FrameworkException {
 
-            }
+		final Template htmlTemplate = createNewTemplateNode(parent, nodeToString(nodeOfUnsupportedTag));
 
-            newTemplate.setProperty(new StringProperty("content"), sb.toString());
+		htmlTemplate.setProperty(Template.contentType, "text/html");
 
-			if(parent != null){
-				parent.appendChild(newTemplate);
-			}
+		return htmlTemplate;
 
-            return newTemplate;
-        }
+	}
 
-		private DOMNode createSharedComponent(final Node node) throws FrameworkException{
+	private Template createNewTemplateNode(final DOMNode parent, final String content) throws FrameworkException {
 
-			ShadowDocument shadowDoc = CreateComponentCommand.getOrCreateHiddenDocument();
-			return createChildNodes(node, null, shadowDoc);
+		Template newTemplate = StructrApp.getInstance(securityContext).create(Template.class);
+
+		newTemplate.setProperty(AbstractNode.visibleToPublicUsers, publicVisible);
+		newTemplate.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+
+		newTemplate.setProperty(new StringProperty("content"), content);
+
+		if (parent != null) {
+			parent.appendChild(newTemplate);
+		}
+
+		return newTemplate;
+
+	}
+
+	private DOMNode createSharedComponent(final Node node) throws FrameworkException {
+
+		ShadowDocument shadowDoc = CreateComponentCommand.getOrCreateHiddenDocument();
+		return createChildNodes(node, null, shadowDoc);
+
+	}
+
+	private String nodeToString(Node node) {
+
+		if (node instanceof TextNode) {
+
+			return ((TextNode) node).getWholeText();
+
+		} else if (node instanceof Element) {
+
+			final Element el = (Element) node;
+
+			final boolean prettyPrintBackup = el.ownerDocument().outputSettings().prettyPrint();
+
+			el.ownerDocument().outputSettings().prettyPrint(false);
+
+			final String result = el.outerHtml();
+
+			el.ownerDocument().outputSettings().prettyPrint(prettyPrintBackup);
+
+			return result;
+
+		} else {
+
+			return node.toString();
 
 		}
 
-		private String NodeToString(Node node){
-
-			StringBuilder sb = new StringBuilder();
-
-			if(node instanceof TextNode){
-
-				return ((TextNode)node).getWholeText();
-
-			} else if(node instanceof Element) {
-
-				Element el = (Element)node;
-				sb.append("<").append(el.tagName());
-
-				if(el.attributes().size() > 0){
-
-					sb.append(" ");
-					sb.append(el.attributes().html());
-
-				}
-
-				sb.append(">");
-
-				for(Node child : el.childNodes()){
-
-					sb.append(NodeToString(child));
-
-				}
-
-				sb.append("</").append(el.tagName()).append(">");
-
-			} else {
-
-				return node.toString();
-
-			}
-
-			return sb.toString();
-
-		}
+	}
 }
