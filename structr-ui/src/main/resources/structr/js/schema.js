@@ -17,7 +17,7 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var canvas, instance, res, nodes = {}, rels = {}, localStorageSuffix = '_schema_' + port, undefinedRelType = 'UNDEFINED_RELATIONSHIP_TYPE', initialRelType = undefinedRelType;
-var radius = 20, stub = 30, offset = 0, maxZ = 0, reload = false;
+var maxZ = 0, reload = false;
 var schemaContainer;
 var inheritanceTree, inheritanceSlideout;
 
@@ -759,23 +759,30 @@ var _Schema = {
 			contentType: 'application/json; charset=utf-8',
 			success: function(data) {
 
+				var existingRels = {};
 				var relCnt = {};
 				$.each(data.result, function(i, res) {
-
-					var relIndex = res.sourceId + '-' + res.targetId;
-					if (relCnt[relIndex] !== undefined) {
-						relCnt[relIndex]++;
-					} else {
-						relCnt[relIndex] = 0;
-					}
-
-					radius = 20 + 10 * relCnt[relIndex];
-					stub   = 30 + 80 * relCnt[relIndex];
-					offset =     0.1 * relCnt[relIndex];
 
 					if (!nodes[res.sourceId] || !nodes[res.targetId] || _Schema.hiddenSchemaNodes.indexOf(nodes[res.sourceId].name) > -1 || _Schema.hiddenSchemaNodes.indexOf(nodes[res.targetId].name) > -1) {
 						return;
 					}
+
+					var relIndex = res.sourceId + '-' + res.targetId;
+					if (relCnt[relIndex] === undefined) {
+						relCnt[relIndex] = 0;
+					} else {
+						relCnt[relIndex]++;
+
+					}
+
+					existingRels[relIndex] = true;
+					if (existingRels[res.targetId + '-' + res.sourceId]) {
+						relCnt[relIndex] += existingRels[res.targetId + '-' + res.sourceId];
+					}
+
+					var radius = 20 + 10 * relCnt[relIndex];
+					var stub   = 30 + 80 * relCnt[relIndex];
+					var offset =     0.2 * relCnt[relIndex];
 
 					rels[res.id] = instance.connect({
 						source: nodes[res.sourceId + '_bottom'],
