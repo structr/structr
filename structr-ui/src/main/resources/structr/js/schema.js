@@ -717,6 +717,8 @@ var _Schema = {
 	},
 	openEditDialog: function(id, targetView, callback) {
 
+		targetView = targetView || LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + id);
+
 		_Schema.currentNodeDialogId = id;
 
 		dialogMeta.hide();
@@ -860,7 +862,7 @@ var _Schema = {
 				Command.search(typeName, 'SchemaNode', function(results) {
 					if (results.length === 1) {
 
-						_Schema.openEditDialog(results[0].id, null, function() {
+						_Schema.openEditDialog(results[0].id, undefined, function() {
 
 							window.setTimeout(function() {
 
