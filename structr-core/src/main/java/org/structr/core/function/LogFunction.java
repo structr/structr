@@ -51,7 +51,9 @@ public class LogFunction extends Function<Object, Object> {
 			final StringBuilder buf = new StringBuilder();
 			for (final Object obj : sources) {
 
-				buf.append(Scripting.formatToDefaultDateOrString(obj));
+				if (obj != null) {
+					buf.append(Scripting.formatToDefaultDateOrString(obj));
+				}
 			}
 
 			logger.info(buf.toString());
