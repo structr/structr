@@ -1342,6 +1342,12 @@ button img, button i {
 	cursor: move;
 }
 
+.pages-sortable-placeholder {
+    /*background: #c2ed92;*/
+    height: 20px ! important;
+    /*margin: 0 0 0 11px;*/
+}
+
 #offset-tester {
 	border: 1px solid red;
 	position: absolute;

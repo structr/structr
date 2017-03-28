@@ -159,6 +159,7 @@ var _Dragndrop = {
 			appendTo: '#main',
 			forceHelperSize: true,
 			forcePlaceholderSize: true,
+			placeholder: 'pages-sortable-placeholder',
 			distance: 5,
 			helper: function (event, helperEl) {
 				pages.append('<div id="collapse-offset"></div>');
