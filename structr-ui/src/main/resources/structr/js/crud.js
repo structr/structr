@@ -85,6 +85,7 @@ var _Crud = {
 	_moduleName: 'crud',
 	displayTypeConfigKey: 'structrCrudDisplayTypes_' + port,
 	types: {},
+	relInfo: {},
 	keys: {},
 	crudCache: new AsyncObjectCache(function (id) {
 		$.ajax({
@@ -510,6 +511,18 @@ var _Crud = {
 	 */
 	loadSchema: function(callback) {
 
+		var processRelInfo = function (relInfo) {
+			if (relInfo) {
+				relInfo.forEach(function(r) {
+					_Crud.relInfo[r.type] = {
+						source: r.possibleSourceTypes,
+						target: r.possibleTargetTypes
+					};
+
+				});
+			}
+		};
+
 		$.ajax({
 			url: rootUrl + '_schema',
 			dataType: 'json',
@@ -518,6 +531,8 @@ var _Crud = {
 				200: function(data) {
 					data.result.forEach(function(typeObj) {
 						_Crud.types[typeObj.type] = typeObj;
+						processRelInfo(typeObj.relatedTo);
+						processRelInfo(typeObj.relatedFrom);
 					});
 
 					if (callback) {
@@ -1594,6 +1609,7 @@ var _Crud = {
 		}
 	},
 	populateCell: function(id, key, type, value, cell) {
+		var isRel = _Crud.types[type].isRel;
 		var isCollection = _Crud.isCollection(key, type);
 		var isEnum = _Crud.isEnum(key, type);
 		var relatedType = _Crud.relatedType(key, type);
@@ -1742,6 +1758,16 @@ var _Crud = {
 
 			simpleType = lastPart(relatedType, '.');
 
+			if (isRel) {
+
+				if (key === 'sourceId') {
+					simpleType = _Crud.relInfo[type].source;
+				} else if (key === 'targetId') {
+					simpleType = _Crud.relInfo[type].target;
+				}
+
+			}
+
 			if (value) {
 
 				_Crud.getAndAppendNode(type, id, key, value, cell);
@@ -1750,10 +1776,18 @@ var _Crud = {
 
 				cell.append('<i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" />');
 				$('.add', cell).on('click', function() {
-					_Crud.dialog('Add ' + simpleType + ' to ' + key, function() {
-					}, function() {
+					if (!dialogBox.is(':visible')) {
+						_Crud.dialog('Add ' + simpleType + ' to ' + key, function() { }, function() { });
+					}
+					var btn = $(this);
+					$('#entityForm').hide();
+					_Crud.displaySearch(type, id, key, simpleType, dialogText, function (n) {
+						$('.searchBox', dialogText).remove();
+						btn.remove();
+						_Crud.getAndAppendNode(type, id, key, n, cell, n, true);
+						_Crud.clearSearchResults(dialogText);
+						$('#entityForm').show();
 					});
-					_Crud.displaySearch(type, id, key, simpleType, dialogText);
 				});
 			}
 
@@ -1794,7 +1828,8 @@ var _Crud = {
 			_Crud.resetCell(id, key, oldValue);
 		});
 	},
-	getAndAppendNode: function(parentType, parentId, key, obj, cell, preloadedNode) {
+	getAndAppendNode: function(parentType, parentId, key, obj, cell, preloadedNode, insertFakeInput) {
+		console.log(parentType, parentId, key, obj, cell, preloadedNode, insertFakeInput)
 		if (!obj) {
 			return;
 		}
@@ -1832,6 +1867,8 @@ var _Crud = {
 			var isSourceOrTarget = _Crud.types[parentType].isRel && (key === 'sourceId' || key === 'targetId');
 			if (!isSourceOrTarget) {
 				nodeEl.append('<i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
+			} else if (insertFakeInput) {
+				nodeEl.append('<input type="hidden" name="' + key + '" value="' + node.id + '" /></div>');
 			}
 
 			if (node.isImage) {
@@ -2041,7 +2078,7 @@ var _Crud = {
 		}
 		return displayName;
 	},
-	displaySearch: function(parentType, id, key, type, el) {
+	displaySearch: function(parentType, id, key, type, el, callbackOverride) {
 		el.append('<div class="searchBox searchBoxDialog"><input class="search" name="search" size="20" placeholder="Search"><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
 		var searchBox = $('.searchBoxDialog', el);
 		var search = $('.search', searchBox);
@@ -2064,9 +2101,13 @@ var _Crud = {
 
 				_Crud.search(searchString, el, type, function(e, node) {
 					e.preventDefault();
-					_Crud.addRelatedObject(parentType, id, key, node, function() {
-						//document.location.reload();
-					});
+					if (typeof callbackOverride === "function") {
+						callbackOverride(node);
+					} else {
+						_Crud.addRelatedObject(parentType, id, key, node, function() {
+							//document.location.reload();
+						});
+					}
 					return false;
 				});
 
