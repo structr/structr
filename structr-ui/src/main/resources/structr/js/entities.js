@@ -1405,17 +1405,28 @@ var _Entities = {
 				.prop('title', 'Collapse ' + displayName);
 		}
 	},
-	expandAll: function(ids) {
+	expandAll: function(ids, lastId) {
 		if (!ids || ids.length === 0) {
 			return;
 		}
 
 		ids.forEach(function(id) {
 			var el = Structr.node(id);
-			if (el) {
-				$('.nodeSelected').removeClass('nodeSelected');
-				el.addClass('nodeSelected');
+
+			if (el && id === lastId) {
+				_Entities.deselectAllElements();
+				_Entities.highlightElement(el);
+			} else if (!el && id === lastId) {
+				// if node is not present, delay and retry
+				window.setTimeout(function() {
+					var el = Structr.node(id);
+					if (el) {
+						_Entities.deselectAllElements();
+						_Entities.highlightElement(el);
+					}
+				}, 500);
 			}
+
 			_Entities.ensureExpanded(el, function(childNodes) {
 				if (childNodes && childNodes.length) {
 					var childNode = childNodes[0];
@@ -1423,10 +1434,35 @@ var _Entities = {
 					if (i > 1) {
 						ids.slice(i - 1, i);
 					}
-					_Entities.expandAll(ids);
+					_Entities.expandAll(ids, lastId);
 				}
 			});
 		});
+	},
+	deselectAllElements: function () {
+		$('.nodeSelected').removeClass('nodeSelected');
+	},
+	highlightElement:function(el) {
+		el.addClass('nodeSelected');
+
+		if (el.offset().top + el.height() + pages.scrollTop() > pages.prop('clientHeight')) {
+			// element is *below* the currently visible portion of the pages tree
+
+			// scroll to lower boundary of the element
+			pages.animate({
+				scrollTop: el.offset().top + el.height() + pages.scrollTop() - pages.prop('clientHeight')
+			});
+
+		} else if (el.offset().top - pages.offset().top < pages.scrollTop()) {
+			// element is *above* the currently visible portion of the pages tree
+
+			// scroll to upper boundary of element
+			pages.animate({
+				scrollTop: el.offset().top - pages.offset().top + pages.scrollTop()
+			});
+
+		}
+
 	},
 	toggleElement: function(element, expanded) {
 

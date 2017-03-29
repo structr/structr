@@ -320,11 +320,11 @@ var _Pages = {
 
 				var code = $('#_code', dialog).val();
 				var address = $('#_address', dialog).val();
-				
+
 				if (code.length > 0) {
 					address = null;
 				}
-				
+
 				var name = $('#_name', dialog).val();
 				var publicVisible = $('#_publicVisible', dialog).prop('checked');
 				var authVisible = $('#_authVisible', dialog).prop('checked');
@@ -782,14 +782,14 @@ var _Pages = {
 								if (!selected) {
 									self.toggleClass('structr-element-container-selected');
 								}
-								$('.nodeSelected').removeClass('nodeSelected');
+								_Entities.deselectAllElements();
 								_Pages.displayDataBinding(structrId);
 								if (!Structr.node(structrId)) {
 									_Pages.expandTreeNode(structrId);
 								} else {
 									var treeEl = Structr.node(structrId);
 									if (treeEl && !selected) {
-										treeEl.toggleClass('nodeSelected');
+										_Entities.highlightElement(treeEl);
 									}
 								}
 								return false;
@@ -1072,17 +1072,18 @@ var _Pages = {
 		});
 
 	},
-	expandTreeNode: function(id, stack) {
+	expandTreeNode: function(id, stack, lastId) {
 		if (!id) {
 			return;
 		}
+		lastId = lastId || id;
 		stack = stack || [];
 		stack.push(id);
 		Command.get(id, function(obj) {
 			if (obj.parent) {
-				_Pages.expandTreeNode(obj.parent.id, stack);
+				_Pages.expandTreeNode(obj.parent.id, stack, lastId);
 			} else {
-				_Entities.expandAll(stack.reverse());
+				_Entities.expandAll(stack.reverse(), lastId);
 			}
 		});
 	},
