@@ -239,9 +239,7 @@ function wsConnect() {
 						if (codeStr === "404") {
 							new MessageBuilder().className(msgClass).text('Object not found.').show();
 						} else if (data.error && data.error.errors) {
-							data.error.errors.forEach(function(error) {
-								new MessageBuilder().className(msgClass).title(data.error.message).text(error.type + '.' + error.property + ' ' + error.token + ': ' + error.value).show();
-							});
+							Structr.errorFromResponse(data.error);
 						} else {
 							new MessageBuilder().className(msgClass).text(msg).show();
 						}

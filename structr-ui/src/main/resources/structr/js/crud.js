@@ -999,6 +999,11 @@ var _Crud = {
 				data: importArea.val().split('\n').map($.trim).filter(function(line) { return line !== ''; }).join('\n'),
 				success: function(data) {
 					_Crud.refreshList(type);
+				},
+				error: function(data) {
+					if (data.responseJSON) {
+						Structr.errorFromResponse(data.responseJSON, url);
+					}
 				}
 			});
 

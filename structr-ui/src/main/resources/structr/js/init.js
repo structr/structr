@@ -923,15 +923,24 @@ var Structr = {
 
 		if (response.errors && response.errors.length) {
 
-			$.each(response.errors, function(i, err) {
+			var errorLines = [];
 
-                errorText += err.type+ '.';
-                errorText += err.property + ' ';
-                errorText += err.token + ': ' ;
-                errorText += err.detail;
-				errorText += '\n';
+			response.errors.forEach(function(error) {
+
+                var errorMsg = error.type;
+				if (error.property) {
+					errorMsg += '.' + error.property;
+				}
+                errorMsg += ' ' + error.token;
+				if (error.detail) {
+					errorMsg += ': ' + error.detail;
+				}
+
+				errorLines.push(errorMsg);
 
 			});
+
+			errorText = errorLines.join('<br>');
 
 		} else {
 
