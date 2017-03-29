@@ -1829,7 +1829,6 @@ var _Crud = {
 		});
 	},
 	getAndAppendNode: function(parentType, parentId, key, obj, cell, preloadedNode, insertFakeInput) {
-		console.log(parentType, parentId, key, obj, cell, preloadedNode, insertFakeInput)
 		if (!obj) {
 			return;
 		}
