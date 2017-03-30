@@ -1171,29 +1171,29 @@ var _Crud = {
 					$('#saveProperties').remove();
 				},
 				400: function(data, status, xhr) {
-					_Crud.error('Bad request: ' + data.responseText, true);
+					Structr.error('Bad request: ' + data.responseText, true);
 					_Crud.showCreateError(type, data, onError);
 				},
 				401: function(data, status, xhr) {
-					_Crud.error('Authentication required: ' + data.responseText, true);
+					Structr.error('Authentication required: ' + data.responseText, true);
 					_Crud.showCreateError(type, data, onError);
 				},
 				403: function(data, status, xhr) {
-					_Crud.error('Forbidden: ' + data.responseText, true);
+					Structr.error('Forbidden: ' + data.responseText, true);
 					_Crud.showCreateError(type, data, onError);
 				},
 				404: function(data, status, xhr) {
-					_Crud.error('Not found: ' + data.responseText, true);
+					Structr.error('Not found: ' + data.responseText, true);
 					_Crud.showCreateError(type, data, onError);
 				},
 				422: function(data, status, xhr) {
 					if (dialogBox.is(':visible')) {
-						_Crud.error('Unprocessable entity: ' + data.responseText, true);
+						Structr.error('Unprocessable entity: ' + data.responseText, true);
 					}
 					_Crud.showCreateError(type, data, onError);
 				},
 				500: function(data, status, xhr) {
-					_Crud.error('Internal Error: ' + data.responseText, true);
+					Structr.error('Internal Error: ' + data.responseText, true);
 					_Crud.showCreateError(type, data, onError);
 				}
 			}
@@ -1307,28 +1307,28 @@ var _Crud = {
 					}
 				},
 				400: function(data, status, xhr) {
-					_Crud.error('Bad request: ' + data.responseText, true);
+					Structr.error('Bad request: ' + data.responseText, true);
 					handleError();
 				},
 				401: function(data, status, xhr) {
-					_Crud.error('Authentication required: ' + data.responseText, true);
+					Structr.error('Authentication required: ' + data.responseText, true);
 					handleError();
 				},
 				403: function(data, status, xhr) {
 					console.log(data, status, xhr);
-					_Crud.error('Forbidden: ' + data.responseText, true);
+					Structr.error('Forbidden: ' + data.responseText, true);
 					handleError();
 				},
 				404: function(data, status, xhr) {
-					_Crud.error('Not found: ' + data.responseText, true);
+					Structr.error('Not found: ' + data.responseText, true);
 					handleError();
 				},
 				422: function(data, status, xhr) {
-					_Crud.error('Error: ' + data.responseText, true);
+					Structr.error('Error: ' + data.responseText, true);
 					handleError();
 				},
 				500: function(data, status, xhr) {
-					_Crud.error('Internal Error: ' + data.responseText, true);
+					Structr.error('Internal Error: ' + data.responseText, true);
 					handleError();
 				}
 			}
@@ -1366,27 +1366,27 @@ var _Crud = {
 					}
 				},
 				400: function(data, status, xhr) {
-					_Crud.error('Bad request: ' + data.responseText, true);
+					Structr.error('Bad request: ' + data.responseText, true);
 					handleError();
 				},
 				401: function(data, status, xhr) {
-					_Crud.error('Authentication required: ' + data.responseText, true);
+					Structr.error('Authentication required: ' + data.responseText, true);
 					handleError();
 				},
 				403: function(data, status, xhr) {
-					_Crud.error('Forbidden: ' + data.responseText, true);
+					Structr.error('Forbidden: ' + data.responseText, true);
 					handleError();
 				},
 				404: function(data, status, xhr) {
-					_Crud.error('Not found: ' + data.responseText, true);
+					Structr.error('Not found: ' + data.responseText, true);
 					handleError();
 				},
 				422: function(data, status, xhr) {
-					_Crud.error('Error: ' + data.responseText, true);
+					Structr.error('Error: ' + data.responseText, true);
 					handleError();
 				},
 				500: function(data, status, xhr) {
-					_Crud.error('Internal Error: ' + data.responseText, true);
+					Structr.error('Internal Error: ' + data.responseText, true);
 					handleError();
 				}
 			}
@@ -1427,27 +1427,27 @@ var _Crud = {
 					handleSuccess();
 				},
 				400: function(data, status, xhr) {
-					_Crud.error('Bad request: ' + data.responseText, true);
+					Structr.error('Bad request: ' + data.responseText, true);
 					handleError();
 				},
 				401: function(data, status, xhr) {
-					_Crud.error('Authentication required: ' + data.responseText, true);
+					Structr.error('Authentication required: ' + data.responseText, true);
 					handleError();
 				},
 				403: function(data, status, xhr) {
-					_Crud.error('Forbidden: ' + data.responseText, true);
+					Structr.error('Forbidden: ' + data.responseText, true);
 					handleError();
 				},
 				404: function(data, status, xhr) {
-					_Crud.error('Not found: ' + data.responseText, true);
+					Structr.error('Not found: ' + data.responseText, true);
 					handleError();
 				},
 				422: function(data, status, xhr) {
-					_Crud.error('Error: ' + data.responseText, true);
+					Structr.error('Error: ' + data.responseText, true);
 					handleError();
 				},
 				500: function(data, status, xhr) {
-					_Crud.error('Internal Error: ' + data.responseText, true);
+					Structr.error('Internal Error: ' + data.responseText, true);
 					handleError();
 				}
 			}
@@ -1469,22 +1469,22 @@ var _Crud = {
 					row.remove();
 				},
 				400: function(data, status, xhr) {
-					_Crud.error('Bad request: ' + data.responseText, true);
+					Structr.error('Bad request: ' + data.responseText, true);
 				},
 				401: function(data, status, xhr) {
-					_Crud.error('Authentication required: ' + data.responseText, true);
+					Structr.error('Authentication required: ' + data.responseText, true);
 				},
 				403: function(data, status, xhr) {
 					console.log(data, status, xhr);
-					_Crud.error('Forbidden: ' + data.responseText, true);
+					Structr.error('Forbidden: ' + data.responseText, true);
 				},
 				404: function(data, status, xhr) {
-					_Crud.error('Not found: ' + data.responseText, true);
+					Structr.error('Not found: ' + data.responseText, true);
 				},
 				422: function(data, status, xhr) {
 				},
 				500: function(data, status, xhr) {
-					_Crud.error('Internal Error: ' + data.responseText, true);
+					Structr.error('Internal Error: ' + data.responseText, true);
 				}
 			}
 		});
@@ -2341,15 +2341,6 @@ var _Crud = {
 
 		Structr.resize();
 
-	},
-	error: function(text, confirmationRequired) {
-		var message = new MessageBuilder().error(text);
-		if (confirmationRequired) {
-			message.requiresConfirmation();
-		} else {
-			message.delayDuration(2000).fadeDuration(1000);
-		}
-		message.show();
 	},
 	showDetails: function(n, typeParam) {
 
