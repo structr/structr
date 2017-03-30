@@ -1778,16 +1778,18 @@ var _Crud = {
 				$('.add', cell).on('click', function() {
 					if (!dialogBox.is(':visible')) {
 						_Crud.dialog('Add ' + simpleType + ' to ' + key, function() { }, function() { });
+						_Crud.displaySearch(type, id, key, simpleType, dialogText);
+					} else {
+						var btn = $(this);
+						$('#entityForm').hide();
+						_Crud.displaySearch(type, id, key, simpleType, dialogText, function (n) {
+							$('.searchBox', dialogText).remove();
+							btn.remove();
+							_Crud.getAndAppendNode(type, id, key, n, cell, n, true);
+							_Crud.clearSearchResults(dialogText);
+							$('#entityForm').show();
+						});
 					}
-					var btn = $(this);
-					$('#entityForm').hide();
-					_Crud.displaySearch(type, id, key, simpleType, dialogText, function (n) {
-						$('.searchBox', dialogText).remove();
-						btn.remove();
-						_Crud.getAndAppendNode(type, id, key, n, cell, n, true);
-						_Crud.clearSearchResults(dialogText);
-						$('#entityForm').show();
-					});
 				});
 			}
 
