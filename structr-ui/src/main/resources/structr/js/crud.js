@@ -1170,30 +1170,30 @@ var _Crud = {
 					}
 					$('#saveProperties').remove();
 				},
-				400: function(data, status, xhr) {
-					Structr.error('Bad request: ' + data.responseText, true);
+				400: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url, {statusCode: 400, requiresConfirmation: true});
 					_Crud.showCreateError(type, data, onError);
 				},
-				401: function(data, status, xhr) {
-					Structr.error('Authentication required: ' + data.responseText, true);
+				401: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url, {statusCode: 401, requiresConfirmation: true});
 					_Crud.showCreateError(type, data, onError);
 				},
-				403: function(data, status, xhr) {
-					Structr.error('Forbidden: ' + data.responseText, true);
+				403: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url, {statusCode: 403, requiresConfirmation: true});
 					_Crud.showCreateError(type, data, onError);
 				},
-				404: function(data, status, xhr) {
-					Structr.error('Not found: ' + data.responseText, true);
+				404: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url, {statusCode: 404, requiresConfirmation: true});
 					_Crud.showCreateError(type, data, onError);
 				},
-				422: function(data, status, xhr) {
+				422: function(data) {
 					if (dialogBox.is(':visible')) {
-						Structr.error('Unprocessable entity: ' + data.responseText, true);
+						Structr.errorFromResponse(data.responseJSON, url, {statusCode: 422, requiresConfirmation: true});
 					}
 					_Crud.showCreateError(type, data, onError);
 				},
-				500: function(data, status, xhr) {
-					Structr.error('Internal Error: ' + data.responseText, true);
+				500: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url, {statusCode: 500, requiresConfirmation: true});
 					_Crud.showCreateError(type, data, onError);
 				}
 			}
@@ -1284,7 +1284,11 @@ var _Crud = {
 		});
 	},
 	crudUpdateObj: function(id, json, onSuccess, onError) {
-		var handleError = function () {
+		var url = rootUrl + id;
+
+		var handleError = function (data, code) {
+			Structr.errorFromResponse(data.responseJSON, url, {statusCode: code, requiresConfirmation: true});
+
 			if (typeof onError === "function") {
 				onError();
 			} else {
@@ -1293,7 +1297,7 @@ var _Crud = {
 		};
 
 		$.ajax({
-			url: rootUrl + id,
+			url: url,
 			data: json,
 			type: 'PUT',
 			dataType: 'json',
@@ -1306,30 +1310,23 @@ var _Crud = {
 						_Crud.crudRefresh(id);
 					}
 				},
-				400: function(data, status, xhr) {
-					Structr.error('Bad request: ' + data.responseText, true);
-					handleError();
+				400: function(data) {
+					handleError(data, 400);
 				},
-				401: function(data, status, xhr) {
-					Structr.error('Authentication required: ' + data.responseText, true);
-					handleError();
+				401: function(data) {
+					handleError(data, 401);
 				},
-				403: function(data, status, xhr) {
-					console.log(data, status, xhr);
-					Structr.error('Forbidden: ' + data.responseText, true);
-					handleError();
+				403: function(data) {
+					handleError(data, 403);
 				},
-				404: function(data, status, xhr) {
-					Structr.error('Not found: ' + data.responseText, true);
-					handleError();
+				404: function(data) {
+					handleError(data, 404);
 				},
-				422: function(data, status, xhr) {
-					Structr.error('Error: ' + data.responseText, true);
-					handleError();
+				422: function(data) {
+					handleError(data, 422);
 				},
-				500: function(data, status, xhr) {
-					Structr.error('Internal Error: ' + data.responseText, true);
-					handleError();
+				500: function(data) {
+					handleError(data, 500);
 				}
 			}
 		});
@@ -1344,7 +1341,9 @@ var _Crud = {
 			obj[key] = null;
 		}
 
-		var handleError = function () {
+		var handleError = function (data, code) {
+			Structr.errorFromResponse(data.responseJSON, url, {statusCode: code, requiresConfirmation: true});
+
 			if (typeof onError === "function") {
 				onError();
 			} else {
@@ -1365,29 +1364,23 @@ var _Crud = {
 						_Crud.crudRefresh(id, key, oldValue);
 					}
 				},
-				400: function(data, status, xhr) {
-					Structr.error('Bad request: ' + data.responseText, true);
-					handleError();
+				400: function(data) {
+					handleError(data, 400);
 				},
-				401: function(data, status, xhr) {
-					Structr.error('Authentication required: ' + data.responseText, true);
-					handleError();
+				401: function(data) {
+					handleError(data, 401);
 				},
-				403: function(data, status, xhr) {
-					Structr.error('Forbidden: ' + data.responseText, true);
-					handleError();
+				403: function(data) {
+					handleError(data, 403);
 				},
-				404: function(data, status, xhr) {
-					Structr.error('Not found: ' + data.responseText, true);
-					handleError();
+				404: function(data) {
+					handleError(data, 404);
 				},
-				422: function(data, status, xhr) {
-					Structr.error('Error: ' + data.responseText, true);
-					handleError();
+				422: function(data) {
+					handleError(data, 422);
 				},
-				500: function(data, status, xhr) {
-					Structr.error('Internal Error: ' + data.responseText, true);
-					handleError();
+				500: function(data) {
+					handleError(data, 500);
 				}
 			}
 		});
@@ -1405,7 +1398,9 @@ var _Crud = {
 			}
 		};
 
-		var handleError = function () {
+		var handleError = function (data, code) {
+			Structr.errorFromResponse(data.responseJSON, url, {statusCode: code, requiresConfirmation: true});
+
 			if (typeof onError === "function") {
 				onError();
 			} else {
@@ -1426,36 +1421,31 @@ var _Crud = {
 				204: function() {
 					handleSuccess();
 				},
-				400: function(data, status, xhr) {
-					Structr.error('Bad request: ' + data.responseText, true);
-					handleError();
+				400: function(data) {
+					handleError(data, 400);
 				},
-				401: function(data, status, xhr) {
-					Structr.error('Authentication required: ' + data.responseText, true);
-					handleError();
+				401: function(data) {
+					handleError(data, 401);
 				},
-				403: function(data, status, xhr) {
-					Structr.error('Forbidden: ' + data.responseText, true);
-					handleError();
+				403: function(data) {
+					handleError(data, 403);
 				},
-				404: function(data, status, xhr) {
-					Structr.error('Not found: ' + data.responseText, true);
-					handleError();
+				404: function(data) {
+					handleError(data, 404);
 				},
-				422: function(data, status, xhr) {
-					Structr.error('Error: ' + data.responseText, true);
-					handleError();
+				422: function(data) {
+					handleError(data, 422);
 				},
-				500: function(data, status, xhr) {
-					Structr.error('Internal Error: ' + data.responseText, true);
-					handleError();
+				500: function(data) {
+					handleError(data, 500);
 				}
 			}
 		});
 	},
 	crudDelete: function(id) {
+		var url = rootUrl + '/' + id;
 		$.ajax({
-			url: rootUrl + '/' + id,
+			url: url,
 			type: 'DELETE',
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8',
@@ -1468,23 +1458,23 @@ var _Crud = {
 					var row = _Crud.row(id);
 					row.remove();
 				},
-				400: function(data, status, xhr) {
-					Structr.error('Bad request: ' + data.responseText, true);
+				400: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url, {statusCode: 400, requiresConfirmation: true});
 				},
-				401: function(data, status, xhr) {
-					Structr.error('Authentication required: ' + data.responseText, true);
+				401: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url, {statusCode: 401, requiresConfirmation: true});
 				},
-				403: function(data, status, xhr) {
-					console.log(data, status, xhr);
-					Structr.error('Forbidden: ' + data.responseText, true);
+				403: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url, {statusCode: 403, requiresConfirmation: true});
 				},
-				404: function(data, status, xhr) {
-					Structr.error('Not found: ' + data.responseText, true);
+				404: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url, {statusCode: 404, requiresConfirmation: true});
 				},
-				422: function(data, status, xhr) {
+				422: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url, {statusCode: 422, requiresConfirmation: true});
 				},
-				500: function(data, status, xhr) {
-					Structr.error('Internal Error: ' + data.responseText, true);
+				500: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url, {statusCode: 500, requiresConfirmation: true});
 				}
 			}
 		});
