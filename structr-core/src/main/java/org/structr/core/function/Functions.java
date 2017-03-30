@@ -379,6 +379,7 @@ public class Functions {
 		functions.put("disable_notifications", new DisableNotificationsFunction());
 		functions.put("enable_notifications", new EnableNotificationsFunction());
 		functions.put("r", new RInterpreterFunction());
+		functions.put("evaluate_script", new EvaluateScriptFunction());
 	}
 
 	public static String cleanString(final Object input) {
