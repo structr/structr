@@ -2421,7 +2421,7 @@ var _Crud = {
 
 		var type = typeParam || node.type;
 		if (!type) {
-			Structr.error('Missing type', function() {}, function() {});
+			Structr.error('Missing type');
 			return;
 		}
 		var typeDef = _Crud.types[type];
