@@ -3701,10 +3701,10 @@ input#element-class {
 .column-resizer {
 	z-index: 2;
 	width: 6px;
-	height: 100%;
+	height: calc(100vh - 90px);
 	background-color: transparent;
 	position: absolute;
-	top: 60;
+	top: 70px;
 	left: 222px;
 	cursor: ew-resize;
 	border: 1px solid transparent;
