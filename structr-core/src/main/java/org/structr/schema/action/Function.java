@@ -37,6 +37,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
+import org.structr.api.config.Settings;
 import org.structr.core.function.Functions;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.StringProperty;
@@ -396,8 +397,7 @@ public abstract class Function<S, T> extends Hint {
 
 	protected String getSandboxFileName(final String source) throws IOException {
 
-		final String basePath = StructrApp.getConfigurationValue(Services.BASE_PATH);
-
+		final String basePath = Settings.BasePath.getValue();
 		if (!basePath.isEmpty()) {
 
 			final String defaultExchangePath = basePath.endsWith("/") ? basePath.concat("exchange") : basePath.concat("/exchange");
@@ -436,8 +436,7 @@ public abstract class Function<S, T> extends Hint {
 
 	protected File getServerlogFile () throws IOException {
 
-		final String basePath = StructrApp.getConfigurationValue(Services.BASE_PATH);
-
+		final String basePath = Settings.BasePath.getValue();
 		if (!basePath.isEmpty()) {
 
 			boolean isDebug = java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments().toString().contains("jdwp");

@@ -23,6 +23,8 @@ import java.util.Properties;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.DatabaseService;
+import org.structr.api.config.Setting;
+import org.structr.api.config.Settings;
 
 /**
  *
@@ -34,20 +36,22 @@ public interface StructrServices {
 	DatabaseService getDatabaseService();
 	boolean isConfigured();
 
-	public static void mergeConfiguration(final Properties baseConfig, final Properties additionalConfig) {
-
-		baseConfig.putAll(additionalConfig);
-		trim(baseConfig);
-	}
-
-	public static void loadConfiguration(final Properties properties, final PropertiesConfiguration config) {
+	public static void loadConfiguration(final PropertiesConfiguration config) {
 
 		final Iterator<String> keys = config.getKeys();
-
 		while (keys.hasNext()) {
 
-			final String key = keys.next();
-			properties.setProperty(key, config.getString(key));
+			final String key         = keys.next();
+			final Setting<?> setting = Settings.getStringSetting(key);
+
+			if (setting != null) {
+
+				setting.setValue(trim(config.getString(key)));
+
+			} else {
+
+				System.err.println("Unknown configuration key " + key + ", ignoring.");
+			}
 		}
 	}
 

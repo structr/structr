@@ -16,21 +16,17 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.serialization.html.attr;
+package org.structr.api.util.html.attr;
+
+import org.structr.api.util.html.Attr;
 
 /**
  *
  *
  */
-public class Context {
+public class Type extends Attr {
 
-	private int depth = 0;
-	
-	public Context(final int depth) {
-		this.depth = depth;
-	}
-	
-	public int getDepth() {
-		return depth;
+	public Type(final String type) {
+		super("type", type);
 	}
 }

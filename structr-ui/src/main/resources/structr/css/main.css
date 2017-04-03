@@ -2283,7 +2283,7 @@ table.push {
  * Resource Access editor
  */
 
-#resourceAccess, #usersAndGroups {
+#resourceAccess, #usersAndGroups, .tab-content {
 	border: 1px solid #999 ! important;
 	background: #fff ! important;
 	font-family: Arial, Helvetica, Sans-serif ! important;
@@ -2355,7 +2355,7 @@ table.push {
 	min-width: 60px;
 }
 
-#securityTabs {
+#securityTabs, #configTabs {
 	margin: 12px 24px 12px 12px;
 	width: calc(100vw - 36px);
 	min-width: calc(804px + 4em);
@@ -2395,7 +2395,7 @@ li.ui-state-active a:visited {
 	color: #333 ! important;
 }
 
-#securityTabsMenu {
+#securityTabsMenu, #configTabsMenu {
 	border: none;
 	background: none;
 }

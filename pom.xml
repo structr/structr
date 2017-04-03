@@ -114,7 +114,6 @@
 			<modules>
 				<module>structr-db-driver-api</module>
 				<module>structr-neo4j-bolt-driver</module>
-				<module>structr-net</module>
 				<module>structr-core</module>
 				<module>structr-rest</module>
 				<module>structr-ui</module>
@@ -171,6 +170,13 @@
 					</plugin>
 				</plugins>
 			</build>
+		</profile>
+		<profile>
+			<id>all-modules</id>
+			<modules>
+				<module>structr-net</module>
+				<module>structr-modules</module>
+			</modules>
 		</profile>
 		<profile>
 			<id>release-sign-artifacts</id>

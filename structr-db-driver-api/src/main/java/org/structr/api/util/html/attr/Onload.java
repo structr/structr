@@ -16,17 +16,17 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.serialization.html.attr;
+package org.structr.api.util.html.attr;
 
-import org.structr.rest.serialization.html.Attr;
+import org.structr.api.util.html.Attr;
 
 /**
  *
  *
  */
-public class Href extends Attr {
+public class Onload extends Attr {
 
-	public Href(final String href) {
-		super("href", href);
+	public Onload(final String onload) {
+		super("onload", onload);
 	}
 }

@@ -16,17 +16,32 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.serialization.html.attr;
+package org.structr.api.config;
 
-import org.structr.rest.serialization.html.Attr;
+import org.structr.api.util.html.Attr;
+import org.structr.api.util.html.Tag;
 
 /**
- *
- *
+ * A configuration setting with a key and a type.
  */
-public class Onload extends Attr {
+public class StringSetting extends Setting<String> {
 
-	public Onload(final String onload) {
-		super("onload", onload);
+	public StringSetting(final SettingsGroup group, final String key, final String value) {
+		super(group, key, value);
+	}
+
+	@Override
+	public void render(final Tag parent) {
+
+		final Tag group = parent.block("div").css("form-group");
+
+		group.block("label").text(getKey());
+		group.empty("input").attr(new Attr("type", "text"), new Attr("value", getValue()));
+
+	}
+
+	@Override
+	public String fromString(final String source) {
+		return source;
 	}
 }

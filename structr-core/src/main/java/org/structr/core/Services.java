@@ -29,18 +29,17 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
+import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.api.service.InitializationCallback;
 import org.structr.api.service.RunnableService;
@@ -52,7 +51,6 @@ import org.structr.common.Permissions;
 import org.structr.common.SecurityContext;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeService;
-import org.structr.module.JarConfigurationProvider;
 import org.structr.schema.ConfigurationProvider;
 
 //~--- classes ----------------------------------------------------------------
@@ -67,41 +65,18 @@ import org.structr.schema.ConfigurationProvider;
 public class Services implements StructrServices {
 
 	private static final Logger logger                                   = LoggerFactory.getLogger(StructrApp.class.getName());
-	private static Properties baseConf                                   = null;
 
 	// Configuration constants
 	public static final String INITIAL_SEED_FILE                         = "seed.zip";
-	public static final String BASE_PATH                                 = "base.path";
-	public static final String CONFIGURED_SERVICES                       = "configured.services";
-	public static final String CONFIG_FILE_PATH                          = "configfile.path";
-	public static final String FILES_PATH                                = "files.path";
-	public static final String DATA_EXCHANGE_PATH                        = "data.exchange.path";
-	public static final String LOG_DATABASE_PATH                         = "log.database.path";
 	public static final String FOREIGN_TYPE                              = "foreign.type.key";
 	public static final String LOG_SERVICE_INTERVAL                      = "structr.logging.interval";
 	public static final String LOG_SERVICE_THRESHOLD                     = "structr.logging.threshold";
 	public static final String SERVER_IP                                 = "server.ip";
-	public static final String SMTP_HOST                                 = "smtp.host";
-	public static final String SMTP_PORT                                 = "smtp.port";
-	public static final String SMTP_USER                                 = "smtp.user";
-	public static final String SMTP_PASSWORD                             = "smtp.password";
-	public static final String SMTP_USE_TLS                              = "smtp.tls.enabled";
-	public static final String SMTP_REQUIRE_TLS                          = "smtp.tls.required";
-	public static final String SUPERUSER_USERNAME                        = "superuser.username";
-	public static final String SUPERUSER_PASSWORD                        = "superuser.password";
-	public static final String TCP_PORT                                  = "tcp.port";
-	public static final String TMP_PATH                                  = "tmp.path";
-	public static final String UDP_PORT                                  = "udp.port";
-	public static final String JSON_INDENTATION                          = "json.indentation";
-	public static final String HTML_INDENTATION                          = "html.indentation";
 	public static final String WS_INDENTATION                            = "ws.indentation";
 	public static final String JSON_REDUNDANCY_REDUCTION                 = "json.redundancyReduction";
 	public static final String GEOCODING_PROVIDER                        = "geocoding.provider";
 	public static final String GEOCODING_LANGUAGE                        = "geocoding.language";
 	public static final String GEOCODING_APIKEY                          = "geocoding.apikey";
-	public static final String CONFIGURATION                             = "configuration.provider";
-	public static final String TESTING                                   = "testing";
-	public static final String MIGRATION_KEY                             = "NodeService.migration";
 	public static final String ACCESS_CONTROL_MAX_AGE                    = "access.control.max.age";
 	public static final String ACCESS_CONTROL_ALLOW_METHODS              = "access.control.allow.methods";
 	public static final String ACCESS_CONTROL_ALLOW_HEADERS              = "access.control.allow.headers";
@@ -139,7 +114,6 @@ public class Services implements StructrServices {
 	private final Map<Class, Service> serviceCache             = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Set<Class> registeredServiceClasses          = new LinkedHashSet<>();
 	private final Set<String> configuredServiceClasses         = new LinkedHashSet<>();
-	private Properties structrConf                             = new Properties();
 	private ConfigurationProvider configuration                = null;
 	private boolean initializationDone                         = false;
 	private boolean hasConfigFile                              = false;
@@ -155,17 +129,6 @@ public class Services implements StructrServices {
 
 			singletonInstance = new Services();
 			singletonInstance.initialize();
-		}
-
-		return singletonInstance;
-	}
-
-	public static Services getInstanceForTesting(final Properties properties) {
-
-		if (singletonInstance == null) {
-
-			singletonInstance = new Services();
-			singletonInstance.initialize(properties);
 		}
 
 		return singletonInstance;
@@ -236,8 +199,6 @@ public class Services implements StructrServices {
 
 	private void initialize() {
 
-		final Properties config = getBaseConfiguration();
-
 		// read structr.conf
 		final String configFileName = "structr.conf";
 		final File configFile       = new File(configFileName);
@@ -255,24 +216,20 @@ public class Services implements StructrServices {
 			try {
 
 				PropertiesConfiguration.setDefaultListDelimiter('\0');
-				StructrServices.loadConfiguration(config, new PropertiesConfiguration(configFileName));
+				StructrServices.loadConfiguration(new PropertiesConfiguration(configFileName));
 
 			} catch (ConfigurationException ex) {
 				logger.error("", ex);
 			}
 		}
 
-		StructrServices.mergeConfiguration(config, structrConf);
-
-		initialize(config);
+		doInitialize();
 	}
 
-	private void initialize(final Properties properties) {
+	private void doInitialize() {
 
-		this.structrConf = properties;
-
-		configurationClass     = properties.getProperty(Services.CONFIGURATION);
-		configuredServiceNames = properties.getProperty(Services.CONFIGURED_SERVICES);
+		configurationClass     = Settings.Configuration.getValue();
+		configuredServiceNames = Settings.Services.getValue();
 
 		// create set of configured services
 		configuredServiceClasses.addAll(Arrays.asList(configuredServiceNames.split("[ ,]+")));
@@ -471,14 +428,6 @@ public class Services implements StructrServices {
 		registeredServiceClasses.add(serviceClass);
 	}
 
-	public String getConfigurationValue(String key) {
-		return getConfigurationValue(key, "");
-	}
-
-	public String getConfigurationValue(String key, String defaultValue) {
-		return getCurrentConfig().getProperty(key, defaultValue);
-	}
-
 	public Class getServiceClassForName(final String serviceClassName) {
 
 		for (Class serviceClass : registeredServiceClasses) {
@@ -555,7 +504,7 @@ public class Services implements StructrServices {
 		try {
 
 			service = (Service) serviceClass.newInstance();
-			service.initialize(this, getCurrentConfig());
+			service.initialize(this);
 
 			if (service instanceof RunnableService) {
 
@@ -627,34 +576,6 @@ public class Services implements StructrServices {
 		return null;
 	}
 
-	public String getConfigValue(final Map<String, String> config, final String key, final String defaultValue) {
-
-		String value = StringUtils.strip(config.get(key));
-
-		if (value != null) {
-			return value;
-		}
-
-		return defaultValue;
-	}
-
-	public int getConfigValue(final String key, final int defaultValue) {
-
-		String value = getConfigurationValue(key);
-		if (StringUtils.isNotBlank(value)) {
-
-			try {
-
-				return Integer.valueOf(value);
-
-			} catch (NumberFormatException nfex) {
-				logger.warn("Invalid configuration value {} for key {}, expected integer value.", value, key);
-			}
-		}
-
-		return defaultValue;
-	}
-
 	/**
 	 * Return true if the given service is ready to be used,
          * means initialized and running.
@@ -665,10 +586,6 @@ public class Services implements StructrServices {
 	public boolean isReady(final Class serviceClass) {
                 Service service = serviceCache.get(serviceClass);
                 return (service != null && service.isRunning());
-	}
-
-	public Properties getCurrentConfig() {
-		return structrConf;
 	}
 
 	public Set<String> getResources() {
@@ -712,34 +629,6 @@ public class Services implements StructrServices {
 	}
 
 	// ----- static methods -----
-	public static Properties getBaseConfiguration() {
-
-		if (baseConf == null) {
-
-			baseConf = new Properties();
-
-			baseConf.setProperty(CONFIGURATION,             JarConfigurationProvider.class.getName());
-			baseConf.setProperty(CONFIGURED_SERVICES,       "NodeService AgentService CronService SchemaService");
-			baseConf.setProperty(JSON_INDENTATION,          "true");
-			baseConf.setProperty(HTML_INDENTATION,          "true");
-
-			baseConf.setProperty(SUPERUSER_USERNAME,        "superadmin");
-			baseConf.setProperty(SUPERUSER_PASSWORD,        RandomStringUtils.randomAlphanumeric(12));
-
-			baseConf.setProperty(BASE_PATH,                 "");
-			baseConf.setProperty(TMP_PATH,                  "/tmp");
-			baseConf.setProperty(FILES_PATH,                System.getProperty("user.dir").concat("/files"));
-			baseConf.setProperty(LOG_DATABASE_PATH,         System.getProperty("user.dir").concat("/logDb.dat"));
-
-			baseConf.setProperty(SMTP_HOST,                 "localhost");
-			baseConf.setProperty(SMTP_PORT,                 "25");
-			baseConf.setProperty(TCP_PORT,                  "54555");
-			baseConf.setProperty(UDP_PORT,                  "57555");
-		}
-
-		return baseConf;
-	}
-
 	/**
 	 * Tries to parse the given String to an int value, returning
 	 * defaultValue on error.

@@ -16,33 +16,17 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.serialization.html;
+package org.structr.api.util.html.attr;
 
-import org.structr.rest.serialization.html.attr.Context;
+import org.structr.api.util.html.Attr;
 
 /**
  *
  *
  */
-public class Attr {
-		
-	private String key = null;
-	private String value = null;
+public class Src extends Attr {
 
-	public Attr(final String key, final String value) {
-		this.key = key;
-		this.value = value;
-	}
-
-	public String format(final Context context) {
-		return key + "=\"" + value + "\"";
-	}
-
-	public String getKey() {
-		return key;
-	}
-
-	public String getValue() {
-		return value;
+	public Src(final String src) {
+		super("src", src);
 	}
 }

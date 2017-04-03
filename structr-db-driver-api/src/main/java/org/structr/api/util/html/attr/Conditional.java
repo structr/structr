@@ -16,15 +16,33 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.serialization.html;
+package org.structr.api.util.html.attr;
+
+import org.structr.api.Predicate;
+import org.structr.api.util.html.Attr;
 
 /**
  *
  *
  */
-public class Inline extends Tag {
+public class Conditional extends Attr {
 
-	public Inline(final Tag parent, final String tagName) {
-		super(parent, tagName, false, false);
+	private Predicate<Context> predicate = null;
+
+	public Conditional(final Predicate<Context> predicate, Attr attr) {
+
+		super(attr.getKey(), attr.getValue());
+
+		this.predicate = predicate;
+	}
+
+	@Override
+	public String format(final Context context) {
+
+		if (predicate.accept(context)) {
+			return super.format(context);
+		}
+
+		return "";
 	}
 }

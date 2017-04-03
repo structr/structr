@@ -18,11 +18,6 @@
  */
 package org.structr.api.service;
 
-import java.util.Properties;
-
-
-//~--- interfaces -------------------------------------------------------------
-
 /**
  * The base class for services in structr.
  *
@@ -44,13 +39,12 @@ public interface Service {
 	 * service-specific resources etc.
 	 *
 	 * @param services
-	 * @param config
 	 *
 	 * @throws ClassNotFoundException
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 */
-	public void initialize(final StructrServices services, final Properties config) throws ClassNotFoundException, InstantiationException, IllegalAccessException;
+	public void initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException;
 
 	/**
 	 * Called before the service is discarded. Note that this method will not be called

@@ -21,12 +21,10 @@ package org.structr.core.graph;
 import java.io.File;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.Transaction;
-import org.structr.api.config.Structr;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.index.Index;
@@ -39,6 +37,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
+import org.structr.api.config.Settings;
 
 
 /**
@@ -74,15 +73,15 @@ public class NodeService implements SingletonService {
 	}
 
 	@Override
-	public void initialize(final StructrServices services, final Properties config) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public void initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
-		final String databaseDriver = config.getProperty(Structr.DATABASE_DRIVER, "org.structr.bolt.BoltDatabaseService");
+		final String databaseDriver = Settings.DatabaseDriver.getValue();
 		graphDb = (DatabaseService)Class.forName(databaseDriver).newInstance();
 		if (graphDb != null) {
 
-			graphDb.initialize(config);
+			graphDb.initialize();
 
-			filesPath = config.getProperty(Services.FILES_PATH);
+			filesPath = Settings.FilesPath.getValue();
 
 			// check existence of files path
 			File files = new File(filesPath);
@@ -109,7 +108,7 @@ public class NodeService implements SingletonService {
 			isInitialized = true;
 
 			final boolean firstInitialization = graphDb.getGlobalProperties().getProperty("initialized") == null;
-			final boolean isTest              = Boolean.parseBoolean(config.getProperty(Services.TESTING, "false"));
+			final boolean isTest              = Settings.Testing.getValue();
 
 			if (graphDb.needsIndexRebuild() || (firstInitialization && !isTest)) {
 
@@ -157,7 +156,7 @@ public class NodeService implements SingletonService {
 	public void initialized() {
 
 		// check for empty database and seed file
-		importSeedFile(StructrApp.getConfigurationValue(Services.BASE_PATH));
+		importSeedFile(Settings.BasePath.getValue());
 	}
 
 	@Override

@@ -49,6 +49,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.api.config.Settings;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.Principal;
@@ -131,7 +132,10 @@ public class StructrTest {
 		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
 		config.setProperty(Structr.DATABASE_CONNECTION_URL, Structr.TEST_DATABASE_URL);
 		config.setProperty(Services.TMP_PATH, "/tmp/");
-		config.setProperty(Services.BASE_PATH, basePath);
+
+		// example for new configuration setup
+		Settings.BasePath.setValue(basePath);
+
 		config.setProperty(Structr.DATABASE_PATH, basePath + "/db");
 		config.setProperty(Structr.RELATIONSHIP_CACHE_SIZE, "1000");
 		config.setProperty(Structr.NODE_CACHE_SIZE, "1000");

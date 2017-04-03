@@ -36,15 +36,15 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.Tx;
-import org.structr.rest.serialization.html.Attr;
-import org.structr.rest.serialization.html.Document;
-import org.structr.rest.serialization.html.Tag;
-import org.structr.rest.serialization.html.attr.AtDepth;
-import org.structr.rest.serialization.html.attr.Css;
-import org.structr.rest.serialization.html.attr.Href;
-import org.structr.rest.serialization.html.attr.If;
-import org.structr.rest.serialization.html.attr.Onload;
-import org.structr.rest.serialization.html.attr.Type;
+import org.structr.api.util.html.Attr;
+import org.structr.api.util.html.Document;
+import org.structr.api.util.html.Tag;
+import org.structr.api.util.html.attr.AtDepth;
+import org.structr.api.util.html.attr.Css;
+import org.structr.api.util.html.attr.Href;
+import org.structr.api.util.html.attr.If;
+import org.structr.api.util.html.attr.Onload;
+import org.structr.api.util.html.attr.Type;
 
 /**
  *

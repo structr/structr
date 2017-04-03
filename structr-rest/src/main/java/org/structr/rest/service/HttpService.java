@@ -28,7 +28,6 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import javax.servlet.DispatcherType;
 import javax.servlet.http.HttpServlet;
@@ -64,6 +63,7 @@ import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.StructrServices;
@@ -83,40 +83,24 @@ public class HttpService implements RunnableService {
 
 	private static final Logger logger = LoggerFactory.getLogger(HttpService.class.getName());
 
-	public static final String SERVLETS                      = "HttpService.servlets";
-	public static final String RESOURCE_HANDLERS             = "HttpService.resourceHandlers";
-	public static final String LIFECYCLE_LISTENERS           = "HttpService.lifecycle.listeners";
-	public static final String MAIN_CLASS                    = "HttpService.mainClass";
-	public static final String ASYNC                         = "HttpService.async";
-
-	public static final String APPLICATION_TITLE             = "application.title";
-	public static final String APPLICATION_HOST              = "application.host";
-	public static final String APPLICATION_HTTP_PORT         = "application.http.port";
-	public static final String APPLICATION_HTTPS_PORT        = "application.https.port";
-	public static final String APPLICATION_HTTPS_ENABLED     = "application.https.enabled";
-	public static final String APPLICATION_KEYSTORE_PATH     = "application.keystore.path";
-	public static final String APPLICATION_KEYSTORE_PASSWORD = "application.keystore.password";
-
 	// set of resource providers for this service
-	private Set<ResourceProvider> resourceProviders = new LinkedHashSet<>();
+	private final Set<ResourceProvider> resourceProviders = new LinkedHashSet<>();
 
 	private enum LifecycleEvent {
-
 		Started, Stopped
 	}
 
-	private Server server          = null;
-	private String basePath        = null;
-	private String applicationName = null;
-	private String host            = null;
-	private boolean async          = true;
-	private int httpPort           = 8082;
-	private int maxIdleTime        = 30000;
-	private int requestHeaderSize  = 8192;
 	private HashSessionManager hashSessionManager = null;
-
-	private HttpConfiguration httpConfig;
-	private HttpConfiguration httpsConfig;
+	private HttpConfiguration httpConfig          = null;
+	private HttpConfiguration httpsConfig         = null;
+	private Server server                         = null;
+	private String basePath                       = null;
+	private String applicationName                = null;
+	private String host                           = null;
+	private boolean async                         = true;
+	private int httpPort                          = 8082;
+	private int maxIdleTime                       = 30000;
+	private int requestHeaderSize                 = 8192;
 
 	@Override
 	public void startService() throws Exception {
@@ -154,21 +138,11 @@ public class HttpService implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final StructrServices services, final Properties additionalConfig) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-
-		final Properties finalConfig = new Properties();
-
-		// Default configuration
-		finalConfig.setProperty(APPLICATION_TITLE, "structr server");
-		finalConfig.setProperty(APPLICATION_HOST, "0.0.0.0");
-		finalConfig.setProperty(APPLICATION_HTTP_PORT, "8082");
-		finalConfig.setProperty(APPLICATION_HTTPS_ENABLED, "false");
-		finalConfig.setProperty(APPLICATION_HTTPS_PORT, "8083");
-		finalConfig.setProperty(ASYNC, "true");
+	public void initialize(final StructrServices services) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
 
 		if (services.isConfigured()) {
 
-			finalConfig.setProperty(SERVLETS, "JsonRestServlet");
+			Settings.Servlets.setValue("JsonRestServlet");
 
 			finalConfig.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());
 			finalConfig.setProperty("JsonRestServlet.path", "/structr/rest/*");
@@ -180,25 +154,20 @@ public class HttpService implements RunnableService {
 			finalConfig.setProperty("JsonRestServlet.outputdepth", "3");
 
 			StructrServices.mergeConfiguration(finalConfig, additionalConfig);
-		}
 
-		final String mainClassName = (String) finalConfig.get(MAIN_CLASS);
+		} else {
 
-		Class mainClass = null;
-		if (mainClassName != null) {
+			finalConfig.setProperty("HttpService.resourceHandlers", "StructrUiHandler");
+			finalConfig.setProperty("StructrUiHandler.contextPath", "/structr");
+			finalConfig.setProperty("StructrUiHandler.directoriesListed", "false");
+			finalConfig.setProperty("StructrUiHandler.resourceBase", "src/main/resources/structr");
 
-			logger.info("Running main class {}", new Object[]{mainClassName});
-
-			try {
-				mainClass = Class.forName(mainClassName);
-			} catch (ClassNotFoundException ex) {
-				logger.warn("Did not find class for main class from config " + mainClassName, ex);
-			}
+			//finalConfig.setProperty("StructrUiHandler.welcomeFiles", "index.html");
 
 		}
 
-		String sourceJarName = (mainClass != null ? mainClass : getClass()).getProtectionDomain().getCodeSource().getLocation().toString();
-		final boolean isTest = Boolean.parseBoolean(finalConfig.getProperty(Services.TESTING, "false"));
+		String sourceJarName = getClass().getProtectionDomain().getCodeSource().getLocation().toString();
+		final boolean isTest = Settings.Testing.getValue();
 
 		if (!isTest && StringUtils.stripEnd(sourceJarName, System.getProperty("file.separator")).endsWith("classes")) {
 
@@ -212,28 +181,28 @@ public class HttpService implements RunnableService {
 		}
 
 		// load configuration from properties file
-		applicationName   = finalConfig.getProperty(APPLICATION_TITLE);
-		host              = finalConfig.getProperty(APPLICATION_HOST);
-		basePath          = finalConfig.getProperty(Services.BASE_PATH);
-		httpPort          = Services.parseInt(finalConfig.getProperty(APPLICATION_HTTP_PORT), 8082);
+		applicationName   = Settings.ApplicationTitle.getValue();
+		host              = Settings.ApplicationHost.getValue();
+		basePath          = Settings.BasePath.getValue();
+		httpPort          = Settings.HttpPort.getValue();
 		maxIdleTime       = Services.parseInt(System.getProperty("maxIdleTime"), 30000);
 		requestHeaderSize = Services.parseInt(System.getProperty("requestHeaderSize"), 8192);
-		async             = Services.parseBoolean(finalConfig.getProperty(ASYNC), true);
+		async             = Settings.Async.getValue();
 
 		if (async) {
 			logger.info("Running in asynchronous mode");
 		}
 
 		// other properties
-		final String keyStorePath           = finalConfig.getProperty(APPLICATION_KEYSTORE_PATH);
-		final String keyStorePassword       = finalConfig.getProperty(APPLICATION_KEYSTORE_PASSWORD);
+		final String keyStorePath           = Settings.KeystorePath.getValue();
+		final String keyStorePassword       = Settings.KeystorePassword.getValue();
 		final String contextPath            = System.getProperty("contextPath", "/");
-		final String logPrefix              = "structr";
-		final boolean enableRewriteFilter   = true; // configurationFile.getProperty(Services.
-		final boolean enableHttps           = Services.parseBoolean(finalConfig.getProperty(APPLICATION_HTTPS_ENABLED), false);
-		final boolean enableGzipCompression = true; //
-		final boolean logRequests           = false; //
-		final int httpsPort                 = Services.parseInt(finalConfig.getProperty(APPLICATION_HTTPS_PORT), 8083);
+		final boolean enableHttps           = Settings.HttpsEnabled.getValue();
+		final boolean enableGzipCompression = Settings.GzipCompression.getValue();
+		final boolean logRequests           = Settings.RequestLogging.getValue();
+		final String logPrefix              = Settings.LogPrefix.getValue();
+		final int httpsPort                 = Settings.HttpsPort.getValue();
+		boolean enableRewriteFilter         = true;
 
 		// get current base path
 		basePath = System.getProperty("home", basePath);
@@ -295,8 +264,12 @@ public class HttpService implements RunnableService {
 
 		} else {
 
-			// configuration wizard entry point is the only available option => /
+			//servletContext.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/");
+			//servletContext.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
+
 			servletContext.addServlet("org.structr.rest.servlet.ConfigServlet", "/");
+
+			enableRewriteFilter = false;
 		}
 
 		hashSessionManager = new HashSessionManager();
@@ -330,7 +303,7 @@ public class HttpService implements RunnableService {
 		contexts.addHandler(servletContext);
 
 		// enable request logging
-		if (logRequests || "true".equals(finalConfig.getProperty("log.requests", "false"))) {
+		if (logRequests) {
 
 			final String etcPath = basePath + "/etc";
 			final File etcDir    = new File(etcPath);
@@ -402,12 +375,12 @@ public class HttpService implements RunnableService {
 
 		}
 
-		final List<ContextHandler> resourceHandler = collectResourceHandlers(finalConfig);
+		final List<ContextHandler> resourceHandler = collectResourceHandlers();
 		for (ContextHandler contextHandler : resourceHandler) {
 			contexts.addHandler(contextHandler);
 		}
 
-		final Map<String, ServletHolder> servlets = collectServlets(finalConfig);
+		final Map<String, ServletHolder> servlets = collectServlets();
 
 		// add servlet elements
 		int position = 1;
@@ -442,7 +415,7 @@ public class HttpService implements RunnableService {
 
 		} else {
 
-			logger.warn("Unable to configure HTTP server port, please make sure that {} and {} are set correctly in structr.conf.", APPLICATION_HOST, APPLICATION_HTTP_PORT);
+			logger.warn("Unable to configure HTTP server port, please make sure that {} and {} are set correctly in structr.conf.", Settings.ApplicationHost.getKey(), Settings.HttpPort.getKey());
 		}
 
 		if (enableHttps) {
@@ -471,9 +444,9 @@ public class HttpService implements RunnableService {
 			} else {
 
 				logger.warn("Unable to configure SSL, please make sure that {}, {} and {} are set correctly in structr.conf.", new Object[]{
-					APPLICATION_HTTPS_PORT,
-					APPLICATION_KEYSTORE_PATH,
-					APPLICATION_KEYSTORE_PASSWORD
+					Settings.HttpsPort.getKey(),
+					Settings.KeystorePath.getKey(),
+					Settings.KeystorePassword.getKey()
 				});
 			}
 		}
@@ -532,10 +505,10 @@ public class HttpService implements RunnableService {
 	}
 
 	// ----- private methods -----
-	private List<ContextHandler> collectResourceHandlers(final Properties properties) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	private List<ContextHandler> collectResourceHandlers() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final List<ContextHandler> resourceHandlers = new LinkedList<>();
-		final String resourceHandlerList            = properties.getProperty(RESOURCE_HANDLERS, "");
+		final String resourceHandlerList            = Settings.ResourceHandlers.getValue();
 
 		if (resourceHandlerList != null) {
 
@@ -543,36 +516,33 @@ public class HttpService implements RunnableService {
 
 				if (StringUtils.isNotBlank(resourceHandlerName)) {
 
-					final String contextPath = properties.getProperty(resourceHandlerName.concat(".contextPath"));
+					final String contextPath = Settings.getStringSetting(resourceHandlerName, "contextPath").getValue();
 					if (contextPath != null) {
 
-						final String resourceBase = properties.getProperty(resourceHandlerName.concat(".resourceBase"));
+						final String resourceBase = Settings.getStringSetting(resourceHandlerName, "resourceBase").getValue();
 						if (resourceBase != null) {
 
-							final String directoriesListed = properties.getProperty(resourceHandlerName.concat(".directoriesListed"));
+							final String directoriesListed = Settings.getStringSetting(resourceHandlerName, "directoriesListed").getValue();
 							if (directoriesListed != null) {
 
-								final String welcomeFiles = properties.getProperty(resourceHandlerName.concat(".welcomeFiles"));
+								final ResourceHandler resourceHandler = new ResourceHandler();
+								resourceHandler.setDirectoriesListed(Boolean.parseBoolean(directoriesListed));
+
+								final String welcomeFiles = Settings.getStringSetting(resourceHandlerName, "welcomeFiles").getValue();
 								if (welcomeFiles != null) {
 
-									ResourceHandler resourceHandler = new ResourceHandler();
-									resourceHandler.setDirectoriesListed(Boolean.parseBoolean(directoriesListed));
 									resourceHandler.setWelcomeFiles(StringUtils.split(welcomeFiles));
-									resourceHandler.setResourceBase(resourceBase);
-									resourceHandler.setCacheControl("max-age=0");
-									resourceHandler.setEtags(true);
-
-									ContextHandler staticResourceHandler = new ContextHandler();
-									staticResourceHandler.setContextPath(contextPath);
-									staticResourceHandler.setHandler(resourceHandler);
-
-									resourceHandlers.add(staticResourceHandler);
-
-								} else {
-
-									logger.warn("Unable to register resource handler {}, missing {}.welcomeFiles", resourceHandlerName);
-
 								}
+
+								resourceHandler.setResourceBase(resourceBase);
+								resourceHandler.setCacheControl("max-age=0");
+								resourceHandler.setEtags(true);
+
+								final ContextHandler staticResourceHandler = new ContextHandler();
+								staticResourceHandler.setContextPath(contextPath);
+								staticResourceHandler.setHandler(resourceHandler);
+
+								resourceHandlers.add(staticResourceHandler);
 
 							} else {
 
@@ -600,10 +570,10 @@ public class HttpService implements RunnableService {
 		return resourceHandlers;
 	}
 
-	private Map<String, ServletHolder> collectServlets(final Properties properties) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	private Map<String, ServletHolder> collectServlets() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final Map<String, ServletHolder> servlets = new LinkedHashMap<>();
-		final String servletNameList              = properties.getProperty(SERVLETS, "");
+		final String servletNameList              = Settings.Servlets.getValue();
 
 		if (servletNameList != null) {
 
@@ -611,16 +581,16 @@ public class HttpService implements RunnableService {
 
 				if (StringUtils.isNotBlank(servletName)) {
 
-					final String servletClassName = properties.getProperty(servletName.concat(".class"));
+					final String servletClassName = Settings.getStringSetting(servletName, "class").getValue();
 					if (servletClassName != null) {
 
-						final String servletPath = properties.getProperty(servletName.concat(".path"));
+						final String servletPath = Settings.getStringSetting(servletName, "path").getValue();
 						if (servletPath != null) {
 
 							final HttpServlet servlet = (HttpServlet)Class.forName(servletClassName).newInstance();
 							if (servlet instanceof HttpServiceServlet) {
 
-								((HttpServiceServlet)servlet).getConfig().initializeFromProperties(properties, servletName, resourceProviders);
+								((HttpServiceServlet)servlet).getConfig().initializeFromSettings(servletName, resourceProviders);
 							}
 
 							if (servletPath.endsWith("*")) {
@@ -678,7 +648,7 @@ public class HttpService implements RunnableService {
 	private void sendLifecycleEvent(final LifecycleEvent event) {
 
 		// instantiate and call lifecycle callbacks from configuration file
-		final String listeners = Services.getInstance().getCurrentConfig().getProperty(LIFECYCLE_LISTENERS);
+		final String listeners = Settings.LifecycleListeners.getValue();
 		if (listeners != null) {
 
 			final String[] listenerClasses = listeners.split("[\\s ,;]+");

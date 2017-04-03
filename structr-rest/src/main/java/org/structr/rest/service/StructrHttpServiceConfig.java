@@ -18,11 +18,11 @@
  */
 package org.structr.rest.service;
 
-import java.util.Properties;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
 import org.structr.core.Services;
 import org.structr.core.auth.Authenticator;
@@ -60,21 +60,21 @@ public class StructrHttpServiceConfig {
 		return outputNestingDepth;
 	}
 
-	public void initializeFromProperties(final Properties properties, final String servletName, final Set<ResourceProvider> resourceProviders) throws InstantiationException, IllegalAccessException {
+	public void initializeFromSettings(final String servletName, final Set<ResourceProvider> resourceProviders) throws InstantiationException, IllegalAccessException {
 
-		final String resourceProviderKeyName = servletName.concat(".resourceprovider");
-		final String authenticatorKeyName    = servletName.concat(".authenticator");
-		final String userAutoCreateKeyName   = servletName.concat(".user.autocreate");
-		final String userAutoLoginKeyName    = servletName.concat(".user.autologin");
-		final String defaultPropertyKeyName  = servletName.concat(".defaultview");
-		final String nestingDepthKeyName     = servletName.concat(".outputdepth");
+		final String resourceProviderKeyName = "resourceprovider";
+		final String authenticatorKeyName    = "authenticator";
+		final String userAutoCreateKeyName   = "user.autocreate";
+		final String userAutoLoginKeyName    = "user.autologin";
+		final String defaultPropertyKeyName  = "defaultview";
+		final String nestingDepthKeyName     = "outputdepth";
 
-		final String resourceProviderValue   = properties.getProperty(resourceProviderKeyName);
-		final String authenticatorValue      = properties.getProperty(authenticatorKeyName);
-		final String userAutoCreateValue     = properties.getProperty(userAutoCreateKeyName);
-		final String userAutoLoginValue      = properties.getProperty(userAutoLoginKeyName);
-		final String defaultPropertyKeyValue = properties.getProperty(defaultPropertyKeyName);
-		final String outputDepthValue        = properties.getProperty(nestingDepthKeyName);
+		final String resourceProviderValue   = Settings.getStringSetting(servletName, resourceProviderKeyName).getValue();
+		final String authenticatorValue      = Settings.getStringSetting(servletName, authenticatorKeyName).getValue();
+		final String userAutoCreateValue     = Settings.getStringSetting(servletName, userAutoCreateKeyName).getValue();
+		final String userAutoLoginValue      = Settings.getStringSetting(servletName, userAutoLoginKeyName).getValue();
+		final String defaultPropertyKeyValue = Settings.getStringSetting(servletName, defaultPropertyKeyName).getValue();
+		final String outputDepthValue        = Settings.getStringSetting(servletName, nestingDepthKeyName).getValue();
 
 		if (StringUtils.isBlank(resourceProviderValue)) {
 
@@ -134,9 +134,9 @@ public class StructrHttpServiceConfig {
 		Authenticator authenticator = null;
 
 		if (authenticatorClass == null) {
-			
+
 			logger.error("No authenticator class loaded. Check log for 'Missing authenticator key'." );
-			
+
 			return null;
 		}
 

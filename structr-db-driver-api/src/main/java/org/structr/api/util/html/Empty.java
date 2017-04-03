@@ -16,17 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.serialization.html.attr;
-
-import org.structr.rest.serialization.html.Attr;
+package org.structr.api.util.html;
 
 /**
  *
  *
  */
-public class Id extends Attr {
+public class Empty extends Tag {
 
-	public Id(final String id) {
-		super("id", id);
+	public Empty(final Tag parent, final String tagName) {
+		super(parent, tagName, true, true);
 	}
 }

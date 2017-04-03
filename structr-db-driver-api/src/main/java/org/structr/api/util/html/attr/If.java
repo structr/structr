@@ -16,17 +16,26 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.serialization.html.attr;
+package org.structr.api.util.html.attr;
 
-import org.structr.rest.serialization.html.Attr;
+import org.structr.api.Predicate;
+import org.structr.api.util.html.Attr;
 
 /**
  *
  *
  */
-public class Css extends Attr {
+public class If extends Conditional {
 
-	public Css(final String css) {
-		super("class", css);
+	public If(final boolean condition, final Attr attr) {
+
+		super(new Predicate<Context>() {
+
+			@Override
+			public boolean accept(Context item) {
+				return condition;
+			}
+
+		}, attr);
 	}
 }

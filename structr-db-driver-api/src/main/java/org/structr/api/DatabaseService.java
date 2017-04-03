@@ -19,7 +19,6 @@
 package org.structr.api;
 
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import org.structr.api.graph.GraphProperties;
 import org.structr.api.graph.Node;
@@ -32,7 +31,7 @@ import org.structr.api.index.Index;
 public interface DatabaseService {
 
 	// ----- lifecycle -----
-	void initialize(final Properties configuration);
+	void initialize();
 	boolean needsIndexRebuild();
 	void shutdown();
 

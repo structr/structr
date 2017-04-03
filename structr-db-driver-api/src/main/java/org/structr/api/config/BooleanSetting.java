@@ -16,17 +16,32 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.serialization.html.attr;
+package org.structr.api.config;
 
-import org.structr.rest.serialization.html.Attr;
+import org.structr.api.util.html.Attr;
+import org.structr.api.util.html.Tag;
 
 /**
- *
- *
+ * A configuration setting with a key and a type.
  */
-public class Rel extends Attr {
+public class BooleanSetting extends Setting<Boolean> {
 
-	public Rel(final String rel) {
-		super("rel", rel);
+	public BooleanSetting(final SettingsGroup group, final String key, final Boolean value) {
+		super(group, key, value);
+	}
+
+	@Override
+	public void render(final Tag parent) {
+
+		final Tag group = parent.block("div").css("form-group");
+
+		group.block("label").text(getKey());
+		group.empty("input").attr(new Attr("type", "checkbox"), new Attr("value", getValue()));
+
+	}
+
+	@Override
+	public Boolean fromString(final String source) {
+		return Boolean.parseBoolean(source);
 	}
 }

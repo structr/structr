@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.serialization.html;
+package org.structr.api.util.html;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -24,9 +24,9 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.rest.serialization.html.attr.Context;
-import org.structr.rest.serialization.html.attr.Css;
-import org.structr.rest.serialization.html.attr.Id;
+import org.structr.api.util.html.attr.Context;
+import org.structr.api.util.html.attr.Css;
+import org.structr.api.util.html.attr.Id;
 
 /**
  *

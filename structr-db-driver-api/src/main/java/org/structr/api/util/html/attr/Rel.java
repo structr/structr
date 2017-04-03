@@ -16,27 +16,17 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.serialization.html.attr;
+package org.structr.api.util.html.attr;
 
-import org.structr.api.Predicate;
-import org.structr.rest.serialization.html.Attr;
+import org.structr.api.util.html.Attr;
 
 /**
  *
  *
  */
-public class AtDepth extends Conditional {
+public class Rel extends Attr {
 
-	public AtDepth(final int depth, final Attr attr) {
-
-		super(new Predicate<Context>() {
-
-			@Override
-			public boolean accept(Context item) {
-
-				return item.getDepth() > depth;
-			}
-
-		}, attr);
+	public Rel(final String rel) {
+		super("rel", rel);
 	}
 }

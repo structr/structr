@@ -16,15 +16,21 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.serialization.html;
+package org.structr.api.util.html.attr;
 
 /**
  *
  *
  */
-public class Block extends Tag {
+public class Context {
 
-	public Block(final Tag parent, final String tagName) {
-		super(parent, tagName, false, true);
+	private int depth = 0;
+	
+	public Context(final int depth) {
+		this.depth = depth;
+	}
+	
+	public int getDepth() {
+		return depth;
 	}
 }

@@ -49,7 +49,7 @@ import org.structr.api.DatabaseService;
 import org.structr.api.NativeResult;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.Transaction;
-import org.structr.api.config.Structr;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.GraphProperties;
 import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
@@ -85,16 +85,16 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	private int queryCacheSize                                        = 1000;
 
 	@Override
-	public void initialize(final Properties configuration) {
+	public void initialize() {
 
-		this.databasePath = configuration.getProperty(Structr.DATABASE_PATH);
-		this.debugLogging = "true".equalsIgnoreCase(configuration.getProperty(Structr.LOG_CYPHER_DEBUG, "false"));
+		this.databasePath = Settings.DatabasePath.getValue();
+		this.debugLogging = Settings.CypherDebugLogging.getValue();
 
 		final GraphDatabaseSettings.BoltConnector bolt = GraphDatabaseSettings.boltConnector("0");
-		databaseUrl                                    = configuration.getProperty(Structr.DATABASE_CONNECTION_URL, Structr.DEFAULT_DATABASE_URL);
-		final String username                          = configuration.getProperty(Structr.DATABASE_CONNECTION_USERNAME, "neo4j");
-		final String password                          = configuration.getProperty(Structr.DATABASE_CONNECTION_PASSWORD, "neo4j");
-		final String driverMode                        = configuration.getProperty(Structr.DATABASE_DRIVER_MODE, "embedded");
+		databaseUrl                                    = Settings.ConnectionUrl.getValue();
+		final String username                          = Settings.ConnectionUser.getValue();
+		final String password                          = Settings.ConnectionPassword.getValue();
+		final String driverMode                        = Settings.DatabaseDriverMode.getValue();
 		final String confPath                          = databasePath + "/neo4j.conf";
 		final File confFile                            = new File(confPath);
 		boolean tryAgain                               = true;
@@ -133,9 +133,9 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 			Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()
 		);
 
-		final int relCacheSize  = Integer.valueOf(configuration.getProperty(Structr.RELATIONSHIP_CACHE_SIZE, "100000"));
-		final int nodeCacheSize = Integer.valueOf(configuration.getProperty(Structr.NODE_CACHE_SIZE, "100000"));
-		this.queryCacheSize     = Integer.valueOf(configuration.getProperty(Structr.QUERY_CACHE_SIZE, "1000"));
+		final int relCacheSize  = Settings.RelationshipCacheSize.getValue();
+		final int nodeCacheSize = Settings.NodeCacheSize.getValue();
+		this.queryCacheSize     = Settings.QueryCacheSize.getValue();
 
 		NodeWrapper.initialize(nodeCacheSize);
 		logger.info("Node cache size set to {}", nodeCacheSize);

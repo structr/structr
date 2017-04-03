@@ -16,33 +16,17 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.serialization.html.attr;
+package org.structr.api.util.html.attr;
 
-import org.structr.api.Predicate;
-import org.structr.rest.serialization.html.Attr;
+import org.structr.api.util.html.Attr;
 
 /**
  *
  *
  */
-public class Conditional extends Attr {
+public class Href extends Attr {
 
-	private Predicate<Context> predicate = null;
-
-	public Conditional(final Predicate<Context> predicate, Attr attr) {
-
-		super(attr.getKey(), attr.getValue());
-
-		this.predicate = predicate;
-	}
-
-	@Override
-	public String format(final Context context) {
-
-		if (predicate.accept(context)) {
-			return super.format(context);
-		}
-
-		return "";
+	public Href(final String href) {
+		super("href", href);
 	}
 }

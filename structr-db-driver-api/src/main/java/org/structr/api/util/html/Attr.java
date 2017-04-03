@@ -16,29 +16,33 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.serialization.html;
+package org.structr.api.util.html;
 
-import java.io.IOException;
-import java.io.PrintWriter;
+import org.structr.api.util.html.attr.Context;
 
 /**
  *
  *
  */
-public class Document extends Tag {
+public class Attr {
 
-	private PrintWriter writer = null;
+	private String key   = null;
+	private Object value = null;
 
-	public Document(final PrintWriter writer) {
-		super(null, "html", false, true);
-
-		this.writer = writer;
+	public Attr(final String key, final Object value) {
+		this.key = key;
+		this.value = value;
 	}
 
-	public void render() throws IOException {
+	public String format(final Context context) {
+		return key + "=\"" + value + "\"";
+	}
 
-		writer.println("<!DOCTYPE html>");
+	public String getKey() {
+		return key;
+	}
 
-		render(writer, 0);
+	public Object getValue() {
+		return value;
 	}
 }
