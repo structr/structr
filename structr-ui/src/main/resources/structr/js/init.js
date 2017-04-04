@@ -944,7 +944,11 @@ var Structr = {
 
 		} else {
 
-			errorText += url + ': ' + response.code + ' ' + response.message;
+			if (url) {
+				errorText = url + ': ';
+			}
+
+			errorText += response.code + ' ' + response.message;
 		}
 
 		var message = new MessageBuilder().error(errorText);
