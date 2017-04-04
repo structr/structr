@@ -927,13 +927,18 @@ var Structr = {
 
 			response.errors.forEach(function(error) {
 
-                var errorMsg = error.type;
+				var errorMsg = (error.type ? error.type : '');
 				if (error.property) {
 					errorMsg += '.' + error.property;
 				}
-                errorMsg += ' ' + error.token;
+				if (error.token) {
+					errorMsg += ' ' + error.token;
+				}
 				if (error.detail) {
-					errorMsg += ': ' + error.detail;
+					if (errorMsg.trim().length > 0) {
+						errorMsg += ': ';
+					}
+					errorMsg += error.detail;
 				}
 
 				errorLines.push(errorMsg);
@@ -944,7 +949,11 @@ var Structr = {
 
 		} else {
 
-			errorText += url + ': ' + response.code + ' ' + response.message;
+			if (url) {
+				errorText = url + ': ';
+			}
+
+			errorText += response.code + ' ' + response.message;
 		}
 
 		var message = new MessageBuilder().error(errorText);

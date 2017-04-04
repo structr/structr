@@ -68,7 +68,7 @@ public class Image extends org.structr.dynamic.File {
 
 	public static final Property<Integer> height                  = new IntProperty("height").cmis().indexed();
 	public static final Property<Integer> width                   = new IntProperty("width").cmis().indexed();
-	
+
 	public static final Property<Integer> orientation             = new IntProperty("orientation").cmis().indexed();
 
 	public static final Property<Image> tnSmall                   = new ThumbnailProperty("tnSmall").format("100, 100, false");
@@ -148,7 +148,7 @@ public class Image extends org.structr.dynamic.File {
 
 			if ( !isThumbnail() ) {
 
-				if (modificationQueue.isPropertyModified(name)) {
+				if (modificationQueue.isPropertyModified(this, name)) {
 
 					final String newImageName = getName();
 
@@ -273,14 +273,14 @@ public class Image extends org.structr.dynamic.File {
 
 			newChecksum = currentChecksum;
 		}
-		
+
 		// Return self if SVG image
 		final String _contentType = getProperty(Image.contentType);
 		if (_contentType != null && (_contentType.startsWith("image/svg") || (_contentType.startsWith("image/") && _contentType.endsWith("icon")))) {
-			
+
 			return this;
 		}
-		
+
 		if (origWidth != null && origHeight != null && thumbnailRelationships != null) {
 
 			for (final Thumbnails r : thumbnailRelationships) {

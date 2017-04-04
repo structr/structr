@@ -34,16 +34,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.entity.relationship.SchemaRelationshipSourceNode;
 import org.structr.core.entity.relationship.SchemaRelationshipTargetNode;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNode;
@@ -96,6 +99,24 @@ public class SchemaNode extends AbstractSchemaNode {
 	);
 
 	private final Set<String> dynamicViews = new LinkedHashSet<>();
+
+	@Override
+	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+		throwExceptionIfTypeAlreadyExists();
+
+		return super.onCreation(securityContext, errorBuffer);
+	}
+
+	@Override
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		if (modificationQueue.isPropertyModified(this, name)) {
+			throwExceptionIfTypeAlreadyExists();
+		}
+
+		return super.onModification(securityContext, errorBuffer, modificationQueue);
+	}
 
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
@@ -541,6 +562,28 @@ public class SchemaNode extends AbstractSchemaNode {
 	private void addPropertyNameToViews(final String propertyName, final Map<String, Set<String>> viewProperties) {
 		//SchemaHelper.addPropertyToView(PropertyView.Public, propertyName, viewProperties);
 		SchemaHelper.addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
+	}
+
+	/**
+	* If the system is fully initialized (and no schema replacement is currently active), we disallow overriding (known) existing types so we can prevent unwanted behavior.
+	* If a user were to create a type 'Html', he could cripple Structrs Page rendering completely.
+	* This is a fix for all types in the Structr context - this does not help if the user creates a type named 'String' or 'Object'.
+	* That could still lead to unexpected behavior.
+	*
+	* @throws FrameworkException if a pre-existing type is encountered
+	*/
+	private void throwExceptionIfTypeAlreadyExists() throws FrameworkException {
+
+		if (Services.getInstance().isInitialized() && ! Services.getInstance().isOverridingSchemaTypesAllowed()) {
+
+			final String typeName = getProperty(name);
+
+			if (StructrApp.getConfiguration().getNodeEntities().containsKey(typeName)) {
+				throw new FrameworkException(422, "Type '" + typeName + "' already exists. To prevent unwanted/unexpected behavior this is forbidden.");
+			}
+
+		}
+
 	}
 
 	// ----- interface GraphObject -----

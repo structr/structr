@@ -2395,7 +2395,7 @@ var _Schema = {
 				},
 				422: function(data) {
 					_Schema.ignoreNextSchemaRecompileNotification = false;
-					Structr.errorFromResponse(data.responseJSON);
+					Structr.errorFromResponse(data.responseJSON, undefined, {requiresConfirmation: true});
 				}
 			}
 

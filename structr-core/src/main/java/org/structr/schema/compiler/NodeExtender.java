@@ -147,6 +147,8 @@ public class NodeExtender {
 						listener.simpleBroadcast();
 					}
 
+					Services.getInstance().setOverridingSchemaTypesAllowed(false);
+
 				}
 
 			}
