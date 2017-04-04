@@ -335,23 +335,24 @@ public class ModificationQueue {
 	}
 
 	/**
-	 * Checks if the given key is present in the modifiedProperties of this queue.<br><br>
+	 * Checks if the given key is present for the given graph object in the modifiedProperties of this queue.<br><br>
 	 *
 	 * This method is convenient if only one key has to be checked. If different
 	 * actions should be taken for different keys one should rather use {@link #getModifiedProperties}.
 	 *
 	 * Note: This method only works for regular properties, not relationship properties (i.e. owner etc)
 	 *
+	 * @param graphObject The GraphObject we are interested in
 	 * @param key The key to check
 	 * @return
 	 */
-	public boolean isPropertyModified(final PropertyKey key) {
+	public boolean isPropertyModified(final GraphObject graphObject, final PropertyKey key) {
 
 		for (GraphObjectModificationState state : modifications.values()) {
 
 			for (PropertyKey k : state.getModifiedProperties().keySet()) {
 
-				if (k.equals(key)) {
+				if (k.equals(key) && graphObject.getUuid().equals(state.getGraphObject().getUuid()) ) {
 
 					return true;
 
