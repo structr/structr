@@ -25,8 +25,8 @@ import java.util.Map;
 import org.apache.commons.collections.map.LRUMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Location;
@@ -43,19 +43,18 @@ import org.structr.core.property.PropertyMap;
  */
 public class GeoHelper {
 
-	private static final Logger logger                    = LoggerFactory.getLogger(GeoHelper.class.getName());
-	
-	private static Map<String, GeoCodingResult> geoCache  = Collections.synchronizedMap(new LRUMap(10000));
-	private static Class<GeoCodingProvider> providerClass = null;
-	private static GeoCodingProvider providerInstance     = null;
+	private static final Logger logger                         = LoggerFactory.getLogger(GeoHelper.class.getName());
+	private static final Map<String, GeoCodingResult> geoCache = Collections.synchronizedMap(new LRUMap(10000));
+	private static Class<GeoCodingProvider> providerClass      = null;
+	private static GeoCodingProvider providerInstance          = null;
 
 	/**
 	 * Creates a Location entity for the given geocoding result and returns it.
-	 * 
+	 *
 	 * @param coords
 	 * @return a Location entity for the given geocoding result
-	 * 
-	 * @throws FrameworkException 
+	 *
+	 * @throws FrameworkException
 	 */
 	public static Location createLocation(final GeoCodingResult coords) throws FrameworkException {
 
@@ -72,20 +71,20 @@ public class GeoHelper {
 	}
 
 	public static GeoCodingResult geocode(DistanceSearchAttribute distanceSearch) throws FrameworkException {
-		
+
 		String street     = distanceSearch.getStreet();
 		String house      = distanceSearch.getHouse();
 		String postalCode = distanceSearch.getPostalCode();
 		String city       = distanceSearch.getCity();
 		String state      = distanceSearch.getState();
 		String country    = distanceSearch.getCountry();
-		
+
 		return geocode(street, house, postalCode, city, state, country);
 	}
-	
+
 	/**
 	 * Tries do find a geo location for the given address using the GeoCodingProvider
-	 * specified in the configuration file. 
+	 * specified in the configuration file.
 
 	 * @param country the country to search for, may be null
 	 * @param state the state to search for, may be null
@@ -94,76 +93,76 @@ public class GeoHelper {
 	 * @param house the house to search for, may be null
 	 *
 	 * @return the geolocation of the given address, or null
-	 * 
-	 * @throws FrameworkException 
+	 *
+	 * @throws FrameworkException
 	 */
 	public static GeoCodingResult geocode(final String street, final String house, String postalCode, final String city, final String state, final String country) throws FrameworkException {
-		
-		String language        = Services.getInstance().getConfigurationValue(Services.GEOCODING_LANGUAGE, "de");
-		String cacheKey        = cacheKey(street, house, postalCode, city, state, country, language);
+
+		final String language  = Settings.GeocodingLanguage.getValue();
+		final String cacheKey  = cacheKey(street, house, postalCode, city, state, country, language);
 		GeoCodingResult result = geoCache.get(cacheKey);
-		
+
 		if (result == null) {
 
 			GeoCodingProvider provider = getGeoCodingProvider();
 			if (provider != null) {
 
 				try {
-					
+
 					result = provider.geocode(street, house, postalCode, city, state, country, language);
 					if (result != null) {
 
 						// store in cache
 						geoCache.put(cacheKey, result);
 					}
-					
+
 				} catch (IOException ioex) {
-					
+
 					// IOException, try again next time
 					logger.warn("Unable to obtain geocoding result using provider {}: {}", new Object[] { provider.getClass().getName(), ioex.getMessage() });
 				}
 			}
-			
+
 		}
-		
+
 		return result;
 	}
-	
+
 	private static String cacheKey(final String street, final String house, String postalCode, final String city, final String state, final String country, final String language) {
-		
+
 		StringBuilder keyBuffer = new StringBuilder();
 
 		if (street != null) {
 			keyBuffer.append(street);
 		}
-		
+
 		if (house != null) {
 			keyBuffer.append(house);
 		}
-		
+
 		if (postalCode != null) {
 			keyBuffer.append(postalCode);
 		}
-		
+
 		if (city != null) {
 			keyBuffer.append(city);
 		}
-		
+
 		if (state != null) {
 			keyBuffer.append(state);
 		}
-		
+
 		if (country != null) {
 			keyBuffer.append(country);
 		}
-		
+
 		if (language !=  null) {
 			keyBuffer.append(language);
 		}
-		
+
 		return keyBuffer.toString();
 	}
-	
+
 	private static GeoCodingProvider getGeoCodingProvider() {
 
 		if (providerInstance == null) {
@@ -172,8 +171,7 @@ public class GeoHelper {
 
 				if (providerClass == null) {
 
-					String geocodingProvider = StructrApp.getConfigurationValue(Services.GEOCODING_PROVIDER, GoogleGeoCodingProvider.class.getName());
-					providerClass = (Class<GeoCodingProvider>)Class.forName(geocodingProvider);
+					providerClass = (Class<GeoCodingProvider>)Class.forName(Settings.GeocodingProvider.getValue());
 				}
 
 				providerInstance = providerClass.newInstance();
@@ -183,7 +181,7 @@ public class GeoHelper {
 				logger.warn("Unable to instantiate geocoding provider: {}", t.getMessage() );
 			}
 		}
-		
+
 		return providerInstance;
 	}
 }

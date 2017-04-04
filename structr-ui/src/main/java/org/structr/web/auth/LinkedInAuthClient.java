@@ -24,14 +24,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.oltu.oauth2.client.response.OAuthResourceResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.core.app.StructrApp;
+import org.structr.api.config.Settings;
 
 /**
  *
  *
  */
 public class LinkedInAuthClient extends StructrOAuthClient {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(LinkedInAuthClient.class.getName());
 
 	public LinkedInAuthClient() {};
@@ -43,64 +43,50 @@ public class LinkedInAuthClient extends StructrOAuthClient {
 
 	@Override
 	public String getScope() {
-		
 		return "r_basicprofile r_emailaddress";
-		
 	}
-	
+
 	@Override
 	public ResponseFormat getResponseFormat() {
-		
 		return ResponseFormat.json;
-		
 	}
-	
+
 	@Override
 	public String getUserResourceUri() {
-		
-		return StructrApp.getConfigurationValue("oauth.linkedin.user_details_resource_uri", "");
-			
+		return Settings.OAuthLinkedInUserDetailsUri.getValue();
 	}
 
 	@Override
 	public String getReturnUri() {
-		
-		return StructrApp.getConfigurationValue("oauth.linkedin.return_uri", "/");
-			
+		return Settings.OAuthLinkedInReturnUri.getValue();
 	}
 
 	@Override
 	public String getErrorUri() {
-		
-		return StructrApp.getConfigurationValue("oauth.linkedin.error_uri", "/");
-			
+		return Settings.OAuthLinkedInErrorUri.getValue();
 	}
 
 	@Override
 	protected String getState() {
-		
 		return UUID.randomUUID().toString();
-		
 	}
 
 	@Override
 	public String getCredential(final HttpServletRequest request) {
-		
+
 		OAuthResourceResponse userResponse = getUserResponse(request);
-		
+
 		if (userResponse == null) {
-			
+
 			return null;
-			
+
 		}
-		
+
 		String body = userResponse.getBody();
 		logger.debug("User response body: {}", body);
-		
+
 		String[] addresses = StringUtils.stripAll(StringUtils.stripAll(StringUtils.stripEnd(StringUtils.stripStart(body, "["), "]").split(",")), "\"");
 
 		return addresses.length > 0 ? addresses[0] : null;
-		
 	}
-
 }

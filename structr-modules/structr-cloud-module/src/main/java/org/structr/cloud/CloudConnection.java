@@ -39,6 +39,7 @@ import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.cloud.message.DataContainer;
 import org.structr.cloud.message.FileNodeChunk;
 import org.structr.cloud.message.FileNodeDataContainer;
@@ -575,9 +576,9 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 			container.flushAndCloseTemporaryFile();
 
 			final NodeInterface newNode = storeNode(container);
-			final String filesPath = StructrApp.getConfigurationValue(Services.FILES_PATH);
-			final String relativePath = newNode.getProperty(File.relativeFilePath);
-			String newPath = null;
+			final String filesPath      = Settings.FilesPath.getValue();
+			final String relativePath   = newNode.getProperty(File.relativeFilePath);
+			String newPath              = null;
 
 			if (filesPath.endsWith("/")) {
 

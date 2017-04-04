@@ -41,7 +41,7 @@ public class BooleanSetting extends Setting<Boolean> {
 	}
 
 	@Override
-	public Boolean fromString(final String source) {
-		return Boolean.parseBoolean(source);
+	public void fromString(final String source) {
+		setValue(Boolean.parseBoolean(source));
 	}
 }

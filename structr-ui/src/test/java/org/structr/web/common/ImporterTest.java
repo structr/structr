@@ -26,9 +26,9 @@ import static org.junit.Assert.assertNull;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.PathHelper;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.graph.Tx;
 import org.structr.dynamic.File;
 import org.structr.web.entity.FileBase;
@@ -47,8 +47,8 @@ public class ImporterTest extends StructrUiTest {
 	@Test
 	public void testBootstrapJumbotronEditModeNone() {
 
-		Services.getInstance().getCurrentConfig().setProperty(Services.JSON_INDENTATION,          "true");
-		Services.getInstance().getCurrentConfig().setProperty(Services.HTML_INDENTATION,          "true");
+		Settings.JsonIndentation.setValue(true);
+		Settings.HtmlIndentation.setValue(true);
 
 		final String source = testImport("http://getbootstrap.com/examples/jumbotron/", RenderContext.EditMode.NONE);
 
@@ -144,8 +144,8 @@ public class ImporterTest extends StructrUiTest {
 	@Test
 	public void testBootstrapJumbotronEditModeWidget() {
 
-		Services.getInstance().getCurrentConfig().setProperty(Services.JSON_INDENTATION,          "true");
-		Services.getInstance().getCurrentConfig().setProperty(Services.HTML_INDENTATION,          "true");
+		Settings.JsonIndentation.setValue(true);
+		Settings.HtmlIndentation.setValue(true);
 
 		final String source = testImport("http://getbootstrap.com/examples/jumbotron/", RenderContext.EditMode.WIDGET);
 
@@ -230,8 +230,8 @@ public class ImporterTest extends StructrUiTest {
 	@Test
 	public void testNewsfeedWidget() {
 
-		Services.getInstance().getCurrentConfig().setProperty(Services.JSON_INDENTATION,          "true");
-		Services.getInstance().getCurrentConfig().setProperty(Services.HTML_INDENTATION,          "true");
+		Settings.JsonIndentation.setValue(true);
+		Settings.HtmlIndentation.setValue(true);
 
 		final String source = testImportWidget("<div class=\"row\">\n"
 			+ "	<div class=\"col-lg-12\">\n"

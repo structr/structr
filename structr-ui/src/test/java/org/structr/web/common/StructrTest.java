@@ -28,7 +28,6 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Properties;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -39,7 +38,7 @@ import org.junit.Rule;
 import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
-import org.structr.api.config.Structr;
+import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
@@ -52,8 +51,6 @@ import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.module.JarConfigurationProvider;
-import org.structr.rest.service.HttpService;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -66,7 +63,6 @@ import org.structr.rest.service.HttpService;
  */
 public class StructrTest {
 
-	protected static Properties config                   = new Properties();
 	protected static GraphDatabaseCommand graphDbCommand = null;
 	protected static SecurityContext securityContext     = null;
 	protected static App app                             = null;
@@ -97,24 +93,28 @@ public class StructrTest {
 		Date now       = new Date();
 		long timestamp = now.getTime();
 
-		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
-		config.setProperty(Services.CONFIGURED_SERVICES, "ModuleService NodeService");
-		config.setProperty(Structr.DATABASE_CONNECTION_URL, Structr.TEST_DATABASE_URL);
-		config.setProperty(Services.TMP_PATH, "/tmp/");
-		config.setProperty(Services.BASE_PATH, "/tmp/structr-test-" + timestamp);
-		config.setProperty(Structr.DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/db");
-		config.setProperty(Structr.RELATIONSHIP_CACHE_SIZE, "1000");
-		config.setProperty(Structr.NODE_CACHE_SIZE, "1000");
-		config.setProperty(Services.FILES_PATH, "/tmp/structr-test-" + timestamp + "/files");
-		config.setProperty(Services.LOG_DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/logDb.dat");
-		config.setProperty(Services.TCP_PORT, (System.getProperty("tcpPort") != null ? System.getProperty("tcpPort") : "13465"));
-		config.setProperty(Services.UDP_PORT, (System.getProperty("udpPort") != null ? System.getProperty("udpPort") : "13466"));
-		config.setProperty(Services.SERVER_IP, "127.0.0.1");
-		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
-		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
-		config.setProperty(HttpService.APPLICATION_TITLE, "structr unit test app" + timestamp);
+		final String basePath = "/tmp/structr-test-" + timestamp + "-" + System.nanoTime();
 
-		final Services services = Services.getInstanceForTesting(config);
+		// enable "just testing" flag to avoid JAR resource scanning
+		Settings.Testing.setValue(true);
+		Settings.Services.setValue("NodeService HttpService SchemaService");
+		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
+
+		// example for new configuration setup
+		Settings.BasePath.setValue(basePath);
+		Settings.DatabasePath.setValue(basePath + "/db");
+		Settings.FilesPath.setValue(basePath + "/files");
+		Settings.LogDatabasePath.setValue(basePath + "/logDb.dat");
+
+		Settings.RelationshipCacheSize.setValue(1000);
+		Settings.NodeCacheSize.setValue(1000);
+
+		Settings.SuperUserName.setValue("superadmin");
+		Settings.SuperUserPassword.setValue("sehrgeheim");
+
+		Settings.ApplicationTitle.setValue("structr unit test app" + timestamp);
+
+		final Services services = Services.getInstance();
 
 		// wait for service layer to be initialized
 		do {
@@ -155,7 +155,7 @@ public class StructrTest {
 		Services.getInstance().shutdown();
 
 		try {
-			final File testDir = new File(config.getProperty(Services.BASE_PATH));
+			final File testDir = new File(Settings.BasePath.getValue());
 
 			if (testDir.isDirectory()) {
 

@@ -30,12 +30,12 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.api.service.InitializationCallback;
 import org.structr.api.service.Service;
@@ -44,15 +44,12 @@ import org.structr.common.AccessPathCache;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
@@ -74,7 +71,7 @@ public class SchemaService implements Service {
 	}
 
 	@Override
-	public void initialize(final StructrServices services, final Properties config) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public void initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		services.registerInitializationCallback(new InitializationCallback() {
 
@@ -170,8 +167,6 @@ public class SchemaService implements Service {
 
 						// prevent inheritance map from leaking
 						SearchCommand.clearInheritanceMap();
-						NodeFactory.invalidateCache();
-						RelationshipFactory.invalidateCache();
 						AccessPathCache.invalidate();
 
 						// clear relationship instance cache
@@ -194,7 +189,7 @@ public class SchemaService implements Service {
 				}
 
 				// disable hierarchy calculation and automatic index creation for testing runs
-				if (!Boolean.parseBoolean(StructrApp.getConfigurationValue(Services.TESTING, "false"))) {
+				if (!Settings.Testing.getValue()) {
 
 					calculateHierarchy();
 					updateIndexConfiguration(removedClasses);

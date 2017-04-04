@@ -18,18 +18,14 @@
  */
 package org.structr.web.auth;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.core.app.StructrApp;
+import org.structr.api.config.Settings;
 
 /**
  *
  *
  */
 public class GoogleAuthClient extends StructrOAuthClient {
-	
-	private static final Logger logger = LoggerFactory.getLogger(GoogleAuthClient.class.getName());
-	
+
 	@Override
 	protected String getScope() {
 		return "email";
@@ -37,29 +33,21 @@ public class GoogleAuthClient extends StructrOAuthClient {
 
 	@Override
 	public ResponseFormat getResponseFormat() {
-		
 		return ResponseFormat.json;
-		
 	}
+
 	@Override
 	public String getUserResourceUri() {
-		
-		return StructrApp.getConfigurationValue("oauth.google.user_details_resource_uri", "");
-			
+		return Settings.OAuthGoogleUserDetailsUri.getValue();
 	}
 
 	@Override
 	public String getReturnUri() {
-		
-		return StructrApp.getConfigurationValue("oauth.google.return_uri", "/");
-			
+		return Settings.OAuthGoogleReturnUri.getValue();
 	}
 
 	@Override
 	public String getErrorUri() {
-		
-		return StructrApp.getConfigurationValue("oauth.google.error_uri", "/");
-			
+		return Settings.OAuthGoogleErrorUri.getValue();
 	}
-	
 }

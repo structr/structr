@@ -27,9 +27,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.search.SearchCommand;
 
 /**
@@ -53,9 +51,6 @@ public class TypeProperty extends StringProperty {
 	public Object setProperty(SecurityContext securityContext, final GraphObject obj, String value) throws FrameworkException {
 
 		super.setProperty(securityContext, obj, value);
-
-		RelationshipFactory.invalidateCache();
-		NodeFactory.invalidateCache();
 
 		if (obj instanceof NodeInterface) {
 

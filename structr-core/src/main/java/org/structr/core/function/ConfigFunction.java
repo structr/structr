@@ -18,9 +18,9 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.config.Setting;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractUser;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -43,21 +43,29 @@ public class ConfigFunction extends Function<Object, Object> {
 
 		try {
 			if (!arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
-				
+
 				return null;
 			}
 
 			final String configKey = sources[0].toString();
 
-			if (Services.SUPERUSER_PASSWORD.equals(configKey)) {
+			if (Settings.SuperUserPassword.getKey().equals(configKey)) {
 
 				return AbstractUser.HIDDEN;
 
 			}
 
 			final String defaultValue = sources.length >= 2 ? sources[1].toString() : "";
+			final Setting setting     = Settings.getSetting(configKey);
 
-			return StructrApp.getConfigurationValue(configKey, defaultValue);
+			if (setting != null) {
+
+				return setting.getValue();
+
+			} else {
+
+				return defaultValue;
+			}
 
 		} catch (final IllegalArgumentException e) {
 

@@ -28,9 +28,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.StructrServices;
@@ -107,29 +107,29 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 	}
 
 	@Override
-	public void initialize(final StructrServices services, final Properties config) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public void initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		logger.info("Initializing..");
 
 		try {
 
-			final KeyPair keyPair = getOrCreateKeyPair(config);
+			final KeyPair keyPair = getOrCreateKeyPair();
 			if (keyPair != null) {
 
-				final String initialPeer = config.getProperty(INITIAL_PEER_KEY, "255.255.255.255");
-				final String bindAddress = config.getProperty(BIND_ADDRESS_KEY, "0.0.0.0");
-				final String peerId      = config.getProperty(PEER_UUID_KEY, StructrApp.getInstance().getInstanceId());
-				final boolean verbose    = "true".equals(config.getProperty(VERBOSE_KEY));
+				final String initialPeer = Settings.getStringSetting(INITIAL_PEER_KEY, "255.255.255.255").getValue();
+				final String bindAddress = Settings.getStringSetting(BIND_ADDRESS_KEY, "0.0.0.0").getValue();
+				final String peerId      = Settings.getStringSetting(PEER_UUID_KEY, StructrApp.getInstance().getInstanceId()).getValue();
+				final boolean verbose    = Settings.getBooleanSetting(VERBOSE_KEY).getValue();
 
 				logger.info("{}: {}", new Object[] { BIND_ADDRESS_KEY, bindAddress });
 				logger.info("{}: {}", new Object[] { INITIAL_PEER_KEY, initialPeer });
-				logger.info("{}: {}", new Object[] { PRIVATE_KEY_CONFIG_KEY, config.getProperty(PRIVATE_KEY_CONFIG_KEY) });
-				logger.info("{}: {}", new Object[] { PUBLIC_KEY_CONFIG_KEY, config.getProperty(PUBLIC_KEY_CONFIG_KEY) });
+				logger.info("{}: {}", new Object[] { PRIVATE_KEY_CONFIG_KEY, Settings.getStringSetting(PRIVATE_KEY_CONFIG_KEY).getValue() });
+				logger.info("{}: {}", new Object[] { PUBLIC_KEY_CONFIG_KEY, Settings.getStringSetting(PUBLIC_KEY_CONFIG_KEY).getValue() });
 				logger.info("{}: {}", new Object[] { PEER_UUID_KEY, peerId });
 				logger.info("{}: {}", new Object[] { VERBOSE_KEY, verbose });
 
 				this.repository = new DefaultRepository(peerId);
-				this.peer       = new Peer(getOrCreateKeyPair(config), repository, bindAddress, initialPeer);
+				this.peer       = new Peer(getOrCreateKeyPair(), repository, bindAddress, initialPeer);
 
 				this.peer.initializeServer();
 				this.peer.setVerbose(verbose);
@@ -395,10 +395,10 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 		return SecurityContext.getSuperUserInstance();
 	}
 
-	private KeyPair getOrCreateKeyPair(final Properties config) {
+	private KeyPair getOrCreateKeyPair() {
 
-		final String privateKeyFileName = config.getProperty(PRIVATE_KEY_CONFIG_KEY);
-		final String publicKeyFileName  = config.getProperty(PUBLIC_KEY_CONFIG_KEY);
+		final String privateKeyFileName = Settings.getStringSetting(PRIVATE_KEY_CONFIG_KEY).getValue();
+		final String publicKeyFileName  = Settings.getStringSetting(PUBLIC_KEY_CONFIG_KEY).getValue();
 
 		if (privateKeyFileName == null) {
 			logger.warn("No private key file name set for PeerToPeerService, aborting. Please set a value for {} in structr.conf.", PRIVATE_KEY_CONFIG_KEY);

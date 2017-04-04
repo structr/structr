@@ -18,6 +18,7 @@
  */
 package org.structr.api.config;
 
+import org.apache.commons.lang.StringUtils;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Tag;
 
@@ -41,7 +42,18 @@ public class StringSetting extends Setting<String> {
 	}
 
 	@Override
-	public String fromString(final String source) {
-		return source;
+	public void fromString(final String source) {
+		setValue(source);
+	}
+
+	@Override
+	public String getValue(final String defaultValue) {
+
+		if (StringUtils.isBlank(getValue())) {
+
+			return defaultValue;
+		}
+
+		return getValue();
 	}
 }

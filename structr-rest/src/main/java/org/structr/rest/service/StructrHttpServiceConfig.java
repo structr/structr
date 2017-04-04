@@ -24,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
-import org.structr.core.Services;
 import org.structr.core.auth.Authenticator;
 import org.structr.rest.ResourceProvider;
 import org.structr.schema.compiler.NodeExtender;
@@ -71,10 +70,6 @@ public class StructrHttpServiceConfig {
 
 		final String resourceProviderValue   = Settings.getStringSetting(servletName, resourceProviderKeyName).getValue();
 		final String authenticatorValue      = Settings.getStringSetting(servletName, authenticatorKeyName).getValue();
-		final String userAutoCreateValue     = Settings.getStringSetting(servletName, userAutoCreateKeyName).getValue();
-		final String userAutoLoginValue      = Settings.getStringSetting(servletName, userAutoLoginKeyName).getValue();
-		final String defaultPropertyKeyValue = Settings.getStringSetting(servletName, defaultPropertyKeyName).getValue();
-		final String outputDepthValue        = Settings.getStringSetting(servletName, nestingDepthKeyName).getValue();
 
 		if (StringUtils.isBlank(resourceProviderValue)) {
 
@@ -112,21 +107,10 @@ public class StructrHttpServiceConfig {
 
 		}
 
-		if (StringUtils.isNotBlank(userAutoCreateValue)) {
-			userAutoCreate = Services.parseBoolean(userAutoCreateValue, false);
-		}
-
-		if (StringUtils.isNotBlank(userAutoLoginValue)) {
-			userAutoLogin = Services.parseBoolean(userAutoLoginValue, false);
-		}
-
-		if (StringUtils.isNotBlank(defaultPropertyKeyValue)) {
-			this.defaultPropertyView = defaultPropertyKeyValue;
-		}
-
-		if (StringUtils.isNotBlank(outputDepthValue)) {
-			this.outputNestingDepth = Services.parseInt(outputDepthValue, 3);
-		}
+		this.userAutoCreate      = Settings.getBooleanSetting(servletName, userAutoCreateKeyName).getValue();
+		this.userAutoLogin       = Settings.getBooleanSetting(servletName, userAutoLoginKeyName).getValue();
+		this.defaultPropertyView = Settings.getStringSetting(servletName, defaultPropertyKeyName).getValue();
+		this.outputNestingDepth  = Settings.getIntegerSetting(servletName, nestingDepthKeyName).getValue();
 	}
 
 	public Authenticator getAuthenticator() {

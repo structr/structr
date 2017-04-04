@@ -29,7 +29,7 @@ public abstract class Setting<T> {
 	private T value      = null;
 
 	public abstract void render(final Tag parent);
-	public abstract T fromString(final String source);
+	public abstract void fromString(final String source);
 
 	public Setting(final SettingsGroup group, final String key, final T value) {
 
@@ -48,7 +48,17 @@ public abstract class Setting<T> {
 		return value;
 	}
 
-	public void setValue(final String value) {
-		this.value = fromString(value);
+	public T getValue(final T defaultValue) {
+
+		if (value == null) {
+
+			return defaultValue;
+		}
+
+		return value;
+	}
+
+	public void setValue(final T value) {
+		this.value = value;
 	}
 }

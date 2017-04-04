@@ -19,7 +19,6 @@
 package org.structr.ldap;
 
 import java.io.IOException;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang.StringUtils;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
@@ -36,6 +35,7 @@ import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.StructrServices;
@@ -314,20 +314,20 @@ public class LDAPService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final StructrServices services, final Properties config) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public void initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
-		this.updateInterval = Long.valueOf(config.getProperty(CONFIG_KEY_UPDATE_INTERVAL, Long.toString(TimeUnit.HOURS.toMillis(2))));
+		this.updateInterval = Settings.getIntegerSetting(CONFIG_KEY_UPDATE_INTERVAL, Long.toString(TimeUnit.HOURS.toMillis(2))).getValue();
 
-		this.binddn         = config.getProperty(CONFIG_KEY_LDAP_BINDDN);
-		this.secret         = config.getProperty(CONFIG_KEY_LDAP_SECRET);
+		this.binddn         = Settings.getStringSetting(CONFIG_KEY_LDAP_BINDDN).getValue();
+		this.secret         = Settings.getStringSetting(CONFIG_KEY_LDAP_SECRET).getValue();
 
-		this.host           = config.getProperty(CONFIG_KEY_LDAP_HOST, "localhost");
-		this.baseDn         = config.getProperty(CONFIG_KEY_LDAP_BASEDN, "ou=system");
-		this.filter         = config.getProperty(CONFIG_KEY_LDAP_FILTER, "(objectclass=*)");
-		this.scope          = config.getProperty(CONFIG_KEY_LDAP_SCOPE, "SUBTREE");
+		this.host           = Settings.getStringSetting(CONFIG_KEY_LDAP_HOST, "localhost").getValue();
+		this.baseDn         = Settings.getStringSetting(CONFIG_KEY_LDAP_BASEDN, "ou=system").getValue();
+		this.filter         = Settings.getStringSetting(CONFIG_KEY_LDAP_FILTER, "(objectclass=*)").getValue();
+		this.scope          = Settings.getStringSetting(CONFIG_KEY_LDAP_SCOPE, "SUBTREE").getValue();
 
-		this.port           = Integer.valueOf(config.getProperty(CONFIG_KEY_LDAP_PORT, "389"));
-		this.useSsl         = "true".equals(config.getProperty(CONFIG_KEY_LDAP_SSL, "true"));
+		this.port           = Settings.getIntegerSetting(CONFIG_KEY_LDAP_PORT).getValue(339);
+		this.useSsl         = Settings.getBooleanSetting(CONFIG_KEY_LDAP_SSL).getValue(true);
 	}
 
 	@Override

@@ -25,11 +25,11 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang3.StringUtils;
 import org.structr.agent.AgentService;
 import org.structr.agent.Task;
 import org.structr.api.DatabaseService;
 import org.structr.api.NotFoundException;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.GraphProperties;
 import org.structr.api.service.Command;
 import org.structr.api.service.Service;
@@ -439,14 +439,6 @@ public class StructrApp implements App {
 		return Services.getInstance().getConfigurationProvider();
 	}
 
-	public static String getConfigurationValue(final String key) {
-		return StringUtils.trim(Services.getInstance().getConfigurationValue(key, null));
-	}
-
-	public static String getConfigurationValue(final String key, final String defaultValue) {
-		return StringUtils.trim(Services.getInstance().getConfigurationValue(key, defaultValue));
-	}
-
 	public static <T extends GraphObject> URI getSchemaId(final Class<T> type) {
 		initializeSchemaIds();
 		return typeIdMap.get(type);
@@ -503,8 +495,7 @@ public class StructrApp implements App {
 
 		if (nodeUuidMap == null) {
 
-			final int cacheSize = Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_UUID_CACHE_SIZE), 100000);
-			nodeUuidMap = new FixedSizeCache<>(cacheSize);
+			nodeUuidMap = new FixedSizeCache<>(Settings.UuidCacheSize.getValue());
 		}
 
 		return nodeUuidMap.get(uuid);
@@ -514,8 +505,7 @@ public class StructrApp implements App {
 
 		if (relUuidMap == null) {
 
-			final int cacheSize = Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_UUID_CACHE_SIZE), 100000);
-			relUuidMap = new FixedSizeCache<>(cacheSize);
+			relUuidMap = new FixedSizeCache<>(Settings.UuidCacheSize.getValue());
 		}
 
 		return relUuidMap.get(uuid);
@@ -530,8 +520,7 @@ public class StructrApp implements App {
 
 				if (nodeUuidMap == null) {
 
-					final int cacheSize = Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_UUID_CACHE_SIZE), 100000);
-					nodeUuidMap = new FixedSizeCache<>(cacheSize);
+					nodeUuidMap = new FixedSizeCache<>(Settings.UuidCacheSize.getValue());
 				}
 
 			}
@@ -547,8 +536,7 @@ public class StructrApp implements App {
 
 				if (relUuidMap == null) {
 
-					final int cacheSize = Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_UUID_CACHE_SIZE), 100000);
-					relUuidMap = new FixedSizeCache<>(cacheSize);
+					relUuidMap = new FixedSizeCache<>(Settings.UuidCacheSize.getValue());
 				}
 
 			}

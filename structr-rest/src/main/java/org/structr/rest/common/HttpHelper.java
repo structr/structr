@@ -48,8 +48,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 
 /**
  * Helper class for outbound HTTP requests
@@ -69,19 +69,19 @@ public class HttpHelper {
 	private static void configure(final HttpRequestBase req, final String username, final String password, final String proxyUrlParameter, final String proxyUsernameParameter, final String proxyPasswordParameter, final String cookieParameter, final Map<String, String> headers, final boolean followRedirects) {
 
 		if (StringUtils.isBlank(proxyUrlParameter)) {
-			proxyUrl = Services.getBaseConfiguration().getProperty(Services.APPLICATION_PROXY_HTTP_URL);
+			proxyUrl = Settings.HttpProxyUrl.getValue();
 		} else {
 			proxyUrl = proxyUrlParameter;
 		}
 
 		if (StringUtils.isBlank(proxyUsernameParameter)) {
-			proxyUsername = Services.getBaseConfiguration().getProperty(Services.APPLICATION_PROXY_HTTP_USERNAME);
+			proxyUsername = Settings.HttpProxyUser.getValue();
 		} else {
 			proxyUsername = proxyUsernameParameter;
 		}
 
 		if (StringUtils.isBlank(proxyPasswordParameter)) {
-			proxyPassword = Services.getBaseConfiguration().getProperty(Services.APPLICATION_PROXY_HTTP_PASSWORD);
+			proxyPassword = Settings.HttpProxyPassword.getValue();
 		} else {
 			proxyPassword = proxyPasswordParameter;
 		}

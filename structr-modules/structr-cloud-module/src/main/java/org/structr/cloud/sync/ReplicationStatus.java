@@ -21,6 +21,7 @@ package org.structr.cloud.sync;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import org.structr.api.config.Settings;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.message.Finish;
 import org.structr.cloud.message.Message;
@@ -92,7 +93,7 @@ public class ReplicationStatus extends Message<ReplicationStatus> {
 			// this is not an error, we want the sync time for the
 			// given MASTER, since a slave can have multiple masters
 			this.lastSync = app.getGlobalSetting(masterId, 0L);
-			this.role     = StructrApp.getConfigurationValue("sync.role", "slave");
+			this.role     = Settings.getStringSetting("sync", "role").getValue("slave");
 		}
 
 		serverConnection.send(this);

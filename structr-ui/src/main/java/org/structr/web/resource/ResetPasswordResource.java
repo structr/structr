@@ -27,11 +27,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.MailHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
@@ -42,7 +42,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
-import org.structr.rest.service.HttpService;
 import org.structr.web.entity.User;
 import org.structr.web.servlet.HtmlServlet;
 
@@ -194,8 +193,8 @@ public class ResetPasswordResource extends Resource {
 		populateReplacementMap(replacementMap, propertySetFromUserPOST);
 
 		final String userEmail = user.getProperty(User.eMail);
-		final String appHost   = Services.getInstance().getConfigurationValue(HttpService.APPLICATION_HOST);
-		final String httpPort  = Services.getInstance().getConfigurationValue(HttpService.APPLICATION_HTTP_PORT);
+		final String appHost   = Settings.ApplicationHost.getValue();
+		final Integer httpPort = Settings.HttpPort.getValue();
 
 		replacementMap.put(toPlaceholder(User.eMail.jsonName()), userEmail);
 		replacementMap.put(toPlaceholder("link"),

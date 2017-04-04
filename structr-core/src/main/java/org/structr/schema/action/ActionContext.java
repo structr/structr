@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
@@ -38,7 +39,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.DateProperty;
 import org.structr.schema.parser.DatePropertyParser;
 
 /**
@@ -311,7 +311,7 @@ public class ActionContext {
 						return null;
 
 					case "now":
-						return this.isJavaScriptContext() ? new Date() : DatePropertyParser.format(new Date(), DateProperty.DEFAULT_FORMAT);
+						return this.isJavaScriptContext() ? new Date() : DatePropertyParser.format(new Date(), Settings.DefaultDateFormat.getValue());
 
 					case "me":
 						return securityContext.getUser(false);

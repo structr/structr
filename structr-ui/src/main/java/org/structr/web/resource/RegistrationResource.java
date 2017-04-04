@@ -32,11 +32,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.MailHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
@@ -52,7 +52,6 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
-import org.structr.rest.service.HttpService;
 import org.structr.web.entity.User;
 import org.structr.web.servlet.HtmlServlet;
 
@@ -66,9 +65,6 @@ import org.structr.web.servlet.HtmlServlet;
 public class RegistrationResource extends Resource {
 
 	private static final Logger logger = LoggerFactory.getLogger(RegistrationResource.class.getName());
-
-	public static final String CUSTOM_ATTRIBUTES                      = "Registration.customUserAttributes";
-	public static final String ALLOW_LOGIN_BEFORE_CONFIRMATION        = "Registration.allowLoginBeforeConfirmation";
 
 	private enum TemplateKey {
 		SENDER_NAME,
@@ -205,8 +201,8 @@ public class RegistrationResource extends Resource {
 		populateReplacementMap(replacementMap, propertySetFromUserPOST);
 
 		final String userEmail = user.getProperty(User.eMail);
-		final String appHost   = Services.getInstance().getConfigurationValue(HttpService.APPLICATION_HOST);
-		final String httpPort  = Services.getInstance().getConfigurationValue(HttpService.APPLICATION_HTTP_PORT);
+		final String appHost   = Settings.ApplicationHost.getValue();
+		final Integer httpPort = Settings.HttpPort.getValue();
 
 		replacementMap.put(toPlaceholder(User.eMail.jsonName()), userEmail);
 		replacementMap.put(toPlaceholder("link"),
@@ -426,7 +422,7 @@ public class RegistrationResource extends Resource {
 
 				// Remove any property which is not included in configuration
 				// eMail is mandatory and necessary
-				final String customAttributesString = User.eMail.jsonName() + "," + Services.getInstance().getConfigurationValue(CUSTOM_ATTRIBUTES);
+				final String customAttributesString = User.eMail.jsonName() + "," + Settings.RegistrationCustomAttributes.getValue();
 				final List<String> customAttributes = Arrays.asList(customAttributesString.split("[ ,]+"));
 
 				final Set<PropertyKey> propsToRemove = new HashSet<>();

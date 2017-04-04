@@ -27,7 +27,7 @@ import java.util.Currency;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.structr.core.app.StructrApp;
+import org.structr.api.config.Settings;
 import urn.ebay.api.PayPalAPI.DoExpressCheckoutPaymentReq;
 import urn.ebay.api.PayPalAPI.DoExpressCheckoutPaymentRequestType;
 import urn.ebay.api.PayPalAPI.DoExpressCheckoutPaymentResponseType;
@@ -128,10 +128,10 @@ public class PayPalHelper {
 
 		final Map<String, String> config = new LinkedHashMap<>();
 
-		config.put("mode", StructrApp.getConfigurationValue("paypal.mode"));
-		config.put("acct1.UserName", StructrApp.getConfigurationValue("paypal.username"));
-		config.put("acct1.Password", StructrApp.getConfigurationValue("paypal.password"));
-		config.put("acct1.Signature", StructrApp.getConfigurationValue("paypal.signature"));
+		config.put("mode",            Settings.getStringSetting("paypal", "mode").getValue());
+		config.put("acct1.UserName",  Settings.getStringSetting("paypal", "username").getValue());
+		config.put("acct1.Password",  Settings.getStringSetting("paypal", "password").getValue());
+		config.put("acct1.Signature", Settings.getStringSetting("paypal", "signature").getValue());
 
 		return config;
 

@@ -28,8 +28,8 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.graph.Tx;
 import org.structr.web.diff.InvertibleModificationOperation;
 import org.structr.web.entity.dom.DOMNode;
@@ -648,10 +648,10 @@ public class DiffTest extends StructrUiTest {
 
 	private String testDiff(final String source, final Function<String, String> modifier) {
 
-		Services.getInstance().getCurrentConfig().setProperty(Services.JSON_INDENTATION,          "true");
-		Services.getInstance().getCurrentConfig().setProperty(Services.HTML_INDENTATION,          "true");
+		Settings.JsonIndentation.setValue(true);
+		Settings.HtmlIndentation.setValue(true);
 
-		StringBuilder buf = new StringBuilder();
+		final StringBuilder buf = new StringBuilder();
 		String sourceHtml = null;
 
 		try {

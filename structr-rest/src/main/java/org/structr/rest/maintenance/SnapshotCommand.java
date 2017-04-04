@@ -34,8 +34,8 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.MaintenanceCommand;
@@ -298,7 +298,7 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 
 	public static String getBasePath() {
 
-		String basePath = StructrApp.getConfigurationValue(Services.SNAPSHOT_PATH, "snapshots/");
+		String basePath = Settings.SnapshotsPath.getValue();
 		if (!basePath.endsWith("/")) {
 
 			basePath = basePath + "/";

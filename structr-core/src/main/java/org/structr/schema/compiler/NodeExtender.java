@@ -38,9 +38,9 @@ import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.error.DiagnosticErrorToken;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.core.Services;
 import org.structr.core.StructrTransactionListener;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.TransactionCommand;
@@ -89,7 +89,7 @@ public class NodeExtender {
 			jfiles.add(new CharSequenceJavaFileObject(className, content));
 			fqcns.add(packageName.concat(".".concat(className)));
 
-			if ("true".equals(Services.getInstance().getConfigurationValue("NodeExtender.log"))) {
+			if (Settings.LogSchemaOutput.getValue()) {
 
 				System.out.println("########################################################################################################################################################");
 				System.out.println(content);

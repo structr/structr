@@ -21,11 +21,12 @@ package org.structr.web.auth;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import java.util.Iterator;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.oltu.oauth2.client.response.OAuthResourceResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.core.app.StructrApp;
+import org.structr.api.config.Settings;
 
 /**
  *
@@ -38,55 +39,41 @@ public class GitHubAuthClient extends StructrOAuthClient {
 	public GitHubAuthClient() {
 	}
 
-	;
-
 	@Override
 	public String getScope() {
-
 		return "user:email";
-
 	}
 
 	@Override
 	public ResponseFormat getResponseFormat() {
-
 		return ResponseFormat.json;
-
 	}
 
 	@Override
 	public String getUserResourceUri() {
-
-		return StructrApp.getConfigurationValue("oauth.github.user_details_resource_uri", "");
-
+		return Settings.OAuthGithubUserDetailsUri.getValue();
 	}
 
 	@Override
 	public String getReturnUri() {
-
-		return StructrApp.getConfigurationValue("oauth.github.return_uri", "/");
-
+		return Settings.OAuthGithubReturnUri.getValue();
 	}
 
 	@Override
 	public String getErrorUri() {
-
-		return StructrApp.getConfigurationValue("oauth.github.error_uri", "/");
-
+		return Settings.OAuthGithubErrorUri.getValue();
 	}
 
 	@Override
 	public String getCredential(final HttpServletRequest request) {
 
-		OAuthResourceResponse userResponse = getUserResponse(request);
-
+		final OAuthResourceResponse userResponse = getUserResponse(request);
 		if (userResponse == null) {
 
 			return null;
-
 		}
 
-		String body = userResponse.getBody();
+		final String body = userResponse.getBody();
 		logger.debug("User response body: {}", body);
 
 		final JsonParser parser = new JsonParser();
@@ -94,21 +81,20 @@ public class GitHubAuthClient extends StructrOAuthClient {
 
 		if (result instanceof JsonArray) {
 
-			final JsonArray arr = (JsonArray) result;
+			final JsonArray arr                  = (JsonArray) result;
+			final Iterator<JsonElement> iterator = arr.iterator();
 
-			if (arr.iterator().hasNext()) {
+			if (iterator.hasNext()) {
 
-				final JsonElement el = arr.iterator().next();
-
+				final JsonElement el = iterator.next();
 				final String address = el.getAsJsonObject().get("email").getAsString();
+
 				logger.info("Got 'email' credential from GitHub: {}", address);
+
 				return address;
 			}
-
 		}
 
 		return null;
-
 	}
-
 }

@@ -20,12 +20,12 @@ package org.structr.core.property;
 
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.config.Settings;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NumberToken;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 
 /**
@@ -109,8 +109,7 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 				return null;
 			}
 
-			final boolean lenient = Boolean.parseBoolean(StructrApp.getConfigurationValue("json.lenient", "false"));
-
+			final boolean lenient = Settings.JsonLenient.getValue();
 			if (!lenient) {
 
 				if (Double.isNaN(source)) {

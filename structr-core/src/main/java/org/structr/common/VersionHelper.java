@@ -23,6 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.structr.api.config.Settings;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.module.StructrModule;
@@ -42,8 +43,8 @@ public class VersionHelper {
 	static {
 
 		classPath                            = System.getProperty("java.class.path");
-		instanceName                         = StructrApp.getConfigurationValue(Services.APPLICATION_INSTANCE_NAME, "");
-		instanceStage                        = StructrApp.getConfigurationValue(Services.APPLICATION_INSTANCE_STAGE, "");
+		instanceName                         = Settings.InstanceName.getValue();
+		instanceStage                        = Settings.InstanceStage.getValue();
 		final Pattern outerPattern           = Pattern.compile("(structr-.+?(?=.jar))");
 		final Matcher outerMatcher           = outerPattern.matcher(classPath);
 

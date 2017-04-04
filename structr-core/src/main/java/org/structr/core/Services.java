@@ -39,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
+import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.api.service.InitializationCallback;
@@ -67,41 +68,9 @@ public class Services implements StructrServices {
 	private static final Logger logger                                   = LoggerFactory.getLogger(StructrApp.class.getName());
 
 	// Configuration constants
-	public static final String INITIAL_SEED_FILE                         = "seed.zip";
-	public static final String FOREIGN_TYPE                              = "foreign.type.key";
 	public static final String LOG_SERVICE_INTERVAL                      = "structr.logging.interval";
 	public static final String LOG_SERVICE_THRESHOLD                     = "structr.logging.threshold";
-	public static final String SERVER_IP                                 = "server.ip";
 	public static final String WS_INDENTATION                            = "ws.indentation";
-	public static final String JSON_REDUNDANCY_REDUCTION                 = "json.redundancyReduction";
-	public static final String GEOCODING_PROVIDER                        = "geocoding.provider";
-	public static final String GEOCODING_LANGUAGE                        = "geocoding.language";
-	public static final String GEOCODING_APIKEY                          = "geocoding.apikey";
-	public static final String ACCESS_CONTROL_MAX_AGE                    = "access.control.max.age";
-	public static final String ACCESS_CONTROL_ALLOW_METHODS              = "access.control.allow.methods";
-	public static final String ACCESS_CONTROL_ALLOW_HEADERS              = "access.control.allow.headers";
-	public static final String ACCESS_CONTROL_ALLOW_CREDENTIALS          = "access.control.allow.credentials";
-	public static final String ACCESS_CONTROL_EXPOSE_HEADERS             = "access.control.expose.headers";
-	public static final String APPLICATION_SESSION_TIMEOUT               = "application.session.timeout";
-	public static final String APPLICATION_SECURITY_RESOLUTION_DEPTH     = "application.security.resolution.depth";
-	public static final String APPLICATION_SECURITY_OWNERLESS_NODES      = "application.security.ownerless.nodes";
-	public static final String APPLICATION_CHANGELOG_ENABLED             = "application.changelog.enabled";
-	public static final String APPLICATION_UUID_CACHE_SIZE               = "application.cache.uuid.size";
-	public static final String APPLICATION_NODE_CACHE_SIZE               = "application.cache.node.size";
-	public static final String APPLICATION_REL_CACHE_SIZE                = "application.cache.relationship.size";
-	public static final String APPLICATION_FILESYSTEM_ENABLED            = "application.filesystem.enabled";
-	public static final String APPLICATION_FILESYSTEM_INDEXING_LIMIT     = "application.filesystem.indexing.limit";
-	public static final String APPLICATION_FILESYSTEM_INDEXING_MINLENGTH = "application.filesystem.indexing.word.minlength";
-	public static final String APPLICATION_FILESYSTEM_INDEXING_MAXLENGTH = "application.filesystem.indexing.word.maxlength";
-	public static final String APPLICATION_FILESYSTEM_UNIQUE_PATHS       = "application.filesystem.unique.paths";
-	public static final String APPLICATION_INSTANCE_NAME                 = "application.instance.name";
-	public static final String APPLICATION_INSTANCE_STAGE                = "application.instance.stage";
-	public static final String APPLICATION_DEFAULT_UPLOAD_FOLDER         = "application.uploads.folder";
-	public static final String APPLICATION_PROXY_HTTP_URL                = "application.proxy.http.url";
-	public static final String APPLICATION_PROXY_HTTP_USERNAME           = "application.proxy.http.username";
-	public static final String APPLICATION_PROXY_HTTP_PASSWORD           = "application.proxy.http.password";
-	public static final String SNAPSHOT_PATH                             = "snapshot.path";
-	public static final String WEBSOCKET_FRONTEND_ACCESS                 = "WebSocketServlet.frontendAccess";
 
 	// singleton instance
 	private static int globalSessionTimeout            = -1;
@@ -205,8 +174,18 @@ public class Services implements StructrServices {
 
 		if (!configFile.exists()) {
 
-		hasConfigFile = false;
-		logger.info("{} not found, starting configuration wizard..", configFileName);
+			if (Settings.Testing.getValue()) {
+
+				// simulate fully configured system
+				hasConfigFile = true;
+				logger.info("Starting Structr for testing..");
+
+			} else {
+
+
+				hasConfigFile = false;
+				logger.info("{} not found, starting configuration wizard..", configFileName);
+			}
 
 		} else {
 
@@ -294,7 +273,7 @@ public class Services implements StructrServices {
 		});
 
 		// read permissions for ownerless nodes
-		final String configForOwnerlessNodes = this.structrConf.getProperty(Services.APPLICATION_SECURITY_OWNERLESS_NODES, "read");
+		final String configForOwnerlessNodes = Settings.OwnerlessNodes.getValue();
 		if (StringUtils.isNotBlank(configForOwnerlessNodes)) {
 
 			for (final String permission : configForOwnerlessNodes.split("[, ]+")) {
@@ -593,28 +572,32 @@ public class Services implements StructrServices {
 		final Set<String> resources = new LinkedHashSet<>();
 
 		// scan through structr.conf and try to identify module-specific classes
-		for (final Object configurationValue : structrConf.values()) {
+		for (final Setting setting : Settings.getSettings()) {
 
-			for (final String value : configurationValue.toString().split("[\\s ,;]+")) {
+			final Object configurationValue = setting.getValue();
+			if (configurationValue != null) {
 
-				try {
+				for (final String value : configurationValue.toString().split("[\\s ,;]+")) {
 
-					// try to load class and find source code origin
-					final Class candidate = Class.forName(value);
-					if (!candidate.getName().startsWith("org.structr")) {
+					try {
 
-						final String codeLocation = candidate.getProtectionDomain().getCodeSource().getLocation().toString();
-						if (codeLocation.startsWith("file:") && codeLocation.endsWith(".jar") || codeLocation.endsWith(".war")) {
+						// try to load class and find source code origin
+						final Class candidate = Class.forName(value);
+						if (!candidate.getName().startsWith("org.structr")) {
 
-							final File file = new File(URI.create(codeLocation));
-							if (file.exists()) {
+							final String codeLocation = candidate.getProtectionDomain().getCodeSource().getLocation().toString();
+							if (codeLocation.startsWith("file:") && codeLocation.endsWith(".jar") || codeLocation.endsWith(".war")) {
 
-								resources.add(file.getAbsolutePath());
+								final File file = new File(URI.create(codeLocation));
+								if (file.exists()) {
+
+									resources.add(file.getAbsolutePath());
+								}
 							}
 						}
-					}
 
-				} catch (Throwable ignore) { }
+					} catch (Throwable ignore) { }
+				}
 			}
 		}
 
@@ -666,7 +649,8 @@ public class Services implements StructrServices {
 	public static int getGlobalSessionTimeout() {
 
 		if (globalSessionTimeout == -1) {
-			globalSessionTimeout = parseInt(Services.getInstance().getConfigurationValue(APPLICATION_SESSION_TIMEOUT, "1800"), 1800);
+
+			globalSessionTimeout = Settings.SessionTimeout.getValue();
 		}
 
 		return globalSessionTimeout;

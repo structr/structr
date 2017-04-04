@@ -35,11 +35,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.api.config.Settings;
 import org.structr.core.function.Functions;
-import org.structr.core.property.DateProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.parser.DatePropertyParser;
@@ -401,7 +399,7 @@ public abstract class Function<S, T> extends Hint {
 		if (!basePath.isEmpty()) {
 
 			final String defaultExchangePath = basePath.endsWith("/") ? basePath.concat("exchange") : basePath.concat("/exchange");
-			String exchangeDir = StructrApp.getConfigurationValue(Services.DATA_EXCHANGE_PATH, defaultExchangePath);
+			String exchangeDir = Settings.DataExchangePath.getValue(defaultExchangePath);
 
 			if (!exchangeDir.endsWith("/")) {
 				exchangeDir = exchangeDir.concat("/");
@@ -639,7 +637,7 @@ public abstract class Function<S, T> extends Hint {
 
 	private int compareDateString(final Object o1, final Object o2) {
 
-		final String value1 = DatePropertyParser.format((Date)o1, DateProperty.DEFAULT_FORMAT);
+		final String value1 = DatePropertyParser.format((Date)o1, Settings.DefaultDateFormat.getValue());
 		final String value2 = (String)o2;
 
 		return value1.compareTo(value2);
@@ -648,7 +646,7 @@ public abstract class Function<S, T> extends Hint {
 	private int compareStringDate(final Object o1, final Object o2) {
 
 		final String value1 = (String)o1;
-		final String value2 = DatePropertyParser.format((Date)o2, DateProperty.DEFAULT_FORMAT);
+		final String value2 = DatePropertyParser.format((Date)o2, Settings.DefaultDateFormat.getValue());
 
 		return value1.compareTo(value2);
 	}

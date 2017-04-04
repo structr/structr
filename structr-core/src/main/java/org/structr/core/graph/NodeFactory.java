@@ -24,13 +24,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
-import org.structr.api.util.FixedSizeCache;
 import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.relationship.NodeHasLocation;
 
 //~--- classes ----------------------------------------------------------------
@@ -46,8 +43,6 @@ import org.structr.core.entity.relationship.NodeHasLocation;
 public class NodeFactory<T extends NodeInterface & AccessControllable> extends Factory<Node, T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(NodeFactory.class.getName());
-
-	private static final FixedSizeCache<Long, Class> idTypeMap = new FixedSizeCache<>(Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_NODE_CACHE_SIZE), 100000));
 
 	public NodeFactory(final SecurityContext securityContext) {
 		super(securityContext);
@@ -81,17 +76,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 			return (T)instantiateWithType(node, null, pathSegment, false);
 		}
 
-		Class type = idTypeMap.get(node.getId());
-		if (type == null) {
-
-			type = factoryDefinition.determineNodeType(node);
-			if (type != null && !GenericNode.class.equals(type)) {
-
-				idTypeMap.put(node.getId(), type);
-			}
-		}
-
-		return (T) instantiateWithType(node, type, pathSegment, false);
+		return (T) instantiateWithType(node, factoryDefinition.determineNodeType(node), pathSegment, false);
 	}
 
 	@Override
@@ -163,10 +148,6 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 
 	}
 
-	public static void invalidateCache() {
-		idTypeMap.clear();
-	}
-
 	/**
 	 * Return all nodes which are connected by an incoming IS_AT relationships
 	 *
@@ -177,8 +158,6 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 
 		final List<NodeInterface> nodes = new LinkedList<>();
 
-		// FIXME this was getRelationships before..
-//		for(RelationshipInterface rel : locationNode.getRelationships(NodeHasLocation.class)) {
 		for(RelationshipInterface rel : locationNode.getIncomingRelationships(NodeHasLocation.class)) {
 
 			NodeInterface startNode = rel.getSourceNode();

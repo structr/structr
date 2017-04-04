@@ -20,60 +20,43 @@ package org.structr.web.auth;
 
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.core.app.StructrApp;
+import org.structr.api.config.Settings;
 
 /**
  *
  *
  */
 public class FacebookAuthClient extends StructrOAuthClient {
-	
-	private static final Logger logger = LoggerFactory.getLogger(FacebookAuthClient.class.getName());
-	
+
 	public FacebookAuthClient() {}
 
 	@Override
 	public String getScope() {
-		
 		return "email";
-		
 	}
 
 	@Override
 	public ResponseFormat getResponseFormat() {
-		
 		return ResponseFormat.json;
-		
 	}
 
 	@Override
 	public String getUserResourceUri() {
-		
-		return StructrApp.getConfigurationValue("oauth.facebook.user_details_resource_uri", "");
-			
+		return Settings.OAuthFacebookUserDetailsUri.getValue();
 	}
 
 	@Override
 	public String getReturnUri() {
-		
-		return StructrApp.getConfigurationValue("oauth.facebook.return_uri", "/");
-			
+		return Settings.OAuthFacebookReturnUri.getValue();
 	}
 
 	@Override
 	public String getErrorUri() {
-		
-		return StructrApp.getConfigurationValue("oauth.facebook.error_uri", "/");
-			
+		return Settings.OAuthFacebookErrorUri.getValue();
 	}
-	
+
 	@Override
 	public String getCredential(final HttpServletRequest request) {
-		
 		return StringUtils.replace(getValue(request, "email"), "\u0040", "@");
-		
 	}
-	
 }

@@ -208,7 +208,7 @@ public class MaintenanceTest extends StructrTest {
 
 			// stop existing and start new database
 			stopSystem();
-			startSystem(Collections.emptyMap());
+			startSystem();
 
 			// test import
 			app.command(SyncCommand.class).execute(toMap("mode", "import", "file", EXPORT_FILENAME));

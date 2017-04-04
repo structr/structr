@@ -28,7 +28,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Transaction;
-import org.structr.api.config.Structr;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
@@ -42,17 +42,18 @@ public class NodeWrapperTest {
 	public void testDeleteException() {
 
 		final BoltDatabaseService s = new BoltDatabaseService();
-		final Properties config     = new Properties();
 
 		try {
-			config.put(Structr.DATABASE_PATH, Files.createTempDirectory("structr-test").toFile().getAbsolutePath());
+
+			Settings.DatabasePath.setValue(Files.createTempDirectory("structr-test").toFile().getAbsolutePath());
+			Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
+
 		} catch (IOException ioex) {
 			logger.warn("", ioex);
 		}
 
-		config.setProperty(Structr.DATABASE_CONNECTION_URL, Structr.TEST_DATABASE_URL);
 
-		s.initialize(config);
+		s.initialize();
 
 		// create new node
 		try (final Transaction tx = s.beginTx()) {
@@ -81,14 +82,15 @@ public class NodeWrapperTest {
 		final Properties config     = new Properties();
 
 		try {
-			config.put(Structr.DATABASE_PATH, Files.createTempDirectory("structr-test").toFile().getAbsolutePath());
+
+			Settings.DatabasePath.setValue(Files.createTempDirectory("structr-test").toFile().getAbsolutePath());
+			Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
+
 		} catch (IOException ioex) {
 			logger.warn("", ioex);
 		}
 
-		config.setProperty(Structr.DATABASE_CONNECTION_URL, Structr.TEST_DATABASE_URL);
-
-		s.initialize(config);
+		s.initialize();
 
 		long id = 0L;
 

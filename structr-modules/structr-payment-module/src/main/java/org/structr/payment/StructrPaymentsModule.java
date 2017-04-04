@@ -23,7 +23,7 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.core.app.StructrApp;
+import org.structr.api.config.Settings;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.module.StructrModule;
 import org.structr.schema.action.Actions;
@@ -39,12 +39,12 @@ public class StructrPaymentsModule implements StructrModule {
 		logger.info("Checking payment provider configuration..");
 
 		// check and read configuration..
-		checkString("paypal.mode",      StructrApp.getConfigurationValue("paypal.mode"),      "paypal.mode not set, please set to either sandbox or live.");
-		checkString("paypal.username",  StructrApp.getConfigurationValue("paypal.username"),  "paypal.username not set in structr.conf.");
-		checkString("paypal.password",  StructrApp.getConfigurationValue("paypal.password"),  "paypal.password not set in structr.conf.");
-		checkString("paypal.signature", StructrApp.getConfigurationValue("paypal.signature"), "paypal.signature not set in structr.conf.");
-		checkString("paypal.redirect",  StructrApp.getConfigurationValue("paypal.redirect"),  "paypal.redirect not set in structr.conf.");
-		checkString("stripe.apikey",    StructrApp.getConfigurationValue("stripe.apikey"),    "stripe.apikey not set in structr.conf.");
+		checkString("paypal.mode",      Settings.getStringSetting("paypal", "mode").getValue(),      "paypal.mode not set, please set to either sandbox or live.");
+		checkString("paypal.username",  Settings.getStringSetting("paypal", "username").getValue(),  "paypal.username not set in structr.conf.");
+		checkString("paypal.password",  Settings.getStringSetting("paypal", "password").getValue(),  "paypal.password not set in structr.conf.");
+		checkString("paypal.signature", Settings.getStringSetting("paypal", "signature").getValue(), "paypal.signature not set in structr.conf.");
+		checkString("paypal.redirect",  Settings.getStringSetting("paypal", "redirect").getValue(),  "paypal.redirect not set in structr.conf.");
+		checkString("stripe.apikey",    Settings.getStringSetting("stripe", "apikey").getValue(),    "stripe.apikey not set in structr.conf.");
 	}
 
 	@Override

@@ -49,6 +49,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
@@ -56,7 +57,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
@@ -239,7 +239,7 @@ public class LogResource extends Resource {
 			// initialize?!
 			if ("true".equals(request.getParameter("initialize"))) {
 
-				final String filesPath = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
+				final String filesPath = Settings.FilesPath.getValue();
 
 				try (final Context context  = new Context(1000)) {
 

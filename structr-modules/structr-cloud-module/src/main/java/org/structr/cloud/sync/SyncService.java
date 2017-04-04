@@ -24,12 +24,12 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.StructrServices;
@@ -80,26 +80,26 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 	}
 
 	@Override
-	public void initialize(final StructrServices services, final Properties config) {
+	public void initialize(final StructrServices services) {
 
-		active = "true".equals(config.getProperty("sync.enabled", "false"));
+		active = Settings.getBooleanSetting("sync", "enabled").getValue(false);
 
 		if (active) {
 
 			// initialize role and master
-			role          = SyncRole.valueOf(config.getProperty("sync.role", "master"));
-			allowedMaster = config.getProperty("sync.master", null);
+			role          = SyncRole.valueOf(Settings.getStringSetting("sync", "role").getValue("master"));
+			allowedMaster = Settings.getStringSetting("sync", "master").getValue();
 
 			if (allowedMaster == null && SyncRole.slave.equals(role)) {
 				throw new IllegalStateException("no master address set for this slave, please set sync.master in structr.conf.");
 			}
 
-			final String minimum = config.getProperty("sync.minimum", "1");
-			final String retry   = config.getProperty("sync.retry", "60");
-			final String hosts   = config.getProperty("sync.hosts");
-			final String users   = config.getProperty("sync.users");
-			final String pwds    = config.getProperty("sync.passwords");
-			final String ports   = config.getProperty("sync.ports");
+			final String minimum = Settings.getStringSetting("sync.minimum").getValue("1");
+			final String retry   = Settings.getStringSetting("sync.retry").getValue("60");
+			final String hosts   = Settings.getStringSetting("sync.hosts").getValue();
+			final String users   = Settings.getStringSetting("sync.users").getValue();
+			final String pwds    = Settings.getStringSetting("sync.passwords").getValue();
+			final String ports   = Settings.getStringSetting("sync.ports").getValue();
 
 			// check only if we are a replication master
 			if (SyncRole.master.equals(role)) {

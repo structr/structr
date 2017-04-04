@@ -39,11 +39,11 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -350,9 +350,9 @@ public class FileHelper {
 		fileNode.unlockSystemPropertiesOnce();
 		fileNode.setProperties(fileNode.getSecurityContext(), properties);
 
-		final String filesPath = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
+		final String filesPath = Settings.FilesPath.getValue();
 
-		java.io.File fileOnDisk = new java.io.File(filesPath + "/" + fileNode.getRelativeFilePath());
+		final java.io.File fileOnDisk = new java.io.File(filesPath + "/" + fileNode.getRelativeFilePath());
 
 		fileOnDisk.getParentFile().mkdirs();
 		FileUtils.writeByteArrayToFile(fileOnDisk, data);
@@ -602,13 +602,11 @@ public class FileHelper {
 
 	public static String getFilePath(final String... pathParts) {
 
-		String filePath = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
-		StringBuilder returnPath = new StringBuilder();
+		final String filePath          = Settings.FilesPath.getValue();
+		final StringBuilder returnPath = new StringBuilder();
 
 		returnPath.append(filePath);
-		returnPath.append(filePath.endsWith("/")
-			? ""
-			: "/");
+		returnPath.append(filePath.endsWith("/") ? "" : "/");
 
 		for (String pathPart : pathParts) {
 			returnPath.append(pathPart);

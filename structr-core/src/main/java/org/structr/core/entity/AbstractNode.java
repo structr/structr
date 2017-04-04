@@ -43,6 +43,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
@@ -105,7 +106,7 @@ import org.structr.schema.action.Function;
  */
 public abstract class AbstractNode implements NodeInterface, AccessControllable, CMISInfo, CMISItemInfo {
 
-	private static final int permissionResolutionMaxLevel                                                 = Services.getInstance().getConfigValue(Services.APPLICATION_SECURITY_RESOLUTION_DEPTH, 5);
+	private static final int permissionResolutionMaxLevel                                                 = Settings.ResolutionDepth.getValue();
 	private static final Logger logger                                                                    = LoggerFactory.getLogger(AbstractNode.class.getName());
 	private static final FixedSizeCache<String, Object> relationshipTemplateInstanceCache                 = new FixedSizeCache<>(1000);
 	private static final Map<Long, Map<Long, PermissionResolutionResult>> globalPermissionResolutionCache = new HashMap<>();

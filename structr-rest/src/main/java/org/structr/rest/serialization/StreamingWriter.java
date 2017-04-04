@@ -33,13 +33,13 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
 import org.structr.common.QueryRange;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -87,6 +87,7 @@ public abstract class StreamingWriter {
 
 	public StreamingWriter(final Value<String> propertyView, final boolean indent, final int outputNestingDepth) {
 
+		this.reduceRedundancy   = Settings.JsonRedundancyReduction.getValue();
 		this.outputNestingDepth = outputNestingDepth;
 		this.propertyView       = propertyView;
 		this.indent             = indent;
@@ -107,11 +108,6 @@ public abstract class StreamingWriter {
 		nonSerializerClasses.add(StringBuffer.class.getName());
 		nonSerializerClasses.add(Boolean.class.getName());
 
-		try {
-			this.reduceRedundancy = Boolean.valueOf(Services.getInstance().getConfigurationValue(Services.JSON_REDUNDANCY_REDUCTION, "false"));
-		} catch (Throwable t) {
-			logger.warn("Unable to parse value for {}: {}", new Object[] { Services.JSON_REDUNDANCY_REDUCTION, t.getMessage() } );
-		}
 
 		//this.writer = new StructrWriter(writer);
 		//this.writer.setIndent("   ");

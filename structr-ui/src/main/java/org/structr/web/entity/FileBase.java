@@ -34,6 +34,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.info.CMISDocumentInfo;
 import org.structr.cmis.info.CMISFolderInfo;
@@ -52,7 +53,6 @@ import org.structr.common.fulltext.Indexable;
 import static org.structr.common.fulltext.Indexable.extractedContent;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.Principal;
@@ -110,7 +110,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 			final PropertyMap changedProperties = new PropertyMap();
 
-			if ("true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_ENABLED, "false")) && !getProperty(AbstractFile.hasParent)) {
+			if (Settings.FilesystemEnabled.getValue() && !getProperty(AbstractFile.hasParent)) {
 
 				final Folder workingOrHomeDir = getCurrentWorkingDir();
 				if (workingOrHomeDir != null && getProperty(AbstractFile.parent) == null) {
@@ -206,8 +206,8 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		try {
 
-			final String filesPath = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
-			java.io.File fileOnDisk = new java.io.File(filesPath + "/" + getRelativeFilePath());
+			final String filesPath        = Settings.FilesPath.getValue();
+			final java.io.File fileOnDisk = new java.io.File(filesPath + "/" + getRelativeFilePath());
 
 			if (fileOnDisk.exists()) {
 				return;

@@ -21,8 +21,7 @@ package org.structr.websocket.servlet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
-import org.structr.core.Services;
-import org.structr.core.app.StructrApp;
+import org.structr.api.config.Settings;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
@@ -58,11 +57,11 @@ public class WebSocketServlet extends org.eclipse.jetty.websocket.servlet.WebSoc
 			.serializeNulls()
 			.registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(config.getOutputNestingDepth()));
 
-		if (Boolean.parseBoolean(StructrApp.getConfigurationValue(Services.WS_INDENTATION, "true"))) {
+		if (Settings.WsIndentation.getValue()) {
 			gsonBuilder.setPrettyPrinting();
 		}
 
-		final boolean lenient = Boolean.parseBoolean(StructrApp.getConfigurationValue("json.lenient", "false"));
+		final boolean lenient = Settings.JsonLenient.getValue();
 		if (lenient) {
 			// Serializes NaN, -Infinity, Infinity, see http://code.google.com/p/google-gson/issues/detail?id=378
 			gsonBuilder.serializeSpecialFloatingPointValues();

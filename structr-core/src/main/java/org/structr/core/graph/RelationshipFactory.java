@@ -23,11 +23,9 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Relationship;
-import org.structr.api.util.FixedSizeCache;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
@@ -42,8 +40,7 @@ import org.structr.core.app.StructrApp;
  */
 public class RelationshipFactory<T extends RelationshipInterface> extends Factory<Relationship, T> {
 
-	private static final FixedSizeCache<Long, Class> idTypeMap = new FixedSizeCache<>(Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_REL_CACHE_SIZE), 100000));
-	private static final Logger logger                         = LoggerFactory.getLogger(RelationshipFactory.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(RelationshipFactory.class.getName());
 
 	// private Map<String, Class> nodeTypeCache = new ConcurrentHashMap<String, Class>();
 	public RelationshipFactory(final SecurityContext securityContext) {
@@ -74,17 +71,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 			return null;
 		}
 
-		Class type = idTypeMap.get(relationship.getId());
-		if (type == null) {
-
-			type = factoryDefinition.determineRelationshipType(relationship);
-			if (type != null) {
-
-				idTypeMap.put(relationship.getId(), type);
-			}
-		}
-
-		return (T) instantiateWithType(relationship, type, null, false);
+		return (T) instantiateWithType(relationship, factoryDefinition.determineRelationshipType(relationship), null, false);
 	}
 
 	@Override
@@ -178,9 +165,5 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 
 		return newRel;
 
-	}
-
-	public static void invalidateCache() {
-		idTypeMap.clear();
 	}
 }

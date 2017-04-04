@@ -19,12 +19,12 @@
 package org.structr.web.entity;
 
 import java.util.List;
+import org.structr.api.config.Settings;
 import org.structr.common.KeyAndClass;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractUser;
@@ -44,7 +44,6 @@ import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaService;
 import org.structr.web.entity.relation.UserFavoriteFavoritable;
-import org.structr.web.entity.relation.UserFavoriteFile;
 import org.structr.web.entity.relation.UserHomeDir;
 import org.structr.web.entity.relation.UserImage;
 import org.structr.web.entity.relation.UserWorkDir;
@@ -124,7 +123,7 @@ public class User extends AbstractUser {
 	// ----- private methods -----
 	private void checkAndCreateHomeDirectory(final SecurityContext securityContext) throws FrameworkException {
 
-		if ("true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_ENABLED, "false"))) {
+		if (Settings.FilesystemEnabled.getValue()) {
 
 			// use superuser context here
 			final SecurityContext storedContext = this.securityContext;
@@ -171,7 +170,7 @@ public class User extends AbstractUser {
 
 	private void checkAndRemoveHomeDirectory(final SecurityContext securityContext) throws FrameworkException {
 
-		if ("true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_ENABLED, "false"))) {
+		if (Settings.FilesystemEnabled.getValue()) {
 
 			// use superuser context here
 			final SecurityContext storedContext = this.securityContext;

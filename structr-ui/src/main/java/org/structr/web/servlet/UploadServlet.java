@@ -40,6 +40,7 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
+import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.PathHelper;
 import org.structr.common.Permission;
@@ -47,7 +48,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractNode;
@@ -97,11 +97,11 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 	public void init() {
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
-			
+
 			DiskFileItemFactory fileFactory = new DiskFileItemFactory();
 			fileFactory.setSizeThreshold(MEMORY_THRESHOLD);
 
-			filesDir = new File(Services.getInstance().getConfigurationValue(Services.TMP_PATH)); // new File(Services.getInstance().getTmpPath());
+			filesDir = new File(Settings.TmpPath.getValue()); // new File(Services.getInstance().getTmpPath());
 			if (!filesDir.exists()) {
 				filesDir.mkdir();
 			}
@@ -169,9 +169,11 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 		try {
 
-			if (securityContext.getUser(false) == null && Boolean.FALSE.equals(Boolean.parseBoolean(StructrApp.getConfigurationValue("UploadServlet.allowAnonymousUploads", "false")))) {
+			if (securityContext.getUser(false) == null && !Settings.UploadAllowAnonymous.getValue()) {
+
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				response.getOutputStream().write("ERROR (401): Anonymous uploads forbidden.\n".getBytes("UTF-8"));
+
 				return;
 			}
 
@@ -197,8 +199,8 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 			}
 
-			uploader.setFileSizeMax(MEGABYTE * Long.parseLong(StructrApp.getConfigurationValue("UploadServlet.maxFileSize", MAX_FILE_SIZE)));
-			uploader.setSizeMax(MEGABYTE * Long.parseLong(StructrApp.getConfigurationValue("UploadServlet.maxRequestSize", MAX_REQUEST_SIZE)));
+			uploader.setFileSizeMax(MEGABYTE * Settings.UploadMaxFileSize.getValue());
+			uploader.setSizeMax(MEGABYTE * Settings.UploadMaxRequestSize.getValue());
 
 			response.setContentType("text/html");
 
@@ -284,8 +286,8 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 								changedProperties.put(AbstractNode.name, PathHelper.getName(name));
 								changedProperties.putAll(PropertyMap.inputTypeToJavaType(securityContext, cls, params));
 
-								final String defaultUploadFolderConfigValue = StructrApp.getConfigurationValue(Services.APPLICATION_DEFAULT_UPLOAD_FOLDER, null);
-								if (defaultUploadFolderConfigValue != null) {
+								final String defaultUploadFolderConfigValue = Settings.DefaultUploadFolder.getValue();
+								if (StringUtils.isNotBlank(defaultUploadFolderConfigValue)) {
 
 									final Folder defaultUploadFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), defaultUploadFolderConfigValue);
 
@@ -403,8 +405,8 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 				return;
 			}
 
-			uploader.setFileSizeMax(MEGABYTE * Long.parseLong(StructrApp.getConfigurationValue("UploadServlet.maxFileSize", MAX_FILE_SIZE)));
-			uploader.setSizeMax(MEGABYTE * Long.parseLong(StructrApp.getConfigurationValue("UploadServlet.maxRequestSize", MAX_REQUEST_SIZE)));
+			uploader.setFileSizeMax(MEGABYTE * Settings.UploadMaxFileSize.getValue());
+			uploader.setSizeMax(MEGABYTE * Settings.UploadMaxRequestSize.getValue());
 
 			List<FileItem> fileItemsList = uploader.parseRequest(request);
 			Iterator<FileItem> fileItemsIterator = fileItemsList.iterator();

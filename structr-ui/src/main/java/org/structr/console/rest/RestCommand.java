@@ -26,11 +26,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.console.Console;
-import org.structr.core.Services;
-import org.structr.core.app.StructrApp;
-import org.structr.rest.service.HttpService;
 import org.structr.util.Writable;
 
 /**
@@ -80,15 +78,15 @@ public abstract class RestCommand {
 
 		final StringBuilder buf = new StringBuilder("http://");
 
-		buf.append(StructrApp.getConfigurationValue(HttpService.APPLICATION_HOST, "localhost"));
+		buf.append(Settings.ApplicationHost.getValue());
 		buf.append(":");
-		buf.append(StructrApp.getConfigurationValue(HttpService.APPLICATION_HTTP_PORT, "8082"));
+		buf.append(Settings.HttpPort.getValue());
 
 		return buf.toString();
 	}
 
 	protected String getBasePath() {
-		return StringUtils.removeEnd(Services.getBaseConfiguration().getProperty("JsonRestServlet.path", "/structr/rest"), "/*");
+		return StringUtils.removeEnd(Settings.RestServletPath.getValue(), "/*");
 	}
 
 	// ----- public static methods -----

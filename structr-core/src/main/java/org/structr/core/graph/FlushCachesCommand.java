@@ -47,9 +47,6 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 
 		NodeWrapper.clearCache();
 		RelationshipWrapper.clearCache();
-
-		NodeFactory.invalidateCache();
-		RelationshipFactory.invalidateCache();
 		AccessPathCache.invalidate();
 
 		App app = StructrApp.getInstance(securityContext);

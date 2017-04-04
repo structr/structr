@@ -23,10 +23,9 @@ import org.apache.chemistry.opencmis.commons.definitions.MutableTypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.enums.CmisVersion;
 import org.apache.chemistry.opencmis.server.support.TypeDefinitionFactory;
+import org.structr.api.config.Settings;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.wrapper.CMISFolderWrapper;
-import org.structr.core.Services;
-import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyMap;
 import org.structr.files.cmis.config.StructrRootFolderActions;
 import org.structr.web.entity.Folder;
@@ -50,9 +49,9 @@ public class CMISRootFolder extends CMISFolderWrapper {
 		setDescription("Root Folder");
 		setType(Folder.class.getSimpleName());
 
-		final String superuserName = StructrApp.getConfigurationValue(Services.SUPERUSER_USERNAME);
-		this.createdBy      = superuserName;
-		this.lastModifiedBy = superuserName;
+		final String superuserName = Settings.SuperUserName.getValue();
+		this.createdBy             = superuserName;
+		this.lastModifiedBy        = superuserName;
 
 		setCreationDate(CMISInfo.ROOT_FOLDER_DATE);
 		setLastModificationDate(CMISInfo.ROOT_FOLDER_DATE);

@@ -24,7 +24,7 @@ import java.util.Map;
 import org.apache.commons.jxpath.JXPathContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.core.Services;
+import org.structr.api.config.Settings;
 
 /**
  * Abstract base class for geocoding providers.
@@ -35,29 +35,29 @@ public abstract class AbstractGeoCodingProvider implements GeoCodingProvider {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractGeoCodingProvider.class.getName());
 	protected String apiKey            = null;
-	
+
 	public AbstractGeoCodingProvider() {
-		this.apiKey = Services.getInstance().getConfigurationValue(Services.GEOCODING_APIKEY, "");
+		this.apiKey = Settings.GeocodingApiKey.getValue();
 	}
-	
+
 	protected <T> T extract(Map source, String path, Class<T> type) {
-		
+
 		JXPathContext context = JXPathContext.newContext(source);
 		T value               = (T)context.getValue(path);
-		
+
 		return value;
 	}
-	
+
 	protected String encodeURL(String source) {
-		
+
 		try {
 			return URLEncoder.encode(source, "UTF-8");
-			
+
 		} catch (UnsupportedEncodingException ex) {
 
 			logger.warn("Unsupported Encoding", ex);
 		}
-		
+
 		// fallback, unencoded
 		return source;
 	}

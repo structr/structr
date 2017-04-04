@@ -28,7 +28,6 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import org.apache.sshd.common.Factory;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.config.keys.KeyUtils;
@@ -50,13 +49,13 @@ import org.apache.sshd.server.subsystem.sftp.SftpEventListener;
 import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.api.service.SingletonService;
 import org.structr.api.service.StructrServices;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.console.Console.ConsoleMode;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
@@ -72,8 +71,6 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 	private static final Logger logger = LoggerFactory.getLogger(SSHService.class.getName());
 
-	public static final String APPLICATION_SSH_PORT = "application.ssh.port";
-
 	private final ScpCommandFactory scp     = new ScpCommandFactory.Builder().build();
 	private SshServer server                = null;
 	private boolean running                 = false;
@@ -84,7 +81,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	}
 
 	@Override
-	public void initialize(final StructrServices services, final Properties config) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public void initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		server = SshServer.setUpDefaultServer();
 
@@ -93,7 +90,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 
 		server.setKeyPairProvider(hostKeyProvider);
-		server.setPort(Services.parseInt(config.getProperty(APPLICATION_SSH_PORT), 8022));
+		server.setPort(Settings.SshPort.getValue());
 		server.setPasswordAuthenticator(this);
 		server.setPublickeyAuthenticator(this);
 		server.setFileSystemFactory(this);

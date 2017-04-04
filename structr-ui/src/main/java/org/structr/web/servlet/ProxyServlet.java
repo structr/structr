@@ -46,16 +46,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
-import org.structr.rest.service.HttpService;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.web.auth.UiAuthenticator;
@@ -109,7 +108,7 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 
 	public ProxyServlet() {
 
-		String customResponseHeadersString = Services.getBaseConfiguration().getProperty(CUSTOM_RESPONSE_HEADERS);
+		String customResponseHeadersString = Settings.HtmlCustomResponseHeaders.getValue();
 
 		if (StringUtils.isBlank(customResponseHeadersString)) {
 
@@ -121,7 +120,7 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 		}
 
 		// resolving properties
-		final String resolvePropertiesSource = StructrApp.getConfigurationValue(OBJECT_RESOLUTION_PROPERTIES, "AbstractNode.name");
+		final String resolvePropertiesSource = Settings.HtmlResolveProperties.getValue();
 		for (final String src : resolvePropertiesSource.split("[, ]+")) {
 
 			final String name = src.trim();
@@ -131,7 +130,7 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 			}
 		}
 
-		this.isAsync = Services.parseBoolean(Services.getBaseConfiguration().getProperty(HttpService.ASYNC), true);
+		this.isAsync = Settings.Async.getValue();
 	}
 
 	@Override
@@ -142,15 +141,15 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
 
 		final Authenticator auth = getConfig().getAuthenticator();
-		
+
 		SecurityContext securityContext;
 		String content;
 
 		if (auth == null) {
-			
+
 			final String errorMessage = "No authenticator class found. Check log for 'Missing authenticator key " + this.getClass().getSimpleName() + ".authenticator'";
 			logger.error(errorMessage);
-			
+
 			try {
 				final ServletOutputStream out = response.getOutputStream();
 				content = errorPage(new Throwable(errorMessage));
@@ -159,9 +158,9 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 			} catch (IOException ex) {
 				logger.error("Could not write to response", ex);
 			}
-			
+
 			return;
-		}		
+		}
 
 		try {
 
@@ -173,7 +172,7 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 
 			// Ensure access mode is frontend
 			securityContext.setAccessMode(AccessMode.Frontend);
-			
+
 			String address = request.getParameter("url");
 			final URI url  = URI.create(address);
 
@@ -191,7 +190,7 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 				proxyUsername = user.getProperty(User.proxyUsername);
 				proxyPassword = user.getProperty(User.proxyPassword);
 			}
-			
+
 			content = HttpHelper.get(address, authUsername, authPassword, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP).replace("<head>", "<head>\n  <base href=\"" + url + "\">");
 
 
@@ -340,5 +339,5 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 	private String errorPage(final Throwable t) {
 		return "<html><head><title>Error in Structr Proxy</title></head><body><h1>Error in Proxy</h1><p>" + t.getMessage() + "</p>\n<!--" + ExceptionUtils.getStackTrace(t) + "--></body></html>";
 	}
-	
+
 }

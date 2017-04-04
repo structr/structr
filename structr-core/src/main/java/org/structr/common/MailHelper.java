@@ -22,16 +22,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.Email;
 import org.apache.commons.mail.EmailAttachment;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
 import org.apache.commons.mail.SimpleEmail;
-import org.structr.core.Services;
-
-//~--- JDK imports ------------------------------------------------------------
+import org.structr.api.config.Settings;
 
 
 //~--- classes ----------------------------------------------------------------
@@ -61,7 +58,7 @@ public abstract class MailHelper {
 		mail.setTextMsg(textContent);
 
 		if (attachments != null) {
-			
+
 			for (final EmailAttachment attachment : attachments) {
 				mail.attach(attachment);
 			}
@@ -86,22 +83,19 @@ public abstract class MailHelper {
 		throws EmailException {
 
 		// FIXME: this might be slow if the config file is read each time
-		final Properties config     = Services.getInstance().getCurrentConfig();
-		final String smtpHost       = config.getProperty(Services.SMTP_HOST, "localhost");
-		final String smtpPort       = config.getProperty(Services.SMTP_PORT, "25");
-		final String smtpUser       = config.getProperty(Services.SMTP_USER);
-		final String smtpPassword   = config.getProperty(Services.SMTP_PASSWORD);
-		final String smtpUseTLS     = config.getProperty(Services.SMTP_USE_TLS, "true");
-		final String smtpRequireTLS = config.getProperty(Services.SMTP_REQUIRE_TLS, "false");
+		final String smtpHost        = Settings.SmtpHost.getValue();
+		final int smtpPort           = Settings.SmtpPort.getValue();
+		final String smtpUser        = Settings.SmtpUser.getValue();
+		final String smtpPassword    = Settings.SmtpPassword.getValue();
+		final boolean smtpUseTLS     = Settings.SmtpTlsEnabled.getValue();
+		final boolean smtpRequireTLS = Settings.SmtpTlsRequired.getValue();
 
 		mail.setCharset(charset);
 		mail.setHostName(smtpHost);
-		mail.setSmtpPort(Integer.parseInt(smtpPort));
-		mail.setStartTLSEnabled(Boolean.parseBoolean(smtpUseTLS));
-		mail.setStartTLSRequired(Boolean.parseBoolean(smtpRequireTLS));
+		mail.setSmtpPort(smtpPort);
+		mail.setStartTLSEnabled(smtpUseTLS);
+		mail.setStartTLSRequired(smtpRequireTLS);
 		mail.setCharset(charset);
-		mail.setHostName(smtpHost);
-		mail.setSmtpPort(Integer.parseInt(smtpPort));
 
 		if (StringUtils.isNotBlank(smtpUser) && StringUtils.isNotBlank(smtpPassword)) {
 			mail.setAuthentication(smtpUser, smtpPassword);

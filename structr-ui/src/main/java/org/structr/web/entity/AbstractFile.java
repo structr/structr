@@ -22,6 +22,7 @@ package org.structr.web.entity;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
@@ -29,7 +30,6 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UniqueToken;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.ModificationQueue;
@@ -70,19 +70,12 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 	public static final View defaultView = new View(AbstractFile.class, PropertyView.Public, path);
 	public static final View uiView      = new View(AbstractFile.class, PropertyView.Ui, path);
 
-	private static boolean validatePathUniqueness = false;
-
-	static {
-
-		try { validatePathUniqueness = Boolean.valueOf(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_UNIQUE_PATHS, "true")); } catch (Throwable t) {}
-	}
-
 	@Override
 	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		boolean valid = true;
 
-		if (validatePathUniqueness) {
+		if (Settings.UniquePaths.getValue()) {
 			valid = validateAndRenameFileOnce(securityContext, errorBuffer);
 		}
 
@@ -94,7 +87,7 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 
 		boolean valid = true;
 
-		if (validatePathUniqueness) {
+		if (Settings.UniquePaths.getValue()) {
 			valid = validatePath(securityContext, errorBuffer);
 		}
 

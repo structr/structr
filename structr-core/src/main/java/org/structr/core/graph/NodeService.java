@@ -48,7 +48,8 @@ import org.structr.api.config.Settings;
  */
 public class NodeService implements SingletonService {
 
-	private static final Logger logger = LoggerFactory.getLogger(NodeService.class.getName());
+	private static final Logger logger            = LoggerFactory.getLogger(NodeService.class.getName());
+	private static final String INITIAL_SEED_FILE = "seed.zip";
 
 	//~--- fields ---------------------------------------------------------
 
@@ -206,7 +207,7 @@ public class NodeService implements SingletonService {
 
 	private void importSeedFile(final String basePath) {
 
-		final File seedFile = new File(StructrServices.trim(basePath) + "/" + Services.INITIAL_SEED_FILE);
+		final File seedFile = new File(StructrServices.trim(basePath) + "/" + INITIAL_SEED_FILE);
 
 		if (seedFile.exists()) {
 

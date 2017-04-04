@@ -24,7 +24,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -45,11 +44,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.pdfbox.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.graph.Tx;
@@ -94,8 +93,9 @@ public class DeploymentServlet extends HttpServlet implements HttpServiceServlet
 			DiskFileItemFactory fileFactory = new DiskFileItemFactory();
 			fileFactory.setSizeThreshold(MEMORY_THRESHOLD);
 
-			filesDir = new File(Services.getInstance().getConfigurationValue(Services.TMP_PATH)); // new File(Services.getInstance().getTmpPath());
+			filesDir = new File(Settings.TmpPath.getValue()); // new File(Services.getInstance().getTmpPath());
 			if (!filesDir.exists()) {
+
 				filesDir.mkdir();
 			}
 
@@ -136,7 +136,7 @@ public class DeploymentServlet extends HttpServlet implements HttpServiceServlet
 				return;
 			}
 
-			if (securityContext.getUser(false) == null && Boolean.FALSE.equals(Boolean.parseBoolean(StructrApp.getConfigurationValue("DeploymentServlet.allowAnonymousUploads", "false")))) {
+			if (securityContext.getUser(false) == null && !Settings.DeploymentAllowAnonymous.getValue()) {
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				response.getOutputStream().write("ERROR (401): Anonymous uploads forbidden.\n".getBytes("UTF-8"));
 				return;
@@ -164,16 +164,14 @@ public class DeploymentServlet extends HttpServlet implements HttpServiceServlet
 
 			}
 
-			uploader.setFileSizeMax(MEGABYTE * Long.parseLong(StructrApp.getConfigurationValue("DeploymentServlet.maxFileSize", MAX_FILE_SIZE)));
-			uploader.setSizeMax(MEGABYTE * Long.parseLong(StructrApp.getConfigurationValue("DeploymentServlet.maxRequestSize", MAX_REQUEST_SIZE)));
+			uploader.setFileSizeMax(MEGABYTE * Settings.DeploymentMaxFileSize.getValue());
+			uploader.setSizeMax(MEGABYTE * Settings.DeploymentMaxRequestSize.getValue());
 
 			response.setContentType("text/html");
-			final PrintWriter out = response.getWriter();
 
-			List<FileItem> fileItemsList = uploader.parseRequest(request);
-			Iterator<FileItem> fileItemsIterator = fileItemsList.iterator();
-
-			final Map<String, Object> params = new HashMap<>();
+			final List<FileItem> fileItemsList         = uploader.parseRequest(request);
+			final Iterator<FileItem> fileItemsIterator = fileItemsList.iterator();
+			final Map<String, Object> params           = new HashMap<>();
 
 			while (fileItemsIterator.hasNext()) {
 
@@ -185,19 +183,19 @@ public class DeploymentServlet extends HttpServlet implements HttpServiceServlet
 
 					File file = new File(filePath);
 					Files.write(IOUtils.toByteArray(item.getInputStream()), file);
-					
+
 					unzip(file, directoryPath);
-					
+
 					DeployCommand deployCommand = StructrApp.getInstance(securityContext).command(DeployCommand.class);
 
 					final Map<String, Object> attributes = new HashMap<>();
 					attributes.put("source", directoryPath  + "/" + StringUtils.substringBeforeLast(item.getName(), "."));
 
 					deployCommand.execute(attributes);
-					
+
 					file.deleteOnExit();
 					File dir = new File(directoryPath);
-					
+
 					dir.deleteOnExit();
 
 				} catch (IOException ex) {
@@ -215,31 +213,31 @@ public class DeploymentServlet extends HttpServlet implements HttpServiceServlet
 			UiAuthenticator.writeInternalServerError(response);
 		}
 	}
-	
+
 	/**
 	 * Unzip given file to given output directory.
-	 * 
+	 *
 	 * @param file
 	 * @param outputDir
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	private void unzip(final File file, final String outputDir) throws IOException {
-	
+
 		try (final ZipFile zipFile = new ZipFile(file)) {
-			
+
 			final Enumeration<? extends ZipEntry> entries = zipFile.entries();
-			
+
 			while (entries.hasMoreElements()) {
-				
+
 				final ZipEntry entry = entries.nextElement();
 				final File targetFile = new File(outputDir, entry.getName());
-				
+
 				if (entry.isDirectory()) {
-				
+
 					targetFile.mkdirs();
-				
+
 				} else {
-					
+
 					targetFile.getParentFile().mkdirs();
 					InputStream in = zipFile.getInputStream(entry);
 

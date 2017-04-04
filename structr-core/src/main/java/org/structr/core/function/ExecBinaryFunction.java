@@ -23,9 +23,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.util.AbstractBinaryProcess;
@@ -49,7 +49,7 @@ public class ExecBinaryFunction extends Function<Object, Object> {
 		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
 			final String scriptKey = sources[1].toString();
-			final String script    = StructrApp.getConfigurationValue(scriptKey);
+			final String script    = Settings.getStringSetting(scriptKey).getValue();
 			final OutputStream out = (OutputStream)sources[0];
 
 			if (StringUtils.isNotBlank(script)) {

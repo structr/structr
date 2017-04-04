@@ -35,7 +35,6 @@
 				<module>structr-odf-module</module>
 				<module>structr-payment-module</module>
 				<module>structr-crawler-module</module>
-
 			</modules>
 		</profile>
 		<profile>

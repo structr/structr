@@ -31,8 +31,8 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.payment.api.APIError;
 import org.structr.payment.api.BeginCheckoutResponse;
 import org.structr.payment.api.CheckoutState;
@@ -56,7 +56,7 @@ public class StripePaymentProvider implements PaymentProvider {
 	@Override
 	public ConfirmCheckoutResponse confirmCheckout(final Payment payment, final String notifyUrl, final String token, final String payerId) throws FrameworkException {
 
-		Stripe.apiKey = StructrApp.getConfigurationValue("stripe.apikey");
+		Stripe.apiKey = Settings.getStringSetting("stripe", "apikey").getValue();
 
 		// Create the charge on Stripe's servers - this will charge the user's card
 		try {

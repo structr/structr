@@ -41,16 +41,18 @@ public interface StructrServices {
 		final Iterator<String> keys = config.getKeys();
 		while (keys.hasNext()) {
 
-			final String key         = keys.next();
-			final Setting<?> setting = Settings.getStringSetting(key);
+			final String key   = keys.next();
+			final String value = trim(config.getString(key));
+			Setting<?> setting = Settings.getSetting(key);
 
 			if (setting != null) {
 
-				setting.setValue(trim(config.getString(key)));
+				setting.fromString(value);
 
 			} else {
 
-				System.err.println("Unknown configuration key " + key + ", ignoring.");
+				// create new StringSetting for unknown key
+				Settings.createSettingForValue(key, value);
 			}
 		}
 	}

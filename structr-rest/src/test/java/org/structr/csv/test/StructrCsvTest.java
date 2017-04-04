@@ -30,8 +30,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Structr;
-import org.structr.common.PropertyView;
+import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
@@ -42,13 +41,8 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.module.JarConfigurationProvider;
-import org.structr.rest.DefaultResourceProvider;
 import org.structr.rest.common.*;
 import org.structr.rest.entity.TestOne;
-import org.structr.rest.service.HttpService;
-import org.structr.rest.servlet.CsvServlet;
-import org.structr.rest.servlet.JsonRestServlet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -253,53 +247,40 @@ public class StructrCsvTest {
 	@BeforeClass
 	public static void start() throws Exception {
 
-		final Properties config = Services.getBaseConfiguration();
 		final Date now          = new Date();
 		final long timestamp    = now.getTime();
 
 		basePath = "/tmp/structr-test-" + timestamp;
 
 		// enable "just testing" flag to avoid JAR resource scanning
-		config.setProperty(Services.TESTING, "true");
+		Settings.Testing.setValue(true);
+		Settings.Services.setValue("NodeService LogService HttpService SchemaService");
+		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 
-		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService HttpService");
-		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
-		config.setProperty(Structr.DATABASE_CONNECTION_URL, Structr.TEST_DATABASE_URL);
-		config.setProperty(Services.TMP_PATH, "/tmp/");
-		config.setProperty(Services.BASE_PATH, basePath);
-		config.setProperty(Structr.DATABASE_PATH, basePath + "/db");
-		config.setProperty(Services.FILES_PATH, basePath + "/files");
-		config.setProperty(Services.LOG_DATABASE_PATH, basePath + "/logDb.dat");
-		config.setProperty(Services.TCP_PORT, (System.getProperty("tcpPort") != null ? System.getProperty("tcpPort") : "13465"));
-		config.setProperty(Services.UDP_PORT, (System.getProperty("udpPort") != null ? System.getProperty("udpPort") : "13466"));
-		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
-		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
+		// example for new configuration setup
+		Settings.BasePath.setValue(basePath);
+		Settings.DatabasePath.setValue(basePath + "/db");
+		Settings.FilesPath.setValue(basePath + "/files");
+		Settings.LogDatabasePath.setValue(basePath + "/logDb.dat");
 
-		config.setProperty(HttpService.APPLICATION_TITLE, "structr unit test app" + timestamp);
-		config.setProperty(HttpService.APPLICATION_HOST, host);
-		config.setProperty(HttpService.APPLICATION_HTTP_PORT, Integer.toString(httpPort));
+		Settings.RelationshipCacheSize.setValue(1000);
+		Settings.NodeCacheSize.setValue(1000);
 
-		// configure CsvServlet
-		config.setProperty(HttpService.SERVLETS, "JsonRestServlet CsvServlet");
-		config.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());
-		config.setProperty("JsonRestServlet.path", restUrl);
-		config.setProperty("JsonRestServlet.resourceprovider", DefaultResourceProvider.class.getName());
-		config.setProperty("JsonRestServlet.authenticator", SuperUserAuthenticator.class.getName());
-		config.setProperty("JsonRestServlet.user.class", "");
-		config.setProperty("JsonRestServlet.user.autocreate", "false");
-		config.setProperty("JsonRestServlet.defaultview", PropertyView.Public);
-		config.setProperty("JsonRestServlet.outputdepth", "3");
+		Settings.SuperUserName.setValue("superadmin");
+		Settings.SuperUserPassword.setValue("sehrgeheim");
 
-		config.setProperty("CsvServlet.class", CsvServlet.class.getName());
-		config.setProperty("CsvServlet.path", csvUrl);
-		config.setProperty("CsvServlet.resourceprovider", DefaultResourceProvider.class.getName());
-		config.setProperty("CsvServlet.authenticator", SuperUserAuthenticator.class.getName());
-		config.setProperty("CsvServlet.user.class", "");
-		config.setProperty("CsvServlet.user.autocreate", "false");
-		config.setProperty("CsvServlet.defaultview", PropertyView.Public);
-		config.setProperty("CsvServlet.outputdepth", "3");
+		Settings.ApplicationTitle.setValue("structr unit test app" + timestamp);
+		Settings.ApplicationHost.setValue(host);
+		Settings.HttpPort.setValue(httpPort);
 
-		final Services services = Services.getInstanceForTesting(config);
+		Settings.Servlets.setValue("JsonRestServlet CsvServlet");
+		Settings.RestAuthenticator.setValue(SuperUserAuthenticator.class.getName());
+		Settings.RestUserClass.setValue("");
+
+		Settings.CsvServletPath.setValue(csvUrl);
+		Settings.CsvAuthenticator.setValue(SuperUserAuthenticator.class.getName());
+
+		final Services services = Services.getInstance();
 
 		securityContext		= SecurityContext.getSuperUserInstance();
 		app			= StructrApp.getInstance(securityContext);

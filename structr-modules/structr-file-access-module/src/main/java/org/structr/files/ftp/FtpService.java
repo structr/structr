@@ -18,16 +18,15 @@
  */
 package org.structr.files.ftp;
 
-import java.util.Properties;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.listener.ListenerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.StructrServices;
-import org.structr.core.Services;
 
 /**
  *
@@ -40,8 +39,6 @@ public class FtpService implements RunnableService {
 
 	private static int port;
 	private FtpServer server;
-
-	public static final String APPLICATION_FTP_PORT = "application.ftp.port";
 
 	@Override
 	public void startService() throws Exception {
@@ -87,24 +84,19 @@ public class FtpService implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final StructrServices services, final Properties config) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-
-		final Properties finalConfig = new Properties();
-
-		// Default config
-		finalConfig.setProperty(APPLICATION_FTP_PORT, "8021");
-
-		StructrServices.mergeConfiguration(finalConfig, config);
-
-		port = Services.parseInt(finalConfig.getProperty(APPLICATION_FTP_PORT), 8021);
+	public void initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+		port = Settings.FtpPort.getValue();
 	}
 
 	@Override
-	public void initialized() {}
+	public void initialized() {
+	}
 
 	@Override
 	public void shutdown() {
+
 		if (!server.isStopped()) {
+
 			server.stop();
 			this.isRunning = false;
 		}

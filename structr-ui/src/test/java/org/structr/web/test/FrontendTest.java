@@ -21,13 +21,11 @@ package org.structr.web.test;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.io.IOException;
-import java.util.Properties;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.auth.UiAuthenticator;
@@ -150,8 +148,6 @@ public abstract class FrontendTest extends StructrUiTest {
 		for (String part : body) {
 			buf.append(part);
 		}
-
-		final Properties config = Services.getBaseConfiguration();
 
 		return getUuidFromLocation(
 			RestAssured

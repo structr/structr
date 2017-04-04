@@ -27,6 +27,7 @@ import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -479,7 +480,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 	public boolean isFrontendWebsocketAccessEnabled() {
 
-		return Boolean.parseBoolean(StructrApp.getConfigurationValue(Services.WEBSOCKET_FRONTEND_ACCESS, "false"));
+		return Settings.WebsocketFrontendAccess.getValue();
 
 	}
 

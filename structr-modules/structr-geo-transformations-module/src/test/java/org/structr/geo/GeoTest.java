@@ -30,7 +30,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -46,7 +45,7 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Structr;
+import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -62,7 +61,6 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.module.JarConfigurationProvider;
 
 /**
  *
@@ -586,35 +584,33 @@ public class GeoTest {
 
 	public static void startSystem(final Map<String, Object> additionalConfig) {
 
-		final Properties config = Services.getBaseConfiguration();
 		final Date now          = new Date();
 		final long timestamp    = now.getTime();
 
 		basePath = "/tmp/structr-test-" + timestamp;
 
 		// enable "just testing" flag to avoid JAR resource scanning
-		config.setProperty(Services.TESTING, "true");
+		Settings.Testing.setValue(true);
+		Settings.Services.setValue("NodeService HttpService SchemaService");
+		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 
-		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService SchemaService");
-		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
-		config.setProperty(Structr.DATABASE_CONNECTION_URL, Structr.TEST_DATABASE_URL);
-		config.setProperty(Services.TMP_PATH, "/tmp/");
-		config.setProperty(Services.BASE_PATH, basePath);
-		config.setProperty(Structr.DATABASE_PATH, basePath + "/db");
-		config.setProperty(Structr.RELATIONSHIP_CACHE_SIZE, "1000");
-		config.setProperty(Structr.NODE_CACHE_SIZE, "1000");
-		config.setProperty(Services.FILES_PATH, basePath + "/files");
-		config.setProperty(Services.LOG_DATABASE_PATH, basePath + "/logDb.dat");
-		config.setProperty(Services.TCP_PORT, (System.getProperty("tcpPort") != null ? System.getProperty("tcpPort") : "13465"));
-		config.setProperty(Services.UDP_PORT, (System.getProperty("udpPort") != null ? System.getProperty("udpPort") : "13466"));
-		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
-		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
+		// example for new configuration setup
+		Settings.BasePath.setValue(basePath);
+		Settings.DatabasePath.setValue(basePath + "/db");
+		Settings.FilesPath.setValue(basePath + "/files");
+		Settings.LogDatabasePath.setValue(basePath + "/logDb.dat");
 
-		if (additionalConfig != null) {
-			config.putAll(additionalConfig);
-		}
+		Settings.RelationshipCacheSize.setValue(1000);
+		Settings.NodeCacheSize.setValue(1000);
 
-		final Services services = Services.getInstanceForTesting(config);
+		Settings.SuperUserName.setValue("superadmin");
+		Settings.SuperUserPassword.setValue("sehrgeheim");
+
+		Settings.ApplicationTitle.setValue("structr unit test app" + timestamp);
+
+		Settings.Servlets.setValue("JsonRestServlet WebSocketServlet HtmlServlet");
+
+		final Services services = Services.getInstance();
 
 		// wait for service layer to be initialized
 		do {

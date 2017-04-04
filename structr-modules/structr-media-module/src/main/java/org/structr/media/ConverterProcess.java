@@ -21,8 +21,10 @@ package org.structr.media;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -84,11 +86,10 @@ public class ConverterProcess extends AbstractProcess<VideoFile> {
 	@Override
 	public StringBuilder getCommandLine() {
 
-		final String scriptNameFromConfig = StructrApp.getConfigurationValue("VideoFile." + scriptName);
-		if (scriptNameFromConfig != null) {
+		final String scriptNameFromConfig = Settings.getStringSetting("VideoFile", scriptName).getValue();
+		if (StringUtils.isNotBlank(scriptNameFromConfig)) {
 
 			final StringBuilder commandLine = new StringBuilder(scriptNameFromConfig);
-
 
 			// build command line from builder options
 			commandLine.append(" ");

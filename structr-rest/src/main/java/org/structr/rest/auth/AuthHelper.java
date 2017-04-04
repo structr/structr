@@ -23,8 +23,8 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractUser;
@@ -86,23 +86,23 @@ public class AuthHelper {
 		String errorMsg = null;
 		Principal principal  = null;
 
-		final String superuserName = StructrApp.getConfigurationValue(Services.SUPERUSER_USERNAME);
-		final String superUserPwd  = StructrApp.getConfigurationValue(Services.SUPERUSER_PASSWORD);
+		final String superuserName = Settings.SuperUserName.getValue();
+		final String superUserPwd  = Settings.SuperUserPassword.getValue();
 
 		if (StringUtils.isEmpty(value)) {
-			
+
 			logger.info("Empty value for key {}", key);
 			errorMsg = STANDARD_ERROR_MSG;
-		
+
 		}
-		
+
 		if (StringUtils.isEmpty(password)) {
 
 			logger.info("Empty password");
 			errorMsg = STANDARD_ERROR_MSG;
-		
+
 		}
-		
+
 		if (superuserName.equals(value) && superUserPwd.equals(password)) {
 
 			// logger.info("############# Authenticated as superadmin! ############");

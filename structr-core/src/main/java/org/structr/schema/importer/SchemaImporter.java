@@ -37,6 +37,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
@@ -333,7 +334,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		info("Aggregating relationship information..");
 
 		final List<RelationshipInfo> reducedRelationshipInfos = new ArrayList<>();
-		if ("true".equals(Services.getInstance().getConfigurationValue("importer.inheritancedetection", "true"))) {
+		if (Settings.InheritanceDetection.getValue()) {
 
 			// reduce relationship infos into one
 			for (final List<RelationshipInfo> infos : relTypeInfoMap.values()) {

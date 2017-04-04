@@ -26,8 +26,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.tika.language.LanguageIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.core.Services;
-import org.structr.core.app.StructrApp;
+import org.structr.api.config.Settings;
 
 /**
  *
@@ -38,9 +37,9 @@ public class FulltextTokenizer extends Writer {
 	private static final Logger logger = LoggerFactory.getLogger(FulltextTokenizer.class.getName());
 	public static final Set<Character> SpecialChars = new LinkedHashSet<>();
 
-	private final int wordCountLimit         = Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_INDEXING_LIMIT), 50_000);
-	private final int wordMinLength          = Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_INDEXING_MINLENGTH), 4);
-	private final int wordMaxLength          = Services.parseInt(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_INDEXING_MAXLENGTH), 40);
+	private final int wordCountLimit         = Settings.IndexingLimit.getValue();
+	private final int wordMinLength          = Settings.IndexingMinLength.getValue();
+	private final int wordMaxLength          = Settings.IndexingMaxLength.getValue();
 	private final StringBuilder rawText      = new StringBuilder();
 	private final StringBuilder wordBuffer   = new StringBuilder();
 	private final Set<String> words          = new LinkedHashSet<>();
@@ -212,7 +211,7 @@ public class FulltextTokenizer extends Writer {
 					new Object[] {
 						wordCountLimit,
 						fileName,
-						Services.APPLICATION_FILESYSTEM_INDEXING_LIMIT
+						Settings.IndexingLimit.getKey()
 					}
 				);
 			}

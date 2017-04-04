@@ -27,6 +27,7 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -146,27 +147,27 @@ public class RestAuthenticator implements Authenticator {
 			response.setHeader("Access-Control-Allow-Origin", origin);
 
 			 // allow cross site resource sharing (read only)
-			final String maxAge = services.getConfigurationValue(Services.ACCESS_CONTROL_MAX_AGE);
+			final String maxAge = Settings.AccessControlMaxAge.getValue();
 			if (StringUtils.isNotBlank(maxAge)) {
 				response.setHeader("Access-Control-MaxAge", maxAge);
 			}
 
-			final String allowMethods = services.getConfigurationValue(Services.ACCESS_CONTROL_ALLOW_METHODS);
+			final String allowMethods = Settings.AccessControlAllowMethods.getValue();
 			if (StringUtils.isNotBlank(allowMethods)) {
 				response.setHeader("Access-Control-Allow-Methods", allowMethods);
 			}
 
-			final String allowHeaders = services.getConfigurationValue(Services.ACCESS_CONTROL_ALLOW_HEADERS);
+			final String allowHeaders = Settings.AccessControlAllowHeaders.getValue();
 			if (StringUtils.isNotBlank(allowHeaders)) {
 				response.setHeader("Access-Control-Allow-Headers", allowHeaders);
 			}
 
-			final String allowCredentials = services.getConfigurationValue(Services.ACCESS_CONTROL_ALLOW_CREDENTIALS);
+			final String allowCredentials = Settings.AccessControlAllowCredentials.getValue();
 			if (StringUtils.isNotBlank(allowCredentials)) {
 				response.setHeader("Access-Control-Allow-Credentials", allowCredentials);
 			}
 
-			final String exposeHeaders = services.getConfigurationValue(Services.ACCESS_CONTROL_EXPOSE_HEADERS);
+			final String exposeHeaders = Settings.AccessControlExposeHeaders.getValue();
 			if (StringUtils.isNotBlank(exposeHeaders)) {
 				response.setHeader("Access-Control-Expose-Headers", exposeHeaders);
 			}

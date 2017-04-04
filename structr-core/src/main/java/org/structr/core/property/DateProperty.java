@@ -21,12 +21,12 @@ package org.structr.core.property;
 import java.util.Date;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.config.Settings;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DateFormatToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.schema.parser.DatePropertyParser;
 
@@ -38,8 +38,6 @@ import org.structr.schema.parser.DatePropertyParser;
  *
  */
 public class DateProperty extends AbstractPrimitiveProperty<Date> {
-
-	public static final String DEFAULT_FORMAT         = "yyyy-MM-dd'T'HH:mm:ssZ";
 
 	public DateProperty(final String name) {
 		super(name);
@@ -193,13 +191,6 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 	// ----- static methods -----
 	public static String getDefaultFormat() {
-
-		final String configuredFormat = Services.getInstance().getConfigurationValue("DateProperty.defaultFormat");
-		if (StringUtils.isNotBlank(configuredFormat)) {
-			return configuredFormat;
-		} else {
-			return DEFAULT_FORMAT;
-		}
-
+		return Settings.DefaultDateFormat.getValue();
 	}
 }

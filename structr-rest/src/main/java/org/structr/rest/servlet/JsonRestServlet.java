@@ -40,6 +40,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
+import org.structr.api.config.Settings;
 import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -123,14 +124,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	public void init() {
 
-		try {
-			indentJson = Boolean.parseBoolean(StructrApp.getConfigurationValue(Services.JSON_INDENTATION, "true"));
-
-		} catch (Throwable t) {
-
-			logger.warn("Unable to parse value for {}: {}", new Object[] { Services.JSON_INDENTATION, t.getMessage() } );
-		}
-
 
 		// inject resources
 		final ResourceProvider provider = config.getResourceProvider();
@@ -144,8 +137,9 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		}
 
 		// initialize variables
-		this.propertyView           = new ThreadLocalPropertyView();
-		this.gson                   = new ThreadLocalGson(propertyView, config.getOutputNestingDepth());
+		this.propertyView = new ThreadLocalPropertyView();
+		this.indentJson   = Settings.JsonIndentation.getValue();
+		this.gson         = new ThreadLocalGson(propertyView, config.getOutputNestingDepth());
 	}
 
 	// <editor-fold defaultstate="collapsed" desc="DELETE">

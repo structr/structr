@@ -31,7 +31,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -42,8 +41,7 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Structr;
-import org.structr.common.PropertyView;
+import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -58,13 +56,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.module.JarConfigurationProvider;
-import org.structr.rest.service.HttpService;
-import org.structr.rest.servlet.JsonRestServlet;
-import org.structr.web.auth.UiAuthenticator;
-import org.structr.web.entity.User;
-import org.structr.web.servlet.HtmlServlet;
-import org.structr.websocket.servlet.WebSocketServlet;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -78,7 +69,6 @@ public abstract class StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrUiTest.class.getName());
 
-	protected static Properties config                   = new Properties();
 	protected static GraphDatabaseCommand graphDbCommand = null;
 	protected static SecurityContext securityContext     = null;
 	protected static App app                             = null;
@@ -135,75 +125,34 @@ public abstract class StructrUiTest {
 
 	public static void start(final Map<String, Object> additionalConfig) {
 
-		config = Services.getBaseConfiguration();
-
 		final long timestamp = System.currentTimeMillis();
 
 		basePath = "/tmp/structr-test-" + timestamp + "-" + System.nanoTime();
 
 		// enable "just testing" flag to avoid JAR resource scanning
-		config.setProperty(Services.TESTING, "true");
+		Settings.Testing.setValue(true);
+		Settings.Services.setValue("NodeService HttpService SchemaService");
+		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 
-		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
-		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService HttpService SchemaService");
-		config.setProperty(Structr.DATABASE_CONNECTION_URL, Structr.TEST_DATABASE_URL);
-		config.setProperty(Services.TMP_PATH, "/tmp/");
-		config.setProperty(Services.BASE_PATH, basePath);
-		config.setProperty(Structr.DATABASE_PATH, basePath + "/db");
-		config.setProperty(Services.FILES_PATH, basePath + "/files");
-		config.setProperty(Services.LOG_DATABASE_PATH, basePath + "/logDb.dat");
-		config.setProperty(Services.TCP_PORT, (System.getProperty("tcpPort") != null ? System.getProperty("tcpPort") : "13465"));
-		config.setProperty(Services.UDP_PORT, (System.getProperty("udpPort") != null ? System.getProperty("udpPort") : "13466"));
-		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
-		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
-		//config.setProperty("NodeExtender.log", "true");
+		// example for new configuration setup
+		Settings.BasePath.setValue(basePath);
+		Settings.DatabasePath.setValue(basePath + "/db");
+		Settings.FilesPath.setValue(basePath + "/files");
+		Settings.LogDatabasePath.setValue(basePath + "/logDb.dat");
 
-		// configure servlets
-		config.setProperty(HttpService.APPLICATION_TITLE, "structr unit test app" + timestamp);
-		config.setProperty(HttpService.APPLICATION_HOST, host);
-		config.setProperty(HttpService.APPLICATION_HTTP_PORT, Integer.toString(httpPort));
-		config.setProperty(HttpService.SERVLETS, "JsonRestServlet WebSocketServlet HtmlServlet");
+		Settings.RelationshipCacheSize.setValue(1000);
+		Settings.NodeCacheSize.setValue(1000);
 
-		config.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());
-		config.setProperty("JsonRestServlet.path", restUrl);
-		config.setProperty("JsonRestServlet.resourceprovider", UiResourceProvider.class.getName());
-		config.setProperty("JsonRestServlet.authenticator", UiAuthenticator.class.getName());
-		config.setProperty("JsonRestServlet.user.class", User.class.getName());
-		config.setProperty("JsonRestServlet.user.autocreate", "false");
-		config.setProperty("JsonRestServlet.defaultview", PropertyView.Public);
-		config.setProperty("JsonRestServlet.outputdepth", "3");
+		Settings.SuperUserName.setValue("superadmin");
+		Settings.SuperUserPassword.setValue("sehrgeheim");
 
-		config.setProperty("WebSocketServlet.class", WebSocketServlet.class.getName());
-		config.setProperty("WebSocketServlet.path", wsUrl);
-		config.setProperty("WebSocketServlet.resourceprovider", UiResourceProvider.class.getName());
-		config.setProperty("WebSocketServlet.authenticator", UiAuthenticator.class.getName());
-		config.setProperty("WebSocketServlet.user.class", User.class.getName());
-		config.setProperty("WebSocketServlet.user.autocreate", "false");
-		config.setProperty("WebSocketServlet.defaultview", PropertyView.Public);
-		config.setProperty("WebSocketServlet.outputdepth", "3");
+		Settings.ApplicationTitle.setValue("structr unit test app" + timestamp);
+		Settings.ApplicationHost.setValue(host);
+		Settings.HttpPort.setValue(httpPort);
 
-		config.setProperty("HtmlServlet.class", HtmlServlet.class.getName());
-		config.setProperty("HtmlServlet.path", htmlUrl);
-		config.setProperty("HtmlServlet.resourceprovider", UiResourceProvider.class.getName());
-		config.setProperty("HtmlServlet.authenticator", UiAuthenticator.class.getName());
-		config.setProperty("HtmlServlet.user.class", User.class.getName());
-		config.setProperty("HtmlServlet.user.autocreate", "false");
-		config.setProperty("HtmlServlet.defaultview", PropertyView.Public);
-		config.setProperty("HtmlServlet.outputdepth", "3");
+		Settings.Servlets.setValue("JsonRestServlet WebSocketServlet HtmlServlet");
 
-		// Configure resource handlers
-		config.setProperty(HttpService.RESOURCE_HANDLERS, "StructrUiHandler");
-
-		config.setProperty("StructrUiHandler.contextPath", "/structr");
-		config.setProperty("StructrUiHandler.resourceBase", "src/main/resources/structr");
-		config.setProperty("StructrUiHandler.directoriesListed", Boolean.toString(false));
-		config.setProperty("StructrUiHandler.welcomeFiles", "index.html");
-
-		if (additionalConfig != null) {
-			config.putAll(additionalConfig);
-		}
-
-		final Services services = Services.getInstanceForTesting(config);
+		final Services services = Services.getInstance();
 
 		// wait for service layer to be initialized
 		do {
@@ -564,7 +513,7 @@ public abstract class StructrUiTest {
 
 	protected String createEntity(String resource, String... body) {
 
-		StringBuilder buf = new StringBuilder();
+		final StringBuilder buf = new StringBuilder();
 
 		for (String part : body) {
 			buf.append(part);
@@ -582,13 +531,11 @@ public abstract class StructrUiTest {
 
 	protected String createEntityAsSuperUser(String resource, String... body) {
 
-		StringBuilder buf = new StringBuilder();
+		final StringBuilder buf = new StringBuilder();
 
 		for (String part : body) {
 			buf.append(part);
 		}
-
-		final Properties config = Services.getBaseConfiguration();
 
 		return getUuidFromLocation(
 			RestAssured
@@ -602,8 +549,8 @@ public abstract class StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.header("X-User", config.getProperty(Services.SUPERUSER_USERNAME))
-				.header("X-Password", config.getProperty(Services.SUPERUSER_PASSWORD))
+				.header("X-User", Settings.SuperUserName.getValue())
+				.header("X-Password", Settings.SuperUserPassword.getValue())
 
 			.body(buf.toString())
 				.expect().statusCode(201)

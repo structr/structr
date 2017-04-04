@@ -27,10 +27,10 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
@@ -59,6 +59,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	private static final String LI               = "li";
 	private static final String UL               = "ul";
 
+	private final String restPath           = StringUtils.removeEnd(Settings.RestServletPath.getValue(), "/*");
 	private SecurityContext securityContext = null;
 	private Document doc                    = null;
 	private Tag currentElement              = null;
@@ -66,7 +67,6 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	private Tag previousElement             = null;
 	private boolean hasName                 = false;
 	private String lastName                 = null;
-	private final String restPath           = StringUtils.removeEnd(Services.getBaseConfiguration().getProperty("JsonRestServlet.path", "/structr/rest"), "/*");
 	private String propertyView	        = "";
 
 	static {

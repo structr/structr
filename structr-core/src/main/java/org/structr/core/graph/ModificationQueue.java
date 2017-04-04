@@ -30,6 +30,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
@@ -38,8 +39,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 
@@ -52,7 +51,7 @@ public class ModificationQueue {
 
 	private static final Logger logger = LoggerFactory.getLogger(ModificationQueue.class.getName());
 
-	private final boolean auditLogEnabled                                                   = "true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_CHANGELOG_ENABLED, "false"));
+	private final boolean auditLogEnabled                                                   = Settings.ChangelogEnabled.getValue();
 	private final ConcurrentSkipListMap<String, GraphObjectModificationState> modifications = new ConcurrentSkipListMap<>();
 	private final Collection<ModificationEvent> modificationEvents                          = new ArrayDeque<>(1000);
 	private final Map<String, TransactionPostProcess> postProcesses                         = new LinkedHashMap<>();

@@ -24,12 +24,12 @@ import java.util.function.Function;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -111,7 +111,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 
 				// try to determine external node
 				// type name from configuration
-				externalNodeTypeName = StructrApp.getConfigurationValue(Services.FOREIGN_TYPE);
+				externalNodeTypeName = Settings.ForeignTypeName.getValue();
 			}
 
 			if (externalNodeTypeName != null && node.hasProperty(externalNodeTypeName)) {

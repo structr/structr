@@ -48,8 +48,8 @@ import org.apache.directory.shared.ldap.model.name.Dn;
 import org.apache.directory.shared.ldap.model.schema.SchemaManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
-import org.structr.core.app.StructrApp;
 import org.structr.ldap.api.LDAPNode;
 import org.structr.ldap.entity.LDAPNodeImpl;
 
@@ -234,7 +234,7 @@ class StructrPartition implements Partition {
 			keyBuilder.append(this.id);
 			keyBuilder.append(LDAPServerService.LDAP_PARTITION_ROOT_TYPE_SUFFIX);
 
-			final String rootTypeName = StructrApp.getConfigurationValue(keyBuilder.toString());
+			final String rootTypeName = Settings.getStringSetting(keyBuilder.toString()).getValue();
 			if (rootTypeName == null) {
 
 				logger.info("No LDAP root node type specified for partition {}, using default (LDAPNodeImpl). This default can be changed by setting a value for {} in structr.conf",

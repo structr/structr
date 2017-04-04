@@ -67,12 +67,8 @@ import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.StructrServices;
-import org.structr.common.PropertyView;
 import org.structr.core.Services;
-import org.structr.core.auth.SuperUserAuthenticator;
-import org.structr.rest.DefaultResourceProvider;
 import org.structr.rest.ResourceProvider;
-import org.structr.rest.servlet.JsonRestServlet;
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
 /**
@@ -140,30 +136,11 @@ public class HttpService implements RunnableService {
 	@Override
 	public void initialize(final StructrServices services) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
 
-		if (services.isConfigured()) {
+		if (!services.isConfigured()) {
 
-			Settings.Servlets.setValue("JsonRestServlet");
-
-			finalConfig.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());
-			finalConfig.setProperty("JsonRestServlet.path", "/structr/rest/*");
-			finalConfig.setProperty("JsonRestServlet.resourceprovider", DefaultResourceProvider.class.getName());
-			finalConfig.setProperty("JsonRestServlet.authenticator", SuperUserAuthenticator.class.getName());
-			finalConfig.setProperty("JsonRestServlet.user.class", "org.structr.dynamic.User");
-			finalConfig.setProperty("JsonRestServlet.user.autocreate", "false");
-			finalConfig.setProperty("JsonRestServlet.defaultview", PropertyView.Public);
-			finalConfig.setProperty("JsonRestServlet.outputdepth", "3");
-
-			StructrServices.mergeConfiguration(finalConfig, additionalConfig);
-
-		} else {
-
-			finalConfig.setProperty("HttpService.resourceHandlers", "StructrUiHandler");
-			finalConfig.setProperty("StructrUiHandler.contextPath", "/structr");
-			finalConfig.setProperty("StructrUiHandler.directoriesListed", "false");
-			finalConfig.setProperty("StructrUiHandler.resourceBase", "src/main/resources/structr");
-
-			//finalConfig.setProperty("StructrUiHandler.welcomeFiles", "index.html");
-
+			// start HtmlServlet only, override defaults
+			Settings.Servlets.setValue("HtmlServlet");
+			Settings.UiHandlerWelcomeFiles.setValue(null);
 		}
 
 		String sourceJarName = getClass().getProtectionDomain().getCodeSource().getLocation().toString();
@@ -522,42 +499,33 @@ public class HttpService implements RunnableService {
 						final String resourceBase = Settings.getStringSetting(resourceHandlerName, "resourceBase").getValue();
 						if (resourceBase != null) {
 
-							final String directoriesListed = Settings.getStringSetting(resourceHandlerName, "directoriesListed").getValue();
-							if (directoriesListed != null) {
+							final ResourceHandler resourceHandler = new ResourceHandler();
+							resourceHandler.setDirectoriesListed(Settings.getBooleanSetting(resourceHandlerName, "directoriesListed").getValue());
 
-								final ResourceHandler resourceHandler = new ResourceHandler();
-								resourceHandler.setDirectoriesListed(Boolean.parseBoolean(directoriesListed));
+							final String welcomeFiles = Settings.getStringSetting(resourceHandlerName, "welcomeFiles").getValue();
+							if (welcomeFiles != null) {
 
-								final String welcomeFiles = Settings.getStringSetting(resourceHandlerName, "welcomeFiles").getValue();
-								if (welcomeFiles != null) {
-
-									resourceHandler.setWelcomeFiles(StringUtils.split(welcomeFiles));
-								}
-
-								resourceHandler.setResourceBase(resourceBase);
-								resourceHandler.setCacheControl("max-age=0");
-								resourceHandler.setEtags(true);
-
-								final ContextHandler staticResourceHandler = new ContextHandler();
-								staticResourceHandler.setContextPath(contextPath);
-								staticResourceHandler.setHandler(resourceHandler);
-
-								resourceHandlers.add(staticResourceHandler);
-
-							} else {
-
-								logger.warn("Unable to register resource handler {}, missing {}.resourceBase", resourceHandlerName);
-
+								resourceHandler.setWelcomeFiles(StringUtils.split(welcomeFiles));
 							}
+
+							resourceHandler.setResourceBase(resourceBase);
+							resourceHandler.setCacheControl("max-age=0");
+							resourceHandler.setEtags(true);
+
+							final ContextHandler staticResourceHandler = new ContextHandler();
+							staticResourceHandler.setContextPath(contextPath);
+							staticResourceHandler.setHandler(resourceHandler);
+
+							resourceHandlers.add(staticResourceHandler);
 
 						} else {
 
-							logger.warn("Unable to register resource handler {}, missing {}.resourceBase", resourceHandlerName);
+							logger.warn("Unable to register resource handler {}, missing {}.resourceBase", resourceHandlerName, resourceHandlerName);
 						}
 
 					} else {
 
-						logger.warn("Unable to register resource handler {}, missing {}.contextPath", resourceHandlerName);
+						logger.warn("Unable to register resource handler {}, missing {}.contextPath", resourceHandlerName, resourceHandlerName);
 					}
 				}
 			}
@@ -587,29 +555,36 @@ public class HttpService implements RunnableService {
 						final String servletPath = Settings.getStringSetting(servletName, "path").getValue();
 						if (servletPath != null) {
 
-							final HttpServlet servlet = (HttpServlet)Class.forName(servletClassName).newInstance();
-							if (servlet instanceof HttpServiceServlet) {
+							try {
 
-								((HttpServiceServlet)servlet).getConfig().initializeFromSettings(servletName, resourceProviders);
-							}
+								final HttpServlet servlet = (HttpServlet)Class.forName(servletClassName).newInstance();
+								if (servlet instanceof HttpServiceServlet) {
 
-							if (servletPath.endsWith("*")) {
+									((HttpServiceServlet)servlet).getConfig().initializeFromSettings(servletName, resourceProviders);
+								}
 
-								servlets.put(servletPath, new ServletHolder(servlet));
+								if (servletPath.endsWith("*")) {
 
-							} else {
+									servlets.put(servletPath, new ServletHolder(servlet));
 
-								servlets.put(servletPath + "/*", new ServletHolder(servlet));
+								} else {
+
+									servlets.put(servletPath + "/*", new ServletHolder(servlet));
+								}
+
+							} catch (ClassNotFoundException nfex) {
+
+								logger.warn("Unable to instantiate servlet class {} for servlet {}", servletClassName, servletName);
 							}
 
 						} else {
 
-							logger.warn("Unable to register servlet {}, missing {}.path", servletName);
+							logger.warn("Unable to register servlet {}, missing {}.path", servletName, servletName);
 						}
 
 					} else {
 
-						logger.warn("Unable to register servlet {}, missing {}.class", servletName);
+						logger.warn("Unable to register servlet {}, missing {}.class", servletName, servletName);
 					}
 				}
 			}
@@ -654,22 +629,25 @@ public class HttpService implements RunnableService {
 			final String[] listenerClasses = listeners.split("[\\s ,;]+");
 			for (String listenerClass : listenerClasses) {
 
-				try {
-					final HttpServiceLifecycleListener listener = (HttpServiceLifecycleListener) Class.forName(listenerClass).newInstance();
-					switch (event) {
+				if (StringUtils.isNotBlank(listenerClass)) {
 
-						case Started:
-							listener.serverStarted();
-							break;
+					try {
+						final HttpServiceLifecycleListener listener = (HttpServiceLifecycleListener) Class.forName(listenerClass).newInstance();
+						switch (event) {
 
-						case Stopped:
-							listener.serverStopped();
-							break;
+							case Started:
+								listener.serverStarted();
+								break;
+
+							case Stopped:
+								listener.serverStopped();
+								break;
+						}
+
+					} catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
+
+						logger.error("Unable to send lifecycle event to listener " + listenerClass, ex);
 					}
-
-				} catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
-
-					logger.error("Unable to send lifecycle event to listener " + listenerClass, ex);
 				}
 			}
 		}

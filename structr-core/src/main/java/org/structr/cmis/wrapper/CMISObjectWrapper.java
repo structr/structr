@@ -42,12 +42,12 @@ import static org.apache.chemistry.opencmis.commons.enums.PropertyType.INTEGER;
 import static org.apache.chemistry.opencmis.commons.enums.PropertyType.STRING;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.BindingsObjectFactoryImpl;
 import org.apache.chemistry.opencmis.commons.spi.BindingsObjectFactory;
+import org.structr.api.config.Settings;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.common.CMISExtensionsData;
 import org.structr.cmis.info.CMISObjectInfo;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
@@ -346,7 +346,7 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 	public static String translateIdToUsername(final String id) throws FrameworkException {
 
 		if (Principal.SUPERUSER_ID.equals(id)) {
-			return StructrApp.getConfigurationValue(Services.SUPERUSER_USERNAME);
+			return Settings.SuperUserName.getValue();
 		}
 
 		final Principal principal = StructrApp.getInstance().get(Principal.class, id);
@@ -360,7 +360,7 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 
 	public static Principal translateUsernameToPrincipal(final String username) throws FrameworkException {
 
-		if (StructrApp.getConfigurationValue(Services.SUPERUSER_USERNAME).equals(username)) {
+		if (Settings.SuperUserName.getValue().equals(username)) {
 			return new SuperUser();
 		}
 

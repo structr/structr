@@ -41,7 +41,7 @@ public class IntegerSetting extends Setting<Integer> {
 	}
 
 	@Override
-	public Integer fromString(final String source) {
-		return Integer.parseInt(source);
+	public void fromString(final String source) {
+		setValue(Integer.parseInt(source));
 	}
 }

@@ -32,8 +32,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.MaintenanceCommand;
@@ -77,11 +77,9 @@ public class BulkMoveUnusedFilesCommand extends NodeServiceCommand implements Ma
 		logger.info("Starting moving of unused files...");
 
 		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
-		final App app = StructrApp.getInstance();
-
-		final String filesLocation = StructrApp.getConfigurationValue(Services.FILES_PATH);
-
-		final Set<String> filePaths = new TreeSet<>();
+		final App app                 = StructrApp.getInstance();
+		final String filesLocation    = Settings.FilesPath.getValue();
+		final Set<String> filePaths   = new TreeSet<>();
 
 		if (graphDb != null) {
 

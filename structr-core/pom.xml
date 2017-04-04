@@ -210,7 +210,6 @@
 					<encoding>${project.build.sourceEncoding}</encoding>
 				</configuration>
 			</plugin>
-			<!--
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
@@ -224,6 +223,7 @@
 					</execution>
 				</executions>
 			</plugin>
+			<!--
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
@@ -251,6 +251,12 @@
 					<systemPropertyVariables>
 						<user.timezone>UTC</user.timezone>
 					</systemPropertyVariables>
+					<systemProperties>
+						<property>
+							<name>java.util.logging.config.file</name>
+							<value>src/test/resources/logback.xml</value>
+						</property>
+					</systemProperties>
 				</configuration>
 
 			</plugin>
@@ -268,6 +274,7 @@
 						<exclude>src/**/.directory</exclude>
 						<exclude>src/**/*.properties</exclude>
 						<exclude>src/main/resources/**</exclude>
+						<exclude>src/test/resources/**</exclude>
 					</excludes>
 					<properties>
 						<year>2017</year>

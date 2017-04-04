@@ -34,9 +34,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.ModificationQueue;
-import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.BooleanProperty;
@@ -169,11 +167,9 @@ public interface GraphObject {
 						if (!key.isUnvalidated()) {
 
 							TransactionCommand.nodeModified(securityContext.getCachedUser(), (AbstractNode)this, key, getProperty(key), value);
-
 						}
 
 						if (key instanceof TypeProperty) {
-							NodeFactory.invalidateCache();
 
 							if (this instanceof NodeInterface) {
 
@@ -181,7 +177,6 @@ public interface GraphObject {
 
 								TypeProperty.updateLabels(StructrApp.getInstance().getDatabaseService(), (NodeInterface)this, type);
 							}
-
 						}
 
 					} else if (isRelationship()) {
@@ -189,12 +184,9 @@ public interface GraphObject {
 						if (!key.isUnvalidated()) {
 
 							TransactionCommand.relationshipModified(securityContext.getCachedUser(), (AbstractRelationship)this, key, getProperty(key), value);
-
 						}
 
-
 						if (key instanceof TypeProperty) {
-							RelationshipFactory.invalidateCache();
 
 							if (this instanceof NodeInterface) {
 
@@ -202,7 +194,6 @@ public interface GraphObject {
 
 								TypeProperty.updateLabels(StructrApp.getInstance().getDatabaseService(), (NodeInterface)this, type);
 							}
-
 						}
 					}
 				}

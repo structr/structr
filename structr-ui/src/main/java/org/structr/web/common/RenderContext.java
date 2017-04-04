@@ -24,12 +24,11 @@ import java.util.Stack;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
-import org.structr.core.Services;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
@@ -512,12 +511,7 @@ public class RenderContext extends ActionContext {
 	}
 
 	private void readConfigParameters () {
-
-		try {
-			indentHtml = Boolean.parseBoolean(StructrApp.getConfigurationValue(Services.HTML_INDENTATION, "true"));
-
-		} catch(Throwable t) {}
-
+		indentHtml = Settings.HtmlIndentation.getValue();
 	}
 
 	public boolean shouldIndentHtml() {

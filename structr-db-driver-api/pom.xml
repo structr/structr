@@ -117,6 +117,18 @@
         <connection>scm:git:https://github.com:structr/structr.git</connection>
         <developerConnection>scm:git:git@github.com:structr/structr.git</developerConnection>
     </scm>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <debug>true</debug>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
     <distributionManagement>
         <repository>
             <id>sonatype-nexus-staging</id>

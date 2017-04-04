@@ -33,11 +33,11 @@ import org.apache.sshd.server.Signal;
 import org.apache.sshd.server.SignalListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
@@ -116,7 +116,7 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 				if (user != null) {
 
 					// set home directory first
-					if ("true".equals(StructrApp.getConfigurationValue(Services.APPLICATION_FILESYSTEM_ENABLED, "false"))) {
+					if (Settings.FilesystemEnabled.getValue()) {
 
 						currentFolder = user.getProperty(User.homeDirectory);
 					}

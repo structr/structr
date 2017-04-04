@@ -55,6 +55,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PathHelper;
@@ -76,7 +77,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.rest.auth.AuthHelper;
-import org.structr.rest.service.HttpService;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.schema.ConfigurationProvider;
@@ -140,7 +140,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 	public HtmlServlet() {
 
-		String customResponseHeadersString = Services.getBaseConfiguration().getProperty(CUSTOM_RESPONSE_HEADERS);
+		String customResponseHeadersString = Settings.HtmlCustomResponseHeaders.getValue();
 
 		if (StringUtils.isBlank(customResponseHeadersString)) {
 
@@ -152,7 +152,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		}
 
 		// resolving properties
-		final String resolvePropertiesSource = StructrApp.getConfigurationValue(OBJECT_RESOLUTION_PROPERTIES, "AbstractNode.name");
+		final String resolvePropertiesSource = Settings.HtmlResolveProperties.getValue();
 		for (final String src : resolvePropertiesSource.split("[, ]+")) {
 
 			final String name = src.trim();
@@ -162,7 +162,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			}
 		}
 
-		this.isAsync = Services.parseBoolean(Services.getBaseConfiguration().getProperty(HttpService.ASYNC), true);
+		this.isAsync = Settings.Async.getValue();
 	}
 
 	@Override
