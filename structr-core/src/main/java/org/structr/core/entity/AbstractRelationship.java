@@ -84,7 +84,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	private static final Logger logger = LoggerFactory.getLogger(AbstractRelationship.class.getName());
 
 	public static final Property<Integer>       cascadeDelete              = new IntProperty("cascadeDelete");
-	public static final Property<String>        relType                    = new RelationshipTypeProperty("relType");
+	public static final Property<String>        relType                    = new RelationshipTypeProperty();
 	public static final SourceId                sourceId                   = new SourceId("sourceId");
 	public static final TargetId                targetId                   = new TargetId("targetId");
 	public static final Property<NodeInterface> sourceNodeProperty         = new SourceNodeProperty("sourceNode");

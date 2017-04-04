@@ -85,6 +85,7 @@ var _Crud = {
 	_moduleName: 'crud',
 	displayTypeConfigKey: 'structrCrudDisplayTypes_' + port,
 	types: {},
+	relInfo: {},
 	keys: {},
 	crudCache: new AsyncObjectCache(function (id) {
 		$.ajax({
@@ -510,6 +511,18 @@ var _Crud = {
 	 */
 	loadSchema: function(callback) {
 
+		var processRelInfo = function (relInfo) {
+			if (relInfo) {
+				relInfo.forEach(function(r) {
+					_Crud.relInfo[r.type] = {
+						source: r.possibleSourceTypes,
+						target: r.possibleTargetTypes
+					};
+
+				});
+			}
+		};
+
 		$.ajax({
 			url: rootUrl + '_schema',
 			dataType: 'json',
@@ -518,6 +531,8 @@ var _Crud = {
 				200: function(data) {
 					data.result.forEach(function(typeObj) {
 						_Crud.types[typeObj.type] = typeObj;
+						processRelInfo(typeObj.relatedTo);
+						processRelInfo(typeObj.relatedFrom);
 					});
 
 					if (callback) {
@@ -999,6 +1014,11 @@ var _Crud = {
 				data: importArea.val().split('\n').map($.trim).filter(function(line) { return line !== ''; }).join('\n'),
 				success: function(data) {
 					_Crud.refreshList(type);
+				},
+				error: function(data) {
+					if (data.responseJSON) {
+						Structr.errorFromResponse(data.responseJSON, url);
+					}
 				}
 			});
 
@@ -1150,30 +1170,30 @@ var _Crud = {
 					}
 					$('#saveProperties').remove();
 				},
-				400: function(data, status, xhr) {
-					_Crud.error('Bad request: ' + data.responseText, true);
+				400: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url, {statusCode: 400, requiresConfirmation: true});
 					_Crud.showCreateError(type, data, onError);
 				},
-				401: function(data, status, xhr) {
-					_Crud.error('Authentication required: ' + data.responseText, true);
+				401: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url, {statusCode: 401, requiresConfirmation: true});
 					_Crud.showCreateError(type, data, onError);
 				},
-				403: function(data, status, xhr) {
-					_Crud.error('Forbidden: ' + data.responseText, true);
+				403: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url, {statusCode: 403, requiresConfirmation: true});
 					_Crud.showCreateError(type, data, onError);
 				},
-				404: function(data, status, xhr) {
-					_Crud.error('Not found: ' + data.responseText, true);
+				404: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url, {statusCode: 404, requiresConfirmation: true});
 					_Crud.showCreateError(type, data, onError);
 				},
-				422: function(data, status, xhr) {
+				422: function(data) {
 					if (dialogBox.is(':visible')) {
-						_Crud.error('Unprocessable entity: ' + data.responseText, true);
+						Structr.errorFromResponse(data.responseJSON, url, {statusCode: 422, requiresConfirmation: true});
 					}
 					_Crud.showCreateError(type, data, onError);
 				},
-				500: function(data, status, xhr) {
-					_Crud.error('Internal Error: ' + data.responseText, true);
+				500: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url, {statusCode: 500, requiresConfirmation: true});
 					_Crud.showCreateError(type, data, onError);
 				}
 			}
@@ -1264,7 +1284,11 @@ var _Crud = {
 		});
 	},
 	crudUpdateObj: function(id, json, onSuccess, onError) {
-		var handleError = function () {
+		var url = rootUrl + id;
+
+		var handleError = function (data, code) {
+			Structr.errorFromResponse(data.responseJSON, url, {statusCode: code, requiresConfirmation: true});
+
 			if (typeof onError === "function") {
 				onError();
 			} else {
@@ -1273,7 +1297,7 @@ var _Crud = {
 		};
 
 		$.ajax({
-			url: rootUrl + id,
+			url: url,
 			data: json,
 			type: 'PUT',
 			dataType: 'json',
@@ -1286,30 +1310,23 @@ var _Crud = {
 						_Crud.crudRefresh(id);
 					}
 				},
-				400: function(data, status, xhr) {
-					_Crud.error('Bad request: ' + data.responseText, true);
-					handleError();
+				400: function(data) {
+					handleError(data, 400);
 				},
-				401: function(data, status, xhr) {
-					_Crud.error('Authentication required: ' + data.responseText, true);
-					handleError();
+				401: function(data) {
+					handleError(data, 401);
 				},
-				403: function(data, status, xhr) {
-					console.log(data, status, xhr);
-					_Crud.error('Forbidden: ' + data.responseText, true);
-					handleError();
+				403: function(data) {
+					handleError(data, 403);
 				},
-				404: function(data, status, xhr) {
-					_Crud.error('Not found: ' + data.responseText, true);
-					handleError();
+				404: function(data) {
+					handleError(data, 404);
 				},
-				422: function(data, status, xhr) {
-					_Crud.error('Error: ' + data.responseText, true);
-					handleError();
+				422: function(data) {
+					handleError(data, 422);
 				},
-				500: function(data, status, xhr) {
-					_Crud.error('Internal Error: ' + data.responseText, true);
-					handleError();
+				500: function(data) {
+					handleError(data, 500);
 				}
 			}
 		});
@@ -1324,7 +1341,9 @@ var _Crud = {
 			obj[key] = null;
 		}
 
-		var handleError = function () {
+		var handleError = function (data, code) {
+			Structr.errorFromResponse(data.responseJSON, url, {statusCode: code, requiresConfirmation: true});
+
 			if (typeof onError === "function") {
 				onError();
 			} else {
@@ -1345,29 +1364,23 @@ var _Crud = {
 						_Crud.crudRefresh(id, key, oldValue);
 					}
 				},
-				400: function(data, status, xhr) {
-					_Crud.error('Bad request: ' + data.responseText, true);
-					handleError();
+				400: function(data) {
+					handleError(data, 400);
 				},
-				401: function(data, status, xhr) {
-					_Crud.error('Authentication required: ' + data.responseText, true);
-					handleError();
+				401: function(data) {
+					handleError(data, 401);
 				},
-				403: function(data, status, xhr) {
-					_Crud.error('Forbidden: ' + data.responseText, true);
-					handleError();
+				403: function(data) {
+					handleError(data, 403);
 				},
-				404: function(data, status, xhr) {
-					_Crud.error('Not found: ' + data.responseText, true);
-					handleError();
+				404: function(data) {
+					handleError(data, 404);
 				},
-				422: function(data, status, xhr) {
-					_Crud.error('Error: ' + data.responseText, true);
-					handleError();
+				422: function(data) {
+					handleError(data, 422);
 				},
-				500: function(data, status, xhr) {
-					_Crud.error('Internal Error: ' + data.responseText, true);
-					handleError();
+				500: function(data) {
+					handleError(data, 500);
 				}
 			}
 		});
@@ -1385,7 +1398,9 @@ var _Crud = {
 			}
 		};
 
-		var handleError = function () {
+		var handleError = function (data, code) {
+			Structr.errorFromResponse(data.responseJSON, url, {statusCode: code, requiresConfirmation: true});
+
 			if (typeof onError === "function") {
 				onError();
 			} else {
@@ -1406,36 +1421,31 @@ var _Crud = {
 				204: function() {
 					handleSuccess();
 				},
-				400: function(data, status, xhr) {
-					_Crud.error('Bad request: ' + data.responseText, true);
-					handleError();
+				400: function(data) {
+					handleError(data, 400);
 				},
-				401: function(data, status, xhr) {
-					_Crud.error('Authentication required: ' + data.responseText, true);
-					handleError();
+				401: function(data) {
+					handleError(data, 401);
 				},
-				403: function(data, status, xhr) {
-					_Crud.error('Forbidden: ' + data.responseText, true);
-					handleError();
+				403: function(data) {
+					handleError(data, 403);
 				},
-				404: function(data, status, xhr) {
-					_Crud.error('Not found: ' + data.responseText, true);
-					handleError();
+				404: function(data) {
+					handleError(data, 404);
 				},
-				422: function(data, status, xhr) {
-					_Crud.error('Error: ' + data.responseText, true);
-					handleError();
+				422: function(data) {
+					handleError(data, 422);
 				},
-				500: function(data, status, xhr) {
-					_Crud.error('Internal Error: ' + data.responseText, true);
-					handleError();
+				500: function(data) {
+					handleError(data, 500);
 				}
 			}
 		});
 	},
 	crudDelete: function(id) {
+		var url = rootUrl + '/' + id;
 		$.ajax({
-			url: rootUrl + '/' + id,
+			url: url,
 			type: 'DELETE',
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8',
@@ -1448,23 +1458,23 @@ var _Crud = {
 					var row = _Crud.row(id);
 					row.remove();
 				},
-				400: function(data, status, xhr) {
-					_Crud.error('Bad request: ' + data.responseText, true);
+				400: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url, {statusCode: 400, requiresConfirmation: true});
 				},
-				401: function(data, status, xhr) {
-					_Crud.error('Authentication required: ' + data.responseText, true);
+				401: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url, {statusCode: 401, requiresConfirmation: true});
 				},
-				403: function(data, status, xhr) {
-					console.log(data, status, xhr);
-					_Crud.error('Forbidden: ' + data.responseText, true);
+				403: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url, {statusCode: 403, requiresConfirmation: true});
 				},
-				404: function(data, status, xhr) {
-					_Crud.error('Not found: ' + data.responseText, true);
+				404: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url, {statusCode: 404, requiresConfirmation: true});
 				},
-				422: function(data, status, xhr) {
+				422: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url, {statusCode: 422, requiresConfirmation: true});
 				},
-				500: function(data, status, xhr) {
-					_Crud.error('Internal Error: ' + data.responseText, true);
+				500: function(data) {
+					Structr.errorFromResponse(data.responseJSON, url, {statusCode: 500, requiresConfirmation: true});
 				}
 			}
 		});
@@ -1589,6 +1599,7 @@ var _Crud = {
 		}
 	},
 	populateCell: function(id, key, type, value, cell) {
+		var isRel = _Crud.types[type].isRel;
 		var isCollection = _Crud.isCollection(key, type);
 		var isEnum = _Crud.isEnum(key, type);
 		var relatedType = _Crud.relatedType(key, type);
@@ -1737,6 +1748,16 @@ var _Crud = {
 
 			simpleType = lastPart(relatedType, '.');
 
+			if (isRel) {
+
+				if (key === 'sourceId') {
+					simpleType = _Crud.relInfo[type].source;
+				} else if (key === 'targetId') {
+					simpleType = _Crud.relInfo[type].target;
+				}
+
+			}
+
 			if (value) {
 
 				_Crud.getAndAppendNode(type, id, key, value, cell);
@@ -1745,10 +1766,20 @@ var _Crud = {
 
 				cell.append('<i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" />');
 				$('.add', cell).on('click', function() {
-					_Crud.dialog('Add ' + simpleType + ' to ' + key, function() {
-					}, function() {
-					});
-					_Crud.displaySearch(type, id, key, simpleType, dialogText);
+					if (!dialogBox.is(':visible')) {
+						_Crud.dialog('Add ' + simpleType + ' to ' + key, function() { }, function() { });
+						_Crud.displaySearch(type, id, key, simpleType, dialogText);
+					} else {
+						var btn = $(this);
+						$('#entityForm').hide();
+						_Crud.displaySearch(type, id, key, simpleType, dialogText, function (n) {
+							$('.searchBox', dialogText).remove();
+							btn.remove();
+							_Crud.getAndAppendNode(type, id, key, n, cell, n, true);
+							_Crud.clearSearchResults(dialogText);
+							$('#entityForm').show();
+						});
+					}
 				});
 			}
 
@@ -1789,7 +1820,7 @@ var _Crud = {
 			_Crud.resetCell(id, key, oldValue);
 		});
 	},
-	getAndAppendNode: function(parentType, parentId, key, obj, cell, preloadedNode) {
+	getAndAppendNode: function(parentType, parentId, key, obj, cell, preloadedNode, insertFakeInput) {
 		if (!obj) {
 			return;
 		}
@@ -1827,6 +1858,8 @@ var _Crud = {
 			var isSourceOrTarget = _Crud.types[parentType].isRel && (key === 'sourceId' || key === 'targetId');
 			if (!isSourceOrTarget) {
 				nodeEl.append('<i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
+			} else if (insertFakeInput) {
+				nodeEl.append('<input type="hidden" name="' + key + '" value="' + node.id + '" /></div>');
 			}
 
 			if (node.isImage) {
@@ -2036,7 +2069,7 @@ var _Crud = {
 		}
 		return displayName;
 	},
-	displaySearch: function(parentType, id, key, type, el) {
+	displaySearch: function(parentType, id, key, type, el, callbackOverride) {
 		el.append('<div class="searchBox searchBoxDialog"><input class="search" name="search" size="20" placeholder="Search"><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
 		var searchBox = $('.searchBoxDialog', el);
 		var search = $('.search', searchBox);
@@ -2059,9 +2092,13 @@ var _Crud = {
 
 				_Crud.search(searchString, el, type, function(e, node) {
 					e.preventDefault();
-					_Crud.addRelatedObject(parentType, id, key, node, function() {
-						//document.location.reload();
-					});
+					if (typeof callbackOverride === "function") {
+						callbackOverride(node);
+					} else {
+						_Crud.addRelatedObject(parentType, id, key, node, function() {
+							//document.location.reload();
+						});
+					}
 					return false;
 				});
 
@@ -2295,15 +2332,6 @@ var _Crud = {
 		Structr.resize();
 
 	},
-	error: function(text, confirmationRequired) {
-		var message = new MessageBuilder().error(text);
-		if (confirmationRequired) {
-			message.requiresConfirmation();
-		} else {
-			message.delayDuration(2000).fadeDuration(1000);
-		}
-		message.show();
-	},
 	showDetails: function(n, typeParam) {
 
 		var type = typeParam || n.type;
@@ -2383,7 +2411,7 @@ var _Crud = {
 
 		var type = typeParam || node.type;
 		if (!type) {
-			Structr.error('Missing type', function() {}, function() {});
+			Structr.error('Missing type');
 			return;
 		}
 		var typeDef = _Crud.types[type];

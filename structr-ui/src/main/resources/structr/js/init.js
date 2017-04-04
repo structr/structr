@@ -918,27 +918,63 @@ var Structr = {
 		}
 		message.show();
 	},
-	errorFromResponse: function(response, url) {
+	errorFromResponse: function(response, url, additionalParameters) {
 		var errorText = '';
 
 		if (response.errors && response.errors.length) {
 
-			$.each(response.errors, function(i, err) {
+			var errorLines = [response.message];
 
-                errorText += err.type+ '.';
-                errorText += err.property + ' ';
-                errorText += err.token + ': ' ;
-                errorText += err.detail;
-				errorText += '\n';
+			response.errors.forEach(function(error) {
+
+                var errorMsg = error.type;
+				if (error.property) {
+					errorMsg += '.' + error.property;
+				}
+                errorMsg += ' ' + error.token;
+				if (error.detail) {
+					errorMsg += ': ' + error.detail;
+				}
+
+				errorLines.push(errorMsg);
 
 			});
+
+			errorText = errorLines.join('<br>');
 
 		} else {
 
 			errorText += url + ': ' + response.code + ' ' + response.message;
 		}
 
-		new MessageBuilder().error(errorText).show();
+		var message = new MessageBuilder().error(errorText);
+
+		if (additionalParameters) {
+			if (additionalParameters.requiresConfirmation) {
+				message.requiresConfirmation();
+			}
+			if (additionalParameters.statusCode) {
+				var title = Structr.getErrorTextForStatusCode(additionalParameters.statusCode);
+				if (title) {
+					message.title(title);
+				}
+			}
+			if (additionalParameters.title) {
+				message.title(additionalParameters.title);
+			}
+		}
+
+		message.show();
+	},
+	getErrorTextForStatusCode: function (statusCode) {
+		switch (statusCode) {
+			case 400: return 'Bad request';
+			case 401: return 'Authentication required';
+			case 403: return 'Forbidden';
+			case 404: return 'Not found';
+			case 422: return 'Unprocessable entity';
+			case 500: return 'Internal Error';
+		}
 	},
 	loaderIcon: function(element, css) {
 		element.append('<img class="loader-icon" alt="Loading..." title="Loading.." src="' + _Icons.getSpinnerImageAsData() + '">');

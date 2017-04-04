@@ -2135,4 +2135,40 @@ public class ScriptingTest extends StructrTest {
 		}
 
 	}
+
+	@Test
+	public void testDateOutput() {
+
+		final Date now                       = new Date();
+		final SimpleDateFormat isoDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext, null);
+
+			// Copy dates with/without format in StructrScript
+			TestOne testOne          = createTestNode(TestOne.class);
+
+			testOne.setProperty(TestOne.aDate, now);
+
+			final String expectedDateOutput = isoDateFormat.format(now);
+			final String dateOutput1 = Scripting.replaceVariables(ctx, testOne, "${this.aDate}");
+			final String dateOutput2 = Scripting.replaceVariables(ctx, testOne, "${print(this.aDate)}");
+			final String dateOutput3 = Scripting.replaceVariables(ctx, testOne, "${{Structr.print(Structr.this.aDate)}}");
+
+			assertEquals("${this.aDate} should yield ISO 8601 date format", expectedDateOutput, dateOutput1);
+			assertEquals("${print(this.aDate)} should yield ISO 8601 date format", expectedDateOutput, dateOutput2);
+			assertEquals("${Structr.print(Structr.this.aDate)} should yield ISO 8601 date format", expectedDateOutput, dateOutput3);
+
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+
+			fail(fex.getMessage());
+		}
+
+	}
 }

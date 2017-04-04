@@ -1342,6 +1342,12 @@ button img, button i {
 	cursor: move;
 }
 
+.pages-sortable-placeholder {
+    /*background: #c2ed92;*/
+    height: 20px ! important;
+    /*margin: 0 0 0 11px;*/
+}
+
 #offset-tester {
 	border: 1px solid red;
 	position: absolute;
@@ -2575,6 +2581,7 @@ input.bitmask {
 
 #info-area .message h3 {
 	margin-top: 0;
+	margin-bottom: 5px;
 }
 
 #info-area .message button {
@@ -3695,10 +3702,10 @@ input#element-class {
 .column-resizer {
 	z-index: 2;
 	width: 6px;
-	height: 100%;
+	height: calc(100vh - 90px);
 	background-color: transparent;
 	position: absolute;
-	top: 60;
+	top: 70px;
 	left: 222px;
 	cursor: ew-resize;
 	border: 1px solid transparent;

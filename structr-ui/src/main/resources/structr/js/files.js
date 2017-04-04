@@ -113,7 +113,7 @@ var _Files = {
 			}
 
 			nameColumnWidth = $('#files-table th:nth-child(2)').width() - 96;
-		
+
 		} else if (viewMode === 'tiles') {
 			nameColumnWidth = 80;
 		} else if (viewMode === 'img') {
@@ -347,28 +347,14 @@ var _Files = {
 						errorText += tooLargeFile.name + ': ' + Math.round(tooLargeFile.size / (1024 * 1024)) + ' Mbytes<br>\n';
 					});
 
-					Structr.error(errorText, function() {
-						$.unblockUI({
-							fadeOut: 25
-						});
-						$(filesToUpload).each(function(i, file) {
-							_Logger.log(_LogType.FILES, file);
-							if (file) {
-								Command.createFile(file);
-							}
-						});
-					});
-
-				} else {
-					$(filesToUpload).each(function(i, file) {
-						file.parentId = currentWorkingDir ? currentWorkingDir.id : null;
-						file.hasParent = true; // Setting hasParent = true forces the backend to upload the file to the root dir even if parentId is null
-						Command.createFile(file); // appending to UI is triggered by StructrModel call only
-//						Command.createFile(file, function(f) {
-//							_Files.appendFileOrFolder(f);
-//						});
-					});
+					Structr.error(errorText, true);
 				}
+
+				filesToUpload.forEach(function(file) {
+					file.parentId = currentWorkingDir ? currentWorkingDir.id : null;
+					file.hasParent = true; // Setting hasParent = true forces the backend to upload the file to the root dir even if parentId is null
+					Command.createFile(file); // appending to UI is triggered by StructrModel call only
+				});
 
 				return false;
 			});
@@ -531,12 +517,12 @@ var _Files = {
 
 			_Pager.initPager('filesystem-files', 'FileBase', 1, 25, 'name', 'asc');
 			page['FileBase'] = 1;
-			
+
 			var filterOptions = {
 				parentId: (parentIsRoot ? '' : id),
 				hasParent: (!parentIsRoot),
 			};
-			
+
 			if (viewMode === 'img') {
 				filterOptions.isThumbnail = false;
 			}
@@ -623,7 +609,7 @@ var _Files = {
 			+ '<button class="switch ' + (viewMode === 'tiles' ? 'active' : 'inactive') + '" id="switch-tiles" data-view-mode="tiles">'
 			+ (viewMode === 'tiles' ? '<i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />' : '')
 			+ ' Tiles</button>'
-			
+
 			+ '<button class="switch ' + (viewMode === 'img' ? 'active' : 'inactive') + '" id="switch-img" data-view-mode="img">'
 			+ (viewMode === 'img' ? '<i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />' : '')
 			+ ' Images</button>'
@@ -990,12 +976,12 @@ var _Files = {
 	appendEditImageIcon: function(parent, image) {
 
 		var viewIcon;
-		
+
 		if (viewMode === 'img') {
-			
+
 			viewIcon = $('.tn', parent);
 			viewIcon.closest('a').prop('href', 'javascript:void(0)');
-			
+
 		} else {
 
 			viewIcon = $('.view_icon', parent);
@@ -1006,7 +992,7 @@ var _Files = {
 
 			viewIcon = $('.edit_icon', parent);
 		}
-		
+
 		viewIcon.on('click', function(e) {
 			e.stopPropagation();
 			Structr.dialog('' + image.name, function() {
@@ -1033,7 +1019,7 @@ var _Files = {
 
 		dialogBtn.children('#saveFile').remove();
 		dialogBtn.children('#saveAndClose').remove();
-		
+
 		dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled">Save</button>');
 		dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled">Save and close</button>');
 
@@ -1058,7 +1044,7 @@ var _Files = {
 				dialogCancelButton.click();
 			}, 500);
 		});
-		
+
 		$('.fa-crop', el).on('click', function() {
 
 			$('#image-editor').cropper({

@@ -22,16 +22,24 @@ import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.RelationshipInterface;
 
 /**
  *
  *
  */
-public class RelationshipTypeProperty extends AbstractReadOnlyProperty<String> {
+public class RelationshipTypeProperty extends StringProperty {
 
-	public RelationshipTypeProperty(final String name) {
-		super(name);
+	public RelationshipTypeProperty() {
+
+		super("relType");
+
+		systemInternal();
+		readOnly();
+		passivelyIndexed();
+		writeOnce();
+
 	}
 
 	@Override
@@ -68,5 +76,30 @@ public class RelationshipTypeProperty extends AbstractReadOnlyProperty<String> {
 	@Override
 	public SortType getSortType() {
 		return SortType.Default;
+	}
+
+	@Override
+	public String typeName() {
+		return ""; // read-only
+	}
+
+	@Override
+	public Object fixDatabaseProperty(final Object value) {
+		return value;
+	}
+
+	@Override
+	public PropertyConverter<String, ?> databaseConverter(final SecurityContext securityContext) {
+		return null;
+	}
+
+	@Override
+	public PropertyConverter<String, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
+		return null;
+	}
+
+	@Override
+	public PropertyConverter<?, String> inputConverter(final SecurityContext securityContext) {
+		return null;
 	}
 }

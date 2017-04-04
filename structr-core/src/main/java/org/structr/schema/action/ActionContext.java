@@ -39,6 +39,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
+import org.structr.core.script.Scripting;
 import org.structr.schema.parser.DatePropertyParser;
 
 /**
@@ -343,7 +344,7 @@ public class ActionContext {
 
 			if (obj != null) {
 
-				outputBuffer.append(obj.toString());
+				outputBuffer.append(Scripting.formatToDefaultDateOrString(obj));
 			}
 		}
 	}

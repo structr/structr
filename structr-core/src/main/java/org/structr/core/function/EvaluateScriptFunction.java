@@ -18,63 +18,50 @@
  */
 package org.structr.core.function;
 
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
-public class LogFunction extends Function<Object, Object> {
+public class EvaluateScriptFunction extends Function<Object, Object> {
 
-	private static final Logger logger = LoggerFactory.getLogger(LogFunction.class.getName());
+	private static final org.slf4j.Logger logger = LoggerFactory.getLogger(EvaluateScriptFunction.class.getName());
 
-	public static final String ERROR_MESSAGE_LOG    = "Usage: ${log(string)}. Example ${log('Hello World!')}";
-	public static final String ERROR_MESSAGE_LOG_JS = "Usage: ${{Structr.log(string)}}. Example ${{Structr.log('Hello World!')}}";
+	public static final String ERROR_MESSAGE_EVALUATE_SCRIPT	 = "Usage: ${evaluate_script(entity, script)}";
+	public static final String ERROR_MESSAGE_EVALUATE_SCRIPT_JS	 = "Usage: ${Structr.evaluate_script(entity, script)}";
 
 	@Override
-	public String getName() {
-		return "log()";
-	}
+	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
-	@Override
-	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
+		if(sources != null && sources.length == 2 && sources[1] != null && sources[1] instanceof String && sources[0] != null && sources[0] instanceof GraphObject) {
 
-		try {
-			if (sources == null) {
-				throw new IllegalArgumentException();
-			}
+			String script = "${" + sources[1] + "}";
+			GraphObject entity = (GraphObject)sources[0];
 
-			final StringBuilder buf = new StringBuilder();
-			for (final Object obj : sources) {
-
-				if (obj != null) {
-					buf.append(Scripting.formatToDefaultDateOrString(obj));
-				}
-			}
-
-			logger.info(buf.toString());
-			return "";
-
-		} catch (final IllegalArgumentException e) {
+			return Scripting.replaceVariables(ctx, entity, script);
+		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
-
 		}
+
+		return "";
 	}
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_LOG_JS : ERROR_MESSAGE_LOG);
+		return (inJavaScriptContext ? ERROR_MESSAGE_EVALUATE_SCRIPT_JS : ERROR_MESSAGE_EVALUATE_SCRIPT);
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Logs the given string to the logfile";
+		return "Evaluates script given as string in the context of given parameters.";
+	}
+
+	@Override
+	public String getName() {
+		return "evaluate_script()";
 	}
 
 }

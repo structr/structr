@@ -1099,7 +1099,7 @@ var _Elements = {
 			});
 		}
 
-		if (entity.type !== 'Content') {
+		if (entity.type !== 'Content' && entity.children.length > 0) {
 			elements.push({
 				name: 'Expand / Collapse',
 				elements: [

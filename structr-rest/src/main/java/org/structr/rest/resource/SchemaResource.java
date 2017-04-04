@@ -152,11 +152,11 @@ public class SchemaResource extends Resource {
 		// extract types from ModuleService
 		final Set<String> nodeEntityKeys = config.getNodeEntities().keySet();
 		final Set<String> relEntityKeys  = config.getRelationshipEntities().keySet();
-		
+
 		Set<String> entityKeys = new HashSet<>();
 		entityKeys.addAll(nodeEntityKeys);
 		entityKeys.addAll(relEntityKeys);
-		
+
 		for (String rawType : entityKeys) {
 
 			// create & add schema information
@@ -168,54 +168,59 @@ public class SchemaResource extends Resource {
 
 				String url = "/".concat(rawType);
 
+				final boolean isRel = AbstractRelationship.class.isAssignableFrom(type);
+
 				schema.setProperty(urlProperty, url);
 				schema.setProperty(typeProperty, type.getSimpleName());
 				schema.setProperty(nameProperty, type.getSimpleName());
 				schema.setProperty(classNameProperty, type.getName());
 				schema.setProperty(extendsClassNameProperty, type.getSuperclass().getName());
-				schema.setProperty(isRelProperty, AbstractRelationship.class.isAssignableFrom(type));
+				schema.setProperty(isRelProperty, isRel);
 				schema.setProperty(flagsProperty, SecurityContext.getResourceFlags(rawType));
 
-				final List<GraphObjectMap> relatedTo   = new LinkedList<>();
-				final List<GraphObjectMap> relatedFrom = new LinkedList<>();
+				if (!isRel) {
 
-				for (final PropertyKey key : config.getPropertySet(type, PropertyView.All)) {
+					final List<GraphObjectMap> relatedTo   = new LinkedList<>();
+					final List<GraphObjectMap> relatedFrom = new LinkedList<>();
 
-					if (key instanceof RelationProperty) {
+					for (final PropertyKey key : config.getPropertySet(type, PropertyView.All)) {
 
-						final RelationProperty relationProperty = (RelationProperty)key;
-						final Relation relation                 = relationProperty.getRelation();
+						if (key instanceof RelationProperty) {
 
-						if (!relation.isHidden()) {
+							final RelationProperty relationProperty = (RelationProperty)key;
+							final Relation relation                 = relationProperty.getRelation();
 
-							switch (relation.getDirectionForType(type)) {
+							if (!relation.isHidden()) {
 
-								case OUTGOING:
-									relatedTo.add(relationPropertyToMap(config, relationProperty));
-									break;
+								switch (relation.getDirectionForType(type)) {
 
-								case INCOMING:
-									relatedFrom.add(relationPropertyToMap(config, relationProperty));
-									break;
+									case OUTGOING:
+										relatedTo.add(relationPropertyToMap(config, relationProperty));
+										break;
 
-								case BOTH:
-									relatedTo.add(relationPropertyToMap(config, relationProperty));
-									relatedFrom.add(relationPropertyToMap(config, relationProperty));
-									break;
+									case INCOMING:
+										relatedFrom.add(relationPropertyToMap(config, relationProperty));
+										break;
+
+									case BOTH:
+										relatedTo.add(relationPropertyToMap(config, relationProperty));
+										relatedFrom.add(relationPropertyToMap(config, relationProperty));
+										break;
+								}
 							}
 						}
 					}
+
+					if (!relatedTo.isEmpty()) {
+						schema.setProperty(relatedToProperty, relatedTo);
+					}
+
+					if (!relatedFrom.isEmpty()) {
+						schema.setProperty(relatedFromProperty, relatedFrom);
+					}
 				}
 
-				if (!relatedTo.isEmpty()) {
-					schema.setProperty(relatedToProperty, relatedTo);
-				}
-
-				if (!relatedFrom.isEmpty()) {
-					schema.setProperty(relatedFromProperty, relatedFrom);
-				}
 			}
-
 
 		}
 
