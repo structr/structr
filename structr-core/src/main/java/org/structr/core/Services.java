@@ -144,6 +144,7 @@ public class Services implements StructrServices {
 	private Properties structrConf                             = new Properties();
 	private ConfigurationProvider configuration                = null;
 	private boolean initializationDone                         = false;
+	private boolean overridingSchemaTypesAllowed               = true;
 	private boolean shutdownDone                               = false;
 	private String configuredServiceNames                      = null;
 	private String configurationClass                          = null;
@@ -394,6 +395,8 @@ public class Services implements StructrServices {
 		// Don't use logger here because start/stop scripts rely on this line.
 		System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.ms").format(new Date()) + "  ---------------- Initialization complete ----------------");
 
+		setOverridingSchemaTypesAllowed(false);
+
 		initializationDone = true;
 	}
 
@@ -416,6 +419,15 @@ public class Services implements StructrServices {
 	public boolean isInitialized() {
 		return initializationDone;
 	}
+
+	public boolean isOverridingSchemaTypesAllowed() {
+		return overridingSchemaTypesAllowed;
+	}
+
+	public void setOverridingSchemaTypesAllowed(final boolean allow) {
+		overridingSchemaTypesAllowed = allow;
+	}
+
 
 	public void shutdown() {
 

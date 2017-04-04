@@ -27,6 +27,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
@@ -145,6 +146,8 @@ public class StructrSchema {
 	 * @throws URISyntaxException
 	 */
 	public static void replaceDatabaseSchema(final App app, final JsonSchema newSchema) throws FrameworkException, URISyntaxException {
+
+		Services.getInstance().setOverridingSchemaTypesAllowed(true);
 
 		try (final Tx tx = app.tx()) {
 
