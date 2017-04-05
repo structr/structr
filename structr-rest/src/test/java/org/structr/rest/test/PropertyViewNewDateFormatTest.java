@@ -60,6 +60,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.rest.DefaultResourceProvider;
 import org.structr.rest.entity.TestOne;
 import org.structr.rest.entity.TestTwo;
 
@@ -462,6 +463,7 @@ public class PropertyViewNewDateFormatTest {
 
 		Settings.Servlets.setValue("JsonRestServlet");
 		Settings.RestAuthenticator.setValue(SuperUserAuthenticator.class.getName());
+		Settings.RestResourceProvider.setValue(DefaultResourceProvider.class.getName());
 		Settings.RestServletPath.setValue(restUrl);
 		Settings.RestUserClass.setValue("");
 

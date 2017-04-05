@@ -18,8 +18,11 @@
  */
 package org.structr.api.config;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.structr.api.util.html.Tag;
 
 /**
@@ -53,11 +56,53 @@ public class SettingsGroup {
 
 	public void render(final Tag parent) {
 
-		final Tag div = parent.block("div");
+		final Map<String, List<Setting>> mapped = new LinkedHashMap<>();
+		final List<Setting> otherSettings       = new LinkedList<>();
+		final Tag div                           = parent.block("div");
 
 		for (final Setting setting : settings) {
 
-			setting.render(div);
+			final String group = setting.getGroup();
+			if (group != null) {
+
+				List<Setting> list = mapped.get(group);
+				if (list == null) {
+
+					list = new LinkedList<>();
+					mapped.put(group, list);
+				}
+
+				list.add(setting);
+
+			} else {
+
+				otherSettings.add(setting);
+			}
+		}
+
+		for (final Entry<String, List<Setting>> entry : mapped.entrySet()) {
+
+			final String name        = entry.getKey();
+			final Tag groupContainer = div.block("div").css("config-group");
+
+			groupContainer.block("h3").text(name);
+
+			for (final Setting setting : entry.getValue()) {
+
+				setting.render(groupContainer);
+			}
+		}
+
+		final Tag groupContainer = div.block("div").css("config-group");
+
+		// display header only if mapped groups exist
+		if (!mapped.isEmpty()) {
+			groupContainer.block("h3").text("Other");
+		}
+
+		for (final Setting setting : otherSettings) {
+
+			setting.render(groupContainer);
 		}
 	}
 }

@@ -116,8 +116,13 @@ public class ConfigServlet extends HttpServlet {
 
 			menu.block("li").block("a").id(key + "Menu").attr(new Attr("href", "#" + key)).block("span").text(name);
 
+			final Tag container = tabs.block("div").css("tab-content").id(key);
+
 			// let settings group render itself
-			group.render(tabs.block("div").css("tab-content").id(key));
+			group.render(container);
+
+			// stop floating
+			container.block("div").attr(new Attr("style", "clear: both;"));
 		}
 
 		body.block("script").text("$(function() { $('#configTabs').tabs({}); });");
@@ -168,6 +173,7 @@ public class ConfigServlet extends HttpServlet {
 		head.empty("meta").attr(new Attr("http-equiv", "Content-Type"), new Attr("content", "text/html;charset=utf-8"));
 		head.empty("meta").attr(new Attr("name", "viewport"), new Attr("content", "width=1024, user-scalable=yes"));
 		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/main.css"));
+		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/config.css"));
 		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/lib/jquery-ui-1.10.3.custom.min.css"));
 		head.empty("link").attr(new Rel("icon"), new Href("favicon.ico"), new Attr("type", "image/x-icon"));
 		head.block("script").attr(new Attr("src", "/structr/js/lib/jquery-1.11.1.min.js"));

@@ -25,16 +25,18 @@ import org.structr.api.util.html.Tag;
  */
 public abstract class Setting<T> {
 
+	private String group = null;
 	private String key   = null;
 	private T value      = null;
 
 	public abstract void render(final Tag parent);
 	public abstract void fromString(final String source);
 
-	public Setting(final SettingsGroup group, final String key, final T value) {
+	public Setting(final SettingsGroup group, final String groupName, final String key, final T value) {
 
 		this.key   = key;
 		this.value = value;
+		this.group = groupName;
 
 		group.registerSetting(this);
 		Settings.registerSetting(this);
@@ -42,6 +44,10 @@ public abstract class Setting<T> {
 
 	public String getKey() {
 		return key;
+	}
+
+	public String getGroup() {
+		return group;
 	}
 
 	public T getValue() {

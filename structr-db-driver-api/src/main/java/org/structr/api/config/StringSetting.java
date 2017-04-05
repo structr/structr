@@ -28,7 +28,11 @@ import org.structr.api.util.html.Tag;
 public class StringSetting extends Setting<String> {
 
 	public StringSetting(final SettingsGroup group, final String key, final String value) {
-		super(group, key, value);
+		this(group, null, key, value);
+	}
+
+	public StringSetting(final SettingsGroup group, final String groupName, final String key, final String value) {
+		super(group, groupName, key, value);
 	}
 
 	@Override

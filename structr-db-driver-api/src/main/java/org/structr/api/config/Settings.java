@@ -144,62 +144,62 @@ public class Settings {
 	// servlets
 	public static final Setting<String> Servlets              = new StringSetting(servletsGroup,  "HttpService.servlets",             "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet");
 
-	public static final Setting<String> RestServletPath       = new StringSetting(servletsGroup,  "JsonRestServlet.path",             "/structr/rest/*");
-	public static final Setting<String> RestServletClass      = new StringSetting(servletsGroup,  "JsonRestServlet.class",            "org.structr.rest.servlet.JsonRestServlet");
-	public static final Setting<String> RestAuthenticator     = new StringSetting(servletsGroup,  "JsonRestServlet.authenticator",    "org.structr.web.auth.UiAuthenticator");
-	public static final Setting<String> RestDefaultView       = new StringSetting(servletsGroup,  "JsonRestServlet.defaultview",      "public");
-	public static final Setting<Integer> RestOutputDepth      = new IntegerSetting(servletsGroup, "JsonRestServlet.outputdepth",      3);
-	public static final Setting<String> RestResourceProvider  = new StringSetting(servletsGroup,  "JsonRestServlet.resourceprovider", "org.structr.web.common.UiResourceProvider");
-	public static final Setting<String> RestUserClass         = new StringSetting(servletsGroup,  "JsonRestServlet.user.class",       "org.structr.dynamic.User");
-	public static final Setting<Boolean> RestUserAutologin    = new BooleanSetting(servletsGroup, "JsonRestServlet.user.autologin",   false);
-	public static final Setting<Boolean> RestUserAutocreate   = new BooleanSetting(servletsGroup, "JsonRestServlet.user.autocreate",  false);
+	public static final Setting<String> RestServletPath       = new StringSetting(servletsGroup,  "JsonRestServlet", "JsonRestServlet.path",             "/structr/rest/*");
+	public static final Setting<String> RestServletClass      = new StringSetting(servletsGroup,  "JsonRestServlet", "JsonRestServlet.class",            "org.structr.rest.servlet.JsonRestServlet");
+	public static final Setting<String> RestAuthenticator     = new StringSetting(servletsGroup,  "JsonRestServlet", "JsonRestServlet.authenticator",    "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> RestDefaultView       = new StringSetting(servletsGroup,  "JsonRestServlet", "JsonRestServlet.defaultview",      "public");
+	public static final Setting<Integer> RestOutputDepth      = new IntegerSetting(servletsGroup, "JsonRestServlet", "JsonRestServlet.outputdepth",      3);
+	public static final Setting<String> RestResourceProvider  = new StringSetting(servletsGroup,  "JsonRestServlet", "JsonRestServlet.resourceprovider", "org.structr.web.common.UiResourceProvider");
+	public static final Setting<String> RestUserClass         = new StringSetting(servletsGroup,  "JsonRestServlet", "JsonRestServlet.user.class",       "org.structr.dynamic.User");
+	public static final Setting<Boolean> RestUserAutologin    = new BooleanSetting(servletsGroup, "JsonRestServlet", "JsonRestServlet.user.autologin",   false);
+	public static final Setting<Boolean> RestUserAutocreate   = new BooleanSetting(servletsGroup, "JsonRestServlet", "JsonRestServlet.user.autocreate",  false);
 
-	public static final Setting<String> HtmlServletPath           = new StringSetting(servletsGroup,  "HtmlServlet.path",                  "/structr/html/*");
-	public static final Setting<String> HtmlServletClass          = new StringSetting(servletsGroup,  "HtmlServlet.class",                 "org.structr.web.servlet.HtmlServlet");
-	public static final Setting<String> HtmlAuthenticator         = new StringSetting(servletsGroup,  "HtmlServlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
-	public static final Setting<String> HtmlDefaultView           = new StringSetting(servletsGroup,  "HtmlServlet.defaultview",           "public");
-	public static final Setting<Integer> HtmlOutputDepth          = new IntegerSetting(servletsGroup, "HtmlServlet.outputdepth",           3);
-	public static final Setting<String> HtmlResourceProvider      = new StringSetting(servletsGroup,  "HtmlServlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
-	public static final Setting<Boolean> HtmlUserAutologin        = new BooleanSetting(servletsGroup, "HtmlServlet.user.autologin",        false);
-	public static final Setting<Boolean> HtmlUserAutocreate       = new BooleanSetting(servletsGroup, "HtmlServlet.user.autocreate",       true);
-	public static final Setting<String> HtmlResolveProperties     = new StringSetting(servletsGroup,  "HtmlServlet.resolveProperties",     "AbstractNode.name");
-	public static final Setting<String> HtmlCustomResponseHeaders = new StringSetting(servletsGroup,  "HtmlServlet.customResponseHeaders", "Strict-Transport-Security:max-age=60,\nX-Content-Type-Options:nosniff,\nX-Frame-Options:SAMEORIGIN,\nX-XSS-Protection:1;mode=block");
+	public static final Setting<String> HtmlServletPath           = new StringSetting(servletsGroup,  "HtmlServlet", "HtmlServlet.path",                  "/structr/html/*");
+	public static final Setting<String> HtmlServletClass          = new StringSetting(servletsGroup,  "HtmlServlet", "HtmlServlet.class",                 "org.structr.web.servlet.HtmlServlet");
+	public static final Setting<String> HtmlAuthenticator         = new StringSetting(servletsGroup,  "HtmlServlet", "HtmlServlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> HtmlDefaultView           = new StringSetting(servletsGroup,  "HtmlServlet", "HtmlServlet.defaultview",           "public");
+	public static final Setting<Integer> HtmlOutputDepth          = new IntegerSetting(servletsGroup, "HtmlServlet", "HtmlServlet.outputdepth",           3);
+	public static final Setting<String> HtmlResourceProvider      = new StringSetting(servletsGroup,  "HtmlServlet", "HtmlServlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
+	public static final Setting<Boolean> HtmlUserAutologin        = new BooleanSetting(servletsGroup, "HtmlServlet", "HtmlServlet.user.autologin",        false);
+	public static final Setting<Boolean> HtmlUserAutocreate       = new BooleanSetting(servletsGroup, "HtmlServlet", "HtmlServlet.user.autocreate",       true);
+	public static final Setting<String> HtmlResolveProperties     = new StringSetting(servletsGroup,  "HtmlServlet", "HtmlServlet.resolveProperties",     "AbstractNode.name");
+	public static final Setting<String> HtmlCustomResponseHeaders = new StringSetting(servletsGroup,  "HtmlServlet", "HtmlServlet.customResponseHeaders", "Strict-Transport-Security:max-age=60,\nX-Content-Type-Options:nosniff,\nX-Frame-Options:SAMEORIGIN,\nX-XSS-Protection:1;mode=block");
 
-	public static final Setting<String> WebsocketServletPath       = new StringSetting(servletsGroup,  "WebSocketServlet.path",              "/structr/ws/*");
-	public static final Setting<String> WebsocketServletClass      = new StringSetting(servletsGroup,  "WebSocketServlet.class",             "org.structr.websocket.servlet.WebSocketServlet");
-	public static final Setting<String> WebsocketAuthenticator     = new StringSetting(servletsGroup,  "WebSocketServlet.authenticator",     "org.structr.web.auth.UiAuthenticator");
-	public static final Setting<String> WebsocketDefaultView       = new StringSetting(servletsGroup,  "WebSocketServlet.defaultview",       "public");
-	public static final Setting<Integer> WebsocketOutputDepth      = new IntegerSetting(servletsGroup, "WebSocketServlet.outputdepth",       3);
-	public static final Setting<String> WebsocketResourceProvider  = new StringSetting(servletsGroup,  "WebSocketServlet.resourceprovider",  "org.structr.web.common.UiResourceProvider");
-	public static final Setting<Boolean> WebsocketUserAutologin    = new BooleanSetting(servletsGroup, "WebSocketServlet.user.autologin",    false);
-	public static final Setting<Boolean> WebsocketUserAutocreate   = new BooleanSetting(servletsGroup, "WebSocketServlet.user.autocreate",   false);
-	public static final Setting<Boolean> WebsocketFrontendAccess   = new BooleanSetting(servletsGroup, "WebSocketServlet.frontendAccess",    false);
+	public static final Setting<String> WebsocketServletPath       = new StringSetting(servletsGroup,  "WebSocketServlet", "WebSocketServlet.path",              "/structr/ws/*");
+	public static final Setting<String> WebsocketServletClass      = new StringSetting(servletsGroup,  "WebSocketServlet", "WebSocketServlet.class",             "org.structr.websocket.servlet.WebSocketServlet");
+	public static final Setting<String> WebsocketAuthenticator     = new StringSetting(servletsGroup,  "WebSocketServlet", "WebSocketServlet.authenticator",     "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> WebsocketDefaultView       = new StringSetting(servletsGroup,  "WebSocketServlet", "WebSocketServlet.defaultview",       "public");
+	public static final Setting<Integer> WebsocketOutputDepth      = new IntegerSetting(servletsGroup, "WebSocketServlet", "WebSocketServlet.outputdepth",       3);
+	public static final Setting<String> WebsocketResourceProvider  = new StringSetting(servletsGroup,  "WebSocketServlet", "WebSocketServlet.resourceprovider",  "org.structr.web.common.UiResourceProvider");
+	public static final Setting<Boolean> WebsocketUserAutologin    = new BooleanSetting(servletsGroup, "WebSocketServlet", "WebSocketServlet.user.autologin",    false);
+	public static final Setting<Boolean> WebsocketUserAutocreate   = new BooleanSetting(servletsGroup, "WebSocketServlet", "WebSocketServlet.user.autocreate",   false);
+	public static final Setting<Boolean> WebsocketFrontendAccess   = new BooleanSetting(servletsGroup, "WebSocketServlet", "WebSocketServlet.frontendAccess",    false);
 
-	public static final Setting<String> CsvServletPath       = new StringSetting(servletsGroup,  "CsvServlet.path",              "/structr/csv/*");
-	public static final Setting<String> CsvServletClass      = new StringSetting(servletsGroup,  "CsvServlet.class",             "org.structr.rest.servlet.CsvServlet");
-	public static final Setting<String> CsvAuthenticator     = new StringSetting(servletsGroup,  "CsvServlet.authenticator",     "org.structr.web.auth.UiAuthenticator");
-	public static final Setting<String> CsvDefaultView       = new StringSetting(servletsGroup,  "CsvServlet.defaultview",       "public");
-	public static final Setting<Integer> CsvOutputDepth      = new IntegerSetting(servletsGroup, "CsvServlet.outputdepth",       3);
-	public static final Setting<String> CsvResourceProvider  = new StringSetting(servletsGroup,  "CsvServlet.resourceprovider",  "org.structr.web.common.UiResourceProvider");
-	public static final Setting<Boolean> CsvUserAutologin    = new BooleanSetting(servletsGroup, "CsvServlet.user.autologin",    false);
-	public static final Setting<Boolean> CsvUserAutocreate   = new BooleanSetting(servletsGroup, "CsvServlet.user.autocreate",   false);
-	public static final Setting<Boolean> CsvFrontendAccess   = new BooleanSetting(servletsGroup, "CsvServlet.frontendAccess",    false);
+	public static final Setting<String> CsvServletPath       = new StringSetting(servletsGroup,  "CsvServlet", "CsvServlet.path",              "/structr/csv/*");
+	public static final Setting<String> CsvServletClass      = new StringSetting(servletsGroup,  "CsvServlet", "CsvServlet.class",             "org.structr.rest.servlet.CsvServlet");
+	public static final Setting<String> CsvAuthenticator     = new StringSetting(servletsGroup,  "CsvServlet", "CsvServlet.authenticator",     "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> CsvDefaultView       = new StringSetting(servletsGroup,  "CsvServlet", "CsvServlet.defaultview",       "public");
+	public static final Setting<Integer> CsvOutputDepth      = new IntegerSetting(servletsGroup, "CsvServlet", "CsvServlet.outputdepth",       3);
+	public static final Setting<String> CsvResourceProvider  = new StringSetting(servletsGroup,  "CsvServlet", "CsvServlet.resourceprovider",  "org.structr.web.common.UiResourceProvider");
+	public static final Setting<Boolean> CsvUserAutologin    = new BooleanSetting(servletsGroup, "CsvServlet", "CsvServlet.user.autologin",    false);
+	public static final Setting<Boolean> CsvUserAutocreate   = new BooleanSetting(servletsGroup, "CsvServlet", "CsvServlet.user.autocreate",   false);
+	public static final Setting<Boolean> CsvFrontendAccess   = new BooleanSetting(servletsGroup, "CsvServlet", "CsvServlet.frontendAccess",    false);
 
-	public static final Setting<String> UploadServletPath       = new StringSetting(servletsGroup,  "UploadServlet.path",                  "/structr/csv/*");
-	public static final Setting<String> UploadServletClass      = new StringSetting(servletsGroup,  "UploadServlet.class",                 "org.structr.web.servlet.UploadServlet");
-	public static final Setting<String> UploadAuthenticator     = new StringSetting(servletsGroup,  "UploadServlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
-	public static final Setting<String> UploadDefaultView       = new StringSetting(servletsGroup,  "UploadServlet.defaultview",           "public");
-	public static final Setting<Integer> UploadOutputDepth      = new IntegerSetting(servletsGroup, "UploadServlet.outputdepth",           3);
-	public static final Setting<String> UploadResourceProvider  = new StringSetting(servletsGroup,  "UploadServlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
-	public static final Setting<Boolean> UploadUserAutologin    = new BooleanSetting(servletsGroup, "UploadServlet.user.autologin",        false);
-	public static final Setting<Boolean> UploadUserAutocreate   = new BooleanSetting(servletsGroup, "UploadServlet.user.autocreate",       false);
-	public static final Setting<Boolean> UploadAllowAnonymous   = new BooleanSetting(servletsGroup, "UploadServlet.allowAnonymousUploads", false);
-	public static final Setting<Integer> UploadMaxFileSize      = new IntegerSetting(servletsGroup, "UploadServlet.maxFileSize",           1000);
-	public static final Setting<Integer> UploadMaxRequestSize   = new IntegerSetting(servletsGroup, "UploadServlet.maxRequestSize",        1200);
+	public static final Setting<String> UploadServletPath       = new StringSetting(servletsGroup,  "UploadServlet", "UploadServlet.path",                  "/structr/csv/*");
+	public static final Setting<String> UploadServletClass      = new StringSetting(servletsGroup,  "UploadServlet", "UploadServlet.class",                 "org.structr.web.servlet.UploadServlet");
+	public static final Setting<String> UploadAuthenticator     = new StringSetting(servletsGroup,  "UploadServlet", "UploadServlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> UploadDefaultView       = new StringSetting(servletsGroup,  "UploadServlet", "UploadServlet.defaultview",           "public");
+	public static final Setting<Integer> UploadOutputDepth      = new IntegerSetting(servletsGroup, "UploadServlet", "UploadServlet.outputdepth",           3);
+	public static final Setting<String> UploadResourceProvider  = new StringSetting(servletsGroup,  "UploadServlet", "UploadServlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
+	public static final Setting<Boolean> UploadUserAutologin    = new BooleanSetting(servletsGroup, "UploadServlet", "UploadServlet.user.autologin",        false);
+	public static final Setting<Boolean> UploadUserAutocreate   = new BooleanSetting(servletsGroup, "UploadServlet", "UploadServlet.user.autocreate",       false);
+	public static final Setting<Boolean> UploadAllowAnonymous   = new BooleanSetting(servletsGroup, "UploadServlet", "UploadServlet.allowAnonymousUploads", false);
+	public static final Setting<Integer> UploadMaxFileSize      = new IntegerSetting(servletsGroup, "UploadServlet", "UploadServlet.maxFileSize",           1000);
+	public static final Setting<Integer> UploadMaxRequestSize   = new IntegerSetting(servletsGroup, "UploadServlet", "UploadServlet.maxRequestSize",        1200);
 
-	public static final Setting<Boolean> DeploymentAllowAnonymous = new BooleanSetting(servletsGroup, "DeploymentServlet.allowAnonymousUploads", false);
-	public static final Setting<Integer> DeploymentMaxFileSize    = new IntegerSetting(servletsGroup, "DeploymentServlet.maxFileSize",           1000);
-	public static final Setting<Integer> DeploymentMaxRequestSize = new IntegerSetting(servletsGroup, "DeploymentServlet.maxRequestSize",        1200);
+	public static final Setting<Boolean> DeploymentAllowAnonymous = new BooleanSetting(servletsGroup, "DeploymentServlet", "DeploymentServlet.allowAnonymousUploads", false);
+	public static final Setting<Integer> DeploymentMaxFileSize    = new IntegerSetting(servletsGroup, "DeploymentServlet", "DeploymentServlet.maxFileSize",           1000);
+	public static final Setting<Integer> DeploymentMaxRequestSize = new IntegerSetting(servletsGroup, "DeploymentServlet", "DeploymentServlet.maxRequestSize",        1200);
 
 	// cron settings
 	public static final Setting<String> CronTasks               = new StringSetting(cronGroup,  "CronService.tasks", "");
@@ -312,7 +312,7 @@ public class Settings {
 	public static Setting<?> createSettingForValue(final String key, final String value) {
 
 		// try to determine property value type, string, integer or boolean?
-		
+
 		final String lowerCaseValue = value.toLowerCase();
 
 		// boolean

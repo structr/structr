@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -70,7 +69,6 @@ import org.structr.rest.entity.TestOne;
 public class StructrRestTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrRestTest.class.getName());
-	protected static final Map<String, Object> staticConfig = new HashMap<>();
 
 	//~--- fields ---------------------------------------------------------
 
@@ -328,10 +326,6 @@ public class StructrRestTest {
 
 	@BeforeClass
 	public static void start() {
-		start(null);
-	}
-
-	public static void start(final Map<String, Object> additionalConfig) {
 
 		final Date now          = new Date();
 		final long timestamp    = now.getTime();
@@ -367,14 +361,14 @@ public class StructrRestTest {
 
 		final Services services = Services.getInstance();
 
-		securityContext		= SecurityContext.getSuperUserInstance();
-		app			= StructrApp.getInstance(securityContext);
-
 		// wait for service layer to be initialized
 		do {
 			try { Thread.sleep(100); } catch (Throwable t) {}
 
 		} while (!services.isInitialized());
+
+		securityContext		= SecurityContext.getSuperUserInstance();
+		app			= StructrApp.getInstance(securityContext);
 	}
 
 

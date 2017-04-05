@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.rest.service.HttpServiceServlet;
@@ -39,6 +40,7 @@ public class CsvTest extends StructrCsvTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(CsvTest.class.getName());
 
+	@Test
 	public void test01InitServlet() {
 
 		try {
@@ -58,6 +60,7 @@ public class CsvTest extends StructrCsvTest {
 	/**
 	 * Test CSV output
 	 */
+	@Test
 	public void test02CsvOutput() {
 
 		// create some objects
@@ -115,14 +118,14 @@ public class CsvTest extends StructrCsvTest {
 		System.out.println("result: " + ((RestAssuredResponseImpl) result).prettyPrint());
 
 		String expected =  "\"id\";\"type\";\"name\";\"anInt\";\"aLong\";\"aDate\"\r\n"
-				+ "\"" + test0Id + "\";\"TestOne\";\"TestOne-0\";\"0\";\"0\";\"Mon Sep 17 22:33:12 UTC 2012\"\r\n"
-				+ "\"" + test1Id + "\";\"TestOne\";\"TestOne-1\";\"1\";\"10\";\"Mon Sep 17 23:33:12 UTC 2012\"\r\n"
-				+ "\"" + test2Id + "\";\"TestOne\";\"TestOne-2\";\"2\";\"20\";\"Tue Sep 18 00:33:12 UTC 2012\"\r\n"
-				+ "\"" + test3Id + "\";\"TestOne\";\"TestOne-3\";\"3\";\"30\";\"Tue Sep 18 01:33:12 UTC 2012\"\r\n"
-				+ "\"" + test4Id + "\";\"TestOne\";\"TestOne-4\";\"4\";\"40\";\"Tue Sep 18 02:33:12 UTC 2012\"\r\n"
-				+ "\"" + test5Id + "\";\"TestOne\";\"TestOne-5\";\"5\";\"50\";\"Tue Sep 18 03:33:12 UTC 2012\"\r\n"
-				+ "\"" + test6Id + "\";\"TestOne\";\"TestOne-6\";\"6\";\"60\";\"Tue Sep 18 04:33:12 UTC 2012\"\r\n"
-				+ "\"" + test7Id + "\";\"TestOne\";\"TestOne-7\";\"7\";\"70\";\"Tue Sep 18 05:33:12 UTC 2012\"\r\n";
+				+ "\"" + test0Id + "\";\"TestOne\";\"TestOne-0\";\"0\";\"0\";\"2012-09-17T22:33:12+0000\"\r\n"
+				+ "\"" + test1Id + "\";\"TestOne\";\"TestOne-1\";\"1\";\"10\";\"2012-09-17T23:33:12+0000\"\r\n"
+				+ "\"" + test2Id + "\";\"TestOne\";\"TestOne-2\";\"2\";\"20\";\"2012-09-18T00:33:12+0000\"\r\n"
+				+ "\"" + test3Id + "\";\"TestOne\";\"TestOne-3\";\"3\";\"30\";\"2012-09-18T01:33:12+0000\"\r\n"
+				+ "\"" + test4Id + "\";\"TestOne\";\"TestOne-4\";\"4\";\"40\";\"2012-09-18T02:33:12+0000\"\r\n"
+				+ "\"" + test5Id + "\";\"TestOne\";\"TestOne-5\";\"5\";\"50\";\"2012-09-18T03:33:12+0000\"\r\n"
+				+ "\"" + test6Id + "\";\"TestOne\";\"TestOne-6\";\"6\";\"60\";\"2012-09-18T04:33:12+0000\"\r\n"
+				+ "\"" + test7Id + "\";\"TestOne\";\"TestOne-7\";\"7\";\"70\";\"2012-09-18T05:33:12+0000\"\r\n";
 
 		String resultString = ((RestAssuredResponseImpl) result).asString();
 
@@ -148,8 +151,8 @@ public class CsvTest extends StructrCsvTest {
 		System.out.println("result: " + ((RestAssuredResponseImpl) result).prettyPrint());
 
 		expected = "\"id\";\"type\";\"name\";\"anInt\";\"aLong\";\"aDate\"\r\n"
-			+ "\"" + test0Id + "\";\"TestOne\";\"TestOne-0\";\"0\";\"0\";\"Mon Sep 17 22:33:12 UTC 2012\"\r\n"
-			+ "\"" + test1Id + "\";\"TestOne\";\"TestOne-1\";\"1\";\"10\";\"Mon Sep 17 23:33:12 UTC 2012\"\r\n";
+			+ "\"" + test0Id + "\";\"TestOne\";\"TestOne-0\";\"0\";\"0\";\"2012-09-17T22:33:12+0000\"\r\n"
+			+ "\"" + test1Id + "\";\"TestOne\";\"TestOne-1\";\"1\";\"10\";\"2012-09-17T23:33:12+0000\"\r\n";
 
 
 		resultString = ((RestAssuredResponseImpl) result).asString();
@@ -176,8 +179,8 @@ public class CsvTest extends StructrCsvTest {
 		System.out.println("result: " + ((RestAssuredResponseImpl) result).prettyPrint());
 
 		expected = "\"id\";\"type\";\"name\";\"anInt\";\"aLong\";\"aDate\"\r\n"
-			+ "\"" + test2Id + "\";\"TestOne\";\"TestOne-2\";\"2\";\"20\";\"Tue Sep 18 00:33:12 UTC 2012\"\r\n"
-			+ "\"" + test3Id + "\";\"TestOne\";\"TestOne-3\";\"3\";\"30\";\"Tue Sep 18 01:33:12 UTC 2012\"\r\n";
+			+ "\"" + test2Id + "\";\"TestOne\";\"TestOne-2\";\"2\";\"20\";\"2012-09-18T00:33:12+0000\"\r\n"
+			+ "\"" + test3Id + "\";\"TestOne\";\"TestOne-3\";\"3\";\"30\";\"2012-09-18T01:33:12+0000\"\r\n";
 
 
 

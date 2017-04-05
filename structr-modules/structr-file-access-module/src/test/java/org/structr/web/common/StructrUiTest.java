@@ -111,7 +111,7 @@ public abstract class StructrUiTest extends TestCase {
 
 		// enable "just testing" flag to avoid JAR resource scanning
 		Settings.Testing.setValue(true);
-		Settings.Services.setValue("NodeService HttpService SchemaService");
+		Settings.Services.setValue("NodeService HttpService SchemaService FtpService");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 
 		// example for new configuration setup
@@ -129,6 +129,7 @@ public abstract class StructrUiTest extends TestCase {
 		Settings.ApplicationTitle.setValue("structr unit test app" + timestamp);
 		Settings.ApplicationHost.setValue(host);
 		Settings.HttpPort.setValue(httpPort);
+		Settings.FtpPort.setValue(ftpPort);
 
 		Settings.Servlets.setValue("JsonRestServlet WebSocketServlet HtmlServlet");
 

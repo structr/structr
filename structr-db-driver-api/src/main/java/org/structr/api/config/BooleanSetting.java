@@ -27,7 +27,11 @@ import org.structr.api.util.html.Tag;
 public class BooleanSetting extends Setting<Boolean> {
 
 	public BooleanSetting(final SettingsGroup group, final String key, final Boolean value) {
-		super(group, key, value);
+		this(group, null, key, value);
+	}
+
+	public BooleanSetting(final SettingsGroup group, final String groupName, final String key, final Boolean value) {
+		super(group, groupName, key, value);
 	}
 
 	@Override

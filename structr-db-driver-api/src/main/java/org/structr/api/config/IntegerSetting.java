@@ -27,7 +27,11 @@ import org.structr.api.util.html.Tag;
 public class IntegerSetting extends Setting<Integer> {
 
 	public IntegerSetting(final SettingsGroup group, final String key, final Integer value) {
-		super(group, key, value);
+		this(group, null, key, value);
+	}
+
+	public IntegerSetting(final SettingsGroup group, final String groupName, final String key, final Integer value) {
+		super(group, groupName, key, value);
 	}
 
 	@Override

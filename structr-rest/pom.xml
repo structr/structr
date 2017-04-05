@@ -44,43 +44,11 @@
 					<debug>true</debug>
 				</configuration>
 			</plugin>
-			<!--
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<version>2.2.1</version>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.9.1</version>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-						<configuration>
-							<additionalparam>${javadoc.opts}</additionalparam>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			-->
 			<plugin>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.18.1</version>
 				<configuration>
 					<argLine>-Xmx2g</argLine>
-					<reuseForks>false</reuseForks>
 					<reuseForks>false</reuseForks>
 					<systemPropertyVariables>
 						<user.timezone>UTC</user.timezone>

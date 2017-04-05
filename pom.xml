@@ -35,41 +35,100 @@
 		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
 	</properties>
 
+	<modules>
+		<module>structr-db-driver-api</module>
+		<module>structr-neo4j-bolt-driver</module>
+		<module>structr-core</module>
+		<module>structr-rest</module>
+		<module>structr-ui</module>
+		<module>structr-modules</module>
+		<module>structr-distributions</module>
+	</modules>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+					<encoding>${project.build.sourceEncoding}</encoding>
+					<debug>false</debug>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.mycila</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>2.11</version>
+				<configuration>
+					<header>header.txt</header>
+					<includes>
+						<include>src/**</include>
+					</includes>
+					<excludes>
+						<exclude>**/README</exclude>
+						<exclude>src/**/.directory</exclude>
+						<exclude>src/**/*.properties</exclude>
+					</excludes>
+					<properties>
+						<year>2017</year>
+						<owner>Structr GmbH</owner>
+					</properties>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.18.1</version>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+
+			</plugin>
+		</plugins>
+	</build>
 	<profiles>
 		<profile>
-			<id>distributions</id>
-			<activation>
-				<property>
-					<name>distributions</name>
-					<value>true</value>
-				</property>
-			</activation>
-			<modules>
-				<module>structr-distributions</module>
-			</modules>
-		</profile>
-		<profile>
-			<id>javadocs</id>
+			<id>with-tests</id>
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-javadoc-plugin</artifactId>
-						<version>2.9.1</version>
-						<executions>
-							<execution>
-								<id>attach-javadocs</id>
-								<goals>
-									<goal>jar</goal>
-								</goals>
-							</execution>
-						</executions>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<version>2.18.1</version>
+						<configuration>
+							<skip>false</skip>
+						</configuration>
+
 					</plugin>
 				</plugins>
+
 			</build>
 		</profile>
+
 		<profile>
-			<id>sources</id>
+			<id>all-modules</id>
+			<modules>
+				<module>structr-db-driver-api</module>
+				<module>structr-neo4j-bolt-driver</module>
+				<module>structr-net</module>
+				<module>structr-core</module>
+				<module>structr-rest</module>
+				<module>structr-ui</module>
+				<module>structr-modules</module>
+				<module>structr-distributions</module>
+			</modules>
+		</profile>
+
+		<profile>
+			<id>with-sources</id>
 			<build>
 				<plugins>
 					<plugin>
@@ -86,97 +145,30 @@
 						</executions>
 					</plugin>
 				</plugins>
-			</build>
-		</profile>
-		<profile>
-			<id>tests</id>
-			<activation>
-				<property>
-					<name>tests</name>
-					<value>true</value>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-surefire-plugin</artifactId>
-						<version>2.4.2</version>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
-			<id>default</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-			<modules>
-				<module>structr-db-driver-api</module>
-				<module>structr-neo4j-bolt-driver</module>
-				<module>structr-core</module>
-				<module>structr-rest</module>
-				<module>structr-ui</module>
-				<module>structr-modules</module>
-			</modules>
 
+			</build>
+		</profile>
+
+		<profile>
+			<id>with-javadocs</id>
 			<build>
 				<plugins>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-surefire-plugin</artifactId>
-						<version>2.4.2</version>
-						<configuration>
-							<skipTests>true</skipTests>
-						</configuration>
-					</plugin>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-compiler-plugin</artifactId>
-						<version>2.3.2</version>
-						<configuration>
-							<source>1.8</source>
-							<target>1.8</target>
-							<encoding>${project.build.sourceEncoding}</encoding>
-							<debug>false</debug>
-						</configuration>
-					</plugin>
-					<plugin>
-						<groupId>com.mycila</groupId>
-						<artifactId>license-maven-plugin</artifactId>
-						<version>2.11</version>
-						<configuration>
-							<header>header.txt</header>
-							<includes>
-								<include>src/**</include>
-							</includes>
-							<excludes>
-								<exclude>**/README</exclude>
-								<exclude>src/**/.directory</exclude>
-								<exclude>src/**/*.properties</exclude>
-							</excludes>
-							<properties>
-								<year>2017</year>
-								<owner>Structr GmbH</owner>
-							</properties>
-						</configuration>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>2.9.1</version>
 						<executions>
 							<execution>
+								<id>attach-javadocs</id>
 								<goals>
-									<goal>check</goal>
+									<goal>jar</goal>
 								</goals>
 							</execution>
 						</executions>
 					</plugin>
 				</plugins>
+
 			</build>
-		</profile>
-		<profile>
-			<id>all-modules</id>
-			<modules>
-				<module>structr-net</module>
-				<module>structr-modules</module>
-			</modules>
 		</profile>
 		<profile>
 			<id>release-sign-artifacts</id>

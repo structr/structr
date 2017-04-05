@@ -41,6 +41,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.rest.DefaultResourceProvider;
 import org.structr.rest.common.*;
 import org.structr.rest.entity.TestOne;
 
@@ -275,21 +276,23 @@ public class StructrCsvTest {
 
 		Settings.Servlets.setValue("JsonRestServlet CsvServlet");
 		Settings.RestAuthenticator.setValue(SuperUserAuthenticator.class.getName());
+		Settings.RestResourceProvider.setValue(DefaultResourceProvider.class.getName());
 		Settings.RestUserClass.setValue("");
 
 		Settings.CsvServletPath.setValue(csvUrl);
 		Settings.CsvAuthenticator.setValue(SuperUserAuthenticator.class.getName());
+		Settings.CsvResourceProvider.setValue(DefaultResourceProvider.class.getName());
 
 		final Services services = Services.getInstance();
-
-		securityContext		= SecurityContext.getSuperUserInstance();
-		app			= StructrApp.getInstance(securityContext);
 
 		// wait for service layer to be initialized
 		do {
 			try { Thread.sleep(100); } catch (Throwable t) {}
 
 		} while (!services.isInitialized());
+
+		securityContext		= SecurityContext.getSuperUserInstance();
+		app			= StructrApp.getInstance(securityContext);
 	}
 
 
