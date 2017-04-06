@@ -33,8 +33,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -193,14 +191,7 @@ public class Services implements StructrServices {
 			hasConfigFile = true;
 			logger.info("Reading {}..", configFileName);
 
-			try {
-
-				PropertiesConfiguration.setDefaultListDelimiter('\0');
-				StructrServices.loadConfiguration(new PropertiesConfiguration(configFileName));
-
-			} catch (ConfigurationException ex) {
-				logger.error("", ex);
-			}
+			Settings.loadConfiguration(configFileName);
 		}
 
 		doInitialize();

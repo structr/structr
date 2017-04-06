@@ -18,6 +18,7 @@
  */
 package org.structr.api.config;
 
+import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Tag;
 
 /**
@@ -25,18 +26,23 @@ import org.structr.api.util.html.Tag;
  */
 public abstract class Setting<T> {
 
-	private String group = null;
-	private String key   = null;
-	private T value      = null;
+	private SettingsGroup group = null;
+	private boolean isDynamic   = false;
+	private T defaultValue      = null;
+	private String category     = null;
+	private String key          = null;
+	private T value             = null;
 
 	public abstract void render(final Tag parent);
 	public abstract void fromString(final String source);
 
-	public Setting(final SettingsGroup group, final String groupName, final String key, final T value) {
+	public Setting(final SettingsGroup group, final String categoryName, final String key, final T value) {
 
-		this.key   = key;
-		this.value = value;
-		this.group = groupName;
+		this.key          = key;
+		this.value        = value;
+		this.category     = categoryName;
+		this.group        = group;
+		this.defaultValue = value;
 
 		group.registerSetting(this);
 		Settings.registerSetting(this);
@@ -46,12 +52,16 @@ public abstract class Setting<T> {
 		return key;
 	}
 
-	public String getGroup() {
-		return group;
+	public String getCategory() {
+		return category;
 	}
 
 	public T getValue() {
 		return value;
+	}
+
+	public T getDefaultValue() {
+		return defaultValue;
 	}
 
 	public T getValue(final T defaultValue) {
@@ -66,5 +76,41 @@ public abstract class Setting<T> {
 
 	public void setValue(final T value) {
 		this.value = value;
+	}
+
+	public boolean isModified() {
+		return (defaultValue != null && !defaultValue.equals(value)) || (defaultValue == null && value != null);
+	}
+
+	public boolean isDynamic() {
+		return isDynamic;
+	}
+
+	public void setIsDynamic(boolean isDynamic) {
+		this.isDynamic = isDynamic;
+	}
+
+	public void unregister() {
+
+		group.unregisterSetting(this);
+		Settings.unregisterSetting(this);
+	}
+
+	// ----- protected methods -----
+	protected void renderResetButton(final Tag group) {
+
+		if (isModified()) {
+
+			final Tag icon = group.block("i").css("sprite sprite-cancel").attr(new Attr("onclick", "javascript:resetToDefault('" + getKey() + "');"));
+
+			if (isDynamic()) {
+
+				icon.attr(new Attr("title", "Remove"));
+
+			} else {
+
+				icon.attr(new Attr("title", "Reset to default"));
+			}
+		}
 	}
 }

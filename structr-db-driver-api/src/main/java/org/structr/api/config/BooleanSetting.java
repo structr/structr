@@ -26,12 +26,36 @@ import org.structr.api.util.html.Tag;
  */
 public class BooleanSetting extends Setting<Boolean> {
 
+	/**
+	 * Constructor to create an empty BooleanSetting with NO default value.
+	 *
+	 * @param group
+	 * @param key
+	 */
+	public BooleanSetting(final SettingsGroup group, final String key) {
+		this(group, key, null);
+	}
+
+	/**
+	 * Constructor to create a BooleanSetting WITH default value.
+	 *
+	 * @param group
+	 * @param key
+	 * @param value
+	 */
 	public BooleanSetting(final SettingsGroup group, final String key, final Boolean value) {
 		this(group, null, key, value);
 	}
 
-	public BooleanSetting(final SettingsGroup group, final String groupName, final String key, final Boolean value) {
-		super(group, groupName, key, value);
+	/**
+	 * Constructor to create a BooleanSetting with category name and default value.
+	 * @param group
+	 * @param categoryName
+	 * @param key
+	 * @param value
+	 */
+	public BooleanSetting(final SettingsGroup group, final String categoryName, final String key, final Boolean value) {
+		super(group, categoryName, key, value);
 	}
 
 	@Override
@@ -40,8 +64,22 @@ public class BooleanSetting extends Setting<Boolean> {
 		final Tag group = parent.block("div").css("form-group");
 
 		group.block("label").text(getKey());
-		group.empty("input").attr(new Attr("type", "checkbox"), new Attr("value", getValue()));
 
+		final Tag trueInput  = group.empty("input").attr(new Attr("type", "radio"), new Attr("name", getKey()), new Attr("value",  "true"));
+		group.block("span").text("Enabled");
+		final Tag falseInput = group.empty("input").attr(new Attr("type", "radio"), new Attr("name", getKey()), new Attr("value", "false"));
+		group.block("span").text("Disabled");
+
+		if (getValue()) {
+
+			trueInput.attr(new Attr("checked", "checked"));
+
+		} else {
+
+			falseInput.attr(new Attr("checked", "checked"));
+		}
+
+		renderResetButton(group);
 	}
 
 	@Override

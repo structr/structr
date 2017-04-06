@@ -136,13 +136,6 @@ public class HttpService implements RunnableService {
 	@Override
 	public void initialize(final StructrServices services) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
 
-		if (!services.isConfigured()) {
-
-			// start HtmlServlet only, override defaults
-			Settings.Servlets.setValue("HtmlServlet");
-			Settings.UiHandlerWelcomeFiles.setValue(null);
-		}
-
 		String sourceJarName = getClass().getProtectionDomain().getCodeSource().getLocation().toString();
 		final boolean isTest = Settings.Testing.getValue();
 
@@ -352,12 +345,12 @@ public class HttpService implements RunnableService {
 
 		}
 
-		final List<ContextHandler> resourceHandler = collectResourceHandlers();
+		final List<ContextHandler> resourceHandler = collectResourceHandlers(services);
 		for (ContextHandler contextHandler : resourceHandler) {
 			contexts.addHandler(contextHandler);
 		}
 
-		final Map<String, ServletHolder> servlets = collectServlets();
+		final Map<String, ServletHolder> servlets = collectServlets(services);
 
 		// add servlet elements
 		int position = 1;
@@ -482,7 +475,7 @@ public class HttpService implements RunnableService {
 	}
 
 	// ----- private methods -----
-	private List<ContextHandler> collectResourceHandlers() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	private List<ContextHandler> collectResourceHandlers(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final List<ContextHandler> resourceHandlers = new LinkedList<>();
 		final String resourceHandlerList            = Settings.ResourceHandlers.getValue();
@@ -503,7 +496,7 @@ public class HttpService implements RunnableService {
 							resourceHandler.setDirectoriesListed(Settings.getBooleanSetting(resourceHandlerName, "directoriesListed").getValue());
 
 							final String welcomeFiles = Settings.getStringSetting(resourceHandlerName, "welcomeFiles").getValue();
-							if (welcomeFiles != null) {
+							if (welcomeFiles != null && services.isConfigured()) {
 
 								resourceHandler.setWelcomeFiles(StringUtils.split(welcomeFiles));
 							}
@@ -538,10 +531,19 @@ public class HttpService implements RunnableService {
 		return resourceHandlers;
 	}
 
-	private Map<String, ServletHolder> collectServlets() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	private Map<String, ServletHolder> collectServlets(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final Map<String, ServletHolder> servlets = new LinkedHashMap<>();
-		final String servletNameList              = Settings.Servlets.getValue();
+		String servletNameList                    = null;
+
+		if (services.isConfigured()) {
+
+			servletNameList = Settings.Servlets.getValue();
+
+		} else {
+
+			servletNameList = "HtmlServlet";
+		}
 
 		if (servletNameList != null) {
 

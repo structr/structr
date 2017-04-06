@@ -18,9 +18,14 @@
  */
 package org.structr.api.config;
 
+import java.io.IOException;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Properties;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 
@@ -44,105 +49,104 @@ public class Settings {
 	public static final SettingsGroup miscGroup               = new SettingsGroup("misc",        "Miscellaneous");
 
 	// general settings
-	public static final Setting<String> ApplicationTitle      = new StringSetting(generalGroup,  "application.title",      "Structr 2.1");
-	public static final Setting<String> Configuration         = new StringSetting(generalGroup,  "configuration.provider", "org.structr.module.JarConfigurationProvider");
-	public static final Setting<String> BasePath              = new StringSetting(generalGroup,  "base.path",              "");
-	public static final Setting<String> TmpPath               = new StringSetting(generalGroup,  "tmp.path",               "/tmp");
-	public static final Setting<String> FilesPath             = new StringSetting(generalGroup,  "files.path",             System.getProperty("user.dir").concat("/files"));
-	public static final Setting<String> LogDatabasePath       = new StringSetting(generalGroup,  "log.database.path",      System.getProperty("user.dir").concat("/logDb.dat"));
-	public static final Setting<String> DataExchangePath      = new StringSetting(generalGroup,  "data.exchange.path",     "");
-	public static final Setting<String> SnapshotsPath         = new StringSetting(generalGroup,  "snapshot.path",          "snapshots/");
-	public static final Setting<Boolean> LogSchemaOutput      = new BooleanSetting(generalGroup, "NodeExtender.log",       false);
-	public static final Setting<Boolean> RequestLogging       = new BooleanSetting(generalGroup, "log.requests",           false);
-	public static final Setting<String> LogPrefix             = new StringSetting(generalGroup,  "log.prefix",             "structr");
-	public static final Setting<String> SuperUserName         = new StringSetting(generalGroup,  "superuser.username",     "superadmin");
-	public static final Setting<String> SuperUserPassword     = new StringSetting(generalGroup,  "superuser.password",     RandomStringUtils.randomAlphanumeric(12));
-
-	public static final Setting<Boolean> Testing              = new BooleanSetting(generalGroup, "testing",                false);
-	public static final StringSetting Services                = new StringSetting(generalGroup, "configured.services",     "NodeService AgentService CronService SchemaService LogService HttpService FtpService SSHService");
+	public static final Setting<String> ApplicationTitle      = new StringSetting(generalGroup,  "Application", "application.title",          "Structr 2.1");
+	public static final Setting<String> InstanceName          = new StringSetting(generalGroup,  "Application", "application.instance.name",  "");
+	public static final Setting<String> InstanceStage         = new StringSetting(generalGroup,  "Application", "application.instance.stage", "");
+	public static final Setting<String> SuperUserName         = new StringSetting(generalGroup,  "Superuser",   "superuser.username",         "superadmin");
+	public static final Setting<String> SuperUserPassword     = new StringSetting(generalGroup,  "Superuser",   "superuser.password",         RandomStringUtils.randomAlphanumeric(12));
+	public static final Setting<String> BasePath              = new StringSetting(generalGroup,  "Paths",       "base.path",                  "");
+	public static final Setting<String> TmpPath               = new StringSetting(generalGroup,  "Paths",       "tmp.path",                   "/tmp");
+	public static final Setting<String> DatabasePath          = new StringSetting(generalGroup,  "Paths",       "database.path",              "db");
+	public static final Setting<String> FilesPath             = new StringSetting(generalGroup,  "Paths",       "files.path",                 System.getProperty("user.dir").concat("/files"));
+	public static final Setting<String> LogDatabasePath       = new StringSetting(generalGroup,  "Paths",       "log.database.path",          System.getProperty("user.dir").concat("/logDb.dat"));
+	public static final Setting<String> DataExchangePath      = new StringSetting(generalGroup,  "Paths",       "data.exchange.path",         "");
+	public static final Setting<String> SnapshotsPath         = new StringSetting(generalGroup,  "Paths",       "snapshot.path",              "snapshots/");
+	public static final Setting<Boolean> LogSchemaOutput      = new BooleanSetting(generalGroup, "Logging",     "NodeExtender.log",           false);
+	public static final Setting<Boolean> RequestLogging       = new BooleanSetting(generalGroup, "Logging",     "log.requests",               false);
+	public static final Setting<String> LogPrefix             = new StringSetting(generalGroup,  "Logging",     "log.prefix",                 "structr");
+	public static final Setting<String> Configuration         = new StringSetting(generalGroup,  "hidden",      "configuration.provider",     "org.structr.module.JarConfigurationProvider");
+	public static final Setting<Boolean> Testing              = new BooleanSetting(generalGroup, "hidden",      "testing",                    false);
+	public static final StringSetting Services                = new StringSetting(generalGroup,  "Services",    "configured.services",        "NodeService AgentService CronService SchemaService LogService HttpService FtpService SSHService");
 
 	// server settings
-	public static final Setting<String> ApplicationHost       = new StringSetting(serverGroup,  "application.host",              "0.0.0.0");
-	public static final Setting<Integer> HttpPort             = new IntegerSetting(serverGroup, "application.http.port",         8082);
-	public static final Setting<Integer> HttpsPort            = new IntegerSetting(serverGroup, "application.https.port",        8083);
-	public static final Setting<Integer> SshPort              = new IntegerSetting(serverGroup, "application.ssh.port",          8022);
-	public static final Setting<Integer> FtpPort              = new IntegerSetting(serverGroup, "application.ftp.port",          8021);
-	public static final Setting<Boolean> HttpsEnabled         = new BooleanSetting(serverGroup, "application.https.enabled",     false);
-	public static final Setting<String> KeystorePath          = new StringSetting(serverGroup,  "application.keystore.path",     "");
-	public static final Setting<String> KeystorePassword      = new StringSetting(serverGroup,  "application.keystore.password", "");
+	public static final Setting<String> ApplicationHost       = new StringSetting(serverGroup,  "Interfaces", "application.host",              "0.0.0.0");
+	public static final Setting<Integer> HttpPort             = new IntegerSetting(serverGroup, "Interfaces", "application.http.port",         8082);
+	public static final Setting<Integer> HttpsPort            = new IntegerSetting(serverGroup, "Interfaces", "application.https.port",        8083);
+	public static final Setting<Integer> SshPort              = new IntegerSetting(serverGroup, "Interfaces", "application.ssh.port",          8022);
+	public static final Setting<Integer> FtpPort              = new IntegerSetting(serverGroup, "Interfaces", "application.ftp.port",          8021);
+	public static final Setting<Boolean> HttpsEnabled         = new BooleanSetting(serverGroup, "Interfaces", "application.https.enabled",     false);
+	public static final Setting<String> KeystorePath          = new StringSetting(serverGroup,  "Interfaces", "application.keystore.path",     "");
+	public static final Setting<String> KeystorePassword      = new StringSetting(serverGroup,  "Interfaces", "application.keystore.password", "");
 
 	// HTTP service settings
-	public static final Setting<String> ResourceHandlers      = new StringSetting(serverGroup,  "HttpService.resourceHandlers",    "StructrUiHandler");
-	public static final Setting<String> LifecycleListeners    = new StringSetting(serverGroup,  "HttpService.lifecycle.listeners", "");
-	public static final Setting<Boolean> GzipCompression      = new BooleanSetting(serverGroup, "HttpService.gzip.enabled",        true);
-	public static final Setting<Boolean> Async                = new BooleanSetting(serverGroup, "HttpService.async",               true);
-	public static final Setting<Boolean> JsonIndentation      = new BooleanSetting(serverGroup, "json.indentation",                true);
-	public static final Setting<Boolean> HtmlIndentation      = new BooleanSetting(serverGroup, "html.indentation",                true);
-	public static final Setting<Boolean> WsIndentation        = new BooleanSetting(serverGroup, "ws.indentation",                  true);
+	public static final Setting<String> ResourceHandlers      = new StringSetting(serverGroup,  "hidden",        "HttpService.resourceHandlers",    "StructrUiHandler");
+	public static final Setting<String> LifecycleListeners    = new StringSetting(serverGroup,  "hidden",        "HttpService.lifecycle.listeners", "");
+	public static final Setting<Boolean> GzipCompression      = new BooleanSetting(serverGroup, "HTTP Settings", "HttpService.gzip.enabled",        true);
+	public static final Setting<Boolean> Async                = new BooleanSetting(serverGroup, "HTTP Settings", "HttpService.async",               true);
+	public static final Setting<Boolean> JsonIndentation      = new BooleanSetting(serverGroup, "HTTP Settings", "json.indentation",                true);
+	public static final Setting<Boolean> HtmlIndentation      = new BooleanSetting(serverGroup, "HTTP Settings", "html.indentation",                true);
+	public static final Setting<Boolean> WsIndentation        = new BooleanSetting(serverGroup, "HTTP Settings", "ws.indentation",                  true);
+	public static final Setting<Integer> SessionTimeout       = new IntegerSetting(serverGroup, "HTTP Settings", "application.session.timeout",     1800);
 
-	public static final Setting<String> AccessControlMaxAge           = new StringSetting(serverGroup, "access.control.max.age",            "3600");
-	public static final Setting<String> AccessControlAllowMethods     = new StringSetting(serverGroup,  "access.control.allow.methods",     "");
-	public static final Setting<String> AccessControlAllowHeaders     = new StringSetting(serverGroup,  "access.control.allow.headers",     "");
-	public static final Setting<String> AccessControlAllowCredentials = new StringSetting(serverGroup,  "access.control.allow.credentials", "");
-	public static final Setting<String> AccessControlExposeHeaders    = new StringSetting(serverGroup,  "access.control.expose.headers",    "");
+	public static final Setting<String> AccessControlMaxAge           = new StringSetting(serverGroup, "CORS Settings", "access.control.max.age",           "3600");
+	public static final Setting<String> AccessControlAllowMethods     = new StringSetting(serverGroup, "CORS Settings", "access.control.allow.methods",     "");
+	public static final Setting<String> AccessControlAllowHeaders     = new StringSetting(serverGroup, "CORS Settings", "access.control.allow.headers",     "");
+	public static final Setting<String> AccessControlAllowCredentials = new StringSetting(serverGroup, "CORS Settings", "access.control.allow.credentials", "");
+	public static final Setting<String> AccessControlExposeHeaders    = new StringSetting(serverGroup, "CORS Settings", "access.control.expose.headers",    "");
 
-	public static final Setting<String> UiHandlerContextPath        = new StringSetting(serverGroup,  "StructrUiHandler.contextPath",        "/structr");
-	public static final Setting<Boolean> UiHandlerDirectoriesListed = new BooleanSetting(serverGroup,  "StructrUiHandler.directoriesListed", false);
-	public static final Setting<String> UiHandlerResourceBase       = new StringSetting(serverGroup,  "StructrUiHandler.resourceBase",       "src/main/resources/structr");
-	public static final Setting<String> UiHandlerWelcomeFiles       = new StringSetting(serverGroup,  "StructrUiHandler.welcomeFiles",       "index.html");
+	public static final Setting<String> UiHandlerContextPath        = new StringSetting(serverGroup,  "hidden", "StructrUiHandler.contextPath",       "/structr");
+	public static final Setting<Boolean> UiHandlerDirectoriesListed = new BooleanSetting(serverGroup, "hidden", "StructrUiHandler.directoriesListed", false);
+	public static final Setting<String> UiHandlerResourceBase       = new StringSetting(serverGroup,  "hidden", "StructrUiHandler.resourceBase",      "src/main/resources/structr");
+	public static final Setting<String> UiHandlerWelcomeFiles       = new StringSetting(serverGroup,  "hidden", "StructrUiHandler.welcomeFiles",      "index.html");
 
 	// database settings
-	public static final Setting<String> DatabasePath           = new StringSetting(databaseGroup,  "database.path",                    "db");
-	public static final Setting<String> DatabaseDriver         = new StringSetting(databaseGroup,  "database.driver",                  "org.structr.bolt.BoltDatabaseService");
-	public static final Setting<String> DatabaseDriverMode     = new StringSetting(databaseGroup,  "database.driver.mode",             "embedded");
-	public static final Setting<String> ConnectionUrl          = new StringSetting(databaseGroup,  "database.connection.url",          "bolt://localhost:7688");
-	public static final Setting<String> TestingConnectionUrl   = new StringSetting(databaseGroup,  "testing.connection.url",           "bolt://localhost:7689");
-	public static final Setting<String> ConnectionUser         = new StringSetting(databaseGroup,  "database.connection.username",     "neo4j");
-	public static final Setting<String> ConnectionPassword     = new StringSetting(databaseGroup,  "database.connection.password",     "neo4j");
-	public static final Setting<Integer> RelationshipCacheSize = new IntegerSetting(databaseGroup, "database.cache.relationship.size", 100000);
-	public static final Setting<Integer> NodeCacheSize         = new IntegerSetting(databaseGroup, "database.cache.node.size",         100000);
-	public static final Setting<Integer> UuidCacheSize         = new IntegerSetting(databaseGroup, "database.cache.uuid.size",         100000);
-	public static final Setting<Integer> QueryCacheSize        = new IntegerSetting(databaseGroup, "database.cache.query.size",        1000);
-	public static final Setting<Boolean> CypherDebugLogging    = new BooleanSetting(databaseGroup, "log.cypher.debug",                 false);
+	public static final Setting<String> DatabaseDriver         = new StringSetting(databaseGroup,  "Database Driver",     "database.driver",                  "org.structr.bolt.BoltDatabaseService");
+	public static final Setting<String> DatabaseDriverMode     = new ChoiceSetting(databaseGroup,  "Database Driver",     "database.driver.mode",             "embedded", "embedded", "remote");
+	public static final Setting<String> ConnectionUrl          = new StringSetting(databaseGroup,  "Database Connection", "database.connection.url",          "bolt://localhost:7688");
+	public static final Setting<String> TestingConnectionUrl   = new StringSetting(databaseGroup,  "hidden",              "testing.connection.url",           "bolt://localhost:7689");
+	public static final Setting<String> ConnectionUser         = new StringSetting(databaseGroup,  "Database Connection", "database.connection.username",     "neo4j");
+	public static final Setting<String> ConnectionPassword     = new StringSetting(databaseGroup,  "Database Connection", "database.connection.password",     "neo4j");
+	public static final Setting<Integer> RelationshipCacheSize = new IntegerSetting(databaseGroup, "Caching",             "database.cache.relationship.size", 100000);
+	public static final Setting<Integer> NodeCacheSize         = new IntegerSetting(databaseGroup, "Caching",             "database.cache.node.size",         100000);
+	public static final Setting<Integer> UuidCacheSize         = new IntegerSetting(databaseGroup, "Caching",             "database.cache.uuid.size",         100000);
+	public static final Setting<Integer> QueryCacheSize        = new IntegerSetting(databaseGroup, "Caching",             "database.cache.query.size",        1000);
+	public static final Setting<Boolean> CypherDebugLogging    = new BooleanSetting(databaseGroup, "Debugging",           "log.cypher.debug",                 false);
 
 	// application settings
-	public static final Setting<String> InstanceName          = new StringSetting(applicationGroup,   "application.instance.name",                 "");
-	public static final Setting<String> InstanceStage         = new StringSetting(applicationGroup,   "application.instance.stage",                "");
-	public static final Setting<Integer> SessionTimeout       = new IntegerSetting(applicationGroup,  "application.session.timeout",               1800);
-	public static final Setting<Integer> ResolutionDepth      = new IntegerSetting(applicationGroup,  "application.security.resolution.depth",     5);
-	public static final Setting<String> OwnerlessNodes        = new StringSetting(applicationGroup,   "application.security.ownerless.nodes",      "read");
-	public static final Setting<Boolean> ChangelogEnabled     = new BooleanSetting(applicationGroup,  "application.changelog.enabled",             false);
-	public static final Setting<Boolean> FilesystemEnabled    = new BooleanSetting(applicationGroup,  "application.filesystem.enabled",            false);
-	public static final Setting<Boolean> UniquePaths          = new BooleanSetting(applicationGroup,  "application.filesystem.unique.paths",       false);
-	public static final Setting<Integer> IndexingLimit        = new IntegerSetting(applicationGroup,  "application.filesystem.indexing.limit",     50000);
-	public static final Setting<Integer> IndexingMinLength    = new IntegerSetting(applicationGroup,  "application.filesystem.indexing.minlength", 4);
-	public static final Setting<Integer> IndexingMaxLength    = new IntegerSetting(applicationGroup,  "application.filesystem.indexing.maxlength", 40);
-	public static final Setting<String> DefaultUploadFolder   = new StringSetting(applicationGroup,   "application.uploads.folder",                null);
-	public static final Setting<String> HttpProxyUrl          = new StringSetting(applicationGroup,   "application.proxy.http.url",                null);
-	public static final Setting<String> HttpProxyUser         = new StringSetting(applicationGroup,   "application.proxy.http.username",           null);
-	public static final Setting<String> HttpProxyPassword     = new StringSetting(applicationGroup,   "application.proxy.http.password",           null);
+	public static final Setting<Integer> ResolutionDepth      = new IntegerSetting(applicationGroup, "Security",   "application.security.resolution.depth",     5);
+	public static final Setting<String> OwnerlessNodes        = new StringSetting(applicationGroup,  "Security",   "application.security.ownerless.nodes",      "read");
+	public static final Setting<Boolean> ChangelogEnabled     = new BooleanSetting(applicationGroup, "Changelog",  "application.changelog.enabled",             false);
+	public static final Setting<Boolean> FilesystemEnabled    = new BooleanSetting(applicationGroup, "Filesystem", "application.filesystem.enabled",            false);
+	public static final Setting<Boolean> UniquePaths          = new BooleanSetting(applicationGroup, "Filesystem", "application.filesystem.unique.paths",       false);
+	public static final Setting<Integer> IndexingLimit        = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.limit",     50000);
+	public static final Setting<Integer> IndexingMinLength    = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.minlength", 4);
+	public static final Setting<Integer> IndexingMaxLength    = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.maxlength", 40);
+	public static final Setting<String> DefaultUploadFolder   = new StringSetting(applicationGroup,  "Filesystem", "application.uploads.folder",                "");
+	public static final Setting<String> HttpProxyUrl          = new StringSetting(applicationGroup,  "Proxy",      "application.proxy.http.url",                "");
+	public static final Setting<String> HttpProxyUser         = new StringSetting(applicationGroup,  "Proxy",      "application.proxy.http.username",           "");
+	public static final Setting<String> HttpProxyPassword     = new StringSetting(applicationGroup,  "Proxy",      "application.proxy.http.password",           "");
 
 	// mail settings
-	public static final Setting<String> SmtpHost              = new StringSetting(smtpGroup,  "smtp.host",         "localhost");
-	public static final Setting<Integer> SmtpPort             = new IntegerSetting(smtpGroup, "smtp.port",         25);
-	public static final Setting<String> SmtpUser              = new StringSetting(smtpGroup,  "smtp.user",         "");
-	public static final Setting<String> SmtpPassword          = new StringSetting(smtpGroup,  "smtp.password",     "");
-	public static final Setting<Boolean> SmtpTlsEnabled       = new BooleanSetting(smtpGroup, "smtp.tls.enabled",  true);
-	public static final Setting<Boolean> SmtpTlsRequired      = new BooleanSetting(smtpGroup, "smtp.tls.required", true);
+	public static final Setting<String> SmtpHost              = new StringSetting(smtpGroup,  "SMTP Settings", "smtp.host",         "localhost");
+	public static final Setting<Integer> SmtpPort             = new IntegerSetting(smtpGroup, "SMTP Settings", "smtp.port",         25);
+	public static final Setting<String> SmtpUser              = new StringSetting(smtpGroup,  "SMTP Settings", "smtp.user",         "");
+	public static final Setting<String> SmtpPassword          = new StringSetting(smtpGroup,  "SMTP Settings", "smtp.password",     "");
+	public static final Setting<Boolean> SmtpTlsEnabled       = new BooleanSetting(smtpGroup, "SMTP Settings", "smtp.tls.enabled",  true);
+	public static final Setting<Boolean> SmtpTlsRequired      = new BooleanSetting(smtpGroup, "SMTP Settings", "smtp.tls.required", true);
 
 	// advanced settings
-	public static final Setting<String> ForeignTypeName          = new StringSetting(advancedGroup,  "foreign.type.key",         null);
-	public static final Setting<Boolean> JsonRedundancyReduction = new BooleanSetting(advancedGroup, "json.redundancyReduction", true);
-	public static final Setting<Boolean> JsonLenient             = new BooleanSetting(advancedGroup, "json.lenient",             false);
+	public static final Setting<String> ForeignTypeName          = new StringSetting(advancedGroup,  "hidden", "foreign.type.key",         "");
+	public static final Setting<Boolean> JsonRedundancyReduction = new BooleanSetting(advancedGroup, "JSON",   "json.redundancyReduction", true);
+	public static final Setting<Boolean> JsonLenient             = new BooleanSetting(advancedGroup, "JSON",   "json.lenient",             false);
 
-	public static final Setting<String> GeocodingProvider        = new StringSetting(advancedGroup,  "geocoding.provider",            "org.structr.common.geo.GoogleGeoCodingProvider");
-	public static final Setting<String> GeocodingLanguage        = new StringSetting(advancedGroup,  "geocoding.language",            "de");
-	public static final Setting<String> GeocodingApiKey          = new StringSetting(advancedGroup,  "geocoding.apikey",              null);
-	public static final Setting<String> DefaultDateFormat        = new StringSetting(advancedGroup,  "DateProperty.defaultFormat",    "yyyy-MM-dd'T'HH:mm:ssZ");
-	public static final Setting<Boolean> InheritanceDetection    = new BooleanSetting(advancedGroup, "importer.inheritancedetection", true);
+	public static final Setting<String> GeocodingProvider        = new StringSetting(advancedGroup,  "Geocoding",   "geocoding.provider",            "org.structr.common.geo.GoogleGeoCodingProvider");
+	public static final Setting<String> GeocodingLanguage        = new StringSetting(advancedGroup,  "Geocoding",   "geocoding.language",            "de");
+	public static final Setting<String> GeocodingApiKey          = new StringSetting(advancedGroup,  "Geocoding",   "geocoding.apikey",              "");
+	public static final Setting<String> DefaultDateFormat        = new StringSetting(advancedGroup,  "Date Format", "DateProperty.defaultFormat",    "yyyy-MM-dd'T'HH:mm:ssZ");
+	public static final Setting<Boolean> InheritanceDetection    = new BooleanSetting(advancedGroup, "hidden",      "importer.inheritancedetection", true);
 
 	// servlets
-	public static final Setting<String> Servlets              = new StringSetting(servletsGroup,  "HttpService.servlets",             "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet");
+	public static final Setting<String> Servlets              = new StringSetting(servletsGroup,  "General", "HttpService.servlets",             "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet");
 
 	public static final Setting<String> RestServletPath       = new StringSetting(servletsGroup,  "JsonRestServlet", "JsonRestServlet.path",             "/structr/rest/*");
 	public static final Setting<String> RestServletClass      = new StringSetting(servletsGroup,  "JsonRestServlet", "JsonRestServlet.class",            "org.structr.rest.servlet.JsonRestServlet");
@@ -163,7 +167,7 @@ public class Settings {
 	public static final Setting<Boolean> HtmlUserAutologin        = new BooleanSetting(servletsGroup, "HtmlServlet", "HtmlServlet.user.autologin",        false);
 	public static final Setting<Boolean> HtmlUserAutocreate       = new BooleanSetting(servletsGroup, "HtmlServlet", "HtmlServlet.user.autocreate",       true);
 	public static final Setting<String> HtmlResolveProperties     = new StringSetting(servletsGroup,  "HtmlServlet", "HtmlServlet.resolveProperties",     "AbstractNode.name");
-	public static final Setting<String> HtmlCustomResponseHeaders = new StringSetting(servletsGroup,  "HtmlServlet", "HtmlServlet.customResponseHeaders", "Strict-Transport-Security:max-age=60,\nX-Content-Type-Options:nosniff,\nX-Frame-Options:SAMEORIGIN,\nX-XSS-Protection:1;mode=block");
+	public static final Setting<String> HtmlCustomResponseHeaders = new TextSetting(servletsGroup,    "HtmlServlet", "HtmlServlet.customResponseHeaders", "Strict-Transport-Security:max-age=60,\r\nX-Content-Type-Options:nosniff,\r\nX-Frame-Options:SAMEORIGIN,\r\nX-XSS-Protection:1;mode=block");
 
 	public static final Setting<String> WebsocketServletPath       = new StringSetting(servletsGroup,  "WebSocketServlet", "WebSocketServlet.path",              "/structr/ws/*");
 	public static final Setting<String> WebsocketServletClass      = new StringSetting(servletsGroup,  "WebSocketServlet", "WebSocketServlet.class",             "org.structr.websocket.servlet.WebSocketServlet");
@@ -205,61 +209,65 @@ public class Settings {
 	public static final Setting<String> CronTasks               = new StringSetting(cronGroup,  "CronService.tasks", "");
 
 	// oauth settings
-	public static final Setting<String> OAuthServers            = new StringSetting(oauthGroup,  "auth.servers", "github twitter linkedin google facebook");
+	public static final Setting<String> OAuthServers            = new StringSetting(oauthGroup, "General", "auth.servers", "github twitter linkedin google facebook");
 
-	public static final Setting<String> OAuthGithubAuthLocation   = new StringSetting(oauthGroup, "oauth.github.authorization_location", "https://github.com/login/oauth/authorize");
-	public static final Setting<String> OAuthGithubTokenLocation  = new StringSetting(oauthGroup, "oauth.github.token_location", "https://github.com/login/oauth/access_token");
-	public static final Setting<String> OAuthGithubClientId       = new StringSetting(oauthGroup, "oauth.github.client_id", "");
-	public static final Setting<String> OAuthGithubClientSecret   = new StringSetting(oauthGroup, "oauth.github.client_secret", "");
-	public static final Setting<String> OAuthGithubRedirectUri    = new StringSetting(oauthGroup, "oauth.github.redirect_uri", "/oauth/github/auth");
-	public static final Setting<String> OAuthGithubUserDetailsUri = new StringSetting(oauthGroup, "oauth.github.user_details_resource_uri", "https://api.github.com/user/emails");
-	public static final Setting<String> OAuthGithubErrorUri       = new StringSetting(oauthGroup, "oauth.github.error_uri", "/login");
-	public static final Setting<String> OAuthGithubReturnUri      = new StringSetting(oauthGroup, "oauth.github.return_uri", "/");
+	public static final Setting<String> OAuthGithubAuthLocation   = new StringSetting(oauthGroup, "GitHub", "oauth.github.authorization_location", "https://github.com/login/oauth/authorize");
+	public static final Setting<String> OAuthGithubTokenLocation  = new StringSetting(oauthGroup, "GitHub", "oauth.github.token_location", "https://github.com/login/oauth/access_token");
+	public static final Setting<String> OAuthGithubClientId       = new StringSetting(oauthGroup, "GitHub", "oauth.github.client_id", "");
+	public static final Setting<String> OAuthGithubClientSecret   = new StringSetting(oauthGroup, "GitHub", "oauth.github.client_secret", "");
+	public static final Setting<String> OAuthGithubRedirectUri    = new StringSetting(oauthGroup, "GitHub", "oauth.github.redirect_uri", "/oauth/github/auth");
+	public static final Setting<String> OAuthGithubUserDetailsUri = new StringSetting(oauthGroup, "GitHub", "oauth.github.user_details_resource_uri", "https://api.github.com/user/emails");
+	public static final Setting<String> OAuthGithubErrorUri       = new StringSetting(oauthGroup, "GitHub", "oauth.github.error_uri", "/login");
+	public static final Setting<String> OAuthGithubReturnUri      = new StringSetting(oauthGroup, "GitHub", "oauth.github.return_uri", "/");
 
-	public static final Setting<String> OAuthTwitterAuthLocation  = new StringSetting(oauthGroup, "oauth.twitter.authorization_location", "https://api.twitter.com/oauth/authorize");
-	public static final Setting<String> OAuthTwitterTokenLocation = new StringSetting(oauthGroup, "oauth.twitter.token_location", "https://api.twitter.com/oauth/access_token");
-	public static final Setting<String> OAuthTwitterClientId      = new StringSetting(oauthGroup, "oauth.twitter.client_id", "");
-	public static final Setting<String> OAuthTwitterClientSecret  = new StringSetting(oauthGroup, "oauth.twitter.client_secret", "");
-	public static final Setting<String> OAuthTwitterRedirectUri   = new StringSetting(oauthGroup, "oauth.twitter.redirect_uri", "/oauth/twitter/auth");
-	public static final Setting<String> OAuthTwitterErrorUri      = new StringSetting(oauthGroup, "oauth.twitter.error_uri", "/login");
-	public static final Setting<String> OAuthTwitterReturnUri     = new StringSetting(oauthGroup, "oauth.twitter.return_uri", "/");
+	public static final Setting<String> OAuthTwitterAuthLocation  = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.authorization_location", "https://api.twitter.com/oauth/authorize");
+	public static final Setting<String> OAuthTwitterTokenLocation = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.token_location", "https://api.twitter.com/oauth/access_token");
+	public static final Setting<String> OAuthTwitterClientId      = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.client_id", "");
+	public static final Setting<String> OAuthTwitterClientSecret  = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.client_secret", "");
+	public static final Setting<String> OAuthTwitterRedirectUri   = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.redirect_uri", "/oauth/twitter/auth");
+	public static final Setting<String> OAuthTwitterErrorUri      = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.error_uri", "/login");
+	public static final Setting<String> OAuthTwitterReturnUri     = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.return_uri", "/");
 
-	public static final Setting<String> OAuthLinkedInAuthLocation   = new StringSetting(oauthGroup, "oauth.linkedin.authorization_location", "https://www.linkedin.com/uas/oauth2/authorization");
-	public static final Setting<String> OAuthLinkedInTokenLocation  = new StringSetting(oauthGroup, "oauth.linkedin.token_location", "https://www.linkedin.com/uas/oauth2/accessToken");
-	public static final Setting<String> OAuthLinkedInClientId       = new StringSetting(oauthGroup, "oauth.linkedin.client_id", "");
-	public static final Setting<String> OAuthLinkedInClientSecret   = new StringSetting(oauthGroup, "oauth.linkedin.client_secret", "");
-	public static final Setting<String> OAuthLinkedInRedirectUri    = new StringSetting(oauthGroup, "oauth.linkedin.redirect_uri", "/oauth/linkedin/auth");
-	public static final Setting<String> OAuthLinkedInUserDetailsUri = new StringSetting(oauthGroup, "oauth.linkedin.user_details_resource_uri", "https://api.linkedin.com/v1/people/~/email-address?secure-urls=true");
-	public static final Setting<String> OAuthLinkedInErrorUri       = new StringSetting(oauthGroup, "oauth.linkedin.error_uri", "/login");
-	public static final Setting<String> OAuthLinkedInReturnUri      = new StringSetting(oauthGroup, "oauth.linkedin.return_uri", "/");
+	public static final Setting<String> OAuthLinkedInAuthLocation   = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.authorization_location", "https://www.linkedin.com/uas/oauth2/authorization");
+	public static final Setting<String> OAuthLinkedInTokenLocation  = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.token_location", "https://www.linkedin.com/uas/oauth2/accessToken");
+	public static final Setting<String> OAuthLinkedInClientId       = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.client_id", "");
+	public static final Setting<String> OAuthLinkedInClientSecret   = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.client_secret", "");
+	public static final Setting<String> OAuthLinkedInRedirectUri    = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.redirect_uri", "/oauth/linkedin/auth");
+	public static final Setting<String> OAuthLinkedInUserDetailsUri = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.user_details_resource_uri", "https://api.linkedin.com/v1/people/~/email-address?secure-urls=true");
+	public static final Setting<String> OAuthLinkedInErrorUri       = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.error_uri", "/login");
+	public static final Setting<String> OAuthLinkedInReturnUri      = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.return_uri", "/");
 
-	public static final Setting<String> OAuthGoogleAuthLocation   = new StringSetting(oauthGroup, "oauth.google.authorization_location", "https://accounts.google.com/o/oauth2/auth");
-	public static final Setting<String> OAuthGoogleTokenLocation  = new StringSetting(oauthGroup, "oauth.google.token_location", "https://accounts.google.com/o/oauth2/token");
-	public static final Setting<String> OAuthGoogleClientId       = new StringSetting(oauthGroup, "oauth.google.client_id", "");
-	public static final Setting<String> OAuthGoogleClientSecret   = new StringSetting(oauthGroup, "oauth.google.client_secret", "");
-	public static final Setting<String> OAuthGoogleRedirectUri    = new StringSetting(oauthGroup, "oauth.google.redirect_uri", "/oauth/google/auth");
-	public static final Setting<String> OAuthGoogleUserDetailsUri = new StringSetting(oauthGroup, "oauth.google.user_details_resource_uri", "https://www.googleapis.com/oauth2/v3/userinfo");
-	public static final Setting<String> OAuthGoogleErrorUri       = new StringSetting(oauthGroup, "oauth.google.error_uri", "/login");
-	public static final Setting<String> OAuthGoogleReturnUri      = new StringSetting(oauthGroup, "oauth.google.return_uri", "/");
+	public static final Setting<String> OAuthGoogleAuthLocation   = new StringSetting(oauthGroup, "Google", "oauth.google.authorization_location", "https://accounts.google.com/o/oauth2/auth");
+	public static final Setting<String> OAuthGoogleTokenLocation  = new StringSetting(oauthGroup, "Google", "oauth.google.token_location", "https://accounts.google.com/o/oauth2/token");
+	public static final Setting<String> OAuthGoogleClientId       = new StringSetting(oauthGroup, "Google", "oauth.google.client_id", "");
+	public static final Setting<String> OAuthGoogleClientSecret   = new StringSetting(oauthGroup, "Google", "oauth.google.client_secret", "");
+	public static final Setting<String> OAuthGoogleRedirectUri    = new StringSetting(oauthGroup, "Google", "oauth.google.redirect_uri", "/oauth/google/auth");
+	public static final Setting<String> OAuthGoogleUserDetailsUri = new StringSetting(oauthGroup, "Google", "oauth.google.user_details_resource_uri", "https://www.googleapis.com/oauth2/v3/userinfo");
+	public static final Setting<String> OAuthGoogleErrorUri       = new StringSetting(oauthGroup, "Google", "oauth.google.error_uri", "/login");
+	public static final Setting<String> OAuthGoogleReturnUri      = new StringSetting(oauthGroup, "Google", "oauth.google.return_uri", "/");
 
-	public static final Setting<String> OAuthFacebookAuthLocation   = new StringSetting(oauthGroup, "oauth.facebook.authorization_location", "https://www.facebook.com/dialog/oauth");
-	public static final Setting<String> OAuthFacebookTokenLocation  = new StringSetting(oauthGroup, "oauth.facebook.token_location", "https://graph.facebook.com/oauth/access_token");
-	public static final Setting<String> OAuthFacebookClientId       = new StringSetting(oauthGroup, "oauth.facebook.client_id", "");
-	public static final Setting<String> OAuthFacebookClientSecret   = new StringSetting(oauthGroup, "oauth.facebook.client_secret", "");
-	public static final Setting<String> OAuthFacebookRedirectUri    = new StringSetting(oauthGroup, "oauth.facebook.redirect_uri", "/oauth/facebook/auth");
-	public static final Setting<String> OAuthFacebookUserDetailsUri = new StringSetting(oauthGroup, "oauth.facebook.user_details_resource_uri", "https://graph.facebook.com/me");
-	public static final Setting<String> OAuthFacebookErrorUri       = new StringSetting(oauthGroup, "oauth.facebook.error_uri", "/login");
-	public static final Setting<String> OAuthFacebookReturnUri      = new StringSetting(oauthGroup, "oauth.facebook.return_uri", "/");
+	public static final Setting<String> OAuthFacebookAuthLocation   = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.authorization_location", "https://www.facebook.com/dialog/oauth");
+	public static final Setting<String> OAuthFacebookTokenLocation  = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.token_location", "https://graph.facebook.com/oauth/access_token");
+	public static final Setting<String> OAuthFacebookClientId       = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.client_id", "");
+	public static final Setting<String> OAuthFacebookClientSecret   = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.client_secret", "");
+	public static final Setting<String> OAuthFacebookRedirectUri    = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.redirect_uri", "/oauth/facebook/auth");
+	public static final Setting<String> OAuthFacebookUserDetailsUri = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.user_details_resource_uri", "https://graph.facebook.com/me");
+	public static final Setting<String> OAuthFacebookErrorUri       = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.error_uri", "/login");
+	public static final Setting<String> OAuthFacebookReturnUri      = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.return_uri", "/");
 
 	// miscellaneous settings
-	public static final Setting<Integer> TcpPort                                  = new IntegerSetting(miscGroup, "tcp.port",                          5455);
-	public static final Setting<Integer> UdpPort                                  = new IntegerSetting(miscGroup, "udp.port",                          5755);
-	public static final Setting<String> RegistrationCustomUserClass               = new StringSetting(cronGroup, "Registration.customUserClass",       "");
-	public static final Setting<Boolean> RegistrationAllowLoginBeforeConfirmation = new BooleanSetting(cronGroup, "Registration.customUserAttributes", false);
-	public static final Setting<String> RegistrationCustomAttributes              = new StringSetting(cronGroup, "Registration.customUserAttributes",  "");
+	public static final Setting<Integer> TcpPort                                  = new IntegerSetting(miscGroup, "Cloud Service",          "tcp.port",                                  54555);
+	public static final Setting<Integer> UdpPort                                  = new IntegerSetting(miscGroup, "Cloud Service",          "udp.port",                                  57555);
+	public static final Setting<String> RegistrationCustomUserClass               = new StringSetting(miscGroup,  "User Self Registration", "Registration.customUserClass",              "");
+	public static final Setting<Boolean> RegistrationAllowLoginBeforeConfirmation = new BooleanSetting(miscGroup, "User Self Registration", "Registration.allowLoginBeforeConfirmation", false);
+	public static final Setting<String> RegistrationCustomAttributes              = new StringSetting(miscGroup,  "User Self Registration", "Registration.customUserAttributes",         "");
 
 	public static Collection<SettingsGroup> getGroups() {
 		return groups.values();
+	}
+
+	public static SettingsGroup getGroup(final String key) {
+		return groups.get(key);
 	}
 
 	public static Collection<Setting> getSettings() {
@@ -309,25 +317,104 @@ public class Settings {
 		return setting;
 	}
 
-	public static Setting<?> createSettingForValue(final String key, final String value) {
+	public static Setting<?> createSettingForValue(final SettingsGroup group, final String key, final String value) {
 
 		// try to determine property value type, string, integer or boolean?
-
 		final String lowerCaseValue = value.toLowerCase();
 
 		// boolean
 		if ("true".equals(lowerCaseValue) || "false".equals(lowerCaseValue)) {
 
-			return new BooleanSetting(miscGroup, key, Boolean.parseBoolean(value));
+			final Setting<Boolean> setting = new BooleanSetting(group, key);
+			setting.setIsDynamic(true);
+			setting.setValue(Boolean.parseBoolean(value));
+
+			return setting;
 		}
 
 		// integer
 		if (StringUtils.isNumeric(value)) {
 
-			return new IntegerSetting(miscGroup, key, Integer.parseInt(value));
+			final Setting<Integer> setting = new IntegerSetting(group, key);
+			setting.setIsDynamic(true);
+			setting.setValue(Integer.parseInt(value));
+
+			return setting;
 		}
 
-		return new StringSetting(miscGroup, key, value);
+		final Setting<String> setting = new StringSetting(group, key);
+		setting.setIsDynamic(true);
+		setting.setValue(value);
+
+		return setting;
+	}
+
+	public static void storeConfiguration(final String fileName) throws IOException {
+
+		try {
+
+			PropertiesConfiguration.setDefaultListDelimiter('\0');
+
+			final PropertiesConfiguration config = new PropertiesConfiguration();
+
+			// store settings
+			for (final Setting setting : settings.values()) {
+
+				// story only modified settings and the super user password
+				if (setting.isModified() || "superuser.password".equals(setting.getKey())) {
+
+					config.setProperty(setting.getKey(), setting.getValue());
+				}
+			}
+
+			config.save(fileName);
+
+		} catch (ConfigurationException ex) {
+			System.err.println("Unable to load configuration: " + ex.getMessage());
+		}
+
+	}
+
+	public static void loadConfiguration(final String fileName) {
+
+		try {
+
+			PropertiesConfiguration.setDefaultListDelimiter('\0');
+
+			final PropertiesConfiguration config = new PropertiesConfiguration(fileName);
+			final Iterator<String> keys          = config.getKeys();
+
+			while (keys.hasNext()) {
+
+				final String key   = keys.next();
+				final String value = trim(config.getString(key));
+				Setting<?> setting = Settings.getSetting(key);
+
+				if (setting != null) {
+
+					setting.fromString(value);
+
+				} else {
+
+					// create new StringSetting for unknown key
+					Settings.createSettingForValue(miscGroup, key, value);
+				}
+			}
+
+		} catch (ConfigurationException ex) {
+			System.err.println("Unable to load configuration: " + ex.getMessage());
+		}
+
+	}
+
+	public static String trim(final String value) {
+		return StringUtils.trim(value);
+	}
+
+	public static void trim(final Properties properties) {
+		for (Object k : properties.keySet()) {
+			properties.put(k, trim((String) properties.get(k)));
+		}
 	}
 
 	// ----- package methods -----
@@ -337,5 +424,9 @@ public class Settings {
 
 	static void registerSetting(final Setting setting) {
 		settings.put(setting.getKey(), setting);
+	}
+
+	static void unregisterSetting(final Setting setting) {
+		settings.remove(setting.getKey());
 	}
 }

@@ -18,13 +18,7 @@
  */
 package org.structr.api.service;
 
-import java.util.Iterator;
-import java.util.Properties;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.lang3.StringUtils;
 import org.structr.api.DatabaseService;
-import org.structr.api.config.Setting;
-import org.structr.api.config.Settings;
 
 /**
  *
@@ -35,35 +29,4 @@ public interface StructrServices {
 	<T extends Service> T getService(final Class<T> serviceClass);
 	DatabaseService getDatabaseService();
 	boolean isConfigured();
-
-	public static void loadConfiguration(final PropertiesConfiguration config) {
-
-		final Iterator<String> keys = config.getKeys();
-		while (keys.hasNext()) {
-
-			final String key   = keys.next();
-			final String value = trim(config.getString(key));
-			Setting<?> setting = Settings.getSetting(key);
-
-			if (setting != null) {
-
-				setting.fromString(value);
-
-			} else {
-
-				// create new StringSetting for unknown key
-				Settings.createSettingForValue(key, value);
-			}
-		}
-	}
-
-	public static String trim(final String value) {
-		return StringUtils.trim(value);
-	}
-
-	public static void trim(final Properties properties) {
-		for (Object k : properties.keySet()) {
-			properties.put(k, trim((String) properties.get(k)));
-		}
-	}
 }

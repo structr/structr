@@ -21,6 +21,7 @@ package org.structr.rest.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Set;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -29,6 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Setting;
 import org.structr.core.Services;
 import org.structr.api.config.Settings;
 import org.structr.api.config.SettingsGroup;
@@ -46,31 +48,69 @@ public class ConfigServlet extends HttpServlet {
 
 	private static final Logger logger                     = LoggerFactory.getLogger(ConfigServlet.class);
 	private static final Set<String> authenticatedSessions = new HashSet<>();
+	private static final String ConfigUrl                  = "/structr/config";
+	private static final String ConfigName                 = "structr.conf";
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
-		// no trailing semicolon so we dont trip MimeTypes.getContentTypeWithoutCharset
-		response.setContentType("text/html; charset=utf-8");
+		if (request.getParameter("reload") != null) {
 
-		try (final PrintWriter writer = new PrintWriter(response.getWriter())) {
+			// reload data
+			Settings.loadConfiguration(ConfigName);
 
-			if (isAuthenticated(request)) {
+			// redirect
+			response.sendRedirect(ConfigUrl);
 
-				final Document doc = createConfigDocument(request, writer);
-				doc.render();
+		} else if (request.getParameter("reset") != null) {
 
-			} else {
+			final String key      = request.getParameter("reset");
+			final Setting setting = Settings.getSetting(key);
 
-				final Document doc = createLoginDocument(request, writer);
-				doc.render();
+			if (setting != null) {
+
+				if (setting.isDynamic()) {
+
+					// remove
+					setting.unregister();
+
+				} else {
+
+					// reset to default
+					setting.setValue(setting.getDefaultValue());
+				}
 			}
 
-			writer.append("\n");    // useful newline
-			writer.flush();
+			// serialize settings
+			Settings.storeConfiguration(ConfigName);
 
-		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			// redirect
+			response.sendRedirect(ConfigUrl);
+
+		} else {
+
+			// no trailing semicolon so we dont trip MimeTypes.getContentTypeWithoutCharset
+			response.setContentType("text/html; charset=utf-8");
+
+			try (final PrintWriter writer = new PrintWriter(response.getWriter())) {
+
+				if (isAuthenticated(request)) {
+
+					final Document doc = createConfigDocument(request, writer);
+					doc.render();
+
+				} else {
+
+					final Document doc = createLoginDocument(request, writer);
+					doc.render();
+				}
+
+				writer.append("\n");    // useful newline
+				writer.flush();
+
+			} catch (IOException ioex) {
+				ioex.printStackTrace();
+			}
 		}
 	}
 
@@ -78,26 +118,72 @@ public class ConfigServlet extends HttpServlet {
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		final String action = request.getParameter("action");
+		if (action != null) {
 
-		switch (action) {
+			switch (action) {
 
-			case "login":
-				final String username = request.getParameter("username");
-				final String password = request.getParameter("password");
+				case "login":
+					final String username = request.getParameter("username");
+					final String password = request.getParameter("password");
 
-				if ("superadmin".equals(username) && "sehrgeheim".equals(password)) {
+					if ("superadmin".equals(username) && "sehrgeheim".equals(password)) {
 
-					authenticateSession(request);
+						authenticateSession(request);
+					}
+					break;
+
+				case "logout":
+					invalidateSession(request);
+					break;
+
+			}
+
+		} else {
+
+			// a configuration form was submitted
+			for (final Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+
+				final String value   = getFirstElement(entry.getValue());
+				final String key     = entry.getKey();
+				SettingsGroup parent = null;
+
+				// skip internal group configuration parameter
+				if (key.endsWith("._settings_group")) {
+					continue;
 				}
-				break;
 
-			case "logout":
-				invalidateSession(request);
-				break;
+				Setting<?> setting = Settings.getSetting(key);
+				if (setting == null) {
 
+					// group specified?
+					final String group = request.getParameter(key + "._settings_group");
+					if (group != null) {
+
+						parent = Settings.getGroup(group);
+						if (parent == null) {
+
+							// default to misc group
+							parent = Settings.miscGroup;
+						}
+
+					} else {
+
+						// fallback to misc group
+						parent = Settings.miscGroup;
+					}
+
+					setting = Settings.createSettingForValue(parent, key, value);
+				}
+
+				// store new value
+				setting.fromString(value);
+			}
+
+			// serialize settings
+			Settings.storeConfiguration(ConfigName);
 		}
 
-		response.sendRedirect("/");
+		response.sendRedirect(ConfigUrl);
 	}
 
 	// ----- private methods -----
@@ -105,9 +191,13 @@ public class ConfigServlet extends HttpServlet {
 
 		final Document doc = new Document(writer);
 		final Tag body     = setupDocument(request, doc);
-		final Tag main     = body.block("div").id("main");
+		final Tag form     = body.block("form").css("config-form");
+		final Tag main     = form.block("div").id("main");
 		final Tag tabs     = main.block("div").id("configTabs");
 		final Tag menu     = tabs.block("ul").id("configTabsMenu");
+
+		// configure form
+		form.attr(new Attr("action", ConfigUrl), new Attr("method", "post"));
 
 		for (final SettingsGroup group : Settings.getGroups()) {
 
@@ -125,8 +215,15 @@ public class ConfigServlet extends HttpServlet {
 			container.block("div").attr(new Attr("style", "clear: both;"));
 		}
 
-		body.block("script").text("$(function() { $('#configTabs').tabs({}); });");
+		// buttons
+		final Tag buttons = form.block("div").css("buttons");
 
+		buttons.block("button").attr(new Attr("type", "button")).id("new-entry-button").text("Add entry");
+		buttons.block("button").attr(new Attr("type", "button"), new Attr("onclick", "window.location.href='" + ConfigUrl + "?reload';")).text("Reload configuration");
+		buttons.empty("input").attr(new Attr("type", "submit"), new Attr("value", "Save to structr.conf"));
+
+		body.block("script").text("$(function() { $('#configTabs').tabs({}); });");
+		body.block("script").text("$('#new-entry-button').on('click', createNewEntry);");
 
 		return doc;
 	}
@@ -141,7 +238,7 @@ public class ConfigServlet extends HttpServlet {
 		loginBox.block("i").attr(new Attr("title", "Structr Logo")).css("logo-login sprite sprite-structr_gray_100x27");
 		loginBox.block("p").text("Welcome to the Structr Configuration Wizard.");
 
-		final Tag form     = loginBox.block("form").attr(new Attr("action", "/"), new Attr("method", "post"));
+		final Tag form     = loginBox.block("form").attr(new Attr("action", ConfigUrl), new Attr("method", "post"));
 		final Tag table    = form.block("table");
 
 		final Tag row1     = table.block("tr");
@@ -178,6 +275,7 @@ public class ConfigServlet extends HttpServlet {
 		head.empty("link").attr(new Rel("icon"), new Href("favicon.ico"), new Attr("type", "image/x-icon"));
 		head.block("script").attr(new Attr("src", "/structr/js/lib/jquery-1.11.1.min.js"));
 		head.block("script").attr(new Attr("src", "/structr/js/lib/jquery-ui-1.11.0.custom.min.js"));
+		head.block("script").attr(new Attr("src", "/structr/js/config.js"));
 
 		final Tag body = doc.block("body");
 		final Tag header = body.block("div").id("header");
@@ -187,7 +285,7 @@ public class ConfigServlet extends HttpServlet {
 
 		if (isAuthenticated(request) && Services.getInstance().isConfigured()) {
 
-			final Tag form = links.block("li").block("form").attr(new Attr("action", "/"), new Attr("method", "post"), new Attr("style", "display: none")).id("logout-form");
+			final Tag form = links.block("li").block("form").attr(new Attr("action", ConfigUrl), new Attr("method", "post"), new Attr("style", "display: none")).id("logout-form");
 
 			form.block("input").attr(new Attr("type", "hidden"), new Attr("name", "action"), new Attr("value", "logout"));
 			links.block("a").text("Logout").attr(new Attr("style", "cursor: pointer"), new Attr("onclick", "$('#logout-form').submit();"));
@@ -264,5 +362,15 @@ public class ConfigServlet extends HttpServlet {
 
 			logger.warn("Cannot invalidate HTTP request, no session.");
 		}
+	}
+
+	private String getFirstElement(final String[] values) {
+
+		if (values != null && values.length == 1) {
+
+			return values[0];
+		}
+
+		return null;
 	}
 }

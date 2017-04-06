@@ -2361,11 +2361,21 @@ table.push {
 	min-width: 60px;
 }
 
-#securityTabs, #configTabs {
+#securityTabs {
 	margin: 12px 24px 12px 12px;
 	width: calc(100vw - 36px);
 	min-width: calc(804px + 4em);
 	height: calc(100vh - 120px);
+	border: none;
+	background: none;
+	font-family: Arial, Helvetica, Sans-serif;
+}
+
+#configTabs {
+	margin: 12px 24px 0 12px;
+	width: calc(100vw - 36px);
+	min-width: calc(570px + 4em);
+	height: calc(100vh - 74px);
 	border: none;
 	background: none;
 	font-family: Arial, Helvetica, Sans-serif;

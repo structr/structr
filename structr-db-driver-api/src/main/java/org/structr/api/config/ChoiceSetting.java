@@ -18,44 +18,23 @@
  */
 package org.structr.api.config;
 
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Tag;
 
 /**
  * A configuration setting with a key and a type.
  */
-public class IntegerSetting extends Setting<Integer> {
+public class ChoiceSetting extends StringSetting {
 
-	/**
-	 * Constructor to create an empty IntegerSetting with NO default value.
-	 *
-	 * @param group
-	 * @param key
-	 */
-	public IntegerSetting(final SettingsGroup group, final String key) {
-		this(group, key, null);
-	}
+	private final Set<String> choices = new LinkedHashSet<>();
 
-	/**
-	 * Constructor to create an IntegerSetting WITH default value.
-	 *
-	 * @param group
-	 * @param key
-	 * @param value
-	 */
-	public IntegerSetting(final SettingsGroup group, final String key, final Integer value) {
-		this(group, null, key, value);
-	}
+	public ChoiceSetting(final SettingsGroup group, final String groupName, final String key, final String value, final String... choices) {
+		super(group, groupName, key, value);
 
-	/**
-	 * Constructor to create an IntegerSetting with category name and default value.
-	 * @param group
-	 * @param categoryName
-	 * @param key
-	 * @param value
-	 */
-	public IntegerSetting(final SettingsGroup group, final String categoryName, final String key, final Integer value) {
-		super(group, categoryName, key, value);
+		this.choices.addAll(Arrays.asList(choices));
 	}
 
 	@Override
@@ -64,13 +43,18 @@ public class IntegerSetting extends Setting<Integer> {
 		final Tag group = parent.block("div").css("form-group");
 
 		group.block("label").text(getKey());
-		group.empty("input").attr(new Attr("type", "text"), new Attr("value", getValue()));
 
-		renderResetButton(group);
-	}
+		final Tag select = group.block("select").attr(new Attr("name", getKey()));
 
-	@Override
-	public void fromString(final String source) {
-		setValue(Integer.parseInt(source));
+		for (final String choice : choices) {
+
+			final Tag option = select.block("option").text(choice);
+
+			// selected?
+			if (choice.equals(getValue())) {
+				option.attr(new Attr("selected", "selected"));
+			}
+		}
+
 	}
 }

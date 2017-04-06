@@ -27,12 +27,38 @@ import org.structr.api.util.html.Tag;
  */
 public class StringSetting extends Setting<String> {
 
+
+	/**
+	 * Constructor to create an empty StringSetting with NO default value.
+	 *
+	 * @param group
+	 * @param key
+	 */
+	public StringSetting(final SettingsGroup group, final String key) {
+		this(group, key, null);
+	}
+
+	/**
+	 * Constructor to create a StringSetting WITH default value.
+	 *
+	 * @param group
+	 * @param key
+	 * @param value
+	 */
 	public StringSetting(final SettingsGroup group, final String key, final String value) {
 		this(group, null, key, value);
 	}
 
-	public StringSetting(final SettingsGroup group, final String groupName, final String key, final String value) {
-		super(group, groupName, key, value);
+
+	/**
+	 * Constructor to create a StringSetting with category name and default value.
+	 * @param group
+	 * @param categoryName
+	 * @param key
+	 * @param value
+	 */
+	public StringSetting(final SettingsGroup group, final String categoryName, final String key, final String value) {
+		super(group, categoryName, key, value);
 	}
 
 	@Override
@@ -41,8 +67,16 @@ public class StringSetting extends Setting<String> {
 		final Tag group = parent.block("div").css("form-group");
 
 		group.block("label").text(getKey());
-		group.empty("input").attr(new Attr("type", "text"), new Attr("value", getValue()));
 
+		final Tag input    = group.empty("input").attr(new Attr("type", "text"), new Attr("name", getKey()));
+		final String value = getValue();
+
+		// display value if non-empty
+		if (value != null) {
+			input.attr(new Attr("value", value));
+		}
+
+		renderResetButton(group);
 	}
 
 	@Override

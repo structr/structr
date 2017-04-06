@@ -54,15 +54,30 @@ public class SettingsGroup {
 		settings.add(setting);
 	}
 
+	public void unregisterSetting(final Setting setting) {
+		settings.remove(setting);
+	}
+
+	public List<Setting> getSettings() {
+		return settings;
+	}
+
 	public void render(final Tag parent) {
 
 		final Map<String, List<Setting>> mapped = new LinkedHashMap<>();
 		final List<Setting> otherSettings       = new LinkedList<>();
 		final Tag div                           = parent.block("div");
 
+		// sort / categorize settings
 		for (final Setting setting : settings) {
 
-			final String group = setting.getGroup();
+			final String group = setting.getCategory();
+
+			// ignore hidden settings
+			if ("hidden".equals(group)) {
+				continue;
+			}
+
 			if (group != null) {
 
 				List<Setting> list = mapped.get(group);
@@ -80,6 +95,7 @@ public class SettingsGroup {
 			}
 		}
 
+		// display grouped settings
 		for (final Entry<String, List<Setting>> entry : mapped.entrySet()) {
 
 			final String name        = entry.getKey();
@@ -93,16 +109,20 @@ public class SettingsGroup {
 			}
 		}
 
-		final Tag groupContainer = div.block("div").css("config-group");
+		// display settings w/o group
+		if (!otherSettings.isEmpty()) {
 
-		// display header only if mapped groups exist
-		if (!mapped.isEmpty()) {
-			groupContainer.block("h3").text("Other");
-		}
+			final Tag groupContainer = div.block("div").css("config-group");
 
-		for (final Setting setting : otherSettings) {
+			// display title only if other groups exist
+			if (!mapped.isEmpty()) {
+				groupContainer.block("h3").text("Custom");
+			}
 
-			setting.render(groupContainer);
+			for (final Setting setting : otherSettings) {
+
+				setting.render(groupContainer);
+			}
 		}
 	}
 }

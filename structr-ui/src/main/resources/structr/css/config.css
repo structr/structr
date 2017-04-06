@@ -20,9 +20,8 @@
 /** Defaults */
 
 .tab-content {
-	padding-bottom: 2em;
 	overflow: auto;
-	height: 92%;
+	height: calc(100% - 80px);
 }
 
 .config-group {
@@ -31,8 +30,24 @@
 	min-height: 60px;
 }
 
+form.config-form div.buttons {
+	text-align: right;
+	position: absolute;
+	right: 40px;
+	top: 18px;
+}
+
+form.config-form div.buttons input[type=reset] {
+	margin-right: 1em;
+}
+
+form.config-form div.buttons input[type=submit] {
+	background-color: #81ce25;
+}
+
 .config-group h3 {
 	font-size: 16pt;
+	margin: 24px 0 0 0;
 }
 
 .form-group {
@@ -42,15 +57,33 @@
 
 .form-group label {
 	display: inline-block;
-	width: 300px;
+	width: 320px;
 	font-weight: bold;
+	padding-top: 4px;
 	margin-bottom: 4px;
+	font-family: monospace;
+	vertical-align: top;
 }
 
-.form-group input[type=text] {
-	width: 70%;
+.form-group input[type=text], .form-group textarea {
+	width: calc(100vw - 450px);
+	min-width: 500px;
+	vertical-align: top;
 }
 
-.form-group input[type=number] {
-	width: 70%;
+.form-group input[type=radio] {
+	vertical-align: top;
+	padding: 0;
+}
+
+.form-group span {
+	display: inline-block;
+	vertical-align: top;
+	margin-top: 4px;
+	margin-right: 2em;
+}
+
+.form-group i {
+	margin: 4px 0 0 4px;
+	cursor: pointer;
 }

@@ -140,28 +140,31 @@ public class CronService extends Thread implements RunnableService {
 	public void initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final String taskList = Settings.CronTasks.getValue();
-		if (taskList != null) {
+		if (StringUtils.isNotBlank(taskList)) {
 
 			for(String task : taskList.split("[ \\t]+")) {
 
-				String expression = Settings.getStringSetting(task, EXPRESSION_SUFFIX).getValue();
-				if(StringUtils.isNotBlank(expression)) {
+				if (StringUtils.isNotBlank(task)) {
 
-					CronEntry entry = CronEntry.parse(task, expression);
-					if(entry != null) {
+					String expression = Settings.getStringSetting(task, EXPRESSION_SUFFIX).getValue();
+					if(StringUtils.isNotBlank(expression)) {
 
-						logger.info("Adding cron entry {} for {}", new Object[]{ entry, task });
+						CronEntry entry = CronEntry.parse(task, expression);
+						if(entry != null) {
 
-						cronEntries.add(entry);
+							logger.info("Adding cron entry {} for {}", new Object[]{ entry, task });
+
+							cronEntries.add(entry);
+
+						} else {
+
+							logger.warn("Unable to parse cron expression for taks {}, ignoring.", task);
+						}
 
 					} else {
 
-						logger.warn("Unable to parse cron expression for taks {}, ignoring.", task);
+						logger.warn("No cron expression for task {}, ignoring.", task);
 					}
-
-				} else {
-
-					logger.warn("No cron expression for task {}, ignoring.", task);
 				}
 			}
 		}

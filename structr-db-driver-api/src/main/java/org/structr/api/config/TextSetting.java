@@ -24,38 +24,14 @@ import org.structr.api.util.html.Tag;
 /**
  * A configuration setting with a key and a type.
  */
-public class IntegerSetting extends Setting<Integer> {
+public class TextSetting extends StringSetting {
 
-	/**
-	 * Constructor to create an empty IntegerSetting with NO default value.
-	 *
-	 * @param group
-	 * @param key
-	 */
-	public IntegerSetting(final SettingsGroup group, final String key) {
-		this(group, key, null);
-	}
-
-	/**
-	 * Constructor to create an IntegerSetting WITH default value.
-	 *
-	 * @param group
-	 * @param key
-	 * @param value
-	 */
-	public IntegerSetting(final SettingsGroup group, final String key, final Integer value) {
+	public TextSetting(final SettingsGroup group, final String key, final String value) {
 		this(group, null, key, value);
 	}
 
-	/**
-	 * Constructor to create an IntegerSetting with category name and default value.
-	 * @param group
-	 * @param categoryName
-	 * @param key
-	 * @param value
-	 */
-	public IntegerSetting(final SettingsGroup group, final String categoryName, final String key, final Integer value) {
-		super(group, categoryName, key, value);
+	public TextSetting(final SettingsGroup group, final String groupName, final String key, final String value) {
+		super(group, groupName, key, value);
 	}
 
 	@Override
@@ -64,13 +40,8 @@ public class IntegerSetting extends Setting<Integer> {
 		final Tag group = parent.block("div").css("form-group");
 
 		group.block("label").text(getKey());
-		group.empty("input").attr(new Attr("type", "text"), new Attr("value", getValue()));
+		group.block("textarea").attr(new Attr("name", getKey())).text(getValue(""));
 
 		renderResetButton(group);
-	}
-
-	@Override
-	public void fromString(final String source) {
-		setValue(Integer.parseInt(source));
 	}
 }
