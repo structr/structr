@@ -34,6 +34,7 @@ import org.structr.api.config.Setting;
 import org.structr.core.Services;
 import org.structr.api.config.Settings;
 import org.structr.api.config.SettingsGroup;
+import org.structr.api.service.Service;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Document;
 import org.structr.api.util.html.Tag;
@@ -87,6 +88,28 @@ public class ConfigServlet extends HttpServlet {
 			// redirect
 			response.sendRedirect(ConfigUrl);
 
+		} else if (request.getParameter("start") != null) {
+
+			final String serviceName = request.getParameter("start");
+			if (serviceName != null && isAuthenticated(request)) {
+
+				Services.getInstance().startService(serviceName);
+			}
+
+			// redirect
+			response.sendRedirect(ConfigUrl + "#services");
+
+		} else if (request.getParameter("stop") != null) {
+
+			final String serviceName = request.getParameter("stop");
+			if (serviceName != null && isAuthenticated(request)) {
+
+				Services.getInstance().shutdownService(serviceName);
+			}
+
+			// redirect
+			response.sendRedirect(ConfigUrl + "#services");
+
 		} else {
 
 			// no trailing semicolon so we dont trip MimeTypes.getContentTypeWithoutCharset
@@ -138,7 +161,7 @@ public class ConfigServlet extends HttpServlet {
 
 			}
 
-		} else {
+		} else if (isAuthenticated(request)) {
 
 			// a configuration form was submitted
 			for (final Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
@@ -214,6 +237,43 @@ public class ConfigServlet extends HttpServlet {
 			// stop floating
 			container.block("div").attr(new Attr("style", "clear: both;"));
 		}
+
+		// add services tab
+		menu.block("li").block("a").id("servicesMenu").attr(new Attr("href", "#services")).block("span").text("Services");
+
+		final Services services = Services.getInstance();
+		final Tag container     = tabs.block("div").css("tab-content").id("services");
+		final Tag table         = container.block("table").id("services-table");
+		final Tag header        = table.block("tr");
+
+		header.block("th").text("Service Name");
+		header.block("th").attr(new Attr("colspan", "2"));
+
+
+		for (final String serviceClassName : services.getServices()) {
+
+			final Class<Service> serviceClass = services.getServiceClassForName(serviceClassName);
+			final boolean running             = serviceClass != null ? services.isReady(serviceClass) : false;
+
+			final Tag row  = table.block("tr");
+
+			row.block("td").text(serviceClassName);
+
+			if (running) {
+
+				row.block("td").block("button").attr(new Attr("type", "button"), new Attr("onclick", "window.location.href='" + ConfigUrl + "?stop=" + serviceClassName + "';")).text("Stop");
+				row.block("td");
+
+			} else {
+
+				row.block("td");
+				row.block("td").block("button").attr(new Attr("type", "button"), new Attr("onclick", "window.location.href='" + ConfigUrl + "?start=" + serviceClassName + "';")).text("Start");
+			}
+		}
+
+
+		// stop floating
+		container.block("div").attr(new Attr("style", "clear: both;"));
 
 		// buttons
 		final Tag buttons = form.block("div").css("buttons");

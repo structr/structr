@@ -314,14 +314,22 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	@Override
 	public List<T> getAsList() throws FrameworkException {
-		return getResult().getResults();
+
+		final Result<T> result = getResult();
+		if (result != null) {
+
+			return result.getResults();
+		}
+
+		return Collections.emptyList();
 	}
 
 	@Override
 	public T getFirst() throws FrameworkException {
 
 		final Result<T> result = getResult();
-		if (result.isEmpty()) {
+
+		if (result == null || result.isEmpty()) {
 
 			return null;
 		}

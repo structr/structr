@@ -359,27 +359,37 @@ public class StructrApp implements App {
 	@Override
 	public <T> T getGlobalSetting(final String key, final T defaultValue) throws FrameworkException {
 
-		final GraphProperties config = getDatabaseService().getGlobalProperties();
-		T value                      = null;
+		final DatabaseService service = getDatabaseService();
+		if (service != null) {
 
-		if (config != null) {
-			value = (T)config.getProperty(key);
+			final GraphProperties config = service.getGlobalProperties();
+			T value                      = null;
+
+			if (config != null) {
+				value = (T)config.getProperty(key);
+			}
+
+			if (value == null) {
+				return defaultValue;
+			}
+
+			return value;
 		}
 
-		if (value == null) {
-			return defaultValue;
-		}
-
-		return value;
+		return defaultValue;
 	}
 
 	@Override
 	public void setGlobalSetting(final String key, final Object value) throws FrameworkException {
 
-		final GraphProperties config = getDatabaseService().getGlobalProperties();
-		if (config != null) {
+		final DatabaseService service = getDatabaseService();
+		if (service != null) {
 
-			config.setProperty(key, value);
+			final GraphProperties config = service.getGlobalProperties();
+			if (config != null) {
+
+				config.setProperty(key, value);
+			}
 		}
 	}
 

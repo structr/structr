@@ -239,9 +239,13 @@ public class SchemaService implements Service {
 				schemaNode = app.create(SchemaNode.class, type);
 			}
 
-			schemaNode.setProperty(SchemaNode.extendsClass, fqcn);
-			schemaNode.unlockSystemPropertiesOnce();
-			schemaNode.setProperty(SchemaNode.isBuiltinType, true);
+			// creation can fail
+			if (schemaNode != null) {
+
+				schemaNode.setProperty(SchemaNode.extendsClass, fqcn);
+				schemaNode.unlockSystemPropertiesOnce();
+				schemaNode.setProperty(SchemaNode.isBuiltinType, true);
+			}
 		}
 	}
 

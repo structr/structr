@@ -91,7 +91,7 @@ public class NodeService implements SingletonService {
 				files.mkdir();
 			}
 
-			logger.info("Database driver ready.");
+			logger.info("Database driver loaded.");
 
 			// index creation transaction
 			try ( final Transaction tx = graphDb.beginTx() ) {
@@ -101,54 +101,58 @@ public class NodeService implements SingletonService {
 
 				tx.success();
 
+				// if the above operations fail, the database is probably not available
+				isInitialized = true;
+
 			} catch (Throwable t) {
 
-				logger.warn("Error while initializing indexes.", t);
+				logger.warn("Error while initializing indexes.");
 			}
 
-			isInitialized = true;
+			if (isInitialized) {
 
-			final boolean firstInitialization = graphDb.getGlobalProperties().getProperty("initialized") == null;
-			final boolean isTest              = Settings.Testing.getValue();
+				final boolean firstInitialization = graphDb.getGlobalProperties().getProperty("initialized") == null;
+				final boolean isTest              = Settings.Testing.getValue();
 
-			if (graphDb.needsIndexRebuild() || (firstInitialization && !isTest)) {
+				if (graphDb.needsIndexRebuild() || (firstInitialization && !isTest)) {
 
-				logger.info("Scheduling index rebuild to happen after startup..");
+					logger.info("Scheduling index rebuild to happen after startup..");
 
-				// schedule a low-priority index rebuild (must be executed AFTER
-				// SchemaService in order to include instances of dynamic types.
+					// schedule a low-priority index rebuild (must be executed AFTER
+					// SchemaService in order to include instances of dynamic types.
 
-				services.registerInitializationCallback(new InitializationCallback() {
+					services.registerInitializationCallback(new InitializationCallback() {
 
-					@Override
-					public void initializationDone() {
+						@Override
+						public void initializationDone() {
 
-						// start index rebuild immediately after initialization
-						Services.getInstance().command(SecurityContext.getSuperUserInstance(), BulkRebuildIndexCommand.class).execute(Collections.EMPTY_MAP);
-					}
+							// start index rebuild immediately after initialization
+							Services.getInstance().command(SecurityContext.getSuperUserInstance(), BulkRebuildIndexCommand.class).execute(Collections.EMPTY_MAP);
+						}
 
-					@Override
-					public int priority() {
-						return 10;
-					}
-				});
+						@Override
+						public int priority() {
+							return 10;
+						}
+					});
 
-				services.registerInitializationCallback(new InitializationCallback() {
+					services.registerInitializationCallback(new InitializationCallback() {
 
-					@Override
-					public void initializationDone() {
+						@Override
+						public void initializationDone() {
 
-						// initialize type labels for all nodes in the database
-						Services.getInstance().command(SecurityContext.getSuperUserInstance(), BulkCreateLabelsCommand.class).execute(Collections.EMPTY_MAP);
+							// initialize type labels for all nodes in the database
+							Services.getInstance().command(SecurityContext.getSuperUserInstance(), BulkCreateLabelsCommand.class).execute(Collections.EMPTY_MAP);
 
-						graphDb.getGlobalProperties().setProperty("initialized", true);
-					}
+							graphDb.getGlobalProperties().setProperty("initialized", true);
+						}
 
-					@Override
-					public int priority() {
-						return 20;
-					}
-				});
+						@Override
+						public int priority() {
+							return 20;
+						}
+					});
+				}
 			}
 		}
 	}

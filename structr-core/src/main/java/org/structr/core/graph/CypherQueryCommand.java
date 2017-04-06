@@ -70,51 +70,55 @@ public class CypherQueryCommand extends NodeServiceCommand {
 		NodeFactory nodeFactory         = new NodeFactory(securityContext);
 		List<GraphObject> resultList    = new LinkedList<>();
 
-		try (final NativeResult result = graphDb.execute(query, parameters != null ? parameters : Collections.emptyMap())) {
+		// graphdb can be null..
+		if (graphDb != null) {
 
-			while (result.hasNext()) {
+			try (final NativeResult result = graphDb.execute(query, parameters != null ? parameters : Collections.emptyMap())) {
 
-				final Map<String, Object> row = result.next();
-				for (Entry<String, Object> entry : row.entrySet()) {
+				while (result.hasNext()) {
 
-					String key   = entry.getKey();
-					Object value = entry.getValue();
+					final Map<String, Object> row = result.next();
+					for (Entry<String, Object> entry : row.entrySet()) {
 
-					final Object obj = handleObject(nodeFactory, relFactory, key, value, includeHiddenAndDeleted, publicOnly, 0);
-					if (obj != null) {
+						String key   = entry.getKey();
+						Object value = entry.getValue();
 
-						if (obj instanceof GraphObject) {
+						final Object obj = handleObject(nodeFactory, relFactory, key, value, includeHiddenAndDeleted, publicOnly, 0);
+						if (obj != null) {
 
-							resultList.add((GraphObject)obj);
+							if (obj instanceof GraphObject) {
 
-						} else if (obj instanceof Collection) {
+								resultList.add((GraphObject)obj);
 
-							final List<Object> nonGraphObjectResult = new LinkedList<>();
-							
-							for (final Object item : ((Collection)obj)) {
+							} else if (obj instanceof Collection) {
 
-								if (item instanceof GraphObject) {
+								final List<Object> nonGraphObjectResult = new LinkedList<>();
 
-									resultList.add((GraphObject)item);
+								for (final Object item : ((Collection)obj)) {
 
-								} else {
+									if (item instanceof GraphObject) {
 
-									nonGraphObjectResult.add(item);
+										resultList.add((GraphObject)item);
+
+									} else {
+
+										nonGraphObjectResult.add(item);
+									}
 								}
-							}
-							
-							if (!nonGraphObjectResult.isEmpty()) {
-								
-								// Wrap non-graph-objects in simple list
-								final GraphObjectMap graphObject = new GraphObjectMap();
-								
-								graphObject.setProperty(new GenericProperty(key), nonGraphObjectResult);
-								resultList.add(graphObject);
-							}
 
-						} else {
+								if (!nonGraphObjectResult.isEmpty()) {
 
-							logger.warn("Unable to handle Cypher query result object of type {}, ignoring.", obj.getClass().getName());
+									// Wrap non-graph-objects in simple list
+									final GraphObjectMap graphObject = new GraphObjectMap();
+
+									graphObject.setProperty(new GenericProperty(key), nonGraphObjectResult);
+									resultList.add(graphObject);
+								}
+
+							} else {
+
+								logger.warn("Unable to handle Cypher query result object of type {}, ignoring.", obj.getClass().getName());
+							}
 						}
 					}
 				}

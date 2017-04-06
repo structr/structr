@@ -43,7 +43,6 @@ import org.structr.api.service.Command;
 import org.structr.api.service.InitializationCallback;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.Service;
-import org.structr.api.service.SingletonService;
 import org.structr.api.service.StructrServices;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
@@ -113,56 +112,35 @@ public class Services implements StructrServices {
 	 */
 	public <T extends Command> T command(final SecurityContext securityContext, final Class<T> commandType) {
 
-		Class serviceClass = null;
-		T command          = null;
-
 		try {
 
-			command = commandType.newInstance();
+			final T command          = commandType.newInstance();
+			final Class serviceClass = command.getServiceClass();
 
 			// inject security context first
 			command.setArgument("securityContext", securityContext);
-
-			serviceClass = command.getServiceClass();
 
 			if ((serviceClass != null) && configuredServiceClasses.contains(serviceClass.getSimpleName())) {
 
 				// search for already running service..
 				Service service = serviceCache.get(serviceClass);
+				if (service != null) {
 
-				if (service == null) {
-
-					// service not cached
-					service = createService(serviceClass);
-
-				} else {
-
-					// check RunnableService for isRunning()..
-					if (service instanceof RunnableService) {
-
-						RunnableService runnableService = (RunnableService) service;
-
-						if (!runnableService.isRunning()) {
-
-							runnableService.stopService();
-							runnableService.shutdown();
-							service = createService(serviceClass);
-						}
-					}
+					logger.debug("Initializing command ", commandType.getName());
+					service.injectArguments(command);
 				}
-
-				logger.debug("Initializing command ", commandType.getName());
-				service.injectArguments(command);
 			}
 
 			command.initialized();
+
+			return command;
 
 		} catch (Throwable t) {
 
 			logger.error("Exception while creating command {}", commandType.getName());
 		}
 
-		return (command);
+		return null;
 	}
 
 	private void initialize() {
@@ -230,28 +208,11 @@ public class Services implements StructrServices {
 				Class serviceClass = getServiceClassForName(serviceClassName);
 				if (serviceClass != null) {
 
-					try {
-
-						final Service service = createService(serviceClass);
-						if (service != null) {
-
-							service.initialized();
-
-						} else {
-
-							logger.warn("Service {} was not started!", serviceClassName);
-						}
-
-					} catch (Throwable t) {
-
-						logger.warn("Exception while registering service {}", serviceClassName);
-					}
+					startService(serviceClass);
 				}
 		}
 
 		logger.info("{} service(s) processed", serviceCache.size());
-		registeredServiceClasses.clear();
-
 		logger.info("Registering shutdown hook.");
 
 		// register shutdown hook
@@ -365,23 +326,7 @@ public class Services implements StructrServices {
 			System.out.println("INFO: Shutting down...");
 			for (Service service : serviceCache.values()) {
 
-				try {
-
-					if (service instanceof RunnableService) {
-
-						RunnableService runnableService = (RunnableService) service;
-
-						if (runnableService.isRunning()) {
-							runnableService.stopService();
-						}
-					}
-
-					service.shutdown();
-
-				} catch (Throwable t) {
-
-					System.out.println("WARNING: Failed to shut down " + service.getName() + ": " + t.getMessage());
-				}
+				shutdownService(service);
 			}
 
 			serviceCache.clear();
@@ -477,7 +422,16 @@ public class Services implements StructrServices {
 		attributes.remove(name);
 	}
 
-	private Service createService(Class serviceClass) {
+	public void startService(final String serviceName) {
+
+		final Class serviceClass = getServiceClassForName(serviceName);
+		if (serviceClass != null) {
+
+			startService(serviceClass);
+		}
+	}
+
+	public void startService(final Class serviceClass) {
 
 		logger.debug("Creating service ", serviceClass.getName());
 
@@ -498,32 +452,64 @@ public class Services implements StructrServices {
 
 					// start RunnableService and cache it
 					runnableService.startService();
-					serviceCache.put(serviceClass, service);
 				}
+			}
 
-			} else if (service instanceof SingletonService) {
+			if (service.isRunning()) {
 
-				// cache SingletonService
+				// cache service instance
 				serviceCache.put(serviceClass, service);
 			}
 
 		} catch (Throwable t) {
 
-			if (service.isVital()) {
-
-				logger.error("Vital service {} failed to start. Aborting", service.getClass().getSimpleName(), t);
-
-				// hard(est) exit
-				System.exit(1);
-
-			} else {
-
-				logger.error("Service {} failed to start", service.getClass().getSimpleName(), t);
-
-			}
+			logger.error("Service {} failed to start", service.getClass().getSimpleName(), t);
 		}
 
-		return service;
+		// initialization callback
+		service.initialized();
+	}
+
+	public void shutdownService(final String serviceName) {
+
+		final Class serviceClass = getServiceClassForName(serviceName);
+		if (serviceClass != null) {
+
+			shutdownService(serviceClass);
+		}
+	}
+
+	public void shutdownService(final Class serviceClass) {
+
+		final Service service = serviceCache.get(serviceClass);
+		if (service != null) {
+
+			shutdownService(service);
+		}
+	}
+
+	private void shutdownService(final Service service) {
+
+		try {
+
+			if (service instanceof RunnableService) {
+
+				RunnableService runnableService = (RunnableService) service;
+
+				if (runnableService.isRunning()) {
+					runnableService.stopService();
+				}
+			}
+
+			service.shutdown();
+
+		} catch (Throwable t) {
+
+			System.out.println("WARNING: Failed to shut down " + service.getName() + ": " + t.getMessage());
+		}
+
+		// remove from service cache
+		serviceCache.remove(service.getClass());
 	}
 
 	/**
@@ -531,11 +517,18 @@ public class Services implements StructrServices {
 	 *
 	 * @return list of services
 	 */
-	public List<Service> getServices() {
+	public List<String> getServices() {
 
-		List<Service> services = new LinkedList<>();
-		for (Service service : serviceCache.values()) {
-			services.add(service);
+		List<String> services = new LinkedList<>();
+
+		for (Class serviceClass : registeredServiceClasses) {
+
+			final String serviceName = serviceClass.getSimpleName();
+
+			if (configuredServiceClasses.contains(serviceName)) {
+
+				services.add(serviceName);
+			}
 		}
 
 		return services;
@@ -566,6 +559,7 @@ public class Services implements StructrServices {
 	 * @return isReady
 	 */
 	public boolean isReady(final Class serviceClass) {
+
                 Service service = serviceCache.get(serviceClass);
                 return (service != null && service.isRunning());
 	}
