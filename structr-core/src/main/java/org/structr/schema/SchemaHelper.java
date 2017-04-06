@@ -50,6 +50,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -70,6 +71,9 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.GenericProperty;
+import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.property.StringProperty;
@@ -1063,6 +1067,78 @@ public class SchemaHelper {
 		src.append("\t}\n\n");
 
 	}
+
+
+	private static Map<String, Object> getPropertiesForView(final SecurityContext securityContext, final Class type, final String propertyView) throws FrameworkException {
+
+		final Set<PropertyKey> properties = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, propertyView));
+		final Map<String, Object> propertyConverterMap = new LinkedHashMap<>();
+
+		for (PropertyKey property : properties) {
+
+			propertyConverterMap.put(property.jsonName(), getPropertyInfo(securityContext, property));
+		}
+
+		return propertyConverterMap;
+	}
+
+	// ----- public static methods -----
+	public static List<GraphObjectMap> getSchemaTypeInfo(final SecurityContext securityContext, final String rawType, final Class type, final String propertyView) throws FrameworkException {
+
+		List<GraphObjectMap> resultList = new LinkedList<>();
+
+		// create & add schema information
+
+		if (type != null) {
+
+			if (propertyView != null) {
+
+				for (final Map.Entry<String, Object> entry : getPropertiesForView(securityContext, type, propertyView).entrySet()) {
+
+					final GraphObjectMap property = new GraphObjectMap();
+
+					for (final Map.Entry<String, Object> prop : ((Map<String, Object>) entry.getValue()).entrySet()) {
+
+						property.setProperty(new GenericProperty(prop.getKey()), prop.getValue());
+					}
+
+					resultList.add(property);
+				}
+
+			} else {
+
+				final GraphObjectMap schema = new GraphObjectMap();
+
+				resultList.add(schema);
+
+				String url = "/".concat(rawType);
+
+				schema.setProperty(new StringProperty("url"), url);
+				schema.setProperty(new StringProperty("type"), type.getSimpleName());
+				schema.setProperty(new StringProperty("className"), type.getName());
+				schema.setProperty(new StringProperty("extendsClass"), type.getSuperclass().getName());
+				schema.setProperty(new BooleanProperty("isRel"), AbstractRelationship.class.isAssignableFrom(type));
+				schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
+
+				Set<String> propertyViews = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertyViewsForType(type));
+
+				// list property sets for all views
+				Map<String, Map<String, Object>> views = new TreeMap();
+				schema.setProperty(new GenericProperty("views"), views);
+
+				for (final String view : propertyViews) {
+
+					if (!View.INTERNAL_GRAPH_VIEW.equals(view)) {
+
+						views.put(view, getPropertiesForView(securityContext, type, view));
+					}
+				}
+			}
+		}
+
+		return resultList;
+	}
+
 
 	public static Map<String, Object> getPropertyInfo(final SecurityContext securityContext, final PropertyKey property) {
 

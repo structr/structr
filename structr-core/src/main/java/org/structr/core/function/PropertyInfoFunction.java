@@ -92,11 +92,9 @@ public class PropertyInfoFunction extends Function<Object, Object> {
 		return "Returns the schema information for the given property";
 	}
 
-
 	@Override
 	public String getName() {
 		return "schema_property()";
 	}
-
 
 }
