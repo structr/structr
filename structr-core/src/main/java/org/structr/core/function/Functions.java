@@ -376,6 +376,8 @@ public class Functions {
 		functions.put("cypher", new CypherFunction());
 		functions.put("localize", new LocalizeFunction());
 		functions.put("property_info", new PropertyInfoFunction());
+		functions.put("type_info", new TypeInfoFunction());
+		functions.put("enum_info", new EnumInfoFunction());
 		functions.put("disable_notifications", new DisableNotificationsFunction());
 		functions.put("enable_notifications", new EnableNotificationsFunction());
 		functions.put("r", new RInterpreterFunction());
