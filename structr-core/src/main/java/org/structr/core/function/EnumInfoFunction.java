@@ -18,11 +18,15 @@
  */
 package org.structr.core.function;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
@@ -30,17 +34,19 @@ import org.structr.schema.action.Function;
 
 public class EnumInfoFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_ENUM_INFO    = "Usage: ${enum_info(type, enumProperty)}. Example ${enum_info('Document', 'documentType')}";
-	public static final String ERROR_MESSAGE_ENUM_INFO_JS = "Usage: ${Structr.enum_info(type, enumProperty)}. Example ${Structr.enum_info('Document', 'documentType')}";
+	public static final String ERROR_MESSAGE_ENUM_INFO    = "Usage: ${enum_info(type, enumProperty[, raw])}. Example ${enum_info('Document', 'documentType')}";
+	public static final String ERROR_MESSAGE_ENUM_INFO_JS = "Usage: ${Structr.enum_info(type, enumProperty[, raw])}. Example ${Structr.enum_info('Document', 'documentType')}";
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 3)) {
+
 
 			final ConfigurationProvider config = StructrApp.getConfiguration();
 			final String typeName = sources[0].toString();
 			final String enumPropertyName = sources[1].toString();
+			final boolean rawList = (sources.length == 3) ? Boolean.parseBoolean(sources[2].toString()) : false;
 			final Class type = SchemaHelper.getEntityClassForRawType(typeName);
 
 			if (type != null) {
@@ -51,8 +57,28 @@ public class EnumInfoFunction extends Function<Object, Object> {
 					if (key instanceof EnumProperty) {
 						final String formatString = SchemaHelper.getPropertyInfo(ctx.getSecurityContext(), key).get("format").toString();
 
-						return Arrays.asList(formatString.replace(" ", "").split(","));
+						final List<String> valueList = Arrays.asList(formatString.replace(" ", "").split(","));
 
+						if (rawList) {
+
+							return valueList;
+
+						} else {
+
+							final ArrayList<GraphObjectMap> resultList = new ArrayList();
+
+							for (final String value : valueList) {
+
+								final GraphObjectMap valueMap = new GraphObjectMap();
+								resultList.add(valueMap);
+
+								valueMap.put(new StringProperty("value"), value);
+
+							}
+
+							return resultList;
+
+						}
 					} else {
 
 						logger.warn("Error: Not an Enum property \"{}.{}\"", typeName, enumPropertyName);
