@@ -25,8 +25,10 @@ import java.util.Locale;
 import org.mozilla.javascript.NativeArray;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Localization;
+import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -115,14 +117,19 @@ public class LocalizeFunction extends Function<Object, Object> {
 
 	public static List getLocalizedList(final Locale locale, final List<String> keyList, final String domain) throws FrameworkException {
 
-		final ArrayList resultList = new ArrayList();
+		final ArrayList<GraphObjectMap> resultList = new ArrayList();
 
-		for (String key : keyList) {
+		for (final String key : keyList) {
+
+			final GraphObjectMap localizedEntry = new GraphObjectMap();
+			resultList.add(localizedEntry);
+
+			localizedEntry.put(new StringProperty("name"), key);
 
 			if (domain == null) {
-				resultList.add(getLocalization(locale, key));
+				localizedEntry.put(new StringProperty("localizedName"), getLocalization(locale, key));
 			} else {
-				resultList.add(getLocalization(locale, key, domain));
+				localizedEntry.put(new StringProperty("localizedName"), getLocalization(locale, key, domain));
 			}
 
 		}
