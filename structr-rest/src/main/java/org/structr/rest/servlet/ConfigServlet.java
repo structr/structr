@@ -146,11 +146,7 @@ public class ConfigServlet extends HttpServlet {
 			switch (action) {
 
 				case "login":
-					final String username = request.getParameter("username");
-					final String password = request.getParameter("password");
-
-					if ("superadmin".equals(username) && "sehrgeheim".equals(password)) {
-
+					if (Settings.SuperUserPassword.getValue().equals(request.getParameter("password"))) {
 						authenticateSession(request);
 					}
 					break;
@@ -296,21 +292,17 @@ public class ConfigServlet extends HttpServlet {
 		final Tag loginBox = body.block("div").id("login").css("dialog").attr(new Attr("style", "display: block; margin: auto; margin-top: 200px;"));
 
 		loginBox.block("i").attr(new Attr("title", "Structr Logo")).css("logo-login sprite sprite-structr_gray_100x27");
-		loginBox.block("p").text("Welcome to the Structr Configuration Wizard.");
+		loginBox.block("p").text("Welcome to the Structr Configuration Wizard. Please log in with the <b>superadmin</b> password specified in your structr.conf.");
 
 		final Tag form     = loginBox.block("form").attr(new Attr("action", ConfigUrl), new Attr("method", "post"));
 		final Tag table    = form.block("table");
-
 		final Tag row1     = table.block("tr");
-		row1.block("td").block("label").attr(new Attr("for", "usernameField")).text("Username:");
-		row1.block("td").empty("input").id("usernameField").attr(new Attr("type", "text"), new Attr("name", "username"));
+
+		row1.block("td").block("label").attr(new Attr("for", "passwordField")).text("Password:");
+		row1.block("td").empty("input").id("passwordField").attr(new Attr("type", "password"), new Attr("name", "password"));
 
 		final Tag row2     = table.block("tr");
-		row2.block("td").block("label").attr(new Attr("for", "passwordField")).text("Password:");
-		row2.block("td").empty("input").id("passwordField").attr(new Attr("type", "password"), new Attr("name", "password"));
-
-		final Tag row3     = table.block("tr");
-		final Tag cell13   = row3.block("td").attr(new Attr("colspan", "2")).css("btn");
+		final Tag cell13   = row2.block("td").attr(new Attr("colspan", "2")).css("btn");
 		final Tag button   = cell13.block("button").id("loginButton").attr(new Attr("name", "login"));
 
 		button.block("i").css("sprite sprite-key");
