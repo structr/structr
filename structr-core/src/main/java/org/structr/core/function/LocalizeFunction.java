@@ -62,7 +62,7 @@ public class LocalizeFunction extends Function<Object, Object> {
 
 			} else {
 
-				final String name     = sources[0].toString();
+				final String name = sources[0].toString();
 
 				if (sources.length == 1) {
 					return getLocalization(ctxLocale, name);

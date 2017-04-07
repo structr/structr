@@ -31,17 +31,29 @@ public class TypeInfoFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
+		try {
 
-			final String typeName = sources[0].toString();
-			final Class type = SchemaHelper.getEntityClassForRawType(typeName);
-			final String viewName = (sources.length == 2 ? sources[1].toString() : null);
+			if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
 
-			return SchemaHelper.getSchemaTypeInfo(ctx.getSecurityContext(), typeName, type, viewName);
+				final String typeName = sources[0].toString();
+				final Class type = SchemaHelper.getEntityClassForRawType(typeName);
+				final String viewName = (sources.length == 2 ? sources[1].toString() : null);
+
+				return SchemaHelper.getSchemaTypeInfo(ctx.getSecurityContext(), typeName, type, viewName);
+
+			} else {
+
+				logParameterError(caller, sources, ctx.isJavaScriptContext());
+				return usage(ctx.isJavaScriptContext());
+
+			}
+
+		} catch (final IllegalArgumentException e) {
+
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 
 		}
-
-		return null;
 
 	}
 
