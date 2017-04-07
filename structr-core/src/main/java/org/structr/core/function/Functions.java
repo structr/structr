@@ -382,6 +382,8 @@ public class Functions {
 		functions.put("enable_notifications", new EnableNotificationsFunction());
 		functions.put("r", new RInterpreterFunction());
 		functions.put("evaluate_script", new EvaluateScriptFunction());
+		functions.put("ancestor_types", new AncestorTypesFunction());
+		functions.put("inheriting_types", new InheritingTypesFunction());
 	}
 
 	public static String cleanString(final Object input) {
