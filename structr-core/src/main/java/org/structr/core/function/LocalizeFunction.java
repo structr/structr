@@ -19,10 +19,8 @@
 package org.structr.core.function;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import org.mozilla.javascript.NativeArray;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
@@ -55,16 +53,6 @@ public class LocalizeFunction extends Function<Object, Object> {
 			if (sources[0] instanceof List) {
 
 				final List keyList = (List)sources[0];
-
-				if (sources.length == 1) {
-					return getLocalizedList(ctxLocale, keyList);
-				} else {
-					return getLocalizedList(ctxLocale, keyList, sources[1].toString());
-				}
-
-			} else if (sources[0] instanceof NativeArray) {
-
-				final List keyList = Arrays.asList(((NativeArray)sources[0]));
 
 				if (sources.length == 1) {
 					return getLocalizedList(ctxLocale, keyList);
