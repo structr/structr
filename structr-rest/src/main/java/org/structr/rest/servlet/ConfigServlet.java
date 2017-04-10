@@ -292,7 +292,7 @@ public class ConfigServlet extends HttpServlet {
 		final Tag loginBox = body.block("div").id("login").css("dialog").attr(new Attr("style", "display: block; margin: auto; margin-top: 200px;"));
 
 		loginBox.block("i").attr(new Attr("title", "Structr Logo")).css("logo-login sprite sprite-structr_gray_100x27");
-		loginBox.block("p").text("Welcome to the Structr Configuration Wizard. Please log in with the <b>superadmin</b> password specified in your structr.conf.");
+		loginBox.block("p").text("Welcome to the Structr Configuration Editor. Please log in with the <b>super- admin</b> password specified in your structr.conf.");
 
 		final Tag form     = loginBox.block("form").attr(new Attr("action", ConfigUrl), new Attr("method", "post"));
 		final Tag table    = form.block("table");

@@ -102,3 +102,7 @@ form.config-form div.buttons input[type=submit] {
 	padding: 4px;
 	min-width: 80px;
 }
+
+#login #loginButton {
+	margin-top: 1em;
+}

@@ -47,7 +47,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
-import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.AuthenticationException;
@@ -65,12 +64,9 @@ import org.structr.web.maintenance.DeployCommand;
 public class DeploymentServlet extends HttpServlet implements HttpServiceServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeploymentServlet.class.getName());
-	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-fA-F0-9]{32}");
 
 	private static final int MEGABYTE = 1024 * 1024;
 	private static final int MEMORY_THRESHOLD = 10 * MEGABYTE;  // above 10 MB, files are stored on disk
-	private static final String MAX_FILE_SIZE = "1000"; // unit is MB
-	private static final String MAX_REQUEST_SIZE = "1000"; // unit is MB
 
 	// non-static fields
 	private ServletFileUpload uploader = null;
@@ -136,7 +132,7 @@ public class DeploymentServlet extends HttpServlet implements HttpServiceServlet
 				return;
 			}
 
-			if (securityContext.getUser(false) == null && !Settings.DeploymentAllowAnonymous.getValue()) {
+			if (securityContext.getUser(false) == null && !Settings.DeploymentAllowAnonymousUploads.getValue()) {
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				response.getOutputStream().write("ERROR (401): Anonymous uploads forbidden.\n".getBytes("UTF-8"));
 				return;

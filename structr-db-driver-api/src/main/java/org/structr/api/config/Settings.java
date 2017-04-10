@@ -64,6 +64,7 @@ public class Settings {
 	public static final Setting<Boolean> LogSchemaOutput      = new BooleanSetting(generalGroup, "Logging",     "NodeExtender.log",           false);
 	public static final Setting<Boolean> RequestLogging       = new BooleanSetting(generalGroup, "Logging",     "log.requests",               false);
 	public static final Setting<String> LogPrefix             = new StringSetting(generalGroup,  "Logging",     "log.prefix",                 "structr");
+	public static final Setting<String> LogName               = new StringSetting(generalGroup,  "Logging",     "log.name",                   "structr-yyyy_mm_dd.request.log");
 	public static final Setting<String> Configuration         = new StringSetting(generalGroup,  "hidden",      "configuration.provider",     "org.structr.module.JarConfigurationProvider");
 	public static final Setting<Boolean> Testing              = new BooleanSetting(generalGroup, "hidden",      "testing",                    false);
 	public static final StringSetting Services                = new StringSetting(generalGroup,  "Services",    "configured.services",        "NodeService AgentService CronService SchemaService LogService HttpService FtpService SSHService");
@@ -77,6 +78,7 @@ public class Settings {
 	public static final Setting<Boolean> HttpsEnabled         = new BooleanSetting(serverGroup, "Interfaces", "application.https.enabled",     false);
 	public static final Setting<String> KeystorePath          = new StringSetting(serverGroup,  "Interfaces", "application.keystore.path",     "");
 	public static final Setting<String> KeystorePassword      = new StringSetting(serverGroup,  "Interfaces", "application.keystore.password", "");
+	public static final Setting<String> RestPath              = new StringSetting(serverGroup,  "Interfaces", "application.rest.path",         "/structr/rest");
 
 	// HTTP service settings
 	public static final Setting<String> ResourceHandlers      = new StringSetting(serverGroup,  "hidden",        "HttpService.resourceHandlers",    "StructrUiHandler");
@@ -111,6 +113,7 @@ public class Settings {
 	public static final Setting<Integer> UuidCacheSize         = new IntegerSetting(databaseGroup, "Caching",             "database.cache.uuid.size",         100000);
 	public static final Setting<Integer> QueryCacheSize        = new IntegerSetting(databaseGroup, "Caching",             "database.cache.query.size",        1000);
 	public static final Setting<Boolean> CypherDebugLogging    = new BooleanSetting(databaseGroup, "Debugging",           "log.cypher.debug",                 false);
+	public static final Setting<Boolean> SyncDebugging         = new BooleanSetting(databaseGroup, "Sync debugging",      "sync.debug",                       false);
 
 	// application settings
 	public static final Setting<Integer> ResolutionDepth      = new IntegerSetting(applicationGroup, "Security",   "application.security.resolution.depth",     5);
@@ -201,15 +204,36 @@ public class Settings {
 	public static final Setting<Integer> UploadMaxFileSize      = new IntegerSetting(servletsGroup, "UploadServlet", "UploadServlet.maxFileSize",           1000);
 	public static final Setting<Integer> UploadMaxRequestSize   = new IntegerSetting(servletsGroup, "UploadServlet", "UploadServlet.maxRequestSize",        1200);
 
-	public static final Setting<Boolean> DeploymentAllowAnonymous = new BooleanSetting(servletsGroup, "DeploymentServlet", "DeploymentServlet.allowAnonymousUploads", false);
-	public static final Setting<Integer> DeploymentMaxFileSize    = new IntegerSetting(servletsGroup, "DeploymentServlet", "DeploymentServlet.maxFileSize",           1000);
-	public static final Setting<Integer> DeploymentMaxRequestSize = new IntegerSetting(servletsGroup, "DeploymentServlet", "DeploymentServlet.maxRequestSize",        1200);
+	public static final Setting<String> DeploymentServletPath                = new StringSetting(servletsGroup,  "DeploymentServlet", "DeploymentServlet.path",                      "/structr/deploy");
+	public static final Setting<String> DeploymentServletClass               = new StringSetting(servletsGroup,  "DeploymentServlet", "DeploymentServlet.class",                     "org.structr.web.servlet.DeploymentServlet");
+	public static final Setting<String> DeploymentAuthenticator              = new StringSetting(servletsGroup,  "DeploymentServlet", "DeploymentServlet.authenticator",             "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> DeploymentDefaultView                = new StringSetting(servletsGroup,  "DeploymentServlet", "DeploymentServlet.defaultview",               "public");
+	public static final Setting<Integer> DeploymentOutputDepth               = new IntegerSetting(servletsGroup, "DeploymentServlet", "DeploymentServlet.outputdepth",               3);
+	public static final Setting<String> DeploymentResourceProvider           = new StringSetting(servletsGroup,  "DeploymentServlet", "DeploymentServlet.resourceprovider",          "org.structr.web.common.UiResourceProvider");
+	public static final Setting<Boolean> DeploymentUserAutologin             = new BooleanSetting(servletsGroup, "DeploymentServlet", "DeploymentServlet.user.autologin",            false);
+	public static final Setting<Boolean> DeploymentUserAutocreate            = new BooleanSetting(servletsGroup, "DeploymentServlet", "DeploymentServlet.user.autocreate",           false);
+	public static final Setting<Boolean> DeploymentAllowAnonymousDeployments = new BooleanSetting(servletsGroup, "DeploymentServlet", "DeploymentServlet.allowAnonymousDeployments", false);
+	public static final Setting<Boolean> DeploymentAllowAnonymousUploads     = new BooleanSetting(servletsGroup, "DeploymentServlet", "DeploymentServlet.allowAnonymousUploads",     false);
+	public static final Setting<Integer> DeploymentMaxFileSize               = new IntegerSetting(servletsGroup, "DeploymentServlet", "DeploymentServlet.maxFileSize",               1000);
+	public static final Setting<Integer> DeploymentMaxRequestSize            = new IntegerSetting(servletsGroup, "DeploymentServlet", "DeploymentServlet.maxRequestSize",            1200);
+
+	public static final Setting<String> ProxyServletPath       = new StringSetting(servletsGroup,  "ProxyServlet", "ProxyServlet.path",                  "/structr/proxy");
+	public static final Setting<String> ProxyServletClass      = new StringSetting(servletsGroup,  "ProxyServlet", "ProxyServlet.class",                 "org.structr.web.servlet.ProxyServlet");
+	public static final Setting<String> ProxyAuthenticator     = new StringSetting(servletsGroup,  "ProxyServlet", "ProxyServlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> ProxyDefaultView       = new StringSetting(servletsGroup,  "ProxyServlet", "ProxyServlet.defaultview",           "public");
+	public static final Setting<Integer> ProxyOutputDepth      = new IntegerSetting(servletsGroup, "ProxyServlet", "ProxyServlet.outputdepth",           3);
+	public static final Setting<String> ProxyResourceProvider  = new StringSetting(servletsGroup,  "ProxyServlet", "ProxyServlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
+	public static final Setting<Boolean> ProxyUserAutologin    = new BooleanSetting(servletsGroup, "ProxyServlet", "ProxyServlet.user.autologin",        false);
+	public static final Setting<Boolean> ProxyUserAutocreate   = new BooleanSetting(servletsGroup, "ProxyServlet", "ProxyServlet.user.autocreate",       false);
+	public static final Setting<Boolean> ProxyAllowAnonymous   = new BooleanSetting(servletsGroup, "ProxyServlet", "ProxyServlet.allowAnonymousProxys", false);
+	public static final Setting<Integer> ProxyMaxFileSize      = new IntegerSetting(servletsGroup, "ProxyServlet", "ProxyServlet.maxFileSize",           1000);
+	public static final Setting<Integer> ProxyMaxRequestSize   = new IntegerSetting(servletsGroup, "ProxyServlet", "ProxyServlet.maxRequestSize",        1200);
 
 	// cron settings
 	public static final Setting<String> CronTasks               = new StringSetting(cronGroup,  "CronService.tasks", "");
 
 	// oauth settings
-	public static final Setting<String> OAuthServers            = new StringSetting(oauthGroup, "General", "auth.servers", "github twitter linkedin google facebook");
+	public static final Setting<String> OAuthServers            = new StringSetting(oauthGroup, "General", "oauth.servers", "github twitter linkedin google facebook");
 
 	public static final Setting<String> OAuthGithubAuthLocation   = new StringSetting(oauthGroup, "GitHub", "oauth.github.authorization_location", "https://github.com/login/oauth/authorize");
 	public static final Setting<String> OAuthGithubTokenLocation  = new StringSetting(oauthGroup, "GitHub", "oauth.github.token_location", "https://github.com/login/oauth/access_token");
