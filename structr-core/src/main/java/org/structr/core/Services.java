@@ -149,20 +149,16 @@ public class Services implements StructrServices {
 		final String configFileName = "structr.conf";
 		final File configFile       = new File(configFileName);
 
-		if (!configFile.exists()) {
+		if (Settings.Testing.getValue()) {
 
-			if (Settings.Testing.getValue()) {
+			// simulate fully configured system
+			hasConfigFile = true;
+			logger.info("Starting Structr for testing..");
 
-				// simulate fully configured system
-				hasConfigFile = true;
-				logger.info("Starting Structr for testing..");
+		} else if (!configFile.exists()) {
 
-			} else {
-
-
-				hasConfigFile = false;
-				logger.info("{} not found, starting configuration wizard..", configFileName);
-			}
+			hasConfigFile = false;
+			logger.info("{} not found, starting configuration wizard..", configFileName);
 
 		} else {
 
