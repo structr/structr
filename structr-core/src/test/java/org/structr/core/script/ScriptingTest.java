@@ -41,6 +41,8 @@ import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.geo.GeoCodingResult;
+import org.structr.common.geo.GeoHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -2160,6 +2162,41 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("${print(this.aDate)} should yield ISO 8601 date format", expectedDateOutput, dateOutput2);
 			assertEquals("${Structr.print(Structr.this.aDate)} should yield ISO 8601 date format", expectedDateOutput, dateOutput3);
 
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+
+			fail(fex.getMessage());
+		}
+
+	}
+
+	@Test
+	public void testGeoCoding() {
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext, null);
+
+			final String locationId = Scripting.replaceVariables(ctx, null, "${create('Location')}");
+
+			final GeoCodingResult result = GeoHelper.geocode("", null, null, "Darmstadt", null, "");
+
+			if (result != null) {
+				// If geocoding itself fails, the test can not work => ignore
+
+				Double lat = result.getLatitude();
+				Double lon = result.getLongitude();
+
+				Scripting.replaceVariables(ctx, null, "${set(find('Location', '" + locationId + "'), geocode('Darmstadt', '', ''))}");
+
+				assertEquals("Latitude should be identical", lat.toString(), Scripting.replaceVariables(ctx, null, "${get(find('Location', '" + locationId + "'), 'latitude')}"));
+				assertEquals("Longitude should be identical", lon.toString(), Scripting.replaceVariables(ctx, null, "${get(find('Location', '" + locationId + "'), 'longitude')}"));
+
+			}
 
 			tx.success();
 

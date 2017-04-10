@@ -75,7 +75,7 @@ public class ToGraphObjectFunction extends UiFunction {
 
 							GraphObjectMap newObj = new GraphObjectMap();
 
-							this.recursivelyConvertMapToGraphObjectMap(newObj, (Map)sources[0], outputDepth);
+							this.recursivelyConvertMapToGraphObjectMap(newObj, (Map)o, outputDepth);
 
 							res.add(newObj);
 
