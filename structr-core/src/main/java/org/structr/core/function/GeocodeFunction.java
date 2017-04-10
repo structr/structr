@@ -18,8 +18,6 @@
  */
 package org.structr.core.function;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.structr.common.error.FrameworkException;
@@ -44,25 +42,26 @@ public class GeocodeFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-			if (!arrayHasLengthAndAllElementsNotNull(sources, 3)) {
-				
-				return "";
-			}
 
-			final Gson gson = new GsonBuilder().create();
-			final String street = sources[0].toString();
-			final String city = sources[1].toString();
-			final String country = sources[2].toString();
+			if (arrayHasLengthAndAllElementsNotNull(sources, 3)) {
 
-			GeoCodingResult result = GeoHelper.geocode(street, null, null, city, null, country);
-			if (result != null) {
+				final String street = sources[0].toString();
+				final String city = sources[1].toString();
+				final String country = sources[2].toString();
 
-				final Map<String, Object> map = new LinkedHashMap<>();
+				final GeoCodingResult result = GeoHelper.geocode(street, null, null, city, null, country);
 
-				map.put("latitude", result.getLatitude());
-				map.put("longitude", result.getLongitude());
+				if (result != null) {
 
-				return serialize(gson, map);
+					final Map<String, Object> map = new LinkedHashMap<>();
+
+					map.put("latitude", result.getLatitude());
+					map.put("longitude", result.getLongitude());
+
+					return map;
+				}
+
+
 			}
 
 		} catch (final IllegalArgumentException e) {
