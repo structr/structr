@@ -18,15 +18,18 @@
  */
 package org.structr.core.function;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-public class TypeInfoFunction extends Function<Object, Object> {
+public class AncestorTypesFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_TYPE_INFO    = "Usage: ${type_info(type[, view])}. Example ${type_info('User', 'public')}";
-	public static final String ERROR_MESSAGE_TYPE_INFO_JS = "Usage: ${Structr.type_info(type[, view])}. Example ${Structr.type_info('User', 'public')}";
+	public static final String ERROR_MESSAGE_ANCESTOR_TYPES    = "Usage: ${ancestor_types(type[, blacklist])}. Example ${ancestor_types('User')}";
+	public static final String ERROR_MESSAGE_ANCESTOR_TYPES_JS = "Usage: ${Structr.ancestor_types(type[, blacklist])}. Example ${Structr.ancestor_types('User')}";
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
@@ -36,10 +39,21 @@ public class TypeInfoFunction extends Function<Object, Object> {
 			if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
 
 				final String typeName = sources[0].toString();
-				final Class type = SchemaHelper.getEntityClassForRawType(typeName);
-				final String viewName = (sources.length == 2 ? sources[1].toString() : null);
+				final ArrayList<String> ancestorTypes = new ArrayList();
 
-				return SchemaHelper.getSchemaTypeInfo(ctx.getSecurityContext(), typeName, type, viewName);
+				Class type = SchemaHelper.getEntityClassForRawType(typeName);
+
+				while (type != null && !type.equals(Object.class)) {
+
+					ancestorTypes.add(type.getSimpleName());
+					type = type.getSuperclass();
+
+				}
+
+				final List<String> blackList = (sources.length == 2) ? (List)sources[1] : Arrays.asList("AbstractNode");
+				ancestorTypes.removeAll(blackList);
+
+				return ancestorTypes;
 
 			} else {
 
@@ -59,17 +73,17 @@ public class TypeInfoFunction extends Function<Object, Object> {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_TYPE_INFO_JS : ERROR_MESSAGE_TYPE_INFO);
+		return (inJavaScriptContext ? ERROR_MESSAGE_ANCESTOR_TYPES_JS : ERROR_MESSAGE_ANCESTOR_TYPES);
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Returns the type information for the specified type";
+		return "Returns the names of the parent classes of the given type";
 	}
 
 	@Override
 	public String getName() {
-		return "type_info()";
+		return "ancestor_types()";
 	}
 
 }

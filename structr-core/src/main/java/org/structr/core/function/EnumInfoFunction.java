@@ -40,67 +40,77 @@ public class EnumInfoFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 3)) {
+		try {
 
+			if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 3)) {
 
-			final ConfigurationProvider config = StructrApp.getConfiguration();
-			final String typeName = sources[0].toString();
-			final String enumPropertyName = sources[1].toString();
-			final boolean rawList = (sources.length == 3) ? Boolean.parseBoolean(sources[2].toString()) : false;
-			final Class type = SchemaHelper.getEntityClassForRawType(typeName);
+				final ConfigurationProvider config = StructrApp.getConfiguration();
+				final String typeName = sources[0].toString();
+				final String enumPropertyName = sources[1].toString();
+				final boolean rawList = (sources.length == 3) ? Boolean.parseBoolean(sources[2].toString()) : false;
+				final Class type = SchemaHelper.getEntityClassForRawType(typeName);
 
-			if (type != null) {
+				if (type != null) {
 
-				final PropertyKey key = config.getPropertyKeyForJSONName(type, enumPropertyName, false);
-				if (key != null) {
+					final PropertyKey key = config.getPropertyKeyForJSONName(type, enumPropertyName, false);
+					if (key != null) {
 
-					if (key instanceof EnumProperty) {
-						final String formatString = SchemaHelper.getPropertyInfo(ctx.getSecurityContext(), key).get("format").toString();
+						if (key instanceof EnumProperty) {
+							final String formatString = SchemaHelper.getPropertyInfo(ctx.getSecurityContext(), key).get("format").toString();
 
-						final List<String> valueList = Arrays.asList(formatString.replace(" ", "").split(","));
+							final List<String> valueList = Arrays.asList(formatString.replace(" ", "").split(","));
 
-						if (rawList) {
+							if (rawList) {
 
-							return valueList;
+								return valueList;
 
-						} else {
+							} else {
 
-							final ArrayList<GraphObjectMap> resultList = new ArrayList();
+								final ArrayList<GraphObjectMap> resultList = new ArrayList();
 
-							for (final String value : valueList) {
+								for (final String value : valueList) {
 
-								final GraphObjectMap valueMap = new GraphObjectMap();
-								resultList.add(valueMap);
+									final GraphObjectMap valueMap = new GraphObjectMap();
+									resultList.add(valueMap);
 
-								valueMap.put(new StringProperty("value"), value);
+									valueMap.put(new StringProperty("value"), value);
+
+								}
+
+								return resultList;
 
 							}
+						} else {
 
-							return resultList;
-
+							logger.warn("Error: Not an Enum property \"{}.{}\"", typeName, enumPropertyName);
+							return "Not an Enum property " + typeName + "." + enumPropertyName;
 						}
+
 					} else {
 
-						logger.warn("Error: Not an Enum property \"{}.{}\"", typeName, enumPropertyName);
-						return "Not an Enum property " + typeName + "." + enumPropertyName;
+						logger.warn("Error: Unknown property \"{}.{}\"", typeName, enumPropertyName);
+						return "Unknown property " + typeName + "." + enumPropertyName;
 					}
 
 				} else {
 
-					logger.warn("Error: Unknown property \"{}.{}\"", typeName, enumPropertyName);
-					return "Unknown property " + typeName + "." + enumPropertyName;
+					logger.warn("Error: Unknown type \"{}\"", typeName);
+					return "Unknown type " + typeName;
 				}
 
 			} else {
 
-				logger.warn("Error: Unknown type \"{}\"", typeName);
-				return "Unknown type " + typeName;
+				logParameterError(caller, sources, ctx.isJavaScriptContext());
+				return usage(ctx.isJavaScriptContext());
+
 			}
 
+		} catch (final IllegalArgumentException e) {
+
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 
 		}
-
-		return null;
 
 	}
 

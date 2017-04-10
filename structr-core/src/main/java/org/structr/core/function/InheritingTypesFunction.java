@@ -18,15 +18,18 @@
  */
 package org.structr.core.function;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-public class TypeInfoFunction extends Function<Object, Object> {
+public class InheritingTypesFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_TYPE_INFO    = "Usage: ${type_info(type[, view])}. Example ${type_info('User', 'public')}";
-	public static final String ERROR_MESSAGE_TYPE_INFO_JS = "Usage: ${Structr.type_info(type[, view])}. Example ${Structr.type_info('User', 'public')}";
+	public static final String ERROR_MESSAGE_INHERITING_TYPES    = "Usage: ${inheriting_types(type[, blacklist])}. Example ${inheriting_types('User')}";
+	public static final String ERROR_MESSAGE_INHERITING_TYPES_JS = "Usage: ${Structr.inheriting_types(type[, blacklist])}. Example ${Structr.inheriting_types('User')}";
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
@@ -37,9 +40,15 @@ public class TypeInfoFunction extends Function<Object, Object> {
 
 				final String typeName = sources[0].toString();
 				final Class type = SchemaHelper.getEntityClassForRawType(typeName);
-				final String viewName = (sources.length == 2 ? sources[1].toString() : null);
+				final ArrayList inheritants = new ArrayList();
 
-				return SchemaHelper.getSchemaTypeInfo(ctx.getSecurityContext(), typeName, type, viewName);
+				inheritants.addAll(SearchCommand.getAllSubtypesAsStringSet(type.getSimpleName()));
+
+				if (sources.length == 2) {
+					inheritants.removeAll((List)sources[1]);
+				}
+
+				return inheritants;
 
 			} else {
 
@@ -59,17 +68,17 @@ public class TypeInfoFunction extends Function<Object, Object> {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_TYPE_INFO_JS : ERROR_MESSAGE_TYPE_INFO);
+		return (inJavaScriptContext ? ERROR_MESSAGE_INHERITING_TYPES_JS : ERROR_MESSAGE_INHERITING_TYPES);
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Returns the type information for the specified type";
+		return "Returns the names of the child classes of the given type";
 	}
 
 	@Override
 	public String getName() {
-		return "type_info()";
+		return "inheriting_types()";
 	}
 
 }
