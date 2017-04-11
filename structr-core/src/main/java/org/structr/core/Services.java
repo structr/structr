@@ -158,7 +158,6 @@ public class Services implements StructrServices {
 		} else if (!configFile.exists()) {
 
 			hasConfigFile = false;
-			logger.info("{} not found, starting configuration wizard..", configFileName);
 
 		} else {
 
@@ -185,18 +184,6 @@ public class Services implements StructrServices {
 		getConfigurationProvider();
 
 		logger.info("Starting services");
-
-		if (!hasConfigFile) {
-
-			try {
-				configuredServiceClasses.clear();
-				configuredServiceClasses.add("HttpService");
-				registeredServiceClasses.add(Class.forName("org.structr.rest.service.HttpService"));
-
-			} catch (ClassNotFoundException ex) {
-				logger.error("Unable to find HttpService class, aborting.");
-			}
-		}
 
 		// initialize other services
 		for (final String serviceClassName : configuredServiceClasses) {
@@ -250,29 +237,26 @@ public class Services implements StructrServices {
 
 		// only run initialization callbacks if Structr was started with
 		// a configuration file, i.e. when this is NOT this first start.
-		if (hasConfigFile) {
+		try {
+			final ExecutorService service = Executors.newSingleThreadExecutor();
+			service.submit(new Runnable() {
 
-			try {
-				final ExecutorService service = Executors.newSingleThreadExecutor();
-				service.submit(new Runnable() {
+					@Override
+					public void run() {
 
-						@Override
-						public void run() {
+						// wait a second
+						try { Thread.sleep(100); } catch (Throwable ignore) {}
 
-							// wait a second
-							try { Thread.sleep(100); } catch (Throwable ignore) {}
-
-							// call initialization callbacks from a different thread
-							for (final InitializationCallback callback : singletonInstance.callbacks) {
-								callback.initializationDone();
-							}
+						// call initialization callbacks from a different thread
+						for (final InitializationCallback callback : singletonInstance.callbacks) {
+							callback.initializationDone();
 						}
+					}
 
-				}).get();
+			}).get();
 
-			} catch (Throwable t) {
-				logger.warn("Exception while executing post-initialization tasks", t);
-			}
+		} catch (Throwable t) {
+			logger.warn("Exception while executing post-initialization tasks", t);
 		}
 
 
@@ -597,11 +581,6 @@ public class Services implements StructrServices {
 		logger.info("Found {} possible resources: {}", new Object[] { resources.size(), resources } );
 
 		return resources;
-	}
-
-	@Override
-	public boolean isConfigured() {
-		return hasConfigFile;
 	}
 
 	// ----- static methods -----

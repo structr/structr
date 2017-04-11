@@ -28,5 +28,4 @@ public interface StructrServices {
 	void registerInitializationCallback(final InitializationCallback callback);
 	<T extends Service> T getService(final Class<T> serviceClass);
 	DatabaseService getDatabaseService();
-	boolean isConfigured();
 }

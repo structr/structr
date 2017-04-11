@@ -147,6 +147,7 @@ public class Settings {
 	public static final Setting<String> GeocodingApiKey          = new StringSetting(advancedGroup,  "Geocoding",   "geocoding.apikey",              "");
 	public static final Setting<String> DefaultDateFormat        = new StringSetting(advancedGroup,  "Date Format", "DateProperty.defaultFormat",    "yyyy-MM-dd'T'HH:mm:ssZ");
 	public static final Setting<Boolean> InheritanceDetection    = new BooleanSetting(advancedGroup, "hidden",      "importer.inheritancedetection", true);
+	public static final Setting<Boolean> CmisEnabled             = new BooleanSetting(advancedGroup, "hidden",      "cmis.enabled",                  true);
 
 	// servlets
 	public static final Setting<String> Servlets              = new StringSetting(servletsGroup,  "General", "HttpService.servlets",             "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet");

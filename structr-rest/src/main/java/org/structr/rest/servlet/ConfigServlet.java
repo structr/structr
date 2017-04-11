@@ -335,7 +335,7 @@ public class ConfigServlet extends HttpServlet {
 		header.block("i").attr(new Attr("class", "logo sprite sprite-structr-logo"));
 		final Tag links = header.block("div").id("menu").css("menu").block("ul");
 
-		if (isAuthenticated(request) && Services.getInstance().isConfigured()) {
+		if (isAuthenticated(request)) {
 
 			final Tag form = links.block("li").block("form").attr(new Attr("action", ConfigUrl), new Attr("method", "post"), new Attr("style", "display: none")).id("logout-form");
 
@@ -347,11 +347,6 @@ public class ConfigServlet extends HttpServlet {
 	}
 
 	private boolean isAuthenticated(final HttpServletRequest request) {
-
-		// only display login dialog if a configuration exists (i.e. this is NOT the first run of Structr)
-		if (!Services.getInstance().isConfigured()) {
-			return true;
-		}
 
 		final HttpSession session = request.getSession();
 		if (session != null) {

@@ -205,16 +205,16 @@ public class HttpService implements RunnableService {
 			logger.warn("Base resource {} not usable: {}", new Object[]{basePath, t.getMessage()});
 		}
 
-		if (services.isConfigured()) {
+		// this is needed for the filters to work on the root context "/"
+		servletContext.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/");
+		servletContext.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
 
-			// this is needed for the filters to work on the root context "/"
-			servletContext.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/");
-			servletContext.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
+		// configuration wizard entry point
+		servletContext.addServlet("org.structr.rest.servlet.ConfigServlet", "/structr/config/*");
 
-			// configuration wizard entry point
-			servletContext.addServlet("org.structr.rest.servlet.ConfigServlet", "/structr/config/*");
-
-			// CMIS setup
+		// CMIS setup
+		if (Settings.CmisEnabled.getValue()) {
+			
 			try {
 
 				servletContext.addEventListener(new CmisRepositoryContextListener());
@@ -231,15 +231,6 @@ public class HttpService implements RunnableService {
 			} catch (Throwable t) {
 				logger.warn("Cannot initialize CMIS servlet", t);
 			}
-
-		} else {
-
-			//servletContext.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/");
-			//servletContext.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
-
-			servletContext.addServlet("org.structr.rest.servlet.ConfigServlet", "/");
-
-			enableRewriteFilter = false;
 		}
 
 		hashSessionManager = new HashSessionManager();
@@ -345,12 +336,12 @@ public class HttpService implements RunnableService {
 
 		}
 
-		final List<ContextHandler> resourceHandler = collectResourceHandlers(services);
+		final List<ContextHandler> resourceHandler = collectResourceHandlers();
 		for (ContextHandler contextHandler : resourceHandler) {
 			contexts.addHandler(contextHandler);
 		}
 
-		final Map<String, ServletHolder> servlets = collectServlets(services);
+		final Map<String, ServletHolder> servlets = collectServlets();
 
 		// add servlet elements
 		int position = 1;
@@ -475,7 +466,7 @@ public class HttpService implements RunnableService {
 	}
 
 	// ----- private methods -----
-	private List<ContextHandler> collectResourceHandlers(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	private List<ContextHandler> collectResourceHandlers() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final List<ContextHandler> resourceHandlers = new LinkedList<>();
 		final String resourceHandlerList            = Settings.ResourceHandlers.getValue();
@@ -496,7 +487,7 @@ public class HttpService implements RunnableService {
 							resourceHandler.setDirectoriesListed(Settings.getBooleanSetting(resourceHandlerName, "directoriesListed").getValue());
 
 							final String welcomeFiles = Settings.getStringSetting(resourceHandlerName, "welcomeFiles").getValue();
-							if (welcomeFiles != null && services.isConfigured()) {
+							if (welcomeFiles != null) {
 
 								resourceHandler.setWelcomeFiles(StringUtils.split(welcomeFiles));
 							}
@@ -531,19 +522,10 @@ public class HttpService implements RunnableService {
 		return resourceHandlers;
 	}
 
-	private Map<String, ServletHolder> collectServlets(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	private Map<String, ServletHolder> collectServlets() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final Map<String, ServletHolder> servlets = new LinkedHashMap<>();
-		String servletNameList                    = null;
-
-		if (services.isConfigured()) {
-
-			servletNameList = Settings.Servlets.getValue();
-
-		} else {
-
-			servletNameList = "HtmlServlet";
-		}
+		String servletNameList                    = Settings.Servlets.getValue();
 
 		if (servletNameList != null) {
 
