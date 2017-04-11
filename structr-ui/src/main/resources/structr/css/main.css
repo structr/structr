@@ -1747,7 +1747,7 @@ button.add_property {
 	display: none !important;
 }
 
-#tabView-methods .editor-settings label {
+#tabView-methods .editor-settings label, #___global_methods_content .editor-settings label {
 	min-width: 0px;
 }
 
@@ -1898,7 +1898,7 @@ input.property-name:disabled {
 	opacity: .7;
 }
 
-#schema-tools, #sync-schema, #show-snapshots, #schema-display-options {
+#schema-tools, #sync-schema, #show-snapshots, #schema-display-options, #global-schema-methods {
 	margin: 0 0 4px 12px;
 }
 

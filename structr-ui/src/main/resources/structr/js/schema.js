@@ -158,11 +158,13 @@ var _Schema = {
 
 			schemaInputContainer.append('<input type="checkbox" id="schema-show-overlays" name="schema-show-overlays"><label for="schema-show-overlays"> Show relationship labels</label>');
 			schemaInputContainer.append('<button class="btn" id="schema-tools"><i class="' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" /> Tools</button>');
+			schemaInputContainer.append('<button class="btn" id="global-schema-methods"><i class="' + _Icons.getFullSpriteClass(_Icons.book_icon) + '" /> Global schema methods</button>');
 
 			$('#schema-show-overlays').on('change', function() {
 				_Schema.updateOverlayVisibility($(this).prop('checked'));
 			});
 			$('#schema-tools').on('click', _Schema.openSchemaToolsDialog);
+			$('#global-schema-methods').on('click', _Schema.showGlobalSchemaMethods);
 
 			$('#type-name').on('keyup', function(e) {
 
@@ -914,8 +916,8 @@ var _Schema = {
 		});
 
 		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', targetView === 'methods', function(c) {
-			_Schema.appendMethods(c, entity);
-		}, _Schema.getMethodsInitFunction());
+			_Schema.appendMethods(c, entity, entity.schemaMethods);
+		}, _Schema.getMethodsInitFunction(contentDiv));
 
 		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Remote Attributes', targetView === 'remote', function(c) {
 			_Schema.appendRemoteProperties(c, entity);
@@ -1023,8 +1025,8 @@ var _Schema = {
 		});
 
 		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', false, function(c) {
-			_Schema.appendMethods(c, entity);
-		}, _Schema.getMethodsInitFunction());
+			_Schema.appendMethods(c, entity, entity.schemaMethods);
+		}, _Schema.getMethodsInitFunction(contentDiv));
 
 		var selectRelationshipOptions = function(rel) {
 			$('#source-type-name').text(nodes[rel.sourceId].name);
@@ -1355,33 +1357,36 @@ var _Schema = {
 		}
 
 	},
-	appendMethods: function(el, entity) {
+	appendMethods: function(el, entity, methods) {
 
 		el.append('<table class="actions schema-props"><thead><th>JSON Name</th><th>Code</th><th>Comment</th><th class="actions-col">Action</th></thead></table>');
-		el.append('<button class="add-icon add-action-button"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add method</button>');
-		el.append('<button class="add-icon add-onCreate-button"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add onCreate</button>');
-		el.append('<button class="add-icon add-onSave-button"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add onSave</button>');
-
 		var actionsTable = $('.actions.schema-props', el);
 
-		_Schema.sort(entity.schemaMethods);
-
-		$.each(entity.schemaMethods, function(i, method) {
-			_Schema.appendMethod(actionsTable, method, entity);
-		});
-
+		el.append('<button class="add-icon add-action-button"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add method</button>');
 		$('.add-action-button', el).on('click', function() {
 			_Schema.appendEmptyMethod(actionsTable, entity);
 		});
 
-		$('.add-onCreate-button', el).on('click', function() {
-			var tr = _Schema.appendEmptyMethod(actionsTable, entity);
-			$('.property-name', tr).val(_Schema.getFirstFreeMethodName('onCreate'));
-		});
+		if (entity) {
 
-		$('.add-onSave-button', el).on('click', function() {
-			var tr = _Schema.appendEmptyMethod(actionsTable, entity);
-			$('.property-name', tr).val(_Schema.getFirstFreeMethodName('onSave'));
+			el.append('<button class="add-icon add-onCreate-button"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add onCreate</button>');
+			$('.add-onCreate-button', el).on('click', function() {
+				var tr = _Schema.appendEmptyMethod(actionsTable, entity);
+				$('.property-name', tr).val(_Schema.getFirstFreeMethodName('onCreate'));
+			});
+
+			el.append('<button class="add-icon add-onSave-button"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add onSave</button>');
+			$('.add-onSave-button', el).on('click', function() {
+				var tr = _Schema.appendEmptyMethod(actionsTable, entity);
+				$('.property-name', tr).val(_Schema.getFirstFreeMethodName('onSave'));
+			});
+
+		}
+
+		_Schema.sort(methods);
+
+		methods.forEach(function(method) {
+			_Schema.appendMethod(actionsTable, method, entity);
 		});
 
 		var lineWrapping = LSWrapper.getItem(lineWrappingKey);
@@ -1404,7 +1409,9 @@ var _Schema = {
 	},
 	appendMethod: function(el, method, entity) {
 
-		el.append('<tr class="' + method.name + '" data-type-name="' + entity.name + '" data-method-name="' + method.name + '">'
+		var typeName = (entity ? entity.name : 'global_schema_method');
+
+		el.append('<tr class="' + method.name + '" data-type-name="' + typeName + '" data-method-name="' + method.name + '">'
 				+ '<td class="name-col"><div class="abs-pos-helper">'
 					+ '<input size="15" type="text" class="action property-name" value="' + escapeForHtmlAttributes(method.name) + '">'
 				+ '</div></td>'
@@ -1427,8 +1434,12 @@ var _Schema = {
 		_Schema.initMethodRow(tr, entity, method);
 
 		$('.add-to-favorites', tr).on('click', function() {
+			_Schema.ignoreNextSchemaRecompileNotification = true;
+
 			Command.favorites('add', method.id, function() {
 				blinkGreen($('.add-to-favorites', tr));
+
+				_Schema.ignoreNextSchemaRecompileNotification = false;
 			});
 		});
 
@@ -1553,11 +1564,14 @@ var _Schema = {
 	createOrSaveMethod: function(tr, entity, method) {
 
 		var obj = {
-			schemaNode: { id: entity.id },
 			name:    $('.action.property-name', tr).val(),
 			source:  $('.action.property-code', tr).val(),
 			comment: $('.action.property-comment', tr).val()
 		};
+
+		if (entity) {
+			obj.schemaNode = { id: entity.id };
+		}
 
 		if (obj.name && obj.name.length) {
 
@@ -1609,6 +1623,31 @@ var _Schema = {
 			blinkRed($('.action.property-name', tr));
 
 		}
+
+	},
+	showGlobalSchemaMethods: function () {
+
+		Command.query('SchemaMethod', 100, 1, 'name', 'ascending', {schemaNode: null}, function (methods) {
+
+			Structr.dialog('Global Schema Methods', function() {
+				dialogMeta.show();
+			}, function() {
+				_Schema.currentNodeDialogId = null;
+
+				dialogMeta.show();
+				instance.repaintEverything();
+			});
+
+			var contentEl = dialogText;
+
+			var contentDiv = $('<div id="___global_methods_content" class="schema-details"></div>');
+			contentEl.append(contentDiv);
+
+			_Schema.appendMethods(contentDiv, null, methods);
+			var initFunction = _Schema.getMethodsInitFunction(contentDiv);
+			initFunction();
+
+		});
 
 	},
 	appendRemoteProperties: function(el, entity) {
@@ -3469,18 +3508,18 @@ var _Schema = {
 			}
 		});
 	},
-	getMethodsInitFunction: function() {
+	getMethodsInitFunction: function(container) {
 		return Structr.guardExecution(function() {
 
-			$('#tabView-methods textarea.property-code').each(function(i, el) {
+			$('textarea.property-code', container).each(function(i, el) {
 				_Schema.initCodeMirrorForMethodCode(el);
 			});
 
-			$('#tabView-methods textarea.property-comment').each(function(i, el) {
+			$(' textarea.property-comment', container).each(function(i, el) {
 				_Schema.initCodeMirrorForMethodComment(el);
 			});
 
-			_Schema.restoreSchemaMethodsRowHeights();
+			_Schema.restoreSchemaMethodsRowHeights(container);
 		});
 	},
 	senseCodeMirrorMode: function(contentText) {
@@ -3581,12 +3620,12 @@ var _Schema = {
 		}
 
 	},
-	restoreSchemaMethodsRowHeights: function() {
+	restoreSchemaMethodsRowHeights: function(container) {
 
 		var schemaMethodsHeights = LSWrapper.getItem(_Schema.schemaMethodsHeightsKey);
 		if (schemaMethodsHeights) {
 
-			$('#tabView-methods tbody tr').each(function(i, el) {
+			$('tbody tr', container).each(function(i, el) {
 				var typeName   = $(el).data('typeName');
 				var methodName = $(el).data('methodName');
 

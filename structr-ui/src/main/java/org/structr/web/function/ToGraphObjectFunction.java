@@ -79,9 +79,9 @@ public class ToGraphObjectFunction extends UiFunction {
 
 							res.add(newObj);
 
-						} else if (o instanceof GraphObjectMap) {
+						} else if (o instanceof GraphObject) {
 
-							res.add((GraphObjectMap)o);
+							res.add((GraphObject)o);
 
 						} else if (o instanceof String) {
 
