@@ -3519,7 +3519,7 @@ var _Schema = {
 				_Schema.initCodeMirrorForMethodComment(el);
 			});
 
-			_Schema.restoreSchemaMethodsRowHeights();
+			_Schema.restoreSchemaMethodsRowHeights(container);
 		});
 	},
 	senseCodeMirrorMode: function(contentText) {
@@ -3620,12 +3620,12 @@ var _Schema = {
 		}
 
 	},
-	restoreSchemaMethodsRowHeights: function() {
+	restoreSchemaMethodsRowHeights: function(container) {
 
 		var schemaMethodsHeights = LSWrapper.getItem(_Schema.schemaMethodsHeightsKey);
 		if (schemaMethodsHeights) {
 
-			$('#tabView-methods tbody tr').each(function(i, el) {
+			$('tbody tr', container).each(function(i, el) {
 				var typeName   = $(el).data('typeName');
 				var methodName = $(el).data('methodName');
 
