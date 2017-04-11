@@ -254,6 +254,7 @@ var _Icons = {
 	image_icon: 'icon/image.png',
 	arrow_up_down: 'icon/arrow_up_down.png',
 	floppy_icon: 'icon/disk.png',
+	book_icon: 'icon/book_open.png',
 
 
 	getFullSpriteClass: function (key) {
@@ -345,6 +346,7 @@ var _Icons = {
 			case _Icons.image_icon:                   return 'sprite-image';
 			case _Icons.arrow_up_down:                return 'sprite-arrow_up_down';
 			case _Icons.floppy_icon:                  return 'sprite-disk';
+			case _Icons.book_icon:                    return 'sprite-book_open';
 
 			default:                                  return 'sprite-error';
 		}
