@@ -64,7 +64,14 @@ public class IntegerSetting extends Setting<Integer> {
 		final Tag group = parent.block("div").css("form-group");
 
 		group.block("label").text(getKey());
-		group.empty("input").attr(new Attr("type", "text"), new Attr("value", getValue()));
+
+		final Tag input     = group.empty("input").attr(new Attr("type", "text"), new Attr("name", getKey()));
+		final Integer value = getValue();
+
+		// display value if non-empty
+		if (value != null) {
+			input.attr(new Attr("value", value));
+		}
 
 		renderResetButton(group);
 	}

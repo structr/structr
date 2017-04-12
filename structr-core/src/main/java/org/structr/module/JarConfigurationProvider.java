@@ -112,13 +112,8 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	// ----- interface Configuration -----
 	@Override
-	public void initialize(final boolean isConfigured) {
-
-		// do not scan resources if no configuration file is found
-		if (isConfigured) {
-
-			scanResources();
-		}
+	public void initialize() {
+		scanResources();
 	}
 
 	@Override

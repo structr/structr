@@ -90,26 +90,30 @@ public class HttpService implements RunnableService {
 	private HttpConfiguration httpConfig          = null;
 	private HttpConfiguration httpsConfig         = null;
 	private Server server                         = null;
-	private String basePath                       = null;
-	private String applicationName                = null;
-	private String host                           = null;
-	private boolean async                         = true;
-	private int httpPort                          = 8082;
 	private int maxIdleTime                       = 30000;
 	private int requestHeaderSize                 = 8192;
 
 	@Override
 	public void startService() throws Exception {
 
-		logger.info("Starting {} (host={}:{}, maxIdleTime={}, requestHeaderSize={})", new Object[]{applicationName, host, String.valueOf(httpPort), String.valueOf(maxIdleTime), String.valueOf(requestHeaderSize)});
-		logger.info("Base path {}", basePath);
-		logger.info("{} started at http://{}:{}", new Object[]{applicationName, String.valueOf(host), String.valueOf(httpPort)});
+		logger.info("Starting {} (host={}:{}, maxIdleTime={}, requestHeaderSize={})", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.HttpPort.getValue(), maxIdleTime, requestHeaderSize);
+		logger.info("Base path {}", Settings.BasePath.getValue());
+		logger.info("{} started at http://{}:{}", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.HttpPort.getValue());
 
 		server.start();
 
+		try {
+
+			while (!server.isStarted()) {
+				Thread.sleep(100);
+			}
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 
 		// The jsp directory is created by the container, but we don't need it
-		removeDir(basePath, "jsp");
+		removeDir(Settings.BasePath.getValue(), "jsp");
 
 		// send lifecycle event that the server has been started
 		sendLifecycleEvent(LifecycleEvent.Started);
@@ -117,6 +121,16 @@ public class HttpService implements RunnableService {
 
 	@Override
 	public void stopService() {
+
+		if (server != null) {
+
+			try {
+				server.stop();
+
+			} catch (Exception ex) {
+				logger.warn("Exception while stopping Jetty: {}", ex.getMessage());
+			}
+		}
 	}
 
 	@Override
@@ -151,15 +165,10 @@ public class HttpService implements RunnableService {
 		}
 
 		// load configuration from properties file
-		applicationName   = Settings.ApplicationTitle.getValue();
-		host              = Settings.ApplicationHost.getValue();
-		basePath          = Settings.BasePath.getValue();
-		httpPort          = Settings.HttpPort.getValue();
 		maxIdleTime       = Services.parseInt(System.getProperty("maxIdleTime"), 30000);
 		requestHeaderSize = Services.parseInt(System.getProperty("requestHeaderSize"), 8192);
-		async             = Settings.Async.getValue();
 
-		if (async) {
+		if (Settings.Async.getValue()) {
 			logger.info("Running in asynchronous mode");
 		}
 
@@ -171,11 +180,12 @@ public class HttpService implements RunnableService {
 		final boolean enableGzipCompression = Settings.GzipCompression.getValue();
 		final boolean logRequests           = Settings.RequestLogging.getValue();
 		final String logPrefix              = Settings.LogPrefix.getValue();
+		final String host                   = Settings.ApplicationHost.getValue();
 		final int httpsPort                 = Settings.HttpsPort.getValue();
 		boolean enableRewriteFilter         = true;
 
 		// get current base path
-		basePath = System.getProperty("home", basePath);
+		String basePath = System.getProperty("home", Settings.BasePath.getValue());
 		if (StringUtils.isEmpty(basePath)) {
 
 			// use cwd and, if that fails, /tmp as a fallback
@@ -188,7 +198,7 @@ public class HttpService implements RunnableService {
 			baseDir.mkdirs();
 		}
 
-		server = new Server(httpPort);
+		server = new Server(Settings.HttpPort.getValue());
 		final ContextHandlerCollection contexts = new ContextHandlerCollection();
 
 		contexts.addHandler(new DefaultHandler());
@@ -214,7 +224,7 @@ public class HttpService implements RunnableService {
 
 		// CMIS setup
 		if (Settings.CmisEnabled.getValue()) {
-			
+
 			try {
 
 				servletContext.addEventListener(new CmisRepositoryContextListener());
@@ -234,6 +244,7 @@ public class HttpService implements RunnableService {
 		}
 
 		hashSessionManager = new HashSessionManager();
+
 		try {
 			hashSessionManager.setStoreDirectory(new File(baseDir + "/sessions"));
 		} catch (IOException ex) {
@@ -251,7 +262,7 @@ public class HttpService implements RunnableService {
 
 		if (enableGzipCompression) {
 
-			final FilterHolder gzipFilter = async ? new FilterHolder(AsyncGzipFilter.class) : new FilterHolder(GzipFilter.class);
+			final FilterHolder gzipFilter = Settings.Async.getValue() ? new FilterHolder(AsyncGzipFilter.class) : new FilterHolder(GzipFilter.class);
 			gzipFilter.setInitParameter("mimeTypes", "text/html,text/plain,text/css,text/javascript,application/json");
 			gzipFilter.setInitParameter("bufferSize", "32768");
 			gzipFilter.setInitParameter("minGzipSize", "256");
@@ -306,7 +317,7 @@ public class HttpService implements RunnableService {
 			}
 
 			final FilterHolder loggingFilter = new FilterHolder(TeeFilter.class);
-			servletContext.addFilter(loggingFilter, "/*", EnumSet.of(DispatcherType.REQUEST, async ? DispatcherType.ASYNC : DispatcherType.FORWARD));
+			servletContext.addFilter(loggingFilter, "/*", EnumSet.of(DispatcherType.REQUEST, Settings.Async.getValue() ? DispatcherType.ASYNC : DispatcherType.FORWARD));
 			loggingFilter.setInitParameter("includes", "");
 
 			final RequestLogHandler requestLogHandler = new RequestLogHandler();
@@ -359,7 +370,7 @@ public class HttpService implements RunnableService {
 
 		contexts.addHandler(servletContext);
 
-		if (host != null && !host.isEmpty() && httpPort > -1) {
+		if (StringUtils.isNotBlank(host) && Settings.HttpPort.getValue() > -1) {
 
 			httpConfig = new HttpConfiguration();
 			httpConfig.setSecureScheme("https");
@@ -370,7 +381,7 @@ public class HttpService implements RunnableService {
 			final ServerConnector httpConnector = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
 
 			httpConnector.setHost(host);
-			httpConnector.setPort(httpPort);
+			httpConnector.setPort(Settings.HttpPort.getValue());
 
 			connectors.add(httpConnector);
 

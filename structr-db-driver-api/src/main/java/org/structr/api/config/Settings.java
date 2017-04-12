@@ -395,7 +395,7 @@ public class Settings {
 			config.save(fileName);
 
 		} catch (ConfigurationException ex) {
-			System.err.println("Unable to load configuration: " + ex.getMessage());
+			System.err.println("Unable to store configuration: " + ex.getMessage());
 		}
 
 	}

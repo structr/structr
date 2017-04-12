@@ -32,7 +32,6 @@ import org.structr.common.AccessMode;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
@@ -156,8 +155,6 @@ public class UiAuthenticator implements Authenticator {
 		// Check CORS settings (Cross-origin resource sharing, see http://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
 		final String origin = request.getHeader("Origin");
 		if (!StringUtils.isBlank(origin)) {
-
-			final Services services = Services.getInstance();
 
 			response.setHeader("Access-Control-Allow-Origin", origin);
 
@@ -536,7 +533,7 @@ public class UiAuthenticator implements Authenticator {
 
 				configuredCustomClassName = User.class.getSimpleName();
 			}
-			
+
 			userClass = StructrApp.getConfiguration().getNodeEntityClass(configuredCustomClassName);
 
 		}

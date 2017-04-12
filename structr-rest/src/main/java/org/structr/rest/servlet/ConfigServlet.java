@@ -110,6 +110,28 @@ public class ConfigServlet extends HttpServlet {
 			// redirect
 			response.sendRedirect(ConfigUrl + "#services");
 
+		} else if (request.getParameter("restart") != null) {
+
+			final String serviceName = request.getParameter("restart");
+			if (serviceName != null && isAuthenticated(request)) {
+
+				new Thread(new Runnable() {
+
+					@Override
+					public void run() {
+
+						try { Thread.sleep(1000); } catch (Throwable t) {}
+
+						Services.getInstance().shutdownService(serviceName);
+						Services.getInstance().startService(serviceName);
+					}
+
+				}).start();
+			}
+
+			// redirect
+			response.sendRedirect(ConfigUrl + "#services");
+
 		} else {
 
 			// no trailing semicolon so we dont trip MimeTypes.getContentTypeWithoutCharset
@@ -140,7 +162,9 @@ public class ConfigServlet extends HttpServlet {
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
-		final String action = request.getParameter("action");
+		final String action   = request.getParameter("action");
+		String redirectTarget = "";
+
 		if (action != null) {
 
 			switch (action) {
@@ -168,6 +192,12 @@ public class ConfigServlet extends HttpServlet {
 
 				// skip internal group configuration parameter
 				if (key.endsWith("._settings_group")) {
+					continue;
+				}
+
+				if ("active_section".equals(key)) {
+
+					redirectTarget = "#" + value;
 					continue;
 				}
 
@@ -202,7 +232,7 @@ public class ConfigServlet extends HttpServlet {
 			Settings.storeConfiguration(ConfigName);
 		}
 
-		response.sendRedirect(ConfigUrl);
+		response.sendRedirect(ConfigUrl + redirectTarget);
 	}
 
 	// ----- private methods -----
@@ -231,7 +261,7 @@ public class ConfigServlet extends HttpServlet {
 			group.render(container);
 
 			// stop floating
-			container.block("div").attr(new Attr("style", "clear: both;"));
+			container.block("div").attr(new Style("clear: both;"));
 		}
 
 		// add services tab
@@ -257,28 +287,40 @@ public class ConfigServlet extends HttpServlet {
 
 			if (running) {
 
-				row.block("td").block("button").attr(new Attr("type", "button"), new Attr("onclick", "window.location.href='" + ConfigUrl + "?stop=" + serviceClassName + "';")).text("Stop");
+				row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?restart=" + serviceClassName + "';")).text("Restart");
+
+				if ("HttpService".equals(serviceClassName)) {
+
+					row.block("td");
+					
+				} else {
+
+					row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?stop=" + serviceClassName + "';")).text("Stop");
+				}
+
 				row.block("td");
 
 			} else {
 
 				row.block("td");
-				row.block("td").block("button").attr(new Attr("type", "button"), new Attr("onclick", "window.location.href='" + ConfigUrl + "?start=" + serviceClassName + "';")).text("Start");
+				row.block("td");
+				row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?start=" + serviceClassName + "';")).text("Start");
 			}
 		}
 
+		// update active section so we can restore it when redirecting
+		container.empty("input").attr(new Type("hidden"), new Name("active_section")).id("active_section");
 
 		// stop floating
-		container.block("div").attr(new Attr("style", "clear: both;"));
+		container.block("div").attr(new Style("clear: both;"));
 
 		// buttons
 		final Tag buttons = form.block("div").css("buttons");
 
-		buttons.block("button").attr(new Attr("type", "button")).id("new-entry-button").text("Add entry");
-		buttons.block("button").attr(new Attr("type", "button"), new Attr("onclick", "window.location.href='" + ConfigUrl + "?reload';")).text("Reload configuration");
-		buttons.empty("input").attr(new Attr("type", "submit"), new Attr("value", "Save to structr.conf"));
+		buttons.block("button").attr(new Type("button")).id("new-entry-button").text("Add entry");
+		buttons.block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?reload';")).text("Reload configuration");
+		buttons.empty("input").attr(new Type("submit"), new Value("Save to structr.conf"));
 
-		body.block("script").text("$(function() { $('#configTabs').tabs({}); });");
 		body.block("script").text("$('#new-entry-button').on('click', createNewEntry);");
 
 		return doc;
@@ -289,26 +331,26 @@ public class ConfigServlet extends HttpServlet {
 		final Document doc = new Document(writer);
 		final Tag body     = setupDocument(request, doc);
 
-		final Tag loginBox = body.block("div").id("login").css("dialog").attr(new Attr("style", "display: block; margin: auto; margin-top: 200px;"));
+		final Tag loginBox = body.block("div").id("login").css("dialog").attr(new Style("display: block; margin: auto; margin-top: 200px;"));
 
 		loginBox.block("i").attr(new Attr("title", "Structr Logo")).css("logo-login sprite sprite-structr_gray_100x27");
-		loginBox.block("p").text("Welcome to the Structr Configuration Editor. Please log in with the <b>super- admin</b> password specified in your structr.conf.");
+		loginBox.block("p").text("Welcome to the Structr Configuration Editor. Please log in with the <b>super- user</b> password which can be found in your structr.conf.");
 
 		final Tag form     = loginBox.block("form").attr(new Attr("action", ConfigUrl), new Attr("method", "post"));
 		final Tag table    = form.block("table");
 		final Tag row1     = table.block("tr");
 
 		row1.block("td").block("label").attr(new Attr("for", "passwordField")).text("Password:");
-		row1.block("td").empty("input").id("passwordField").attr(new Attr("type", "password"), new Attr("name", "password"));
+		row1.block("td").empty("input").id("passwordField").attr(new Type("password"), new Name("password"));
 
 		final Tag row2     = table.block("tr");
 		final Tag cell13   = row2.block("td").attr(new Attr("colspan", "2")).css("btn");
-		final Tag button   = cell13.block("button").id("loginButton").attr(new Attr("name", "login"));
+		final Tag button   = cell13.block("button").id("loginButton").attr(new Name("login"));
 
 		button.block("i").css("sprite sprite-key");
 		button.block("span").text(" Login");
 
-		cell13.empty("input").attr(new Attr("type", "hidden"), new Attr("name", "action"), new Attr("value", "login"));
+		cell13.empty("input").attr(new Type("hidden"), new Name("action"), new Value("login"));
 
 		return doc;
 	}
@@ -320,27 +362,27 @@ public class ConfigServlet extends HttpServlet {
 
 		head.block("title").text("Welcome to Structr 2.1");
 		head.empty("meta").attr(new Attr("http-equiv", "Content-Type"), new Attr("content", "text/html;charset=utf-8"));
-		head.empty("meta").attr(new Attr("name", "viewport"), new Attr("content", "width=1024, user-scalable=yes"));
+		head.empty("meta").attr(new Name("viewport"), new Attr("content", "width=1024, user-scalable=yes"));
 		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/main.css"));
 		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/config.css"));
 		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/lib/jquery-ui-1.10.3.custom.min.css"));
-		head.empty("link").attr(new Rel("icon"), new Href("favicon.ico"), new Attr("type", "image/x-icon"));
-		head.block("script").attr(new Attr("src", "/structr/js/lib/jquery-1.11.1.min.js"));
-		head.block("script").attr(new Attr("src", "/structr/js/lib/jquery-ui-1.11.0.custom.min.js"));
-		head.block("script").attr(new Attr("src", "/structr/js/config.js"));
+		head.empty("link").attr(new Rel("icon"), new Href("favicon.ico"), new Type("image/x-icon"));
+		head.block("script").attr(new Src("/structr/js/lib/jquery-1.11.1.min.js"));
+		head.block("script").attr(new Src("/structr/js/lib/jquery-ui-1.11.0.custom.min.js"));
+		head.block("script").attr(new Src("/structr/js/config.js"));
 
 		final Tag body = doc.block("body");
 		final Tag header = body.block("div").id("header");
 
-		header.block("i").attr(new Attr("class", "logo sprite sprite-structr-logo"));
+		header.block("i").css("logo sprite sprite-structr-logo");
 		final Tag links = header.block("div").id("menu").css("menu").block("ul");
 
 		if (isAuthenticated(request)) {
 
-			final Tag form = links.block("li").block("form").attr(new Attr("action", ConfigUrl), new Attr("method", "post"), new Attr("style", "display: none")).id("logout-form");
+			final Tag form = links.block("li").block("form").attr(new Attr("action", ConfigUrl), new Attr("method", "post"), new Style("display: none")).id("logout-form");
 
-			form.block("input").attr(new Attr("type", "hidden"), new Attr("name", "action"), new Attr("value", "logout"));
-			links.block("a").text("Logout").attr(new Attr("style", "cursor: pointer"), new Attr("onclick", "$('#logout-form').submit();"));
+			form.empty("input").attr(new Type("hidden"), new Name("action"), new Value("logout"));
+			links.block("a").text("Logout").attr(new Style("cursor: pointer"), new OnClick("$('#logout-form').submit();"));
 		}
 
 		return body;
@@ -419,5 +461,48 @@ public class ConfigServlet extends HttpServlet {
 		}
 
 		return null;
+	}
+
+	// ----- nested classes -----
+	private static class Style extends Attr {
+
+		public Style(final Object value) {
+			super("style", value);
+		}
+	}
+
+	private static class Src extends Attr {
+
+		public Src(final Object value) {
+			super("src", value);
+		}
+	}
+
+	private static class Type extends Attr {
+
+		public Type(final Object value) {
+			super("type", value);
+		}
+	}
+
+	private static class Name extends Attr {
+
+		public Name(final Object value) {
+			super("name", value);
+		}
+	}
+
+	private static class Value extends Attr {
+
+		public Value(final Object value) {
+			super("value", value);
+		}
+	}
+
+	private static class OnClick extends Attr {
+
+		public OnClick(final Object value) {
+			super("onclick", value);
+		}
 	}
 }

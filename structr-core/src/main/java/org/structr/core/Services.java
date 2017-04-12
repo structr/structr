@@ -19,6 +19,7 @@
 package org.structr.core;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -82,7 +83,6 @@ public class Services implements StructrServices {
 	private final Set<String> configuredServiceClasses         = new LinkedHashSet<>();
 	private ConfigurationProvider configuration                = null;
 	private boolean initializationDone                         = false;
-	private boolean hasConfigFile                              = false;
 	private boolean overridingSchemaTypesAllowed               = true;
 	private boolean shutdownDone                               = false;
 	private String configuredServiceNames                      = null;
@@ -152,19 +152,24 @@ public class Services implements StructrServices {
 		if (Settings.Testing.getValue()) {
 
 			// simulate fully configured system
-			hasConfigFile = true;
-			logger.info("Starting Structr for testing..");
+			logger.info("Starting Structr for testing (structr.conf will be ignored)..");
 
-		} else if (!configFile.exists()) {
+		} else if (configFile.exists()) {
 
-			hasConfigFile = false;
+			logger.info("Reading {}..", configFileName);
+			Settings.loadConfiguration(configFileName);
 
 		} else {
 
-			hasConfigFile = true;
-			logger.info("Reading {}..", configFileName);
+			// write structr.conf with random superadmin password
+			logger.info("Writing {}..", configFileName);
 
-			Settings.loadConfiguration(configFileName);
+			try {
+				Settings.storeConfiguration(configFileName);
+
+			} catch (IOException ioex) {
+				logger.warn("Unable to write {}: {}", configFileName, ioex.getMessage());
+			}
 		}
 
 		doInitialize();
@@ -360,7 +365,7 @@ public class Services implements StructrServices {
 			try {
 
 				configuration = (ConfigurationProvider)Class.forName(configurationClass).newInstance();
-				configuration.initialize(hasConfigFile);
+				configuration.initialize();
 
 			} catch (Throwable t) {
 

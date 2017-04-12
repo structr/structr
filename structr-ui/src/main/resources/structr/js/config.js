@@ -31,11 +31,38 @@ function createNewEntry(e) {
 				'<input type="text" name="' + name + '"/>' +
 				'<input type="hidden" name="' + name + '._settings_group" value="' + $(currentTab).attr('id') + '" />' +
 				'</div>'
-			);
+				);
 		}
 	}
 }
 
 function resetToDefault(key) {
-	window.location.href = '/structr/config?reset=' + key;
+
+	var currentTab = $('#active_section').val();
+
+	if (currentTab && currentTab.length) {
+
+		window.location.href = '/structr/config?reset=' + key + "#" + currentTab;
+
+	} else {
+
+		window.location.href = '/structr/config?reset=' + key;
+	}
 }
+
+$(function () {
+
+	$('#configTabs').tabs({
+
+		activate: function (event, ui) {
+			$('#active_section').val(ui.newPanel.attr('id'));
+		},
+
+		create: function (event, ui) {
+			
+			if (ui && ui.panel)  {
+				$('#active_section').val(ui.panel.attr('id'));
+			}
+		}
+	});
+});
