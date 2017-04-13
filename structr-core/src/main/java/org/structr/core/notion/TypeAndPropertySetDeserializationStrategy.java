@@ -153,9 +153,11 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 				case 1:
 
 					final T relatedNode = getTypedResult(result, type);
+					if (!attributes.isEmpty()) {
 
-					// set properties on related node?
-					setProperties(securityContext, relatedNode, attributes);
+						// set properties on related node?
+						setProperties(securityContext, relatedNode, attributes);
+					}
 
 					return relatedNode;
 

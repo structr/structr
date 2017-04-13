@@ -109,6 +109,9 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 								foreignProps.put(key.jsonName(), properties.get(key.jsonName()));
 							}
 						}
+
+						// node found, remove UUID
+						convertedProperties.remove(GraphObject.id);
 					}
 
 				} else {
@@ -198,7 +201,10 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 				} else {
 
 					// set properties on related node?
-					setProperties(securityContext, relatedNode, convertedProperties);
+					if (!convertedProperties.isEmpty()) {
+
+						setProperties(securityContext, relatedNode, convertedProperties);
+					}
 
 					if (foreignProps.isEmpty()) {
 
