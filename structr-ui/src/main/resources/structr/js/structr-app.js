@@ -272,21 +272,70 @@ function StructrApp(baseUrl, locale) {
 		return container;
 	},
 	this.collectData = function(btn, id, attrs, type, suffix) {
-		var data = {};
+		var container = s.container(btn, id);
+
+		if (!s.data[id]) s.data[id] = {};
 		$.each(attrs, function(i, key) {
-			var field = s.getPossibleFields(s.container(btn, id), suffix, type, key, 'name');
-			var val;
-			if (field.attr('type') === 'checkbox') {
-				val = field.prop('checked');
+
+			var inp = s.getPossibleFields(container, suffix, type, key, 'name');
+			var f = s.field(inp);
+			if (!f) return;
+
+			if (key.contains('.')) {
+				delete s.data[id][key];
+				var prop = key.split('.');
+				var local = prop[0];
+				var related = prop[1];
+
+				key = local;
+				s.data[id][local] = {};
+				s.data[id][local][related] = f.val;
+
+			} else if (f.type === 'Boolean') {
+
+				s.data[id][key] = (f.val === true ? true : false);
+
+			} else if (f.type === 'Integer' || f.type === 'Long') {
+
+				s.data[id][key] = parseInt(f.val) || f.val;
+
+			} else if (f.type === 'Double') {
+
+				s.data[id][key] = parseFloat(f.val) || f.val;
+
+			} else if (f.type === 'String' || f.type === 'Date') {
+
+				if (f.val && f.val.length) {
+					s.data[id][key] = f.val;
+				} else {
+					s.data[id][key] = null;
+				}
+			} else if (f.type === 'Enum') {
+				var val = $('option:selected', inp).val();
+				s.data[id][key] = (val === '' ? null : val);
+
 			} else {
-				val = field.val();
+				var ids = [];
+				$('option:selected', inp).each(function() {
+					var self = $(this);
+					if (self.val()) {
+						ids.push(self.val());
+					}
+				});
+
+				if (!ids.length) {
+					s.data[id][key] = null;
+				} else if (!f.type.endsWith('[]')) {
+					s.data[id][key] = ids[0];
+				} else {
+					s.data[id][key] = ids.map(function(id) {
+						return {'id': id};
+					});
+				}
 			}
-			// treat empty string as null
-			val = (val === '') ? undefined : val;
-			val = ((val && typeof val === 'string') ? val.parseIfJSON() : val);
-			data[key] = val;
 		});
-		return data;
+
+		return s.data[id];
 	},
 	this.editAction = function(btn, id, attrs, type, suffix, reload, returnUrl) {
 		var container = s.container(btn, id);
@@ -296,7 +345,7 @@ function StructrApp(baseUrl, locale) {
 
 		$.each(attrs, function(i, key) {
 
-			var el = s.getPossibleFields(s.container(btn, id), suffix, type, key, 'attr');
+			var el = s.getPossibleFields(container, suffix, type, key, 'attr');
 			var f = s.field(el);
 
 			// ignore invalid fields
@@ -435,68 +484,8 @@ function StructrApp(baseUrl, locale) {
 	},
 
 	this.saveAction = function(btn, id, attrs, type, suffix, reload, returnUrl, successMsg, errorMsg, onSuccess, onError) {
-		var container = s.container(btn, id);
-		if (!s.data[id]) s.data[id] = {};
-		$.each(attrs, function(i, key) {
-
-			var inp = s.getPossibleFields(container, suffix, type, key, 'name');
-			var f = s.field(inp);
-			if (!f) return;
-
-			if (key.contains('.')) {
-				delete s.data[id][key];
-				var prop = key.split('.');
-				var local = prop[0];
-				var related = prop[1];
-
-				key = local;
-				s.data[id][local] = {};
-				s.data[id][local][related] = f.val;
-
-			} else if (f.type === 'Boolean') {
-
-				s.data[id][key] = (f.val === true ? true : false);
-
-			} else if (f.type === 'Integer' || f.type === 'Long') {
-
-				s.data[id][key] = parseInt(f.val) || f.val;
-
-			} else if (f.type === 'Double') {
-
-				s.data[id][key] = parseFloat(f.val) || f.val;
-
-			} else if (f.type === 'String' || f.type === 'Date') {
-
-				if (f.val && f.val.length) {
-					s.data[id][key] = f.val;
-				} else {
-					s.data[id][key] = null;
-				}
-			} else if (f.type === 'Enum') {
-				var val = $('option:selected', inp).val();
-				s.data[id][key] = (val === '' ? null : val);
-
-			} else {
-				var ids = [];
-				$('option:selected', inp).each(function() {
-					var self = $(this);
-					if (self.val()) {
-						ids.push(self.val());
-					}
-				});
-
-				if (!ids.length) {
-					s.data[id][key] = null;
-				} else if (!f.type.endsWith('[]')) {
-					s.data[id][key] = {'id':ids[0]};
-				} else {
-					s.data[id][key] = ids.map(function(id) {
-						return {'id':id};
-					});
-				}
-			}
-		});
-		s.request(btn, 'PUT', structrRestUrl + (type ? type + '/' : '') + id, s.data[id], reload, returnUrl, false, successMsg, errorMsg, onSuccess, onError);
+		var data = s.collectData(btn, id, attrs, type, suffix);
+		s.request(btn, 'PUT', structrRestUrl + (type ? type + '/' : '') + id, data, reload, returnUrl, false, successMsg, errorMsg, onSuccess, onError);
 	},
 
 	this.cancelEditAction = function(btn, id, attrs, type, suffix, reload, returnUrl) {
