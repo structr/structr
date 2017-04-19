@@ -525,8 +525,6 @@ public abstract class StructrUiTest {
 			buf.append(part);
 		}
 
-		final Properties config = Services.getBaseConfiguration();
-
 		return getUuidFromLocation(
 			RestAssured
 			.given()
