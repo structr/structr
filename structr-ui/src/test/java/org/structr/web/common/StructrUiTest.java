@@ -380,18 +380,6 @@ public abstract class StructrUiTest {
 					.delete("/resource_access");
 		}
 
-		// list existing grants
-		RestAssured
-
-			.given()
-				.contentType("application/json; charset=UTF-8")
-				.header("X-User", "superadmin")
-				.header("X-Password", "sehrgeheim")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-
-			.when()
-				.get("/resource_access");
-
 		// create new grant
 		RestAssured
 
@@ -527,6 +515,36 @@ public abstract class StructrUiTest {
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body(buf.toString())
 			.expect().statusCode(201).when().post(resource).getHeader("Location"));
+	}
+
+	protected String createEntityAsUser(final String name, final String password, final String resource, final String... body) {
+
+		StringBuilder buf = new StringBuilder();
+
+		for (String part : body) {
+			buf.append(part);
+		}
+
+		final Properties config = Services.getBaseConfiguration();
+
+		return getUuidFromLocation(
+			RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.header("X-User", name)
+				.header("X-Password", password)
+
+			.body(buf.toString())
+				.expect().statusCode(201)
+			.when().post(resource).getHeader("Location"));
 	}
 
 	protected String createEntityAsSuperUser(String resource, String... body) {

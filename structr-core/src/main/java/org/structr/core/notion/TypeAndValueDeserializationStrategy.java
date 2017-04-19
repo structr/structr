@@ -147,8 +147,11 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> imp
 					throw new FrameworkException(422, "Node type mismatch", new TypeToken(obj.getClass(), propertyKey, type.getSimpleName()));
 				}
 
-				// set properties on related node?
-				setProperties(securityContext, obj, convertedSourceMap);
+				if (!convertedSourceMap.isEmpty()) {
+					
+					// set properties on related node?
+					setProperties(securityContext, obj, convertedSourceMap);
+				}
 
 				return obj;
 		}

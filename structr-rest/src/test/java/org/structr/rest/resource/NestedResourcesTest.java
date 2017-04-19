@@ -191,5 +191,4 @@ public class NestedResourcesTest extends StructrRestTest {
 
 
 	}
-
 }

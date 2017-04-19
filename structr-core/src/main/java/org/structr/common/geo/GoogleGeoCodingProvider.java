@@ -52,7 +52,7 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 	public GeoCodingResult geocode(final String street, final String house, String postalCode, final String city, final String state, final String country, final String language) throws IOException {
 
 		String address =
-			
+
 			(StringUtils.isNotBlank(street) ? street : "") + " " +
 			(StringUtils.isNotBlank(house) ? house : "") + " " +
 			(StringUtils.isNotBlank(postalCode) ? postalCode : "" +
@@ -60,7 +60,7 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 			(StringUtils.isNotBlank(state) ? state : "") + " " +
 			(StringUtils.isNotBlank(country) ? country : "") + " "
 		);
-		
+
 		String encodedAddress;
 
 		try {
@@ -75,9 +75,23 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 		Document xmlDoc;
 
 		try {
+                        StringBuilder urlBuffer = new StringBuilder("https://maps.google.com/maps/api/geocode/");
 
-			String protocol              = "xml";    // "xml" or "json"
-			URL mapsUrl                  = new URL("http://maps.google.com/maps/api/geocode/" + protocol + "?sensor=false&address=" + encodedAddress + "&language=" + language);
+                        // output format XML
+                        urlBuffer.append("xml");
+
+                        // set the address
+                        urlBuffer.append("?address=").append(encodedAddress);
+
+                        // set the ouput language
+                        urlBuffer.append("&language=").append(language);
+
+                        // set the api key if there is any
+                        if(apiKey != null && !apiKey.isEmpty()) {
+                            urlBuffer.append("&key=").append(apiKey);
+                        }
+
+			URL mapsUrl                  = new URL(urlBuffer.toString());
 			HttpURLConnection connection = (HttpURLConnection) mapsUrl.openConnection();
 
 			connection.connect();
@@ -108,12 +122,12 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 		// List<Element> rootChildren = root.elements();
 		String status = root.element("status").getTextTrim();
 		if ("OK".equals(status)) {
-			
+
 			try {
 				return new GoogleGeoCodingResult(address, root);
-				
+
 			} catch(Throwable t) {
-				
+
 				logger.warn("Unable to find geocoding for address {}: {}", new Object[] { address, t.getMessage() });
 			}
 
@@ -133,13 +147,13 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 		private String address = null;
 		private double latitude;
 		private double longitude;
-		
+
 		//~--- constructors -------------------------------------------
 
 		public GoogleGeoCodingResult(String address, Element root) {
-			
+
 			this.address = address;
-			
+
 			String latString  = root.element("result").element("geometry").element("location").element("lat").getTextTrim();
 			String lonString  = root.element("result").element("geometry").element("location").element("lng").getTextTrim();
 
@@ -148,11 +162,11 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 
 				addressComponents.add(new GoogleAddressComponent(addressComponentsElement.next()));
 			}
-			
+
 			this.latitude     = Double.parseDouble(latString);
 			this.longitude    = Double.parseDouble(lonString);
 		}
-		
+
 		public GoogleGeoCodingResult(final double latitude, final double longitude) {
 
 			this.latitude  = latitude;
@@ -212,31 +226,31 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 
 		@Override
 		public AddressComponent getAddressComponent(Type... types) {
-			
+
 			for(AddressComponent addressComponent : addressComponents) {
-				
+
 				if(addressComponent.getTypes().containsAll(Arrays.asList(types))) {
 					return addressComponent;
 				}
 			}
-			
+
 			return null;
 		}
-		
+
 		@Override
 		public List<AddressComponent> getAddressComponents() {
 			return addressComponents;
 		}
 	}
-	
+
 	public static class GoogleAddressComponent implements AddressComponent {
-		
+
 		private Set<Type> types = new LinkedHashSet<Type>();
 		private String shortValue = null;
 		private String longValue = null;
-		
+
 		public GoogleAddressComponent(Element addressComponent) {
-			
+
 			this.shortValue = addressComponent.element("short_name").getTextTrim();
 			this.longValue = addressComponent.element("long_name").getTextTrim();
 
@@ -245,15 +259,15 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 
 				Element typeElement = typesElement.next();
 				String typeName = typeElement.getTextTrim();
-				
+
 				try {
 					this.types.add(Type.valueOf(typeName));
-					
+
 				} catch(Throwable t) {
-					
+
 					logger.warn("Encountered unknown address component type {} while parsing.", typeName);
 				}
-				
+
 			}
 		}
 
