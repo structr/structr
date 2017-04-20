@@ -18,6 +18,7 @@
  */
 package org.structr.ftp;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import static junit.framework.TestCase.assertEquals;
@@ -57,11 +58,11 @@ public class FtpFilesTest extends FtpTest {
 
 			ftp.setFileType(FTP.ASCII_FILE_TYPE);
 			ftp.setAutodetectUTF8(true);
-			
+
 			// Store a file
 			InputStream in = IOUtils.toInputStream("Test Content");
 			ftp.storeFile(name1, in);
-			
+
 			in.close();
 
 			tx.success();
@@ -296,7 +297,6 @@ public class FtpFilesTest extends FtpTest {
 		final String name1 = "file1";
 		final String name2 = "dir1";
 
-
 		try (final Tx tx = app.tx()) {
 
 			FTPFile[] files = ftp.listFiles();
@@ -384,4 +384,197 @@ public class FtpFilesTest extends FtpTest {
 		}
 	}
 
+	public void test05LargeFile() {
+
+		final FTPClient ftp = setupFTPClient("ftpuser1");
+		final String name1  = "file1";
+		final int size      = 32768;
+
+		try (final Tx tx = app.tx()) {
+
+			FTPFile[] files = ftp.listFiles();
+
+			assertNotNull(files);
+			assertEquals(0, files.length);
+
+			ftp.setFileType(FTP.ASCII_FILE_TYPE);
+			ftp.setAutodetectUTF8(true);
+
+			// Store a file
+			InputStream in = IOUtils.toInputStream(new String(new byte[size], 0, size));
+			ftp.storeFile(name1, in);
+
+			in.close();
+
+			tx.success();
+
+		} catch (IOException | FrameworkException ex) {
+			logger.warn("", ex);
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final FTPFile[] files = ftp.listFiles();
+
+			assertNotNull(files);
+			assertEquals(1, files.length);
+			assertEquals(name1, files[0].getName());
+			assertEquals(size, files[0].getSize());
+
+			ftp.disconnect();
+
+			tx.success();
+
+		} catch (IOException | FrameworkException ex) {
+			logger.warn("", ex);
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+	}
+
+	public void test06OverwriteFile() {
+
+		FTPClient ftp = setupFTPClient("ftpuser1");
+		final String name1 = "file1";
+
+		try (final Tx tx = app.tx()) {
+
+			FTPFile[] files = ftp.listFiles();
+
+			assertNotNull(files);
+			assertEquals(0, files.length);
+
+			ftp.setFileType(FTP.ASCII_FILE_TYPE);
+			ftp.setAutodetectUTF8(true);
+
+			// Store a file
+			InputStream in = IOUtils.toInputStream("Initial Content");
+			ftp.storeFile(name1, in);
+
+			in.close();
+
+			tx.success();
+
+		} catch (IOException | FrameworkException ex) {
+			logger.warn("", ex);
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			// Store a file
+			InputStream in = IOUtils.toInputStream("Overwritten Content");
+			ftp.storeFile(name1, in);
+
+			in.close();
+
+			tx.success();
+
+		} catch (IOException | FrameworkException ex) {
+			logger.warn("", ex);
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final ByteArrayOutputStream os = new ByteArrayOutputStream();
+			final FTPFile[] files          = ftp.listFiles();
+
+			assertNotNull(files);
+			assertEquals(1, files.length);
+			assertEquals(name1, files[0].getName());
+
+			ftp.retrieveFile(files[0].getName(), os);
+
+			final byte[] data    = os.toByteArray();
+			final String content = new String(data, 0, data.length);
+
+			assertEquals("Invalid content for overwritten file", "Overwritten Content", content);
+
+			ftp.disconnect();
+
+			tx.success();
+
+		} catch (IOException | FrameworkException ex) {
+			logger.warn("", ex);
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+	}
+
+	public void test07DeleteFile() {
+
+		final FTPClient ftp = setupFTPClient("ftpuser1");
+		final String name1  = "file1";
+		final int size      = 32768;
+
+		// create file
+		try (final Tx tx = app.tx()) {
+
+			FTPFile[] files = ftp.listFiles();
+
+			assertNotNull(files);
+			assertEquals(0, files.length);
+
+			ftp.setFileType(FTP.ASCII_FILE_TYPE);
+			ftp.setAutodetectUTF8(true);
+
+			// Store a file
+			InputStream in = IOUtils.toInputStream(new String(new byte[size], 0, size));
+			ftp.storeFile(name1, in);
+
+			in.close();
+
+			tx.success();
+
+		} catch (IOException | FrameworkException ex) {
+			logger.warn("", ex);
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+
+		// verify existance
+		try (final Tx tx = app.tx()) {
+
+			final FTPFile[] files = ftp.listFiles();
+
+			assertNotNull(files);
+			assertEquals(1, files.length);
+			assertEquals(name1, files[0].getName());
+			assertEquals(size, files[0].getSize());
+
+			tx.success();
+
+		} catch (IOException | FrameworkException ex) {
+			logger.warn("", ex);
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+
+		// delete file
+		try (final Tx tx = app.tx()) {
+
+			ftp.deleteFile(name1);
+
+			tx.success();
+
+		} catch (IOException | FrameworkException ex) {
+			logger.warn("", ex);
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+
+		// verify deletion
+		try (final Tx tx = app.tx()) {
+
+			final FTPFile[] files = ftp.listFiles();
+
+			assertNotNull(files);
+			assertEquals(0, files.length);
+
+			ftp.disconnect();
+
+			tx.success();
+
+		} catch (IOException | FrameworkException ex) {
+			logger.warn("", ex);
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+	}
 }
