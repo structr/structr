@@ -97,7 +97,7 @@ public class StructrRootAttributes implements PosixFileAttributes, DosFileAttrib
 
 			@Override
 			public String getName() {
-				return "admin";
+				return "superadmin";
 			}
 		};
 	}
@@ -109,7 +109,7 @@ public class StructrRootAttributes implements PosixFileAttributes, DosFileAttrib
 
 			@Override
 			public String getName() {
-				return "admin";
+				return "superadmin";
 			}
 		};
 	}
@@ -174,13 +174,13 @@ public class StructrRootAttributes implements PosixFileAttributes, DosFileAttrib
 		if ("posix".equals(prefix)) {
 
 			map.put("permissions", permissions());
-			map.put("group", group());
-			map.put("owner", owner());
+			map.put("group", group().getName());
+			map.put("owner", owner().getName());
 		}
 
 		if ("owner".equals(prefix)) {
 
-			map.put("owner", owner());
+			map.put("owner", owner().getName());
 		}
 
 		return map;
