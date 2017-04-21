@@ -49,25 +49,25 @@ public class Settings {
 	public static final SettingsGroup miscGroup               = new SettingsGroup("misc",        "Miscellaneous");
 
 	// general settings
-	public static final Setting<String> ApplicationTitle      = new StringSetting(generalGroup,  "Application", "application.title",          "Structr 2.1");
-	public static final Setting<String> InstanceName          = new StringSetting(generalGroup,  "Application", "application.instance.name",  "");
-	public static final Setting<String> InstanceStage         = new StringSetting(generalGroup,  "Application", "application.instance.stage", "");
-	public static final Setting<String> SuperUserName         = new StringSetting(generalGroup,  "Superuser",   "superuser.username",         "superadmin");
-	public static final Setting<String> SuperUserPassword     = new StringSetting(generalGroup,  "Superuser",   "superuser.password",         RandomStringUtils.randomAlphanumeric(12));
-	public static final Setting<String> BasePath              = new StringSetting(generalGroup,  "Paths",       "base.path",                  "");
-	public static final Setting<String> TmpPath               = new StringSetting(generalGroup,  "Paths",       "tmp.path",                   "/tmp");
-	public static final Setting<String> DatabasePath          = new StringSetting(generalGroup,  "Paths",       "database.path",              "db");
-	public static final Setting<String> FilesPath             = new StringSetting(generalGroup,  "Paths",       "files.path",                 System.getProperty("user.dir").concat("/files"));
-	public static final Setting<String> LogDatabasePath       = new StringSetting(generalGroup,  "Paths",       "log.database.path",          System.getProperty("user.dir").concat("/logDb.dat"));
-	public static final Setting<String> DataExchangePath      = new StringSetting(generalGroup,  "Paths",       "data.exchange.path",         "");
-	public static final Setting<String> SnapshotsPath         = new StringSetting(generalGroup,  "Paths",       "snapshot.path",              "snapshots/");
-	public static final Setting<Boolean> LogSchemaOutput      = new BooleanSetting(generalGroup, "Logging",     "NodeExtender.log",           false);
-	public static final Setting<Boolean> RequestLogging       = new BooleanSetting(generalGroup, "Logging",     "log.requests",               false);
-	public static final Setting<String> LogPrefix             = new StringSetting(generalGroup,  "Logging",     "log.prefix",                 "structr");
-	public static final Setting<String> LogName               = new StringSetting(generalGroup,  "Logging",     "log.name",                   "structr-yyyy_mm_dd.request.log");
-	public static final Setting<String> Configuration         = new StringSetting(generalGroup,  "hidden",      "configuration.provider",     "org.structr.module.JarConfigurationProvider");
-	public static final Setting<Boolean> Testing              = new BooleanSetting(generalGroup, "hidden",      "testing",                    false);
-	public static final StringSetting Services                = new StringSetting(generalGroup,  "Services",    "configured.services",        "NodeService AgentService CronService SchemaService LogService HttpService FtpService SSHService");
+	public static final Setting<String> ApplicationTitle      = new StringSetting(generalGroup,   "Application", "application.title",          "Structr 2.1");
+	public static final Setting<String> InstanceName          = new StringSetting(generalGroup,   "Application", "application.instance.name",  "");
+	public static final Setting<String> InstanceStage         = new StringSetting(generalGroup,   "Application", "application.instance.stage", "");
+	public static final Setting<String> SuperUserName         = new StringSetting(generalGroup,   "Superuser",   "superuser.username",         "superadmin");
+	public static final Setting<String> SuperUserPassword     = new PasswordSetting(generalGroup, "Superuser",   "superuser.password",         RandomStringUtils.randomAlphanumeric(12));
+	public static final Setting<String> BasePath              = new StringSetting(generalGroup,   "Paths",       "base.path",                  "");
+	public static final Setting<String> TmpPath               = new StringSetting(generalGroup,   "Paths",       "tmp.path",                   "/tmp");
+	public static final Setting<String> DatabasePath          = new StringSetting(generalGroup,   "Paths",       "database.path",              "db");
+	public static final Setting<String> FilesPath             = new StringSetting(generalGroup,   "Paths",       "files.path",                 System.getProperty("user.dir").concat("/files"));
+	public static final Setting<String> LogDatabasePath       = new StringSetting(generalGroup,   "Paths",       "log.database.path",          System.getProperty("user.dir").concat("/logDb.dat"));
+	public static final Setting<String> DataExchangePath      = new StringSetting(generalGroup,   "Paths",       "data.exchange.path",         "");
+	public static final Setting<String> SnapshotsPath         = new StringSetting(generalGroup,   "Paths",       "snapshot.path",              "snapshots/");
+	public static final Setting<Boolean> LogSchemaOutput      = new BooleanSetting(generalGroup,  "Logging",     "NodeExtender.log",           false);
+	public static final Setting<Boolean> RequestLogging       = new BooleanSetting(generalGroup,  "Logging",     "log.requests",               false);
+	public static final Setting<String> LogPrefix             = new StringSetting(generalGroup,   "Logging",     "log.prefix",                 "structr");
+	public static final Setting<String> LogName               = new StringSetting(generalGroup,   "Logging",     "log.name",                   "structr-yyyy_mm_dd.request.log");
+	public static final Setting<String> Configuration         = new StringSetting(generalGroup,   "hidden",      "configuration.provider",     "org.structr.module.JarConfigurationProvider");
+	public static final Setting<Boolean> Testing              = new BooleanSetting(generalGroup,  "hidden",      "testing",                    false);
+	public static final StringSetting Services                = new StringSetting(generalGroup,   "Services",    "configured.services",        "NodeService AgentService CronService SchemaService LogService HttpService FtpService SSHService");
 
 	// server settings
 	public static final Setting<String> ApplicationHost       = new StringSetting(serverGroup,  "Interfaces", "application.host",              "0.0.0.0");

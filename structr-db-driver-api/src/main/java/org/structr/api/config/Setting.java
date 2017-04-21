@@ -18,9 +18,6 @@
  */
 package org.structr.api.config;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Tag;
 
@@ -29,7 +26,6 @@ import org.structr.api.util.html.Tag;
  */
 public abstract class Setting<T> {
 
-	private final Set<String> servicesToRestart = new LinkedHashSet<>();
 	private SettingsGroup group                 = null;
 	private boolean isDynamic                   = false;
 	private T defaultValue                      = null;
@@ -98,12 +94,6 @@ public abstract class Setting<T> {
 
 		group.unregisterSetting(this);
 		Settings.unregisterSetting(this);
-	}
-
-	// not in use yet
-	public Setting<T> servicesToRestart(final String... serviceNames) {
-		this.servicesToRestart.addAll(Arrays.asList(serviceNames));
-		return this;
 	}
 
 	// ----- protected methods -----
