@@ -51,7 +51,7 @@ public interface GeoCodingResult {
 
 	String getAddress();
 
-	AddressComponent getAddressComponent(Type... types);
+	AddressComponent getAddressComponent(Type type);
 
 	List<AddressComponent> getAddressComponents();
 

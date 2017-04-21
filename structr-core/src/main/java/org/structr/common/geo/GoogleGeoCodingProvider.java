@@ -25,12 +25,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.Arrays;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -225,11 +222,11 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 		}
 
 		@Override
-		public AddressComponent getAddressComponent(Type... types) {
+		public AddressComponent getAddressComponent(Type type) {
 
 			for(AddressComponent addressComponent : addressComponents) {
 
-				if(addressComponent.getTypes().containsAll(Arrays.asList(types))) {
+				if(addressComponent.getType() == type) {
 					return addressComponent;
 				}
 			}
@@ -245,14 +242,12 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 
 	public static class GoogleAddressComponent implements AddressComponent {
 
-		private Set<Type> types = new LinkedHashSet<Type>();
-		private String shortValue = null;
-		private String longValue = null;
+		private Type type = null;
+		private String value = null;
 
 		public GoogleAddressComponent(Element addressComponent) {
 
-			this.shortValue = addressComponent.element("short_name").getTextTrim();
-			this.longValue = addressComponent.element("long_name").getTextTrim();
+			this.value = addressComponent.element("long_name").getTextTrim();
 
 			Iterator<Element> typesElement = addressComponent.elementIterator("type");
 			for(;typesElement.hasNext();) {
@@ -261,7 +256,8 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 				String typeName = typeElement.getTextTrim();
 
 				try {
-					this.types.add(Type.valueOf(typeName));
+					this.type = Type.valueOf(typeName);
+					break;
 
 				} catch(Throwable t) {
 
@@ -272,19 +268,15 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 		}
 
 		@Override
-		public Set<Type> getTypes() {
-			return types;
+		public Type getType() {
+			return type;
 		}
 
 		@Override
-		public String getShortValue() {
-			return shortValue;
+		public String getValue() {
+			return value;
 		}
 
-		@Override
-		public String getLongValue() {
-			return longValue;
-		}
 	}
 
 }
