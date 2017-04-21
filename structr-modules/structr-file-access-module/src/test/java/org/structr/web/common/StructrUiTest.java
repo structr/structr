@@ -50,7 +50,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyMap;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * Base class for all structr UI tests
  *
@@ -77,6 +76,7 @@ public abstract class StructrUiTest extends TestCase {
 	protected static final String host = "localhost";
 	protected static final int httpPort = (System.getProperty("httpPort") != null ? Integer.parseInt(System.getProperty("httpPort")) : 8875);
 	protected static final int ftpPort = (System.getProperty("ftpPort") != null ? Integer.parseInt(System.getProperty("ftpPort")) : 8876);
+	protected static final int sshPort = (System.getProperty("sshPort") != null ? Integer.parseInt(System.getProperty("sshPort")) : 8877);
 
 	protected static String baseUri;
 
@@ -111,7 +111,7 @@ public abstract class StructrUiTest extends TestCase {
 
 		// enable "just testing" flag to avoid JAR resource scanning
 		Settings.Testing.setValue(true);
-		Settings.Services.setValue("NodeService HttpService SchemaService FtpService");
+		Settings.Services.setValue("NodeService HttpService SchemaService FtpService SSHService");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 
 		// example for new configuration setup
@@ -130,8 +130,7 @@ public abstract class StructrUiTest extends TestCase {
 		Settings.ApplicationHost.setValue(host);
 		Settings.HttpPort.setValue(httpPort);
 		Settings.FtpPort.setValue(ftpPort);
-
-		Settings.Servlets.setValue("JsonRestServlet WebSocketServlet HtmlServlet");
+		Settings.SshPort.setValue(sshPort);
 
 		final Services services = Services.getInstance();
 
@@ -272,7 +271,6 @@ public abstract class StructrUiTest extends TestCase {
 		return rels;
 	}
 
-	//~--- get methods ----------------------------------------------------
 	/**
 	 * Get classes in given package and subpackages, accessible from the
 	 * context class loader

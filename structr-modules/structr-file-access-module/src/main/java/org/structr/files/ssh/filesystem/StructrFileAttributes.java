@@ -336,6 +336,8 @@ public class StructrFileAttributes implements PosixFileAttributes, DosFileAttrib
 
 		final Map<String, Object> map = new HashMap<>();
 		final String prefix           = filter.substring(0, filter.indexOf(":"));
+		final GroupPrincipal group    = group();
+		final UserPrincipal owner     = owner();
 
 		if ("dos".equals(prefix)) {
 
@@ -362,8 +364,19 @@ public class StructrFileAttributes implements PosixFileAttributes, DosFileAttrib
 		if ("posix".equals(prefix)) {
 
 			map.put("permissions", permissions());
-			map.put("group", group());
-			map.put("owner", owner());
+
+			if (group != null) {
+				map.put("group", group.getName());
+			}
+
+			if (owner != null) {
+				map.put("owner", owner.getName());
+
+				// set group to owner
+				if (group == null) {
+					map.put("group", owner.getName());
+				}
+			}
 		}
 
 		// permissions only
@@ -372,9 +385,9 @@ public class StructrFileAttributes implements PosixFileAttributes, DosFileAttrib
 			map.put("permissions", permissions());
 		}
 
-		if ("owner".equals(prefix)) {
+		if ("owner".equals(prefix) && owner != null) {
 
-			map.put("owner", owner());
+			map.put("owner", owner().getName());
 		}
 
 		return map;

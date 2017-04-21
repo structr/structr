@@ -149,14 +149,17 @@ public class StructrFilePath extends StructrPath {
 						throw new java.nio.file.FileAlreadyExistsException(toString());
 					}
 
-					// create a new file
-					try {
+					// only create new file when it does not already exist
+					if (actualFile == null) {
 
-						actualFile = createNewFile();
-						setParentFolder(actualFile);
+						try {
 
-					} catch (FrameworkException fex) {
-						logger.warn("", fex);
+							actualFile = createNewFile();
+							setParentFolder(actualFile);
+
+						} catch (FrameworkException fex) {
+							logger.warn("", fex);
+						}
 					}
 				}
 
@@ -174,25 +177,26 @@ public class StructrFilePath extends StructrPath {
 				logger.warn("Unable to open file channel for writing of {}: {}", new Object[] { path, fex.getMessage() });
 			}
 
-		}
-
-		if (actualFile != null && actualFile instanceof FileBase) {
-
-			try (final Tx tx = StructrApp.getInstance(fs.getSecurityContext()).tx()) {
-
-				channel = FileChannel.open(((FileBase)actualFile).getFileOnDisk().toPath(), options);
-
-				tx.success();
-
-			} catch (FrameworkException fex) {
-
-				logger.warn("Unable to open file channel for reading of {}: {}", new Object[] { path, fex.getMessage() });
-
-			}
-
 		} else {
 
-			throw new FileNotFoundException("File " + path.toString() + " does not exist.");
+			if (actualFile != null && actualFile instanceof FileBase) {
+
+				try (final Tx tx = StructrApp.getInstance(fs.getSecurityContext()).tx()) {
+
+					channel = FileChannel.open(((FileBase)actualFile).getFileOnDisk().toPath(), options);
+
+					tx.success();
+
+				} catch (FrameworkException fex) {
+
+					logger.warn("Unable to open file channel for reading of {}: {}", new Object[] { path, fex.getMessage() });
+
+				}
+
+			} else {
+
+				throw new FileNotFoundException("File " + path.toString() + " does not exist.");
+			}
 		}
 
 		return channel;

@@ -68,6 +68,12 @@
 			<scope>test</scope>
 			<optional>false</optional>
 		</dependency>
+	 <dependency>
+	  <groupId>com.jcraft</groupId>
+	  <artifactId>jsch</artifactId>
+	  <version>0.1.54</version>
+	  <scope>test</scope>
+	 </dependency>
 	</dependencies>
 
 	<build>
