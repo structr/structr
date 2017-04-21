@@ -19,22 +19,63 @@
 @charset "UTF-8";
 /** Defaults */
 
+@media (max-width: 640px) {
+	.config-group, .form-group, .form-group-label {
+		display: block;
+	}
+	.config-group {
+	}
+	.form-group {
+		padding: 0;
+		margin: 1em 0 0 0;
+	}
+	.form-group label {
+		padding-top: 4px;
+		display: block;
+	}
+	.form-group input[type=text], .form-group textarea {
+		min-width: 500px;
+		display: block;
+	}
+}
+
+@media (min-width: 641px) {
+	.config-group {
+		display: table;
+	}
+	.form-group {
+		display: table-row;
+		margin: 1em 0;
+	}
+	.form-group label {
+		display: table-cell;
+		padding: 1em 1em 1em 0;
+		min-width: 300px;
+	}
+	.form-group input[type=text], .form-group textarea {
+		min-width: 300px;
+	}
+}
+
+body.login {
+	background-color: #606060;
+}
+
 .tab-content {
 	overflow: auto;
-	height: calc(100% - 80px);
+	height: calc(100% - 10em);
 }
 
 .config-group {
 	padding: 0;
-	margin: 1em 0 0;
 	min-height: 60px;
 }
 
 form.config-form div.buttons {
 	text-align: right;
 	position: absolute;
-	right: 40px;
-	top: 18px;
+	right: 20px;
+	bottom: 18px;
 }
 
 form.config-form div.buttons input[type=reset] {
@@ -46,39 +87,31 @@ form.config-form div.buttons input[type=submit] {
 }
 
 .config-group h3 {
-	font-size: 16pt;
-	margin: 24px 0 0 0;
+	font-size: 2em;
+	margin: .5em 0;
 }
 
 .form-group {
-	padding: 0;
-	margin: 1em 0 0 0;
 }
 
 .form-group label {
-	display: inline-block;
-	width: 320px;
 	font-weight: bold;
-	padding-top: 4px;
 	margin-bottom: 4px;
-	font-family: monospace;
-	vertical-align: top;
+	/*vertical-align: top;*/
 }
 
 .form-group input[type=text], .form-group textarea {
 	width: calc(100vw - 450px);
-	min-width: 500px;
-	vertical-align: top;
 }
 
 .form-group input[type=radio] {
-	vertical-align: top;
+	/*vertical-align: top;*/
 	padding: 0;
 }
 
 .form-group span {
 	display: inline-block;
-	vertical-align: top;
+	/*vertical-align: top;*/
 	margin-top: 4px;
 	margin-right: 2em;
 }
@@ -105,4 +138,30 @@ form.config-form div.buttons input[type=submit] {
 
 #login #loginButton {
 	margin-top: 1em;
+}
+
+#menu {
+	right: 32px;
+	left: inherit;
+}
+
+.buttons input[type=submit] {
+	color: #222;
+	font-weight: bold;
+	padding: 1px 8px 2px 4px;
+	margin: 0 3px 3px 0;
+	vertical-align: middle;
+	border-radius: 3px;
+	border: 1px solid #999;
+	background-color: #e5e5e5;
+	height: 24px;
+}
+
+.buttons input[type=submit]:hover:not(.disabled) {
+	color: #333;
+	padding: 1px 8px 2px 4px;
+	vertical-align: middle;
+	border: 1px solid #bbb;
+	background-color: #f5f5f5;
+	cursor: pointer ! important;
 }

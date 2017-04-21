@@ -2292,7 +2292,6 @@ table.push {
 #resourceAccess, #usersAndGroups, .tab-content {
 	border: 1px solid #999 ! important;
 	background: #fff ! important;
-	font-family: Arial, Helvetica, Sans-serif ! important;
 	font-size: 9pt;
 	padding: 0;
 }
@@ -2368,7 +2367,6 @@ table.push {
 	height: calc(100vh - 120px);
 	border: none;
 	background: none;
-	font-family: Arial, Helvetica, Sans-serif;
 }
 
 #configTabs {
@@ -2378,7 +2376,14 @@ table.push {
 	height: calc(100vh - 74px);
 	border: none;
 	background: none;
-	font-family: Arial, Helvetica, Sans-serif;
+}
+
+#securityTabs li, #configTabs li {
+	font-size: 1.2em;
+	height: 22px;
+	margin: 0 4px 0 0;
+	padding: 3px 6px 0 6px;
+	line-height: 1.5em;
 }
 
 li.ui-corner-top {
@@ -3199,6 +3204,10 @@ i.fa.ps {
 .ui-tooltip {
 	white-space: pre-line;
 	width: 50%;
+}
+
+.ui-tabs .ui-tabs-nav, .ui-tabs .ui-tabs-nav li a {
+	padding: 0;
 }
 
 #search-results h1, #search-results table.props {

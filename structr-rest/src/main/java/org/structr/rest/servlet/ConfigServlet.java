@@ -329,7 +329,7 @@ public class ConfigServlet extends HttpServlet {
 	private Document createLoginDocument(final HttpServletRequest request, final PrintWriter writer) {
 
 		final Document doc = new Document(writer);
-		final Tag body     = setupDocument(request, doc);
+		final Tag body     = setupDocument(request, doc).css("login");
 
 		final Tag loginBox = body.block("div").id("login").css("dialog").attr(new Style("display: block; margin: auto; margin-top: 200px;"));
 
@@ -363,9 +363,9 @@ public class ConfigServlet extends HttpServlet {
 		head.block("title").text("Welcome to Structr 2.1");
 		head.empty("meta").attr(new Attr("http-equiv", "Content-Type"), new Attr("content", "text/html;charset=utf-8"));
 		head.empty("meta").attr(new Name("viewport"), new Attr("content", "width=1024, user-scalable=yes"));
+		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/lib/jquery-ui-1.10.3.custom.min.css"));
 		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/main.css"));
 		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/config.css"));
-		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/lib/jquery-ui-1.10.3.custom.min.css"));
 		head.empty("link").attr(new Rel("icon"), new Href("favicon.ico"), new Type("image/x-icon"));
 		head.block("script").attr(new Src("/structr/js/lib/jquery-1.11.1.min.js"));
 		head.block("script").attr(new Src("/structr/js/lib/jquery-ui-1.11.0.custom.min.js"));

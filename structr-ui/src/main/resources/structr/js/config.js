@@ -50,12 +50,19 @@ function resetToDefault(key) {
 	}
 }
 
+function resize() {
+	$('.tab-content').css({
+		height: $(window).height() - 160 - $('#configTabsMenu').height() + 'px'
+	});
+}
+
 $(function () {
 
 	$('#configTabs').tabs({
 
 		activate: function (event, ui) {
 			$('#active_section').val(ui.newPanel.attr('id'));
+			window.location.hash = ui.newPanel.attr('id');
 		},
 
 		create: function (event, ui) {
@@ -65,4 +72,12 @@ $(function () {
 			}
 		}
 	});
+	
+	$(window).resize(function() {
+		resize();
+	});
+	
+	resize();
+	
 });
+
