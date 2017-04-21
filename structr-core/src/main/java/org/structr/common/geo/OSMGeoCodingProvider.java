@@ -25,13 +25,10 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -93,6 +90,8 @@ public class OSMGeoCodingProvider extends AbstractGeoCodingProvider{
 				try { data.put("state_district", root.element("place").element("state_district").getTextTrim()); } catch (Throwable t) {}
 				try { data.put("city",           root.element("place").element("city").getTextTrim()); } catch (Throwable t) {}
 				try { data.put("countryRegion",  root.element("place").element("country").getTextTrim()); } catch (Throwable t) {}
+				try { data.put("road",		 root.element("place").element("road").getTextTrim()); } catch (Throwable t) {}
+				try { data.put("house_number",	 root.element("place").element("house_number").getTextTrim()); } catch (Throwable t) {}
 
 				if (data.containsKey("lat") && data.containsKey("lon")) {
 
@@ -134,11 +133,37 @@ public class OSMGeoCodingProvider extends AbstractGeoCodingProvider{
 			this.latitude = Double.parseDouble(data.get("lat"));
 			this.longitude = Double.parseDouble(data.get("lon"));
 
-			this.addressComponents.add(new OSMAddressComponent(data.get("postalCode"), Type.postal_code));
-			this.addressComponents.add(new OSMAddressComponent(data.get("state"), Type.administrative_area_level_1));
-			this.addressComponents.add(new OSMAddressComponent(data.get("state_district"), Type.administrative_area_level_3));
-			this.addressComponents.add(new OSMAddressComponent(data.get("countryRegion"), Type.country));
-			this.addressComponents.add(new OSMAddressComponent(data.get("city"), Type.locality));
+			String curData = null;
+
+			curData = data.get("postalCode");
+			if(curData != null){
+				this.addressComponents.add(new OSMAddressComponent(curData, Type.postal_code));
+			}
+			curData = data.get("state");
+			if(curData != null){
+				this.addressComponents.add(new OSMAddressComponent(curData, Type.administrative_area_level_1));
+			}
+			curData = data.get("state_district");
+			if(curData != null){
+				this.addressComponents.add(new OSMAddressComponent(curData, Type.administrative_area_level_3));
+			}
+			curData = data.get("countryRegion");
+			if(curData != null){
+				this.addressComponents.add(new OSMAddressComponent(curData, Type.country));
+			}
+			curData = data.get("city");
+			if(curData != null){
+				this.addressComponents.add(new OSMAddressComponent(curData, Type.locality));
+			}
+			curData = data.get("road");
+			if(curData != null){
+				this.addressComponents.add(new OSMAddressComponent(curData, Type.route));
+			}
+			curData = data.get("house_number");
+			if(curData != null){
+				this.addressComponents.add(new OSMAddressComponent(curData, Type.street_number));
+			}
+
 		}
 
 		public OSMGeoCodingResult(final double latitude, final double longitude) {
@@ -154,11 +179,11 @@ public class OSMGeoCodingProvider extends AbstractGeoCodingProvider{
 		}
 
 		@Override
-		public AddressComponent getAddressComponent(Type... types) {
+		public AddressComponent getAddressComponent(Type type) {
 
 			for(AddressComponent addressComponent : addressComponents) {
 
-				if(addressComponent.getTypes().containsAll(Arrays.asList(types))) {
+				if(addressComponent.getType() == type) {
 					return addressComponent;
 				}
 			}
@@ -204,30 +229,23 @@ public class OSMGeoCodingProvider extends AbstractGeoCodingProvider{
 
 	private static class OSMAddressComponent implements AddressComponent {
 
-		Set<GeoCodingResult.Type> types   = new LinkedHashSet<GeoCodingResult.Type>();
-		String longValue  = null;
-		String shortValue = null;
+		GeoCodingResult.Type type		 = null;
+		String value					 = null;
 
-		public OSMAddressComponent(String value, GeoCodingResult.Type... types) {
+		public OSMAddressComponent(String value, GeoCodingResult.Type type) {
 
-			this.types.addAll(Arrays.asList(types));
-			this.longValue  = value;
-			this.shortValue = value;
+			this.type = type;
+			this.value  = value;
 		}
 
 		@Override
-		public String getLongValue() {
-			return longValue;
+		public String getValue() {
+			return value;
 		}
 
 		@Override
-		public String getShortValue() {
-			return shortValue;
-		}
-
-		@Override
-		public Set<GeoCodingResult.Type> getTypes() {
-			return types;
+		public GeoCodingResult.Type getType() {
+			return type;
 		}
 	}
 }

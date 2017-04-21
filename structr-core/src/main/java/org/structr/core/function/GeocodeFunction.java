@@ -21,6 +21,7 @@ package org.structr.core.function;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.geo.AddressComponent;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
 import org.structr.schema.action.ActionContext;
@@ -57,6 +58,37 @@ public class GeocodeFunction extends Function<Object, Object> {
 
 					map.put("latitude", result.getLatitude());
 					map.put("longitude", result.getLongitude());
+
+					AddressComponent cur = null;
+
+					cur = result.getAddressComponent(GeoCodingResult.Type.country);
+					if(cur != null){
+						map.put("country", cur.getValue());
+					}
+					cur = result.getAddressComponent(GeoCodingResult.Type.postal_code);
+					if(cur != null){
+						map.put("postalCode", cur.getValue());
+					}
+					cur = result.getAddressComponent(GeoCodingResult.Type.locality);
+					if(cur != null){
+						map.put("city", cur.getValue());
+					}
+					cur = result.getAddressComponent(GeoCodingResult.Type.route);
+					if(cur != null){
+						map.put("street", cur.getValue());
+					}
+					cur = result.getAddressComponent(GeoCodingResult.Type.street_number);
+					if(cur != null){
+						map.put("houseNumber", cur.getValue());
+					}
+					cur = result.getAddressComponent(GeoCodingResult.Type.administrative_area_level_1);
+					if(cur != null){
+						map.put("state", cur.getValue());
+					}
+					cur = result.getAddressComponent(GeoCodingResult.Type.administrative_area_level_3);
+					if(cur != null){
+						map.put("stateDistrict", cur.getValue());
+					}
 
 					return map;
 				}
