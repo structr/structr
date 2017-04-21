@@ -953,8 +953,6 @@ public class SimpleTest extends StructrUiTest {
 			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
-
-
 	}
 
 	// ----- private methods -----

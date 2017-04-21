@@ -120,10 +120,6 @@ public abstract class StructrUiTest {
 
 	@BeforeClass
 	public static void start() throws Exception {
-		start(null);
-	}
-
-	public static void start(final Map<String, Object> additionalConfig) {
 
 		final long timestamp = System.currentTimeMillis();
 

@@ -21,6 +21,7 @@ package org.structr.core.graph;
 import java.io.File;
 import java.util.Collections;
 import java.util.Iterator;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -161,7 +162,13 @@ public class NodeService implements SingletonService {
 	public void initialized() {
 
 		// check for empty database and seed file
-		importSeedFile(Settings.BasePath.getValue());
+		String basePath = Settings.BasePath.getValue();
+
+		if (StringUtils.isEmpty(basePath)) {
+			basePath = ".";
+		}
+
+		importSeedFile(basePath);
 	}
 
 	@Override
