@@ -1965,7 +1965,11 @@ var _Crud = {
 			types = [type.capitalize()];
 			searchString = typeAndValue[1];
 		} else {
-			types = type ? [type] : Object.keys(_Crud.types);
+			if (type) {
+				types = type.split(',').filter(function(t) { return t.trim() !== ''; });
+			} else {
+				types = Object.keys(_Crud.types);
+			}
 			if (searchString.match(/[0-9a-f]{32}/)) {
 				attr = 'uuid'; // UUID
 			}
