@@ -527,8 +527,8 @@ var _Schema = {
 					_Schema.availableTypeNames.push(entity.name);
 
 					var level   = 0;
-					var outs    = entity.relatedTo.length;
-					var ins     = entity.relatedFrom.length;
+					var outs    = entity.relatedTo ? entity.relatedTo.length : 0;
+					var ins     = entity.relatedFrom ? entity.relatedFrom.length : 0;
 					var hasRels = (outs > 0 || ins > 0);
 
 					if (ins === 0 && outs === 0) {

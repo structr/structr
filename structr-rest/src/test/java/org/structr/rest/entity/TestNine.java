@@ -98,7 +98,7 @@ public class TestNine extends AbstractNode {
 			AddressComponent postalCodeComponent = geoCodingResult.getAddressComponent(GeoCodingResult.Type.postal_code);
 			if (postalCodeComponent != null) {
 
-				setProperty(postalCode, postalCodeComponent.getLongValue());
+				setProperty(postalCode, postalCodeComponent.getValue());
 			}
 		}
 	}
