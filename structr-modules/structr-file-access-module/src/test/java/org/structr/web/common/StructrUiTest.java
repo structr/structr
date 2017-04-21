@@ -53,6 +53,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.files.ftp.FtpService;
+import org.structr.files.ssh.SSHService;
 import org.structr.module.JarConfigurationProvider;
 import org.structr.rest.service.HttpService;
 import org.structr.rest.servlet.JsonRestServlet;
@@ -91,6 +92,7 @@ public abstract class StructrUiTest extends TestCase {
 	protected static final String host = "localhost";
 	protected static final int httpPort = (System.getProperty("httpPort") != null ? Integer.parseInt(System.getProperty("httpPort")) : 8875);
 	protected static final int ftpPort = (System.getProperty("ftpPort") != null ? Integer.parseInt(System.getProperty("ftpPort")) : 8876);
+	protected static final int sshPort = (System.getProperty("sshPort") != null ? Integer.parseInt(System.getProperty("sshPort")) : 8877);
 
 	protected static String baseUri;
 
@@ -129,7 +131,7 @@ public abstract class StructrUiTest extends TestCase {
 		config.setProperty(Services.TESTING, "true");
 
 		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
-		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService FtpService HttpService SchemaService");
+		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService FtpService SSHService HttpService SchemaService");
 		config.setProperty(Structr.DATABASE_CONNECTION_URL, Structr.TEST_DATABASE_URL);
 		config.setProperty(Services.TMP_PATH, "/tmp/");
 		config.setProperty(Services.BASE_PATH, basePath);
@@ -142,6 +144,7 @@ public abstract class StructrUiTest extends TestCase {
 		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
 
 		config.setProperty(FtpService.APPLICATION_FTP_PORT, Integer.toString(ftpPort));
+		config.setProperty(SSHService.APPLICATION_SSH_PORT, Integer.toString(sshPort));
 
 		// configure servlets
 		config.setProperty(HttpService.APPLICATION_TITLE, "structr unit test app" + timestamp);
