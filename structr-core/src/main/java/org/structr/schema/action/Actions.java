@@ -116,13 +116,20 @@ public class Actions {
 		final Map<String, Object> params = new HashMap<>();
 		params.put("user", user);
 
-		return call(key, params);
+		return callAsSuperUser(key, params);
 	}
 
-	public static Object call(final String key, final Map<String, Object> parameters) throws FrameworkException {
+	public static Object callAsSuperUser(final String key, final Map<String, Object> parameters) throws FrameworkException {
 
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-		final App app                          = StructrApp.getInstance(superUserContext);
+
+		return callWithSecurityContext(key, superUserContext, parameters);
+
+	}
+
+	public static Object callWithSecurityContext(final String key, final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException {
+
+		final App app = StructrApp.getInstance(securityContext);
 
 		// we might want to introduce caching here at some point in the future..
 		// Cache can be invalidated when the schema is rebuilt for example..
@@ -145,7 +152,7 @@ public class Actions {
 					final String source = method.getProperty(SchemaMethod.source);
 					if (source != null) {
 
-						return Actions.execute(superUserContext, null, "${" + source + "}", parameters, method.getName());
+						return Actions.execute(securityContext, null, "${" + source + "}", parameters, method.getName());
 
 					} else {
 

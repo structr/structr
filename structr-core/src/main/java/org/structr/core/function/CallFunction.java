@@ -18,8 +18,10 @@
  */
 package org.structr.core.function;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.schema.action.ActionContext;
@@ -46,15 +48,15 @@ public class CallFunction extends Function<Object, Object> {
 
 			if (sources.length == 1) {
 
-				return Actions.call(methodName, new LinkedHashMap<>());
+				return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), Collections.EMPTY_MAP);
 
 			} else if (sources.length == 2 && sources[1] instanceof Map) {
 
-				return Actions.call(methodName, ((Map)sources[1]));
+				return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), ((Map)sources[1]));
 
 			} else if (sources.length == 2 && sources[1] instanceof GraphObjectMap) {
 
-				return Actions.call(methodName, ((GraphObjectMap)sources[1]).toMap());
+				return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), ((GraphObjectMap)sources[1]).toMap());
 
 			} else {
 
@@ -70,7 +72,7 @@ public class CallFunction extends Function<Object, Object> {
 					newMap.put(sources[c].toString(), sources[c + 1]);
 				}
 
-				return Actions.call(methodName, newMap);
+				return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), newMap);
 
 			}
 
@@ -91,7 +93,14 @@ public class CallFunction extends Function<Object, Object> {
 
 	@Override
 	public String shortDescription() {
-		return "Calls the given exported / dynamic method on the given entity";
+		return "Calls the given global schema method in the current users context";
+	}
+
+	/*
+	 * Overridden in CallPrivilegedFunction to return a superuser context
+	 */
+	public SecurityContext getSecurityContext(final ActionContext ctx) {
+		return ctx.getSecurityContext();
 	}
 
 }

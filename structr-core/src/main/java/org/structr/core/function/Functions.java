@@ -370,6 +370,7 @@ public class Functions {
 		functions.put("unlock_readonly_properties_once", new UnlockReadonlyPropertiesFunction());
 		functions.put("unlock_system_properties_once", new UnlockSystemPropertiesFunction());
 		functions.put("call", new CallFunction());
+		functions.put("call_privileged", new CallPrivilegedFunction());
 		functions.put("exec", new ExecFunction());
 		functions.put("exec_binary", new ExecBinaryFunction());
 		functions.put("set_privileged", new SetPrivilegedFunction());

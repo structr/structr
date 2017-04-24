@@ -96,7 +96,7 @@ public class CronService extends Thread implements RunnableService {
 							try (final Tx tx = StructrApp.getInstance().tx()) {
 
 								// check for schema method with the given name
-								Actions.call(taskClassName, Collections.EMPTY_MAP);
+								Actions.callAsSuperUser(taskClassName, Collections.EMPTY_MAP);
 
 								tx.success();
 							}
