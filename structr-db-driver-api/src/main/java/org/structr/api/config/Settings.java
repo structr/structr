@@ -152,6 +152,8 @@ public class Settings {
 	// servlets
 	public static final Setting<String> Servlets              = new StringSetting(servletsGroup,  "General", "HttpService.servlets",             "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet");
 
+	public static final Setting<Boolean> ConfigServletEnabled = new BooleanSetting(servletsGroup,  "ConfigServlet", "ConfigServlet.enabled",             true);
+
 	public static final Setting<String> RestServletPath       = new StringSetting(servletsGroup,  "JsonRestServlet", "JsonRestServlet.path",             "/structr/rest/*");
 	public static final Setting<String> RestServletClass      = new StringSetting(servletsGroup,  "JsonRestServlet", "JsonRestServlet.class",            "org.structr.rest.servlet.JsonRestServlet");
 	public static final Setting<String> RestAuthenticator     = new StringSetting(servletsGroup,  "JsonRestServlet", "JsonRestServlet.authenticator",    "org.structr.web.auth.UiAuthenticator");

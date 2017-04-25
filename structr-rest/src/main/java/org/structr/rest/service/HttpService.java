@@ -219,8 +219,11 @@ public class HttpService implements RunnableService {
 		servletContext.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/");
 		servletContext.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
 
-		// configuration wizard entry point
-		servletContext.addServlet("org.structr.rest.servlet.ConfigServlet", "/structr/config/*");
+		if (Settings.ConfigServletEnabled.getValue()) {
+			
+			// configuration wizard entry point
+			servletContext.addServlet("org.structr.rest.servlet.ConfigServlet", "/structr/config/*");
+		}
 
 		// CMIS setup
 		if (Settings.CmisEnabled.getValue()) {
