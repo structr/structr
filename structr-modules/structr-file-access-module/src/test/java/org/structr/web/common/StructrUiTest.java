@@ -111,7 +111,7 @@ public abstract class StructrUiTest extends TestCase {
 
 		// enable "just testing" flag to avoid JAR resource scanning
 		Settings.Testing.setValue(true);
-		Settings.Services.setValue("NodeService HttpService SchemaService FtpService SSHService");
+		Settings.Services.setValue("NodeService FtpService SSHService");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 
 		// example for new configuration setup
@@ -137,7 +137,7 @@ public abstract class StructrUiTest extends TestCase {
 		// wait for service layer to be initialized
 		do {
 			try {
-				Thread.sleep(100);
+				Thread.sleep(1000);
 			} catch (Throwable t) {
 			}
 

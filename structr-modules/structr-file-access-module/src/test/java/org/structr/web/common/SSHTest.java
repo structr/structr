@@ -141,10 +141,10 @@ public abstract class SSHTest extends StructrUiTest {
 
 			session.setConfig("StrictHostKeyChecking", "no");
 			session.setPassword(password);
-			session.connect();
+			session.connect(1000);
 
 			final Channel channel = session.openChannel("sftp");
-			channel.connect();
+			channel.connect(1000);
 
 			return (ChannelSftp)channel;
 
