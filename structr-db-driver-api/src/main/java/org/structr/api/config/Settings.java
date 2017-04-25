@@ -193,7 +193,7 @@ public class Settings {
 	public static final Setting<Boolean> CsvUserAutocreate   = new BooleanSetting(servletsGroup, "CsvServlet", "CsvServlet.user.autocreate",   false);
 	public static final Setting<Boolean> CsvFrontendAccess   = new BooleanSetting(servletsGroup, "CsvServlet", "CsvServlet.frontendAccess",    false);
 
-	public static final Setting<String> UploadServletPath       = new StringSetting(servletsGroup,  "UploadServlet", "UploadServlet.path",                  "/structr/csv/*");
+	public static final Setting<String> UploadServletPath       = new StringSetting(servletsGroup,  "UploadServlet", "UploadServlet.path",                  "/structr/upload");
 	public static final Setting<String> UploadServletClass      = new StringSetting(servletsGroup,  "UploadServlet", "UploadServlet.class",                 "org.structr.web.servlet.UploadServlet");
 	public static final Setting<String> UploadAuthenticator     = new StringSetting(servletsGroup,  "UploadServlet", "UploadServlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
 	public static final Setting<String> UploadDefaultView       = new StringSetting(servletsGroup,  "UploadServlet", "UploadServlet.defaultview",           "public");
