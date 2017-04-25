@@ -19,13 +19,16 @@
 package org.structr.web.common;
 
 import java.io.IOException;
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.fail;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractUser;
@@ -140,7 +143,7 @@ public abstract class FtpTest extends StructrUiTest {
 			} catch (FrameworkException fex) {
 				logger.error("Unable to create FTP user", fex);
 			}
-			
+
 			boolean loginSuccess = ftp.login(username, password);
 			logger.info("Tried to login as {}/{}: {}", new Object[]{ username, password, loginSuccess});
 			assertTrue(loginSuccess);
@@ -156,7 +159,7 @@ public abstract class FtpTest extends StructrUiTest {
 		return ftp;
 
 	}
-	
+
 	protected void disconnect(final FTPClient ftp) {
 		try {
 			ftp.disconnect();

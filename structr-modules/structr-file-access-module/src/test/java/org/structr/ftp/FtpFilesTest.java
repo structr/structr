@@ -23,10 +23,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.fail;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -43,6 +45,7 @@ public class FtpFilesTest extends FtpTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(FtpFilesTest.class.getName());
 
+	@Test
 	public void test00StoreFile() {
 
 		FTPClient ftp = setupFTPClient("ftpuser1");
@@ -111,6 +114,7 @@ public class FtpFilesTest extends FtpTest {
 		}
 	}
 
+	@Test
 	public void test01ListFiles() {
 
 		FTPClient ftp = setupFTPClient("ftpuser1");
@@ -173,6 +177,7 @@ public class FtpFilesTest extends FtpTest {
 		}
 	}
 
+	@Test
 	public void test02RenameFile() {
 
 		FTPClient ftp = setupFTPClient("ftpuser1");
@@ -225,6 +230,7 @@ public class FtpFilesTest extends FtpTest {
 		}
 	}
 
+	@Test
 	public void test03MoveFile() {
 
 		FTPClient ftp = setupFTPClient("ftpuser1");
@@ -290,6 +296,7 @@ public class FtpFilesTest extends FtpTest {
 		}
 	}
 
+	@Test
 	public void test04MoveFileToRoot() {
 
 		FTPClient ftp = setupFTPClient("ftpuser1");
@@ -384,6 +391,7 @@ public class FtpFilesTest extends FtpTest {
 		}
 	}
 
+	@Test
 	public void test05LargeFile() {
 
 		final FTPClient ftp = setupFTPClient("ftpuser1");
@@ -432,6 +440,7 @@ public class FtpFilesTest extends FtpTest {
 		}
 	}
 
+	@Test
 	public void test06OverwriteFile() {
 
 		FTPClient ftp = setupFTPClient("ftpuser1");
@@ -501,6 +510,7 @@ public class FtpFilesTest extends FtpTest {
 		}
 	}
 
+	@Test
 	public void test07DeleteFile() {
 
 		final FTPClient ftp = setupFTPClient("ftpuser1");

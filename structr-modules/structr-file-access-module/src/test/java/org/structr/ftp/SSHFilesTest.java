@@ -27,6 +27,8 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Vector;
 import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.fail;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
@@ -215,6 +217,7 @@ public class SSHFilesTest extends SSHTest {
 		}
 	}
 
+	@Test
 	public void test02RenameFile() {
 
 		ChannelSftp sftp          = setupSftpClient("ftpuser1", "ftpuserpw1");
@@ -264,6 +267,7 @@ public class SSHFilesTest extends SSHTest {
 		}
 	}
 
+	@Test
 	public void test03MoveFile() {
 
 		ChannelSftp sftp          = setupSftpClient("ftpuser1", "ftpuserpw1");
@@ -317,6 +321,7 @@ public class SSHFilesTest extends SSHTest {
 		}
 	}
 
+	@Test
 	public void test04OverwriteFile() {
 
 		ChannelSftp sftp          = setupSftpClient("ftpuser1", "ftpuserpw1");
@@ -411,6 +416,7 @@ public class SSHFilesTest extends SSHTest {
 		}
 	}
 
+	@Test
 	public void test05DeleteFile() {
 
 		final ChannelSftp sftp   = setupSftpClient("ftpuser1", "ftpuserpw1");
@@ -485,6 +491,7 @@ public class SSHFilesTest extends SSHTest {
 		}
 	}
 
+	@Test
 	public void test06DeleteDirectory() {
 
 		final ChannelSftp sftp   = setupSftpClient("ftpuser1", "ftpuserpw1");
@@ -509,9 +516,9 @@ public class SSHFilesTest extends SSHTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertNotNull("Folder test1 should exist", app.nodeQuery(Folder.class).andName("test1").getFirst());
-			assertNotNull("Folder test2 should exist", app.nodeQuery(Folder.class).andName("test2").getFirst());
-			assertNotNull("Folder nested1 should exist", app.nodeQuery(Folder.class).andName("nested1").getFirst());
+			assertEquals("Folder test1 should exist", "test1", app.nodeQuery(Folder.class).andName("test1").getFirst().getName());
+			assertEquals("Folder test2 should exist", "test2", app.nodeQuery(Folder.class).andName("test2").getFirst().getName());
+			assertEquals("Folder nested1 should exist", "nested1", app.nodeQuery(Folder.class).andName("nested1").getFirst().getName());
 			assertNull("Folder nested2 should have been deleted", app.nodeQuery(Folder.class).andName("nested2").getFirst());
 
 			tx.success();

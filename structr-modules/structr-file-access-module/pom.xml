@@ -118,6 +118,7 @@
 						<exclude>**/README</exclude>
 						<exclude>src/**/.directory</exclude>
 						<exclude>src/**/*.sh</exclude>
+						<exclude>src/**/*.xml</exclude>
 					</excludes>
 					<properties>
 						<year>2017</year>

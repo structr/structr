@@ -20,22 +20,27 @@ package org.structr.web.common;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
-import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -46,10 +51,13 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.GraphDatabaseCommand;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 
+//~--- classes ----------------------------------------------------------------
 /**
  * Base class for all structr UI tests
  *
@@ -57,19 +65,20 @@ import org.structr.core.property.PropertyMap;
  *
  *
  */
-public abstract class StructrUiTest extends TestCase {
+public abstract class StructrUiTest {
 
-	protected Properties config                   = new Properties();
-	protected GraphDatabaseCommand graphDbCommand = null;
-	protected SecurityContext securityContext     = null;
+	private static final Logger logger = LoggerFactory.getLogger(StructrUiTest.class.getName());
 
-	protected App app = null;
+	protected static GraphDatabaseCommand graphDbCommand = null;
+	protected static SecurityContext securityContext     = null;
+	protected static App app                             = null;
+	protected static String basePath                     = null;
 
 	// the jetty server
 	private boolean running = false;
-	protected String basePath;
 
 	protected static final String prot = "http://";
+//	protected static final String contextPath = "/";
 	protected static final String restUrl = "/structr/rest";
 	protected static final String htmlUrl = "/structr/html";
 	protected static final String wsUrl = "/structr/ws";
@@ -82,9 +91,6 @@ public abstract class StructrUiTest extends TestCase {
 
 	static {
 
-		// check character set
-		checkCharset();
-
 		baseUri = prot + host + ":" + httpPort + htmlUrl + "/";
 		// configure RestAssured
 		RestAssured.basePath = restUrl;
@@ -93,17 +99,28 @@ public abstract class StructrUiTest extends TestCase {
 
 	}
 
-	//~--- methods --------------------------------------------------------
-	@Override
-	protected void setUp() throws Exception {
-		setUp(null);
-	}
+	@Rule
+	public TestRule watcher = new TestWatcher() {
 
-	protected void setUp(final Map<String, Object> additionalConfig) {
+		@Override
+		protected void starting(Description description) {
 
-		System.out.println("\n######################################################################################");
-		System.out.println("# Starting " + getClass().getSimpleName() + "#" + getName());
-		System.out.println("######################################################################################");
+			System.out.println("######################################################################################");
+			System.out.println("# Starting " + description.getClassName() + "#" + description.getMethodName());
+			System.out.println("######################################################################################");
+		}
+
+		@Override
+		protected void finished(Description description) {
+
+			System.out.println("######################################################################################");
+			System.out.println("# Finished " + description.getClassName() + "#" + description.getMethodName());
+			System.out.println("######################################################################################");
+		}
+	};
+
+	@BeforeClass
+	public static void start() throws Exception {
 
 		final long timestamp = System.currentTimeMillis();
 
@@ -137,7 +154,7 @@ public abstract class StructrUiTest extends TestCase {
 		// wait for service layer to be initialized
 		do {
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(100);
 			} catch (Throwable t) {
 			}
 
@@ -151,8 +168,28 @@ public abstract class StructrUiTest extends TestCase {
 
 	}
 
-	@Override
-	protected void tearDown() throws Exception {
+	@After
+	public void cleanDatabase() {
+
+		try (final Tx tx = app.tx()) {
+
+			for (final NodeInterface node : app.nodeQuery().getAsList()) {
+				app.delete(node);
+			}
+
+			// delete remaining nodes without UUIDs etc.
+			app.cypher("MATCH (n)-[r]-(m) DELETE n, r, m", Collections.emptyMap());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			 logger.error("Exception while trying to clean database: {}", fex);
+		}
+	}
+
+	@AfterClass
+	public static void stop() throws Exception {
 
 		Services.getInstance().shutdown();
 
@@ -181,13 +218,6 @@ public abstract class StructrUiTest extends TestCase {
 			} catch (Throwable t) {
 			}
 		}
-
-		super.tearDown();
-
-		System.out.println("######################################################################################");
-		System.out.println("# " + getClass().getSimpleName() + "#" + getName() + " finished.");
-		System.out.println("######################################################################################\n");
-
 	}
 
 	/**
@@ -228,6 +258,20 @@ public abstract class StructrUiTest extends TestCase {
 
 		return classes;
 
+	}
+
+	protected <T extends NodeInterface> T createTestNode(final Class<T> type, final NodeAttribute... attrs) throws FrameworkException {
+
+		final PropertyMap props = new PropertyMap();
+
+		props.put(AbstractNode.type, type.getSimpleName());
+		props.put(AbstractNode.name, type.getSimpleName());
+
+		for (final NodeAttribute attr : attrs) {
+			props.put(attr.getKey(), attr.getValue());
+		}
+
+		return app.create(type, props);
 	}
 
 	protected <T extends NodeInterface> List<T> createTestNodes(final Class<T> type, final int number) throws FrameworkException {
@@ -333,18 +377,6 @@ public abstract class StructrUiTest extends TestCase {
 					.delete("/resource_access");
 		}
 
-		// list existing grants
-		RestAssured
-
-			.given()
-				.contentType("application/json; charset=UTF-8")
-				.header("X-User", "superadmin")
-				.header("X-Password", "sehrgeheim")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-
-			.when()
-				.get("/resource_access");
-
 		// create new grant
 		RestAssured
 
@@ -429,31 +461,10 @@ public abstract class StructrUiTest extends TestCase {
 				.delete(resource);
 	}
 
-	private static void checkCharset() {
-
-		System.out.println("######### Charset settings ##############");
-		System.out.println("Default Charset=" + Charset.defaultCharset());
-		System.out.println("file.encoding=" + System.getProperty("file.encoding"));
-		System.out.println("Default Charset=" + Charset.defaultCharset());
-		System.out.println("Default Charset in Use=" + getEncodingInUse());
-		System.out.println("This should look like the umlauts of 'a', 'o', 'u' and 'ss': äöüß");
-		System.out.println("#########################################");
-
-	}
-
-	private static String getEncodingInUse() {
-		OutputStreamWriter writer = new OutputStreamWriter(new ByteArrayOutputStream());
-		return writer.getEncoding();
-	}
-
-	// disabled to be able to test on windows systems
-//	public void testCharset() {
-//		assertTrue(StringUtils.remove(getEncodingInUse().toLowerCase(), "-").equals("utf8"));
-//	}
 	protected void makePublic(final Object... objects) throws FrameworkException {
 
 		for (Object obj : objects) {
-			((GraphObject) obj).setProperty(GraphObject.visibleToPublicUsers, true);
+			((GraphObject) obj).setProperties(((GraphObject) obj).getSecurityContext(), new PropertyMap(GraphObject.visibleToPublicUsers, true));
 		}
 
 	}
@@ -484,4 +495,80 @@ public abstract class StructrUiTest extends TestCase {
 			this.value = value;
 		}
 	}
+
+	protected String createEntity(String resource, String... body) {
+
+		final StringBuilder buf = new StringBuilder();
+
+		for (String part : body) {
+			buf.append(part);
+		}
+
+		return getUuidFromLocation(
+			RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.body(buf.toString())
+			.expect().statusCode(201).when().post(resource).getHeader("Location"));
+	}
+
+	protected String createEntityAsUser(final String name, final String password, final String resource, final String... body) {
+
+		StringBuilder buf = new StringBuilder();
+
+		for (String part : body) {
+			buf.append(part);
+		}
+
+		return getUuidFromLocation(
+			RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.header("X-User", name)
+				.header("X-Password", password)
+
+			.body(buf.toString())
+				.expect().statusCode(201)
+			.when().post(resource).getHeader("Location"));
+	}
+
+	protected String createEntityAsSuperUser(String resource, String... body) {
+
+		final StringBuilder buf = new StringBuilder();
+
+		for (String part : body) {
+			buf.append(part);
+		}
+
+		return getUuidFromLocation(
+			RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.header("X-User", Settings.SuperUserName.getValue())
+				.header("X-Password", Settings.SuperUserPassword.getValue())
+
+			.body(buf.toString())
+				.expect().statusCode(201)
+			.when().post(resource).getHeader("Location"));
+	}
+
 }
+
