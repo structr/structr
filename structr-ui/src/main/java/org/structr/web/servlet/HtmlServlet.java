@@ -350,7 +350,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 							} else if (result instanceof FileBase) {
 
-								streamFile(authResult.getSecurityContext(), (File)result, request, response, EditMode.NONE);
+								streamFile(authResult.getSecurityContext(), (FileBase)result, request, response, EditMode.NONE);
 								tx.success();
 								return;
 
@@ -359,8 +359,26 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 						// Page with Basic Auth found but not yet authenticated
 						case MustAuthenticate:
-							tx.success();
-							return;
+
+							final Page errorPage = StructrApp.getInstance().nodeQuery(Page.class).and(Page.showOnErrorCodes, "401", false).getFirst();
+							if (errorPage != null && isVisibleForSite(request, errorPage)) {
+
+								// set error page
+								rootElement = errorPage;
+
+								// don't cache the error page
+								dontCache = true;
+
+							} else {
+
+								// send error
+								response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+
+								tx.success();
+								return;
+							}
+
+							break;
 
 						// no Basic Auth for given path, go on
 						case NoBasicAuth:
@@ -495,11 +513,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 												if (finished.get()) {
 
 													async.complete();
-
-													// don't overwrite 404 code from error page
-													if (response.getStatus() != HttpServletResponse.SC_NOT_FOUND) {
-														response.setStatus(HttpServletResponse.SC_OK);
-													}
 
 													// prevent this block from being called again
 													break;
@@ -725,6 +738,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 						// Page with Basic Auth found but not yet authenticated
 						case MustAuthenticate:
+							tx.success();
 							return;
 
 						// no Basic Auth for given path, go on
@@ -1675,7 +1689,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			// fallback: the following code will be executed if no Authorization
 			// header was sent, OR if the authentication failed
 			response.setHeader("WWW-Authenticate", "BASIC realm=\"" + realm + "\"");
-			response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
 			// no Authorization header sent by client
 			return HttpBasicAuthResult.MUST_AUTHENTICATE;
