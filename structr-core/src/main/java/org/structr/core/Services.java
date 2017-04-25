@@ -418,7 +418,7 @@ public class Services implements StructrServices {
 
 	public void startService(final Class serviceClass) {
 
-		logger.debug("Creating service ", serviceClass.getName());
+		logger.info("Creating service ", serviceClass.getName());
 
 		Service service = null;
 
@@ -433,7 +433,7 @@ public class Services implements StructrServices {
 
 				if (runnableService.runOnStartup()) {
 
-					logger.debug("Starting RunnableService instance ", serviceClass.getName());
+					logger.info("Starting RunnableService instance ", serviceClass.getName());
 
 					// start RunnableService and cache it
 					runnableService.startService();
@@ -451,8 +451,12 @@ public class Services implements StructrServices {
 			logger.error("Service {} failed to start", service.getClass().getSimpleName(), t);
 		}
 
+		logger.info("Calling initialization callback");
+
 		// initialization callback
 		service.initialized();
+
+		logger.info("Service initialized.");
 	}
 
 	public void shutdownService(final String serviceName) {

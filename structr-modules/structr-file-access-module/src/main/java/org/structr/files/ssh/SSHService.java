@@ -83,11 +83,16 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	@Override
 	public void initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
+		logger.info("Setting up SSH server..");
+
 		server = SshServer.setUpDefaultServer();
+
+		logger.info("Initializing host key generator..");
 
 		final SimpleGeneratorHostKeyProvider hostKeyProvider = new SimpleGeneratorHostKeyProvider(Paths.get("db/structr_hostkey"));
 		hostKeyProvider.setAlgorithm(KeyUtils.RSA_ALGORITHM);
 
+		logger.info("Configuring SSH server..");
 
 		server.setKeyPairProvider(hostKeyProvider);
 		server.setPort(Settings.SshPort.getValue());
@@ -98,14 +103,19 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 		server.setShellFactory(this);
 		server.setCommandFactory(this);
 
+		logger.info("Starting SSH server..");
+
 		try {
 
 			server.start();
 			running = true;
 
 		} catch (IOException ex) {
-			logger.error("", ex);
+			ex.printStackTrace();
+			//logger.error("", ex);
 		}
+
+		logger.info("Initialization complete.");
 	}
 
 	@Override
