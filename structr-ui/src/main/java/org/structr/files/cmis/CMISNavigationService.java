@@ -294,7 +294,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 
 		if (CMISInfo.ROOT_FOLDER_ID.equals(folderId)) {
 
-			query.and(AbstractFile.hasParent, false).not().and(Image.isThumbnail, true);
+			query.and(AbstractFile.hasParent, false).and(Image.isThumbnail, false);
 
 		} else {
 

@@ -418,7 +418,7 @@ public class Services implements StructrServices {
 
 	public void startService(final Class serviceClass) {
 
-		logger.info("Creating service ", serviceClass.getName());
+		logger.info("Creating service ", serviceClass.getSimpleName());
 
 		Service service = null;
 
@@ -432,8 +432,6 @@ public class Services implements StructrServices {
 				RunnableService runnableService = (RunnableService) service;
 
 				if (runnableService.runOnStartup()) {
-
-					logger.info("Starting RunnableService instance ", serviceClass.getName());
 
 					// start RunnableService and cache it
 					runnableService.startService();
