@@ -1030,7 +1030,7 @@ var _Files = {
 		$('button#saveFile', dialogBtn).on('click', function(e) {
 			e.preventDefault();
 			e.stopPropagation();
-			Command.createConvertedImage(image.id, Math.round(w), Math.round(h), 'png', Math.round(x), Math.round(y), function() {
+			Command.createConvertedImage(image.id, Math.round(w), Math.round(h), null, Math.round(x), Math.round(y), function() {
 				dialogSaveButton.prop("disabled", true).addClass('disabled');
 				saveAndClose.prop("disabled", true).addClass('disabled');
 			});

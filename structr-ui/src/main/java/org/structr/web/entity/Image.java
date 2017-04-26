@@ -154,7 +154,7 @@ public class Image extends org.structr.dynamic.File {
 
 					for (Image tn : getThumbnails()) {
 
-						final String expectedThumbnailName = getThumbnailName(newImageName, tn.getWidth(), tn.getHeight());
+						final String expectedThumbnailName = ImageHelper.getThumbnailName(newImageName, tn.getWidth(), tn.getHeight());
 						final String currentThumbnailName  = tn.getName();
 
 						if ( !expectedThumbnailName.equals(currentThumbnailName) ) {
@@ -343,10 +343,10 @@ public class Image extends org.structr.dynamic.File {
 					try {
 
 						data = thumbnailData.getBytes();
-						final String thumbnailName = getThumbnailName(originalImage.getName(), tnWidth, tnHeight);
+						final String thumbnailName = ImageHelper.getThumbnailName(originalImage.getName(), tnWidth, tnHeight);
 
 						// create thumbnail node
-						thumbnail = ImageHelper.createImage(securityContext, data, "image/" + Thumbnail.Format.png, Image.class, thumbnailName, true);
+						thumbnail = ImageHelper.createImageNode(securityContext, data, "image/" + Thumbnail.defaultFormat, Image.class, thumbnailName, true);
 
 					} catch (IOException ex) {
 
@@ -414,28 +414,6 @@ public class Image extends org.structr.dynamic.File {
 	public boolean isThumbnail() {
 
 		return getProperty(Image.isThumbnail) || getIncomingRelationship(Thumbnails.class) != null;
-	}
-
-	/**
-	 * @param originalImageName The filename of the original image
-	 * @param width The width of the new image variant
-	 * @param height The height of the new image variant
-	 * @return the name for the new image variant with the given dimensions
-	 */
-	public static String getVariantName(final String originalImageName, final Integer width, final Integer height, final String variant) {
-
-		return originalImageName + variant + width + "x" + height;
-	}
-
-	/**
-	 * @param originalImageName The filename of the image which this thumbnail belongs to
-	 * @param tnWidth The width of the thumbnail
-	 * @param tnHeight The height of the thumbnail
-	 * @return the thumbnail name for the thumbnail with the given dimensions
-	 */
-	public static String getThumbnailName(final String originalImageName, final Integer tnWidth, final Integer tnHeight) {
-
-		return getVariantName(originalImageName, tnWidth, tnHeight, "_thumb_");
 	}
 
 	/**

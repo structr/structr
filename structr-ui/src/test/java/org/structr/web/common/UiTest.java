@@ -96,8 +96,8 @@ public class UiTest extends StructrUiTest {
 			final Image tnSmall = testImage.getProperty(Image.tnSmall);
 			final Image tnMid = testImage.getProperty(Image.tnMid);
 
-			assertEquals("Initial small thumbnail name not as expected", testImage.getThumbnailName(initialImageName, tnSmall.getWidth(), tnSmall.getHeight()), tnSmall.getProperty(Image.name));
-			assertEquals("Initial mid thumbnail name not as expected", testImage.getThumbnailName(initialImageName, tnMid.getWidth(), tnMid.getHeight()), tnMid.getProperty(Image.name));
+			assertEquals("Initial small thumbnail name not as expected", ImageHelper.getThumbnailName(initialImageName, tnSmall.getWidth(), tnSmall.getHeight()), tnSmall.getProperty(Image.name));
+			assertEquals("Initial mid thumbnail name not as expected", ImageHelper.getThumbnailName(initialImageName, tnMid.getWidth(), tnMid.getHeight()), tnMid.getProperty(Image.name));
 
 			tx.success();
 
@@ -123,8 +123,8 @@ public class UiTest extends StructrUiTest {
 			final Image tnSmall = testImage.getProperty(Image.tnSmall);
 			final Image tnMid = testImage.getProperty(Image.tnMid);
 
-			assertEquals("Small Thumbnail name not auto-renamed as expected", testImage.getThumbnailName(renamedImageName, tnSmall.getWidth(), tnSmall.getHeight()), tnSmall.getProperty(Image.name));
-			assertEquals("Mid Thumbnail name not auto-renamed as expected", testImage.getThumbnailName(renamedImageName, tnMid.getWidth(), tnMid.getHeight()), tnMid.getProperty(Image.name));
+			assertEquals("Small Thumbnail name not auto-renamed as expected", ImageHelper.getThumbnailName(renamedImageName, tnSmall.getWidth(), tnSmall.getHeight()), tnSmall.getProperty(Image.name));
+			assertEquals("Mid Thumbnail name not auto-renamed as expected", ImageHelper.getThumbnailName(renamedImageName, tnMid.getWidth(), tnMid.getHeight()), tnMid.getProperty(Image.name));
 
 			tx.success();
 
@@ -156,9 +156,9 @@ public class UiTest extends StructrUiTest {
 			final Image tnMid = subclassTestImage.getProperty(Image.tnMid);
 			final Image tnCustom = subclassTestImage.getProperty(TestImage.thumbnail);
 
-			assertEquals("Initial small thumbnail name not as expected", subclassTestImage.getThumbnailName(initialImageName, tnSmall.getWidth(), tnSmall.getHeight()), tnSmall.getProperty(Image.name));
-			assertEquals("Initial mid thumbnail name not as expected", subclassTestImage.getThumbnailName(initialImageName, tnMid.getWidth(), tnMid.getHeight()), tnMid.getProperty(Image.name));
-			assertEquals("Initial custom thumbnail name not as expected", subclassTestImage.getThumbnailName(initialImageName, tnCustom.getWidth(), tnCustom.getHeight()), tnCustom.getProperty(Image.name));
+			assertEquals("Initial small thumbnail name not as expected", ImageHelper.getThumbnailName(initialImageName, tnSmall.getWidth(), tnSmall.getHeight()), tnSmall.getProperty(Image.name));
+			assertEquals("Initial mid thumbnail name not as expected", ImageHelper.getThumbnailName(initialImageName, tnMid.getWidth(), tnMid.getHeight()), tnMid.getProperty(Image.name));
+			assertEquals("Initial custom thumbnail name not as expected", ImageHelper.getThumbnailName(initialImageName, tnCustom.getWidth(), tnCustom.getHeight()), tnCustom.getProperty(Image.name));
 
 			tx.success();
 
@@ -185,9 +185,9 @@ public class UiTest extends StructrUiTest {
 			final Image tnMid = subclassTestImage.getProperty(Image.tnMid);
 			final Image tnCustom = subclassTestImage.getProperty(TestImage.thumbnail);
 
-			assertEquals("Small Thumbnail name not auto-renamed as expected for image subclass", subclassTestImage.getThumbnailName(renamedImageName, tnSmall.getWidth(), tnSmall.getHeight()), tnSmall.getProperty(Image.name));
-			assertEquals("Mid Thumbnail name not auto-renamed as expected for image subclass", subclassTestImage.getThumbnailName(renamedImageName, tnMid.getWidth(), tnMid.getHeight()), tnMid.getProperty(Image.name));
-			assertEquals("Custom Thumbnail name not auto-renamed as expected for image subclass", subclassTestImage.getThumbnailName(renamedImageName, tnCustom.getWidth(), tnCustom.getHeight()), tnCustom.getProperty(Image.name));
+			assertEquals("Small Thumbnail name not auto-renamed as expected for image subclass", ImageHelper.getThumbnailName(renamedImageName, tnSmall.getWidth(), tnSmall.getHeight()), tnSmall.getProperty(Image.name));
+			assertEquals("Mid Thumbnail name not auto-renamed as expected for image subclass", ImageHelper.getThumbnailName(renamedImageName, tnMid.getWidth(), tnMid.getHeight()), tnMid.getProperty(Image.name));
+			assertEquals("Custom Thumbnail name not auto-renamed as expected for image subclass", ImageHelper.getThumbnailName(renamedImageName, tnCustom.getWidth(), tnCustom.getHeight()), tnCustom.getProperty(Image.name));
 
 			tx.success();
 

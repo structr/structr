@@ -20,16 +20,10 @@ package org.structr.websocket.command;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.PropertyMap;
-import org.structr.dynamic.File;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.common.ImageHelper.Thumbnail;
 import org.structr.web.entity.Image;
-import org.structr.web.entity.relation.Thumbnails;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -74,10 +68,10 @@ public class ImageConverterCommand extends AbstractCommand {
 				try {
 
 					data = thumbnailData.getBytes();
-					final String thumbnailName = Image.getVariantName(originalImage.getName(), tnWidth, tnHeight, "_cropped_");
+					final String thumbnailName = ImageHelper.getVariantName(originalImage.getName(), tnWidth, tnHeight, "_cropped_");
 
 					// create image variant
-					final Image imageVariant = ImageHelper.createImage(originalImage.getSecurityContext(), data, "image/" + Thumbnail.Format.png, Image.class, thumbnailName, false);
+					final Image imageVariant = ImageHelper.createImageNode(originalImage.getSecurityContext(), data, "image/" + Thumbnail.Format.png, Image.class, thumbnailName, false);
 					
 					// store in same parent folder
 					imageVariant.setProperty(Image.parent, originalImage.getProperty(Image.parent));
