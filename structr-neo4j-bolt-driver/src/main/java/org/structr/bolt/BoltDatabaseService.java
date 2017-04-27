@@ -99,6 +99,18 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		final File confFile                            = new File(confPath);
 		boolean tryAgain                               = true;
 
+		// see https://github.com/neo4j/neo4j-java-driver/issues/364 for an explanation
+		final String databaseServerUrl;
+		final String databaseDriverUrl;
+
+		if (databaseUrl.length() >= 7 && databaseUrl.substring(0, 7).equalsIgnoreCase("bolt://")) {
+			databaseServerUrl = databaseUrl.substring(7);
+			databaseDriverUrl = databaseUrl;
+		} else {
+			databaseServerUrl = databaseUrl;
+			databaseDriverUrl = "bolt://" + databaseUrl;
+		}
+
 		// create db directory if it does not exist
 		new File(databasePath).mkdirs();
 
@@ -108,8 +120,9 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 				.newEmbeddedDatabaseBuilder(new File(databasePath))
 				.setConfig( GraphDatabaseSettings.allow_store_upgrade, "true")
 				.setConfig("dbms.allow_format_migration", "true")
+				.setConfig( bolt.type, "BOLT" )
 				.setConfig( bolt.enabled, "true" )
-				.setConfig( bolt.address, databaseUrl);
+				.setConfig( bolt.address, databaseServerUrl);
 
 			if (confFile.exists()) {
 				builder.loadPropertiesFromFile(confPath);
@@ -128,7 +141,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 			}
 		}
 
-		driver = GraphDatabase.driver(databaseUrl,
+		driver = GraphDatabase.driver(databaseDriverUrl,
 			AuthTokens.basic(username, password),
 			Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()
 		);
@@ -182,7 +195,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 				sessions.set(session);
 
 			} catch (ClientException cex) {
-				logger.warn("Cannot connect to Neo4j database at {}", databaseUrl);
+				logger.warn("Cannot connect to Neo4j database server at {}", databaseUrl);
 			}
 		}
 
