@@ -20,6 +20,7 @@ package org.structr.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -35,6 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.cxf.helpers.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -418,7 +420,7 @@ public class Services implements StructrServices {
 
 	public void startService(final Class serviceClass) {
 
-		logger.info("Creating service ", serviceClass.getSimpleName());
+		logger.info("Creating service {}..", serviceClass.getSimpleName());
 
 		Service service = null;
 
@@ -637,5 +639,26 @@ public class Services implements StructrServices {
 
 	public static Set<Permission> getPermissionsForOwnerlessNodes() {
 		return getInstance().permissionsForOwnerlessNodes;
+	}
+
+	private static String cachedEdition = null;
+
+	public static String getEdition() {
+
+		if (cachedEdition == null) {
+
+			try (final InputStream is = Services.class.getResourceAsStream("/structr.properties")) {
+
+				cachedEdition = IOUtils.toString(is);
+
+			} catch (Throwable t) {}
+
+			// fallback
+			if (StringUtils.isBlank(cachedEdition)) {
+				cachedEdition = "Source";
+			}
+		}
+
+		return cachedEdition;
 	}
 }

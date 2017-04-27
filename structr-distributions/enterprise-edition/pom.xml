@@ -24,6 +24,7 @@
 		<netbeans.hint.license>structr-agpl30</netbeans.hint.license>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+		<structr.edition>Enterprise</structr.edition>
 	</properties>
 
 	<dependencies>
@@ -381,7 +382,8 @@
 						<exclude>src/main/resources/**/*.ttf</exclude>
 						<exclude>src/main/resources/**/*.otf</exclude>
 						<exclude>src/main/resources/**/*.svg</exclude>
-			                        <exclude>src/main/resources/**/*.txt</exclude>
+						<exclude>src/main/resources/**/*.txt</exclude>
+						<exclude>src/main/resources/structr.properties</exclude>
 						<exclude>src/main/resources/bin/**</exclude>
 						<exclude>src/main/resources/mime.types</exclude>
 						<exclude>src/main/resources/structr/codemirror/**</exclude>

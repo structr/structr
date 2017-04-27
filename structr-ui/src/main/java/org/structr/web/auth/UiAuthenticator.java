@@ -32,6 +32,7 @@ import org.structr.common.AccessMode;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
@@ -190,6 +191,9 @@ public class UiAuthenticator implements Authenticator {
 		// store a reference of the response object in SecurityContext
 		// to be able to stream data directly from builtin functions
 		securityContext.setResponse(response);
+
+		// expose Structr edition
+		response.setHeader("X-Structr-Edition", Services.getEdition());
 
 		return securityContext;
 

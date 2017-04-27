@@ -44,7 +44,7 @@ public class CronService extends Thread implements RunnableService {
 
 	private static final Logger logger           = LoggerFactory.getLogger(CronService.class.getName());
 
-	public static final String   EXPRESSION_SUFFIX = ".cronExpression";
+	public static final String   EXPRESSION_SUFFIX = "cronExpression";
 	public static final TimeUnit GRANULARITY_UNIT  = TimeUnit.SECONDS;
 	public static final long     GRANULARITY       = 1;
 	public static final int      NUM_FIELDS        = 6;

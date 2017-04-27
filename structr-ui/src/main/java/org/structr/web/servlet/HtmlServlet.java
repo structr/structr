@@ -463,13 +463,11 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 									try (final Tx tx = app.tx()) {
 
-										//final long start = System.currentTimeMillis();
 										// render
 										rootNode.render(renderContext, 0);
+										renderContext.writeFooter();
 										finished.set(true);
 
-										//final long end = System.currentTimeMillis();
-										//System.out.println("Done in " + (end-start) + " ms");
 										tx.success();
 
 									} catch (Throwable t) {

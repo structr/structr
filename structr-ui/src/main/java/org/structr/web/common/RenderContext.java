@@ -29,6 +29,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
+import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
@@ -510,6 +511,18 @@ public class RenderContext extends ActionContext {
 		return value;
 	}
 
+	public void writeFooter() {
+
+		if (StringUtils.contains(response.getContentType(), "text/html")) {
+
+			buffer.append("\n<!-- Powered by Structr ");
+			buffer.append(Services.getEdition());
+			buffer.append(" Edition -->\n");
+		}
+
+	}
+
+	// ----- private methods -----
 	private void readConfigParameters () {
 		indentHtml = Settings.HtmlIndentation.getValue();
 	}
