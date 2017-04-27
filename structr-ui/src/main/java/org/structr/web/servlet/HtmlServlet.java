@@ -465,7 +465,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 										// render
 										rootNode.render(renderContext, 0);
-										renderContext.writeFooter();
 										finished.set(true);
 
 										tx.success();
