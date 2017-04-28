@@ -69,14 +69,6 @@ if [ ! -d STATIC_RESOURCES_DIR ]; then
     jar -xf $STRUCTR_UI_JAR structr
 
 fi
-	
-if [ ! -f "structr.conf" ]; then
-
-	echo "        Creating structr.conf from template file..."
-
-    cat structr.conf_templ | sed 's/src\/main\/resources\///' > structr.conf
-
-fi
 
 if [ -d $MODULES_DIR ]; then
 
@@ -93,10 +85,6 @@ if [ -d $MODULES_DIR ]; then
 fi
 
 echo ""
-
-STRUCTR_CONF=`find $BASE_DIR -name structr.conf`
-echo "        Starting Structr instance '$NAME' with config file"
-echo "        $STRUCTR_CONF"
 
 nohup $JAVA $STRUCTR_ARGS $STRUCTR > $SERVER_LOG 2>&1 &
 

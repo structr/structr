@@ -1,5 +1,5 @@
 
-<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0" 
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0"
 	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	  xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.0.xsd">
 	<id>dist</id>
@@ -44,10 +44,6 @@
 	</fileSets>
 	<files>
 		<file>
-			<source>structr.conf_templ</source>
-			<outputDirectory>/</outputDirectory>
-		</file>
-		<file>
 			<source>seed.zip</source>
 			<outputDirectory>/</outputDirectory>
 		</file>
@@ -68,51 +64,5 @@
 			<outputDirectory>/bin</outputDirectory>
 			<filtered>true</filtered>
 		</file>
-<!--		
-		<file>
-			<source>src/main/resources/bin/cypher</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
-			<source>src/main/resources/bin/delete</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
-			<source>src/main/resources/bin/su</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
-			<source>src/main/resources/bin/env</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
-			<source>src/main/resources/bin/get</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
-			<source>src/main/resources/bin/make_key.sh</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
-			<source>src/main/resources/bin/post</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
-			<source>src/main/resources/bin/put</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
-			<source>src/main/resources/bin/seed-ssh.sh</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
-			<source>src/main/resources/bin/seed.sh</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
-			<source>src/main/resources/bin/add_grants.sh</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		-->
 	</files>
 </assembly>

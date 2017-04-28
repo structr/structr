@@ -12,10 +12,10 @@ if [ -e $PID_FILE ]; then
 	echo "        Please stop any running instances before starting a"
 	echo "        new one. (Remove $PID_FILE if this message appears"
 	echo "        even if no server is running.)"
-	echo 
-	
+	echo
+
 	exit 0
-	
+
 fi
 
 echo
@@ -34,14 +34,6 @@ if [ ! -e "structr" ]; then
 	echo "        Unarchiving static resources..."
 
         jar -xf lib/structr-ui-*.jar structr
-
-fi
-	
-if [ ! -f "structr.conf" ]; then
-
-	echo "        Creating structr.conf from template file..."
-
-        cat structr.conf_templ | sed 's/src\/main\/resources\///' > structr.conf
 
 fi
 

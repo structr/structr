@@ -43,6 +43,12 @@
 			<artifactId>structr-cloud-module</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.1.7</version>
+			<optional>true</optional>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -199,16 +205,6 @@
 										<type>perm</type>
 										<prefix>/usr/lib/structr/</prefix>
 										<filemode>755</filemode>
-									</mapper>
-								</data>
-
-								<data>
-									<src>${basedir}/structr.conf_templ</src>
-									<type>file</type>
-									<mapper>
-										<type>perm</type>
-										<prefix>/usr/lib/structr/</prefix>
-										<filemode>640</filemode>
 									</mapper>
 								</data>
 
