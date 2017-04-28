@@ -22,8 +22,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
 import org.junit.Assert;
+import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,8 +41,6 @@ public class NodeWrapperTest {
 	@Test
 	public void testDeleteException() {
 
-		final BoltDatabaseService s = new BoltDatabaseService();
-
 		try {
 
 			Settings.DatabasePath.setValue(Files.createTempDirectory("structr-test").toFile().getAbsolutePath());
@@ -52,7 +50,7 @@ public class NodeWrapperTest {
 			logger.warn("", ioex);
 		}
 
-
+		final BoltDatabaseService s = new BoltDatabaseService();
 		s.initialize();
 
 		// create new node
@@ -68,7 +66,7 @@ public class NodeWrapperTest {
 			tx.success();
 
 		} catch (Throwable t) {
-			logger.warn("", t);
+			fail("Unexpected exception.");
 		}
 
 		s.shutdown();
@@ -76,10 +74,7 @@ public class NodeWrapperTest {
 
 
 	@Test
-	public void testSomeMethod() {
-
-		final BoltDatabaseService s = new BoltDatabaseService();
-		final Properties config     = new Properties();
+	public void testBasicTransactions() {
 
 		try {
 
@@ -90,6 +85,7 @@ public class NodeWrapperTest {
 			logger.warn("", ioex);
 		}
 
+		final BoltDatabaseService s = new BoltDatabaseService();
 		s.initialize();
 
 		long id = 0L;
