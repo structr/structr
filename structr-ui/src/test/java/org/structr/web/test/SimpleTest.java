@@ -955,6 +955,50 @@ public class SimpleTest extends StructrUiTest {
 		}
 	}
 
+	@Test
+	public void testHttpResponseHeaders() {
+
+		try (final Tx tx = app.tx()) {
+
+			Page.createSimplePage(securityContext, "test");
+
+			app.create(User.class,
+				new NodeAttribute<>(User.name, "admin"),
+				new NodeAttribute<>(User.password, "admin"),
+				new NodeAttribute<>(User.isAdmin, true)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unepxected exception.");
+		}
+
+		RestAssured
+			.given()
+			.header("X-User",     "admin")
+			.header("X-Password", "admin")
+			.expect()
+			.response()
+			.contentType("text/html")
+			.header("Expires", "Thu, 01 Jan 1970 00:00:00 GMT")
+			.header("X-Structr-Edition", "Source")
+			.header("Cache-Control", "private, max-age=0, s-maxage=0, no-cache, no-store, must-revalidate")
+			.header("Pragma", "no-cache, no-store")
+			.header("Content-Type", "text/html;charset=UTF-8")
+			.header("Strict-Transport-Security", "max-age=60")
+			.header("X-Content-Type-Options", "nosniff")
+			.header("X-Frame-Options", "SAMEORIGIN")
+			.header("X-XSS-Protection", "1;mode=block")
+			.header("Vary", "Accept-Encoding, User-Agent")
+			.header("Content-Length", "133")
+			.header("Server", "Jetty(9.2.9.v20150224)")
+			.statusCode(200)
+			.when()
+			.get("http://127.0.0.1:8875/test");
+
+	}
+
 	// ----- private methods -----
 	private void check() {
 

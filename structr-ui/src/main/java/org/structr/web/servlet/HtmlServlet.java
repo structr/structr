@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -118,14 +119,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	public static final String CUSTOM_RESPONSE_HEADERS      = "HtmlServlet.customResponseHeaders";
 	public static final String OBJECT_RESOLUTION_PROPERTIES = "HtmlServlet.resolveProperties";
 
-	private static final String defaultCustomResponseHeaders = "Strict-Transport-Security:max-age=60,"
-				+ "X-Content-Type-Options:nosniff,"
-				+ "X-Frame-Options:SAMEORIGIN,"
-				+ "X-XSS-Protection:1;mode=block";
-	private static List<String> customResponseHeaders = Collections.EMPTY_LIST;
-
+	private static final List<String> customResponseHeaders        = new LinkedList<>();
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-fA-F0-9]{32}");
-	private static final ExecutorService threadPool = Executors.newCachedThreadPool();
+	private static final ExecutorService threadPool                = Executors.newCachedThreadPool();
 
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
 	private final Set<String> possiblePropertyNamesForEntityResolving   = new LinkedHashSet<>();
@@ -140,15 +136,10 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 	public HtmlServlet() {
 
-		String customResponseHeadersString = Settings.HtmlCustomResponseHeaders.getValue();
-
-		if (StringUtils.isBlank(customResponseHeadersString)) {
-
-			customResponseHeadersString = defaultCustomResponseHeaders;
-		}
-
+		final String customResponseHeadersString = Settings.HtmlCustomResponseHeaders.getValue();
 		if (StringUtils.isNotBlank(customResponseHeadersString)) {
-			customResponseHeaders = Arrays.asList(customResponseHeadersString.split("[ ,]+"));
+
+			customResponseHeaders.addAll(Arrays.asList(customResponseHeadersString.split("[ ,]+")));
 		}
 
 		// resolving properties
