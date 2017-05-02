@@ -24,7 +24,10 @@ import com.jcraft.jsch.SftpException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Locale;
 import java.util.Vector;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertNotNull;
@@ -95,7 +98,7 @@ public class SSHFilesTest extends SSHTest {
 			assertEquals("Invalid size on schema directory",     0, schema.getAttrs().getSize());
 			assertEquals("Invalid size on components directory", 0, components.getAttrs().getSize());
 
-			final String date = new SimpleDateFormat("MMM dd HH:mm").format(System.currentTimeMillis());
+			final String date = getDateStringDependingOnCurrentDayOfMonth();
 
 			// check string representation
 			assertEquals("Invalid string representation of . directory",         "dr--------   1 superadmin superadmin        0 " + date + " .",          currentDir.getLongname());
@@ -203,7 +206,7 @@ public class SSHFilesTest extends SSHTest {
 			assertEquals("Invalid test file size", 19, file1.getAttrs().getSize());
 			assertEquals("Invalid test file size", 14, file2.getAttrs().getSize());
 
-			final String date = new SimpleDateFormat("MMM dd HH:mm").format(System.currentTimeMillis());
+			final String date = getDateStringDependingOnCurrentDayOfMonth();
 
 			// check string representation
 			assertEquals("Invalid string representation of test file",         "-rw-------   1 ftpuser1 ftpuser1       19 " + date + " " + name1, file1.getLongname());
@@ -244,7 +247,7 @@ public class SSHFilesTest extends SSHTest {
 		}
 
 		try {
-			final String date             = new SimpleDateFormat("MMM dd HH:mm").format(System.currentTimeMillis());
+			final String date = getDateStringDependingOnCurrentDayOfMonth();
 			final Vector<LsEntry> entries = sftp.ls("/files");
 
 			// listing contains "." and ".." => 3 entries
@@ -298,7 +301,7 @@ public class SSHFilesTest extends SSHTest {
 		}
 
 		try {
-			final String date             = new SimpleDateFormat("MMM dd HH:mm").format(System.currentTimeMillis());
+			final String date = getDateStringDependingOnCurrentDayOfMonth();
 			final Vector<LsEntry> entries = sftp.ls("/files/dir2");
 
 			// listing contains "." and ".." => 3 entries
@@ -403,7 +406,7 @@ public class SSHFilesTest extends SSHTest {
 			// check size
 			assertEquals("Invalid test file size", 19, file1.getAttrs().getSize());
 
-			final String date = new SimpleDateFormat("MMM dd HH:mm").format(System.currentTimeMillis());
+			final String date = getDateStringDependingOnCurrentDayOfMonth();
 
 			// check string representation
 			assertEquals("Invalid string representation of test file",         "-rw-------   1 ftpuser1 ftpuser1       19 " + date + " " + name, file1.getLongname());
@@ -526,5 +529,18 @@ public class SSHFilesTest extends SSHTest {
 		} catch (FrameworkException fex) {
 			fail("Unexpected exception: " + fex.getMessage());
 		}
+	}
+
+	// ----- private methods -----
+	private String getDateStringDependingOnCurrentDayOfMonth() {
+
+		final Calendar cal = GregorianCalendar.getInstance();
+
+		if (cal.get(Calendar.DAY_OF_MONTH) < 10) {
+
+			return new SimpleDateFormat("MMM  d HH:mm", Locale.ENGLISH).format(System.currentTimeMillis());
+		}
+
+		return new SimpleDateFormat("MMM dd HH:mm", Locale.ENGLISH).format(System.currentTimeMillis());
 	}
 }
