@@ -29,7 +29,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.relationship.AbstractChildren;
 import org.structr.core.graph.Tx;
-import org.structr.web.common.DOMTest;
+import org.structr.web.advanced.DOMTest;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;

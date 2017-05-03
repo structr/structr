@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.common;
+package org.structr.web.advanced;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
+import org.structr.web.StructrUiTest;
+import org.structr.web.common.RenderContext;
 import org.structr.web.diff.InvertibleModificationOperation;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;

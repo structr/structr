@@ -16,8 +16,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.common;
+package org.structr.web.basic;
 
+import org.structr.web.StructrUiTest;
 import java.net.HttpCookie;
 import java.util.Arrays;
 import java.util.Collection;
@@ -50,6 +51,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
+import org.structr.web.common.RenderContext;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.TestOne;
 import org.structr.web.entity.User;

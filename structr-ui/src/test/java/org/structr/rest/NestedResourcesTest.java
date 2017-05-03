@@ -24,7 +24,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 import org.structr.web.auth.UiAuthenticator;
-import org.structr.web.common.StructrUiTest;
+import org.structr.web.StructrUiTest;
 
 /**
  *

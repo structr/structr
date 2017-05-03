@@ -16,8 +16,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.common;
+package org.structr.web.basic;
 
+import org.structr.web.StructrUiTest;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -37,6 +38,8 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
+import org.structr.web.common.FileHelper;
+import org.structr.web.common.ImageHelper;
 import org.structr.web.common.ImageHelper.Thumbnail;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;

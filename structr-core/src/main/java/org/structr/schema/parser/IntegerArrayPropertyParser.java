@@ -19,18 +19,14 @@
 package org.structr.schema.parser;
 
 import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.common.error.InvalidPropertySchemaToken;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.ArrayProperty;
-import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper.Type;
 
 /**
  *
  *
  */
-public class IntegerArrayPropertyParser extends PropertySourceGenerator {
+public class IntegerArrayPropertyParser extends IntPropertyParser {
 
 	public IntegerArrayPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
@@ -48,7 +44,7 @@ public class IntegerArrayPropertyParser extends PropertySourceGenerator {
 
 	@Override
 	public String getUnqualifiedValueType() {
-		return "Integer[]";
+		return "IntegerArray";
 	}
 
 	@Override
@@ -59,15 +55,6 @@ public class IntegerArrayPropertyParser extends PropertySourceGenerator {
 	@Override
 	public Type getKey() {
 		return Type.IntegerArray;
-	}
-
-	@Override
-	public void parseFormatString(final Schema entity, final String expression) throws FrameworkException {
-
-		if ("[]".equals(expression)) {
-			reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), expression, "invalid_validation_expression", "Empty validation expression."));
-			return;
-		}
 	}
 
 	@Override

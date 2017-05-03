@@ -16,8 +16,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.common;
+package org.structr.web.basic;
 
+import org.structr.web.StructrUiTest;
 import com.jayway.restassured.RestAssured;
 import static org.junit.Assert.fail;
 import org.junit.Test;

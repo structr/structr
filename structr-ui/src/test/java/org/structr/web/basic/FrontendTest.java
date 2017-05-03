@@ -16,8 +16,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.test;
+package org.structr.web.basic;
 
+import org.structr.web.StructrUiTest;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.io.IOException;
@@ -29,9 +30,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.auth.UiAuthenticator;
-import org.structr.web.common.StructrUiTest;
 import org.structr.web.entity.User;
-import static org.structr.web.test.ResourceAccessTest.createResourceAccess;
+import static org.structr.web.basic.ResourceAccessTest.createResourceAccess;
 
 //~--- classes ----------------------------------------------------------------
 /**

@@ -221,6 +221,61 @@ public class ValidationHelper {
 		return true;
 	}
 
+	public static boolean isValidIntegerArrayInRange(final GraphObject node, final PropertyKey<Integer[]> key, final String range, final ErrorBuffer errorBuffer) {
+
+		// we expect expression to have the following format:
+		// - "[" or "]" followed by a number (including negative values
+		// - a comma (must exist)
+		// - a number (including negative values followed by "[" or "]"
+
+		final int length        = range.length();
+		final String leftBound  = range.substring(0, 1);
+		final String rightBound = range.substring(length-1, length);
+		final String[] parts    = range.substring(1, length-1).split(",+");
+		final String type       = node.getType();
+
+		if (parts.length == 2) {
+
+			final String leftPart   = parts[0].trim();
+			final String rightPart  = parts[1].trim();
+			final int left          = Integer.parseInt(leftPart);
+			final int right         = Integer.parseInt(rightPart);
+			final Integer[] values  = node.getProperty(key);
+
+			// do not check for non-null values, ignore (silently succeed)
+			if (values != null) {
+
+				// result
+				boolean inRange = true;
+
+				for (final Integer value : values) {
+
+					if ("[".equals(leftBound)) {
+						inRange &= (value >= left);
+					} else {
+						inRange &= (value > left);
+					}
+
+					if ("]".equals(rightBound)) {
+						inRange &= (value <= right);
+					} else {
+						inRange &= (value < right);
+					}
+				}
+
+				if (!inRange) {
+
+					errorBuffer.add(new RangeToken(type, key, range));
+				}
+
+				return inRange;
+			}
+		}
+
+		// no error
+		return true;
+	}
+
 	public static boolean isValidLongInRange(final GraphObject node, final PropertyKey<Long> key, final String range, final ErrorBuffer errorBuffer) {
 
 		// we expect expression to have the following format:
@@ -274,6 +329,62 @@ public class ValidationHelper {
 		return true;
 	}
 
+	public static boolean isValidLongArrayInRange(final GraphObject node, final PropertyKey<Long[]> key, final String range, final ErrorBuffer errorBuffer) {
+
+		// we expect expression to have the following format:
+		// - "[" or "]" followed by a number (including negative values
+		// - a comma (must exist)
+		// - a number (including negative values followed by "[" or "]"
+
+		final int length        = range.length();
+		final String leftBound  = range.substring(0, 1);
+		final String rightBound = range.substring(length-1, length);
+		final String[] parts    = range.substring(1, length-1).split(",+");
+		final String type       = node.getType();
+
+		if (parts.length == 2) {
+
+			final String leftPart   = parts[0].trim();
+			final String rightPart  = parts[1].trim();
+			final long left         = Long.parseLong(leftPart);
+			final long right        = Long.parseLong(rightPart);
+			final Long[] values     = node.getProperty(key);
+
+			// do not check for non-null values, ignore (silently succeed)
+			if (values != null) {
+
+				// result
+				boolean inRange  = true;
+
+				for (final Long value : values) {
+
+					if ("[".equals(leftBound)) {
+						inRange &= (value >= left);
+					} else {
+						inRange &= (value > left);
+					}
+
+					if ("]".equals(rightBound)) {
+						inRange &= (value <= right);
+					} else {
+						inRange &= (value < right);
+					}
+				}
+
+				if (!inRange) {
+
+					errorBuffer.add(new RangeToken(type, key, range));
+				}
+
+				return inRange;
+			}
+
+		}
+
+		// no error
+		return true;
+	}
+
 	public static boolean isValidDoubleInRange(final GraphObject node, final PropertyKey<Double> key, final String range, final ErrorBuffer errorBuffer) {
 
 		// we expect expression to have the following format:
@@ -311,6 +422,62 @@ public class ValidationHelper {
 					inRange &= (value <= right);
 				} else {
 					inRange &= (value < right);
+				}
+
+				if (!inRange) {
+
+					errorBuffer.add(new RangeToken(type, key, range));
+				}
+
+				return inRange;
+			}
+
+		}
+
+		// no error
+		return true;
+	}
+
+	public static boolean isValidDoubleArrayInRange(final GraphObject node, final PropertyKey<Double[]> key, final String range, final ErrorBuffer errorBuffer) {
+
+		// we expect expression to have the following format:
+		// - "[" or "]" followed by a number (including negative values
+		// - a comma (must exist)
+		// - a number (including negative values followed by "[" or "]"
+
+		final int length        = range.length();
+		final String leftBound  = range.substring(0, 1);
+		final String rightBound = range.substring(length-1, length);
+		final String[] parts    = range.substring(1, length-1).split(",+");
+		final String type       = node.getType();
+
+		if (parts.length == 2) {
+
+			final String leftPart  = parts[0].trim();
+			final String rightPart = parts[1].trim();
+			final double left      = Double.parseDouble(leftPart);
+			final double right     = Double.parseDouble(rightPart);
+			final Double[] values  = node.getProperty(key);
+
+			// do not check for non-null values, ignore (silently succeed)
+			if (values != null) {
+
+				// result
+				boolean inRange = true;
+
+				for (final Double value : values) {
+
+					if ("[".equals(leftBound)) {
+						inRange &= (value >= left);
+					} else {
+						inRange &= (value > left);
+					}
+
+					if ("]".equals(rightBound)) {
+						inRange &= (value <= right);
+					} else {
+						inRange &= (value < right);
+					}
 				}
 
 				if (!inRange) {

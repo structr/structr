@@ -16,8 +16,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.test;
+package org.structr.web.basic;
 
+import org.structr.web.StructrUiTest;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.text.SimpleDateFormat;
@@ -27,7 +28,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import org.junit.Test;
-import org.structr.web.common.StructrUiTest;
 import org.structr.web.entity.TestOne;
 
 /**

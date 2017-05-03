@@ -18,10 +18,10 @@
  */
 package org.structr.core.property;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.Occurrence;
@@ -40,19 +40,13 @@ import org.structr.core.graph.search.SearchAttributeGroup;
  *
  *
  */
-public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
+public class BooleanArrayProperty extends AbstractPrimitiveProperty<Boolean[]> {
 
-	private static final Logger logger = LoggerFactory.getLogger(ArrayProperty.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(BooleanArrayProperty.class.getName());
 
-	private Class<T> componentType = null;
-	private Method valueOfMethod = null;
-
-	public ArrayProperty(String name, Class<T> componentType) {
+	public BooleanArrayProperty(final String name) {
 
 		super(name);
-
-		this.componentType = componentType;
-		this.valueOfMethod = methodOrNull();
 	}
 
 	@Override
@@ -76,7 +70,8 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 			if (securityContext != null && entity != null) {
 
 				try {
-					setProperty(securityContext, entity, (T[])fixedValue);
+					setProperty(securityContext, entity, convert(Arrays.asList(fixedValue)));
+
 				} catch (FrameworkException ex) {
 					logger.warn("", ex);
 				}
@@ -91,12 +86,12 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 	@Override
 	public String typeName() {
-		return componentType.getSimpleName().concat("[]");
+		return "Boolean[]";
 	}
 
 	@Override
 	public Class valueType() {
-		return componentType;
+		return Boolean.class;
 	}
 
 	@Override
@@ -105,46 +100,46 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 	}
 
 	@Override
-	public PropertyConverter<T[], ?> databaseConverter(SecurityContext securityContext) {
+	public PropertyConverter<Boolean[], ?> databaseConverter(SecurityContext securityContext) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<T[], ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<Boolean[], ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		this.securityContext = securityContext;
 		this.entity = entity;
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<?, T[]> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Boolean[]> inputConverter(SecurityContext securityContext) {
 		return new ArrayInputConverter(securityContext);
 	}
 
-	private class ArrayInputConverter extends PropertyConverter<Object, T[]> {
+	private class ArrayInputConverter extends PropertyConverter<Object, Boolean[]> {
 
 		public ArrayInputConverter(SecurityContext securityContext) {
 			super(securityContext, null);
 		}
 
 		@Override
-		public Object revert(Object[] source) throws FrameworkException {
+		public Object revert(Boolean[] source) throws FrameworkException {
 			return source != null ? Arrays.asList(source) : null;
 		}
 
 		@Override
-		public T[] convert(Object source) throws FrameworkException {
+		public Boolean[] convert(Object source) throws FrameworkException {
 
 			if (source == null) {
 				return null;
 			}
 
 			if (source instanceof List) {
-				return ArrayProperty.this.convert((List)source);
+				return BooleanArrayProperty.this.convert((List)source);
 			}
 
 			if (source.getClass().isArray()) {
-				return convert(Arrays.asList((T[])source));
+				return convert(Arrays.asList((Boolean[])source));
 			}
 
 			if (source instanceof String) {
@@ -152,17 +147,23 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 				final String s = (String)source;
 				if (s.contains(",")) {
 
-					return ArrayProperty.this.convert(Arrays.asList(s.split(",")));
+					return BooleanArrayProperty.this.convert(Arrays.asList(s.split(",")));
 				}
+
+				// special handling of empty search attribute
+				if (StringUtils.isBlank(s)) {
+					return null;
+				}
+
 			}
 
-			return (T[])new Object[] { ArrayProperty.this.fromString(source.toString()) };
+			return (Boolean[])new Boolean[] { Boolean.valueOf(source.toString()) };
 		}
 
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, T[] searchValue, boolean exactMatch, Query query) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, Boolean[] searchValue, boolean exactMatch, Query query) {
 
 		// early exit, return empty search attribute
 		if (searchValue == null) {
@@ -171,7 +172,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 		final SearchAttributeGroup group = new SearchAttributeGroup(occur);
 
-		for (T value : searchValue) {
+		for (Boolean value : searchValue) {
 
 			group.add(new ArraySearchAttribute(this, value, exactMatch ? occur : Occurrence.OPTIONAL, exactMatch));
 		}
@@ -185,19 +186,19 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 	}
 
 	// ----- private methods -----
-	private T[] convert(final List source) {
+	private Boolean[] convert(final List source) {
 
-		final ArrayList<T> result = new ArrayList<>();
+		final ArrayList<Boolean> result = new ArrayList<>();
 
 		for (final Object o : source) {
 
-			if (componentType.isInstance(o)) {
+			if (o instanceof Boolean) {
 
-				result.add((T)o);
+				result.add((Boolean)o);
 
 			} else if (o != null) {
 
-				result.add(fromString(o.toString()));
+				result.add(Boolean.valueOf(o.toString()));
 
 			} else {
 
@@ -206,30 +207,6 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 			}
 		}
 
-		return (T[])result.toArray();
-	}
-
-	private T fromString(final String source) {
-
-		if (valueOfMethod != null) {
-
-			try {
-				return (T)valueOfMethod.invoke(null, source);
-
-			} catch (Throwable t) {}
-		}
-
-		return (T)source;
-	}
-
-	private Method methodOrNull() {
-
-		try {
-
-			return componentType.getDeclaredMethod("valueOf", String.class);
-
-		} catch (Throwable t) {}
-
-		return null;
+		return (Boolean[])result.toArray(new Boolean[0]);
 	}
 }

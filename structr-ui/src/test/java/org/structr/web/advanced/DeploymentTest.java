@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.test;
+package org.structr.web.advanced;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -56,8 +56,8 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.dynamic.File;
+import org.structr.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
-import org.structr.web.common.StructrUiTest;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;

@@ -28,10 +28,10 @@ import org.structr.rest.common.StructrRestTest;
  *
  *
  */
-public class ArrayPropertyRestTest extends StructrRestTest {
+public class StringArrayPropertyRest extends StructrRestTest {
 
 	@Test
-	public void testViaRest() {
+	public void testStringArrayViaRest() {
 
 		String location = RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -80,7 +80,7 @@ public class ArrayPropertyRestTest extends StructrRestTest {
 	}
 
 	@Test
-	public void testSearch() {
+	public void testStringArraySearch() {
 
 		// create test objects
 		final String id1 = getUuidFromLocation(RestAssured.given()
@@ -357,5 +357,4 @@ public class ArrayPropertyRestTest extends StructrRestTest {
 		.when()
 			.get("/test_threes?sort=name&stringArrayProperty=one,two,three");
 	}
-
 }

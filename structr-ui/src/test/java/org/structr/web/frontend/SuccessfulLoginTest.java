@@ -20,7 +20,7 @@ package org.structr.web.frontend;
 
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
-import org.structr.web.test.FrontendTest;
+import org.structr.web.basic.FrontendTest;
 
 public class SuccessfulLoginTest extends FrontendTest {
 

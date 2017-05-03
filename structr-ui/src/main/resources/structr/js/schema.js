@@ -61,6 +61,7 @@ var _Schema = {
 		+ '<option value="Long">Long</option>'
 		+ '<option value="LongArray">Long[]</option>'
 		+ '<option value="Double">Double</option>'
+		+ '<option value="DoubleArray">Double[]</option>'
 		+ '<option value="Boolean">Boolean</option>'
 		+ '<option value="BooleanArray">Boolean[]</option>'
 		+ '<option value="Enum">Enum</option>'

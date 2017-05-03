@@ -33,7 +33,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
-import org.structr.web.common.DOMTest;
+import org.structr.web.advanced.DOMTest;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;

@@ -77,7 +77,6 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	private CypherRelationshipIndex relationshipIndex                 = null;
 	private CypherNodeIndex nodeIndex                                 = null;
 	private GraphDatabaseService graphDb                              = null;
-	private boolean debugLogging                                      = false;
 	private boolean needsIndexRebuild                                 = false;
 	private String databaseUrl                                        = null;
 	private String databasePath                                       = null;
@@ -88,7 +87,6 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	public void initialize() {
 
 		this.databasePath = Settings.DatabasePath.getValue();
-		this.debugLogging = Settings.CypherDebugLogging.getValue();
 
 		final GraphDatabaseSettings.BoltConnector bolt = GraphDatabaseSettings.boltConnector("0");
 		databaseUrl                                    = Settings.ConnectionUrl.getValue();
@@ -318,7 +316,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	}
 
 	public boolean logQueries() {
-		return debugLogging;
+		return Settings.CypherDebugLogging.getValue();
 	}
 
 	// ----- interface GraphProperties -----

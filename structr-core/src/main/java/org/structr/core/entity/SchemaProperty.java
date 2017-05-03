@@ -42,8 +42,11 @@ import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaHelper.Type;
+import org.structr.schema.parser.DoubleArrayPropertyParser;
 import org.structr.schema.parser.DoublePropertyParser;
 import org.structr.schema.parser.IntPropertyParser;
+import org.structr.schema.parser.IntegerArrayPropertyParser;
+import org.structr.schema.parser.LongArrayPropertyParser;
 import org.structr.schema.parser.LongPropertyParser;
 import org.structr.schema.parser.NotionPropertyParser;
 import org.structr.schema.parser.PropertyDefinition;
@@ -92,10 +95,13 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, notNull, unique, indexed, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction
 	);
 
-	private NotionPropertyParser notionPropertyParser = null;
-	private DoublePropertyParser doublePropertyParser = null;
-	private LongPropertyParser longPropertyParser     = null;
-	private IntPropertyParser intPropertyParser       = null;
+	private NotionPropertyParser notionPropertyParser           = null;
+	private DoublePropertyParser doublePropertyParser           = null;
+	private LongPropertyParser longPropertyParser               = null;
+	private IntPropertyParser intPropertyParser                 = null;
+	private DoubleArrayPropertyParser doubleArrayPropertyParser = null;
+	private LongArrayPropertyParser longArrayPropertyParser     = null;
+	private IntegerArrayPropertyParser intArrayPropertyParser   = null;
 
 	@Override
 	public String getPropertyName() {
@@ -406,6 +412,23 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		return intPropertyParser;
 	}
 
+	public IntegerArrayPropertyParser getIntArrayPropertyParser() {
+
+		if (intArrayPropertyParser == null) {
+
+			try {
+				intArrayPropertyParser = new IntegerArrayPropertyParser(new ErrorBuffer(), getName(), this);
+				intArrayPropertyParser.getPropertySource(new StringBuilder(), getProperty(SchemaProperty.schemaNode));
+
+			} catch (FrameworkException fex) {
+
+				logger.warn("", fex);
+			}
+		}
+
+		return intArrayPropertyParser;
+	}
+
 	public LongPropertyParser getLongPropertyParser() {
 
 		if (longPropertyParser == null) {
@@ -423,6 +446,23 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		return longPropertyParser;
 	}
 
+	public LongArrayPropertyParser getLongArrayPropertyParser() {
+
+		if (longArrayPropertyParser == null) {
+
+			try {
+				longArrayPropertyParser = new LongArrayPropertyParser(new ErrorBuffer(), getName(), this);
+				longArrayPropertyParser.getPropertySource(new StringBuilder(), getProperty(SchemaProperty.schemaNode));
+
+			} catch (FrameworkException fex) {
+
+				logger.warn("", fex);
+			}
+		}
+
+		return longArrayPropertyParser;
+	}
+
 	public DoublePropertyParser getDoublePropertyParser() {
 
 		if (doublePropertyParser == null) {
@@ -438,5 +478,22 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		}
 
 		return doublePropertyParser;
+	}
+
+	public DoubleArrayPropertyParser getDoubleArrayPropertyParser() {
+
+		if (doubleArrayPropertyParser == null) {
+
+			try {
+				doubleArrayPropertyParser = new DoubleArrayPropertyParser(new ErrorBuffer(), getName(), this);
+				doubleArrayPropertyParser.getPropertySource(new StringBuilder(), getProperty(SchemaProperty.schemaNode));
+
+			} catch (FrameworkException fex) {
+
+				logger.warn("", fex);
+			}
+		}
+
+		return doubleArrayPropertyParser;
 	}
 }

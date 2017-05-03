@@ -16,8 +16,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.test;
+package org.structr.web.basic;
 
+import org.structr.web.StructrUiTest;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -30,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
-import org.structr.web.common.StructrUiTest;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.Page;
 import org.w3c.dom.DOMException;

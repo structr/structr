@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.common;
+package org.structr.web;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
@@ -77,8 +77,7 @@ public abstract class StructrUiTest {
 	// the jetty server
 	private boolean running = false;
 
-	protected static final String prot = "http://";
-//	protected static final String contextPath = "/";
+	protected static final String port = "http://";
 	protected static final String restUrl = "/structr/rest";
 	protected static final String htmlUrl = "/structr/html";
 	protected static final String wsUrl = "/structr/ws";
@@ -90,10 +89,10 @@ public abstract class StructrUiTest {
 
 	static {
 
-		baseUri = prot + host + ":" + httpPort + htmlUrl + "/";
+		baseUri = port + host + ":" + httpPort + htmlUrl + "/";
 		// configure RestAssured
 		RestAssured.basePath = restUrl;
-		RestAssured.baseURI = prot + host + ":" + httpPort;
+		RestAssured.baseURI = port + host + ":" + httpPort;
 		RestAssured.port = httpPort;
 
 	}

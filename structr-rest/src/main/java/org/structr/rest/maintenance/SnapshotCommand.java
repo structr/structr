@@ -298,12 +298,18 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 
 	public static String getBasePath() {
 
-		String basePath = Settings.SnapshotsPath.getValue();
-		if (!basePath.endsWith("/")) {
+		final String basePath = checkPath(Settings.BasePath.getValue());
+		String snapshotsPath  = checkPath(Settings.SnapshotsPath.getValue());
 
-			basePath = basePath + "/";
+		return basePath + snapshotsPath;
+	}
+
+	private static String checkPath(final String path) {
+
+		if (path.endsWith("/")) {
+			return path;
 		}
 
-		return basePath;
+		return path + "/";
 	}
 }

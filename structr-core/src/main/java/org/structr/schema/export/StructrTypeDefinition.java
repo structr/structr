@@ -40,12 +40,16 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.schema.json.JsonBooleanArrayProperty;
 import org.structr.schema.json.JsonBooleanProperty;
 import org.structr.schema.json.JsonDateProperty;
 import org.structr.schema.json.JsonEnumProperty;
 import org.structr.schema.json.JsonFunctionProperty;
+import org.structr.schema.json.JsonIntegerArrayProperty;
 import org.structr.schema.json.JsonIntegerProperty;
+import org.structr.schema.json.JsonLongArrayProperty;
 import org.structr.schema.json.JsonLongProperty;
+import org.structr.schema.json.JsonNumberArrayProperty;
 import org.structr.schema.json.JsonNumberProperty;
 import org.structr.schema.json.JsonProperty;
 import org.structr.schema.json.JsonReferenceProperty;
@@ -229,9 +233,33 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
+	public JsonIntegerArrayProperty addIntegerArrayProperty(final String name, final String... views) throws URISyntaxException {
+
+		final StructrIntegerArrayProperty numberProperty = new StructrIntegerArrayProperty(this, name);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(numberProperty);
+
+		return numberProperty;
+	}
+
+	@Override
 	public JsonLongProperty addLongProperty(final String name, final String... views) throws URISyntaxException {
 
 		final StructrLongProperty numberProperty = new StructrLongProperty(this, name);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(numberProperty);
+
+		return numberProperty;
+	}
+
+	@Override
+	public JsonLongArrayProperty addLongArrayProperty(final String name, final String... views) throws URISyntaxException {
+
+		final StructrLongArrayProperty numberProperty = new StructrLongArrayProperty(this, name);
 
 		addPropertyNameToViews(name, views);
 
@@ -253,6 +281,18 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
+	public JsonNumberArrayProperty addDoubleArrayProperty(final String name, final String... views) throws URISyntaxException {
+
+		final StructrNumberArrayProperty numberArrayProperty = new StructrNumberArrayProperty(this, name);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(numberArrayProperty);
+
+		return numberArrayProperty;
+	}
+
+	@Override
 	public JsonBooleanProperty addBooleanProperty(final String name, final String... views) throws URISyntaxException {
 
 		final StructrBooleanProperty booleanProperty = new StructrBooleanProperty(this, name);
@@ -262,6 +302,18 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		properties.add(booleanProperty);
 
 		return booleanProperty;
+	}
+
+	@Override
+	public JsonBooleanArrayProperty addBooleanArrayProperty(final String name, final String... views) throws URISyntaxException {
+
+		final StructrBooleanArrayProperty booleanArrayProperty = new StructrBooleanArrayProperty(this, name);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(booleanArrayProperty);
+
+		return booleanArrayProperty;
 	}
 
 	@Override

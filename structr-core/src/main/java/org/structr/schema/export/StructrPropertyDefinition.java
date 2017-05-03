@@ -326,9 +326,30 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 							} else if (items.containsKey(JsonSchema.KEY_TYPE)) {
 
 								final Object typeValue = items.get(JsonSchema.KEY_TYPE);
-								if (typeValue != null && "string".equals(typeValue.toString())) {
+								if (typeValue != null) {
 
-									newProperty = new StructrStringArrayProperty(parent, name);
+									switch (typeValue.toString()) {
+
+										case "string":
+											newProperty = new StructrStringArrayProperty(parent, name);
+											break;
+
+										case "integer":
+											newProperty = new StructrIntegerArrayProperty(parent, name);
+											break;
+
+										case "long":
+											newProperty = new StructrLongArrayProperty(parent, name);
+											break;
+
+										case "number":
+											newProperty = new StructrNumberArrayProperty(parent, name);
+											break;
+
+										case "boolean":
+											newProperty = new StructrBooleanArrayProperty(parent, name);
+											break;
+									}
 								}
 							}
 						}
@@ -388,22 +409,28 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 				return notionProperty;
 
-			case StringArray:
-				final StructrStringArrayProperty arr = new StructrStringArrayProperty(parent, name);
-				arr.deserialize(property);
-				arr.setDefaultValue(property.getDefaultValue());
-				return arr;
-
 			case String:
 				final StructrStringProperty str = new StructrStringProperty(parent, name);
 				str.deserialize(property);
 				str.setDefaultValue(property.getDefaultValue());
 				return str;
 
+			case StringArray:
+				final StructrStringArrayProperty arr = new StructrStringArrayProperty(parent, name);
+				arr.deserialize(property);
+				arr.setDefaultValue(property.getDefaultValue());
+				return arr;
+
 			case Boolean:
 				final StructrBooleanProperty bool = new StructrBooleanProperty(parent, name);
 				bool.deserialize(property);
 				return bool;
+
+			case BooleanArray:
+				final StructrBooleanArrayProperty booleanArrayProperty = new StructrBooleanArrayProperty(parent, name);
+				booleanArrayProperty.deserialize(property);
+				booleanArrayProperty.setDefaultValue(property.getDefaultValue());
+				return booleanArrayProperty;
 
 			case Count:
 				final StructrCountProperty count = new StructrCountProperty(parent, name);
@@ -413,27 +440,50 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 			case Integer:
 				final StructrIntegerProperty intProperty = new StructrIntegerProperty(parent, name);
 				intProperty.deserialize(property);
+				intProperty.setDefaultValue(property.getDefaultValue());
 				return intProperty;
+
+			case IntegerArray:
+				final StructrIntegerArrayProperty intArrayProperty = new StructrIntegerArrayProperty(parent, name);
+				intArrayProperty.deserialize(property);
+				intArrayProperty.setDefaultValue(property.getDefaultValue());
+				return intArrayProperty;
 
 			case Long:
 				final StructrLongProperty longProperty = new StructrLongProperty(parent, name);
 				longProperty.deserialize(property);
+				longProperty.setDefaultValue(property.getDefaultValue());
 				return longProperty;
+
+			case LongArray:
+				final StructrLongArrayProperty longArrayProperty = new StructrLongArrayProperty(parent, name);
+				longArrayProperty.deserialize(property);
+				longArrayProperty.setDefaultValue(property.getDefaultValue());
+				return longArrayProperty;
 
 			case Double:
 				final StructrNumberProperty doubleProperty = new StructrNumberProperty(parent, name);
 				doubleProperty.deserialize(property);
+				doubleProperty.setDefaultValue(property.getDefaultValue());
 				return doubleProperty;
+
+			case DoubleArray:
+				final StructrNumberArrayProperty doubleArrayProperty = new StructrNumberArrayProperty(parent, name);
+				doubleArrayProperty.deserialize(property);
+				doubleArrayProperty.setDefaultValue(property.getDefaultValue());
+				return doubleArrayProperty;
 
 			case Date:
 				final StructrDateProperty date = new StructrDateProperty(parent, name);
 				date.deserialize(property);
 				date.setFormat(JsonSchema.FORMAT_DATE_TIME);
+				date.setDefaultValue(property.getDefaultValue());
 				return date;
 
 			case Enum:
 				final StructrEnumProperty enumProperty = new StructrEnumProperty(parent, name);
 				enumProperty.deserialize(property);
+				enumProperty.setDefaultValue(property.getDefaultValue());
 				return enumProperty;
 
 			case Thumbnail:

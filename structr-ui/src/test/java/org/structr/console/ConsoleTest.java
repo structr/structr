@@ -30,7 +30,7 @@ import org.structr.console.Console.ConsoleMode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.web.common.StructrUiTest;
+import org.structr.web.StructrUiTest;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 

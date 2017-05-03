@@ -33,7 +33,6 @@ import org.structr.core.graph.ClearDatabase;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
-import org.structr.web.common.StructrUiTest;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;

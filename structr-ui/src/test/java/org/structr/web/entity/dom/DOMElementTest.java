@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-import org.structr.web.common.DOMTest;
+import org.structr.web.advanced.DOMTest;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 

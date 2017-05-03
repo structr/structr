@@ -19,42 +19,42 @@
 package org.structr.schema.parser;
 
 import org.structr.common.error.ErrorBuffer;
-import org.structr.core.property.BooleanArrayProperty;
+import org.structr.core.property.ArrayProperty;
 import org.structr.schema.SchemaHelper.Type;
 
 /**
  *
  *
  */
-public class BooleanArrayPropertyParser extends IntPropertyParser {
+public class DoubleArrayPropertyParser extends DoublePropertyParser {
 
-	public BooleanArrayPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+	public DoubleArrayPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public String getPropertyType() {
-		return BooleanArrayProperty.class.getSimpleName();
+		return ArrayProperty.class.getSimpleName().concat("<Double>");
 	}
 
 	@Override
 	public String getValueType() {
-		return Boolean[].class.getSimpleName();
+		return Double[].class.getSimpleName();
 	}
 
 	@Override
 	public String getUnqualifiedValueType() {
-		return "BooleanArray";
+		return "DoubleArray";
 	}
 
 	@Override
 	public String getPropertyParameters() {
-		return "";
+		return ", Double.class";
 	}
 
 	@Override
 	public Type getKey() {
-		return Type.BooleanArray;
+		return Type.DoubleArray;
 	}
 
 	@Override
