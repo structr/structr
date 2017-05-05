@@ -180,21 +180,7 @@ public class RestAuthenticator implements Authenticator {
 
 	@Override
 	public boolean hasExaminedRequest() {
-
 		return examined;
-
-	}
-
-	@Override
-	public void setUserAutoCreate(final boolean userAutoCreate) {
-
-		RestAuthenticator.userAutoCreate = userAutoCreate;
-	}
-
-	@Override
-	public void setUserAutoLogin(final boolean userAutoLogin) {
-
-		RestAuthenticator.userAutoLogin = userAutoLogin;
 	}
 
 	@Override
@@ -379,16 +365,6 @@ public class RestAuthenticator implements Authenticator {
 
 		} catch (IOException ignore) {}
 
-	}
-
-	@Override
-	public boolean getUserAutoCreate() {
-		return userAutoCreate;
-	}
-
-	@Override
-	public boolean getUserAutoLogin() {
-		return userAutoLogin;
 	}
 
 	@Override

@@ -1105,7 +1105,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					// Clear confirmation key and set session id
 					user.setProperties(user.getSecurityContext(), new PropertyMap(User.confirmationKey, null));
 
-					if (auth.getUserAutoLogin()) {
+					if (Settings.RestUserAutologin.getValue()) {
 
 						AuthHelper.doLogin(request, user);
 					}
@@ -1176,7 +1176,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					// Clear confirmation key and set session id
 					user.setProperties(user.getSecurityContext(), new PropertyMap(User.confirmationKey, null));
 
-					if (auth.getUserAutoLogin()) {
+					if (Settings.RestUserAutologin.getValue()) {
 
 						AuthHelper.doLogin(request, user);
 					}

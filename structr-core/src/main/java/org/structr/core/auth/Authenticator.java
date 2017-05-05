@@ -40,36 +40,6 @@ public interface Authenticator {
 	public boolean hasExaminedRequest();
 
 	/**
-	 * Set a boolean flag to indicate that a user should be created
-	 * automatically on registration and after successful authentification.
-	 *
-	 * @param userAutoCreate
-	 */
-	public void setUserAutoCreate(final boolean userAutoCreate);
-
-	/**
-	 * Return boolean flag that indicates that a user should be created
-	 * automatically on registration and after successful authentification.
-	 * @return userAutoCreate
-	 */
-	public boolean getUserAutoCreate();
-
-	/**
-	 * Set a boolean flag to indicate that a user should be logged in
-	 * automatically on successful registration.
-	 *
-	 * @param userAutoLogin
-	 */
-	public void setUserAutoLogin(final boolean userAutoLogin);
-
-	/**
-	 * Return boolean flag that indicates that a user should be logged in
-	 * automatically on successful registration.
-	 * @return userAutoLogin
-	 */
-	public boolean getUserAutoLogin();
-
-	/**
 	 * Return user class
 	 * @return userClass
 	 */

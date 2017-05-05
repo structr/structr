@@ -59,9 +59,6 @@ public class UiAuthenticator implements Authenticator {
 	private static final Logger logger       = LoggerFactory.getLogger(UiAuthenticator.class.getName());
 
 	protected boolean examined = false;
-	protected static boolean userAutoCreate;
-	protected static boolean userAutoLogin;
-	private static Class userClass;
 
 	private enum Method { GET, PUT, POST, DELETE, HEAD, OPTIONS }
 	private static final Map<String, Method> methods = new LinkedHashMap();
@@ -112,12 +109,8 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public SecurityContext initializeAndExamineRequest(final HttpServletRequest request, final HttpServletResponse response) throws FrameworkException {
 
-		// Initialize custom user class
-		getUserClass();
-
-		SecurityContext securityContext;
-
 		Principal user = SessionHelper.checkSessionAuthentication(request);
+		SecurityContext securityContext;
 
 		if (user == null) {
 
@@ -204,18 +197,6 @@ public class UiAuthenticator implements Authenticator {
 
 		return examined;
 
-	}
-
-	@Override
-	public void setUserAutoCreate(final boolean userAutoCreate) {
-
-		UiAuthenticator.userAutoCreate = userAutoCreate;
-	}
-
-	@Override
-	public void setUserAutoLogin(boolean userAutoLogin) {
-
-		UiAuthenticator.userAutoLogin = userAutoLogin;
 	}
 
 	@Override
@@ -395,7 +376,7 @@ public class UiAuthenticator implements Authenticator {
 	 * @param response
 	 * @return user
 	 */
-	protected static Principal checkExternalAuthentication(final HttpServletRequest request, final HttpServletResponse response) throws FrameworkException {
+	protected Principal checkExternalAuthentication(final HttpServletRequest request, final HttpServletResponse response) throws FrameworkException {
 
 		final String path = PathHelper.clean(request.getPathInfo());
 		final String[] uriParts = PathHelper.getParts(path);
@@ -452,9 +433,9 @@ public class UiAuthenticator implements Authenticator {
 
 					Principal user = AuthHelper.getPrincipalForCredential(credentialKey, value);
 
-					if (user == null && userAutoCreate) {
+					if (user == null && Settings.RestUserAutocreate.getValue()) {
 
-						user = RegistrationResource.createUser(superUserContext, credentialKey, value, true, userClass);
+						user = RegistrationResource.createUser(superUserContext, credentialKey, value, true, getUserClass(), null);
 
 					}
 
@@ -518,35 +499,6 @@ public class UiAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public boolean getUserAutoCreate() {
-		return userAutoCreate;
-	}
-
-	@Override
-	public boolean getUserAutoLogin() {
-		return userAutoLogin;
-	}
-
-	@Override
-	public Class getUserClass() {
-
-		if (userClass == null) {
-
-			String configuredCustomClassName = Settings.RegistrationCustomUserClass.getValue();
-			if (StringUtils.isEmpty(configuredCustomClassName)) {
-
-				configuredCustomClassName = User.class.getSimpleName();
-			}
-
-			userClass = StructrApp.getConfiguration().getNodeEntityClass(configuredCustomClassName);
-
-		}
-
-		return userClass;
-
-	}
-
-	@Override
 	public Principal getUser(final HttpServletRequest request, final boolean tryLogin) throws FrameworkException {
 
 		Principal user = null;
@@ -587,5 +539,17 @@ public class UiAuthenticator implements Authenticator {
 
 		return user;
 
+	}
+
+	@Override
+	public Class getUserClass() {
+
+		String configuredCustomClassName = Settings.RegistrationCustomUserClass.getValue();
+		if (StringUtils.isEmpty(configuredCustomClassName)) {
+
+			configuredCustomClassName = User.class.getSimpleName();
+		}
+
+		return StructrApp.getConfiguration().getNodeEntityClass(configuredCustomClassName);
 	}
 }

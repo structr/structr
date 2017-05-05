@@ -32,7 +32,6 @@ import org.structr.common.MailHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
-import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.MailTemplate;
@@ -116,11 +115,10 @@ public class ResetPasswordResource extends Resource {
 			Result result = StructrApp.getInstance().nodeQuery(User.class).and(User.eMail, emailString).getResult();
 			if (!result.isEmpty()) {
 
-				final App app = StructrApp.getInstance(securityContext);
 				user = (Principal) result.get(0);
 
 				// For existing users, update confirmation key
-				user.setProperties(securityContext, new PropertyMap(User.confirmationKey, confKey));
+				user.setProperties(SecurityContext.getSuperUserInstance(), new PropertyMap(User.confirmationKey, confKey));
 
 				existingUser = true;
 

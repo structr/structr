@@ -81,9 +81,6 @@ public class RegistrationResource extends Resource {
 		ERROR_PAGE_KEY
 	}
 
-	private static String localeString;
-	private static String confKey;
-
 	//~--- methods --------------------------------------------------------
 
 	@Override
@@ -120,8 +117,8 @@ public class RegistrationResource extends Resource {
 				return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
 			}
 
-			localeString = (String) propertySet.get(MailTemplate.locale.jsonName());
-			confKey = UUID.randomUUID().toString();
+			final String localeString = (String) propertySet.get(MailTemplate.locale.jsonName());
+			final String confKey      = UUID.randomUUID().toString();
 
 			final Result result = StructrApp.getInstance().nodeQuery(User.class).and(User.eMail, emailString).getResult();
 			if (!result.isEmpty()) {
@@ -137,12 +134,12 @@ public class RegistrationResource extends Resource {
 			} else {
 
 				final Authenticator auth = securityContext.getAuthenticator();
-				user = createUser(securityContext, User.eMail, emailString, propertySet, auth.getUserAutoCreate(), auth.getUserClass());
+				user = createUser(securityContext, User.eMail, emailString, propertySet, Settings.RestUserAutocreate.getValue(), auth.getUserClass(), confKey);
 			}
 
 			if (user != null) {
 
-				if (!sendInvitationLink(user, propertySet)) {
+				if (!sendInvitationLink(user, propertySet, confKey, localeString)) {
 
 					// return 400 Bad request
 					return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
@@ -192,7 +189,7 @@ public class RegistrationResource extends Resource {
 
 	}
 
-	private boolean sendInvitationLink(final Principal user, final Map<String, Object> propertySetFromUserPOST) {
+	private boolean sendInvitationLink(final Principal user, final Map<String, Object> propertySetFromUserPOST, final String confKey, final String localeString) {
 
 		Map<String, String> replacementMap = new HashMap();
 
@@ -206,24 +203,25 @@ public class RegistrationResource extends Resource {
 
 		replacementMap.put(toPlaceholder(User.eMail.jsonName()), userEmail);
 		replacementMap.put(toPlaceholder("link"),
-			getTemplateText(TemplateKey.BASE_URL, "http://" + appHost + ":" + httpPort)
-			      + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_PAGE, HtmlServlet.CONFIRM_REGISTRATION_PAGE)
-			+ "?" + getTemplateText(TemplateKey.CONFIRM_KEY_KEY, HtmlServlet.CONFIRM_KEY_KEY) + "=" + confKey
-			+ "&" + getTemplateText(TemplateKey.TARGET_PAGE_KEY, HtmlServlet.TARGET_PAGE_KEY) + "=" + getTemplateText(TemplateKey.TARGET_PAGE, "register_thanks")
-			+ "&" + getTemplateText(TemplateKey.ERROR_PAGE_KEY, HtmlServlet.ERROR_PAGE_KEY)   + "=" + getTemplateText(TemplateKey.ERROR_PAGE, "register_error"));
+			getTemplateText(TemplateKey.BASE_URL, "http://" + appHost + ":" + httpPort, localeString)
+			      + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_PAGE, HtmlServlet.CONFIRM_REGISTRATION_PAGE, localeString)
+			+ "?" + getTemplateText(TemplateKey.CONFIRM_KEY_KEY, HtmlServlet.CONFIRM_KEY_KEY, localeString) + "=" + confKey
+			+ "&" + getTemplateText(TemplateKey.TARGET_PAGE_KEY, HtmlServlet.TARGET_PAGE_KEY, localeString) + "=" + getTemplateText(TemplateKey.TARGET_PAGE, "register_thanks", localeString)
+			+ "&" + getTemplateText(TemplateKey.ERROR_PAGE_KEY, HtmlServlet.ERROR_PAGE_KEY, localeString)   + "=" + getTemplateText(TemplateKey.ERROR_PAGE, "register_error", localeString)
+		);
 
-		String textMailTemplate = getTemplateText(TemplateKey.TEXT_BODY, "Go to ${link} to finalize registration.");
-		String htmlMailTemplate = getTemplateText(TemplateKey.HTML_BODY, "<div>Click <a href='${link}'>here</a> to finalize registration.</div>");
+		String textMailTemplate = getTemplateText(TemplateKey.TEXT_BODY, "Go to ${link} to finalize registration.", localeString);
+		String htmlMailTemplate = getTemplateText(TemplateKey.HTML_BODY, "<div>Click <a href='${link}'>here</a> to finalize registration.</div>", localeString);
 		String textMailContent  = MailHelper.replacePlaceHoldersInTemplate(textMailTemplate, replacementMap);
 		String htmlMailContent  = MailHelper.replacePlaceHoldersInTemplate(htmlMailTemplate, replacementMap);
 
 		try {
 
 			MailHelper.sendHtmlMail(
-				getTemplateText(TemplateKey.SENDER_ADDRESS, "structr-mail-daemon@localhost"),
-				getTemplateText(TemplateKey.SENDER_NAME, "Structr Mail Daemon"),
+				getTemplateText(TemplateKey.SENDER_ADDRESS, "structr-mail-daemon@localhost", localeString),
+				getTemplateText(TemplateKey.SENDER_NAME, "Structr Mail Daemon", localeString),
 				userEmail, "", null, null, null,
-				getTemplateText(TemplateKey.SUBJECT, "Welcome to Structr, please finalize registration"),
+				getTemplateText(TemplateKey.SUBJECT, "Welcome to Structr, please finalize registration", localeString),
 				htmlMailContent, textMailContent);
 
 		} catch (Exception e) {
@@ -236,7 +234,7 @@ public class RegistrationResource extends Resource {
 
 	}
 
-	private String getTemplateText(final TemplateKey key, final String defaultValue) {
+	private String getTemplateText(final TemplateKey key, final String defaultValue, final String localeString) {
 
 		try {
 
@@ -295,9 +293,9 @@ public class RegistrationResource extends Resource {
 	 * @param credentialValue
 	 * @return user
 	 */
-	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue) {
+	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final String confKey) {
 
-		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP);
+		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, confKey);
 
 	}
 
@@ -313,9 +311,9 @@ public class RegistrationResource extends Resource {
 	 * @param propertySet
 	 * @return user
 	 */
-	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet) {
+	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final String confKey) {
 
-		return createUser(securityContext, credentialKey, credentialValue, propertySet, false);
+		return createUser(securityContext, credentialKey, credentialValue, propertySet, false, confKey);
 
 	}
 
@@ -331,9 +329,9 @@ public class RegistrationResource extends Resource {
 	 * @param autoCreate
 	 * @return user
 	 */
-	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate) {
+	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate, final String confKey) {
 
-		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, autoCreate);
+		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, autoCreate, confKey);
 
 	}
 
@@ -350,9 +348,9 @@ public class RegistrationResource extends Resource {
 	 * @param userClass
 	 * @return user
 	 */
-	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate, final Class userClass) {
+	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate, final Class userClass, final String confKey) {
 
-		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, autoCreate, userClass);
+		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, autoCreate, userClass, confKey);
 
 	}
 
@@ -369,9 +367,9 @@ public class RegistrationResource extends Resource {
 	 * @param autoCreate
 	 * @return user
 	 */
-	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate) {
+	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final String confKey) {
 
-		return createUser(securityContext, credentialKey, credentialValue, propertySet, autoCreate, User.class);
+		return createUser(securityContext, credentialKey, credentialValue, propertySet, autoCreate, User.class, confKey);
 
 	}
 
@@ -389,7 +387,7 @@ public class RegistrationResource extends Resource {
 	 * @param userClass
 	 * @return user
 	 */
-	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final Class userClass) {
+	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final Class userClass, final String confKey) {
 
 		Principal user = null;
 
@@ -447,6 +445,9 @@ public class RegistrationResource extends Resource {
 
 				user = (Principal) app.create(userClass, props);
 
+			} else {
+
+				logger.info("User self-registration is not configured yet, cannot create new user.");
 			}
 
 		} catch (FrameworkException ex) {

@@ -107,8 +107,6 @@ public class StructrHttpServiceConfig {
 
 		}
 
-		this.userAutoCreate      = Settings.getBooleanSetting(servletName, userAutoCreateKeyName).getValue();
-		this.userAutoLogin       = Settings.getBooleanSetting(servletName, userAutoLoginKeyName).getValue();
 		this.defaultPropertyView = Settings.getStringSetting(servletName, defaultPropertyKeyName).getValue();
 		this.outputNestingDepth  = Settings.getIntegerSetting(servletName, nestingDepthKeyName).getValue();
 	}
@@ -126,8 +124,6 @@ public class StructrHttpServiceConfig {
 
 		try {
 			authenticator = (Authenticator) authenticatorClass.newInstance();
-			authenticator.setUserAutoCreate(userAutoCreate);
-			authenticator.setUserAutoLogin(userAutoLogin);
 
 		} catch (InstantiationException | IllegalAccessException t) {
 

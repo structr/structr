@@ -51,6 +51,10 @@ public abstract class MailHelper {
 					final String htmlContent, final String textContent, final EmailAttachment... attachments)
 		throws EmailException {
 
+		if (Settings.SmtpTesting.getValue()) {
+			return "Testing";
+		}
+
 		HtmlEmail mail = new HtmlEmail();
 
 		setup(mail, to, toName, from, fromName, cc, bcc, bounce, subject);

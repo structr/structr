@@ -28,11 +28,11 @@ import org.structr.core.entity.SuperUser;
 
 /**
  * An authenticator implementation for structr which always returns a superuser or superuser context.
- * 
+ *
  *
  */
 public class SuperUserAuthenticator implements Authenticator {
-	
+
 	private static final SuperUser superUser = new SuperUser();
 
 	@Override
@@ -64,24 +64,7 @@ public class SuperUserAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public void setUserAutoCreate(final boolean userAutoCreate) {}
-	
-	@Override
-	public boolean getUserAutoCreate() {
-		return false;
-	}
-	
-	@Override
 	public Class getUserClass() {
 		return null;
 	}
-
-	@Override
-	public void setUserAutoLogin(boolean userAutoLogin) {}
-
-	@Override
-	public boolean getUserAutoLogin() {
-		return false;
-	}
-	
 }

@@ -136,6 +136,7 @@ public class Settings {
 	public static final Setting<String> SmtpPassword          = new StringSetting(smtpGroup,  "SMTP Settings", "smtp.password",     "");
 	public static final Setting<Boolean> SmtpTlsEnabled       = new BooleanSetting(smtpGroup, "SMTP Settings", "smtp.tls.enabled",  true);
 	public static final Setting<Boolean> SmtpTlsRequired      = new BooleanSetting(smtpGroup, "SMTP Settings", "smtp.tls.required", true);
+	public static final Setting<Boolean> SmtpTesting          = new BooleanSetting(smtpGroup, "hidden",        "smtp.testing.only", false);
 
 	// advanced settings
 	public static final Setting<String> ForeignTypeName          = new StringSetting(advancedGroup,  "hidden", "foreign.type.key",         "");
@@ -287,7 +288,7 @@ public class Settings {
 	public static final Setting<Integer> UdpPort                                  = new IntegerSetting(miscGroup, "Cloud Service",          "udp.port",                                  57555);
 	public static final Setting<String> RegistrationCustomUserClass               = new StringSetting(miscGroup,  "User Self Registration", "Registration.customUserClass",              "");
 	public static final Setting<Boolean> RegistrationAllowLoginBeforeConfirmation = new BooleanSetting(miscGroup, "User Self Registration", "Registration.allowLoginBeforeConfirmation", false);
-	public static final Setting<String> RegistrationCustomAttributes              = new StringSetting(miscGroup,  "User Self Registration", "Registration.customUserAttributes",         "");
+	public static final Setting<String> RegistrationCustomAttributes              = new StringSetting(miscGroup,  "User Self Registration", "Registration.customUserAttributes",         "name");
 
 	public static Collection<SettingsGroup> getGroups() {
 		return groups.values();
