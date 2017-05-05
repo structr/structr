@@ -1508,7 +1508,7 @@ button.enabled, button.active {
 	background-color: #e5e5e5;
 }
 
-.pager input.filter[type="text"][data-attribute="name"] {
+.pager input.filter[type="text"][data-attribute="name"], .pager input.filter[type="text"][data-attribute="category"] {
 	width: 60px;
 }
 

@@ -103,6 +103,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public static final Property<List<DOMNode>> elements = new StartNodes<>("elements", PageLink.class);
 	public static final Property<Boolean> isPage = new ConstantBooleanProperty("isPage", true);
 	public static final Property<Boolean> dontCache = new BooleanProperty("dontCache").defaultValue(false);
+	public static final Property<String> category = new StringProperty("category").indexed();
 
 	// if enabled, prevents asynchronous page rendering; enable this flag when using the stream() builtin method
 	public static final Property<Boolean> pageCreatesRawData = new BooleanProperty("pageCreatesRawData").defaultValue(false);
@@ -112,11 +113,15 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public static final Property<Site> site  = new StartNode<>("site", Pages.class, new UiNotion()).indexedWhenEmpty();
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(Page.class, PropertyView.Public,
-		path, children, linkingElements, contentType, owner, cacheForSeconds, version, showOnErrorCodes, isPage, site, dontCache, pageCreatesRawData, enableBasicAuth, basicAuthRealm
+		path, children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes, isPage, site, dontCache, pageCreatesRawData, enableBasicAuth, basicAuthRealm, category
 	);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Page.class, PropertyView.Ui,
-		path, children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes, isPage, site, dontCache, pageCreatesRawData, enableBasicAuth, basicAuthRealm
+		path, children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes, isPage, site, dontCache, pageCreatesRawData, enableBasicAuth, basicAuthRealm, category
+	);
+
+	public static final org.structr.common.View categoryView = new org.structr.common.View(Page.class, "category",
+		category
 	);
 
 	private Html5DocumentType docTypeNode               = null;

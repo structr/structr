@@ -273,8 +273,31 @@ var _Pages = {
 			_Pages.clearPreviews();
 			$('.node', pPager.el).remove();
 		};
-		pPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
+		pPager.pager.append('Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name" title="Here you can filter the pages list by page name"/>');
+		var categoryFilter = $('<input type="text" class="filter page-label" data-attribute="category" placeholder="Category" />');
+		pPager.pager.append(categoryFilter);
 		pPager.activateFilterElements();
+
+		$.ajax({
+			url: "/structr/rest/Page/category",
+			success:function(data) {
+				var categories = [];
+				data.result.forEach(function(page) {
+					if (page.category !== null && categories.indexOf(page.category) === -1) {
+						categories.push(page.category);
+					}
+				});
+				categories.sort();
+
+				var helpText = "Here you can filter the pages list by page category.";
+				if(categories.length > 0) {
+					helpText += "Available categories are: \n\n" + categories.join("\n");
+				}
+				helpText += "\n\nPro Tip: If category names have identical substrings you can filter for multiple categories at once.";
+
+				categoryFilter.attr('title', helpText);
+			}
+		});
 
 		previewTabs.append('<li id="import_page" title="Import Template" class="button"><i class="add_button icon ' + _Icons.getFullSpriteClass(_Icons.pull_file_icon) + '" /></li>');
 		previewTabs.append('<li id="pull_page" title="Sync page from remote instance" class="button module-dependend" data-structr-module="cloud"><i class="pull_page_button icon ' + _Icons.getFullSpriteClass(_Icons.pull_page_icon) + '" /></li>');
@@ -385,6 +408,7 @@ var _Pages = {
 			dialog.append('<table class="props">'
 					+ '<tr><td><label for="details-object-id">UUID of details object to append to preview URL</label></td><td><input id="_details-object-id" name="details-object-id" size="30" value="' + (LSWrapper.getItem(detailsObjectId + entity.id) ?  LSWrapper.getItem(detailsObjectId + entity.id) : '') + '"> <i id="clear-details-object-id" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
 					+ '<tr><td><label for="auto-refresh">Automatic refresh</label></td><td><input title="Auto-refresh page on changes" alt="Auto-refresh page on changes" class="auto-refresh" type="checkbox"' + (LSWrapper.getItem(autoRefreshDisabledKey + entity.id) ? '' : ' checked="checked"') + '></td></tr>'
+					+ '<tr><td><label for="page-category">Category</label></td><td><input name="page-category" id="_page-category" type="text" value="' + (entity.category || '') + '"> <i id="clear-page-category" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
 					+ '</table>');
 
 			var detailsObjectIdInput = $('#_details-object-id');
@@ -403,7 +427,7 @@ var _Pages = {
 				}
 			});
 
-			$('#_details-object-id').on('blur', function() {
+			detailsObjectIdInput.on('blur', function() {
 				var inp = $(this);
 				var oldVal = LSWrapper.getItem(detailsObjectId + entity.id) || null;
 				var newVal = inp.val() || null;
@@ -423,6 +447,26 @@ var _Pages = {
 					LSWrapper.setItem(key, '1');
 				}
 				blinkGreen($('.auto-refresh', dialog).parent());
+			});
+
+			var pageCategoryInput = $('#_page-category');
+			pageCategoryInput.on('blur', function() {
+				var oldVal = entity.category;
+				var newVal = pageCategoryInput.val() || null;
+				if (newVal !== oldVal) {
+					Command.setProperty(entity.id, "category", newVal, false, function () {
+						blinkGreen(pageCategoryInput);
+						entity.category = newVal;
+					});
+				}
+			});
+
+			$('#clear-page-category').on('click', function () {
+				Command.setProperty(entity.id, "category", null, false, function () {
+					blinkGreen(pageCategoryInput);
+					entity.category = null;
+					pageCategoryInput.val("");
+				});
 			});
 
 		});
