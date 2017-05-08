@@ -123,8 +123,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-fA-F0-9]{32}");
 	private static final ExecutorService threadPool                = Executors.newCachedThreadPool();
 
-	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
-	private final Set<String> possiblePropertyNamesForEntityResolving   = new LinkedHashSet<>();
+	private final Pattern FilenameCleanerPattern                      = Pattern.compile("[\n\r]", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
+	private final StructrHttpServiceConfig config                     = new StructrHttpServiceConfig();
+	private final Set<String> possiblePropertyNamesForEntityResolving = new LinkedHashSet<>();
 
 	private boolean isAsync = false;
 
@@ -1396,7 +1397,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		if (downloadAsFilename != null) {
 			// remove any CR LF characters from the filename to prevent Header Splitting attacks
-			final String cleanedFilename = Pattern.compile("[\n\r]", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL).matcher(downloadAsFilename).replaceAll("");
+			final String cleanedFilename = FilenameCleanerPattern.matcher(downloadAsFilename).replaceAll("");
 
 			// Set Content-Disposition header to suggest a default filename and force a "save-as" dialog
 			// See:
