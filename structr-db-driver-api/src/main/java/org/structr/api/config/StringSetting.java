@@ -81,6 +81,11 @@ public class StringSetting extends Setting<String> {
 
 	@Override
 	public void fromString(final String source) {
+
+		if (source == null) {
+			return;
+		}
+		
 		setValue(source);
 	}
 

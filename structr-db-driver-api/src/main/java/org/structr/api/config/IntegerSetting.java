@@ -18,9 +18,9 @@
  */
 package org.structr.api.config;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Tag;
 
@@ -29,7 +29,7 @@ import org.structr.api.util.html.Tag;
  */
 public class IntegerSetting extends Setting<Integer> {
 
-	private static final Logger logger = Logger.getLogger(IntegerSetting.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(IntegerSetting.class);
 
 	/**
 	 * Constructor to create an empty IntegerSetting with NO default value.
@@ -84,13 +84,24 @@ public class IntegerSetting extends Setting<Integer> {
 	@Override
 	public void fromString(final String source) {
 
+		if (source == null) {
+			return;
+		}
+
 		if (StringUtils.isNotBlank(source)) {
 
 			try {
 				setValue(Integer.parseInt(source));
+
 			} catch (NumberFormatException nex) {
-				logger.log(Level.WARNING, "Invalid value for setting {0}: {1}, ignoring.", new Object[] { getKey(), source } );
+
+				logger.warn("Invalid value for setting {0}: {1}, ignoring.", new Object[] { getKey(), source } );
 			}
+
+		} else {
+
+			// this is the "empty" value
+			setValue(-1);
 		}
 	}
 }

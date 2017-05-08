@@ -18,6 +18,9 @@
  */
 package org.structr.api.config;
 
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Tag;
 
@@ -25,6 +28,8 @@ import org.structr.api.util.html.Tag;
  * A configuration setting with a key and a type.
  */
 public class BooleanSetting extends Setting<Boolean> {
+
+	private static final Logger logger = LoggerFactory.getLogger(BooleanSetting.class);
 
 	/**
 	 * Constructor to create an empty BooleanSetting with NO default value.
@@ -84,6 +89,26 @@ public class BooleanSetting extends Setting<Boolean> {
 
 	@Override
 	public void fromString(final String source) {
-		setValue(Boolean.parseBoolean(source));
+
+		if (source == null) {
+			return;
+		}
+
+		if (StringUtils.isNotBlank(source)) {
+
+			try {
+
+				setValue(Boolean.parseBoolean(source));
+
+			} catch (NumberFormatException nex) {
+
+				logger.warn("Invalid value for setting {0}: {1}, ignoring.", new Object[] { getKey(), source } );
+			}
+
+		} else {
+
+			// this is the "empty" value
+			setValue(false);
+		}
 	}
 }
