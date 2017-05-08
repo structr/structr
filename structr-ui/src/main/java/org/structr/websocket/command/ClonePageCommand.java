@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -53,20 +52,8 @@ public class ClonePageCommand extends AbstractCommand {
 	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-
-		// Node to clone
-		String nodeId = webSocketData.getId();
+		final String nodeId = webSocketData.getId();
 		final AbstractNode nodeToClone = getNode(nodeId);
-		final Map<String, Object> nodeData = webSocketData.getNodeData();
-		final String newName;
-
-		if (nodeData.containsKey(AbstractNode.name.dbName())) {
-
-			newName = (String) nodeData.get(AbstractNode.name.dbName());
-		} else {
-
-			newName = "unknown";
-		}
 
 		if (nodeToClone != null) {
 
@@ -75,7 +62,8 @@ public class ClonePageCommand extends AbstractCommand {
 
 				if (pageToClone != null) {
 
-					//final List<DOMNode> elements = pageToClone.getProperty(Page.elements);
+					final Page newPage = (Page) pageToClone.cloneNode(false);
+					newPage.setProperties(securityContext, new PropertyMap(Page.name, pageToClone.getProperty(Page.name) + "-" + newPage.getIdString()));
 
 					DOMNode firstChild = (DOMNode) pageToClone.getFirstChild().getNextSibling();
 
@@ -83,11 +71,10 @@ public class ClonePageCommand extends AbstractCommand {
 						firstChild = (DOMNode) pageToClone.treeGetFirstChild();
 					}
 
-					final DOMNode newHtmlNode = DOMNode.cloneAndAppendChildren(securityContext, firstChild);
-					final Page newPage = (Page) pageToClone.cloneNode(false);
-					newPage.setProperties(securityContext, new PropertyMap(Page.name, pageToClone.getProperty(Page.name) + "-" + newPage.getIdString()));
-
-					newPage.appendChild(newHtmlNode);
+					if (firstChild != null) {
+						final DOMNode newHtmlNode = DOMNode.cloneAndAppendChildren(securityContext, firstChild);
+						newPage.appendChild(newHtmlNode);
+					}
 
 				}
 

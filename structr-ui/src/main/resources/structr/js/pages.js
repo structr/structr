@@ -691,6 +691,10 @@ var _Pages = {
 
 		if (!pages) return;
 
+		if ($('#id_' + entity.id, pages).length > 0) {
+			return;
+		}
+
 		pages.append('<div id="id_' + entity.id + '" class="node page"></div>');
 		var div = Structr.node(entity.id);
 
