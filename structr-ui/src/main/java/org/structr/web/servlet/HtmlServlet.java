@@ -1392,13 +1392,16 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 
 		if (downloadAsFilename != null) {
+			// remove any CR LF characters from the filename to prevent Header Splitting attacks
+			final String cleanedFilename = Pattern.compile("[\n\r]", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL).matcher(downloadAsFilename).replaceAll("");
+
 			// Set Content-Disposition header to suggest a default filename and force a "save-as" dialog
 			// See:
 			// http://en.wikipedia.org/wiki/MIME#Content-Disposition,
 			// http://tools.ietf.org/html/rfc2183
 			// http://tools.ietf.org/html/rfc1806
 			// http://tools.ietf.org/html/rfc2616#section-15.5 and http://tools.ietf.org/html/rfc2616#section-19.5.1
-			response.addHeader("Content-Disposition", "attachment; filename=\"" + downloadAsFilename + "\"");
+			response.addHeader("Content-Disposition", "attachment; filename=\"" + cleanedFilename + "\"");
 
 			callbackMap.put("requestedFileName", downloadAsFilename);
 		}
