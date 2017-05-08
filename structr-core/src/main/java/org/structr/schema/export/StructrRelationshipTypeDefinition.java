@@ -278,19 +278,17 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 			if (cascadeObject instanceof Map) {
 
 				final Map<String, Object> cascade = (Map)cascadeObject;
-				if (cascade != null) {
+				final Object deleteValue          = cascade.get(JsonSchema.KEY_DELETE);
 
-					final Object deleteValue = cascade.get(JsonSchema.KEY_DELETE);
-					if (deleteValue != null && deleteValue instanceof String) {
+				if (deleteValue != null && deleteValue instanceof String) {
 
-						this.cascadingDelete = Cascade.valueOf(deleteValue.toString());
-					}
+					this.cascadingDelete = Cascade.valueOf(deleteValue.toString());
+				}
 
-					final Object createValue = cascade.get(JsonSchema.KEY_CREATE);
-					if (createValue != null && createValue instanceof String) {
+				final Object createValue = cascade.get(JsonSchema.KEY_CREATE);
+				if (createValue != null && createValue instanceof String) {
 
-						this.cascadingCreate = Cascade.valueOf(createValue.toString());
-					}
+					this.cascadingCreate = Cascade.valueOf(createValue.toString());
 				}
 
 			} else {

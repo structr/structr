@@ -201,23 +201,19 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		if (other instanceof AbstractNode) {
 
 			final AbstractNode node = (AbstractNode)other;
-			if (node == null) {
+			final String _name      = getName();
+
+			if (_name == null) {
 				return -1;
 			}
 
-			String name = getName();
-
-			if (name == null) {
-				return -1;
-			}
-
-			String nodeName = node.getName();
-
+			final String nodeName = node.getName();
 			if (nodeName == null) {
+				
 				return -1;
 			}
 
-			return name.compareTo(nodeName);
+			return _name.compareTo(nodeName);
 		}
 
 		if (other instanceof String) {

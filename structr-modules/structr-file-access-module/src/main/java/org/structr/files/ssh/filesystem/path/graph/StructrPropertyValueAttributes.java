@@ -31,8 +31,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -41,7 +39,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Group;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 
@@ -66,54 +63,12 @@ public class StructrPropertyValueAttributes implements PosixFileAttributes, DosF
 
 	@Override
 	public UserPrincipal owner() {
-
-		if (node == null) {
-			return null;
-		}
-
-		UserPrincipal owner = null;
-
-		/*
-		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-
-			final Principal fileOwner = node.getOwnerNode();
-			if (fileOwner == null) {
-
-				owner = securityContext.getUser(false)::getName;
-
-			} else {
-				owner = fileOwner::getName;
-			}
-			tx.success();
-		} catch (FrameworkException fex) {
-			logger.error("", fex);
-		}
-		*/
-
-		return owner;
+		return null;
 	}
 
 	@Override
 	public GroupPrincipal group() {
-
-		if (node == null) {
-			return null;
-		}
-
-		final List<Group> groups = new LinkedList<>();
-		/*
-
-		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-
-			groups.addAll(node.getOwnerNode().getProperty(User.groups));
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.error("", fex);
-		}
-		*/
-
-		return groups != null && groups.size() > 0 ? groups.get(0)::getName : null;
+		return null;
 	}
 
 	@Override

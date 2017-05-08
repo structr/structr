@@ -113,118 +113,111 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 
 			if (inputStream != null) {
 
-				final FulltextTokenizer tokenizer = new FulltextTokenizer(fileName);
+				try (final FulltextTokenizer tokenizer = new FulltextTokenizer(fileName)) {
 
-				try (final InputStream is = inputStream) {
+					try (final InputStream is = inputStream) {
 
-					Detector detector = new DefaultDetector(MimeTypes.getDefaultMimeTypes());
-					final AutoDetectParser parser = new AutoDetectParser(detector);
+						Detector detector = new DefaultDetector(MimeTypes.getDefaultMimeTypes());
+						final AutoDetectParser parser = new AutoDetectParser(detector);
 
-					final Map<MediaType, Parser> customParsers = new HashMap<>();
-					customParsers.put(MediaType.application("pdf"), new PDFParser());
-					parser.setParsers(customParsers);
+						final Map<MediaType, Parser> customParsers = new HashMap<>();
+						customParsers.put(MediaType.application("pdf"), new PDFParser());
+						parser.setParsers(customParsers);
 
-					final Metadata metadata = new Metadata();
+						final Metadata metadata = new Metadata();
 
-					parser.parse(is, new BodyContentHandler(tokenizer), metadata);
-					parsingSuccessful = true;
+						parser.parse(is, new BodyContentHandler(tokenizer), metadata);
+						parsingSuccessful = true;
 
-					logger.info(String.join(", ", metadata.names()));
-				}
-
-				// only do indexing when parsing was successful
-				if (parsingSuccessful) {
-
-					try (Tx tx = StructrApp.getInstance().tx()) {
-
-						// don't modify access time when indexing is finished
-						file.getSecurityContext().preventModificationOfAccessTime();
-
-						// save raw extracted text
-						file.setProperty(Indexable.extractedContent, tokenizer.getRawText());
-
-						// tokenize name
-						tokenizer.write(getName());
-
-						// tokenize owner name
-						final Principal _owner = file.getProperty(owner);
-						if (_owner != null) {
-
-							final String ownerName = _owner.getName();
-							if (ownerName != null) {
-
-								tokenizer.write(ownerName);
-							}
-
-							final String eMail = _owner.getProperty(Person.eMail);
-							if (eMail != null) {
-
-								tokenizer.write(eMail);
-							}
-
-							final String twitterName = _owner.getProperty(Person.twitterName);
-							if (twitterName != null) {
-
-								tokenizer.write(twitterName);
-							}
-						}
-
-						tx.success();
+						logger.info(String.join(", ", metadata.names()));
 					}
 
-					// index document excluding stop words
-					final NodeService nodeService       = Services.getInstance().getService(NodeService.class);
-					final Index<Node> fulltextIndex     = nodeService.getNodeIndex();
-					final Set<String> stopWords         = languageStopwordMap.get(tokenizer.getLanguage());
-					final String indexKeyName           = Indexable.indexedWords.jsonName();
-					final Iterator<String> wordIterator = tokenizer.getWords().iterator();
-					final Node node                     = file.getNode();
-					final Set<String> indexedWords      = new TreeSet<>();
-
-					logger.info("Indexing {}..", fileName);
-
-					while (wordIterator.hasNext()) {
+					// only do indexing when parsing was successful
+					if (parsingSuccessful) {
 
 						try (Tx tx = StructrApp.getInstance().tx()) {
 
-							// remove node from index (in case of previous indexing runs)
-							fulltextIndex.remove(node, indexKeyName);
+							// don't modify access time when indexing is finished
+							file.getSecurityContext().preventModificationOfAccessTime();
 
-							while (wordIterator.hasNext()) {
+							// save raw extracted text
+							file.setProperty(Indexable.extractedContent, tokenizer.getRawText());
 
-								// strip double quotes
-								final String word = StringUtils.strip(wordIterator.next(), "\"");
+							// tokenize name
+							tokenizer.write(getName());
 
-								if (!stopWords.contains(word)) {
+							// tokenize owner name
+							final Principal _owner = file.getProperty(owner);
+							if (_owner != null) {
 
-									indexedWords.add(word);
-									fulltextIndex.add(node, indexKeyName, word, String.class);
+								final String ownerName = _owner.getName();
+								if (ownerName != null) {
 
-//									if (indexedWords > 1000) {
-//										indexedWords = 0;
-//										break;
-//									}
+									tokenizer.write(ownerName);
+								}
+
+								final String eMail = _owner.getProperty(Person.eMail);
+								if (eMail != null) {
+
+									tokenizer.write(eMail);
+								}
+
+								final String twitterName = _owner.getProperty(Person.twitterName);
+								if (twitterName != null) {
+
+									tokenizer.write(twitterName);
 								}
 							}
 
 							tx.success();
 						}
+
+						// index document excluding stop words
+						final NodeService nodeService       = Services.getInstance().getService(NodeService.class);
+						final Index<Node> fulltextIndex     = nodeService.getNodeIndex();
+						final Set<String> stopWords         = languageStopwordMap.get(tokenizer.getLanguage());
+						final String indexKeyName           = Indexable.indexedWords.jsonName();
+						final Iterator<String> wordIterator = tokenizer.getWords().iterator();
+						final Node node                     = file.getNode();
+						final Set<String> indexedWords      = new TreeSet<>();
+
+						while (wordIterator.hasNext()) {
+
+							try (Tx tx = StructrApp.getInstance().tx()) {
+
+								// remove node from index (in case of previous indexing runs)
+								fulltextIndex.remove(node, indexKeyName);
+
+								while (wordIterator.hasNext()) {
+
+									// strip double quotes
+									final String word = StringUtils.strip(wordIterator.next(), "\"");
+
+									if (!stopWords.contains(word)) {
+
+										indexedWords.add(word);
+										fulltextIndex.add(node, indexKeyName, word, String.class);
+									}
+								}
+
+								tx.success();
+							}
+						}
+
+						// store indexed words separately
+						try (Tx tx = StructrApp.getInstance().tx()) {
+
+							// don't modify access time when indexing is finished
+							file.getSecurityContext().preventModificationOfAccessTime();
+
+							// store indexed words
+							file.setProperty(Indexable.indexedWords, (String[]) indexedWords.toArray(new String[indexedWords.size()]));
+
+							tx.success();
+						}
+
+						logger.info("Indexing of {} finished, {} words extracted", new Object[] { fileName, tokenizer.getWordCount() } );
 					}
-
-					// store indexed words separately
-					try (Tx tx = StructrApp.getInstance().tx()) {
-
-						// don't modify access time when indexing is finished
-						file.getSecurityContext().preventModificationOfAccessTime();
-
-						// store indexed words
-						file.setProperty(Indexable.indexedWords, (String[]) indexedWords.toArray(new String[indexedWords.size()]));
-
-						tx.success();
-					}
-
-					logger.info("Indexing of {} finished, {} words extracted", new Object[] { fileName, tokenizer.getWordCount() } );
-
 				}
 			}
 

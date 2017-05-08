@@ -172,73 +172,71 @@ public class UnarchiveCommand extends AbstractCommand {
 			tx.success();
 		}
 
-		final ArchiveInputStream in = new ArchiveStreamFactory().createArchiveInputStream(new BufferedInputStream(is));
-		ArchiveEntry entry = in.getNextEntry();
-		int overallCount = 0;
+		try (final ArchiveInputStream in = new ArchiveStreamFactory().createArchiveInputStream(new BufferedInputStream(is))) {
 
-		while (entry != null) {
+			ArchiveEntry entry = in.getNextEntry();
+			int overallCount = 0;
 
-			try (final Tx tx = app.tx(true, true, false)) { // don't send notifications for bulk commands
+			while (entry != null) {
 
-				int count = 0;
+				try (final Tx tx = app.tx(true, true, false)) { // don't send notifications for bulk commands
 
-				while (entry != null && count++ < 50) {
+					int count = 0;
 
-					final String entryPath = "/" + PathHelper.clean(entry.getName());
-					logger.info("Entry path: {}", entryPath);
+					while (entry != null && count++ < 50) {
 
-					if (entry.isDirectory()) {
+						final String entryPath = "/" + PathHelper.clean(entry.getName());
+						logger.info("Entry path: {}", entryPath);
 
-						final String folderPath = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + entryPath;
-						final Folder newFolder = FileHelper.createFolderPath(securityContext, folderPath);
+						if (entry.isDirectory()) {
 
-						logger.info("Created folder {} with path {}", new Object[]{newFolder, FileHelper.getFolderPath(newFolder)});
+							final String folderPath = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + entryPath;
+							final Folder newFolder = FileHelper.createFolderPath(securityContext, folderPath);
 
-					} else {
+							logger.info("Created folder {} with path {}", new Object[]{newFolder, FileHelper.getFolderPath(newFolder)});
 
-						final String filePath = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + entryPath;
+						} else {
 
-						final String name = PathHelper.getName(entryPath);
+							final String filePath = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + entryPath;
 
-						AbstractFile newFile = ImageHelper.isImageType(name)
-									? ImageHelper.createImage(securityContext, in, null, Image.class, name, false)
-									: FileHelper.createFile(securityContext, in, null, File.class, name);
+							final String name = PathHelper.getName(entryPath);
 
-						final String folderPath = StringUtils.substringBeforeLast(filePath, PathHelper.PATH_SEP);
-						final Folder parentFolder = FileHelper.createFolderPath(securityContext, folderPath);
+							AbstractFile newFile = ImageHelper.isImageType(name)
+										? ImageHelper.createImage(securityContext, in, null, Image.class, name, false)
+										: FileHelper.createFile(securityContext, in, null, File.class, name);
 
-						if (parentFolder != null) {
-							newFile.setProperties(securityContext, new PropertyMap(AbstractFile.parent, parentFolder));
+							final String folderPath = StringUtils.substringBeforeLast(filePath, PathHelper.PATH_SEP);
+							final Folder parentFolder = FileHelper.createFolderPath(securityContext, folderPath);
+
+							if (parentFolder != null) {
+								newFile.setProperties(securityContext, new PropertyMap(AbstractFile.parent, parentFolder));
+							}
+							// create thumbnails while importing data
+	//						if (newFile instanceof Image) {
+	//							newFile.getProperty(Image.tnMid);
+	//							newFile.getProperty(Image.tnSmall);
+	//						}
+
+							logger.info("Created {} file {} with path {}", new Object[]{newFile.getType(), newFile, FileHelper.getFolderPath(newFile)});
+
 						}
-						// create thumbnails while importing data
-//						if (newFile instanceof Image) {
-//							newFile.getProperty(Image.tnMid);
-//							newFile.getProperty(Image.tnSmall);
-//						}
 
-						logger.info("Created {} file {} with path {}", new Object[]{newFile.getType(), newFile, FileHelper.getFolderPath(newFile)});
 
+						entry = in.getNextEntry();
+
+						overallCount++;
 					}
 
+					logger.info("Committing transaction after {} files.", overallCount);
 
-					entry = in.getNextEntry();
+					tx.success();
 
-					overallCount++;
+					logger.info("Unarchived {} files.", overallCount);
 				}
-
-				logger.info("Committing transaction after {} files.", overallCount);
-
-				tx.success();
-
-				logger.info("Unarchived {} files.", overallCount);
 			}
-
 		}
 
 		getWebSocket().send(MessageBuilder.finished().callback(callback).data("success", true).data("filename", fileName).build(), true);
-
-		in.close();
-
 	}
 
 	//~--- get methods ----------------------------------------------------

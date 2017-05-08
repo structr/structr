@@ -32,12 +32,12 @@ public class DateConverter extends PropertyConverter<Date, Long> {
 	public DateConverter(SecurityContext securityContext) {
 		super(securityContext, null);
 	}
-	
+
 	@Override
-	public Long convert(Date source) throws FrameworkException {
+	public Long convert(final Date source) throws FrameworkException {
 
 		if(source != null) {
-			
+
 			return source.getTime();
 		}
 
@@ -45,26 +45,22 @@ public class DateConverter extends PropertyConverter<Date, Long> {
 	}
 
 	@Override
-	public Date revert(Long source) throws FrameworkException {
-		
+	public Date revert(final Long source) throws FrameworkException {
+
 		if (source != null) {
+
 			return new Date(source);
 		}
-		
+
 		return null;
 	}
 
 	@Override
-	public Comparable convertForSorting(Date source) throws FrameworkException {
+	public Comparable convertForSorting(final Date source) throws FrameworkException {
 
 		if (source != null) {
-			
-			if (source instanceof Comparable) {
-				return (Comparable)source;
-			}
-			
-			// fallback to superclass
-			return super.convertForSorting(source);
+
+			return source;
 		}
 
 		return null;

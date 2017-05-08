@@ -18,7 +18,6 @@
  */
 package org.structr.web.entity.feed;
 
-import com.rometools.fetcher.FetcherException;
 import com.rometools.rome.feed.synd.SyndContent;
 import com.rometools.rome.feed.synd.SyndEnclosure;
 import com.rometools.rome.feed.synd.SyndEntry;
@@ -27,6 +26,7 @@ import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.net.URL;
 import java.util.Date;
 import java.util.LinkedList;
@@ -165,69 +165,73 @@ public class DataFeed extends AbstractNode {
 
 			try {
 
-                                final URL remote = new URL(remoteUrl);
-                                final SyndFeedInput input = new SyndFeedInput();
-				final SyndFeed      feed  = input.build(new XmlReader(remote));
-				final List<SyndEntry> entries     = feed.getEntries();
+                                final URL remote              = new URL(remoteUrl);
+                                final SyndFeedInput input     = new SyndFeedInput();
 
-				setProperty(feedType,    feed.getFeedType());
-				setProperty(description, feed.getDescription());
+				try (final Reader reader = new XmlReader(remote)) {
 
-				final List<FeedItem> newItems = getProperty(items);
+					final SyndFeed      feed      = input.build(reader);
+					final List<SyndEntry> entries = feed.getEntries();
 
-				for (final SyndEntry entry : entries) {
+					setProperty(feedType,    feed.getFeedType());
+					setProperty(description, feed.getDescription());
 
-					final PropertyMap props = new PropertyMap();
+					final List<FeedItem> newItems = getProperty(items);
 
-					final String link = entry.getLink();
+					for (final SyndEntry entry : entries) {
 
-					// Check if item with this link already exists
-					if (app.nodeQuery(FeedItem.class).and(FeedItem.url, link).getFirst() == null) {
+						final PropertyMap props = new PropertyMap();
 
-						props.put(FeedItem.url, entry.getLink());
-						props.put(FeedItem.name, entry.getTitle());
-						props.put(FeedItem.author, entry.getAuthor());
-						props.put(FeedItem.comments, entry.getComments());
-                                                props.put(FeedItem.description, entry.getDescription().getValue());
+						final String link = entry.getLink();
 
-						final FeedItem item = app.create(FeedItem.class, props);
-						item.setProperty(FeedItem.pubDate, entry.getPublishedDate());
+						// Check if item with this link already exists
+						if (app.nodeQuery(FeedItem.class).and(FeedItem.url, link).getFirst() == null) {
 
-						final List<FeedItemContent> itemContents = new LinkedList<>();
-                                                final List<FeedItemEnclosure> itemEnclosures = new LinkedList<>();
+							props.put(FeedItem.url, entry.getLink());
+							props.put(FeedItem.name, entry.getTitle());
+							props.put(FeedItem.author, entry.getAuthor());
+							props.put(FeedItem.comments, entry.getComments());
+							props.put(FeedItem.description, entry.getDescription().getValue());
 
-                                                //Get and add all contents
-						final List<SyndContent> contents = entry.getContents();
-						for (final SyndContent content : contents) {
-							final FeedItemContent itemContent = app.create(FeedItemContent.class);
-							itemContent.setProperty(FeedItemContent.value, content.getValue());
+							final FeedItem item = app.create(FeedItem.class, props);
+							item.setProperty(FeedItem.pubDate, entry.getPublishedDate());
 
-							itemContents.add(itemContent);
+							final List<FeedItemContent> itemContents = new LinkedList<>();
+							final List<FeedItemEnclosure> itemEnclosures = new LinkedList<>();
+
+							//Get and add all contents
+							final List<SyndContent> contents = entry.getContents();
+							for (final SyndContent content : contents) {
+								final FeedItemContent itemContent = app.create(FeedItemContent.class);
+								itemContent.setProperty(FeedItemContent.value, content.getValue());
+
+								itemContents.add(itemContent);
+							}
+
+							//Get and add all enclosures
+							final List<SyndEnclosure> enclosures = entry.getEnclosures();
+							for (final SyndEnclosure enclosure : enclosures){
+								final FeedItemEnclosure itemEnclosure= app.create(FeedItemEnclosure.class);
+								itemEnclosure.setProperty(FeedItemEnclosure.url, enclosure.getUrl());
+								itemEnclosure.setProperty(FeedItemEnclosure.enclosureLength, enclosure.getLength());
+								itemEnclosure.setProperty(FeedItemEnclosure.enclosureType, enclosure.getType());
+
+								itemEnclosures.add(itemEnclosure);
+							}
+
+							item.setProperty(FeedItem.contents, itemContents);
+							item.setProperty(FeedItem.enclosures, itemEnclosures);
+
+							newItems.add(item);
+
+							logger.debug("Created new item: {} ({}) ", new Object[]{item.getProperty(FeedItem.name), item.getProperty(FeedItem.pubDate)});
+
 						}
-
-                                                //Get and add all enclosures
-                                                final List<SyndEnclosure> enclosures = entry.getEnclosures();
-                                                for (final SyndEnclosure enclosure : enclosures){
-                                                        final FeedItemEnclosure itemEnclosure= app.create(FeedItemEnclosure.class);
-                                                        itemEnclosure.setProperty(FeedItemEnclosure.url, enclosure.getUrl());
-                                                        itemEnclosure.setProperty(FeedItemEnclosure.enclosureLength, enclosure.getLength());
-                                                        itemEnclosure.setProperty(FeedItemEnclosure.enclosureType, enclosure.getType());
-
-                                                        itemEnclosures.add(itemEnclosure);
-                                                }
-
-						item.setProperty(FeedItem.contents, itemContents);
-                                                item.setProperty(FeedItem.enclosures, itemEnclosures);
-
-						newItems.add(item);
-
-						logger.debug("Created new item: {} ({}) ", new Object[]{item.getProperty(FeedItem.name), item.getProperty(FeedItem.pubDate)});
-
 					}
-				}
 
-				setProperty(items, newItems);
-				setProperty(lastUpdated, new Date());
+					setProperty(items, newItems);
+					setProperty(lastUpdated, new Date());
+				}
 
 			} catch (IllegalArgumentException | IOException | FeedException | FrameworkException ex) {
 				logger.error("Error while updating feed", ex);

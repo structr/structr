@@ -329,14 +329,17 @@ public class StructrSSHFile implements Path {
 	@Override
 	public Iterator<Path> iterator() {
 
-		Path parent = this.getParent();
+		Path _parent = this.getParent();
 
 		final List<Path> pathElements = new ArrayList<>();
 		pathElements.add(this);
 
-		while (parent != null) {
-			pathElements.add(parent);
+		while (_parent != null) {
+			
+			pathElements.add(_parent);
+			_parent = _parent.getParent();
 		}
+
 		Collections.reverse(pathElements);
 
 		return pathElements.iterator();

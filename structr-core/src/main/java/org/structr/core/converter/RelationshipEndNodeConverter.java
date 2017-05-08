@@ -46,11 +46,7 @@ public class RelationshipEndNodeConverter extends PropertyConverter {
 
 			AbstractRelationship rel = (AbstractRelationship) currentObject;
 
-			if (rel != null) {
-
-				return rel.getTargetNode();
-			}
-
+			return rel.getTargetNode();
 		}
 
 		return null;
@@ -61,7 +57,5 @@ public class RelationshipEndNodeConverter extends PropertyConverter {
 	public Object convert(Object source) {
 
 		return null;
-
 	}
-
 }

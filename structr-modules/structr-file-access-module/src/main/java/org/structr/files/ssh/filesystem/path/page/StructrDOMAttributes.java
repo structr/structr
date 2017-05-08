@@ -112,7 +112,7 @@ public class StructrDOMAttributes implements PosixFileAttributes, DosFileAttribu
 			logger.error("", fex);
 		}
 
-		return groups != null && groups.size() > 0 ? groups.get(0)::getName : null;
+		return groups.size() > 0 ? groups.get(0)::getName : null;
 	}
 
 	@Override

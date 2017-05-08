@@ -33,23 +33,21 @@ public class RelationshipEndNodeTypeConverter extends PropertyConverter<Object, 
 	public RelationshipEndNodeTypeConverter(SecurityContext securityContext, GraphObject entity) {
 		super(securityContext, entity);
 	}
-	
+
 	@Override
 	public Object revert(String source) {
-		
+
 		if (currentObject instanceof AbstractRelationship) {
-			
-			AbstractRelationship rel = (AbstractRelationship) currentObject;
-			if (rel != null) {
-				
-				NodeInterface endNode = rel.getTargetNode();
-				if (endNode != null) {
-					
-					return endNode.getType();
-				}
+
+			final AbstractRelationship rel = (AbstractRelationship) currentObject;
+			final NodeInterface endNode    = rel.getTargetNode();
+
+			if (endNode != null) {
+
+				return endNode.getType();
 			}
 		}
-		
+
 		return null;
 	}
 

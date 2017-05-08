@@ -214,13 +214,10 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				rels.addAll(relFactory.bulkInstantiate(graphDb.getAllRelationships()));
 			}
 
-			exportToStream(
-				new FileOutputStream(fileName),
-				nodes,
-				rels,
-				null,
-				conditionalIncludeFiles
-			);
+			try (final FileOutputStream fos = new FileOutputStream(fileName)) {
+
+				exportToStream(fos, nodes, rels, null, conditionalIncludeFiles);
+			}
 
 			tx.success();
 
@@ -246,7 +243,10 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			exportToStream(new FileOutputStream(fileName), nodes, relationships, filePaths, includeFiles);
+			try (final FileOutputStream fos = new FileOutputStream(fileName)) {
+
+				exportToStream(new FileOutputStream(fileName), nodes, relationships, filePaths, includeFiles);
+			}
 
 			tx.success();
 
@@ -268,12 +268,9 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	 */
 	public static void exportToStream(final OutputStream outputStream, final Iterable<? extends NodeInterface> nodes, final Iterable<? extends RelationshipInterface> relationships, final Iterable<String> filePaths, final boolean includeFiles) throws FrameworkException {
 
-		try {
+		try (final ZipOutputStream zos = new ZipOutputStream(outputStream)) {
 
-			Set<String> filesToInclude = new LinkedHashSet<>();
-			ZipOutputStream zos        = new ZipOutputStream(outputStream);
-
-			// collect files to include in export
+			final Set<String> filesToInclude = new LinkedHashSet<>();
 			if (filePaths != null) {
 
 				for (String file : filePaths) {
@@ -317,8 +314,9 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 	public static void importFromFile(final DatabaseService graphDb, final SecurityContext securityContext, final String fileName, boolean doValidation, final Long batchSize) throws FrameworkException {
 
-		try {
-			importFromStream(graphDb, securityContext, new FileInputStream(fileName), doValidation, batchSize);
+		try (final InputStream fis = new FileInputStream(fileName)) {
+
+			importFromStream(graphDb, securityContext, fis, doValidation, batchSize);
 
 		} catch (Throwable t) {
 
@@ -330,9 +328,9 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 	public static void importFromStream(final DatabaseService graphDb, final SecurityContext securityContext, final InputStream inputStream, boolean doValidation, final Long batchSize) throws FrameworkException {
 
-		try {
-			ZipInputStream zis = new ZipInputStream(inputStream);
-			ZipEntry entry     = zis.getNextEntry();
+		try (final ZipInputStream zis = new ZipInputStream(inputStream)) {
+
+			ZipEntry entry = zis.getNextEntry();
 
 			while (entry != null) {
 

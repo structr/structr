@@ -44,7 +44,6 @@ import org.structr.common.CaseHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
-import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.function.Functions;
@@ -263,7 +262,7 @@ public class StructrScriptable extends ScriptableObject {
 			return ((Enum)value).name();
 		}
 
-		if (value instanceof Map && !(value instanceof GraphObjectMap) && !(value instanceof PropertyMap)) {
+		if (value instanceof Map && !(value instanceof PropertyMap)) {
 
 			return new MapWrapper((Map)value);
 		}
@@ -665,29 +664,25 @@ public class StructrScriptable extends ScriptableObject {
 
 							try {
 
-								final GrantFunction grant = new GrantFunction();
-								if (grant != null) {
+								if (parameters.length >= 2 && parameters[0] != null && parameters[1] != null) {
 
-									if (parameters.length >= 2 && parameters[0] != null && parameters[1] != null) {
+									// principal, node, string
+									final Object principal = StructrScriptable.this.unwrap(parameters[0]);
+									String permissions     = parameters[1].toString();
 
-										// principal, node, string
-										final Object principal = StructrScriptable.this.unwrap(parameters[0]);
-										String permissions     = parameters[1].toString();
+									// append additional parameters to permission string
+									if (parameters.length > 2) {
 
-										// append additional parameters to permission string
-										if (parameters.length > 2) {
+										for (int i=2; i<parameters.length; i++) {
 
-											for (int i=2; i<parameters.length; i++) {
-
-												if (parameters[i] != null) {
-													permissions += "," + parameters[i].toString();
-												}
+											if (parameters[i] != null) {
+												permissions += "," + parameters[i].toString();
 											}
 										}
-
-										// call function, entity can be null here!
-										grant.apply(actionContext, null, new Object[] { principal, obj, permissions } );
 									}
+
+									// call function, entity can be null here!
+									new GrantFunction().apply(actionContext, null, new Object[] { principal, obj, permissions } );
 								}
 
 								return null;

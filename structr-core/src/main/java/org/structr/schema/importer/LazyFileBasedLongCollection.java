@@ -70,7 +70,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 
 	@Override
 	public boolean equals(final Object o) {
-		return o.hashCode() == this.hashCode();
+		return o instanceof LazyFileBasedLongCollection && o.hashCode() == this.hashCode();
 	}
 
 	@Override

@@ -34,16 +34,12 @@ public class RelationshipStartNodeConverter extends PropertyConverter {
 	public RelationshipStartNodeConverter(SecurityContext securityContext) {
 
 		super(securityContext);
-
 	}
 
 	public RelationshipStartNodeConverter(SecurityContext securityContext, GraphObject entity) {
 
 		super(securityContext, entity);
-
 	}
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public Object revert(Object source) {
@@ -52,22 +48,15 @@ public class RelationshipStartNodeConverter extends PropertyConverter {
 
 			AbstractRelationship rel = (AbstractRelationship) currentObject;
 
-			if (rel != null) {
-
-				return rel.getSourceNode();
-			}
-
+			return rel.getSourceNode();
 		}
 
 		return null;
-
 	}
 
 	@Override
 	public Object convert(Object source) {
 
 		return null;
-
 	}
-
 }

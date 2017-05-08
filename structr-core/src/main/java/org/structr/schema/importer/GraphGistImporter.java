@@ -21,6 +21,7 @@ package org.structr.schema.importer;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -63,15 +64,24 @@ public class GraphGistImporter extends SchemaImporter implements MaintenanceComm
 
 			if (fileName != null) {
 
-				importCypher(extractSources(new FileInputStream(fileName)));
+				try (final FileInputStream fis = new FileInputStream(fileName)) {
+
+					importCypher(extractSources(fis));
+				}
 
 			} else if (url != null) {
 
-				importCypher(extractSources(new URL(url).openStream()));
+				try (final InputStream is = new URL(url).openStream()) {
+
+					importCypher(extractSources(is));
+				}
 
 			} else if (source != null) {
 
-				importCypher(extractSources(new ByteArrayInputStream(source.getBytes())));
+				try (final ByteArrayInputStream bis = new ByteArrayInputStream(source.getBytes())) {
+
+					importCypher(extractSources(bis));
+				}
 			}
 
 		} catch (IOException ioex) {

@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.StaticValue;
+import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -50,7 +52,6 @@ public class SetPermissionCommand extends AbstractCommand {
 
 	}
 
-	private Tx tx     = null;
 	private int sum   = 0;
 	private int count = 0;
 
@@ -85,19 +86,19 @@ public class SetPermissionCommand extends AbstractCommand {
 		if (obj != null) {
 
 			final App app = StructrApp.getInstance(getWebSocket().getSecurityContext());
-			try (final Tx tx = app.tx()) {
+			try (final Tx nestedTx = app.tx()) {
 
 				if (!((AbstractNode)obj).isGranted(Permission.accessControl, getWebSocket().getSecurityContext())) {
 
 					logger.warn("No access control permission for {} on {}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});
 					getWebSocket().send(MessageBuilder.status().message("No access control permission").code(400).build(), true);
-					tx.success();
+					nestedTx.success();
 
 					return;
 
 				}
 
-				tx.success();
+				nestedTx.success();
 
 			} catch (FrameworkException ex) {
 				logger.warn("", ex);
@@ -105,12 +106,19 @@ public class SetPermissionCommand extends AbstractCommand {
 
 			try {
 
-				setPermission(app, obj, principal, action, Permissions.valueOf(permission), rec);
+				final Value<Tx> value = new StaticValue<>(null);
+
+				setPermission(value, app, obj, principal, action, Permissions.valueOf(permission), rec);
 
 				// commit and close transaction
-				tx.success();
-				tx.close();
-				tx = null;
+				final Tx tx = value.get(null);
+				if (tx != null) {
+
+					tx.success();
+					tx.close();
+
+					value.set(null, null);
+				}
 
 				webSocketData.setResult(Arrays.asList(principal));
 
@@ -145,11 +153,14 @@ public class SetPermissionCommand extends AbstractCommand {
 
 	}
 
-	private void setPermission(final App app, final AbstractNode obj, final Principal principal, final String action, final Permission permission, final boolean rec) throws FrameworkException {
+	private void setPermission(final Value<Tx> transaction, final App app, final AbstractNode obj, final Principal principal, final String action, final Permission permission, final boolean rec) throws FrameworkException {
 
 		// create new transaction if not already present
+		Tx tx = transaction.get(null);
 		if (tx == null) {
+
 			tx = app.tx();
+			transaction.set(null, tx);
 		}
 
 		switch (action) {
@@ -184,11 +195,12 @@ public class SetPermissionCommand extends AbstractCommand {
 
 			for (final Object t : ((LinkedTreeNode) obj).treeGetChildren()) {
 
-				setPermission(app, (AbstractNode) t, principal, action, permission, rec);
+				setPermission(transaction, app, (AbstractNode) t, principal, action, permission, rec);
 
 			}
 		}
 
 	}
+
 
 }

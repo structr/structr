@@ -56,16 +56,11 @@ public abstract class StreamingWriter {
 	private static final Logger logger                   = LoggerFactory.getLogger(StreamingWriter.class.getName());
 	private static final long MAX_SERIALIZATION_TIME     = TimeUnit.SECONDS.toMillis(300);
 	private static final Set<PropertyKey> idNameOnly     = new LinkedHashSet<>();
-	private static final Set<PropertyKey> structrGraph   = new LinkedHashSet<>();
 
 	static {
 
 		idNameOnly.add(GraphObject.id);
 		idNameOnly.add(AbstractNode.name);
-
-		structrGraph.add(GraphObject.id);
-		structrGraph.add(AbstractNode.type);
-		structrGraph.add(AbstractNode.name);
 	}
 
 	private final Map<String, Serializer> serializerCache = new LinkedHashMap<>();

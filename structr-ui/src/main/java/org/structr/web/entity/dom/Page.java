@@ -846,9 +846,13 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 		try (final Tx tx = app.tx()) {
 
-			final String source = IOUtils.toString(new FileInputStream(file));
+			final FileInputStream fis                             = new FileInputStream(file);
+			final String source                                   = IOUtils.toString(fis);
+			final Page diffPage                                   = Importer.parsePageFromSource(securityContext, source, this.getProperty(Page.name) + "diff");
 			final List<InvertibleModificationOperation> changeSet = new LinkedList<>();
-			final Page diffPage = Importer.parsePageFromSource(securityContext, source, this.getProperty(Page.name) + "diff");
+
+			// close input stream after use
+			fis.close();
 
 			// build change set
 			changeSet.addAll(Importer.diffNodes(this, diffPage));

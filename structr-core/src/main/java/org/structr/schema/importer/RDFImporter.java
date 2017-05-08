@@ -86,16 +86,24 @@ public class RDFImporter extends SchemaImporter implements MaintenanceCommand {
 
 			if (fileName != null) {
 
-				importCypher(importRDF(new FileInputStream(fileName)));
+				try (final FileInputStream fis = new FileInputStream(fileName)) {
+
+					importCypher(importRDF(fis));
+				}
 
 			} else if (url != null) {
 
-				importCypher(importRDF(new URL(url).openStream()));
+				try (final InputStream is = new URL(url).openStream()) {
+
+					importCypher(importRDF(is));
+				}
 
 			} else if (source != null) {
 
-				importCypher(importRDF(new ByteArrayInputStream(source.getBytes())));
+				try (final InputStream bis = new ByteArrayInputStream(source.getBytes())) {
 
+					importCypher(importRDF(bis));
+				}
 			}
 
 		} catch (Throwable t) {

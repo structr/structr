@@ -28,28 +28,36 @@ import java.util.List;
 /**
  *
  */
-public abstract class AbstractDirectoryStream implements DirectoryStream<Path>, Iterator<Path> {
+public abstract class AbstractDirectoryStream implements DirectoryStream<Path> {
 
 	protected final List<Path> paths = new ArrayList<>();
-	private int index                = 0;
-
-	@Override
-	public Iterator<Path> iterator() {
-		return this;
-	}
 
 	@Override
 	public void close() throws IOException {
 	}
 
-	// ----- interface Iterator<Path> -----
 	@Override
-	public boolean hasNext() {
-		return index < paths.size();
-	}
+	public Iterator<Path> iterator() {
 
-	@Override
-	public Path next() {
-		return paths.get(index++);
+		return new Iterator<Path>() {
+
+			final List<Path> copy = new ArrayList<>(paths);
+			int index             = 0;
+
+			@Override
+			public boolean hasNext() {
+				return index < copy.size();
+			}
+
+			@Override
+			public Path next() {
+				return copy.get(index++);
+			}
+
+			@Override
+			public void remove() {
+				throw new IllegalStateException("This iterator does not support removal of its elements.");
+			}
+		};
 	}
 }

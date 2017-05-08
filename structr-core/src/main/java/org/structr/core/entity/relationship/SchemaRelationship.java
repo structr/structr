@@ -21,10 +21,6 @@ package org.structr.core.entity.relationship;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.Predicate;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.ValidationHelper;
@@ -45,9 +41,6 @@ import org.structr.schema.SchemaHelper;
  *
  */
 public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> {
-
-	private static final Logger logger                      = LoggerFactory.getLogger(SchemaRelationship.class.getName());
-	private static final Pattern ValidKeyPattern            = Pattern.compile("[a-zA-Z_]+");
 
 	public static final Property<String>  name                = new StringProperty("name").indexed();
 	public static final Property<String>  relationshipType    = new StringProperty("relationshipType");
@@ -74,8 +67,6 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> {
 		name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
 		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag
 	);
-
-	private Set<String> dynamicViews = new LinkedHashSet<>();
 
 	@Override
 	public Class<SchemaNode> getSourceType() {
@@ -219,22 +210,6 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> {
 			}
 
 			src.append("\t}\n\n");
-		}
-	}
-
-	// ----- nested classes -----
-	private static class KeyMatcher implements Predicate<String> {
-
-		@Override
-		public boolean accept(String t) {
-
-			if (ValidKeyPattern.matcher(t).matches()) {
-				return true;
-			}
-
-			logger.warn("Invalid key name {} for notion.", t);
-
-			return false;
 		}
 	}
 }

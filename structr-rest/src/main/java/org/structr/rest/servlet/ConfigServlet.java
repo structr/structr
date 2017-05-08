@@ -55,106 +55,119 @@ public class ConfigServlet extends HttpServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
-		if (request.getParameter("reload") != null) {
-
-			// reload data
-			Settings.loadConfiguration(ConfigName);
-
-			// redirect
-			response.sendRedirect(ConfigUrl);
-
-		} else if (request.getParameter("reset") != null) {
-
-			final String key      = request.getParameter("reset");
-			final Setting setting = Settings.getSetting(key);
-
-			if (setting != null) {
-
-				if (setting.isDynamic()) {
-
-					// remove
-					setting.unregister();
-
-				} else {
-
-					// reset to default
-					setting.setValue(setting.getDefaultValue());
-				}
-			}
-
-			// serialize settings
-			Settings.storeConfiguration(ConfigName);
-
-			// redirect
-			response.sendRedirect(ConfigUrl);
-
-		} else if (request.getParameter("start") != null) {
-
-			final String serviceName = request.getParameter("start");
-			if (serviceName != null && isAuthenticated(request)) {
-
-				Services.getInstance().startService(serviceName);
-			}
-
-			// redirect
-			response.sendRedirect(ConfigUrl + "#services");
-
-		} else if (request.getParameter("stop") != null) {
-
-			final String serviceName = request.getParameter("stop");
-			if (serviceName != null && isAuthenticated(request)) {
-
-				Services.getInstance().shutdownService(serviceName);
-			}
-
-			// redirect
-			response.sendRedirect(ConfigUrl + "#services");
-
-		} else if (request.getParameter("restart") != null) {
-
-			final String serviceName = request.getParameter("restart");
-			if (serviceName != null && isAuthenticated(request)) {
-
-				new Thread(new Runnable() {
-
-					@Override
-					public void run() {
-
-						try { Thread.sleep(1000); } catch (Throwable t) {}
-
-						Services.getInstance().shutdownService(serviceName);
-						Services.getInstance().startService(serviceName);
-					}
-
-				}).start();
-			}
-
-			// redirect
-			response.sendRedirect(ConfigUrl + "#services");
-
-		} else {
+		if (isAuthenticated(request)) {
 
 			// no trailing semicolon so we dont trip MimeTypes.getContentTypeWithoutCharset
 			response.setContentType("text/html; charset=utf-8");
 
 			try (final PrintWriter writer = new PrintWriter(response.getWriter())) {
 
-				if (isAuthenticated(request)) {
+				final Document doc = createLoginDocument(request, writer);
+				doc.render();
 
-					final Document doc = createConfigDocument(request, writer);
-					doc.render();
-
-				} else {
-
-					final Document doc = createLoginDocument(request, writer);
-					doc.render();
-				}
-
-				writer.append("\n");    // useful newline
+				writer.append("\n");
 				writer.flush();
 
 			} catch (IOException ioex) {
 				ioex.printStackTrace();
+			}
+
+		} else {
+
+			if (request.getParameter("reload") != null) {
+
+				// reload data
+				Settings.loadConfiguration(ConfigName);
+
+				// redirect
+				response.sendRedirect(ConfigUrl);
+
+			} else if (request.getParameter("reset") != null) {
+
+				final String key      = request.getParameter("reset");
+				final Setting setting = Settings.getSetting(key);
+
+				if (setting != null) {
+
+					if (setting.isDynamic()) {
+
+						// remove
+						setting.unregister();
+
+					} else {
+
+						// reset to default
+						setting.setValue(setting.getDefaultValue());
+					}
+				}
+
+				// serialize settings
+				Settings.storeConfiguration(ConfigName);
+
+				// redirect
+				response.sendRedirect(ConfigUrl);
+
+			} else if (request.getParameter("start") != null) {
+
+				final String serviceName = request.getParameter("start");
+				if (serviceName != null && isAuthenticated(request)) {
+
+					Services.getInstance().startService(serviceName);
+				}
+
+				// redirect
+				response.sendRedirect(ConfigUrl + "#services");
+
+			} else if (request.getParameter("stop") != null) {
+
+				final String serviceName = request.getParameter("stop");
+				if (serviceName != null && isAuthenticated(request)) {
+
+					Services.getInstance().shutdownService(serviceName);
+				}
+
+				// redirect
+				response.sendRedirect(ConfigUrl + "#services");
+
+			} else if (request.getParameter("restart") != null) {
+
+				final String serviceName = request.getParameter("restart");
+				if (serviceName != null && isAuthenticated(request)) {
+
+					new Thread(new Runnable() {
+
+						@Override
+						public void run() {
+
+							try { Thread.sleep(1000); } catch (Throwable t) {}
+
+							Services.getInstance().shutdownService(serviceName);
+							Services.getInstance().startService(serviceName);
+						}
+
+					}).start();
+				}
+
+				// redirect
+				response.sendRedirect(ConfigUrl + "#services");
+
+			} else {
+
+				// no trailing semicolon so we dont trip MimeTypes.getContentTypeWithoutCharset
+				response.setContentType("text/html; charset=utf-8");
+
+				try (final PrintWriter writer = new PrintWriter(response.getWriter())) {
+
+					final Document doc = createConfigDocument(request, writer);
+					doc.render();
+
+					writer.append("\n");
+					writer.flush();
+
+				} catch (IOException ioex) {
+					ioex.printStackTrace();
+				}
+
 			}
 		}
 	}
@@ -292,7 +305,7 @@ public class ConfigServlet extends HttpServlet {
 				if ("HttpService".equals(serviceClassName)) {
 
 					row.block("td");
-					
+
 				} else {
 
 					row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?stop=" + serviceClassName + "';")).text("Stop");

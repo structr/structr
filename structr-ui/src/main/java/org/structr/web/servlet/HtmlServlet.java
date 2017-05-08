@@ -461,12 +461,15 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 										tx.success();
 
 									} catch (Throwable t) {
-										logger.warn("", t);
-										final String errorMsg = t.getMessage();
+
+										t.printStackTrace();
+										logger.warn("Error while rendering page {}: {}", rootNode.getName(), t.getMessage());
+
 										try {
-											//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-											response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorMsg);
+
+											response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 											finished.set(true);
+
 										} catch (IOException ex) {
 											logger.warn("", ex);
 										}
@@ -1515,7 +1518,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			// call onDownload callback
 			try {
 
-				file.invokeMethod("onDownload", Collections.EMPTY_MAP, false);
+				file.invokeMethod("onDownload", callbackMap, false);
 
 			} catch (FrameworkException fex) {
 				logger.warn("", fex);

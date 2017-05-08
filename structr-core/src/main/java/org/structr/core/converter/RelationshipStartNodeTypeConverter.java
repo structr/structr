@@ -36,23 +36,21 @@ public class RelationshipStartNodeTypeConverter extends PropertyConverter {
 
 	@Override
 	public Object revert(Object source) {
-		
+
 		if(currentObject instanceof AbstractRelationship) {
-			
-			AbstractRelationship rel = (AbstractRelationship)currentObject;
-			if(rel != null) {
-				
-				NodeInterface startNode = rel.getSourceNode();
-				if(startNode != null) {
-					
-					return startNode.getType();
-				}
+
+			final AbstractRelationship rel = (AbstractRelationship)currentObject;
+			final NodeInterface startNode = rel.getSourceNode();
+
+			if(startNode != null) {
+
+				return startNode.getType();
 			}
 		}
-		
+
 		return null;
 	}
-	
+
 	@Override
 	public Object convert(Object source) {
 		return null;

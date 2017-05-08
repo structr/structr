@@ -95,16 +95,14 @@ public class FileDataConverter extends PropertyConverter {
 			if (StringUtils.isNotBlank(sourceString)) {
 
 				final Base64URIData uriData = new Base64URIData(sourceString);
-				if (uriData != null) {
 
-					try {
+				try {
 
-						FileHelper.setFileData(currentFile, uriData.getBinaryData(), uriData.getContentType());
+					FileHelper.setFileData(currentFile, uriData.getBinaryData(), uriData.getContentType());
 
-					} catch (IOException ioex) {
+				} catch (IOException ioex) {
 
-						logger.warn("Unable to store file", ioex);
-					}
+					logger.warn("Unable to store file", ioex);
 				}
 			}
 		}
