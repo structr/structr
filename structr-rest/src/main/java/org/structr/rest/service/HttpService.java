@@ -97,7 +97,7 @@ public class HttpService implements RunnableService {
 	public void startService() throws Exception {
 
 		logger.info("Starting {} (host={}:{}, maxIdleTime={}, requestHeaderSize={})", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.HttpPort.getValue(), maxIdleTime, requestHeaderSize);
-		logger.info("Base path {}", Settings.BasePath.getValue());
+		logger.info("Base path {}", Settings.getBasePath());
 		logger.info("{} started at http://{}:{}", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.HttpPort.getValue());
 
 		server.start();
@@ -113,7 +113,7 @@ public class HttpService implements RunnableService {
 		}
 
 		// The jsp directory is created by the container, but we don't need it
-		removeDir(Settings.BasePath.getValue(), "jsp");
+		removeDir(Settings.getBasePath(), "jsp");
 
 		// send lifecycle event that the server has been started
 		sendLifecycleEvent(LifecycleEvent.Started);
@@ -185,7 +185,7 @@ public class HttpService implements RunnableService {
 		boolean enableRewriteFilter         = true;
 
 		// get current base path
-		String basePath = System.getProperty("home", Settings.BasePath.getValue());
+		String basePath = System.getProperty("home", Settings.getBasePath());
 		if (StringUtils.isEmpty(basePath)) {
 
 			// use cwd and, if that fails, /tmp as a fallback

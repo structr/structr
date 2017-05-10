@@ -59,8 +59,9 @@ public class Settings {
 	public static final Setting<String> DatabasePath          = new StringSetting(generalGroup,   "Paths",       "database.path",              "db");
 	public static final Setting<String> FilesPath             = new StringSetting(generalGroup,   "Paths",       "files.path",                 System.getProperty("user.dir").concat("/files"));
 	public static final Setting<String> LogDatabasePath       = new StringSetting(generalGroup,   "Paths",       "log.database.path",          System.getProperty("user.dir").concat("/logDb.dat"));
-	public static final Setting<String> DataExchangePath      = new StringSetting(generalGroup,   "Paths",       "data.exchange.path",         "");
-	public static final Setting<String> SnapshotsPath         = new StringSetting(generalGroup,   "Paths",       "snapshot.path",              "snapshots/");
+	public static final Setting<String> DataExchangePath      = new StringSetting(generalGroup,   "Paths",       "data.exchange.path",         "exchange/", "IMPORTANT: Path is relative to base.path");
+	public static final Setting<String> SnapshotsPath         = new StringSetting(generalGroup,   "Paths",       "snapshot.path",              "snapshots/", "IMPORTANT: Path is relative to base.path");
+	public static final Setting<String> LayoutsPath           = new StringSetting(generalGroup,   "Paths",       "layouts.path",               "layouts/", "IMPORTANT: Path is relative to base.path");
 	public static final Setting<Boolean> LogSchemaOutput      = new BooleanSetting(generalGroup,  "Logging",     "NodeExtender.log",           false);
 	public static final Setting<Boolean> RequestLogging       = new BooleanSetting(generalGroup,  "Logging",     "log.requests",               false);
 	public static final Setting<String> LogPrefix             = new StringSetting(generalGroup,   "Logging",     "log.prefix",                 "structr");
@@ -443,6 +444,27 @@ public class Settings {
 		for (Object k : properties.keySet()) {
 			properties.put(k, trim((String) properties.get(k)));
 		}
+	}
+	
+	public static String getBasePath() {
+
+		return checkPath(BasePath.getValue());
+		
+	}
+	
+	public static String getFullSettingPath(Setting<String> pathSetting) {
+
+		return getBasePath() + checkPath(pathSetting.getValue());
+		
+	}
+	
+	private static String checkPath(final String path) {
+
+		if (path.endsWith("/")) {
+			return path;
+		}
+
+		return path + "/";
 	}
 
 	// ----- package methods -----

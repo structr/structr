@@ -32,6 +32,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -215,7 +216,7 @@ public class LayoutsCommand extends AbstractCommand {
 
 	public static List<String> listLayouts() {
 
-		final File baseDir       = new File(getBasePath());
+		final File baseDir       = new File(getLayoutsPath());
 		final List<String> fileNames = new LinkedList<>();
 
 		if (baseDir.exists()) {
@@ -256,7 +257,7 @@ public class LayoutsCommand extends AbstractCommand {
 		}
 
 		// create
-		final File path = new File(getBasePath() + fileName);
+		final File path = new File(getLayoutsPath() + fileName);
 		final File parent = path.getParentFile();
 		if (!parent.exists()) {
 
@@ -266,8 +267,10 @@ public class LayoutsCommand extends AbstractCommand {
 		return path;
 	}
 
-	public static String getBasePath() {
+	public static String getLayoutsPath() {
 
-		return "layouts/";
+		return Settings.getFullSettingPath(Settings.LayoutsPath);
+
 	}
+
 }

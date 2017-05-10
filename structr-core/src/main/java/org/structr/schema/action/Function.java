@@ -395,15 +395,10 @@ public abstract class Function<S, T> extends Hint {
 
 	protected String getSandboxFileName(final String source) throws IOException {
 
-		final String basePath = Settings.BasePath.getValue();
+		final String basePath = Settings.getBasePath();
 		if (!basePath.isEmpty()) {
 
-			final String defaultExchangePath = basePath.endsWith("/") ? basePath.concat("exchange") : basePath.concat("/exchange");
-			String exchangeDir = Settings.DataExchangePath.getValue(defaultExchangePath);
-
-			if (!exchangeDir.endsWith("/")) {
-				exchangeDir = exchangeDir.concat("/");
-			}
+			final String exchangeDir = Settings.getFullSettingPath(Settings.DataExchangePath);
 
 			// create exchange directory
 			final File dir = new File(exchangeDir);
@@ -434,7 +429,8 @@ public abstract class Function<S, T> extends Hint {
 
 	protected File getServerlogFile () throws IOException {
 
-		final String basePath = Settings.BasePath.getValue();
+		final String basePath = Settings.getBasePath();
+
 		if (!basePath.isEmpty()) {
 
 			boolean isDebug = java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments().toString().contains("jdwp");

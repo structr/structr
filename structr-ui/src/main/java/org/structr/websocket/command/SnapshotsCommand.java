@@ -96,7 +96,7 @@ public class SnapshotsCommand extends AbstractCommand {
 
 				case "get":
 
-					final Path snapshotFile = Paths.get(SnapshotCommand.getBasePath() + name);
+					final Path snapshotFile = Paths.get(SnapshotCommand.getSnapshotsPath() + name);
 
 					if (Files.exists(snapshotFile)) {
 

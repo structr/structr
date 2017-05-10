@@ -162,7 +162,7 @@ public class NodeService implements SingletonService {
 	public void initialized() {
 
 		// check for empty database and seed file
-		String basePath = Settings.BasePath.getValue();
+		String basePath = Settings.getBasePath();
 
 		if (StringUtils.isEmpty(basePath)) {
 			basePath = ".";

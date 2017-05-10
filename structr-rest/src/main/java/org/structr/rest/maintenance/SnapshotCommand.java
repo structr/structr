@@ -245,7 +245,7 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 
 	public static List<String> listSnapshots() {
 
-		final File baseDir       = new File(getBasePath());
+		final File baseDir       = new File(getSnapshotsPath());
 		final List<String> fileNames = new LinkedList<>();
 
 		if (baseDir.exists()) {
@@ -286,7 +286,7 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 		}
 
 		// create
-		final File path = new File(getBasePath() + fileName);
+		final File path = new File(getSnapshotsPath() + fileName);
 		final File parent = path.getParentFile();
 		if (!parent.exists()) {
 
@@ -296,20 +296,10 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 		return path;
 	}
 
-	public static String getBasePath() {
+	public static String getSnapshotsPath() {
 
-		final String basePath = checkPath(Settings.BasePath.getValue());
-		String snapshotsPath  = checkPath(Settings.SnapshotsPath.getValue());
+		return Settings.getFullSettingPath(Settings.SnapshotsPath);
 
-		return basePath + snapshotsPath;
 	}
 
-	private static String checkPath(final String path) {
-
-		if (path.endsWith("/")) {
-			return path;
-		}
-
-		return path + "/";
-	}
 }
