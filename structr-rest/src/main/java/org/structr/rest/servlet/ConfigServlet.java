@@ -55,7 +55,7 @@ public class ConfigServlet extends HttpServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
-		if (isAuthenticated(request)) {
+		if (!isAuthenticated(request)) {
 
 			// no trailing semicolon so we dont trip MimeTypes.getContentTypeWithoutCharset
 			response.setContentType("text/html; charset=utf-8");

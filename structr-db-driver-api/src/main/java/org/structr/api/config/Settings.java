@@ -54,7 +54,7 @@ public class Settings {
 	public static final Setting<String> InstanceStage         = new StringSetting(generalGroup,   "Application", "application.instance.stage", "");
 	public static final Setting<String> SuperUserName         = new StringSetting(generalGroup,   "Superuser",   "superuser.username",         "superadmin");
 	public static final Setting<String> SuperUserPassword     = new PasswordSetting(generalGroup, "Superuser",   "superuser.password",         RandomStringUtils.randomAlphanumeric(12));
-	public static final Setting<String> BasePath              = new StringSetting(generalGroup,   "Paths",       "base.path",                  "");
+	public static final Setting<String> BasePath              = new StringSetting(generalGroup,   "Paths",       "base.path",                  ".");
 	public static final Setting<String> TmpPath               = new StringSetting(generalGroup,   "Paths",       "tmp.path",                   "/tmp");
 	public static final Setting<String> DatabasePath          = new StringSetting(generalGroup,   "Paths",       "database.path",              "db");
 	public static final Setting<String> FilesPath             = new StringSetting(generalGroup,   "Paths",       "files.path",                 System.getProperty("user.dir").concat("/files"));
