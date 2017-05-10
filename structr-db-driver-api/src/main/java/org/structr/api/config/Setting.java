@@ -32,17 +32,24 @@ public abstract class Setting<T> {
 	private String category                     = null;
 	private String key                          = null;
 	private T value                             = null;
+	private String comment                      = null;
 
 	public abstract void render(final Tag parent);
 	public abstract void fromString(final String source);
 
 	public Setting(final SettingsGroup group, final String categoryName, final String key, final T value) {
 
+		this(group, categoryName, key, value, null);
+	}
+	
+	public Setting(final SettingsGroup group, final String categoryName, final String key, final T value, final String comment) {
+
 		this.key          = key;
 		this.value        = value;
 		this.category     = categoryName;
 		this.group        = group;
 		this.defaultValue = value;
+		this.comment      = comment;
 
 		group.registerSetting(this);
 		Settings.registerSetting(this);
@@ -54,6 +61,10 @@ public abstract class Setting<T> {
 
 	public String getCategory() {
 		return category;
+	}
+	
+	public String getComment() {
+		return comment;
 	}
 
 	public T getValue() {

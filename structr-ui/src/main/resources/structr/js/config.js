@@ -56,6 +56,29 @@ function resize() {
 	});
 }
 
+function appendHelpTextToElement (text, el, css) {
+
+	var toggleElement = $('<span><i class="sprite sprite-information"></span>');
+	if (css) {
+		toggleElement.css(css);
+	}
+	var helpElement = $('<span class="context-help-text">' + text + '</span>');
+
+	toggleElement.on("mousemove", function(e) {
+		helpElement.show();
+		helpElement.css({
+			left: e.clientX + 20,
+			top: e.clientY + 10
+		});
+	});
+
+	toggleElement.on("mouseout", function(e) {
+		helpElement.hide();
+	});
+
+	return el.append(toggleElement).append(helpElement);
+}
+
 $(function () {
 
 	$('#configTabs').tabs({
@@ -78,6 +101,13 @@ $(function () {
 	});
 	
 	resize();
+
+	$('label.has-comment').each(function(idx, label) {
+		appendHelpTextToElement($(label).data("comment"), $(label), {
+			marginLeft: '4px',
+			marginRight: '4px'
+		});		
+	});
 	
 });
 
