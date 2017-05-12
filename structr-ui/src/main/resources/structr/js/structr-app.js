@@ -124,7 +124,7 @@ function StructrApp(baseUrl, locale) {
 			success                          : 'Success!',
 			passwordLinkSent                 : 'Link to reset password sent. Please check your inbox or spam folder.',
 			areYouSure                       : 'Are you sure?',
-			areYourSureToDelete              : 'Are you sure to delete',
+			areYourSureToDelete              : 'Are you sure you want to delete',
 			successfullyExecutedCustomAction : 'Successfully executed custom action',
 			couldNotExecuteCustomAction     : 'Could not execute custom action',
 			couldNotReadRelatedProperty      : 'Could not read related property',
