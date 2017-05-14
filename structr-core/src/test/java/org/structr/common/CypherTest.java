@@ -75,7 +75,7 @@ public class CypherTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				NativeResult<Relationship> result = graphDb.execute("start n = node(*) match (n)<-[r:ONE_TO_ONE]-() return r");
+				NativeResult<Relationship> result = graphDb.execute("MATCH (n)<-[r:ONE_TO_ONE]-() RETURN r");
 				final Iterator<Relationship> rels = result.columnAs("r");
 
 				assertTrue(rels.hasNext());

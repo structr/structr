@@ -28,6 +28,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertTrue;
@@ -186,13 +187,16 @@ public class MaintenanceTest extends StructrTest {
 					}
 					System.out.println();
 
-					assertEquals("First label has to be AbstractNode",       Iterables.toList(labels).get(0).name(), "AbstractNode");
-					assertEquals("Second label has to be NodeInterface",     Iterables.toList(labels).get(1).name(), "NodeInterface");
-					assertEquals("Third label has to be AccessControllable", Iterables.toList(labels).get(2).name(), "AccessControllable");
-					assertEquals("Fourth label has to be CMISInfo",          Iterables.toList(labels).get(3).name(), "CMISInfo");
-					assertEquals("Firth label has to be CMISItemInfo",       Iterables.toList(labels).get(4).name(), "CMISItemInfo");
-					assertEquals("Sixth label has to be TestOne",            Iterables.toList(labels).get(5).name(), "TestOne");
-					assertEquals("Seventh label has to be TestEleven",       Iterables.toList(labels).get(6).name(), "TestEleven");
+					final Set<String> names = Iterables.toSet(labels).stream().map(Label::name).collect(Collectors.toSet());
+
+					assertEquals("Number of labels must be 7", 7, names.size());
+					assertTrue("Set of labels must contain AbstractNode",       names.contains("AbstractNode"));
+					assertTrue("Set of labels must contain NodeInterface",      names.contains("NodeInterface"));
+					assertTrue("Set of labels must contain AccessControllable", names.contains("AccessControllable"));
+					assertTrue("Set of labels must contain CMISInfo",           names.contains("CMISInfo"));
+					assertTrue("Set of labels must contain CMISItemInfo",       names.contains("CMISItemInfo"));
+					assertTrue("Set of labels must contain TestOne",            names.contains("TestOne"));
+					assertTrue("Set of labels must contain TestEleven",         names.contains("TestEleven"));
 				}
 
 				tx.success();

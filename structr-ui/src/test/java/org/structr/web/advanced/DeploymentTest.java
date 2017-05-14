@@ -19,6 +19,7 @@
 package org.structr.web.advanced;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
@@ -35,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -56,6 +58,9 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.dynamic.File;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonType;
 import org.structr.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.FileBase;
@@ -1632,7 +1637,7 @@ public class DeploymentTest extends StructrUiTest {
 
 	}
 
-		@Test
+	@Test
 	public void test35WidgetWithSharedComponentCreation() {
 
 		// setup
@@ -1711,9 +1716,65 @@ public class DeploymentTest extends StructrUiTest {
 			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
-
 	}
 
+	@Test
+	public void test36BuiltInTypesWithProperties() {
+
+		// setup schema
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			Assert.assertNotNull("StructrSchema must return a valid schema object", schema);
+
+			final JsonType pageType = schema.getType("Page");
+			final JsonType fileType = schema.getType("File");
+			Assert.assertNotNull("Type Page must exist in every schema", pageType);
+			Assert.assertNotNull("Type File must exist in every schema", fileType);
+
+			pageType.addIntegerProperty("displayPosition");
+			pageType.addStringProperty("icon");
+
+			fileType.addIntegerProperty("test1");
+			fileType.addStringProperty("test2");
+
+			// install schema
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException | URISyntaxException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createSimplePage(securityContext, "page1");
+
+			page.setProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(Page.class, "displayPosition"), 12);
+			page.setProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(Page.class, "icon"),            "icon");
+
+			final Folder folder = app.create(Folder.class, "files");
+			folder.setProperty(Folder.includeInFrontendExport, true);
+
+			// create test file with custom attributes
+			app.create(File.class,
+				new NodeAttribute<>(File.name, "test.txt"),
+				new NodeAttribute<>(File.parent, folder),
+				new NodeAttribute<>(File.contentType, "text/plain"),
+				new NodeAttribute<>(StructrApp.getConfiguration().getPropertyKeyForDatabaseName(File.class, "test1"), 123),
+				new NodeAttribute<>(StructrApp.getConfiguration().getPropertyKeyForDatabaseName(File.class, "test2"), "testString")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		compare(calculateHash(), true);
+	}
 
 
 	// ----- private methods -----
@@ -1936,6 +1997,14 @@ public class DeploymentTest extends StructrUiTest {
 		if (node instanceof DOMElement) {
 
 			for (final PropertyKey key : ((DOMElement)node).getHtmlAttributes()) {
+
+				buf.append(valueOrEmpty(node, key));
+			}
+		}
+
+		for (final PropertyKey key : node.getPropertyKeys(PropertyView.All)) {
+
+			if (key.isDynamic()) {
 
 				buf.append(valueOrEmpty(node, key));
 			}

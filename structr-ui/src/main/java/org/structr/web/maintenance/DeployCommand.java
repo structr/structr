@@ -47,6 +47,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.GraphObjectComparator;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -64,6 +65,7 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.rest.resource.MaintenanceParameterResource;
@@ -849,6 +851,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putIf(config, "enableBasicAuth",         node.getProperty(Page.enableBasicAuth));
 		}
 
+		// export all dynamic properties
+		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(node.getClass(), PropertyView.All)) {
+
+			// only export dynamic (=> additional) keys
+			if (key.isDynamic()) {
+
+				System.out.println("################################################################################## EXPORTING " + key.jsonName());
+
+				putIf(config, key.jsonName(), node.getProperty(key));
+			}
+		}
+
 		exportOwnershipAndSecurity(node, config);
 	}
 
@@ -869,6 +883,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putIf(config, "isImage",                 file.getProperty(Image.isImage));
 			putIf(config, "width",                   file.getProperty(Image.width));
 			putIf(config, "height",                  file.getProperty(Image.height));
+		}
+
+		// export all dynamic properties
+		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(file.getClass(), PropertyView.All)) {
+
+			// only export dynamic (=> additional) keys
+			if (key.isDynamic()) {
+
+				putIf(config, key.jsonName(), file.getProperty(key));
+			}
 		}
 
 		exportOwnershipAndSecurity(file, config);
