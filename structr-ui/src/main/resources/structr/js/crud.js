@@ -1590,7 +1590,7 @@ var _Crud = {
 			});
 			$('.actions .delete', row).on('click', function(event) {
 				event.preventDefault();
-				var c = confirm('Are you sure to delete ' + type + ' ' + id + ' ?');
+				var c = confirm('Are you sure you want to delete ' + type + ' ' + id + ' ?');
 				if (c === true) {
 					_Crud.crudDelete(id);
 				}
