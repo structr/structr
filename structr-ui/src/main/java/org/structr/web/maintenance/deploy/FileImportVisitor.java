@@ -276,11 +276,8 @@ public class FileImportVisitor implements FileVisitor<Path> {
 						new NodeAttribute(AbstractNode.name, name),
 						new NodeAttribute(Folder.parent, parent)
 					);
-				}
 
-				if (current != null) {
-
-					// set properties from files.json
+					// set properties from files.json, but only when the folder is created
 					final PropertyMap properties = getPropertiesForFileOrFolder(current.getPath());
 					if (properties != null) {
 

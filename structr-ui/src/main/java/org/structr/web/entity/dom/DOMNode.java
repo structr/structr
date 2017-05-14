@@ -711,8 +711,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	private void getVisibilityInstructions(final Set<String> instructions) {
 
 		final Page _ownerDocument       = (Page)getOwnerDocument();
-		final boolean pagePublic        = _ownerDocument.isVisibleToPublicUsers();
-		final boolean pageProtected     = _ownerDocument.isVisibleToAuthenticatedUsers();
+
+		logger.warn("DOMNode {} has no owner document!", getUuid());
+
+		final boolean pagePublic        = _ownerDocument != null ? _ownerDocument.isVisibleToPublicUsers() : false;
+		final boolean pageProtected     = _ownerDocument != null ? _ownerDocument.isVisibleToAuthenticatedUsers() : false;
 		final boolean pagePrivate       = !pagePublic && !pageProtected;
 		final boolean pagePublicOnly    = pagePublic && !pageProtected;
 		final boolean elementPublic     = isVisibleToPublicUsers();
