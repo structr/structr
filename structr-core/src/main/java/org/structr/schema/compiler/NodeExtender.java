@@ -145,7 +145,9 @@ public class NodeExtender {
 					logger.info("Successfully compiled {} dynamic entities: {}", new Object[] { jfiles.size(), jfiles.stream().map(f -> f.getName().replaceFirst("/", "")).collect(Collectors.joining(", ")) });
 
 					for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
-						listener.simpleBroadcast();
+						final Map<String, Object> data = new TreeMap();
+						data.put("success", true);
+						listener.simpleBroadcast("SCHEMA_COMPILED", data);
 					}
 
 					Services.getInstance().setOverridingSchemaTypesAllowed(false);

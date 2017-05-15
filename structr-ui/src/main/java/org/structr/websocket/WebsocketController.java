@@ -209,9 +209,9 @@ public class WebsocketController implements StructrTransactionListener {
 	}
 
 	@Override
-	public void simpleBroadcast () {
+	public void simpleBroadcast(final String commandName, final Map<String, Object> data) {
 
-		broadcast(MessageBuilder.forName("SCHEMA_COMPILED").data("success", true).build());
+		broadcast(MessageBuilder.forName(commandName).data(data).build());
 
 	}
 
