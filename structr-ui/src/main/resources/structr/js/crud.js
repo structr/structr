@@ -998,6 +998,35 @@ var _Crud = {
 		var importArea = $('<textarea class="importArea"></textarea>');
 		dialogText.append(importArea);
 
+		var separatorSelect = $('<select><option selected>;</option><option>,</option></select>');
+		var separatorContainer = $('<span><label>Field Separator: </label></span>');
+		separatorContainer.append(separatorSelect);
+		dialogMeta.append(separatorContainer);
+
+		var quoteCharacterSelect = $('<select><option selected>"</option><option>\'</option></select>');
+		var quoteCharacterContainer = $('<span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<label>Quote Character: </label></span>');
+		quoteCharacterContainer.append(quoteCharacterSelect);
+		dialogMeta.append(quoteCharacterContainer);
+
+		var periodicCommitCheckbox = $('<input type="checkbox" />');
+		var periodicCommitContainer = $('<span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<label>Periodic Commit? </label></span>');
+		periodicCommitContainer.append(periodicCommitCheckbox);
+		dialogMeta.append(periodicCommitContainer);
+
+		var periodicCommitInput = $('<input type="text" value="1000" size=5 />');
+		var periodicCommitIntervalSpan = $('<span> (Interval: </span>');
+		periodicCommitIntervalSpan.append(periodicCommitInput).append(' lines)');
+		periodicCommitIntervalSpan.hide();
+		periodicCommitContainer.append(periodicCommitIntervalSpan);
+
+		periodicCommitCheckbox.change(function () {
+			if (periodicCommitCheckbox.prop('checked')) {
+				periodicCommitIntervalSpan.show();
+			} else {
+				periodicCommitIntervalSpan.hide();
+			}
+		});
+
 		window.setTimeout(function() {
 			importArea.focus();
 		}, 200);
@@ -1012,8 +1041,14 @@ var _Crud = {
 				dataType: 'json',
 				contentType: 'text/csv; charset=utf-8',
 				method: 'POST',
+				headers: {
+					'X-CSV-Field-Separator': separatorSelect.val(),
+					'X-CSV-Quote-Character': quoteCharacterSelect.val(),
+					'X-CSV-Periodic-Commit': periodicCommitCheckbox.prop('checked'),
+					'X-CSV-Periodic-Commit-Interval': periodicCommitInput.val()
+				},
 				data: importArea.val().split('\n').map($.trim).filter(function(line) { return line !== ''; }).join('\n'),
-				success: function(data) {
+				success: function() {
 					_Crud.refreshList(type);
 				},
 				error: function(data) {
