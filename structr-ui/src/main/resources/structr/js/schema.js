@@ -434,6 +434,7 @@ var _Schema = {
 						.info("Another user made changes to the schema. Do you want to reload to see the changes?")
 						.specialInteractionButton("Reload", _Schema.reloadSchemaAfterRecompileNotification, "Ignore")
 						.uniqueClass('schema')
+						.incrementsUniqueCount()
 						.show();
 
 			} else {

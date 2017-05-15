@@ -1714,7 +1714,9 @@ function MessageBuilder () {
 		confirmButtonText: 'Confirm',
 		classNames: ['message'],
 		uniqueClass: undefined,
-		uniqueCount: 1
+		uniqueCount: 1,
+		updatesText: false,
+		incrementsUniqueCount: false
 	};
 
 	this.requiresConfirmation = function (confirmButtonText) {
@@ -1786,7 +1788,15 @@ function MessageBuilder () {
 			var existingMsgBuilder = $('#info-area .message.' + this.params.uniqueClass).data('msgbuilder');
 			if (existingMsgBuilder) {
 				uniqueMessageAlreadyPresented = true;
-				existingMsgBuilder.incrementUniqueCount();
+
+				if (this.params.incrementsUniqueCount) {
+					existingMsgBuilder.incrementUniqueCount();
+				}
+
+				if (this.params.updatesText) {
+					$('#info-area .message.' + this.params.uniqueClass + ' .text').html(this.params.text);
+				}
+
 			}
 
 		}
@@ -1799,7 +1809,7 @@ function MessageBuilder () {
 			$('#info-area').append(
 				'<div class="' + this.params.classNames.join(' ') +  '" id="' + this.params.msgId + '">' +
 					(this.params.title ? '<h3>' + this.params.title + this.getUniqueCountElement() + '</h3>' : this.getUniqueCountElement()) +
-					this.params.text +
+					'<span class="text">' + this.params.text + '</span>' +
 					(this.params.requiresConfirmation ? '<button class="confirm">' + this.params.confirmButtonText + '</button>' : '') +
 					(this.params.specialInteractionButton ? '<button class="special">' + this.params.specialInteractionButton.text + '</button>' : '') +
 				'</div>'
@@ -1868,6 +1878,16 @@ function MessageBuilder () {
 			this.params.uniqueClass = className;
 			return this.className(className);
 		}
+		return this;
+	};
+
+	this.incrementsUniqueCount = function () {
+		this.params.incrementsUniqueCount = true;
+		return this;
+	};
+
+	this.updatesText = function () {
+		this.params.updatesText = true;
 		return this;
 	};
 
