@@ -1002,6 +1002,7 @@ var _Crud = {
 			importArea.focus();
 		}, 200);
 
+		$('#startImport', dialogBtn).remove();
 		dialogBtn.append('<button id="startImport">Start Import</button>');
 
 		$('#startImport', dialogBtn).on('click', function() {
