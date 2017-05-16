@@ -498,7 +498,7 @@ function wsConnect() {
 						if (me.name === data.username) {
 							new MessageBuilder()
 									.title(data.data.title)
-									.info(data.data.text)
+									.error(data.data.text)
 									.requiresConfirmation()
 									.show();
 						}
