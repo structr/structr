@@ -53,16 +53,8 @@ import org.structr.common.SecurityContext;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeService;
 import org.structr.schema.ConfigurationProvider;
+import org.structr.util.LicenseHelper;
 
-//~--- classes ----------------------------------------------------------------
-
-/**
- * Provides access to the service layer in structr.
- *
- * Use the command method to obtain an instance of the desired command.
- *
- *
- */
 public class Services implements StructrServices {
 
 	private static final Logger logger                                   = LoggerFactory.getLogger(StructrApp.class.getName());
@@ -83,6 +75,7 @@ public class Services implements StructrServices {
 	private final Map<Class, Service> serviceCache             = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Set<Class> registeredServiceClasses          = new LinkedHashSet<>();
 	private final Set<String> configuredServiceClasses         = new LinkedHashSet<>();
+	private LicenseHelper licenseHelper                        = null;
 	private ConfigurationProvider configuration                = null;
 	private boolean initializationDone                         = false;
 	private boolean overridingSchemaTypesAllowed               = true;
@@ -184,6 +177,17 @@ public class Services implements StructrServices {
 
 		// create set of configured services
 		configuredServiceClasses.addAll(Arrays.asList(configuredServiceNames.split("[ ,]+")));
+
+		// read license
+		licenseHelper = new LicenseHelper(Settings.getBasePath() + "license.key");
+
+		// check license
+		if (!licenseHelper.isValid(getEdition())) {
+
+			logger.error("License is not valid, falling back to Evaluation License.");
+			
+		}
+
 
 		// if configuration is not yet established, instantiate it
 		// this is the place where the service classes get the
