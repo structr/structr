@@ -73,7 +73,18 @@ var _Schema = {
 		+ '<option value="Cypher">Cypher</option>'
 		+ '<option value="Thumbnail">Thumbnail</option>',
 	currentNodeDialogId:null,
-	ignoreNextSchemaRecompileNotification: false,
+	ignoreSchemaRecompileNotificationCount: 0,
+	ignoreNextSchemaRecompileNotification: function() {
+		_Schema.ignoreSchemaRecompileNotificationCount++;
+	},
+	ignoredSchemaRecompileNotification: function() {
+		if (_Schema.ignoreSchemaRecompileNotificationCount > 0) {
+			_Schema.ignoreSchemaRecompileNotificationCount--;
+		}
+	},
+	shouldSchemaRecompileNotificationBeIgnored: function () {
+		return (_Schema.ignoreSchemaRecompileNotificationCount > 0);
+	},
 	reload: function(callback) {
 		if (reload) {
 			return;
@@ -213,7 +224,7 @@ var _Schema = {
 					$('.node').css({zIndex: ++maxZ});
 
 					instance.bind('connection', function(info) {
-						_Schema.ignoreNextSchemaRecompileNotification = true;
+						_Schema.ignoreNextSchemaRecompileNotification();
 						_Schema.connect(Structr.getIdFromPrefixIdString(info.sourceId, 'id_'), Structr.getIdFromPrefixIdString(info.targetId, 'id_'));
 					});
 					instance.bind('connectionDetached', function(info) {
@@ -427,7 +438,7 @@ var _Schema = {
 
 		if (Structr.isModuleActive(_Schema)) {
 
-			if (_Schema.ignoreNextSchemaRecompileNotification === false) {
+			if (_Schema.shouldSchemaRecompileNotificationBeIgnored() === false) {
 
 				new MessageBuilder()
 						.title("Schema recompiled")
@@ -439,7 +450,7 @@ var _Schema = {
 
 			} else {
 
-				_Schema.ignoreNextSchemaRecompileNotification = false;
+				_Schema.ignoredSchemaRecompileNotification();
 
 			}
 
@@ -1436,12 +1447,12 @@ var _Schema = {
 		_Schema.initMethodRow(tr, entity, method);
 
 		$('.add-to-favorites', tr).on('click', function() {
-			_Schema.ignoreNextSchemaRecompileNotification = true;
+			_Schema.ignoreNextSchemaRecompileNotification();
 
 			Command.favorites('add', method.id, function() {
 				blinkGreen($('.add-to-favorites', tr));
 
-				_Schema.ignoreNextSchemaRecompileNotification = false;
+				_Schema.ignoredSchemaRecompileNotification();
 			});
 		});
 
@@ -2124,11 +2135,11 @@ var _Schema = {
 				return;
 			}
 
-			_Schema.ignoreNextSchemaRecompileNotification = true;
+			_Schema.ignoreNextSchemaRecompileNotification();
 
 			Command.setProperty(entity.id, key, text2, false, function() {
 
-				_Schema.ignoreNextSchemaRecompileNotification = false;
+				_Schema.ignoredSchemaRecompileNotification();
 
 				Structr.showAndHideInfoBoxMessage('Code saved.', 'success', 2000, 200);
 				_Schema.reload();
@@ -2310,7 +2321,7 @@ var _Schema = {
 
 		if (entity && entity.id) {
 
-			_Schema.ignoreNextSchemaRecompileNotification = true;
+			_Schema.ignoreNextSchemaRecompileNotification();
 
 			$.ajax({
 				url: rootUrl + entity.id,
@@ -2325,8 +2336,7 @@ var _Schema = {
 						}
 					},
 					422: function(data) {
-						//Structr.errorFromResponse(data.responseJSON);
-						_Schema.ignoreNextSchemaRecompileNotification = false;
+						_Schema.ignoredSchemaRecompileNotification();
 						if (onError) {
 							onError(data);
 						}
@@ -2337,7 +2347,7 @@ var _Schema = {
 	},
 	storeSchemaEntity: function(resource, entity, data, onSuccess, onError, onNoop) {
 
-		_Schema.ignoreNextSchemaRecompileNotification = true;
+		_Schema.ignoreNextSchemaRecompileNotification();
 
 		var obj = JSON.parse(data);
 
@@ -2377,7 +2387,7 @@ var _Schema = {
 										}
 									},
 									422: function(data) {
-										_Schema.ignoreNextSchemaRecompileNotification = false;
+										_Schema.ignoredSchemaRecompileNotification();
 										if (onError) {
 											onError(data);
 										}
@@ -2412,7 +2422,7 @@ var _Schema = {
 						}
 					},
 					422: function(data) {
-						_Schema.ignoreNextSchemaRecompileNotification = false;
+						_Schema.ignoredSchemaRecompileNotification();
 						if (onError) {
 							onError(data);
 						}
@@ -2422,7 +2432,7 @@ var _Schema = {
 		}
 	},
 	createNode: function(type) {
-		_Schema.ignoreNextSchemaRecompileNotification = true;
+		_Schema.ignoreNextSchemaRecompileNotification();
 		var url = rootUrl + 'schema_nodes';
 		$.ajax({
 			url: url,
@@ -2435,7 +2445,7 @@ var _Schema = {
 					_Schema.reload();
 				},
 				422: function(data) {
-					_Schema.ignoreNextSchemaRecompileNotification = false;
+					_Schema.ignoredSchemaRecompileNotification();
 					Structr.errorFromResponse(data.responseJSON, undefined, {requiresConfirmation: true});
 				}
 			}
@@ -2443,7 +2453,7 @@ var _Schema = {
 		});
 	},
 	deleteNode: function(id) {
-		_Schema.ignoreNextSchemaRecompileNotification = true;
+		_Schema.ignoreNextSchemaRecompileNotification();
 		var url = rootUrl + 'schema_nodes/' + id;
 		$.ajax({
 			url: url,
@@ -2455,7 +2465,7 @@ var _Schema = {
 					_Schema.reload();
 				},
 				422: function(data) {
-					_Schema.ignoreNextSchemaRecompileNotification = false;
+					_Schema.ignoredSchemaRecompileNotification();
 					Structr.errorFromResponse(data.responseJSON);
 				}
 			}
@@ -2463,7 +2473,7 @@ var _Schema = {
 		});
 	},
 	createRelationshipDefinition: function(sourceId, targetId, relationshipType) {
-		_Schema.ignoreNextSchemaRecompileNotification = true;
+		_Schema.ignoreNextSchemaRecompileNotification();
 		var data = {
 			sourceId: sourceId,
 			targetId: targetId,
@@ -2484,14 +2494,14 @@ var _Schema = {
 					_Schema.reload();
 				},
 				422: function(data) {
-					_Schema.ignoreNextSchemaRecompileNotification = false;
+					_Schema.ignoredSchemaRecompileNotification();
 					Structr.errorFromResponse(data.responseJSON);
 				}
 			}
 		});
 	},
 	removeRelationshipDefinition: function(id) {
-		_Schema.ignoreNextSchemaRecompileNotification = true;
+		_Schema.ignoreNextSchemaRecompileNotification();
 		$.ajax({
 			url: rootUrl + 'schema_relationship_nodes/' + id,
 			type: 'DELETE',
@@ -2502,7 +2512,7 @@ var _Schema = {
 					_Schema.reload();
 				},
 				422: function(data) {
-					_Schema.ignoreNextSchemaRecompileNotification = false;
+					_Schema.ignoredSchemaRecompileNotification();
 					Structr.errorFromResponse(data.responseJSON);
 				}
 			}
@@ -2527,7 +2537,7 @@ var _Schema = {
 
 					if (changed) {
 
-						_Schema.ignoreNextSchemaRecompileNotification = true;
+						_Schema.ignoreNextSchemaRecompileNotification();
 
 						$.ajax({
 							url: rootUrl + 'schema_relationship_nodes/' + entity.id,
@@ -2543,7 +2553,7 @@ var _Schema = {
 									_Schema.reload();
 								},
 								422: function(data) {
-									_Schema.ignoreNextSchemaRecompileNotification = false;
+									_Schema.ignoredSchemaRecompileNotification();
 									if (onError) {
 										onError(data);
 									}
@@ -2569,7 +2579,7 @@ var _Schema = {
 					$.unblockUI({
 						fadeOut: 25
 					});
-					_Schema.ignoreNextSchemaRecompileNotification = true;
+					_Schema.ignoreNextSchemaRecompileNotification();
 					_Schema.detach(resId);
 					_Schema.reload();
 				});
@@ -2755,7 +2765,7 @@ var _Schema = {
 	},
 	performSnapshotAction: function (action, snapshot) {
 
-		_Schema.ignoreNextSchemaRecompileNotification = true;
+		_Schema.ignoreNextSchemaRecompileNotification();
 
 		Command.snapshots(action, snapshot, null, function(data) {
 
@@ -2764,7 +2774,7 @@ var _Schema = {
 			if (status === 'success') {
 				_Schema.reload();
 			} else {
-				_Schema.ignoreNextSchemaRecompileNotification = false;
+				_Schema.ignoredSchemaRecompileNotification();
 
 				if (dialogBox.is(':visible')) {
 					Structr.showAndHideInfoBoxMessage(status, 'error', 2000, 200);
@@ -2847,7 +2857,7 @@ var _Schema = {
 					fadeOut: 25
 				});
 
-				_Schema.ignoreNextSchemaRecompileNotification = true;
+				_Schema.ignoreNextSchemaRecompileNotification();
 
 				Command.snapshots("purge", undefined, undefined, function () {
 					_Schema.reload();
