@@ -781,7 +781,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 	private ArrayList<String> extractArrayContentsFromArray (final String value, final String propertyName) throws IOException {
 
-		final CSVParser arrayParser              = new CSVParser(DEFAULT_QUOTE_CHARACTER_COLLECTION_CONTENTS, DEFAULT_FIELD_SEPARATOR_COLLECTION_CONTENTS);
+		final CSVParser arrayParser              = new CSVParser(DEFAULT_FIELD_SEPARATOR_COLLECTION_CONTENTS, DEFAULT_QUOTE_CHARACTER_COLLECTION_CONTENTS);
 		final ArrayList<String> extractedStrings = new ArrayList();
 
 		extractedStrings.addAll(Arrays.asList(arrayParser.parseLine(stripArrayBracketsFromString(value, propertyName))));
