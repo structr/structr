@@ -37,5 +37,9 @@ public interface StructrTransactionListener {
 	public void beforeCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents, final TransactionSource source) throws FrameworkException;
 	public void afterCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents, final TransactionSource source);
 
-	public void simpleBroadcast(final String messageName, final Map<String, Object> data);
+	default public void simpleBroadcast(final String messageName, final Map<String, Object> data) {
+		simpleBroadcast(messageName, data, null);
+	};
+
+	default public void simpleBroadcast(final String messageName, final Map<String, Object> data, final String exemptedSessionId) { };
 }

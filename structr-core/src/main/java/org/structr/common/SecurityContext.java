@@ -73,6 +73,7 @@ public class SecurityContext {
 	private Set<String> customView               = null;
 	private String cachedUserName                = null;
 	private String cachedUserId                  = null;
+	private String sessionId                     = null;
 
 	//~--- constructors ---------------------------------------------------
 	private SecurityContext() {
@@ -781,6 +782,22 @@ public class SecurityContext {
 
 	public boolean ignoreResultCount() {
 		return ignoreResultCount;
+	}
+
+	public String getSessionId() {
+
+		// return session id for HttpSession if present
+		if (getRequest() != null && getRequest().getSession() != null && getRequest().getSession().getId() != null) {
+			return getRequest().getSession().getId();
+		}
+
+		// otherwise return cached session id if present (for websocket connections for example)
+		return sessionId;
+
+	}
+
+	public void setSessionId(String sessionId) {
+		this.sessionId = sessionId;
 	}
 
 	// ----- nested classes -----

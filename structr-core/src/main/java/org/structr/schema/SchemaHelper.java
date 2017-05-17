@@ -288,7 +288,7 @@ public class SchemaHelper {
 		return type;
 	}
 
-	public static boolean reloadSchema(final ErrorBuffer errorBuffer) {
+	public static boolean reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId) {
 
 		try {
 
@@ -316,7 +316,7 @@ public class SchemaHelper {
 			logger.warn("", t);
 		}
 
-		return SchemaService.reloadSchema(errorBuffer);
+		return SchemaService.reloadSchema(errorBuffer, initiatedBySessionId);
 
 	}
 

@@ -82,6 +82,12 @@ public class WebsocketController implements StructrTransactionListener {
 	// ----- private methods -----
 	private void broadcast(final WebSocketMessage webSocketData) {
 
+		broadcast(webSocketData, null);
+
+	}
+
+	private void broadcast(final WebSocketMessage webSocketData, final String exemptedSessionId) {
+
 		//logger.debug("Broadcasting message to {} clients..", clients.size());
 		// session must be valid to be received by the client
 		webSocketData.setSessionValid(true);
@@ -108,6 +114,11 @@ public class WebsocketController implements StructrTransactionListener {
 			if (session != null && socket.isAuthenticated()) {
 
 				final SecurityContext securityContext = socket.getSecurityContext();
+
+				if (exemptedSessionId != null && exemptedSessionId.equals(securityContext.getSessionId())) {
+					// session id is supposed to be exempted from this broadcast message
+					continue;
+				}
 
 				// if the object IS NOT of type AbstractNode AND the client is NOT priviledged OR
 				// if the object IS of type AbstractNode AND the client has no access to the node
@@ -209,9 +220,9 @@ public class WebsocketController implements StructrTransactionListener {
 	}
 
 	@Override
-	public void simpleBroadcast(final String commandName, final Map<String, Object> data) {
+	public void simpleBroadcast(final String commandName, final Map<String, Object> data, final String exemptedSessionId) {
 
-		broadcast(MessageBuilder.forName(commandName).data(data).build());
+		broadcast(MessageBuilder.forName(commandName).data(data).build(), exemptedSessionId);
 
 	}
 

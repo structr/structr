@@ -77,7 +77,7 @@ public class SchemaService implements Service {
 
 			@Override
 			public void initializationDone() {
-				reloadSchema(new ErrorBuffer());
+				reloadSchema(new ErrorBuffer(), null);
 			}
 		});
 	}
@@ -86,7 +86,7 @@ public class SchemaService implements Service {
 		builtinTypeMap.put(type, fqcn);
 	}
 
-	public static boolean reloadSchema(final ErrorBuffer errorBuffer) {
+	public static boolean reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId) {
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		boolean success = true;
@@ -99,6 +99,7 @@ public class SchemaService implements Service {
 				final Map<String, Map<String, PropertyKey>> removedClasses = new HashMap<>(StructrApp.getConfiguration().getTypeAndPropertyMapping());
 				final Set<String> dynamicViews                             = new LinkedHashSet<>();
 				final NodeExtender nodeExtender                            = new NodeExtender();
+				nodeExtender.setInitiatedBySessionId(initiatedBySessionId);
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 

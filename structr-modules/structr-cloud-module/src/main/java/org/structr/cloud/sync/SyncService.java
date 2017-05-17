@@ -24,7 +24,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import org.apache.commons.lang.StringUtils;
@@ -324,9 +323,6 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 
 		}
 	}
-
-	@Override
-	public void simpleBroadcast(final String messageName, final Map<String, Object> data) {}
 
 	// ----- private methods -----
 	private void initializeSyncHosts(final String minimum) throws FrameworkException {

@@ -62,6 +62,7 @@ public class NodeExtender {
 
 	private List<JavaFileObject> jfiles  = null;
 	private Set<String> fqcns            = null;
+	private String initiatedBySessionId  = null;
 
 	public NodeExtender() {
 
@@ -147,7 +148,7 @@ public class NodeExtender {
 					for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
 						final Map<String, Object> data = new TreeMap();
 						data.put("success", true);
-						listener.simpleBroadcast("SCHEMA_COMPILED", data);
+						listener.simpleBroadcast("SCHEMA_COMPILED", data, getInitiatedBySessionId());
 					}
 
 					Services.getInstance().setOverridingSchemaTypesAllowed(false);
@@ -159,6 +160,14 @@ public class NodeExtender {
 		}
 
 		return classes;
+	}
+
+	public String getInitiatedBySessionId () {
+		return initiatedBySessionId;
+	}
+
+	public void setInitiatedBySessionId (final String initiatedBySessionId) {
+		this.initiatedBySessionId = initiatedBySessionId;
 	}
 
 	private static class Listener implements DiagnosticListener<JavaFileObject> {
