@@ -83,14 +83,20 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(CsvServlet.class.getName());
 
-	private static final char DEFAULT_FIELD_SEPARATOR = ';';
-	private static final char DEFAULT_QUOTE_CHARACTER = '"';
+	public static final String DEFAULT_FIELD_SEPARATOR_HEADER_NAME          = "X-CSV-Field-Separator";
+	public static final String DEFAULT_QUOTE_CHARACTER_HEADER_NAME          = "X-CSV-Quote-Character";
+	public static final String DEFAULT_PERIODIC_COMMIT_HEADER_NAME          = "X-CSV-Periodic-Commit";
+	public static final String DEFAULT_PERIODIC_COMMIT_INTERVAL_HEADER_NAME = "X-CSV-Periodic-Commit-Interval";
 
-	private static final char DEFAULT_FIELD_SEPARATOR_COLLECTION_CONTENTS = ',';
-	private static final char DEFAULT_QUOTE_CHARACTER_COLLECTION_CONTENTS = '"';
+	public static final char DEFAULT_FIELD_SEPARATOR = ';';
+	public static final char DEFAULT_QUOTE_CHARACTER = '"';
+	public static final boolean DEFAULT_PERIODIC_COMMIT = false;
+	public static final int DEFAULT_PERIODIC_COMMIT_INTERVAL = 1000;
 
-	private static final boolean DEFAULT_PERIODIC_COMMIT = false;
-	private static final int DEFAULT_PERIODIC_COMMIT_INTERVAL = 1000;
+	public static final char DEFAULT_FIELD_SEPARATOR_COLLECTION_CONTENTS = ',';
+	public static final char DEFAULT_QUOTE_CHARACTER_COLLECTION_CONTENTS = '"';
+
+
 	private static final String REMOVE_LINE_BREAK_PARAM = "nolinebreaks";
 	private static final String WRITE_BOM = "bom";
 
@@ -294,16 +300,16 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
-		final String fieldSeparatorHeader = request.getHeader("X-CSV-Field-Separator");
+		final String fieldSeparatorHeader = request.getHeader(DEFAULT_FIELD_SEPARATOR_HEADER_NAME);
 		final char fieldSeparator = (fieldSeparatorHeader == null) ? DEFAULT_FIELD_SEPARATOR : fieldSeparatorHeader.charAt(0);
 
-		final String quoteCharacterHeader = request.getHeader("X-CSV-Quote-Character");
+		final String quoteCharacterHeader = request.getHeader(DEFAULT_QUOTE_CHARACTER_HEADER_NAME);
 		final char quoteCharacter = (quoteCharacterHeader == null) ? DEFAULT_QUOTE_CHARACTER : quoteCharacterHeader.charAt(0);
 
-		final String doPeridicCommitHeader = request.getHeader("X-CSV-Periodic-Commit");
+		final String doPeridicCommitHeader = request.getHeader(DEFAULT_PERIODIC_COMMIT_HEADER_NAME);
 		final boolean doPeriodicCommit = (doPeridicCommitHeader == null) ? DEFAULT_PERIODIC_COMMIT : Boolean.parseBoolean(doPeridicCommitHeader);
 
-		final String periodicCommitIntervalHeader = request.getHeader("X-CSV-Periodic-Commit-Interval");
+		final String periodicCommitIntervalHeader = request.getHeader(DEFAULT_PERIODIC_COMMIT_INTERVAL_HEADER_NAME);
 		final Integer periodicCommitInterval = (periodicCommitIntervalHeader == null) ? DEFAULT_PERIODIC_COMMIT_INTERVAL : Integer.parseInt(periodicCommitIntervalHeader);
 
 		final List<RestMethodResult> results = new LinkedList<>();
