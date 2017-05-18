@@ -167,6 +167,12 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 		return false;
 	}
 
+	// ----- interface Feature -----
+	@Override
+	public String getModuleName() {
+		return "peer-to-peer";
+	}
+
 	// ----- repository connection -----
 	public void create(final SharedNodeInterface sharedNode) {
 

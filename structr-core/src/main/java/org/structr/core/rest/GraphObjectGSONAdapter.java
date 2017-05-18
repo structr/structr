@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest;
+package org.structr.core.rest;
 
 
 //~--- JDK imports ------------------------------------------------------------

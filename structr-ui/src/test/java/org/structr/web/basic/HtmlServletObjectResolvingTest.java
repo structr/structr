@@ -227,8 +227,6 @@ public class HtmlServletObjectResolvingTest {
 
 		Settings.HtmlResolveProperties.setValue("TestOne.anInt, TestOne.aString, TestOne.aDouble");
 
-		// enable "just testing" flag to avoid JAR resource scanning
-		Settings.Testing.setValue(true);
 		Settings.Services.setValue("NodeService HttpService SchemaService");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 

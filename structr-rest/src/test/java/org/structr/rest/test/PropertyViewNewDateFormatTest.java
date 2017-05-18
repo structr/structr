@@ -440,8 +440,6 @@ public class PropertyViewNewDateFormatTest {
 		// modify default date format
 		Settings.DefaultDateFormat.setValue("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
-		// enable "just testing" flag to avoid JAR resource scanning
-		Settings.Testing.setValue(true);
 		Settings.Services.setValue("NodeService LogService HttpService SchemaService");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 

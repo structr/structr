@@ -93,7 +93,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 		try {
 			newNode = nodeClass.newInstance();
 
-		} catch (InstantiationException|IllegalAccessException itex) {
+		} catch (NoClassDefFoundError|InstantiationException|IllegalAccessException itex) {
 			newNode = null;
 		}
 

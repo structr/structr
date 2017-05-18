@@ -18,15 +18,19 @@
  */
 package org.structr.module;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -37,11 +41,14 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.cxf.helpers.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.agent.Agent;
@@ -62,6 +69,7 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
+import org.structr.util.LicenseManager;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -74,6 +82,8 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	private static final Logger logger = LoggerFactory.getLogger(JarConfigurationProvider.class.getName());
 
 	public static final String DYNAMIC_TYPES_PACKAGE = "org.structr.dynamic";
+
+	private static final Set<String> coreModules                                                   = new HashSet<>(Arrays.asList("core", "rest", "ui"));
 
 	private final Map<String, Class<? extends RelationshipInterface>> relationshipEntityClassCache = new ConcurrentHashMap<>(1000);
 	private final Map<String, Class<? extends NodeInterface>> nodeEntityClassCache                 = new ConcurrentHashMap(1000);
@@ -109,10 +119,14 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	private final Set<String> dynamicViews                                                         = new LinkedHashSet<>();
 
 	private FactoryDefinition factoryDefinition                                                    = new DefaultFactoryDefinition();
+	private LicenseManager licenseManager                                                          = null;
 
-	// ----- interface Configuration -----
+	// ----- interface ConfigurationProvider -----
 	@Override
-	public void initialize() {
+	public void initialize(final LicenseManager licenseManager) {
+
+		this.licenseManager = licenseManager;
+
 		scanResources();
 	}
 
@@ -519,10 +533,11 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		// moved here from scanEntity, no reason to have this in a separate
 		// method requiring two different calls instead of one
-		String simpleName = type.getSimpleName();
-		String fqcn       = type.getName();
+		final String simpleName = type.getSimpleName();
+		final String fqcn       = type.getName();
 
 		if (AbstractNode.class.isAssignableFrom(type)) {
+
 			nodeEntityClassCache.put(simpleName, type);
 			nodeEntityPackages.add(fqcn.substring(0, fqcn.lastIndexOf(".")));
 			globalPropertyViewMap.remove(fqcn);
@@ -535,9 +550,9 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			globalPropertyViewMap.remove(fqcn);
 		}
 
-		for (Class interfaceClass : type.getInterfaces()) {
+		for (final Class interfaceClass : type.getInterfaces()) {
 
-			String interfaceName = interfaceClass.getSimpleName();
+			final String interfaceName     = interfaceClass.getSimpleName();
 			Set<Class> classesForInterface = interfaceCache.get(interfaceName);
 
 			if (classesForInterface == null) {
@@ -545,11 +560,9 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 				classesForInterface = new LinkedHashSet<>();
 
 				interfaceCache.put(interfaceName, classesForInterface);
-
 			}
 
 			classesForInterface.add(type);
-
 		}
 
 		try {
@@ -567,7 +580,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 					propertyKey.setDeclaringClass(declaringClass);
 					registerProperty(declaringClass, propertyKey);
-
 				}
 
 				registerProperty(type, propertyKey);
@@ -587,11 +599,17 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			}
 
 		} catch (Throwable t) {
-			logger.error("Unable to register type {}: {}", new Object[]{type, t.getMessage()});
+
+			logger.warn("Unable to register type {}, missing module?", type.getSimpleName());
+			logger.debug("Unable to register type.", t);
+
+			// remove already registered types in case of error
+			unregisterEntityType(type);
 		}
 
 		Map<String, Method> typeMethods = exportedMethodMap.get(fqcn);
 		if (typeMethods == null) {
+
 			typeMethods = new HashMap<>();
 			exportedMethodMap.put(fqcn, typeMethods);
 		}
@@ -1013,7 +1031,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	}
 
-	private void importResource(StructrModuleInfo module) throws IOException {
+	private void importResource(final StructrModuleInfo module) throws IOException {
 
 		final Set<String> classes = module.getClasses();
 
@@ -1066,10 +1084,13 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 						if (!modules.containsKey(moduleName)) {
 
-							modules.put(moduleName, structrModule);
-							logger.info("Activating module {}", moduleName);
+							if (coreModules.contains(moduleName) || licenseManager == null || licenseManager.isModuleLicensed(moduleName)) {
 
-							structrModule.onLoad();
+								modules.put(moduleName, structrModule);
+								logger.info("Activating module {}", moduleName);
+
+								structrModule.onLoad(licenseManager);
+							}
 						}
 
 					} catch (Throwable t) {
@@ -1091,41 +1112,56 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		if (resource.endsWith(".jar") || resource.endsWith(".war")) {
 
-			final ZipFile zipFile = new ZipFile(new File(resource), ZipFile.OPEN_READ);
+			try (final JarFile jarFile   = new JarFile(new File(resource), true)) {
 
-			// conventions that might be useful here:
-			// ignore entries beginning with meta-inf/
-			// handle entries beginning with images/ as IMAGE
-			// handle entries beginning with pages/ as PAGES
-			// handle entries ending with .jar as libraries, to be deployed to WEB-INF/lib
-			// handle other entries as potential page and/or entity classes
-			// .. to be extended
-			// (entries that end with "/" are directories)
+				final Manifest manifest = jarFile.getManifest();
+				if (manifest != null) {
 
-			for (final Enumeration<? extends ZipEntry> entries = zipFile.entries(); entries.hasMoreElements();) {
+					final Attributes attrs  = manifest.getAttributes("Structr");
+					if (attrs != null) {
 
-				final ZipEntry entry = entries.nextElement();
-				final String entryName = entry.getName();
+						final String name = attrs.getValue("Structr-Module-Name");
 
-				if (entryName.endsWith(".class")) {
+						// only scan and load modules that are licensed
+						if (name != null && (licenseManager == null || licenseManager.isModuleLicensed(name))) {
 
-					String fileEntry = entry.getName().replaceAll("[/]+", ".");
+							for (final Enumeration<? extends JarEntry> entries = jarFile.entries(); entries.hasMoreElements();) {
 
-					// add class entry to Module
-					classes.add(fileEntry.substring(0, fileEntry.length() - 6));
+								final JarEntry entry = entries.nextElement();
+								final String entryName = entry.getName();
 
+								if (entryName.endsWith(".class")) {
+
+									// cat entry > /dev/null (necessary to get signers below)
+									IOUtils.copy(jarFile.getInputStream(entry), new ByteArrayOutputStream(65535));
+
+									// verify module
+									if (licenseManager == null || licenseManager.isValid(entry.getCodeSigners())) {
+
+										final String fileEntry = entry.getName().replaceAll("[/]+", ".");
+
+										// add class entry to Module
+										classes.add(fileEntry.substring(0, fileEntry.length() - 6));
+									}
+								}
+							}
+
+						} else {
+
+							System.out.println("Module " + name + " is not licensed!");
+						}
+					}
 				}
-
 			}
-
-			zipFile.close();
 
 		} else if (resource.endsWith(classesDir)) {
 
+			// this is for testing only!
 			addClassesRecursively(new File(resource), classesDir, classes);
 
 		} else if (resource.endsWith(testClassesDir)) {
 
+			// this is for testing only!
 			addClassesRecursively(new File(resource), testClassesDir, classes);
 		}
 
@@ -1425,6 +1461,20 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		}
 
 		return viewTransformationMap;
+	}
+
+	private void consume(final InputStream is) {
+
+		final byte[] buffer = new byte[32768];
+
+		try (final InputStream stream = is) {
+
+			// read stream into buffer
+			while (stream.read(buffer, 0, 32768) != -1) {}
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
 	}
 
 	public void printCacheStats() {

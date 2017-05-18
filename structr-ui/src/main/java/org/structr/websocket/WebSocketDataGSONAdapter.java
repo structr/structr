@@ -41,9 +41,9 @@ import org.structr.core.GraphObject;
 import org.structr.core.StaticValue;
 import org.structr.core.Value;
 import org.structr.core.property.PropertyKey;
-import org.structr.rest.GraphObjectGSONAdapter;
-import org.structr.rest.JsonInputGSONAdapter;
-import static org.structr.rest.JsonInputGSONAdapter.fromPrimitive;
+import org.structr.core.rest.GraphObjectGSONAdapter;
+import org.structr.core.rest.JsonInputGSONAdapter;
+import static org.structr.core.rest.JsonInputGSONAdapter.fromPrimitive;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------

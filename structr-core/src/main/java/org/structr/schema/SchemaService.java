@@ -35,7 +35,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.api.service.InitializationCallback;
 import org.structr.api.service.Service;
@@ -44,6 +43,7 @@ import org.structr.common.AccessPathCache;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -140,16 +140,18 @@ public class SchemaService implements Service {
 						SchemaRelationshipNode.clearPropagatingRelationshipTypes();
 
 						// compile all classes at once and register
-						Map<String, Class> newTypes = nodeExtender.compile(errorBuffer);
+						final Map<String, Class> newTypes = nodeExtender.compile(errorBuffer);
 
 						for (final Class newType : newTypes.values()) {
 
-							// do full reload
-							config.registerEntityType(newType);
+							// instantiate classes to execute static initializer of helpers
+							try {
 
-							// instantiate classes to execute
-							// static initializer of helpers
-							try { newType.newInstance(); } catch (Throwable t) {}
+								// do full reload
+								config.registerEntityType(newType);
+								newType.newInstance();
+
+							} catch (Throwable t) {}
 						}
 
 						// calculate difference between previous and new classes
@@ -189,7 +191,7 @@ public class SchemaService implements Service {
 				}
 
 				// disable hierarchy calculation and automatic index creation for testing runs
-				if (!Settings.Testing.getValue()) {
+				if (!Services.isTesting()) {
 
 					calculateHierarchy();
 					updateIndexConfiguration(removedClasses);
@@ -252,6 +254,12 @@ public class SchemaService implements Service {
 	@Override
 	public boolean isVital() {
 		return true;
+	}
+
+	// ----- interface Feature -----
+	@Override
+	public String getModuleName() {
+		return "core";
 	}
 
 	// ----- private methods -----

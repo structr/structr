@@ -30,6 +30,7 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.property.GenericProperty;
 import org.structr.module.StructrModule;
 import org.structr.schema.action.Actions;
+import org.structr.util.LicenseManager;
 
 /**
  *
@@ -37,7 +38,7 @@ import org.structr.schema.action.Actions;
 public class FulltextIndexerModule implements FulltextIndexer, StructrModule {
 
 	@Override
-	public void onLoad() {
+	public void onLoad(final LicenseManager licenseManager) {
 	}
 
 	@Override

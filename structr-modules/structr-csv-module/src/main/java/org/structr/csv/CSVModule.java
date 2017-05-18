@@ -23,6 +23,7 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
 import org.structr.module.StructrModule;
 import org.structr.schema.action.Actions;
+import org.structr.util.LicenseManager;
 
 /**
  *
@@ -30,10 +31,12 @@ import org.structr.schema.action.Actions;
 public class CSVModule implements StructrModule {
 
 	@Override
-	public void onLoad() {
+	public void onLoad(final LicenseManager licenseManager) {
 
-		// check and read configuration..
-		Functions.functions.put("from_csv", new FromCsvFunction());
+		if (licenseManager != null && licenseManager.isEdition(LicenseManager.Basic)) {
+
+			Functions.functions.put("from_csv", new FromCsvFunction());
+		}
 	}
 
 	@Override

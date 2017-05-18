@@ -16,13 +16,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.schema.parser;
+package org.structr.web.schema.parser;
 
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
+import org.structr.schema.parser.PropertyDefinition;
+import org.structr.schema.parser.PropertySourceGenerator;
 import org.structr.web.entity.Image;
 import org.structr.web.property.ThumbnailProperty;
 

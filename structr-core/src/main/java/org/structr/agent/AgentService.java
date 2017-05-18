@@ -48,16 +48,12 @@ public class AgentService extends Thread implements RunnableService {
 
 	private static final Logger logger = LoggerFactory.getLogger(AgentService.class.getName());
 
-	//~--- fields ---------------------------------------------------------
-
 	private final int maxAgents                          = 4;    // TODO: make configurable
 	private final Map<String, List<Agent>> runningAgents = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Map<String, Class> agentClassCache     = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Queue<Task> taskQueue                  = new ConcurrentLinkedQueue<>();
 	private Set<Class> supportedCommands                 = null;
 	private boolean run                                  = false;
-
-	//~--- constructors ---------------------------------------------------
 
 	public AgentService() {
 
@@ -67,8 +63,6 @@ public class AgentService extends Thread implements RunnableService {
 
 		super.setDaemon(true);
 	}
-
-	//~--- methods --------------------------------------------------------
 
 	public void processTask(Task task) {
 
@@ -304,8 +298,6 @@ public class AgentService extends Thread implements RunnableService {
 
 	// </editor-fold>
 
-	//~--- get methods ----------------------------------------------------
-
 	/**
 	 * Returns the current queue of remaining tasks.
 	 * @return tasks
@@ -345,5 +337,11 @@ public class AgentService extends Thread implements RunnableService {
 	@Override
 	public boolean isVital() {
 		return false;
+	}
+
+	// ----- interface Feature -----
+	@Override
+	public String getModuleName() {
+		return "agents";
 	}
 }

@@ -67,6 +67,12 @@
 								<ODFDOM-Website>http://odftoolkit.org</ODFDOM-Website>
 							</manifestEntries>
 						</manifestSection>
+						<manifestSection>
+							<Name>Structr</Name>
+							<manifestEntries>
+								<Structr-Module-Name>odf</Structr-Module-Name>
+							</manifestEntries>
+						</manifestSection>
 					</archive>
 				</configuration>
 				<executions>
@@ -78,6 +84,24 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jarsigner-plugin</artifactId>
+				<version>1.2</version>
+				<executions>
+					<execution>
+						<id>sign</id>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<keystore>${user.home}/.structr/structr.keystore</keystore>
+					<alias>structr</alias>
+					<storepass>${structrKeystorePassword}</storepass>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>com.mycila</groupId>

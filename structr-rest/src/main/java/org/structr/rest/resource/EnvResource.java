@@ -27,12 +27,14 @@ import org.structr.common.VersionHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Result;
+import org.structr.core.Services;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
+import org.structr.util.LicenseManager;
 
 /**
  *
@@ -49,12 +51,7 @@ public class EnvResource extends Resource {
 
 		this.securityContext = securityContext;
 
-		if (UriPart._env.name().equals(part)) {
-
-			return true;
-		}
-
-		return false;
+		return (UriPart._env.name().equals(part));
 	}
 
 	@Override
@@ -68,6 +65,18 @@ public class EnvResource extends Resource {
 		info.setProperty(new StringProperty("classPath"),     VersionHelper.getClassPath());
 		info.setProperty(new StringProperty("instanceName"),  VersionHelper.getInstanceName());
 		info.setProperty(new StringProperty("instanceStage"), VersionHelper.getInstanceStage());
+
+		final LicenseManager licenseManager = Services.getInstance().getLicenseManager();
+		if (licenseManager != null) {
+
+			info.setProperty(new StringProperty("edition"),  licenseManager.getEdition());
+			info.setProperty(new StringProperty("licensee"), licenseManager.getLicensee());
+
+		} else {
+
+			info.setProperty(new StringProperty("edition"),  "Community");
+			info.setProperty(new StringProperty("licensee"), "Unlicensed");
+		}
 
 		resultList.add(info);
 

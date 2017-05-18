@@ -166,6 +166,12 @@ public class LDAPServerService implements SingletonService {
 		return false;
 	}
 
+	// ----- interface Feature -----
+	@Override
+	public String getModuleName() {
+		return "ldap-server";
+	}
+
 	// ----- private methods -----
 	private void initSchema(final SchemaManager schemaManager, final CoreSession adminSession, final StructrPartition partition) throws Exception {
 

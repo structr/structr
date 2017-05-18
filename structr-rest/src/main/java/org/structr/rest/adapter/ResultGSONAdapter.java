@@ -35,7 +35,7 @@ import java.util.Locale;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Value;
-import org.structr.rest.GraphObjectGSONAdapter;
+import org.structr.core.rest.GraphObjectGSONAdapter;
 
 /**
  * Controls deserialization of property sets.

@@ -186,7 +186,7 @@ public class UiAuthenticator implements Authenticator {
 		securityContext.setResponse(response);
 
 		// expose Structr edition
-		response.setHeader("X-Structr-Edition", Services.getEdition());
+		response.setHeader("X-Structr-Edition", Services.getInstance().getEdition());
 
 		return securityContext;
 

@@ -21,6 +21,7 @@ package org.structr.module;
 import java.util.Set;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.schema.action.Actions;
+import org.structr.util.LicenseManager;
 
 /**
  */
@@ -28,8 +29,10 @@ public interface StructrModule {
 
 	/**
 	 * Called when the module is loaded.
+	 *
+	 * @param licenseManager the license manager or null
 	 */
-	void onLoad();
+	void onLoad(final LicenseManager licenseManager);
 
 	/**
 	 * Returns the name of this module, with an optional version number.

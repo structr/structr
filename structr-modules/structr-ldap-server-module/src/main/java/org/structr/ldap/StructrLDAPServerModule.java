@@ -22,12 +22,13 @@ import java.util.Set;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.module.StructrModule;
 import org.structr.schema.action.Actions;
+import org.structr.util.LicenseManager;
 
 
 public class StructrLDAPServerModule implements StructrModule {
 
 	@Override
-	public void onLoad() {
+	public void onLoad(final LicenseManager licenseManager) {
 	}
 
 	@Override

@@ -25,7 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.IJsonInput;
 import org.structr.core.Result;
 import org.structr.core.Value;
-import org.structr.rest.JsonInputGSONAdapter;
+import org.structr.core.rest.JsonInputGSONAdapter;
 import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
 import org.structr.rest.adapter.ResultGSONAdapter;
 

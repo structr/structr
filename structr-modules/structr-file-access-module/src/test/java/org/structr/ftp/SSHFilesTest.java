@@ -39,7 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
-import org.structr.web.common.SSHTest;
+import org.structr.web.files.SSHTest;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 

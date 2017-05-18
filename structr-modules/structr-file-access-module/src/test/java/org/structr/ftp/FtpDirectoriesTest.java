@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-import org.structr.web.common.FtpTest;
+import org.structr.web.files.FtpTest;
 
 /**
  * Tests for FTP directories.

@@ -344,6 +344,12 @@ public class LDAPService extends Thread implements RunnableService {
 		return false;
 	}
 
+	// ----- interface Feature -----
+	@Override
+	public String getModuleName() {
+		return "ldap-client";
+	}
+
 	// ----- private methods -----
 	private String normalizeUUID(final String uuid) {
 

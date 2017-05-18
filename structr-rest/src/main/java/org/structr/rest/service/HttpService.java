@@ -151,7 +151,7 @@ public class HttpService implements RunnableService {
 	public void initialize(final StructrServices services) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
 
 		String sourceJarName = getClass().getProtectionDomain().getCodeSource().getLocation().toString();
-		final boolean isTest = Settings.Testing.getValue();
+		final boolean isTest = Services.isTesting();
 
 		if (!isTest && StringUtils.stripEnd(sourceJarName, System.getProperty("file.separator")).endsWith("classes")) {
 
@@ -220,7 +220,7 @@ public class HttpService implements RunnableService {
 		servletContext.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
 
 		if (Settings.ConfigServletEnabled.getValue()) {
-			
+
 			// configuration wizard entry point
 			servletContext.addServlet("org.structr.rest.servlet.ConfigServlet", "/structr/config/*");
 		}
@@ -469,6 +469,12 @@ public class HttpService implements RunnableService {
 	@Override
 	public boolean isVital() {
 		return true;
+	}
+
+	// ----- interface Feature -----
+	@Override
+	public String getModuleName() {
+		return "rest";
 	}
 
 	public Set<ResourceProvider> getResourceProviders() {

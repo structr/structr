@@ -20,12 +20,10 @@ package org.structr.core;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -36,7 +34,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.cxf.helpers.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -53,7 +50,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeService;
 import org.structr.schema.ConfigurationProvider;
-import org.structr.util.LicenseHelper;
+import org.structr.util.LicenseManager;
 
 public class Services implements StructrServices {
 
@@ -75,7 +72,7 @@ public class Services implements StructrServices {
 	private final Map<Class, Service> serviceCache             = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Set<Class> registeredServiceClasses          = new LinkedHashSet<>();
 	private final Set<String> configuredServiceClasses         = new LinkedHashSet<>();
-	private LicenseHelper licenseHelper                        = null;
+	private LicenseManager licenseManager                      = null;
 	private ConfigurationProvider configuration                = null;
 	private boolean initializationDone                         = false;
 	private boolean overridingSchemaTypesAllowed               = true;
@@ -144,7 +141,7 @@ public class Services implements StructrServices {
 		final String configFileName = "structr.conf";
 		final File configFile       = new File(configFileName);
 
-		if (Settings.Testing.getValue()) {
+		if (Services.isTesting()) {
 
 			// simulate fully configured system
 			logger.info("Starting Structr for testing (structr.conf will be ignored)..");
@@ -178,23 +175,18 @@ public class Services implements StructrServices {
 		// create set of configured services
 		configuredServiceClasses.addAll(Arrays.asList(configuredServiceNames.split("[ ,]+")));
 
-		// read license
-		licenseHelper = new LicenseHelper(Settings.getBasePath() + "license.key");
+		if (!isTesting()) {
 
-		// check license
-		if (!licenseHelper.isValid(getEdition())) {
-
-			logger.error("License is not valid, falling back to Evaluation License.");
-			
+			// read license
+			licenseManager = new LicenseManager(Settings.getBasePath() + "license.key");
 		}
-
 
 		// if configuration is not yet established, instantiate it
 		// this is the place where the service classes get the
 		// opportunity to modify the default configuration
 		getConfigurationProvider();
 
-		logger.info("Starting services");
+		logger.info("Starting services..");
 
 		// initialize other services
 		for (final String serviceClassName : configuredServiceClasses) {
@@ -285,14 +277,7 @@ public class Services implements StructrServices {
 		callbacks.add(callback);
 
 		// callbacks need to be sorted by priority
-		Collections.sort(callbacks, new Comparator<InitializationCallback>() {
-
-			@Override
-			public int compare(final InitializationCallback o1, final InitializationCallback o2) {
-				return Integer.valueOf(o1.priority()).compareTo(o2.priority());
-			}
-
-		});
+		Collections.sort(callbacks, (o1, o2) -> { return Integer.valueOf(o1.priority()).compareTo(o2.priority()); });
 	}
 
 	public boolean isInitialized() {
@@ -353,7 +338,6 @@ public class Services implements StructrServices {
 			if (serviceClass.getSimpleName().equals(serviceClassName)) {
 				return serviceClass;
 			}
-
 		}
 
 		return null;
@@ -371,11 +355,11 @@ public class Services implements StructrServices {
 			try {
 
 				configuration = (ConfigurationProvider)Class.forName(configurationClass).newInstance();
-				configuration.initialize();
+				configuration.initialize(licenseManager);
 
 			} catch (Throwable t) {
 
-				logger.error("Unable to instantiate configration provider of type {}", configurationClass);
+				logger.error("Unable to instantiate configration provider of type {}: {}", configurationClass, t);
 			}
 		}
 
@@ -424,13 +408,18 @@ public class Services implements StructrServices {
 
 	public void startService(final Class serviceClass) {
 
-		logger.info("Creating service {}..", serviceClass.getSimpleName());
-
-		Service service = null;
+		logger.info("Creating {}..", serviceClass.getSimpleName());
 
 		try {
 
-			service = (Service) serviceClass.newInstance();
+			final Service service = (Service) serviceClass.newInstance();
+
+			if (licenseManager != null && !licenseManager.isValid(service)) {
+
+				logger.error("Configured service {} is not part of the currently licensed Structr Edition.", serviceClass.getSimpleName());
+				return;
+			}
+
 			service.initialize(this);
 
 			if (service instanceof RunnableService) {
@@ -450,17 +439,13 @@ public class Services implements StructrServices {
 				serviceCache.put(serviceClass, service);
 			}
 
+			// initialization callback
+			service.initialized();
+
 		} catch (Throwable t) {
 
-			logger.error("Service {} failed to start", service.getClass().getSimpleName(), t);
+			logger.error("Service {} failed to start", serviceClass.getSimpleName(), t);
 		}
-
-		logger.info("Calling initialization callback");
-
-		// initialization callback
-		service.initialized();
-
-		logger.info("Service initialized.");
 	}
 
 	public void shutdownService(final String serviceName) {
@@ -591,8 +576,6 @@ public class Services implements StructrServices {
 			}
 		}
 
-		logger.info("Found {} possible resources: {}", new Object[] { resources.size(), resources } );
-
 		return resources;
 	}
 
@@ -645,24 +628,32 @@ public class Services implements StructrServices {
 		return getInstance().permissionsForOwnerlessNodes;
 	}
 
-	private static String cachedEdition = null;
+	public String getEdition() {
 
-	public static String getEdition() {
+		if (licenseManager != null) {
+			return licenseManager.getEdition();
+		}
 
-		if (cachedEdition == null) {
+		return "Community";
+	}
 
-			try (final InputStream is = Services.class.getResourceAsStream("/structr.properties")) {
+	public LicenseManager getLicenseManager() {
+		return licenseManager;
+	}
 
-				cachedEdition = IOUtils.toString(is);
+	// ----- private methods -----
+	public static boolean isTesting() {
 
-			} catch (Throwable t) {}
+		for (final StackTraceElement[] stackTraces : Thread.getAllStackTraces().values()) {
 
-			// fallback
-			if (StringUtils.isBlank(cachedEdition)) {
-				cachedEdition = "Source";
+			for (final StackTraceElement elem : stackTraces) {
+
+				if (elem.getClassName().startsWith("org.junit.")) {
+					return true;
+				}
 			}
 		}
 
-		return cachedEdition;
+		return false;
 	}
 }

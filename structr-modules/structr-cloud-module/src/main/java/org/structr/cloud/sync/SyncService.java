@@ -274,6 +274,12 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 		return true;
 	}
 
+	// ----- interface Feature -----
+	@Override
+	public String getModuleName() {
+		return "cloud";
+	}
+
 	// ----- interface StructrTransactionListener -----
 	@Override
 	public void beforeCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents, final TransactionSource source) throws FrameworkException {

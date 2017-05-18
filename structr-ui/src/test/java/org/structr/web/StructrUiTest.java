@@ -124,8 +124,6 @@ public abstract class StructrUiTest {
 
 		basePath = "/tmp/structr-test-" + timestamp + "-" + System.nanoTime();
 
-		// enable "just testing" flag to avoid JAR resource scanning
-		Settings.Testing.setValue(true);
 		Settings.Services.setValue("NodeService HttpService SchemaService");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 

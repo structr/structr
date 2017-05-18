@@ -23,7 +23,7 @@ package org.structr.api.service;
  *
  *
  */
-public interface Service {
+public interface Service extends Feature {
 
 	/**
 	 * Called by Services#createCommand before the command is returned to
@@ -32,7 +32,7 @@ public interface Service {
 	 *
 	 * @param command
 	 */
-	public void injectArguments(Command command);
+	void injectArguments(Command command);
 
 	/**
 	 * Called by the service layer after the service is instantiated to initialize
@@ -44,30 +44,30 @@ public interface Service {
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 */
-	public void initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException;
+	void initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException;
 
 	/**
 	 * Called before the service is discarded. Note that this method will not be called
 	 * for instances of {@link PrototypeService}.
 	 */
-	public void shutdown();
+	void shutdown();
 
 	/**
 	 * Called by the service layer when the service was initialized successfully
 	 */
-	public void initialized();
+	void initialized();
 
 	/**
 	 * Return name of service
 	 * @return name
 	 */
-	public String getName();
+	String getName();
 
 	/**
 	 * Return true if Service is running.
 	 * @return isRunning
 	 */
-	public boolean isRunning();
+	boolean isRunning();
 
 	/**
 	 * Return true if Service is vital for the start of Structr. The failure
@@ -75,6 +75,5 @@ public interface Service {
 	 * appropriate error message.
 	 * @return a boolean
 	 */
-	public boolean isVital();
-
+	boolean isVital();
 }

@@ -27,6 +27,7 @@ import org.structr.api.config.Settings;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.module.StructrModule;
 import org.structr.schema.action.Actions;
+import org.structr.util.LicenseManager;
 
 
 public class StructrPaymentsModule implements StructrModule {
@@ -34,7 +35,7 @@ public class StructrPaymentsModule implements StructrModule {
 	private static final Logger logger = LoggerFactory.getLogger(StructrPaymentsModule.class.getName());
 
 	@Override
-	public void onLoad() {
+	public void onLoad(final LicenseManager licenseManager) {
 
 		logger.info("Checking payment provider configuration..");
 

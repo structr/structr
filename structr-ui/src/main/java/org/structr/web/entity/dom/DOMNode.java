@@ -52,7 +52,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
-import org.structr.core.function.Functions;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
@@ -90,31 +89,6 @@ import org.structr.web.entity.dom.relationship.DOMSiblings;
 import org.structr.web.entity.relation.PageLink;
 import org.structr.web.entity.relation.RenderNode;
 import org.structr.web.entity.relation.Sync;
-import org.structr.web.function.AddHeaderFunction;
-import org.structr.web.function.CopyFileContentsFunction;
-import org.structr.web.function.EscapeHtmlFunction;
-import org.structr.web.function.FromJsonFunction;
-import org.structr.web.function.FromXmlFunction;
-import org.structr.web.function.GetContentFunction;
-import org.structr.web.function.GetRequestHeaderFunction;
-import org.structr.web.function.GetSessionAttributeFunction;
-import org.structr.web.function.HttpGetFunction;
-import org.structr.web.function.HttpHeadFunction;
-import org.structr.web.function.HttpPostFunction;
-import org.structr.web.function.IncludeFunction;
-import org.structr.web.function.IsLocaleFunction;
-import org.structr.web.function.LogEventFunction;
-import org.structr.web.function.ParseFunction;
-import org.structr.web.function.RemoveSessionAttributeFunction;
-import org.structr.web.function.RenderFunction;
-import org.structr.web.function.SendHtmlMailFunction;
-import org.structr.web.function.SendPlaintextMailFunction;
-import org.structr.web.function.SetDetailsObjectFunction;
-import org.structr.web.function.SetResponseHeaderFunction;
-import org.structr.web.function.SetSessionAttributeFunction;
-import org.structr.web.function.StripHtmlFunction;
-import org.structr.web.function.ToGraphObjectFunction;
-import org.structr.web.function.ToJsonFunction;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -196,38 +170,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	public static final Property<List<String>> mostUsedTagsProperty   = new MostUsedTagsProperty("mostUsedTags");
 	public static final Property<Integer> domSortPosition             = new IntProperty("domSortPosition");
-
-	static {
-
-		// extend set of builtin functions
-		Functions.functions.put("add_header", new AddHeaderFunction());
-		Functions.functions.put("escape_html", new EscapeHtmlFunction());
-		Functions.functions.put("from_json", new FromJsonFunction());
-		Functions.functions.put("from_xml", new FromXmlFunction());
-		Functions.functions.put("get_content", new GetContentFunction());
-		Functions.functions.put("get_request_header", new GetRequestHeaderFunction());
-		Functions.functions.put("GET", new HttpGetFunction());
-		Functions.functions.put("HEAD", new HttpHeadFunction());
-		Functions.functions.put("POST", new HttpPostFunction());
-		Functions.functions.put("include", new IncludeFunction());
-		Functions.functions.put("is_locale", new IsLocaleFunction());
-		Functions.functions.put("log_event", new LogEventFunction());
-		Functions.functions.put("log_event", new LogEventFunction());
-		Functions.functions.put("parse", new ParseFunction());
-		Functions.functions.put("render", new RenderFunction());
-		Functions.functions.put("send_html_mail", new SendHtmlMailFunction());
-		Functions.functions.put("send_plaintext_mail", new SendPlaintextMailFunction());
-		Functions.functions.put("set_response_header", new SetResponseHeaderFunction());
-		Functions.functions.put("set_details_object", new SetDetailsObjectFunction());
-		Functions.functions.put("to_json", new ToJsonFunction());
-		Functions.functions.put("to_graph_object", new ToGraphObjectFunction());
-		Functions.functions.put("strip_html", new StripHtmlFunction());
-		Functions.functions.put("set_session_attribute", new SetSessionAttributeFunction());
-		Functions.functions.put("get_session_attribute", new GetSessionAttributeFunction());
-		Functions.functions.put("remove_session_attribute", new RemoveSessionAttributeFunction());
-		Functions.functions.put("copy_file_contents", new CopyFileContentsFunction());
-
-	}
 
 	public static final Property[] rawProps = new Property[] {
 		dataKey, restQuery, cypherQuery, xpathQuery, functionQuery, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions

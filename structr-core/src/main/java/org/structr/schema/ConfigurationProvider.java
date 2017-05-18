@@ -33,6 +33,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.module.StructrModule;
+import org.structr.util.LicenseManager;
 
 /**
  *
@@ -40,7 +41,7 @@ import org.structr.module.StructrModule;
  */
 public interface ConfigurationProvider {
 
-	public void initialize();
+	public void initialize(final LicenseManager licenseManager);
 	public void shutdown();
 
 	public void unregisterEntityType(final Class oldType);

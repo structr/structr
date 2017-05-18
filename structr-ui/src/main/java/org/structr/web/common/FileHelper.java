@@ -54,10 +54,8 @@ import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * File utility class.
- *
  *
  */
 public class FileHelper {

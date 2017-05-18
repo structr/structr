@@ -145,6 +145,12 @@ public class CloudService extends Thread implements RunnableService {
 		return false;
 	}
 
+	// ----- interface Feature -----
+	@Override
+	public String getModuleName() {
+		return "cloud";
+	}
+
 	// ----- public static methods -----
 	public static <T> T doRemote(final SecurityContext securityContext, final CloudTransmission<T> transmission, final CloudHost host, final CloudListener listener) throws FrameworkException {
 

@@ -54,6 +54,14 @@
 				<configuration>
 					<descriptor>src/assembly/module.xml</descriptor>
 					<appendAssemblyId>false</appendAssemblyId>
+					<archive>
+						<manifestSection>
+							<Name>Structr</Name>
+							<manifestEntries>
+								<Structr-Module-Name>payments</Structr-Module-Name>
+							</manifestEntries>
+						</manifestSection>
+					</archive>
 				</configuration>
 				<executions>
 					<execution>
@@ -64,6 +72,24 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jarsigner-plugin</artifactId>
+				<version>1.2</version>
+				<executions>
+					<execution>
+						<id>sign</id>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<keystore>${user.home}/.structr/structr.keystore</keystore>
+					<alias>structr</alias>
+					<storepass>${structrKeystorePassword}</storepass>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>com.mycila</groupId>

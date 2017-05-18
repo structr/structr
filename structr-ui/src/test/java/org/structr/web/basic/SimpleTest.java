@@ -982,7 +982,7 @@ public class SimpleTest extends StructrUiTest {
 			.response()
 			.contentType("text/html")
 			.header("Expires", "Thu, 01 Jan 1970 00:00:00 GMT")
-			.header("X-Structr-Edition", "Source")
+			.header("X-Structr-Edition", "Community")
 			.header("Cache-Control", "private, max-age=0, s-maxage=0, no-cache, no-store, must-revalidate")
 			.header("Pragma", "no-cache, no-store")
 			.header("Content-Type", "text/html;charset=UTF-8")

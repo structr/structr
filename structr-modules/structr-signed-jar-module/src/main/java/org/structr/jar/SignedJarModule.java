@@ -23,6 +23,7 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
 import org.structr.module.StructrModule;
 import org.structr.schema.action.Actions;
+import org.structr.util.LicenseManager;
 
 /**
  *
@@ -30,7 +31,7 @@ import org.structr.schema.action.Actions;
 public class SignedJarModule implements StructrModule {
 
 	@Override
-	public void onLoad() {
+	public void onLoad(final LicenseManager licenseManager) {
 
 		// extend set of builtin functions
 		Functions.functions.put("create_jar_file", new CreateJarFileFunction());

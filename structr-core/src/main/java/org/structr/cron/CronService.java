@@ -194,4 +194,10 @@ public class CronService extends Thread implements RunnableService {
 
 		return null;
 	}
+
+	// ----- interface Feature -----
+	@Override
+	public String getModuleName() {
+		return "cron";
+	}
 }

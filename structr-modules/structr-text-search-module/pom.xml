@@ -14,7 +14,7 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
@@ -90,6 +90,11 @@
 				<configuration>
 					<descriptor>src/assembly/module.xml</descriptor>
 					<appendAssemblyId>false</appendAssemblyId>
+					<archive>
+						<manifestEntries>
+							<Structr-Module-Name>text-search</Structr-Module-Name>
+						</manifestEntries>
+					</archive>
 				</configuration>
 				<executions>
 					<execution>
@@ -100,6 +105,24 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jarsigner-plugin</artifactId>
+				<version>1.2</version>
+				<executions>
+					<execution>
+						<id>sign</id>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<keystore>${user.home}/.structr/structr.keystore</keystore>
+					<alias>structr</alias>
+					<storepass>${structrKeystorePassword}</storepass>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>com.mycila</groupId>

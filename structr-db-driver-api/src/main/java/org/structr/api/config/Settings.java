@@ -67,7 +67,6 @@ public class Settings {
 	public static final Setting<String> LogPrefix             = new StringSetting(generalGroup,   "Logging",     "log.prefix",                 "structr");
 	public static final Setting<String> LogName               = new StringSetting(generalGroup,   "Logging",     "log.name",                   "structr-yyyy_mm_dd.request.log");
 	public static final Setting<String> Configuration         = new StringSetting(generalGroup,   "hidden",      "configuration.provider",     "org.structr.module.JarConfigurationProvider");
-	public static final Setting<Boolean> Testing              = new BooleanSetting(generalGroup,  "hidden",      "testing",                    false);
 	public static final StringSetting Services                = new StringSetting(generalGroup,   "Services",    "configured.services",        "NodeService AgentService CronService SchemaService LogService HttpService FtpService SSHService");
 
 	// server settings
@@ -445,19 +444,19 @@ public class Settings {
 			properties.put(k, trim((String) properties.get(k)));
 		}
 	}
-	
+
 	public static String getBasePath() {
 
 		return checkPath(BasePath.getValue());
-		
+
 	}
-	
+
 	public static String getFullSettingPath(Setting<String> pathSetting) {
 
 		return getBasePath() + checkPath(pathSetting.getValue());
-		
+
 	}
-	
+
 	private static String checkPath(final String path) {
 
 		if (path.endsWith("/")) {

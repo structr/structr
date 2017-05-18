@@ -352,8 +352,6 @@ public class StructrRestTest {
 
 		basePath = "/tmp/structr-test-" + timestamp;
 
-		// enable "just testing" flag to avoid JAR resource scanning
-		Settings.Testing.setValue(true);
 		Settings.Services.setValue("NodeService LogService HttpService SchemaService");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 

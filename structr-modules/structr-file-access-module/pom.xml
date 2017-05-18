@@ -29,6 +29,12 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.1.7</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.sshd</groupId>
 			<artifactId>sshd-core</artifactId>
 			<version>1.2.0</version>
@@ -39,12 +45,6 @@
 			<artifactId>ftpserver-core</artifactId>
 			<version>1.0.6</version>
 			<optional>true</optional>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.jayway.restassured</groupId>
@@ -68,12 +68,12 @@
 			<scope>test</scope>
 			<optional>false</optional>
 		</dependency>
-	 <dependency>
-	  <groupId>com.jcraft</groupId>
-	  <artifactId>jsch</artifactId>
-	  <version>0.1.54</version>
-	  <scope>test</scope>
-	 </dependency>
+		<dependency>
+			<groupId>com.jcraft</groupId>
+			<artifactId>jsch</artifactId>
+			<version>0.1.54</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -94,6 +94,14 @@
 				<configuration>
 					<descriptor>src/assembly/module.xml</descriptor>
 					<appendAssemblyId>false</appendAssemblyId>
+					<archive>
+						<manifestSection>
+							<Name>Structr</Name>
+							<manifestEntries>
+								<Structr-Module-Name>file-access</Structr-Module-Name>
+							</manifestEntries>
+						</manifestSection>
+					</archive>
 				</configuration>
 				<executions>
 					<execution>
@@ -104,6 +112,24 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jarsigner-plugin</artifactId>
+				<version>1.2</version>
+				<executions>
+					<execution>
+						<id>sign</id>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<keystore>${user.home}/.structr/structr.keystore</keystore>
+					<alias>structr</alias>
+					<storepass>${structrKeystorePassword}</storepass>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>com.mycila</groupId>

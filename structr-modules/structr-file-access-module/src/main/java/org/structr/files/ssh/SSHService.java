@@ -150,6 +150,13 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 		return false;
 	}
 
+	// ----- interface Feature -----
+	@Override
+	public String getModuleName() {
+		return "file-access";
+	}
+
+	// ----- -----
 	@Override
 	public FileSystem createFileSystem(final Session session) throws IOException {
 		//return new StructrSSHFileSystem(securityContext, session);

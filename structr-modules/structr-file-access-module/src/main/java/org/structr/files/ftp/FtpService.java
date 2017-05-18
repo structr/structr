@@ -112,4 +112,9 @@ public class FtpService implements RunnableService {
 		return false;
 	}
 
+	// ----- interface Feature -----
+	@Override
+	public String getModuleName() {
+		return "file-access";
+	}
 }

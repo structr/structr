@@ -113,7 +113,7 @@ public class NodeService implements SingletonService {
 			if (isInitialized) {
 
 				final boolean firstInitialization = graphDb.getGlobalProperties().getProperty("initialized") == null;
-				final boolean isTest              = Settings.Testing.getValue();
+				final boolean isTest              = Services.isTesting();
 
 				if (graphDb.needsIndexRebuild() || (firstInitialization && !isTest)) {
 
@@ -256,5 +256,11 @@ public class NodeService implements SingletonService {
 				}
 			}
 		}
+	}
+
+	// ----- interface Feature -----
+	@Override
+	public String getModuleName() {
+		return "core";
 	}
 }
