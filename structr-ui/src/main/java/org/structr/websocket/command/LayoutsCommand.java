@@ -23,7 +23,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Files;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -96,7 +95,7 @@ public class LayoutsCommand extends AbstractCommand {
 
 					try {
 
-						final String content = new String(Files.readAllBytes(locateFile(name, false).toPath()));
+						final String content = new String(Files.readAllBytes(locateFile(name).toPath()));
 
 						getWebSocket().send(MessageBuilder.finished().callback(callback).data("schemaLayout", content).build(), true);
 
@@ -114,7 +113,7 @@ public class LayoutsCommand extends AbstractCommand {
 
 					try {
 
-						final File layoutFile = locateFile(name, false);
+						final File layoutFile = locateFile(name);
 
 						if (layoutFile.exists()) {
 
@@ -184,7 +183,7 @@ public class LayoutsCommand extends AbstractCommand {
 		// isolate write output
 		try (final Tx tx = app.tx()) {
 
-			final File layoutFile = locateFile(name, false);
+			final File layoutFile = locateFile(name);
 
 			try (final Writer writer = new FileWriter(layoutFile)) {
 
@@ -205,7 +204,7 @@ public class LayoutsCommand extends AbstractCommand {
 
 		if (fileName != null) {
 
-			final File layoutFile = locateFile(fileName, false);
+			final File layoutFile = locateFile(fileName);
 			layoutFile.delete();
 
 		} else {
@@ -233,22 +232,20 @@ public class LayoutsCommand extends AbstractCommand {
 		return fileNames;
 	}
 
-	public static File locateFile(final String name, final boolean addTimestamp) throws FrameworkException {
+	public static File locateFile(final String name) throws FrameworkException {
 
 		String fileName = name;
 		if (StringUtils.isBlank(fileName)) {
 
 			// create default value
-			fileName = "schema.json";
+			fileName = "layout.json";
 		}
 
-		if (fileName.contains(System.getProperty("dir.separator", "/"))) {
-			throw new FrameworkException(422, "Only relative file names are allowed, please use the snapshot.path configuration setting to supply a custom path for snapshots.");
-		}
-
-		if (addTimestamp) {
-			final SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd-HHmmss");
-			fileName = format.format(System.currentTimeMillis()) + "-" + fileName;
+		if (
+				(File.separator.equals("/") && fileName.contains(File.separator)) ||
+				(File.separator.equals("\\") && (fileName.contains("/") || fileName.contains("\\")))   // because on Windows you can use both types to create sub-directories
+			) {
+			throw new FrameworkException(422, "Only relative file names are allowed, please use the " + Settings.SnapshotsPath.getKey() + " configuration setting to supply a custom path for snapshots.");
 		}
 
 		// append JSON extension

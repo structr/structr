@@ -271,8 +271,11 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 			fileName = "schema.json";
 		}
 
-		if (fileName.contains(System.getProperty("dir.separator", "/"))) {
-			throw new FrameworkException(422, "Only relative file names are allowed, please use the snapshot.path configuration setting to supply a custom path for snapshots.");
+		if (
+				(File.separator.equals("/") && fileName.contains(File.separator)) ||
+				(File.separator.equals("\\") && (fileName.contains("/") || fileName.contains("\\")))   // because on Windows you can use both types to create sub-directories
+			) {
+			throw new FrameworkException(422, "Only relative file names are allowed, please use the " + Settings.SnapshotsPath.getKey() + " configuration setting to supply a custom path for snapshots.");
 		}
 
 		if (addTimestamp) {

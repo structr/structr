@@ -33,10 +33,10 @@ import java.util.Map;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
-import org.structr.api.config.Settings;
 import org.structr.core.function.Functions;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.ConfigurationProvider;
@@ -406,7 +406,7 @@ public abstract class Function<S, T> extends Hint {
 				dir.mkdirs();
 			}
 
-			final String finalFilePath = dir.getCanonicalPath().concat("/").concat(source);
+			final String finalFilePath = dir.getCanonicalPath().concat(File.separator).concat(source);
 			final File sourceFile = new File(finalFilePath);
 
 			if (finalFilePath.equals(sourceFile.getCanonicalPath())) {
@@ -435,7 +435,7 @@ public abstract class Function<S, T> extends Hint {
 
 			boolean isDebug = java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments().toString().contains("jdwp");
 
-			final String logPath = basePath.endsWith("/") ? basePath.concat("logs/") : basePath.concat("/logs/");
+			final String logPath = basePath.endsWith(File.separator) ? basePath.concat("logs" + File.separator) : basePath.concat(File.separator + "logs" + File.separator);
 
 			final File logFile = new File(logPath.concat(isDebug ? "debug.log" : "server.log"));
 			if (!logFile.exists()) {
