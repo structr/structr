@@ -144,6 +144,12 @@
 					<artifactId>neo4j-enterprise</artifactId>
 					<version>3.2.0</version>
 					<type>pom</type>
+					<exclusions>
+						<exclusion>
+							<groupId>org.slf4j</groupId>
+							<artifactId>slf4j-nop</artifactId>
+						</exclusion>
+					</exclusions>
 				</dependency>
 			</dependencies>
 		</profile>

@@ -1,8 +1,0 @@
-Package: [[artifactId]]
-Version: [[version]]
-Section: misc
-Priority: low
-Architecture: all
-Depends: openjdk-8-jdk | oracle-java8-jdk | oracle-java8-installer, wget
-Description: [[description]]
-Maintainer: Axel Morgner <axel.morgner@structr.com>
