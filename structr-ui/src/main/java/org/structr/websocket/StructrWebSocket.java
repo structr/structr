@@ -520,6 +520,7 @@ public class StructrWebSocket implements WebSocketListener {
 	//~--- set methods ----------------------------------------------------
 	public void setAuthenticated(final String sessionId, final Principal user) {
 		this.securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
+		this.securityContext.setSessionId(sessionId);
 	}
 
 	@Override

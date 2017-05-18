@@ -73,7 +73,6 @@ var _Schema = {
 		+ '<option value="Cypher">Cypher</option>'
 		+ '<option value="Thumbnail">Thumbnail</option>',
 	currentNodeDialogId:null,
-	ignoreNextSchemaRecompileNotification: false,
 	reload: function(callback) {
 		if (reload) {
 			return;
@@ -213,7 +212,6 @@ var _Schema = {
 					$('.node').css({zIndex: ++maxZ});
 
 					instance.bind('connection', function(info) {
-						_Schema.ignoreNextSchemaRecompileNotification = true;
 						_Schema.connect(Structr.getIdFromPrefixIdString(info.sourceId, 'id_'), Structr.getIdFromPrefixIdString(info.targetId, 'id_'));
 					});
 					instance.bind('connectionDetached', function(info) {
@@ -427,20 +425,13 @@ var _Schema = {
 
 		if (Structr.isModuleActive(_Schema)) {
 
-			if (_Schema.ignoreNextSchemaRecompileNotification === false) {
-
-				new MessageBuilder()
-						.title("Schema recompiled")
-						.info("Another user made changes to the schema. Do you want to reload to see the changes?")
-						.specialInteractionButton("Reload", _Schema.reloadSchemaAfterRecompileNotification, "Ignore")
-						.uniqueClass('schema')
-						.show();
-
-			} else {
-
-				_Schema.ignoreNextSchemaRecompileNotification = false;
-
-			}
+			new MessageBuilder()
+					.title("Schema recompiled")
+					.info("Another user made changes to the schema. Do you want to reload to see the changes?")
+					.specialInteractionButton("Reload", _Schema.reloadSchemaAfterRecompileNotification, "Ignore")
+					.uniqueClass('schema')
+					.incrementsUniqueCount()
+					.show();
 
 		}
 
@@ -1434,16 +1425,6 @@ var _Schema = {
 		_Schema.makeSchemaMethodRowResizable(resizeHandlerRow);
 		_Schema.initMethodRow(tr, entity, method);
 
-		$('.add-to-favorites', tr).on('click', function() {
-			_Schema.ignoreNextSchemaRecompileNotification = true;
-
-			Command.favorites('add', method.id, function() {
-				blinkGreen($('.add-to-favorites', tr));
-
-				_Schema.ignoreNextSchemaRecompileNotification = false;
-			});
-		});
-
 	},
 	appendEmptyMethod: function(actionsTable, entity) {
 
@@ -2123,11 +2104,8 @@ var _Schema = {
 				return;
 			}
 
-			_Schema.ignoreNextSchemaRecompileNotification = true;
 
 			Command.setProperty(entity.id, key, text2, false, function() {
-
-				_Schema.ignoreNextSchemaRecompileNotification = false;
 
 				Structr.showAndHideInfoBoxMessage('Code saved.', 'success', 2000, 200);
 				_Schema.reload();
@@ -2309,8 +2287,6 @@ var _Schema = {
 
 		if (entity && entity.id) {
 
-			_Schema.ignoreNextSchemaRecompileNotification = true;
-
 			$.ajax({
 				url: rootUrl + entity.id,
 				type: 'DELETE',
@@ -2324,8 +2300,6 @@ var _Schema = {
 						}
 					},
 					422: function(data) {
-						//Structr.errorFromResponse(data.responseJSON);
-						_Schema.ignoreNextSchemaRecompileNotification = false;
 						if (onError) {
 							onError(data);
 						}
@@ -2335,8 +2309,6 @@ var _Schema = {
 		}
 	},
 	storeSchemaEntity: function(resource, entity, data, onSuccess, onError, onNoop) {
-
-		_Schema.ignoreNextSchemaRecompileNotification = true;
 
 		var obj = JSON.parse(data);
 
@@ -2376,7 +2348,6 @@ var _Schema = {
 										}
 									},
 									422: function(data) {
-										_Schema.ignoreNextSchemaRecompileNotification = false;
 										if (onError) {
 											onError(data);
 										}
@@ -2411,7 +2382,6 @@ var _Schema = {
 						}
 					},
 					422: function(data) {
-						_Schema.ignoreNextSchemaRecompileNotification = false;
 						if (onError) {
 							onError(data);
 						}
@@ -2421,7 +2391,6 @@ var _Schema = {
 		}
 	},
 	createNode: function(type) {
-		_Schema.ignoreNextSchemaRecompileNotification = true;
 		var url = rootUrl + 'schema_nodes';
 		$.ajax({
 			url: url,
@@ -2434,7 +2403,6 @@ var _Schema = {
 					_Schema.reload();
 				},
 				422: function(data) {
-					_Schema.ignoreNextSchemaRecompileNotification = false;
 					Structr.errorFromResponse(data.responseJSON, undefined, {requiresConfirmation: true});
 				}
 			}
@@ -2442,7 +2410,6 @@ var _Schema = {
 		});
 	},
 	deleteNode: function(id) {
-		_Schema.ignoreNextSchemaRecompileNotification = true;
 		var url = rootUrl + 'schema_nodes/' + id;
 		$.ajax({
 			url: url,
@@ -2454,7 +2421,6 @@ var _Schema = {
 					_Schema.reload();
 				},
 				422: function(data) {
-					_Schema.ignoreNextSchemaRecompileNotification = false;
 					Structr.errorFromResponse(data.responseJSON);
 				}
 			}
@@ -2462,7 +2428,6 @@ var _Schema = {
 		});
 	},
 	createRelationshipDefinition: function(sourceId, targetId, relationshipType) {
-		_Schema.ignoreNextSchemaRecompileNotification = true;
 		var data = {
 			sourceId: sourceId,
 			targetId: targetId,
@@ -2483,14 +2448,12 @@ var _Schema = {
 					_Schema.reload();
 				},
 				422: function(data) {
-					_Schema.ignoreNextSchemaRecompileNotification = false;
 					Structr.errorFromResponse(data.responseJSON);
 				}
 			}
 		});
 	},
 	removeRelationshipDefinition: function(id) {
-		_Schema.ignoreNextSchemaRecompileNotification = true;
 		$.ajax({
 			url: rootUrl + 'schema_relationship_nodes/' + id,
 			type: 'DELETE',
@@ -2501,7 +2464,6 @@ var _Schema = {
 					_Schema.reload();
 				},
 				422: function(data) {
-					_Schema.ignoreNextSchemaRecompileNotification = false;
 					Structr.errorFromResponse(data.responseJSON);
 				}
 			}
@@ -2526,8 +2488,6 @@ var _Schema = {
 
 					if (changed) {
 
-						_Schema.ignoreNextSchemaRecompileNotification = true;
-
 						$.ajax({
 							url: rootUrl + 'schema_relationship_nodes/' + entity.id,
 							type: 'PUT',
@@ -2542,7 +2502,6 @@ var _Schema = {
 									_Schema.reload();
 								},
 								422: function(data) {
-									_Schema.ignoreNextSchemaRecompileNotification = false;
 									if (onError) {
 										onError(data);
 									}
@@ -2568,7 +2527,6 @@ var _Schema = {
 					$.unblockUI({
 						fadeOut: 25
 					});
-					_Schema.ignoreNextSchemaRecompileNotification = true;
 					_Schema.detach(resId);
 					_Schema.reload();
 				});
@@ -2754,8 +2712,6 @@ var _Schema = {
 	},
 	performSnapshotAction: function (action, snapshot) {
 
-		_Schema.ignoreNextSchemaRecompileNotification = true;
-
 		Command.snapshots(action, snapshot, null, function(data) {
 
 			var status = data[0].status;
@@ -2763,8 +2719,6 @@ var _Schema = {
 			if (status === 'success') {
 				_Schema.reload();
 			} else {
-				_Schema.ignoreNextSchemaRecompileNotification = false;
-
 				if (dialogBox.is(':visible')) {
 					Structr.showAndHideInfoBoxMessage(status, 'error', 2000, 200);
 				}
@@ -2845,8 +2799,6 @@ var _Schema = {
 				$.unblockUI({
 					fadeOut: 25
 				});
-
-				_Schema.ignoreNextSchemaRecompileNotification = true;
 
 				Command.snapshots("purge", undefined, undefined, function () {
 					_Schema.reload();

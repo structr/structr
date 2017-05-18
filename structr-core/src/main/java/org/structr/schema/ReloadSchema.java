@@ -31,6 +31,6 @@ public class ReloadSchema implements TransactionPostProcess {
 
 	@Override
 	public boolean execute(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		return SchemaHelper.reloadSchema(errorBuffer);
+		return SchemaHelper.reloadSchema(errorBuffer, securityContext.getSessionId());
 	}
 }

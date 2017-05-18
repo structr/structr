@@ -43,6 +43,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -55,11 +56,13 @@ import org.structr.core.GraphObject;
 import org.structr.core.JsonInput;
 import org.structr.core.Result;
 import org.structr.core.Services;
+import org.structr.core.StructrTransactionListener;
 import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
@@ -80,11 +83,25 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(CsvServlet.class.getName());
 
-	private static final String DELIMITER = ";";
+	public static final String DEFAULT_FIELD_SEPARATOR_HEADER_NAME          = "X-CSV-Field-Separator";
+	public static final String DEFAULT_QUOTE_CHARACTER_HEADER_NAME          = "X-CSV-Quote-Character";
+	public static final String DEFAULT_PERIODIC_COMMIT_HEADER_NAME          = "X-CSV-Periodic-Commit";
+	public static final String DEFAULT_PERIODIC_COMMIT_INTERVAL_HEADER_NAME = "X-CSV-Periodic-Commit-Interval";
+
+	public static final char DEFAULT_FIELD_SEPARATOR = ';';
+	public static final char DEFAULT_QUOTE_CHARACTER = '"';
+	public static final boolean DEFAULT_PERIODIC_COMMIT = false;
+	public static final int DEFAULT_PERIODIC_COMMIT_INTERVAL = 1000;
+
+	public static final char DEFAULT_FIELD_SEPARATOR_COLLECTION_CONTENTS = ',';
+	public static final char DEFAULT_QUOTE_CHARACTER_COLLECTION_CONTENTS = '"';
+
+
 	private static final String REMOVE_LINE_BREAK_PARAM = "nolinebreaks";
 	private static final String WRITE_BOM = "bom";
 
 	//~--- fields ---------------------------------------------------------
+	private SecurityContext securityContext;
 	private final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 	private Value<String> propertyView = null;
 
@@ -119,7 +136,6 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws UnsupportedEncodingException {
 
-		SecurityContext securityContext = null;
 		Authenticator authenticator = null;
 		Result result = null;
 		Resource resource = null;
@@ -284,11 +300,19 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
-		//System.out.println(IOUtils.toString(request.getInputStream()));
+		final String fieldSeparatorHeader = request.getHeader(DEFAULT_FIELD_SEPARATOR_HEADER_NAME);
+		final char fieldSeparator = (fieldSeparatorHeader == null) ? DEFAULT_FIELD_SEPARATOR : fieldSeparatorHeader.charAt(0);
 
+		final String quoteCharacterHeader = request.getHeader(DEFAULT_QUOTE_CHARACTER_HEADER_NAME);
+		final char quoteCharacter = (quoteCharacterHeader == null) ? DEFAULT_QUOTE_CHARACTER : quoteCharacterHeader.charAt(0);
+
+		final String doPeridicCommitHeader = request.getHeader(DEFAULT_PERIODIC_COMMIT_HEADER_NAME);
+		final boolean doPeriodicCommit = (doPeridicCommitHeader == null) ? DEFAULT_PERIODIC_COMMIT : Boolean.parseBoolean(doPeridicCommitHeader);
+
+		final String periodicCommitIntervalHeader = request.getHeader(DEFAULT_PERIODIC_COMMIT_INTERVAL_HEADER_NAME);
+		final Integer periodicCommitInterval = (periodicCommitIntervalHeader == null) ? DEFAULT_PERIODIC_COMMIT_INTERVAL : Integer.parseInt(periodicCommitIntervalHeader);
 
 		final List<RestMethodResult> results = new LinkedList<>();
-		final SecurityContext securityContext;
 		final Authenticator authenticator;
 		final Resource resource;
 
@@ -321,40 +345,107 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 					tx.success();
 				}
 
+				// do not send websocket notifications for created objects
+				securityContext.setDoTransactionNotifications(false);
+
 				// isolate doPost
 				boolean retry = true;
 				while (retry) {
 
 					retry = false;
 
+					final Iterable<JsonInput> csv = cleanAndParseCSV(input, resource, fieldSeparator, quoteCharacter);
+
 					if (resource.createPostTransaction()) {
 
-						try (final Tx tx = app.tx()) {
+						if (doPeriodicCommit) {
 
-							for (final JsonInput propertySet : cleanAndParseCSV(input, resource)) {
+							final List<JsonInput> list = new ArrayList<>();
+							csv.iterator().forEachRemaining(list::add);
+							final List<List<JsonInput>> chunkedCsv = ListUtils.partition(list, periodicCommitInterval);
 
-								results.add(resource.doPost(convertPropertySetToMap(propertySet)));
+							final int totalChunkNo = chunkedCsv.size();
+							int currentChunkNo = 0;
+
+							for (final List<JsonInput> currentChunk : chunkedCsv) {
+
+								try (final Tx tx = app.tx()) {
+
+									currentChunkNo++;
+
+									for (final JsonInput propertySet : currentChunk) {
+
+										handleCsvPropertySet(results, resource, propertySet);
+
+									}
+
+									tx.success();
+
+									logger.info("CSV: Finished importing chunk " + currentChunkNo + " / " + totalChunkNo);
+
+									for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
+
+										final Map<String, Object> data = new LinkedHashMap();
+										data.put("type", "CSV_IMPORT_STATUS");
+										data.put("title", "CSV Import Status");
+										data.put("text", "Finished importing chunk " + currentChunkNo + " / " + totalChunkNo);
+										data.put("username", securityContext.getUser(false).getName());
+										listener.simpleBroadcast("GENERIC_MESSAGE", data);
+
+									}
+
+								} catch (RetryException ddex) {
+									retry = true;
+								}
+
 							}
 
-							tx.success();
+						} else {
 
-						} catch (RetryException ddex) {
-							retry = true;
+							try (final Tx tx = app.tx()) {
+
+								for (final JsonInput propertySet : csv) {
+
+									handleCsvPropertySet(results, resource, propertySet);
+								}
+
+								tx.success();
+
+							} catch (RetryException ddex) {
+								retry = true;
+							}
 						}
 
 					} else {
 
+						if (doPeriodicCommit) {
+							logger.warn("Resource auto-creates POST transaction - can not commit periodically!");
+						}
+
 						try {
 
-							for (final JsonInput propertySet : cleanAndParseCSV(input, resource)) {
+							for (final JsonInput propertySet : csv) {
 
-								results.add(resource.doPost(convertPropertySetToMap(propertySet)));
+								handleCsvPropertySet(results, resource, propertySet);
 							}
 
 						} catch (RetryException ddex) {
 							retry = true;
 						}
 					}
+				}
+
+				logger.info("CSV: Finished importing csv data.");
+
+				for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
+
+					final Map<String, Object> data = new LinkedHashMap();
+					data.put("type", "CSV_IMPORT_STATUS");
+					data.put("title", "CSV Import Done");
+					data.put("text", "Finished importing csv data.");
+					data.put("username", securityContext.getUser(false).getName());
+					listener.simpleBroadcast("GENERIC_MESSAGE", data);
+
 				}
 
 				// set default value for property view
@@ -463,6 +554,31 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 		}
 	}
 
+	private void handleCsvPropertySet (final List<RestMethodResult> results, final Resource resource, final JsonInput propertySet) throws FrameworkException {
+
+		try {
+
+			results.add(resource.doPost(convertPropertySetToMap(propertySet)));
+
+		} catch (FrameworkException fxe) {
+
+			logger.warn("CSV Import Error: " + fxe.getMessage() + "\n" + fxe.toString() + "\n{}", propertySet);
+
+			for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
+
+				final Map<String, Object> data = new LinkedHashMap();
+				data.put("type", "CSV_IMPORT_ERROR");
+				data.put("title", "CSV Import Error");
+				data.put("text", fxe.getMessage() + "<br>" + fxe.toString() + "<br>" + propertySet.toString());
+				data.put("username", securityContext.getUser(false).getName());
+				listener.simpleBroadcast("GENERIC_MESSAGE", data);
+
+			}
+
+			throw fxe;
+		}
+	}
+
 	private static String escapeForCsv(final Object value) {
 
 		String result;
@@ -537,11 +653,11 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 				for (PropertyKey key : obj.getPropertyKeys(propertyView)) {
 
-					row.append("\"").append(key.dbName()).append("\"").append(DELIMITER);
+					row.append("\"").append(key.dbName()).append("\"").append(DEFAULT_FIELD_SEPARATOR);
 				}
 
-				// remove last ,
-				int pos = row.lastIndexOf(DELIMITER);
+				// remove last ;
+				int pos = row.lastIndexOf("" + DEFAULT_FIELD_SEPARATOR);
 				if (pos >= 0) {
 
 					row.deleteCharAt(pos);
@@ -565,12 +681,12 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 				row.append("\"").append((value != null
 					? escapeForCsv(value)
-					: "")).append("\"").append(DELIMITER);
+					: "")).append("\"").append(DEFAULT_FIELD_SEPARATOR);
 
 			}
 
-			// remove last ,
-			row.deleteCharAt(row.lastIndexOf(DELIMITER));
+			// remove last ;
+			row.deleteCharAt(row.lastIndexOf("" + DEFAULT_FIELD_SEPARATOR));
 			out.append(row).append("\r\n");
 
 			// flush each line
@@ -579,11 +695,11 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 	}
 
-	private Iterable<JsonInput> cleanAndParseCSV(final String input, final Resource resource) throws FrameworkException, IOException {
+	private Iterable<JsonInput> cleanAndParseCSV(final String input, final Resource resource, final char fieldSeparator, final char quoteCharacter) throws FrameworkException, IOException {
 
 		final BufferedReader reader  = new BufferedReader(new StringReader(input));
 		final String headerLine      = reader.readLine();
-		final CSVParser parser       = new CSVParser(';', '"');
+		final CSVParser parser       = new CSVParser(fieldSeparator, quoteCharacter);
 		final String[] propertyNames = parser.parseLine(headerLine);
 
 		return new Iterable<JsonInput>() {
@@ -640,7 +756,20 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 							}
 
 						} catch (IOException ioex) {
+							logger.warn("Exception in CSV line: {}", line);
 							logger.warn("", ioex);
+
+							for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
+
+								final Map<String, Object> data = new LinkedHashMap();
+								data.put("type", "CSV_IMPORT_ERROR");
+								data.put("title", "CSV Import Error");
+								data.put("text", "Error occured with dataset: " + line);
+								data.put("username", securityContext.getUser(false).getName());
+								listener.simpleBroadcast("GENERIC_MESSAGE", data);
+
+							}
+
 						}
 
 						return null;
@@ -658,7 +787,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 	private ArrayList<String> extractArrayContentsFromArray (final String value, final String propertyName) throws IOException {
 
-		final CSVParser arrayParser              = new CSVParser(',', '"');
+		final CSVParser arrayParser              = new CSVParser(DEFAULT_FIELD_SEPARATOR_COLLECTION_CONTENTS, DEFAULT_QUOTE_CHARACTER_COLLECTION_CONTENTS);
 		final ArrayList<String> extractedStrings = new ArrayList();
 
 		extractedStrings.addAll(Arrays.asList(arrayParser.parseLine(stripArrayBracketsFromString(value, propertyName))));

@@ -150,7 +150,7 @@ var CollapsibleLists =
           while (li.nodeName != 'LI') li = li.parentNode;
 
           // style the unordered list if it is directly within this node
-          if (li == node) uls[index].style.display = (open ? 'block' : 'none');
+//          if (li == node) uls[index].style.display = (open ? 'block' : 'none');
 
         }
 

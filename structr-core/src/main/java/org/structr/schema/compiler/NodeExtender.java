@@ -62,6 +62,7 @@ public class NodeExtender {
 
 	private List<JavaFileObject> jfiles  = null;
 	private Set<String> fqcns            = null;
+	private String initiatedBySessionId  = null;
 
 	public NodeExtender() {
 
@@ -145,7 +146,9 @@ public class NodeExtender {
 					logger.info("Successfully compiled {} dynamic entities: {}", new Object[] { jfiles.size(), jfiles.stream().map(f -> f.getName().replaceFirst("/", "")).collect(Collectors.joining(", ")) });
 
 					for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
-						listener.simpleBroadcast();
+						final Map<String, Object> data = new TreeMap();
+						data.put("success", true);
+						listener.simpleBroadcast("SCHEMA_COMPILED", data, getInitiatedBySessionId());
 					}
 
 					Services.getInstance().setOverridingSchemaTypesAllowed(false);
@@ -157,6 +160,14 @@ public class NodeExtender {
 		}
 
 		return classes;
+	}
+
+	public String getInitiatedBySessionId () {
+		return initiatedBySessionId;
+	}
+
+	public void setInitiatedBySessionId (final String initiatedBySessionId) {
+		this.initiatedBySessionId = initiatedBySessionId;
 	}
 
 	private static class Listener implements DiagnosticListener<JavaFileObject> {
