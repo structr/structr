@@ -1056,6 +1056,12 @@ var _Schema = {
 
 		saveButton.on('click', function(e) {
 
+			$('#relationship-options select, #relationship-options textarea, #relationship-options input').attr('disabled', true);
+
+			editButton.show();
+			saveButton.hide();
+			cancelButton.hide();
+
 			var newData = {
 				sourceMultiplicity: $('#source-multiplicity-selector').val(),
 				relationshipType: $('#relationship-type-name').val(),
@@ -1089,18 +1095,27 @@ var _Schema = {
 						blinkGreen($('#relationship-options [data-attr-name=' + attribute + ']'));
 						entity[attribute] = newData[attribute];
 					});
-				}, function() {
+				}, function(data) {
+					var additionalInformation = {};
+					var causedByIdenticalRelName = data.responseJSON.errors.some(function (e) {
+						return (e.detail.indexOf('duplicate class') !== -1);
+					});
+					if (causedByIdenticalRelName) {
+						additionalInformation.requiresConfirmation = true;
+						additionalInformation.title = 'Error';
+						additionalInformation.overrideText = 'You are trying to create a second relationship named <strong>' + newData.relationshipType + '</strong> between these types.<br>Relationship names between types have to be unique.';
+					}
+
+					Structr.errorFromResponse(data.responseJSON, null, additionalInformation);
+
+					editButton.click();
+
 					Object.keys(newData).forEach(function(attribute) {
 						blinkRed($('#relationship-options [data-attr-name=' + attribute + ']'));
 					});
+
 				});
 			}
-
-			$('#relationship-options select, #relationship-options textarea, #relationship-options input').attr('disabled', true);
-
-			editButton.show();
-			saveButton.hide();
-			cancelButton.hide();
 		});
 
 		cancelButton.on('click', function(e) {
@@ -2182,8 +2197,9 @@ var _Schema = {
 
 			_Schema.setRelationshipProperty(rel, (out ? 'targetJsonName' : 'sourceJsonName'), newName, function() {
 				blinkGreen($('.' + key, el));
-			}, function() {
+			}, function(data) {
 				blinkRed($('.' + key, el));
+				Structr.errorFromResponse(data.responseJSON);
 			});
 
 		});
@@ -2235,7 +2251,8 @@ var _Schema = {
 
 				if (obj.propertyType === 'Enum') {
 					additionalInformation.requiresConfirmation = true;
-					additionalInformation.furtherText = 'This error happened while changing an Enum type<br>See the <a href="https://support.structr.com/article/329">support article on enum properties</a> for possible explanations.';
+					additionalInformation.title = 'Schema compilation failed';
+					additionalInformation.overrideText = 'Error while making changes to an Enum property. See the <a href="https://support.structr.com/article/329">support article on enum properties</a> for possible explanations.';
 				}
 
 				Structr.errorFromResponse(data.responseJSON, null, additionalInformation);
@@ -2465,7 +2482,20 @@ var _Schema = {
 					_Schema.reload();
 				},
 				422: function(data) {
-					Structr.errorFromResponse(data.responseJSON);
+
+					var additionalInformation = {};
+					var causedByUndefinedRelName = data.responseJSON.errors.some(function (e) {
+						return (e.type.indexOf(undefinedRelType) !== -1);
+					});
+					if (causedByUndefinedRelName) {
+						additionalInformation.requiresConfirmation = true;
+						additionalInformation.title = 'Duplicate unnamed relationship';
+						additionalInformation.overrideText = 'You are trying to create a second <strong>unnamed</strong> relationship between these types.<br>Please rename the existing unnamed relationship first before creating another relationship.';
+					}
+
+					Structr.errorFromResponse(data.responseJSON, null, additionalInformation);
+
+					_Schema.reload();
 				}
 			}
 		});

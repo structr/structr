@@ -976,6 +976,9 @@ var Structr = {
 			if (additionalParameters.furtherText) {
 				message.furtherText(additionalParameters.furtherText);
 			}
+			if (additionalParameters.overrideText) {
+				message.text(additionalParameters.overrideText);
+			}
 		}
 
 		message.show();
