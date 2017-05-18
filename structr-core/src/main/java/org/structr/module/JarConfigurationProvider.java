@@ -1145,10 +1145,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 									}
 								}
 							}
-
-						} else {
-
-							System.out.println("Module " + name + " is not licensed!");
 						}
 					}
 				}

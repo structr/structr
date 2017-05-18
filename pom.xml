@@ -18,11 +18,11 @@
 	<developers>
 		<developer>
 			<name>Axel Morgner</name>
-			<email>am@structr.org</email>
+			<email>axel.morgner@structr.com</email>
 		</developer>
 		<developer>
 			<name>Christian Morgner</name>
-			<email>cm@structr.org</email>
+			<email>christian.morgner@structr.com</email>
 		</developer>
 	</developers>
 
@@ -43,6 +43,7 @@
 		<module>structr-ui</module>
 		<module>structr-modules</module>
 		<module>structr-distributions</module>
+		<module>structr-binaries</module>
 	</modules>
 
 	<build>
@@ -99,6 +100,7 @@
 				<module>structr-ui</module>
 				<module>structr-modules</module>
 				<module>structr-distributions</module>
+				<module>structr-binaries</module>
 			</modules>
 		</profile>
 

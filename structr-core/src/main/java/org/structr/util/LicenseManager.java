@@ -189,7 +189,15 @@ public class LicenseManager {
 		}
 
 		logger.info("Running {} Edition with {}.", edition, allModulesLicensed ? "all modules" : "modules " + modules.toString());
-		logger.info("Licensed for {}", licensee);
+
+		if (licensee != null) {
+
+			logger.info("Licensed for {}", licensee);
+
+		} else {
+
+			logger.info("Evaluation License");
+		}
 	}
 
 	public boolean isModuleLicensed(final String module) {

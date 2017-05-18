@@ -49,11 +49,9 @@
 				</configuration>
 			</plugin>
 			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.6</version>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.0.2</version>
 				<configuration>
-					<descriptor>src/assembly/module.xml</descriptor>
-					<appendAssemblyId>false</appendAssemblyId>
 					<archive>
 						<manifestSection>
 							<Name>Structr</Name>
@@ -63,15 +61,6 @@
 						</manifestSection>
 					</archive>
 				</configuration>
-				<executions>
-					<execution>
-						<id>create-archive</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -90,6 +79,23 @@
 					<alias>structr</alias>
 					<storepass>${structrKeystorePassword}</storepass>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.4</version>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.parent.parent.basedir}/structr-ui/target/lib</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>com.mycila</groupId>
