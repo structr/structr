@@ -98,7 +98,6 @@
 				<module>structr-rest</module>
 				<module>structr-ui</module>
 				<module>structr-modules</module>
-				<module>structr-distributions</module>
 				<module>structr-binaries</module>
 			</modules>
 		</profile>
